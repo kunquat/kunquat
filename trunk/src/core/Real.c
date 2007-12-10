@@ -205,24 +205,13 @@ int Real_cmp(Real* real1, Real* real2)
 				|| INT64_MAX / den2 <= imaxabs(num1);
 		bool overflow2 = num2 == INT64_MIN
 				|| INT64_MAX / den1 <= imaxabs(num2);
-		int64_t term1 = 0;
-		int64_t term2 = 0;
-		bool overflowdiff = false;
 		if (!overflow1 && !overflow2)
 		{
-			term1 = (num1 * den2);
-			term2 = (num2 * den1);
-			if (term2 > 0)
-				overflowdiff = term1 < INT64_MIN + term2;
-			else
-				overflowdiff = term1 > INT64_MAX + term2;
-		}
-		if (!overflow1 && !overflow2 && !overflowdiff)
-		{
-			int64_t res = term1 - term2;
-			if (res < 0)
+			int64_t term1 = num1 * den2;
+			int64_t term2 = num2 * den1;
+			if (term1 < term2)
 				return -1;
-			else if (res > 0)
+			else if (term1 > term2)
 				return 1;
 			return 0;
 		}
