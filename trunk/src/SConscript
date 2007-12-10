@@ -1,0 +1,15 @@
+
+
+Import('env', 'opts')
+
+Export('env', 'opts')
+
+SConscript('core/SConscript')
+
+
+if 'check' in env['LIBS']:
+	env['LIBS'].remove('check')
+
+#print 'src: ' + env.Dump('LIBS')
+
+

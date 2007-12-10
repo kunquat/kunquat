@@ -1,0 +1,14 @@
+
+
+Import('env', 'opts')
+
+env_test = env.Clone()
+
+env_test.Append(CPPPATH = ['#/src/core'])
+env_test.Append(LIBPATH = ['#/src/core'])
+env_test.Append(LIBS = ['core'])
+
+real = env_test.Program('real', ['real.c'])
+env_test.AddPostAction(real, real[0].abspath)
+
+

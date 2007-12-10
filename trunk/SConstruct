@@ -1,0 +1,61 @@
+
+
+from options import opts
+
+
+compile_flags = [
+'-std=c99',
+'-Wall',
+'-Wextra',
+'-Werror',
+'-O2',
+]
+
+if opts['debug']:
+	compile_flags.append('-g')
+else:
+	compile_flags.append('-DNDEBUG')
+
+
+env = Environment(CCFLAGS = compile_flags)
+
+
+if not env.GetOption('clean'):
+
+	conf = Configure(env)
+
+	if not conf.CheckType('uint8_t', '#include <stdint.h>'):
+		conf.env.Append(CCFLAGS = '-Duint8_t=uint_least8_t')
+
+	if not conf.CheckType('uint16_t', '#include <stdint.h>'):
+		conf.env.Append(CCFLAGS = '-Duint16_t=uint_least16_t')
+
+	if not conf.CheckType('uint32_t', '#include <stdint.h>'):
+		conf.env.Append(CCFLAGS = '-Duint32_t=uint_least32_t')
+
+	if not conf.CheckType('uint64_t', '#include <stdint.h>'):
+		conf.env.Append(CCFLAGS = '-Duint64_t=uint_least64_t')
+
+	if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
+		print 'Math library not found.'
+		Exit(1)
+
+	if not conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
+		print 'JACK not found.'
+		Exit(1)
+	
+	if opts['unit_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
+		print 'Building of unit tests requires Check.'
+		Exit(1)
+		
+	env = conf.Finish()
+
+
+#print 'Root: ' + env.Dump('LIBS')
+
+
+Export('env', 'opts')
+
+SConscript('src/SConscript')
+
+

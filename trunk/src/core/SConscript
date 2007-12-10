@@ -1,0 +1,18 @@
+
+
+Import('env', 'opts')
+
+Export('env', 'opts')
+
+if opts['unit_tests']:
+	SConscript('test/SConscript')
+
+#print 'core: ' + env.Dump('LIBS')
+
+files = [
+'Real.c',
+]
+
+env.StaticLibrary('core', files)
+
+
