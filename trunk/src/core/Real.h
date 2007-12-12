@@ -72,7 +72,7 @@ bool Real_is_frac(Real* real);
 /**
  * Returns the numerator of a Real object.
  * If the Real isn't stored as a fraction, the double value cast to
- * int_least64_t will be returned.
+ * int64_t will be returned.
  *
  * \param real   The Real object -- must be a valid Real.
  *
@@ -115,8 +115,10 @@ Real* Real_copy(Real* dest, Real* src);
 
 /**
  * Multiplies two Real objects.
- * If either operand is a double or the resultant terms are not representable
- * in int_least64_t, the result will be a double.
+ * The result will be a double in the following cases:
+ * \li One of the operands is a double.
+ * \li The product of the numerators is larger than INT64_MAX in magnitude.
+ * \li The product of the denominators is larger than INT64_MAX in magnitude.
  *
  * \param ret     The result Real object -- must not be \c NULL.
  * \param real1   The first factor -- must be a valid Real.
@@ -129,8 +131,12 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2);
 
 /**
  * Divides a Real object with another Real object.
- * If either operand is a double or the resultant terms are not representable
- * in int_least64_t, the result will be a double.
+ * The result will be a double in the following cases:
+ * \li One of the operands is a double.
+ * \li The product of the numerator of the dividend and the denominator of the
+ *     divisor is larger than INT64_MAX in magnitude.
+ * \li The product of the denominator of the dividend and the numerator of the
+ *     divisor is larger than INT64_MAX in magnitude.
  *
  * \param ret        The result Real object -- must not be \c NULL.
  * \param dividend   The dividend Real object -- must be a valid Real.
@@ -155,6 +161,8 @@ double Real_mul_float(Real* real, double d);
 
 /**
  * Compares two Real objects.
+ * The comparison is subject to inaccuracies of floating point calculation in
+ * the cases listed in the description of Real_div().
  *
  * \param real1   The first Real object -- must be a valid Real.
  * \param real2   The second Real object -- must be a valid Real.

@@ -26,39 +26,39 @@ if not env.GetOption('clean'):
 
 	if not conf.CheckType('int8_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Dint8_t=int_least8_t')
-		conf.env.Append(CCFLAGS = '-DINT8_MIN=INT_LEAST8_MIN')
-		conf.env.Append(CCFLAGS = '-DINT8_MAX=INT_LEAST8_MAX')
+		conf.env.Append(CCFLAGS = '-DINT8_MIN=(-127)')
+		conf.env.Append(CCFLAGS = '-DINT8_MAX=(127)')
 
 	if not conf.CheckType('int16_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Dint16_t=int_least8_t')
-		conf.env.Append(CCFLAGS = '-DINT16_MIN=INT_LEAST16_MIN')
-		conf.env.Append(CCFLAGS = '-DINT16_MAX=INT_LEAST16_MAX')
+		conf.env.Append(CCFLAGS = '-DINT16_MIN=(-32767)')
+		conf.env.Append(CCFLAGS = '-DINT16_MAX=(32767)')
 
 	if not conf.CheckType('int32_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Dint32_t=int_least32_t')
-		conf.env.Append(CCFLAGS = '-DINT32_MIN=INT_LEAST32_MIN')
-		conf.env.Append(CCFLAGS = '-DINT32_MAX=INT_LEAST32_MAX')
+		conf.env.Append(CCFLAGS = '-DINT32_MIN=(-2147483647L)')
+		conf.env.Append(CCFLAGS = '-DINT32_MAX=(2147483647L)')
 
 	if not conf.CheckType('int64_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Dint64_t=int_least64_t')
-		conf.env.Append(CCFLAGS = '-DINT64_MIN=INT_LEAST64_MIN')
-		conf.env.Append(CCFLAGS = '-DINT64_MAX=INT_LEAST64_MAX')
+		conf.env.Append(CCFLAGS = '-DINT64_MIN=(-9223372036854775807LL)')
+		conf.env.Append(CCFLAGS = '-DINT64_MAX=(9223372036854775807LL)')
 
 	if not conf.CheckType('uint8_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Duint8_t=uint_least8_t')
-		conf.env.Append(CCFLAGS = '-DUINT8_MAX=UINT_LEAST8_MAX')
+		conf.env.Append(CCFLAGS = '-DUINT8_MAX=(255)')
 
 	if not conf.CheckType('uint16_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Duint16_t=uint_least16_t')
-		conf.env.Append(CCFLAGS = '-DUINT16_MAX=UINT_LEAST16_MAX')
+		conf.env.Append(CCFLAGS = '-DUINT16_MAX=(65535)')
 
 	if not conf.CheckType('uint32_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Duint32_t=uint_least32_t')
-		conf.env.Append(CCFLAGS = '-DUINT32_MAX=UINT_LEAST32_MAX')
+		conf.env.Append(CCFLAGS = '-DUINT32_MAX=(4294967295UL)')
 
 	if not conf.CheckType('uint64_t', '#include <stdint.h>'):
 		conf.env.Append(CCFLAGS = '-Duint64_t=uint_least64_t')
-		conf.env.Append(CCFLAGS = '-DUINT64_MAX=UINT_LEAST64_MAX')
+		conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
 	if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
 		print 'Math library not found.'

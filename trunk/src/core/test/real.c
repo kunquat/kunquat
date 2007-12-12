@@ -1279,12 +1279,12 @@ START_TEST (test_cmp)
 			"Real_cmp() failed with DBL_MAX = DBL_MAX.");
 
 	/* x != y */
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
-	Real_init_as_frac(&real2, INT64_MIN + 3, 1);
+	Real_init_as_frac(&real1, -INT64_MAX, 1);
+	Real_init_as_frac(&real2, -INT64_MAX + 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < INT64_MIN + 3.");
+			"Real_cmp() failed -INT64_MAX < -INT64_MAX + 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < INT64_MIN + 3.");
+			"Real_cmp() failed -INT64_MAX < -INT64_MAX + 1.");
 	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
 	Real_init_as_frac(&real2, INT64_MIN + 2, INT64_MAX - 3);
 	fail_unless(Real_cmp(&real1, &real2) < 0,

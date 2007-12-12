@@ -35,6 +35,20 @@ static bool Real_validate_(Real* real);
 #endif
 
 
+/**
+ * Performs integer multiplication with overflow check.
+ *
+ * \param a     The first term.
+ * \param b     The second term.
+ * \param res   Pointer to the result variable -- must not be \c NULL. If an
+ *              overflow would occur, the stored value will not be changed.
+ *
+ * \return   \c true if \a a * \a b was calculated successfully, or \c false
+ *           if the result would become larger than INT64_MAX in magnitude.
+ */
+static bool safe_mul(int64_t a, int64_t b, int64_t* res);
+
+
 Real* Real_init(Real* real)
 {
 	assert(real != NULL);
@@ -123,20 +137,16 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2)
 	Real_validate(real2);
 	if (real1->is_frac && real2->is_frac)
 	{
-		bool num_overflow = real2->fod.frac.numerator == INT64_MIN
-				|| (real1->fod.frac.numerator != 0
-					&& imaxabs(INT64_MAX / real1->fod.frac.numerator)
-					<= imaxabs(real2->fod.frac.numerator));
-		bool den_overflow =
-				INT64_MAX / real1->fod.frac.denominator
-					<= real2->fod.frac.denominator;
-		if (!num_overflow && !den_overflow)
+		int64_t num = 0;
+		int64_t den = 0;
+		if (safe_mul(real1->fod.frac.numerator,
+					real2->fod.frac.numerator, &num)
+				&& safe_mul(real1->fod.frac.denominator,
+					real2->fod.frac.denominator, &den))
 		{
 			ret->is_frac = 1;
-			ret->fod.frac.numerator = real1->fod.frac.numerator
-					* real2->fod.frac.numerator;
-			ret->fod.frac.denominator = real1->fod.frac.denominator
-					* real2->fod.frac.denominator;
+			ret->fod.frac.numerator = num;
+			ret->fod.frac.denominator = den;
 			return Real_normalise(ret);
 		}
 	}
@@ -152,18 +162,13 @@ Real* Real_div(Real* ret, Real* dividend, Real* divisor)
 	if (dividend->is_frac && divisor->is_frac)
 	{
 		assert(divisor->fod.frac.numerator != 0);
-		bool num_overflow = dividend->fod.frac.numerator == INT64_MIN
-				|| INT64_MAX / divisor->fod.frac.denominator
-					<= imaxabs(dividend->fod.frac.numerator);
-		bool den_overflow = divisor->fod.frac.numerator == INT64_MIN
-				|| INT64_MAX / dividend->fod.frac.denominator
-					<= imaxabs(divisor->fod.frac.numerator);
-		if (!num_overflow && !den_overflow)
+		int64_t num = 0;
+		int64_t den = 0;
+		if (safe_mul(dividend->fod.frac.numerator,
+					divisor->fod.frac.denominator, &num)
+				&& safe_mul(dividend->fod.frac.denominator,
+					divisor->fod.frac.numerator, &den))
 		{
-			int64_t num = dividend->fod.frac.numerator
-					* divisor->fod.frac.denominator;
-			int64_t den = dividend->fod.frac.denominator
-					* divisor->fod.frac.numerator;
 			if (den < 0)
 			{
 				num = -num;
@@ -197,18 +202,11 @@ int Real_cmp(Real* real1, Real* real2)
 		int64_t den1 = real1->fod.frac.denominator;
 		int64_t num2 = real2->fod.frac.numerator;
 		int64_t den2 = real2->fod.frac.denominator;
-		if (num1 <= 0 && num2 > 0)
-			return -1;
-		else if (num1 > 0 && num2 <= 0)
-			return 1;
-		bool overflow1 = num1 == INT64_MIN
-				|| INT64_MAX / den2 <= imaxabs(num1);
-		bool overflow2 = num2 == INT64_MIN
-				|| INT64_MAX / den1 <= imaxabs(num2);
-		if (!overflow1 && !overflow2)
+		int64_t term1 = 0;
+		int64_t term2 = 0;
+		if (safe_mul(num1, den2, &term1)
+				&& safe_mul(num2, den1, &term2))
 		{
-			int64_t term1 = num1 * den2;
-			int64_t term2 = num2 * den1;
 			if (term1 < term2)
 				return -1;
 			else if (term1 > term2)
@@ -312,6 +310,55 @@ bool Real_validate_(Real* real)
 		{
 			return false;
 		}
+	}
+	return true;
+}
+
+
+// Works the way described in http://www.fefe.de/intof.html (with a small fix)
+static bool safe_mul(int64_t a, int64_t b, int64_t* res)
+{
+	assert(res != NULL);
+	bool negative = false;
+	if ((a == INT64_MIN || b == INT64_MIN)
+			&& a != 0 && b != 0
+			&& INT64_MIN < -INT64_MAX)
+	{
+		return false;
+	}
+	if (a < 0)
+	{
+		a = -a;
+		negative = !negative;
+	}
+	if (b < 0)
+	{
+		b = -b;
+		negative = !negative;
+	}
+	uint64_t ahi = (uint64_t)a >> 32;
+	uint64_t bhi = (uint64_t)b >> 32;
+	if (ahi != 0 && bhi != 0)
+	{
+		return false;
+	}
+	uint64_t alo = a & 0xffffffffULL;
+	uint64_t blo = b & 0xffffffffULL;
+	uint64_t hi = (ahi * blo) + (alo * bhi);
+	if (hi > 0x7fffffffULL)
+	{
+		return false;
+	}
+	hi <<= 32;
+	uint64_t lo = alo * blo;
+	if (INT64_MAX - lo < hi)
+	{
+		return false;
+	}
+	*res = hi + lo;
+	if (negative)
+	{
+		*res = -*res;
 	}
 	return true;
 }
