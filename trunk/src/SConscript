@@ -7,7 +7,7 @@ Export('env', 'opts')
 SConscript('core/SConscript')
 
 
-if 'check' in env['LIBS']:
+if not env.GetOption('clean') and 'check' in env['LIBS']:
 	env['LIBS'].remove('check')
 
 #print 'src: ' + env.Dump('LIBS')

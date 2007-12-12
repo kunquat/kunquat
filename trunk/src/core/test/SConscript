@@ -13,5 +13,6 @@ env_test.AddPostAction(real, real[0].abspath)
 
 note_table = env_test.Program('note_table', ['note_table.c'])
 env_test.AddPostAction(note_table, note_table[0].abspath)
+Depends(note_table, 'real')
 
 
