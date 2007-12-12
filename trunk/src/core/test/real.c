@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <limits.h>
+#include <stdint.h>
 #include <float.h>
 #include <math.h>
 #include <signal.h>

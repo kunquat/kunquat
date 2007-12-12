@@ -24,6 +24,14 @@ typedef struct Real
 
 
 /**
+ * A new instance of an uninitialised Real object with automatic storage
+ * allocation.
+ * Useful for passing as a parameter to an initialiser.
+ */
+#define REAL_AUTO (&(Real){ .fod.doub = 0 })
+
+
+/**
  * Initialises a Real object as a fraction with the value 1/1.
  *
  * \param real   The Real object -- must not be \c NULL.

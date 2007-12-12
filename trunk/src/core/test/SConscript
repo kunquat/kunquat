@@ -11,4 +11,7 @@ env_test.Append(LIBS = ['core'])
 real = env_test.Program('real', ['real.c'])
 env_test.AddPostAction(real, real[0].abspath)
 
+note_table = env_test.Program('note_table', ['note_table.c'])
+env_test.AddPostAction(note_table, note_table[0].abspath)
+
 

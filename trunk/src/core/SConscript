@@ -9,8 +9,11 @@ if opts['unit_tests']:
 
 #print 'core: ' + env.Dump('LIBS')
 
+env.Append(CPPPATH = ['#/src/core'])
+
 files = [
 'Real.c',
+'Note_table.c',
 ]
 
 env.StaticLibrary('core', files)
