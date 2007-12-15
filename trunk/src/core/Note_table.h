@@ -442,8 +442,8 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point);
 
 /**
  * Estimates the current pitch drift in the Note table.
- * This is accurate if the current tuning uses the same reference note as the
- * original tuning.
+ * The estimate is most useful if the current tuning uses the same reference
+ * note as the original tuning.
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param drift   The Real object where the result is stored -- must not be

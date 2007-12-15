@@ -3592,30 +3592,15 @@ START_TEST (retune)
 		abort();
 	}
 
-	Real_init_as_frac(&note_ratio, 1, 1);
-	Note_table_set_note(table, 0, "C", &note_ratio);
-	Real_init_as_frac(&note_ratio, 16, 15);
-	Note_table_set_note(table, 1, "C#", &note_ratio);
-	Real_init_as_frac(&note_ratio, 9, 8);
-	Note_table_set_note(table, 2, "D", &note_ratio);
-	Real_init_as_frac(&note_ratio, 6, 5);
-	Note_table_set_note(table, 3, "Eb", &note_ratio);
-	Real_init_as_frac(&note_ratio, 5, 4);
-	Note_table_set_note(table, 4, "E", &note_ratio);
-	Real_init_as_frac(&note_ratio, 4, 3);
-	Note_table_set_note(table, 5, "F", &note_ratio);
-	Real_init_as_frac(&note_ratio, 45, 32);
-	Note_table_set_note(table, 6, "F#", &note_ratio);
-	Real_init_as_frac(&note_ratio, 3, 2);
-	Note_table_set_note(table, 7, "G", &note_ratio);
-	Real_init_as_frac(&note_ratio, 8, 5);
-	Note_table_set_note(table, 8, "G#", &note_ratio);
-	Real_init_as_frac(&note_ratio, 5, 3);
-	Note_table_set_note(table, 9, "A", &note_ratio);
-	Real_init_as_frac(&note_ratio, 9, 5);
-	Note_table_set_note(table, 10, "Bb", &note_ratio);
-	Real_init_as_frac(&note_ratio, 15, 8);
-	Note_table_set_note(table, 11, "B", &note_ratio);
+	char* names[] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B" };
+	int nums[] =    {  1,   16,   9,   6,    5,   4,   45,   3,   8,    5,   9,   15 };
+	int dens[] =    {  1,   15,   8,   5,    4,   3,   32,   2,   5,    3,   5,    8 };
+
+	for (i = 0; i < 12; ++i)
+	{
+		Real_init_as_frac(&note_ratio, nums[i], dens[i]);
+		Note_table_set_note(table, i, names[i], &note_ratio);
+	}
 
 	Note_table_retune(table, 2, 2);
 
@@ -3667,112 +3652,66 @@ START_TEST (retune)
 	Real_copy(&calculated, &(table->notes[1].ratio_retuned));
 	fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
 			"Note_table_retune() didn't retune correctly.");
-	
-	Real_init_as_frac(&note_ratio, 1, 1);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 0), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 16, 15);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 1), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 9, 8);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 2), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 6, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 3), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 5, 4);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 4), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 4, 3);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 5), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 45, 32);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 6), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 3, 2);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 7), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 8, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 8), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 5, 3);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 9), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 9, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 10), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	Real_init_as_frac(&note_ratio, 15, 8);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 11), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
+
+	for (i = 0; i < 12; ++i)
+	{
+		Real_init_as_frac(&note_ratio, nums[i], dens[i]);
+		Real_copy(&calculated, Note_table_get_note_ratio(table, i));
+		fail_unless(Real_cmp(&calculated, &note_ratio) == 0,
+				"Note_table_retune() incorrectly modified the original ratio"
+				" of note %s, from %d/%d to %lld/%lld.",
+				names[i], nums[i], dens[i],
+				Real_get_numerator(&calculated),
+				Real_get_denominator(&calculated));
+	}
 
 	Note_table_retune(table, -1, 0);
-	
-	Real_init_as_frac(&note_ratio, 1, 1);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 0), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[0].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 16, 15);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 1), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[1].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 9, 8);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 2), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[2].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 6, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 3), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[3].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 5, 4);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 4), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[4].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 4, 3);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 5), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[5].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 45, 32);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 6), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[6].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 3, 2);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 7), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[7].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 8, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 8), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[8].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 5, 3);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 9), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[9].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 9, 5);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 10), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[10].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
-	Real_init_as_frac(&note_ratio, 15, 8);
-	fail_unless(Real_cmp(Note_table_get_note_ratio(table, 11), &note_ratio) == 0,
-			"Note_table_retune() incorrectly modified the original ratios.");
-	fail_unless(Real_cmp(&note_ratio, &(table->notes[11].ratio_retuned)) == 0,
-			"Note_table_retune() didn't reset correctly.");
+
+	for (i = 0; i < 12; ++i)
+	{
+		Real_init_as_frac(&note_ratio, nums[i], dens[i]);
+		fail_unless(Real_cmp(Note_table_get_note_ratio(table, i), &note_ratio) == 0,
+				"Note_table_retune() incorrectly modified the original ratio"
+				" of note %s, from %d/%d to %lld/%lld.",
+				names[i], nums[i], dens[i],
+				Real_get_numerator(Note_table_get_note_ratio(table, i)),
+				Real_get_denominator(Note_table_get_note_ratio(table, i)));
+		fail_unless(Real_cmp(&note_ratio, &table->notes[i].ratio_retuned) == 0,
+				"Note_table_retune() reset note %s incorrectly"
+				" (expected %d/%d, got %lld/%lld).",
+				names[i], nums[i], dens[i],
+				Real_get_numerator(&table->notes[i].ratio_retuned),
+				Real_get_denominator(&table->notes[i].ratio_retuned));
+	}
 
 	for (i = 0; i < 12; ++i)
 	{
 		fail_unless(Real_cmp(Note_table_get_note_ratio(table, i), &(table->notes[i].ratio_retuned)) == 0,
 				"Note_table_retune() didn't reset correctly.");
 	}
+
+	// shift by Pythagorean comma
+	for (i = 1; i <= 12; ++i)
+	{
+		int new_base = (7 * i) % 12;
+		Note_table_retune(table, new_base, new_base);
+	}
+
+	for (i = 0; i < 12; ++i)
+	{
+		Real_init_as_frac(&note_ratio, 531441 * nums[i], 524288 * dens[i]);
+		Real_copy(&calculated, &table->notes[i].ratio_retuned);
+		fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
+				"Note_table_retune() retuned note %s to %lld/%lld"
+				" instead of %lld/%lld.",
+				names[i],
+				Real_get_numerator(&calculated),
+				Real_get_denominator(&calculated),
+				Real_get_numerator(&note_ratio),
+				Real_get_denominator(&note_ratio));
+	}
+
+	Note_table_retune(table, -1, 0);
 
 	Note_table_retune(table, 0, 0);
 
@@ -3859,6 +3798,8 @@ START_TEST (retune)
 		}
 		Note_table_retune(table, -1, 0);
 	}
+
+	del_Note_table(table);
 }
 END_TEST
 
@@ -3978,8 +3919,77 @@ END_TEST
 
 START_TEST (drift)
 {
-	// TODO: add test
-	assert(false);
+	Real octave_ratio;
+	Note_table* table = NULL;
+	Real_init_as_frac(&octave_ratio, 2, 1);
+	table = new_Note_table(NULL, 528, &octave_ratio);
+	if (table == NULL)
+	{
+		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
+		abort();
+	}
+
+	Real note_ratio;
+	Real_init_as_frac(&note_ratio, 1, 1);
+	Note_table_set_note(table, 0, "C", &note_ratio);
+	Real_init_as_frac(&note_ratio, 16, 15);
+	Note_table_set_note(table, 1, "C#", &note_ratio);
+	Real_init_as_frac(&note_ratio, 9, 8);
+	Note_table_set_note(table, 2, "D", &note_ratio);
+	Real_init_as_frac(&note_ratio, 6, 5);
+	Note_table_set_note(table, 3, "Eb", &note_ratio);
+	Real_init_as_frac(&note_ratio, 5, 4);
+	Note_table_set_note(table, 4, "E", &note_ratio);
+	Real_init_as_frac(&note_ratio, 4, 3);
+	Note_table_set_note(table, 5, "F", &note_ratio);
+	Real_init_as_frac(&note_ratio, 45, 32);
+	Note_table_set_note(table, 6, "F#", &note_ratio);
+	Real_init_as_frac(&note_ratio, 3, 2);
+	Note_table_set_note(table, 7, "G", &note_ratio);
+	Real_init_as_frac(&note_ratio, 8, 5);
+	Note_table_set_note(table, 8, "G#", &note_ratio);
+	Real_init_as_frac(&note_ratio, 5, 3);
+	Note_table_set_note(table, 9, "A", &note_ratio);
+	Real_init_as_frac(&note_ratio, 9, 5);
+	Note_table_set_note(table, 10, "Bb", &note_ratio);
+	Real_init_as_frac(&note_ratio, 15, 8);
+	Note_table_set_note(table, 11, "B", &note_ratio);
+
+	Real calculated;
+	Note_table_retune(table, 2, 2); // II -- 
+	Real_init_as_frac(&note_ratio, 27, 20);
+	Real_copy(&calculated, &(table->notes[5].ratio_retuned));
+	fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
+			"Note_table_retune() didn't retune correctly.");
+
+	Note_table_retune(table, 5, 5); // IV -- 
+	Real_init_as_frac(&note_ratio, 243, 160);
+	Real_copy(&calculated, &(table->notes[7].ratio_retuned));
+	fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
+			"Note_table_retune() didn't retune correctly.");
+
+	Note_table_retune(table, 7, 0); // V -- C retained for sustain
+	Real_init_as_frac(&note_ratio, 81, 80);
+	Real_copy(&calculated, &(table->notes[0].ratio_retuned));
+	fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
+			"Note_table_retune() didn't retune correctly.");
+
+	Note_table_retune(table, 0, 7); // I -- C: 81/80 -> drift by a syntonic comma
+	Real_init_as_frac(&note_ratio, 81, 80);
+	Real_copy(&calculated, &(table->notes[0].ratio_retuned));
+	fail_unless(Real_cmp(&note_ratio, &calculated) == 0,
+			"Note_table_retune() didn't retune correctly.");
+
+	Note_table_drift(table, &note_ratio);
+
+	int64_t num = Real_get_numerator(&note_ratio);
+	int64_t den = Real_get_denominator(&note_ratio);
+	fail_unless(num == 81 && den == 80,
+			"Note_table_drift() returned %lld/%lld instead of 81/80.", num, den);
+	
+	// TODO: more tests
+	
+	del_Note_table(table);
 }
 END_TEST
 

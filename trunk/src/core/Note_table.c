@@ -1,6 +1,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <assert.h>
 #include <string.h>
 #include <math.h>
@@ -596,10 +597,6 @@ pitch_t Note_table_get_pitch(Note_table* table,
 
 void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
 {
-	static Real new_notes[NOTE_TABLE_NOTES];
-	int fixed_new_order = 0;
-	int fixed_counterpart = 0;
-	Real fixed_to_new_ref_ratio;
 	assert(table != NULL);
 	assert(new_ref < NOTE_TABLE_NOTES);
 	assert(fixed_point >= 0);
@@ -625,13 +622,15 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
 		fixed_point = table->ref_note_retuned; // TODO: any better way?
 	}
 	// retune new_ref
-	fixed_new_order = fixed_point - new_ref;
+	int fixed_new_order = fixed_point - new_ref;
 	if (fixed_new_order < 0)
 	{
 		fixed_new_order += table->note_count;
 	}
-	fixed_counterpart = (table->ref_note_retuned + fixed_new_order)
+	assert(fixed_new_order >= 0);
+	int fixed_counterpart = (table->ref_note_retuned + fixed_new_order)
 			% table->note_count;
+	Real fixed_to_new_ref_ratio;
 	Real_div(&fixed_to_new_ref_ratio,
 			&(table->notes[fixed_counterpart].ratio_retuned),
 			&(table->notes[table->ref_note_retuned].ratio_retuned));
@@ -649,6 +648,7 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
 				&fixed_to_new_ref_ratio,
 				&(table->octave_ratio));
 	}
+	static Real new_notes[NOTE_TABLE_NOTES];
 	Real_div(&(new_notes[new_ref]),
 			&(table->notes[fixed_point].ratio_retuned),
 			&fixed_to_new_ref_ratio);
@@ -686,6 +686,7 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
 				&(new_notes[new_ref]));
 	}
 	/* update */
+	table->ref_note_retuned = new_ref;
 	for (int i = 0; i < table->note_count; ++i)
 	{
 		Real_copy(&(table->notes[i].ratio_retuned),
