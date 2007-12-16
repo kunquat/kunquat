@@ -317,7 +317,7 @@ bool Real_validate_(Real* real)
 #endif
 
 
-// Works the way described in http://www.fefe.de/intof.html (with a small fix)
+// Works the way described in http://www.fefe.de/intof.html
 static bool safe_mul(int64_t a, int64_t b, int64_t* res)
 {
 	assert(res != NULL);
@@ -353,7 +353,7 @@ static bool safe_mul(int64_t a, int64_t b, int64_t* res)
 	}
 	hi <<= 32;
 	uint64_t lo = alo * blo;
-	if (INT64_MAX - lo < hi)
+	if (UINT64_MAX - lo < hi || INT64_MAX < hi + lo)
 	{
 		return false;
 	}
