@@ -20,15 +20,15 @@
 static Real* Real_normalise(Real* real);
 
 
-/**
- * Validates a Real object.
- *
- * \param real   The Real object.
- *
- * \return   \c true if and only if the Real object is valid.
- */
-static bool Real_validate_(Real* real);
 #ifndef NDEBUG
+	/**
+	 * Validates a Real object.
+	 *
+	 * \param real   The Real object.
+	 *
+	 * \return   \c true if and only if the Real object is valid.
+	 */
+	static bool Real_validate_(Real* real);
 	#define Real_validate(real)   ( assert(Real_validate_(real)) )
 #else
 	#define Real_validate(real)   ((void)0)
@@ -291,6 +291,7 @@ Real* Real_normalise(Real* real)
 }
 
 
+#ifndef NDEBUG
 bool Real_validate_(Real* real)
 {
 	if (real == NULL)
@@ -313,6 +314,7 @@ bool Real_validate_(Real* real)
 	}
 	return true;
 }
+#endif
 
 
 // Works the way described in http://www.fefe.de/intof.html (with a small fix)

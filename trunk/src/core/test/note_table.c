@@ -155,6 +155,7 @@ START_TEST (new)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (new_break1)
 {
 	Real octave_ratio;
@@ -208,6 +209,7 @@ START_TEST (new_break7)
 	new_Note_table(NULL, 528, &octave_ratio);
 }
 END_TEST
+#endif
 
 START_TEST (set_name)
 {
@@ -242,11 +244,13 @@ START_TEST (set_name)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (set_name_break)
 {
 	Note_table_set_name(NULL, NULL);
 }
 END_TEST
+#endif
 
 START_TEST (get_name)
 {
@@ -268,11 +272,13 @@ START_TEST (get_name)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_name_break)
 {
 	Note_table_get_name(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (set_ref_pitch)
 {
@@ -295,6 +301,7 @@ START_TEST (set_ref_pitch)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (set_ref_pitch_break1)
 {
 	Note_table_set_ref_pitch(NULL, 528);
@@ -348,6 +355,7 @@ START_TEST (set_ref_pitch_break4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_ref_pitch)
 {
@@ -372,11 +380,13 @@ START_TEST (get_ref_pitch)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_ref_pitch_break)
 {
 	Note_table_get_ref_pitch(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (set_octave_ratio)
 {
@@ -454,6 +464,7 @@ START_TEST (set_octave_ratio)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (set_octave_ratio_break1)
 {
 	Real octave_ratio;
@@ -536,6 +547,7 @@ START_TEST (set_octave_ratio_break5)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_octave_ratio)
 {
@@ -568,11 +580,13 @@ START_TEST (get_octave_ratio)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_octave_ratio_break)
 {
 	Note_table_get_octave_ratio(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (set_note)
 {
@@ -689,6 +703,7 @@ START_TEST (set_note)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (set_note_break_table)
 {
 	Real note_ratio;
@@ -894,6 +909,7 @@ START_TEST (set_note_break_ratio4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (ins_note)
 {
@@ -1047,6 +1063,7 @@ START_TEST (ins_note)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (ins_note_break_table)
 {
 	Real note_ratio;
@@ -1252,6 +1269,7 @@ START_TEST (ins_note_break_ratio4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (del_note)
 {
@@ -1333,6 +1351,7 @@ START_TEST (del_note)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (del_note_break_table)
 {
 	Note_table_del_note(NULL, 0);
@@ -1410,6 +1429,7 @@ START_TEST (del_note_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (move_note)
 {
@@ -1562,6 +1582,7 @@ START_TEST (move_note)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (move_note_break_table)
 {
 	Note_table_move_note(NULL, 0, 1);
@@ -1711,6 +1732,7 @@ START_TEST (move_note_break_new_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_note_name)
 {
@@ -1749,6 +1771,7 @@ START_TEST (get_note_name)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_note_name_break_table)
 {
 	Note_table_get_note_name(NULL, 0);
@@ -1826,6 +1849,7 @@ START_TEST (get_note_name_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_note_ratio)
 {
@@ -1864,6 +1888,7 @@ START_TEST (get_note_ratio)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_note_ratio_break_table)
 {
 	Note_table_get_note_ratio(NULL, 0);
@@ -1941,6 +1966,7 @@ START_TEST (get_note_ratio_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (set_note_mod)
 {
@@ -2037,6 +2063,7 @@ START_TEST (set_note_mod)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (set_note_mod_break_table)
 {
 	Real mod_ratio;
@@ -2242,6 +2269,7 @@ START_TEST (set_note_mod_break_ratio4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (ins_note_mod)
 {
@@ -2371,6 +2399,7 @@ START_TEST (ins_note_mod)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (ins_note_mod_break_table)
 {
 	Real mod_ratio;
@@ -2576,6 +2605,7 @@ START_TEST (ins_note_mod_break_ratio4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (del_note_mod)
 {
@@ -2639,6 +2669,7 @@ START_TEST (del_note_mod)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (del_note_mod_break_table)
 {
 	Note_table_del_note_mod(NULL, 0);
@@ -2716,6 +2747,7 @@ START_TEST (del_note_mod_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (move_note_mod)
 {
@@ -2842,6 +2874,7 @@ START_TEST (move_note_mod)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (move_note_mod_break_table)
 {
 	Note_table_move_note_mod(NULL, 0, 1);
@@ -2991,6 +3024,7 @@ START_TEST (move_note_mod_break_new_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_note_mod_name)
 {
@@ -3028,6 +3062,7 @@ START_TEST (get_note_mod_name)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_note_mod_name_break_table)
 {
 	Note_table_get_note_mod_name(NULL, 0);
@@ -3105,6 +3140,7 @@ START_TEST (get_note_mod_name_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_note_mod_ratio)
 {
@@ -3141,6 +3177,7 @@ START_TEST (get_note_mod_ratio)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_note_mod_ratio_break_table)
 {
 	Note_table_get_note_mod_ratio(NULL, 0);
@@ -3218,6 +3255,7 @@ START_TEST (get_note_mod_ratio_break_index4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (get_pitch)
 {
@@ -3386,6 +3424,7 @@ START_TEST (get_pitch)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (get_pitch_break_table)
 {
 	Note_table_get_pitch(NULL, 0, -1, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3571,6 +3610,7 @@ START_TEST (get_pitch_break_octave4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (retune)
 {
@@ -3803,6 +3843,7 @@ START_TEST (retune)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (retune_break_table)
 {
 	Note_table_retune(NULL, 0, 0);
@@ -3916,6 +3957,7 @@ START_TEST (retune_break_fixed_point4)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (drift)
 {
@@ -3993,6 +4035,7 @@ START_TEST (drift)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (drift_break_table)
 {
 	Real drift;
@@ -4017,6 +4060,7 @@ START_TEST (drift_break_drift)
 	del_Note_table(table);
 }
 END_TEST
+#endif
 
 
 Suite* Note_table_suite(void)
@@ -4068,6 +4112,29 @@ Suite* Note_table_suite(void)
 	suite_add_tcase(s, tc_drift);
 
 	tcase_add_test(tc_new, new);
+	tcase_add_test(tc_set_name, set_name);
+	tcase_add_test(tc_get_name, get_name);
+	tcase_add_test(tc_set_ref_pitch, set_ref_pitch);
+	tcase_add_test(tc_get_ref_pitch, get_ref_pitch);
+	tcase_add_test(tc_set_octave_ratio, set_octave_ratio);
+	tcase_add_test(tc_get_octave_ratio, get_octave_ratio);
+	tcase_add_test(tc_set_note, set_note);
+	tcase_add_test(tc_ins_note, ins_note);
+	tcase_add_test(tc_del_note, del_note);
+	tcase_add_test(tc_move_note, move_note);
+	tcase_add_test(tc_get_note_name, get_note_name);
+	tcase_add_test(tc_get_note_ratio, get_note_ratio);
+	tcase_add_test(tc_set_note_mod, set_note_mod);
+	tcase_add_test(tc_ins_note_mod, ins_note_mod);
+	tcase_add_test(tc_del_note_mod, del_note_mod);
+	tcase_add_test(tc_move_note_mod, move_note_mod);
+	tcase_add_test(tc_get_note_mod_name, get_note_mod_name);
+	tcase_add_test(tc_get_note_mod_ratio, get_note_mod_ratio);
+	tcase_add_test(tc_get_pitch, get_pitch);
+	tcase_add_test(tc_retune, retune);
+	tcase_add_test(tc_drift, drift);
+
+#ifndef NDEBUG
 	tcase_add_test_raise_signal(tc_new, new_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_new, new_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_new, new_break3, SIGABRT);
@@ -4076,32 +4143,25 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_new, new_break6, SIGABRT);
 	tcase_add_test_raise_signal(tc_new, new_break7, SIGABRT);
 
-	tcase_add_test(tc_set_name, set_name);
 	tcase_add_test_raise_signal(tc_set_name, set_name_break, SIGABRT);
 
-	tcase_add_test(tc_get_name, get_name);
 	tcase_add_test_raise_signal(tc_get_name, get_name_break, SIGABRT);
 
-	tcase_add_test(tc_set_ref_pitch, set_ref_pitch);
 	tcase_add_test_raise_signal(tc_set_ref_pitch, set_ref_pitch_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_ref_pitch, set_ref_pitch_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_ref_pitch, set_ref_pitch_break3, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_ref_pitch, set_ref_pitch_break4, SIGABRT);
 
-	tcase_add_test(tc_get_ref_pitch, get_ref_pitch);
 	tcase_add_test_raise_signal(tc_get_ref_pitch, get_ref_pitch_break, SIGABRT);
 
-	tcase_add_test(tc_set_octave_ratio, set_octave_ratio);
 	tcase_add_test_raise_signal(tc_set_octave_ratio, set_octave_ratio_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_octave_ratio, set_octave_ratio_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_octave_ratio, set_octave_ratio_break3, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_octave_ratio, set_octave_ratio_break4, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_octave_ratio, set_octave_ratio_break5, SIGABRT);
 
-	tcase_add_test(tc_get_octave_ratio, get_octave_ratio);
 	tcase_add_test_raise_signal(tc_get_octave_ratio, get_octave_ratio_break, SIGABRT);
 
-	tcase_add_test(tc_set_note, set_note);
 	tcase_add_test_raise_signal(tc_set_note, set_note_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note, set_note_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note, set_note_break_index2, SIGABRT);
@@ -4114,7 +4174,6 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_set_note, set_note_break_ratio3, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note, set_note_break_ratio4, SIGABRT);
 
-	tcase_add_test(tc_ins_note, ins_note);
 	tcase_add_test_raise_signal(tc_ins_note, ins_note_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note, ins_note_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note, ins_note_break_index2, SIGABRT);
@@ -4127,14 +4186,12 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_ins_note, ins_note_break_ratio3, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note, ins_note_break_ratio4, SIGABRT);
 
-	tcase_add_test(tc_del_note, del_note);
 	tcase_add_test_raise_signal(tc_del_note, del_note_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note, del_note_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note, del_note_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note, del_note_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note, del_note_break_index4, SIGABRT);
 
-	tcase_add_test(tc_move_note, move_note);
 	tcase_add_test_raise_signal(tc_move_note, move_note_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note, move_note_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note, move_note_break_index2, SIGABRT);
@@ -4145,21 +4202,18 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_move_note, move_note_break_new_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note, move_note_break_new_index4, SIGABRT);
 
-	tcase_add_test(tc_get_note_name, get_note_name);
 	tcase_add_test_raise_signal(tc_get_note_name, get_note_name_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_name, get_note_name_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_name, get_note_name_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_name, get_note_name_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_name, get_note_name_break_index4, SIGABRT);
 
-	tcase_add_test(tc_get_note_ratio, get_note_ratio);
 	tcase_add_test_raise_signal(tc_get_note_ratio, get_note_ratio_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_ratio, get_note_ratio_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_ratio, get_note_ratio_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_ratio, get_note_ratio_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_ratio, get_note_ratio_break_index4, SIGABRT);
 
-	tcase_add_test(tc_set_note_mod, set_note_mod);
 	tcase_add_test_raise_signal(tc_set_note_mod, set_note_mod_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note_mod, set_note_mod_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note_mod, set_note_mod_break_index2, SIGABRT);
@@ -4172,7 +4226,6 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_set_note_mod, set_note_mod_break_ratio3, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_note_mod, set_note_mod_break_ratio4, SIGABRT);
 
-	tcase_add_test(tc_ins_note_mod, ins_note_mod);
 	tcase_add_test_raise_signal(tc_ins_note_mod, ins_note_mod_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note_mod, ins_note_mod_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note_mod, ins_note_mod_break_index2, SIGABRT);
@@ -4185,14 +4238,12 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_ins_note_mod, ins_note_mod_break_ratio3, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_note_mod, ins_note_mod_break_ratio4, SIGABRT);
 
-	tcase_add_test(tc_del_note_mod, del_note_mod);
 	tcase_add_test_raise_signal(tc_del_note_mod, del_note_mod_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note_mod, del_note_mod_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note_mod, del_note_mod_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note_mod, del_note_mod_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_del_note_mod, del_note_mod_break_index4, SIGABRT);
 
-	tcase_add_test(tc_move_note_mod, move_note_mod);
 	tcase_add_test_raise_signal(tc_move_note_mod, move_note_mod_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note_mod, move_note_mod_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note_mod, move_note_mod_break_index2, SIGABRT);
@@ -4203,21 +4254,18 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_move_note_mod, move_note_mod_break_new_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_move_note_mod, move_note_mod_break_new_index4, SIGABRT);
 
-	tcase_add_test(tc_get_note_mod_name, get_note_mod_name);
 	tcase_add_test_raise_signal(tc_get_note_mod_name, get_note_mod_name_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_name, get_note_mod_name_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_name, get_note_mod_name_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_name, get_note_mod_name_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_name, get_note_mod_name_break_index4, SIGABRT);
 
-	tcase_add_test(tc_get_note_mod_ratio, get_note_mod_ratio);
 	tcase_add_test_raise_signal(tc_get_note_mod_ratio, get_note_mod_ratio_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_ratio, get_note_mod_ratio_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_ratio, get_note_mod_ratio_break_index2, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_ratio, get_note_mod_ratio_break_index3, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_note_mod_ratio, get_note_mod_ratio_break_index4, SIGABRT);
 
-	tcase_add_test(tc_get_pitch, get_pitch);
 	tcase_add_test_raise_signal(tc_get_pitch, get_pitch_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_pitch, get_pitch_break_index1, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_pitch, get_pitch_break_index2, SIGABRT);
@@ -4230,7 +4278,6 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_get_pitch, get_pitch_break_octave3, SIGABRT);
 	tcase_add_test_raise_signal(tc_get_pitch, get_pitch_break_octave4, SIGABRT);
 
-	tcase_add_test(tc_retune, retune);
 	tcase_add_test_raise_signal(tc_retune, retune_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_retune, retune_break_new_ref1, SIGABRT);
 	tcase_add_test_raise_signal(tc_retune, retune_break_new_ref2, SIGABRT);
@@ -4239,9 +4286,9 @@ Suite* Note_table_suite(void)
 	tcase_add_test_raise_signal(tc_retune, retune_break_fixed_point3, SIGABRT);
 	tcase_add_test_raise_signal(tc_retune, retune_break_fixed_point4, SIGABRT);
 
-	tcase_add_test(tc_drift, drift);
 	tcase_add_test_raise_signal(tc_drift, drift_break_table, SIGABRT);
 	tcase_add_test_raise_signal(tc_drift, drift_break_drift, SIGABRT);
+#endif
 
 	return s;
 }

@@ -31,11 +31,13 @@ START_TEST (test_init)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_init_break)
 {
 	Real_init(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_init_as_frac)
 {
@@ -321,6 +323,7 @@ START_TEST (test_init_as_frac)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_init_as_frac_break1)
 {
 	Real_init_as_frac(NULL, 1, 1);
@@ -347,6 +350,7 @@ START_TEST (test_init_as_frac_break4)
 	Real_init_as_frac(&real, 1, INT64_MIN);
 }
 END_TEST
+#endif
 
 START_TEST (test_init_as_double)
 {
@@ -399,11 +403,13 @@ START_TEST (test_init_as_double)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_init_as_double_break)
 {
 	Real_init_as_double(NULL, 0);
 }
 END_TEST
+#endif
 
 START_TEST (test_is_frac)
 {
@@ -417,11 +423,13 @@ START_TEST (test_is_frac)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_is_frac_break)
 {
 	Real_is_frac(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_get_numerator)
 {
@@ -469,11 +477,13 @@ START_TEST (test_get_numerator)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_get_numerator_break)
 {
 	Real_get_numerator(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_get_denominator)
 {
@@ -508,11 +518,13 @@ START_TEST (test_get_denominator)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_get_denominator_break)
 {
 	Real_get_denominator(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_get_double)
 {
@@ -545,11 +557,13 @@ START_TEST (test_get_double)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_get_double_break)
 {
 	Real_get_double(NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_copy)
 {
@@ -671,6 +685,7 @@ START_TEST (test_copy)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_copy_break1)
 {
 	Real real;
@@ -686,6 +701,7 @@ START_TEST (test_copy_break2)
 	Real_copy(&real, NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_mul)
 {
@@ -861,6 +877,7 @@ START_TEST (test_mul)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_mul_break1)
 {
 	Real real1;
@@ -890,6 +907,7 @@ START_TEST (test_mul_break3)
 	Real_mul(&real1, &real2, NULL);
 }
 END_TEST
+#endif
 
 START_TEST (test_div)
 {
@@ -1115,6 +1133,7 @@ START_TEST (test_div)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_div_break1)
 {
 	Real real1;
@@ -1156,6 +1175,7 @@ START_TEST (test_div_break4)
 	Real_div(&real1, &real2, &real3);
 }
 END_TEST
+#endif
 
 START_TEST (test_mul_float)
 {
@@ -1188,11 +1208,13 @@ START_TEST (test_mul_float)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_mul_float_break)
 {
 	Real_mul_float(NULL, 1);
 }
 END_TEST
+#endif
 
 START_TEST (test_cmp)
 {
@@ -1513,6 +1535,7 @@ START_TEST (test_cmp)
 }
 END_TEST
 
+#ifndef NDEBUG
 START_TEST (test_cmp_break1)
 {
 	Real real;
@@ -1528,6 +1551,7 @@ START_TEST (test_cmp_break2)
 	Real_cmp(&real, NULL);
 }
 END_TEST
+#endif
 
 
 Suite* Real_suite(void)
@@ -1559,50 +1583,53 @@ Suite* Real_suite(void)
 	suite_add_tcase(s, tc_cmp);
 
 	tcase_add_test(tc_init, test_init);
-	tcase_add_test_raise_signal(tc_init, test_init_break, SIGABRT);
-
 	tcase_add_test(tc_init_as_frac, test_init_as_frac);
+	tcase_add_test(tc_init_as_double, test_init_as_double);
+	tcase_add_test(tc_is_frac, test_is_frac);
+	tcase_add_test(tc_get_numerator, test_get_numerator);
+	tcase_add_test(tc_get_denominator, test_get_denominator);
+	tcase_add_test(tc_get_double, test_get_double);
+	tcase_add_test(tc_copy, test_copy);
+	tcase_add_test(tc_mul, test_mul);
+	tcase_add_test(tc_div, test_div);
+	tcase_add_test(tc_mul_float, test_mul_float);
+	tcase_add_test(tc_cmp, test_cmp);
+
+#ifndef NDEBUG
+	tcase_add_test_raise_signal(tc_init, test_init_break, SIGABRT);
+	
 	tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break3, SIGABRT);
 	tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break4, SIGABRT);
-
-	tcase_add_test(tc_init_as_double, test_init_as_double);
+	
 	tcase_add_test_raise_signal(tc_init_as_double, test_init_as_double_break, SIGABRT);
-
-	tcase_add_test(tc_is_frac, test_is_frac);
+	
 	tcase_add_test_raise_signal(tc_is_frac, test_is_frac_break, SIGABRT);
-
-	tcase_add_test(tc_get_numerator, test_get_numerator);
+	
 	tcase_add_test_raise_signal(tc_get_numerator, test_get_numerator_break, SIGABRT);
-
-	tcase_add_test(tc_get_denominator, test_get_denominator);
+	
 	tcase_add_test_raise_signal(tc_get_denominator, test_get_denominator_break, SIGABRT);
-
-	tcase_add_test(tc_get_double, test_get_double);
+	
 	tcase_add_test_raise_signal(tc_get_double, test_get_double_break, SIGABRT);
-
-	tcase_add_test(tc_copy, test_copy);
+	
 	tcase_add_test_raise_signal(tc_copy, test_copy_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_copy, test_copy_break2, SIGABRT);
-
-	tcase_add_test(tc_mul, test_mul);
+	
 	tcase_add_test_raise_signal(tc_mul, test_mul_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_mul, test_mul_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_mul, test_mul_break3, SIGABRT);
-
-	tcase_add_test(tc_div, test_div);
+	
 	tcase_add_test_raise_signal(tc_div, test_div_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_div, test_div_break2, SIGABRT);
 	tcase_add_test_raise_signal(tc_div, test_div_break3, SIGABRT);
 	tcase_add_test_raise_signal(tc_div, test_div_break4, SIGABRT);
-
-	tcase_add_test(tc_mul_float, test_mul_float);
+	
 	tcase_add_test_raise_signal(tc_mul_float, test_mul_float_break, SIGABRT);
-
-	tcase_add_test(tc_cmp, test_cmp);
+	
 	tcase_add_test_raise_signal(tc_cmp, test_cmp_break1, SIGABRT);
 	tcase_add_test_raise_signal(tc_cmp, test_cmp_break2, SIGABRT);
+#endif
 
 	return s;
 }
