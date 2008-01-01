@@ -6,6 +6,13 @@
 #include "Reltime.h"
 
 
+#ifndef NDEBUG
+	#define Reltime_validate(r) assert((r) != NULL && (r)->part >= 0 && (r)->part < RELTIME_FULL_PART)
+#else
+	#define Reltime_validate(r) (void)0;
+#endif
+
+
 Reltime* Reltime_init(Reltime* r)
 {
 	assert(r != NULL);
@@ -17,8 +24,8 @@ Reltime* Reltime_init(Reltime* r)
 
 int Reltime_cmp(const Reltime* r1, const Reltime* r2)
 {
-	assert(r1 != NULL);
-	assert(r2 != NULL);
+	Reltime_validate(r1);
+	Reltime_validate(r2);
 	if (r1->beats < r2->beats)
 		return -1;
 	else if (r1->beats > r2->beats)
@@ -43,8 +50,8 @@ Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part)
 
 Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2)
 {
-	assert(r1 != NULL);
-	assert(r2 != NULL);
+	Reltime_validate(r1);
+	Reltime_validate(r2);
 	assert(result != NULL);
 	result->beats = r1->beats + r2->beats;
 	result->part = r1->part + r2->part;
@@ -65,8 +72,8 @@ Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2)
 
 Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2)
 {
-	assert(r1 != NULL);
-	assert(r2 != NULL);
+	Reltime_validate(r1);
+	Reltime_validate(r2);
 	assert(result != NULL);
 	result->beats = r1->beats - r2->beats;
 	result->part = r1->part - r2->part;
@@ -88,7 +95,7 @@ Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2)
 Reltime* Reltime_copy(Reltime* dest, const Reltime* src)
 {
 	assert(dest != NULL);
-	assert(src != NULL);
+	Reltime_validate(src);
 	dest->beats = src->beats;
 	dest->part = src->part;
 	return dest;
@@ -99,7 +106,7 @@ uint32_t Reltime_toframes(const Reltime* r,
 		double tempo,
 		uint32_t freq)
 {
-	assert(r != NULL);
+	Reltime_validate(r);
 	assert(r->beats >= 0);
 	assert(tempo > 0);
 	assert(freq > 0);

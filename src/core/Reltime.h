@@ -22,8 +22,11 @@
  */
 typedef struct Reltime
 {
-	int64_t beats;   ///< The number of beats.
-	int32_t part;    ///< Part of a beat.
+	/// The number of beats.
+	int64_t beats;
+	/// Part of a beat.
+	/// Valid values are inside the interval [0, RELTIME_FULL_PART).
+	int32_t part;
 } Reltime;
 
 
@@ -40,8 +43,8 @@ Reltime* Reltime_init(Reltime* r);
 /**
  * Compares two Reltime objects.
  *
- * \param r1   The first Reltime object -- must not be \c NULL.
- * \param r2   The second Reltime object -- must not be \c NULL.
+ * \param r1   The first Reltime object -- must be a valid Reltime.
+ * \param r2   The second Reltime object -- must be a valid Reltime.
  *
  * \return   An integer less than, equal to or greater than zero if \a r1 is
  *           found, respectively, to be less than, equal to or greater than
@@ -68,8 +71,8 @@ Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part);
  *
  * \param result   The result Reltime object -- must not be \c NULL. This may
  *                 be the same as \a r1 and/or \a r2.
- * \param r1       The first Reltime object -- must not be \c NULL.
- * \param r2       The second Reltime object -- must not be \c NULL.
+ * \param r1       The first Reltime object -- must be a valid Reltime.
+ * \param r2       The second Reltime object -- must be a valid Reltime.
  *
  * \return   The parameter \a result.
  */
@@ -81,8 +84,8 @@ Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2);
  *
  * \param result   The result Reltime object -- must not be \c NULL. This may
  *                 be the same as \a r1 and/or \a r2.
- * \param r1       The subtracted Reltime object -- must not be \c NULL.
- * \param r2       The subtractor Reltime object -- must not be \c NULL.
+ * \param r1       The subtracted Reltime object -- must be a valid Reltime.
+ * \param r2       The subtractor Reltime object -- must be a valid Reltime.
  *
  * \return   The parameter \a result.
  */
@@ -93,7 +96,7 @@ Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2);
  * Makes a copy of a Reltime object.
  *
  * \param dest   The destination Reltime object -- must not be \c NULL.
- * \param src    The source Reltime object -- must not be \c NULL.
+ * \param src    The source Reltime object -- must be a valid Reltime.
  *
  * \return   The parameter \a dest.
  */
@@ -103,8 +106,8 @@ Reltime* Reltime_copy(Reltime* dest, const Reltime* src);
 /**
  * Converts the time represented by a Reltime object into frames.
  *
- * \param r       The Reltime object -- must not be \c NULL. Also, the time
- *                must be >= \c 0.
+ * \param r       The Reltime object -- must be a valid Reltime. Also, the
+ *                time must be >= \c 0.
  * \param tempo   The tempo -- must be > \c 0.
  * \param freq    The mixing frequency -- must be > \c 0.
  *
