@@ -31,6 +31,14 @@ typedef struct Reltime
 
 
 /**
+ * A new instance of an uninitialised Reltime object with automatic storage
+ * allocation.
+ * Useful for passing as a parameter to an initialiser.
+ */
+#define RELTIME_AUTO (&(Reltime){ .beats = 0 })
+
+
+/**
  * Intialises a Reltime object with time 0.
  *
  * \param r   The Reltime object -- must not be \c NULL.
@@ -69,6 +77,9 @@ Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part);
 /**
  * Computes the sum of two Reltime objects.
  *
+ * If the beat count overflows during the calculation, the behaviour is
+ * dependent on the underlying C implementation.
+ *
  * \param result   The result Reltime object -- must not be \c NULL. This may
  *                 be the same as \a r1 and/or \a r2.
  * \param r1       The first Reltime object -- must be a valid Reltime.
@@ -81,6 +92,9 @@ Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2);
 
 /**
  * Computes the difference between two Reltime objects.
+ *
+ * If the beat count overflows during the calculation, the behaviour is
+ * dependent on the underlying C implementation.
  *
  * \param result   The result Reltime object -- must not be \c NULL. This may
  *                 be the same as \a r1 and/or \a r2.
