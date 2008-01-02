@@ -1,5 +1,25 @@
 
 
+/*
+ * Copyright 2007 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #ifndef K_NOTE_TABLE_H
 #define K_NOTE_TABLE_H
 
@@ -457,7 +477,7 @@ Real* Note_table_drift(Note_table* table, Real* drift);
 /**
  * Destroys the Note table.
  *
- * \param table   The Note table -- must not be NULL.
+ * \param table   The Note table -- must not be \c NULL.
  */
 void del_Note_table(Note_table* table);
 

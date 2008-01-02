@@ -1,5 +1,25 @@
 
 
+/*
+ * Copyright 2007 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #ifndef K_REAL_H
 #define K_REAL_H
 
@@ -132,7 +152,7 @@ Real* Real_copy(Real* dest, Real* src);
  * \param real1   The first factor -- must be a valid Real.
  * \param real2   The second factor -- must be a valid Real.
  *
- * \return   The parameter ret.
+ * \return   The parameter \a ret.
  */
 Real* Real_mul(Real* ret, Real* real1, Real* real2);
 
@@ -151,7 +171,7 @@ Real* Real_mul(Real* ret, Real* real1, Real* real2);
  * \param divisor    The divisor Real object -- must be a valid Real other
  *                   than zero.
  *
- * \return   The parameter ret.
+ * \return   The parameter \a ret.
  */
 Real* Real_div(Real* ret, Real* dividend, Real* divisor);
 
@@ -175,8 +195,9 @@ double Real_mul_float(Real* real, double d);
  * \param real1   The first Real object -- must be a valid Real.
  * \param real2   The second Real object -- must be a valid Real.
  *
- * \return   Less than, equal to, or greater than zero if real1 is found,
- *           respectively, to be less than, equal to, or greater than real2.
+ * \return   Less than, equal to, or greater than zero if \a real1 is found,
+ *           respectively, to be less than, equal to, or greater than
+ *           \a real2.
  */
 int Real_cmp(Real* real1, Real* real2);
 

@@ -1,5 +1,25 @@
 
 
+/*
+ * Copyright 2007 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
@@ -4027,7 +4047,8 @@ START_TEST (drift)
 	int64_t num = Real_get_numerator(&note_ratio);
 	int64_t den = Real_get_denominator(&note_ratio);
 	fail_unless(num == 81 && den == 80,
-			"Note_table_drift() returned %lld/%lld instead of 81/80.", num, den);
+			"Note_table_drift() returned %lld/%lld instead of 81/80.",
+			(long long)num, (long long)den);
 	
 	// TODO: more tests
 	
