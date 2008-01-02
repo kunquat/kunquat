@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <signal.h>
 #include <stdint.h>
+#include <float.h>
 
 #include <check.h>
 
@@ -556,6 +557,7 @@ START_TEST (add)
 {
 	Reltime* ret = NULL;
 	Reltime* res = Reltime_init(RELTIME_AUTO);
+	res->part = -1;
 	Reltime* r1 = Reltime_init(RELTIME_AUTO);
 	Reltime* r2 = Reltime_init(RELTIME_AUTO);
 	Reltime* exp = Reltime_init(RELTIME_AUTO);
@@ -783,6 +785,7 @@ START_TEST (sub)
 {
 	Reltime* ret = NULL;
 	Reltime* res = Reltime_init(RELTIME_AUTO);
+	res->part = -1;
 	Reltime* r1 = Reltime_init(RELTIME_AUTO);
 	Reltime* r2 = Reltime_init(RELTIME_AUTO);
 	Reltime* exp = Reltime_init(RELTIME_AUTO);
@@ -1115,6 +1118,237 @@ END_TEST
 #endif
 
 
+START_TEST (toframes)
+{
+	Reltime* r = Reltime_init(RELTIME_AUTO);
+	uint32_t res = 0;
+	res = Reltime_toframes(r, DBL_MIN, 1);
+	fail_unless(res == 0,
+			"Reltime_toframes() returned %ld instead of 0.", (long)res);
+	res = Reltime_toframes(r, DBL_MIN, UINT32_MAX);
+	fail_unless(res == 0,
+			"Reltime_toframes() returned %ld instead of 0.", (long)res);
+	res = Reltime_toframes(r, DBL_MAX, 1);
+	fail_unless(res == 0,
+			"Reltime_toframes() returned %ld instead of 0.", (long)res);
+	res = Reltime_toframes(r, DBL_MAX, UINT32_MAX);
+	fail_unless(res == 0,
+			"Reltime_toframes() returned %ld instead of 0.", (long)res);
+
+	Reltime_set(r, 1, 0);
+	res = Reltime_toframes(r, 60, 44100);
+	fail_unless(res == 44100,
+			"Reltime_toframes() returned %ld instead of 44100.", (long)res);
+	res = Reltime_toframes(r, 120, 44100);
+	fail_unless(res == 22050,
+			"Reltime_toframes() returned %ld instead of 22050.", (long)res);
+	res = Reltime_toframes(r, 60, 96000);
+	fail_unless(res == 96000,
+			"Reltime_toframes() returned %ld instead of 96000.", (long)res);
+
+	Reltime_set(r, 0, RELTIME_FULL_PART / 2);
+	res = Reltime_toframes(r, 60, 44100);
+	fail_unless(res == 22050,
+			"Reltime_toframes() returned %ld instead of 22050.", (long)res);
+	res = Reltime_toframes(r, 120, 44100);
+	fail_unless(res == 11025,
+			"Reltime_toframes() returned %ld instead of 11025.", (long)res);
+	res = Reltime_toframes(r, 60, 96000);
+	fail_unless(res == 48000,
+			"Reltime_toframes() returned %ld instead of 48000.", (long)res);
+
+	Reltime_set(r, 1, RELTIME_FULL_PART / 2);
+	res = Reltime_toframes(r, 60, 44100);
+	fail_unless(res == 66150,
+			"Reltime_toframes() returned %ld instead of 66150.", (long)res);
+	res = Reltime_toframes(r, 120, 44100);
+	fail_unless(res == 33075,
+			"Reltime_toframes() returned %ld instead of 33075.", (long)res);
+	res = Reltime_toframes(r, 60, 96000);
+	fail_unless(res == 144000,
+			"Reltime_toframes() returned %ld instead of 144000.", (long)res);
+}
+END_TEST
+
+#ifndef NDEBUG
+START_TEST (toframes_break_null1)
+{
+	Reltime_toframes(NULL, 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv11)
+{
+	Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+	Reltime_toframes(br, 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv12)
+{
+	Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+	Reltime_toframes(br, 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv13)
+{
+	Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+	Reltime_toframes(br, 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv14)
+{
+	Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+	Reltime_toframes(br, 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv15)
+{
+	Reltime_toframes(Reltime_set(RELTIME_AUTO, INT64_MIN, 0), 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv16)
+{
+	Reltime_toframes(Reltime_set(RELTIME_AUTO, -1, RELTIME_FULL_PART - 1), 1, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv21)
+{
+	Reltime_toframes(Reltime_init(RELTIME_AUTO), -DBL_MAX, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv22)
+{
+	Reltime_toframes(Reltime_init(RELTIME_AUTO), 0, 1);
+}
+END_TEST
+
+START_TEST (toframes_break_inv31)
+{
+	Reltime_toframes(Reltime_init(RELTIME_AUTO), 1, 0);
+}
+END_TEST
+#endif
+
+
+START_TEST (fromframes)
+{
+	Reltime* r = &(Reltime){ .beats = 0, .part = -1 };
+	Reltime* ret = NULL;
+	Reltime* exp = Reltime_init(RELTIME_AUTO);
+
+	ret = Reltime_fromframes(r, 0, DBL_MIN, 1);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 0, DBL_MIN, UINT32_MAX);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 0, DBL_MAX, UINT32_MAX);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 0, DBL_MAX, UINT32_MAX);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+
+	Reltime_set(exp, 1, 0);
+	ret = Reltime_fromframes(r, 44100, 60, 44100);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 48000, 120, 96000);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+
+	Reltime_set(exp, 0, RELTIME_FULL_PART / 2);
+	ret = Reltime_fromframes(r, 22050, 60, 44100);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 24000, 120, 96000);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+
+	Reltime_set(exp, 1, RELTIME_FULL_PART / 2);
+	ret = Reltime_fromframes(r, 66150, 60, 44100);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+	ret = Reltime_fromframes(r, 72000, 120, 96000);
+	fail_unless(ret == r,
+			"Reltime_fromframes() returned %p instead of %p.", ret, r);
+	fail_unless(Reltime_cmp(r, exp) == 0,
+			"Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
+			(long long)r->beats, (long)r->part,
+			(long long)exp->beats, (long)exp->part);
+}
+END_TEST
+
+#ifndef NDEBUG
+START_TEST (fromframes_break_null1)
+{
+	Reltime_fromframes(NULL, 0, 1, 1);
+}
+END_TEST
+
+START_TEST (fromframes_break_inv_tempo1)
+{
+	Reltime_fromframes(Reltime_init(RELTIME_AUTO), 0, -DBL_MAX, 1);
+}
+END_TEST
+
+START_TEST (fromframes_break_inv_tempo2)
+{
+	Reltime_fromframes(Reltime_init(RELTIME_AUTO), 0, 0, 1);
+}
+END_TEST
+
+START_TEST (fromframes_break_inv_freq)
+{
+	Reltime_fromframes(Reltime_init(RELTIME_AUTO), 0, 1, 0);
+}
+END_TEST
+#endif
+
+
 Suite* Reltime_suite(void)
 {
 	Suite* s = suite_create("Reltime");
@@ -1124,12 +1358,16 @@ Suite* Reltime_suite(void)
 	TCase* tc_add = tcase_create("add");
 	TCase* tc_sub = tcase_create("sub");
 	TCase* tc_copy = tcase_create("copy");
+	TCase* tc_toframes = tcase_create("toframes");
+	TCase* tc_fromframes = tcase_create("fromframes");
 	suite_add_tcase(s, tc_init);
 	suite_add_tcase(s, tc_set);
 	suite_add_tcase(s, tc_cmp);
 	suite_add_tcase(s, tc_add);
 	suite_add_tcase(s, tc_sub);
 	suite_add_tcase(s, tc_copy);
+	suite_add_tcase(s, tc_toframes);
+	suite_add_tcase(s, tc_fromframes);
 
 	tcase_add_test(tc_init, init);
 	tcase_add_test(tc_set, set);
@@ -1137,6 +1375,8 @@ Suite* Reltime_suite(void)
 	tcase_add_test(tc_add, add);
 	tcase_add_test(tc_sub, sub);
 	tcase_add_test(tc_copy, copy);
+	tcase_add_test(tc_toframes, toframes);
+	tcase_add_test(tc_fromframes, fromframes);
 
 #ifndef NDEBUG
 	tcase_add_test_raise_signal(tc_init, init_break, SIGABRT);
@@ -1188,6 +1428,22 @@ Suite* Reltime_suite(void)
 	tcase_add_test_raise_signal(tc_copy, copy_break_inv22, SIGABRT);
 	tcase_add_test_raise_signal(tc_copy, copy_break_inv23, SIGABRT);
 	tcase_add_test_raise_signal(tc_copy, copy_break_inv24, SIGABRT);
+
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_null1, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv11, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv12, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv13, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv14, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv15, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv16, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv21, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv22, SIGABRT);
+	tcase_add_test_raise_signal(tc_toframes, toframes_break_inv31, SIGABRT);
+
+	tcase_add_test_raise_signal(tc_fromframes, fromframes_break_null1, SIGABRT);
+	tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_tempo1, SIGABRT);
+	tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_tempo2, SIGABRT);
+	tcase_add_test_raise_signal(tc_fromframes, fromframes_break_inv_freq, SIGABRT);
 #endif
 
 	return s;
