@@ -1,6 +1,7 @@
+# coding=utf-8
 
 
-# Copyright 2007 Tomi Jylhä-Ollila
+# Copyright 2008 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -33,6 +34,7 @@ files = [
 'Real.c',
 'Note_table.c',
 'Reltime.c',
+'Event.c',
 ]
 
 env.StaticLibrary('core', files)
