@@ -74,7 +74,7 @@ bool Event_queue_ins(Event_queue* q, Event* event, uint32_t pos);
 
 
 /**
- * Gets an Event from the Event queue.
+ * Gets an Event from the Event queue and removes the Event.
  *
  * \param q      The Event queue -- must not be \c NULL.
  * \param dest   A pointer to the Event object reference -- must not be
@@ -86,6 +86,23 @@ bool Event_queue_ins(Event_queue* q, Event* event, uint32_t pos);
  *           empty.
  */
 bool Event_queue_get(Event_queue* q, Event** dest, uint32_t* pos);
+
+
+/**
+ * Gets any Event from the Event queue without removing the Event.
+ *
+ * \param q       The Event queue -- must not be \c NULL.
+ * \param index   The index of the Event -- must be >= \c 0. Value \c 0 means
+ *                the next Event to be removed from the queue.
+ * \param dest    A pointer to the Event object reference -- must not be
+ *                \c NULL.
+ * \param pos     The location where the starting frame is stored -- must not
+ *                be \c NULL.
+ *
+ * \return   \c true if an Event was retrieved, or \c false if no Event exists
+ *           at \a index.
+ */
+bool Event_queue_peek(Event_queue* q, int index, Event** dest, uint32_t* pos);
 
 
 /**

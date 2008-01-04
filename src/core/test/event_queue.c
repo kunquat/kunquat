@@ -230,6 +230,144 @@ END_TEST
 #endif
 
 
+START_TEST (peek)
+{
+	Event* ev1 = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (ev1 == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event* ev2 = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (ev2 == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event* ev3 = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (ev3 == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event_queue* q = new_Event_queue(4);
+	if (q == NULL)
+	{
+		fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+		abort();
+	}
+	fail_unless(Event_queue_ins(q, ev1, 2),
+			"Event_queue_ins() failed prematurely.");
+	fail_unless(Event_queue_ins(q, ev2, 4),
+			"Event_queue_ins() failed prematurely.");
+	fail_unless(Event_queue_ins(q, ev3, 7),
+			"Event_queue_ins() failed prematurely.");
+	Event* ret = NULL;
+	uint32_t pos = UINT32_MAX;
+
+	fail_unless(Event_queue_peek(q, 0, &ret, &pos),
+			"Event_queue_peek() failed at getting the first Event.");
+	fail_unless(ret == ev1,
+			"Event_queue_peek() got Event %p instead of %p.", ret, ev1);
+	fail_unless(pos == 2,
+			"Event_queue_peek() got position %lu instead of 2.", (unsigned long)pos);
+
+	fail_unless(Event_queue_peek(q, 1, &ret, &pos),
+			"Event_queue_peek() failed at getting the second Event.");
+	fail_unless(ret == ev2,
+			"Event_queue_peek() got Event %p instead of %p.", ret, ev2);
+	fail_unless(pos == 4,
+			"Event_queue_peek() got position %lu instead of 4.", (unsigned long)pos);
+
+	fail_unless(Event_queue_peek(q, 2, &ret, &pos),
+			"Event_queue_peek() failed at getting the third Event.");
+	fail_unless(ret == ev3,
+			"Event_queue_peek() got Event %p instead of %p.", ret, ev3);
+	fail_unless(pos == 7,
+			"Event_queue_peek() got position %lu instead of 7.", (unsigned long)pos);
+
+	fail_if(Event_queue_peek(q, 3, &ret, &pos),
+			"Event_queue_peek() retrieved a non-existent Event.");
+
+	del_Event_queue(q);
+	del_Event(ev1);
+	del_Event(ev2);
+	del_Event(ev3);
+}
+END_TEST
+
+#ifndef NDEBUG
+START_TEST (peek_break_null_q)
+{
+	Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (event == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		return;
+	}
+	uint32_t pos = 0;
+	Event_queue_peek(NULL, 0, &event, &pos);
+	del_Event(event);
+}
+END_TEST
+
+START_TEST (peek_break_inv_index)
+{
+	Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (event == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		return;
+	}
+	Event_queue* q = new_Event_queue(1);
+	if (q == NULL)
+	{
+		fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+		return;
+	}
+	uint32_t pos = 0;
+	Event_queue_peek(q, -1, &event, &pos);
+	del_Event_queue(q);
+	del_Event(event);
+}
+END_TEST
+
+START_TEST (peek_break_null_event)
+{
+	Event_queue* q = new_Event_queue(1);
+	if (q == NULL)
+	{
+		fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+		return;
+	}
+	uint32_t pos = 0;
+	Event_queue_peek(q, 0, NULL, &pos);
+	del_Event_queue(q);
+}
+END_TEST
+
+START_TEST (peek_break_null_pos)
+{
+	Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (event == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		return;
+	}
+	Event_queue* q = new_Event_queue(1);
+	if (q == NULL)
+	{
+		fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+		return;
+	}
+	Event_queue_peek(q, 0, &event, NULL);
+	del_Event_queue(q);
+	del_Event(event);
+}
+END_TEST
+#endif
+
+
 START_TEST (clear)
 {
 	Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
@@ -351,15 +489,18 @@ Suite* Event_queue_suite(void)
 	Suite* s = suite_create("Event_queue");
 	TCase* tc_new = tcase_create("new");
 	TCase* tc_ins_get = tcase_create("ins_get");
+	TCase* tc_peek = tcase_create("peek");
 	TCase* tc_clear = tcase_create("clear");
 	TCase* tc_resize = tcase_create("resize");
 	suite_add_tcase(s, tc_new);
 	suite_add_tcase(s, tc_ins_get);
+	suite_add_tcase(s, tc_peek);
 	suite_add_tcase(s, tc_clear);
 	suite_add_tcase(s, tc_resize);
 
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_ins_get, ins_get);
+	tcase_add_test(tc_peek, peek);
 	tcase_add_test(tc_clear, clear);
 	tcase_add_test(tc_resize, resize);
 
@@ -371,6 +512,11 @@ Suite* Event_queue_suite(void)
 	tcase_add_test_raise_signal(tc_ins_get, get_break_null_q, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_get, get_break_null_event, SIGABRT);
 	tcase_add_test_raise_signal(tc_ins_get, get_break_null_pos, SIGABRT);
+
+	tcase_add_test_raise_signal(tc_peek, peek_break_null_q, SIGABRT);
+	tcase_add_test_raise_signal(tc_peek, peek_break_inv_index, SIGABRT);
+	tcase_add_test_raise_signal(tc_peek, peek_break_null_event, SIGABRT);
+	tcase_add_test_raise_signal(tc_peek, peek_break_null_pos, SIGABRT);
 
 	tcase_add_test_raise_signal(tc_clear, clear_break_null, SIGABRT);
 

@@ -95,6 +95,22 @@ bool Event_queue_get(Event_queue* q, Event** dest, uint32_t* pos)
 }
 
 
+bool Event_queue_peek(Event_queue* q, int index, Event** dest, uint32_t* pos)
+{
+	assert(q != NULL);
+	assert(index >= 0);
+	assert(dest != NULL);
+	assert(pos != NULL);
+	if (index >= q->count)
+	{
+		return false;
+	}
+	*dest = q->queue[(q->start + index) % q->size].event;
+	*pos = q->queue[(q->start + index) % q->size].pos;
+	return true;
+}
+
+
 void Event_queue_clear(Event_queue* q)
 {
 	assert(q != NULL);
