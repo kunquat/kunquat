@@ -41,4 +41,8 @@ event = env_test.Program('event', ['event.c'])
 env_test.AddPostAction(event, event[0].abspath)
 Depends(event, 'reltime')
 
+event_queue = env_test.Program('event_queue', ['event_queue.c'])
+env_test.AddPostAction(event_queue, event_queue[0].abspath)
+Depends(event_queue, 'event')
+
 

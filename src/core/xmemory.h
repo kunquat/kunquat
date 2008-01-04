@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2007 Tomi Jylhä-Ollila
+ * Copyright 2008 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -27,12 +27,13 @@
 #include <stdlib.h>
 
 
-#define xalloc(type)       malloc(sizeof(type))
+#define xalloc(type)             malloc(sizeof(type))
 
-#define xnalloc(type, n)   malloc(sizeof(type) * (n))
-#define xcalloc(type, n)   calloc((n), sizeof(type))
+#define xnalloc(type, n)         malloc(sizeof(type) * (n))
+#define xcalloc(type, n)         calloc((n), sizeof(type))
+#define xrealloc(type, n, ptr)   realloc(ptr, sizeof(type) * (n))
 
-#define xfree(ptr)         free(ptr)
+#define xfree(ptr)               free(ptr)
 
 
 #endif // K_XMEMORY_H
