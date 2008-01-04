@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2007 Tomi Jylhä-Ollila
+ * Copyright 2008 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <signal.h>
+#include <stdint.h>
 #include <limits.h>
 #include <float.h>
 #include <stdbool.h>
@@ -217,7 +218,7 @@ END_TEST
 START_TEST (new_break6)
 {
 	Real octave_ratio;
-	Real_init_as_frac(&octave_ratio, -1, LONG_MAX);
+	Real_init_as_frac(&octave_ratio, -1, INT64_MAX);
 	new_Note_table(NULL, 528, &octave_ratio);
 }
 END_TEST
@@ -225,7 +226,7 @@ END_TEST
 START_TEST (new_break7)
 {
 	Real octave_ratio;
-	Real_init_as_frac(&octave_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&octave_ratio, INT64_MIN, 1);
 	new_Note_table(NULL, 528, &octave_ratio);
 }
 END_TEST
@@ -337,7 +338,7 @@ START_TEST (set_ref_pitch_break2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	Note_table_set_ref_pitch(table, 0);
 	del_Note_table(table);
@@ -353,7 +354,7 @@ START_TEST (set_ref_pitch_break3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	Note_table_set_ref_pitch(table, -DBL_MIN);
 	del_Note_table(table);
@@ -369,7 +370,7 @@ START_TEST (set_ref_pitch_break4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	Note_table_set_ref_pitch(table, -DBL_MAX);
 	del_Note_table(table);
@@ -502,7 +503,7 @@ START_TEST (set_octave_ratio_break2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	
 	Note_table_set_octave_ratio(table, NULL);
@@ -520,7 +521,7 @@ START_TEST (set_octave_ratio_break3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	
 	Real_init_as_frac(&octave_ratio, 0, 1);
@@ -539,7 +540,7 @@ START_TEST (set_octave_ratio_break4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	
 	Real_init_as_frac(&octave_ratio, -1, 1);
@@ -558,10 +559,10 @@ START_TEST (set_octave_ratio_break5)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 	
-	Real_init_as_frac(&octave_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&octave_ratio, INT64_MIN, 1);
 	Note_table_set_octave_ratio(table, &octave_ratio);
 
 	del_Note_table(table);
@@ -583,7 +584,7 @@ START_TEST (get_octave_ratio)
 
 	fail_unless(Real_cmp(&octave_ratio, Note_table_get_octave_ratio(table)) == 0,
 			"Note_table_get_octave_ratio() didn't return the correct octave ratio.");
-	Real_init_as_frac(&octave_ratio, LONG_MAX, 1);
+	Real_init_as_frac(&octave_ratio, INT64_MAX, 1);
 	Note_table_set_octave_ratio(table, &octave_ratio);
 	fail_unless(Real_cmp(&octave_ratio, Note_table_get_octave_ratio(table)) == 0,
 			"Note_table_get_octave_ratio() didn't return the correct octave ratio.");
@@ -683,7 +684,7 @@ START_TEST (set_note)
 	fail_unless(table->notes[0].name[NOTE_TABLE_NOTE_NAME_MAX - 1] == '\0',
 			"Note_table_set_note() set name without null termination.");
 	
-	Real_init_as_frac(&note_ratio, 1, LONG_MAX);
+	Real_init_as_frac(&note_ratio, 1, INT64_MAX);
 	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
@@ -692,7 +693,7 @@ START_TEST (set_note)
 	fail_unless(Real_cmp(&(table->notes[0].ratio_retuned), &note_ratio) == 0,
 			"Note_table_set_note() didn't set the retuned note ratio correctly.");
 	
-	Real_init_as_frac(&note_ratio, LONG_MAX, 1);
+	Real_init_as_frac(&note_ratio, INT64_MAX, 1);
 	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
@@ -743,7 +744,7 @@ START_TEST (set_note_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, -1, "Oops", &note_ratio);
@@ -763,7 +764,7 @@ START_TEST (set_note_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, INT_MIN, "Oops", &note_ratio);
@@ -783,7 +784,7 @@ START_TEST (set_note_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, NOTE_TABLE_NOTES, "Oops", &note_ratio);
@@ -803,7 +804,7 @@ START_TEST (set_note_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, INT_MAX, "Oops", &note_ratio);
@@ -823,7 +824,7 @@ START_TEST (set_note_break_name1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, NULL, &note_ratio);
@@ -843,7 +844,7 @@ START_TEST (set_note_break_name2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, "", &note_ratio);
@@ -861,7 +862,7 @@ START_TEST (set_note_break_ratio1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, "Oops", NULL);
@@ -881,7 +882,7 @@ START_TEST (set_note_break_ratio2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, "Oops", &note_ratio);
@@ -895,13 +896,13 @@ START_TEST (set_note_break_ratio3)
 	Real note_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&note_ratio, -1, LONG_MAX);
+	Real_init_as_frac(&note_ratio, -1, INT64_MAX);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, "Oops", &note_ratio);
@@ -915,13 +916,13 @@ START_TEST (set_note_break_ratio4)
 	Real note_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&note_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&note_ratio, INT64_MIN, 1);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note(table, 0, "Oops", &note_ratio);
@@ -1043,7 +1044,7 @@ START_TEST (ins_note)
 	fail_unless(strcmp(table->notes[2].name, note_name) == 0,
 			"Note_table_ins_note() broke the index following the insertion point.");
 	
-	Real_init_as_frac(&note_ratio, 1, LONG_MAX);
+	Real_init_as_frac(&note_ratio, 1, INT64_MAX);
 	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
@@ -1052,7 +1053,7 @@ START_TEST (ins_note)
 	fail_unless(Real_cmp(&(table->notes[0].ratio_retuned), &note_ratio) == 0,
 			"Note_table_ins_note() didn't set the retuned note ratio correctly.");
 	
-	Real_init_as_frac(&note_ratio, LONG_MAX, 1);
+	Real_init_as_frac(&note_ratio, INT64_MAX, 1);
 	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
@@ -1103,7 +1104,7 @@ START_TEST (ins_note_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, -1, "Oops", &note_ratio);
@@ -1123,7 +1124,7 @@ START_TEST (ins_note_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, INT_MIN, "Oops", &note_ratio);
@@ -1143,7 +1144,7 @@ START_TEST (ins_note_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, NOTE_TABLE_NOTES, "Oops", &note_ratio);
@@ -1163,7 +1164,7 @@ START_TEST (ins_note_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, INT_MAX, "Oops", &note_ratio);
@@ -1183,7 +1184,7 @@ START_TEST (ins_note_break_name1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, NULL, &note_ratio);
@@ -1203,7 +1204,7 @@ START_TEST (ins_note_break_name2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, "", &note_ratio);
@@ -1221,7 +1222,7 @@ START_TEST (ins_note_break_ratio1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, "Oops", NULL);
@@ -1241,7 +1242,7 @@ START_TEST (ins_note_break_ratio2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, "Oops", &note_ratio);
@@ -1255,13 +1256,13 @@ START_TEST (ins_note_break_ratio3)
 	Real note_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&note_ratio, -1, LONG_MAX);
+	Real_init_as_frac(&note_ratio, -1, INT64_MAX);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, "Oops", &note_ratio);
@@ -1275,13 +1276,13 @@ START_TEST (ins_note_break_ratio4)
 	Real note_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&note_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&note_ratio, INT64_MIN, 1);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note(table, 0, "Oops", &note_ratio);
@@ -1387,7 +1388,7 @@ START_TEST (del_note_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note(table, -1);
@@ -1405,7 +1406,7 @@ START_TEST (del_note_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note(table, INT_MIN);
@@ -1423,7 +1424,7 @@ START_TEST (del_note_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note(table, NOTE_TABLE_NOTES);
@@ -1441,7 +1442,7 @@ START_TEST (del_note_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note(table, INT_MAX);
@@ -1618,7 +1619,7 @@ START_TEST (move_note_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, -1, 0);
@@ -1636,7 +1637,7 @@ START_TEST (move_note_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, INT_MIN, 0);
@@ -1654,7 +1655,7 @@ START_TEST (move_note_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, NOTE_TABLE_NOTES, 0);
@@ -1672,7 +1673,7 @@ START_TEST (move_note_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, INT_MAX, 0);
@@ -1690,7 +1691,7 @@ START_TEST (move_note_break_new_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, 0, -1);
@@ -1708,7 +1709,7 @@ START_TEST (move_note_break_new_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, 0, INT_MIN);
@@ -1726,7 +1727,7 @@ START_TEST (move_note_break_new_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, 0, NOTE_TABLE_NOTES);
@@ -1744,7 +1745,7 @@ START_TEST (move_note_break_new_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note(table, 0, INT_MAX);
@@ -1807,7 +1808,7 @@ START_TEST (get_note_name_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_name(table, -1);
@@ -1825,7 +1826,7 @@ START_TEST (get_note_name_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_name(table, INT_MIN);
@@ -1843,7 +1844,7 @@ START_TEST (get_note_name_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_name(table, NOTE_TABLE_NOTES);
@@ -1861,7 +1862,7 @@ START_TEST (get_note_name_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_name(table, INT_MAX);
@@ -1924,7 +1925,7 @@ START_TEST (get_note_ratio_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_ratio(table, -1);
@@ -1942,7 +1943,7 @@ START_TEST (get_note_ratio_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_ratio(table, INT_MIN);
@@ -1960,7 +1961,7 @@ START_TEST (get_note_ratio_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_ratio(table, NOTE_TABLE_NOTES);
@@ -1978,7 +1979,7 @@ START_TEST (get_note_ratio_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_ratio(table, INT_MAX);
@@ -2051,14 +2052,14 @@ START_TEST (set_note_mod)
 	fail_unless(table->note_mods[0].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] == '\0',
 			"Note_table_set_note_mod() set name without null termination.");
 	
-	Real_init_as_frac(&mod_ratio, 1, LONG_MAX);
+	Real_init_as_frac(&mod_ratio, 1, INT64_MAX);
 	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
 	
-	Real_init_as_frac(&mod_ratio, LONG_MAX, 1);
+	Real_init_as_frac(&mod_ratio, INT64_MAX, 1);
 	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
@@ -2103,7 +2104,7 @@ START_TEST (set_note_mod_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, -1, "Oops", &mod_ratio);
@@ -2123,7 +2124,7 @@ START_TEST (set_note_mod_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, INT_MIN, "Oops", &mod_ratio);
@@ -2143,7 +2144,7 @@ START_TEST (set_note_mod_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS, "Oops", &mod_ratio);
@@ -2163,7 +2164,7 @@ START_TEST (set_note_mod_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, INT_MAX, "Oops", &mod_ratio);
@@ -2183,7 +2184,7 @@ START_TEST (set_note_mod_break_name1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, NULL, &mod_ratio);
@@ -2203,7 +2204,7 @@ START_TEST (set_note_mod_break_name2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, "", &mod_ratio);
@@ -2221,7 +2222,7 @@ START_TEST (set_note_mod_break_ratio1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, "Oops", NULL);
@@ -2241,7 +2242,7 @@ START_TEST (set_note_mod_break_ratio2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2255,13 +2256,13 @@ START_TEST (set_note_mod_break_ratio3)
 	Real mod_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&mod_ratio, -1, LONG_MAX);
+	Real_init_as_frac(&mod_ratio, -1, INT64_MAX);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2275,13 +2276,13 @@ START_TEST (set_note_mod_break_ratio4)
 	Real mod_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&mod_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&mod_ratio, INT64_MIN, 1);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2387,14 +2388,14 @@ START_TEST (ins_note_mod)
 	fail_unless(strcmp(table->note_mods[2].name, mod_name) == 0,
 			"Note_table_ins_note_mod() broke the index following the insertion point.");
 	
-	Real_init_as_frac(&mod_ratio, 1, LONG_MAX);
+	Real_init_as_frac(&mod_ratio, 1, INT64_MAX);
 	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't set the modifier ratio correctly.");
 	
-	Real_init_as_frac(&mod_ratio, LONG_MAX, 1);
+	Real_init_as_frac(&mod_ratio, INT64_MAX, 1);
 	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
@@ -2439,7 +2440,7 @@ START_TEST (ins_note_mod_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, -1, "Oops", &mod_ratio);
@@ -2459,7 +2460,7 @@ START_TEST (ins_note_mod_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, INT_MIN, "Oops", &mod_ratio);
@@ -2479,7 +2480,7 @@ START_TEST (ins_note_mod_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, NOTE_TABLE_NOTE_MODS, "Oops", &mod_ratio);
@@ -2499,7 +2500,7 @@ START_TEST (ins_note_mod_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, INT_MAX, "Oops", &mod_ratio);
@@ -2519,7 +2520,7 @@ START_TEST (ins_note_mod_break_name1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, NULL, &mod_ratio);
@@ -2539,7 +2540,7 @@ START_TEST (ins_note_mod_break_name2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, "", &mod_ratio);
@@ -2557,7 +2558,7 @@ START_TEST (ins_note_mod_break_ratio1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, "Oops", NULL);
@@ -2577,7 +2578,7 @@ START_TEST (ins_note_mod_break_ratio2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2591,13 +2592,13 @@ START_TEST (ins_note_mod_break_ratio3)
 	Real mod_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&mod_ratio, -1, LONG_MAX);
+	Real_init_as_frac(&mod_ratio, -1, INT64_MAX);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2611,13 +2612,13 @@ START_TEST (ins_note_mod_break_ratio4)
 	Real mod_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	Real_init_as_frac(&mod_ratio, LONG_MIN, 1);
+	Real_init_as_frac(&mod_ratio, INT64_MIN, 1);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
@@ -2705,7 +2706,7 @@ START_TEST (del_note_mod_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note_mod(table, -1);
@@ -2723,7 +2724,7 @@ START_TEST (del_note_mod_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note_mod(table, INT_MIN);
@@ -2741,7 +2742,7 @@ START_TEST (del_note_mod_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note_mod(table, NOTE_TABLE_NOTE_MODS);
@@ -2759,7 +2760,7 @@ START_TEST (del_note_mod_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_del_note_mod(table, INT_MAX);
@@ -2910,7 +2911,7 @@ START_TEST (move_note_mod_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, -1, 0);
@@ -2928,7 +2929,7 @@ START_TEST (move_note_mod_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, INT_MIN, 0);
@@ -2946,7 +2947,7 @@ START_TEST (move_note_mod_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, NOTE_TABLE_NOTE_MODS, 0);
@@ -2964,7 +2965,7 @@ START_TEST (move_note_mod_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, INT_MAX, 0);
@@ -2982,7 +2983,7 @@ START_TEST (move_note_mod_break_new_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, 0, -1);
@@ -3000,7 +3001,7 @@ START_TEST (move_note_mod_break_new_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, 0, INT_MIN);
@@ -3018,7 +3019,7 @@ START_TEST (move_note_mod_break_new_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, 0, NOTE_TABLE_NOTE_MODS);
@@ -3036,7 +3037,7 @@ START_TEST (move_note_mod_break_new_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_move_note_mod(table, 0, INT_MAX);
@@ -3098,7 +3099,7 @@ START_TEST (get_note_mod_name_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_name(table, -1);
@@ -3116,7 +3117,7 @@ START_TEST (get_note_mod_name_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_name(table, INT_MIN);
@@ -3134,7 +3135,7 @@ START_TEST (get_note_mod_name_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_name(table, NOTE_TABLE_NOTE_MODS);
@@ -3152,7 +3153,7 @@ START_TEST (get_note_mod_name_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_name(table, INT_MAX);
@@ -3213,7 +3214,7 @@ START_TEST (get_note_mod_ratio_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_ratio(table, -1);
@@ -3231,7 +3232,7 @@ START_TEST (get_note_mod_ratio_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_ratio(table, INT_MIN);
@@ -3249,7 +3250,7 @@ START_TEST (get_note_mod_ratio_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_ratio(table, NOTE_TABLE_NOTE_MODS);
@@ -3267,7 +3268,7 @@ START_TEST (get_note_mod_ratio_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_note_mod_ratio(table, INT_MAX);
@@ -3460,7 +3461,7 @@ START_TEST (get_pitch_break_index1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, -1, -1, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3478,7 +3479,7 @@ START_TEST (get_pitch_break_index2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, INT_MIN, -1, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3496,7 +3497,7 @@ START_TEST (get_pitch_break_index3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, NOTE_TABLE_NOTES, -1, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3514,7 +3515,7 @@ START_TEST (get_pitch_break_index4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, INT_MAX, -1, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3532,7 +3533,7 @@ START_TEST (get_pitch_break_mod1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, NOTE_TABLE_NOTE_MODS, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3550,7 +3551,7 @@ START_TEST (get_pitch_break_mod2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, INT_MAX, NOTE_TABLE_MIDDLE_OCTAVE);
@@ -3568,7 +3569,7 @@ START_TEST (get_pitch_break_octave1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, -1, -1);
@@ -3586,7 +3587,7 @@ START_TEST (get_pitch_break_octave2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, -1, INT_MIN);
@@ -3604,7 +3605,7 @@ START_TEST (get_pitch_break_octave3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVES);
@@ -3622,7 +3623,7 @@ START_TEST (get_pitch_break_octave4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_get_pitch(table, 0, -1, INT_MAX);
@@ -3879,7 +3880,7 @@ START_TEST (retune_break_new_ref1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, NOTE_TABLE_NOTES, 0);
@@ -3897,7 +3898,7 @@ START_TEST (retune_break_new_ref2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, INT_MAX, 0);
@@ -3915,7 +3916,7 @@ START_TEST (retune_break_fixed_point1)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, 0, -1);
@@ -3933,7 +3934,7 @@ START_TEST (retune_break_fixed_point2)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, 0, INT_MIN);
@@ -3951,7 +3952,7 @@ START_TEST (retune_break_fixed_point3)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, 0, NOTE_TABLE_NOTES);
@@ -3969,7 +3970,7 @@ START_TEST (retune_break_fixed_point4)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_retune(table, 0, INT_MAX);
@@ -4073,7 +4074,7 @@ START_TEST (drift_break_drift)
 	if (table == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
-		abort();
+		return;
 	}
 
 	Note_table_drift(table, NULL);
