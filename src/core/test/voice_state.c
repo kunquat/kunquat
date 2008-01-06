@@ -38,10 +38,16 @@ START_TEST (init)
 	Voice_state* ret = Voice_state_init(&state);
 	fail_unless(ret == &state,
 			"Voice_state_init() returned %p instead of %p.", ret, &state);
+	fail_unless(state.active,
+			"Voice_state_init() didn't set active to true.");
 	fail_unless(state.pos == 0,
 			"Voice_state_init() set pos to %llu instead of 0.", (unsigned long long)state.pos);
 	fail_unless(state.pos_part == 0,
 			"Voice_state_init() set pos_part to %lf instead of 0.", state.pos_part);
+	fail_unless(state.rel_pos == 0,
+			"Voice_state_init() set rel_pos to %llu instead of 0.", (unsigned long long)state.rel_pos);
+	fail_unless(state.rel_pos_part == 0,
+			"Voice_state_init() set rel_pos_part to %lf instead of 0.", state.rel_pos_part);
 }
 END_TEST
 

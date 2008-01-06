@@ -24,14 +24,24 @@
 #define K_VOICE_STATE_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 
 typedef struct Voice_state
 {
-	double freq;       ///< The frequency at which the note is played.
-	uint64_t pos;      ///< The current playback position.
-	double pos_part;   ///< The current playback position fine grain.
+	/// Whether there is anything left to process.
+	bool active;
+	/// The frequency at which the note is played.
+	double freq;
+	/// The current playback position.
+	uint64_t pos;
+	/// The current playback position fine grain.
+	double pos_part;
+	/// The current relative playback position.
+	uint64_t rel_pos;
+	/// The current relative playback position fine grain.
+	double rel_pos_part;
 } Voice_state;
 
 

@@ -29,9 +29,12 @@
 Voice_state* Voice_state_init(Voice_state* state)
 {
 	assert(state != NULL);
+	state->active = true;
 	state->freq = 0;
 	state->pos = 0;
 	state->pos_part = 0;
+	state->rel_pos = 0;
+	state->rel_pos_part = 0;
 	return state;
 }
 
