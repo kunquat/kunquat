@@ -36,6 +36,7 @@ files = [
 'Reltime.c',
 'Event.c',
 'Event_queue.c',
+'Voice_state.c',
 ]
 
 env.StaticLibrary('core', files)

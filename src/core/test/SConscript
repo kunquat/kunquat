@@ -45,4 +45,7 @@ event_queue = env_test.Program('event_queue', ['event_queue.c'])
 env_test.AddPostAction(event_queue, event_queue[0].abspath)
 Depends(event_queue, 'event')
 
+voice_state = env_test.Program('voice_state', ['voice_state.c'])
+env_test.AddPostAction(voice_state, voice_state[0].abspath)
+
 

@@ -20,31 +20,19 @@
  */
 
 
-#ifndef K_VOICE_STATE_H
-#define K_VOICE_STATE_H
+#include <stdlib.h>
+#include <assert.h>
+
+#include "Voice_state.h"
 
 
-#include <stdint.h>
-
-
-typedef struct Voice_state
+Voice_state* Voice_state_init(Voice_state* state)
 {
-	double freq;       ///< The frequency at which the note is played.
-	uint64_t pos;      ///< The current playback position.
-	double pos_part;   ///< The current playback position fine grain.
-} Voice_state;
-
-
-/**
- * Initialises a Voice state.
- *
- * \param state   The Voice state -- must not be \c NULL.
- *
- * \return   The parameter \a state.
- */
-Voice_state* Voice_state_init(Voice_state* state);
-
-
-#endif // K_VOICE_STATE_H
+	assert(state != NULL);
+	state->freq = 0;
+	state->pos = 0;
+	state->pos_part = 0;
+	return state;
+}
 
 
