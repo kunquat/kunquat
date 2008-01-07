@@ -1,5 +1,25 @@
 
 
+/*
+ * Copyright 2008 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #include <stdlib.h>
 #include <assert.h>
 
@@ -9,7 +29,10 @@
 #include <xmemory.h>
 
 
-Instrument* new_Instrument(Ins_type type, frame_t** bufs, uint32_t buf_len)
+Instrument* new_Instrument(Ins_type type,
+		frame_t** bufs,
+		uint32_t buf_len,
+		uint8_t events)
 {
 	assert(type > INS_TYPE_NONE);
 	assert(type < INS_TYPE_LAST);
@@ -17,12 +40,13 @@ Instrument* new_Instrument(Ins_type type, frame_t** bufs, uint32_t buf_len)
 	assert(bufs[0] != NULL);
 	assert(bufs[1] != NULL);
 	assert(buf_len > 0);
+	assert(events > 0);
 	Instrument* ins = xalloc(Instrument);
 	if (ins == NULL)
 	{
 		return NULL;
 	}
-	ins->events = new_Event_queue(16); /// FIXME: customisable?
+	ins->events = new_Event_queue(events);
 	if (ins->events == NULL)
 	{
 		xfree(ins);

@@ -20,20 +20,13 @@
  */
 
 
-#ifndef K_INSTRUMENT_DEBUG_H
-#define K_INSTRUMENT_DEBUG_H
+#ifndef K_FRAME_T_H
+#define K_FRAME_T_H
 
 
-#include <Instrument.h>
+typedef float frame_t;
 
 
-void Instrument_debug_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
-
-
-#endif // K_INSTRUMENT_DEBUG_H
+#endif /* K_FRAME_T_H */
 
 

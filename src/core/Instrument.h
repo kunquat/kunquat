@@ -1,5 +1,25 @@
 
 
+/*
+ * Copyright 2008 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
 #ifndef K_INSTRUMENT_H
 #define K_INSTRUMENT_H
 
@@ -55,11 +75,15 @@ typedef struct Instrument
  * \param bufs      The global mixing buffers -- must not be \c NULL.
  *                  Additionally, bufs[0] and bufs[1] must not be \c NULL.
  * \param buf_len   The length of a mixing buffer -- must be > \c 0.
+ * \param events    The maximum number of events per tick -- must be > \c 0.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(Ins_type type, frame_t** bufs, uint32_t buf_len);
+Instrument* new_Instrument(Ins_type type,
+		frame_t** bufs,
+		uint32_t buf_len,
+		uint8_t events);
 
 
 /**
