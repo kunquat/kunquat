@@ -37,6 +37,8 @@ files = [
 'Event.c',
 'Event_queue.c',
 'Voice_state.c',
+'Instrument.c',
+'Instrument_debug.c',
 ]
 
 env.StaticLibrary('core', files)

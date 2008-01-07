@@ -35,6 +35,9 @@ Voice_state* Voice_state_init(Voice_state* state)
 	state->pos_part = 0;
 	state->rel_pos = 0;
 	state->rel_pos_part = 0;
+	state->note_on = true;
+	state->noff_pos = 0;
+	state->noff_pos_part = 0;
 	return state;
 }
 
