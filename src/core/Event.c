@@ -65,6 +65,15 @@ Reltime* Event_pos(Event* event)
 }
 
 
+void Event_set_pos(Event* event, Reltime* pos)
+{
+	assert(event != NULL);
+	assert(pos != NULL);
+	Reltime_copy(&event->pos, pos);
+	return;
+}
+
+
 Event_type Event_get_type(Event* event)
 {
 	assert(event != NULL);

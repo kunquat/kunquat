@@ -27,6 +27,7 @@
 #include <frame_t.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
+#include <Note_table.h>
 
 
 typedef enum
@@ -63,6 +64,8 @@ typedef struct Instrument
 	uint32_t buf_len;
 	/// Global event queue (esp. pedal events go here).
 	Event_queue* events;
+	/// Note table used.
+	Note_table* notes;
 	/// Mixing algorithm used.
 	void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
 } Instrument;
@@ -84,6 +87,15 @@ Instrument* new_Instrument(Ins_type type,
 		frame_t** bufs,
 		uint32_t buf_len,
 		uint8_t events);
+
+
+/**
+ * Sets the Note table of the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param notes   The Note table -- must not be \c NULL.
+ */
+void Instrument_set_note_table(Instrument* ins, Note_table* notes);
 
 
 /**

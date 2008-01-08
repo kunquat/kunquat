@@ -64,7 +64,17 @@ Instrument* new_Instrument(Ins_type type,
 		default:
 			ins->mix = NULL;
 	}
+	ins->notes = NULL;
 	return ins;
+}
+
+
+void Instrument_set_note_table(Instrument* ins, Note_table* notes)
+{
+	assert(ins != NULL);
+	assert(notes != NULL);
+	ins->notes = notes;
+	return;
 }
 
 

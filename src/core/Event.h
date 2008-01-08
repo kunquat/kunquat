@@ -100,6 +100,15 @@ Reltime* Event_pos(Event* event);
 
 
 /**
+ * Moves the Event into a new position.
+ *
+ * \param event   The Event -- must not be \c NULL.
+ * \param pos     The new position -- must not be \c NULL.
+ */
+void Event_set_pos(Event* event, Reltime* pos);
+
+
+/**
  * Gets the type of an Event.
  *
  * \param event   The Event -- must not be \c NULL.
