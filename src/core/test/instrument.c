@@ -294,6 +294,50 @@ START_TEST (mix)
 		fail_unless(fabs(bufs[0][i]) < 0.01,
 				"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
 	}
+	
+	Voice_state_init(&state);
+	for (int i = 0; i < 128; ++i)
+	{
+		buf_l[i] = 1;
+		buf_r[i] = 1;
+	}
+	state.freq = 16;
+	Instrument_mix(ins, &state, 36, 0, 64);
+	state.note_on = false;
+	Instrument_mix(ins, &state, 128, 36, 64);
+	fail_unless(!state.active,
+			"Instrument didn't become inactive after finishing mixing.");
+	for (int i = 0; i < 36; ++i)
+	{
+		if (i % 4 == 0)
+		{
+			fail_unless(bufs[0][i] > 1.99,
+					"Buffer contains %lf at index %d (expected 2).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 1.49 && bufs[0][i] < 1.51,
+					"Buffer contains %lf at index %d (expected 1.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 36; i < 40; ++i)
+	{
+		if (i % 4 == 0)
+		{
+			fail_unless(bufs[0][i] < 0.01,
+					"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 40; i < 128; ++i)
+	{
+		fail_unless(fabs(bufs[0][i]) < 1.01,
+				"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+	}
 
 	Voice_state_init(&state);
 	for (int i = 0; i < 128; ++i)
