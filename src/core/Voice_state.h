@@ -27,13 +27,15 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <pitch_t.h>
+
 
 typedef struct Voice_state
 {
 	/// Whether there is anything left to process.
 	bool active;
 	/// The frequency at which the note is played.
-	double freq;
+	pitch_t freq;
 	/// The current playback position.
 	uint64_t pos;
 	/// The current playback position fine grain.

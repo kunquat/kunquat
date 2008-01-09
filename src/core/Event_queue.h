@@ -78,9 +78,11 @@ bool Event_queue_ins(Event_queue* q, Event* event, uint32_t pos);
  *
  * \param q      The Event queue -- must not be \c NULL.
  * \param dest   A pointer to the Event object reference -- must not be
- *               \c NULL.
+ *               \c NULL. Nothing will be written to the address if the queue
+ *               is empty.
  * \param pos    The location where the starting frame is stored -- must not
- *               be \c NULL.
+ *               be \c NULL. Nothing will be written to the address if the
+ *               queue is empty.
  *
  * \return   \c true if an Event was retrieved, or \c false if the queue is
  *           empty.

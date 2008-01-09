@@ -99,6 +99,24 @@ void Instrument_set_note_table(Instrument* ins, Note_table* notes);
 
 
 /**
+ * Handles a given note as appropriate for the Instrument.
+ *
+ * \param ins      The Instrument -- must not be \c NULL.
+ * \param state    The Voice state -- must not be \c NULL.
+ * \param note     The note number -- must be >= \c 0 and
+ *                 < \c NOTE_TABLE_NOTES.
+ * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
+ *                 Negative value means that no modifier will be applied.
+ * \param octave   The octave -- must be >= \c 0 and < \c NOTE_TABLE_OCTAVES.
+ */
+void Instrument_process_note(Instrument* ins,
+		Voice_state* state,
+		int note,
+		int mod,
+		int octave);
+
+
+/**
  * Mixes the Instrument.
  *
  * \param ins       The Instrument -- must not be \c NULL.

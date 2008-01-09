@@ -78,6 +78,32 @@ void Instrument_set_note_table(Instrument* ins, Note_table* notes)
 }
 
 
+void Instrument_process_note(Instrument* ins,
+		Voice_state* state,
+		int note,
+		int mod,
+		int octave)
+{
+	assert(ins != NULL);
+	assert(state != NULL);
+	assert(note >= 0);
+	assert(note < NOTE_TABLE_NOTES);
+	assert(mod < NOTE_TABLE_NOTE_MODS);
+	assert(octave >= 0);
+	assert(octave < NOTE_TABLE_OCTAVES);
+	if (ins->notes == NULL)
+	{
+		return;
+	}
+	pitch_t freq = Note_table_get_pitch(ins->notes, note, mod, octave);
+	if (freq > 0)
+	{
+		state->freq = freq;
+	}
+	return;
+}
+
+
 void Instrument_mix(Instrument* ins,
 		Voice_state* state,
 		uint32_t nframes,

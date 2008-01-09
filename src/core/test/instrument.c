@@ -126,18 +126,18 @@ START_TEST (mix)
 			if (i % 4 == 0)
 			{
 				fail_unless(bufs[0][i] > 0.99,
-						"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 			}
 			else
 			{
 				fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-						"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 			}
 		}
 		else
 		{
 			fail_unless(fabs(bufs[0][i]) < 0.01,
-					"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 		}
 	}
 	Voice_state_init(&state);
@@ -169,18 +169,18 @@ START_TEST (mix)
 			if (i % 4 == 0)
 			{
 				fail_unless(bufs[0][i] > 0.99,
-						"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 			}
 			else
 			{
 				fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-						"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 			}
 		}
 		else
 		{
 			fail_unless(fabs(bufs[0][i]) < 0.01,
-					"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 		}
 	}
 	Voice_state_init(&state);
@@ -212,18 +212,18 @@ START_TEST (mix)
 			if (i % 4 == 0)
 			{
 				fail_unless(bufs[0][i] > 0.99,
-						"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 			}
 			else
 			{
 				fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-						"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+						"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 			}
 		}
 		else
 		{
 			fail_unless(fabs(bufs[0][i]) < 0.01,
-					"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 		}
 	}
 	
@@ -244,12 +244,12 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] > 0.99,
-					"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 20; i < 28; ++i)
@@ -257,18 +257,18 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] < -0.99,
-					"Buffer contains %lf at index %d (expected -1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected -1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] < -0.49 && bufs[0][i] > -0.51,
-					"Buffer contains %lf at index %d (expected -0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected -0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 28; i < 128; ++i)
 	{
 		fail_unless(fabs(bufs[0][i]) < 0.01,
-				"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 	}
 	
 	Voice_state_init(&state);
@@ -288,12 +288,12 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] > 0.99,
-					"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 36; i < 40; ++i)
@@ -301,18 +301,18 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] < -0.99,
-					"Buffer contains %lf at index %d (expected -1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected -1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] < -0.49 && bufs[0][i] > -0.51,
-					"Buffer contains %lf at index %d (expected -0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected -0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 40; i < 128; ++i)
 	{
 		fail_unless(fabs(bufs[0][i]) < 0.01,
-				"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 	}
 	
 	Voice_state_init(&state);
@@ -332,12 +332,12 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] > 1.99,
-					"Buffer contains %lf at index %d (expected 2).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 2).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 1.49 && bufs[0][i] < 1.51,
-					"Buffer contains %lf at index %d (expected 1.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 1.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 36; i < 40; ++i)
@@ -345,18 +345,18 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] < 0.01,
-					"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 40; i < 128; ++i)
 	{
 		fail_unless(fabs(bufs[0][i]) < 1.01,
-				"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+				"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 	}
 
 	Voice_state_init(&state);
@@ -374,18 +374,18 @@ START_TEST (mix)
 		if (i % 8 == 0)
 		{
 			fail_unless(bufs[0][i] > 0.99,
-					"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 80; i < 128; ++i)
 	{
 		fail_unless(fabs(bufs[0][i]) < 0.01,
-				"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 	}
 
 	Voice_state_init(&state);
@@ -403,18 +403,18 @@ START_TEST (mix)
 		if (i % 4 == 0)
 		{
 			fail_unless(bufs[0][i] > 0.99,
-					"Buffer contains %lf at index %d (expected 1).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
 		}
 		else
 		{
 			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
-					"Buffer contains %lf at index %d (expected 0.5).", bufs[0][i], i);
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
 		}
 	}
 	for (int i = 40; i < 128; ++i)
 	{
 		fail_unless(fabs(bufs[0][i]) < 0.01,
-				"Buffer contains %lf at index %d (expected 0).", bufs[0][i], i);
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 	}
 
 	del_Instrument(ins);

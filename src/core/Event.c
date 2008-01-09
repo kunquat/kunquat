@@ -107,6 +107,13 @@ bool Event_float(Event* event, uint8_t index, double* value)
 	assert(value != NULL);
 	switch (event->type)
 	{
+		case EVENT_TYPE_GLOBAL_VOLUME:
+			if (index == 0)
+			{
+				*value = event->fields[index].d;
+				return true;
+			}
+			break;
 		case EVENT_TYPE_NOTE_ON:
 			break;
 		case EVENT_TYPE_NOTE_OFF:
@@ -162,6 +169,13 @@ bool Event_set_float(Event* event, uint8_t index, double value)
 	(void)value;
 	switch (event->type)
 	{
+		case EVENT_TYPE_GLOBAL_VOLUME:
+			if (index == 0)
+			{
+				event->fields[index].d = value;
+				return true;
+			}
+			break;
 		case EVENT_TYPE_NOTE_ON:
 		case EVENT_TYPE_NOTE_OFF:
 			break;
