@@ -48,6 +48,8 @@ START_TEST (new)
 		fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
 		abort();
 	}
+	fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
+			"new_Voice() set priority to %d instead of VOICE_PRIO_INACTIVE.", voice->prio);
 	del_Voice(voice);
 }
 END_TEST
@@ -109,10 +111,14 @@ START_TEST (mix)
 		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Voice_set_instrument(voice, ins);
+	Voice_init(voice, ins);
+	fail_unless(voice->prio == VOICE_PRIO_FG,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
 	fail_unless(Voice_add_event(voice, ev_on, 0),
 			"Voice_add_event() failed.");
 	Voice_mix(voice, 128, 0, 8);
+	fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
+			"Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
 	for (int i = 0; i < 40; ++i)
 	{
 		if (i % 4 == 0)
@@ -131,6 +137,122 @@ START_TEST (mix)
 		fail_unless(fabs(bufs[0][i]) < 0.01,
 				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
 	}
+	
+	// Testing scenario 2:
+	//
+	// Mixing frequency is 8 Hz.
+	// Tempo is 60 BPM.
+	// Playing a note of debug instrument.
+	// Note frequency is 2 Hz (2 cycles/beat).
+	// Note starts at the beginning.
+	// Note Off event is located at frame 20.
+	// Result should be (1, 0.5, 0.5, 0.5) 5 times, (-1, -0.5, -0.5, -0.5) twice, the rest are zero.
+	for (int i = 0; i < 128; ++i)
+	{
+		buf_l[i] = buf_r[i] = 0;
+	}
+	Voice_init(voice, ins);
+	fail_unless(voice->prio == VOICE_PRIO_FG,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
+	fail_unless(Voice_add_event(voice, ev_on, 0),
+			"Voice_add_event() failed.");
+	fail_unless(Voice_add_event(voice, ev_off, 20),
+			"Voice_add_event() failed.");
+	Voice_mix(voice, 20, 0, 8);
+	fail_unless(voice->prio == VOICE_PRIO_BG,
+			"Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
+	Voice_mix(voice, 128, 20, 8);
+	fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
+			"Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
+	for (int i = 0; i < 20; ++i)
+	{
+		if (i % 4 == 0)
+		{
+			fail_unless(bufs[0][i] > 0.99 && bufs[0][i] < 1.01,
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 20; i < 28; ++i)
+	{
+		if (i % 4 == 0)
+		{
+			fail_unless(bufs[0][i] < -0.99 && bufs[0][i] > -1.01,
+					"Buffer contains %f at index %d (expected -1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] < -0.49 && bufs[0][i] > -0.51,
+					"Buffer contains %f at index %d (expected -0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 28; i < 128; ++i)
+	{
+		fail_unless(fabs(bufs[0][i]) < 0.01,
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
+	}
+	
+	// Testing scenario 3:
+	//
+	// Mixing frequency is 16 Hz.
+	// Tempo is 60 BPM.
+	// Playing a note of debug instrument.
+	// Note frequency is 2 Hz (2 cycles/beat).
+	// Note starts at the beginning.
+	// Note Off event is located at frame 70.
+	// Result should be (1, (0.5 7 times)) 8 times,
+	//    (1, 0.5, 0.5, 0.5, 0.5, 0.5) once,
+	//    (-0.5, -0.5, -1, (-0.5 7 times)) once, the rest are zero.
+	for (int i = 0; i < 128; ++i)
+	{
+		buf_l[i] = buf_r[i] = 0;
+	}
+	Voice_init(voice, ins);
+	fail_unless(voice->prio == VOICE_PRIO_FG,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
+	fail_unless(Voice_add_event(voice, ev_on, 0),
+			"Voice_add_event() failed.");
+	fail_unless(Voice_add_event(voice, ev_off, 70),
+			"Voice_add_event() failed.");
+	Voice_mix(voice, 128, 0, 16);
+	fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
+			"Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
+	for (int i = 0; i < 70; ++i)
+	{
+		if (i % 8 == 0)
+		{
+			fail_unless(bufs[0][i] > 0.99 && bufs[0][i] < 1.01,
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 70; i < 80; ++i)
+	{
+		if (i % 8 == 0)
+		{
+			fail_unless(bufs[0][i] < -0.99 && bufs[0][i] > -1.01,
+					"Buffer contains %f at index %d (expected -1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] < -0.49 && bufs[0][i] > -0.51,
+					"Buffer contains %f at index %d (expected -0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 80; i < 128; ++i)
+	{
+		fail_unless(fabs(bufs[0][i]) < 0.01,
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
+	}
+	
 	del_Event(ev_off);
 	del_Event(ev_on);
 	del_Voice(voice);

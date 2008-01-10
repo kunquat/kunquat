@@ -43,6 +43,7 @@ Voice* new_Voice(uint8_t events)
 		xfree(voice);
 		return NULL;
 	}
+	voice->pool_index = 0;
 	voice->id = 0;
 	voice->prio = VOICE_PRIO_INACTIVE;
 	voice->ins = NULL;
@@ -59,11 +60,13 @@ int Voice_cmp(Voice* v1, Voice* v2)
 }
 
 
-void Voice_set_instrument(Voice* voice, Instrument* ins)
+void Voice_init(Voice* voice, Instrument* ins)
 {
 	assert(voice != NULL);
 	assert(ins != NULL);
+	voice->prio = VOICE_PRIO_FG;
 	voice->ins = ins;
+	Voice_state_init(&voice->state);
 	return;
 }
 
@@ -83,6 +86,10 @@ void Voice_mix(Voice* voice,
 {
 	assert(voice != NULL);
 	assert(freq > 0);
+	if (voice->prio == VOICE_PRIO_INACTIVE)
+	{
+		return;
+	}
 	uint32_t mixed = offset;
 	Event* next = NULL;
 	uint32_t mix_until = nframes;
@@ -146,6 +153,15 @@ void Voice_mix(Voice* voice,
 		mix_until = nframes;
 		event_found = Event_queue_get(voice->events, &next, &mix_until);
 	}
+	if (!voice->state.active)
+	{
+		voice->prio = VOICE_PRIO_INACTIVE;
+	}
+	else if (!voice->state.note_on)
+	{
+		voice->prio = VOICE_PRIO_BG;
+	}
+	Event_queue_clear(voice->events);
 	return;
 }
 

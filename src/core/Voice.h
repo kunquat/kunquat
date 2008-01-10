@@ -75,12 +75,12 @@ int Voice_cmp(Voice* v1, Voice* v2);
 
 
 /**
- * Sets the Instrument to be used by the Voice.
+ * Initialises the Voice for mixing.
  *
  * \param voice   The Voice -- must not be \c NULL.
- * \param ins     The Instrument -- must not be \c NULL.
+ * \param ins     The Instrument used -- must not be \c NULL.
  */
-void Voice_set_instrument(Voice* voice, Instrument* ins);
+void Voice_init(Voice* voice, Instrument* ins);
 
 
 /**
