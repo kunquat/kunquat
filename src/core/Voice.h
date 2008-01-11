@@ -75,6 +75,19 @@ int Voice_cmp(Voice* v1, Voice* v2);
 
 
 /**
+ * Retrieves the Voice identification.
+ *
+ * The user should store the ID after retrieving the Voice from the Voice
+ * pool.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ *
+ * \return   The ID.
+ */
+uint64_t Voice_id(Voice* voice);
+
+
+/**
  * Initialises the Voice for mixing.
  *
  * \param voice   The Voice -- must not be \c NULL.

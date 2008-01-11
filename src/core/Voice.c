@@ -60,6 +60,13 @@ int Voice_cmp(Voice* v1, Voice* v2)
 }
 
 
+uint64_t Voice_id(Voice* voice)
+{
+	assert(voice != NULL);
+	return voice->id;
+}
+
+
 void Voice_init(Voice* voice, Instrument* ins)
 {
 	assert(voice != NULL);
@@ -94,6 +101,10 @@ void Voice_mix(Voice* voice,
 	Event* next = NULL;
 	uint32_t mix_until = nframes;
 	bool event_found = Event_queue_get(voice->events, &next, &mix_until);
+	if (event_found && Event_get_type(next) == EVENT_TYPE_NOTE_ON)
+	{
+		mixed = mix_until;
+	}
 	while (mixed < nframes || event_found)
 	{
 		if (mix_until > nframes)
