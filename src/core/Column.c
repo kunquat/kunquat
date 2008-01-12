@@ -220,6 +220,7 @@ bool Column_remove(Column* col, Event* event)
 {
 	assert(col != NULL);
 	assert(event != NULL);
+	assert(col->events.root->parent == col->events.nil);
 	if (col->events.root->level == 0)
 	{
 		return false;
@@ -292,6 +293,7 @@ bool Column_remove(Column* col, Event* event)
 	}
 	assert(cur->left->level == 0 || cur->right->level == 0);
 	AAnode** child = NULL;
+	AAnode* parent = cur->parent;
 	if (cur == cur->parent->left)
 	{
 		child = &cur->parent->left;
@@ -304,16 +306,19 @@ bool Column_remove(Column* col, Event* event)
 	{
 		assert(cur == col->events.root);
 		child = &col->events.root;
+		parent = col->events.nil;
 	}
 	assert(child != NULL);
 	if (cur->left->level > 0)
 	{
 		assert(cur->right->level == 0);
 		*child = cur->left;
+		cur->left->parent = parent;
 	}
 	else
 	{
 		*child = cur->right;
+		cur->right->parent = parent;
 	}
 	AAnode* node = cur->parent;
 	cur->left = cur->right = col->events.nil;
@@ -321,7 +326,7 @@ bool Column_remove(Column* col, Event* event)
 	cur = node;
 	while (cur->level > 0)
 	{
-		AAnode* parent = cur->parent;
+		parent = cur->parent;
 		child = NULL;
 		if (parent->left == cur)
 		{
@@ -368,6 +373,22 @@ void Column_clear(Column* col)
 	}
 	col->last = col->events.nil;
 	return;
+}
+
+
+void Column_set_length(Column* col, Reltime* len)
+{
+	assert(col != NULL);
+	assert(len != NULL);
+	Reltime_copy(&col->len, len);
+	return;
+}
+
+
+Reltime* Column_length(Column* col)
+{
+	assert(col != NULL);
+	return &col->len;
 }
 
 
