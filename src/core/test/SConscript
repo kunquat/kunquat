@@ -62,4 +62,9 @@ voice_pool = env_test.Program('voice_pool', ['voice_pool.c'])
 env_test.AddPostAction(voice_pool, voice_pool[0].abspath)
 Depends(voice_pool, 'voice')
 
+column = env_test.Program('column', ['column.c'])
+env_test.AddPostAction(column, column[0].abspath)
+Depends(column, 'reltime')
+Depends(column, 'event')
+
 

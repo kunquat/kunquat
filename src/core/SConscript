@@ -41,6 +41,7 @@ files = [
 'Instrument_debug.c',
 'Voice.c',
 'Voice_pool.c',
+'Column.c',
 ]
 
 env.StaticLibrary('core', files)
