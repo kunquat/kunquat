@@ -54,6 +54,10 @@ Depends(instrument, 'voice_state')
 Depends(instrument, 'event_queue')
 Depends(instrument, 'note_table')
 
+ins_table = env_test.Program('ins_table', ['ins_table.c'])
+env_test.AddPostAction(ins_table, ins_table[0].abspath)
+Depends(ins_table, 'instrument')
+
 voice = env_test.Program('voice', ['voice.c'])
 env_test.AddPostAction(voice, voice[0].abspath)
 Depends(voice, 'instrument')
