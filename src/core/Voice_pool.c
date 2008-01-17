@@ -127,6 +127,7 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
 		Voice* new_voice = pool->voices[0];
 		new_voice->id = running_id;
 		new_voice->prio = VOICE_PRIO_INACTIVE;
+		Event_queue_clear(new_voice->events);
 		++running_id;
 		return new_voice;
 	}
@@ -152,19 +153,6 @@ void Voice_pool_mix(Voice_pool* pool,
 			Voice_mix(pool->voices[i], amount, offset, freq);
 		}
 	}
-	// Well, this was a fun thought experiment, but let's face it -- it's still Θ(pool->size) in best case
-#if 0
-	for (uint16_t i = pool->size - 1; i > HEAP_PARENT(pool->size - 1); --i)
-	{
-		uint16_t k = i;
-		while (Voice_is_active(pool->voices[k]))
-		{
-			Voice_mix(pool->voices[k], amount, offset, freq);
-			if (k & 1 == 0) break;
-			k = HEAP_PARENT(k);
-		}
-	}
-#endif
 	heap_build(pool);
 	return;
 }
