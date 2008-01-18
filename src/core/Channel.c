@@ -96,16 +96,17 @@ void Channel_set_voices(Channel* ch,
 					next_pos = Event_pos(next);
 					continue;
 				}
-				// TODO: Note Off for the existing Voice
 				Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
 				uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
 						+ offset;
 				if (!Voice_add_event(ch->fg, ch->note_off, abs_pos))
 				{
+					// Kill the Voice so that it doesn't
+					// stay active indefinitely
+					Voice_reset(ch->fg);
+					ch->fg = NULL;
+					ch->fg_id = 0;
 					// TODO: notify in case of failure
-					// TODO: OK, this is a bit inconvenient
-					//  - perhaps we should kill the Voice so that it doesn't
-					//    stay active indefinitely
 				}
 			}
 			int64_t num = 0;
@@ -167,6 +168,9 @@ void Channel_set_voices(Channel* ch,
 					+ offset;
 			if (!Voice_add_event(ch->fg, next, abs_pos))
 			{
+				Voice_reset(ch->fg);
+				ch->fg = NULL;
+				ch->fg_id = 0;
 				// TODO: notify in case of failure
 			}
 		}

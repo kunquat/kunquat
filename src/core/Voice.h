@@ -97,6 +97,14 @@ void Voice_init(Voice* voice, Instrument* ins);
 
 
 /**
+ * Resets the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ */
+void Voice_reset(Voice* voice);
+
+
+/**
  * Adds a new Event into the Voice.
  *
  * \param voice   The Voice -- must not be \c NULL.

@@ -74,6 +74,16 @@ void Voice_init(Voice* voice, Instrument* ins)
 	voice->prio = VOICE_PRIO_FG;
 	voice->ins = ins;
 	Voice_state_init(&voice->state);
+	Event_queue_clear(voice->events);
+	return;
+}
+
+
+void Voice_reset(Voice* voice)
+{
+	assert(voice != NULL);
+	voice->prio = VOICE_PRIO_INACTIVE;
+	Event_queue_clear(voice->events);
 	return;
 }
 
