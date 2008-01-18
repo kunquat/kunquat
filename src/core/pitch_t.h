@@ -27,6 +27,6 @@
 typedef double pitch_t;
 
 
-#endif /* K_PITCH_T_H */
+#endif // K_PITCH_T_H
 
 

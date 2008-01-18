@@ -27,6 +27,6 @@
 typedef float frame_t;
 
 
-#endif /* K_FRAME_T_H */
+#endif // K_FRAME_T_H
 
 
