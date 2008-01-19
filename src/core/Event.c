@@ -92,6 +92,7 @@ bool Event_int(Event* event, uint8_t index, int64_t* value)
 			*value = event->fields[index].i;
 			return true;
 		case EVENT_TYPE_NOTE_OFF:
+		case EVENT_TYPE_GLOBAL_TEMPO:
 			break;
 		default:
 			break; // FIXME: replace with assert(0) after supporting all types
@@ -114,8 +115,14 @@ bool Event_float(Event* event, uint8_t index, double* value)
 				return true;
 			}
 			break;
-		case EVENT_TYPE_NOTE_ON:
+		case EVENT_TYPE_GLOBAL_TEMPO:
+			if (index == 0)
+			{
+				*value = event->fields[index].d;
+				return true;
+			}
 			break;
+		case EVENT_TYPE_NOTE_ON:
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
@@ -171,6 +178,13 @@ bool Event_set_float(Event* event, uint8_t index, double value)
 	{
 		case EVENT_TYPE_GLOBAL_VOLUME:
 			if (index == 0)
+			{
+				event->fields[index].d = value;
+				return true;
+			}
+			break;
+		case EVENT_TYPE_GLOBAL_TEMPO:
+			if (index == 0 && value > 0)
 			{
 				event->fields[index].d = value;
 				return true;

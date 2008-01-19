@@ -77,4 +77,9 @@ Depends(channel, 'column')
 Depends(channel, 'voice_pool')
 Depends(channel, 'ins_table')
 
+pattern = env_test.Program('pattern', ['pattern.c'])
+env_test.AddPostAction(pattern, pattern[0].abspath)
+Depends(pattern, 'channel')
+Depends(pattern, 'column')
+
 

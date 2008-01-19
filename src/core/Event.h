@@ -41,14 +41,17 @@ typedef enum
 	/// Set a variable.
 	EVENT_TYPE_GLOBAL_SET_VAR,
 	/// Set tempo.
+	/// Fields: BPM (float)
 	EVENT_TYPE_GLOBAL_TEMPO,
 	/// Set global volume.
 	EVENT_TYPE_GLOBAL_VOLUME,
 	/// Sentinel -- never used as a valid type.
 	EVENT_TYPE_GLOBAL_LAST = 127,
 	/// Note On event.
+	/// Fields: note, modifier (optional), octave, instrument
 	EVENT_TYPE_NOTE_ON,
 	/// Note Off event.
+	/// Fields: none
 	EVENT_TYPE_NOTE_OFF,
 	/// Sentinel -- never used as a valid type.
 	EVENT_TYPE_LAST

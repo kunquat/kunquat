@@ -162,7 +162,7 @@ void Voice_pool_reset(Voice_pool* pool)
 {
 	for (uint16_t i = 0; i < pool->size; ++i)
 	{
-		pool->voices[i]->prio = VOICE_PRIO_INACTIVE;
+		Voice_reset(pool->voices[i]);
 	}
 	return;
 }

@@ -27,7 +27,7 @@
 
 
 #ifndef NDEBUG
-	#define Reltime_validate(r) assert((r) != NULL && (r)->part >= 0 && (r)->part < RELTIME_FULL_PART)
+	#define Reltime_validate(r) assert((r) != NULL), assert((r)->part >= 0), assert ((r)->part < RELTIME_FULL_PART)
 #else
 	#define Reltime_validate(r) ((void)0)
 #endif
