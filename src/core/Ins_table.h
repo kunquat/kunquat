@@ -27,13 +27,13 @@
 #include <stdbool.h>
 
 #include <Instrument.h>
+#include <Etable.h>
 
 
 typedef struct Ins_table
 {
 	int size;
-	int res;
-	Instrument** insts;
+	Etable* insts;
 } Ins_table;
 
 
