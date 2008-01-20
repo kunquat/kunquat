@@ -80,9 +80,14 @@ Depends(channel, 'ins_table')
 order = env_test.Program('order', ['order.c'])
 env_test.AddPostAction(order, order[0].abspath)
 
+pat_table = env_test.Program('pat_table', ['pat_table.c'])
+env_test.AddPostAction(pat_table, pat_table[0].abspath)
+
 pattern = env_test.Program('pattern', ['pattern.c'])
 env_test.AddPostAction(pattern, pattern[0].abspath)
 Depends(pattern, 'channel')
 Depends(pattern, 'column')
+Depends(pattern, 'order')
+Depends(pattern, 'pat_table')
 
 

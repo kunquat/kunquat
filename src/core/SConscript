@@ -46,6 +46,7 @@ files = [
 'Column.c',
 'Channel.c',
 'Order.c',
+'Pat_table.c',
 'Pattern.c',
 ]
 
