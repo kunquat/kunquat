@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2007 Tomi Jylhä-Ollila
+ * Copyright 2008 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <wchar.h>
 #include <string.h>
 #include <math.h>
 
@@ -36,7 +37,7 @@
 #define MIN(a, b) ((a) < (b) ? (a) : (b))
 
 
-Note_table* new_Note_table(char* name, pitch_t ref_pitch, Real* octave_ratio)
+Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio)
 {
 	assert(ref_pitch > 0);
 	assert(octave_ratio != NULL);
@@ -55,13 +56,13 @@ Note_table* new_Note_table(char* name, pitch_t ref_pitch, Real* octave_ratio)
 	for (int i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
 		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1]
-				= table->note_mods[i].name[0] = '\0';
+				= table->note_mods[i].name[0] = L'\0';
 		Real_init(&(table->note_mods[i].ratio));
 	}
 	for (int i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
 		table->notes[i].name[NOTE_TABLE_NOTE_NAME_MAX - 1]
-				= table->notes[i].name[0] = '\0';
+				= table->notes[i].name[0] = L'\0';
 		Real_init(&(table->notes[i].ratio));
 		Real_init(&(table->notes[i].ratio_retuned));
 	}
@@ -69,22 +70,22 @@ Note_table* new_Note_table(char* name, pitch_t ref_pitch, Real* octave_ratio)
 }
 
 
-void Note_table_set_name(Note_table* table, char* name)
+void Note_table_set_name(Note_table* table, wchar_t* name)
 {
 	assert(table != NULL);
-	table->name[NOTE_TABLE_NAME_MAX - 1] = table->name[0] = '\0';
+	table->name[NOTE_TABLE_NAME_MAX - 1] = table->name[0] = L'\0';
 	if (name == NULL)
 	{
-		table->name[0] = '\0';
+		table->name[0] = L'\0';
 		return;
 	}
-	strncpy(table->name, name, NOTE_TABLE_NAME_MAX - 1);
-	table->name[NOTE_TABLE_NAME_MAX - 1] = '\0';
+	wcsncpy(table->name, name, NOTE_TABLE_NAME_MAX - 1);
+	table->name[NOTE_TABLE_NAME_MAX - 1] = L'\0';
 	return;
 }
 
 
-char* Note_table_get_name(Note_table* table)
+wchar_t* Note_table_get_name(Note_table* table)
 {
 	assert(table != NULL);
 	return table->name;
@@ -138,14 +139,14 @@ Real* Note_table_get_octave_ratio(Note_table* table)
 
 int Note_table_set_note(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTES);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(ratio != NULL);
 	assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	while (index > 0 && !NOTE_EXISTS(table, index - 1))
@@ -160,8 +161,8 @@ int Note_table_set_note(Note_table* table,
 			++(table->note_count);
 		}
 	}
-	strncpy(table->notes[index].name, name, NOTE_TABLE_NOTE_NAME_MAX);
-	table->notes[index].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = '\0';
+	wcsncpy(table->notes[index].name, name, NOTE_TABLE_NOTE_NAME_MAX);
+	table->notes[index].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = L'\0';
 	table->notes[index].cents = NAN;
 	Real_copy(&(table->notes[index].ratio), ratio);
 	Real_copy(&(table->notes[index].ratio_retuned), ratio);
@@ -171,14 +172,14 @@ int Note_table_set_note(Note_table* table,
 
 int Note_table_set_note_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTES);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(isfinite(cents));
 	Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
 	int actual_index = Note_table_set_note(table, index, name, ratio);
@@ -191,14 +192,14 @@ int Note_table_set_note_cents(Note_table* table,
 
 int Note_table_ins_note(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTES);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(ratio != NULL);
 	assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	if (!NOTE_EXISTS(table, index))
@@ -214,10 +215,10 @@ int Note_table_ins_note(Note_table* table,
 		; */
 	for (; i > index; --i)
 	{
-		strncpy(table->notes[i].name,
+		wcsncpy(table->notes[i].name,
 				table->notes[i - 1].name,
 				NOTE_TABLE_NOTE_NAME_MAX);
-		table->notes[i].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = '\0';
+		table->notes[i].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = L'\0';
 		table->notes[i].cents = table->notes[i - 1].cents;
 		Real_copy(&(table->notes[i].ratio), &(table->notes[i - 1].ratio));
 		Real_copy(&(table->notes[i].ratio_retuned),
@@ -225,8 +226,8 @@ int Note_table_ins_note(Note_table* table,
 	}
 	assert(NOTE_EXISTS(table, MIN(table->note_count, NOTE_TABLE_NOTES - 1))
 			== (table->note_count == NOTE_TABLE_NOTES));
-	strncpy(table->notes[index].name, name, NOTE_TABLE_NOTE_NAME_MAX);
-	table->notes[index].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = '\0';
+	wcsncpy(table->notes[index].name, name, NOTE_TABLE_NOTE_NAME_MAX);
+	table->notes[index].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = L'\0';
 	table->notes[index].cents = NAN;
 	Real_copy(&(table->notes[index].ratio), ratio);
 	Real_copy(&(table->notes[index].ratio_retuned), ratio);
@@ -236,14 +237,14 @@ int Note_table_ins_note(Note_table* table,
 
 int Note_table_ins_note_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTES);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(isfinite(cents));
 	Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
 	int actual_index = Note_table_ins_note(table, index, name, ratio);
@@ -282,16 +283,16 @@ void Note_table_del_note(Note_table* table, int index)
 	int i = 0;
 	for (i = index; (i < NOTE_TABLE_NOTES - 1) && NOTE_EXISTS(table, i + 1); ++i)
 	{
-		strncpy(table->notes[i].name,
+		wcsncpy(table->notes[i].name,
 				table->notes[i + 1].name,
 				NOTE_TABLE_NOTE_NAME_MAX);
-		table->notes[i].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = '\0';
+		table->notes[i].name[NOTE_TABLE_NOTE_NAME_MAX - 1] = L'\0';
 		table->notes[i].cents = table->notes[i + 1].cents;
 		Real_copy(&(table->notes[i].ratio), &(table->notes[i + 1].ratio));
 		Real_copy(&(table->notes[i].ratio_retuned),
 				&(table->notes[i + 1].ratio_retuned));
 	}
-	table->notes[i].name[0] = '\0';
+	table->notes[i].name[0] = L'\0';
 	table->notes[i].cents = NAN;
 	Real_init(&(table->notes[i].ratio));
 	Real_init(&(table->notes[i].ratio_retuned));
@@ -303,7 +304,7 @@ int Note_table_move_note(Note_table* table, int index, int new_index)
 {
 	// TODO: optimise?
 	int actual_index = -1;
-	char tmpname[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t tmpname[NOTE_TABLE_NOTE_NAME_MAX];
 	double tmpcents;
 	Real tmpratio;
 	Real tmpratio_retuned;
@@ -320,8 +321,8 @@ int Note_table_move_note(Note_table* table, int index, int new_index)
 	{
 		return index;
 	}
-	strncpy(tmpname, table->notes[index].name, NOTE_TABLE_NOTE_NAME_MAX);
-	tmpname[NOTE_TABLE_NOTE_NAME_MAX - 1] = '\0';
+	wcsncpy(tmpname, table->notes[index].name, NOTE_TABLE_NOTE_NAME_MAX);
+	tmpname[NOTE_TABLE_NOTE_NAME_MAX - 1] = L'\0';
 	tmpcents = table->notes[index].cents;
 	Real_copy(&(tmpratio), &(table->notes[index].ratio));
 	Real_copy(&(tmpratio_retuned), &(table->notes[index].ratio_retuned));
@@ -343,7 +344,7 @@ int Note_table_move_note(Note_table* table, int index, int new_index)
 }
 
 
-char* Note_table_get_note_name(Note_table* table, int index)
+wchar_t* Note_table_get_note_name(Note_table* table, int index)
 {
 	assert(table != NULL);
 	assert(index >= 0);
@@ -383,15 +384,15 @@ double Note_table_get_note_cents(Note_table* table, int index)
 
 
 int Note_table_set_note_mod(Note_table* table,
-                            int index,
-                            char* name,
-                            Real* ratio)
+		int index,
+		wchar_t* name,
+		Real* ratio)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTE_MODS);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(ratio != NULL);
 	assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	while (index > 0 && !NOTE_MOD_EXISTS(table, index - 1))
@@ -399,8 +400,8 @@ int Note_table_set_note_mod(Note_table* table,
 		assert(!NOTE_MOD_EXISTS(table, index));
 		--index;
 	}
-	strncpy(table->note_mods[index].name, name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
-	table->note_mods[index].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = '\0';
+	wcsncpy(table->note_mods[index].name, name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
+	table->note_mods[index].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = L'\0';
 	table->note_mods[index].cents = NAN;
 	Real_copy(&(table->note_mods[index].ratio), ratio);
 	return index;
@@ -409,14 +410,14 @@ int Note_table_set_note_mod(Note_table* table,
 
 int Note_table_set_note_mod_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTE_MODS);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(isfinite(cents));
 	Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
 	int actual_index = Note_table_set_note_mod(table, index, name, ratio);
@@ -429,14 +430,14 @@ int Note_table_set_note_mod_cents(Note_table* table,
 
 int Note_table_ins_note_mod(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTE_MODS);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(ratio != NULL);
 	assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	if (!NOTE_MOD_EXISTS(table, index))
@@ -449,16 +450,16 @@ int Note_table_ins_note_mod(Note_table* table,
 		;
 	for (; i > index; --i)
 	{
-		strncpy(table->note_mods[i].name,
+		wcsncpy(table->note_mods[i].name,
 				table->note_mods[i - 1].name,
 				NOTE_TABLE_NOTE_MOD_NAME_MAX);
-		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = '\0';
+		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = L'\0';
 		table->note_mods[i].cents = table->note_mods[i - 1].cents;
 		Real_copy(&(table->note_mods[i].ratio),
 				&(table->note_mods[i - 1].ratio));
 	}
-	strncpy(table->note_mods[index].name, name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
-	table->note_mods[index].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = '\0';
+	wcsncpy(table->note_mods[index].name, name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
+	table->note_mods[index].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = L'\0';
 	table->note_mods[index].cents = NAN;
 	Real_copy(&(table->note_mods[index].ratio), ratio);
 	return index;
@@ -467,14 +468,14 @@ int Note_table_ins_note_mod(Note_table* table,
 
 int Note_table_ins_note_mod_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents)
 {
 	assert(table != NULL);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTE_MODS);
 	assert(name != NULL);
-	assert(name[0] != '\0');
+	assert(name[0] != L'\0');
 	assert(isfinite(cents));
 	Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
 	int actual_index = Note_table_ins_note_mod(table, index, name, ratio);
@@ -498,15 +499,15 @@ void Note_table_del_note_mod(Note_table* table, int index)
 	for (i = index; (i < NOTE_TABLE_NOTE_MODS - 1)
 			&& NOTE_MOD_EXISTS(table, i + 1); ++i)
 	{
-		strncpy(table->note_mods[i].name,
+		wcsncpy(table->note_mods[i].name,
 				table->note_mods[i + 1].name,
 				NOTE_TABLE_NOTE_MOD_NAME_MAX);
-		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = '\0';
+		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = L'\0';
 		table->note_mods[i].cents = table->note_mods[i + 1].cents;
 		Real_copy(&(table->note_mods[i].ratio),
 				&(table->note_mods[i + 1].ratio));
 	}
-	table->note_mods[i].name[0] = '\0';
+	table->note_mods[i].name[0] = L'\0';
 	table->note_mods[i].cents = NAN;
 	Real_init(&(table->note_mods[i].ratio));
 	return;
@@ -516,7 +517,7 @@ void Note_table_del_note_mod(Note_table* table, int index)
 int Note_table_move_note_mod(Note_table* table, int index, int new_index)
 {
 	//* TODO: optimise?
-	char tmpname[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t tmpname[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	double tmpcents;
 	Real tmpratio;
 	assert(table != NULL);
@@ -532,8 +533,8 @@ int Note_table_move_note_mod(Note_table* table, int index, int new_index)
 	{
 		return index;
 	}
-	strncpy(tmpname, table->note_mods[index].name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
-	tmpname[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = '\0';
+	wcsncpy(tmpname, table->note_mods[index].name, NOTE_TABLE_NOTE_MOD_NAME_MAX);
+	tmpname[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] = L'\0';
 	tmpcents = table->note_mods[index].cents;
 	Real_copy(&(tmpratio), &(table->note_mods[index].ratio));
 	Note_table_del_note_mod(table, index);
@@ -544,7 +545,7 @@ int Note_table_move_note_mod(Note_table* table, int index, int new_index)
 }
 
 
-char* Note_table_get_note_mod_name(Note_table* table, int index)
+wchar_t* Note_table_get_note_mod_name(Note_table* table, int index)
 {
 	assert(table != NULL);
 	assert(index >= 0);

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2007 Tomi Jylhä-Ollila
+ * Copyright 2008 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,8 @@
 #include <Real.h>
 #include <pitch_t.h>
 
+#include <wchar.h>
+
 
 #define NOTE_TABLE_NAME_MAX (256)
 #define NOTE_TABLE_NOTE_NAME_MAX (16)
@@ -39,7 +41,7 @@
 
 typedef struct Note_table
 {
-	char name[NOTE_TABLE_NAME_MAX];
+	wchar_t name[NOTE_TABLE_NAME_MAX];
 	int note_count;
 	int ref_note;
 	int ref_note_retuned;
@@ -48,13 +50,13 @@ typedef struct Note_table
 	Real oct_factors[NOTE_TABLE_OCTAVES];
 	struct
 	{
-		char name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+		wchar_t name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 		double cents;
 		Real ratio;
 	} note_mods[NOTE_TABLE_NOTE_MODS];
 	struct
 	{
-		char name[NOTE_TABLE_NOTE_NAME_MAX];
+		wchar_t name[NOTE_TABLE_NOTE_NAME_MAX];
 		double cents;
 		Real ratio;
 		Real ratio_retuned;
@@ -75,7 +77,7 @@ typedef struct Note_table
  * \return   The new Note table if successful, or \c NULL if memory allocation
  *           fails.
  */
-Note_table* new_Note_table(char* name, pitch_t ref_pitch, Real* octave_ratio);
+Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio);
 
 
 /**
@@ -84,7 +86,7 @@ Note_table* new_Note_table(char* name, pitch_t ref_pitch, Real* octave_ratio);
  * \param table   The Note table -- must not be \c NULL.
  * \param name    The name.
  */
-void Note_table_set_name(Note_table* table, char* name);
+void Note_table_set_name(Note_table* table, wchar_t* name);
 
 
 /**
@@ -94,7 +96,7 @@ void Note_table_set_name(Note_table* table, char* name);
  *
  * \return   The name.
  */
-char* Note_table_get_name(Note_table* table);
+wchar_t* Note_table_get_name(Note_table* table);
 
 
 /**
@@ -153,7 +155,7 @@ Real* Note_table_get_octave_ratio(Note_table* table);
  */
 int Note_table_set_note(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio);
 
 
@@ -174,7 +176,7 @@ int Note_table_set_note(Note_table* table,
  */
 int Note_table_set_note_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents);
 
 
@@ -194,7 +196,7 @@ int Note_table_set_note_cents(Note_table* table,
  */
 int Note_table_ins_note(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio);
 
 
@@ -214,7 +216,7 @@ int Note_table_ins_note(Note_table* table,
  */
 int Note_table_ins_note_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents);
 
 
@@ -257,7 +259,7 @@ int Note_table_move_note(Note_table* table, int index, int new_index);
  *
  * \return   The name if the note exists, otherwise \c NULL.
  */
-char* Note_table_get_note_name(Note_table* table, int index);
+wchar_t* Note_table_get_note_name(Note_table* table, int index);
 
 
 /**
@@ -301,7 +303,7 @@ double Note_table_get_note_cents(Note_table* table, int index);
  */
 int Note_table_set_note_mod(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio);
 
 
@@ -321,7 +323,7 @@ int Note_table_set_note_mod(Note_table* table,
  */
 int Note_table_set_note_mod_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents);
 
 
@@ -341,7 +343,7 @@ int Note_table_set_note_mod_cents(Note_table* table,
  */
 int Note_table_ins_note_mod(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		Real* ratio);
 
 
@@ -361,7 +363,7 @@ int Note_table_ins_note_mod(Note_table* table,
  */
 int Note_table_ins_note_mod_cents(Note_table* table,
 		int index,
-		char* name,
+		wchar_t* name,
 		double cents);
 
 
@@ -401,7 +403,7 @@ int Note_table_move_note_mod(Note_table* table, int index, int new_index);
  *
  * \return   The name if the note modifier exists, otherwise \c NULL.
  */
-char* Note_table_get_note_mod_name(Note_table* table, int index);
+wchar_t* Note_table_get_note_mod_name(Note_table* table, int index);
 
 
 /**

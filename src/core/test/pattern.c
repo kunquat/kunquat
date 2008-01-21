@@ -136,13 +136,13 @@ START_TEST (mix)
 		fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Note_table* notes = new_Note_table("test", 2, Real_init_as_frac(REAL_AUTO, 2, 1));
+	Note_table* notes = new_Note_table(L"test", 2, Real_init_as_frac(REAL_AUTO, 2, 1));
 	if (notes == NULL)
 	{
 		fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Note_table_set_note(notes, 0, "=", Real_init(REAL_AUTO));
+	Note_table_set_note(notes, 0, L"=", Real_init(REAL_AUTO));
 	Instrument_set_note_table(ins, notes);
 	if (!Ins_table_set(play->channels[0]->insts, 1, ins))
 	{

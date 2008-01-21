@@ -42,7 +42,7 @@ Suite* Note_table_suite(void);
 START_TEST (new)
 {
 	int i = 0;
-	char name[NOTE_TABLE_NAME_MAX];
+	wchar_t name[NOTE_TABLE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&octave_ratio, 2, 1);
@@ -53,7 +53,7 @@ START_TEST (new)
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
 		abort();
 	}
-	fail_unless(strcmp(table->name, "") == 0,
+	fail_unless(wcscmp(table->name, L"") == 0,
 			"new_Note_table() didn't handle NULL name as \"\".");
 	fail_unless(table->ref_pitch == DBL_MIN,
 			"new_Note_table() didn't set reference pitch correctly.");
@@ -78,7 +78,7 @@ START_TEST (new)
 	{
 		Real one;
 		Real_init(&one);
-		fail_unless(strcmp(table->note_mods[i].name, "") == 0,
+		fail_unless(wcscmp(table->note_mods[i].name, L"") == 0,
 				"new_Note_table() didn't initialise note modifiers correctly.");
 		fail_unless(Real_cmp(&(table->note_mods[i].ratio), &one) == 0,
 				"new_Note_table() didn't initialise note modifiers correctly.");
@@ -87,7 +87,7 @@ START_TEST (new)
 	{
 		Real one;
 		Real_init(&one);
-		fail_unless(strcmp(table->notes[i].name, "") == 0,
+		fail_unless(wcscmp(table->notes[i].name, L"") == 0,
 				"new_Note_table() didn't initialise notes correctly.");
 		fail_unless(Real_cmp(&(table->notes[i].ratio), &one) == 0,
 				"new_Note_table() didn't initialise notes correctly.");
@@ -96,7 +96,7 @@ START_TEST (new)
 	}
 	del_Note_table(table);
 
-	strncpy(name, "table", NOTE_TABLE_NAME_MAX);
+	wcsncpy(name, L"table", NOTE_TABLE_NAME_MAX);
 	Real_init_as_frac(&octave_ratio, 1, 2);
 	table = new_Note_table(name, DBL_MAX, &octave_ratio);
 	if (table == NULL)
@@ -104,10 +104,10 @@ START_TEST (new)
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
 		abort();
 	}
-	fail_unless(strcmp(table->name, "table") == 0,
+	fail_unless(wcscmp(table->name, L"table") == 0,
 			"new_Note_table() didn't set name correctly.");
-	name[0] = 'f';
-	fail_if(strcmp(table->name, "fable") == 0,
+	name[0] = L'f';
+	fail_if(wcscmp(table->name, L"fable") == 0,
 			"new_Note_table() copied the reference of name instead of the name itself.");
 	fail_unless(table->ref_pitch == DBL_MAX,
 			"new_Note_table() didn't set reference pitch correctly.");
@@ -128,7 +128,7 @@ START_TEST (new)
 	{
 		Real one;
 		Real_init(&one);
-		fail_unless(strcmp(table->note_mods[i].name, "") == 0,
+		fail_unless(wcscmp(table->note_mods[i].name, L"") == 0,
 				"new_Note_table() didn't initialise note modifiers correctly.");
 		fail_unless(Real_cmp(&(table->note_mods[i].ratio), &one) == 0,
 				"new_Note_table() didn't initialise note modifiers correctly.");
@@ -137,7 +137,7 @@ START_TEST (new)
 	{
 		Real one;
 		Real_init(&one);
-		fail_unless(strcmp(table->notes[i].name, "") == 0,
+		fail_unless(wcscmp(table->notes[i].name, L"") == 0,
 				"new_Note_table() didn't initialise notes correctly.");
 		fail_unless(Real_cmp(&(table->notes[i].ratio), &one) == 0,
 				"new_Note_table() didn't initialise notes correctly.");
@@ -160,7 +160,7 @@ START_TEST (new)
 	Real_init_as_double(&octave_ratio, DBL_MAX);
 	for (i = 0; i < NOTE_TABLE_NAME_MAX; ++i)
 	{
-		name[i] = 'x';
+		name[i] = L'x';
 	}
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
@@ -168,7 +168,7 @@ START_TEST (new)
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
 		abort();
 	}
-	fail_unless(table->name[NOTE_TABLE_NAME_MAX - 1] == '\0',
+	fail_unless(table->name[NOTE_TABLE_NAME_MAX - 1] == L'\0',
 			"new_Note_table() set name without null termination.");
 	fail_unless(Real_cmp(&octave_ratio, &(table->octave_ratio)) == 0,
 			"new_Note_table() didn't set octave ratio correctly.");
@@ -235,13 +235,13 @@ END_TEST
 START_TEST (set_name)
 {
 	int i = 0;
-	char long_name[NOTE_TABLE_NAME_MAX];
+	wchar_t long_name[NOTE_TABLE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	for (i = 0; i < NOTE_TABLE_NAME_MAX; ++i)
 	{
-		long_name[i] = 'z';
+		long_name[i] = L'z';
 	}
 	table = new_Note_table(NULL, 528, &octave_ratio);
 	if (table == NULL)
@@ -249,17 +249,17 @@ START_TEST (set_name)
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
 		abort();
 	}
-	Note_table_set_name(table, "Test");
-	fail_unless(strcmp(table->name, "Test") == 0,
+	Note_table_set_name(table, L"Test");
+	fail_unless(wcscmp(table->name, L"Test") == 0,
 			"Note_table_set_name() didn't set name correctly.");
 	Note_table_set_name(table, long_name);
-	fail_unless(table->name[NOTE_TABLE_NAME_MAX - 1] == '\0',
+	fail_unless(table->name[NOTE_TABLE_NAME_MAX - 1] == L'\0',
 			"Note_table_set_name() set a name without null termination.");
-	long_name[0] = 'a';
-	fail_if(table->name[0] == 'a',
+	long_name[0] = L'a';
+	fail_if(table->name[0] == L'a',
 			"Note_table_set_name() copied the reference of name instead of the name itself.");
 	Note_table_set_name(table, NULL);
-	fail_unless(strcmp(table->name, "") == 0,
+	fail_unless(wcscmp(table->name, L"") == 0,
 			"Note_table_set_name() didn't handle NULL name as \"\".");
 	del_Note_table(table);
 }
@@ -284,10 +284,10 @@ START_TEST (get_name)
 		fprintf(stderr, "new_Note_table() returned NULL -- Out of memory?\n");
 		abort();
 	}
-	fail_unless(strcmp(Note_table_get_name(table), "") == 0,
+	fail_unless(wcscmp(Note_table_get_name(table), L"") == 0,
 			"Note_table_get_name() didn't return the correct name.");
-	Note_table_set_name(table, "Test name");
-	fail_unless(strcmp(Note_table_get_name(table), "Test name") == 0,
+	Note_table_set_name(table, L"Test name");
+	fail_unless(wcscmp(Note_table_get_name(table), L"Test name") == 0,
 			"Note_table_get_name() didn't return the correct name.");
 	del_Note_table(table);
 }
@@ -614,7 +614,7 @@ START_TEST (set_note)
 	int i = 0;
 	int actual_index = -1;
 	Real note_ratio;
-	char note_name[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t note_name[NOTE_TABLE_NOTE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&note_ratio, 6, 5);
@@ -626,10 +626,10 @@ START_TEST (set_note)
 		abort();
 	}
 	
-	actual_index = Note_table_set_note(table, 0, "C", &note_ratio);
+	actual_index = Note_table_set_note(table, 0, L"C", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
-	fail_unless(strcmp(table->notes[0].name, "C") == 0,
+	fail_unless(wcscmp(table->notes[0].name, L"C") == 0,
 			"Note_table_set_note() didn't set the note name correctly.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
 			"Note_table_set_note() didn't set the note ratio correctly.");
@@ -645,7 +645,7 @@ START_TEST (set_note)
 
 	for (i = 1; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i, i + 1);
 		actual_index = Note_table_set_note(table, NOTE_TABLE_NOTES - 1, note_name, &note_ratio);
 		fail_unless(actual_index == i,
@@ -654,7 +654,7 @@ START_TEST (set_note)
 				"Note_table_set_note() didn't increment the note count correctly.");
 		if (i < NOTE_TABLE_NOTES - 1)
 		{
-			fail_if(strcmp(table->notes[NOTE_TABLE_NOTES - 1].name, note_name) == 0,
+			fail_if(wcscmp(table->notes[NOTE_TABLE_NOTES - 1].name, note_name) == 0,
 					"Note_table_set_note() incorrectly set the note name at the end of table.");
 			fail_if(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
 					"Note_table_set_note() incorrectly set the note ratio at the end of table.");
@@ -664,9 +664,9 @@ START_TEST (set_note)
 	}
 	for (i = 1; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i, i + 1);
-		fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+		fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 				"Note_table_set_note() didn't set the note name correctly.");
 		fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
 				"Note_table_set_note() didn't set the note ratio correctly.");
@@ -681,11 +681,11 @@ START_TEST (set_note)
 	actual_index = Note_table_set_note(table, 0, note_name, &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
-	fail_unless(table->notes[0].name[NOTE_TABLE_NOTE_NAME_MAX - 1] == '\0',
+	fail_unless(table->notes[0].name[NOTE_TABLE_NOTE_NAME_MAX - 1] == L'\0',
 			"Note_table_set_note() set name without null termination.");
 	
 	Real_init_as_frac(&note_ratio, 1, INT64_MAX);
-	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_set_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -694,7 +694,7 @@ START_TEST (set_note)
 			"Note_table_set_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_frac(&note_ratio, INT64_MAX, 1);
-	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_set_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -703,7 +703,7 @@ START_TEST (set_note)
 			"Note_table_set_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_double(&note_ratio, DBL_MIN);
-	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_set_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -712,7 +712,7 @@ START_TEST (set_note)
 			"Note_table_set_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_double(&note_ratio, DBL_MAX);
-	actual_index = Note_table_set_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_set_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -729,7 +729,7 @@ START_TEST (set_note_break_table)
 {
 	Real note_ratio;
 	Real_init(&note_ratio);
-	Note_table_set_note(NULL, 0, "C", &note_ratio);
+	Note_table_set_note(NULL, 0, L"C", &note_ratio);
 }
 END_TEST
 
@@ -747,7 +747,7 @@ START_TEST (set_note_break_index1)
 		return;
 	}
 
-	Note_table_set_note(table, -1, "Oops", &note_ratio);
+	Note_table_set_note(table, -1, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -767,7 +767,7 @@ START_TEST (set_note_break_index2)
 		return;
 	}
 
-	Note_table_set_note(table, INT_MIN, "Oops", &note_ratio);
+	Note_table_set_note(table, INT_MIN, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -787,7 +787,7 @@ START_TEST (set_note_break_index3)
 		return;
 	}
 
-	Note_table_set_note(table, NOTE_TABLE_NOTES, "Oops", &note_ratio);
+	Note_table_set_note(table, NOTE_TABLE_NOTES, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -807,7 +807,7 @@ START_TEST (set_note_break_index4)
 		return;
 	}
 
-	Note_table_set_note(table, INT_MAX, "Oops", &note_ratio);
+	Note_table_set_note(table, INT_MAX, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -847,7 +847,7 @@ START_TEST (set_note_break_name2)
 		return;
 	}
 
-	Note_table_set_note(table, 0, "", &note_ratio);
+	Note_table_set_note(table, 0, L"", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -865,7 +865,7 @@ START_TEST (set_note_break_ratio1)
 		return;
 	}
 
-	Note_table_set_note(table, 0, "Oops", NULL);
+	Note_table_set_note(table, 0, L"Oops", NULL);
 
 	del_Note_table(table);
 }
@@ -885,7 +885,7 @@ START_TEST (set_note_break_ratio2)
 		return;
 	}
 
-	Note_table_set_note(table, 0, "Oops", &note_ratio);
+	Note_table_set_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -905,7 +905,7 @@ START_TEST (set_note_break_ratio3)
 		return;
 	}
 
-	Note_table_set_note(table, 0, "Oops", &note_ratio);
+	Note_table_set_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -925,7 +925,7 @@ START_TEST (set_note_break_ratio4)
 		return;
 	}
 
-	Note_table_set_note(table, 0, "Oops", &note_ratio);
+	Note_table_set_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -937,7 +937,7 @@ START_TEST (ins_note)
 	int i = 0;
 	int actual_index = -1;
 	Real note_ratio;
-	char note_name[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t note_name[NOTE_TABLE_NOTE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&note_ratio, 6, 5);
@@ -949,10 +949,10 @@ START_TEST (ins_note)
 		abort();
 	}
 	
-	actual_index = Note_table_ins_note(table, 0, "C", &note_ratio);
+	actual_index = Note_table_ins_note(table, 0, L"C", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
-	fail_unless(strcmp(table->notes[0].name, "C") == 0,
+	fail_unless(wcscmp(table->notes[0].name, L"C") == 0,
 			"Note_table_ins_note() didn't set the note name correctly.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
 			"Note_table_ins_note() didn't set the note ratio correctly.");
@@ -969,7 +969,7 @@ START_TEST (ins_note)
 	for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
 	{
 		int j = 0;
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
 /*		fprintf(stderr, "\n%s !!! %d !!!\n", note_name, i); */
 		actual_index = Note_table_ins_note(table, 0, note_name, &note_ratio);
@@ -979,19 +979,19 @@ START_TEST (ins_note)
 				"Note_table_ins_note() didn't increment the note count correctly.");
 		for (j = 0; j < i; ++j)
 		{
-			char name2[NOTE_TABLE_NOTE_NAME_MAX];
-			snprintf(name2, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", j);
+			wchar_t name2[NOTE_TABLE_NOTE_NAME_MAX];
+			swprintf(name2, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", j);
 /*			fprintf(stderr, "\ncmp: %s ... %d ... %s\n", name2, j, table->notes[i - j].name); */
-			fail_unless(strcmp(table->notes[i - j].name, name2) == 0,
+			fail_unless(wcscmp(table->notes[i - j].name, name2) == 0,
 					"Note_table_ins_note() didn't shift notes forward correctly.");
 		}
 /*		fprintf(stderr, "C should be at index %d, table->note_count = %d\n", i + 1, table->note_count); */
 		if (i < NOTE_TABLE_NOTES - 2)
 		{
-			fail_unless(strcmp(table->notes[i + 1].name, "C") == 0,
+			fail_unless(wcscmp(table->notes[i + 1].name, L"C") == 0,
 					"Note_table_ins_note() didn't shift notes forward correctly.");
 			Real_init(&note_ratio);
-			fail_unless(strcmp(table->notes[NOTE_TABLE_NOTES - 1].name, "") == 0,
+			fail_unless(wcscmp(table->notes[NOTE_TABLE_NOTES - 1].name, L"") == 0,
 					"Note_table_ins_note() put garbage after the inserted notes.");
 			fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
 					"Note_table_ins_note() put garbage after the inserted notes.");
@@ -1001,7 +1001,7 @@ START_TEST (ins_note)
 		else
 		{
 			Real_init_as_frac(&note_ratio, 6, 5);
-			fail_unless(strcmp(table->notes[NOTE_TABLE_NOTES - 1].name, "C") == 0,
+			fail_unless(wcscmp(table->notes[NOTE_TABLE_NOTES - 1].name, L"C") == 0,
 					"Note_table_ins_note() didn't shift notes forward correctly.");
 			fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
 					"Note_table_ins_note() didn't shift notes forward correctly.");
@@ -1011,9 +1011,9 @@ START_TEST (ins_note)
 	}
 	for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
-		fail_unless(strcmp(table->notes[(NOTE_TABLE_NOTES - 2) - i].name, note_name) == 0,
+		fail_unless(wcscmp(table->notes[(NOTE_TABLE_NOTES - 2) - i].name, note_name) == 0,
 				"Note_table_ins_note() didn't shift notes forward correctly.");
 		fail_unless(Real_cmp(&(table->notes[(NOTE_TABLE_NOTES - 2) - i].ratio), &note_ratio) == 0,
 				"Note_table_ins_note() didn't shift notes forward correctly.");
@@ -1028,24 +1028,24 @@ START_TEST (ins_note)
 	actual_index = Note_table_ins_note(table, 1, note_name, &note_ratio);
 	fail_unless(actual_index == 1,
 			"Note_table_ins_note() didn't return the correct index.");
-	fail_unless(table->notes[1].name[NOTE_TABLE_NOTE_NAME_MAX - 1] == '\0',
+	fail_unless(table->notes[1].name[NOTE_TABLE_NOTE_NAME_MAX - 1] == L'\0',
 			"Note_table_ins_note() set name without null termination.");
 	Real_init_as_frac(&note_ratio, 1, 2);
-	fail_unless(strcmp(table->notes[NOTE_TABLE_NOTES - 1].name, "Note0") == 0,
+	fail_unless(wcscmp(table->notes[NOTE_TABLE_NOTES - 1].name, L"Note0") == 0,
 			"Note_table_ins_note() didn't replace the last note correctly.");
 	fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
 			"Note_table_ins_note() didn't replace the last note correctly.");
 	fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
 			"Note_table_ins_note() didn't replace the last note correctly.");
-	snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", NOTE_TABLE_NOTES - 2);
-	fail_unless(strcmp(table->notes[0].name, note_name) == 0,
+	swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", NOTE_TABLE_NOTES - 2);
+	fail_unless(wcscmp(table->notes[0].name, note_name) == 0,
 			"Note_table_ins_note() broke the beginning of the table.");
-	snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", NOTE_TABLE_NOTES - 3);
-	fail_unless(strcmp(table->notes[2].name, note_name) == 0,
+	swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", NOTE_TABLE_NOTES - 3);
+	fail_unless(wcscmp(table->notes[2].name, note_name) == 0,
 			"Note_table_ins_note() broke the index following the insertion point.");
 	
 	Real_init_as_frac(&note_ratio, 1, INT64_MAX);
-	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_ins_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -1054,7 +1054,7 @@ START_TEST (ins_note)
 			"Note_table_ins_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_frac(&note_ratio, INT64_MAX, 1);
-	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_ins_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -1063,7 +1063,7 @@ START_TEST (ins_note)
 			"Note_table_ins_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_double(&note_ratio, DBL_MIN);
-	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_ins_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -1072,7 +1072,7 @@ START_TEST (ins_note)
 			"Note_table_ins_note() didn't set the retuned note ratio correctly.");
 	
 	Real_init_as_double(&note_ratio, DBL_MAX);
-	actual_index = Note_table_ins_note(table, 0, "!", &note_ratio);
+	actual_index = Note_table_ins_note(table, 0, L"!", &note_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->notes[0].ratio), &note_ratio) == 0,
@@ -1089,7 +1089,7 @@ START_TEST (ins_note_break_table)
 {
 	Real note_ratio;
 	Real_init(&note_ratio);
-	Note_table_ins_note(NULL, 0, "C", &note_ratio);
+	Note_table_ins_note(NULL, 0, L"C", &note_ratio);
 }
 END_TEST
 
@@ -1107,7 +1107,7 @@ START_TEST (ins_note_break_index1)
 		return;
 	}
 
-	Note_table_ins_note(table, -1, "Oops", &note_ratio);
+	Note_table_ins_note(table, -1, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1127,7 +1127,7 @@ START_TEST (ins_note_break_index2)
 		return;
 	}
 
-	Note_table_ins_note(table, INT_MIN, "Oops", &note_ratio);
+	Note_table_ins_note(table, INT_MIN, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1147,7 +1147,7 @@ START_TEST (ins_note_break_index3)
 		return;
 	}
 
-	Note_table_ins_note(table, NOTE_TABLE_NOTES, "Oops", &note_ratio);
+	Note_table_ins_note(table, NOTE_TABLE_NOTES, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1167,7 +1167,7 @@ START_TEST (ins_note_break_index4)
 		return;
 	}
 
-	Note_table_ins_note(table, INT_MAX, "Oops", &note_ratio);
+	Note_table_ins_note(table, INT_MAX, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1207,7 +1207,7 @@ START_TEST (ins_note_break_name2)
 		return;
 	}
 
-	Note_table_ins_note(table, 0, "", &note_ratio);
+	Note_table_ins_note(table, 0, L"", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1225,7 +1225,7 @@ START_TEST (ins_note_break_ratio1)
 		return;
 	}
 
-	Note_table_ins_note(table, 0, "Oops", NULL);
+	Note_table_ins_note(table, 0, L"Oops", NULL);
 
 	del_Note_table(table);
 }
@@ -1245,7 +1245,7 @@ START_TEST (ins_note_break_ratio2)
 		return;
 	}
 
-	Note_table_ins_note(table, 0, "Oops", &note_ratio);
+	Note_table_ins_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1265,7 +1265,7 @@ START_TEST (ins_note_break_ratio3)
 		return;
 	}
 
-	Note_table_ins_note(table, 0, "Oops", &note_ratio);
+	Note_table_ins_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1285,7 +1285,7 @@ START_TEST (ins_note_break_ratio4)
 		return;
 	}
 
-	Note_table_ins_note(table, 0, "Oops", &note_ratio);
+	Note_table_ins_note(table, 0, L"Oops", &note_ratio);
 
 	del_Note_table(table);
 }
@@ -1297,7 +1297,7 @@ START_TEST (del_note)
 	int i = 0;
 	int old_count = 0;
 	Real note_ratio;
-	char note_name[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t note_name[NOTE_TABLE_NOTE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&note_ratio, 6, 5);
@@ -1318,7 +1318,7 @@ START_TEST (del_note)
 
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
 		Note_table_set_note(table, i, note_name, &note_ratio);
 	}
@@ -1327,12 +1327,12 @@ START_TEST (del_note)
 	Note_table_del_note(table, NOTE_TABLE_NOTES - 1);
 	fail_unless(table->note_count == old_count - 1,
 			"Note_table_del_note() didn't decrease the note count correctly.");
-	fail_unless(strcmp(table->notes[NOTE_TABLE_NOTES - 1].name, "") == 0,
+	fail_unless(wcscmp(table->notes[NOTE_TABLE_NOTES - 1].name, L"") == 0,
 			"Note_table_del_note() didn't remove the target note correctly.");
-	snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", NOTE_TABLE_NOTES - 2);
-	fail_unless(strcmp(table->notes[NOTE_TABLE_NOTES - 2].name, note_name) == 0,
+	swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", NOTE_TABLE_NOTES - 2);
+	fail_unless(wcscmp(table->notes[NOTE_TABLE_NOTES - 2].name, note_name) == 0,
 			"Note_table_del_note() incorrectly modified wrong note.");
-	fail_unless(strcmp(table->notes[0].name, "Note0") == 0,
+	fail_unless(wcscmp(table->notes[0].name, L"Note0") == 0,
 			"Note_table_del_note() incorrectly modified wrong note.");
 
 	old_count = table->note_count;
@@ -1343,15 +1343,15 @@ START_TEST (del_note)
 	{
 		if (i < 8)
 		{
-			snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+			swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 			Real_init_as_frac(&note_ratio, i + 1, i + 2);
 		}
 		else
 		{
-			snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i + 1);
+			swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i + 1);
 			Real_init_as_frac(&note_ratio, i + 2, i + 3);
 		}
-		fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+		fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 				"Note_table_del_note() didn't shift subsequent notes backward correctly.");
 		fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
 				"Note_table_del_note() didn't shift subsequent notes backward correctly.");
@@ -1363,9 +1363,9 @@ START_TEST (del_note)
 	Note_table_del_note(table, 0);
 	fail_unless(table->note_count == old_count - 1,
 			"Note_table_del_note() didn't decrease the note count correctly.");
-	fail_unless(strcmp(table->notes[0].name, "Note1") == 0,
+	fail_unless(wcscmp(table->notes[0].name, L"Note1") == 0,
 			"Note_table_del_note() didn't shift subsequent notes backward correctly.");
-	fail_unless(strcmp(table->notes[1].name, "Note2") == 0,
+	fail_unless(wcscmp(table->notes[1].name, L"Note2") == 0,
 			"Note_table_del_note() didn't shift subsequent notes backward correctly.");
 
 	del_Note_table(table);
@@ -1457,7 +1457,7 @@ START_TEST (move_note)
 	int i = 0;
 	int actual_index = -1;
 	Real note_ratio;
-	char note_name[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t note_name[NOTE_TABLE_NOTE_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&note_ratio, 6, 5);
@@ -1471,7 +1471,7 @@ START_TEST (move_note)
 
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
 		Note_table_set_note(table, i, note_name, &note_ratio);
 		Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
@@ -1483,10 +1483,10 @@ START_TEST (move_note)
 			"Note_table_move_note() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i + 1);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i + 1);
 		if (i == NOTE_TABLE_NOTES - 1)
 		{
-			fail_unless(strcmp(table->notes[i].name, "Note0") == 0,
+			fail_unless(wcscmp(table->notes[i].name, L"Note0") == 0,
 					"Note_table_move_note() didn't modify the note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1497,7 +1497,7 @@ START_TEST (move_note)
 		}
 		else
 		{
-			fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+			fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 					"Note_table_move_note() didn't modify the note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1514,10 +1514,10 @@ START_TEST (move_note)
 			"Note_table_move_note() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i + 1);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i + 1);
 		if (i == 0)
 		{
-			fail_unless(strcmp(table->notes[i].name, "Note0") == 0,
+			fail_unless(wcscmp(table->notes[i].name, L"Note0") == 0,
 					"Note_table_move_note() didn't modify the note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1528,7 +1528,7 @@ START_TEST (move_note)
 		}
 		else
 		{
-			fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+			fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 					"Note_table_move_note() didn't modify the note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1544,10 +1544,10 @@ START_TEST (move_note)
 			"Note_table_move_note() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i + 1);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i + 1);
 		if (i == 0)
 		{
-			fail_unless(strcmp(table->notes[i].name, "Note0") == 0,
+			fail_unless(wcscmp(table->notes[i].name, L"Note0") == 0,
 					"Note_table_move_note() incorrectly modified the table.");
 			Real_init_as_frac(&note_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1558,7 +1558,7 @@ START_TEST (move_note)
 		}
 		else
 		{
-			fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+			fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 					"Note_table_move_note() incorrectly modified the table.");
 			Real_init_as_frac(&note_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1574,10 +1574,10 @@ START_TEST (move_note)
 			"Note_table_move_note() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i + 2);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i + 2);
 		if (i == NOTE_TABLE_NOTES - 2)
 		{
-			fail_unless(strcmp(table->notes[i].name, "Note0") == 0,
+			fail_unless(wcscmp(table->notes[i].name, L"Note0") == 0,
 					"Note_table_move_note() didn't handle empty note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1588,7 +1588,7 @@ START_TEST (move_note)
 		}
 		else
 		{
-			fail_unless(strcmp(table->notes[i].name, note_name) == 0,
+			fail_unless(wcscmp(table->notes[i].name, note_name) == 0,
 					"Note_table_move_note() didn't handle empty note at new_index correctly.");
 			Real_init_as_frac(&note_ratio, i + 3, i + 4);
 			fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1761,7 +1761,7 @@ START_TEST (get_note_name)
 	Real note_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	char note_name[NOTE_TABLE_NOTE_NAME_MAX];
+	wchar_t note_name[NOTE_TABLE_NOTE_NAME_MAX];
 	Real_init(&note_ratio);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 440, &octave_ratio);
@@ -1776,15 +1776,15 @@ START_TEST (get_note_name)
 
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
 		Note_table_set_note(table, i, note_name, &note_ratio);
 	}
 	assert(table->note_count == NOTE_TABLE_NOTES);
 
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
-		snprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, "Note%d", i);
-		fail_unless(strcmp(Note_table_get_note_name(table, i), note_name) == 0,
+		swprintf(note_name, NOTE_TABLE_NOTE_NAME_MAX, L"Note%d", i);
+		fail_unless(wcscmp(Note_table_get_note_name(table, i), note_name) == 0,
 				"Note_table_get_note_name() didn't return the correct name.");
 	}
 
@@ -1893,7 +1893,7 @@ START_TEST (get_note_ratio)
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
-		Note_table_set_note(table, i, "Note", &note_ratio);
+		Note_table_set_note(table, i, L"Note", &note_ratio);
 		Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
 	}
 	assert(table->note_count == NOTE_TABLE_NOTES);
@@ -1994,7 +1994,7 @@ START_TEST (set_note_mod)
 	int i = 0;
 	int actual_index = -1;
 	Real mod_ratio;
-	char mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&mod_ratio, 16, 15);
@@ -2006,10 +2006,10 @@ START_TEST (set_note_mod)
 		abort();
 	}
 	
-	actual_index = Note_table_set_note_mod(table, 0, "#", &mod_ratio);
+	actual_index = Note_table_set_note_mod(table, 0, L"#", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
-	fail_unless(strcmp(table->note_mods[0].name, "#") == 0,
+	fail_unless(wcscmp(table->note_mods[0].name, L"#") == 0,
 			"Note_table_set_note_mod() didn't set the modifier name correctly.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
@@ -2019,14 +2019,14 @@ START_TEST (set_note_mod)
 
 	for (i = 1; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i, i + 1);
 		actual_index = Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS - 1, mod_name, &mod_ratio);
 		fail_unless(actual_index == i,
 				"Note_table_set_note_mod() didn't return the correct index.");
 		if (i < NOTE_TABLE_NOTE_MODS - 1)
 		{
-			fail_if(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, mod_name) == 0,
+			fail_if(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, mod_name) == 0,
 					"Note_table_set_note_mod() incorrectly set the modifier name at the end of table.");
 			fail_if(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
 					"Note_table_set_note_mod() incorrectly set the modifier ratio at the end of table.");
@@ -2034,9 +2034,9 @@ START_TEST (set_note_mod)
 	}
 	for (i = 1; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i, i + 1);
-		fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+		fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 				"Note_table_set_note_mod() didn't set the modifier name correctly.");
 		fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
 				"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
@@ -2049,32 +2049,32 @@ START_TEST (set_note_mod)
 	actual_index = Note_table_set_note_mod(table, 0, mod_name, &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
-	fail_unless(table->note_mods[0].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] == '\0',
+	fail_unless(table->note_mods[0].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] == L'\0',
 			"Note_table_set_note_mod() set name without null termination.");
 	
 	Real_init_as_frac(&mod_ratio, 1, INT64_MAX);
-	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_set_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_frac(&mod_ratio, INT64_MAX, 1);
-	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_set_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_double(&mod_ratio, DBL_MIN);
-	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_set_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_set_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_double(&mod_ratio, DBL_MAX);
-	actual_index = Note_table_set_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_set_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_set_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
@@ -2089,7 +2089,7 @@ START_TEST (set_note_mod_break_table)
 {
 	Real mod_ratio;
 	Real_init(&mod_ratio);
-	Note_table_set_note_mod(NULL, 0, "!", &mod_ratio);
+	Note_table_set_note_mod(NULL, 0, L"!", &mod_ratio);
 }
 END_TEST
 
@@ -2107,7 +2107,7 @@ START_TEST (set_note_mod_break_index1)
 		return;
 	}
 
-	Note_table_set_note_mod(table, -1, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, -1, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2127,7 +2127,7 @@ START_TEST (set_note_mod_break_index2)
 		return;
 	}
 
-	Note_table_set_note_mod(table, INT_MIN, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, INT_MIN, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2147,7 +2147,7 @@ START_TEST (set_note_mod_break_index3)
 		return;
 	}
 
-	Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2167,7 +2167,7 @@ START_TEST (set_note_mod_break_index4)
 		return;
 	}
 
-	Note_table_set_note_mod(table, INT_MAX, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, INT_MAX, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2207,7 +2207,7 @@ START_TEST (set_note_mod_break_name2)
 		return;
 	}
 
-	Note_table_set_note_mod(table, 0, "", &mod_ratio);
+	Note_table_set_note_mod(table, 0, L"", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2225,7 +2225,7 @@ START_TEST (set_note_mod_break_ratio1)
 		return;
 	}
 
-	Note_table_set_note_mod(table, 0, "Oops", NULL);
+	Note_table_set_note_mod(table, 0, L"Oops", NULL);
 
 	del_Note_table(table);
 }
@@ -2245,7 +2245,7 @@ START_TEST (set_note_mod_break_ratio2)
 		return;
 	}
 
-	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2265,7 +2265,7 @@ START_TEST (set_note_mod_break_ratio3)
 		return;
 	}
 
-	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2285,7 +2285,7 @@ START_TEST (set_note_mod_break_ratio4)
 		return;
 	}
 
-	Note_table_set_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_set_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2297,7 +2297,7 @@ START_TEST (ins_note_mod)
 	int i = 0;
 	int actual_index = -1;
 	Real mod_ratio;
-	char mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&mod_ratio, 16, 15);
@@ -2309,10 +2309,10 @@ START_TEST (ins_note_mod)
 		abort();
 	}
 	
-	actual_index = Note_table_ins_note_mod(table, 0, "#", &mod_ratio);
+	actual_index = Note_table_ins_note_mod(table, 0, L"#", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
-	fail_unless(strcmp(table->note_mods[0].name, "#") == 0,
+	fail_unless(wcscmp(table->note_mods[0].name, L"#") == 0,
 			"Note_table_ins_note_mod() didn't set the modifier name correctly.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't set the modifier ratio correctly.");
@@ -2323,7 +2323,7 @@ START_TEST (ins_note_mod)
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
 	{
 		int j = 0;
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i + 1, i + 2);
 /*		fprintf(stderr, "\n%s !!! %d !!!\n", mod_name, i); */
 		actual_index = Note_table_ins_note_mod(table, 0, mod_name, &mod_ratio);
@@ -2331,19 +2331,19 @@ START_TEST (ins_note_mod)
 				"Note_table_ins_note_mod() didn't return the correct index.");
 		for (j = 0; j < i; ++j)
 		{
-			char name2[NOTE_TABLE_NOTE_MOD_NAME_MAX];
-			snprintf(name2, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", j);
+			wchar_t name2[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+			swprintf(name2, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", j);
 /*			fprintf(stderr, "\ncmp: %s ... %d ... %s\n", name2, j, table->note_mods[i - j].name); */
-			fail_unless(strcmp(table->note_mods[i - j].name, name2) == 0,
+			fail_unless(wcscmp(table->note_mods[i - j].name, name2) == 0,
 					"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
 		}
 /*		fprintf(stderr, "# should be at index %d\n", i + 1); */
 		if (i < NOTE_TABLE_NOTE_MODS - 2)
 		{
-			fail_unless(strcmp(table->note_mods[i + 1].name, "#") == 0,
+			fail_unless(wcscmp(table->note_mods[i + 1].name, L"#") == 0,
 					"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
 			Real_init(&mod_ratio);
-			fail_unless(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, "") == 0,
+			fail_unless(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, L"") == 0,
 					"Note_table_ins_note_mod() put garbage after the inserted modifiers.");
 			fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
 					"Note_table_ins_note_mod() put garbage after the inserted modifiers.");
@@ -2351,7 +2351,7 @@ START_TEST (ins_note_mod)
 		else
 		{
 			Real_init_as_frac(&mod_ratio, 16, 15);
-			fail_unless(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, "#") == 0,
+			fail_unless(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, L"#") == 0,
 					"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
 			fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
 					"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
@@ -2359,9 +2359,9 @@ START_TEST (ins_note_mod)
 	}
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i + 1, i + 2);
-		fail_unless(strcmp(table->note_mods[(NOTE_TABLE_NOTE_MODS - 2) - i].name, mod_name) == 0,
+		fail_unless(wcscmp(table->note_mods[(NOTE_TABLE_NOTE_MODS - 2) - i].name, mod_name) == 0,
 				"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
 		fail_unless(Real_cmp(&(table->note_mods[(NOTE_TABLE_NOTE_MODS - 2) - i].ratio), &mod_ratio) == 0,
 				"Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
@@ -2374,43 +2374,43 @@ START_TEST (ins_note_mod)
 	actual_index = Note_table_ins_note_mod(table, 1, mod_name, &mod_ratio);
 	fail_unless(actual_index == 1,
 			"Note_table_ins_note_mod() didn't return the correct index.");
-	fail_unless(table->note_mods[1].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] == '\0',
+	fail_unless(table->note_mods[1].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1] == L'\0',
 			"Note_table_ins_note_mod() set name without null termination.");
 	Real_init_as_frac(&mod_ratio, 1, 2);
-	fail_unless(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, "Mod0") == 0,
+	fail_unless(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, L"Mod0") == 0,
 			"Note_table_ins_note_mod() didn't replace the last modifier correctly.");
 	fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't replace the last modifier correctly.");
-	snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", NOTE_TABLE_NOTE_MODS - 2);
-	fail_unless(strcmp(table->note_mods[0].name, mod_name) == 0,
+	swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", NOTE_TABLE_NOTE_MODS - 2);
+	fail_unless(wcscmp(table->note_mods[0].name, mod_name) == 0,
 			"Note_table_ins_note_mod() broke the beginning of the table.");
-	snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", NOTE_TABLE_NOTE_MODS - 3);
-	fail_unless(strcmp(table->note_mods[2].name, mod_name) == 0,
+	swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", NOTE_TABLE_NOTE_MODS - 3);
+	fail_unless(wcscmp(table->note_mods[2].name, mod_name) == 0,
 			"Note_table_ins_note_mod() broke the index following the insertion point.");
 	
 	Real_init_as_frac(&mod_ratio, 1, INT64_MAX);
-	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_ins_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_frac(&mod_ratio, INT64_MAX, 1);
-	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_ins_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_double(&mod_ratio, DBL_MIN);
-	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_ins_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
 			"Note_table_ins_note_mod() didn't set the modifier ratio correctly.");
 	
 	Real_init_as_double(&mod_ratio, DBL_MAX);
-	actual_index = Note_table_ins_note_mod(table, 0, "!", &mod_ratio);
+	actual_index = Note_table_ins_note_mod(table, 0, L"!", &mod_ratio);
 	fail_unless(actual_index == 0,
 			"Note_table_ins_note_mod() didn't return the correct index.");
 	fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) == 0,
@@ -2425,7 +2425,7 @@ START_TEST (ins_note_mod_break_table)
 {
 	Real mod_ratio;
 	Real_init(&mod_ratio);
-	Note_table_ins_note_mod(NULL, 0, "!", &mod_ratio);
+	Note_table_ins_note_mod(NULL, 0, L"!", &mod_ratio);
 }
 END_TEST
 
@@ -2443,7 +2443,7 @@ START_TEST (ins_note_mod_break_index1)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, -1, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, -1, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2463,7 +2463,7 @@ START_TEST (ins_note_mod_break_index2)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, INT_MIN, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, INT_MIN, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2483,7 +2483,7 @@ START_TEST (ins_note_mod_break_index3)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, NOTE_TABLE_NOTE_MODS, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, NOTE_TABLE_NOTE_MODS, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2503,7 +2503,7 @@ START_TEST (ins_note_mod_break_index4)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, INT_MAX, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, INT_MAX, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2543,7 +2543,7 @@ START_TEST (ins_note_mod_break_name2)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, 0, "", &mod_ratio);
+	Note_table_ins_note_mod(table, 0, L"", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2561,7 +2561,7 @@ START_TEST (ins_note_mod_break_ratio1)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, 0, "Oops", NULL);
+	Note_table_ins_note_mod(table, 0, L"Oops", NULL);
 
 	del_Note_table(table);
 }
@@ -2581,7 +2581,7 @@ START_TEST (ins_note_mod_break_ratio2)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2601,7 +2601,7 @@ START_TEST (ins_note_mod_break_ratio3)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2621,7 +2621,7 @@ START_TEST (ins_note_mod_break_ratio4)
 		return;
 	}
 
-	Note_table_ins_note_mod(table, 0, "Oops", &mod_ratio);
+	Note_table_ins_note_mod(table, 0, L"Oops", &mod_ratio);
 
 	del_Note_table(table);
 }
@@ -2632,7 +2632,7 @@ START_TEST (del_note_mod)
 {
 	int i = 0;
 	Real mod_ratio;
-	char mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&mod_ratio, 16, 15);
@@ -2648,17 +2648,17 @@ START_TEST (del_note_mod)
 
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i + 1, i + 2);
 		Note_table_set_note_mod(table, i, mod_name, &mod_ratio);
 	}
 	Note_table_del_note_mod(table, NOTE_TABLE_NOTE_MODS - 1);
-	fail_unless(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, "") == 0,
+	fail_unless(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].name, L"") == 0,
 			"Note_table_del_note_mod() didn't remove the target modifier correctly.");
-	snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", NOTE_TABLE_NOTE_MODS - 2);
-	fail_unless(strcmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 2].name, mod_name) == 0,
+	swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", NOTE_TABLE_NOTE_MODS - 2);
+	fail_unless(wcscmp(table->note_mods[NOTE_TABLE_NOTE_MODS - 2].name, mod_name) == 0,
 			"Note_table_del_note_mod() incorrectly modified wrong modifier.");
-	fail_unless(strcmp(table->note_mods[0].name, "Mod0") == 0,
+	fail_unless(wcscmp(table->note_mods[0].name, L"Mod0") == 0,
 			"Note_table_del_note_mod() incorrectly modified wrong modifier.");
 
 	Note_table_del_note_mod(table, 3);
@@ -2666,24 +2666,24 @@ START_TEST (del_note_mod)
 	{
 		if (i < 3)
 		{
-			snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+			swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 			Real_init_as_frac(&mod_ratio, i + 1, i + 2);
 		}
 		else
 		{
-			snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i + 1);
+			swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i + 1);
 			Real_init_as_frac(&mod_ratio, i + 2, i + 3);
 		}
-		fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+		fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 				"Note_table_del_note_mod() didn't shift subsequent modifiers backward correctly.");
 		fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
 				"Note_table_del_note_mod() didn't shift subsequent modifiers backward correctly.");
 	}
 
 	Note_table_del_note_mod(table, 0);
-	fail_unless(strcmp(table->note_mods[0].name, "Mod1") == 0,
+	fail_unless(wcscmp(table->note_mods[0].name, L"Mod1") == 0,
 			"Note_table_del_note_mod() didn't shift subsequent modifiers backward correctly.");
-	fail_unless(strcmp(table->note_mods[1].name, "Mod2") == 0,
+	fail_unless(wcscmp(table->note_mods[1].name, L"Mod2") == 0,
 			"Note_table_del_note_mod() didn't shift subsequent modifiers backward correctly.");
 
 	del_Note_table(table);
@@ -2775,7 +2775,7 @@ START_TEST (move_note_mod)
 	int i = 0;
 	int actual_index = -1;
 	Real mod_ratio;
-	char mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	Real octave_ratio;
 	Note_table* table = NULL;
 	Real_init_as_frac(&mod_ratio, 16, 15);
@@ -2789,7 +2789,7 @@ START_TEST (move_note_mod)
 
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Real_init_as_frac(&mod_ratio, i + 1, i + 2);
 		Note_table_set_note_mod(table, i, mod_name, &mod_ratio);
 	}
@@ -2799,10 +2799,10 @@ START_TEST (move_note_mod)
 			"Note_table_move_note_mod() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i + 1);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i + 1);
 		if (i == NOTE_TABLE_NOTE_MODS - 1)
 		{
-			fail_unless(strcmp(table->note_mods[i].name, "Mod0") == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, L"Mod0") == 0,
 					"Note_table_move_note_mod() didn't modify the modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2810,7 +2810,7 @@ START_TEST (move_note_mod)
 		}
 		else
 		{
-			fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 					"Note_table_move_note_mod() didn't modify the modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2824,10 +2824,10 @@ START_TEST (move_note_mod)
 			"Note_table_move_note_mod() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i + 1);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i + 1);
 		if (i == 0)
 		{
-			fail_unless(strcmp(table->note_mods[i].name, "Mod0") == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, L"Mod0") == 0,
 					"Note_table_move_note_mod() didn't modify the modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2835,7 +2835,7 @@ START_TEST (move_note_mod)
 		}
 		else
 		{
-			fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 					"Note_table_move_note_mod() didn't modify the modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2848,10 +2848,10 @@ START_TEST (move_note_mod)
 			"Note_table_move_note_mod() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i + 1);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i + 1);
 		if (i == 0)
 		{
-			fail_unless(strcmp(table->note_mods[i].name, "Mod0") == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, L"Mod0") == 0,
 					"Note_table_move_note_mod() incorrectly modified the table.");
 			Real_init_as_frac(&mod_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2859,7 +2859,7 @@ START_TEST (move_note_mod)
 		}
 		else
 		{
-			fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 					"Note_table_move_note_mod() incorrectly modified the table.");
 			Real_init_as_frac(&mod_ratio, i + 2, i + 3);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2872,10 +2872,10 @@ START_TEST (move_note_mod)
 			"Note_table_move_note_mod() didn't return the correct index.");
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i + 2);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i + 2);
 		if (i == NOTE_TABLE_NOTE_MODS - 2)
 		{
-			fail_unless(strcmp(table->note_mods[i].name, "Mod0") == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, L"Mod0") == 0,
 					"Note_table_move_note_mod() didn't handle empty modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, 1, 2);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2883,7 +2883,7 @@ START_TEST (move_note_mod)
 		}
 		else
 		{
-			fail_unless(strcmp(table->note_mods[i].name, mod_name) == 0,
+			fail_unless(wcscmp(table->note_mods[i].name, mod_name) == 0,
 					"Note_table_move_note_mod() didn't handle empty modifier at new_index correctly.");
 			Real_init_as_frac(&mod_ratio, i + 3, i + 4);
 			fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -3053,7 +3053,7 @@ START_TEST (get_note_mod_name)
 	Real mod_ratio;
 	Real octave_ratio;
 	Note_table* table = NULL;
-	char mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+	wchar_t mod_name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
 	Real_init(&mod_ratio);
 	Real_init_as_frac(&octave_ratio, 2, 1);
 	table = new_Note_table(NULL, 440, &octave_ratio);
@@ -3068,14 +3068,14 @@ START_TEST (get_note_mod_name)
 
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
 		Note_table_set_note_mod(table, i, mod_name, &mod_ratio);
 	}
 
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
-		snprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, "Mod%d", i);
-		fail_unless(strcmp(Note_table_get_note_mod_name(table, i), mod_name) == 0,
+		swprintf(mod_name, NOTE_TABLE_NOTE_MOD_NAME_MAX, L"Mod%d", i);
+		fail_unless(wcscmp(Note_table_get_note_mod_name(table, i), mod_name) == 0,
 				"Note_table_get_note_mod_name() didn't return the correct name.");
 	}
 
@@ -3184,7 +3184,7 @@ START_TEST (get_note_mod_ratio)
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
 		Real_init_as_frac(&mod_ratio, i + 1, i + 2);
-		Note_table_set_note_mod(table, i, "Mod", &mod_ratio);
+		Note_table_set_note_mod(table, i, L"Mod", &mod_ratio);
 	}
 
 	for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
@@ -3299,14 +3299,14 @@ START_TEST (get_pitch)
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
-		Note_table_set_note(table, i, "Note", &note_ratio);
+		Note_table_set_note(table, i, L"Note", &note_ratio);
 		Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
 	}
 	assert(table->note_count == NOTE_TABLE_NOTES);
 	Real_init_as_frac(&note_ratio, 16, 15);
-	Note_table_set_note_mod(table, 0, "#", &note_ratio);
+	Note_table_set_note_mod(table, 0, L"#", &note_ratio);
 	Real_init_as_frac(&note_ratio, 15, 16);
-	Note_table_set_note_mod(table, 1, "b", &note_ratio);
+	Note_table_set_note_mod(table, 1, L"b", &note_ratio);
 
 	/* without modifier */
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
@@ -3653,9 +3653,9 @@ START_TEST (retune)
 		abort();
 	}
 
-	char* names[] = { "C", "C#", "D", "Eb", "E", "F", "F#", "G", "G#", "A", "Bb", "B" };
-	int nums[] =    {  1,   16,   9,   6,    5,   4,   45,   3,   8,    5,   9,   15 };
-	int dens[] =    {  1,   15,   8,   5,    4,   3,   32,   2,   5,    3,   5,    8 };
+	wchar_t* names[] = { L"C", L"C#", L"D", L"Eb", L"E", L"F", L"F#", L"G", L"G#", L"A", L"Bb", L"B" };
+	int nums[] =       {   1,    16,    9,    6,     5,    4,    45,    3,    8,     5,    9,    15 };
+	int dens[] =       {   1,    15,    8,    5,     4,    3,    32,    2,    5,     3,    5,     8 };
 
 	for (i = 0; i < 12; ++i)
 	{
@@ -3793,7 +3793,7 @@ START_TEST (retune)
 	for (i = 0; i < NOTE_TABLE_NOTES; ++i)
 	{
 		Real_init_as_frac(&note_ratio, i + 1, i + 2);
-		Note_table_set_note(table, i, "Note", &note_ratio);
+		Note_table_set_note(table, i, L"Note", &note_ratio);
 	}
 
 	for (k = 1; k < NOTE_TABLE_NOTES; ++k)
@@ -3994,29 +3994,29 @@ START_TEST (drift)
 
 	Real note_ratio;
 	Real_init_as_frac(&note_ratio, 1, 1);
-	Note_table_set_note(table, 0, "C", &note_ratio);
+	Note_table_set_note(table, 0, L"C", &note_ratio);
 	Real_init_as_frac(&note_ratio, 16, 15);
-	Note_table_set_note(table, 1, "C#", &note_ratio);
+	Note_table_set_note(table, 1, L"C#", &note_ratio);
 	Real_init_as_frac(&note_ratio, 9, 8);
-	Note_table_set_note(table, 2, "D", &note_ratio);
+	Note_table_set_note(table, 2, L"D", &note_ratio);
 	Real_init_as_frac(&note_ratio, 6, 5);
-	Note_table_set_note(table, 3, "Eb", &note_ratio);
+	Note_table_set_note(table, 3, L"Eb", &note_ratio);
 	Real_init_as_frac(&note_ratio, 5, 4);
-	Note_table_set_note(table, 4, "E", &note_ratio);
+	Note_table_set_note(table, 4, L"E", &note_ratio);
 	Real_init_as_frac(&note_ratio, 4, 3);
-	Note_table_set_note(table, 5, "F", &note_ratio);
+	Note_table_set_note(table, 5, L"F", &note_ratio);
 	Real_init_as_frac(&note_ratio, 45, 32);
-	Note_table_set_note(table, 6, "F#", &note_ratio);
+	Note_table_set_note(table, 6, L"F#", &note_ratio);
 	Real_init_as_frac(&note_ratio, 3, 2);
-	Note_table_set_note(table, 7, "G", &note_ratio);
+	Note_table_set_note(table, 7, L"G", &note_ratio);
 	Real_init_as_frac(&note_ratio, 8, 5);
-	Note_table_set_note(table, 8, "G#", &note_ratio);
+	Note_table_set_note(table, 8, L"G#", &note_ratio);
 	Real_init_as_frac(&note_ratio, 5, 3);
-	Note_table_set_note(table, 9, "A", &note_ratio);
+	Note_table_set_note(table, 9, L"A", &note_ratio);
 	Real_init_as_frac(&note_ratio, 9, 5);
-	Note_table_set_note(table, 10, "Bb", &note_ratio);
+	Note_table_set_note(table, 10, L"Bb", &note_ratio);
 	Real_init_as_frac(&note_ratio, 15, 8);
-	Note_table_set_note(table, 11, "B", &note_ratio);
+	Note_table_set_note(table, 11, L"B", &note_ratio);
 
 	Real calculated;
 	Note_table_retune(table, 2, 2); // II -- 
