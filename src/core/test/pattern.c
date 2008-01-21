@@ -189,6 +189,7 @@ START_TEST (mix)
 	// Note frequency is 2 Hz (2 cycles/beat).
 	// Note starts at the beginning and plays until the end
 	// Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
+	play->play = PLAY_PATTERN;
 	play->freq = 8;
 	play->tempo = 60;
 	Reltime_init(&play->pos);
@@ -232,6 +233,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	for (int i = 0; i < 256; ++i)
@@ -281,6 +283,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	Event_set_float(evg_tempo, 0, 120);
@@ -321,6 +324,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	fail_unless(play->tempo - 120 < 0.01,
@@ -376,6 +380,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	play->tempo = 60;
@@ -446,6 +451,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	play->tempo = 60;
@@ -524,6 +530,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	play->tempo = 60;
@@ -616,6 +623,7 @@ START_TEST (mix)
 	{
 		Channel_reset(play->channels[i]);
 	}
+	play->play = PLAY_PATTERN;
 	Voice_pool_reset(play->voice_pool);
 	Reltime_init(&play->pos);
 	play->tempo = 60;

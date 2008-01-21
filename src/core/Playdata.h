@@ -77,13 +77,17 @@ typedef struct Playdata
 	 */
 	double tempo;
 	/**
-	 * Current order -- only relevant if \a play = \c PLAY_SONG. TODO: Order structure
+	 * Current subsong -- only relevant if \a play = \c PLAY_SONG.
 	 */
-//	uint16_t order;
+	uint16_t subsong;
+	/**
+	 * Current order -- only relevant if \a play = \c PLAY_SONG.
+	 */
+	uint16_t order;
 	/**
 	 * Current pattern.
 	 */
-	uint16_t pattern;
+	int16_t pattern;
 	/**
 	 * Current position inside a pattern.
 	 */
