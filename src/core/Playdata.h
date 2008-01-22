@@ -26,9 +26,8 @@
 
 #include <stdint.h>
 
-#include <Pattern.h>
+#include <Order.h>
 #include <Channel.h>
-//#include <Song.h>
 
 
 /**
@@ -48,62 +47,34 @@ typedef enum Play_mode
 
 typedef struct Playdata
 {
-	/**
-	 * Current playback mode.
-	 */
+	/// Current playback mode.
 	Play_mode play;
-	/**
-	 * Mixing frequency.
-	 */
+	/// Mixing frequency.
 	uint32_t freq;
-	/**
-	 * Size of a tick in frames.
-	 */
+	/// Size of a tick in frames.
 	uint16_t tick_size;
-	/**
-	 * The song to be played. TODO: Song structure
-	 */
-//	Song* song;
-	/**
-	 * The number of beats played since the start of playback.
-	 */
-	Reltime play_time;
-	/**
-	 * The number of frames mixed since the start of playback.
-	 */
-	uint64_t play_frames;
-	/**
-	 * Current tempo.
-	 */
-	double tempo;
-	/**
-	 * Current subsong -- only relevant if \a play = \c PLAY_SONG.
-	 */
-	uint16_t subsong;
-	/**
-	 * Current order -- only relevant if \a play = \c PLAY_SONG.
-	 */
-	uint16_t order;
-	/**
-	 * Current pattern.
-	 */
-	int16_t pattern;
-	/**
-	 * Current position inside a pattern.
-	 */
-	Reltime pos;
-	/**
-	 * The Voice pool used.
-	 */
-	Voice_pool* voice_pool;
-	/**
-	 * The channels used.
-	 */
-	Channel* channels[PAT_CHANNELS];
-	/**
-	 * The global event queue.
-	 */
+	/// The Order lists.
+	Order* order;
+	/// The global event queue.
 	Event_queue* events;
+	/// The number of beats played since the start of playback.
+	Reltime play_time;
+	/// The number of frames mixed since the start of playback.
+	uint64_t play_frames;
+	/// Current tempo.
+	double tempo;
+	/// Current subsong -- only relevant if \a play = \c PLAY_SONG.
+	uint16_t subsong;
+	/// Current order -- only relevant if \a play = \c PLAY_SONG.
+	uint16_t order_index;
+	/// Current pattern.
+	int16_t pattern;
+	/// Current position inside a pattern.
+	Reltime pos;
+	/// The Voice pool used.
+	Voice_pool* voice_pool;
+	/// The channels used.
+	Channel* channels[PAT_CHANNELS];
 } Playdata;
 
 

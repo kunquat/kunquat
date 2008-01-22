@@ -133,6 +133,23 @@ uint32_t Pattern_mix(Pattern* pat,
 		if (Reltime_cmp(&play->pos, &pat->length) >= 0)
 		{
 			assert(Reltime_cmp(&play->pos, &pat->length) == 0);
+			Reltime_init(&play->pos);
+			if (play->play == PLAY_PATTERN)
+			{
+				break;
+			}
+			++play->order_index;
+			if (play->order_index >= PATTERNS_MAX)
+			{
+				play->order_index = 0;
+				play->pattern = -1;
+			}
+			else
+			{
+				play->pattern = Order_get(play->order,
+						play->subsong,
+						play->order_index);
+			}
 			break;
 		}
 		assert(next_global == NULL || next_global_pos != NULL);
