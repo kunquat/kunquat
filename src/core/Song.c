@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdint.h>
+#include <math.h>
+#include <wchar.h>
 
 #include <Real.h>
 
@@ -31,7 +33,7 @@
 #include <xmemory.h>
 
 
-Song* new_Song(int buf_count, uint32_t buf_size)
+Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 {
 	assert(buf_count >= 1);
 	assert(buf_count <= BUF_COUNT_MAX);
@@ -42,28 +44,28 @@ Song* new_Song(int buf_count, uint32_t buf_size)
 		return NULL;
 	}
 	song->buf_count = buf_count;
-//	song->buf = NULL;
+//	song->bufs = NULL;
 	song->order = NULL;
 	song->pats = NULL;
 	song->insts = NULL;
 	song->notes = NULL;
-/*	song->buf = xalloc(frame_t*);
-	if (song->buf == NULL)
+/*	song->bufs = xalloc(frame_t*);
+	if (song->bufs == NULL)
 	{
 		del_Song(song);
 		return NULL;
 	} */
 	for (int i = 0; i < buf_count; ++i)
 	{
-		song->buf[i] = xnalloc(frame_t, buf_size);
-		if (song->buf[i] == NULL)
+		song->bufs[i] = xnalloc(frame_t, buf_size);
+		if (song->bufs[i] == NULL)
 		{
 			del_Song(song);
 			return NULL;
 		}
 		for (uint32_t k = 0; k < buf_size; ++k)
 		{
-			song->buf[i][k] = 0;
+			song->bufs[i][k] = 0;
 		}
 	}
 	song->order = new_Order();
@@ -88,6 +90,12 @@ Song* new_Song(int buf_count, uint32_t buf_size)
 			523.25113060119725,
 			Real_init_as_frac(REAL_AUTO, 2, 1));
 	if (song->notes == NULL)
+	{
+		del_Song(song);
+		return NULL;
+	}
+	song->events = new_Event_queue(events);
+	if (song->events == NULL)
 	{
 		del_Song(song);
 		return NULL;
@@ -166,16 +174,131 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 }
 
 
+void Song_set_name(Song* song, wchar_t* name)
+{
+	assert(song != NULL);
+	assert(name != NULL);
+	wcsncpy(song->name, name, SONG_NAME_MAX - 1);
+	song->name[SONG_NAME_MAX - 1] = L'\0';
+	return;
+}
+
+
+wchar_t* Song_get_name(Song* song)
+{
+	assert(song != NULL);
+	return song->name;
+}
+
+
+void Song_set_tempo(Song* song, double tempo)
+{
+	assert(song != NULL);
+	assert(isfinite(tempo));
+	assert(tempo > 0);
+	song->tempo = tempo;
+	return;
+}
+
+
+double Song_get_tempo(Song* song)
+{
+	assert(song != NULL);
+	return song->tempo;
+}
+
+
+void Song_set_mix_vol(Song* song, double mix_vol)
+{
+	assert(song != NULL);
+	assert(isfinite(mix_vol) || mix_vol == -INFINITY);
+	song->mix_vol = mix_vol;
+	return;
+}
+
+
+double Song_get_mix_vol(Song* song)
+{
+	assert(song != NULL);
+	return song->mix_vol;
+}
+
+
+void Song_set_global_vol(Song* song, double global_vol)
+{
+	assert(song != NULL);
+	assert(isfinite(global_vol) || global_vol == -INFINITY);
+	song->global_vol = global_vol;
+	return;
+}
+
+
+double Song_get_global_vol(Song* song)
+{
+	assert(song != NULL);
+	return song->global_vol;
+}
+
+
+int Song_get_buf_count(Song* song)
+{
+	assert(song != NULL);
+	return song->buf_count;
+}
+
+
+frame_t** Song_get_bufs(Song* song)
+{
+	assert(song != NULL);
+	return song->bufs;
+}
+
+
+Order* Song_get_order(Song* song)
+{
+	assert(song != NULL);
+	return song->order;
+}
+
+
+Pat_table* Song_get_pats(Song* song)
+{
+	assert(song != NULL);
+	return song->pats;
+}
+
+
+Ins_table* Song_get_insts(Song* song)
+{
+	assert(song != NULL);
+	return song->insts;
+}
+
+
+Note_table* Song_get_notes(Song* song)
+{
+	assert(song != NULL);
+	return song->notes;
+}
+
+
+Event_queue* Song_get_events(Song* song)
+{
+	assert(song != NULL);
+	return song->events;
+}
+
+
 void del_Song(Song* song)
 {
 	assert(song != NULL);
-	if (song->buf != NULL)
+	if (song->bufs != NULL)
 	{
-		for (int i = 0; i < song->buf_count && song->buf[i] != NULL; ++i)
+		for (int i = 0; i < song->buf_count && song->bufs[i] != NULL; ++i)
 		{
-			xfree(song->buf[i]);
+			xfree(song->bufs[i]);
 		}
-//		xfree(song->buf);
+//		xfree(song->bufs);
 	}
 	if (song->order != NULL)
 	{
@@ -192,6 +315,10 @@ void del_Song(Song* song)
 	if (song->notes != NULL)
 	{
 		del_Note_table(song->notes);
+	}
+	if (song->events != NULL)
+	{
+		del_Event_queue(song->events);
 	}
 	xfree(song);
 	return;

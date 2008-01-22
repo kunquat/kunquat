@@ -44,7 +44,7 @@ typedef struct Song
 	/// Number of buffers (channels) used for mixing.
 	int buf_count;
 	/// Buffers.
-	frame_t* buf[BUF_COUNT_MAX];
+	frame_t* bufs[BUF_COUNT_MAX];
 	/// The Order lists.
 	Order* order;
 	/// The Patterns.
@@ -67,23 +67,25 @@ typedef struct Song
 
 
 /**
- * Creates a new Song object.
+ * Creates a new Song.
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
  *                    <= \a BUF_COUNT_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of a buffer -- must be > \c 0.
+ * \param events      The maximum number of global events per tick -- must be
+ *                    > \c 0.
  *
  * \see del_Song()
  *
- * \return   The new Song object if successful, or \c NULL if memory
- *           allocation failed.
+ * \return   The new Song if successful, or \c NULL if memory allocation
+ *           failed.
  */
-Song* new_Song(int buf_count, uint32_t buf_size);
+Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
 
 
 /**
- * Mixes a portion of the Song object.
+ * Mixes a portion of the Song.
  *
  * \param song      The Song -- must not be \c NULL.
  * \param nframes   The amount of frames to be mixed.
@@ -96,18 +98,154 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
 
 
 /**
- * Gets a buffer from the Song object.
+ * Sets the name of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param buf    The buffer number -- must be < \a BUF_COUNT_MAX.
- *
- * \return   The buffer if one exists, otherwise \c NULL.
+ * \param name   The name to be set -- must not be \c NULL. Only the first
+ *               SONG_NAME_MAX - 1 characters will be used.
  */
-frame_t* Song_get_buf(Song* song, uint8_t buf);
+void Song_set_name(Song* song, wchar_t* name);
 
 
 /**
- * Destroys an existing Song object.
+ * Gets the name of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The name.
+ */
+wchar_t* Song_get_name(Song* song);
+
+
+/**
+ * Sets the initial tempo of the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param tempo   The tempo -- must be finite and > \c 0.
+ */
+void Song_set_tempo(Song* song, double tempo);
+
+
+/**
+ * Gets the initial tempo of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The tempo.
+ */
+double Song_get_tempo(Song* song);
+
+
+/**
+ * Sets the initial mixing volume of the Song.
+ *
+ * \param song      The Song -- must not be \c NULL.
+ * \param mix_vol   The volume -- must be finite or -INFINITY.
+ */
+void Song_set_mix_vol(Song* song, double mix_vol);
+
+
+/**
+ * Gets the initial mixing volume of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The mixing volume.
+ */
+double Song_get_mix_vol(Song* song);
+
+
+/**
+ * Sets the initial global volume of the Song.
+ *
+ * \param song         The Song -- must not be \c NULL.
+ * \param global_vol   The volume -- must be finite or -INFINITY.
+ */
+void Song_set_global_vol(Song* song, double global_vol);
+
+
+/**
+ * Gets the initial global volume of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The global volume.
+ */
+double Song_get_global_vol(Song* song);
+
+
+/**
+ * Gets the number of buffers in the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The number of buffers.
+ */
+int Song_get_buf_count(Song* song);
+
+
+/**
+ * Gets the buffers from the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The buffers.
+ */
+frame_t** Song_get_bufs(Song* song);
+
+
+/**
+ * Gets the Order lists from the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Order list.
+ */
+Order* Song_get_order(Song* song);
+
+
+/**
+ * Gets the Patterns of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Pattern table.
+ */
+Pat_table* Song_get_pats(Song* song);
+
+
+/**
+ * Gets the Instruments of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Instrument table.
+ */
+Ins_table* Song_get_insts(Song* song);
+
+
+/**
+ * Gets the Note table of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Note table.
+ */
+Note_table* Song_get_notes(Song* song);
+
+
+/**
+ * Gets the global Event queue of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Event queue.
+ */
+Event_queue* Song_get_events(Song* song);
+
+
+/**
+ * Destroys an existing Song.
  *
  * \param song   The Song -- must not be \c NULL.
  */
