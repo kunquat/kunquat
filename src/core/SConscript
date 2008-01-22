@@ -48,6 +48,7 @@ files = [
 'Order.c',
 'Pat_table.c',
 'Pattern.c',
+'Song.c',
 ]
 
 env.StaticLibrary('core', files)

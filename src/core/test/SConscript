@@ -90,4 +90,8 @@ Depends(pattern, 'column')
 Depends(pattern, 'order')
 Depends(pattern, 'pat_table')
 
+song = env_test.Program('song', ['song.c'])
+env_test.AddPostAction(song, song[0].abspath)
+Depends(song, 'pattern')
+
 
