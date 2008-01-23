@@ -84,6 +84,9 @@ Playdata* init_play(Song* song)
 	play->tempo = 0;
 	Reltime_init(&play->pos);
 	play->order = song->order;
+	play->subsong = 0;
+	play->order_index = 0;
+	play->pattern = -1;
 	return play;
 }
 
@@ -439,6 +442,210 @@ END_TEST
 #endif
 
 
+START_TEST (mix)
+{
+	Song* song = new_Song(2, 256, 64);
+	if (song == NULL)
+	{
+		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Song_set_tempo(song, 120);
+	Song_set_mix_vol(song, 0);
+	Song_set_global_vol(song, 0);
+	Playdata* play = init_play(song);
+	if (play == NULL) abort();
+	Pattern* pat1 = new_Pattern();
+	if (pat1 == NULL)
+	{
+		fprintf(stderr, "new_Pattern() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Pattern* pat2 = new_Pattern();
+	if (pat2 == NULL)
+	{
+		fprintf(stderr, "new_Pattern() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Pat_table* pats = Song_get_pats(song);
+	if (!Pat_table_set(pats, 0, pat1))
+	{
+		fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+		abort();
+	}
+	if (!Pat_table_set(pats, 1, pat2))
+	{
+		fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Order* order = Song_get_order(song);
+	if (!Order_set(order, 0, 0, 0))
+	{
+		fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+		abort();
+	}
+	if (!Order_set(order, 0, 1, 1))
+	{
+		fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Note_table* notes = Song_get_notes(song);
+	Note_table_set_ref_pitch(notes, 2);
+	frame_t** bufs = Song_get_bufs(song);
+	Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 256, 16);
+	if (ins == NULL)
+	{
+		fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Instrument_set_note_table(ins, notes);
+	Ins_table* insts = Song_get_insts(song);
+	if (!Ins_table_set(insts, 1, ins))
+	{
+		fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
+		abort();
+	}
+	Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (ev1_on == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event* ev1_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+	if (ev1_off == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event* ev2_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+	if (ev2_on == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	Event* ev2_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+	if (ev2_off == NULL)
+	{
+		fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
+		abort();
+	}
+	
+	// Testing scenario 1:
+	//
+	// Mixing frequency is 8 Hz.
+	// Tempo is 120 BPM.
+	// Playing notes of a debug instrument.
+	// Note #1 frequency is 1 Hz (0.5 cycles/beat).
+	// Note #1 starts at pattern 0, position 0:0 and is released at pattern 1, position 0:0.
+	// Note #2 frequency is 2 Hz (1 cycle/beat).
+	// Note #2 starts at pattern 1, position 0:0 and plays until the end
+	// Both notes are located at column 0.
+	// Result should be as described in the code below.
+	play->play = PLAY_SONG;
+	play->freq = 8;
+	play->tempo = 120;
+	Reltime_init(&play->pos);
+	Event_set_int(ev1_on, 0, 0);
+	Event_set_int(ev1_on, 1, -1);
+	Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
+	Event_set_int(ev1_on, 3, 1);
+	Event_set_int(ev2_on, 0, 0);
+	Event_set_int(ev2_on, 1, -1);
+	Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
+	Event_set_int(ev2_on, 3, 1);
+	Column* col = Pattern_col(pat1, 0);
+	if (!Column_ins(col, ev1_on))
+	{
+		fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
+		abort();
+	}
+	col = Pattern_col(pat2, 0);
+	if (!Column_ins(col, ev2_on))
+	{
+		fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
+		abort();
+	}
+	uint32_t ret = Song_mix(song, 256, play);
+	fail_unless(ret == 128,
+			"Song_mix() mixed %lu frames instead of 128.", (unsigned long)ret);
+	for (int i = 0; i < 64; ++i)
+	{
+		if (i % 8 == 0)
+		{
+			fail_unless(bufs[0][i] > 0.99 && bufs[0][i] < 1.01,
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 64; i < 80; ++i)
+	{
+		if (i % 8 == 4)
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(fabs(bufs[0][i]) < 0.01,
+					"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
+		}
+	}
+	for (int i = 80; i < 104; ++i)
+	{
+		if (i % 4 == 0)
+		{
+			fail_unless(bufs[0][i] > 0.99 && bufs[0][i] < 1.01,
+					"Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
+		}
+		else
+		{
+			fail_unless(bufs[0][i] > 0.49 && bufs[0][i] < 0.51,
+					"Buffer contains %f at index %d (expected 0.5).", bufs[0][i], i);
+		}
+	}
+	for (int i = 104; i < 256; ++i)
+	{
+		fail_unless(fabs(bufs[0][i]) < 0.01,
+				"Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
+	}
+
+	del_Song(song);
+}
+END_TEST
+
+#ifndef NDEBUG
+START_TEST (mix_break_song_null)
+{
+	Playdata* play = xalloc(Playdata);
+	if (play == NULL)
+	{
+		fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
+		return;
+	}
+	Song_mix(NULL, 1, play);
+	xfree(play);
+}
+END_TEST
+
+START_TEST (mix_break_play_null)
+{
+	Song* song = new_Song(1, 1, 1);
+	if (song == NULL)
+	{
+		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
+		return;
+	}
+	Song_mix(song, 1, NULL);
+	del_Song(song);
+}
+END_TEST
+#endif
+
+
 Suite* Song_suite(void)
 {
 	Suite* s = suite_create("Song");
@@ -447,17 +654,20 @@ Suite* Song_suite(void)
 	TCase* tc_set_get_tempo = tcase_create("set_get_tempo");
 	TCase* tc_set_get_mix_vol = tcase_create("set_get_mix_vol");
 	TCase* tc_set_get_global_vol = tcase_create("set_get_global_vol");
+	TCase* tc_mix = tcase_create("mix");
 	suite_add_tcase(s, tc_new);
 	suite_add_tcase(s, tc_set_get_name);
 	suite_add_tcase(s, tc_set_get_tempo);
 	suite_add_tcase(s, tc_set_get_mix_vol);
 	suite_add_tcase(s, tc_set_get_global_vol);
+	suite_add_tcase(s, tc_mix);
 
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_set_get_name, set_get_name);
 	tcase_add_test(tc_set_get_tempo, set_get_tempo);
 	tcase_add_test(tc_set_get_mix_vol, set_get_mix_vol);
 	tcase_add_test(tc_set_get_global_vol, set_get_global_vol);
+	tcase_add_test(tc_mix, mix);
 
 #ifndef NDEBUG
 	tcase_add_test_raise_signal(tc_new, new_break_buf_count_inv1, SIGABRT);
@@ -485,6 +695,9 @@ Suite* Song_suite(void)
 	tcase_add_test_raise_signal(tc_set_get_global_vol, set_global_vol_break_global_vol_inv1, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_get_global_vol, set_global_vol_break_global_vol_inv2, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_get_global_vol, get_global_vol_break_song_null, SIGABRT);
+
+	tcase_add_test_raise_signal(tc_mix, mix_break_song_null, SIGABRT);
+	tcase_add_test_raise_signal(tc_mix, mix_break_play_null, SIGABRT);
 #endif
 
 	return s;

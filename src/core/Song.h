@@ -89,7 +89,8 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
  *
  * \param song      The Song -- must not be \c NULL.
  * \param nframes   The amount of frames to be mixed.
- * \param play      The Playdata containing the playback state.
+ * \param play      The Playdata containing the playback state -- must not be
+ *                  \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes.

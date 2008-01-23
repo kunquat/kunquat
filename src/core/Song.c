@@ -134,7 +134,17 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 	while (mixed < nframes && play->play)
 	{
 		Pattern* pat = NULL;
-		if (play->pattern >= 0)
+		if (play->play == PLAY_SONG)
+		{
+			int16_t pat_index = Order_get(song->order,
+					play->subsong,
+					play->order_index);
+			if (pat_index >= 0)
+			{
+				pat = Pat_table_get(song->pats, pat_index);
+			}
+		}
+		else if (play->play == PLAY_PATTERN && play->pattern >= 0)
 		{
 			pat = Pat_table_get(song->pats, play->pattern);
 		}
