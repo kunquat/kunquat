@@ -51,8 +51,8 @@ typedef struct Playdata
 	Play_mode play;
 	/// Mixing frequency.
 	uint32_t freq;
-	/// Size of a tick in frames.
-	uint16_t tick_size;
+	/// Size of a tick in frames. TODO: implement if needed
+//	uint16_t tick_size;
 	/// The Order lists.
 	Order* order;
 	/// The global event queue.
@@ -84,6 +84,7 @@ typedef struct Playdata
  * The caller shall eventually destroy the created object using
  * del_Playdata().
  *
+ * \param freq   The mixing frequency -- must be > \c 0.
  * \param pool   The Voice pool to be used -- must not be \c NULL.
  * \param song   The Song object to which the new Playdata object is assigned
  *               -- must not be \c NULL.
@@ -91,19 +92,20 @@ typedef struct Playdata
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
-//Playdata* new_Playdata(Voice_pool* pool, Song* song);
+Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Song* song);
 
 
 /**
  * Does mixing according to the state of the Playdata object.
  *
  * \param data      The Playdata object -- must not be \c NULL.
+ * \param song      The Song -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes.
  */
-uint32_t Playdata_mix(Playdata* data, uint32_t nframes);
+uint32_t Playdata_mix(Playdata* data, Song* song, uint32_t nframes);
 
 
 /**
@@ -120,7 +122,7 @@ void Playdata_set_state(Playdata* data, Play_mode mode);
  *
  * \param data   The Playdata object -- must not be \c NULL.
  */
-void del_Playdata(Playdata* data);
+void del_Playdata(Playdata* play);
 
 
 #endif // K_PLAYDATA_H
