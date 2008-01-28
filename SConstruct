@@ -83,6 +83,9 @@ if not env.GetOption('clean'):
 		print 'Math library not found.'
 		Exit(1)
 
+	if not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
+		print 'liblo not found.'
+
 	if not conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
 		print 'JACK not found.'
 		Exit(1)

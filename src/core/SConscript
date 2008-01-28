@@ -49,8 +49,15 @@ files = [
 'Pat_table.c',
 'Pattern.c',
 'Song.c',
+'Playdata.c',
+'Player.c',
 ]
 
 env.StaticLibrary('core', files)
+
+env.Append(LIBPATH = ['#/src/core'])
+env.Append(LIBS = ['core'])
+
+env.Program('kunquat', ['Listener.c'])
 
 

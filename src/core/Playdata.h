@@ -28,6 +28,8 @@
 
 #include <Order.h>
 #include <Channel.h>
+#include <Voice_pool.h>
+#include <Ins_table.h>
 
 
 /**
@@ -48,7 +50,7 @@ typedef enum Play_mode
 typedef struct Playdata
 {
 	/// Current playback mode.
-	Play_mode play;
+	Play_mode mode;
 	/// Mixing frequency.
 	uint32_t freq;
 	/// Size of a tick in frames. TODO: implement if needed
@@ -84,37 +86,14 @@ typedef struct Playdata
  * The caller shall eventually destroy the created object using
  * del_Playdata().
  *
- * \param freq   The mixing frequency -- must be > \c 0.
- * \param pool   The Voice pool to be used -- must not be \c NULL.
- * \param song   The Song object to which the new Playdata object is assigned
- *               -- must not be \c NULL.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ * \param pool    The Voice pool to be used -- must not be \c NULL.
+ * \param insts   The Instrument table -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
-Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Song* song);
-
-
-/**
- * Does mixing according to the state of the Playdata object.
- *
- * \param data      The Playdata object -- must not be \c NULL.
- * \param song      The Song -- must not be \c NULL.
- * \param nframes   The number of frames to be mixed.
- *
- * \return   The number of frames actually mixed. This is always
- *           <= \a nframes.
- */
-uint32_t Playdata_mix(Playdata* data, Song* song, uint32_t nframes);
-
-
-/**
- * Sets the playback mode.
- *
- * \param data   The Playdata object -- must not be \c NULL.
- * \param mode   The playback mode -- must be >= \a STOP and < \a PLAY_LAST.
- */
-void Playdata_set_state(Playdata* data, Play_mode mode);
+Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
 
 
 /**

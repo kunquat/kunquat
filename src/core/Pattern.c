@@ -134,7 +134,7 @@ uint32_t Pattern_mix(Pattern* pat,
 		{
 			assert(Reltime_cmp(&play->pos, &pat->length) == 0);
 			Reltime_init(&play->pos);
-			if (play->play == PLAY_PATTERN)
+			if (play->mode == PLAY_PATTERN)
 			{
 				break;
 			}

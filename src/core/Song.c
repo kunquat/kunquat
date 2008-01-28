@@ -126,15 +126,15 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 {
 	assert(song != NULL);
 	assert(play != NULL);
-	if (play->play == STOP)
+	if (play->mode == STOP)
 	{
 		return 0;
 	}
 	uint32_t mixed = 0;
-	while (mixed < nframes && play->play)
+	while (mixed < nframes && play->mode)
 	{
 		Pattern* pat = NULL;
-		if (play->play == PLAY_SONG)
+		if (play->mode == PLAY_SONG)
 		{
 			int16_t pat_index = Order_get(song->order,
 					play->subsong,
@@ -144,14 +144,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 				pat = Pat_table_get(song->pats, pat_index);
 			}
 		}
-		else if (play->play == PLAY_PATTERN && play->pattern >= 0)
+		else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
 		{
 			pat = Pat_table_get(song->pats, play->pattern);
 		}
 		if (pat == NULL)
 		{
 			// TODO: Stop or restart?
-			play->play = STOP;
+			play->mode = STOP;
 			break;
 		}
 		uint32_t proc_start = mixed;

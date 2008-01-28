@@ -78,7 +78,7 @@ Playdata* init_play(Song* song)
 			return NULL;
 		}
 	}
-	play->play = STOP;
+	play->mode = STOP;
 	play->freq = 0;
 	Reltime_init(&play->play_time);
 	play->tempo = 0;
@@ -541,7 +541,7 @@ START_TEST (mix)
 	// Note #2 starts at pattern 1, position 0:0 and plays until the end
 	// Both notes are located at column 0.
 	// Result should be as described in the code below.
-	play->play = PLAY_SONG;
+	play->mode = PLAY_SONG;
 	play->freq = 8;
 	play->tempo = 120;
 	Reltime_init(&play->pos);
