@@ -19,7 +19,11 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
-from options import opts
+opts = Options(['options.py'])
+opts.AddOptions(
+	BoolOption('debug', 'Build in debug mode.', True),
+	BoolOption('tests', 'Build and run tests.', True)
+)
 
 
 compile_flags = [
@@ -30,13 +34,15 @@ compile_flags = [
 '-O2',
 ]
 
-if opts['debug']:
-	compile_flags.append('-g')
+env = Environment(options = opts, CCFLAGS = compile_flags)
+
+Help(opts.GenerateHelpText(env))
+
+
+if env['debug']:
+	env.Append(CCFLAGS = ['-g'])
 else:
-	compile_flags.append('-DNDEBUG')
-
-
-env = Environment(CCFLAGS = compile_flags)
+	env.Append(CCFLAGS = ['-DNDEBUG'])
 
 
 if not env.GetOption('clean'):
@@ -90,7 +96,7 @@ if not env.GetOption('clean'):
 		print 'JACK not found.'
 		Exit(1)
 	
-	if opts['unit_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
+	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
 		print 'Building of unit tests requires Check.'
 		Exit(1)
 		
@@ -100,7 +106,7 @@ if not env.GetOption('clean'):
 #print 'Root: ' + env.Dump('LIBS')
 
 
-Export('env', 'opts')
+Export('env')
 
 SConscript('src/SConscript')
 

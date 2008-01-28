@@ -1,13 +1,9 @@
 
 
-opts = {
+# Build in debug mode.
+debug = True
 
-# Enable debugging
-'debug': True,
-
-# Build and run unit tests
-'unit_tests': True,
-
-}
+# Build and run tests.
+tests = True
 
 
