@@ -1,0 +1,33 @@
+
+
+	NOTE:
+
+Kunquat is in a very early development stage. Don't expect it to do anything
+useful.
+
+
+	Building instructions
+	---------------------
+
+Building of Kunquat depends on the following tools and libraries:
+
+  scons (http://www.scons.org/)
+  liblo (http://liblo.sourceforge.net/)
+  JACK (http://jackaudio.org/)
+
+Additionally, if you're building the test code, you'll need:
+
+  Check (http://check.sourceforge.net/)
+
+
+To get a list of build options, run:
+
+  scons -h
+
+The build options can be altered in the file "options.py".
+
+To build Kunquat, run:
+
+  scons
+
+
