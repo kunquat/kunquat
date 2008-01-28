@@ -19,10 +19,16 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+def valid_optimise(key, val, env):
+	if int(val) < 0 or int(val) > 3:
+		raise Exception, 'Invalid optimisation value %s (must be in range 0..3)' % val
+
+
 opts = Options(['options.py'])
 opts.AddOptions(
 	BoolOption('debug', 'Build in debug mode.', True),
-	BoolOption('tests', 'Build and run tests.', True)
+	BoolOption('tests', 'Build and run tests.', True),
+	('optimise', 'Optimisation level (0..3).', 0, valid_optimise)
 )
 
 
@@ -31,7 +37,6 @@ compile_flags = [
 '-Wall',
 '-Wextra',
 '-Werror',
-'-O2',
 ]
 
 env = Environment(options = opts, CCFLAGS = compile_flags)
@@ -43,6 +48,10 @@ if env['debug']:
 	env.Append(CCFLAGS = ['-g'])
 else:
 	env.Append(CCFLAGS = ['-DNDEBUG'])
+
+if env['optimise'] > 0 and env['optimise'] <= 3:
+	oflag = '-O%s' % env['optimise']
+	env.Append(CCFLAGS = [oflag])
 
 
 if not env.GetOption('clean'):
