@@ -222,6 +222,10 @@ int Real_cmp(Real* real1, Real* real2)
 		int64_t den1 = real1->fod.frac.denominator;
 		int64_t num2 = real2->fod.frac.numerator;
 		int64_t den2 = real2->fod.frac.denominator;
+		if (num1 == num2 && den1 == den2)
+		{
+			return 0;
+		}
 		int64_t term1 = 0;
 		int64_t term2 = 0;
 		if (safe_mul(num1, den2, &term1)

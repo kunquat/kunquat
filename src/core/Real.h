@@ -190,7 +190,8 @@ double Real_mul_float(Real* real, double d);
 /**
  * Compares two Real objects.
  * The comparison is subject to inaccuracies of floating point calculation in
- * the cases listed in the description of Real_div().
+ * the cases listed in the description of Real_div(). However, comparison for
+ * equal fractions always returns 0.
  *
  * \param real1   The first Real object -- must be a valid Real.
  * \param real2   The second Real object -- must be a valid Real.

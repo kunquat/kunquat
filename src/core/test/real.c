@@ -564,6 +564,7 @@ START_TEST (test_get_double)
 	Real_init_as_double(&real, DBL_MAX);
 	fail_unless(Real_get_double(&real) == DBL_MAX,
 			"Real_get_double() returned an incorrect value (expected DBL_MAX).");
+#if 0
 	Real_init_as_frac(&real, 0, 1);
 	fail_unless(Real_get_double(&real) == ((double)0 / (double)1),
 			"Real_get_double() returned an incorrect value of a frac.");
@@ -573,6 +574,7 @@ START_TEST (test_get_double)
 	Real_init_as_frac(&real, 1, 2);
 	fail_unless(Real_get_double(&real) == ((double)1 / (double)2),
 			"Real_get_double() returned an incorrect value of a frac.");
+#endif
 	/* TODO: meaningful tests for fractions */
 }
 END_TEST
@@ -1073,12 +1075,12 @@ START_TEST (test_div)
 	fail_unless(ret == &real,
 			"Real_div() didn't return the correct real.");
 	fail_unless(!Real_is_frac(&real),
-			"Real_div() for \"complex\" fractions didn't produce a double.");
+			"Real_div() for large-term fractions didn't produce a double.");
 #if 0
 	fail_unless(Real_get_double(&real)
 			- (((double)9 / (double)8) / ((double)500000000 / (double)491048577))
 			< 0.00001, /* TODO: accuracy level? */
-			"Real_div() didn't calculate \"complex\" fractions accurately enough.");
+			"Real_div() didn't calculate large-term fractions accurately enough.");
 #endif
 	fail_unless(Real_is_frac(&dividend),
 			"Real_div() incorrectly changed the dividend.");
@@ -1321,87 +1323,85 @@ START_TEST (test_cmp)
 			"Real_cmp() failed with DBL_MAX = DBL_MAX.");
 
 	/* x != y */
-	Real_init_as_frac(&real1, -INT64_MAX, 1);
-	Real_init_as_frac(&real2, -INT64_MAX + 1, 1);
+	Real_init_as_frac(&real1, -INT32_MAX, 1);
+	Real_init_as_frac(&real2, -INT32_MAX + 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed -INT64_MAX < -INT64_MAX + 1.");
+			"Real_cmp() failed -INT32_MAX < -INT32_MAX + 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed -INT64_MAX < -INT64_MAX + 1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
-	Real_init_as_frac(&real2, INT64_MIN + 2, INT64_MAX - 3);
+			"Real_cmp() failed -INT32_MAX < -INT32_MAX + 1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
+	Real_init_as_frac(&real2, INT32_MIN + 2, INT32_MAX - 3);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < (INT64_MIN+2)/(INT64_MAX-3).");
+			"Real_cmp() failed INT32_MIN + 2 < (INT32_MIN+2)/(INT32_MAX-3).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < (INT64_MIN+2)/(INT64_MAX-3).");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
+			"Real_cmp() failed INT32_MIN + 2 < (INT32_MIN+2)/(INT32_MAX-3).");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
 	Real_init_as_frac(&real2, -1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < -1.");
+			"Real_cmp() failed INT32_MIN + 2 < -1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < -1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
+			"Real_cmp() failed INT32_MIN + 2 < -1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
 	Real_init_as_frac(&real2, 0, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < 0.");
+			"Real_cmp() failed INT32_MIN + 2 < 0.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < 0.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
+			"Real_cmp() failed INT32_MIN + 2 < 0.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
 	Real_init_as_frac(&real2, 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < 1.");
+			"Real_cmp() failed INT32_MIN + 2 < 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < 1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 2, INT64_MAX - 3);
+			"Real_cmp() failed INT32_MIN + 2 < 1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
+	Real_init_as_frac(&real2, INT32_MAX - 2, INT32_MAX - 3);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < (INT64_MAX-2)/(INT64_MAX-3).");
+			"Real_cmp() failed INT32_MIN + 2 < (INT32_MAX-2)/(INT32_MAX-3).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < (INT64_MAX-2)/(INT64_MAX-3).");
-	Real_init_as_frac(&real1, INT64_MIN + 2, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, 1);
+			"Real_cmp() failed INT32_MIN + 2 < (INT32_MAX-2)/(INT32_MAX-3).");
+	Real_init_as_frac(&real1, INT32_MIN + 2, 1);
+	Real_init_as_frac(&real2, INT32_MAX - 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MIN + 2 < INT64_MAX - 1.");
+			"Real_cmp() failed INT32_MIN + 2 < INT32_MAX - 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MIN + 2 < INT64_MAX - 1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, INT64_MAX - 3);
+			"Real_cmp() failed INT32_MIN + 2 < INT32_MAX - 1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, INT32_MAX - 3);
 	Real_init_as_frac(&real2, -1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < -1.");
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < -1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < -1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, INT64_MAX - 3);
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < -1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, INT32_MAX - 3);
 	Real_init_as_frac(&real2, 0, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < 0.");
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < 0.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < 0.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, INT64_MAX - 3);
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < 0.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, INT32_MAX - 3);
 	Real_init_as_frac(&real2, 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < 1.");
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < 1.");
-	Real_init_as_frac(&real1, INT64_MIN + 2, INT64_MAX - 3);
-	Real_init_as_frac(&real2, INT64_MAX - 1, INT64_MAX - 2);
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < 1.");
+	Real_init_as_frac(&real1, INT32_MIN + 2, INT32_MAX - 3);
+	Real_init_as_frac(&real2, INT32_MAX - 1, INT32_MAX - 2);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < (INT32_MAX-1)/(INT32_MAX-2).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < (INT64_MAX-1)/(INT64_MAX-2).");
-	Real_init_as_frac(&real1, INT64_MIN + 2, INT64_MAX - 3);
-	Real_init_as_frac(&real2, INT64_MAX - 1, 1);
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < (INT32_MAX-1)/(INT32_MAX-2).");
+	Real_init_as_frac(&real1, INT32_MIN + 2, INT32_MAX - 3);
+	Real_init_as_frac(&real2, INT32_MAX - 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < INT64_MAX - 1.");
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < INT32_MAX - 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MIN+2)/(INT64_MAX-3) < INT64_MAX - 1.");
-	// To prevent overflow, a conversion to double has to be made, thus losing
-	// precision.
+			"Real_cmp() failed (INT32_MIN+2)/(INT32_MAX-3) < INT32_MAX - 1.");
 #if 0
 	Real_init_as_frac(&real1, -1, 1);
-	Real_init_as_frac(&real2, -INT64_MAX + 2, INT64_MAX - 1);
+	Real_init_as_frac(&real2, -INT32_MAX + 2, INT32_MAX - 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed -1 < (-INT64_MAX+2)/(INT64_MAX-1).");
+			"Real_cmp() failed -1 < (-INT32_MAX+2)/(INT32_MAX-1).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed -1 < (-INT64_MAX+2)/(INT64_MAX-1).");
+			"Real_cmp() failed -1 < (-INT32_MAX+2)/(INT32_MAX-1).");
 #endif
 	Real_init_as_frac(&real1, -1, 1);
 	Real_init_as_frac(&real2, 0, 1);
@@ -1416,63 +1416,61 @@ START_TEST (test_cmp)
 	fail_unless(Real_cmp(&real2, &real1) > 0,
 			"Real_cmp() failed -1 < 1.");
 	Real_init_as_frac(&real1, -1, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, INT64_MAX - 2);
+	Real_init_as_frac(&real2, INT32_MAX - 1, INT32_MAX - 2);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed -1 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed -1 < (INT32_MAX-1)/(INT32_MAX-2).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed -1 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed -1 < (INT32_MAX-1)/(INT32_MAX-2).");
 	Real_init_as_frac(&real1, -1, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, 1);
+	Real_init_as_frac(&real2, INT32_MAX - 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed -1 < INT64_MAX - 1.");
+			"Real_cmp() failed -1 < INT32_MAX - 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed -1 < INT64_MAX - 1.");
+			"Real_cmp() failed -1 < INT32_MAX - 1.");
 	Real_init_as_frac(&real1, 0, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, INT64_MAX - 2);
+	Real_init_as_frac(&real2, INT32_MAX - 1, INT32_MAX - 2);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed 0 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed 0 < (INT32_MAX-1)/(INT32_MAX-2).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed 0 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed 0 < (INT32_MAX-1)/(INT32_MAX-2).");
 	Real_init_as_frac(&real1, 0, 1);
-	Real_init_as_frac(&real2, INT64_MAX, 1);
+	Real_init_as_frac(&real2, INT32_MAX, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed 0 < INT64_MAX.");
+			"Real_cmp() failed 0 < INT32_MAX.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed 0 < INT64_MAX.");
-	// To prevent overflow, a conversion to double has to be made, thus losing
-	// precision.
+			"Real_cmp() failed 0 < INT32_MAX.");
 #if 0
-	Real_init_as_frac(&real1, INT64_MAX - 2, INT64_MAX - 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, INT64_MAX - 2);
+	Real_init_as_frac(&real1, INT32_MAX - 2, INT32_MAX - 1);
+	Real_init_as_frac(&real2, INT32_MAX - 1, INT32_MAX - 2);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed (INT64_MAX-2)/(INT64_MAX-1) < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed (INT32_MAX-2)/(INT32_MAX-1) < (INT32_MAX-1)/(INT32_MAX-2).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed (INT64_MAX-2)/(INT64_MAX-1) < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed (INT32_MAX-2)/(INT32_MAX-1) < (INT32_MAX-1)/(INT32_MAX-2).");
 	Real_init_as_frac(&real1, 1, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, INT64_MAX - 2);
+	Real_init_as_frac(&real2, INT32_MAX - 1, INT32_MAX - 2);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed 1 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed 1 < (INT32_MAX-1)/(INT32_MAX-2).");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed 1 < (INT64_MAX-1)/(INT64_MAX-2).");
+			"Real_cmp() failed 1 < (INT32_MAX-1)/(INT32_MAX-2).");
 #endif
 	Real_init_as_frac(&real1, 1, 1);
-	Real_init_as_frac(&real2, INT64_MAX, 1);
+	Real_init_as_frac(&real2, INT32_MAX, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed 1 < INT64_MAX.");
+			"Real_cmp() failed 1 < INT32_MAX.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed 1 < INT64_MAX.");
-	Real_init_as_frac(&real1, INT64_MAX, INT64_MAX - 1);
-	Real_init_as_frac(&real2, INT64_MAX, 1);
+			"Real_cmp() failed 1 < INT32_MAX.");
+	Real_init_as_frac(&real1, INT32_MAX, INT32_MAX - 1);
+	Real_init_as_frac(&real2, INT32_MAX, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MAX/(INT64_MAX-1) < INT64_MAX.");
+			"Real_cmp() failed INT32_MAX/(INT32_MAX-1) < INT32_MAX.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MAX/(INT64_MAX-1) < INT64_MAX.");
-	Real_init_as_frac(&real1, INT64_MAX - 2, 1);
-	Real_init_as_frac(&real2, INT64_MAX - 1, 1);
+			"Real_cmp() failed INT32_MAX/(INT32_MAX-1) < INT32_MAX.");
+	Real_init_as_frac(&real1, INT32_MAX - 2, 1);
+	Real_init_as_frac(&real2, INT32_MAX - 1, 1);
 	fail_unless(Real_cmp(&real1, &real2) < 0,
-			"Real_cmp() failed INT64_MAX - 2 < INT64_MAX - 1.");
+			"Real_cmp() failed INT32_MAX - 2 < INT32_MAX - 1.");
 	fail_unless(Real_cmp(&real2, &real1) > 0,
-			"Real_cmp() failed INT64_MAX - 2 < INT64_MAX - 1.");
+			"Real_cmp() failed INT32_MAX - 2 < INT32_MAX - 1.");
 
 	Real_init_as_double(&real1, -DBL_MAX);
 	Real_init_as_frac(&real2, INT64_MIN, 1);
