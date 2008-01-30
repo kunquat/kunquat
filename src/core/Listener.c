@@ -109,15 +109,24 @@ Listener* Listener_init(Listener* l)
 {
 	assert(l != NULL);
 	l->done = false;
+
+	l->playlist = new_Playlist();
+	if (l->playlist == NULL)
+	{
+		return NULL;
+	}
+
 	l->s = lo_server_new("7770", Listener_error);
 	if (l->s == NULL)
 	{
+		del_Playlist(l->playlist);
 		return NULL;
 	}
 	l->lo_fd = lo_server_get_socket_fd(l->s);
 	if (l->lo_fd < 0)
 	{
 		lo_server_free(l->s);
+		del_Playlist(l->playlist);
 		return NULL;
 	}
 	l->host = NULL;
@@ -126,11 +135,14 @@ Listener* Listener_init(Listener* l)
 	l->host_path = NULL;
 
 	l->voices = NULL;
-	l->player = NULL;
+	l->freq = 0;
 
 	lo_server_add_method(l->s, "/kunquat/quit", "", Listener_quit, l);
 	lo_server_add_method(l->s, "/kunquat/register_host", "s", Listener_register_host, l);
 	lo_server_add_method(l->s, "/kunquat/version", "", Listener_version, l);
+
+	lo_server_add_method(l->s, "/kunquat/get_drivers", "", Listener_get_drivers, l);
+	lo_server_add_method(l->s, "/kunquat/driver_init", "i", Listener_driver_init, l);
 
 	lo_server_add_method(l->s, "/kunquat/set_voices", "i", Listener_set_voices, l);
 
@@ -163,6 +175,7 @@ void Listener_uninit(Listener* l)
 	{
 		del_Voice_pool(l->voices);
 	}
+	del_Playlist(l->playlist);
 	return;
 }
 
@@ -188,7 +201,7 @@ int Listener_register_host(const char* path,
 	if (argc < 1)
 	{
 		fprintf(stderr, "Too few arguments to register_host (expected host URL)\n");
-		return 1;
+		return 0;
 	}
 	Listener* l = user_data;
 	if (l->host != NULL)
@@ -215,7 +228,7 @@ int Listener_register_host(const char* path,
 	if (l->host == NULL)
 	{
 		fprintf(stderr, "Failed to create an address object\n");
-		return 1;
+		return 0;
 	}
 	char* full_path = NULL;
 	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
@@ -224,7 +237,7 @@ int Listener_register_host(const char* path,
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the confirmation message\n");
-		return 1;
+		return 0;
 	}
 	return 0;
 }
@@ -260,7 +273,7 @@ int Listener_version(const char* path,
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send version information\n");
-		return 1;
+		return 0;
 	}
 	return 0;
 }
@@ -316,7 +329,7 @@ int Listener_fallback(const char* path,
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");
-		return 1;
+		return 0;
 	}
 	return 0;
 }
@@ -350,7 +363,7 @@ int Listener_set_voices(const char* path,
 				"Invalid number of Voices requested:",
 				voices);
 		xfree(full_path);
-		return 1;
+		return 0;
 	}
 	l->voices = new_Voice_pool(voices, 32);
 	if (l->voices == NULL)
@@ -362,7 +375,7 @@ int Listener_set_voices(const char* path,
 				"s",
 				"Couldn't allocate memory for Voices");
 		xfree(full_path);
-		return 1;
+		return 0;
 	}
 	char* full_path = NULL;
 	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
@@ -375,7 +388,7 @@ int Listener_set_voices(const char* path,
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");
-		return 1;
+		return 0;
 	}
 	return 0;
 }

@@ -28,7 +28,8 @@ opts = Options(['options.py'])
 opts.AddOptions(
 	BoolOption('debug', 'Build in debug mode.', True),
 	BoolOption('tests', 'Build and run tests.', True),
-	('optimise', 'Optimisation level (0..3).', 0, valid_optimise)
+	('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
+	BoolOption('enable_jack', 'Enable JACK driver.', True)
 )
 
 
@@ -52,6 +53,9 @@ else:
 if env['optimise'] > 0 and env['optimise'] <= 3:
 	oflag = '-O%s' % env['optimise']
 	env.Append(CCFLAGS = [oflag])
+
+
+audio_found = False
 
 
 if not env.GetOption('clean'):
@@ -101,9 +105,9 @@ if not env.GetOption('clean'):
 	if not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
 		print 'liblo not found.'
 
-	if not conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
-		print 'JACK not found.'
-		Exit(1)
+	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
+		audio_found = True
+		conf.env.Append(CCFLAGS = '-DENABLE_JACK')
 	
 	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
 		print 'Building of unit tests requires Check.'

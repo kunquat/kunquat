@@ -31,26 +31,28 @@ if env['tests']:
 env.Append(CPPPATH = ['#/src/core'])
 
 files = [
-'Real.c',
-'Note_table.c',
-'Reltime.c',
-'Event.c',
-'Event_queue.c',
-'Voice_state.c',
-'Instrument.c',
-'Instrument_debug.c',
-'Etable.c',
-'Ins_table.c',
-'Voice.c',
-'Voice_pool.c',
-'Column.c',
-'Channel.c',
-'Order.c',
-'Pat_table.c',
-'Pattern.c',
-'Song.c',
-'Playdata.c',
-'Player.c',
+	'Real.c',
+	'Note_table.c',
+	'Reltime.c',
+	'Event.c',
+	'Event_queue.c',
+	'Voice_state.c',
+	'Instrument.c',
+	'Instrument_debug.c',
+	'Etable.c',
+	'Ins_table.c',
+	'Voice.c',
+	'Voice_pool.c',
+	'Column.c',
+	'Channel.c',
+	'Order.c',
+	'Pat_table.c',
+	'Pattern.c',
+	'Song.c',
+	'Playdata.c',
+	'Player.c',
+	'Playlist.c',
+	'Driver_jack.c',
 ]
 
 env.StaticLibrary('core', files)
@@ -58,6 +60,11 @@ env.StaticLibrary('core', files)
 env.Append(LIBPATH = ['#/src/core'])
 env.Append(LIBS = ['core'])
 
-env.Program('kunquat', ['Listener.c'])
+lfiles = [
+	'Listener.c',
+	'Listener_driver.c'
+]
+
+env.Program('kunquat', lfiles)
 
 

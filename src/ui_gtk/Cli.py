@@ -47,7 +47,13 @@ class Cli(gtk.VBox):
 		if text == '':
 			return
 		self.update_history(text)
-		liblo.send(self.engine, '/kunquat/' + text)
+		args = text.split()
+		msg = liblo.Message('/kunquat/' + args[0])
+		for arg in args[1:]:
+			if arg.isdigit():
+				arg = int(arg)
+			msg.add(arg)
+		liblo.send(self.engine, msg)
 		entry.set_text('')
 
 	def notify(self, path, args):

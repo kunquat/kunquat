@@ -25,9 +25,11 @@
 
 
 #include <Voice_pool.h>
-#include <Player.h>
+#include <Playlist.h>
 
 #include "lo/lo.h"
+
+#include <xmemory.h>
 
 
 #define MAX_VOICES (1024)
@@ -61,7 +63,9 @@ typedef struct Listener
 	/// The Voice pool used for mixing.
 	Voice_pool* voices;
 	/// Playback state information.
-	Player* player;
+	Playlist* playlist;
+	/// Mixing frequency.
+	uint32_t freq;
 } Listener;
 
 
@@ -80,8 +84,10 @@ typedef struct Listener
 
 /**
  * Registers a host application that uses Kunquat.
+ *
+ * The following OSC parameters are expected:
  * 
- * \param s   The OSC URL of the host application with base path.
+ * \li \c s   The OSC URL of the host application with base path.
  *
  * The Listener sends a confirmation message to the host on success.
  */
@@ -129,10 +135,46 @@ int Listener_fallback(const char* path,
 /**
  * Set the number of Voices.
  *
- * \param i   The number of Voices. This should be > \c 0 and
+ * The following OSC parameters are expected:
+ *
+ * \li \c i   The number of Voices. This should be > \c 0 and
  *            <= \c MAX_VOICES.
  */
 int Listener_set_voices(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Gets a list of available audio drivers.
+ *
+ * A response message contains driver names as separate strings. The drivers
+ * can be referred to as 0-based indexes based on the order they appear on the
+ * list.
+ */
+int Listener_get_drivers(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Initialises a sound driver.
+ *
+ * The following OSC parameters are expected:
+ *
+ * \li \c i   The 0-based index of the driver in the list of drivers returned
+ *            by get_drivers.
+ *
+ * If initialisation succeeded, the response message contains the mixing
+ * frequency. Otherwise, an error message will be sent.
+ */
+int Listener_driver_init(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,

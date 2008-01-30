@@ -35,6 +35,7 @@ typedef struct Player
 {
 	Song* song;
 	Playdata* play;
+	struct Player* next;
 } Player;
 
 
