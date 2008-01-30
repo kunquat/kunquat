@@ -178,7 +178,12 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	{
 		return 0;
 	}
-	Player* player = (Player*)arg;
+	Playlist* playlist = (Playlist*)arg;
+	Player* player = playlist->first;
+	if (player == NULL)
+	{
+		return 0;
+	}
 	if (!player->play->mode)
 	{
 		return 0;
