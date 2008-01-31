@@ -44,29 +44,31 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 		return NULL;
 	}
 	song->buf_count = buf_count;
-//	song->bufs = NULL;
+	song->bufs = NULL;
+	song->priv_bufs[0] = NULL;
 	song->order = NULL;
 	song->pats = NULL;
 	song->insts = NULL;
 	song->notes = NULL;
-/*	song->bufs = xalloc(frame_t*);
+	song->bufs = xnalloc(frame_t*, BUF_COUNT_MAX);
 	if (song->bufs == NULL)
 	{
 		del_Song(song);
 		return NULL;
-	} */
+	}
 	for (int i = 0; i < buf_count; ++i)
 	{
-		song->bufs[i] = xnalloc(frame_t, buf_size);
-		if (song->bufs[i] == NULL)
+		song->priv_bufs[i] = xnalloc(frame_t, buf_size);
+		if (song->priv_bufs[i] == NULL)
 		{
 			del_Song(song);
 			return NULL;
 		}
 		for (uint32_t k = 0; k < buf_size; ++k)
 		{
-			song->bufs[i][k] = 0;
+			song->priv_bufs[i][k] = 0;
 		}
+		song->bufs[i] = song->priv_bufs[i];
 	}
 	song->order = new_Order();
 	if (song->order == NULL)
@@ -302,13 +304,13 @@ Event_queue* Song_get_events(Song* song)
 void del_Song(Song* song)
 {
 	assert(song != NULL);
+	for (int i = 0; i < song->buf_count && song->priv_bufs[i] != NULL; ++i)
+	{
+		xfree(song->priv_bufs[i]);
+	}
 	if (song->bufs != NULL)
 	{
-		for (int i = 0; i < song->buf_count && song->bufs[i] != NULL; ++i)
-		{
-			xfree(song->bufs[i]);
-		}
-//		xfree(song->bufs);
+		xfree(song->bufs);
 	}
 	if (song->order != NULL)
 	{

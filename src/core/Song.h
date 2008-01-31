@@ -44,7 +44,9 @@ typedef struct Song
 	/// Number of buffers (channels) used for mixing.
 	int buf_count;
 	/// Buffers.
-	frame_t* bufs[BUF_COUNT_MAX];
+	frame_t** bufs;
+	/// Private buffers.
+	frame_t* priv_bufs[BUF_COUNT_MAX];
 	/// The Order lists.
 	Order* order;
 	/// The Patterns.

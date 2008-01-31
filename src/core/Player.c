@@ -57,7 +57,7 @@ uint32_t Player_mix(Player* player, uint32_t nframes)
 	{
 		return 0;
 	}
-	int buf_count = Song_get_buf_count(player->song);
+/*	int buf_count = Song_get_buf_count(player->song);
 	frame_t** bufs = Song_get_bufs(player->song);
 	for (int i = 0; i < buf_count; ++i)
 	{
@@ -66,7 +66,7 @@ uint32_t Player_mix(Player* player, uint32_t nframes)
 		{
 			bufs[i][k] = 0;
 		}
-	}
+	} */
 	return Song_mix(player->song, nframes, player->play);
 }
 

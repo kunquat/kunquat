@@ -180,31 +180,29 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	}
 	Playlist* playlist = (Playlist*)arg;
 	Player* player = playlist->first;
-	if (player == NULL)
+	jack_default_audio_sample_t* jbuf_l = jack_port_get_buffer(ports[0], nframes);
+	jack_default_audio_sample_t* jbuf_r = jack_port_get_buffer(ports[1], nframes);
+	while (player != NULL)
 	{
-		return 0;
-	}
-	if (!player->play->mode)
-	{
-		return 0;
-	}
-	assert(player->play->mode > STOP);
-	assert(player->play->mode < PLAY_LAST);
-	uint32_t mixed = Player_mix(player, nframes);
-	jack_default_audio_sample_t* out_l = jack_port_get_buffer(ports[0], nframes);
-	jack_default_audio_sample_t* out_r = jack_port_get_buffer(ports[1], nframes);
-	int buf_count = Song_get_buf_count(player->song);
-	frame_t** bufs = Song_get_bufs(player->song);
-	frame_t* buf_l = bufs[0];
-	frame_t* buf_r = bufs[0];
-	if (buf_count > 1)
-	{
-		buf_r = bufs[1];
-	}
-	for (uint32_t i = 0; i < mixed; ++i)
-	{
-		*out_l++ = *buf_l++;
-		*out_r++ = *buf_r++;
+		if (!player->play->mode)
+		{
+			continue;
+		}
+		assert(player->play->mode > STOP);
+		assert(player->play->mode < PLAY_LAST);
+		int buf_count = Song_get_buf_count(player->song);
+		frame_t** bufs = Song_get_bufs(player->song);
+		bufs[0] = jbuf_l;
+		bufs[1] = jbuf_r;
+		uint32_t mixed = Player_mix(player, nframes);
+		if (buf_count == 1)
+		{
+			for (uint32_t i = 0; i < mixed; ++i)
+			{
+				jbuf_r[i] = jbuf_l[i];
+			}
+		}
+		player = player->next;
 	}
 	return 0;
 }
