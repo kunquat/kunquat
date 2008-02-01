@@ -30,6 +30,8 @@ import sys
 
 import Cli
 
+import Driver_select
+
 
 gobject.threads_init()
 
@@ -50,11 +52,16 @@ class Kunquat_gtk():
 		self.s = None
 		self.engine = None
 		self.cli = None
+		self.drivers = None
+		self.box = None
 		self.window = None
 		gtk.main_quit()
 
 	def __init__(self, engine_url):
 		self.connect(engine_url)
+
+		self.drivers = Driver_select.Driver_select(self.engine)
+		self.s.add_method('/kunquat_gtk/drivers', None, self.drivers.set_drivers)
 
 		self.cli = Cli.Cli(self.engine)
 		self.s.add_method('/kunquat_gtk/notify', None, self.cli.notify)
@@ -65,14 +72,22 @@ class Kunquat_gtk():
 		self.window.connect('delete_event', self.quit)
 		self.window.connect('destroy', self.destroy)
 
-		self.window.add(self.cli)
+		self.box = gtk.HBox()
+		self.box.pack_start(self.cli)
 		self.cli.show()
+		self.box.pack_end(self.drivers)
+		self.drivers.show()
+
+		self.window.add(self.box)
+		self.box.show()
 
 		self.window.show()
 
 		liblo.send(self.engine,
 				'/kunquat/register_host',
 				'osc.udp://localhost:' + str(self.s.get_port()) + '/kunquat_gtk/')
+
+		liblo.send(self.engine, '/kunquat/get_drivers')
 
 	def main(self):
 		gtk.main()
