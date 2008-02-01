@@ -31,7 +31,7 @@
 
 
 /**
- * Initialise a JACK driver.
+ * Initialises a JACK driver.
  *
  * \param playlist   The Playlist -- must not be \c NULL.
  * \param freq       A location where the mixing frequency is stored -- must
@@ -40,6 +40,12 @@
  * \return   \c true if initialisation succeeded, otherwise \c false.
  */
 bool Driver_jack_init(Playlist* playlist, uint32_t* freq);
+
+
+/**
+ * Uninitialises a JACK driver.
+ */
+void Driver_jack_close(void);
 
 
 #endif // K_PROCESS_JACK_H

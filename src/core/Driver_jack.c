@@ -191,6 +191,19 @@ bool Driver_jack_init(Playlist* playlist, uint32_t* freq)
 }
 
 
+void Driver_jack_close(void)
+{
+	if (handle != NULL)
+	{
+		jack_client_close(handle);
+		handle = NULL;
+	}
+	ports[0] = ports[1] = NULL;
+	active = false;
+	return;
+}
+
+
 static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 {
 	assert(arg != NULL);

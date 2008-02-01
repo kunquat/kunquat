@@ -134,6 +134,8 @@ Listener* Listener_init(Listener* l)
 	l->host_port = NULL;
 	l->host_path = NULL;
 
+	l->driver_id = -1;
+
 	l->voices = NULL;
 	l->freq = 0;
 
@@ -143,6 +145,7 @@ Listener* Listener_init(Listener* l)
 
 	lo_server_add_method(l->s, "/kunquat/get_drivers", "", Listener_get_drivers, l);
 	lo_server_add_method(l->s, "/kunquat/driver_init", "i", Listener_driver_init, l);
+	lo_server_add_method(l->s, "/kunquat/driver_close", "", Listener_driver_close, l);
 
 	lo_server_add_method(l->s, "/kunquat/set_voices", "i", Listener_set_voices, l);
 
@@ -154,6 +157,7 @@ Listener* Listener_init(Listener* l)
 void Listener_uninit(Listener* l)
 {
 	assert(l != NULL);
+	// TODO: Close sound driver if needed
 	lo_server_free(l->s);
 	if (l->host != NULL)
 	{

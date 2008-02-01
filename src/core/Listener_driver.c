@@ -38,14 +38,15 @@ typedef struct Driver_info
 {
 	char* name;
 	bool (*init)(Playlist* playlist, uint32_t* freq);
+	void (*close)(void);
 } Driver_info;
 
 static Driver_info drivers[] =
 {
 #ifdef ENABLE_JACK
-	{ "JACK", Driver_jack_init },
+	{ "JACK", Driver_jack_init, Driver_jack_close },
 #endif
-	{ NULL, NULL }
+	{ NULL, NULL, NULL }
 };
 
 
@@ -100,6 +101,10 @@ int Listener_driver_init(const char* path,
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* l = user_data;
+	if (l->host == NULL || l->host_path == NULL)
+	{
+		return 0;
+	}
 	int32_t driver_id = argv[0]->i;
 	if (driver_id < 0 ||
 			driver_id >= (int32_t)(sizeof(drivers) / sizeof(Driver_info)) - 1)
@@ -128,9 +133,54 @@ int Listener_driver_init(const char* path,
 		xfree(full_path);
 		return 0;
 	}
+	l->driver_id = driver_id;
 	char* full_path = NULL;
 	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
 	int ret = lo_send(l->host, full_path, "i", (int32_t)l->freq);
+	xfree(full_path);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Failed to send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_driver_close(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	if (l->host == NULL || l->host_path == NULL)
+	{
+		return 0;
+	}
+	if (l->driver_id < 0)
+	{
+		char* full_path = NULL;
+		METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
+		lo_send(l->host, full_path, "s", "No active sound drivers");
+		xfree(full_path);
+		return 0;
+	}
+	assert(l->driver_id < (int32_t)(sizeof(drivers) / sizeof(Driver_info)) - 1);
+	drivers[l->driver_id].close();
+	int driver_id = l->driver_id;
+	l->driver_id = -1;
+	char* full_path = NULL;
+	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
+	int ret = lo_send(l->host, full_path, "si",
+			"Closed driver", (int32_t)driver_id);
 	xfree(full_path);
 	if (ret == -1)
 	{
