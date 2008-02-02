@@ -34,6 +34,19 @@ class Driver_select(gtk.HBox):
 		for arg in ['No sound'] + args:
 			iter = self.driver_list.append()
 			self.driver_list.set(iter, 0, arg)
+		selection = self.driver_view.get_selection()
+		selection.select_path(0)
+		self.cur_driver = -1
+
+	def set_driver(self, widget, data = None):
+		_, cur = widget.get_selected_rows()
+		cur = cur[0][0] - 1
+		if self.cur_driver >= 0:
+			liblo.send(self.engine, '/kunquat/driver_close')
+		self.cur_driver = -1
+		if cur >= 0:
+			liblo.send(self.engine, '/kunquat/driver_init', cur)
+		self.cur_driver = cur
 
 	def __init__(self, engine):
 		self.engine = engine
@@ -42,9 +55,12 @@ class Driver_select(gtk.HBox):
 
 		self.driver_list = gtk.ListStore(gobject.TYPE_STRING)
 		self.driver_view = gtk.TreeView(self.driver_list)
+		selection = self.driver_view.get_selection()
+		selection.connect('changed', self.set_driver)
 		
 		iter = self.driver_list.append()
 		self.driver_list.set(iter, 0, 'No sound')
+		self.cur_driver = -1
 
 		cell = gtk.CellRendererText()
 		column = gtk.TreeViewColumn('Drivers', cell, text = 0)

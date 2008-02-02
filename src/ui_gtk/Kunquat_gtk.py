@@ -44,10 +44,10 @@ class Kunquat_gtk():
 		self.s = liblo.ServerThread(reg_methods = False)
 		self.s.start()
 
-	def quit(self, widget, event, data=None):
+	def quit(self, widget, event, data = None):
 		return False
 
-	def destroy(self, widget, data=None):
+	def destroy(self, widget, data = None):
 		self.s.stop()
 		self.s = None
 		self.engine = None
