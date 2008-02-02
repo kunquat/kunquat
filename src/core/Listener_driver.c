@@ -125,18 +125,21 @@ int Listener_driver_init(const char* path,
 	if (!drivers[driver_id].init(l->playlist, &l->freq))
 	{
 		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "error");
+		METHOD_PATH_ALLOC(full_path, l->host_path, "driver_init");
 		lo_send(l->host,
 				full_path,
-				"s",
+				"ss",
+				"Error:",
 				"Couldn't initialise the sound driver");
 		xfree(full_path);
 		return 0;
 	}
 	l->driver_id = driver_id;
 	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
-	int ret = lo_send(l->host, full_path, "i", (int32_t)l->freq);
+	METHOD_PATH_ALLOC(full_path, l->host_path, "driver_init");
+	int ret = lo_send(l->host, full_path, "ii",
+			(int32_t)l->driver_id,
+			(int32_t)l->freq);
 	xfree(full_path);
 	if (ret == -1)
 	{

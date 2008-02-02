@@ -60,12 +60,9 @@ class Kunquat_gtk():
 	def __init__(self, engine_url):
 		self.connect(engine_url)
 
-		self.drivers = Driver_select.Driver_select(self.engine)
-		self.s.add_method('/kunquat_gtk/drivers', None, self.drivers.set_drivers)
+		self.drivers = Driver_select.Driver_select(self.engine, self.s)
 
-		self.cli = Cli.Cli(self.engine)
-		self.s.add_method('/kunquat_gtk/notify', None, self.cli.notify)
-		self.s.add_method(None, None, self.cli.fallback)
+		self.cli = Cli.Cli(self.engine, self.s)
 		
 		self.window = gtk.Window()
 		self.window.set_title('Kunquat')

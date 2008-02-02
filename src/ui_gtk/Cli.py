@@ -68,8 +68,12 @@ class Cli(gtk.VBox):
 			out = out + ' ' + str(t) + ':' + str(a)
 		gobject.idle_add(self.update_history, out)
 
-	def __init__(self, engine):
+	def __init__(self, engine, server):
 		self.engine = engine
+		self.server = server
+		
+		self.server.add_method('/kunquat_gtk/notify', None, self.notify)
+		self.server.add_method(None, None, self.fallback)
 
 		gtk.VBox.__init__(self)
 

@@ -38,6 +38,15 @@ class Driver_select(gtk.HBox):
 		selection.select_path(0)
 		self.cur_driver = -1
 
+	def driver_init(self, path, args, types):
+		if types[0] == 's' and args[0] == 'Error:':
+			self.cur_driver = -1
+			selection = self.driver_view.get_selection()
+			selection.select_path(0)
+			return
+		self.cur_driver = args[0]
+		self.hz.set_text(str(args[1]))
+
 	def set_driver(self, widget, data = None):
 		_, cur = widget.get_selected_rows()
 		cur = cur[0][0] - 1
@@ -48,8 +57,12 @@ class Driver_select(gtk.HBox):
 			liblo.send(self.engine, '/kunquat/driver_init', cur)
 		self.cur_driver = cur
 
-	def __init__(self, engine):
+	def __init__(self, engine, server):
 		self.engine = engine
+		self.server = server
+		
+		self.server.add_method('/kunquat_gtk/drivers', None, self.set_drivers)
+		self.server.add_method('/kunquat_gtk/driver_init', None, self.driver_init)
 
 		gtk.HBox.__init__(self)
 
@@ -73,5 +86,9 @@ class Driver_select(gtk.HBox):
 
 		self.pack_start(driver_scroll)
 		driver_scroll.show()
+
+		self.hz = gtk.Label('0')
+		self.pack_end(self.hz)
+		self.hz.show()
 
 
