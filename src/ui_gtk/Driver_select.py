@@ -53,6 +53,7 @@ class Driver_select(gtk.HBox):
 		if self.cur_driver >= 0:
 			liblo.send(self.engine, '/kunquat/driver_close')
 		self.cur_driver = -1
+		self.hz.set_text('0')
 		if cur >= 0:
 			liblo.send(self.engine, '/kunquat/driver_init', cur)
 		self.cur_driver = cur

@@ -28,9 +28,9 @@ import liblo
 
 import sys
 
-import Cli
-
 import Driver_select
+import Songs
+import Cli
 
 
 gobject.threads_init()
@@ -52,6 +52,7 @@ class Kunquat_gtk():
 		self.s = None
 		self.engine = None
 		self.cli = None
+		self.songs = None
 		self.drivers = None
 		self.box = None
 		self.window = None
@@ -62,6 +63,8 @@ class Kunquat_gtk():
 
 		self.drivers = Driver_select.Driver_select(self.engine, self.s)
 
+		self.songs = Songs.Songs(self.engine, self.s)
+
 		self.cli = Cli.Cli(self.engine, self.s)
 		
 		self.window = gtk.Window()
@@ -70,6 +73,8 @@ class Kunquat_gtk():
 		self.window.connect('destroy', self.destroy)
 
 		self.box = gtk.HBox()
+		self.box.pack_start(self.songs)
+		self.songs.show()
 		self.box.pack_start(self.cli)
 		self.cli.show()
 		self.box.pack_end(self.drivers)
