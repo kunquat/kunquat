@@ -45,8 +45,35 @@ void Playlist_ins(Playlist* playlist, Player* player)
 	assert(playlist != NULL);
 	assert(player != NULL);
 	assert(player->next == NULL);
+	assert(player->prev == NULL);
 	player->next = playlist->first;
+	playlist->first->prev = player;
+	player->prev = NULL;
 	playlist->first = player;
+	return;
+}
+
+
+void Playlist_remove(Playlist* playlist, Player* player)
+{
+	assert(playlist != NULL);
+	assert(player != NULL);
+	Player* next = player->next;
+	Player* prev = player->prev;
+	if (next != NULL)
+	{
+		next->prev = prev;
+	}
+	if (prev != NULL)
+	{
+		prev->next = next;
+	}
+	if (player == playlist->first)
+	{
+		assert(prev == NULL);
+		playlist->first = next;
+	}
+	del_Player(player);
 	return;
 }
 

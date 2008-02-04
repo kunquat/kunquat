@@ -30,6 +30,7 @@
 
 Player* new_Player(uint32_t freq, Voice_pool* pool, Song* song)
 {
+	static int32_t id = 0;
 	assert(freq > 0);
 	assert(pool != NULL);
 	assert(song != NULL);
@@ -38,7 +39,7 @@ Player* new_Player(uint32_t freq, Voice_pool* pool, Song* song)
 	{
 		return NULL;
 	}
-	player->next = NULL;
+	player->prev = player->next = NULL;
 	player->song = song;
 	player->play = new_Playdata(freq, pool, Song_get_insts(song));
 	if (player->play == NULL)
@@ -46,6 +47,7 @@ Player* new_Player(uint32_t freq, Voice_pool* pool, Song* song)
 		xfree(player);
 		return NULL;
 	}
+	player->id = id++;
 	return player;
 }
 

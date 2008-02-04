@@ -52,6 +52,15 @@ void Playlist_ins(Playlist* playlist, Player* player);
 
 
 /**
+ * Removes a Player from the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param player     The Player -- must not be \c NULL.
+ */
+void Playlist_remove(Playlist* playlist, Player* player);
+
+
+/**
  * Destroys an existing Playlist.
  *
  * \param playlist   The Playlist -- must not be \c NULL.

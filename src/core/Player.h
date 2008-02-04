@@ -35,6 +35,8 @@ typedef struct Player
 {
 	Song* song;
 	Playdata* play;
+	int32_t id;
+	struct Player* prev;
 	struct Player* next;
 } Player;
 
