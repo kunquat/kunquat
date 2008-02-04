@@ -28,6 +28,7 @@
 #include <Playlist.h>
 
 #include "Listener.h"
+#include "Listener_driver.h"
 
 #ifdef ENABLE_JACK
 #include <Driver_jack.h>
