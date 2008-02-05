@@ -52,6 +52,17 @@ void Playlist_ins(Playlist* playlist, Player* player);
 
 
 /**
+ * Gets a Player from the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param id         The ID of the Player.
+ *
+ * \return   \c true if the Player was found, otherwise \c false.
+ */
+Player* Playlist_get(Playlist* playlist, int32_t id);
+
+
+/**
  * Removes a Player from the Playlist.
  *
  * \param playlist   The Playlist -- must not be \c NULL.

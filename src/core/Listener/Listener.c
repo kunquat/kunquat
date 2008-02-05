@@ -138,6 +138,7 @@ Listener* Listener_init(Listener* l)
 	l->driver_id = -1;
 
 	l->voices = NULL;
+	l->player_cur = NULL;
 	l->freq = 0;
 
 	lo_server_add_method(l->s, "/kunquat/quit", "", Listener_quit, l);

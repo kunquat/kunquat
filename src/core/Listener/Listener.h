@@ -67,6 +67,8 @@ typedef struct Listener
 	Voice_pool* voices;
 	/// Playback state information.
 	Playlist* playlist;
+	/// Player currently in use.
+	Player* player_cur;
 	/// Mixing frequency.
 	uint32_t freq;
 } Listener;

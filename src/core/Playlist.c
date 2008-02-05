@@ -54,6 +54,18 @@ void Playlist_ins(Playlist* playlist, Player* player)
 }
 
 
+Player* Playlist_get(Playlist* playlist, int32_t id)
+{
+	assert(playlist != NULL);
+	Player* cur = playlist->first;
+	while (cur != NULL && cur->id != id)
+	{
+		cur = cur->next;
+	}
+	return cur;
+}
+
+
 void Playlist_remove(Playlist* playlist, Player* player)
 {
 	assert(playlist != NULL);
