@@ -30,7 +30,8 @@ env.Append(LIBS = ['core'])
 
 files = [
 	'Listener.c',
-	'Listener_driver.c'
+	'Listener_driver.c',
+	'Listener_song.c',
 ]
 
 env.Program('kunquat', files)

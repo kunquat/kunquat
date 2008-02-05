@@ -35,6 +35,7 @@
 
 #include "Listener.h"
 #include "Listener_driver.h"
+#include "Listener_song.h"
 
 #include <xmemory.h>
 
@@ -150,6 +151,9 @@ Listener* Listener_init(Listener* l)
 	lo_server_add_method(l->s, "/kunquat/driver_close", "", Listener_driver_close, l);
 
 	lo_server_add_method(l->s, "/kunquat/set_voices", "i", Listener_set_voices, l);
+
+	lo_server_add_method(l->s, "/kunquat/new_song", "", Listener_new_song, l);
+	lo_server_add_method(l->s, "/kunquat/del_song", "i", Listener_del_song, l);
 
 	lo_server_add_method(l->s, NULL, NULL, Listener_fallback, l);
 	return l;

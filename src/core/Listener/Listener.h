@@ -24,6 +24,10 @@
 #define K_LISTENER_H
 
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
 #include <Voice_pool.h>
 #include <Playlist.h>
 

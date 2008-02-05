@@ -65,6 +65,8 @@ Player* Playlist_get(Playlist* playlist, int32_t id);
 /**
  * Removes a Player from the Playlist.
  *
+ * The Player is deleted by the function.
+ *
  * \param playlist   The Playlist -- must not be \c NULL.
  * \param player     The Player -- must not be \c NULL.
  */

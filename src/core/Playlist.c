@@ -47,7 +47,10 @@ void Playlist_ins(Playlist* playlist, Player* player)
 	assert(player->next == NULL);
 	assert(player->prev == NULL);
 	player->next = playlist->first;
-	playlist->first->prev = player;
+	if (playlist->first != NULL)
+	{
+		playlist->first->prev = player;
+	}
 	player->prev = NULL;
 	playlist->first = player;
 	return;
