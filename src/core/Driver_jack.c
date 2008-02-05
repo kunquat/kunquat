@@ -219,6 +219,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	{
 		if (!player->play->mode)
 		{
+			player = player->next;
 			continue;
 		}
 		assert(player->play->mode > STOP);
