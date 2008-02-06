@@ -30,4 +30,8 @@ To build Kunquat, run:
 
   scons
 
+To clean the build, run:
+
+  scons -c
+
 
