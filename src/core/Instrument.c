@@ -119,7 +119,10 @@ void Instrument_mix(Instrument* ins,
 	{
 		return;
 	}
-	ins->mix(ins, state, nframes, offset, freq);
+	if (ins->mix != NULL)
+	{
+		ins->mix(ins, state, nframes, offset, freq);
+	}
 	return;
 }
 
