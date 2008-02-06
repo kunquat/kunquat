@@ -28,7 +28,7 @@
 #include "Instrument_sine.h"
 
 
-#define PI (3.14159265358979323846)
+#define PI_2 (3.14159265358979323846 * 2)
 
 
 void Instrument_sine_mix(Instrument* ins,
@@ -54,7 +54,11 @@ void Instrument_sine_mix(Instrument* ins,
 		{
 			val_l = val_r = (val_l / 2) * (1 - state->noff_pos_part);
 		}
-		state->rel_pos_part += state->freq * PI / freq;
+		state->rel_pos_part += state->freq * PI_2 / freq;
+		if (state->rel_pos_part >= PI_2)
+		{
+			state->rel_pos_part -= floor(state->rel_pos_part / PI_2) * PI_2;
+		}
 		ins->bufs[0][i] += val_l;
 		ins->bufs[1][i] += val_r;
 		if (!state->note_on)
