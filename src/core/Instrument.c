@@ -25,6 +25,7 @@
 
 #include "Instrument.h"
 #include "Instrument_debug.h"
+#include "Instrument_sine.h"
 
 #include <xmemory.h>
 
@@ -60,6 +61,9 @@ Instrument* new_Instrument(Ins_type type,
 	{
 		case INS_TYPE_DEBUG:
 			ins->mix = Instrument_debug_mix;
+			break;
+		case INS_TYPE_SINE:
+			ins->mix = Instrument_sine_mix;
 			break;
 		default:
 			ins->mix = NULL;

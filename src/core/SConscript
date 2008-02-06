@@ -41,6 +41,7 @@ files = [
 	'Voice_state.c',
 	'Instrument.c',
 	'Instrument_debug.c',
+	'Instrument_sine.c',
 	'Etable.c',
 	'Ins_table.c',
 	'Voice.c',

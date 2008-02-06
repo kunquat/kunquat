@@ -39,6 +39,8 @@ typedef enum
 	/// 0.5) that lasts no more than 10 phase cycles. Note Off lasts no more
 	/// than two phase cycles with all sample values negated.
 	INS_TYPE_DEBUG,
+	/// A simple sine wave instrument for testing by ear.
+	INS_TYPE_SINE,
 	/// A sample-based type common in tracker programs.
 	INS_TYPE_PCM_RAM,
 	/// A type for reading audio data from disk -- used for large audio files.
