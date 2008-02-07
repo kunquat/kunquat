@@ -51,8 +51,8 @@
  * \param l   The Listener -- must not be \c NULL.
  *
  * \return   The parameter \a l if successful, or \c NULL if failed.
- *           A failure occurs if the server cannot be initialised or the
- *           server cannot be monitored using select().
+ *           A failure occurs if memory allocation fails, the server cannot be
+ *           initialised or the server cannot be monitored using select().
  */
 Listener* Listener_init(Listener* l);
 
@@ -136,26 +136,98 @@ Listener* Listener_init(Listener* l)
 	l->host_port = NULL;
 	l->host_path = NULL;
 
+	l->error_path = NULL;
+	l->notify_path = NULL;
+
 	l->driver_id = -1;
 
 	l->voices = NULL;
 	l->player_cur = NULL;
 	l->freq = 0;
 
-	lo_server_add_method(l->s, "/kunquat/quit", "", Listener_quit, l);
-	lo_server_add_method(l->s, "/kunquat/register_host", "s", Listener_register_host, l);
-	lo_server_add_method(l->s, "/kunquat/version", "", Listener_version, l);
+	if (lo_server_add_method(l->s,
+			"/kunquat/quit", "",
+			Listener_quit, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+	if (lo_server_add_method(l->s,
+			"/kunquat/register_host", "s",
+			Listener_register_host, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
 
-	lo_server_add_method(l->s, "/kunquat/get_drivers", "", Listener_get_drivers, l);
-	lo_server_add_method(l->s, "/kunquat/driver_init", "i", Listener_driver_init, l);
-	lo_server_add_method(l->s, "/kunquat/driver_close", "", Listener_driver_close, l);
+	if (lo_server_add_method(l->s,
+			"/kunquat/version", "",
+			Listener_version, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
 
-	lo_server_add_method(l->s, "/kunquat/set_voices", "i", Listener_set_voices, l);
+	if (lo_server_add_method(l->s,
+			"/kunquat/get_drivers", "",
+			Listener_get_drivers, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+	if (lo_server_add_method(l->s,
+			"/kunquat/driver_init", "i",
+			Listener_driver_init, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+	if (lo_server_add_method(l->s,
+			"/kunquat/driver_close", "",
+			Listener_driver_close, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
 
-	lo_server_add_method(l->s, "/kunquat/new_song", "", Listener_new_song, l);
-	lo_server_add_method(l->s, "/kunquat/del_song", "i", Listener_del_song, l);
+	if (lo_server_add_method(l->s,
+			"/kunquat/set_voices", "i",
+			Listener_set_voices, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
 
-	lo_server_add_method(l->s, NULL, NULL, Listener_fallback, l);
+	if (lo_server_add_method(l->s,
+			"/kunquat/new_song", "",
+			Listener_new_song, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+	if (lo_server_add_method(l->s,
+			"/kunquat/del_song", "i",
+			Listener_del_song, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+
+	if (lo_server_add_method(l->s, NULL, NULL, Listener_fallback, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
 	return l;
 }
 
@@ -206,48 +278,111 @@ int Listener_register_host(const char* path,
 {
 	(void)path;
 	(void)types;
+	(void)argc;
 	(void)msg;
+	assert(argv != NULL);
 	assert(user_data != NULL);
-	if (argc < 1)
-	{
-		fprintf(stderr, "Too few arguments to register_host (expected host URL)\n");
-		return 0;
-	}
 	Listener* l = user_data;
 	if (l->host != NULL)
 	{
 		lo_address_free(l->host);
+		l->host = NULL;
 	}
 	if (l->host_hostname != NULL)
 	{
 		free(l->host_hostname);
+		l->host_hostname = NULL;
 	}
 	if (l->host_port != NULL)
 	{
 		free(l->host_port);
+		l->host_port = NULL;
 	}
 	if (l->host_path != NULL)
 	{
 		free(l->host_path);
+		l->host_path = NULL;
 	}
 	char* url = &argv[0]->s;
 	l->host_hostname = lo_url_get_hostname(url);
+	if (l->host_hostname == NULL)
+	{
+		fprintf(stderr, "Couldn't parse the host URL\n");
+		goto cleanup;
+	}
 	l->host_port = lo_url_get_port(url);
+	if (l->host_port == NULL)
+	{
+		fprintf(stderr, "Couldn't parse the host URL\n");
+		goto cleanup;
+	}
 	l->host_path = lo_url_get_path(url);
+	if (l->host_path == NULL)
+	{
+		fprintf(stderr, "Couldn't parse the host URL\n");
+		goto cleanup;
+	}
 	l->host = lo_address_new(l->host_hostname, l->host_port);
 	if (l->host == NULL)
 	{
-		fprintf(stderr, "Failed to create an address object\n");
-		return 0;
+		fprintf(stderr, "Couldn't create an address object\n");
+		goto cleanup;
 	}
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
-	int ret = lo_send(l->host, full_path, "s", "Hello");
-	xfree(full_path);
+	l->error_path = xnalloc(char, strlen(l->host_path) + strlen("error") + 1);
+	if (l->error_path == NULL)
+	{
+		fprintf(stderr, "Couldn't allocate memory\n");
+		goto cleanup;
+	}
+	strcpy(l->error_path, l->host_path);
+	strcat(l->error_path, "error");
+	l->notify_path = xnalloc(char, strlen(l->host_path) + strlen("notify") + 1);
+	if (l->notify_path == NULL)
+	{
+		fprintf(stderr, "Couldn't allocate memory\n");
+		goto cleanup;
+	}
+	strcpy(l->notify_path, l->host_path);
+	strcat(l->notify_path, "notify");
+	int ret = lo_send(l->host, l->notify_path, "s", "Hello");
 	if (ret == -1)
 	{
-		fprintf(stderr, "Failed to send the confirmation message\n");
-		return 0;
+		fprintf(stderr, "Couldn't send the confirmation message\n");
+		goto cleanup;
+	}
+	return 0;
+
+cleanup:
+
+	if (l->host != NULL)
+	{
+		lo_address_free(l->host);
+		l->host = NULL;
+	}
+	if (l->host_hostname != NULL)
+	{
+		xfree(l->host_hostname);
+		l->host_hostname = NULL;
+	}
+	if (l->host_port != NULL)
+	{
+		xfree(l->host_port);
+		l->host_port = NULL;
+	}
+	if (l->host_path != NULL)
+	{
+		xfree(l->host_path);
+		l->host_path = NULL;
+	}
+	if (l->error_path != NULL)
+	{
+		xfree(l->error_path);
+		l->error_path = NULL;
+	}
+	if (l->notify_path != NULL)
+	{
+		xfree(l->notify_path);
+		l->notify_path = NULL;
 	}
 	return 0;
 }
@@ -282,7 +417,7 @@ int Listener_version(const char* path,
 	xfree(full_path);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Failed to send version information\n");
+		fprintf(stderr, "Couldn't send version information\n");
 		return 0;
 	}
 	return 0;
@@ -303,12 +438,10 @@ int Listener_quit(const char* path,
 	(void)msg;
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host != NULL && l->host_path != NULL)
+	if (l->host != NULL)
 	{
-		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
-		lo_send(l->host, full_path, "s", "Bye");
-		xfree(full_path);
+		assert(l->notify_path != NULL);
+		lo_send(l->host, l->notify_path, "s", "Bye");
 	}
 	l->done = true;
 	return 0;
@@ -328,17 +461,15 @@ int Listener_fallback(const char* path,
 	(void)msg;
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host == NULL || l->host_path == NULL)
+	if (l->host == NULL)
 	{
 		return 0;
 	}
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
-	int ret = lo_send(l->host, full_path, "ss", "Unrecognised command:", path);
-	xfree(full_path);
+	assert(l->notify_path != NULL);
+	int ret = lo_send(l->host, l->notify_path, "ss", "Unrecognised command:", path);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Failed to send the response message\n");
+		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	return 0;
@@ -358,46 +489,36 @@ int Listener_set_voices(const char* path,
 	(void)msg;
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host == NULL || l->host_path == NULL || l->voices != NULL) // FIXME
+	if (l->host == NULL || l->voices != NULL) // FIXME
 	{
 		return 0;
 	}
+	assert(l->error_path != NULL);
+	assert(l->notify_path != NULL);
 	int32_t voices = argv[0]->i;
 	if (voices <= 0 || voices > MAX_VOICES)
 	{
-		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "error");
 		lo_send(l->host,
-				full_path,
+				l->error_path,
 				"si",
 				"Invalid number of Voices requested:",
 				voices);
-		xfree(full_path);
 		return 0;
 	}
 	l->voices = new_Voice_pool(voices, 32);
 	if (l->voices == NULL)
 	{
-		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "error");
 		lo_send(l->host,
-				full_path,
+				l->error_path,
 				"s",
 				"Couldn't allocate memory for Voices");
-		xfree(full_path);
 		return 0;
 	}
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "notify");
-	char out_msg[] = "Allocated XXXXXXXXXXX Voices";
-	char* pos = strstr(out_msg, "XXX");
-	assert(pos != NULL);
-	sprintf(pos, "%hu Voices", (unsigned short)voices);
-	int ret = lo_send(l->host, full_path, "s", out_msg);
-	xfree(full_path);
+	int ret = lo_send(l->host, l->notify_path, "sis",
+			"Allocated", (int32_t)voices, "Voices");
 	if (ret == -1)
 	{
-		fprintf(stderr, "Failed to send the response message\n");
+		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	return 0;

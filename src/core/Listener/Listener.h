@@ -64,6 +64,11 @@ typedef struct Listener
 	/// The path of the host application.
 	char* host_path;
 
+	/// The path to the error method of the host.
+	char* error_path;
+	/// The path to the notify method of the host.
+	char* notify_path;
+
 	/// Current sound driver ID. Negative value implies none.
 	int driver_id;
 
