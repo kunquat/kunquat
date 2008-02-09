@@ -26,36 +26,21 @@ import gobject
 
 import liblo
 
-import Song
+import Instruments
 
 
-class Songs(gtk.Notebook):
+class Song(gtk.VBox):
 
-	def new_song(self, path, args, types):
-		if types[0] == 's':
-			return
-		content = Song.Song(self.engine, self.server, args[0])
-		label = gtk.Label(str(args[0]))
-		self.append_page(content, label)
-		content.show()
-		label.show()
-
-	def del_song(self, path, args, types):
-		if len(args) == 0:
-			return
-		for i in range(self.get_n_pages()):
-			content = self.get_nth_page(i)
-			if content.song_id == args[0]:
-				self.remove_page(i)
-				break
-
-	def __init__(self, engine, server):
+	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
+		self.song_id = song_id
 
-		self.server.add_method('/kunquat_gtk/new_song', None, self.new_song)
-		self.server.add_method('/kunquat_gtk/del_song', None, self.del_song)
+		gtk.VBox.__init__(self)
 
-		gtk.Notebook.__init__(self)
+		self.instruments = Instruments.Instruments(engine, server, song_id)
+
+		self.pack_start(self.instruments)
+		self.instruments.show()
 
 
