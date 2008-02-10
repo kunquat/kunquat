@@ -92,6 +92,16 @@ Instrument* new_Instrument(Ins_type type,
 
 
 /**
+ * Gets the type of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Instrument type.
+ */
+Ins_type Instrument_get_type(Instrument* ins);
+
+
+/**
  * Sets the Note table of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.

@@ -43,6 +43,8 @@ typedef struct Song
 {
 	/// Number of buffers (channels) used for mixing.
 	int buf_count;
+	/// Buffer size.
+	uint32_t buf_size;
 	/// Buffers.
 	frame_t** bufs;
 	/// Private buffers.
@@ -185,6 +187,16 @@ double Song_get_global_vol(Song* song);
  * \return   The number of buffers.
  */
 int Song_get_buf_count(Song* song);
+
+
+/**
+ * Gets the size of a single buffer in the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The buffer size.
+ */
+uint32_t Song_get_buf_size(Song* song);
 
 
 /**

@@ -32,6 +32,7 @@ files = [
 	'Listener.c',
 	'Listener_driver.c',
 	'Listener_song.c',
+	'Listener_ins.c',
 ]
 
 env.Program('kunquat', files)

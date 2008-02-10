@@ -73,6 +73,13 @@ Instrument* new_Instrument(Ins_type type,
 }
 
 
+Ins_type Instrument_get_type(Instrument* ins)
+{
+	assert(ins != NULL);
+	return ins->type;
+}
+
+
 void Instrument_set_note_table(Instrument* ins, Note_table* notes)
 {
 	assert(ins != NULL);

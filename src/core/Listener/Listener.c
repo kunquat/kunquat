@@ -36,6 +36,7 @@
 #include "Listener.h"
 #include "Listener_driver.h"
 #include "Listener_song.h"
+#include "Listener_ins.h"
 
 #include <xmemory.h>
 
@@ -216,6 +217,23 @@ Listener* Listener_init(Listener* l)
 	if (lo_server_add_method(l->s,
 			"/kunquat/del_song", "i",
 			Listener_del_song, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+
+	if (lo_server_add_method(l->s,
+			"/kunquat/new_ins", "iii",
+			Listener_new_ins, l) == NULL)
+	{
+		lo_server_free(l->s);
+		del_Playlist(l->playlist);
+		return NULL;
+	}
+	if (lo_server_add_method(l->s,
+			"/kunquat/del_ins", "ii",
+			Listener_del_ins, l) == NULL)
 	{
 		lo_server_free(l->s);
 		del_Playlist(l->playlist);

@@ -44,6 +44,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 		return NULL;
 	}
 	song->buf_count = buf_count;
+	song->buf_size = buf_size;
 	song->bufs = NULL;
 	song->priv_bufs[0] = NULL;
 	song->order = NULL;
@@ -256,6 +257,13 @@ int Song_get_buf_count(Song* song)
 {
 	assert(song != NULL);
 	return song->buf_count;
+}
+
+
+uint32_t Song_get_buf_size(Song* song)
+{
+	assert(song != NULL);
+	return song->buf_size;
 }
 
 
