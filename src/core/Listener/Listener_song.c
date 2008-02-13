@@ -56,19 +56,15 @@ int Listener_new_song(const char* path,
 		{
 			del_Song(song);
 		}
-		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "new_song");
-		lo_send(l->host, full_path, "s", "Couldn't allocate memory");
-		xfree(full_path);
+		strcpy(l->method_path + l->host_path_len, "new_song");
+		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
 		return 0;
 	}
 	assert(song != NULL);
 	Playlist_ins(l->playlist, player);
 	l->player_cur = player;
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "new_song");
-	int ret = lo_send(l->host, full_path, "i", player->id);
-	xfree(full_path);
+	strcpy(l->method_path + l->host_path_len, "new_song");
+	int ret = lo_send(l->host, l->method_path, "i", player->id);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");
@@ -100,19 +96,15 @@ int Listener_del_song(const char* path,
 	}
 	if (target == NULL)
 	{
-		char* full_path = NULL;
-		METHOD_PATH_ALLOC(full_path, l->host_path, "del_song");
-		lo_send(l->host, full_path, "");
-		xfree(full_path);
+		strcpy(l->method_path + l->host_path_len, "del_song");
+		lo_send(l->host, l->method_path, "");
 		return 0;
 	}
 	assert(target->id == player_id);
 	Playlist_remove(l->playlist, target);
 	l->player_cur = l->playlist->first;
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "del_song");
-	int ret = lo_send(l->host, full_path, "i", player_id);
-	xfree(full_path);
+	strcpy(l->method_path + l->host_path_len, "del_song");
+	int ret = lo_send(l->host, l->method_path, "i", player_id);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");

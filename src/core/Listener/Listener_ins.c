@@ -52,13 +52,15 @@ int Listener_new_ins(const char* path,
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host == NULL || l->host_path == NULL)
+	if (l->host == NULL)
 	{
 		return 0;
 	}
+	assert(l->method_path != NULL);
 	if (argv[1]->i < 1 || argv[1]->i > 255)
 	{
-		lo_send(l->host, l->error_path, "si", "Invalid Instrument number:", argv[1]->i);
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
 		return 0;
 	}
 	int32_t player_id = argv[0]->i;
@@ -69,7 +71,8 @@ int Listener_new_ins(const char* path,
 	}
 	if (player == NULL)
 	{
-		lo_send(l->host, l->error_path, "s", "Song doesn't exist");
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
 	Song* song = player->song;
@@ -79,7 +82,8 @@ int Listener_new_ins(const char* path,
 			32); // XXX: get event count from the configuration
 	if (ins == NULL)
 	{
-		lo_send(l->host, l->error_path, "s", "Couldn't allocate memory");
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
 		return 0;
 	}
 	Ins_table* table = Song_get_insts(song);
@@ -87,7 +91,8 @@ int Listener_new_ins(const char* path,
 	if (!Ins_table_set(table, argv[1]->i, ins))
 	{
 		del_Instrument(ins);
-		lo_send(l->host, l->error_path, "s", "Couldn't allocate memory");
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
 		return 0;
 	}
 	if (!ins_info(l, player_id, argv[1]->i, ins))
@@ -125,13 +130,15 @@ int Listener_del_ins(const char* path,
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host == NULL || l->host_path == NULL)
+	if (l->host == NULL)
 	{
 		return 0;
 	}
+	assert(l->method_path != NULL);
 	if (argv[1]->i < 1 || argv[1]->i > 255)
 	{
-		lo_send(l->host, l->error_path, "si", "Invalid Instrument number:", argv[1]->i);
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
 		return 0;
 	}
 	int32_t player_id = argv[0]->i;
@@ -142,7 +149,8 @@ int Listener_del_ins(const char* path,
 	}
 	if (player == NULL)
 	{
-		lo_send(l->host, l->error_path, "s", "Song doesn't exist");
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
 	Song* song = player->song;
@@ -180,11 +188,9 @@ static bool ins_info(Listener* l,
 	{
 		lo_message_add_int32(m, INS_TYPE_NONE);
 	}
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "ins_info");
-	int ret = lo_send_message(l->host, full_path, m);
+	strcpy(l->method_path + l->host_path_len, "ins_info");
+	int ret = lo_send_message(l->host, l->method_path, m);
 	lo_message_free(m);
-	xfree(full_path);
 	if (ret == -1)
 	{
 		return false;

@@ -136,9 +136,8 @@ Listener* Listener_init(Listener* l)
 	l->host_hostname = NULL;
 	l->host_port = NULL;
 	l->host_path = NULL;
-
-	l->error_path = NULL;
-	l->notify_path = NULL;
+	l->host_path_len = 0;
+	l->method_path = NULL;
 
 	l->driver_id = -1;
 
@@ -258,24 +257,35 @@ void Listener_uninit(Listener* l)
 	if (l->host != NULL)
 	{
 		lo_address_free(l->host);
+		l->host = NULL;
 	}
 	if (l->host_hostname != NULL)
 	{
-		free(l->host_hostname);
+		xfree(l->host_hostname);
+		l->host_hostname = NULL;
 	}
 	if (l->host_port != NULL)
 	{
-		free(l->host_port);
+		xfree(l->host_port);
+		l->host_port = NULL;
 	}
 	if (l->host_path != NULL)
 	{
-		free(l->host_path);
+		xfree(l->host_path);
+		l->host_path = NULL;
+	}
+	if (l->method_path != NULL)
+	{
+		xfree(l->method_path);
+		l->method_path = NULL;
 	}
 	if (l->voices != NULL)
 	{
 		del_Voice_pool(l->voices);
+		l->voices = NULL;
 	}
 	del_Playlist(l->playlist);
+	l->playlist = NULL;
 	return;
 }
 
@@ -340,29 +350,22 @@ int Listener_register_host(const char* path,
 		fprintf(stderr, "Couldn't parse the host URL\n");
 		goto cleanup;
 	}
+	l->host_path_len = strlen(l->host_path);
 	l->host = lo_address_new(l->host_hostname, l->host_port);
 	if (l->host == NULL)
 	{
 		fprintf(stderr, "Couldn't create an address object\n");
 		goto cleanup;
 	}
-	l->error_path = xnalloc(char, strlen(l->host_path) + strlen("error") + 1);
-	if (l->error_path == NULL)
+	l->method_path = xcalloc(char, l->host_path_len + METHOD_NAME_MAX);
+	if (l->method_path == NULL)
 	{
 		fprintf(stderr, "Couldn't allocate memory\n");
 		goto cleanup;
 	}
-	strcpy(l->error_path, l->host_path);
-	strcat(l->error_path, "error");
-	l->notify_path = xnalloc(char, strlen(l->host_path) + strlen("notify") + 1);
-	if (l->notify_path == NULL)
-	{
-		fprintf(stderr, "Couldn't allocate memory\n");
-		goto cleanup;
-	}
-	strcpy(l->notify_path, l->host_path);
-	strcat(l->notify_path, "notify");
-	int ret = lo_send(l->host, l->notify_path, "s", "Hello");
+	strcpy(l->method_path, l->host_path);
+	strcpy(l->method_path + l->host_path_len, "notify");
+	int ret = lo_send(l->host, l->method_path, "s", "Hello");
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the confirmation message\n");
@@ -391,16 +394,12 @@ cleanup:
 	{
 		xfree(l->host_path);
 		l->host_path = NULL;
+		l->host_path_len = 0;
 	}
-	if (l->error_path != NULL)
+	if (l->method_path != NULL)
 	{
-		xfree(l->error_path);
-		l->error_path = NULL;
-	}
-	if (l->notify_path != NULL)
-	{
-		xfree(l->notify_path);
-		l->notify_path = NULL;
+		xfree(l->method_path);
+		l->method_path = NULL;
 	}
 	return 0;
 }
@@ -424,15 +423,13 @@ int Listener_version(const char* path,
 	{
 		return 0;
 	}
-	char* full_path = NULL;
-	METHOD_PATH_ALLOC(full_path, l->host_path, "version");
+	strcpy(l->method_path + l->host_path_len, "version");
 	int ret = lo_send(l->host,
-			full_path,
+			l->method_path,
 			"iii",
 			(int32_t)KUNQUAT_VERSION_MAJOR,
 			(int32_t)KUNQUAT_VERSION_MINOR,
 			(int32_t)KUNQUAT_VERSION_PATCH);
-	xfree(full_path);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send version information\n");
@@ -458,8 +455,9 @@ int Listener_quit(const char* path,
 	Listener* l = user_data;
 	if (l->host != NULL)
 	{
-		assert(l->notify_path != NULL);
-		lo_send(l->host, l->notify_path, "s", "Bye");
+		assert(l->method_path != NULL);
+		strcpy(l->method_path + l->host_path_len, "notify");
+		lo_send(l->host, l->method_path, "s", "Bye");
 	}
 	l->done = true;
 	return 0;
@@ -483,8 +481,9 @@ int Listener_fallback(const char* path,
 	{
 		return 0;
 	}
-	assert(l->notify_path != NULL);
-	int ret = lo_send(l->host, l->notify_path, "ss", "Unrecognised command:", path);
+	assert(l->method_path != NULL);
+	strcpy(l->method_path + l->host_path_len, "notify");
+	int ret = lo_send(l->host, l->method_path, "ss", "Unrecognised command:", path);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -511,13 +510,13 @@ int Listener_set_voices(const char* path,
 	{
 		return 0;
 	}
-	assert(l->error_path != NULL);
-	assert(l->notify_path != NULL);
+	assert(l->method_path != NULL);
 	int32_t voices = argv[0]->i;
 	if (voices <= 0 || voices > MAX_VOICES)
 	{
+		strcpy(l->method_path + l->host_path_len, "error");
 		lo_send(l->host,
-				l->error_path,
+				l->method_path,
 				"si",
 				"Invalid number of Voices requested:",
 				voices);
@@ -526,13 +525,15 @@ int Listener_set_voices(const char* path,
 	l->voices = new_Voice_pool(voices, 32);
 	if (l->voices == NULL)
 	{
+		strcpy(l->method_path + l->host_path_len, "error");
 		lo_send(l->host,
-				l->error_path,
+				l->method_path,
 				"s",
 				"Couldn't allocate memory for Voices");
 		return 0;
 	}
-	int ret = lo_send(l->host, l->notify_path, "sis",
+	strcpy(l->method_path + l->host_path_len, "notify");
+	int ret = lo_send(l->host, l->method_path, "sis",
 			"Allocated", (int32_t)voices, "Voices");
 	if (ret == -1)
 	{

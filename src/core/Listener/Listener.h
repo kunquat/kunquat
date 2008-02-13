@@ -36,6 +36,8 @@
 #include <xmemory.h>
 
 
+#define METHOD_NAME_MAX (32)
+
 #define MAX_VOICES (1024)
 
 
@@ -63,11 +65,10 @@ typedef struct Listener
 	char* host_port;
 	/// The path of the host application.
 	char* host_path;
-
-	/// The path to the error method of the host.
-	char* error_path;
-	/// The path to the notify method of the host.
-	char* notify_path;
+	/// The length of the host path.
+	int host_path_len;
+	/// The path of the method used.
+	char* method_path;
 
 	/// Current sound driver ID. Negative value implies none.
 	int driver_id;
