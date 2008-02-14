@@ -137,6 +137,17 @@ int Listener_quit(const char* path,
 
 
 /**
+ * Shows all the OSC methods of Kunquat.
+ */
+int Listener_help(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * A fallback method. A host, if registered, will be sent a notification.
  */
 int Listener_fallback(const char* path,

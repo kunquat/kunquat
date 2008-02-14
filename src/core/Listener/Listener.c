@@ -46,6 +46,32 @@
 #define KUNQUAT_VERSION_PATCH (0)
 
 
+typedef struct Method_desc
+{
+	char* path;
+	char* format;
+	lo_method_handler handler;
+} Method_desc;
+
+static Method_desc methods[] =
+{
+	{ "/kunquat/quit", "", Listener_quit },
+	{ "/kunquat/help", "", Listener_help },
+	{ "/kunquat/register_host", "s", Listener_register_host },
+	{ "/kunquat/version", "", Listener_version },
+	{ "/kunquat/get_drivers", "", Listener_get_drivers },
+	{ "/kunquat/driver_init", "i", Listener_driver_init },
+	{ "/kunquat/driver_close", "", Listener_driver_close },
+	{ "/kunquat/set_voices", "i", Listener_set_voices },
+	{ "/kunquat/new_song", "", Listener_new_song },
+	{ "/kunquat/del_song", "i", Listener_del_song },
+	{ "/kunquat/new_ins", "iii", Listener_new_ins },
+	{ "/kunquat/del_ins", "ii", Listener_del_ins },
+	{ NULL, NULL, Listener_fallback },
+	{ NULL, NULL, NULL }
+};
+
+
 /**
  * Initialises a Listener.
  *
@@ -145,106 +171,19 @@ Listener* Listener_init(Listener* l)
 	l->player_cur = NULL;
 	l->freq = 0;
 
-	if (lo_server_add_method(l->s,
-			"/kunquat/quit", "",
-			Listener_quit, l) == NULL)
+	for (int i = 0; methods[i].handler != NULL; ++i)
 	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-	if (lo_server_add_method(l->s,
-			"/kunquat/register_host", "s",
-			Listener_register_host, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
+		if (lo_server_add_method(l->s,
+				methods[i].path,
+				methods[i].format,
+				methods[i].handler, l) == NULL)
+		{
+			lo_server_free(l->s);
+			del_Playlist(l->playlist);
+			return NULL;
+		}
 	}
 
-	if (lo_server_add_method(l->s,
-			"/kunquat/version", "",
-			Listener_version, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-
-	if (lo_server_add_method(l->s,
-			"/kunquat/get_drivers", "",
-			Listener_get_drivers, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-	if (lo_server_add_method(l->s,
-			"/kunquat/driver_init", "i",
-			Listener_driver_init, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-	if (lo_server_add_method(l->s,
-			"/kunquat/driver_close", "",
-			Listener_driver_close, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-
-	if (lo_server_add_method(l->s,
-			"/kunquat/set_voices", "i",
-			Listener_set_voices, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-
-	if (lo_server_add_method(l->s,
-			"/kunquat/new_song", "",
-			Listener_new_song, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-	if (lo_server_add_method(l->s,
-			"/kunquat/del_song", "i",
-			Listener_del_song, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-
-	if (lo_server_add_method(l->s,
-			"/kunquat/new_ins", "iii",
-			Listener_new_ins, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-	if (lo_server_add_method(l->s,
-			"/kunquat/del_ins", "ii",
-			Listener_del_ins, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
-
-	if (lo_server_add_method(l->s, NULL, NULL, Listener_fallback, l) == NULL)
-	{
-		lo_server_free(l->s);
-		del_Playlist(l->playlist);
-		return NULL;
-	}
 	return l;
 }
 
@@ -460,6 +399,41 @@ int Listener_quit(const char* path,
 		lo_send(l->host, l->method_path, "s", "Bye");
 	}
 	l->done = true;
+	return 0;
+}
+
+
+int Listener_help(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	if (l->host == NULL)
+	{
+		return 0;
+	}
+	lo_message m = lo_message_new();
+	for (int i = 0; methods[i].path != NULL; ++i)
+	{
+		lo_message_add_string(m, methods[i].path);
+	}
+	strcpy(l->method_path + l->host_path_len, "notify");
+	int ret = lo_send_message(l->host, l->method_path, m);
+	lo_message_free(m);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Couldn't send help\n");
+		return 0;
+	}
 	return 0;
 }
 
