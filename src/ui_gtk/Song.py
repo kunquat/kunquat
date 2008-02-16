@@ -31,6 +31,9 @@ import Instruments
 
 class Song(gtk.VBox):
 
+	def ins_info(self, path, args, types):
+		self.instruments.ins_info(path, args, types)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server

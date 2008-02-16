@@ -29,6 +29,10 @@ import liblo
 
 class Instruments(gtk.HBox):
 
+	def ins_info(self, path, args, types):
+		iter = self.it_view.get_model().get_iter(args[0])
+		self.ins_table.set_value(iter, 1, args[2])
+
 	def name_changed(self, cell, path, new_text):
 		print str(path)
 		print new_text
