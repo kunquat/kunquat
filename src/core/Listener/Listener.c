@@ -66,6 +66,7 @@ static Method_desc methods[] =
 	{ "/kunquat/new_song", "", Listener_new_song },
 	{ "/kunquat/del_song", "i", Listener_del_song },
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
+	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }
@@ -445,7 +446,6 @@ int Listener_fallback(const char* path,
 		lo_message msg,
 		void* user_data)
 {
-	(void)types;
 	(void)argv;
 	(void)argc;
 	(void)msg;
@@ -457,7 +457,7 @@ int Listener_fallback(const char* path,
 	}
 	assert(l->method_path != NULL);
 	strcpy(l->method_path + l->host_path_len, "notify");
-	int ret = lo_send(l->host, l->method_path, "ss", "Unrecognised command:", path);
+	int ret = lo_send(l->host, l->method_path, "sss", "Unrecognised command:", path, types);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");

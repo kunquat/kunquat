@@ -24,6 +24,8 @@
 #define K_INSTRUMENT_H
 
 
+#include <wchar.h>
+
 #include <frame_t.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
@@ -52,10 +54,15 @@ typedef enum
 } Ins_type;
 
 
+#define INS_NAME_MAX (64)
+
+
 typedef struct Instrument
 {
 	/// Instrument type.
 	Ins_type type;
+	/// The name of the Instrument.
+	wchar_t name[INS_NAME_MAX];
 	/// Mixing buffer used (same as either \a pbuf or \a gbuf).
 	frame_t** bufs;
 	/// Private mixing buffer (required when Instrument-level effects are used).
@@ -99,6 +106,25 @@ Instrument* new_Instrument(Ins_type type,
  * \return   The Instrument type.
  */
 Ins_type Instrument_get_type(Instrument* ins);
+
+
+/**
+ * Sets the name of the Instrument.
+ *
+ * \param ins    The Instrument -- must not be \c NULL.
+ * \param name   The name -- must not be \c NULL.
+ */
+void Instrument_set_name(Instrument* ins, wchar_t* name);
+
+
+/**
+ * Gets the name of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The name.
+ */
+wchar_t* Instrument_get_name(Instrument* ins);
 
 
 /**

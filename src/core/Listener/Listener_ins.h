@@ -38,7 +38,7 @@
  * \li \c s   The name of the Instrument.
  * \li        Zero or more additional parameters dependent on the Instrument type.
  *
- * The Debug and Sine types have no additional parameters.
+ * The None, Debug and Sine types have no additional parameters.
  */
 
 

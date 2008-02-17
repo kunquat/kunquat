@@ -80,6 +80,23 @@ Ins_type Instrument_get_type(Instrument* ins)
 }
 
 
+void Instrument_set_name(Instrument* ins, wchar_t* name)
+{
+	assert(ins != NULL);
+	assert(name != NULL);
+	wcsncpy(ins->name, name, INS_NAME_MAX - 1);
+	ins->name[INS_NAME_MAX - 1] = L'\0';
+	return;
+}
+
+
+wchar_t* Instrument_get_name(Instrument* ins)
+{
+	assert(ins != NULL);
+	return ins->name;
+}
+
+
 void Instrument_set_note_table(Instrument* ins, Note_table* notes)
 {
 	assert(ins != NULL);

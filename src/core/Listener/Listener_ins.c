@@ -32,6 +32,37 @@
 #include <Instrument.h>
 
 
+/**
+ * Finds the Instrument based on given Song ID and Instrument number.
+ *
+ * If the requested Song exists, it will be made current Song.
+ *
+ * \param l         The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param ins_num   The Instrument number.
+ * \param ins       The location to which the Instrument will be stored
+ *                  -- must not be \c NULL.
+ *
+ * \return   \c true if the Song exists and Instrument number is valid,
+ *           otherwise \c false. Note that \c true will be returned if the
+ *           search parameters are valid but no Instrument is found.
+ */
+static bool ins_get(Listener* l,
+		int32_t song_id,
+		int32_t ins_num,
+		Instrument** ins);
+
+
+/**
+ * Sends the ins_info message.
+ *
+ * \param l         The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param ins_num   The Instrument number.
+ * \param ins       The Instrument located in \a song_id, \a ins_num.
+ *
+ * \return   \c true if the message was sent successfully, otherwise \c false.
+ */
 static bool ins_info(Listener* l,
 		int32_t song_id,
 		int32_t ins_num,
@@ -104,7 +135,6 @@ int Listener_new_ins(const char* path,
 }
 
 
-#if 0
 int Listener_ins_set_name(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -112,8 +142,44 @@ int Listener_ins_set_name(const char* path,
 		lo_message msg,
 		void* user_data)
 {
+	(void)path;
+	(void)types;
+	(void)msg;
+	assert(argc == 3);
+	assert(argv != NULL);
+	assert(&argv[2]->s != NULL);
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	if (l->host == NULL)
+	{
+		return 0;
+	}
+	assert(l->method_path != NULL);
+	Instrument* ins = NULL;
+	if (!ins_get(l, argv[0]->i, argv[1]->i, &ins))
+	{
+		return 0;
+	}
+	if (ins != NULL)
+	{
+		wchar_t name[INS_NAME_MAX] = { L'\0' };
+		const char* src = &argv[2]->s;
+		if (mbsrtowcs(name, &src, INS_NAME_MAX - 1, NULL) == (size_t)(-1))
+		{
+			strcpy(l->method_path + l->host_path_len, "error");
+			lo_send(l->host, l->method_path, "s",
+					"Illegal character sequence in the Instrument name");
+			return 0;
+		}
+		Instrument_set_name(ins, name);
+	}
+	if (!ins_info(l, l->player_cur->id, argv[1]->i, ins))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
 }
-#endif
 
 
 int Listener_del_ins(const char* path,
@@ -169,6 +235,41 @@ int Listener_del_ins(const char* path,
 }
 
 
+static bool ins_get(Listener* l,
+		int32_t song_id,
+		int32_t ins_num,
+		Instrument** ins)
+{
+	assert(l != NULL);
+	assert(l->method_path != NULL);
+	assert(ins != NULL);
+	if (ins_num < 1 || ins_num > 255)
+	{
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", ins_num);
+		return false;
+	}
+	int32_t player_id = song_id;
+	Player* player = l->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(l->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
+		return false;
+	}
+	l->player_cur = player;
+	Song* song = player->song;
+	Ins_table* table = Song_get_insts(song);
+	assert(table != NULL);
+	*ins = Ins_table_get(table, ins_num);
+	return true;
+}
+
+
 static bool ins_info(Listener* l,
 		int32_t song_id,
 		int32_t ins_num,
@@ -182,11 +283,20 @@ static bool ins_info(Listener* l,
 	if (ins != NULL)
 	{
 		lo_message_add_int32(m, Instrument_get_type(ins));
-		lo_message_add_string(m, ""); // TODO: real name
+		char mbs[INS_NAME_MAX * 6] = { '\0' };
+		const wchar_t* src = Instrument_get_name(ins);
+		if (wcsrtombs(mbs, &src, INS_NAME_MAX * 6, NULL) == (size_t)(-1))
+		{
+			strcpy(l->method_path + l->host_path_len, "error");
+			lo_send(l->host, l->method_path, "s",
+					"Illegal character sequence in the Instrument name");
+		}
+		lo_message_add_string(m, mbs);
 	}
 	else
 	{
 		lo_message_add_int32(m, INS_TYPE_NONE);
+		lo_message_add_string(m, "");
 	}
 	strcpy(l->method_path + l->host_path_len, "ins_info");
 	int ret = lo_send_message(l->host, l->method_path, m);
