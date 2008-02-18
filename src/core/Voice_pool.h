@@ -24,12 +24,16 @@
 #define K_VOICE_POOL_H
 
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include <Voice.h>
 
 
 typedef struct Voice_pool
 {
 	uint16_t size;
+	uint8_t events;
 	Voice** voices;
 } Voice_pool;
 
@@ -45,6 +49,29 @@ typedef struct Voice_pool
  *           failed.
  */
 Voice_pool* new_Voice_pool(uint16_t size, uint8_t events);
+
+
+/**
+ * Changes the amount of Voices in the Voice pool.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ * \param size   The new size -- must be > \c 0.
+ *
+ * \return   \c true if resizing succeeded, or \c false if memory allocation
+ *           failed. Note that decreasing the number of Voices may still have
+ *           occurred even if the operation fails.
+ */
+bool Voice_pool_resize(Voice_pool* pool, uint16_t size);
+
+
+/**
+ * Gets the amount of Voices in the Voice pool.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ *
+ * \return   The number of Voices.
+ */
+uint16_t Voice_pool_get_size(Voice_pool* pool);
 
 
 /**

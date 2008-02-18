@@ -480,7 +480,7 @@ int Listener_set_voices(const char* path,
 	(void)msg;
 	assert(user_data != NULL);
 	Listener* l = user_data;
-	if (l->host == NULL || l->voices != NULL) // FIXME
+	if (l->host == NULL)
 	{
 		return 0;
 	}
@@ -496,16 +496,31 @@ int Listener_set_voices(const char* path,
 				voices);
 		return 0;
 	}
-	l->voices = new_Voice_pool(voices, 32);
 	if (l->voices == NULL)
 	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host,
-				l->method_path,
-				"s",
-				"Couldn't allocate memory for Voices");
-		return 0;
+		l->voices = new_Voice_pool(voices, 32);
+		if (l->voices == NULL)
+		{
+			strcpy(l->method_path + l->host_path_len, "error");
+			lo_send(l->host,
+					l->method_path,
+					"s",
+					"Couldn't allocate memory for Voices");
+			return 0;
+		}
 	}
+	else if (Voice_pool_get_size(l->voices) != voices)
+	{
+		if (!Voice_pool_resize(l->voices, voices))
+		{
+			strcpy(l->method_path + l->host_path_len, "error");
+			lo_send(l->host,
+					l->method_path,
+					"s",
+					"Couldn't allocate memory for Voices");
+		}
+	}
+	voices = Voice_pool_get_size(l->voices);
 	strcpy(l->method_path + l->host_path_len, "notify");
 	int ret = lo_send(l->host, l->method_path, "sis",
 			"Allocated", (int32_t)voices, "Voices");

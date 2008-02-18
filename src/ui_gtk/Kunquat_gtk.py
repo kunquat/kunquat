@@ -89,6 +89,8 @@ class Kunquat_gtk():
 				'/kunquat/register_host',
 				'osc.udp://localhost:' + str(self.s.get_port()) + '/kunquat_gtk/')
 
+		liblo.send(self.engine, '/kunquat/set_voices', 64)
+
 		liblo.send(self.engine, '/kunquat/get_drivers')
 
 	def main(self):
