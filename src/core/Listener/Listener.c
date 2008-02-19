@@ -60,6 +60,7 @@ static Method_desc methods[] =
 	{ "/kunquat/register_host", "s", Listener_register_host },
 	{ "/kunquat/version", "", Listener_version },
 	{ "/kunquat/get_drivers", "", Listener_get_drivers },
+	{ "/kunquat/active_driver", "", Listener_active_driver },
 	{ "/kunquat/driver_init", "i", Listener_driver_init },
 	{ "/kunquat/driver_close", "", Listener_driver_close },
 	{ "/kunquat/set_voices", "i", Listener_set_voices },

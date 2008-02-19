@@ -87,6 +87,38 @@ int Listener_get_drivers(const char* path,
 }
 
 
+int Listener_active_driver(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	if (l->host == NULL)
+	{
+		return 0;
+	}
+	assert(l->method_path != NULL);
+	strcpy(l->method_path + l->host_path_len, "active_driver");
+	int ret = lo_send(l->host, l->method_path, "ii",
+			(int32_t)l->driver_id,
+			(int32_t)l->freq);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
 int Listener_driver_init(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -120,6 +152,10 @@ int Listener_driver_init(const char* path,
 	}
 	assert(drivers[driver_id].name != NULL);
 	assert(drivers[driver_id].init != NULL);
+	if (l->driver_id >= 0)
+	{
+		drivers[l->driver_id].close();
+	}
 	l->freq = 0;
 	if (!drivers[driver_id].init(l->playlist, &l->freq))
 	{
@@ -138,7 +174,7 @@ int Listener_driver_init(const char* path,
 			(int32_t)l->freq);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Failed to send the response message\n");
+		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	return 0;
@@ -174,6 +210,7 @@ int Listener_driver_close(const char* path,
 	drivers[l->driver_id].close();
 	int driver_id = l->driver_id;
 	l->driver_id = -1;
+	l->freq = 0;
 	strcpy(l->method_path + l->host_path_len, "notify");
 	int ret = lo_send(l->host, l->method_path, "si",
 			"Closed driver", (int32_t)driver_id);

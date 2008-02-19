@@ -37,6 +37,7 @@ class Driver_select(gtk.HBox):
 		selection = self.driver_view.get_selection()
 		selection.select_path(0)
 		self.cur_driver = -1
+		liblo.send(self.engine, '/kunquat/active_driver')
 
 	def driver_init(self, path, args, types):
 		if types[0] == 's' and args[0] == 'Error:':
@@ -47,22 +48,36 @@ class Driver_select(gtk.HBox):
 		self.cur_driver = args[0]
 		self.hz.set_text(str(args[1]))
 
+	def active_driver(self, path, args):
+		cur = args[0] + 1
+		selection = self.driver_view.get_selection()
+		if not selection.path_is_selected(cur):
+			self.update_table = True
+		selection.select_path(cur)
+		self.cur_driver = args[0]
+		self.hz.set_text(str(args[1]))
+
 	def set_driver(self, widget, data = None):
 		_, cur = widget.get_selected_rows()
 		cur = cur[0][0] - 1
-		if self.cur_driver >= 0:
+		if self.cur_driver >= 0 and not self.update_table:
 			liblo.send(self.engine, '/kunquat/driver_close')
 		self.cur_driver = -1
 		self.hz.set_text('0')
-		if cur >= 0:
+		if cur >= 0 and not self.update_table:
 			liblo.send(self.engine, '/kunquat/driver_init', cur)
 		self.cur_driver = cur
+		if self.update_table:
+			self.update_table = False
 
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
+
+		self.update_table = False
 		
 		self.server.add_method('/kunquat_gtk/drivers', None, self.set_drivers)
+		self.server.add_method('/kunquat_gtk/active_driver', 'ii', self.active_driver)
 		self.server.add_method('/kunquat_gtk/driver_init', None, self.driver_init)
 
 		gtk.HBox.__init__(self)

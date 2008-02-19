@@ -43,6 +43,20 @@ int Listener_get_drivers(const char* path,
 
 
 /**
+ * Gets the ID of active audio driver.
+ *
+ * A response message will contain the ID of the active audio driver and the
+ * current mixing frequency.
+ */
+int Listener_active_driver(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Initialises a sound driver.
  *
  * The following OSC parameters are expected:
