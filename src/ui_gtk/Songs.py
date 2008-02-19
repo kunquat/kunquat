@@ -41,19 +41,17 @@ class Songs(gtk.Notebook):
 		label.show()
 
 	def songs(self, path, args):
-		for id in args:
-			found = False
-			for i in range(self.get_n_pages()):
-				content = self.get_nth_page(i)
-				if content.song_id == id:
-					found = True
-					break
-			if not found:
-				content = Song.Song(self.engine, self.server, id)
-				label = gtk.Label(str(id))
-				self.append_page(content, label)
-				content.show()
-				label.show()
+		all_songs = set(args)
+		shown_songs = set()
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			shown_songs.add(content.song_id)
+		for id in all_songs - shown_songs:
+			content = Song.Song(self.engine, self.server, id)
+			label = gtk.Label(str(id))
+			self.append_page(content, label)
+			content.show()
+			label.show()
 
 	def del_song(self, path, args, types):
 		if len(args) == 0:

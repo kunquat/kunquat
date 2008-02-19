@@ -57,15 +57,11 @@ class Cli(gtk.VBox):
 		entry.set_text('')
 
 	def notify(self, path, args):
-		out = '<kunquat>'
-		for a in args:
-			out = out + ' ' + str(a)
+		out = '<kunquat> ' + ' '.join([str(a) for a in args])
 		gobject.idle_add(self.update_history, out)
 
 	def fallback(self, path, args, types):
-		out = '<kunquat> ' + path
-		for a, t in zip(args, types):
-			out = out + ' ' + str(t) + ':' + str(a)
+		out = '<kunquat> ' + path + ' ' + ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
 		gobject.idle_add(self.update_history, out)
 
 	def __init__(self, engine, server):
