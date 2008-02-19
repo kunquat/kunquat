@@ -65,6 +65,7 @@ static Method_desc methods[] =
 	{ "/kunquat/driver_close", "", Listener_driver_close },
 	{ "/kunquat/set_voices", "i", Listener_set_voices },
 	{ "/kunquat/new_song", "", Listener_new_song },
+	{ "/kunquat/get_songs", "", Listener_get_songs },
 	{ "/kunquat/del_song", "i", Listener_del_song },
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },

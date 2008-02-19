@@ -93,6 +93,8 @@ class Kunquat_gtk():
 
 		liblo.send(self.engine, '/kunquat/get_drivers')
 
+		liblo.send(self.engine, '/kunquat/get_songs')
+
 	def main(self):
 		gtk.main()
 

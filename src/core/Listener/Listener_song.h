@@ -45,6 +45,21 @@ int Listener_new_song(const char* path,
 
 
 /**
+ * Gets IDs of all the Songs.
+ *
+ * The response method is <host_path>/songs.
+ *
+ * The response message contains all the Song IDs.
+ */
+int Listener_get_songs(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Destroys a Song. The method takes one argument, the ID number of the Song.
  *
  * The response method is <host_path>/del_song.

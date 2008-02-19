@@ -74,6 +74,44 @@ int Listener_new_song(const char* path,
 }
 
 
+int Listener_get_songs(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	lo_message m = lo_message_new();
+	if (m == NULL)
+	{
+		fprintf(stderr, "Failed to send the response message\n");
+		return 0;
+	}
+	Player* player = l->playlist->first;
+	while (player != NULL)
+	{
+		lo_message_add_int32(m, player->id);
+		player = player->next;
+	}
+	strcpy(l->method_path + l->host_path_len, "songs");
+	int ret = lo_send_message(l->host, l->method_path, m);
+	lo_message_free(m);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Failed to send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
 int Listener_del_song(const char* path,
 		const char* types,
 		lo_arg** argv,

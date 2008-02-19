@@ -71,6 +71,11 @@ int Listener_get_drivers(const char* path,
 	}
 	assert(l->method_path != NULL);
 	lo_message m = lo_message_new();
+	if (m == NULL)
+	{
+		fprintf(stderr, "Failed to send the response message\n");
+		return 0;
+	}
 	for (int i = 0; drivers[i].name != NULL; ++i)
 	{
 		lo_message_add_string(m, drivers[i].name);
