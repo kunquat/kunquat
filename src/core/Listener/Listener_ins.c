@@ -126,8 +126,8 @@ int Listener_new_ins(const char* path,
 {
 	(void)path;
 	(void)types;
+	(void)argc;
 	(void)msg;
-	assert(argc == 3);
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* l = user_data;
@@ -192,8 +192,8 @@ int Listener_ins_set_name(const char* path,
 {
 	(void)path;
 	(void)types;
+	(void)argc;
 	(void)msg;
-	assert(argc == 3);
 	assert(argv != NULL);
 	assert(&argv[2]->s != NULL);
 	assert(user_data != NULL);
@@ -239,8 +239,8 @@ int Listener_del_ins(const char* path,
 {
 	(void)path;
 	(void)types;
+	(void)argc;
 	(void)msg;
-	assert(argc == 2);
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* l = user_data;
