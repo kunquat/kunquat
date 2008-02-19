@@ -43,6 +43,24 @@
 
 
 /**
+ * Gets information on all the Instruments of the given Song.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ *
+ * The response consists of one ins_info method call for each existing
+ * Instrument.
+ */
+int Listener_get_insts(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Creates a new Instrument.
  *
  * The following OSC arguments are expected:

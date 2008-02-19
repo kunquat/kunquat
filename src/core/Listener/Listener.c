@@ -67,6 +67,7 @@ static Method_desc methods[] =
 	{ "/kunquat/new_song", "", Listener_new_song },
 	{ "/kunquat/get_songs", "", Listener_get_songs },
 	{ "/kunquat/del_song", "i", Listener_del_song },
+	{ "/kunquat/get_insts", "i", Listener_get_insts },
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },

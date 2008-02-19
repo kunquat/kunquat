@@ -88,6 +88,11 @@ int Listener_get_songs(const char* path,
 	(void)msg;
 	assert(user_data != NULL);
 	Listener* l = user_data;
+	if (l->host == NULL)
+	{
+		return 0;
+	}
+	assert(l->method_path != NULL);
 	lo_message m = lo_message_new();
 	if (m == NULL)
 	{

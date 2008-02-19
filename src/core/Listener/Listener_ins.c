@@ -69,6 +69,54 @@ static bool ins_info(Listener* l,
 		Instrument* ins);
 
 
+int Listener_get_insts(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* l = user_data;
+	if (l->host == NULL)
+	{
+		return 0;
+	}
+	assert(l->method_path != NULL);
+	int32_t player_id = argv[0]->i;
+	Player* player = l->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(l->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(l->method_path + l->host_path_len, "error");
+		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	Song* song = player->song;
+	Ins_table* table = Song_get_insts(song);
+	for (int i = 1; i < 256; ++i)
+	{
+		Instrument* ins = Ins_table_get(table, i);
+		if (ins != NULL)
+		{
+			if (!ins_info(l, player_id, i, ins))
+			{
+				fprintf(stderr, "Couldn't send the response message\n");
+				return 0;
+			}
+		}
+	}
+	return 0;
+}
+
+
 int Listener_new_ins(const char* path,
 		const char* types,
 		lo_arg** argv,

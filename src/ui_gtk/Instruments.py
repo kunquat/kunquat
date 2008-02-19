@@ -69,4 +69,6 @@ class Instruments(gtk.HBox):
 		self.pack_start(it_scroll)
 		it_scroll.show()
 
+		liblo.send(self.engine, '/kunquat/get_insts', self.song_id)
+
 
