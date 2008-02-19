@@ -234,6 +234,10 @@ Suite* Order_suite(void)
 	suite_add_tcase(s, tc_new);
 	suite_add_tcase(s, tc_set_get);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_set_get, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_set_get, set_get);
 

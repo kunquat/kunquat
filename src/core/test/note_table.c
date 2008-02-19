@@ -4133,6 +4133,30 @@ Suite* Note_table_suite(void)
 	suite_add_tcase(s, tc_retune);
 	suite_add_tcase(s, tc_drift);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_set_name, timeout);
+	tcase_set_timeout(tc_get_name, timeout);
+	tcase_set_timeout(tc_set_ref_pitch, timeout);
+	tcase_set_timeout(tc_get_ref_pitch, timeout);
+	tcase_set_timeout(tc_set_octave_ratio, timeout);
+	tcase_set_timeout(tc_get_octave_ratio, timeout);
+	tcase_set_timeout(tc_set_note, timeout);
+	tcase_set_timeout(tc_ins_note, timeout);
+	tcase_set_timeout(tc_del_note, timeout);
+	tcase_set_timeout(tc_move_note, timeout);
+	tcase_set_timeout(tc_get_note_name, timeout);
+	tcase_set_timeout(tc_get_note_ratio, timeout);
+	tcase_set_timeout(tc_set_note_mod, timeout);
+	tcase_set_timeout(tc_ins_note_mod, timeout);
+	tcase_set_timeout(tc_del_note_mod, timeout);
+	tcase_set_timeout(tc_move_note_mod, timeout);
+	tcase_set_timeout(tc_get_note_mod_name, timeout);
+	tcase_set_timeout(tc_get_note_mod_ratio, timeout);
+	tcase_set_timeout(tc_get_pitch, timeout);
+	tcase_set_timeout(tc_retune, timeout);
+	tcase_set_timeout(tc_drift, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_set_name, set_name);
 	tcase_add_test(tc_get_name, get_name);

@@ -1600,6 +1600,20 @@ Suite* Real_suite(void)
 	suite_add_tcase(s, tc_mul_float);
 	suite_add_tcase(s, tc_cmp);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_init, timeout);
+	tcase_set_timeout(tc_init_as_frac, timeout);
+	tcase_set_timeout(tc_init_as_double, timeout);
+	tcase_set_timeout(tc_is_frac, timeout);
+	tcase_set_timeout(tc_get_numerator, timeout);
+	tcase_set_timeout(tc_get_denominator, timeout);
+	tcase_set_timeout(tc_get_double, timeout);
+	tcase_set_timeout(tc_copy, timeout);
+	tcase_set_timeout(tc_mul, timeout);
+	tcase_set_timeout(tc_div, timeout);
+	tcase_set_timeout(tc_mul_float, timeout);
+	tcase_set_timeout(tc_cmp, timeout);
+
 	tcase_add_test(tc_init, test_init);
 	tcase_add_test(tc_init_as_frac, test_init_as_frac);
 	tcase_add_test(tc_init_as_double, test_init_as_double);

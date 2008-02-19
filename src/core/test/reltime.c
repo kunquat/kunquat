@@ -1389,6 +1389,16 @@ Suite* Reltime_suite(void)
 	suite_add_tcase(s, tc_toframes);
 	suite_add_tcase(s, tc_fromframes);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_init, timeout);
+	tcase_set_timeout(tc_set, timeout);
+	tcase_set_timeout(tc_cmp, timeout);
+	tcase_set_timeout(tc_add, timeout);
+	tcase_set_timeout(tc_sub, timeout);
+	tcase_set_timeout(tc_copy, timeout);
+	tcase_set_timeout(tc_toframes, timeout);
+	tcase_set_timeout(tc_fromframes, timeout);
+
 	tcase_add_test(tc_init, init);
 	tcase_add_test(tc_set, set);
 	tcase_add_test(tc_cmp, cmp);

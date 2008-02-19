@@ -66,6 +66,9 @@ Suite* Voice_state_suite(void)
 	TCase* tc_init = tcase_create("init");
 	suite_add_tcase(s, tc_init);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_init, timeout);
+
 	tcase_add_test(tc_init, init);
 
 #ifndef NDEBUG

@@ -492,6 +492,10 @@ Suite* Instrument_suite(void)
 	suite_add_tcase(s, tc_new);
 	suite_add_tcase(s, tc_mix);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_mix, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_mix, mix);
 

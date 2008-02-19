@@ -61,6 +61,9 @@ Suite* Event_suite(void)
 	TCase* tc_new = tcase_create("new");
 	suite_add_tcase(s, tc_new);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+
 	tcase_add_test(tc_new, new);
 
 #ifndef NDEBUG

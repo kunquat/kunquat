@@ -498,6 +498,13 @@ Suite* Event_queue_suite(void)
 	suite_add_tcase(s, tc_clear);
 	suite_add_tcase(s, tc_resize);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_ins_get, timeout);
+	tcase_set_timeout(tc_peek, timeout);
+	tcase_set_timeout(tc_clear, timeout);
+	tcase_set_timeout(tc_resize, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_ins_get, ins_get);
 	tcase_add_test(tc_peek, peek);

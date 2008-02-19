@@ -662,6 +662,14 @@ Suite* Song_suite(void)
 	suite_add_tcase(s, tc_set_get_global_vol);
 	suite_add_tcase(s, tc_mix);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_set_get_name, timeout);
+	tcase_set_timeout(tc_set_get_tempo, timeout);
+	tcase_set_timeout(tc_set_get_mix_vol, timeout);
+	tcase_set_timeout(tc_set_get_global_vol, timeout);
+	tcase_set_timeout(tc_mix, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_set_get_name, set_get_name);
 	tcase_add_test(tc_set_get_tempo, set_get_tempo);

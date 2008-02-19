@@ -471,6 +471,13 @@ Suite* Column_suite(void)
 	suite_add_tcase(s, tc_clear);
 	suite_add_tcase(s, tc_length);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_ins, timeout);
+	tcase_set_timeout(tc_remove, timeout);
+	tcase_set_timeout(tc_clear, timeout);
+	tcase_set_timeout(tc_length, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_ins, ins);
 	tcase_add_test(tc_remove, col_remove);

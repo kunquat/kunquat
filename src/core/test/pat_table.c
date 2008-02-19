@@ -406,6 +406,12 @@ Suite* Pat_table_suite(void)
 	suite_add_tcase(s, tc_remove);
 	suite_add_tcase(s, tc_clear);
 
+	int timeout = 10;
+	tcase_set_timeout(tc_new, timeout);
+	tcase_set_timeout(tc_set_get, timeout);
+	tcase_set_timeout(tc_remove, timeout);
+	tcase_set_timeout(tc_clear, timeout);
+
 	tcase_add_test(tc_new, new);
 	tcase_add_test(tc_set_get, set_get);
 	tcase_add_test(tc_remove, remove_pat);
