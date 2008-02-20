@@ -42,10 +42,7 @@ class Songs(gtk.Notebook):
 
 	def songs(self, path, args):
 		all_songs = set(args)
-		shown_songs = set()
-		for i in range(self.get_n_pages()):
-			content = self.get_nth_page(i)
-			shown_songs.add(content.song_id)
+		shown_songs = set([self.get_nth_page(i).song_id for i in range(self.get_n_pages())])
 		for id in all_songs - shown_songs:
 			content = Song.Song(self.engine, self.server, id)
 			label = gtk.Label(str(id))
