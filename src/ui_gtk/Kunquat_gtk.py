@@ -55,8 +55,21 @@ class Kunquat_gtk():
 		self.songs = None
 		self.drivers = None
 		self.box = None
+		self.tools = None
+		self.contents = None
 		self.window = None
 		gtk.main_quit()
+
+	def set_drivers_display(self, button, data = None):
+		if button.get_active():
+			self.drivers.show()
+		else:
+			self.drivers.hide()
+
+	def hide_drivers(self, window, event, button):
+		window.hide()
+		button.set_active(False)
+		return True
 
 	def __init__(self, engine_url):
 		self.connect(engine_url)
@@ -72,16 +85,32 @@ class Kunquat_gtk():
 		self.window.connect('delete_event', self.quit)
 		self.window.connect('destroy', self.destroy)
 
+		self.contents = gtk.VBox()
+
+		self.tools = gtk.Toolbar()
+		driver_button = gtk.ToggleToolButton()
+		driver_button.set_label('Drivers')
+		driver_button.connect('toggled', self.set_drivers_display)
+		self.tools.insert(driver_button, 0)
+		driver_button.show()
+		self.drivers.connect('delete_event', self.hide_drivers, driver_button)
+		# Decrease reference count in order to prevent freeze at exit
+		# -- what's the correct way to handle this?
+		driver_button = None
+
 		self.box = gtk.HBox()
 		self.box.pack_start(self.songs)
 		self.songs.show()
 		self.box.pack_start(self.cli)
 		self.cli.show()
-		self.box.pack_end(self.drivers)
-		self.drivers.show()
 
-		self.window.add(self.box)
+		self.contents.pack_start(self.tools, expand = False)
+		self.tools.show()
+		self.contents.pack_end(self.box)
 		self.box.show()
+
+		self.window.add(self.contents)
+		self.contents.show()
 
 		self.window.show()
 
@@ -90,9 +119,7 @@ class Kunquat_gtk():
 				'osc.udp://localhost:' + str(self.s.get_port()) + '/kunquat_gtk/')
 
 		liblo.send(self.engine, '/kunquat/set_voices', 64)
-
 		liblo.send(self.engine, '/kunquat/get_drivers')
-
 		liblo.send(self.engine, '/kunquat/get_songs')
 
 	def main(self):

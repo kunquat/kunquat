@@ -27,7 +27,7 @@ import gobject
 import liblo
 
 
-class Driver_select(gtk.HBox):
+class Driver_select(gtk.Window):
 
 	def set_drivers(self, path, args):
 		self.driver_list.clear()
@@ -80,7 +80,9 @@ class Driver_select(gtk.HBox):
 		self.server.add_method('/kunquat_gtk/active_driver', 'ii', self.active_driver)
 		self.server.add_method('/kunquat_gtk/driver_init', None, self.driver_init)
 
-		gtk.HBox.__init__(self)
+		gtk.Window.__init__(self)
+
+		self.container = gtk.HBox()
 
 		self.driver_list = gtk.ListStore(gobject.TYPE_STRING)
 		self.driver_view = gtk.TreeView(self.driver_list)
@@ -100,11 +102,14 @@ class Driver_select(gtk.HBox):
 		driver_scroll.add(self.driver_view)
 		self.driver_view.show()
 
-		self.pack_start(driver_scroll)
+		self.container.pack_start(driver_scroll)
 		driver_scroll.show()
 
 		self.hz = gtk.Label('0')
-		self.pack_end(self.hz)
+		self.container.pack_end(self.hz)
 		self.hz.show()
+
+		self.add(self.container)
+		self.container.show()
 
 
