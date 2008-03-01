@@ -151,6 +151,17 @@ int Listener_demo(const char* path,
 	{
 		goto cleanup;
 	}
+	Note_table* notes = Song_get_notes(song);
+	Note_table_set_ref_pitch(notes, 528);
+	int nums[] = { 16, 9, 6, 5, 4, 45, 3, 8, 5, 9, 15 };
+	int dens[] = { 15, 8, 5, 4, 3, 32, 2, 5, 3, 5, 8 };
+	for (int i = 1; i <= 11; ++i)
+	{
+		Note_table_set_note(notes, i,
+				Note_table_get_note_name(notes, i),
+				Real_init_as_frac(REAL_AUTO, nums[i - 1], dens[i - 1]));
+	}
+	Note_table_set_name(notes, L"5-limit JI (C major)");
 	Song_set_tempo(song, 110);
 	Song_set_mix_vol(song, 0);
 	Song_set_global_vol(song, 0);
