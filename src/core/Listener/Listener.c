@@ -37,6 +37,7 @@
 #include "Listener_driver.h"
 #include "Listener_song.h"
 #include "Listener_ins.h"
+#include "Listener_demo.h"
 
 #include <xmemory.h>
 
@@ -71,6 +72,7 @@ static Method_desc methods[] =
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
+	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }
 };
@@ -171,7 +173,7 @@ Listener* Listener_init(Listener* l)
 
 	l->driver_id = -1;
 
-	l->voices = NULL;
+	l->voice_count = 64;
 	l->player_cur = NULL;
 	l->freq = 0;
 
@@ -192,43 +194,43 @@ Listener* Listener_init(Listener* l)
 }
 
 
-void Listener_uninit(Listener* l)
+void Listener_uninit(Listener* lr)
 {
-	assert(l != NULL);
+	assert(lr != NULL);
 	// TODO: Close sound driver if needed
-	lo_server_free(l->s);
-	if (l->host != NULL)
+	lo_server_free(lr->s);
+	if (lr->host != NULL)
 	{
-		lo_address_free(l->host);
-		l->host = NULL;
+		lo_address_free(lr->host);
+		lr->host = NULL;
 	}
-	if (l->host_hostname != NULL)
+	if (lr->host_hostname != NULL)
 	{
-		xfree(l->host_hostname);
-		l->host_hostname = NULL;
+		xfree(lr->host_hostname);
+		lr->host_hostname = NULL;
 	}
-	if (l->host_port != NULL)
+	if (lr->host_port != NULL)
 	{
-		xfree(l->host_port);
-		l->host_port = NULL;
+		xfree(lr->host_port);
+		lr->host_port = NULL;
 	}
-	if (l->host_path != NULL)
+	if (lr->host_path != NULL)
 	{
-		xfree(l->host_path);
-		l->host_path = NULL;
+		xfree(lr->host_path);
+		lr->host_path = NULL;
 	}
-	if (l->method_path != NULL)
+	if (lr->method_path != NULL)
 	{
-		xfree(l->method_path);
-		l->method_path = NULL;
+		xfree(lr->method_path);
+		lr->method_path = NULL;
 	}
-	if (l->voices != NULL)
+	del_Playlist(lr->playlist);
+	lr->playlist = NULL;
+/*	if (lr->voices != NULL)
 	{
-		del_Voice_pool(l->voices);
-		l->voices = NULL;
-	}
-	del_Playlist(l->playlist);
-	l->playlist = NULL;
+		del_Voice_pool(lr->voices);
+		lr->voices = NULL;
+	} */
 	return;
 }
 
@@ -389,20 +391,30 @@ int Listener_quit(const char* path,
 		lo_message msg,
 		void* user_data)
 {
-	(void)path;
+/*	(void)path;
 	(void)types;
 	(void)argv;
 	(void)argc;
-	(void)msg;
+	(void)msg; */
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host != NULL)
+	Listener* lr = user_data;
+	Player* player = lr->playlist->first;
+	while (player != NULL)
 	{
-		assert(l->method_path != NULL);
-		strcpy(l->method_path + l->host_path_len, "notify");
-		lo_send(l->host, l->method_path, "s", "Bye");
+		Player_set_state(player, STOP);
+		player = player->next;
 	}
-	l->done = true;
+	if (lr->driver_id >= 0)
+	{
+		Listener_driver_close(path, types, argv, argc, msg, lr);
+	}
+	if (lr->host != NULL)
+	{
+		assert(lr->method_path != NULL);
+		strcpy(lr->method_path + lr->host_path_len, "notify");
+		lo_send(lr->host, lr->method_path, "s", "Bye");
+	}
+	lr->done = true;
 	return 0;
 }
 
@@ -482,24 +494,41 @@ int Listener_set_voices(const char* path,
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
+	assert(lr->method_path != NULL);
 	int32_t voices = argv[0]->i;
 	if (voices <= 0 || voices > MAX_VOICES)
 	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host,
-				l->method_path,
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host,
+				lr->method_path,
 				"si",
 				"Invalid number of Voices requested:",
 				voices);
 		return 0;
 	}
-	if (l->voices == NULL)
+	lr->voice_count = (uint16_t)voices;
+	Player* player = lr->playlist->first;
+	int32_t fail_count = 0;
+	while (player != NULL)
+	{
+		if (!Voice_pool_resize(player->voices, voices))
+		{
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host,
+					lr->method_path,
+					"si",
+					"Couldn't allocate memory for Voices of Song",
+					player->id);
+			++fail_count;
+		}
+		player = player->next;
+	}
+/*	if (l->voices == NULL)
 	{
 		l->voices = new_Voice_pool(voices, 32);
 		if (l->voices == NULL)
@@ -523,14 +552,17 @@ int Listener_set_voices(const char* path,
 					"Couldn't allocate memory for Voices");
 		}
 	}
-	voices = Voice_pool_get_size(l->voices);
-	strcpy(l->method_path + l->host_path_len, "notify");
-	int ret = lo_send(l->host, l->method_path, "sis",
-			"Allocated", (int32_t)voices, "Voices");
-	if (ret == -1)
+	voices = Voice_pool_get_size(l->voices); */
+	if (fail_count == 0)
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
+		strcpy(lr->method_path + lr->host_path_len, "notify");
+		int ret = lo_send(lr->host, lr->method_path, "sis",
+				"Allocated", (int32_t)voices, "Voices");
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
 	}
 	return 0;
 }

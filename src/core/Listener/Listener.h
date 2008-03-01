@@ -38,8 +38,6 @@
 
 #define METHOD_NAME_MAX (32)
 
-#define MAX_VOICES (1024)
-
 
 typedef enum
 {
@@ -74,7 +72,9 @@ typedef struct Listener
 	int driver_id;
 
 	/// The Voice pool used for mixing.
-	Voice_pool* voices;
+	//Voice_pool* voices;
+	/// Number of Voices.
+	uint16_t voice_count;
 	/// Playback state information.
 	Playlist* playlist;
 	/// Player currently in use.

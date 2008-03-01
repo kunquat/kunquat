@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "Instrument.h"
 #include "Instrument_debug.h"
@@ -140,7 +141,7 @@ void Instrument_mix(Instrument* ins,
 {
 	assert(ins != NULL);
 	assert(state != NULL);
-	assert(nframes <= ins->buf_len);
+//	assert(nframes <= ins->buf_len);
 	assert(freq > 0);
 	assert(ins->mix != NULL);
 	if (!state->active)

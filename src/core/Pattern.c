@@ -65,6 +65,16 @@ Pattern* new_Pattern(void)
 }
 
 
+void Pattern_set_length(Pattern* pat, Reltime* length)
+{
+	assert(pat != NULL);
+	assert(length != NULL);
+	assert(length->beats >= 0);
+	Reltime_copy(&pat->length, length);
+	return;
+}
+
+
 Column* Pattern_col(Pattern* pat, int index)
 {
 	assert(pat != NULL);

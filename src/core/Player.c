@@ -22,31 +22,43 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include "Player.h"
 
 #include <xmemory.h>
 
 
-Player* new_Player(uint32_t freq, Voice_pool* pool, Song* song)
+Player* new_Player(uint32_t freq, uint16_t voices, Song* song)
 {
 	static int32_t id = 0;
 	assert(freq > 0);
-	assert(pool != NULL);
+//	assert(pool != NULL);
+	assert(voices > 0);
+	assert(voices < MAX_VOICES);
 	assert(song != NULL);
 	Player* player = xalloc(Player);
 	if (player == NULL)
 	{
 		return NULL;
 	}
-	player->prev = player->next = NULL;
-	player->song = song;
-	player->play = new_Playdata(freq, pool, Song_get_insts(song));
-	if (player->play == NULL)
+	player->voices = new_Voice_pool(voices, 32); // TODO: event count
+	if (player->voices == NULL)
 	{
 		xfree(player);
 		return NULL;
 	}
+	player->prev = player->next = NULL;
+	player->song = song;
+	player->play = new_Playdata(freq, player->voices, Song_get_insts(song));
+	if (player->play == NULL)
+	{
+		del_Voice_pool(player->voices);
+		xfree(player);
+		return NULL;
+	}
+	player->play->order = Song_get_order(song);
+	player->play->events = Song_get_events(song);
 	player->id = id++;
 	return player;
 }
@@ -78,14 +90,11 @@ void Player_set_state(Player* player, Play_mode mode)
 	assert(player != NULL);
 	assert(mode < PLAY_LAST);
 	player->play->mode = mode;
-	if (!player->play->mode)
-	{
-		player->play->tempo = Song_get_tempo(player->song);
-		player->play->order = 0;
-		Reltime_init(&player->play->play_time);
-		Reltime_init(&player->play->pos);
-		player->play->play_frames = 0;
-	}
+	player->play->tempo = Song_get_tempo(player->song);
+	player->play->order_index = 0;
+	Reltime_init(&player->play->play_time);
+	Reltime_init(&player->play->pos);
+	player->play->play_frames = 0;
 	return;
 }
 
@@ -94,6 +103,7 @@ void del_Player(Player* player)
 {
 	assert(player != NULL);
 	del_Playdata(player->play);
+	del_Voice_pool(player->voices);
 	if (player->song != NULL)
 	{
 		del_Song(player->song);

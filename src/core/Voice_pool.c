@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdbool.h>
 
 #include "Voice_pool.h"
@@ -227,6 +228,7 @@ void del_Voice_pool(Voice_pool* pool)
 	for (uint16_t i = 0; i < pool->size; ++i)
 	{
 		del_Voice(pool->voices[i]);
+		pool->voices[i] = NULL;
 	}
 	xfree(pool->voices);
 	xfree(pool);

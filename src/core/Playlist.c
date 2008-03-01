@@ -97,6 +97,7 @@ void del_Playlist(Playlist* playlist)
 {
 	assert(playlist != NULL);
 	Player* target = playlist->first;
+	playlist->first = NULL;
 	while (target != NULL)
 	{
 		Player* next = target->next;

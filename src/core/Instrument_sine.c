@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdint.h>
 #include <math.h>
 
@@ -39,20 +40,24 @@ void Instrument_sine_mix(Instrument* ins,
 {
 	assert(ins != NULL);
 	assert(state != NULL);
-	assert(nframes <= ins->buf_len);
+//	assert(nframes <= ins->buf_len);
 	assert(freq > 0);
+	assert(ins->bufs[0] != NULL);
+	assert(ins->bufs[1] != NULL);
 	if (!state->active)
 	{
 		return;
 	}
+	double max_amp = 0;
+//	fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
 	for (uint32_t i = offset; i < nframes; ++i)
 	{
 		double val_l = 0;
 		double val_r = 0;
-		val_l = val_r = sin(state->rel_pos_part) / 3;
+		val_l = val_r = sin(state->rel_pos_part) / 6;
 		if (!state->note_on)
 		{
-			val_l = val_r = (val_l / 2) * (1 - state->noff_pos_part);
+			val_l = val_r = (val_l / 3) * (1 - state->noff_pos_part);
 		}
 		state->rel_pos_part += state->freq * PI_2 / freq;
 		if (state->rel_pos_part >= PI_2)
@@ -61,6 +66,10 @@ void Instrument_sine_mix(Instrument* ins,
 		}
 		ins->bufs[0][i] += val_l;
 		ins->bufs[1][i] += val_r;
+		if (fabs(val_l) > max_amp)
+		{
+			max_amp = fabs(val_l);
+		}
 		if (!state->note_on)
 		{
 			state->noff_pos_part += 1.0 / freq;
@@ -71,6 +80,7 @@ void Instrument_sine_mix(Instrument* ins,
 			}
 		}
 	}
+//	fprintf(stderr, "max_amp is %lf\n", max_amp);
 	return;
 }
 

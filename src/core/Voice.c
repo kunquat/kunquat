@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdint.h>
 
 #include "Voice.h"
@@ -84,6 +85,8 @@ void Voice_reset(Voice* voice)
 	assert(voice != NULL);
 	voice->prio = VOICE_PRIO_INACTIVE;
 	Event_queue_clear(voice->events);
+	voice->ins = NULL;
+	Voice_state_init(&voice->state);
 	return;
 }
 

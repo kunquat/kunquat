@@ -31,11 +31,15 @@
 #include <Voice_pool.h>
 
 
+#define MAX_VOICES (1024)
+
+
 typedef struct Player
 {
 	Song* song;
 	Playdata* play;
 	int32_t id;
+	Voice_pool* voices;
 	struct Player* prev;
 	struct Player* next;
 } Player;
@@ -44,14 +48,15 @@ typedef struct Player
 /**
  * Creates a new Player.
  *
- * \param freq   The mixing frequency -- must be > \c 0.
- * \param pool   The Voice pool -- must not be \c NULL.
- * \param song   The Song -- must not be \c NULL.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * // \param pool   The Voice pool -- must not be \c NULL.
+ * \param voices   The number of Voices -- must be > \c 0 and < \c MAX_VOICES.
+ * \param song     The Song -- must not be \c NULL.
  *
  * \return   The new Player if successful, or \c NULL if memory allocation
  *           failed.
  */
-Player* new_Player(uint32_t freq, Voice_pool* pool, Song* song);
+Player* new_Player(uint32_t freq, uint16_t voices, Song* song);
 
 
 /**

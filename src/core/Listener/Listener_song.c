@@ -48,7 +48,7 @@ int Listener_new_song(const char* path,
 	Song* song = new_Song(2, 128, 16); // TODO: get params from relevant parts of the Listener
 	if (song != NULL)
 	{
-		player = new_Player(1, l->voices, song); // TODO: freq
+		player = new_Player(l->freq, l->voice_count, song); // TODO: freq
 	}
 	if (player == NULL)
 	{

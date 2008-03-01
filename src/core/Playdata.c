@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <Voice_pool.h>
@@ -131,6 +132,7 @@ void del_Playdata(Playdata* play)
 {
 	int i = 0;
 	assert(play != NULL);
+	Voice_pool_reset(play->voice_pool);
 	for (i = 0; i < PAT_CHANNELS; ++i)
 	{
 		assert(play->channels[i] != NULL);

@@ -53,6 +53,16 @@ Pattern* new_Pattern(void);
 
 
 /**
+ * Sets the length of the Pattern. No notes will be deleted.
+ *
+ * \param pat      The Pattern -- must not be \c NULL.
+ * \param length   The new length -- must not be \c NULL and must be
+ *                 non-negative.
+ */
+void Pattern_set_length(Pattern* pat, Reltime* length);
+
+
+/**
  * Returns a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.

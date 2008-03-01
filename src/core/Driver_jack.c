@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -215,6 +216,10 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	Player* player = playlist->first;
 	jack_default_audio_sample_t* jbuf_l = jack_port_get_buffer(ports[0], nframes);
 	jack_default_audio_sample_t* jbuf_r = jack_port_get_buffer(ports[1], nframes);
+	for (uint32_t i = 0; i < nframes; ++i)
+	{
+		jbuf_l[i] = jbuf_r[i] = 0;
+	}
 	while (player != NULL)
 	{
 		if (!player->play->mode)
