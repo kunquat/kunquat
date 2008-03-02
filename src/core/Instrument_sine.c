@@ -55,6 +55,11 @@ void Instrument_sine_mix(Instrument* ins,
 		double val_l = 0;
 		double val_r = 0;
 		val_l = val_r = sin(state->rel_pos_part) / 6;
+		if (state->pos_part < 0.002)
+		{
+			val_l = val_r = val_l * (state->pos_part * 500);
+			state->pos_part += 1.0 / freq;
+		}
 		if (!state->note_on)
 		{
 			if (state->noff_pos_part < 0.002)
