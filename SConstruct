@@ -110,10 +110,14 @@ if not env.GetOption('clean'):
 	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
 		audio_found = True
 		conf.env.Append(CCFLAGS = '-DENABLE_JACK')
+	else:
+		env['enable_jack'] = False
 
 	if env['enable_alsa'] and conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
 		audio_found = True
 		conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
+	else:
+		env['enable_alsa'] = False
 	
 	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
 		print 'Building of unit tests requires Check.'
