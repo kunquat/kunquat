@@ -105,6 +105,7 @@ if not env.GetOption('clean'):
 
 	if not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
 		print 'liblo not found.'
+		Exit(1)
 
 	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
 		audio_found = True
