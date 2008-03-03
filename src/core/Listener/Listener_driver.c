@@ -24,12 +24,16 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
 
 #include <Playlist.h>
 
 #include "Listener.h"
 #include "Listener_driver.h"
 
+#ifdef ENABLE_ALSA
+#include <Driver_alsa.h>
+#endif
 #ifdef ENABLE_JACK
 #include <Driver_jack.h>
 #endif
@@ -44,6 +48,9 @@ typedef struct Driver_info
 
 static Driver_info drivers[] =
 {
+#ifdef ENABLE_ALSA
+	{ "ALSA", Driver_alsa_init, Driver_alsa_close },
+#endif
 #ifdef ENABLE_JACK
 	{ "JACK", Driver_jack_init, Driver_jack_close },
 #endif
@@ -224,6 +231,7 @@ int Listener_driver_close(const char* path,
 		fprintf(stderr, "Failed to send the response message\n");
 		return 0;
 	}
+	sleep(1); // Used to prevent another driver for initialising too early.
 	return 0;
 }
 

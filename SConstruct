@@ -29,7 +29,8 @@ opts.AddOptions(
 	BoolOption('debug', 'Build in debug mode.', True),
 	BoolOption('tests', 'Build and run tests.', True),
 	('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
-	BoolOption('enable_jack', 'Enable JACK driver.', True)
+	BoolOption('enable_jack', 'Enable JACK driver.', True),
+	BoolOption('enable_alsa', 'Enable ALSA driver.', True)
 )
 
 
@@ -108,6 +109,10 @@ if not env.GetOption('clean'):
 	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
 		audio_found = True
 		conf.env.Append(CCFLAGS = '-DENABLE_JACK')
+
+	if env['enable_alsa'] and conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
+		audio_found = True
+		conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
 	
 	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
 		print 'Building of unit tests requires Check.'

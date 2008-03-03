@@ -55,8 +55,13 @@ files = [
 	'Playdata.c',
 	'Player.c',
 	'Playlist.c',
-	'Driver_jack.c',
 ]
+
+if env['enable_jack']:
+	files += ['Driver_jack.c']
+
+if env['enable_alsa']:
+	files += ['Driver_alsa.c']
 
 env.StaticLibrary('core', files)
 
