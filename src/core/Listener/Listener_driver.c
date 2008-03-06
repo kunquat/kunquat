@@ -168,7 +168,7 @@ int Listener_driver_init(const char* path,
 	{
 		drivers[l->driver_id].close();
 	}
-	l->freq = 0;
+	l->freq = 1;
 	if (!drivers[driver_id].init(l->playlist, &l->freq))
 	{
 		strcpy(l->method_path + l->host_path_len, "driver_init");

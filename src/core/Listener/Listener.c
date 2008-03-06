@@ -175,7 +175,7 @@ Listener* Listener_init(Listener* l)
 
 	l->voice_count = 64;
 	l->player_cur = NULL;
-	l->freq = 0;
+	l->freq = 1;
 
 	for (int i = 0; methods[i].handler != NULL; ++i)
 	{
