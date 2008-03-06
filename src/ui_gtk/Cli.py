@@ -42,8 +42,8 @@ class Cli(gtk.VBox):
 		self.history.scroll_to_mark(mark, 0)
 		buf.delete_mark(mark)
 
-	def cmd_entry(self, widget, entry):
-		text = entry.get_text()
+	def cmd_entry(self, widget):
+		text = widget.get_text()
 		if text == '':
 			return
 		self.update_history(text)
@@ -54,7 +54,7 @@ class Cli(gtk.VBox):
 				arg = int(arg)
 			msg.add(arg)
 		liblo.send(self.engine, msg)
-		entry.set_text('')
+		widget.set_text('')
 
 	def notify(self, path, args):
 		out = '<kunquat> ' + ' '.join([str(a) for a in args])
@@ -83,7 +83,7 @@ class Cli(gtk.VBox):
 		self.history.show()
 
 		cmd = gtk.Entry()
-		cmd.connect('activate', self.cmd_entry, cmd)
+		cmd.connect('activate', self.cmd_entry)
 
 		self.pack_start(hist_scroll)
 		hist_scroll.show()
