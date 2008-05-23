@@ -26,17 +26,16 @@ import gobject
 
 import liblo
 
-import Instruments
-import Pattern
+from Pat_view import Pat_view
 
 
-class Song(gtk.VBox):
-
-	def ins_info(self, path, args, types):
-		self.instruments.ins_info(path, args, types)
+class Pattern(gtk.VBox):
 
 	def event_info(self, path, args, types):
-		self.pattern.event_info(path, args, types)
+		pass # TODO
+
+	def event_entry(self, widget):
+		print('ch: %d, pos: %d' % (widget.channel, widget.pos))
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
@@ -45,13 +44,26 @@ class Song(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
-		self.instruments = Instruments.Instruments(engine, server, song_id)
-		self.pattern = Pattern.Pattern(engine, server, song_id)
+		"""
+		self.pat_view = gtk.Table(64, 4, True)
+		for i in range(64):
+			for j in range(4):
+				field = gtk.Entry()
+				field.channel = j
+				field.pos = i
+				field.connect('activate', self.event_entry)
+				self.pat_view.attach(field, j, j + 1, i, i + 1)
+				field.show()
+		"""
+		self.pat_view = Pat_view(engine, server, song_id)
+		self.pack_end(self.pat_view)
+		self.pat_view.show()
+		#pat_scroll = gtk.ScrolledWindow()
+		#pat_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+		#pat_scroll.add_with_viewport(self.pat_view)
+		#self.pat_view.show()
 
-		self.pack_start(self.instruments)
-		self.instruments.show()
-
-		self.pack_end(self.pattern)
-		self.pattern.show()
+		#self.pack_end(pat_scroll)
+		#pat_scroll.show()
 
 

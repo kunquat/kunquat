@@ -172,20 +172,52 @@ bool Column_ins(Column* col, Event* event)
 }
 
 
+static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback);
+
+
 Event* Column_get(Column* col, const Reltime* pos)
 {
 	assert(col != NULL);
 	assert(pos != NULL);
-	Event* ret = NULL;
+	AAnode* found = Column_get_node(col, pos, true);
+	assert(found != NULL);
+	assert(found->level != 0 || found->event == NULL);
+	return found->event;
+}
+
+
+Event* Column_get_edit(Column* col, const Reltime* pos)
+{
+	assert(col != NULL);
+	assert(pos != NULL);
+	AAnode* found = Column_get_node(col, pos, false);
+	assert(found != NULL);
+	assert(found->level != 0 || found->event == NULL);
+	return found->event;
+}
+
+
+static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback)
+{
+	assert(col != NULL);
+	assert(pos != NULL);
+//	Event* ret = NULL;
+	AAnode* ret = col->events.nil;
 	AAnode* cur = col->events.root;
 	aavalidate(cur, "get");
+	AAnode** last = &col->last;
+	if (!playback)
+	{
+		last = &col->last_from_host;
+	}
 	while (cur->level > 0)
 	{
 		int diff = Reltime_cmp(pos, Event_pos(cur->event));
 		if (diff < 0)
 		{
-			ret = cur->event;
-			col->last = cur;
+//			ret = cur->event;
+			ret = cur;
+			*last = cur;
 			cur = cur->left;
 		}
 		else if (diff > 0)
@@ -196,8 +228,9 @@ Event* Column_get(Column* col, const Reltime* pos)
 		{
 			while (cur->level != 0 && Reltime_cmp(pos, Event_pos(cur->event)) == 0)
 			{
-				ret = cur->event;
-				col->last = cur;
+//				ret = cur->event;
+				ret = cur;
+				*last = cur;
 				cur = aapred(cur);
 			}
 			cur = col->events.nil;
@@ -213,6 +246,58 @@ Event* Column_get_next(Column* col)
 	assert(col->last != NULL);
 	col->last = aasucc(col->last);
 	return col->last->event;
+}
+
+
+Event* Column_get_next_edit(Column* col)
+{
+	assert(col != NULL);
+	assert(col->last_from_host != NULL);
+	col->last_from_host = aasucc(col->last_from_host);
+	return col->last_from_host->event;
+}
+
+
+bool Column_move(Column* col, Event* event, unsigned int index)
+{
+	assert(col != NULL);
+	assert(event != NULL);
+	Reltime* pos = Event_pos(event);
+	AAnode* target = Column_get_node(col, pos, false);
+	if (target->level <= 0)
+	{
+		assert(target->level == 0);
+		assert(false);
+		return false;
+	}
+	AAnode* iter = target;
+	AAnode* orig = NULL;
+	int idx = (int)index;
+	while (iter->level > 0
+			&& Reltime_cmp(pos, Event_pos(iter->event)) == 0
+			&& (idx >= 0 || orig == NULL))
+	{
+		if (idx >= 0)
+		{
+			target = iter;
+		}
+		if (iter->event == event)
+		{
+			orig = iter;
+		}
+		iter = aasucc(iter);
+		--idx;
+	}
+	assert(orig != NULL);
+	if (target == orig)
+	{
+		return false;
+	}
+	Event* tmp = orig->event;
+	orig->event = target->event;
+	target->event = tmp;
+	aavalidate(col->events.root, "move");
+	return true;
 }
 
 

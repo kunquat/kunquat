@@ -51,6 +51,7 @@ typedef struct Column
 {
 	Reltime len;
 	AAnode* last;
+	AAnode* last_from_host;
 	AAtree events;
 } Column;
 
@@ -106,6 +107,18 @@ Event* Column_get(Column* col, const Reltime* pos);
  * \return   The Event if one exists, otherwise \c NULL.
  */
 Event* Column_get_next(Column* col);
+
+
+/**
+ * Moves an Event inside a row of the Column.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param event   The Event to be moved -- must not be \c NULL.
+ * \param index   The new 0-based index of the Event in the row.
+ *
+ * \return   \c true if the Column changed, otherwise \c false.
+ */
+bool Column_move(Column* col, Event* event, unsigned int index);
 
 
 /**

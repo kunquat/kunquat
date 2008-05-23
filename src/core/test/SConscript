@@ -71,7 +71,7 @@ env_test.AddPostAction(column, column[0].abspath)
 Depends(column, 'reltime')
 Depends(column, 'event')
 
-channel = env_test.Program('channel', ['channel.c'])
+channel = env_test.Program('channel_t', ['channel.c'])
 env_test.AddPostAction(channel, channel[0].abspath)
 Depends(channel, 'column')
 Depends(channel, 'voice_pool')
