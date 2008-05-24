@@ -140,12 +140,6 @@ int Listener_demo(const char* path,
 	{
 		return 0;
 	}
-	if (lr->driver_id == -1)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "No audio driver active");
-		return 0;
-	}
 	Player* player = NULL;
 	Song* song = new_Song(2, 128, 16); // TODO: get params from relevant parts of the Listener
 	if (song == NULL)
@@ -298,7 +292,10 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Playlist_ins(lr->playlist, player);
-	Player_set_state(player, PLAY_SONG);
+	if (lr->driver_id != -1)
+	{
+		Player_set_state(player, PLAY_SONG);
+	}
 	strcpy(lr->method_path + lr->host_path_len, "new_song");
 	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
 	if (ret == -1)
