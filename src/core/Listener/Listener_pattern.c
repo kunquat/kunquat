@@ -52,6 +52,116 @@ static bool event_info(Listener* lr,
 		Event* event);
 
 
+int Listener_get_pattern(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	int32_t pat_num = argv[1]->i;
+	if (pat_num < 0 || pat_num >= PATTERNS_MAX)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
+		return 0;
+	}
+	Song* song = player->song;
+	Pat_table* table = Song_get_pats(song);
+	Pattern* pat = Pat_table_get(table, pat_num);
+	if (pat != NULL)
+	{
+		Reltime* pat_len = Pattern_get_length(pat);
+		strcpy(lr->method_path + lr->host_path_len, "pat_info");
+		int ret = lo_send(lr->host, lr->method_path, "iihi",
+				player->id,
+				pat_num,
+				pat_len->beats,
+				pat_len->part);
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+		for (int i = -1; i < 64; ++i)
+		{
+			Column* col = Pattern_global(pat);
+			if (i > -1)
+			{
+				col = Pattern_col(pat, i);
+			}
+			Event* event = Column_get(col, Reltime_init(RELTIME_AUTO));
+			int index = 0;
+			Reltime* prev_time = Reltime_set(RELTIME_AUTO, INT64_MIN, 0);
+			Reltime* time = RELTIME_AUTO;
+			while (event != NULL)
+			{
+				Reltime_copy(time, Event_pos(event));
+				if (Reltime_cmp(prev_time, time) == 0)
+				{
+					++index;
+				}
+				else
+				{
+					index = 0;
+				}
+				Reltime_copy(prev_time, time);
+				if (!event_info(lr, player_id, pat_num, i + 1, index, event))
+				{
+					fprintf(stderr, "Couldn't send the response message\n");
+					return 0;
+				}
+				event = Column_get_next(col);
+			}
+		}
+	}
+	else
+	{
+		strcpy(lr->method_path + lr->host_path_len, "pat_info");
+		int ret = lo_send(lr->host, lr->method_path, "iihi",
+				player->id,
+				pat_num,
+				(int64_t)16, (int32_t)0);
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+	}
+	strcpy(lr->method_path + lr->host_path_len, "events_sent");
+	int ret = lo_send(lr->host, lr->method_path, "ii", player->id, pat_num);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
 int Listener_get_pats(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -84,7 +194,7 @@ int Listener_get_pats(const char* path,
 	}
 	Song* song = player->song;
 	Pat_table* table = Song_get_pats(song);
-	for (int i = 0; i < 256; ++i)
+	for (int i = 0; i < PATTERNS_MAX; ++i)
 	{
 		Pattern* pat = Pat_table_get(table, i);
 		if (pat == NULL)

@@ -38,6 +38,8 @@
 
 #define BUF_COUNT_MAX (2)
 
+#define PATTERNS_MAX (1024)
+
 
 typedef struct Song
 {

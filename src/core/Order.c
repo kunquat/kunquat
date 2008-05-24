@@ -41,7 +41,7 @@ static Subsong* new_Subsong(void);
  * Sets the pattern for the specified Subsong position.
  *
  * \param subsong   The Subsong -- must not be \c NULL.
- * \param index     The index -- must be >= \c 0 and < \c PATTERNS_MAX.
+ * \param index     The index -- must be >= \c 0 and < \c ORDERS_MAX.
  * \param pat       The pattern number -- must be >= \c 0 or ORDER_NONE.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -53,7 +53,7 @@ static bool Subsong_set(Subsong* ss, int index, int16_t pat);
  * Gets the pattern from the specified Subsong position.
  *
  * \param subsong   The Subsong -- must not be \c NULL.
- * \param index     The index -- must be >= \c 0 and < \c PATTERNS_MAX.
+ * \param index     The index -- must be >= \c 0 and < \c ORDERS_MAX.
  *
  * \return   The pattern number if one exists, otherwise ORDER_NONE.
  */
@@ -97,7 +97,7 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 {
 	assert(order != NULL);
 	assert(subsong < SUBSONGS_MAX);
-	assert(index < PATTERNS_MAX);
+	assert(index < ORDERS_MAX);
 	assert(pat >= 0 || pat == ORDER_NONE);
 	bool ss_is_new = false;
 	Subsong* ss = Etable_get(order->subs, subsong);
@@ -131,7 +131,7 @@ int64_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 {
 	assert(order != NULL);
 	assert(subsong < SUBSONGS_MAX);
-	assert(index < PATTERNS_MAX);
+	assert(index < ORDERS_MAX);
 	Subsong* ss = Etable_get(order->subs, subsong);
 	if (ss == NULL)
 	{
@@ -176,7 +176,7 @@ static bool Subsong_set(Subsong* ss, int index, int16_t pat)
 {
 	assert(ss != NULL);
 	assert(index >= 0);
-	assert(index < PATTERNS_MAX);
+	assert(index < ORDERS_MAX);
 	assert(pat >= 0 || pat == ORDER_NONE);
 	if (index >= ss->res)
 	{
@@ -206,7 +206,7 @@ static int16_t Subsong_get(Subsong* ss, int index)
 {
 	assert(ss != NULL);
 	assert(index >= 0);
-	assert(index < PATTERNS_MAX);
+	assert(index < ORDERS_MAX);
 	if (index >= ss->res)
 	{
 		return ORDER_NONE;

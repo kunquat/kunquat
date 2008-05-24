@@ -41,6 +41,25 @@
 
 
 /**
+ * Gets information on one Pattern of the given Song.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ *
+ * The response consists of one call of <host_path>/pat_info, zero or more
+ * <host_path>/event_info calls and one <host_path>/events_sent call.
+ */
+int Listener_get_pattern(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Gets information on all the Patterns of the given Song.
  *
  * The following OSC arguments are expected:

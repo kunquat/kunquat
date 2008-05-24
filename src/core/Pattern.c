@@ -75,6 +75,13 @@ void Pattern_set_length(Pattern* pat, Reltime* length)
 }
 
 
+Reltime* Pattern_get_length(Pattern* pat)
+{
+	assert(pat != NULL);
+	return &pat->length;
+}
+
+
 Column* Pattern_col(Pattern* pat, int index)
 {
 	assert(pat != NULL);
@@ -149,7 +156,7 @@ uint32_t Pattern_mix(Pattern* pat,
 				break;
 			}
 			++play->order_index;
-			if (play->order_index >= PATTERNS_MAX)
+			if (play->order_index >= ORDERS_MAX)
 			{
 				play->order_index = 0;
 				play->pattern = -1;

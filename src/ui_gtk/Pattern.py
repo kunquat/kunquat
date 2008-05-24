@@ -31,8 +31,14 @@ from Pat_view import Pat_view
 
 class Pattern(gtk.VBox):
 
+	def pat_info(self, path, args, types):
+		self.pat_view.pat_info(path, args, types)
+
 	def event_info(self, path, args, types):
 		self.pat_view.event_info(path, args, types)
+
+	def events_sent(self, path, args, types):
+		self.pat_view.events_sent(path, args, types)
 
 	def event_entry(self, widget):
 		print('ch: %d, pos: %d' % (widget.channel, widget.pos))
@@ -65,5 +71,7 @@ class Pattern(gtk.VBox):
 
 		#self.pack_end(pat_scroll)
 		#pat_scroll.show()
+
+		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
 
 

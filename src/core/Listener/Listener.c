@@ -37,6 +37,7 @@
 #include "Listener_driver.h"
 #include "Listener_song.h"
 #include "Listener_ins.h"
+#include "Listener_pattern.h"
 #include "Listener_demo.h"
 
 #include <xmemory.h>
@@ -72,6 +73,7 @@ static Method_desc methods[] =
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
+	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }

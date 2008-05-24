@@ -35,8 +35,14 @@ class Song(gtk.VBox):
 	def ins_info(self, path, args, types):
 		self.instruments.ins_info(path, args, types)
 
+	def pat_info(self, path, args, types):
+		self.pattern.pat_info(path, args, types)
+
 	def event_info(self, path, args, types):
 		self.pattern.event_info(path, args, types)
+
+	def events_sent(self, path, args, types):
+		self.pattern.events_sent(path, args, types)
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine

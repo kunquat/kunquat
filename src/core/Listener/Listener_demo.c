@@ -129,11 +129,11 @@ int Listener_demo(const char* path,
 		lo_message msg,
 		void* user_data)
 {
-//	(void)path;
-//	(void)types;
+	(void)path;
+	(void)types;
 	(void)argv;
 	(void)argc;
-//	(void)msg;
+	(void)msg;
 	assert(user_data != NULL);
 	Listener* lr = user_data;
 	if (lr->host == NULL)
@@ -303,10 +303,12 @@ int Listener_demo(const char* path,
 		fprintf(stderr, "Failed to send the response message\n");
 		return 0;
 	}
+#if 0
 	lo_arg song_id;
 	song_id.i = player->id;
 	lo_arg* song_id_p = &song_id;
 	Listener_get_pats(path, types, &song_id_p, 1, msg, user_data);
+#endif
 	return 0;
 
 cleanup:
