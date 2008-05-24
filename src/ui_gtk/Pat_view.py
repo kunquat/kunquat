@@ -106,7 +106,7 @@ class Pat_view(gtk.Widget):
 		self.draw(cr, *self.window.get_size())
 
 	def draw(self, cr, width, height):
-		cr.set_source_rgb(0, 0, 0)
+		cr.set_source_rgb(*self.ptheme['Background colour'])
 		cr.rectangle(0, 0, width, height)
 		cr.fill()
 		cr.set_line_width(1)
@@ -140,7 +140,7 @@ class Pat_view(gtk.Widget):
 					0, height)
 
 	def draw_ruler(self, cr, height, start, end):
-		cr.set_source_rgb(0.6, 0.6, 0.6)
+		cr.set_source_rgb(*self.ptheme['Ruler fg colour'])
 		for beat in range(start[0], end[0] + 1):
 			if not start <= (beat, 0) <= end:
 				continue
@@ -156,18 +156,17 @@ class Pat_view(gtk.Widget):
 			cr.move_to(self.ruler_width - rw, distance)
 			cr.update_layout(pl)
 			cr.show_layout(pl)
-		cr.set_source_rgb(0.6, 0.6, 0.6)
+		cr.set_source_rgb(*self.ptheme['Border colour'])
 		cr.move_to(self.ruler_width - 0.5, 0)
 		cr.rel_line_to(0, height)
 		cr.stroke()
 
 	def draw_column(self, cr, num, x, y, height):
-		# header and right border
-		cr.set_source_rgb(0, 0.3, 0)
+		cr.set_source_rgb(*self.ptheme['Column header bg colour'])
 		cr.rectangle(x, y, self.col_width, self.col_font_size)
 		cr.fill()
 
-		cr.set_source_rgb(0.8, 0.8, 0.8)
+		cr.set_source_rgb(*self.ptheme['Column header fg colour'])
 		pl = self.create_pango_layout('%02d' % num)
 		pl.set_font_description(self.col_font)
 		cw, ch = pl.get_size()
@@ -177,7 +176,7 @@ class Pat_view(gtk.Widget):
 		cr.update_layout(pl)
 		cr.show_layout(pl)
 
-		cr.set_source_rgb(0.6, 0.6, 0.6)
+		cr.set_source_rgb(*self.ptheme['Border colour'])
 		cr.move_to(x + self.col_width - 0.5, 0)
 		cr.rel_line_to(0, height)
 		cr.stroke()
@@ -199,14 +198,27 @@ class Pat_view(gtk.Widget):
 		self.server = server
 		self.song_id = song_id
 
-		self.ruler_font = pango.FontDescription('Sans 10')
+		self.ptheme = {
+				'Ruler font': 'Sans 10',
+				'Column font': 'Sans 10',
+				'Column width': 7,
+				'Beat height': 64,
+				'Background colour': (0, 0, 0),
+				'Border colour': (0.6, 0.6, 0.6),
+				'Ruler bg colour': (0, 0.1, 0.3),
+				'Ruler fg colour': (0.7, 0.7, 0.7),
+				'Column header bg colour': (0, 0.3, 0),
+				'Column header fg colour': (0.8, 0.8, 0.8),
+				}
+
+		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
 		self.ruler_font_size = self.ruler_font.get_size() // pango.SCALE
 		self.ruler_width = self.ruler_font_size * 4
-		self.col_width = 100
-		self.col_font = pango.FontDescription('Sans 10')
-		self.col_font_size = (self.col_font.get_size() * 1.6) // pango.SCALE
+		self.col_font = pango.FontDescription(self.ptheme['Column font'])
+		self.col_font_size = int(self.col_font.get_size() * 1.6) // pango.SCALE
+		self.col_width = self.ptheme['Column width'] * self.col_font_size
 
-		self.pixels_per_beat = 64
+		self.pixels_per_beat = self.ptheme['Beat height']
 		# position format is ((beat, part), channel)
 		self.view_corner = ((0, 0), 0)
 		self.cursor = ((0, 0), 0)
