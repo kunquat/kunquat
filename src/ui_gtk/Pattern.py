@@ -32,7 +32,7 @@ from Pat_view import Pat_view
 class Pattern(gtk.VBox):
 
 	def event_info(self, path, args, types):
-		pass # TODO
+		self.pat_view.event_info(path, args, types)
 
 	def event_entry(self, widget):
 		print('ch: %d, pos: %d' % (widget.channel, widget.pos))
