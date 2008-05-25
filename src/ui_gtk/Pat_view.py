@@ -103,6 +103,8 @@ class Pat_view(gtk.Widget):
 				else:
 					self.tmove = 16
 				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+				if ctime == self.cursor[0][:2]:
+					ctime = time_add(ctime, (0, 1))
 				self.cursor = (ctime + (0,), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Up':
@@ -117,6 +119,8 @@ class Pat_view(gtk.Widget):
 				else:
 					self.tmove = -16
 				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+				if ctime == self.cursor[0][:2]:
+					ctime = time_sub(ctime, (0, 1))
 				self.cursor = (ctime + (0,), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Tab':
@@ -295,7 +299,7 @@ class Pat_view(gtk.Widget):
 			return
 		cr.set_source_rgb(*self.ptheme['Ruler bg colour'])
 		cr.rectangle(0, self.col_font_size + max(-self.time_px(start), 0),
-				self.ruler_width, self.time_px(end))
+				self.ruler_width, min(self.time_px(end), height - self.col_font_size))
 		cr.fill()
 		cr.set_source_rgb(*self.ptheme['Ruler fg colour'])
 		for beat in range(max(start[0], 0), end[0] + 1):
