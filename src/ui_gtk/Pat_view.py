@@ -92,25 +92,33 @@ class Pat_view(gtk.Widget):
 		if self.pdata == None:
 			return True
 		if key_name == 'Down':
-			if self.tmove <= 0:
-				self.tmove = 0.8
-			elif self.tmove < 16:
-				self.tmove *= 1.3
+			if event.state & gdk.CONTROL_MASK:
+				self.zoom(1.0/1.5)
+				self.queue_draw()
 			else:
-				self.tmove = 16
-			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
-			self.cursor = (ctime + (0,), self.cursor[1])
-			self.queue_draw()
+				if self.tmove <= 0:
+					self.tmove = 0.8
+				elif self.tmove < 16:
+					self.tmove *= 1.3
+				else:
+					self.tmove = 16
+				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+				self.cursor = (ctime + (0,), self.cursor[1])
+				self.queue_draw()
 		elif key_name == 'Up':
-			if self.tmove >= 0:
-				self.tmove = -0.8
-			elif self.tmove > -16:
-				self.tmove *= 1.3
+			if event.state & gdk.CONTROL_MASK:
+				self.zoom(1.5)
+				self.queue_draw()
 			else:
-				self.tmove = -16
-			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
-			self.cursor = (ctime + (0,), self.cursor[1])
-			self.queue_draw()
+				if self.tmove >= 0:
+					self.tmove = -0.8
+				elif self.tmove > -16:
+					self.tmove *= 1.3
+				else:
+					self.tmove = -16
+				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+				self.cursor = (ctime + (0,), self.cursor[1])
+				self.queue_draw()
 		elif key_name == 'Tab':
 			if self.cursor[1] < COLUMNS:
 				self.cursor = (self.cursor[0], self.cursor[1] + 1)
@@ -133,6 +141,26 @@ class Pat_view(gtk.Widget):
 			print('release %s' % key_name)
 		return True
 
+	def handle_scroll(self, widget, event):
+		if event.direction == gdk.SCROLL_UP:
+			self.zoom(1.5)
+			self.queue_draw()
+		elif event.direction == gdk.SCROLL_DOWN:
+			self.zoom(1.0/1.5)
+			self.queue_draw()
+		return True
+
+	def zoom(self, factor):
+		new_ppb = self.pixels_per_beat * factor
+		if new_ppb < 1:
+			new_ppb = 1
+		elif new_ppb > RELTIME_FULL_PART * 4:
+			new_ppb = RELTIME_FULL_PART * 4
+		cur_loc = self.time_px(time_sub(self.cursor[0][:2], self.view_corner[0]))
+		self.pixels_per_beat = new_ppb
+		new_loc = self.px_time(cur_loc)
+		self.view_corner = (time_sub(self.cursor[0][:2], new_loc), self.view_corner[1])
+
 	def do_realize(self):
 		self.set_flags(self.flags()
 				| gtk.REALIZED
@@ -153,6 +181,7 @@ class Pat_view(gtk.Widget):
 #						| gdk.POINTER_MOTION_MASK
 #						| gdk.POINTER_MOTION_HINT_MASK
 						| gdk.BUTTON_PRESS_MASK
+						| gdk.SCROLL
 						| gdk.FOCUS_CHANGE)
 		self.window.set_user_data(self)
 		self.style.attach(self.window)
@@ -163,6 +192,7 @@ class Pat_view(gtk.Widget):
 		self.connect('focus-in-event', self.handle_focus_in)
 		self.connect('focus-out-event', self.handle_focus_out)
 		self.connect('button-press-event', self.handle_button_press)
+		self.connect('scroll-event', self.handle_scroll)
 #		self.connect('motion-notify-event', self.handle_motion_notify)
 
 	def do_unrealize(self):
@@ -205,7 +235,8 @@ class Pat_view(gtk.Widget):
 		if self.cursor[1] < self.view_corner[1]:
 			self.view_corner = (self.view_corner[0], self.cursor[1])
 		if time_sub(self.cursor[0][:2], self.px_time(self.col_font_size)) < self.view_corner[0]:
-			self.view_corner = (time_sub(self.cursor[0][:2], self.px_time(self.col_font_size)), self.view_corner[1])
+			self.view_corner = (time_sub(self.cursor[0][:2],
+					self.px_time(self.col_font_size)), self.view_corner[1])
 
 		# Calculate space
 		col_space = width - self.ruler_width
@@ -230,9 +261,13 @@ class Pat_view(gtk.Widget):
 			diff = time_sub(beat_last, self.pdata.len)
 			self.view_corner = (time_sub(self.view_corner[0], diff), self.view_corner[1])
 			beat_last = self.pdata.len
-			if self.view_corner[0] < (0, 0):
-				beat_count = time_add(beat_count, self.view_corner[0])
-				self.view_corner = ((0, 0), self.view_corner[1])
+		if self.view_corner[0] < time_sub((0, 0), self.px_time(self.col_font_size)):
+			beat_count = time_add(beat_count,
+					time_sub(self.px_time(self.col_font_size), self.view_corner[0]))
+			self.view_corner = (time_sub((0, 0),
+					self.px_time(self.col_font_size)), self.view_corner[1])
+			if not (self.pdata and beat_last > self.pdata.len):
+				beat_last = min(time_add(self.view_corner[0], beat_count), self.pdata.len)
 		if self.cursor[0][:2] > beat_last:
 			diff = time_sub(self.cursor[0][:2], beat_last)
 			self.view_corner = (time_add(self.view_corner[0], diff), self.view_corner[1])
