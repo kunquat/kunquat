@@ -123,6 +123,13 @@ class Pat_view(gtk.Widget):
 					ctime = time_sub(ctime, (0, 1))
 				self.cursor = (ctime + (0,), self.cursor[1])
 				self.queue_draw()
+		elif key_name == 'Page_Down':
+			self.cursor = ((self.cursor[0][0] + 4, self.cursor[0][1]), self.cursor[1])
+			self.queue_draw()
+		elif key_name == 'Page_Up':
+			ctime = time_normalise((self.cursor[0][0] - 4, self.cursor[0][1]))
+			self.cursor = (ctime + (0,), self.cursor[1])
+			self.queue_draw()
 		elif key_name == 'Tab':
 			if self.cursor[1] < COLUMNS:
 				self.cursor = (self.cursor[0], self.cursor[1] + 1)
@@ -139,10 +146,6 @@ class Pat_view(gtk.Widget):
 		key_name = gdk.keyval_name(event.keyval)
 		if key_name == 'Down' or key_name == 'Up':
 			self.tmove = 0
-		elif key_name == 'Tab' or key_name == 'ISO_Left_Tab':
-			pass
-		else:
-			print('release %s' % key_name)
 		return True
 
 	def handle_scroll(self, widget, event):
