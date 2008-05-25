@@ -30,13 +30,16 @@ RELTIME_FULL_PART = 882161280
 COLUMNS = 64
 
 
+def time_normalise(t):
+	if t[1] >= RELTIME_FULL_PART:
+		t = (t[0] + 1, t[1] - RELTIME_FULL_PART)
+	elif t[1] < 0:
+		t = (t[0] - 1, t[1] + RELTIME_FULL_PART)
+	return t
+
 def time_add(t1, t2):
 	res = (t1[0] + t2[0], t1[1] + t2[1])
-	if res[1] >= RELTIME_FULL_PART:
-		res = (res[0] + 1, res[1] - RELTIME_FULL_PART)
-	elif res[1] < 0:
-		res = (res[0] - 1, res[1] + RELTIME_FULL_PART)
-	return res
+	return time_normalise(res)
 
 def time_sub(t1, t2):
 	return time_add(t1, (-t2[0], -t2[1]))
@@ -47,13 +50,15 @@ class Pat_info:
 	def __init__(self, num, len):
 		self.num = num
 		self.len = len
-		self.cols = [None for _ in range(COLUMNS)]
+		self.cols = [None for _ in range(COLUMNS + 1)]
 
 
 class Pat_view(gtk.Widget):
 
 	def pat_info(self, path, args, types):
 		self.pdata = Pat_info(args[0], (args[1], args[2]))
+		if self.cursor[0][:2] > self.pdata.len:
+			self.cursor = (self.pdata.len + (0,), self.cursor[1])
 
 	def event_info(self, path, args, types):
 		if self.pdata.cols[args[1]] == None:
@@ -81,10 +86,53 @@ class Pat_view(gtk.Widget):
 		return True
 
 	def handle_key(self, widget, event):
-		print('press')
 		if not event.type == gdk.KEY_PRESS:
 			return False
-		print('keyval %s' % gdk.keyval_name(event.keyval))
+		key_name = gdk.keyval_name(event.keyval)
+		if self.pdata == None:
+			return True
+		if key_name == 'Down':
+			if self.tmove <= 0:
+				self.tmove = 0.8
+			elif self.tmove < 24:
+				self.tmove *= 1.3
+			else:
+				self.tmove = 24
+			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+			self.cursor = (ctime + (0,), self.cursor[1])
+			self.queue_draw()
+		elif key_name == 'Up':
+			if self.tmove >= 0:
+				self.tmove = -0.8
+			elif self.tmove > -24:
+				self.tmove *= 1.3
+			else:
+				self.tmove = -24
+			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+			self.cursor = (ctime + (0,), self.cursor[1])
+#			if self.cursor[0] < (0, 0, 0):
+#				self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
+			self.queue_draw()
+		elif key_name == 'Tab':
+			if self.cursor[1] < COLUMNS:
+				self.cursor = (self.cursor[0], self.cursor[1] + 1)
+				self.queue_draw()
+		elif key_name == 'ISO_Left_Tab':
+			if self.cursor[1] > 0:
+				self.cursor = (self.cursor[0], self.cursor[1] - 1)
+				self.queue_draw()
+		else:
+			print('press %s' % key_name)
+		return True
+
+	def handle_release(self, widget, event):
+		key_name = gdk.keyval_name(event.keyval)
+		if key_name == 'Down' or key_name == 'Up':
+			self.tmove = 0
+		elif key_name == 'Tab' or key_name == 'ISO_Left_Tab':
+			pass
+		else:
+			print('release %s' % key_name)
 		return True
 
 	def do_realize(self):
@@ -92,8 +140,8 @@ class Pat_view(gtk.Widget):
 				| gtk.REALIZED
 				| gtk.SENSITIVE
 				| gtk.PARENT_SENSITIVE
-				| gtk.CAN_FOCUS
-				| gtk.HAS_FOCUS)
+#				| gtk.DOUBLE_BUFFERED
+				| gtk.CAN_FOCUS)
 		self.window = gdk.Window(
 				self.get_parent_window(),
 				width = self.allocation.width,
@@ -103,6 +151,7 @@ class Pat_view(gtk.Widget):
 				event_mask = self.get_events()
 						| gdk.EXPOSURE_MASK
 						| gdk.KEY_PRESS
+						| gdk.KEY_RELEASE
 #						| gdk.POINTER_MOTION_MASK
 #						| gdk.POINTER_MOTION_HINT_MASK
 						| gdk.BUTTON_PRESS_MASK
@@ -112,6 +161,7 @@ class Pat_view(gtk.Widget):
 		self.style.set_background(self.window, gtk.STATE_NORMAL)
 		self.window.move_resize(*self.allocation)
 		self.connect('key-press-event', self.handle_key)
+		self.connect('key-release-event', self.handle_release)
 		self.connect('focus-in-event', self.handle_focus_in)
 		self.connect('focus-out-event', self.handle_focus_out)
 		self.connect('button-press-event', self.handle_button_press)
@@ -141,18 +191,35 @@ class Pat_view(gtk.Widget):
 		cr.fill()
 		cr.set_line_width(1)
 
-		# Calculate space, make sure cursor is visible
+		# Make sure cursor is inside Pattern
 		if self.cursor[0] < (0, 0, 0):
 			self.cursor = ((0, 0, 0), self.cursor[1])
 		if self.cursor[1] < 0:
 			self.cursor = (self.cursor[0], 0)
+		if self.pdata and self.cursor[0][:2] > self.pdata.len:
+			self.cursor = (self.pdata.len + (0,), self.cursor[1])
+		elif not self.pdata:
+			self.cursor = ((0, 0, 0), 0)
+		if self.cursor[1] > COLUMNS:
+			self.cursor = (self.cursor[0], COLUMNS)
+
+		# Make sure cursor is visible
 		if self.cursor[1] < self.view_corner[1]:
 			self.view_corner = (self.view_corner[0], self.cursor[1])
-		if self.cursor[0] < self.view_corner[0]:
-			self.view_corner = (self.cursor[0][:2], self.view_corner[1])
+		if time_sub(self.cursor[0][:2], self.px_time(self.col_font_size)) < self.view_corner[0]:
+			self.view_corner = (time_sub(self.cursor[0][:2], self.px_time(self.col_font_size)), self.view_corner[1])
+
+		# Calculate space
 		col_space = width - self.ruler_width
 		col_count = col_space // self.col_width
 		col_last = self.view_corner[1] + col_count - 1
+		if col_last > COLUMNS:
+			diff = col_last - COLUMNS
+			self.view_corner = (self.view_corner[0], self.view_corner[1] - diff)
+			col_last = COLUMNS
+			if self.view_corner[1] < 0:
+				col_count += self.view_corner[1]
+				self.view_corner = (self.view_corner[0], 0)
 		if self.cursor[1] > col_last:
 			diff = self.cursor[1] - col_last
 			self.view_corner = (self.view_corner[0], self.view_corner[1] + diff)
@@ -161,9 +228,16 @@ class Pat_view(gtk.Widget):
 		beat_count = (int(beat_count[0]),
 				int(beat_count[1] * RELTIME_FULL_PART // self.pixels_per_beat))
 		beat_last = time_add(self.view_corner[0], beat_count)
+		if self.pdata and beat_last > self.pdata.len:
+			diff = time_sub(beat_last, self.pdata.len)
+			self.view_corner = (time_sub(self.view_corner[0], diff), self.view_corner[1])
+			beat_last = self.pdata.len
+			if self.view_corner[0] < (0, 0):
+				beat_count = time_add(beat_count, self.view_corner[0])
+				self.view_corner = ((0, 0), self.view_corner[1])
 		if self.cursor[0][:2] > beat_last:
 			diff = time_sub(self.cursor[0][:2], beat_last)
-			self.view_corner[0] = time_add(self.view_corner[0], diff)
+			self.view_corner = (time_add(self.view_corner[0], diff), self.view_corner[1])
 
 		self.draw_ruler(cr, height, self.view_corner[0], beat_last)
 
@@ -173,21 +247,23 @@ class Pat_view(gtk.Widget):
 					self.ruler_width + (col_num - self.view_corner[1]) * self.col_width,
 					0, height, self.view_corner[0], beat_last)
 
-	def time_to_pixels(self, time):
+	def time_px(self, time):
 		px = float(time[0] * RELTIME_FULL_PART + time[1])
 		return px * self.pixels_per_beat / RELTIME_FULL_PART
+
+	def px_time(self, px):
+		beats = float(px) / self.pixels_per_beat
+		return time_normalise((long(math.floor(beats)),
+				int((beats - math.floor(beats)) * RELTIME_FULL_PART)))
 
 	def draw_ruler(self, cr, height, start, end):
 		if not self.pdata:
 			return
-		pat_start = max((0, 0), time_sub((0, 0), start))
-		pat_end = min(self.pdata.len, end)
 		cr.set_source_rgb(*self.ptheme['Ruler bg colour'])
-		cr.rectangle(0, self.time_to_pixels(pat_start) + self.col_font_size,
-				self.ruler_width, self.time_to_pixels(pat_end))
+		cr.rectangle(0, self.col_font_size + max(-self.time_px(start), 0),
+				self.ruler_width, self.time_px(end))
 		cr.fill()
 		cr.set_source_rgb(*self.ptheme['Ruler fg colour'])
-		end = pat_end
 		for beat in range(max(start[0], 0), end[0] + 1):
 			if not start <= (beat, 0) <= end:
 				continue
@@ -196,7 +272,7 @@ class Pat_view(gtk.Widget):
 			rw, rh = pl.get_size()
 			rw //= pango.SCALE
 			rh //= pango.SCALE
-			distance = self.time_to_pixels(time_sub((beat, 0), start))
+			distance = self.time_px(time_sub((beat, 0), start))
 			distance = distance + self.col_font_size - (rh / 2)
 			cr.move_to(self.ruler_width - rw - 2, distance)
 			cr.update_layout(pl)
@@ -215,7 +291,7 @@ class Pat_view(gtk.Widget):
 				self.draw_event(cr, k, v, x, y + self.col_font_size, height, start, end)
 
 		if self.cursor[1] == num:
-			distance = self.time_to_pixels(time_sub(self.cursor[0][:2], start))
+			distance = self.time_px(time_sub(self.cursor[0][:2], start))
 			distance = distance + self.col_font_size
 			cr.set_line_width(1.8)
 			cr.move_to(x, distance)
@@ -249,7 +325,7 @@ class Pat_view(gtk.Widget):
 	def draw_event(self, cr, pos, data, x, y, height, start, end):
 		if not start <= pos <= end:
 			return
-		distance = self.time_to_pixels(time_sub(pos, start)) + y
+		distance = self.time_px(time_sub(pos, start)) + y
 		cr.set_source_rgb(1, 0.9, 0.8)
 		cr.move_to(x, distance)
 		cr.rel_line_to(self.col_width, 0)
@@ -294,11 +370,9 @@ class Pat_view(gtk.Widget):
 
 		self.pixels_per_beat = self.ptheme['Beat height']
 		# position format is ((beat, part), channel)
-		fs_beats = float(self.col_font_size) / self.pixels_per_beat
-		fs_time = (long(math.floor(fs_beats)),
-				int((fs_beats - math.floor(fs_beats)) * RELTIME_FULL_PART))
-		self.view_corner = (time_sub((0, 0), fs_time), 0)
+		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0, 0, 0), 0)
+		self.tmove = 0
 
 
 gobject.type_register(Pat_view)
