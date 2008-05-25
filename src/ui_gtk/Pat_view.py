@@ -94,24 +94,22 @@ class Pat_view(gtk.Widget):
 		if key_name == 'Down':
 			if self.tmove <= 0:
 				self.tmove = 0.8
-			elif self.tmove < 24:
+			elif self.tmove < 16:
 				self.tmove *= 1.3
 			else:
-				self.tmove = 24
+				self.tmove = 16
 			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
 			self.cursor = (ctime + (0,), self.cursor[1])
 			self.queue_draw()
 		elif key_name == 'Up':
 			if self.tmove >= 0:
 				self.tmove = -0.8
-			elif self.tmove > -24:
+			elif self.tmove > -16:
 				self.tmove *= 1.3
 			else:
-				self.tmove = -24
+				self.tmove = -16
 			ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
 			self.cursor = (ctime + (0,), self.cursor[1])
-#			if self.cursor[0] < (0, 0, 0):
-#				self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 			self.queue_draw()
 		elif key_name == 'Tab':
 			if self.cursor[1] < COLUMNS:
@@ -238,6 +236,7 @@ class Pat_view(gtk.Widget):
 		if self.cursor[0][:2] > beat_last:
 			diff = time_sub(self.cursor[0][:2], beat_last)
 			self.view_corner = (time_add(self.view_corner[0], diff), self.view_corner[1])
+			beat_last = self.cursor[0][:2]
 
 		self.draw_ruler(cr, height, self.view_corner[0], beat_last)
 
@@ -294,6 +293,7 @@ class Pat_view(gtk.Widget):
 			distance = self.time_px(time_sub(self.cursor[0][:2], start))
 			distance = distance + self.col_font_size
 			cr.set_line_width(1.8)
+			cr.set_source_rgb(*self.ptheme['Cursor colour'])
 			cr.move_to(x, distance)
 			cr.rel_line_to(self.col_width, 0)
 			cr.stroke()
@@ -359,6 +359,7 @@ class Pat_view(gtk.Widget):
 				'Ruler fg colour': (0.7, 0.7, 0.7),
 				'Column header bg colour': (0, 0.3, 0),
 				'Column header fg colour': (0.8, 0.8, 0.8),
+				'Cursor colour': (0.7, 0.8, 0.9),
 				}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
