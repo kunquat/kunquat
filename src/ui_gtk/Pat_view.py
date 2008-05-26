@@ -95,8 +95,15 @@ class Pat_view(gtk.Widget):
 			if event.state & gdk.CONTROL_MASK:
 				self.zoom(1.0/1.5)
 				self.queue_draw()
+			elif self.tmove != 0 and 0 <= self.snap_state < self.snap_delay:
+				self.snap_state = max(-1, self.snap_state - 1)
+				if self.snap_state < 0:
+					self.snap_delay = max(0, self.snap_delay - 1)
+					self.snap_state = self.snap_delay
 			else:
+				init_move = False
 				if self.tmove <= 0:
+					init_move = True
 					self.tmove = 0.8
 				elif self.tmove < 16:
 					self.tmove *= 1.3
@@ -105,14 +112,30 @@ class Pat_view(gtk.Widget):
 				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
 				if ctime == self.cursor[0][:2]:
 					ctime = time_add(ctime, (0, 1))
+				events = []
+				if self.pdata.cols[self.cursor[1]]:
+					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
+							if self.cursor[0] < k <= ctime]
+				if events:
+					first = min(events)
+					ctime = first[0][:2]
+					if not init_move:
+						self.snap_state = self.snap_delay - 1
 				self.cursor = (ctime + (0,), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Up':
 			if event.state & gdk.CONTROL_MASK:
 				self.zoom(1.5)
 				self.queue_draw()
+			elif self.tmove != 0 and 0 <= self.snap_state < self.snap_delay:
+				self.snap_state = max(-1, self.snap_state - 1)
+				if self.snap_state < 0:
+					self.snap_delay = max(0, self.snap_delay - 1)
+					self.snap_state = self.snap_delay
 			else:
+				init_move = False
 				if self.tmove >= 0:
+					init_move = True
 					self.tmove = -0.8
 				elif self.tmove > -16:
 					self.tmove *= 1.3
@@ -121,6 +144,15 @@ class Pat_view(gtk.Widget):
 				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
 				if ctime == self.cursor[0][:2]:
 					ctime = time_sub(ctime, (0, 1))
+				events = []
+				if self.pdata.cols[self.cursor[1]]:
+					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
+							if ctime <= k < self.cursor[0]]
+				if events:
+					last = max(events)
+					ctime = last[0][:2]
+					if not init_move:
+						self.snap_state = self.snap_delay - 1
 				self.cursor = (ctime + (0,), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Page_Down':
@@ -146,6 +178,7 @@ class Pat_view(gtk.Widget):
 		key_name = gdk.keyval_name(event.keyval)
 		if key_name == 'Down' or key_name == 'Up':
 			self.tmove = 0
+			self.snap_state = self.snap_delay = self.snap_init_delay
 		return True
 
 	def handle_scroll(self, widget, event):
@@ -416,6 +449,9 @@ class Pat_view(gtk.Widget):
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0, 0, 0), 0)
 		self.tmove = 0
+		self.snap_init_delay = 4
+		self.snap_delay = self.snap_init_delay
+		self.snap_state = self.snap_delay
 
 
 gobject.type_register(Pat_view)
