@@ -29,6 +29,43 @@ import math
 RELTIME_FULL_PART = 882161280
 COLUMNS = 64
 
+class Ev:
+
+	def __init__(self):
+		i = 0
+		events = (
+			('NONE', 0),
+			'GENERAL_COND',
+			('GENERAL_LAST', 63),
+			'GLOBAL_SET_VAR',
+			'GLOBAL_TEMPO',
+			'GLOBAL_VOLUME',
+			('GLOBAL_LAST', 127),
+			'NOTE_ON',
+			'NOTE_OFF',
+			'LAST')
+		for x in events:
+			if type(x) == type(()):
+				setattr(self, *x)
+				i = x[1]
+			else:
+				setattr(self, x, i)
+			i += 1
+
+	def is_general(self, t):
+		return self.NONE < t < self.GENERAL_LAST
+
+	def is_global(self, t):
+		return self.GENERAL_LAST < t < self.GLOBAL_LAST
+
+	def is_ins(self, t):
+		return self.GLOBAL_LAST < t < self.LAST
+
+	def is_valid(self, t):
+		return self.is_general(t) or self.is_global(t) or self.is_ins(t)
+
+evtype = Ev()
+
 
 def time_normalise(t):
 	if t[1] >= RELTIME_FULL_PART:
@@ -359,10 +396,63 @@ class Pat_view(gtk.Widget):
 	def draw_column(self, cr, num, x, y, height, start, end):
 		if self.pdata.cols[num]:
 			visible = [(k, v) for (k, v) in self.pdata.cols[num].iteritems()
-					if start <= k <= end]
+					if start <= k[:2] <= end]
 			visible.sort()
-			for (k, v) in visible:
-				self.draw_event(cr, k, v, x, y + self.col_font_size, height, start, end)
+			visible_l = [(k, v) for (k, v) in visible if k[2] == 0]
+			visible_r = [(k, v) for (k, v) in visible if k[2] != 0]
+			prev = None
+			offset = 0
+			for (k, v) in visible_l:
+				rights = [(l, w) for (l, w) in visible_r if l[:2] == k[:2]]
+				# Calculate row width
+				row_w = self.event_width(v)
+				for (l, w) in rights:
+					row_w = self.event_width(w)
+				# Make sure cursor points to an existing event
+				if self.cursor[0][:2] == k[:2]:
+					if self.cursor[0][2] < 0:
+						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
+					elif not rights and self.cursor[0][2] > 0:
+						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
+					elif rights and self.cursor[0][2] > max(rights)[0][2]:
+						self.cursor = self.cursor(self.cursor[0][:2] + (max(rights)[0][2],),
+								self.cursor[1])
+				off_w = 0
+				cur_w = 0
+				if self.cursor[0][:2] == k[:2]:
+					if self.cursor[0][2] > 0:
+						off_w = row_w
+						for (l, w) in rights:
+							if l[2] < self.cursor[0][2]:
+								off_w += self.event_width(w)
+							elif l[2] == self.cursor[0][2]:
+								cur_w = self.event_width(w)
+					else:
+						cur_w = self.event_width(v)
+				# Make sure cursor is visible (if it's located here)
+				if self.cursor[0][:2] == k[:2]:
+					if off_w < self.event_offset:
+						self.event_offset = off_w
+					elif off_w + cur_w > self.event_offset + self.col_width:
+						self.event_offset = off_w + cur_w - self.col_width
+				if self.event_offset + self.col_width > row_w:
+					self.event_offset = row_w - self.col_width
+				if self.event_offset < 0:
+					self.event_offset = 0
+				cr.save()
+				cr.rectangle(x, 0, self.col_width, height)
+				cr.clip()
+				py = y + self.col_font_size
+				py = self.time_px(time_sub(k[:2], start)) + py
+				prev_y = 0
+				if prev:
+					prev_y = self.time_px(time_sub(prev, start)) + self.col_font_size
+				self.draw_row(cr, k[:2], num, [(k, v)] + rights,
+						x - self.event_offset, py, prev_y)
+#				offset += self.draw_event(cr, k, v, x, y + self.col_font_size, height,
+#						start, end, prev, offset)
+				cr.restore()
+				prev = k[:2]
 
 		if self.cursor[1] == num:
 			distance = self.time_px(time_sub(self.cursor[0][:2], start))
@@ -397,14 +487,53 @@ class Pat_view(gtk.Widget):
 		cr.rel_line_to(0, height)
 		cr.stroke()
 
-	def draw_event(self, cr, pos, data, x, y, height, start, end):
-		if not start <= pos <= end:
-			return
-		distance = self.time_px(time_sub(pos, start)) + y
+	def draw_row(self, cr, pos, col_num, events, x, y, prev_y):
+		offset = 0
+		for (k, v) in events:
+			offset += self.draw_event(cr, k, col_num, v, x + offset, y, prev_y)
+
+	def draw_event(self, cr, pos, col_num, data, x, y, prev_y):
+		fg_colour = (1, 0.9, 0.8)
+		bg_colour = (0, 0, 0)
+		if self.cursor == (pos, col_num):
+			tmp = fg_colour
+			fg_colour = bg_colour
+			bg_colour = tmp
+		estr = self.event_str[data[0]](data)
+		pl = self.create_pango_layout(estr)
+		w, h = pl.get_size()
+		w //= pango.SCALE
+		h //= pango.SCALE
+		if prev_y + h <= y or self.cursor[0][:2] == pos[:2]:
+			cr.set_source_rgb(*bg_colour)
+			cr.rectangle(x, y - h,
+					w + (self.col_font_size / 3), h)
+			cr.fill()
+			cr.set_source_rgb(*fg_colour)
+			cr.move_to(x + (self.col_font_size / 6), y - h)
+			cr.update_layout(pl)
+			cr.show_layout(pl)
 		cr.set_source_rgb(1, 0.9, 0.8)
-		cr.move_to(x, distance)
-		cr.rel_line_to(self.col_width, 0)
+		cr.move_to(x, y)
+		cr.rel_line_to(w + (self.col_font_size / 3), 0)
 		cr.stroke()
+		return w + (self.col_font_size / 3)
+
+	def event_width(self, event):
+		etext = self.event_str[event[0]](event)
+		pl = self.create_pango_layout(etext)
+		pl.set_font_description(self.col_font)
+		cw, _ = pl.get_size()
+		cw //= pango.SCALE
+		return cw + (self.col_font_size / 3)
+
+	def event_str_note_on(self, event):
+#		if not self.notes:
+		return (str(event[1]) + ',' + str(event[2]) +
+				',' + str(event[3]) + ' %02d' % event[4])
+
+	def event_str_note_off(self, event):
+		return '==='
 
 	def do_redraw(self):
 		if self.window:
@@ -422,20 +551,21 @@ class Pat_view(gtk.Widget):
 		self.song_id = song_id
 
 		self.pdata = None
+		self.notes = None
 
 		self.ptheme = {
-				'Ruler font': 'Sans 10',
-				'Column font': 'Sans 10',
-				'Column width': 7,
-				'Beat height': 80,
-				'Background colour': (0, 0, 0),
-				'Border colour': (0.6, 0.6, 0.6),
-				'Ruler bg colour': (0, 0.1, 0.2),
-				'Ruler fg colour': (0.7, 0.7, 0.7),
-				'Column header bg colour': (0, 0.3, 0),
-				'Column header fg colour': (0.8, 0.8, 0.8),
-				'Cursor colour': (0.7, 0.8, 0.9),
-				}
+			'Ruler font': 'Sans 10',
+			'Column font': 'Sans 10',
+			'Column width': 7,
+			'Beat height': 80,
+			'Background colour': (0, 0, 0),
+			'Border colour': (0.6, 0.6, 0.6),
+			'Ruler bg colour': (0, 0.1, 0.2),
+			'Ruler fg colour': (0.7, 0.7, 0.7),
+			'Column header bg colour': (0, 0.3, 0),
+			'Column header fg colour': (0.8, 0.8, 0.8),
+			'Cursor colour': (0.7, 0.8, 0.9),
+		}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
 		self.ruler_font_size = self.ruler_font.get_size() // pango.SCALE
@@ -448,10 +578,16 @@ class Pat_view(gtk.Widget):
 		# position format is ((beat, part), channel)
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0, 0, 0), 0)
+		self.event_offset = 0
 		self.tmove = 0
 		self.snap_init_delay = 4
 		self.snap_delay = self.snap_init_delay
 		self.snap_state = self.snap_delay
+
+		self.event_str = {
+			evtype.NOTE_ON: self.event_str_note_on,
+			evtype.NOTE_OFF: self.event_str_note_off,
+		}
 
 
 gobject.type_register(Pat_view)
