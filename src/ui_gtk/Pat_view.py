@@ -152,13 +152,13 @@ class Pat_view(gtk.Widget):
 				events = []
 				if self.pdata.cols[self.cursor[1]]:
 					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
-							if self.cursor[0] < k <= ctime]
+							if self.cursor[0][:2] < k[:2] <= ctime]
 				if events:
 					first = min(events)
 					ctime = first[0][:2]
 					if not init_move:
 						self.snap_state = self.snap_delay - 1
-				self.cursor = (ctime + (0,), self.cursor[1])
+				self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Up':
 			if event.state & gdk.CONTROL_MASK:
@@ -184,20 +184,36 @@ class Pat_view(gtk.Widget):
 				events = []
 				if self.pdata.cols[self.cursor[1]]:
 					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
-							if ctime <= k < self.cursor[0]]
+							if ctime <= k < self.cursor[0][:2]]
 				if events:
 					last = max(events)
 					ctime = last[0][:2]
 					if not init_move:
 						self.snap_state = self.snap_delay - 1
-				self.cursor = (ctime + (0,), self.cursor[1])
+				self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+				self.queue_draw()
+		elif key_name == 'Left':
+			if self.pdata.cols[self.cursor[1]]:
+				if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+					self.cursor = (self.cursor[0][:2] +
+							(max(self.cursor[0][2] - 1, 0),), self.cursor[1])
+				else:
+					self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+				self.queue_draw()
+		elif key_name == 'Right':
+			if self.pdata.cols[self.cursor[1]]:
+				if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+					self.cursor = (self.cursor[0][:2] +
+							(self.cursor[0][2] + 1,), self.cursor[1])
+				else:
+					self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Page_Down':
-			self.cursor = ((self.cursor[0][0] + 4, self.cursor[0][1]), self.cursor[1])
+			self.cursor = ((self.cursor[0][0] + 4,) + self.cursor[0][1:], self.cursor[1])
 			self.queue_draw()
 		elif key_name == 'Page_Up':
 			ctime = time_normalise((self.cursor[0][0] - 4, self.cursor[0][1]))
-			self.cursor = (ctime + (0,), self.cursor[1])
+			self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
 			self.queue_draw()
 		elif key_name == 'Tab':
 			if self.cursor[1] < COLUMNS:
@@ -298,11 +314,11 @@ class Pat_view(gtk.Widget):
 
 		# Make sure cursor is inside Pattern
 		if self.cursor[0] < (0, 0, 0):
-			self.cursor = ((0, 0, 0), self.cursor[1])
+			self.cursor = ((0, 0, self.cursor[0][2]), self.cursor[1])
 		if self.cursor[1] < 0:
 			self.cursor = (self.cursor[0], 0)
 		if self.pdata and self.cursor[0][:2] > self.pdata.len:
-			self.cursor = (self.pdata.len + (0,), self.cursor[1])
+			self.cursor = (self.pdata.len + (self.cursor[0][2],), self.cursor[1])
 		elif not self.pdata:
 			self.cursor = ((0, 0, 0), 0)
 		if self.cursor[1] > COLUMNS:
@@ -407,21 +423,21 @@ class Pat_view(gtk.Widget):
 				# Calculate row width
 				row_w = self.event_width(v)
 				for (l, w) in rights:
-					row_w = self.event_width(w)
+					row_w += self.event_width(w)
 				# Make sure cursor points to an existing event
 				if self.cursor[0][:2] == k[:2]:
 					if self.cursor[0][2] < 0:
 						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
 					elif not rights and self.cursor[0][2] > 0:
-						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
+						self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 					elif rights and self.cursor[0][2] > max(rights)[0][2]:
-						self.cursor = self.cursor(self.cursor[0][:2] + (max(rights)[0][2],),
+						self.cursor = (self.cursor[0][:2] + (max(rights)[0][2],),
 								self.cursor[1])
 				off_w = 0
 				cur_w = 0
 				if self.cursor[0][:2] == k[:2]:
 					if self.cursor[0][2] > 0:
-						off_w = row_w
+						off_w = self.event_width(v)
 						for (l, w) in rights:
 							if l[2] < self.cursor[0][2]:
 								off_w += self.event_width(w)
@@ -447,10 +463,26 @@ class Pat_view(gtk.Widget):
 				prev_y = 0
 				if prev:
 					prev_y = self.time_px(time_sub(prev, start)) + self.col_font_size
-				self.draw_row(cr, k[:2], num, [(k, v)] + rights,
-						x - self.event_offset, py, prev_y)
-#				offset += self.draw_event(cr, k, v, x, y + self.col_font_size, height,
-#						start, end, prev, offset)
+				if self.cursor[0][:2] == k[:2]:
+					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
+							x - self.event_offset, py, prev_y)
+				else:
+					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
+							x, py, prev_y)
+				if self.event_offset > 0:
+					cr.set_source_rgb(1, 0.2, 0.2)
+					cr.move_to(x, py - 1)
+					cr.rel_line_to(self.col_font_size / 4, 0)
+					cr.rel_line_to(0, -self.col_font_size / 4)
+					cr.close_path()
+					cr.fill()
+				if self.event_offset + self.col_width < row_w:
+					cr.set_source_rgb(1, 0.2, 0.2)
+					cr.move_to(x + self.col_width, py - 1)
+					cr.rel_line_to(-self.col_font_size / 4, 0)
+					cr.rel_line_to(0, -self.col_font_size / 4)
+					cr.close_path()
+					cr.fill()
 				cr.restore()
 				prev = k[:2]
 
@@ -504,7 +536,7 @@ class Pat_view(gtk.Widget):
 		w, h = pl.get_size()
 		w //= pango.SCALE
 		h //= pango.SCALE
-		if prev_y + h <= y or self.cursor[0][:2] == pos[:2]:
+		if prev_y + h <= y or (self.cursor[0][:2], self.cursor[1]) == (pos[:2], col_num):
 			cr.set_source_rgb(*bg_colour)
 			cr.rectangle(x, y - h,
 					w + (self.col_font_size / 3), h)

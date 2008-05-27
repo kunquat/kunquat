@@ -68,6 +68,7 @@ static Ndesc demo_p1ch1[] =
 	{ EVENT_TYPE_NOTE_OFF, 5.25, 0, 0 },
 	{ EVENT_TYPE_NOTE_ON,   5.5, 2, 8 },
 	{ EVENT_TYPE_NOTE_OFF, 5.65, 0, 0 },
+	{ EVENT_TYPE_NOTE_ON,     6, 8, 8 },
 	{ EVENT_TYPE_NOTE_ON,     6, 0, 8 },
 	{ EVENT_TYPE_NOTE_OFF,    7, 0, 0 },
 	{ EVENT_TYPE_NONE, 0, 0, 0 }
