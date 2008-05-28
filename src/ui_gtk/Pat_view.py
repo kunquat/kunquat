@@ -219,6 +219,11 @@ class Pat_view(gtk.Widget):
 				if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
 					self.cursor = (self.cursor[0][:2] +
 							(max(self.cursor[0][2] - 1, 0),), self.cursor[1])
+				elif (self.cursor[0][2] > 0 and
+						self.cursor[0][:2] + (self.cursor[0][2] - 1,)
+						in self.pdata.cols[self.cursor[1]]):
+					self.cursor = (self.cursor[0][:2] +
+							(self.cursor[0][2] - 1,), self.cursor[1])
 				else:
 					self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 				self.queue_draw()
@@ -228,7 +233,7 @@ class Pat_view(gtk.Widget):
 					self.cursor = (self.cursor[0][:2] +
 							(self.cursor[0][2] + 1,), self.cursor[1])
 				else:
-					self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+					self.cursor = (self.cursor[0], self.cursor[1])
 				self.queue_draw()
 		elif key_name == 'Page_Down':
 			self.cursor = ((self.cursor[0][0] + 4,) + self.cursor[0][1:], self.cursor[1])
@@ -443,19 +448,22 @@ class Pat_view(gtk.Widget):
 			offset = 0
 			for (k, v) in visible_l:
 				rights = [(l, w) for (l, w) in visible_r if l[:2] == k[:2]]
+				cur_outside = False
 				# Calculate row width
 				row_w = self.event_width(v)
 				for (l, w) in rights:
 					row_w += self.event_width(w)
-				# Make sure cursor points to an existing event
+				# Make sure cursor points at or next to an existing event
 				if self.cursor[0][:2] == k[:2]:
 					if self.cursor[0][2] < 0:
 						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
 					elif not rights and self.cursor[0][2] > 0:
-						self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+						self.cursor = (self.cursor[0][:2] + (1,), self.cursor[1])
+						row_w += self.col_font_size / 3
 					elif rights and self.cursor[0][2] > max(rights)[0][2]:
-						self.cursor = (self.cursor[0][:2] + (max(rights)[0][2],),
+						self.cursor = (self.cursor[0][:2] + (max(rights)[0][2] + 1,),
 								self.cursor[1])
+						row_w += self.col_font_size / 3
 				off_w = 0
 				cur_w = 0
 				if self.cursor[0][:2] == k[:2]:
@@ -466,6 +474,9 @@ class Pat_view(gtk.Widget):
 								off_w += self.event_width(w)
 							elif l[2] == self.cursor[0][2]:
 								cur_w = self.event_width(w)
+						if cur_w == 0:
+							cur_w = self.col_font_size / 3
+							cur_outside = True
 					else:
 						cur_w = self.event_width(v)
 				# Make sure cursor is visible (if it's located here)
@@ -488,10 +499,10 @@ class Pat_view(gtk.Widget):
 					prev_y = self.time_px(time_sub(prev, start)) + self.col_font_size
 				if self.cursor[0][:2] == k[:2]:
 					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
-							x - self.event_offset, py, prev_y)
+							x - self.event_offset, py, prev_y, cur_outside)
 				else:
 					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
-							x, py, prev_y)
+							x, py, prev_y, cur_outside)
 				if self.event_offset > 0:
 					cr.set_source_rgb(1, 0.2, 0.2)
 					cr.move_to(x, py - 1)
@@ -542,10 +553,18 @@ class Pat_view(gtk.Widget):
 		cr.rel_line_to(0, height)
 		cr.stroke()
 
-	def draw_row(self, cr, pos, col_num, events, x, y, prev_y):
+	def draw_row(self, cr, pos, col_num, events, x, y, prev_y, cur_outside):
 		offset = 0
 		for (k, v) in events:
 			offset += self.draw_event(cr, k, col_num, v, x + offset, y, prev_y)
+		if cur_outside:
+			pl = self.create_pango_layout('0')
+			_, h = pl.get_size()
+			h //= pango.SCALE
+			cr.set_source_rgb(1, 0.9, 0.8)
+			cr.rectangle(x + offset, y - h,
+					self.col_font_size / 3, h)
+			cr.fill()
 
 	def draw_event(self, cr, pos, col_num, data, x, y, prev_y):
 		fg_colour = (1, 0.9, 0.8)
@@ -599,8 +618,8 @@ class Pat_view(gtk.Widget):
 			note += str(event[3]) + ' %02d' % event[4]
 			return note
 		else:
-			return (str(event[1]) + ',' + str(event[2]) +
-					',' + str(event[3]) + ' %02d' % event[4])
+			return ('(' + str(event[1]) + ')(' + str(event[2]) +
+					')(' + str(event[3]) + ') %02d' % event[4])
 
 	def event_str_note_off(self, event):
 		return '==='
