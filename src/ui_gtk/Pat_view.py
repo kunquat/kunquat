@@ -311,6 +311,7 @@ class Pat_view(gtk.Widget):
 #		self.connect('motion-notify-event', self.handle_motion_notify)
 
 	def do_unrealize(self):
+		self.window.destroy()
 		self.window.set_user_data(None)
 
 	def do_size_request(self, requisition):
