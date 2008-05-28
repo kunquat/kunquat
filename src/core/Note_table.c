@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <wchar.h>
 #include <string.h>
 #include <math.h>
@@ -89,6 +90,53 @@ wchar_t* Note_table_get_name(Note_table* table)
 {
 	assert(table != NULL);
 	return table->name;
+}
+
+
+int Note_table_get_note_count(Note_table* table)
+{
+	assert(table != NULL);
+	return table->note_count;
+}
+
+
+int Note_table_get_note_mod_count(Note_table* table)
+{
+	assert(table != NULL);
+	int count = 0;
+	while (count < NOTE_TABLE_NOTE_MODS && NOTE_MOD_EXISTS(table, count))
+	{
+		++count;
+	}
+	return count;
+}
+
+
+bool Note_table_set_ref_note(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (index >= table->note_count)
+	{
+		return false;
+	}
+	table->ref_note = index;
+	return true;
+}
+
+
+int Note_table_get_ref_note(Note_table* table)
+{
+	assert(table != NULL);
+	return table->ref_note;
+}
+
+
+int Note_table_get_cur_ref_note(Note_table* table)
+{
+	assert(table != NULL);
+	return table->ref_note_retuned;
 }
 
 
@@ -370,6 +418,19 @@ Real* Note_table_get_note_ratio(Note_table* table, int index)
 }
 
 
+Real* Note_table_get_cur_note_ratio(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (!NOTE_EXISTS(table, index))
+	{
+		return NULL;
+	}
+	return &table->notes[index].ratio_retuned;
+}
+
+
 double Note_table_get_note_cents(Note_table* table, int index)
 {
 	assert(table != NULL);
@@ -380,6 +441,20 @@ double Note_table_get_note_cents(Note_table* table, int index)
 		return NAN;
 	}
 	return table->notes[index].cents;
+}
+
+
+double Note_table_get_cur_note_cents(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (!NOTE_EXISTS(table, index))
+	{
+		return NAN;
+	}
+	double val = Real_get_double(&table->notes[index].ratio_retuned);
+	return log2(val) * 1200;
 }
 
 

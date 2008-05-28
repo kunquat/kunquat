@@ -38,6 +38,7 @@
 #include "Listener_song.h"
 #include "Listener_ins.h"
 #include "Listener_pattern.h"
+#include "Listener_note_table.h"
 #include "Listener_demo.h"
 
 #include <xmemory.h>
@@ -74,6 +75,7 @@ static Method_desc methods[] =
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
 	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
+	{ "/kunquat/get_note_table", "i", Listener_get_note_table },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }

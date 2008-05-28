@@ -43,6 +43,18 @@ class Pattern(gtk.VBox):
 	def event_entry(self, widget):
 		print('ch: %d, pos: %d' % (widget.channel, widget.pos))
 
+	def note_table_info(self, path, args, types):
+		self.pat_view.note_table_info(path, args, types)
+
+	def note_info(self, path, args, types):
+		self.pat_view.note_info(path, args, types)
+
+	def note_mod_info(self, path, args, types):
+		self.pat_view.note_mod_info(path, args, types)
+
+	def notes_sent(self, path, args, types):
+		self.pat_view.notes_sent(path, args, types)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
@@ -72,6 +84,7 @@ class Pattern(gtk.VBox):
 		#self.pack_end(pat_scroll)
 		#pat_scroll.show()
 
+		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id)
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
 
 

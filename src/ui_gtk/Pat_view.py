@@ -90,6 +90,14 @@ class Pat_info:
 		self.cols = [None for _ in range(COLUMNS + 1)]
 
 
+class Nt_info:
+
+	def __init__(self, name, notes, note_mods):
+		self.name = name
+		self.notes = [None for _ in range(notes)]
+		self.note_mods = [None for _ in range(note_mods)]
+
+
 class Pat_view(gtk.Widget):
 
 	def pat_info(self, path, args, types):
@@ -103,6 +111,20 @@ class Pat_view(gtk.Widget):
 		self.pdata.cols[args[1]][(args[2], args[3], args[4])] = args[5:]
 
 	def events_sent(self, path, args, types):
+		self.do_redraw()
+
+	def note_table_info(self, path, args, types):
+		self.notes = Nt_info(args[0], args[1], args[2])
+
+	def note_info(self, path, args, types):
+		if args[0] < len(self.notes.notes):
+			self.notes.notes[args[0]] = args[1]
+
+	def note_mod_info(self, path, args, types):
+		if args[0] < len(self.notes.note_mods):
+			self.notes.note_mods[args[0]] = args[1]
+
+	def notes_sent(self, path, args, types):
 		self.do_redraw()
 
 #	def handle_motion_notify(self, widget, event):
@@ -560,9 +582,24 @@ class Pat_view(gtk.Widget):
 		return cw + (self.col_font_size / 3)
 
 	def event_str_note_on(self, event):
-#		if not self.notes:
-		return (str(event[1]) + ',' + str(event[2]) +
-				',' + str(event[3]) + ' %02d' % event[4])
+		if self.notes:
+			note = ''
+			if (event[1] < len(self.notes.notes)
+					and self.notes.notes[event[1]]):
+				note += self.notes.notes[event[1]]
+			else:
+				note += '(' + str(event[1]) + ')'
+			if event[2] >= 0:
+				if (event[2] < len(self.notes.note_mods)
+						and self.notes.note_mods[event[2]]):
+					note += self.notes.note_mods[event[2]]
+				else:
+					note += '(' + str(event[2]) + ')'
+			note += str(event[3]) + ' %02d' % event[4]
+			return note
+		else:
+			return (str(event[1]) + ',' + str(event[2]) +
+					',' + str(event[3]) + ' %02d' % event[4])
 
 	def event_str_note_off(self, event):
 		return '==='

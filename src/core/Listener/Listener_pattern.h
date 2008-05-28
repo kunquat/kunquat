@@ -32,7 +32,7 @@
  * \li \c i   The Song ID.
  * \li \c i   The Pattern number (0..255).
  * \li \c i   The Column number (0..64). 0 is the global Event column.
- * \li \c i   The beat number of the Event.
+ * \li \c h   The beat number of the Event.
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
  * \li \c i   The (0-based) order of the Event in this location.
  * \li \c s   The Event type.

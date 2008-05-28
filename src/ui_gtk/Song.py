@@ -44,6 +44,19 @@ class Song(gtk.VBox):
 	def events_sent(self, path, args, types):
 		self.pattern.events_sent(path, args, types)
 
+	def note_table_info(self, path, args, types):
+		# TODO: send to note table editor once supported
+		self.pattern.note_table_info(path, args, types)
+
+	def note_info(self, path, args, types):
+		self.pattern.note_info(path, args, types)
+
+	def note_mod_info(self, path, args, types):
+		self.pattern.note_mod_info(path, args, types)
+
+	def notes_sent(self, path, args, types):
+		self.pattern.notes_sent(path, args, types)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
