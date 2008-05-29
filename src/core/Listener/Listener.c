@@ -75,6 +75,7 @@ static Method_desc methods[] =
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
 	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
+	{ "/kunquat/pat_ins_event", NULL, Listener_pat_ins_event },
 	{ "/kunquat/get_note_table", "i", Listener_get_note_table },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },

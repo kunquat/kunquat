@@ -118,8 +118,8 @@ void Instrument_process_note(Instrument* ins,
 	assert(note >= 0);
 	assert(note < NOTE_TABLE_NOTES);
 	assert(mod < NOTE_TABLE_NOTE_MODS);
-	assert(octave >= 0);
-	assert(octave < NOTE_TABLE_OCTAVES);
+	assert(octave >= NOTE_TABLE_OCTAVE_FIRST);
+	assert(octave <= NOTE_TABLE_OCTAVE_LAST);
 	if (ins->notes == NULL)
 	{
 		return;

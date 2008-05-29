@@ -162,13 +162,13 @@ void Note_table_set_octave_ratio(Note_table* table, Real* octave_ratio)
 	assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	Real_copy(&(table->octave_ratio), octave_ratio);
 	Real_init_as_frac(&(table->oct_factors[NOTE_TABLE_OCTAVES / 2]), 1, 1);
-	for (int i = NOTE_TABLE_MIDDLE_OCTAVE - 1; i >= 0; --i)
+	for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED - 1; i >= 0; --i)
 	{
 		Real_div(&(table->oct_factors[i]),
 				&(table->oct_factors[i + 1]),
 				&(table->octave_ratio));
 	}
-	for (int i = NOTE_TABLE_MIDDLE_OCTAVE + 1; i < NOTE_TABLE_OCTAVES; ++i)
+	for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED + 1; i < NOTE_TABLE_OCTAVES; ++i)
 	{
 		Real_mul(&(table->oct_factors[i]),
 				&(table->oct_factors[i - 1]),
@@ -664,6 +664,7 @@ pitch_t Note_table_get_pitch(Note_table* table,
 		int mod,
 		int octave)
 {
+	octave -= NOTE_TABLE_OCTAVE_BIAS;
 	Real final_ratio;
 	assert(table != NULL);
 	assert(index >= 0);

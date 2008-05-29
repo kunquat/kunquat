@@ -25,6 +25,8 @@ import gtk, gobject, cairo, pango
 from gtk import gdk
 import math
 
+import liblo
+
 
 RELTIME_FULL_PART = 882161280
 COLUMNS = 64
@@ -111,7 +113,7 @@ class Pat_view(gtk.Widget):
 		self.pdata.cols[args[1]][(args[2], args[3], args[4])] = args[5:]
 
 	def events_sent(self, path, args, types):
-		self.do_redraw()
+		self.queue_draw()
 
 	def note_table_info(self, path, args, types):
 		self.notes = Nt_info(args[0], args[1], args[2])
@@ -125,7 +127,7 @@ class Pat_view(gtk.Widget):
 			self.notes.note_mods[args[0]] = args[1]
 
 	def notes_sent(self, path, args, types):
-		self.do_redraw()
+		self.queue_draw()
 
 #	def handle_motion_notify(self, widget, event):
 #		print('motion')
@@ -250,8 +252,29 @@ class Pat_view(gtk.Widget):
 			if self.cursor[1] > 0:
 				self.cursor = (self.cursor[0], self.cursor[1] - 1)
 				self.queue_draw()
+		elif key_name in self.note_keys or key_name == '1':
+			if (not self.pdata.cols[self.cursor[1]]
+					or self.cursor[0] not in self.pdata.cols[self.cursor[1]]):
+				event_type = evtype.NONE
+				event_args = ()
+				if key_name in self.note_keys:
+					event_type = evtype.NOTE_ON
+					note, rel_octave = self.note_keys[key_name]
+					event_args = (note, -1L, rel_octave + self.base_octave,
+							long(self.ins_num))
+				elif key_name == '1':
+					event_type = evtype.NOTE_OFF
+				liblo.send(self.engine, '/kunquat/pat_ins_event',
+						self.song_id,
+						self.pdata.num,
+						self.cursor[1],
+						self.cursor[0][0],
+						self.cursor[0][1],
+						self.cursor[0][2],
+						event_type,
+						*event_args)
 		else:
-			print('press %s' % key_name)
+			print('press %s, %s' % (key_name, event.hardware_keycode))
 		return True
 
 	def handle_release(self, widget, event):
@@ -342,13 +365,13 @@ class Pat_view(gtk.Widget):
 
 		# Make sure cursor is inside Pattern
 		if self.cursor[0] < (0, 0, 0):
-			self.cursor = ((0, 0, self.cursor[0][2]), self.cursor[1])
+			self.cursor = ((0L, 0, self.cursor[0][2]), self.cursor[1])
 		if self.cursor[1] < 0:
 			self.cursor = (self.cursor[0], 0)
 		if self.pdata and self.cursor[0][:2] > self.pdata.len:
 			self.cursor = (self.pdata.len + (self.cursor[0][2],), self.cursor[1])
 		elif not self.pdata:
-			self.cursor = ((0, 0, 0), 0)
+			self.cursor = ((0L, 0, 0), 0)
 		if self.cursor[1] > COLUMNS:
 			self.cursor = (self.cursor[0], COLUMNS)
 
@@ -641,6 +664,8 @@ class Pat_view(gtk.Widget):
 
 		self.pdata = None
 		self.notes = None
+		self.ins_num = 1
+		self.base_octave = 4
 
 		self.ptheme = {
 			'Ruler font': 'Sans 10',
@@ -655,6 +680,20 @@ class Pat_view(gtk.Widget):
 			'Column header fg colour': (0.8, 0.8, 0.8),
 			'Cursor colour': (0.7, 0.8, 0.9),
 		}
+		self.note_keys = {
+			'z': (0L, 0L),  'q': (0L, 1L),  'i': (0L, 2L),
+			's': (1L, 0L),  '2': (1L, 1L),  '9': (1L, 2L),
+			'x': (2L, 0L),  'w': (2L, 1L),  'o': (2L, 2L),
+			'd': (3L, 0L),  '3': (3L, 1L),  '0': (3L, 2L),
+			'c': (4L, 0L),  'e': (4L, 1L),  'p': (4L, 2L),
+			'v': (5L, 0L),  'r': (5L, 1L),
+			'g': (6L, 0L),  '5': (6L, 1L),
+			'b': (7L, 0L),  't': (7L, 1L),
+			'h': (8L, 0L),  '6': (8L, 1L),
+			'n': (9L, 0L),  'y': (9L, 1L),
+			'j': (10L, 0L), '7': (10L, 1L),
+			'm': (11L, 0L), 'u': (11L, 1L),
+		}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
 		self.ruler_font_size = self.ruler_font.get_size() // pango.SCALE
@@ -666,7 +705,7 @@ class Pat_view(gtk.Widget):
 		self.pixels_per_beat = self.ptheme['Beat height']
 		# position format is ((beat, part), channel)
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
-		self.cursor = ((0, 0, 0), 0)
+		self.cursor = ((0L, 0, 0), 0)
 		self.event_offset = 0
 		self.tmove = 0
 		self.snap_init_delay = 4

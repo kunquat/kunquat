@@ -35,12 +35,12 @@
 /**
  * Sends the event_info message.
  *
- * \param l          The Listener -- must not be \c NULL.
+ * \param lr         The Listener -- must not be \c NULL.
  * \param song_id    The Song ID.
  * \param pat_num    The Pattern number.
  * \param ch_num     The Channel number.
  * \param index      The 0-based order of the Event in this location.
- * \param event      The Event.
+ * \param event      The Event -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
@@ -50,6 +50,22 @@ static bool event_info(Listener* lr,
 		int32_t ch_num,
 		int32_t index,
 		Event* event);
+
+
+/**
+ * Sends the pat_info message (also calls event_info if needed).
+ *
+ * \param lr        The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param pat_num   The Pattern number.
+ * \param pat       The Pattern.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+static bool pat_info(Listener* lr,
+		int32_t song_id,
+		int32_t pat_num,
+		Pattern* pat);
 
 
 int Listener_get_pattern(const char* path,
@@ -92,64 +108,10 @@ int Listener_get_pattern(const char* path,
 	Song* song = player->song;
 	Pat_table* table = Song_get_pats(song);
 	Pattern* pat = Pat_table_get(table, pat_num);
-	if (pat != NULL)
+	if (!pat_info(lr, player_id, pat_num, pat))
 	{
-		Reltime* pat_len = Pattern_get_length(pat);
-		strcpy(lr->method_path + lr->host_path_len, "pat_info");
-		int ret = lo_send(lr->host, lr->method_path, "iihi",
-				player->id,
-				pat_num,
-				pat_len->beats,
-				pat_len->part);
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
-		for (int i = -1; i < 64; ++i)
-		{
-			Column* col = Pattern_global(pat);
-			if (i > -1)
-			{
-				col = Pattern_col(pat, i);
-			}
-			Event* event = Column_get(col, Reltime_init(RELTIME_AUTO));
-			int index = 0;
-			Reltime* prev_time = Reltime_set(RELTIME_AUTO, INT64_MIN, 0);
-			Reltime* time = RELTIME_AUTO;
-			while (event != NULL)
-			{
-				Reltime_copy(time, Event_pos(event));
-				if (Reltime_cmp(prev_time, time) == 0)
-				{
-					++index;
-				}
-				else
-				{
-					index = 0;
-				}
-				Reltime_copy(prev_time, time);
-				if (!event_info(lr, player_id, pat_num, i + 1, index, event))
-				{
-					fprintf(stderr, "Couldn't send the response message\n");
-					return 0;
-				}
-				event = Column_get_next(col);
-			}
-		}
-	}
-	else
-	{
-		strcpy(lr->method_path + lr->host_path_len, "pat_info");
-		int ret = lo_send(lr->host, lr->method_path, "iihi",
-				player->id,
-				pat_num,
-				(int64_t)16, (int32_t)0);
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
 	int ret = lo_send(lr->host, lr->method_path, "ii", player->id, pat_num);
@@ -162,6 +124,7 @@ int Listener_get_pattern(const char* path,
 }
 
 
+#if 0
 int Listener_get_pats(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -235,6 +198,7 @@ int Listener_get_pats(const char* path,
 	}
 	return 0;
 }
+#endif
 
 
 /*
@@ -270,7 +234,7 @@ int Listener_del_pat(const char* path,
  * \li        Zero or more additional arguments depending on the Event type.
  */
 
-int Listener_pat_set_event(const char* path,
+int Listener_pat_ins_event(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,
@@ -350,7 +314,11 @@ int Listener_pat_set_event(const char* path,
 				"Invalid Column number");
 		return 0;
 	}
-	Column* col = Pattern_col(pat, col_num);
+	Column* col = Pattern_global(pat);
+	if (col_num > 0)
+	{
+		col = Pattern_col(pat, col_num - 1);
+	}
 	int64_t beats = argv[3]->h;
 	if (types[3] != 'h')
 	{
@@ -385,57 +353,74 @@ int Listener_pat_set_event(const char* path,
 		return 0;
 	}
 	union { int64_t i; double d; } event_values[EVENT_FIELDS];
-	switch (event_type)
+	if (col_num == 0)
 	{
-		case EVENT_TYPE_NOTE_ON:
-			if (argc < 11)
-			{
+		switch (event_type)
+		{
+			case EVENT_TYPE_NOTE_ON:
+			case EVENT_TYPE_NOTE_OFF:
 				strcpy(lr->method_path + lr->host_path_len, "error");
 				lo_send(lr->host, lr->method_path, "s",
-						"Not enough Event fields for Note On");
+						"Event type unsupported by global event channel");
 				return 0;
-			}
-			event_values[0].i = argv[7]->h;
-			if (types[7] != 'h' || event_values[0].i < 0
-					|| event_values[0].i >= NOTE_TABLE_NOTES)
-			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "s",
-						"Invalid note value for Note On");
-				return 0;
-			}
-			event_values[1].i = argv[8]->h;
-			if (types[8] != 'h' || event_values[1].i < 0
-					|| event_values[1].i >= NOTE_TABLE_NOTE_MODS)
-			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "s",
-						"Invalid note modifier for Note On");
-				return 0;
-			}
-			event_values[2].i = argv[9]->h;
-			if (types[9] != 'h' || event_values[2].i < 0
-					|| event_values[2].i >= NOTE_TABLE_OCTAVES)
-			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "s",
-						"Invalid octave for Note On");
-				return 0;
-			}
-			event_values[3].i = argv[10]->h;
-			if (types[10] != 'h' || event_values[3].i <= 0
-					|| event_values[3].i >= 1024) // FIXME: max num of inst
-			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "s",
-						"Invalid Instrument number for Note On");
-				return 0;
-			}
-			break;
-		case EVENT_TYPE_NOTE_OFF:
-			break;
-		default:
-			break;
+			default:
+				break;
+		}
+	}
+	else
+	{
+		switch (event_type)
+		{
+			case EVENT_TYPE_NOTE_ON:
+				if (argc < 11)
+				{
+					strcpy(lr->method_path + lr->host_path_len, "error");
+					lo_send(lr->host, lr->method_path, "s",
+							"Not enough Event fields for Note On");
+					return 0;
+				}
+				event_values[0].i = argv[7]->h;
+				if (types[7] != 'h' || event_values[0].i < 0
+						|| event_values[0].i >= NOTE_TABLE_NOTES)
+				{
+					strcpy(lr->method_path + lr->host_path_len, "error");
+					lo_send(lr->host, lr->method_path, "s",
+							"Invalid note value for Note On");
+					return 0;
+				}
+				event_values[1].i = argv[8]->h;
+				if (types[8] != 'h' || event_values[1].i < -1
+						|| event_values[1].i >= NOTE_TABLE_NOTE_MODS)
+				{
+					strcpy(lr->method_path + lr->host_path_len, "error");
+					lo_send(lr->host, lr->method_path, "s",
+							"Invalid note modifier for Note On");
+					return 0;
+				}
+				event_values[2].i = argv[9]->h;
+				if (types[9] != 'h' || event_values[2].i < NOTE_TABLE_OCTAVE_FIRST
+						|| event_values[2].i > NOTE_TABLE_OCTAVE_LAST)
+				{
+					strcpy(lr->method_path + lr->host_path_len, "error");
+					lo_send(lr->host, lr->method_path, "s",
+							"Invalid octave for Note On");
+					return 0;
+				}
+				event_values[3].i = argv[10]->h;
+				if (types[10] != 'h' || event_values[3].i <= 0
+						|| event_values[3].i > INSTRUMENTS_MAX)
+				{
+					strcpy(lr->method_path + lr->host_path_len, "error");
+					lo_send(lr->host, lr->method_path, "s",
+							"Invalid Instrument number for Note On");
+					return 0;
+				}
+				break;
+			case EVENT_TYPE_NOTE_OFF:
+				break;
+			default:
+				break;
+		}
 	}
 	Event* event = new_Event(pos, event_type);
 	if (event == NULL)
@@ -467,7 +452,22 @@ int Listener_pat_set_event(const char* path,
 				"Couldn't allocate memory for new Event");
 		return 0;
 	}
-	if (!event_info(lr, player_id, pat_num, col_num, event_order, event))
+	if (Column_move(col, event, event_order))
+	{
+		if (!pat_info(lr, player_id, pat_num, pat))
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+	}
+	else if (!event_info(lr, player_id, pat_num, col_num, event_order, event))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	strcpy(lr->method_path + lr->host_path_len, "events_sent");
+	int ret = lo_send(lr->host, lr->method_path, "ii", player->id, pat_num);
+	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -521,6 +521,71 @@ static bool event_info(Listener* lr,
 	if (ret == -1)
 	{
 		return false;
+	}
+	return true;
+}
+
+
+static bool pat_info(Listener* lr,
+		int32_t song_id,
+		int32_t pat_num,
+		Pattern* pat)
+{
+	if (pat != NULL)
+	{
+		Reltime* pat_len = Pattern_get_length(pat);
+		strcpy(lr->method_path + lr->host_path_len, "pat_info");
+		int ret = lo_send(lr->host, lr->method_path, "iihi",
+				song_id,
+				pat_num,
+				pat_len->beats,
+				pat_len->part);
+		if (ret == -1)
+		{
+			return false;
+		}
+		for (int i = -1; i < 64; ++i)
+		{
+			Column* col = Pattern_global(pat);
+			if (i > -1)
+			{
+				col = Pattern_col(pat, i);
+			}
+			Event* event = Column_get(col, Reltime_init(RELTIME_AUTO));
+			int index = 0;
+			Reltime* prev_time = Reltime_set(RELTIME_AUTO, INT64_MIN, 0);
+			Reltime* time = RELTIME_AUTO;
+			while (event != NULL)
+			{
+				Reltime_copy(time, Event_pos(event));
+				if (Reltime_cmp(prev_time, time) == 0)
+				{
+					++index;
+				}
+				else
+				{
+					index = 0;
+				}
+				Reltime_copy(prev_time, time);
+				if (!event_info(lr, song_id, pat_num, i + 1, index, event))
+				{
+					return false;
+				}
+				event = Column_get_next(col);
+			}
+		}
+	}
+	else
+	{
+		strcpy(lr->method_path + lr->host_path_len, "pat_info");
+		int ret = lo_send(lr->host, lr->method_path, "iihi",
+				song_id,
+				pat_num,
+				(int64_t)16, (int32_t)0);
+		if (ret == -1)
+		{
+			return false;
+		}
 	}
 	return true;
 }

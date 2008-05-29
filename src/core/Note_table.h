@@ -34,9 +34,13 @@
 #define NOTE_TABLE_NOTE_NAME_MAX (16)
 #define NOTE_TABLE_NOTE_MOD_NAME_MAX (8)
 #define NOTE_TABLE_OCTAVES (16)
-#define NOTE_TABLE_MIDDLE_OCTAVE (8)
+#define NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED (8)
 #define NOTE_TABLE_NOTE_MODS (16)
 #define NOTE_TABLE_NOTES (128)
+#define NOTE_TABLE_OCTAVE_BIAS (-3)
+#define NOTE_TABLE_OCTAVE_FIRST (NOTE_TABLE_OCTAVE_BIAS)
+#define NOTE_TABLE_MIDDLE_OCTAVE (NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED + NOTE_TABLE_OCTAVE_BIAS)
+#define NOTE_TABLE_OCTAVE_LAST (NOTE_TABLE_OCTAVES - 1 + NOTE_TABLE_OCTAVE_BIAS)
 
 
 typedef struct Note_table
@@ -517,7 +521,8 @@ double Note_table_get_note_mod_cents(Note_table* table, int index);
  *                 < \c NOTE_TABLE_NOTES.
  * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
  *                 Negative value means that no modifier will be used.
- * \param octave   The octave -- must be >= \c 0 and < \c NOTE_TABLE_OCTAVES.
+ * \param octave   The octave -- must be >= \c NOTE_TABLE_OCTAVE_FIRST
+ *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  *
  * \return   The pitch if the note exists, otherwise a negative value.
  */

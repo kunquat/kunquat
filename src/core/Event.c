@@ -46,7 +46,7 @@ Event* new_Event(Reltime* pos, Event_type type)
 		case EVENT_TYPE_NOTE_ON:
 			event->fields[0].i = -1; // note
 			event->fields[1].i = -1; // modifier
-			event->fields[2].i = -1; // octave
+			event->fields[2].i = INT64_MIN; // octave
 			event->fields[3].i = 0; // instrument
 			break;
 		case EVENT_TYPE_NOTE_OFF:
@@ -144,7 +144,7 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 1 && value >= 0 && value < NOTE_TABLE_NOTE_MODS)
+			else if (index == 1 && value >= -1 && value < NOTE_TABLE_NOTE_MODS)
 			{
 				event->fields[index].i = value;
 				return true;
@@ -154,7 +154,7 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 3 && value > 0 && value < 1024) // FIXME: max num of inst
+			else if (index == 3 && value > 0 && value < 256) // FIXME: max num of inst
 			{
 				event->fields[index].i = value;
 				return true;

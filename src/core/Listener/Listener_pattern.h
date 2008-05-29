@@ -95,7 +95,7 @@ int Listener_new_pat(const char* path,
 
 
 /**
- * Sets an Event in a Pattern.
+ * Inserts an Event into a Pattern.
  *
  * The following OSC arguments are expected:
  *
@@ -109,7 +109,7 @@ int Listener_new_pat(const char* path,
  * \li \c s   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
-int Listener_pat_set_event(const char* path,
+int Listener_pat_ins_event(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,

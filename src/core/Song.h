@@ -40,6 +40,8 @@
 
 #define PATTERNS_MAX (1024)
 
+#define INSTRUMENTS_MAX (256)
+
 
 typedef struct Song
 {

@@ -145,7 +145,8 @@ void Instrument_set_note_table(Instrument* ins, Note_table* notes);
  *                 < \c NOTE_TABLE_NOTES.
  * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
  *                 Negative value means that no modifier will be applied.
- * \param octave   The octave -- must be >= \c 0 and < \c NOTE_TABLE_OCTAVES.
+ * \param octave   The octave -- must be >= \c NOTE_TABLE_OCTAVE_FIRST
+ *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  */
 void Instrument_process_note(Instrument* ins,
 		Voice_state* state,

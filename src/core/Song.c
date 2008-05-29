@@ -84,7 +84,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 		del_Song(song);
 		return NULL;
 	}
-	song->insts = new_Ins_table(256);
+	song->insts = new_Ins_table(INSTRUMENTS_MAX);
 	if (song->insts == NULL)
 	{
 		del_Song(song);
