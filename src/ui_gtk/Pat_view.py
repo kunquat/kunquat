@@ -253,26 +253,38 @@ class Pat_view(gtk.Widget):
 				self.cursor = (self.cursor[0], self.cursor[1] - 1)
 				self.queue_draw()
 		elif key_name in self.note_keys or key_name == '1':
-			if (not self.pdata.cols[self.cursor[1]]
-					or self.cursor[0] not in self.pdata.cols[self.cursor[1]]):
-				event_type = evtype.NONE
-				event_args = ()
-				if key_name in self.note_keys:
-					event_type = evtype.NOTE_ON
-					note, rel_octave = self.note_keys[key_name]
-					event_args = (note, -1L, rel_octave + self.base_octave,
-							long(self.ins_num))
-				elif key_name == '1':
-					event_type = evtype.NOTE_OFF
-				liblo.send(self.engine, '/kunquat/pat_ins_event',
+			event_type = evtype.NONE
+			event_args = ()
+			if key_name in self.note_keys:
+				event_type = evtype.NOTE_ON
+				note, rel_octave = self.note_keys[key_name]
+				event_args = (note, -1L, rel_octave + self.base_octave,
+						long(self.ins_num))
+			elif key_name == '1':
+				event_type = evtype.NOTE_OFF
+			edit_method = '/kunquat/pat_ins_event'
+			if (self.pdata.cols[self.cursor[1]]
+					and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+				edit_method = '/kunquat/pat_mod_event'
+			liblo.send(self.engine, edit_method,
+					self.song_id,
+					self.pdata.num,
+					self.cursor[1],
+					self.cursor[0][0],
+					self.cursor[0][1],
+					self.cursor[0][2],
+					event_type,
+					*event_args)
+		elif key_name == 'period':
+			if (self.pdata.cols[self.cursor[1]]
+					and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+				liblo.send(self.engine, '/kunquat/pat_del_event',
 						self.song_id,
 						self.pdata.num,
 						self.cursor[1],
 						self.cursor[0][0],
 						self.cursor[0][1],
-						self.cursor[0][2],
-						event_type,
-						*event_args)
+						self.cursor[0][2])
 		else:
 			print('press %s, %s' % (key_name, event.hardware_keycode))
 		return True
@@ -508,10 +520,10 @@ class Pat_view(gtk.Widget):
 						self.event_offset = off_w
 					elif off_w + cur_w > self.event_offset + self.col_width:
 						self.event_offset = off_w + cur_w - self.col_width
-				if self.event_offset + self.col_width > row_w:
-					self.event_offset = row_w - self.col_width
-				if self.event_offset < 0:
-					self.event_offset = 0
+					if self.event_offset + self.col_width > row_w:
+						self.event_offset = row_w - self.col_width
+					if self.event_offset < 0:
+						self.event_offset = 0
 				cr.save()
 				cr.rectangle(x, 0, self.col_width, height)
 				cr.clip()
@@ -526,14 +538,17 @@ class Pat_view(gtk.Widget):
 				else:
 					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
 							x, py, prev_y, cur_outside)
-				if self.event_offset > 0:
+				actual_offset = 0
+				if self.cursor[0][:2] == k[:2]:
+					actual_offset = self.event_offset
+				if actual_offset > 0:
 					cr.set_source_rgb(1, 0.2, 0.2)
 					cr.move_to(x, py - 1)
 					cr.rel_line_to(self.col_font_size / 4, 0)
 					cr.rel_line_to(0, -self.col_font_size / 4)
 					cr.close_path()
 					cr.fill()
-				if self.event_offset + self.col_width < row_w:
+				if actual_offset + self.col_width < row_w:
 					cr.set_source_rgb(1, 0.2, 0.2)
 					cr.move_to(x + self.col_width, py - 1)
 					cr.rel_line_to(-self.col_font_size / 4, 0)

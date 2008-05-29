@@ -65,6 +65,22 @@ typedef enum
 #define EVENT_TYPE_IS_VALID(type)   (EVENT_TYPE_IS_GENERAL(type) || EVENT_TYPE_IS_GLOBAL(type) || EVENT_TYPE_IS_INS(type))
 
 
+/**
+ * Gets a field type description of the given Event type.
+ *
+ * \param type   The Event type -- must be a valid type.
+ *
+ * \return   The type description -- must not be freed. The value is a string
+ *           with a character describing the type of each field. Two types are
+ *           supported: 'i' for 64-bit signed integer, and 'f' for
+ *           double-precision floating point number. E.g. "iif" means that the
+ *           Event contains three fields -- the first two are integers and the
+ *           last one is float. \c NULL means that the given Event type is not
+ *           in use.
+ */
+char* Event_type_get_field_types(Event_type type);
+
+
 typedef struct Event
 {
 	/// The Event position.
@@ -90,6 +106,15 @@ typedef struct Event
  *           failed.
  */
 Event* new_Event(Reltime* pos, Event_type type);
+
+
+/**
+ * Resets an Event and changes its type. The position will not be altered.
+ *
+ * \param event   The Event -- must not be \c NULL.
+ * \param type    The new Event type -- must be a valid type.
+ */
+void Event_reset(Event* event, Event_type type);
 
 
 /**

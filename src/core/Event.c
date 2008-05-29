@@ -30,6 +30,22 @@
 #include <xmemory.h>
 
 
+char* Event_type_get_field_types(Event_type type)
+{
+	assert(EVENT_TYPE_IS_VALID(type));
+	switch (type)
+	{
+		case EVENT_TYPE_NOTE_ON:
+			return "iiii";
+		case EVENT_TYPE_NOTE_OFF:
+			return "";
+		default:
+			return NULL;
+	}
+	return NULL;
+}
+
+
 Event* new_Event(Reltime* pos, Event_type type)
 {
 	assert(pos != NULL);
@@ -40,6 +56,15 @@ Event* new_Event(Reltime* pos, Event_type type)
 		return NULL;
 	}
 	Reltime_copy(&event->pos, pos);
+	Event_reset(event, type);
+	return event;
+}
+
+
+void Event_reset(Event* event, Event_type type)
+{
+	assert(event != NULL);
+	assert(EVENT_TYPE_IS_VALID(type));
 	event->type = type;
 	switch (event->type)
 	{
@@ -52,9 +77,9 @@ Event* new_Event(Reltime* pos, Event_type type)
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
-	return event;
+	return;
 }
 
 
@@ -163,7 +188,7 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
 	return false;
 }
@@ -194,7 +219,7 @@ bool Event_set_float(Event* event, uint8_t index, double value)
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
 	return false;
 }

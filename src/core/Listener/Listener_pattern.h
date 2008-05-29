@@ -103,13 +103,57 @@ int Listener_new_pat(const char* path,
  * \li \c i   The Pattern number. A new Pattern will be created if necessary.
  * \li \c i   The Column number -- must be between (0..64). 0 is the global
  *            Event column.
- * \li \c i   The beat number of the Event.
+ * \li \c h   The beat number of the Event.
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
  * \li \c i   The (0-based) order of the Event in this location.
  * \li \c s   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
 int Listener_pat_ins_event(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Modifies an existing Event in a Pattern.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ * \li \c i   The Column number -- must be between (0..64). 0 is the global
+ *            Event column.
+ * \li \c h   The beat number of the Event.
+ * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
+ * \li \c i   The (0-based) order of the Event in this location.
+ * \li \c s   The Event type.
+ * \li        Zero or more additional arguments depending on the Event type.
+ */
+int Listener_pat_mod_event(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Removes an existing Event from a Pattern.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ * \li \c i   The Column number -- must be between (0..64). 0 is the global
+ *            Event column.
+ * \li \c h   The beat number of the Event.
+ * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
+ * \li \c i   The (0-based) order of the Event in this location.
+ */
+int Listener_pat_del_event(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,
