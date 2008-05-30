@@ -146,63 +146,27 @@ class Pat_view(gtk.Widget):
 		print('focus out')
 		return True
 
-	def handle_key(self, widget, event):
-		if not event.type == gdk.KEY_PRESS:
-			return False
-		key_name = gdk.keyval_name(event.keyval)
-		if self.pdata == None:
-			return True
-		if key_name == 'Down':
-			if event.state & gdk.CONTROL_MASK:
-				self.zoom(1.0/1.5)
-				self.queue_draw()
-			elif self.tmove != 0 and 0 <= self.snap_state < self.snap_delay:
+	def act_up(self, event):
+		ctime = (0L, 0)
+		if event.type == gdk.SCROLL:
+			ctime = (-1L, 3 * RELTIME_FULL_PART / 4)
+		elif event.type == gdk.KEY_PRESS:
+			if self.tmove != (0, 0) and 0 <= self.snap_state < self.snap_delay:
 				self.snap_state = max(-1, self.snap_state - 1)
 				if self.snap_state < 0:
 					self.snap_delay = max(0, self.snap_delay - 1)
 					self.snap_state = self.snap_delay
+				return
 			else:
 				init_move = False
-				if self.tmove <= 0:
+				if self.tmove[1] >= 0:
 					init_move = True
-					self.tmove = 0.8
-				elif self.tmove < 16:
-					self.tmove *= 1.3
+					self.tmove = (0.8, -1)
+				elif self.tmove[0] < 16:
+					self.tmove = (self.tmove[0] * 1.3, -1)
 				else:
-					self.tmove = 16
-				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
-				if ctime == self.cursor[0][:2]:
-					ctime = time_add(ctime, (0, 1))
-				events = []
-				if self.pdata.cols[self.cursor[1]]:
-					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
-							if self.cursor[0][:2] < k[:2] <= ctime]
-				if events:
-					first = min(events)
-					ctime = first[0][:2]
-					if not init_move:
-						self.snap_state = self.snap_delay - 1
-				self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
-				self.queue_draw()
-		elif key_name == 'Up':
-			if event.state & gdk.CONTROL_MASK:
-				self.zoom(1.5)
-				self.queue_draw()
-			elif self.tmove != 0 and 0 <= self.snap_state < self.snap_delay:
-				self.snap_state = max(-1, self.snap_state - 1)
-				if self.snap_state < 0:
-					self.snap_delay = max(0, self.snap_delay - 1)
-					self.snap_state = self.snap_delay
-			else:
-				init_move = False
-				if self.tmove >= 0:
-					init_move = True
-					self.tmove = -0.8
-				elif self.tmove > -16:
-					self.tmove *= 1.3
-				else:
-					self.tmove = -16
-				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove))
+					self.tmove = (16, -1)
+				ctime = time_sub(self.cursor[0][:2], self.px_time(self.tmove[0]))
 				if ctime == self.cursor[0][:2]:
 					ctime = time_sub(ctime, (0, 1))
 				events = []
@@ -214,95 +178,206 @@ class Pat_view(gtk.Widget):
 					ctime = last[0][:2]
 					if not init_move:
 						self.snap_state = self.snap_delay - 1
-				self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
-				self.queue_draw()
-		elif key_name == 'Left':
-			if self.pdata.cols[self.cursor[1]]:
-				if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
-					self.cursor = (self.cursor[0][:2] +
-							(max(self.cursor[0][2] - 1, 0),), self.cursor[1])
-				elif (self.cursor[0][2] > 0 and
-						self.cursor[0][:2] + (self.cursor[0][2] - 1,)
-						in self.pdata.cols[self.cursor[1]]):
-					self.cursor = (self.cursor[0][:2] +
-							(self.cursor[0][2] - 1,), self.cursor[1])
+		elif event.type == gdk.KEY_RELEASE:
+			self.tmove = (0, 0)
+			self.snap_state = self.snap_delay = self.snap_init_delay
+			return
+		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.queue_draw()
+
+	def act_down(self, event):
+		ctime = (0L, 0)
+		if event.type == gdk.SCROLL:
+			ctime = (0L, RELTIME_FULL_PART / 4)
+		elif event.type == gdk.KEY_PRESS:
+			if self.tmove != (0, 0) and 0 <= self.snap_state < self.snap_delay:
+				self.snap_state = max(-1, self.snap_state - 1)
+				if self.snap_state < 0:
+					self.snap_delay = max(0, self.snap_delay - 1)
+					self.snap_state = self.snap_delay
+				return
+			else:
+				init_move = False
+				if self.tmove[1] <= 0:
+					init_move = True
+					self.tmove = (0.8, 1)
+				elif self.tmove[0] < 16:
+					self.tmove = (self.tmove[0] * 1.3, 1)
 				else:
-					self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
-				self.queue_draw()
-		elif key_name == 'Right':
-			if self.pdata.cols[self.cursor[1]]:
-				if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
-					self.cursor = (self.cursor[0][:2] +
-							(self.cursor[0][2] + 1,), self.cursor[1])
-				else:
-					self.cursor = (self.cursor[0], self.cursor[1])
-				self.queue_draw()
-		elif key_name == 'Page_Down':
-			self.cursor = ((self.cursor[0][0] + 4,) + self.cursor[0][1:], self.cursor[1])
+					self.tmove = (16, 1)
+				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove[0]))
+				if ctime == self.cursor[0][:2]:
+					ctime = time_add(ctime, (0, 1))
+				events = []
+				if self.pdata.cols[self.cursor[1]]:
+					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].iteritems()
+							if self.cursor[0][:2] < k[:2] <= ctime]
+				if events:
+					first = min(events)
+					ctime = first[0][:2]
+					if not init_move:
+						self.snap_state = self.snap_delay - 1
+		elif event.type == gdk.KEY_RELEASE:
+			self.tmove = (0, 0)
+			self.snap_state = self.snap_delay = self.snap_init_delay
+			return
+		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.queue_draw()
+
+	def act_zoom_in(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.zoom(1.5)
+		self.queue_draw()
+
+	def act_zoom_out(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.zoom(1.0/1.5)
+		self.queue_draw()
+
+	def act_left(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if self.pdata.cols[self.cursor[1]]:
+			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+				self.cursor = (self.cursor[0][:2] +
+						(max(self.cursor[0][2] - 1, 0),), self.cursor[1])
+			elif (self.cursor[0][2] > 0 and
+					self.cursor[0][:2] + (self.cursor[0][2] - 1,)
+					in self.pdata.cols[self.cursor[1]]):
+				self.cursor = (self.cursor[0][:2] +
+						(self.cursor[0][2] - 1,), self.cursor[1])
+			else:
+				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 			self.queue_draw()
-		elif key_name == 'Page_Up':
-			ctime = time_normalise((self.cursor[0][0] - 4, self.cursor[0][1]))
-			self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+
+	def act_right(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if self.pdata.cols[self.cursor[1]]:
+			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+				self.cursor = (self.cursor[0][:2] +
+						(self.cursor[0][2] + 1,), self.cursor[1])
+			else:
+				self.cursor = (self.cursor[0], self.cursor[1])
 			self.queue_draw()
-		elif key_name == 'Tab':
-			if self.cursor[1] < COLUMNS:
-				self.cursor = (self.cursor[0], self.cursor[1] + 1)
-				self.queue_draw()
-		elif key_name == 'ISO_Left_Tab':
-			if self.cursor[1] > 0:
-				self.cursor = (self.cursor[0], self.cursor[1] - 1)
-				self.queue_draw()
-		elif key_name in self.note_keys or key_name == '1':
-			event_type = evtype.NONE
-			event_args = ()
-			if key_name in self.note_keys:
-				event_type = evtype.NOTE_ON
-				note, rel_octave = self.note_keys[key_name]
-				event_args = (note, -1L, rel_octave + self.base_octave,
-						long(self.ins_num))
-			elif key_name == '1':
-				event_type = evtype.NOTE_OFF
-			edit_method = '/kunquat/pat_ins_event'
-			if (self.pdata.cols[self.cursor[1]]
-					and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
-				edit_method = '/kunquat/pat_mod_event'
-			liblo.send(self.engine, edit_method,
+
+	def act_bar_up(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		ctime = time_normalise((self.cursor[0][0] - 4, self.cursor[0][1]))
+		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.queue_draw()
+
+	def act_bar_down(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.cursor = ((self.cursor[0][0] + 4,) + self.cursor[0][1:], self.cursor[1])
+		self.queue_draw()
+
+	def act_ch_left(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if self.cursor[1] > 0:
+			self.cursor = (self.cursor[0], self.cursor[1] - 1)
+			self.queue_draw()
+
+	def act_ch_right(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if self.cursor[1] < COLUMNS:
+			self.cursor = (self.cursor[0], self.cursor[1] + 1)
+			self.queue_draw()
+
+	def act_note(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		key_name = gdk.keyval_name(event.keyval)
+		event_type = evtype.NONE
+		event_args = ()
+		if key_name in self.note_keys:
+			event_type = evtype.NOTE_ON
+			note, rel_octave = self.note_keys[key_name]
+			event_args = (note, -1L, rel_octave + self.base_octave,
+					long(self.ins_num))
+		elif key_name == '1':
+			event_type = evtype.NOTE_OFF
+		edit_method = '/kunquat/pat_ins_event'
+		if (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			edit_method = '/kunquat/pat_mod_event'
+		liblo.send(self.engine, edit_method,
+				self.song_id,
+				self.pdata.num,
+				self.cursor[1],
+				self.cursor[0][0],
+				self.cursor[0][1],
+				self.cursor[0][2],
+				event_type,
+				*event_args)
+
+	def act_del_event(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			liblo.send(self.engine, '/kunquat/pat_del_event',
 					self.song_id,
 					self.pdata.num,
 					self.cursor[1],
 					self.cursor[0][0],
 					self.cursor[0][1],
-					self.cursor[0][2],
-					event_type,
-					*event_args)
-		elif key_name == 'period':
-			if (self.pdata.cols[self.cursor[1]]
-					and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
-				liblo.send(self.engine, '/kunquat/pat_del_event',
-						self.song_id,
-						self.pdata.num,
-						self.cursor[1],
-						self.cursor[0][0],
-						self.cursor[0][1],
-						self.cursor[0][2])
+					self.cursor[0][2])
+
+	def handle_key(self, widget, event):
+		if not event.type == gdk.KEY_PRESS:
+			return False
+		if self.pdata == None:
+			return True
+		key_name = gdk.keyval_name(event.keyval)
+		key_mask = 0
+		key_mask |= event.state & gdk.CONTROL_MASK
+		key_mask |= event.state & gdk.SHIFT_MASK
+		key_mask |= event.state & gdk.MOD1_MASK
+		key_mask |= event.state & gdk.MOD2_MASK
+		key_mask |= event.state & gdk.MOD3_MASK
+		key_mask |= event.state & gdk.MOD4_MASK
+		key_mask |= event.state & gdk.MOD5_MASK
+		if (key_name, key_mask) in self.control_map:
+			self.control_map[(key_name, key_mask)](event)
+		elif key_name in self.note_keys:
+			self.act_note(event)
 		else:
-			print('press %s, %s' % (key_name, event.hardware_keycode))
+			print('press %s, %s' % (key_name, event.state))
 		return True
 
 	def handle_release(self, widget, event):
 		key_name = gdk.keyval_name(event.keyval)
-		if key_name == 'Down' or key_name == 'Up':
-			self.tmove = 0
-			self.snap_state = self.snap_delay = self.snap_init_delay
+		key_mask = 0
+		key_mask |= event.state & gdk.CONTROL_MASK
+		key_mask |= event.state & gdk.SHIFT_MASK
+		key_mask |= event.state & gdk.MOD1_MASK
+		key_mask |= event.state & gdk.MOD2_MASK
+		key_mask |= event.state & gdk.MOD3_MASK
+		key_mask |= event.state & gdk.MOD4_MASK
+		key_mask |= event.state & gdk.MOD5_MASK
+		if (key_name, key_mask) in self.control_map:
+			self.control_map[(key_name, key_mask)](event)
 		return True
 
 	def handle_scroll(self, widget, event):
-		if event.direction == gdk.SCROLL_UP:
-			self.zoom(1.5)
-			self.queue_draw()
-		elif event.direction == gdk.SCROLL_DOWN:
-			self.zoom(1.0/1.5)
-			self.queue_draw()
+		dir_mask = event.direction
+		key_mask = 0
+		key_mask |= event.state & gdk.CONTROL_MASK
+		key_mask |= event.state & gdk.SHIFT_MASK
+		key_mask |= event.state & gdk.MOD1_MASK
+		key_mask |= event.state & gdk.MOD2_MASK
+		key_mask |= event.state & gdk.MOD3_MASK
+		key_mask |= event.state & gdk.MOD4_MASK
+		key_mask |= event.state & gdk.MOD5_MASK
+		if (dir_mask, key_mask) in self.control_map:
+			self.control_map[(dir_mask, key_mask)](event)
 		return True
 
 	def zoom(self, factor):
@@ -489,7 +564,7 @@ class Pat_view(gtk.Widget):
 				for (l, w) in rights:
 					row_w += self.event_width(w)
 				# Make sure cursor points at or next to an existing event
-				if self.cursor[0][:2] == k[:2]:
+				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if self.cursor[0][2] < 0:
 						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
 					elif not rights and self.cursor[0][2] > 0:
@@ -501,7 +576,7 @@ class Pat_view(gtk.Widget):
 						row_w += self.col_font_size / 3
 				off_w = 0
 				cur_w = 0
-				if self.cursor[0][:2] == k[:2]:
+				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if self.cursor[0][2] > 0:
 						off_w = self.event_width(v)
 						for (l, w) in rights:
@@ -515,7 +590,7 @@ class Pat_view(gtk.Widget):
 					else:
 						cur_w = self.event_width(v)
 				# Make sure cursor is visible (if it's located here)
-				if self.cursor[0][:2] == k[:2]:
+				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if off_w < self.event_offset:
 						self.event_offset = off_w
 					elif off_w + cur_w > self.event_offset + self.col_width:
@@ -532,14 +607,14 @@ class Pat_view(gtk.Widget):
 				prev_y = 0
 				if prev:
 					prev_y = self.time_px(time_sub(prev, start)) + self.col_font_size
-				if self.cursor[0][:2] == k[:2]:
+				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
 							x - self.event_offset, py, prev_y, cur_outside)
 				else:
 					self.draw_row(cr, k[:2], num, [(k, v)] + rights,
 							x, py, prev_y, cur_outside)
 				actual_offset = 0
-				if self.cursor[0][:2] == k[:2]:
+				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					actual_offset = self.event_offset
 				if actual_offset > 0:
 					cr.set_source_rgb(1, 0.2, 0.2)
@@ -709,6 +784,21 @@ class Pat_view(gtk.Widget):
 			'j': (10L, 0L), '7': (10L, 1L),
 			'm': (11L, 0L), 'u': (11L, 1L),
 		}
+		self.control_map = {
+			('Up', 0): self.act_up,
+			('Down', 0): self.act_down,
+			('Up', gdk.CONTROL_MASK): self.act_zoom_in,
+			('Down', gdk.CONTROL_MASK): self.act_zoom_out,
+			(gdk.SCROLL_UP, gdk.CONTROL_MASK): self.act_zoom_in,
+			(gdk.SCROLL_DOWN, gdk.CONTROL_MASK): self.act_zoom_out,
+			('Left', 0): self.act_left,
+			('Right', 0): self.act_right,
+			('Tab', 0): self.act_ch_right,
+			('ISO_Left_Tab', gdk.SHIFT_MASK): self.act_ch_left,
+			('Page_Up', 0): self.act_bar_up,
+			('Page_Down', 0): self.act_bar_down,
+			('Delete', 0): self.act_del_event,
+		}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
 		self.ruler_font_size = self.ruler_font.get_size() // pango.SCALE
@@ -722,7 +812,7 @@ class Pat_view(gtk.Widget):
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0L, 0, 0), 0)
 		self.event_offset = 0
-		self.tmove = 0
+		self.tmove = (0, 0)
 		self.snap_init_delay = 4
 		self.snap_delay = self.snap_init_delay
 		self.snap_state = self.snap_delay
