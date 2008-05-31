@@ -290,19 +290,12 @@ class Pat_view(gtk.Widget):
 			self.cursor = (self.cursor[0], self.cursor[1] + 1)
 			self.queue_draw()
 
-	def act_note(self, event):
+	def act_ev_note_on(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		key_name = gdk.keyval_name(event.keyval)
-		event_type = evtype.NONE
-		event_args = ()
-		if key_name in self.note_keys:
-			event_type = evtype.NOTE_ON
-			note, rel_octave = self.note_keys[key_name]
-			event_args = (note, -1L, rel_octave + self.base_octave,
-					long(self.ins_num))
-		elif key_name == '1':
-			event_type = evtype.NOTE_OFF
+		key_name = gdk.keyval_name(self.get_plain_key(event))
+		note, rel_octave = self.note_keys[key_name]
+		event_args = (note, -1L, rel_octave + self.base_octave, long(self.ins_num))
 		edit_method = '/kunquat/pat_ins_event'
 		if (self.pdata.cols[self.cursor[1]]
 				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
@@ -314,8 +307,30 @@ class Pat_view(gtk.Widget):
 				self.cursor[0][0],
 				self.cursor[0][1],
 				self.cursor[0][2],
-				event_type,
+				evtype.NOTE_ON,
 				*event_args)
+		if (event.state & self.note_chord_mod[1]
+				and self.cursor[1] < COLUMNS):
+			if self.cur_virtual_col == -1:
+				self.cur_virtual_col = self.cursor[1]
+			self.cursor = (self.cursor[0], self.cursor[1] + 1)
+			self.queue_draw()
+
+	def act_ev_note_off(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		edit_method = '/kunquat/pat_ins_event'
+		if (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			edit_method = '/kunquat/pat_mod_event'
+		liblo.send(self.engine, edit_method,
+				self.song_id,
+				self.pdata.num,
+				self.cursor[1],
+				self.cursor[0][0],
+				self.cursor[0][1],
+				self.cursor[0][2],
+				evtype.NOTE_OFF)
 
 	def act_del_event(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -330,12 +345,18 @@ class Pat_view(gtk.Widget):
 					self.cursor[0][1],
 					self.cursor[0][2])
 
+	def get_plain_key(self, event):
+		keymap = gdk.keymap_get_default()
+		keyval, _, _, _ = keymap.translate_keyboard_state(
+				event.hardware_keycode, 0, event.group)
+		return keyval
+
 	def handle_key(self, widget, event):
 		if not event.type == gdk.KEY_PRESS:
 			return False
 		if self.pdata == None:
 			return True
-		key_name = gdk.keyval_name(event.keyval)
+		key_name = gdk.keyval_name(self.get_plain_key(event))
 		key_mask = 0
 		key_mask |= event.state & gdk.CONTROL_MASK
 		key_mask |= event.state & gdk.SHIFT_MASK
@@ -347,13 +368,13 @@ class Pat_view(gtk.Widget):
 		if (key_name, key_mask) in self.control_map:
 			self.control_map[(key_name, key_mask)](event)
 		elif key_name in self.note_keys:
-			self.act_note(event)
+			self.act_ev_note_on(event)
 		else:
-			print('press %s, %s' % (key_name, event.state))
+			print('press %s, %s, %s' % (key_name, event.hardware_keycode, event.state))
 		return True
 
 	def handle_release(self, widget, event):
-		key_name = gdk.keyval_name(event.keyval)
+		key_name = gdk.keyval_name(self.get_plain_key(event))
 		key_mask = 0
 		key_mask |= event.state & gdk.CONTROL_MASK
 		key_mask |= event.state & gdk.SHIFT_MASK
@@ -362,8 +383,14 @@ class Pat_view(gtk.Widget):
 		key_mask |= event.state & gdk.MOD3_MASK
 		key_mask |= event.state & gdk.MOD4_MASK
 		key_mask |= event.state & gdk.MOD5_MASK
+		print('release %s, %s' % (event.keyval, key_name))
 		if (key_name, key_mask) in self.control_map:
 			self.control_map[(key_name, key_mask)](event)
+		if (key_name[:len(self.note_chord_mod[0])] == self.note_chord_mod[0]
+				and self.cur_virtual_col >= 0):
+			self.cursor = (self.cursor[0], self.cur_virtual_col)
+			self.cur_virtual_col = -1
+			self.queue_draw()
 		return True
 
 	def handle_scroll(self, widget, event):
@@ -784,20 +811,28 @@ class Pat_view(gtk.Widget):
 			'j': (10L, 0L), '7': (10L, 1L),
 			'm': (11L, 0L), 'u': (11L, 1L),
 		}
+		self.note_chord_mod = ('Shift', gdk.SHIFT_MASK)
 		self.control_map = {
 			('Up', 0): self.act_up,
 			('Down', 0): self.act_down,
+			('Up', self.note_chord_mod[1]): self.act_up,
+			('Down', self.note_chord_mod[1]): self.act_down,
 			('Up', gdk.CONTROL_MASK): self.act_zoom_in,
 			('Down', gdk.CONTROL_MASK): self.act_zoom_out,
+			('Up', gdk.CONTROL_MASK | self.note_chord_mod[1]): self.act_zoom_in,
+			('Down', gdk.CONTROL_MASK | self.note_chord_mod[1]): self.act_zoom_out,
 			(gdk.SCROLL_UP, gdk.CONTROL_MASK): self.act_zoom_in,
 			(gdk.SCROLL_DOWN, gdk.CONTROL_MASK): self.act_zoom_out,
 			('Left', 0): self.act_left,
 			('Right', 0): self.act_right,
+			('Left', self.note_chord_mod[1]): self.act_left,
+			('Right', self.note_chord_mod[1]): self.act_right,
 			('Tab', 0): self.act_ch_right,
-			('ISO_Left_Tab', gdk.SHIFT_MASK): self.act_ch_left,
+			('Tab', gdk.SHIFT_MASK): self.act_ch_left,
 			('Page_Up', 0): self.act_bar_up,
 			('Page_Down', 0): self.act_bar_down,
 			('Delete', 0): self.act_del_event,
+			('1', 0): self.act_ev_note_off,
 		}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
@@ -811,6 +846,7 @@ class Pat_view(gtk.Widget):
 		# position format is ((beat, part), channel)
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0L, 0, 0), 0)
+		self.cur_virtual_col = -1
 		self.event_offset = 0
 		self.tmove = (0, 0)
 		self.snap_init_delay = 4

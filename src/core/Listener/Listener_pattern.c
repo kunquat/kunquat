@@ -841,8 +841,8 @@ static bool event_info(Listener* lr,
 {
 	assert(lr != NULL);
 	assert(pat_num >= 0);
-	assert(ch_num >= -1);
-	assert(ch_num < 64);
+	assert(ch_num >= 0);
+	assert(ch_num <= 64);
 	assert(index >= 0);
 	assert(event != NULL);
 	Reltime* pos = Event_pos(event);
