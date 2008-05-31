@@ -147,6 +147,7 @@ class Pat_view(gtk.Widget):
 		return True
 
 	def act_up(self, event):
+		self.cur_field = self.cur_virtual_field
 		ctime = (0L, 0)
 		if event.type == gdk.SCROLL:
 			ctime = (-1L, 3 * RELTIME_FULL_PART / 4)
@@ -186,6 +187,7 @@ class Pat_view(gtk.Widget):
 		self.queue_draw()
 
 	def act_down(self, event):
+		self.cur_field = self.cur_virtual_field
 		ctime = (0L, 0)
 		if event.type == gdk.SCROLL:
 			ctime = (0L, RELTIME_FULL_PART / 4)
@@ -239,43 +241,79 @@ class Pat_view(gtk.Widget):
 	def act_left(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		if (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+			if self.cur_field >= self.event_fields[ev[0]]:
+				self.cur_field = self.event_fields[ev[0]] - 1
+				self.cur_virtual_field = self.cur_field
+			if self.cur_field > 0:
+				self.cur_field = max(0, self.cur_field - 1)
+				self.cur_virtual_field = self.cur_field
+				self.queue_draw()
+				return
 		if self.pdata.cols[self.cursor[1]]:
 			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+				cv_old = self.cur_virtual_ord
 				self.cur_virtual_ord = max(self.cursor[0][2] - 1, 0)
 				self.cursor = (self.cursor[0][:2] +
 						(self.cur_virtual_ord,), self.cursor[1])
+				if cv_old - self.cur_virtual_ord > 0:
+					new_event = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+					self.cur_field = self.event_fields[new_event[0]] - 1
+					self.cur_virtual_field = self.cur_field
 			elif (self.cursor[0][2] > 0 and
 					self.cursor[0][:2] + (self.cursor[0][2] - 1,)
 					in self.pdata.cols[self.cursor[1]]):
 				self.cur_virtual_ord = self.cursor[0][2] - 1
 				self.cursor = (self.cursor[0][:2] +
 						(self.cur_virtual_ord,), self.cursor[1])
+				new_event = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+				self.cur_field = self.event_fields[new_event[0]] - 1
+				self.cur_virtual_field = self.cur_field
 			else:
 				self.cur_virtual_ord = 0
 				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+				self.cur_field = 0
+				self.cur_virtual_field = 0
 			self.queue_draw()
 		else:
 			self.cur_virtual_ord = 0
 			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+			self.cur_field = 0
+			self.cur_virtual_field = 0
 
 	def act_right(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
 		if self.pdata.cols[self.cursor[1]]:
 			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
-				self.cur_virtual_ord += 1
-				self.cursor = (self.cursor[0][:2] +
-						(self.cur_virtual_ord,), self.cursor[1])
+				ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+				if self.cur_field < self.event_fields[ev[0]] - 1:
+					self.cur_field += 1
+					self.cur_virtual_field = self.cur_field
+				else:
+					self.cur_field = 0
+					self.cur_virtual_field = 0
+					self.cur_virtual_ord += 1
+					self.cursor = (self.cursor[0][:2] +
+							(self.cur_virtual_ord,), self.cursor[1])
 			elif ((self.cursor[0][:2] + (self.cursor[0][2] - 1,))
 					in self.pdata.cols[self.cursor[1]]):
 				self.cur_virtual_ord = self.cursor[0][2]
+				self.cur_field = 0
+				self.cur_virtual_field = 0
 			else:
 				self.cur_virtual_ord = 0
 				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+				self.cur_field = 0
+				self.cur_virtual_field = 0
 			self.queue_draw()
 		else:
 			self.cur_virtual_ord = 0
 			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+			self.cur_field = 0
+			self.cur_virtual_field = 0
 
 	def act_bar_up(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -400,7 +438,7 @@ class Pat_view(gtk.Widget):
 		key_mask |= event.state & gdk.MOD3_MASK
 		key_mask |= event.state & gdk.MOD4_MASK
 		key_mask |= event.state & gdk.MOD5_MASK
-		print('release %s, %s' % (event.keyval, key_name))
+#		print('release %s, %s' % (event.keyval, key_name))
 		if (key_name, key_mask) in self.control_map:
 			self.control_map[(key_name, key_mask)](event)
 		if (key_name[:len(self.note_chord_mod[0])] == self.note_chord_mod[0]
@@ -585,6 +623,7 @@ class Pat_view(gtk.Widget):
 	def cursor_clip(self):
 		if not self.pdata:
 			self.cursor = ((0L, 0, 0), 0)
+			self.cur_field = 0
 			return
 		if self.cursor[0] < (0, 0, 0):
 			self.cursor = ((0L, 0, self.cursor[0][2]), self.cursor[1])
@@ -601,6 +640,15 @@ class Pat_view(gtk.Widget):
 					if self.cursor[0][:2] == k[:2]]
 			ord = min(self.cursor[0][2], len(row))
 			self.cursor = (self.cursor[0][:2] + (ord,), self.cursor[1])
+		if self.cur_field < 0:
+			self.cur_field = 0
+		if (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+			if self.cur_field >= self.event_fields[ev[0]]:
+				self.cur_field = self.event_fields[ev[0]] - 1
+		else:
+			self.cur_field = 0
 
 	def draw_column(self, cr, num, x, y, height, start, end):
 		if self.pdata.cols[num]:
@@ -729,20 +777,20 @@ class Pat_view(gtk.Widget):
 			pl = self.create_pango_layout('0')
 			_, h = pl.get_size()
 			h //= pango.SCALE
-			cr.set_source_rgb(1, 0.9, 0.8)
+			cr.set_source_rgb(*self.ptheme['Cursor colour'])
 			cr.rectangle(x + offset, y - h,
 					self.col_font_size / 3, h)
 			cr.fill()
 
 	def draw_event(self, cr, pos, col_num, data, x, y, prev_y):
-		fg_colour = (1, 0.9, 0.8)
-		bg_colour = (0, 0, 0)
-		if self.cursor == (pos, col_num):
-			tmp = fg_colour
-			fg_colour = bg_colour
-			bg_colour = tmp
-		estr = self.event_str[data[0]](data)
+		fg_colour = self.ptheme['Event error colour']
+		bg_colour = self.ptheme['Background colour']
+		cur_set = self.cursor == (pos, col_num)
+#		if self.cursor == (pos, col_num):
+#			cur_set = True
+		estr, attrs, line_colour = self.event_str[data[0]](data, cur_set)
 		pl = self.create_pango_layout(estr)
+		pl.set_attributes(attrs)
 		w, h = pl.get_size()
 		w //= pango.SCALE
 		h //= pango.SCALE
@@ -751,46 +799,150 @@ class Pat_view(gtk.Widget):
 			cr.rectangle(x, y - h,
 					w + (self.col_font_size / 3), h)
 			cr.fill()
-			cr.set_source_rgb(*fg_colour)
+			cr.set_source_rgb(*self.ptheme['Event error colour'])
 			cr.move_to(x + (self.col_font_size / 6), y - h)
 			cr.update_layout(pl)
 			cr.show_layout(pl)
-		cr.set_source_rgb(1, 0.9, 0.8)
+		cr.set_source_rgb(*line_colour)
 		cr.move_to(x, y)
 		cr.rel_line_to(w + (self.col_font_size / 3), 0)
 		cr.stroke()
 		return w + (self.col_font_size / 3)
 
 	def event_width(self, event):
-		etext = self.event_str[event[0]](event)
+		etext, _, _ = self.event_str[event[0]](event)
 		pl = self.create_pango_layout(etext)
 		pl.set_font_description(self.col_font)
 		cw, _ = pl.get_size()
 		cw //= pango.SCALE
 		return cw + (self.col_font_size / 3)
 
-	def event_str_note_on(self, event):
+	def rgb_scale(self, r, g, b):
+		r *= 65535
+		g *= 65535
+		b *= 65535
+		r = max(0, min(65535, r))
+		g = max(0, min(65535, g))
+		b = max(0, min(65535, b))
+		return (int(r), int(g), int(b))
+
+	def colour_for_bg(self, r, g, b, br, bg, bb):
+		energy = 0.3 * br + 0.59 * bg + 0.11 * bb
+		radd = gadd = badd = 0
+		if energy <= 0.5:
+			radd, gadd, badd = (1 - r, 1 - g, 1 - b)
+			add = energy * 2
+			radd *= add
+			gadd *= add
+			badd *= add
+			return (r + radd, g + gadd, b + badd)
+		r, g, b = (r - 0.5, g - 0.5, b - 0.5)
+		add = (energy - 0.5) * 2
+		r *= add
+		g *= add
+		b *= add
+		return (r, g, b)
+
+	def event_str_set_attrs(self, attrs, fg, starts, ends, errors, cur_set):
+		r, g, b = self.rgb_scale(*fg)
+		attrs.insert(pango.AttrForeground(r, g, b, 0, ends[-1]))
+		for i in range(len(starts)):
+			r, g, b = fg
+			br, bg, bb = self.ptheme['Background colour']
+			if errors[i]:
+				r, g, b = self.ptheme['Event error colour']
+			if cur_set and i == self.cur_field:
+				br, bg, bb = self.ptheme['Cursor colour']
+				r, g, b = self.colour_for_bg(r, g, b, br, bg, bb)
+			r, g, b = self.rgb_scale(r, g, b)
+			br, bg, bb = self.rgb_scale(br, bg, bb)
+			attrs.insert(pango.AttrForeground(r, g, b,
+					starts[i], ends[i]))
+			attrs.insert(pango.AttrBackground(br, bg, bb,
+					starts[i], ends[i]))
+
+	def event_str_note_on(self, event, cur_set=False):
+		line_colour = self.ptheme['Note On colour']
+		attrs = pango.AttrList()
 		if self.notes:
+			starts = []
+			ends = []
+			errors = []
 			note = ''
 			if (event[1] < len(self.notes.notes)
 					and self.notes.notes[event[1]]):
+				starts += [len(note)]
 				note += self.notes.notes[event[1]]
+				ends += [len(note)]
+				errors += [False]
 			else:
+				starts += [len(note)]
 				note += '(' + str(event[1]) + ')'
-			if event[2] >= 0:
+				ends += [len(note)]
+				errors += [True]
+			if event[2] >= 0 and False: # TODO: support for note mods
 				if (event[2] < len(self.notes.note_mods)
 						and self.notes.note_mods[event[2]]):
+					starts += [ends[-1]]
 					note += self.notes.note_mods[event[2]]
+					ends += [len(note)]
+					errors += [False]
 				else:
+					starts += [ends[-1]]
 					note += '(' + str(event[2]) + ')'
+					ends += [len(note)]
+					errors += [True]
+			starts += [len(note)]
+			ends += [starts[-1] + 1]
+			if event[3] < 0:
+				ends[-1] += 1
+			starts += [ends[-1] + 1]
+			ends += [starts[-1] + 1]
+			starts += [ends[-1]]
+			ends += [starts[-1] + 1]
+			errors += [False, False, False]
 			note += str(event[3]) + ' %02d' % event[4]
-			return note
+			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
+					starts, ends, errors, cur_set)
+			return (note, attrs, line_colour)
 		else:
-			return ('(' + str(event[1]) + ')(' + str(event[2]) +
-					')(' + str(event[3]) + ') %02d' % event[4])
+			starts = []
+			ends = []
+			errors = [True]
+			note = ''
+			starts += [len(note)]
+			note += '(' + str(event[1]) + ')'
+			ends += [len(note)]
+#			starts += [ends[-1]]
+#			note += '(' + str(event[2]) + ')'
+#			ends += [len(note)]
+#			errors += [True]
+			starts += [ends[-1]]
+			ends += [starts[-1] + 1]
+			if event[3] < 0:
+				ends[-1] += 1
+			starts += [ends[-1] + 1]
+			ends += [starts[-1] + 1]
+			starts += [ends[-1]]
+			ends += [starts[-1] + 1]
+			note += str(event[3]) + ' %02d' % event[4]
+			errors += [False, False, False]
+			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
+					starts, ends, errors, cur_set)
+			return (note, attrs, line_colour)
 
-	def event_str_note_off(self, event):
-		return '==='
+	def event_str_note_off(self, event, cur_set=False):
+		attrs = pango.AttrList()
+		r, g, b = self.ptheme['Note Off colour']
+		br, bg, bb = self.ptheme['Background colour']
+		if cur_set:
+			r, g, b = self.colour_for_bg(r, g, b, *self.ptheme['Cursor colour'])
+			br, bg, bb = self.ptheme['Cursor colour']
+		r, g, b = self.rgb_scale(r, g, b)
+		br, bg, bb = self.rgb_scale(br, bg, bb)
+		attrs.insert(pango.AttrForeground(r, g, b, 0, 3))
+		attrs.insert(pango.AttrBackground(br, bg, bb, 0, 3))
+		return ('===', attrs, self.ptheme['Note Off colour'])
 
 	def do_redraw(self):
 		if self.window:
@@ -824,6 +976,12 @@ class Pat_view(gtk.Widget):
 			'Column header bg colour': (0, 0.3, 0),
 			'Column header fg colour': (0.8, 0.8, 0.8),
 			'Cursor colour': (0.7, 0.8, 0.9),
+			'Note On colour': (1, 0.9, 0.8),
+			'Note Off colour': (0.7, 0.5, 0.4),
+			'Note effect colour': (0.8, 0.75, 0.7),
+			'Global event colour': (0.7, 0.8, 0.9),
+			'General event colour': (0.7, 1, 0.7),
+			'Event error colour': (1, 0, 0),
 		}
 		self.note_keys = {
 			'z': (0L, 0L),  'q': (0L, 1L),  'i': (0L, 2L),
@@ -874,8 +1032,10 @@ class Pat_view(gtk.Widget):
 		# position format is ((beat, part), channel)
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0L, 0, 0), 0)
+		self.cur_field = 0
 		self.cur_virtual_col = -1
 		self.cur_virtual_ord = 0
+		self.cur_virtual_field = 0
 		self.event_offset = 0
 		self.tmove = (0, 0)
 		self.snap_init_delay = 4
@@ -885,6 +1045,10 @@ class Pat_view(gtk.Widget):
 		self.event_str = {
 			evtype.NOTE_ON: self.event_str_note_on,
 			evtype.NOTE_OFF: self.event_str_note_off,
+		}
+		self.event_fields = {
+			evtype.NOTE_ON: 4, # note, (note_mod,) octave, ins_digit1, ins_digit2
+			evtype.NOTE_OFF: 1,
 		}
 
 
