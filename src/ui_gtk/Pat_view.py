@@ -182,7 +182,7 @@ class Pat_view(gtk.Widget):
 			self.tmove = (0, 0)
 			self.snap_state = self.snap_delay = self.snap_init_delay
 			return
-		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.cursor = (ctime + (self.cur_virtual_ord,), self.cursor[1])
 		self.queue_draw()
 
 	def act_down(self, event):
@@ -221,7 +221,7 @@ class Pat_view(gtk.Widget):
 			self.tmove = (0, 0)
 			self.snap_state = self.snap_delay = self.snap_init_delay
 			return
-		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.cursor = (ctime + (self.cur_virtual_ord,), self.cursor[1])
 		self.queue_draw()
 
 	def act_zoom_in(self, event):
@@ -241,39 +241,56 @@ class Pat_view(gtk.Widget):
 			return
 		if self.pdata.cols[self.cursor[1]]:
 			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+				self.cur_virtual_ord = max(self.cursor[0][2] - 1, 0)
 				self.cursor = (self.cursor[0][:2] +
-						(max(self.cursor[0][2] - 1, 0),), self.cursor[1])
+						(self.cur_virtual_ord,), self.cursor[1])
 			elif (self.cursor[0][2] > 0 and
 					self.cursor[0][:2] + (self.cursor[0][2] - 1,)
 					in self.pdata.cols[self.cursor[1]]):
+				self.cur_virtual_ord = self.cursor[0][2] - 1
 				self.cursor = (self.cursor[0][:2] +
-						(self.cursor[0][2] - 1,), self.cursor[1])
+						(self.cur_virtual_ord,), self.cursor[1])
 			else:
+				self.cur_virtual_ord = 0
 				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 			self.queue_draw()
+		else:
+			self.cur_virtual_ord = 0
+			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 
 	def act_right(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
 		if self.pdata.cols[self.cursor[1]]:
 			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+				self.cur_virtual_ord += 1
 				self.cursor = (self.cursor[0][:2] +
-						(self.cursor[0][2] + 1,), self.cursor[1])
+						(self.cur_virtual_ord,), self.cursor[1])
+			elif ((self.cursor[0][:2] + (self.cursor[0][2] - 1,))
+					in self.pdata.cols[self.cursor[1]]):
+				self.cur_virtual_ord = self.cursor[0][2]
 			else:
-				self.cursor = (self.cursor[0], self.cursor[1])
+				self.cur_virtual_ord = 0
+				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 			self.queue_draw()
+		else:
+			self.cur_virtual_ord = 0
+			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 
 	def act_bar_up(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		ctime = time_normalise((self.cursor[0][0] - 4, self.cursor[0][1]))
-		self.cursor = (ctime + (self.cursor[0][2],), self.cursor[1])
+		self.cursor = ((self.cursor[0][0] - 4,
+				self.cursor[0][1],
+				self.cur_virtual_ord), self.cursor[1])
 		self.queue_draw()
 
 	def act_bar_down(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		self.cursor = ((self.cursor[0][0] + 4,) + self.cursor[0][1:], self.cursor[1])
+		self.cursor = ((self.cursor[0][0] + 4,
+				self.cursor[0][1],
+				self.cur_virtual_ord), self.cursor[1])
 		self.queue_draw()
 
 	def act_ch_left(self, event):
@@ -478,16 +495,7 @@ class Pat_view(gtk.Widget):
 		cr.set_line_width(1)
 
 		# Make sure cursor is inside Pattern
-		if self.cursor[0] < (0, 0, 0):
-			self.cursor = ((0L, 0, self.cursor[0][2]), self.cursor[1])
-		if self.cursor[1] < 0:
-			self.cursor = (self.cursor[0], 0)
-		if self.pdata and self.cursor[0][:2] > self.pdata.len:
-			self.cursor = (self.pdata.len + (self.cursor[0][2],), self.cursor[1])
-		elif not self.pdata:
-			self.cursor = ((0L, 0, 0), 0)
-		if self.cursor[1] > COLUMNS:
-			self.cursor = (self.cursor[0], COLUMNS)
+		self.cursor_clip()
 
 		# Make sure cursor is visible
 		if self.cursor[1] < self.view_corner[1]:
@@ -574,6 +582,26 @@ class Pat_view(gtk.Widget):
 		cr.rel_line_to(0, height)
 		cr.stroke()
 
+	def cursor_clip(self):
+		if not self.pdata:
+			self.cursor = ((0L, 0, 0), 0)
+			return
+		if self.cursor[0] < (0, 0, 0):
+			self.cursor = ((0L, 0, self.cursor[0][2]), self.cursor[1])
+		if self.cursor[1] < 0:
+			self.cursor = (self.cursor[0], 0)
+		if self.cursor[0][:2] > self.pdata.len:
+			self.cursor = (self.pdata.len + (self.cursor[0][2],), self.cursor[1])
+		if self.cursor[1] > COLUMNS:
+			self.cursor = (self.cursor[0], COLUMNS)
+		if self.cursor[0][2] < 0:
+			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+		if self.cursor[0][2] > 0:
+			row = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].items()
+					if self.cursor[0][:2] == k[:2]]
+			ord = min(self.cursor[0][2], len(row))
+			self.cursor = (self.cursor[0][:2] + (ord,), self.cursor[1])
+
 	def draw_column(self, cr, num, x, y, height, start, end):
 		if self.pdata.cols[num]:
 			visible = [(k, v) for (k, v) in self.pdata.cols[num].iteritems()
@@ -593,7 +621,7 @@ class Pat_view(gtk.Widget):
 				# Make sure cursor points at or next to an existing event
 				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if self.cursor[0][2] < 0:
-						self.cursor = self.cursor(self.cursor[0][:2] + (0,), self.cursor[1])
+						self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 					elif not rights and self.cursor[0][2] > 0:
 						self.cursor = (self.cursor[0][:2] + (1,), self.cursor[1])
 						row_w += self.col_font_size / 3
@@ -847,6 +875,7 @@ class Pat_view(gtk.Widget):
 		self.view_corner = (time_sub((0, 0), self.px_time(self.col_font_size)), 0)
 		self.cursor = ((0L, 0, 0), 0)
 		self.cur_virtual_col = -1
+		self.cur_virtual_ord = 0
 		self.event_offset = 0
 		self.tmove = (0, 0)
 		self.snap_init_delay = 4
