@@ -74,7 +74,7 @@ Playdata* init_play(void)
 		fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
 		return NULL;
 	}
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		play->channels[i] = new_Channel(insts);
 		if (play->channels[i] == NULL)
@@ -103,8 +103,8 @@ START_TEST (new)
 	Column* glob = Pattern_global(pat);
 	fail_if(glob == NULL,
 			"new_Pattern() didn't create a global Column.");
-	Column* cols[PAT_CHANNELS] = { NULL };
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	Column* cols[COLUMNS_MAX] = { NULL };
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		cols[i] = Pattern_col(pat, i);
 		fail_if(cols[i] == NULL,

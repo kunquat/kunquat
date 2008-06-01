@@ -28,6 +28,7 @@
 #include <stdbool.h>
 
 #include <Reltime.h>
+#include <Song_limits.h>
 
 
 typedef enum
@@ -58,7 +59,6 @@ typedef enum
 } Event_type;
 
 
-#define EVENT_FIELDS (4)
 #define EVENT_TYPE_IS_GENERAL(type) ((type) > EVENT_TYPE_NONE && (type) < EVENT_TYPE_GENERAL_LAST)
 #define EVENT_TYPE_IS_GLOBAL(type)  ((type) > EVENT_TYPE_GENERAL_LAST && (type) < EVENT_TYPE_GLOBAL_LAST)
 #define EVENT_TYPE_IS_INS(type)     ((type) > EVENT_TYPE_GLOBAL_LAST && (type) < EVENT_TYPE_LAST)

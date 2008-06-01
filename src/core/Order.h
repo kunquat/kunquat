@@ -28,10 +28,8 @@
 #include <stdbool.h>
 
 #include <Etable.h>
+#include <Song_limits.h>
 
-
-#define SUBSONGS_MAX (256)
-#define ORDERS_MAX (256)
 
 #define ORDER_NONE (-1)
 

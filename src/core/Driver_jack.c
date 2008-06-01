@@ -39,8 +39,7 @@
  * Mixing callback function for JACK.
  *
  * \param nframes   Number of frames to be mixed.
- * \param arg       A Player object. TODO: This will be changed into a list
- *                  of Player objects later.
+ * \param arg       A Playlist object.
  *
  * \return   Zero on success, non-zero on error.
  */
@@ -52,8 +51,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg);
  *
  * \param starting   Freewheel state. Non-zero means freewheel, zero means
  *                   realtime.
- * \param arg        A Player object. TODO: This will be changed into a list
- *                   of Player objects later.
+ * \param arg        A Playlist object.
  */
 //static void Driver_jack_freewheel(int starting, void* arg);
 
@@ -62,8 +60,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg);
  * Buffer size change callback function.
  *
  * \param nframes   New buffer size.
- * \param arg       A Player object. TODO: This will be changed into a list
- *                  of Player objects later.
+ * \param arg       A Playlist object.
  *
  * \return   Zero on success, non-zero on error.
  */
@@ -74,8 +71,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg);
  * Sample rate change callback function.
  *
  * \param nframes   New sample rate.
- * \param arg       A Player object. TODO: This will be changed into a list
- *                  of Player objects later.
+ * \param arg       A Playlist object.
  *
  * \return   Zero on success, non-zero on error.
  */

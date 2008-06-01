@@ -26,6 +26,7 @@
 #include "Event.h"
 
 #include <Note_table.h>
+#include <Song_limits.h>
 
 #include <xmemory.h>
 
@@ -180,7 +181,7 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 3 && value > 0 && value < 256) // FIXME: max num of inst
+			else if (index == 3 && value > 0 && value <= INSTRUMENTS_MAX)
 			{
 				event->fields[index].i = value;
 				return true;

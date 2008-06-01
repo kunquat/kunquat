@@ -26,21 +26,13 @@
 
 #include <stdint.h>
 
+#include <Song_limits.h>
 #include <frame_t.h>
 #include <Order.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
 #include <Note_table.h>
 #include <Playdata.h>
-
-
-#define SONG_NAME_MAX (128)
-
-#define BUF_COUNT_MAX (2)
-
-#define PATTERNS_MAX (1024)
-
-#define INSTRUMENTS_MAX (256)
 
 
 typedef struct Song

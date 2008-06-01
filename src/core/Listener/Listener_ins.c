@@ -30,6 +30,7 @@
 #include <Song.h>
 #include <Ins_table.h>
 #include <Instrument.h>
+#include <Song_limits.h>
 
 
 /**
@@ -101,7 +102,7 @@ int Listener_get_insts(const char* path,
 	}
 	Song* song = player->song;
 	Ins_table* table = Song_get_insts(song);
-	for (int i = 1; i < 256; ++i)
+	for (int i = 1; i <= INSTRUMENTS_MAX; ++i)
 	{
 		Instrument* ins = Ins_table_get(table, i);
 		if (ins != NULL)
@@ -136,7 +137,7 @@ int Listener_new_ins(const char* path,
 		return 0;
 	}
 	assert(l->method_path != NULL);
-	if (argv[1]->i < 1 || argv[1]->i > 255)
+	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
 	{
 		strcpy(l->method_path + l->host_path_len, "error");
 		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
@@ -249,7 +250,7 @@ int Listener_del_ins(const char* path,
 		return 0;
 	}
 	assert(l->method_path != NULL);
-	if (argv[1]->i < 1 || argv[1]->i > 255)
+	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
 	{
 		strcpy(l->method_path + l->host_path_len, "error");
 		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
@@ -291,7 +292,7 @@ static bool ins_get(Listener* l,
 	assert(l != NULL);
 	assert(l->method_path != NULL);
 	assert(ins != NULL);
-	if (ins_num < 1 || ins_num > 255)
+	if (ins_num < 1 || ins_num > INSTRUMENTS_MAX)
 	{
 		strcpy(l->method_path + l->host_path_len, "error");
 		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", ins_num);

@@ -46,7 +46,7 @@ Pattern* new_Pattern(void)
 		xfree(pat);
 		return NULL;
 	}
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		pat->cols[i] = new_Column(NULL);
 		if (pat->cols[i] == NULL)
@@ -86,7 +86,7 @@ Column* Pattern_col(Pattern* pat, int index)
 {
 	assert(pat != NULL);
 	assert(index >= 0);
-	assert(index < PAT_CHANNELS);
+	assert(index < COLUMNS_MAX);
 	return pat->cols[index];
 }
 
@@ -196,7 +196,7 @@ uint32_t Pattern_mix(Pattern* pat,
 					play->freq);
 		}
 		// - Tell each channel to set up Voices
-		for (int i = 0; i < PAT_CHANNELS; ++i)
+		for (int i = 0; i < COLUMNS_MAX; ++i)
 		{
 			Channel_set_voices(play->channels[i],
 					play->voice_pool,
@@ -226,7 +226,7 @@ uint32_t Pattern_mix(Pattern* pat,
 void del_Pattern(Pattern* pat)
 {
 	assert(pat != NULL);
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		del_Column(pat->cols[i]);
 	}

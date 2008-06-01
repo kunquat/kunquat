@@ -30,6 +30,7 @@
 #include <Event_queue.h>
 #include <Voice_state.h>
 #include <Note_table.h>
+#include <Song_limits.h>
 
 
 typedef enum
@@ -52,9 +53,6 @@ typedef enum
 	/// Sentinel -- never used as a valid type.
 	INS_TYPE_LAST
 } Ins_type;
-
-
-#define INS_NAME_MAX (64)
 
 
 typedef struct Instrument

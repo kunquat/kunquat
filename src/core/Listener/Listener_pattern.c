@@ -325,7 +325,7 @@ static bool check_event_reference(Listener* lr,
 	*song = player->song;
 	Pat_table* table = Song_get_pats(*song);
 	int32_t pat_num = argv[1]->i;
-	if (types[1] != 'i' || pat_num < 0 || pat_num >= 1024) // FIXME: upper limit
+	if (types[1] != 'i' || pat_num < 0 || pat_num >= PATTERNS_MAX)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s",
@@ -360,7 +360,7 @@ static bool check_event_reference(Listener* lr,
 		}
 	}
 	int32_t col_num = argv[2]->i;
-	if (types[2] != 'i' || col_num < 0 || col_num > 64) // FIXME: upper limit
+	if (types[2] != 'i' || col_num < 0 || col_num > COLUMNS_MAX)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s",
@@ -900,7 +900,7 @@ static bool pat_info(Listener* lr,
 		{
 			return false;
 		}
-		for (int i = -1; i < 64; ++i)
+		for (int i = -1; i < COLUMNS_MAX; ++i)
 		{
 			Column* col = Pattern_global(pat);
 			if (i > -1)

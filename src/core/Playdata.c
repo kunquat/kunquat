@@ -44,7 +44,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
 		return NULL;
 	}
 	play->voice_pool = pool;
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		play->channels[i] = new_Channel(insts);
 		if (play->channels[i] == NULL)
@@ -133,7 +133,7 @@ void del_Playdata(Playdata* play)
 	int i = 0;
 	assert(play != NULL);
 	Voice_pool_reset(play->voice_pool);
-	for (i = 0; i < PAT_CHANNELS; ++i)
+	for (i = 0; i < COLUMNS_MAX; ++i)
 	{
 		assert(play->channels[i] != NULL);
 		del_Channel(play->channels[i]);
