@@ -187,6 +187,18 @@ class Pat_view(gtk.Widget):
 		self.zoom(1.0/1.5)
 		self.queue_draw()
 
+	def act_zoom_h_in(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.zoom_h(1.25)
+		self.queue_draw()
+
+	def act_zoom_h_out(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.zoom_h(1.0/1.25)
+		self.queue_draw()
+
 	def act_left(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
@@ -470,6 +482,14 @@ class Pat_view(gtk.Widget):
 		new_loc = self.px_time(cur_loc)
 		self.view_corner = (time_sub(self.cursor[0][:2], new_loc), self.view_corner[1])
 
+	def zoom_h(self, factor):
+		new_ppc = self.col_width * factor
+		if new_ppc < self.col_font_size:
+			new_ppc = self.col_font_size
+		elif new_ppc > self.col_font_size * 20:
+			new_ppc = self.col_font_size * 20
+		self.col_width = int(new_ppc)
+
 	def do_realize(self):
 		self.set_flags(self.flags()
 				| gtk.REALIZED
@@ -693,8 +713,12 @@ class Pat_view(gtk.Widget):
 				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if off_w < self.event_offset:
 						self.event_offset = off_w
-					elif off_w + cur_w > self.event_offset + self.col_width:
+					if off_w + cur_w > self.event_offset + self.col_width:
 						self.event_offset = off_w + cur_w - self.col_width
+					if off_w < self.event_offset:
+						self.event_offset = off_w
+						ce = self.pdata.cols[num][self.cursor[0]]
+						self.event_offset += self.event_field_offset(ce)
 					if self.event_offset + self.col_width > row_w:
 						self.event_offset = row_w - self.col_width
 					if self.event_offset < 0:
@@ -829,15 +853,26 @@ class Pat_view(gtk.Widget):
 		cw //= pango.SCALE
 		return cw + (self.col_font_size / 3)
 
+	def event_field_offset(self, event):
+		etext, cur_offset, _ = self.event_str[event[0]](event, True, True)
+		if cur_offset == 0:
+			return 0
+		pl = self.create_pango_layout(etext[:cur_offset])
+		cw, _ = pl.get_size()
+		cw //= pango.SCALE
+		return cw
+
 	def event_str_set_attrs(self, attrs, fg, starts, ends, errors, cur_set):
 		r, g, b = rgb_scale(*fg)
 		attrs.insert(pango.AttrForeground(r, g, b, 0, ends[-1]))
+		cur_offset = 0
 		for i in range(len(starts)):
 			r, g, b = fg
 			br, bg, bb = self.ptheme['Background colour']
 			if errors[i]:
 				r, g, b = self.ptheme['Event error colour']
 			if cur_set and i == self.cur_field:
+				cur_offset = starts[self.cur_field]
 				br, bg, bb = self.ptheme['Cursor colour']
 				r, g, b = colour_for_bg(r, g, b, br, bg, bb)
 			r, g, b = rgb_scale(r, g, b)
@@ -846,8 +881,9 @@ class Pat_view(gtk.Widget):
 					starts[i], ends[i]))
 			attrs.insert(pango.AttrBackground(br, bg, bb,
 					starts[i], ends[i]))
+		return cur_offset
 
-	def event_str_note_on(self, event, cur_set=False):
+	def event_str_note_on(self, event, cur_set=False, get_cur_offset=False):
 		line_colour = self.ptheme['Note On colour']
 		attrs = pango.AttrList()
 		if self.notes:
@@ -892,8 +928,10 @@ class Pat_view(gtk.Widget):
 			else:
 				note += '%x' % event[3]
 			note += ' %02X' % event[4]
-			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
-					starts, ends, errors, cur_set)
+			cur_offset = self.event_str_set_attrs(attrs,
+					self.ptheme['Note On colour'], starts, ends, errors, cur_set)
+			if get_cur_offset:
+				attrs = cur_offset
 			return (note, attrs, line_colour)
 		else:
 			starts = []
@@ -917,11 +955,13 @@ class Pat_view(gtk.Widget):
 			ends += [starts[-1] + 1]
 			note += '%x %02X' % (event[3], event[4])
 			errors += [False, False, False]
-			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
-					starts, ends, errors, cur_set)
+			cur_offset = self.event_str_set_attrs(attrs,
+					self.ptheme['Note On colour'], starts, ends, errors, cur_set)
+			if get_cur_offset:
+				attrs = cur_offset
 			return (note, attrs, line_colour)
 
-	def event_str_note_off(self, event, cur_set=False):
+	def event_str_note_off(self, event, cur_set=False, get_cur_offset=False):
 		attrs = pango.AttrList()
 		r, g, b = self.ptheme['Note Off colour']
 		br, bg, bb = self.ptheme['Background colour']
@@ -932,6 +972,9 @@ class Pat_view(gtk.Widget):
 		br, bg, bb = rgb_scale(br, bg, bb)
 		attrs.insert(pango.AttrForeground(r, g, b, 0, 3))
 		attrs.insert(pango.AttrBackground(br, bg, bb, 0, 3))
+		cur_offset = ()
+		if get_cur_offset:
+			return ('===', 0, self.ptheme['Note Off colour'])
 		return ('===', attrs, self.ptheme['Note Off colour'])
 
 	def do_redraw(self):
@@ -1003,6 +1046,8 @@ class Pat_view(gtk.Widget):
 			('Right', 0): self.act_right,
 			('Left', self.note_chord_mod[1]): self.act_left,
 			('Right', self.note_chord_mod[1]): self.act_right,
+			('Left', gdk.CONTROL_MASK): self.act_zoom_h_in,
+			('Right', gdk.CONTROL_MASK): self.act_zoom_h_out,
 			('Tab', 0): self.act_ch_right,
 			('Tab', gdk.SHIFT_MASK): self.act_ch_left,
 			('Page_Up', 0): self.act_bar_up,
