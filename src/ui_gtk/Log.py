@@ -24,14 +24,11 @@ pygtk.require('2.0')
 import gtk
 import gobject
 
-import liblo
 
+class Log(gtk.Window):
 
-class Cli(gtk.VBox):
-
+	"""
 	def update_history(self, text):
-		if not self.history:
-			return
 		if text == '':
 			return
 		buf = self.history.get_buffer()
@@ -45,57 +42,39 @@ class Cli(gtk.VBox):
 		buf.delete_mark(mark)
 
 	def cmd_entry(self, widget):
-		self.reply.pop(0)
-		if not self.history:
-			return
 		text = widget.get_text()
 		if text == '':
 			return
 		self.update_history(text)
-		args = text.split()
-		msg = liblo.Message('/kunquat/' + args[0])
-		for arg in args[1:]:
-			if arg.isdigit():
-				arg = int(arg)
-			msg.add(arg)
-		liblo.send(self.engine, msg)
-		widget.set_text('')
 
 	def notify(self, path, args):
-		out = ' '.join([str(a) for a in args])
-		self.reply.pop(0)
-		self.reply.push(0, out)
-		if self.history:
-			out = '<kunquat> ' + out
-			gobject.idle_add(self.update_history, out)
+		out = '<kunquat> ' + ' '.join([str(a) for a in args])
+		gobject.idle_add(self.update_history, out)
 
 	def fallback(self, path, args, types):
-		out = '<kunquat> ' + path + ' ' + ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
-		if self.history:
-			gobject.idle_add(self.update_history, out)
+		out = '<kunquat> ' + path + ' '
+		out += ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
+		gobject.idle_add(self.update_history, out)
+	"""
 
-	def set_log(self, log):
-		self.history = log
-
-	def __init__(self, engine, server):
+	def __init__(self, engine, server, cli):
 		self.engine = engine
 		self.server = server
 
-		self.server.add_method('/kunquat_gtk/notify', None, self.notify)
-		self.server.add_method(None, None, self.fallback)
+		gtk.Window.__init__(self)
 
-		gtk.VBox.__init__(self)
+		self.history = gtk.TextView()
+		self.history.set_editable(False)
+		self.history.set_wrap_mode(gtk.WRAP_CHAR)
 
-		self.history = None
+		hist_scroll = gtk.ScrolledWindow()
+		hist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+		hist_scroll.add(self.history)
+		self.history.show()
 
-		self.reply = gtk.Statusbar()
+		self.add(hist_scroll)
+		hist_scroll.show()
 
-		cmd = gtk.Entry()
-		cmd.connect('activate', self.cmd_entry)
-
-		self.pack_start(self.reply, False, False)
-		self.reply.show()
-		self.pack_end(cmd, False, False)
-		cmd.show()
+		cli.set_log(self.history)
 
 
