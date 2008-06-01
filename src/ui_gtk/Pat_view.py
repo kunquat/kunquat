@@ -349,12 +349,48 @@ class Pat_view(gtk.Widget):
 		if event.type == gdk.KEY_RELEASE:
 			return
 		key_name = gdk.keyval_name(self.get_plain_key(event))
-		note, rel_octave = self.note_keys[key_name]
-		event_args = (note, -1L, rel_octave + self.base_octave, long(self.ins_num))
+		event_args = ()
 		edit_method = '/kunquat/pat_ins_event'
 		if (self.pdata.cols[self.cursor[1]]
 				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
 			edit_method = '/kunquat/pat_mod_event'
+			if self.cur_field > 0:
+				ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+				note = ev[1]
+				note_mod = ev[2]
+				octave = ev[3]
+				ins_num = ev[4]
+				if key_name.isdigit() or 'a' <= key_name <= 'f':
+					if self.cur_field == 2:
+						ins_num = long((16 * long(key_name, 16)) + (ins_num % 16))
+					elif self.cur_field == 3:
+						ins_num = long(((ins_num // 16) * 16) + (long(key_name, 16) % 16))
+					elif self.cur_field == 1 and (key_name.isdigit() or
+							'a' <= key_name <= 'c'):
+						octave = long(key_name, 16)
+						if self.ev_note_on_got_minus:
+							self.ev_note_on_got_minus = 0
+							if key_name.isdigit() and int(key_name) <= 3:
+								octave = -octave
+							else:
+								self.queue_draw()
+								return
+					event_args = (note, note_mod, octave, ins_num)
+				elif key_name == 'minus':
+					self.ev_note_on_got_minus = 2
+					self.queue_draw()
+					return
+				else:
+					self.queue_draw()
+					return
+			else:
+				note, rel_octave = self.note_keys[key_name]
+				event_args = (note, -1L, rel_octave + self.base_octave, long(self.ins_num))
+		elif key_name in self.note_keys:
+			note, rel_octave = self.note_keys[key_name]
+			event_args = (note, -1L, rel_octave + self.base_octave, long(self.ins_num))
+		else:
+			return
 		liblo.send(self.engine, edit_method,
 				self.song_id,
 				self.pdata.num,
@@ -373,6 +409,9 @@ class Pat_view(gtk.Widget):
 
 	def act_ev_note_off(self, event):
 		if event.type == gdk.KEY_RELEASE:
+			return
+		key_name = gdk.keyval_name(self.get_plain_key(event))
+		if not key_name == '1':
 			return
 		edit_method = '/kunquat/pat_ins_event'
 		if (self.pdata.cols[self.cursor[1]]
@@ -422,10 +461,19 @@ class Pat_view(gtk.Widget):
 		key_mask |= event.state & gdk.MOD5_MASK
 		if (key_name, key_mask) in self.control_map:
 			self.control_map[(key_name, key_mask)](event)
+		elif (self.cur_field > 0
+				and self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+			self.act_event[ev[0]](event)
 		elif key_name in self.note_keys:
 			self.act_ev_note_on(event)
+		elif (key_name, key_mask) in self.event_map:
+			self.event_map[(key_name, key_mask)](event)
 		else:
 			print('press %s, %s, %s' % (key_name, event.hardware_keycode, event.state))
+		if self.ev_note_on_got_minus == 1:
+			self.ev_note_on_got_minus = 0
 		return True
 
 	def handle_release(self, widget, event):
@@ -807,6 +855,8 @@ class Pat_view(gtk.Widget):
 		cr.move_to(x, y)
 		cr.rel_line_to(w + (self.col_font_size / 3), 0)
 		cr.stroke()
+		if cur_set and self.ev_note_on_got_minus == 2:
+			self.ev_note_on_got_minus = 1
 		return w + (self.col_font_size / 3)
 
 	def event_width(self, event):
@@ -894,14 +944,18 @@ class Pat_view(gtk.Widget):
 					errors += [True]
 			starts += [len(note)]
 			ends += [starts[-1] + 1]
-			if event[3] < 0:
+			if event[3] < 0 and not (cur_set and self.ev_note_on_got_minus == 2):
 				ends[-1] += 1
 			starts += [ends[-1] + 1]
 			ends += [starts[-1] + 1]
 			starts += [ends[-1]]
 			ends += [starts[-1] + 1]
 			errors += [False, False, False]
-			note += str(event[3]) + ' %02d' % event[4]
+			if cur_set and self.ev_note_on_got_minus == 2:
+				note += '-'
+			else:
+				note += '%x' % event[3]
+			note += ' %02X' % event[4]
 			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
 					starts, ends, errors, cur_set)
 			return (note, attrs, line_colour)
@@ -925,7 +979,7 @@ class Pat_view(gtk.Widget):
 			ends += [starts[-1] + 1]
 			starts += [ends[-1]]
 			ends += [starts[-1] + 1]
-			note += str(event[3]) + ' %02d' % event[4]
+			note += '%x %02X' % (event[3], event[4])
 			errors += [False, False, False]
 			self.event_str_set_attrs(attrs, self.ptheme['Note On colour'],
 					starts, ends, errors, cur_set)
@@ -1018,7 +1072,13 @@ class Pat_view(gtk.Widget):
 			('Page_Up', 0): self.act_bar_up,
 			('Page_Down', 0): self.act_bar_down,
 			('Delete', 0): self.act_del_event,
+		}
+		self.event_map = {
 			('1', 0): self.act_ev_note_off,
+		}
+		self.act_event = {
+			evtype.NOTE_ON: self.act_ev_note_on,
+			evtype.NOTE_OFF: self.act_ev_note_off,
 		}
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
@@ -1041,6 +1101,8 @@ class Pat_view(gtk.Widget):
 		self.snap_init_delay = 4
 		self.snap_delay = self.snap_init_delay
 		self.snap_state = self.snap_delay
+
+		self.ev_note_on_got_minus = False
 
 		self.event_str = {
 			evtype.NOTE_ON: self.event_str_note_on,

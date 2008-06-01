@@ -174,7 +174,8 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 2 && value >= 0 && value < NOTE_TABLE_OCTAVES)
+			else if (index == 2 && value >= NOTE_TABLE_OCTAVE_FIRST
+					&& value <= NOTE_TABLE_OCTAVE_LAST)
 			{
 				event->fields[index].i = value;
 				return true;
