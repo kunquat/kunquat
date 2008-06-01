@@ -783,23 +783,36 @@ class Pat_view(gtk.Widget):
 		fg_colour = self.ptheme['Event error colour']
 		bg_colour = self.ptheme['Background colour']
 		cur_set = self.cursor == (pos, col_num)
-#		if self.cursor == (pos, col_num):
-#			cur_set = True
 		estr, attrs, line_colour = self.event_str[data[0]](data, cur_set)
 		pl = self.create_pango_layout(estr)
 		pl.set_attributes(attrs)
 		w, h = pl.get_size()
 		w //= pango.SCALE
 		h //= pango.SCALE
-		if prev_y + h <= y or (self.cursor[0][:2], self.cursor[1]) == (pos[:2], col_num):
-			cr.set_source_rgb(*bg_colour)
-			cr.rectangle(x, y - h,
-					w + (self.col_font_size / 3), h)
+		cr.save()
+		need_clip = prev_y + h > y and (self.cursor[0][:2],
+				self.cursor[1]) != (pos[:2], col_num)
+		if need_clip:
+			cr.rectangle(x, prev_y + 1.5,
+					w + (self.col_font_size / 3), y - prev_y)
+			cr.clip()
+		cr.set_source_rgb(*bg_colour)
+		cr.rectangle(x, y - h,
+				w + (self.col_font_size / 3), h)
+		cr.fill()
+		cr.set_source_rgb(*self.ptheme['Event error colour'])
+		cr.move_to(x + (self.col_font_size / 6), y - h)
+		cr.update_layout(pl)
+		cr.show_layout(pl)
+		if need_clip:
+			gr = cairo.LinearGradient(x, prev_y + 1.5, x, y)
+			r, g, b = self.ptheme['Background colour']
+			gr.add_color_stop_rgba(0, r, g, b, 0.8)
+			gr.add_color_stop_rgba(0.3, r, g, b, 0)
+			cr.rectangle(x, prev_y, w + (self.col_font_size / 3), y - prev_y)
+			cr.set_source(gr)
 			cr.fill()
-			cr.set_source_rgb(*self.ptheme['Event error colour'])
-			cr.move_to(x + (self.col_font_size / 6), y - h)
-			cr.update_layout(pl)
-			cr.show_layout(pl)
+		cr.restore()
 		cr.set_source_rgb(*line_colour)
 		cr.move_to(x, y)
 		cr.rel_line_to(w + (self.col_font_size / 3), 0)
