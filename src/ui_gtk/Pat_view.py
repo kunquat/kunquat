@@ -202,79 +202,59 @@ class Pat_view(gtk.Widget):
 	def act_left(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		if (self.pdata.cols[self.cursor[1]]
-				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
-			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
-			if self.cur_field >= self.event_fields[ev[0]]:
-				self.cur_field = self.event_fields[ev[0]] - 1
-				self.cur_virtual_field = self.cur_field
-			if self.cur_field > 0:
-				self.cur_field = max(0, self.cur_field - 1)
-				self.cur_virtual_field = self.cur_field
-				self.queue_draw()
-				return
-		if self.pdata.cols[self.cursor[1]]:
-			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
-				cv_old = self.cur_virtual_ord
-				self.cur_virtual_ord = max(self.cursor[0][2] - 1, 0)
-				self.cursor = (self.cursor[0][:2] +
-						(self.cur_virtual_ord,), self.cursor[1])
-				if cv_old - self.cur_virtual_ord > 0:
-					new_event = self.pdata.cols[self.cursor[1]][self.cursor[0]]
-					self.cur_field = self.event_fields[new_event[0]] - 1
-					self.cur_virtual_field = self.cur_field
-			elif (self.cursor[0][2] > 0 and
-					self.cursor[0][:2] + (self.cursor[0][2] - 1,)
-					in self.pdata.cols[self.cursor[1]]):
-				self.cur_virtual_ord = self.cursor[0][2] - 1
-				self.cursor = (self.cursor[0][:2] +
-						(self.cur_virtual_ord,), self.cursor[1])
-				new_event = self.pdata.cols[self.cursor[1]][self.cursor[0]]
-				self.cur_field = self.event_fields[new_event[0]] - 1
-				self.cur_virtual_field = self.cur_field
-			else:
-				self.cur_virtual_ord = 0
-				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
-				self.cur_field = 0
-				self.cur_virtual_field = 0
-			self.queue_draw()
-		else:
-			self.cur_virtual_ord = 0
-			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
-			self.cur_field = 0
-			self.cur_virtual_field = 0
+		if (self.cursor[1] == 0
+				and self.cursor[0][2] == 0
+				and self.cur_field == 0):
+			return
+		self.cursor_clip()
+		new_field = self.cur_field - 1
+		new_ord = self.cursor[0][2]
+		new_col = self.cursor[1]
+		row = []
+		last_field = 0
+		if new_field < 0:
+			new_ord -= 1
+			if new_ord < 0:
+				new_col -= 1
+				if self.pdata.cols[new_col]:
+					row = [(k, v) for (k, v) in self.pdata.cols[new_col].items()
+							if self.cursor[0][:2] == k[:2]]
+				new_ord = len(row)
+			if (self.pdata.cols[new_col] and self.cursor[0][:2] +
+					(new_ord,) in self.pdata.cols[new_col]):
+				ev = self.pdata.cols[new_col][self.cursor[0][:2] + (new_ord,)]
+				last_field = self.event_fields[ev[0]] - 1
+			new_field = last_field
+		self.cursor = (self.cursor[0][:2] + (new_ord,), new_col)
+		self.cur_field = new_field
+		self.cur_virtual_ord = self.cursor[0][2]
+		self.cur_virtual_field = self.cur_field
+		self.queue_draw()
+#		print(str(self.cursor) +
+#				', vord ' + str(self.cur_virtual_ord) +
+#				', vfield ' + str(self.cur_virtual_field))
 
 	def act_right(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		if self.pdata.cols[self.cursor[1]]:
-			if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
-				ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
-				if self.cur_field < self.event_fields[ev[0]] - 1:
-					self.cur_field += 1
-					self.cur_virtual_field = self.cur_field
-				else:
-					self.cur_field = 0
-					self.cur_virtual_field = 0
-					self.cur_virtual_ord += 1
-					self.cursor = (self.cursor[0][:2] +
-							(self.cur_virtual_ord,), self.cursor[1])
-			elif ((self.cursor[0][:2] + (self.cursor[0][2] - 1,))
-					in self.pdata.cols[self.cursor[1]]):
-				self.cur_virtual_ord = self.cursor[0][2]
-				self.cur_field = 0
-				self.cur_virtual_field = 0
+		if (self.pdata.cols[self.cursor[1]] and
+				self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
+			if self.cur_field < self.event_fields[ev[0]] - 1:
+				self.cur_field += 1
+				self.cur_virtual_field = self.cur_field
 			else:
-				self.cur_virtual_ord = 0
-				self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 				self.cur_field = 0
 				self.cur_virtual_field = 0
-			self.queue_draw()
+				self.cur_virtual_ord += 1
+				self.cursor = (self.cursor[0][:2] +
+						(self.cur_virtual_ord,), self.cursor[1])
 		else:
 			self.cur_virtual_ord = 0
-			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
+			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1] + 1)
 			self.cur_field = 0
 			self.cur_virtual_field = 0
+		self.queue_draw()
 
 	def act_bar_up(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -667,9 +647,11 @@ class Pat_view(gtk.Widget):
 		if self.cursor[0][2] < 0:
 			self.cursor = (self.cursor[0][:2] + (0,), self.cursor[1])
 		if self.cursor[0][2] > 0:
-			row = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].items()
-					if self.cursor[0][:2] == k[:2]]
-			ord = min(self.cursor[0][2], len(row))
+			ord = 0
+			if self.pdata.cols[self.cursor[1]]:
+				row = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].items()
+						if self.cursor[0][:2] == k[:2]]
+				ord = min(self.cursor[0][2], len(row))
 			self.cursor = (self.cursor[0][:2] + (ord,), self.cursor[1])
 		if self.cur_field < 0:
 			self.cur_field = 0
