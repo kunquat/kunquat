@@ -28,11 +28,14 @@ import liblo
 
 from Pat_view import Pat_view
 
+from Pat_helper import PATTERNS
+
 
 class Pattern(gtk.VBox):
 
 	def pat_info(self, path, args, types):
 		self.pat_view.pat_info(path, args, types)
+		self.pat_spin.set_value(args[0])
 
 	def event_info(self, path, args, types):
 		self.pat_view.event_info(path, args, types)
@@ -55,6 +58,10 @@ class Pattern(gtk.VBox):
 	def notes_sent(self, path, args, types):
 		self.pat_view.notes_sent(path, args, types)
 
+	def pat_changed(self, adj):
+		print('yes')
+		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, adj.value)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
@@ -62,27 +69,24 @@ class Pattern(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
-		"""
-		self.pat_view = gtk.Table(64, 4, True)
-		for i in range(64):
-			for j in range(4):
-				field = gtk.Entry()
-				field.channel = j
-				field.pos = i
-				field.connect('activate', self.event_entry)
-				self.pat_view.attach(field, j, j + 1, i, i + 1)
-				field.show()
-		"""
+		hb = gtk.HBox()
+
+		adj = gtk.Adjustment(0, 0, PATTERNS - 1, 1)
+		self.pat_spin = gtk.SpinButton(adj)
+		adj.connect('value-changed', self.pat_changed)
+		hb.pack_end(self.pat_spin, False, False)
+		self.pat_spin.show()
+		
+		label = gtk.Label('Pattern:')
+		hb.pack_end(label, False, False)
+		label.show()
+
+		self.pack_start(hb, False, False)
+		hb.show()
+
 		self.pat_view = Pat_view(engine, server, song_id)
 		self.pack_end(self.pat_view)
 		self.pat_view.show()
-		#pat_scroll = gtk.ScrolledWindow()
-		#pat_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
-		#pat_scroll.add_with_viewport(self.pat_view)
-		#self.pat_view.show()
-
-		#self.pack_end(pat_scroll)
-		#pat_scroll.show()
 
 		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id)
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
