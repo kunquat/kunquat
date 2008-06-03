@@ -636,6 +636,8 @@ class Pat_view(gtk.Widget):
 			self.cursor = ((0L, 0, 0), 0)
 			self.cur_field = 0
 			return
+		self.cursor = (self.cursor[0][:2] + (self.cur_virtual_ord,), self.cursor[1])
+		self.cur_field = self.cur_virtual_field
 		if self.cursor[0] < (0, 0, 0):
 			self.cursor = ((0L, 0, self.cursor[0][2]), self.cursor[1])
 		if self.cursor[1] < 0:
