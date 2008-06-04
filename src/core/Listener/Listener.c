@@ -37,6 +37,8 @@
 #include "Listener_driver.h"
 #include "Listener_song.h"
 #include "Listener_ins.h"
+#include "Listener_pattern.h"
+#include "Listener_note_table.h"
 #include "Listener_demo.h"
 
 #include <xmemory.h>
@@ -72,6 +74,11 @@ static Method_desc methods[] =
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
+	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
+	{ "/kunquat/pat_ins_event", NULL, Listener_pat_ins_event },
+	{ "/kunquat/pat_mod_event", NULL, Listener_pat_mod_event },
+	{ "/kunquat/pat_del_event", "iiihii", Listener_pat_del_event },
+	{ "/kunquat/get_note_table", "i", Listener_get_note_table },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }
@@ -175,7 +182,7 @@ Listener* Listener_init(Listener* l)
 
 	l->voice_count = 64;
 	l->player_cur = NULL;
-	l->freq = 0;
+	l->freq = 1;
 
 	for (int i = 0; methods[i].handler != NULL; ++i)
 	{

@@ -36,9 +36,9 @@
  * \li \c i   The Instrument number (1..255).
  * \li \c i   The type of the Instrument.
  * \li \c s   The name of the Instrument.
- * \li        Zero or more additional parameters dependent on the Instrument type.
+ * \li        Zero or more additional arguments dependent on the Instrument type.
  *
- * The None, Debug and Sine types have no additional parameters.
+ * The None, Debug and Sine types have no additional arguments.
  */
 
 

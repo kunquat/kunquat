@@ -26,36 +26,40 @@ import gobject
 
 import liblo
 
-import Instruments
-import Pattern
+from Pat_view import Pat_view
+
+from Pat_helper import PATTERNS
 
 
-class Song(gtk.VBox):
-
-	def ins_info(self, path, args, types):
-		self.instruments.ins_info(path, args, types)
+class Pattern(gtk.VBox):
 
 	def pat_info(self, path, args, types):
-		self.pattern.pat_info(path, args, types)
+		self.pat_view.pat_info(path, args, types)
+		self.pat_spin.set_value(args[0])
 
 	def event_info(self, path, args, types):
-		self.pattern.event_info(path, args, types)
+		self.pat_view.event_info(path, args, types)
 
 	def events_sent(self, path, args, types):
-		self.pattern.events_sent(path, args, types)
+		self.pat_view.events_sent(path, args, types)
+
+	def event_entry(self, widget):
+		print('ch: %d, pos: %d' % (widget.channel, widget.pos))
 
 	def note_table_info(self, path, args, types):
-		# TODO: send to note table editor once supported
-		self.pattern.note_table_info(path, args, types)
+		self.pat_view.note_table_info(path, args, types)
 
 	def note_info(self, path, args, types):
-		self.pattern.note_info(path, args, types)
+		self.pat_view.note_info(path, args, types)
 
 	def note_mod_info(self, path, args, types):
-		self.pattern.note_mod_info(path, args, types)
+		self.pat_view.note_mod_info(path, args, types)
 
 	def notes_sent(self, path, args, types):
-		self.pattern.notes_sent(path, args, types)
+		self.pat_view.notes_sent(path, args, types)
+
+	def pat_changed(self, adj):
+		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, adj.value)
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
@@ -64,13 +68,26 @@ class Song(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
-		self.instruments = Instruments.Instruments(engine, server, song_id)
-		self.pattern = Pattern.Pattern(engine, server, song_id)
+		hb = gtk.HBox()
 
-		self.pack_start(self.instruments)
-		self.instruments.show()
+		adj = gtk.Adjustment(0, 0, PATTERNS - 1, 1)
+		self.pat_spin = gtk.SpinButton(adj)
+		adj.connect('value-changed', self.pat_changed)
+		hb.pack_end(self.pat_spin, False, False)
+		self.pat_spin.show()
+		
+		label = gtk.Label('Pattern:')
+		hb.pack_end(label, False, False)
+		label.show()
 
-		self.pack_end(self.pattern)
-		self.pattern.show()
+		self.pack_start(hb, False, False)
+		hb.show()
+
+		self.pat_view = Pat_view(engine, server, song_id)
+		self.pack_end(self.pat_view)
+		self.pat_view.show()
+
+		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id)
+		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
 
 

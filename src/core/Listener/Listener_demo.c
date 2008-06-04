@@ -36,6 +36,7 @@
 
 #include "Listener.h"
 #include "Listener_demo.h"
+#include "Listener_pattern.h"
 
 
 typedef struct Ndesc
@@ -48,74 +49,75 @@ typedef struct Ndesc
 
 static Ndesc demo_p1ch1[] =
 {
-	{ EVENT_TYPE_NOTE_ON,     0, 0, 8 },
+	{ EVENT_TYPE_NOTE_ON,     0, 0, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 0.25, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   0.5, 0, 8 },
+	{ EVENT_TYPE_NOTE_ON,   0.5, 0, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  0.7, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     1, 0, 8 },
-	{ EVENT_TYPE_NOTE_ON,   1.5, 4, 8 },
-	{ EVENT_TYPE_NOTE_ON,     2, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,     1, 0, 5 },
+	{ EVENT_TYPE_NOTE_ON,   1.5, 4, 5 },
+	{ EVENT_TYPE_NOTE_ON,     2, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  2.2, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   2.5, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,   2.5, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  2.6, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     3, 2, 8 },
-	{ EVENT_TYPE_NOTE_ON,   3.5, 5, 8 },
-	{ EVENT_TYPE_NOTE_ON,     4, 4, 8 },
+	{ EVENT_TYPE_NOTE_ON,     3, 2, 5 },
+	{ EVENT_TYPE_NOTE_ON,   3.5, 5, 5 },
+	{ EVENT_TYPE_NOTE_ON,     4, 4, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  4.3, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   4.5, 0, 8 },
-	{ EVENT_TYPE_NOTE_ON,     5, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,   4.5, 0, 5 },
+	{ EVENT_TYPE_NOTE_ON,     5, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 5.25, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   5.5, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,   5.5, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 5.65, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     6, 0, 8 },
+	{ EVENT_TYPE_NOTE_ON,     6, 0, 6 },
+	{ EVENT_TYPE_NOTE_ON,     6, 0, 5 },
 	{ EVENT_TYPE_NOTE_OFF,    7, 0, 0 },
 	{ EVENT_TYPE_NONE, 0, 0, 0 }
 };
 
 static Ndesc demo_p2ch1[] =
 {
-	{ EVENT_TYPE_NOTE_ON,     0, 4, 8 },
+	{ EVENT_TYPE_NOTE_ON,     0, 4, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  0.2, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   0.5, 4, 8 },
+	{ EVENT_TYPE_NOTE_ON,   0.5, 4, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 0.65, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     1, 4, 8 },
-	{ EVENT_TYPE_NOTE_ON,   1.5, 7, 8 },
-	{ EVENT_TYPE_NOTE_ON,     2, 5, 8 },
+	{ EVENT_TYPE_NOTE_ON,     1, 4, 5 },
+	{ EVENT_TYPE_NOTE_ON,   1.5, 7, 5 },
+	{ EVENT_TYPE_NOTE_ON,     2, 5, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  2.6, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     3, 5, 8 },
+	{ EVENT_TYPE_NOTE_ON,     3, 5, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  3.5, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     4, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,     4, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  4.2, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   4.5, 2, 8 },
+	{ EVENT_TYPE_NOTE_ON,   4.5, 2, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 4.65, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     5, 2, 8 },
-	{ EVENT_TYPE_NOTE_ON,   5.5, 5, 8 },
-	{ EVENT_TYPE_NOTE_ON,     6, 4, 8 },
+	{ EVENT_TYPE_NOTE_ON,     5, 2, 5 },
+	{ EVENT_TYPE_NOTE_ON,   5.5, 5, 5 },
+	{ EVENT_TYPE_NOTE_ON,     6, 4, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  6.6, 0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     7, 4, 8 },
+	{ EVENT_TYPE_NOTE_ON,     7, 4, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  7.5, 0, 0 },
 	{ EVENT_TYPE_NONE, 0, 0, 0 }
 };
 
 static Ndesc demo_p2ch2[] =
 {
-	{ EVENT_TYPE_NOTE_ON,     2,  9, 8 },
-	{ EVENT_TYPE_NOTE_ON,   2.5,  2, 9 },
-	{ EVENT_TYPE_NOTE_ON,  2.75,  0, 9 },
-	{ EVENT_TYPE_NOTE_ON,     3, 11, 8 },
+	{ EVENT_TYPE_NOTE_ON,     2,  9, 5 },
+	{ EVENT_TYPE_NOTE_ON,   2.5,  2, 6 },
+	{ EVENT_TYPE_NOTE_ON,  2.75,  0, 6 },
+	{ EVENT_TYPE_NOTE_ON,     3, 11, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 3.15,  0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   3.5,  9, 8 },
+	{ EVENT_TYPE_NOTE_ON,   3.5,  9, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  3.6,  0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     4,  7, 8 },
+	{ EVENT_TYPE_NOTE_ON,     4,  7, 5 },
 	{ EVENT_TYPE_NOTE_OFF, 5.25,  0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   5.5,  9, 8 },
-	{ EVENT_TYPE_NOTE_ON,  5.66, 10, 8 },
-	{ EVENT_TYPE_NOTE_ON,  5.83, 11, 8 },
-	{ EVENT_TYPE_NOTE_ON,     6,  0, 9 },
+	{ EVENT_TYPE_NOTE_ON,   5.5,  9, 5 },
+	{ EVENT_TYPE_NOTE_ON,  5.66, 10, 5 },
+	{ EVENT_TYPE_NOTE_ON,  5.83, 11, 5 },
+	{ EVENT_TYPE_NOTE_ON,     6,  0, 6 },
 	{ EVENT_TYPE_NOTE_OFF,  6.2,  0, 0 },
-	{ EVENT_TYPE_NOTE_ON,   6.5,  9, 8 },
+	{ EVENT_TYPE_NOTE_ON,   6.5,  9, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  6.7,  0, 0 },
-	{ EVENT_TYPE_NOTE_ON,     7,  7, 8 },
+	{ EVENT_TYPE_NOTE_ON,     7,  7, 5 },
 	{ EVENT_TYPE_NOTE_OFF,  7.4,  0, 0 },
 	{ EVENT_TYPE_NONE, 0, 0, 0 }
 };
@@ -137,12 +139,6 @@ int Listener_demo(const char* path,
 	Listener* lr = user_data;
 	if (lr->host == NULL)
 	{
-		return 0;
-	}
-	if (lr->driver_id == -1)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "No audio driver active");
 		return 0;
 	}
 	Player* player = NULL;
@@ -297,7 +293,10 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Playlist_ins(lr->playlist, player);
-	Player_set_state(player, PLAY_SONG);
+	if (lr->driver_id != -1)
+	{
+		Player_set_state(player, PLAY_SONG);
+	}
 	strcpy(lr->method_path + lr->host_path_len, "new_song");
 	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
 	if (ret == -1)
@@ -305,6 +304,12 @@ int Listener_demo(const char* path,
 		fprintf(stderr, "Failed to send the response message\n");
 		return 0;
 	}
+#if 0
+	lo_arg song_id;
+	song_id.i = player->id;
+	lo_arg* song_id_p = &song_id;
+	Listener_get_pats(path, types, &song_id_p, 1, msg, user_data);
+#endif
 	return 0;
 
 cleanup:

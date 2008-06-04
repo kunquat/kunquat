@@ -83,7 +83,7 @@ bool Driver_alsa_init(Playlist* playlist, uint32_t* freq)
 {
 	snd_pcm_hw_params_t* hw_params = NULL;
 	int err = 0;
-	err = snd_pcm_open(&handle, "plughw:0,0", SND_PCM_STREAM_PLAYBACK, 0);
+	err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
 	if (err < 0)
 	{
 		handle = NULL;
@@ -93,48 +93,57 @@ bool Driver_alsa_init(Playlist* playlist, uint32_t* freq)
 	if (err < 0)
 	{
 		hw_params = NULL;
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_malloc()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_any(handle, hw_params);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_any()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_set_access(handle, hw_params,
 			SND_PCM_ACCESS_RW_INTERLEAVED);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_access()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_set_format(handle, hw_params, SND_PCM_FORMAT_S16_LE);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_format()\n");
 		goto cleanup;
 	}
 	unsigned int fr = 44100;
 	err = snd_pcm_hw_params_set_rate_near(handle, hw_params, &fr, NULL);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_rate_near()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_set_channels(handle, hw_params, 2);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_channels()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_set_periods(handle, hw_params, 2, 0);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_periods()\n");
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params_set_buffer_size(handle, hw_params, 4096);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params_set_buffer_size(): %d\n", err);
 		goto cleanup;
 	}
 	err = snd_pcm_hw_params(handle, hw_params);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_hw_params()\n");
 		goto cleanup;
 	}
 	snd_pcm_hw_params_free(hw_params);
@@ -142,6 +151,7 @@ bool Driver_alsa_init(Playlist* playlist, uint32_t* freq)
 	err = snd_pcm_prepare(handle);
 	if (err < 0)
 	{
+		fprintf(stderr, "ALSA driver failed at snd_pcm_prepare()\n");
 		goto cleanup;
 	}
 	active = true;
@@ -149,6 +159,7 @@ bool Driver_alsa_init(Playlist* playlist, uint32_t* freq)
 	if (err != 0)
 	{
 		active = false;
+		fprintf(stderr, "ALSA driver failed at thread creation\n");
 		goto cleanup;
 	}
 	*freq = 44100;

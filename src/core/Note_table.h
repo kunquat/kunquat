@@ -26,17 +26,9 @@
 
 #include <Real.h>
 #include <pitch_t.h>
+#include <Song_limits.h>
 
 #include <wchar.h>
-
-
-#define NOTE_TABLE_NAME_MAX (256)
-#define NOTE_TABLE_NOTE_NAME_MAX (16)
-#define NOTE_TABLE_NOTE_MOD_NAME_MAX (8)
-#define NOTE_TABLE_OCTAVES (16)
-#define NOTE_TABLE_MIDDLE_OCTAVE (8)
-#define NOTE_TABLE_NOTE_MODS (16)
-#define NOTE_TABLE_NOTES (128)
 
 
 typedef struct Note_table
@@ -100,7 +92,60 @@ wchar_t* Note_table_get_name(Note_table* table);
 
 
 /**
- * Sets the reference pitch for the Note table
+ * Gets the number of notes in the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ *
+ * \return   The number of notes.
+ */
+int Note_table_get_note_count(Note_table* table);
+
+
+/**
+ * Gets the number of note modifiers in the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ *
+ * \return   The number of note modifiers.
+ */
+int Note_table_get_note_mod_count(Note_table* table);
+
+
+/**
+ * Sets the reference note for the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ * \param index   The index of the new reference note -- must be
+ *                >= \c 0 and < \c NOTE_TABLE_NOTES.
+ *
+ * \return   \c true if successful, or \c false if there is no note
+ *           at \a index.
+ */
+bool Note_table_set_ref_note(Note_table* table, int index);
+
+
+/**
+ * Gets the initial reference note of the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ *
+ * \return   The index of the reference note.
+ */
+int Note_table_get_ref_note(Note_table* table);
+
+
+/**
+ * Gets the current reference note of the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ *
+ * \return   The index of the reference note.
+ */
+int Note_table_get_cur_ref_note(Note_table* table);
+
+
+/**
+ * Sets the reference pitch for the Note table.
  *
  * \param table       The Note table -- must not be \c NULL.
  * \param ref_pitch   The reference pitch -- must be > \c 0.
@@ -275,7 +320,19 @@ Real* Note_table_get_note_ratio(Note_table* table, int index);
 
 
 /**
- * Gets the pitch ratio of a note in the Note table in cents.
+ * Gets the current pitch ratio of a note in the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ * \param index   The index of the note -- must be >= \c 0 and
+ *                < \c NOTE_TABLE_NOTES.
+ *
+ * \return   The ratio if the note exists, otherwise \c NULL.
+ */
+Real* Note_table_get_cur_note_ratio(Note_table* table, int index);
+
+
+/**
+ * Gets the initial pitch ratio of a note in the Note table in cents.
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
@@ -285,6 +342,19 @@ Real* Note_table_get_note_ratio(Note_table* table, int index);
  *           cents, otherwise \c NAN.
  */
 double Note_table_get_note_cents(Note_table* table, int index);
+
+
+/**
+ * Gets the current pitch ratio of a note in the Note table in cents.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ * \param index   The index of the note -- must be >= \c 0 and
+ *                < \c NOTE_TABLE_NOTES.
+ *
+ * \return   The ratio in cents if the note exists and the ratio is defined in
+ *           cents, otherwise \c NAN.
+ */
+double Note_table_get_cur_note_cents(Note_table* table, int index);
 
 
 /**
@@ -439,7 +509,8 @@ double Note_table_get_note_mod_cents(Note_table* table, int index);
  *                 < \c NOTE_TABLE_NOTES.
  * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
  *                 Negative value means that no modifier will be used.
- * \param octave   The octave -- must be >= \c 0 and < \c NOTE_TABLE_OCTAVES.
+ * \param octave   The octave -- must be >= \c NOTE_TABLE_OCTAVE_FIRST
+ *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  *
  * \return   The pitch if the note exists, otherwise a negative value.
  */

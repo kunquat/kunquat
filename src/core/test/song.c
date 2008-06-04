@@ -69,7 +69,7 @@ Playdata* init_play(Song* song)
 		fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
 		return NULL;
 	}
-	for (int i = 0; i < PAT_CHANNELS; ++i)
+	for (int i = 0; i < COLUMNS_MAX; ++i)
 	{
 		play->channels[i] = new_Channel(song->insts);
 		if (play->channels[i] == NULL)

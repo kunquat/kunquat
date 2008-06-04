@@ -29,12 +29,13 @@
 #include <Playdata.h>
 #include <Column.h>
 #include <Reltime.h>
+#include <Song_limits.h>
 
 
 typedef struct Pattern
 {
 	Column* global;
-	Column* cols[PAT_CHANNELS];
+	Column* cols[COLUMNS_MAX];
 	Reltime length;
 } Pattern;
 
@@ -63,10 +64,20 @@ void Pattern_set_length(Pattern* pat, Reltime* length);
 
 
 /**
+ * Gets the length of the Pattern.
+ *
+ * \param pat      The Pattern -- must not be \c NULL.
+ *
+ * \return   The length -- must not be freed.
+ */
+Reltime* Pattern_get_length(Pattern* pat);
+
+
+/**
  * Returns a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
- * \param index   The Column index -- must be >= \c 0 and < \c PAT_CHANNELS.
+ * \param index   The Column index -- must be >= \c 0 and < \c COLUMNS_MAX.
  *
  * \return   The Column.
  */

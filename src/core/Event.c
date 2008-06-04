@@ -26,8 +26,25 @@
 #include "Event.h"
 
 #include <Note_table.h>
+#include <Song_limits.h>
 
 #include <xmemory.h>
+
+
+char* Event_type_get_field_types(Event_type type)
+{
+	assert(EVENT_TYPE_IS_VALID(type));
+	switch (type)
+	{
+		case EVENT_TYPE_NOTE_ON:
+			return "iiii";
+		case EVENT_TYPE_NOTE_OFF:
+			return "";
+		default:
+			return NULL;
+	}
+	return NULL;
+}
 
 
 Event* new_Event(Reltime* pos, Event_type type)
@@ -40,21 +57,30 @@ Event* new_Event(Reltime* pos, Event_type type)
 		return NULL;
 	}
 	Reltime_copy(&event->pos, pos);
+	Event_reset(event, type);
+	return event;
+}
+
+
+void Event_reset(Event* event, Event_type type)
+{
+	assert(event != NULL);
+	assert(EVENT_TYPE_IS_VALID(type));
 	event->type = type;
 	switch (event->type)
 	{
 		case EVENT_TYPE_NOTE_ON:
 			event->fields[0].i = -1; // note
 			event->fields[1].i = -1; // modifier
-			event->fields[2].i = -1; // octave
+			event->fields[2].i = INT64_MIN; // octave
 			event->fields[3].i = 0; // instrument
 			break;
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
-	return event;
+	return;
 }
 
 
@@ -144,17 +170,18 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 1 && value >= 0 && value < NOTE_TABLE_NOTE_MODS)
+			else if (index == 1 && value >= -1 && value < NOTE_TABLE_NOTE_MODS)
 			{
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 2 && value >= 0 && value < NOTE_TABLE_OCTAVES)
+			else if (index == 2 && value >= NOTE_TABLE_OCTAVE_FIRST
+					&& value <= NOTE_TABLE_OCTAVE_LAST)
 			{
 				event->fields[index].i = value;
 				return true;
 			}
-			else if (index == 3 && value > 0 && value < 1024) // FIXME: max num of inst
+			else if (index == 3 && value > 0 && value <= INSTRUMENTS_MAX)
 			{
 				event->fields[index].i = value;
 				return true;
@@ -163,7 +190,7 @@ bool Event_set_int(Event* event, uint8_t index, int64_t value)
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
 	return false;
 }
@@ -194,7 +221,7 @@ bool Event_set_float(Event* event, uint8_t index, double value)
 		case EVENT_TYPE_NOTE_OFF:
 			break;
 		default:
-			break; // FIXME: replace with assert(0) after supporting all types
+			break;
 	}
 	return false;
 }

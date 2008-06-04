@@ -152,7 +152,7 @@ void Voice_mix(Voice* voice,
 				assert(EVENT_TYPE_IS_INS(Event_get_type(next)));
 				int64_t note = -1;
 				int64_t note_mod = -1;
-				int64_t note_octave = -1;
+				int64_t note_octave = INT64_MIN;
 				switch (Event_get_type(next))
 				{
 					case EVENT_TYPE_NOTE_ON:

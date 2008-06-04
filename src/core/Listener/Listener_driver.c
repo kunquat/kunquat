@@ -168,7 +168,7 @@ int Listener_driver_init(const char* path,
 	{
 		drivers[l->driver_id].close();
 	}
-	l->freq = 0;
+	l->freq = 1;
 	if (!drivers[driver_id].init(l->playlist, &l->freq))
 	{
 		strcpy(l->method_path + l->host_path_len, "driver_init");
@@ -222,7 +222,7 @@ int Listener_driver_close(const char* path,
 	drivers[l->driver_id].close();
 	int driver_id = l->driver_id;
 	l->driver_id = -1;
-	l->freq = 0;
+	l->freq = 1;
 	strcpy(l->method_path + l->host_path_len, "notify");
 	int ret = lo_send(l->host, l->method_path, "si",
 			"Closed driver", (int32_t)driver_id);

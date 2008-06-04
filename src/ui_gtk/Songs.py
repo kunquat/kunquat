@@ -70,6 +70,60 @@ class Songs(gtk.Notebook):
 		new_song(path, [args[0]], ['i'])
 		ins_info(path, args, types)
 
+	def pat_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.pat_info(path, args[1:], types[1:])
+				return
+		new_song(path, [args[0]], ['i'])
+		pat_info(path, args, types)
+
+	def event_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.event_info(path, args[1:], types[1:])
+				return
+		new_song(path, [args[0]], ['i'])
+		event_info(path, args, types)
+
+	def events_sent(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.events_sent(path, args[1:], types[1:])
+				return
+		return
+
+	def note_table_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.note_table_info(path, args[1:], types[1:])
+				return
+
+	def note_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.note_info(path, args[1:], types[1:])
+				return
+
+	def note_mod_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.note_mod_info(path, args[1:], types[1:])
+				return
+
+	def notes_sent(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.notes_sent(path, args[1:], types[1:])
+				return
+
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
@@ -78,6 +132,13 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/songs', None, self.songs)
 		self.server.add_method('/kunquat_gtk/del_song', None, self.del_song)
 		self.server.add_method('/kunquat_gtk/ins_info', None, self.ins_info)
+		self.server.add_method('/kunquat_gtk/pat_info', 'iihi', self.pat_info)
+		self.server.add_method('/kunquat_gtk/event_info', None, self.event_info)
+		self.server.add_method('/kunquat_gtk/events_sent', 'ii', self.events_sent)
+		self.server.add_method('/kunquat_gtk/note_table_info', None, self.note_table_info)
+		self.server.add_method('/kunquat_gtk/note_info', None, self.note_info)
+		self.server.add_method('/kunquat_gtk/note_mod_info', None, self.note_info)
+		self.server.add_method('/kunquat_gtk/notes_sent', 'i', self.notes_sent)
 
 		gtk.Notebook.__init__(self)
 

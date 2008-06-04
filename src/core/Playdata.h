@@ -30,6 +30,7 @@
 #include <Channel.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
+#include <Song_limits.h>
 
 
 /**
@@ -42,9 +43,6 @@ typedef enum Play_mode
 	PLAY_SONG,      ///< Play a song.
 	PLAY_LAST       ///< Sentinel value -- never used as a mode.
 } Play_mode;
-
-
-#define PAT_CHANNELS (64)
 
 
 typedef struct Playdata
@@ -76,7 +74,7 @@ typedef struct Playdata
 	/// The Voice pool used.
 	Voice_pool* voice_pool;
 	/// The channels used.
-	Channel* channels[PAT_CHANNELS];
+	Channel* channels[COLUMNS_MAX];
 } Playdata;
 
 

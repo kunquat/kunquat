@@ -29,6 +29,7 @@ import liblo
 import sys
 
 import Driver_select
+import Log
 import Songs
 import Cli
 
@@ -60,13 +61,13 @@ class Kunquat_gtk():
 		self.window = None
 		gtk.main_quit()
 
-	def set_drivers_display(self, button, data = None):
+	def set_window_display(self, button, window):
 		if button.get_active():
-			self.drivers.show()
+			window.show()
 		else:
-			self.drivers.hide()
+			window.hide()
 
-	def hide_drivers(self, window, event, button):
+	def hide_window(self, window, event, button):
 		window.hide()
 		button.set_active(False)
 		return True
@@ -79,6 +80,8 @@ class Kunquat_gtk():
 		self.songs = Songs.Songs(self.engine, self.s)
 
 		self.cli = Cli.Cli(self.engine, self.s)
+
+		self.log = Log.Log(self.engine, self.s, self.cli)
 		
 		self.window = gtk.Window()
 		self.window.set_title('Kunquat')
@@ -88,26 +91,35 @@ class Kunquat_gtk():
 		self.contents = gtk.VBox()
 
 		self.tools = gtk.Toolbar()
+
 		driver_button = gtk.ToggleToolButton()
 		driver_button.set_label('Drivers')
-		driver_button.connect('toggled', self.set_drivers_display)
+		driver_button.connect('toggled', self.set_window_display, self.drivers)
 		self.tools.insert(driver_button, 0)
 		driver_button.show()
-		self.drivers.connect('delete_event', self.hide_drivers, driver_button)
-		# Decrease reference count in order to prevent freeze at exit
-		# -- what's the correct way to handle this?
+		self.drivers.connect('delete-event', self.hide_window, driver_button)
 		driver_button = None
+
+		log_button = gtk.ToggleToolButton()
+		log_button.set_label('Log')
+		log_button.connect('toggled', self.set_window_display, self.log)
+		self.tools.insert(log_button, -1)
+		log_button.show()
+		self.log.connect('delete_event', self.hide_window, log_button)
+		log_button = None
 
 		self.box = gtk.HBox()
 		self.box.pack_start(self.songs)
 		self.songs.show()
-		self.box.pack_start(self.cli)
-		self.cli.show()
+#		self.box.pack_start(self.cli)
 
 		self.contents.pack_start(self.tools, expand = False)
 		self.tools.show()
-		self.contents.pack_end(self.box)
+		self.contents.pack_start(self.box)
 		self.box.show()
+
+		self.contents.pack_end(self.cli, False, False)
+		self.cli.show()
 
 		self.window.add(self.contents)
 		self.contents.show()

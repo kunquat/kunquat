@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <wchar.h>
 #include <string.h>
 #include <math.h>
@@ -92,6 +93,53 @@ wchar_t* Note_table_get_name(Note_table* table)
 }
 
 
+int Note_table_get_note_count(Note_table* table)
+{
+	assert(table != NULL);
+	return table->note_count;
+}
+
+
+int Note_table_get_note_mod_count(Note_table* table)
+{
+	assert(table != NULL);
+	int count = 0;
+	while (count < NOTE_TABLE_NOTE_MODS && NOTE_MOD_EXISTS(table, count))
+	{
+		++count;
+	}
+	return count;
+}
+
+
+bool Note_table_set_ref_note(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (index >= table->note_count)
+	{
+		return false;
+	}
+	table->ref_note = index;
+	return true;
+}
+
+
+int Note_table_get_ref_note(Note_table* table)
+{
+	assert(table != NULL);
+	return table->ref_note;
+}
+
+
+int Note_table_get_cur_ref_note(Note_table* table)
+{
+	assert(table != NULL);
+	return table->ref_note_retuned;
+}
+
+
 void Note_table_set_ref_pitch(Note_table* table, pitch_t ref_pitch)
 {
 	assert(table != NULL);
@@ -114,13 +162,13 @@ void Note_table_set_octave_ratio(Note_table* table, Real* octave_ratio)
 	assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
 	Real_copy(&(table->octave_ratio), octave_ratio);
 	Real_init_as_frac(&(table->oct_factors[NOTE_TABLE_OCTAVES / 2]), 1, 1);
-	for (int i = NOTE_TABLE_MIDDLE_OCTAVE - 1; i >= 0; --i)
+	for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED - 1; i >= 0; --i)
 	{
 		Real_div(&(table->oct_factors[i]),
 				&(table->oct_factors[i + 1]),
 				&(table->octave_ratio));
 	}
-	for (int i = NOTE_TABLE_MIDDLE_OCTAVE + 1; i < NOTE_TABLE_OCTAVES; ++i)
+	for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED + 1; i < NOTE_TABLE_OCTAVES; ++i)
 	{
 		Real_mul(&(table->oct_factors[i]),
 				&(table->oct_factors[i - 1]),
@@ -370,6 +418,19 @@ Real* Note_table_get_note_ratio(Note_table* table, int index)
 }
 
 
+Real* Note_table_get_cur_note_ratio(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (!NOTE_EXISTS(table, index))
+	{
+		return NULL;
+	}
+	return &table->notes[index].ratio_retuned;
+}
+
+
 double Note_table_get_note_cents(Note_table* table, int index)
 {
 	assert(table != NULL);
@@ -380,6 +441,20 @@ double Note_table_get_note_cents(Note_table* table, int index)
 		return NAN;
 	}
 	return table->notes[index].cents;
+}
+
+
+double Note_table_get_cur_note_cents(Note_table* table, int index)
+{
+	assert(table != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLE_NOTES);
+	if (!NOTE_EXISTS(table, index))
+	{
+		return NAN;
+	}
+	double val = Real_get_double(&table->notes[index].ratio_retuned);
+	return log2(val) * 1200;
 }
 
 
@@ -589,6 +664,7 @@ pitch_t Note_table_get_pitch(Note_table* table,
 		int mod,
 		int octave)
 {
+	octave -= NOTE_TABLE_OCTAVE_BIAS;
 	Real final_ratio;
 	assert(table != NULL);
 	assert(index >= 0);

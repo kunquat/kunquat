@@ -43,14 +43,14 @@ class Instruments(gtk.HBox):
 
 		gtk.HBox.__init__(self)
 
-		self.ins_table = gtk.ListStore(gobject.TYPE_INT, gobject.TYPE_STRING)
+		self.ins_table = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
 		self.it_view = gtk.TreeView(self.ins_table)
 #		selection = self.it_view.get_selection()
 #		selection.connect('changed', self.set_instrument)
 
 		for i in range(1, 256):
 			iter = self.ins_table.append()
-			self.ins_table.set(iter, 0, i)
+			self.ins_table.set(iter, 0, '%02X' % i)
 
 		cell = gtk.CellRendererText()
 		column = gtk.TreeViewColumn('#', cell, text = 0)

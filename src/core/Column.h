@@ -51,6 +51,7 @@ typedef struct Column
 {
 	Reltime len;
 	AAnode* last;
+	AAnode* last_from_host;
 	AAtree events;
 } Column;
 
@@ -82,7 +83,7 @@ bool Column_ins(Column* col, Event* event);
 
 
 /**
- * Gets an Event from the Column.
+ * Gets an Event from the Column. Only the playback routine shall call this.
  *
  * The first Event with position greater than or equal to the given position
  * will be returned.
@@ -96,7 +97,23 @@ Event* Column_get(Column* col, const Reltime* pos);
 
 
 /**
- * Gets the Event next to the previous Event retrieved from the Column.
+ * Gets an Event from the Column. Code other than the playback routine shall
+ * use this version.
+ *
+ * The first Event with position greater than or equal to the given position
+ * will be returned.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ * \param pos   The position of the Event -- must not be \c NULL.
+ *
+ * \return   The Event if one exists, otherwise \c NULL.
+ */
+Event* Column_get_edit(Column* col, const Reltime* pos);
+
+
+/**
+ * Gets the Event next to the previous Event retrieved from the Column. Only
+ * the playback routine shall call this.
  *
  * If not preceded by a successful call to Column_get(), \c NULL will be
  * returned.
@@ -106,6 +123,32 @@ Event* Column_get(Column* col, const Reltime* pos);
  * \return   The Event if one exists, otherwise \c NULL.
  */
 Event* Column_get_next(Column* col);
+
+
+/**
+ * Gets the Event next to the previous Event retrieved from the Column. Code
+ * other than the playback routine shall use this version.
+ *
+ * If not preceded by a successful call to Column_get(), \c NULL will be
+ * returned.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ *
+ * \return   The Event if one exists, otherwise \c NULL.
+ */
+Event* Column_get_next_edit(Column* col);
+
+
+/**
+ * Moves an Event inside a row of the Column.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param event   The Event to be moved -- must not be \c NULL.
+ * \param index   The new 0-based index of the Event in the row.
+ *
+ * \return   \c true if the Column changed, otherwise \c false.
+ */
+bool Column_move(Column* col, Event* event, unsigned int index);
 
 
 /**

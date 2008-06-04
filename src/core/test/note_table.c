@@ -3318,7 +3318,7 @@ START_TEST (get_pitch)
 		Real_init_as_frac(&note_ratio, i + 2, i + 1);
 		Real_init_as_frac(&wrong_ratio, i + 1, i + 2);
 		Real_init_as_frac(&oct_mul, 1, 2);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= 0; --j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
 		{
 			fail_if(Note_table_get_pitch(table, i, -1, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3337,7 +3337,7 @@ START_TEST (get_pitch)
 		Real_init_as_frac(&oct_mul, 2, 1);
 		Real_mul(&note_ratio, &note_ratio, &oct_mul);
 		Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j < NOTE_TABLE_OCTAVES; ++j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
 		{
 			fail_if(Note_table_get_pitch(table, i, -1, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3367,7 +3367,7 @@ START_TEST (get_pitch)
 		Real_init_as_frac(&mod_ratio, 16, 15);
 		Real_mul(&note_ratio, &note_ratio, &mod_ratio);
 		Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= 0; --j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
 		{
 			fail_if(Note_table_get_pitch(table, i, 0, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3385,7 +3385,7 @@ START_TEST (get_pitch)
 		Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
 		Real_mul(&note_ratio, &note_ratio, &mod_ratio);
 		Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j < NOTE_TABLE_OCTAVES; ++j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
 		{
 			fail_if(Note_table_get_pitch(table, i, 0, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3412,7 +3412,7 @@ START_TEST (get_pitch)
 		Real_init_as_frac(&mod_ratio, 15, 16);
 		Real_mul(&note_ratio, &note_ratio, &mod_ratio);
 		Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= 0; --j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
 		{
 			fail_if(Note_table_get_pitch(table, i, 1, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3430,7 +3430,7 @@ START_TEST (get_pitch)
 		Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
 		Real_mul(&note_ratio, &note_ratio, &mod_ratio);
 		Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j < NOTE_TABLE_OCTAVES; ++j)
+		for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
 		{
 			fail_if(Note_table_get_pitch(table, i, 1, j)
 					- Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -3572,7 +3572,7 @@ START_TEST (get_pitch_break_octave1)
 		return;
 	}
 
-	Note_table_get_pitch(table, 0, -1, -1);
+	Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVE_FIRST - 1);
 
 	del_Note_table(table);
 }
@@ -3608,7 +3608,7 @@ START_TEST (get_pitch_break_octave3)
 		return;
 	}
 
-	Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVES);
+	Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVE_LAST + 1);
 
 	del_Note_table(table);
 }
