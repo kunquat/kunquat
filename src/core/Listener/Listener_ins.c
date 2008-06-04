@@ -23,9 +23,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "Listener.h"
 #include "Listener_ins.h"
+#include "utf8.h"
 
 #include <Song.h>
 #include <Ins_table.h>
@@ -212,13 +214,12 @@ int Listener_ins_set_name(const char* path,
 	if (ins != NULL)
 	{
 		wchar_t name[INS_NAME_MAX] = { L'\0' };
-		const char* src = &argv[2]->s;
-		if (mbsrtowcs(name, &src, INS_NAME_MAX - 1, NULL) == (size_t)(-1))
+		unsigned char* src = (unsigned char*)&argv[2]->s;
+		if (from_utf8(name, src, INS_NAME_MAX) == EILSEQ)
 		{
 			strcpy(l->method_path + l->host_path_len, "error");
 			lo_send(l->host, l->method_path, "s",
 					"Illegal character sequence in the Instrument name");
-			return 0;
 		}
 		Instrument_set_name(ins, name);
 	}
@@ -332,15 +333,15 @@ static bool ins_info(Listener* l,
 	if (ins != NULL)
 	{
 		lo_message_add_int32(m, Instrument_get_type(ins));
-		char mbs[INS_NAME_MAX * 6] = { '\0' };
-		const wchar_t* src = Instrument_get_name(ins);
-		if (wcsrtombs(mbs, &src, INS_NAME_MAX * 6, NULL) == (size_t)(-1))
+		unsigned char mbs[INS_NAME_MAX * 6] = { '\0' };
+		wchar_t* src = Instrument_get_name(ins);
+		if (to_utf8(mbs, src, INS_NAME_MAX * 6) == EILSEQ)
 		{
 			strcpy(l->method_path + l->host_path_len, "error");
 			lo_send(l->host, l->method_path, "s",
 					"Illegal character sequence in the Instrument name");
 		}
-		lo_message_add_string(m, mbs);
+		lo_message_add_string(m, (char*)mbs);
 	}
 	else
 	{

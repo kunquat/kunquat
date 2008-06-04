@@ -30,6 +30,7 @@
 
 #include "Listener.h"
 #include "Listener_note_table.h"
+#include "utf8.h"
 
 #include <Song.h>
 #include <Note_table.h>
@@ -81,15 +82,15 @@ int Listener_get_note_table(const char* path,
 	Note_table* table = Song_get_notes(song);
 	lo_message m = lo_message_new();
 	lo_message_add_int32(m, player_id);
-	char mbs[NOTE_TABLE_NAME_MAX * 6] = { '\0' };
-	const wchar_t* src = Note_table_get_name(table);
-	if (wcsrtombs(mbs, &src, NOTE_TABLE_NAME_MAX * 6, NULL) == (size_t)(-1))
+	unsigned char mbs[NOTE_TABLE_NAME_MAX * 6] = { '\0' };
+	wchar_t* src = Note_table_get_name(table);
+	if (to_utf8(mbs, src, NOTE_TABLE_NAME_MAX * 6) == EILSEQ)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s",
 				"Illegal character sequence in the Note table name");
 	}
-	lo_message_add_string(m, mbs);
+	lo_message_add_string(m, (char*)mbs);
 	lo_message_add_int32(m, Note_table_get_note_count(table));
 	lo_message_add_int32(m, Note_table_get_note_mod_count(table));
 	lo_message_add_int32(m, Note_table_get_ref_note(table));
@@ -152,15 +153,15 @@ bool note_info(Listener* lr,
 	lo_message m = lo_message_new();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, index);
-	char mbs[NOTE_TABLE_NOTE_NAME_MAX * 6] = { '\0' };
-	const wchar_t* src = Note_table_get_note_name(table, index);
-	if (wcsrtombs(mbs, &src, NOTE_TABLE_NOTE_NAME_MAX * 6, NULL) == (size_t)(-1))
+	unsigned char mbs[NOTE_TABLE_NOTE_NAME_MAX * 6] = { '\0' };
+	wchar_t* src = Note_table_get_note_name(table, index);
+	if (to_utf8(mbs, src, NOTE_TABLE_NOTE_NAME_MAX * 6) == EILSEQ)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s",
 				"Illegal character sequence in the Note name");
 	}
-	lo_message_add_string(m, mbs);
+	lo_message_add_string(m, (char*)mbs);
 	bool is_ratio = isnan(Note_table_get_note_cents(table, index));
 	if (is_ratio)
 	{
@@ -223,15 +224,15 @@ bool note_mod_info(Listener* lr,
 	lo_message m = lo_message_new();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, index);
-	char mbs[NOTE_TABLE_NOTE_MOD_NAME_MAX * 6] = { '\0' };
-	const wchar_t* src = Note_table_get_note_mod_name(table, index);
-	if (wcsrtombs(mbs, &src, NOTE_TABLE_NOTE_MOD_NAME_MAX * 6, NULL) == (size_t)(-1))
+	unsigned char mbs[NOTE_TABLE_NOTE_MOD_NAME_MAX * 6] = { '\0' };
+	wchar_t* src = Note_table_get_note_mod_name(table, index);
+	if (to_utf8(mbs, src, NOTE_TABLE_NOTE_MOD_NAME_MAX * 6) == EILSEQ)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s",
 				"Illegal character sequence in the Note modifier name");
 	}
-	lo_message_add_string(m, mbs);
+	lo_message_add_string(m, (char*)mbs);
 	bool is_ratio = isnan(Note_table_get_note_mod_cents(table, index));
 	if (is_ratio)
 	{
