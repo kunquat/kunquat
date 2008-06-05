@@ -72,6 +72,15 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
 }
 
 
+void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
+{
+	assert(play != NULL);
+	assert(freq > 0);
+	play->freq = freq;
+	return;
+}
+
+
 #if 0
 int Playdata_process_jack(jack_nframes_t nframes, void* arg)
 {

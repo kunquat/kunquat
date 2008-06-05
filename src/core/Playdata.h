@@ -95,9 +95,18 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
 
 
 /**
+ * Sets a new mixing frequency.
+ *
+ * \param play   The Playdata object -- must not be \c NULL.
+ * \param freq   The mixing frequency -- must be > \c 0.
+ */
+void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
+
+
+/**
  * Deletes a Playdata object.
  *
- * \param data   The Playdata object -- must not be \c NULL.
+ * \param play   The Playdata object -- must not be \c NULL.
  */
 void del_Playdata(Playdata* play);
 

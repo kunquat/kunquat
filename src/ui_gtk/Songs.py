@@ -136,6 +136,13 @@ class Songs(gtk.Notebook):
 				content.notes_sent(path, args[1:], types[1:])
 				return
 
+	def player_state(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.player_state(path, args[1:], types[1:])
+				return
+
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
@@ -152,6 +159,7 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/note_info', None, self.note_info)
 		self.server.add_method('/kunquat_gtk/note_mod_info', None, self.note_info)
 		self.server.add_method('/kunquat_gtk/notes_sent', 'i', self.notes_sent)
+		self.server.add_method('/kunquat_gtk/player_state', 'is', self.player_state)
 
 		gtk.Notebook.__init__(self)
 

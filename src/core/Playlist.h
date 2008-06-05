@@ -74,6 +74,15 @@ void Playlist_remove(Playlist* playlist, Player* player);
 
 
 /**
+ * Sets a new mixing frequency.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param freq       The mixing frequency -- must be > \c 0.
+ */
+void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq);
+
+
+/**
  * Destroys an existing Playlist.
  *
  * \param playlist   The Playlist -- must not be \c NULL.

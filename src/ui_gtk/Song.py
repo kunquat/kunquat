@@ -38,10 +38,9 @@ class Song(gtk.VBox):
 	def song_info(self, path, args, types):
 		self.mix_vol = args[1]
 		self.init_subsong = args[2]
-		# XXX: this may generate the 'changed' event which causes the title to
-		# be set again -- ugly, but /shouldn't/ break anything as the title
-		# isn't changed the second time... :-/
+		self.title.handler_block(self.title_handler)
 		self.title.set_text(args[0])
+		self.title.handler_unblock(self.title_handler)
 
 	def ins_info(self, path, args, types):
 		self.instruments.ins_info(path, args, types)
@@ -68,6 +67,15 @@ class Song(gtk.VBox):
 	def notes_sent(self, path, args, types):
 		self.pattern.notes_sent(path, args, types)
 
+	def player_state(self, path, args, types):
+		pass
+
+	def set_play(self, button):
+		liblo.send(self.engine, '/kunquat/play_song', self.song_id)
+
+	def set_stop(self, button):
+		liblo.send(self.engine, '/kunquat/stop_song', self.song_id)
+
 	def title_entry(self, entry):
 		text = entry.get_text()
 		liblo.send(self.engine, '/kunquat/set_song_title', self.song_id, text)
@@ -82,10 +90,19 @@ class Song(gtk.VBox):
 		self.mix_vol = 0.0
 		self.init_subsong = 0
 
+		play_button = gtk.Button(' Play ')
+		play_button.connect('clicked', self.set_play)
+		stop_button = gtk.Button(' Stop ')
+		stop_button.connect('clicked', self.set_stop)
+
 		info_bar = gtk.HBox()
 		label = gtk.Label('Title:')
 		self.title = gtk.Entry(SONG_TITLE_MAX)
-		self.title.connect('changed', self.title_entry)
+		self.title_handler = self.title.connect('changed', self.title_entry)
+		info_bar.pack_start(play_button, False, False)
+		play_button.show()
+		info_bar.pack_start(stop_button, False, False)
+		stop_button.show()
 		info_bar.pack_start(label, False, False)
 		label.show()
 		info_bar.pack_end(self.title)

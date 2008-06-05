@@ -93,6 +93,20 @@ void Playlist_remove(Playlist* playlist, Player* player)
 }
 
 
+void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq)
+{
+	assert(playlist != NULL);
+	assert(freq > 0);
+	Player* player = playlist->first;
+	while (player != NULL)
+	{
+		Player_set_mix_freq(player, freq);
+		player = player->next;
+	}
+	return;
+}
+
+
 void del_Playlist(Playlist* playlist)
 {
 	assert(playlist != NULL);

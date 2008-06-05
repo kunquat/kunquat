@@ -89,12 +89,29 @@ void Player_set_state(Player* player, Play_mode mode)
 {
 	assert(player != NULL);
 	assert(mode < PLAY_LAST);
+	if (player->play->mode == mode)
+	{
+		return;
+	}
+	if (mode > STOP)
+	{
+		Voice_pool_reset(player->voices);
+	}
 	player->play->mode = mode;
 	player->play->tempo = Song_get_tempo(player->song);
 	player->play->order_index = 0;
 	Reltime_init(&player->play->play_time);
 	Reltime_init(&player->play->pos);
 	player->play->play_frames = 0;
+	return;
+}
+
+
+void Player_set_mix_freq(Player* player, uint32_t freq)
+{
+	assert(player != NULL);
+	assert(freq > 0);
+	Playdata_set_mix_freq(player->play, freq);
 	return;
 }
 

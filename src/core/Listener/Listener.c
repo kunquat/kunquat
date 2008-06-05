@@ -39,6 +39,7 @@
 #include "Listener_ins.h"
 #include "Listener_pattern.h"
 #include "Listener_note_table.h"
+#include "Listener_player.h"
 #include "Listener_demo.h"
 
 #include <xmemory.h>
@@ -81,6 +82,9 @@ static Method_desc methods[] =
 	{ "/kunquat/pat_mod_event", NULL, Listener_pat_mod_event },
 	{ "/kunquat/pat_del_event", "iiihii", Listener_pat_del_event },
 	{ "/kunquat/get_note_table", "i", Listener_get_note_table },
+	{ "/kunquat/stop", "", Listener_stop },
+	{ "/kunquat/stop_song", "i", Listener_stop_song },
+	{ "/kunquat/play_song", "i", Listener_play_song },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }

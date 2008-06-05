@@ -49,7 +49,6 @@ typedef struct Player
  * Creates a new Player.
  *
  * \param freq     The mixing frequency -- must be > \c 0.
- * // \param pool   The Voice pool -- must not be \c NULL.
  * \param voices   The number of Voices -- must be > \c 0 and < \c MAX_VOICES.
  * \param song     The Song -- must not be \c NULL.
  *
@@ -78,6 +77,15 @@ uint32_t Player_mix(Player* player, uint32_t nframes);
  * \param mode     The playback mode -- must be >= \a STOP and < \a PLAY_LAST.
  */
 void Player_set_state(Player* player, Play_mode mode);
+
+
+/**
+ * Sets a new mixing frequency.
+ * 
+ * \param player   The Player -- must not be \c NULL.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ */
+void Player_set_mix_freq(Player* player, uint32_t freq);
 
 
 /**

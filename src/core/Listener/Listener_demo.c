@@ -294,10 +294,10 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Playlist_ins(lr->playlist, player);
-	if (lr->driver_id != -1)
+/*	if (lr->driver_id != -1)
 	{
 		Player_set_state(player, PLAY_SONG);
-	}
+	} */
 	strcpy(lr->method_path + lr->host_path_len, "new_song");
 	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
 	if (ret == -1)
