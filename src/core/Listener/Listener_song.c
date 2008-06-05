@@ -28,6 +28,12 @@
 
 #include "Listener.h"
 #include "Listener_song.h"
+#include "utf8.h"
+
+
+static bool song_info(Listener* lr,
+		int32_t song_id,
+		Song* song);
 
 
 int Listener_new_song(const char* path,
@@ -117,6 +123,94 @@ int Listener_get_songs(const char* path,
 }
 
 
+int Listener_get_song_info(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	Song* song = player->song;
+	if (!song_info(lr, player_id, song))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_set_song_title(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	wchar_t title[SONG_NAME_MAX] = { L'\0' };
+	unsigned char* src = (unsigned char*)&argv[1]->s;
+	if (src == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"NULL string passed as the new title");
+		return 0;
+	}
+	if (from_utf8(title, src, SONG_NAME_MAX) == EILSEQ)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"Illegal character sequence in the Song title");
+	}
+	Song* song = player->song;
+	Song_set_name(song, title);
+	if (!song_info(lr, player_id, song))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
 int Listener_del_song(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -154,6 +248,36 @@ int Listener_del_song(const char* path,
 		return 0;
 	}
 	return 0;
+}
+
+
+static bool song_info(Listener* lr,
+		int32_t song_id,
+		Song* song)
+{
+	assert(lr != NULL);
+	assert(song != NULL);
+	lo_message m = lo_message_new();
+	lo_message_add_int32(m, song_id);
+	unsigned char mbs[SONG_NAME_MAX * 6] = { '\0' };
+	wchar_t* src = Song_get_name(song);
+	if (to_utf8(mbs, src, SONG_NAME_MAX * 6) == EILSEQ)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"Illegal character sequence in the Song title");
+	}
+	lo_message_add_string(m, (char*)mbs);
+	lo_message_add_double(m, song->mix_vol);
+	lo_message_add_int32(m, song->init_subsong);
+	strcpy(lr->method_path + lr->host_path_len, "song_info");
+	int ret = lo_send_message(lr->host, lr->method_path, m);
+	lo_message_free(m);
+	if (ret == -1)
+	{
+		return false;
+	}
+	return true;
 }
 
 

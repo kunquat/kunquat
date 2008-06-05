@@ -30,7 +30,18 @@ import Instruments
 import Pattern
 
 
+SONG_TITLE_MAX = 127
+
+
 class Song(gtk.VBox):
+
+	def song_info(self, path, args, types):
+		self.mix_vol = args[1]
+		self.init_subsong = args[2]
+		# XXX: this may generate the 'changed' event which causes the title to
+		# be set again -- ugly, but /shouldn't/ break anything as the title
+		# isn't changed the second time... :-/
+		self.title.set_text(args[0])
 
 	def ins_info(self, path, args, types):
 		self.instruments.ins_info(path, args, types)
@@ -57,12 +68,33 @@ class Song(gtk.VBox):
 	def notes_sent(self, path, args, types):
 		self.pattern.notes_sent(path, args, types)
 
+	def title_entry(self, entry):
+		text = entry.get_text()
+		liblo.send(self.engine, '/kunquat/set_song_title', self.song_id, text)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
 		self.song_id = song_id
 
 		gtk.VBox.__init__(self)
+
+		self.mix_vol = 0.0
+		self.init_subsong = 0
+
+		info_bar = gtk.HBox()
+		label = gtk.Label('Title:')
+		self.title = gtk.Entry(SONG_TITLE_MAX)
+		self.title.connect('changed', self.title_entry)
+		info_bar.pack_start(label, False, False)
+		label.show()
+		info_bar.pack_end(self.title)
+		self.title.show()
+
+		self.pack_start(info_bar, False, False)
+		info_bar.show()
+
+		liblo.send(self.engine, '/kunquat/get_song_info', self.song_id)
 
 		self.instruments = Instruments.Instruments(engine, server, song_id)
 		self.pattern = Pattern.Pattern(engine, server, song_id)

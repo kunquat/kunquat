@@ -63,6 +63,8 @@ typedef struct Song
 	double mix_vol;
 	/// Initial global volume.
 	double global_vol;
+	/// Initial subsong number.
+	uint32_t init_subsong;
 } Song;
 
 

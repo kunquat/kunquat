@@ -122,6 +122,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 	song->tempo = 120;
 	song->mix_vol = 0;
 	song->global_vol = 0;
+	song->init_subsong = 0;
 	return song;
 }
 

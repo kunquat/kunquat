@@ -28,6 +28,17 @@
 
 
 /**
+ * Many of the Song methods send a response method <host_path>/song_info which
+ * contains the following arguments:
+ *
+ * \li \c i   The Song ID.
+ * \li \c s   The Song title in UTF-8 format.
+ * \li \c d   The mixing volume.
+ * \li \c i   The number of the initial subsong.
+ */
+
+
+/**
  * Creates a new Song.
  *
  * The response method is <host_path>/new_song.
@@ -52,6 +63,34 @@ int Listener_new_song(const char* path,
  * The response message contains all the Song IDs.
  */
 int Listener_get_songs(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Gets metadata of the given Song. Takes the ID number of the Song as an
+ * argument.
+ *
+ * The response method is <host_path>/song_info.
+ */
+int Listener_get_song_info(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the title of the given Song. Takes the ID number of the Song and the
+ * new title in UTF-8 format as an argument.
+ *
+ * The response method is <host_path>/song_info.
+ */
+int Listener_set_song_title(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,

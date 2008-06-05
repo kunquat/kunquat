@@ -143,6 +143,7 @@ int Listener_demo(const char* path,
 	}
 	Player* player = NULL;
 	Song* song = new_Song(2, 128, 16); // TODO: get params from relevant parts of the Listener
+	Song_set_name(song, L"Demo");
 	if (song == NULL)
 	{
 		goto cleanup;
