@@ -814,7 +814,7 @@ class Pat_view(gtk.Widget):
 		cr.save()
 		need_clip = prev_y + h > y and (self.cursor[0][:2],
 				self.cursor[1]) != (pos[:2], col_num)
-		if need_clip:
+		if (self.cursor[0][:2], self.cursor[1]) != (pos[:2], col_num):
 			cr.rectangle(x, prev_y + 1.5,
 					w + (self.col_font_size / 3), y - prev_y)
 			cr.clip()

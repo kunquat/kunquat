@@ -111,15 +111,23 @@ class Song(gtk.VBox):
 		self.pack_start(info_bar, False, False)
 		info_bar.show()
 
+		nb = gtk.Notebook()
+
 		liblo.send(self.engine, '/kunquat/get_song_info', self.song_id)
 
 		self.instruments = Instruments.Instruments(engine, server, song_id)
 		self.pattern = Pattern.Pattern(engine, server, song_id)
 
-		self.pack_start(self.instruments)
-		self.instruments.show()
-
-		self.pack_end(self.pattern)
+		label = gtk.Label('Pattern editor')
+		nb.append_page(self.pattern, label)
 		self.pattern.show()
+		label.show()
+		label = gtk.Label('Instruments')
+		nb.append_page(self.instruments, label)
+		self.instruments.show()
+		label.show()
+
+		self.pack_start(nb)
+		nb.show()
 
 
