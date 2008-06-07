@@ -30,10 +30,19 @@
 #include <Event.h>
 
 
+typedef struct Event_list
+{
+	Event* event;
+	struct Event_list* prev;
+	struct Event_list* next;
+} Event_list;
+
+
 typedef struct AAnode
 {
 	int level;
-	Event* event;
+	Event_list* elist;
+	Event_list* elist_tail;
 	struct AAnode* parent;
 	struct AAnode* left;
 	struct AAnode* right;
@@ -51,7 +60,9 @@ typedef struct Column
 {
 	Reltime len;
 	AAnode* last;
+	Event_list* last_elist;
 	AAnode* last_from_host;
+	Event_list* last_elist_from_host;
 	AAtree events;
 } Column;
 

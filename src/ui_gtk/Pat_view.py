@@ -98,6 +98,7 @@ class Pat_view(gtk.Widget):
 	def act_up(self, event):
 		self.cur_field = self.cur_virtual_field
 		ctime = (0L, 0)
+		self.cur_inserting = False
 		if event.type == gdk.SCROLL:
 			ctime = (-1L, 3 * RELTIME_FULL_PART / 4)
 		elif event.type == gdk.KEY_PRESS:
@@ -138,6 +139,7 @@ class Pat_view(gtk.Widget):
 	def act_down(self, event):
 		self.cur_field = self.cur_virtual_field
 		ctime = (0L, 0)
+		self.cur_inserting = False
 		if event.type == gdk.SCROLL:
 			ctime = (0L, RELTIME_FULL_PART / 4)
 		elif event.type == gdk.KEY_PRESS:
@@ -202,6 +204,7 @@ class Pat_view(gtk.Widget):
 	def act_left(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		if (self.cursor[1] == 0
 				and self.cursor[0][2] == 0
 				and self.cur_field == 0):
@@ -237,6 +240,10 @@ class Pat_view(gtk.Widget):
 	def act_right(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		if self.cur_inserting:
+			self.cur_inserting = False
+			self.queue_draw()
+			return
 		if (self.pdata.cols[self.cursor[1]] and
 				self.cursor[0] in self.pdata.cols[self.cursor[1]]):
 			ev = self.pdata.cols[self.cursor[1]][self.cursor[0]]
@@ -259,6 +266,7 @@ class Pat_view(gtk.Widget):
 	def act_bar_up(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		self.cursor = ((self.cursor[0][0] - 4,
 				self.cursor[0][1],
 				self.cur_virtual_ord), self.cursor[1])
@@ -267,6 +275,7 @@ class Pat_view(gtk.Widget):
 	def act_bar_down(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		self.cursor = ((self.cursor[0][0] + 4,
 				self.cursor[0][1],
 				self.cur_virtual_ord), self.cursor[1])
@@ -275,6 +284,7 @@ class Pat_view(gtk.Widget):
 	def act_ch_left(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		if self.cursor[1] > 0:
 			self.cursor = (self.cursor[0], self.cursor[1] - 1)
 			self.queue_draw()
@@ -282,6 +292,7 @@ class Pat_view(gtk.Widget):
 	def act_ch_right(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		if self.cursor[1] < COLUMNS:
 			self.cursor = (self.cursor[0], self.cursor[1] + 1)
 			self.queue_draw()
@@ -292,7 +303,9 @@ class Pat_view(gtk.Widget):
 		key_name = gdk.keyval_name(self.get_plain_key(event))
 		event_args = ()
 		edit_method = '/kunquat/pat_ins_event'
-		if (self.pdata.cols[self.cursor[1]]
+		inserting = self.cur_inserting
+		self.cur_inserting = False
+		if not inserting and (self.pdata.cols[self.cursor[1]]
 				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
 			edit_method = '/kunquat/pat_mod_event'
 			if self.cur_field > 0:
@@ -355,9 +368,10 @@ class Pat_view(gtk.Widget):
 		if not key_name == '1':
 			return
 		edit_method = '/kunquat/pat_ins_event'
-		if (self.pdata.cols[self.cursor[1]]
+		if not self.cur_inserting and (self.pdata.cols[self.cursor[1]]
 				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
 			edit_method = '/kunquat/pat_mod_event'
+		self.cur_inserting = False
 		liblo.send(self.engine, edit_method,
 				self.song_id,
 				self.pdata.num,
@@ -367,8 +381,21 @@ class Pat_view(gtk.Widget):
 				self.cursor[0][2],
 				evtype.NOTE_OFF)
 
+	def act_insert_gap(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		if not (self.pdata.cols[self.cursor[1]]
+				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
+			self.cur_inserting = False
+			return
+		self.cur_inserting = True
+		self.queue_draw()
+
 	def act_del_event(self, event):
 		if event.type == gdk.KEY_RELEASE:
+			return
+		if self.cur_inserting:
+			self.cur_inserting = False
 			return
 		if (self.pdata.cols[self.cursor[1]]
 				and self.cursor[0] in self.pdata.cols[self.cursor[1]]):
@@ -383,6 +410,7 @@ class Pat_view(gtk.Widget):
 	def act_pat_prev(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		if not self.pdata or self.pdata.num <= 0:
 			return
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, self.pdata.num - 1)
@@ -390,6 +418,7 @@ class Pat_view(gtk.Widget):
 	def act_pat_next(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
+		self.cur_inserting = False
 		if not self.pdata or self.pdata.num >= PATTERNS:
 			return
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, self.pdata.num + 1)
@@ -681,6 +710,8 @@ class Pat_view(gtk.Widget):
 				row_w = self.event_width(v)
 				for (l, w) in rights:
 					row_w += self.event_width(w)
+				if self.cur_inserting:
+					row_w += self.col_font_size / 3
 				# Make sure cursor points at or next to an existing event
 				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if self.cursor[0][2] < 0:
@@ -701,12 +732,18 @@ class Pat_view(gtk.Widget):
 							if l[2] < self.cursor[0][2]:
 								off_w += self.event_width(w)
 							elif l[2] == self.cursor[0][2]:
-								cur_w = self.event_width(w)
+								if self.cur_inserting:
+									cur_w = self.col_font_size / 3
+								else:
+									cur_w = self.event_width(w)
 						if cur_w == 0:
 							cur_w = self.col_font_size / 3
 							cur_outside = True
 					else:
-						cur_w = self.event_width(v)
+						if self.cur_inserting:
+							cur_w = self.col_font_size / 3
+						else:
+							cur_w = self.event_width(v)
 				# Make sure cursor is visible (if it's located here)
 				if (self.cursor[0][:2], self.cursor[1]) == (k[:2], num):
 					if off_w < self.event_offset:
@@ -791,6 +828,15 @@ class Pat_view(gtk.Widget):
 	def draw_row(self, cr, pos, col_num, events, x, y, prev_y, cur_outside):
 		offset = 0
 		for (k, v) in events:
+			if self.cur_inserting and self.cursor == (k, col_num):
+				pl = self.create_pango_layout('0')
+				_, h = pl.get_size()
+				h //= pango.SCALE
+				cr.set_source_rgb(*self.ptheme['Cursor colour'])
+				cr.rectangle(x + offset, y - h,
+						self.col_font_size / 3, h)
+				cr.fill()
+				offset += self.col_font_size / 3
 			offset += self.draw_event(cr, k, col_num, v, x + offset, y, prev_y)
 		if cur_outside:
 			pl = self.create_pango_layout('0')
@@ -804,7 +850,7 @@ class Pat_view(gtk.Widget):
 	def draw_event(self, cr, pos, col_num, data, x, y, prev_y):
 		fg_colour = self.ptheme['Event error colour']
 		bg_colour = self.ptheme['Background colour']
-		cur_set = self.cursor == (pos, col_num)
+		cur_set = self.cursor == (pos, col_num) and not self.cur_inserting
 		estr, attrs, line_colour = self.event_str[data[0]](data, cur_set)
 		pl = self.create_pango_layout(estr)
 		pl.set_attributes(attrs)
@@ -1050,6 +1096,7 @@ class Pat_view(gtk.Widget):
 			('Tab', gdk.SHIFT_MASK): self.act_ch_left,
 			('Page_Up', 0): self.act_bar_up,
 			('Page_Down', 0): self.act_bar_down,
+			('Insert', 0): self.act_insert_gap,
 			('Delete', 0): self.act_del_event,
 			('comma', 0): self.act_pat_prev,
 			('period', 0): self.act_pat_next,
@@ -1077,6 +1124,7 @@ class Pat_view(gtk.Widget):
 		self.cur_virtual_col = -1
 		self.cur_virtual_ord = 0
 		self.cur_virtual_field = 0
+		self.cur_inserting = False
 		self.event_offset = 0
 		self.tmove = (0, 0)
 		self.snap_init_delay = 4

@@ -816,11 +816,18 @@ int Listener_pat_ins_event(const char* path,
 			return 0;
 		}
 	}
+	if (!pat_info(lr, player_id, pat_num, pat))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+#if 0
 	else if (!event_info(lr, player_id, pat_num, col_num, event_order, event))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
+#endif
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
 	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
 	if (ret == -1)
