@@ -423,6 +423,16 @@ class Pat_view(gtk.Widget):
 			return
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, self.pdata.num + 1)
 
+	def act_play_pat(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		liblo.send(self.engine, '/kunquat/play_pattern', self.song_id, self.pdata.num)
+
+	def act_stop(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		liblo.send(self.engine, '/kunquat/stop_song', self.song_id)
+
 	def get_plain_key(self, event):
 		keymap = gdk.keymap_get_default()
 		keyval, _, _, _ = keymap.translate_keyboard_state(
@@ -1100,6 +1110,8 @@ class Pat_view(gtk.Widget):
 			('Delete', 0): self.act_del_event,
 			('comma', 0): self.act_pat_prev,
 			('period', 0): self.act_pat_next,
+			('F6', 0): self.act_play_pat,
+			('F8', 0): self.act_stop,
 		}
 		self.event_map = {
 			('1', 0): self.act_ev_note_off,

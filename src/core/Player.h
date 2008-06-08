@@ -71,6 +71,16 @@ uint32_t Player_mix(Player* player, uint32_t nframes);
 
 
 /**
+ * Plays one Pattern.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ * \param num      The number of the Pattern -- must be >= \c 0 and
+ *                 < \c PATTERNS_MAX.
+ */
+void Player_play_pattern(Player* player, int16_t num);
+
+
+/**
  * Sets the playback mode.
  *
  * \param player   The Player -- must not be \c NULL.

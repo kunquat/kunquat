@@ -131,6 +131,50 @@ int Listener_play_song(const char* path,
 }
 
 
+int Listener_play_pattern(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	if (lr->driver_id == -1)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "No active driver");
+		return 0;
+	}
+	if (argv[1]->i < 0 || argv[1]->i > PATTERNS_MAX)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
+		return 0;
+	}
+	Player_play_pattern(player, argv[1]->i);
+	player_state(lr, player->id, "pattern");
+	return 0;
+}
+
+
 static bool player_state(Listener* lr,
 		int32_t song_id,
 		char* state)

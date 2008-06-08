@@ -153,6 +153,7 @@ uint32_t Pattern_mix(Pattern* pat,
 			Reltime_init(&play->pos);
 			if (play->mode == PLAY_PATTERN)
 			{
+				Reltime_set(&play->pos, 0, 0);
 				break;
 			}
 			++play->order_index;

@@ -85,6 +85,7 @@ static Method_desc methods[] =
 	{ "/kunquat/stop", "", Listener_stop },
 	{ "/kunquat/stop_song", "i", Listener_stop_song },
 	{ "/kunquat/play_song", "i", Listener_play_song },
+	{ "/kunquat/play_pattern", "ii", Listener_play_pattern },
 	{ "/kunquat/demo", "", Listener_demo },
 	{ NULL, NULL, Listener_fallback },
 	{ NULL, NULL, NULL }

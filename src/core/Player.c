@@ -85,6 +85,26 @@ uint32_t Player_mix(Player* player, uint32_t nframes)
 }
 
 
+void Player_play_pattern(Player* player, int16_t num)
+{
+	assert(player != NULL);
+	assert(num >= 0);
+	assert(num < PATTERNS_MAX);
+	Voice_pool_reset(player->voices);
+	for (int i = 0; i < COLUMNS_MAX; ++i)
+	{
+		Channel_reset(player->play->channels[i]);
+	}
+	player->play->pattern = num;
+	player->play->tempo = Song_get_tempo(player->song);
+	Reltime_init(&player->play->play_time);
+	Reltime_init(&player->play->pos);
+	player->play->play_frames = 0;
+	player->play->mode = PLAY_PATTERN;
+	return;
+}
+
+
 void Player_set_state(Player* player, Play_mode mode)
 {
 	assert(player != NULL);
@@ -96,6 +116,10 @@ void Player_set_state(Player* player, Play_mode mode)
 	if (mode > STOP)
 	{
 		Voice_pool_reset(player->voices);
+	}
+	for (int i = 0; i < COLUMNS_MAX; ++i)
+	{
+		Channel_reset(player->play->channels[i]);
 	}
 	player->play->mode = mode;
 	player->play->tempo = Song_get_tempo(player->song);
