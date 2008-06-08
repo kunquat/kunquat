@@ -446,6 +446,8 @@ START_TEST (mix_break_state_null)
 }
 END_TEST
 
+// XXX: enable again after implementing instrument buffers
+#if 0
 START_TEST (mix_break_nframes_inv)
 {
 	frame_t buf_l[1] = { 0 };
@@ -463,6 +465,7 @@ START_TEST (mix_break_nframes_inv)
 	del_Instrument(ins);
 }
 END_TEST
+#endif
 
 START_TEST (mix_break_freq_inv)
 {
@@ -508,7 +511,7 @@ Suite* Instrument_suite(void)
 
 	tcase_add_test_raise_signal(tc_mix, mix_break_ins_null, SIGABRT);
 	tcase_add_test_raise_signal(tc_mix, mix_break_state_null, SIGABRT);
-	tcase_add_test_raise_signal(tc_mix, mix_break_nframes_inv, SIGABRT);
+//	tcase_add_test_raise_signal(tc_mix, mix_break_nframes_inv, SIGABRT);
 	tcase_add_test_raise_signal(tc_mix, mix_break_freq_inv, SIGABRT);
 #endif
 

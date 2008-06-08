@@ -36,8 +36,10 @@ void Instrument_debug_mix(Instrument* ins,
 {
 	assert(ins != NULL);
 	assert(state != NULL);
-//	assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
+//	assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
 	assert(freq > 0);
+	assert(ins->bufs[0] != NULL);
+	assert(ins->bufs[1] != NULL);
 	if (!state->active)
 	{
 		return;
