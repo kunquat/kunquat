@@ -66,7 +66,7 @@ int Listener_get_insts(const char* path,
  * The following OSC arguments are expected:
  *
  * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1--255). An Instrument with the same
+ * \li \c i   The Instrument number (1..255). An Instrument with the same
  *            number will be removed if one exists.
  * \li \c i   The type of the new Instrument.
  */

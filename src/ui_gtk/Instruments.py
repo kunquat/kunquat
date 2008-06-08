@@ -32,25 +32,74 @@ class Instruments(gtk.HBox):
 	def ins_info(self, path, args, types):
 		iter = self.it_view.get_model().get_iter(args[0] - 1)
 		self.ins_table.set_value(iter, 1, args[2])
+		self.ins_details[args[0] - 1] = args[1:]
+		if self.cur_index == args[0]:
+			self.set_details(args[0] - 1)
 
 	def name_changed(self, cell, path, new_text):
-		liblo.send(self.engine, '/kunquat/ins_set_name', self.song_id, int(path) + 1, new_text)
+		liblo.send(self.engine, '/kunquat/ins_set_name',
+				self.song_id,
+				int(path) + 1,
+				new_text)
+
+	def change_type(self, combobox):
+		old_name = None
+		if self.ins_details[self.cur_index - 1]:
+			old_name = self.ins_details[self.cur_index - 1][1]
+		liblo.send(self.engine, '/kunquat/new_ins',
+				self.song_id,
+				self.cur_index,
+				combobox.get_active())
+		if old_name:
+			liblo.send(self.engine, '/kunquat/ins_set_name',
+					self.song_id,
+					self.cur_index,
+					old_name)
+
+	def select_ins(self, selection):
+		_, cur = selection.get_selected_rows()
+		self.cur_index = cur[0][0] + 1
+		self.set_details(cur[0][0])
+
+	def set_details(self, index):
+		if not self.ins_details[index]:
+			self.types.handler_block(self.htypes)
+			self.types.set_active(0)
+			self.types.handler_unblock(self.htypes)
+			return
+		self.types.handler_block(self.htypes)
+		self.types.set_active(self.ins_details[index][0])
+		self.types.handler_unblock(self.htypes)
+		if self.ins_details[index][0] <= 2:
+			return
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
 		self.song_id = song_id
 
+		self.cur_index = 1
+		self.ins_details = [None for _ in range(255)]
+		
+		self.types = gtk.combo_box_new_text()
+		self.types.append_text('None')
+		self.types.append_text('Debug')
+		self.types.append_text('Sine')
+		self.types.set_active(0)
+		self.htypes = self.types.connect('changed', self.change_type)
+
 		gtk.HBox.__init__(self)
 
 		self.ins_table = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
 		self.it_view = gtk.TreeView(self.ins_table)
-#		selection = self.it_view.get_selection()
-#		selection.connect('changed', self.set_instrument)
+		selection = self.it_view.get_selection()
+		selection.connect('changed', self.select_ins)
 
 		for i in range(1, 256):
 			iter = self.ins_table.append()
 			self.ins_table.set(iter, 0, '%02X' % i)
+
+		selection.select_path(0)
 
 		cell = gtk.CellRendererText()
 		column = gtk.TreeViewColumn('#', cell, text = 0)
@@ -68,6 +117,12 @@ class Instruments(gtk.HBox):
 
 		self.pack_start(it_scroll)
 		it_scroll.show()
+
+		ins_details = gtk.VBox()
+		ins_details.pack_start(self.types, False, False)
+		self.types.show()
+		self.pack_start(ins_details)
+		ins_details.show()
 
 		liblo.send(self.engine, '/kunquat/get_insts', self.song_id)
 

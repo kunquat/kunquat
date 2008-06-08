@@ -40,7 +40,7 @@ void Instrument_sine_mix(Instrument* ins,
 {
 	assert(ins != NULL);
 	assert(state != NULL);
-//	assert(nframes <= ins->buf_len);
+//	assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
 	assert(freq > 0);
 	assert(ins->bufs[0] != NULL);
 	assert(ins->bufs[1] != NULL);

@@ -133,51 +133,72 @@ int Listener_new_ins(const char* path,
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
+	assert(lr->method_path != NULL);
 	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
 	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument number:", argv[1]->i);
+		return 0;
+	}
+	if (argv[2]->i < INS_TYPE_NONE || argv[2]->i >= INS_TYPE_LAST)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument type:", argv[2]->i);
+		return 0;
+	}
+	if (argv[2]->i > INS_TYPE_SINE)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Only debug and sine instruments supported");
 		return 0;
 	}
 	int32_t player_id = argv[0]->i;
-	Player* player = l->player_cur;
+	Player* player = lr->player_cur;
 	if (player == NULL || player->id != player_id)
 	{
-		player = Playlist_get(l->playlist, player_id);
+		player = Playlist_get(lr->playlist, player_id);
 	}
 	if (player == NULL)
 	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
 	Song* song = player->song;
-	Instrument* ins = new_Instrument(INS_TYPE_SINE,
-			Song_get_bufs(song),
-			Song_get_buf_size(song),
-			32); // XXX: get event count from the configuration
-	if (ins == NULL)
-	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
-		return 0;
-	}
 	Ins_table* table = Song_get_insts(song);
 	assert(table != NULL);
-	if (!Ins_table_set(table, argv[1]->i, ins))
+	Instrument* ins = NULL;
+	if (argv[2]->i != INS_TYPE_NONE)
 	{
-		del_Instrument(ins);
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
-		return 0;
+		ins = new_Instrument(argv[2]->i,
+				Song_get_bufs(song),
+				Song_get_buf_size(song),
+				32); // XXX: get event count from the configuration
+		if (ins == NULL)
+		{
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
+			return 0;
+		}
+		Instrument_set_note_table(ins, Song_get_notes(song));
+		if (!Ins_table_set(table, argv[1]->i, ins))
+		{
+			del_Instrument(ins);
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
+			return 0;
+		}
 	}
-	if (!ins_info(l, player_id, argv[1]->i, ins))
+	else
+	{
+		Ins_table_remove(table, argv[1]->i);
+	}
+	if (!ins_info(lr, player_id, argv[1]->i, ins))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -320,13 +341,13 @@ static bool ins_get(Listener* l,
 }
 
 
-static bool ins_info(Listener* l,
+static bool ins_info(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument* ins)
 {
-	assert(l != NULL);
-	assert(l->host != NULL);
+	assert(lr != NULL);
+	assert(lr->host != NULL);
 	lo_message m = lo_message_new();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, ins_num);
@@ -337,8 +358,8 @@ static bool ins_info(Listener* l,
 		wchar_t* src = Instrument_get_name(ins);
 		if (to_utf8(mbs, src, INS_NAME_MAX * 6) == EILSEQ)
 		{
-			strcpy(l->method_path + l->host_path_len, "error");
-			lo_send(l->host, l->method_path, "s",
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "s",
 					"Illegal character sequence in the Instrument name");
 		}
 		lo_message_add_string(m, (char*)mbs);
@@ -348,8 +369,8 @@ static bool ins_info(Listener* l,
 		lo_message_add_int32(m, INS_TYPE_NONE);
 		lo_message_add_string(m, "");
 	}
-	strcpy(l->method_path + l->host_path_len, "ins_info");
-	int ret = lo_send_message(l->host, l->method_path, m);
+	strcpy(lr->method_path + lr->host_path_len, "ins_info");
+	int ret = lo_send_message(lr->host, lr->method_path, m);
 	lo_message_free(m);
 	if (ret == -1)
 	{

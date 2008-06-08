@@ -55,6 +55,7 @@ Instrument* new_Instrument(Ins_type type,
 		return NULL;
 	}
 	ins->type = type;
+	ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
 	ins->pbufs = NULL;
 	ins->bufs = ins->gbufs = bufs;
 	ins->buf_len = buf_len;
