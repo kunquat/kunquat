@@ -415,7 +415,7 @@ int Listener_quit(const char* path,
 	Player* player = lr->playlist->first;
 	while (player != NULL)
 	{
-		Player_set_state(player, STOP);
+		Player_stop(player);
 		player = player->next;
 	}
 	if (lr->driver_id >= 0)

@@ -81,12 +81,28 @@ void Player_play_pattern(Player* player, int16_t num);
 
 
 /**
- * Sets the playback mode.
+ * Plays a subsong.
  *
  * \param player   The Player -- must not be \c NULL.
- * \param mode     The playback mode -- must be >= \a STOP and < \a PLAY_LAST.
+ * \param num      The number of the subsong -- must be < \c SUBSONGS_MAX.
  */
-void Player_set_state(Player* player, Play_mode mode);
+void Player_play_subsong(Player* player, uint16_t subsong);
+
+
+/**
+ * Plays the default subsong of the Song.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ */
+void Player_play_song(Player* player);
+
+
+/**
+ * Stops playback.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ */
+void Player_stop(Player* player);
 
 
 /**

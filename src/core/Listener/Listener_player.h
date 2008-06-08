@@ -79,6 +79,22 @@ int Listener_play_song(const char* path,
 
 
 /**
+ * Plays the given subsong of the Song.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The subsong number (0..255).
+ */
+int Listener_play_subsong(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Plays one Pattern repeatedly.
  *
  * The following OSC arguments are expected:

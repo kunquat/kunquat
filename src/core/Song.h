@@ -64,7 +64,7 @@ typedef struct Song
 	/// Initial global volume.
 	double global_vol;
 	/// Initial subsong number.
-	uint32_t init_subsong;
+	uint16_t init_subsong;
 } Song;
 
 
@@ -175,6 +175,25 @@ void Song_set_global_vol(Song* song, double global_vol);
  * \return   The global volume.
  */
 double Song_get_global_vol(Song* song);
+
+
+/**
+ * Sets the initial subsong of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param num    The subsong number -- must be < \c SUBSONGS_MAX.
+ */
+void Song_set_subsong(Song* song, uint16_t num);
+
+
+/**
+ * Gets the initial subsong of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The initial subsong number.
+ */
+uint16_t Song_get_subsong(Song* song);
 
 
 /**

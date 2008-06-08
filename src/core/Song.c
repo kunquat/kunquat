@@ -255,6 +255,22 @@ double Song_get_global_vol(Song* song)
 }
 
 
+void Song_set_subsong(Song* song, uint16_t num)
+{
+	assert(song != NULL);
+	assert(num < SUBSONGS_MAX);
+	song->init_subsong = num;
+	return;
+}
+
+
+uint16_t Song_get_subsong(Song* song)
+{
+	assert(song != NULL);
+	return song->init_subsong;
+}
+
+
 int Song_get_buf_count(Song* song)
 {
 	assert(song != NULL);

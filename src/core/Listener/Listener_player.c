@@ -53,7 +53,7 @@ int Listener_stop(const char* path,
 	Player* player = lr->playlist->first;
 	while (player != NULL)
 	{
-		Player_set_state(player, STOP);
+		Player_stop(player);
 		player_state(lr, player->id, "stop");
 		player = player->next;
 	}
@@ -87,7 +87,7 @@ int Listener_stop_song(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
-	Player_set_state(player, STOP);
+	Player_stop(player);
 	player_state(lr, player->id, "stop");
 	return 0;
 }
@@ -125,7 +125,51 @@ int Listener_play_song(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "No active driver");
 		return 0;
 	}
-	Player_set_state(player, PLAY_SONG);
+	Player_play_song(player);
+	player_state(lr, player->id, "song");
+	return 0;
+}
+
+
+int Listener_play_subsong(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	if (lr->driver_id == -1)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "No active driver");
+		return 0;
+	}
+	if (argv[0]->i < 0 || argv[0]->i >= SUBSONGS_MAX)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
+		return 0;
+	}
+	Player_play_subsong(player, argv[0]->i);
 	player_state(lr, player->id, "song");
 	return 0;
 }
