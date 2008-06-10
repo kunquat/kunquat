@@ -136,6 +136,18 @@ class Orders(gtk.ScrolledWindow):
 		self.subsongs.set_spacing(10)
 		self.add_with_viewport(self.subsongs)
 		self.subsongs.show()
+
+		subsong = self.create_list(0)
+		self.order_data[0] = subsong
+		self.subsongs.pack_start(subsong)
+		subsong.show()
+		button = gtk.Button('New subsong')
+		self.order_data[1] = button
+		button.number = 1
+		self.subsongs.pack_start(button)
+		button.connect('clicked', self.new_subsong)
+		button.show()
+
 		liblo.send(self.engine, '/kunquat/get_orders', self.song_id)
 
 
