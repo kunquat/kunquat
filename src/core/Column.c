@@ -117,19 +117,6 @@ Column* new_Column(Reltime* len)
 		xfree(col);
 		return NULL;
 	}
-#if 0
-	col->events.nil = xalloc(AAnode);
-	if (col->events.nil == NULL)
-	{
-		xfree(col);
-		return NULL;
-	}
-	col->events.nil->level = 0;
-	col->events.nil->elist = NULL;
-	col->events.nil->parent = col->events.nil;
-	col->events.nil->left = col->events.nil;
-	col->events.nil->right = col->events.nil;
-#endif
 	col->events.root = col->events.nil;
 	aavalidate(col->events.root, "init");
 	if (len != NULL)
@@ -155,28 +142,6 @@ bool Column_ins(Column* col, Event* event)
 	aavalidate(col->events.root, "before insert");
 	if (col->events.root->level == 0)
 	{
-#if 0
-		col->events.root = xalloc(AAnode);
-		if (col->events.root == NULL)
-		{
-			col->events.root = col->events.nil;
-			return false;
-		}
-		col->events.root->level = 1;
-		Event_list* elist = xalloc(Event_list);
-		if (col->events.root->elist == NULL)
-		{
-			xfree(col->events.root);
-			col->events.root = col->events.nil;
-			return false;
-		}
-		col->events.root->elist = elist;
-		elist->prev = elist->next = NULL;
-		elist->event = event;
-		col->events.root->parent = col->events.nil;
-		col->events.root->left = col->events.nil;
-		col->events.root->right = col->events.nil;
-#endif
 		col->events.root = new_AAnode(col->events.nil, event);
 		if (col->events.root == NULL)
 		{
@@ -186,18 +151,6 @@ bool Column_ins(Column* col, Event* event)
 		aavalidate(col->events.root, "insert root");
 		return true;
 	}
-#if 0
-	AAnode* new_node = xalloc(AAnode);
-	if (new_node == NULL)
-	{
-		return false;
-	}
-	new_node->level = 1;
-	new_node->event = event;
-	new_node->parent = NULL;
-	new_node->left = col->events.nil;
-	new_node->right = col->events.nil;
-#endif
 	AAnode* cur = col->events.root;
 	AAnode* prev = NULL;
 	assert(cur->elist != NULL);
@@ -289,7 +242,6 @@ Event* Column_get(Column* col, const Reltime* pos)
 	assert(pos != NULL);
 	AAnode* found = Column_get_node(col, pos, true);
 	assert(found != NULL);
-//	assert(found->level != 0 || found->event == NULL);
 	if (found->elist == NULL)
 	{
 		assert(found->level == 0);
@@ -306,7 +258,6 @@ Event* Column_get_edit(Column* col, const Reltime* pos)
 	assert(pos != NULL);
 	AAnode* found = Column_get_node(col, pos, false);
 	assert(found != NULL);
-//	assert(found->level != 0 || found->event == NULL);
 	if (found->elist == NULL)
 	{
 		assert(found->level == 0);
@@ -321,7 +272,6 @@ static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback)
 {
 	assert(col != NULL);
 	assert(pos != NULL);
-//	Event* ret = NULL;
 	AAnode* ret = col->events.nil;
 	AAnode* cur = col->events.root;
 	aavalidate(cur, "get");
@@ -339,7 +289,6 @@ static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback)
 		int diff = Reltime_cmp(pos, Event_pos(cur->elist->event));
 		if (diff < 0)
 		{
-//			ret = cur->event;
 			ret = cur;
 			*last = cur;
 			*last_elist = (*last)->elist;
@@ -354,16 +303,6 @@ static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback)
 			*last = cur;
 			*last_elist = cur->elist;
 			return cur;
-#if 0
-			while (cur->level != 0 && Reltime_cmp(pos, Event_pos(cur->event)) == 0)
-			{
-//				ret = cur->event;
-				ret = cur;
-				*last = cur;
-				cur = aapred(cur);
-			}
-			cur = col->events.nil;
-#endif
 		}
 	}
 	return ret;
@@ -374,7 +313,6 @@ Event* Column_get_next(Column* col)
 {
 	assert(col != NULL);
 	assert(col->last != NULL);
-//	assert(col->last_elist != NULL);
 	if (col->last_elist == NULL)
 	{
 		return NULL;
@@ -389,7 +327,6 @@ Event* Column_get_next(Column* col)
 			return NULL;
 		}
 	}
-//	col->last = aasucc(col->last);
 	return col->last_elist->event;
 }
 
@@ -398,7 +335,6 @@ Event* Column_get_next_edit(Column* col)
 {
 	assert(col != NULL);
 	assert(col->last_from_host != NULL);
-//	assert(col->last_elist_from_host != NULL);
 	if (col->last_elist_from_host == NULL)
 	{
 		return NULL;
@@ -413,7 +349,6 @@ Event* Column_get_next_edit(Column* col)
 			return NULL;
 		}
 	}
-//	col->last_from_host = aasucc(col->last_from_host);
 	return col->last_elist_from_host->event;
 }
 
@@ -501,34 +436,6 @@ bool Column_move(Column* col, Event* event, unsigned int index)
 			target->elist_tail = src;
 		}
 	}
-#if 0
-	AAnode* iter = target;
-	AAnode* orig = NULL;
-	int idx = (int)index;
-	while (iter->level > 0
-			&& Reltime_cmp(pos, Event_pos(iter->event)) == 0
-			&& (idx >= 0 || orig == NULL))
-	{
-		if (idx >= 0)
-		{
-			target = iter;
-		}
-		if (iter->event == event)
-		{
-			orig = iter;
-		}
-		iter = aasucc(iter);
-		--idx;
-	}
-	assert(orig != NULL);
-	if (target == orig)
-	{
-		return false;
-	}
-	Event* tmp = orig->event;
-	orig->event = target->event;
-	target->event = tmp;
-#endif
 	aavalidate(col->events.root, "move");
 	return true;
 }
@@ -597,38 +504,6 @@ bool Column_remove(Column* col, Event* event)
 			}
 			assert(elist == cur->elist);
 			cur->elist = cur->elist_tail = NULL;
-#if 0
-			AAnode* right = aasucc(cur);
-			while (diff == 0 && cur->event != event)
-			{
-				cur = aapred(cur);
-				if (cur->event == NULL)
-				{
-					break;
-				}
-				diff = Reltime_cmp(Event_pos(event), Event_pos(cur->event));
-			}
-			if (cur->event == event)
-			{
-				break;
-			}
-			cur = right;
-			diff = Reltime_cmp(Event_pos(event), Event_pos(cur->event));
-			while (diff == 0 && cur->event != event)
-			{
-				cur = aasucc(cur);
-				if (cur->event == NULL)
-				{
-					break;
-				}
-				diff = Reltime_cmp(Event_pos(event), Event_pos(cur->event));
-			}
-			if (cur->event == event)
-			{
-				break;
-			}
-			cur = col->events.nil;
-#endif
 		}
 	}
 	assert(cur != NULL);
@@ -886,7 +761,6 @@ static void aafree(AAnode* node)
 	}
 	aafree(node->left);
 	aafree(node->right);
-//	assert(node->elist != NULL);
 	if (node->elist != NULL)
 	{
 		del_Event_list(node->elist);
