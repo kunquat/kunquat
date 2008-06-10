@@ -76,7 +76,8 @@ class Orders(gtk.ScrolledWindow):
 	def order_info(self, path, args, types):
 		subsong = None
 		if len(args) > 1 or args[0] == 0 or type(self.order_data[args[0]]) == gtk.VBox:
-			if not self.order_data[args[0]]:
+			if (not self.order_data[args[0]] or
+					type(self.order_data[args[0]]) == gtk.Button):
 				subsong = self.create_list(args[0])
 				if type(self.order_data[args[0]]) == gtk.Button:
 					self.subsongs.remove(self.order_data[args[0]])
@@ -104,73 +105,6 @@ class Orders(gtk.ScrolledWindow):
 					pattern = str(pattern)
 				iter = list.get_iter(order)
 				list.set_value(iter, 1, pattern)
-		"""
-		elif type(self.order_data[args[0] - 1]) == gtk.VBox:
-			layout_changed = True
-			subsong = gtk.Button('New subsong')
-			self.order_data[args[0]] = subsong
-			subsong.number = args[0]
-			self.subsongs.pack_start(subsong, False, False)
-			subsong.show()
-		if layout_changed:
-			self.subsongs = gtk.HBox()
-			for sub in self.order_data:
-				if sub:
-					print(sub)
-					self.subsongs.pack_start(sub, False, False)
-					sub.show()
-			if self.get_child():
-				self.remove(self.get_child())
-			self.add_with_viewport(self.subsongs)
-			self.subsongs.show()
-		"""
-
-	"""
-	def view_subsongs(self):
-		self.subsongs = gtk.HBox()
-		self.subsongs.set_spacing(10)
-		prev_exists = False
-		for i in range(SUBSONGS_MAX):
-			if self.order_data[i] or i == 0:
-				subsong = gtk.VBox()
-				label = gtk.Label('Subsong %d' % i)
-				subsong.pack_start(label, False, False)
-				label.show()
-				list = gtk.ListStore(str, str)
-				for i in range(256):
-					iter = list.append()
-					list.set(iter, 0, '%02X' % i)
-				list_view = gtk.TreeView(list)
-				cell = gtk.CellRendererText()
-				col = gtk.TreeViewColumn('#', cell, text=0)
-				list_view.append_column(col)
-				cell = gtk.CellRendererText()
-				cell.set_property('editable', True)
-				col = gtk.TreeViewColumn('Pattern', cell, text=1)
-				list_view.append_column(col)
-				list_scroll = gtk.ScrolledWindow()
-				list_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
-				list_scroll.add(list_view)
-				list_view.show()
-				subsong.pack_start(list_scroll)
-				list_scroll.show()
-				self.subsongs.pack_start(subsong)
-				subsong.show()
-				prev_exists = True
-			elif prev_exists:
-				prev_exists = False
-				subsong = gtk.VBox()
-				button = gtk.Button('New subsong')
-				subsong.pack_start(button, False, False)
-				button.show()
-				self.subsongs.pack_start(subsong)
-				subsong.show()
-				break
-		if self.get_children():
-			self.remove(self.get_children()[0])
-		self.add_with_viewport(self.subsongs)
-		self.subsongs.show()
-	"""
 
 	def new_subsong(self, button):
 		num = button.number
