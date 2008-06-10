@@ -588,9 +588,9 @@ class Pat_view(gtk.Widget):
 		# Make sure cursor is visible
 		if self.cursor[1] < self.view_corner[1]:
 			self.view_corner = (self.view_corner[0], self.cursor[1])
-		if time_sub(self.cursor[0][:2], self.px_time(self.col_font_size)) < self.view_corner[0]:
-			self.view_corner = (time_sub(self.cursor[0][:2],
-					self.px_time(self.col_font_size)), self.view_corner[1])
+		center_time = self.px_time(height / 2)
+		self.view_corner = (time_sub(self.cursor[0][:2], center_time),
+				self.view_corner[1])
 
 		# Calculate space
 		col_space = width - self.ruler_width
