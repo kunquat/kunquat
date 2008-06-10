@@ -35,6 +35,7 @@ files = [
 	'Listener_ins.c',
 	'Listener_demo.c',
 	'Listener_pattern.c',
+	'Listener_order.c',
 	'Listener_note_table.c',
 	'Listener_player.c',
 	'utf8.c',

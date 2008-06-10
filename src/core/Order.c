@@ -103,6 +103,10 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 	Subsong* ss = Etable_get(order->subs, subsong);
 	if (ss == NULL)
 	{
+		if (pat == ORDER_NONE)
+		{
+			return true;
+		}
 		ss_is_new = true;
 		ss = new_Subsong();
 		if (ss == NULL)
@@ -114,6 +118,10 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 			del_Subsong(ss);
 			return false;
 		}
+	}
+	if (pat == ORDER_NONE && Subsong_get(ss, index) == ORDER_NONE)
+	{
+		return true;
 	}
 	if (!Subsong_set(ss, index, pat))
 	{
@@ -127,7 +135,7 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 }
 
 
-int64_t Order_get(Order* order, uint16_t subsong, uint16_t index)
+int16_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 {
 	assert(order != NULL);
 	assert(subsong < SUBSONGS_MAX);
@@ -138,6 +146,26 @@ int64_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 		return ORDER_NONE;
 	}
 	return Subsong_get(ss, index);
+}
+
+
+bool Order_is_empty(Order* order, uint16_t subsong)
+{
+	assert(order != NULL);
+	assert(subsong < SUBSONGS_MAX);
+	Subsong* ss = Etable_get(order->subs, subsong);
+	if (ss == NULL)
+	{
+		return true;
+	}
+	for (int i = 0; i < ss->res; ++i)
+	{
+		if (ss->pats[i] != ORDER_NONE)
+		{
+			return false;
+		}
+	}
+	return true;
 }
 
 

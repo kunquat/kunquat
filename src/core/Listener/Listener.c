@@ -38,6 +38,7 @@
 #include "Listener_song.h"
 #include "Listener_ins.h"
 #include "Listener_pattern.h"
+#include "Listener_order.h"
 #include "Listener_note_table.h"
 #include "Listener_player.h"
 #include "Listener_demo.h"
@@ -81,6 +82,10 @@ static Method_desc methods[] =
 	{ "/kunquat/pat_ins_event", NULL, Listener_pat_ins_event },
 	{ "/kunquat/pat_mod_event", NULL, Listener_pat_mod_event },
 	{ "/kunquat/pat_del_event", "iiihii", Listener_pat_del_event },
+	{ "/kunquat/get_orders", "i", Listener_get_orders },
+	{ "/kunquat/set_order", "iiii", Listener_set_order },
+	{ "/kunquat/ins_order", "iii", Listener_ins_order },
+	{ "/kunquat/del_order", "iii", Listener_del_order },
 	{ "/kunquat/get_note_table", "i", Listener_get_note_table },
 	{ "/kunquat/stop", "", Listener_stop },
 	{ "/kunquat/stop_song", "i", Listener_stop_song },

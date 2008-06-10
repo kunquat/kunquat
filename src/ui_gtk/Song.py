@@ -28,6 +28,7 @@ import liblo
 
 import Instruments
 import Pattern
+import Orders
 
 
 SONG_TITLE_MAX = 127
@@ -41,6 +42,9 @@ class Song(gtk.VBox):
 		self.title.handler_block(self.title_handler)
 		self.title.set_text(args[0])
 		self.title.handler_unblock(self.title_handler)
+
+	def order_info(self, path, args, types):
+		self.orders.order_info(path, args, types)
 
 	def ins_info(self, path, args, types):
 		self.instruments.ins_info(path, args, types)
@@ -117,6 +121,7 @@ class Song(gtk.VBox):
 
 		self.instruments = Instruments.Instruments(engine, server, song_id)
 		self.pattern = Pattern.Pattern(engine, server, song_id)
+		self.orders = Orders.Orders(engine, server, song_id)
 
 		label = gtk.Label('Pattern editor')
 		nb.append_page(self.pattern, label)
@@ -125,6 +130,10 @@ class Song(gtk.VBox):
 		label = gtk.Label('Instruments')
 		nb.append_page(self.instruments, label)
 		self.instruments.show()
+		label.show()
+		label = gtk.Label('Order lists')
+		nb.append_page(self.orders, label)
+		self.orders.show()
 		label.show()
 
 		self.pack_start(nb)

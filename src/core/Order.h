@@ -82,7 +82,19 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat);
  *
  * \return   The pattern number if one exists, otherwise ORDER_NONE.
  */
-int64_t Order_get(Order* order, uint16_t subsong, uint16_t index);
+int16_t Order_get(Order* order, uint16_t subsong, uint16_t index);
+
+
+/**
+ * Tells whether a subsong is empty.
+ *
+ * \param order     The Order -- must not be \c NULL.
+ * \param subsong   The subsong number -- must be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
+ *
+ * \return   \c true if and only if \a subsong is empty.
+ */
+bool Order_is_empty(Order* order, uint16_t subsong);
 
 
 /**
