@@ -423,6 +423,43 @@ class Pat_view(gtk.Widget):
 			return
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, self.pdata.num + 1)
 
+	def set_octave(self, octave):
+		if not -3 <= octave <= 0xc:
+			return
+		self.base_octave = octave
+		self.base_octave_adj.set_value(octave)
+
+	def act_octave_up(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.set_octave(self.base_octave + 1)
+
+	def act_octave_down(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.set_octave(self.base_octave - 1)
+
+	def set_ins(self, num):
+		if not 1 <= num <= 255: # TODO: accept zero after implementing
+			return
+		self.ins_num = num
+		self.ins_adj.set_value(num)
+
+	def act_ins_next(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.set_ins(self.ins_num + 1)
+
+	def act_ins_prev(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		self.set_ins(self.ins_num - 1)
+
+	def act_play_song(self, event):
+		if event.type == gdk.KEY_RELEASE:
+			return
+		lilbo.send(self.engine, '/kunquat/play_song', self.song_id)
+
 	def act_play_pat(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
@@ -1040,7 +1077,7 @@ class Pat_view(gtk.Widget):
 			self.window.process_updates(True)
 		return True
 
-	def __init__(self, engine, server, song_id):
+	def __init__(self, engine, server, song_id, oct_adj, ins_adj):
 		gtk.Widget.__init__(self)
 		self.engine = engine
 		self.server = server
@@ -1048,8 +1085,10 @@ class Pat_view(gtk.Widget):
 
 		self.pdata = None
 		self.notes = None
-		self.ins_num = 1
-		self.base_octave = 4
+		self.ins_adj = ins_adj
+		self.base_octave_adj = oct_adj
+		self.ins_num = int(self.ins_adj.get_value())
+		self.base_octave = int(self.base_octave_adj.get_value())
 
 		self.ptheme = {
 			'Ruler font': 'Sans 10',
@@ -1110,6 +1149,11 @@ class Pat_view(gtk.Widget):
 			('Delete', 0): self.act_del_event,
 			('comma', 0): self.act_pat_prev,
 			('period', 0): self.act_pat_next,
+			('plus', gdk.CONTROL_MASK): self.act_octave_up,
+			('minus', gdk.CONTROL_MASK): self.act_octave_down,
+			('plus', gdk.MOD1_MASK): self.act_ins_next,
+			('minus', gdk.MOD1_MASK): self.act_ins_prev,
+			('F5', 0): self.act_play_song,
 			('F6', 0): self.act_play_pat,
 			('F8', 0): self.act_stop,
 		}

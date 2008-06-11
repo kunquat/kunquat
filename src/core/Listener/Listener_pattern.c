@@ -443,28 +443,6 @@ static bool check_event_data(Listener* lr,
 				"Not enough Event type fields");
 		return false;
 	}
-	union { int64_t i; double d; } orig_values[EVENT_FIELDS];
-	Event_type orig_type = Event_get_type(event);
-	char* orig_types = Event_type_get_field_types(orig_type);
-	int orig_count = 0;
-	if (orig_types != NULL)
-	{
-		orig_count = strlen(orig_types);
-	}
-	for (int i = 0; i < orig_count; ++i)
-	{
-		bool got_val = false;
-		if (orig_types[i] == 'i')
-		{
-			got_val = Event_int(event, i, &orig_values[i].i);
-		}
-		else if (orig_types[i] == 'f')
-		{
-			got_val = Event_float(event, i, &orig_values[i].d);
-		}
-		assert(got_val);
-	}
-	bool ok = true;
 	Event_reset(event, event_type);
 	for (int i = 0; i < field_count; ++i)
 	{
@@ -474,7 +452,7 @@ static bool check_event_data(Listener* lr,
 			strcpy(lr->method_path + lr->host_path_len, "error");
 			lo_send(lr->host, lr->method_path, "si",
 					"Invalid type of field", (int32_t)i);
-			ok = false;
+			return false;
 		}
 		if (type_desc[i] == 'i')
 		{
@@ -483,7 +461,7 @@ static bool check_event_data(Listener* lr,
 				strcpy(lr->method_path + lr->host_path_len, "error");
 				lo_send(lr->host, lr->method_path, "si",
 						"Invalid range of field", (int32_t)i);
-				ok = false;
+				return false;
 			}
 		}
 		else if (type_desc[i] == 'f')
@@ -493,27 +471,9 @@ static bool check_event_data(Listener* lr,
 				strcpy(lr->method_path + lr->host_path_len, "error");
 				lo_send(lr->host, lr->method_path, "si",
 						"Invalid range of field", (int32_t)i);
-				ok = false;
+				return false;
 			}
 		}
-	}
-	if (!ok)
-	{
-		Event_reset(event, orig_type);
-		for (int i = 0; i < orig_count; ++i)
-		{
-			bool set_val = false;
-			if (orig_types[i] == 'i')
-			{
-				set_val = Event_set_int(event, i, orig_values[i].i);
-			}
-			else if (orig_types[i] == 'f')
-			{
-				set_val = Event_set_float(event, i, orig_values[i].d);
-			}
-			assert(set_val);
-		}
-		return false;
 	}
 #if 0
 	if (global)
@@ -721,8 +681,43 @@ int Listener_pat_mod_event(const char* path,
 			return 0;
 		}
 	}
+	union { int64_t i; double d; } orig_values[EVENT_FIELDS];
+	Event_type orig_type = Event_get_type(event);
+	char* orig_types = Event_type_get_field_types(orig_type);
+	int orig_count = 0;
+	if (orig_types != NULL)
+	{
+		orig_count = strlen(orig_types);
+	}
+	for (int i = 0; i < orig_count; ++i)
+	{
+		bool got_val = false;
+		if (orig_types[i] == 'i')
+		{
+			got_val = Event_int(event, i, &orig_values[i].i);
+		}
+		else if (orig_types[i] == 'f')
+		{
+			got_val = Event_float(event, i, &orig_values[i].d);
+		}
+		assert(got_val);
+	}
 	if (!check_event_data(lr, types, argv, argc, col_num == 0, event))
 	{
+		Event_reset(event, orig_type);
+		for (int i = 0; i < orig_count; ++i)
+		{
+			bool set_val = false;
+			if (orig_types[i] == 'i')
+			{
+				set_val = Event_set_int(event, i, orig_values[i].i);
+			}
+			else if (orig_types[i] == 'f')
+			{
+				set_val = Event_set_float(event, i, orig_values[i].d);
+			}
+			assert(set_val);
+		}
 		return 0;
 	}
 	if (!pat_info(lr, player_id, pat_num, pat))
