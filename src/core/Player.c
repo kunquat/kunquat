@@ -118,6 +118,19 @@ void Player_play_song(Player* player)
 }
 
 
+void Player_play_event(Player* player)
+{
+	assert(player != NULL);
+	if (player->play->mode >= PLAY_EVENT)
+	{
+		return;
+	}
+	Player_stop(player);
+	player->play->mode = PLAY_EVENT;
+	return;
+}
+
+
 void Player_stop(Player* player)
 {
 	assert(player != NULL);

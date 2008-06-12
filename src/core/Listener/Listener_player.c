@@ -219,6 +219,120 @@ int Listener_play_pattern(const char* path,
 }
 
 
+int Listener_play_event(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	if (argc < 3)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"Not enough arguments (at least 3 needed)");
+		return 0;
+	}
+	int32_t player_id = argv[0]->i;
+	if (types[0] != 'i')
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Song identification");
+		return 0;
+	}
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	Playdata* play = player->play;
+	assert(play != NULL);
+	int32_t ch = argv[1]->i;
+	if (types[1] != 'i' || ch < 1 || ch > 64)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Channel number");
+		return 0;
+	}
+	--ch;
+	int32_t event_type = argv[2]->i;
+	if (types[2] != 'i' || !EVENT_TYPE_IS_INS(event_type))
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Event type");
+		return 0;
+	}
+	char* type_desc = Event_type_get_field_types(event_type);
+	if (type_desc == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"Unused Event type");
+		return 0;
+	}
+	int field_count = strlen(type_desc);
+	if (argc - 3 < field_count)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s",
+				"Not enough Event type fields");
+		return 0;
+	}
+	Event* event = play->channels[ch]->single;
+	Event_reset(event, event_type);
+	for (int i = 0; i < field_count; ++i)
+	{
+		if ((type_desc[i] == 'i' && types[3 + i] != 'h')
+				|| (type_desc[i] == 'f' && types[3 + i] != 'd'))
+		{
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "si",
+					"Invalid type of field", (int32_t)i);
+			return 0;
+		}
+		if (type_desc[i] == 'i')
+		{
+			if (!Event_set_int(event, i, argv[3 + i]->i))
+			{
+				strcpy(lr->method_path + lr->host_path_len, "error");
+				lo_send(lr->host, lr->method_path, "si",
+						"Invalid range of field", (int32_t)i);
+				return 0;
+			}
+		}
+		else if (type_desc[i] == 'f')
+		{
+			if (!Event_set_float(event, i, argv[3 + i]->d))
+			{
+				strcpy(lr->method_path + lr->host_path_len, "error");
+				lo_send(lr->host, lr->method_path, "si",
+						"Invalid range of field", (int32_t)i);
+				return 0;
+			}
+		}
+	}
+	Event_set_pos(event, Reltime_init(RELTIME_AUTO));
+	Player_play_event(player);
+	player_state(lr, player->id, "event");
+	return 0;
+}
+
+
 static bool player_state(Listener* lr,
 		int32_t song_id,
 		char* state)

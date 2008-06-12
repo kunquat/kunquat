@@ -103,10 +103,30 @@ uint32_t Pattern_mix(Pattern* pat,
 		uint32_t offset,
 		Playdata* play)
 {
-	assert(pat != NULL);
+//	assert(pat != NULL);
 	assert(offset < nframes);
 	assert(play != NULL);
 	uint32_t mixed = offset;
+	if (pat == NULL)
+	{
+		Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
+				nframes - mixed,
+				play->tempo,
+				play->freq);
+		for (int i = 0; i < COLUMNS_MAX; ++i)
+		{
+			Channel_set_voices(play->channels[i],
+					play->voice_pool,
+					NULL,
+					&play->pos,
+					limit,
+					mixed,
+					play->tempo,
+					play->freq);
+		}
+		Voice_pool_mix(play->voice_pool, nframes, mixed, play->freq);
+		return nframes;
+	}
 	while (mixed < nframes
 			// TODO: and we still want to mix this pattern
 			&& Reltime_cmp(&play->pos, &pat->length) <= 0)

@@ -153,7 +153,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 		{
 			pat = Pat_table_get(song->pats, play->pattern);
 		}
-		if (pat == NULL)
+		if (pat == NULL && play->mode != PLAY_EVENT)
 		{
 			// TODO: Stop or restart?
 			play->mode = STOP;
@@ -161,6 +161,10 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 		}
 		uint32_t proc_start = mixed;
 		mixed += Pattern_mix(pat, nframes, mixed, play);
+		if (play->mode == PLAY_EVENT)
+		{
+			continue;
+		}
 		Event* event = NULL;
 		uint32_t proc_until = mixed;
 		Event_queue_get(song->events, &event, &proc_until);

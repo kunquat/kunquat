@@ -423,6 +423,12 @@ class Pat_view(gtk.Widget):
 				self.cursor[0][2],
 				evtype.NOTE_ON,
 				*event_args)
+		if self.cursor[1] > 0:
+			liblo.send(self.engine, '/kunquat/play_event',
+					self.song_id,
+					self.cursor[1],
+					evtype.NOTE_ON,
+					*event_args)
 		if (event.state & self.note_chord_mod[1]
 				and self.cursor[1] < COLUMNS):
 			if self.cur_virtual_col == -1:
@@ -449,6 +455,11 @@ class Pat_view(gtk.Widget):
 				self.cursor[0][1],
 				self.cursor[0][2],
 				evtype.NOTE_OFF)
+		if self.cursor[1] > 0:
+			liblo.send(self.engine, '/kunquat/play_event',
+					self.song_id,
+					self.cursor[1],
+					evtype.NOTE_OFF)
 
 	def act_insert_gap(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -527,7 +538,7 @@ class Pat_view(gtk.Widget):
 	def act_play_song(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		lilbo.send(self.engine, '/kunquat/play_song', self.song_id)
+		liblo.send(self.engine, '/kunquat/play_song', self.song_id)
 
 	def act_play_pat(self, event):
 		if event.type == gdk.KEY_RELEASE:

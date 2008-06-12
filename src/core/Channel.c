@@ -47,6 +47,13 @@ Channel* new_Channel(Ins_table* insts)
 		xfree(ch);
 		return NULL;
 	}
+	ch->single = new_Event(Reltime_set(RELTIME_AUTO, -1, 0), EVENT_TYPE_NOTE_OFF);
+	if (ch->single == NULL)
+	{
+		del_Event(ch->note_off);
+		xfree(ch);
+		return NULL;
+	}
 	ch->insts = insts;
 	ch->fg = NULL;
 	ch->fg_id = 0;
@@ -65,15 +72,27 @@ void Channel_set_voices(Channel* ch,
 {
 	assert(ch != NULL);
 	assert(pool != NULL);
-	assert(col != NULL);
+//	assert(col != NULL);
 	assert(start != NULL);
 	assert(end != NULL);
 	assert(tempo > 0);
 	assert(freq > 0);
-	Event* next = Column_get(col, start);
-	if (next == NULL)
+	Event* next = ch->single;
+	if (Reltime_cmp(Event_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
 	{
-		return;
+		next = NULL;
+		if (col != NULL)
+		{
+			next = Column_get(col, start);
+		}
+		if (next == NULL)
+		{
+			return;
+		}
+	}
+	else
+	{
+		Event_set_pos(ch->single, start);
 	}
 	Reltime* next_pos = Event_pos(next);
 	while (Reltime_cmp(next_pos, end) < 0)
@@ -88,7 +107,11 @@ void Channel_set_voices(Channel* ch,
 				if (ch->fg == NULL)
 				{
 					// The Voice has been given to another channel -- giving up
-					next = Column_get_next(col);
+					next = NULL;
+					if (col != NULL)
+					{
+						Column_get_next(col);
+					}
 					if (next == NULL)
 					{
 						break;
@@ -113,7 +136,11 @@ void Channel_set_voices(Channel* ch,
 			Event_int(next, 3, &num);
 			if (num <= 0)
 			{
-				next = Column_get_next(col);
+				next = NULL;
+				if (col != NULL)
+				{
+					next = Column_get_next(col);
+				}
 				if (next == NULL)
 				{
 					break;
@@ -124,7 +151,11 @@ void Channel_set_voices(Channel* ch,
 			Instrument* ins = Ins_table_get(ch->insts, (int)num);
 			if (ins == NULL)
 			{
-				next = Column_get_next(col);
+				next = NULL;
+				if (col != NULL)
+				{
+					next = Column_get_next(col);
+				}
 				if (next == NULL)
 				{
 					break;
@@ -155,7 +186,11 @@ void Channel_set_voices(Channel* ch,
 			if (ch->fg == NULL)
 			{
 				// The Voice has been given to another channel -- giving up
-				next = Column_get_next(col);
+				next = NULL;
+				if (col != NULL)
+				{
+					next = Column_get_next(col);
+				}
 				if (next == NULL)
 				{
 					break;
@@ -174,7 +209,23 @@ void Channel_set_voices(Channel* ch,
 				// TODO: notify in case of failure
 			}
 		}
-		next = Column_get_next(col);
+		if (next == ch->single)
+		{
+			Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));
+			next = NULL;
+			if (col != NULL)
+			{
+				next = Column_get(col, start);
+			}
+		}
+		else
+		{
+			next = NULL;
+			if (col != NULL)
+			{
+				next = Column_get_next(col);
+			}
+		}
 		if (next == NULL)
 		{
 			break;

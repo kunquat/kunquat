@@ -71,6 +71,15 @@ uint32_t Player_mix(Player* player, uint32_t nframes);
 
 
 /**
+ * Plays one Event. The caller should have set the Event in the desired
+ * Channel beforehand.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ */
+void Player_play_event(Player* player);
+
+
+/**
  * Plays one Pattern.
  *
  * \param player   The Player -- must not be \c NULL.

@@ -47,6 +47,8 @@ typedef struct Channel
 	Event* note_off;
 	/// The absolute starting time of the foreground Voice. XXX: not needed?
 	//Reltime fg_start;
+	/// An Event used for single note playback control.
+	Event* single;
 } Channel;
 
 

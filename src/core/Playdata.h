@@ -39,6 +39,7 @@
 typedef enum Play_mode
 {
 	STOP = 0,       ///< Don't play.
+	PLAY_EVENT,     ///< Play a single event.
 	PLAY_PATTERN,   ///< Play one pattern.
 	PLAY_SONG,      ///< Play a song.
 	PLAY_LAST       ///< Sentinel value -- never used as a mode.

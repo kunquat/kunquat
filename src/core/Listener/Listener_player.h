@@ -33,7 +33,7 @@
  *
  * \li \c i   The Song ID.
  * \li \c s   Textual description of the playback state. The values are:
- *            "stop", "song", "pattern", "instrument" and "sample".
+ *            "stop", "song", "pattern", "event" and "sample".
  */
 
 
@@ -103,6 +103,24 @@ int Listener_play_subsong(const char* path,
  * \li \c i   The Pattern number (0..1023).
  */
 int Listener_play_pattern(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Plays one Event.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Channel number -- must be between (1..64).
+ * \li \c i   The Event type.
+ * \li        Zero or more additional arguments depending on the Event type.
+ */
+int Listener_play_event(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,

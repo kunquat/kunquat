@@ -442,6 +442,8 @@ START_TEST (set_voices_break_pool_null)
 }
 END_TEST
 
+// This test doesn't apply anymore
+#if 0
 START_TEST (set_voices_break_col_null)
 {
 	Ins_table* table = new_Ins_table(1);
@@ -475,6 +477,7 @@ START_TEST (set_voices_break_col_null)
 	del_Ins_table(table);
 }
 END_TEST
+#endif
 
 START_TEST (set_voices_break_start_null)
 {
@@ -662,7 +665,7 @@ Suite* Channel_suite(void)
 
 	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_ch_null, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_pool_null, SIGABRT);
-	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_col_null, SIGABRT);
+//	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_col_null, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_start_null, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_end_null, SIGABRT);
 	tcase_add_test_raise_signal(tc_set_voices, set_voices_break_tempo_inv, SIGABRT);
