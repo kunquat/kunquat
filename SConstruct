@@ -30,7 +30,8 @@ opts.AddOptions(
 	BoolOption('tests', 'Build and run tests.', True),
 	('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
 	BoolOption('enable_jack', 'Enable JACK driver.', True),
-	BoolOption('enable_alsa', 'Enable ALSA driver.', True)
+	BoolOption('enable_alsa', 'Enable ALSA driver.', True),
+	PathOption('liblo_path', 'liblo installation path.', None, PathOption.PathAccept)
 )
 
 
@@ -54,6 +55,11 @@ else:
 if env['optimise'] > 0 and env['optimise'] <= 3:
 	oflag = '-O%s' % env['optimise']
 	env.Append(CCFLAGS = [oflag])
+
+
+if env['liblo_path']:
+	env.Append(CPPPATH = env['liblo_path'] + '/include')
+	env.Append(LIBPATH = env['liblo_path'] + '/lib')
 
 
 audio_found = False

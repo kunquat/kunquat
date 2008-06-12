@@ -37,7 +37,7 @@ import Cli
 gobject.threads_init()
 
 
-class Kunquat_gtk():
+class Kunquat_gtk:
 
 	def connect(self, url):
 		self.engine_url = url
