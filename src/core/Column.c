@@ -599,6 +599,80 @@ bool Column_remove(Column* col, Event* event)
 }
 
 
+bool Column_remove_row(Column* col, Reltime* pos)
+{
+	assert(col != NULL);
+	assert(pos != NULL);
+	bool modified = false;
+	Event* target = Column_get_edit(col, pos);
+	while (target != NULL && Reltime_cmp(Event_pos(target), pos) == 0)
+	{
+		modified = Column_remove(col, target);
+		assert(modified);
+		target = Column_get_edit(col, pos);
+	}
+	aavalidate(col->events.root, "remove row");
+	return modified;
+}
+
+
+bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
+{
+	assert(col != NULL);
+	assert(start != NULL);
+	assert(end != NULL);
+	bool modified = false;
+	Event* target = Column_get_edit(col, start);
+	while (target != NULL && Reltime_cmp(Event_pos(target), end) <= 0)
+	{
+		modified = Column_remove_row(col, Event_pos(target));
+		assert(modified);
+		target = Column_get_edit(col, start);
+	}
+	aavalidate(col->events.root, "remove block");
+	return modified;
+}
+
+
+bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
+{
+	assert(col != NULL);
+	assert(pos != NULL);
+	assert(len != NULL);
+	bool removed = false;
+	Reltime* del_end = Reltime_set(RELTIME_AUTO, 0, 1);
+	del_end = Reltime_sub(del_end, len, del_end);
+	del_end = Reltime_add(del_end, pos, del_end);
+	removed = Column_remove_block(col, pos, del_end);
+	Event* target = Column_get_edit(col, pos);
+	while (target != NULL)
+	{
+		Reltime* ev_pos = Event_pos(target);
+		Reltime_sub(ev_pos, ev_pos, len);
+		target = Column_get_next_edit(col);
+	}
+	aavalidate(col->events.root, "shift up");
+	return removed;
+}
+
+
+void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
+{
+	assert(col != NULL);
+	assert(pos != NULL);
+	assert(len != NULL);
+	Event* target = Column_get_edit(col, pos);
+	while (target != NULL)
+	{
+		Reltime* ev_pos = Event_pos(target);
+		Reltime_add(ev_pos, ev_pos, len);
+		target = Column_get_next_edit(col);
+	}
+	aavalidate(col->events.root, "shift down");
+	return;
+}
+
+
 void Column_clear(Column* col)
 {
 	assert(col != NULL);

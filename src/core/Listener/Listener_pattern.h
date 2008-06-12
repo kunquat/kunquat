@@ -162,6 +162,75 @@ int Listener_pat_del_event(const char* path,
 
 
 /**
+ * Removes a row from a Pattern.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ * \li \c i   The Column number -- must be between (0..64). 0 is the global
+ *            Event column.
+ * \li \c h   The beat number of the row.
+ * \li \c i   The fine-grain position of the row (0..RELTIME_FULL_PART-1)
+ */
+int Listener_pat_del_row(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Shifts Events backward in time.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ * \li \c i   The Column number -- must be between (0..64). 0 is the global
+ *            Event column.
+ * \li \c h   The beat number of the start of the shift. Events that would
+ *            move past the shift point are removed.
+ * \li \c i   The fine-grain position of the start point
+ *            (0..RELTIME_FULL_PART-1)
+ * \li \c h   The count of beats to be shifted.
+ * \li \c i   The fine-grain position fo the shift length
+ *            (0..RELTIME_FULL_PART-1)
+ */
+int Listener_pat_shift_up(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Shifts Events forward in time.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number.
+ * \li \c i   The Column number -- must be between (0..64). 0 is the global
+ *            Event column.
+ * \li \c h   The beat number of the start of the shift.
+ * \li \c i   The fine-grain position of the start point
+ *            (0..RELTIME_FULL_PART-1)
+ * \li \c h   The count of beats to be shifted.
+ * \li \c i   The fine-grain position fo the shift length
+ *            (0..RELTIME_FULL_PART-1)
+ */
+int Listener_pat_shift_down(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Removes a Pattern.
  *
  * The following OSC arguments are expected:

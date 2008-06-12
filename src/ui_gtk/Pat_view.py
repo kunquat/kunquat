@@ -95,6 +95,34 @@ class Pat_view(gtk.Widget):
 		print('focus out')
 		return True
 
+	def get_snap(self):
+		if 0 <= self.snap_state < self.snap_delay:
+			self.snap_state = max(-1, self.snap_state - 1)
+			if self.snap_state < 0:
+				self.snap_delay = max(0, self.snap_delay - self.snap_step)
+				self.snap_state = self.snap_delay
+			return True
+		return False
+
+	def reset_snap(self):
+		self.snap_state = self.snap_delay = self.snap_init_delay
+
+	def accel_cursor(self, dir):
+		init_move = False
+		cond = False
+		if dir < 0:
+			cond = self.tmove[1] >= 0
+		else:
+			cond = self.tmove[1] <= 0
+		if cond:
+			init_move = True
+			self.tmove = (self.init_cur_speed, dir)
+		elif self.tmove[0] < self.max_cur_speed:
+			self.tmove = (self.tmove[0] * self.cur_accel, dir)
+		else:
+			self.tmove = (self.max_cur_speed, dir)
+		return init_move
+
 	def act_up(self, event):
 		self.cur_field = self.cur_virtual_field
 		ctime = (0L, 0)
@@ -102,21 +130,10 @@ class Pat_view(gtk.Widget):
 		if event.type == gdk.SCROLL:
 			ctime = (-1L, 3 * RELTIME_FULL_PART / 4)
 		elif event.type == gdk.KEY_PRESS:
-			if self.tmove != (0, 0) and 0 <= self.snap_state < self.snap_delay:
-				self.snap_state = max(-1, self.snap_state - 1)
-				if self.snap_state < 0:
-					self.snap_delay = max(0, self.snap_delay - 1)
-					self.snap_state = self.snap_delay
+			if self.tmove != (0, 0) and self.get_snap():
 				return
 			else:
-				init_move = False
-				if self.tmove[1] >= 0:
-					init_move = True
-					self.tmove = (0.8, -1)
-				elif self.tmove[0] < 16:
-					self.tmove = (self.tmove[0] * 1.3, -1)
-				else:
-					self.tmove = (16, -1)
+				init_move = self.accel_cursor(-1)
 				ctime = time_sub(self.cursor[0][:2], self.px_time(self.tmove[0]))
 				if ctime == self.cursor[0][:2]:
 					ctime = time_sub(ctime, (0, 1))
@@ -131,7 +148,7 @@ class Pat_view(gtk.Widget):
 						self.snap_state = self.snap_delay - 1
 		elif event.type == gdk.KEY_RELEASE:
 			self.tmove = (0, 0)
-			self.snap_state = self.snap_delay = self.snap_init_delay
+			self.reset_snap()
 			return
 		self.cursor = (ctime + (self.cur_virtual_ord,), self.cursor[1])
 		self.queue_draw()
@@ -143,21 +160,10 @@ class Pat_view(gtk.Widget):
 		if event.type == gdk.SCROLL:
 			ctime = (0L, RELTIME_FULL_PART / 4)
 		elif event.type == gdk.KEY_PRESS:
-			if self.tmove != (0, 0) and 0 <= self.snap_state < self.snap_delay:
-				self.snap_state = max(-1, self.snap_state - 1)
-				if self.snap_state < 0:
-					self.snap_delay = max(0, self.snap_delay - 1)
-					self.snap_state = self.snap_delay
+			if self.tmove != (0, 0) and self.get_snap():
 				return
 			else:
-				init_move = False
-				if self.tmove[1] <= 0:
-					init_move = True
-					self.tmove = (0.8, 1)
-				elif self.tmove[0] < 16:
-					self.tmove = (self.tmove[0] * 1.3, 1)
-				else:
-					self.tmove = (16, 1)
+				init_move = self.accel_cursor(1)
 				ctime = time_add(self.cursor[0][:2], self.px_time(self.tmove[0]))
 				if ctime == self.cursor[0][:2]:
 					ctime = time_add(ctime, (0, 1))
@@ -172,10 +178,73 @@ class Pat_view(gtk.Widget):
 						self.snap_state = self.snap_delay - 1
 		elif event.type == gdk.KEY_RELEASE:
 			self.tmove = (0, 0)
-			self.snap_state = self.snap_delay = self.snap_init_delay
+			self.reset_snap()
 			return
 		self.cursor = (ctime + (self.cur_virtual_ord,), self.cursor[1])
 		self.queue_draw()
+
+	def act_ins_col_space(self, event):
+		self.cur_inserting = False
+		ctime = (0L, 0)
+		if event.type == gdk.KEY_PRESS:
+			init_move = self.accel_cursor(1)
+			ctime = self.px_time(self.tmove[0])
+			if ctime == (0L, 0):
+				ctime = (0L, 1)
+			liblo.send(self.engine, '/kunquat/pat_shift_down',
+					self.song_id,
+					self.pdata.num,
+					self.cursor[1],
+					self.cursor[0][0],
+					self.cursor[0][1],
+					ctime[0],
+					ctime[1])
+		elif event.type == gdk.KEY_RELEASE:
+			self.tmove = (0, 0)
+			return
+
+	def act_del_col_space(self, event):
+		self.cur_inserting = False
+		ctime = (0L, 0)
+		if event.type == gdk.KEY_PRESS:
+			if self.tmove != (0, 0) and self.get_snap():
+				return
+			else:
+				init_move = self.accel_cursor(1)
+				ctime = self.px_time(self.tmove[0])
+				if ctime == (0L, 0):
+					ctime = (0L, 1)
+				events = []
+				end = time_add(self.cursor[0][:2], ctime)
+				if self.pdata.cols[self.cursor[1]]:
+					if self.cursor[0] in self.pdata.cols[self.cursor[1]]:
+						liblo.send(self.engine, '/kunquat/pat_del_row',
+								self.song_id,
+								self.pdata.num,
+								self.cursor[1],
+								self.cursor[0][0],
+								self.cursor[0][1])
+						return
+					events = [(k, v) for (k, v) in self.pdata.cols[self.cursor[1]].items()
+							if self.cursor[0][:2] < k[:2] <= end]
+				if events:
+					first = min(events)
+					end = first[0][:2]
+					ctime = time_sub(end, self.cursor[0][:2])
+					if not init_move:
+						self.snap_state = self.snap_delay - 1
+		elif event.type == gdk.KEY_RELEASE:
+			self.tmove = (0, 0)
+			self.reset_snap()
+			return
+		liblo.send(self.engine, '/kunquat/pat_shift_up',
+				self.song_id,
+				self.pdata.num,
+				self.cursor[1],
+				self.cursor[0][0],
+				self.cursor[0][1],
+				ctime[0],
+				ctime[1])
 
 	def act_zoom_in(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -1147,6 +1216,8 @@ class Pat_view(gtk.Widget):
 			('Page_Down', 0): self.act_bar_down,
 			('Insert', 0): self.act_insert_gap,
 			('Delete', 0): self.act_del_event,
+			('Insert', gdk.CONTROL_MASK): self.act_ins_col_space,
+			('Delete', gdk.CONTROL_MASK): self.act_del_col_space,
 			('comma', 0): self.act_pat_prev,
 			('period', 0): self.act_pat_next,
 			('plus', gdk.CONTROL_MASK): self.act_octave_up,
@@ -1183,9 +1254,13 @@ class Pat_view(gtk.Widget):
 		self.cur_inserting = False
 		self.event_offset = 0
 		self.tmove = (0, 0)
-		self.snap_init_delay = 4
+		self.snap_init_delay = 5
 		self.snap_delay = self.snap_init_delay
 		self.snap_state = self.snap_delay
+		self.snap_step = 0.7
+		self.init_cur_speed = 0.8
+		self.max_cur_speed = 12
+		self.cur_accel = 1.3
 
 		self.ev_note_on_got_minus = False
 

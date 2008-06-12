@@ -174,6 +174,57 @@ bool Column_remove(Column* col, Event* event);
 
 
 /**
+ * Removes a row from the Column.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ * \param pos   The position of the row -- must not be \c NULL.
+ *
+ * \return   \c true if Events were found at \a pos and removed, otherwise
+ *           \a false.
+ */
+bool Column_remove_row(Column* col, Reltime* pos);
+
+
+/**
+ * Removes a block of rows from the Column.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param start   The start of the block -- must not be \c NULL.
+ * \param end     The end of the block -- must not be \c NULL. If this is
+ *                < \a start, nothing will be removed.
+ *
+ * \return   \c true if rows were found and removed, otherwise \c false.
+ */
+bool Column_remove_block(Column* col, Reltime* start, Reltime* end);
+
+
+/**
+ * Shifts Events backward in time.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ * \param pos   The position after which Events shall be shifted -- must not
+ *              be \c NULL.
+ * \param len   The amount of shifting to be made -- must not be \c NULL.
+ *              Events within [pos,pos+len) will be removed.
+ *
+ * \return   \c true if Events were removed, otherwise \c false.
+ */
+bool Column_shift_up(Column* col, Reltime* pos, Reltime* len);
+
+
+/**
+ * Shifts Events forward in time.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ * \param pos   The position after which Events shall be shifted -- must not
+ *              be \c NULL.
+ * \param len   The amount of shifting to be made -- must not be \c NULL.
+ *              Events moved past the end of the Column will not be removed.
+ */
+void Column_shift_down(Column* col, Reltime* pos, Reltime* len);
+
+
+/**
  * Removes all Events from the Column.
  *
  * \param col   The Column -- must not be \c NULL.
