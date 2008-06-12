@@ -63,6 +63,9 @@ if env['enable_jack']:
 if env['enable_alsa']:
 	files += ['Driver_alsa.c']
 
+if env['enable_ao']:
+	files += ['Driver_ao.c']
+
 env.StaticLibrary('core', files)
 
 

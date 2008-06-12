@@ -15,6 +15,9 @@ enable_jack = True
 # Enable ALSA driver.
 enable_alsa = True
 
+# Enable libao driver.
+enable_ao = True
+
 # Installation path of liblo -- leave blank for system default.
 # Headers are searched from <dir>/include and the library from <dir>/lib.
 # Make sure that the environment variable LD_LIBRARY_PATH also includes the

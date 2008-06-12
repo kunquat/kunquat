@@ -37,6 +37,9 @@
 #ifdef ENABLE_JACK
 #include <Driver_jack.h>
 #endif
+#ifdef ENABLE_AO
+#include <Driver_ao.h>
+#endif
 
 
 typedef struct Driver_info
@@ -53,6 +56,9 @@ static Driver_info drivers[] =
 #endif
 #ifdef ENABLE_JACK
 	{ "JACK", Driver_jack_init, Driver_jack_close },
+#endif
+#ifdef ENABLE_AO
+	{ "libao", Driver_ao_init, Driver_ao_close },
 #endif
 	{ NULL, NULL, NULL }
 };

@@ -31,6 +31,7 @@ opts.AddOptions(
 	('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
 	BoolOption('enable_jack', 'Enable JACK driver.', True),
 	BoolOption('enable_alsa', 'Enable ALSA driver.', True),
+	BoolOption('enable_ao', 'Enable libao driver.', True),
 	PathOption('liblo_path', 'liblo installation path.', None, PathOption.PathAccept)
 )
 
@@ -124,6 +125,12 @@ if not env.GetOption('clean'):
 		conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
 	else:
 		env['enable_alsa'] = False
+
+	if env['enable_ao'] and conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
+		audio_found = True
+		conf.env.Append(CCFLAGS = '-DENABLE_AO')
+	else:
+		env['enable_ao'] = False
 	
 	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
 		print 'Building of unit tests requires Check.'
