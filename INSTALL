@@ -6,24 +6,37 @@ Kunquat is in a very early development stage. Don't expect it to do anything
 useful.
 
 
-	Building instructions
-	---------------------
+	Dependencies
+	------------
 
 Building of Kunquat depends on the following tools and libraries:
 
   scons (http://www.scons.org/)
   liblo (http://liblo.sourceforge.net/)
+
+In order to get sound you'll need one of the following:
+
   JACK (http://jackaudio.org/)
+  libao (http://www.xiph.org/ao/) and a sound system supported by it
   ALSA (http://www.alsa-project.org/)
+
+In order to run the user interface you'll need:
+
+  pyliblo (http://das.nasophon.de/pyliblo/)
 
 Additionally, if you're building the test code, you'll need:
 
   Check (http://check.sourceforge.net/)
 
-On a freshly installed Ubuntu system you should be able to get
-all the required stuff by running the following command:
+
+On a freshly installed Ubuntu system you should be able to get all the
+required stuff (except for pyliblo) by running the following command:
+
 sudo apt-get install build-essential scons liblo0-dev libjack-dev jackd libasound2-dev check
 
+
+	Building instructions
+	---------------------
 
 To get a list of build options, run:
 
@@ -38,9 +51,5 @@ To build Kunquat, run:
 To clean the build, run:
 
   scons -c
-
-
-In order to run the user interface you'll also need pyliblo.
-You can get it from http://das.nasophon.de/pyliblo/
 
 

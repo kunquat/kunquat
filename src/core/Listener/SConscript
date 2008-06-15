@@ -41,6 +41,6 @@ files = [
 	'utf8.c',
 ]
 
-env.Program('kunquat', files)
+env.Program('kunquatd', files)
 
 
