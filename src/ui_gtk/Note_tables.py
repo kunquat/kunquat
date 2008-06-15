@@ -171,7 +171,6 @@ class Note_tables(gtk.HBox):
 		_, cur = selection.get_selected_rows()
 		if not cur:
 			return
-		self.cur_index = cur[0][0]
 		self.set_details(cur[0][0])
 
 	def change_ref_note(self, combobox):
@@ -187,6 +186,7 @@ class Note_tables(gtk.HBox):
 		pitch = adj.get_value()
 		if pitch <= 0:
 			return
+		self.user_set_pitch_center = True
 		liblo.send(self.engine, '/kunquat/set_note_table_ref_pitch',
 				self.song_id,
 				self.cur_index,
@@ -243,7 +243,6 @@ class Note_tables(gtk.HBox):
 				*value)
 
 	def set_details(self, index):
-		self.cur_index = index
 		if not self.tables[index]:
 			self.ref_note.handler_block(self.href_note)
 			self.ref_note.get_model().clear()
@@ -256,6 +255,7 @@ class Note_tables(gtk.HBox):
 				iter = self.notes_view.get_model().get_iter(i)
 				self.notes_list.set_value(iter, 1, '')
 				self.notes_list.set_value(iter, 2, '')
+			self.cur_index = index
 			return
 		i = 0
 		for note in self.tables[index].notes:
@@ -268,20 +268,33 @@ class Note_tables(gtk.HBox):
 				self.notes_list.set_value(iter, 2,
 						self.tables[index].str_note_ratio(False, i))
 			i += 1
-		ref_note_model = gtk.ListStore(str)
-		for note in self.tables[index].notes:
-			if not note:
-				break
-			iter = ref_note_model.append()
-			ref_note_model.set_value(iter, 0, note[0])
 		self.ref_note.handler_block(self.href_note)
+		ref_note_model = self.ref_note.get_model()
+		iter = ref_note_model.get_iter_first()
+		for note in self.tables[index].notes:
+			if not note and not iter:
+				break
+			elif note and iter:
+				ref_note_model.set_value(iter, 0, note[0])
+				iter = ref_note_model.iter_next(iter)
+			elif not iter:
+				iter = ref_note_model.append()
+				ref_note_model.set_value(iter, 0, note[0])
+				iter = None
+			elif not note:
+				if not ref_note_model.remove(iter):
+					iter = None
 		self.ref_note.set_model(ref_note_model)
 		self.ref_note.set_active(self.tables[index].ref_note)
 		self.ref_note.handler_unblock(self.href_note)
-		self.ref_pitch.get_adjustment().handler_block(self.href_pitch)
-		self.ref_pitch.set_value(self.tables[index].ref_pitch)
-		self.ref_pitch.get_adjustment().handler_unblock(self.href_pitch)
+		if not self.user_set_pitch_center:
+			self.ref_pitch.get_adjustment().handler_block(self.href_pitch)
+			self.ref_pitch.set_value(self.tables[index].ref_pitch)
+			self.ref_pitch.get_adjustment().handler_unblock(self.href_pitch)
+		else:
+			self.user_set_pitch_center = False
 		self.oct_ratio.set_text(self.tables[index].str_oct())
+		self.cur_index = index
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
@@ -290,6 +303,8 @@ class Note_tables(gtk.HBox):
 
 		self.cur_index = 0
 		self.tables = [None for _ in range(16)]
+
+		self.user_set_pitch_center = False
 
 		detail_box = gtk.VBox()
 		label = gtk.Label('Table data')
@@ -313,8 +328,10 @@ class Note_tables(gtk.HBox):
 		label = gtk.Label('Reference pitch:')
 		general_table.attach(label, 0, 1, 1, 2)
 		label.show()
-		ref_pitch_adj = gtk.Adjustment(440, 1, 32767, 1)
-		self.ref_pitch = gtk.SpinButton(ref_pitch_adj, digits=2)
+		ref_pitch_adj = gtk.Adjustment(440, 1, 32767, 0.01)
+		self.ref_pitch = gtk.SpinButton(ref_pitch_adj, climb_rate=0.5, digits=2)
+		self.ref_pitch.set_snap_to_ticks(True)
+		self.ref_pitch.set_numeric(True)
 		self.href_pitch = ref_pitch_adj.connect('value-changed', self.change_ref_pitch)
 		general_table.attach(self.ref_pitch, 1, 2, 1, 2)
 		self.ref_pitch.show()
@@ -336,14 +353,14 @@ class Note_tables(gtk.HBox):
 				gobject.TYPE_STRING,
 				gobject.TYPE_STRING)
 		self.notes_view = gtk.TreeView(self.notes_list)
-#		selection = self.notes_view.get_selection()
-#		selection.connect('changed', self.select_note)
+		#selection = self.notes_view.get_selection()
+		#selection.connect('changed', self.select_note)
 
 		for i in range(128):
 			iter = self.notes_list.append()
 			self.notes_list.set(iter, 0, i)
 
-#		selection.select_path(0)
+		#selection.select_path(0)
 
 		cell = gtk.CellRendererText()
 		column = gtk.TreeViewColumn('#', cell, text=0)
