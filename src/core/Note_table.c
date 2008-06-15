@@ -48,12 +48,19 @@ Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio)
 	{
 		return NULL;
 	}
+	Note_table_clear(table);
 	Note_table_set_name(table, name);
-	table->note_count = 0;
-	table->ref_note = 0;
-	table->ref_note_retuned = 0;
 	table->ref_pitch = ref_pitch;
 	Note_table_set_octave_ratio(table, octave_ratio);
+	table->oct_ratio_cents = NAN;
+	return table;
+}
+
+
+void Note_table_clear(Note_table* table)
+{
+	assert(table != NULL);
+	Note_table_set_name(table, NULL);
 	for (int i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
 	{
 		table->note_mods[i].name[NOTE_TABLE_NOTE_MOD_NAME_MAX - 1]
@@ -67,7 +74,10 @@ Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio)
 		Real_init(&(table->notes[i].ratio));
 		Real_init(&(table->notes[i].ratio_retuned));
 	}
-	return table;
+	table->note_count = 0;
+	table->ref_note = 0;
+	table->ref_note_retuned = 0;
+	return;
 }
 
 
@@ -174,6 +184,7 @@ void Note_table_set_octave_ratio(Note_table* table, Real* octave_ratio)
 				&(table->oct_factors[i - 1]),
 				&(table->octave_ratio));
 	}
+	table->oct_ratio_cents = NAN;
 	return;
 }
 
@@ -182,6 +193,24 @@ Real* Note_table_get_octave_ratio(Note_table* table)
 {
 	assert(table != NULL);
 	return &(table->octave_ratio);
+}
+
+
+void Note_table_set_octave_ratio_cents(Note_table* table, double cents)
+{
+	assert(table != NULL);
+	assert(isfinite(cents));
+	Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
+	Note_table_set_octave_ratio(table, ratio);
+	table->oct_ratio_cents = cents;
+	return;
+}
+
+
+double Note_table_get_octave_ratio_cents(Note_table* table)
+{
+	assert(table != NULL);
+	return table->oct_ratio_cents;
 }
 
 

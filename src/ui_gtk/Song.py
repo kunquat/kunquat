@@ -29,6 +29,7 @@ import liblo
 import Instruments
 import Pattern
 import Orders
+import Note_tables
 
 
 SONG_TITLE_MAX = 127
@@ -59,16 +60,19 @@ class Song(gtk.VBox):
 		self.pattern.events_sent(path, args, types)
 
 	def note_table_info(self, path, args, types):
-		# TODO: send to note table editor once supported
+		self.note_tables.note_table_info(path, args, types)
 		self.pattern.note_table_info(path, args, types)
 
 	def note_info(self, path, args, types):
+		self.note_tables.note_info(path, args, types)
 		self.pattern.note_info(path, args, types)
 
 	def note_mod_info(self, path, args, types):
+		self.note_tables.note_mod_info(path, args, types)
 		self.pattern.note_mod_info(path, args, types)
 
 	def notes_sent(self, path, args, types):
+		self.note_tables.notes_sent(path, args, types)
 		self.pattern.notes_sent(path, args, types)
 
 	def player_state(self, path, args, types):
@@ -122,6 +126,7 @@ class Song(gtk.VBox):
 		self.instruments = Instruments.Instruments(engine, server, song_id)
 		self.pattern = Pattern.Pattern(engine, server, song_id)
 		self.orders = Orders.Orders(engine, server, song_id)
+		self.note_tables = Note_tables.Note_tables(engine, server, song_id)
 
 		label = gtk.Label('Pattern editor')
 		nb.append_page(self.pattern, label)
@@ -134,6 +139,10 @@ class Song(gtk.VBox):
 		label = gtk.Label('Order lists')
 		nb.append_page(self.orders, label)
 		self.orders.show()
+		label.show()
+		label = gtk.Label('Note tables')
+		nb.append_page(self.note_tables, label)
+		self.note_tables.show()
 		label.show()
 
 		self.pack_start(nb)

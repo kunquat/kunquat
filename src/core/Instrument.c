@@ -99,7 +99,7 @@ wchar_t* Instrument_get_name(Instrument* ins)
 }
 
 
-void Instrument_set_note_table(Instrument* ins, Note_table* notes)
+void Instrument_set_note_table(Instrument* ins, Note_table** notes)
 {
 	assert(ins != NULL);
 	assert(notes != NULL);
@@ -121,11 +121,11 @@ void Instrument_process_note(Instrument* ins,
 	assert(mod < NOTE_TABLE_NOTE_MODS);
 	assert(octave >= NOTE_TABLE_OCTAVE_FIRST);
 	assert(octave <= NOTE_TABLE_OCTAVE_LAST);
-	if (ins->notes == NULL)
+	if (ins->notes == NULL || *ins->notes == NULL)
 	{
 		return;
 	}
-	pitch_t freq = Note_table_get_pitch(ins->notes, note, mod, octave);
+	pitch_t freq = Note_table_get_pitch(*ins->notes, note, mod, octave);
 	if (freq > 0)
 	{
 		state->freq = freq;

@@ -39,6 +39,7 @@ typedef struct Note_table
 	int ref_note_retuned;
 	pitch_t ref_pitch;
 	Real octave_ratio;
+	double oct_ratio_cents;
 	Real oct_factors[NOTE_TABLE_OCTAVES];
 	struct
 	{
@@ -181,6 +182,26 @@ void Note_table_set_octave_ratio(Note_table* table, Real* octave_ratio);
  * \return   The octave ratio.
  */
 Real* Note_table_get_octave_ratio(Note_table* table);
+
+
+/**
+ * Sets the octave size in cents.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ * \param cents   The new size in cents -- must be a finite value.
+ */
+void Note_table_set_octave_ratio_cents(Note_table* table, double cents);
+
+
+/**
+ * Gets the octave size in cents.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ *
+ * \return   The size in cents if the ratio is defined in cents, otherwise
+ *           \c NAN.
+ */
+double Note_table_get_octave_ratio_cents(Note_table* table);
 
 
 /**
@@ -545,6 +566,14 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point);
  * \return   The parameter \a drift.
  */
 Real* Note_table_drift(Note_table* table, Real* drift);
+
+
+/**
+ * Clears the Note table.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ */
+void Note_table_clear(Note_table* table);
 
 
 /**

@@ -148,7 +148,7 @@ int Listener_demo(const char* path,
 	{
 		goto cleanup;
 	}
-	Note_table* notes = Song_get_notes(song);
+	Note_table* notes = Song_get_notes(song, 0);
 	Note_table_set_ref_pitch(notes, 528);
 	int nums[] = { 16, 9, 6, 5, 4, 45, 3, 8, 5, 9, 15 };
 	int dens[] = { 15, 8, 5, 4, 3, 32, 2, 5, 3, 5, 8 };
@@ -175,7 +175,7 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Instrument_set_name(ins, L"sine");
-	Instrument_set_note_table(ins, Song_get_notes(song));
+	Instrument_set_note_table(ins, Song_get_active_notes(song));
 	Ins_table* insts = Song_get_insts(song);
 	if (!Ins_table_set(insts, 1, ins))
 	{

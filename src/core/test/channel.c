@@ -89,7 +89,7 @@ START_TEST (set_voices)
 		abort();
 	}
 	Note_table_set_note(notes, 0, L"=", Real_init(REAL_AUTO));
-	Instrument_set_note_table(ins, notes);
+	Instrument_set_note_table(ins, &notes);
 	Ins_table* table = new_Ins_table(1);
 	if (table == NULL)
 	{

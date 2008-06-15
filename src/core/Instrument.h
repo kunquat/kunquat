@@ -71,8 +71,8 @@ typedef struct Instrument
 	uint32_t buf_len;
 	/// Global event queue (esp. pedal events go here).
 	Event_queue* events;
-	/// Note table used.
-	Note_table* notes;
+	/// An indirect reference to the current Note table used.
+	Note_table** notes;
 	/// Mixing algorithm used.
 	void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
 } Instrument;
@@ -126,12 +126,13 @@ wchar_t* Instrument_get_name(Instrument* ins);
 
 
 /**
- * Sets the Note table of the Instrument.
+ * Sets the active Note table of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param notes   The Note table -- must not be \c NULL.
+ * \param notes   The indirect reference to the Note table -- must not be
+ *                \c NULL.
  */
-void Instrument_set_note_table(Instrument* ins, Note_table* notes);
+void Instrument_set_note_table(Instrument* ins, Note_table** notes);
 
 
 /**

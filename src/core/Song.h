@@ -51,8 +51,10 @@ typedef struct Song
 	Pat_table* pats;
 	/// The Instruments.
 	Ins_table* insts;
-	/// The Note table.
-	Note_table* notes;
+	/// The Note tables.
+	Note_table* notes[NOTE_TABLES_MAX];
+	/// A reference to the currently active Note table.
+	Note_table** active_notes;
 	/// Global events.
 	Event_queue* events;
 	/// The name of the Song.
@@ -257,13 +259,35 @@ Ins_table* Song_get_insts(Song* song);
 
 
 /**
- * Gets the Note table of the Song.
+ * Gets a Note table of the Song.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
  *
  * \return   The Note table.
  */
-Note_table* Song_get_notes(Song* song);
+Note_table* Song_get_notes(Song* song, int index);
+
+
+/**
+ * Gets an indirect reference to the active Note table of the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ *
+ * \return   The reference.
+ */
+Note_table** Song_get_active_notes(Song* song);
+
+
+/**
+ * Creates a new Note table for the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Song_create_notes(Song* song, int index);
 
 
 /**

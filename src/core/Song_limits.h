@@ -38,6 +38,8 @@
 
 #define BUF_COUNT_MAX (2)
 
+#define NOTE_TABLES_MAX (16)
+
 #define NOTE_TABLE_NAME_MAX (256)
 #define NOTE_TABLE_NOTE_NAME_MAX (16)
 #define NOTE_TABLE_NOTE_MOD_NAME_MAX (8)

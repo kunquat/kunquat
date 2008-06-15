@@ -185,7 +185,7 @@ int Listener_new_ins(const char* path,
 			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
 			return 0;
 		}
-		Instrument_set_note_table(ins, Song_get_notes(song));
+		Instrument_set_note_table(ins, Song_get_active_notes(song));
 		if (!Ins_table_set(table, argv[1]->i, ins))
 		{
 			del_Instrument(ins);

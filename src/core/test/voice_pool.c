@@ -153,7 +153,7 @@ START_TEST (mix)
 		abort();
 	}
 	Note_table_set_note(notes, 0, L"=", Real_init(REAL_AUTO));
-	Instrument_set_note_table(ins, notes);
+	Instrument_set_note_table(ins, &notes);
 	Voice_pool* pool = new_Voice_pool(2, 16);
 	if (pool == NULL)
 	{

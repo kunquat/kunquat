@@ -29,21 +29,27 @@
  * arguments:
  *
  * \li \c i   The Song ID.
+ * \li \c i   The Note table number.
  * \li \c s   The name of the Note table (in UTF-8 format).
  * \li \c i   The number of notes in the Note table.
  * \li \c i   The number of note modifiers in the Note table.
  * \li \c i   The initial reference note.
  * \li \c i   The current reference note.
  * \li \c d   The reference pitch.
- * \li \c h/d The numerator of the octave ratio.
- * \li \c h   The denominator of the octave ratio if the numerator is an
- *            integer (h).
+ * \li \c T/F True if the octave size is set as ratio, False if in cents.
+ * \li        Either:
+ * \li \li \c h/d The numerator of the octave ratio.
+ * \li \li \c h   The denominator of the octave ratio if the numerator is an
+ *                integer (h).
+ * \li        Or:
+ * \li \li \c d   The octave ratio in cents.
  */
 
 /**
  * The response method <host_path>/note_info contains the following arguments:
  *
  * \li \c i   The Song ID.
+ * \li \c i   The Note table number.
  * \li \c i   The note number.
  * \li \c s   The name of the note (in UTF-8 format).
  * \li \c T/F True if the pitch is set as ratio, False if in cents.
@@ -68,6 +74,7 @@
  * arguments:
  *
  * \li \c i   The Song ID.
+ * \li \c i   The Note table number.
  * \li \c i   The note modifier number.
  * \li \c s   The name of the note modifier (in UTF-8 format).
  * \li \c T/F True if the pitch is set as ratio, False if in cents.
@@ -79,20 +86,165 @@
  * \li \li \c d   The pitch difference in cents (relative to the note used).
  */
 
+/**
+ * The response method <host_path>/notes_sent is sent after sending all the
+ * information of a Note table. This is the only response if the Note table
+ * doesn't exist. The method contains the following arguments:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number.
+ */
+
 
 /**
  * Gets Note table information of the given Song.
  *
- * The following OSC argument is expected:
+ * The following OSC arguments are expected:
  *
  * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
  *
- * The response consists of one call of <host_path>/note_table_info, zero or
- * more calls of <host_path>/note_info, zero or more calls of
+ * The response consists of at most one call of <host_path>/note_table_info,
+ * zero or more calls of <host_path>/note_info, zero or more calls of
  * <host_path>/note_mod_info and one call of <host_path>/notes_sent (to
  * indicate finished transmission of note table info).
  */
 int Listener_get_note_table(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the name of a Note table.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c s   The new name (in UTF-8 format).
+ */
+int Listener_set_note_table_name(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the reference note of a Note table.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c i   The index of the new reference note.
+ */
+int Listener_set_note_table_ref_note(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the reference pitch of a Note table.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c d   The new reference pitch (> 0).
+ */
+int Listener_set_note_table_ref_pitch(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the octave ratio of a Note table.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c T/F True if the octave size is a ratio, False if it is in cents.
+ * 
+ * If the size is a ratio, it can be a fraction or a float. If it is a
+ * fraction:
+ *
+ * \li \c h   The numerator of the fraction.
+ * \li \c h   The denominator of the fraction.
+ *
+ * Or, if the ratio is a float:
+ *
+ * \li \c d   The ratio.
+ *
+ * Or, if the octave size is in cents:
+ *
+ * \li \c d   The octave size in cents.
+ */
+int Listener_set_note_table_octave_ratio(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the name of a note.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c i   The note number.
+ * \li \c s   The new name (in UTF-8 format).
+ *
+ * If a new note is created, it will always be placed into the first
+ * unoccupied slot in the Note table.
+ */
+int Listener_set_note_name(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the ratio of a note.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c i   The note number.
+ * \li \c T/F True if the note ratio is a ratio, False if it is in cents.
+ * 
+ * If the size is a ratio, it can be a fraction or a float. If it is a
+ * fraction:
+ *
+ * \li \c h   The numerator of the fraction.
+ * \li \c h   The denominator of the fraction.
+ *
+ * Or, if the ratio is a float:
+ *
+ * \li \c d   The ratio.
+ *
+ * Or, if the note ratio is in cents:
+ *
+ * \li \c d   The note ratio in cents.
+ */
+int Listener_set_note_ratio(const char* path,
 		const char* types,
 		lo_arg** argv,
 		int argc,

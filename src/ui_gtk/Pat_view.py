@@ -65,15 +65,22 @@ class Pat_view(gtk.Widget):
 		self.queue_draw()
 
 	def note_table_info(self, path, args, types):
-		self.notes = Nt_info(args[0], args[1], args[2])
+		if args[0] != 0:
+			print(args[0])
+			return
+		self.notes = Nt_info(args[1], args[2], args[3])
 
 	def note_info(self, path, args, types):
-		if args[0] < len(self.notes.notes):
-			self.notes.notes[args[0]] = args[1]
+		if args[0] != 0: # TODO: viewing of other note tables
+			return
+		if args[1] < len(self.notes.notes):
+			self.notes.notes[args[1]] = args[2]
 
 	def note_mod_info(self, path, args, types):
-		if args[0] < len(self.notes.note_mods):
-			self.notes.note_mods[args[0]] = args[1]
+		if args[0] != 0: # TODO: viewing of other note tables
+			return
+		if args[1] < len(self.notes.note_mods):
+			self.notes.note_mods[args[1]] = args[2]
 
 	def notes_sent(self, path, args, types):
 		self.queue_draw()

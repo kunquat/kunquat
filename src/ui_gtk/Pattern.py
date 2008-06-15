@@ -113,7 +113,7 @@ class Pattern(gtk.VBox):
 		self.pack_end(self.pat_view)
 		self.pat_view.show()
 
-		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id)
+		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id, 0)
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
 
 

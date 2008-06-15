@@ -129,7 +129,7 @@ START_TEST (new)
 	Ins_table* insts = Song_get_insts(song);
 	fail_if(insts == NULL,
 			"new_Song() created a Song without Instrument table.");
-	Note_table* notes = Song_get_notes(song);
+	Note_table* notes = Song_get_notes(song, 0);
 	fail_if(notes == NULL,
 			"new_Song() created a Song without Note table.");
 	Event_queue* events = Song_get_events(song);
@@ -489,7 +489,7 @@ START_TEST (mix)
 		fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Note_table* notes = Song_get_notes(song);
+	Note_table* notes = Song_get_notes(song, 0);
 	Note_table_set_ref_pitch(notes, 2);
 	frame_t** bufs = Song_get_bufs(song);
 	Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 256, 16);
@@ -498,7 +498,7 @@ START_TEST (mix)
 		fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Instrument_set_note_table(ins, notes);
+	Instrument_set_note_table(ins, &notes);
 	Ins_table* insts = Song_get_insts(song);
 	if (!Ins_table_set(insts, 1, ins))
 	{

@@ -143,7 +143,7 @@ START_TEST (mix)
 		abort();
 	}
 	Note_table_set_note(notes, 0, L"=", Real_init(REAL_AUTO));
-	Instrument_set_note_table(ins, notes);
+	Instrument_set_note_table(ins, &notes);
 	if (!Ins_table_set(play->channels[0]->insts, 1, ins))
 	{
 		fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");

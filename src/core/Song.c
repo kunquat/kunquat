@@ -51,7 +51,11 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 	song->order = NULL;
 	song->pats = NULL;
 	song->insts = NULL;
-	song->notes = NULL;
+	for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+	{
+		song->notes[i] = NULL;
+	}
+	song->active_notes = &song->notes[0];
 	song->bufs = xnalloc(frame_t*, BUF_COUNT_MAX);
 	if (song->bufs == NULL)
 	{
@@ -90,10 +94,10 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 		del_Song(song);
 		return NULL;
 	}
-	song->notes = new_Note_table(L"12-TET",
+	song->notes[0] = new_Note_table(L"12-TET",
 			523.25113060119725,
 			Real_init_as_frac(REAL_AUTO, 2, 1));
-	if (song->notes == NULL)
+	if (song->notes[0] == NULL)
 	{
 		del_Song(song);
 		return NULL;
@@ -107,13 +111,13 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 	wchar_t* note_names[12] =
 			{ L"C",  L"C#", L"D",  L"D#", L"E",  L"F",
 			  L"F#", L"G",  L"G#", L"A",  L"A#", L"B" };
-	Note_table_set_note(song->notes,
+	Note_table_set_note(song->notes[0],
 			0,
 			note_names[0],
 			Real_init_as_frac(REAL_AUTO, 1, 1));
 	for (int i = 1; i < 12; ++i)
 	{
-		Note_table_set_note_cents(song->notes,
+		Note_table_set_note_cents(song->notes[0],
 				i,
 				note_names[i],
 				i * 100);
@@ -317,10 +321,40 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
-Note_table* Song_get_notes(Song* song)
+Note_table* Song_get_notes(Song* song, int index)
 {
 	assert(song != NULL);
-	return song->notes;
+	assert(index >= 0);
+	assert(index < NOTE_TABLES_MAX);
+	return song->notes[index];
+}
+
+
+Note_table** Song_get_active_notes(Song* song)
+{
+	assert(song != NULL);
+	return song->active_notes;
+}
+
+
+bool Song_create_notes(Song* song, int index)
+{
+	assert(song != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLES_MAX);
+	if (song->notes[index] != NULL)
+	{
+		Note_table_clear(song->notes[index]);
+		return true;
+	}
+	song->notes[index] = new_Note_table(NULL,
+			440,
+			Real_init_as_frac(REAL_AUTO, 2, 1));
+	if (song->notes[index] == NULL)
+	{
+		return false;
+	}
+	return true;
 }
 
 
@@ -354,9 +388,12 @@ void del_Song(Song* song)
 	{
 		del_Ins_table(song->insts);
 	}
-	if (song->notes != NULL)
+	for (int i = 0; i < NOTE_TABLES_MAX; ++i)
 	{
-		del_Note_table(song->notes);
+		if (song->notes[i] != NULL)
+		{
+			del_Note_table(song->notes[i]);
+		}
 	}
 	if (song->events != NULL)
 	{
