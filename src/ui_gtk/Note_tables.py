@@ -257,8 +257,6 @@ class Note_tables(gtk.HBox):
 				self.notes_list.set_value(iter, 1, '')
 				self.notes_list.set_value(iter, 2, '')
 			return
-		self.ref_note.handler_block(self.href_note)
-		self.ref_note.get_model().clear()
 		i = 0
 		for note in self.tables[index].notes:
 			iter = self.notes_view.get_model().get_iter(i)
@@ -270,10 +268,14 @@ class Note_tables(gtk.HBox):
 				self.notes_list.set_value(iter, 2,
 						self.tables[index].str_note_ratio(False, i))
 			i += 1
+		ref_note_model = gtk.ListStore(str)
 		for note in self.tables[index].notes:
 			if not note:
 				break
-			self.ref_note.append_text(note[0])
+			iter = ref_note_model.append()
+			ref_note_model.set_value(iter, 0, note[0])
+		self.ref_note.handler_block(self.href_note)
+		self.ref_note.set_model(ref_note_model)
 		self.ref_note.set_active(self.tables[index].ref_note)
 		self.ref_note.handler_unblock(self.href_note)
 		self.ref_pitch.get_adjustment().handler_block(self.href_pitch)
@@ -296,10 +298,14 @@ class Note_tables(gtk.HBox):
 
 		general_table = gtk.Table(3, 2)
 
-		label = gtk.Label('Reference note:')
+		label = gtk.Label('Pitch center:')
 		general_table.attach(label, 0, 1, 0, 1)
 		label.show()
-		self.ref_note = gtk.combo_box_new_text()
+		ref_note_model = gtk.ListStore(str)
+		self.ref_note = gtk.ComboBox(ref_note_model)
+		cell = gtk.CellRendererText()
+		self.ref_note.pack_start(cell, True)
+		self.ref_note.add_attribute(cell, 'text', 0)
 		self.href_note = self.ref_note.connect('changed', self.change_ref_note)
 		general_table.attach(self.ref_note, 1, 2, 0, 1)
 		self.ref_note.show()
