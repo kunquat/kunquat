@@ -98,8 +98,21 @@ int Listener_get_note_table(const char* path,
 	Note_table* table = Song_get_notes(song, table_index);
 	if (table == NULL)
 	{
+		strcpy(lr->method_path + lr->host_path_len, "note_table_info");
+		int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
+				player_id,
+				table_index,
+				"",
+				0, 0, 0, 0,
+				(double)440,
+				(int64_t)2, (int64_t)1);
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
 		strcpy(lr->method_path + lr->host_path_len, "notes_sent");
-		int ret = lo_send(lr->host, lr->method_path, "ii", player_id, table_index);
+		ret = lo_send(lr->host, lr->method_path, "ii", player_id, table_index);
 		if (ret == -1)
 		{
 			fprintf(stderr, "Couldn't send the response message\n");
@@ -491,9 +504,21 @@ int Listener_set_note_name(const char* path,
 	Real* ratio = Real_init(REAL_AUTO);
 	if (Note_table_get_note_ratio(table, note_index) != NULL)
 	{
-		ratio = Note_table_get_note_ratio(table, note_index);
+		double cents = Note_table_get_note_cents(table, note_index);
+		if (isnan(cents))
+		{
+			ratio = Note_table_get_note_ratio(table, note_index);
+			Note_table_set_note(table, note_index, name, ratio);
+		}
+		else
+		{
+			Note_table_set_note_cents(table, note_index, name, cents);
+		}
 	}
-	Note_table_set_note(table, note_index, name, ratio);
+	else
+	{
+		Note_table_set_note(table, note_index, name, ratio);
+	}
 	if (!note_table_info(lr, player_id, table, table_index))
 	{
 		return 0;
@@ -618,6 +643,221 @@ int Listener_set_note_ratio(const char* path,
 	}
 	if (!note_table_info(lr, player_id, table, table_index))
 	{
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_del_note(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	int32_t table_index = argv[1]->i;
+	if (table_index < 0 || table_index >= 16)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Note table index");
+		return 0;
+	}
+	Song* song = player->song;
+	Note_table* table = Song_get_notes(song, table_index);
+	if (table == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "note_table_info");
+		int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
+				player_id,
+				table_index,
+				"",
+				0, 0, 0, 0,
+				(double)440,
+				(int64_t)2, (int64_t)1);
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+		strcpy(lr->method_path + lr->host_path_len, "notes_sent");
+		ret = lo_send(lr->host, lr->method_path, "ii", player_id, table_index);
+		if (ret == -1)
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+		return 0;
+	}
+	int32_t note_index = argv[2]->i;
+	if (note_index < 0 || note_index >= NOTE_TABLE_NOTES)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid note index");
+		return 0;
+	}
+	Note_table_del_note(table, note_index);
+	if (!note_table_info(lr, player_id, table, table_index))
+	{
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_ins_note(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	int32_t table_index = argv[1]->i;
+	if (table_index < 0 || table_index >= 16)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Note table index");
+		return 0;
+	}
+	Song* song = player->song;
+	Note_table* table = Song_get_notes(song, table_index);
+	if (table == NULL)
+	{
+		if (!Song_create_notes(song, table_index))
+		{
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for Note table");
+			return 0;
+		}
+		table = Song_get_notes(song, table_index);
+		assert(table != NULL);
+	}
+	int32_t note_index = argv[2]->i;
+	if (note_index < 0 || note_index >= NOTE_TABLE_NOTES)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid note index");
+		return 0;
+	}
+	wchar_t name[NOTE_TABLE_NOTE_NAME_MAX] = { L'\0' };
+	swprintf(name, NOTE_TABLE_NOTE_NAME_MAX - 1, L"(%d)", (int)note_index);
+	Real* ratio = Real_init(REAL_AUTO);
+	Note_table_ins_note(table, note_index, name, ratio);
+	if (!note_table_info(lr, player_id, table, table_index))
+	{
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_del_note_table(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	int32_t table_index = argv[1]->i;
+	if (table_index < 0 || table_index >= 16)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid Note table index");
+		return 0;
+	}
+	Song* song = player->song;
+	Note_table* table = Song_get_notes(song, table_index);
+	if (table != NULL)
+	{
+		Song_remove_notes(song, table_index);
+	}
+	strcpy(lr->method_path + lr->host_path_len, "note_table_info");
+	int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
+			player_id,
+			table_index,
+			"",
+			0, 0, 0, 0,
+			(double)440,
+			(int64_t)2, (int64_t)1);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	strcpy(lr->method_path + lr->host_path_len, "notes_sent");
+	ret = lo_send(lr->host, lr->method_path, "ii", player_id, table_index);
+	if (ret == -1)
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	return 0;

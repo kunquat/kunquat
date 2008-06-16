@@ -347,13 +347,11 @@ void Note_table_del_note(Note_table* table, int index)
 		if ((table->ref_note >= table->note_count)
 				&& (table->ref_note > 0))
 		{
-			assert(!NOTE_EXISTS(table, table->ref_note));
 			--(table->ref_note);
 		}
 		if ((table->ref_note_retuned >= table->note_count)
 				&& (table->ref_note_retuned > 0))
 		{
-			assert(!NOTE_EXISTS(table, table->ref_note_retuned));
 			--(table->ref_note_retuned);
 		}
 	}

@@ -296,6 +296,57 @@ class Note_tables(gtk.HBox):
 		self.oct_ratio.set_text(self.tables[index].str_oct())
 		self.cur_index = index
 
+	def remove_table(self, menuitem):
+		liblo.send(self.engine, '/kunquat/del_note_table',
+				self.song_id,
+				self.cur_index)
+
+	def insert_note(self, menuitem):
+		num = self.notes_view.get_cursor()[0][0]
+		liblo.send(self.engine, '/kunquat/ins_note',
+				self.song_id,
+				self.cur_index,
+				num)
+
+	def remove_note(self, menuitem):
+		num = self.notes_view.get_cursor()[0][0]
+		liblo.send(self.engine, '/kunquat/del_note',
+				self.song_id,
+				self.cur_index,
+				num)
+
+	def table_list_click(self, treeview, event):
+		if event.button != 3:
+			return False
+		x = int(event.x)
+		y = int(event.y)
+		time = event.time
+		pinfo = treeview.get_path_at_pos(x, y)
+		if pinfo is not None:
+			path, col, cellx, celly = pinfo
+			treeview.grab_focus()
+			treeview.set_cursor(path, col, 0)
+			self.tables_context.popup(None, None, None,
+					event.button,
+					time)
+		return True
+
+	def note_list_click(self, treeview, event):
+		if event.button != 3:
+			return False
+		x = int(event.x)
+		y = int(event.y)
+		time = event.time
+		pinfo = treeview.get_path_at_pos(x, y)
+		if pinfo is not None:
+			path, col, cellx, celly = pinfo
+			treeview.grab_focus()
+			treeview.set_cursor(path, col, 0)
+			self.notes_context.popup(None, None, None,
+					event.button,
+					time)
+		return True
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
@@ -303,6 +354,8 @@ class Note_tables(gtk.HBox):
 
 		self.cur_index = 0
 		self.tables = [None for _ in range(16)]
+
+		self.note_insert_point = -1
 
 		self.user_set_pitch_center = False
 
@@ -349,10 +402,21 @@ class Note_tables(gtk.HBox):
 		detail_box.pack_start(general_table, False, False)
 		general_table.show()
 
+		self.notes_context = gtk.Menu()
+		note_insert = gtk.MenuItem('Insert')
+		note_remove = gtk.MenuItem('Remove')
+		self.notes_context.append(note_insert)
+		self.notes_context.append(note_remove)
+		note_insert.connect('activate', self.insert_note)
+		note_remove.connect('activate', self.remove_note)
+		note_insert.show()
+		note_remove.show()
+
 		self.notes_list = gtk.ListStore(gobject.TYPE_INT,
 				gobject.TYPE_STRING,
 				gobject.TYPE_STRING)
 		self.notes_view = gtk.TreeView(self.notes_list)
+		self.notes_view.connect('button-press-event', self.note_list_click)
 		#selection = self.notes_view.get_selection()
 		#selection.connect('changed', self.select_note)
 
@@ -389,8 +453,16 @@ class Note_tables(gtk.HBox):
 		list_box.pack_start(label, False, False)
 		label.show()
 
-		self.table_list = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
+		self.tables_context = gtk.Menu()
+		table_remove = gtk.MenuItem('Remove')
+		self.tables_context.append(table_remove)
+		table_remove.connect('activate', self.remove_table)
+		table_remove.show()
+
+		self.table_list = gtk.ListStore(gobject.TYPE_STRING,
+				gobject.TYPE_STRING)
 		self.list_view = gtk.TreeView(self.table_list)
+		self.list_view.connect('button-press-event', self.table_list_click)
 		selection = self.list_view.get_selection()
 		selection.connect('changed', self.select_table)
 

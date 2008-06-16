@@ -252,6 +252,58 @@ int Listener_set_note_ratio(const char* path,
 		void* user_data);
 
 
+/**
+ * Removes a note from a Note table. Notes positioned after will be shifted
+ * up.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c i   The note number.
+ */
+int Listener_del_note(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Inserts a blank note into a Note table. Notes positioned at the number and
+ * after will be shifted down.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ * \li \c i   The note number.
+ */
+int Listener_ins_note(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Removes a Note table.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Note table number (0..16).
+ */
+int Listener_del_note_table(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
 #endif // K_LISTENER_NOTE_TABLE_H
 
 

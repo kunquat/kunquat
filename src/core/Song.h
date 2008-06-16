@@ -291,6 +291,16 @@ bool Song_create_notes(Song* song, int index);
 
 
 /**
+ * Removes a Note table from the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ *                If the Note table doesn't exist, nothing will be done.
+ */
+void Song_remove_notes(Song* song, int index);
+
+
+/**
  * Gets the global Event queue of the Song.
  *
  * \param song   The Song -- must not be \c NULL.

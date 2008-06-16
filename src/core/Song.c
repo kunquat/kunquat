@@ -358,6 +358,20 @@ bool Song_create_notes(Song* song, int index)
 }
 
 
+void Song_remove_notes(Song* song, int index)
+{
+	assert(song != NULL);
+	assert(index >= 0);
+	assert(index < NOTE_TABLES_MAX);
+	if (song->notes[index] != NULL)
+	{
+		del_Note_table(song->notes[index]);
+		song->notes[index] = NULL;
+	}
+	return;
+}
+
+
 Event_queue* Song_get_events(Song* song)
 {
 	assert(song != NULL);
