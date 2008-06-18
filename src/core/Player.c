@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "Player.h"
 
@@ -85,13 +86,16 @@ uint32_t Player_mix(Player* player, uint32_t nframes)
 }
 
 
-void Player_play_pattern(Player* player, int16_t num)
+void Player_play_pattern(Player* player, int16_t num, double tempo)
 {
 	assert(player != NULL);
 	assert(num >= 0);
 	assert(num < PATTERNS_MAX);
+	assert(isfinite(tempo));
+	assert(tempo > 0);
 	Player_stop(player);
 	player->play->pattern = num;
+	player->play->tempo = tempo;
 	player->play->mode = PLAY_PATTERN;
 	return;
 }
@@ -103,6 +107,7 @@ void Player_play_subsong(Player* player, uint16_t subsong)
 	assert(subsong < SUBSONGS_MAX);
 	Player_stop(player);
 	player->play->subsong = subsong;
+	player->play->tempo = Song_get_tempo(player->song, player->play->subsong);
 	player->play->mode = PLAY_SONG;
 	return;
 }
@@ -142,8 +147,8 @@ void Player_stop(Player* player)
 	}
 	Reltime_init(&player->play->play_time);
 	player->play->play_frames = 0;
-	player->play->tempo = Song_get_tempo(player->song);
 	player->play->subsong = Song_get_subsong(player->song);
+	player->play->tempo = Song_get_tempo(player->song, player->play->subsong);
 	player->play->order_index = 0;
 	player->play->pattern = 0;
 	Reltime_init(&player->play->pos);

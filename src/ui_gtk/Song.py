@@ -33,6 +33,7 @@ import Note_tables
 
 
 SONG_TITLE_MAX = 127
+SUBSONGS_MAX = 256
 
 
 class Song(gtk.VBox):
@@ -43,6 +44,17 @@ class Song(gtk.VBox):
 		self.title.handler_block(self.title_handler)
 		self.title.set_text(args[0])
 		self.title.handler_unblock(self.title_handler)
+
+	def subsong_info(self, path, args, types):
+		self.subsong_inits[args[0]] = (args[1], args[2])
+		if self.cur_subsong == args[0]:
+			self.pattern.set_tempo(args[1])
+			if not self.user_set_tempo:
+				self.tempo.get_adjustment().handler_block(self.htempo)
+				self.tempo.set_value(args[1])
+				self.tempo.get_adjustment().handler_unblock(self.htempo)
+			else:
+				self.user_set_tempo = False
 
 	def order_info(self, path, args, types):
 		self.orders.order_info(path, args, types)
@@ -79,7 +91,9 @@ class Song(gtk.VBox):
 		pass
 
 	def set_play(self, button):
-		liblo.send(self.engine, '/kunquat/play_song', self.song_id)
+		liblo.send(self.engine, '/kunquat/play_subsong',
+				self.song_id,
+				self.cur_subsong)
 
 	def set_stop(self, button):
 		liblo.send(self.engine, '/kunquat/stop_song', self.song_id)
@@ -88,6 +102,22 @@ class Song(gtk.VBox):
 		text = entry.get_text()
 		liblo.send(self.engine, '/kunquat/set_song_title', self.song_id, text)
 
+	def subsong_changed(self, adj):
+		subsong = int(adj.get_value())
+		self.cur_subsong = subsong
+		self.tempo.get_adjustment().handler_block(self.htempo)
+		self.tempo.set_value(self.subsong_inits[subsong][0])
+		self.tempo.get_adjustment().handler_unblock(self.htempo)
+		self.pattern.set_tempo(self.subsong_inits[subsong][0])
+
+	def tempo_changed(self, adj):
+		tempo = adj.get_value()
+		self.user_set_tempo = True
+		liblo.send(self.engine, '/kunquat/set_subsong_tempo',
+				self.song_id,
+				self.cur_subsong,
+				tempo)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
@@ -95,8 +125,13 @@ class Song(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
+		self.subsong_inits = [(120, 0) for _ in range(SUBSONGS_MAX)]
+
 		self.mix_vol = 0.0
 		self.init_subsong = 0
+		self.cur_subsong = 0
+
+		self.user_set_tempo = False
 
 		play_button = gtk.Button(' Play ')
 		play_button.connect('clicked', self.set_play)
@@ -118,6 +153,29 @@ class Song(gtk.VBox):
 
 		self.pack_start(info_bar, False, False)
 		info_bar.show()
+
+		subsong_bar = gtk.HBox()
+		label = gtk.Label('Subsong:')
+		subsong_bar.pack_start(label, False, False)
+		label.show()
+		sub_adj = gtk.Adjustment(0, 0, SUBSONGS_MAX - 1, 1)
+		self.subsong = gtk.SpinButton(sub_adj)
+		sub_adj.connect('value-changed', self.subsong_changed)
+		subsong_bar.pack_start(self.subsong, False, False)
+		self.subsong.show()
+		label = gtk.Label('Initial tempo:')
+		subsong_bar.pack_start(label, False, False)
+		label.show()
+		tempo_adj = gtk.Adjustment(120, 16, 480, 0.1)
+		self.tempo = gtk.SpinButton(tempo_adj, digits=1)
+		self.tempo.set_snap_to_ticks(True)
+		self.tempo.set_numeric(True)
+		self.htempo = tempo_adj.connect('value-changed', self.tempo_changed)
+		subsong_bar.pack_start(self.tempo, False, False)
+		self.tempo.show()
+
+		self.pack_start(subsong_bar, False, False)
+		subsong_bar.show()
 
 		nb = gtk.Notebook()
 

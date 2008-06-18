@@ -62,6 +62,13 @@ class Songs(gtk.Notebook):
 		new_song(path, [args[0]], ['i'])
 		song_info(path, args, types)
 
+	def subsong_info(self, path, args, types):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == args[0]:
+				content.subsong_info(path, args[1:], types[1:])
+				return
+
 	def del_song(self, path, args, types):
 		if len(args) == 0:
 			return
@@ -157,6 +164,7 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/new_song', None, self.new_song)
 		self.server.add_method('/kunquat_gtk/songs', None, self.songs)
 		self.server.add_method('/kunquat_gtk/song_info', 'isdi', self.song_info)
+		self.server.add_method('/kunquat_gtk/subsong_info', 'iidd', self.subsong_info)
 		self.server.add_method('/kunquat_gtk/del_song', None, self.del_song)
 		self.server.add_method('/kunquat_gtk/order_info', None, self.order_info)
 		self.server.add_method('/kunquat_gtk/ins_info', None, self.ins_info)

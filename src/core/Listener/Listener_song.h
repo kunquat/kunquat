@@ -99,6 +99,40 @@ int Listener_set_song_title(const char* path,
 
 
 /**
+ * Sets the tempo of the given subsong.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The subsong number.
+ * \li \c d   The tempo.
+ */
+int Listener_set_subsong_tempo(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
+ * Sets the global volume of the given subsong.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The subsong number.
+ * \li \c d   The global volume.
+ */
+int Listener_set_subsong_global_vol(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
+
+
+/**
  * Destroys a Song. The method takes one argument, the ID number of the Song.
  *
  * The response method is <host_path>/del_song.

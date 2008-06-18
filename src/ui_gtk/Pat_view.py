@@ -51,6 +51,12 @@ class Nt_info:
 
 class Pat_view(gtk.Widget):
 
+	def set_tempo(self, tempo):
+		self.tempo = tempo
+
+	def set_subsong(self, subsong):
+		self.subsong = subsong
+
 	def pat_info(self, path, args, types):
 		self.pdata = Pat_info(args[0], (args[1], args[2]))
 		if self.cursor[0][:2] > self.pdata.len:
@@ -545,12 +551,17 @@ class Pat_view(gtk.Widget):
 	def act_play_song(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		liblo.send(self.engine, '/kunquat/play_song', self.song_id)
+		liblo.send(self.engine, '/kunquat/play_subsong',
+				self.song_id,
+				self.subsong)
 
 	def act_play_pat(self, event):
 		if event.type == gdk.KEY_RELEASE:
 			return
-		liblo.send(self.engine, '/kunquat/play_pattern', self.song_id, self.pdata.num)
+		liblo.send(self.engine, '/kunquat/play_pattern',
+				self.song_id,
+				self.pdata.num,
+				self.tempo)
 
 	def act_stop(self, event):
 		if event.type == gdk.KEY_RELEASE:
@@ -1176,6 +1187,8 @@ class Pat_view(gtk.Widget):
 		self.base_octave_adj = oct_adj
 		self.ins_num = int(self.ins_adj.get_value())
 		self.base_octave = int(self.base_octave_adj.get_value())
+		self.tempo = 120
+		self.subsong = 0
 
 		self.ptheme = {
 			'Ruler font': 'Sans 10',

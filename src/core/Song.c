@@ -94,7 +94,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 		del_Song(song);
 		return NULL;
 	}
-	song->notes[0] = new_Note_table(L"12-TET",
+	song->notes[0] = new_Note_table(L"12-tone equal temperament",
 			523.25113060119725,
 			Real_init_as_frac(REAL_AUTO, 2, 1));
 	if (song->notes[0] == NULL)
@@ -123,10 +123,14 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 				i * 100);
 	}
 	song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
-	song->tempo = 120;
 	song->mix_vol = 0;
-	song->global_vol = 0;
 	song->init_subsong = 0;
+	for (int i = 0; i < SUBSONGS_MAX; ++i)
+	{
+		song->subsong_inits[i].tempo = 120;
+		song->subsong_inits[i].global_vol = 0;
+		song->subsong_inits[i].notes = song->notes[0];
+	}
 	return song;
 }
 
@@ -214,20 +218,24 @@ wchar_t* Song_get_name(Song* song)
 }
 
 
-void Song_set_tempo(Song* song, double tempo)
+void Song_set_tempo(Song* song, int subsong, double tempo)
 {
 	assert(song != NULL);
+	assert(subsong >= 0);
+	assert(subsong < SUBSONGS_MAX);
 	assert(isfinite(tempo));
 	assert(tempo > 0);
-	song->tempo = tempo;
+	song->subsong_inits[subsong].tempo = tempo;
 	return;
 }
 
 
-double Song_get_tempo(Song* song)
+double Song_get_tempo(Song* song, int subsong)
 {
 	assert(song != NULL);
-	return song->tempo;
+	assert(subsong >= 0);
+	assert(subsong < SUBSONGS_MAX);
+	return song->subsong_inits[subsong].tempo;
 }
 
 
@@ -247,19 +255,23 @@ double Song_get_mix_vol(Song* song)
 }
 
 
-void Song_set_global_vol(Song* song, double global_vol)
+void Song_set_global_vol(Song* song, int subsong, double global_vol)
 {
 	assert(song != NULL);
+	assert(subsong >= 0);
+	assert(subsong < SUBSONGS_MAX);
 	assert(isfinite(global_vol) || global_vol == -INFINITY);
-	song->global_vol = global_vol;
+	song->subsong_inits[subsong].global_vol = global_vol;
 	return;
 }
 
 
-double Song_get_global_vol(Song* song)
+double Song_get_global_vol(Song* song, int subsong)
 {
 	assert(song != NULL);
-	return song->global_vol;
+	assert(subsong >= 0);
+	assert(subsong < SUBSONGS_MAX);
+	return song->subsong_inits[subsong].global_vol;
 }
 
 

@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "Listener.h"
 #include "Listener_player.h"
@@ -163,13 +164,14 @@ int Listener_play_subsong(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "No active driver");
 		return 0;
 	}
-	if (argv[0]->i < 0 || argv[0]->i >= SUBSONGS_MAX)
+	int32_t subsong = argv[1]->i;
+	if (subsong < 0 || subsong >= SUBSONGS_MAX)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
 		return 0;
 	}
-	Player_play_subsong(player, argv[0]->i);
+	Player_play_subsong(player, subsong);
 	player_state(lr, player->id, "song");
 	return 0;
 }
@@ -213,7 +215,14 @@ int Listener_play_pattern(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
 		return 0;
 	}
-	Player_play_pattern(player, argv[1]->i);
+	double tempo = argv[2]->d;
+	if (!isfinite(tempo) || tempo <= 0)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid tempo");
+		return 0;
+	}
+	Player_play_pattern(player, argv[1]->i, tempo);
 	player_state(lr, player->id, "pattern");
 	return 0;
 }

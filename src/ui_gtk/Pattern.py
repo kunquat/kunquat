@@ -33,6 +33,12 @@ from Pat_helper import PATTERNS
 
 class Pattern(gtk.VBox):
 
+	def set_tempo(self, tempo):
+		self.pat_view.set_tempo(tempo)
+
+	def set_subsong(self, subsong):
+		self.pat_view.set_subsong(subsong)
+
 	def pat_info(self, path, args, types):
 		self.pat_view.pat_info(path, args, types)
 		self.pat_spin.set_value(args[0])

@@ -59,12 +59,17 @@ typedef struct Song
 	Event_queue* events;
 	/// The name of the Song.
 	wchar_t name[SONG_NAME_MAX];
-	/// Initial tempo.
-	double tempo;
+	struct
+	{
+		/// Initial tempo.
+		double tempo;
+		/// Initial global volume.
+		double global_vol;
+		/// Initial Note table.
+		Note_table* notes;
+	} subsong_inits[SUBSONGS_MAX];
 	/// Mixing volume.
 	double mix_vol;
-	/// Initial global volume.
-	double global_vol;
 	/// Initial subsong number.
 	uint16_t init_subsong;
 } Song;
@@ -125,24 +130,28 @@ wchar_t* Song_get_name(Song* song);
 /**
  * Sets the initial tempo of the Song.
  *
- * \param song    The Song -- must not be \c NULL.
- * \param tempo   The tempo -- must be finite and > \c 0.
+ * \param song      The Song -- must not be \c NULL.
+ * \param subsong   The subsong index -- must be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
+ * \param tempo     The tempo -- must be finite and > \c 0.
  */
-void Song_set_tempo(Song* song, double tempo);
+void Song_set_tempo(Song* song, int subsong, double tempo);
 
 
 /**
  * Gets the initial tempo of the Song.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param song      The Song -- must not be \c NULL.
+ * \param subsong   The subsong index -- must be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
  *
  * \return   The tempo.
  */
-double Song_get_tempo(Song* song);
+double Song_get_tempo(Song* song, int subsong);
 
 
 /**
- * Sets the initial mixing volume of the Song.
+ * Sets the mixing volume of the Song.
  *
  * \param song      The Song -- must not be \c NULL.
  * \param mix_vol   The volume -- must be finite or -INFINITY.
@@ -151,7 +160,7 @@ void Song_set_mix_vol(Song* song, double mix_vol);
 
 
 /**
- * Gets the initial mixing volume of the Song.
+ * Gets the mixing volume of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
@@ -164,19 +173,23 @@ double Song_get_mix_vol(Song* song);
  * Sets the initial global volume of the Song.
  *
  * \param song         The Song -- must not be \c NULL.
+ * \param subsong      The subsong index -- must be >= \c 0 and
+ *                     < \c SUBSONGS_MAX.
  * \param global_vol   The volume -- must be finite or -INFINITY.
  */
-void Song_set_global_vol(Song* song, double global_vol);
+void Song_set_global_vol(Song* song, int subsong, double global_vol);
 
 
 /**
  * Gets the initial global volume of the Song.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param song      The Song -- must not be \c NULL.
+ * \param subsong   The subsong index -- must be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
  *
  * \return   The global volume.
  */
-double Song_get_global_vol(Song* song);
+double Song_get_global_vol(Song* song, int subsong);
 
 
 /**

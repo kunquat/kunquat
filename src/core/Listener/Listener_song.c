@@ -25,6 +25,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
+#include <math.h>
 
 #include "Listener.h"
 #include "Listener_song.h"
@@ -33,6 +34,12 @@
 
 static bool song_info(Listener* lr,
 		int32_t song_id,
+		Song* song);
+
+
+static bool subsong_info(Listener* lr,
+		int32_t song_id,
+		int32_t subsong,
 		Song* song);
 
 
@@ -155,6 +162,14 @@ int Listener_get_song_info(const char* path,
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
+	for (int32_t i = 0; i < SUBSONGS_MAX; ++i)
+	{
+		if (!subsong_info(lr, player_id, i, song))
+		{
+			fprintf(stderr, "Couldn't send the response message\n");
+			return 0;
+		}
+	}
 	return 0;
 }
 
@@ -203,6 +218,108 @@ int Listener_set_song_title(const char* path,
 	Song* song = player->song;
 	Song_set_name(song, title);
 	if (!song_info(lr, player_id, song))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_set_subsong_tempo(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	Song* song = player->song;
+	int32_t subsong = argv[1]->i;
+	if (subsong < 0 || subsong >= SUBSONGS_MAX)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
+		return 0;
+	}
+	double tempo = argv[2]->d;
+	if (!isfinite(tempo) || tempo <= 0)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid tempo");
+		return 0;
+	}
+	Song_set_tempo(song, subsong, tempo);
+	if (!subsong_info(lr, player_id, subsong, song))
+	{
+		fprintf(stderr, "Couldn't send the response message\n");
+		return 0;
+	}
+	return 0;
+}
+
+
+int Listener_set_subsong_global_vol(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	int32_t player_id = argv[0]->i;
+	Player* player = lr->player_cur;
+	if (player == NULL || player->id != player_id)
+	{
+		player = Playlist_get(lr->playlist, player_id);
+	}
+	if (player == NULL)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
+		return 0;
+	}
+	Song* song = player->song;
+	int32_t subsong = argv[1]->i;
+	if (subsong < 0 || subsong >= SUBSONGS_MAX)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
+		return 0;
+	}
+	double global_vol = argv[2]->d;
+	if (!isfinite(global_vol) && isinf(global_vol) != -1)
+	{
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "s", "Invalid global volume");
+		return 0;
+	}
+	Song_set_global_vol(song, subsong, global_vol);
+	if (!subsong_info(lr, player_id, subsong, song))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -271,6 +388,33 @@ static bool song_info(Listener* lr,
 	lo_message_add_double(m, song->mix_vol);
 	lo_message_add_int32(m, song->init_subsong);
 	strcpy(lr->method_path + lr->host_path_len, "song_info");
+	int ret = lo_send_message(lr->host, lr->method_path, m);
+	lo_message_free(m);
+	if (ret == -1)
+	{
+		return false;
+	}
+	return true;
+}
+
+
+static bool subsong_info(Listener* lr,
+		int32_t song_id,
+		int32_t subsong,
+		Song* song)
+{
+	assert(lr != NULL);
+	assert(subsong >= 0);
+	assert(subsong < SUBSONGS_MAX);
+	assert(song != NULL);
+	lo_message m = lo_message_new();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, subsong);
+	double tempo = Song_get_tempo(song, subsong);
+	double global_vol = Song_get_global_vol(song, subsong);
+	lo_message_add_double(m, tempo);
+	lo_message_add_double(m, global_vol);
+	strcpy(lr->method_path + lr->host_path_len, "subsong_info");
 	int ret = lo_send_message(lr->host, lr->method_path, m);
 	lo_message_free(m);
 	if (ret == -1)

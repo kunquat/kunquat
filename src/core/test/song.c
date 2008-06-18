@@ -101,13 +101,13 @@ START_TEST (new)
 	}
 	fail_if(Song_get_name(song) == NULL,
 			"new_Song() created a Song without a name.");
-	double tempo = Song_get_tempo(song);
+	double tempo = Song_get_tempo(song, 0);
 	fail_unless(isfinite(tempo) && tempo > 0,
 			"new_Song() created a Song without a sane initial tempo (%lf).", tempo);
 	double mix_vol = Song_get_mix_vol(song);
 	fail_unless(isfinite(mix_vol),
 			"new_Song() created a Song without a sane initial mixing volume (%lf).", mix_vol);
-	double global_vol = Song_get_global_vol(song);
+	double global_vol = Song_get_global_vol(song, 0);
 	fail_unless(isfinite(global_vol),
 			"new_Song() created a Song without a sane initial global volume (%lf).", global_vol);
 	int buf_count = Song_get_buf_count(song);
@@ -237,16 +237,16 @@ START_TEST (set_get_tempo)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Song_set_tempo(song, 16);
-	double ret = Song_get_tempo(song);
+	Song_set_tempo(song, 0, 16);
+	double ret = Song_get_tempo(song, 0);
 	fail_unless(ret, 16,
 			"Song_get_tempo() returned %lf instead of %lf.", ret, 16);
-	Song_set_tempo(song, 120);
-	ret = Song_get_tempo(song);
+	Song_set_tempo(song, 0, 120);
+	ret = Song_get_tempo(song, 0);
 	fail_unless(ret, 120,
 			"Song_get_tempo() returned %lf instead of %lf.", ret, 120);
-	Song_set_tempo(song, 512);
-	ret = Song_get_tempo(song);
+	Song_set_tempo(song, 0, 512);
+	ret = Song_get_tempo(song, 0);
 	fail_unless(ret, 512,
 			"Song_get_tempo() returned %lf instead of %lf.", ret, 512);
 	del_Song(song);
@@ -256,7 +256,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (set_tempo_break_song_null)
 {
-	Song_set_tempo(NULL, 120);
+	Song_set_tempo(NULL, 0, 120);
 }
 END_TEST
 
@@ -268,7 +268,7 @@ START_TEST (set_tempo_break_tempo_inv1)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_tempo(song, 0);
+	Song_set_tempo(song, 0, 0);
 	del_Song(song);
 }
 END_TEST
@@ -281,7 +281,7 @@ START_TEST (set_tempo_break_tempo_inv2)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_tempo(song, -INFINITY);
+	Song_set_tempo(song, 0, -INFINITY);
 	del_Song(song);
 }
 END_TEST
@@ -294,7 +294,7 @@ START_TEST (set_tempo_break_tempo_inv3)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_tempo(song, INFINITY);
+	Song_set_tempo(song, 0, INFINITY);
 	del_Song(song);
 }
 END_TEST
@@ -307,14 +307,14 @@ START_TEST (set_tempo_break_tempo_inv4)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_tempo(song, NAN);
+	Song_set_tempo(song, 0, NAN);
 	del_Song(song);
 }
 END_TEST
 
 START_TEST (get_tempo_break_song_null)
 {
-	Song_get_tempo(NULL);
+	Song_get_tempo(NULL, 0);
 }
 END_TEST
 #endif
@@ -389,12 +389,12 @@ START_TEST (set_get_global_vol)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Song_set_global_vol(song, -INFINITY);
-	double ret = Song_get_global_vol(song);
+	Song_set_global_vol(song, 0, -INFINITY);
+	double ret = Song_get_global_vol(song, 0);
 	fail_unless(ret == -INFINITY,
 			"Song_get_global_vol() returned %lf instead of %lf.", ret, -INFINITY);
-	Song_set_global_vol(song, 0);
-	ret = Song_get_global_vol(song);
+	Song_set_global_vol(song, 0, 0);
+	ret = Song_get_global_vol(song, 0);
 	fail_unless(ret == 0,
 			"Song_get_global_vol() returned %lf instead of %lf.", ret, 0);
 	del_Song(song);
@@ -404,7 +404,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (set_global_vol_break_song_null)
 {
-	Song_set_global_vol(NULL, 0);
+	Song_set_global_vol(NULL, 0, 0);
 }
 END_TEST
 
@@ -416,7 +416,7 @@ START_TEST (set_global_vol_break_global_vol_inv1)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_global_vol(song, INFINITY);
+	Song_set_global_vol(song, 0, INFINITY);
 	del_Song(song);
 }
 END_TEST
@@ -429,14 +429,14 @@ START_TEST (set_global_vol_break_global_vol_inv2)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		return;
 	}
-	Song_set_global_vol(song, NAN);
+	Song_set_global_vol(song, 0, NAN);
 	del_Song(song);
 }
 END_TEST
 
 START_TEST (get_global_vol_break_song_null)
 {
-	Song_get_global_vol(NULL);
+	Song_get_global_vol(NULL, 0);
 }
 END_TEST
 #endif
@@ -450,9 +450,9 @@ START_TEST (mix)
 		fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
 		abort();
 	}
-	Song_set_tempo(song, 120);
+	Song_set_tempo(song, 0, 120);
 	Song_set_mix_vol(song, 0);
-	Song_set_global_vol(song, 0);
+	Song_set_global_vol(song, 0, 0);
 	Playdata* play = init_play(song);
 	if (play == NULL) abort();
 	Pattern* pat1 = new_Pattern();

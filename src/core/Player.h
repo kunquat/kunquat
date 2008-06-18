@@ -85,8 +85,9 @@ void Player_play_event(Player* player);
  * \param player   The Player -- must not be \c NULL.
  * \param num      The number of the Pattern -- must be >= \c 0 and
  *                 < \c PATTERNS_MAX.
+ * \param tempo    The tempo -- must be > \c 0.
  */
-void Player_play_pattern(Player* player, int16_t num);
+void Player_play_pattern(Player* player, int16_t num, double tempo);
 
 
 /**
