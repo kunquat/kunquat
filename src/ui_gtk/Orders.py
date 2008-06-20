@@ -65,7 +65,7 @@ class Orders(gtk.ScrolledWindow):
 		order = -1
 		if new_entry.isdigit():
 			order = int(new_entry)
-		elif new_entry != '' and not isspace(new_entry):
+		elif new_entry != '' and not new_entry.isspace():
 			return True
 		liblo.send(self.engine, '/kunquat/set_order',
 				self.song_id,
@@ -147,7 +147,5 @@ class Orders(gtk.ScrolledWindow):
 		self.subsongs.pack_start(button)
 		button.connect('clicked', self.new_subsong)
 		button.show()
-
-		liblo.send(self.engine, '/kunquat/get_orders', self.song_id)
 
 

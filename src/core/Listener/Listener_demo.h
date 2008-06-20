@@ -24,18 +24,15 @@
 #define K_LISTENER_DEMO_H
 
 
+#include "Listener.h"
+
+
 /**
- * Plays a demo. Stops the demo if it is already playing.
+ * Creates a demo.
  *
- * An error message response will be sent if memory allocations fails or no
- * audio driver has been set.
+ * An error message response will be sent if memory allocations fails.
  */
-int Listener_demo(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_demo;
 
 
 #endif // K_LISTENER_DEMO_H

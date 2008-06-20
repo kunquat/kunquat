@@ -50,7 +50,7 @@
  *           otherwise \c false. Note that \c true will be returned if the
  *           search parameters are valid but no Instrument is found.
  */
-static bool ins_get(Listener* l,
+static bool ins_get(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument** ins);
@@ -66,7 +66,7 @@ static bool ins_get(Listener* l,
  *
  * \return   \c true if the message was sent successfully, otherwise \c false.
  */
-static bool ins_info(Listener* l,
+static bool ins_info(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument* ins);
@@ -80,36 +80,25 @@ int Listener_get_insts(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = l->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(l->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Ins_table* table = Song_get_insts(song);
 	for (int i = 1; i <= INSTRUMENTS_MAX; ++i)
 	{
 		Instrument* ins = Ins_table_get(table, i);
 		if (ins != NULL)
 		{
-			if (!ins_info(l, player_id, i, ins))
+			if (!ins_info(lr, song_id, i, ins))
 			{
 				fprintf(stderr, "Couldn't send the response message\n");
 				return 0;
@@ -128,7 +117,6 @@ int Listener_new_ins(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
@@ -139,41 +127,25 @@ int Listener_new_ins(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument number:", argv[1]->i);
-		return 0;
-	}
-	if (argv[2]->i < INS_TYPE_NONE || argv[2]->i >= INS_TYPE_LAST)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument type:", argv[2]->i);
-		return 0;
-	}
+	int32_t ins_num = argv[1]->i;
+	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+			"The Instrument number (%ld)", (long)ins_num);
+	int32_t ins_type = argv[2]->i;
+	check_cond(lr, ins_type >= INS_TYPE_NONE && ins_type < INS_TYPE_LAST,
+			"The Instrument type (%ld)", (long)ins_type);
 	if (argv[2]->i > INS_TYPE_SINE)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s", "Only debug and sine instruments supported");
 		return 0;
 	}
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Ins_table* table = Song_get_insts(song);
 	assert(table != NULL);
 	Instrument* ins = NULL;
-	if (argv[2]->i != INS_TYPE_NONE)
+	if (ins_type != INS_TYPE_NONE)
 	{
 		ins = new_Instrument(argv[2]->i,
 				Song_get_bufs(song),
@@ -186,7 +158,7 @@ int Listener_new_ins(const char* path,
 			return 0;
 		}
 		Instrument_set_note_table(ins, Song_get_active_notes(song));
-		if (!Ins_table_set(table, argv[1]->i, ins))
+		if (!Ins_table_set(table, ins_num, ins))
 		{
 			del_Instrument(ins);
 			strcpy(lr->method_path + lr->host_path_len, "error");
@@ -196,9 +168,9 @@ int Listener_new_ins(const char* path,
 	}
 	else
 	{
-		Ins_table_remove(table, argv[1]->i);
+		Ins_table_remove(table, ins_num);
 	}
-	if (!ins_info(lr, player_id, argv[1]->i, ins))
+	if (!ins_info(lr, song_id, ins_num, ins))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -221,14 +193,14 @@ int Listener_ins_set_name(const char* path,
 	assert(argv != NULL);
 	assert(&argv[2]->s != NULL);
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
+	assert(lr->method_path != NULL);
 	Instrument* ins = NULL;
-	if (!ins_get(l, argv[0]->i, argv[1]->i, &ins))
+	if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
 	{
 		return 0;
 	}
@@ -238,13 +210,13 @@ int Listener_ins_set_name(const char* path,
 		unsigned char* src = (unsigned char*)&argv[2]->s;
 		if (from_utf8(name, src, INS_NAME_MAX) == EILSEQ)
 		{
-			strcpy(l->method_path + l->host_path_len, "error");
-			lo_send(l->host, l->method_path, "s",
+			strcpy(lr->method_path + lr->host_path_len, "error");
+			lo_send(lr->host, lr->method_path, "s",
 					"Illegal character sequence in the Instrument name");
 		}
 		Instrument_set_name(ins, name);
 	}
-	if (!ins_info(l, l->player_cur->id, argv[1]->i, ins))
+	if (!ins_info(lr, lr->player_cur->id, argv[1]->i, ins))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -261,43 +233,32 @@ int Listener_del_ins(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
+	assert(lr->method_path != NULL);
 	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
 	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", argv[1]->i);
+		strcpy(lr->method_path + lr->host_path_len, "error");
+		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument number:", argv[1]->i);
 		return 0;
 	}
-	int32_t player_id = argv[0]->i;
-	Player* player = l->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(l->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Ins_table* table = Song_get_insts(song);
 	assert(table != NULL);
 	if (Ins_table_get(table, argv[1]->i) != NULL)
 	{
 		Ins_table_remove(table, argv[1]->i);
 	}
-	if (!ins_info(l, player_id, argv[1]->i, NULL))
+	if (!ins_info(lr, song_id, argv[1]->i, NULL))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -306,34 +267,18 @@ int Listener_del_ins(const char* path,
 }
 
 
-static bool ins_get(Listener* l,
+static bool ins_get(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument** ins)
 {
-	assert(l != NULL);
-	assert(l->method_path != NULL);
+	assert(lr != NULL);
+	assert(lr->method_path != NULL);
 	assert(ins != NULL);
-	if (ins_num < 1 || ins_num > INSTRUMENTS_MAX)
-	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "si", "Invalid Instrument number:", ins_num);
-		return false;
-	}
-	int32_t player_id = song_id;
-	Player* player = l->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(l->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(l->method_path + l->host_path_len, "error");
-		lo_send(l->host, l->method_path, "s", "Song doesn't exist");
-		return false;
-	}
-	l->player_cur = player;
-	Song* song = player->song;
+	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+			"The Instrument number (%ld)", (long)ins_num);
+	get_player(lr, song_id, 'i');
+	Song* song = Player_get_song(lr->player_cur);
 	Ins_table* table = Song_get_insts(song);
 	assert(table != NULL);
 	*ins = Ins_table_get(table, ins_num);

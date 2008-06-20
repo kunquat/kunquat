@@ -34,7 +34,6 @@ Player* new_Player(uint32_t freq, uint16_t voices, Song* song)
 {
 	static int32_t id = 0;
 	assert(freq > 0);
-//	assert(pool != NULL);
 	assert(voices > 0);
 	assert(voices < MAX_VOICES);
 	assert(song != NULL);
@@ -62,6 +61,27 @@ Player* new_Player(uint32_t freq, uint16_t voices, Song* song)
 	player->play->events = Song_get_events(song);
 	player->id = id++;
 	return player;
+}
+
+
+int32_t Player_get_id(Player* player)
+{
+	assert(player != NULL);
+	return player->id;
+}
+
+
+Song* Player_get_song(Player* player)
+{
+	assert(player != NULL);
+	return player->song;
+}
+
+
+Playdata* Player_get_playdata(Player* player)
+{
+	assert(player != NULL);
+	return player->play;
 }
 
 

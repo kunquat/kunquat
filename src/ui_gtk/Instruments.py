@@ -124,6 +124,4 @@ class Instruments(gtk.HBox):
 		self.pack_start(ins_details)
 		ins_details.show()
 
-		liblo.send(self.engine, '/kunquat/get_insts', self.song_id)
-
 

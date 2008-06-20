@@ -46,12 +46,7 @@
  *
  * \li \c i   The Song ID.
  */
-int Listener_get_orders(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_orders;
 
 
 /**
@@ -64,12 +59,7 @@ int Listener_get_orders(const char* path,
  * \li \c i   The order number.
  * \li \c i   The Pattern number.
  */
-int Listener_set_order(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_order;
 
 
 /**
@@ -81,12 +71,7 @@ int Listener_set_order(const char* path,
  * \li \c i   The subsong number.
  * \li \c i   The order number.
  */
-int Listener_ins_order(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_ins_order;
 
 
 /**
@@ -98,12 +83,7 @@ int Listener_ins_order(const char* path,
  * \li \c i   The subsong number.
  * \li \c i   The order number.
  */
-int Listener_del_order(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_order;
 
 
 #endif // K_LISTENER_ORDER_H

@@ -59,6 +59,36 @@ Player* new_Player(uint32_t freq, uint16_t voices, Song* song);
 
 
 /**
+ * Gets the ID of the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The ID.
+ */
+int32_t Player_get_id(Player* player);
+
+
+/**
+ * Gets the Song of the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The Song.
+ */
+Song* Player_get_song(Player* player);
+
+
+/**
+ * Gets the Playdata of the Player.
+ *
+ * \param player   The Player -- must not be \c NULL.
+ *
+ * \return   The Playdata.
+ */
+Playdata* Player_get_playdata(Player* player);
+
+
+/**
  * Does mixing according to the state of the Player.
  *
  * \param player    The Player -- must not be \c NULL.

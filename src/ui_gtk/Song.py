@@ -38,6 +38,13 @@ SUBSONGS_MAX = 256
 
 class Song(gtk.VBox):
 
+	def request_info(self):
+		liblo.send(self.engine, '/kunquat/get_song_info', self.song_id)
+		liblo.send(self.engine, '/kunquat/get_insts', self.song_id)
+		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, 0)
+		liblo.send(self.engine, '/kunquat/get_note_table', self.song_id, 0)
+		liblo.send(self.engine, '/kunquat/get_orders', self.song_id)
+
 	def song_info(self, path, args, types):
 		self.mix_vol = args[1]
 		self.init_subsong = args[2]
@@ -178,8 +185,6 @@ class Song(gtk.VBox):
 		subsong_bar.show()
 
 		nb = gtk.Notebook()
-
-		liblo.send(self.engine, '/kunquat/get_song_info', self.song_id)
 
 		self.instruments = Instruments.Instruments(engine, server, song_id)
 		self.pattern = Pattern.Pattern(engine, server, song_id)

@@ -68,6 +68,21 @@ Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part)
 	return r;
 }
 
+
+int64_t Reltime_get_beats(Reltime* r)
+{
+	assert(r != NULL);
+	return r->beats;
+}
+
+
+int32_t Reltime_get_rem(Reltime* r)
+{
+	assert(r != NULL);
+	return r->part;
+}
+
+
 Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2)
 {
 	Reltime_validate(r1);
@@ -90,6 +105,7 @@ Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2)
 	return result;
 }
 
+
 Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2)
 {
 	Reltime_validate(r1);
@@ -111,6 +127,7 @@ Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2)
 	assert(result->part < RELTIME_FULL_PART);
 	return result;
 }
+
 
 Reltime* Reltime_copy(Reltime* dest, const Reltime* src)
 {

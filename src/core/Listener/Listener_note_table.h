@@ -24,6 +24,9 @@
 #define K_LISTENER_NOTE_TABLE_H
 
 
+#include "Listener.h"
+
+
 /**
  * The response method <host_path>/note_table_info contains the following
  * arguments:
@@ -109,12 +112,7 @@
  * <host_path>/note_mod_info and one call of <host_path>/notes_sent (to
  * indicate finished transmission of note table info).
  */
-int Listener_get_note_table(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_note_table;
 
 
 /**
@@ -126,12 +124,7 @@ int Listener_get_note_table(const char* path,
  * \li \c i   The Note table number (0..16).
  * \li \c s   The new name (in UTF-8 format).
  */
-int Listener_set_note_table_name(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_table_name;
 
 
 /**
@@ -143,12 +136,7 @@ int Listener_set_note_table_name(const char* path,
  * \li \c i   The Note table number (0..16).
  * \li \c i   The index of the new reference note.
  */
-int Listener_set_note_table_ref_note(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_table_ref_note;
 
 
 /**
@@ -160,12 +148,7 @@ int Listener_set_note_table_ref_note(const char* path,
  * \li \c i   The Note table number (0..16).
  * \li \c d   The new reference pitch (> 0).
  */
-int Listener_set_note_table_ref_pitch(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_table_ref_pitch;
 
 
 /**
@@ -191,12 +174,7 @@ int Listener_set_note_table_ref_pitch(const char* path,
  *
  * \li \c d   The octave size in cents.
  */
-int Listener_set_note_table_octave_ratio(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_table_octave_ratio;
 
 
 /**
@@ -212,12 +190,7 @@ int Listener_set_note_table_octave_ratio(const char* path,
  * If a new note is created, it will always be placed into the first
  * unoccupied slot in the Note table.
  */
-int Listener_set_note_name(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_name;
 
 
 /**
@@ -244,12 +217,7 @@ int Listener_set_note_name(const char* path,
  *
  * \li \c d   The note ratio in cents.
  */
-int Listener_set_note_ratio(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_note_ratio;
 
 
 /**
@@ -262,12 +230,7 @@ int Listener_set_note_ratio(const char* path,
  * \li \c i   The Note table number (0..16).
  * \li \c i   The note number.
  */
-int Listener_del_note(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_note;
 
 
 /**
@@ -280,12 +243,7 @@ int Listener_del_note(const char* path,
  * \li \c i   The Note table number (0..16).
  * \li \c i   The note number.
  */
-int Listener_ins_note(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_ins_note;
 
 
 /**
@@ -296,12 +254,7 @@ int Listener_ins_note(const char* path,
  * \li \c i   The Song ID.
  * \li \c i   The Note table number (0..16).
  */
-int Listener_del_note_table(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_note_table;
 
 
 #endif // K_LISTENER_NOTE_TABLE_H

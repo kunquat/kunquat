@@ -128,7 +128,6 @@ int Listener_get_pattern(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
@@ -138,35 +137,21 @@ int Listener_get_pattern(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
 	int32_t pat_num = argv[1]->i;
-	if (pat_num < 0 || pat_num >= PATTERNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
-		return 0;
-	}
-	Song* song = player->song;
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
+	Song* song = Player_get_song(lr->player_cur);
 	Pat_table* table = Song_get_pats(song);
 	Pattern* pat = Pat_table_get(table, pat_num);
-	if (!pat_info(lr, player_id, pat_num, pat))
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player->id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -174,105 +159,6 @@ int Listener_get_pattern(const char* path,
 	}
 	return 0;
 }
-
-
-#if 0
-int Listener_get_pats(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-	(void)path;
-	(void)types;
-	(void)argc;
-	(void)msg;
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
-	Pat_table* table = Song_get_pats(song);
-	for (int i = 0; i < PATTERNS_MAX; ++i)
-	{
-		Pattern* pat = Pat_table_get(table, i);
-		if (pat == NULL)
-		{
-			continue;
-		}
-		for (int k = -1; k < 64; ++k)
-		{
-			Column* col = Pattern_global(pat);
-			if (k > -1)
-			{
-				col = Pattern_col(pat, k);
-			}
-			Event* event = Column_get_edit(col, Reltime_init(RELTIME_AUTO));
-			int index = 0;
-			Reltime* prev_time = Reltime_set(RELTIME_AUTO, INT64_MIN, 0);
-			Reltime* time = RELTIME_AUTO;
-			while (event != NULL)
-			{
-				Reltime_copy(time, Event_pos(event));
-				if (Reltime_cmp(prev_time, time) == 0)
-				{
-					++index;
-				}
-				else
-				{
-					index = 0;
-				}
-				Reltime_copy(prev_time, time);
-				if (!event_info(lr, player_id, i, k, index, event))
-				{
-					fprintf(stderr, "Couldn't send the response message\n");
-					return 0;
-				}
-				event = Column_get_next_edit(col);
-			}
-		}
-	}
-	return 0;
-}
-#endif
-
-
-/*
-int Listener_new_pat(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-}
-
-
-int Listener_del_pat(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-}
-*/
 
 
 /*
@@ -303,26 +189,9 @@ static bool check_event_reference(Listener* lr,
 	assert(pat != NULL);
 	assert(col != NULL);
 	assert(pos != NULL);
-	if (types[0] != 'i')
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Song ID is not an integer");
-		return false;
-	}
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return false;
-	}
-	*song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	*song = Player_get_song(lr->player_cur);
 	Pat_table* table = Song_get_pats(*song);
 	int32_t pat_num = argv[1]->i;
 	if (types[1] != 'i' || pat_num < 0 || pat_num >= PATTERNS_MAX)
@@ -475,70 +344,6 @@ static bool check_event_data(Listener* lr,
 			}
 		}
 	}
-#if 0
-	if (global)
-	{
-		switch (event_type)
-		{
-			case EVENT_TYPE_NOTE_ON:
-			case EVENT_TYPE_NOTE_OFF:
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "s",
-						"Event type unsupported by global event channel");
-				return false;
-			default:
-				break;
-		}
-	}
-	else
-	{
-		switch (event_type)
-		{
-			case EVENT_TYPE_NOTE_ON:
-				event_values[0].i = argv[7]->h;
-				if (types[7] != 'h' || event_values[0].i < 0
-						|| event_values[0].i >= NOTE_TABLE_NOTES)
-				{
-					strcpy(lr->method_path + lr->host_path_len, "error");
-					lo_send(lr->host, lr->method_path, "s",
-							"Invalid note value for Note On");
-					return false;
-				}
-				event_values[1].i = argv[8]->h;
-				if (types[8] != 'h' || event_values[1].i < -1
-						|| event_values[1].i >= NOTE_TABLE_NOTE_MODS)
-				{
-					strcpy(lr->method_path + lr->host_path_len, "error");
-					lo_send(lr->host, lr->method_path, "s",
-							"Invalid note modifier for Note On");
-					return false;
-				}
-				event_values[2].i = argv[9]->h;
-				if (types[9] != 'h' || event_values[2].i < NOTE_TABLE_OCTAVE_FIRST
-						|| event_values[2].i > NOTE_TABLE_OCTAVE_LAST)
-				{
-					strcpy(lr->method_path + lr->host_path_len, "error");
-					lo_send(lr->host, lr->method_path, "s",
-							"Invalid octave for Note On");
-					return false;
-				}
-				event_values[3].i = argv[10]->h;
-				if (types[10] != 'h' || event_values[3].i <= 0
-						|| event_values[3].i > INSTRUMENTS_MAX)
-				{
-					strcpy(lr->method_path + lr->host_path_len, "error");
-					lo_send(lr->host, lr->method_path, "s",
-							"Invalid Instrument number for Note On");
-					return false;
-				}
-				break;
-			case EVENT_TYPE_NOTE_OFF:
-				break;
-			default:
-				break;
-		}
-	}
-#endif
 	return true;
 }
 
@@ -571,7 +376,7 @@ int Listener_pat_del_event(const char* path,
 	assert(song != NULL);
 	assert(pat != NULL);
 	assert(col != NULL);
-	int32_t player_id = argv[0]->i;
+	int32_t song_id = argv[0]->i;
 	int32_t pat_num = argv[1]->i;
 	int32_t event_order = argv[5]->i;
 	Event* event = Column_get_edit(col, pos);
@@ -600,13 +405,13 @@ int Listener_pat_del_event(const char* path,
 				"No Event in the given location");
 		return 0;
 	}
-	if (!pat_info(lr, player_id, pat_num, pat))
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -650,7 +455,7 @@ int Listener_pat_mod_event(const char* path,
 	assert(song != NULL);
 	assert(pat != NULL);
 	assert(col != NULL);
-	int32_t player_id = argv[0]->i;
+	int32_t song_id = argv[0]->i;
 	int32_t pat_num = argv[1]->i;
 	int32_t col_num = argv[2]->i;
 	int32_t event_order = argv[5]->i;
@@ -720,13 +525,13 @@ int Listener_pat_mod_event(const char* path,
 		}
 		return 0;
 	}
-	if (!pat_info(lr, player_id, pat_num, pat))
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -770,7 +575,7 @@ int Listener_pat_ins_event(const char* path,
 	assert(song != NULL);
 	assert(pat != NULL);
 	assert(col != NULL);
-	int32_t player_id = argv[0]->i;
+	int32_t song_id = argv[0]->i;
 	int32_t pat_num = argv[1]->i;
 	int32_t col_num = argv[2]->i;
 	int32_t event_order = argv[5]->i;
@@ -803,28 +608,14 @@ int Listener_pat_ins_event(const char* path,
 				"Couldn't allocate memory for new Event");
 		return 0;
 	}
-	if (Column_move(col, event, event_order))
-	{
-		if (!pat_info(lr, player_id, pat_num, pat))
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
-	}
-	if (!pat_info(lr, player_id, pat_num, pat))
+	Column_move(col, event, event_order);
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-#if 0
-	else if (!event_info(lr, player_id, pat_num, col_num, event_order, event))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
-#endif
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -842,7 +633,6 @@ int Listener_pat_del_row(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
@@ -852,60 +642,36 @@ int Listener_pat_del_row(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
 	int32_t pat_num = argv[1]->i;
-	if (pat_num < 0 || pat_num >= PATTERNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
-		return 0;
-	}
-	Song* song = player->song;
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
+	Song* song = Player_get_song(lr->player_cur);
 	Pat_table* table = Song_get_pats(song);
 	Pattern* pat = Pat_table_get(table, pat_num);
 	int32_t col_num = argv[2]->i;
-	if (col_num < 0 || col_num > COLUMNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Column number");
-		return false;
-	}
+	check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
+			"The Column number (%ld)", (long)col_num);
 	Column* col = Pattern_global(pat);
 	if (col_num > 0)
 	{
 		col = Pattern_col(pat, col_num - 1);
 	}
 	int64_t beats = argv[3]->h;
-	int32_t part = argv[4]->i;
-	if (part < 0 || part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid row position");
-		return false;
-	}
-	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, part);
+	int32_t rem = argv[4]->i;
+	check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+			"The row position remainder (%ld)", (long)rem);
+	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
 	if (Column_remove_row(col, pos))
 	{
-		if (!pat_info(lr, player_id, pat_num, pat))
+		if (!pat_info(lr, song_id, pat_num, pat))
 		{
 			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
 		strcpy(lr->method_path + lr->host_path_len, "events_sent");
-		int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+		int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 		if (ret == -1)
 		{
 			fprintf(stderr, "Couldn't send the response message\n");
@@ -924,7 +690,6 @@ int Listener_pat_shift_up(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
@@ -934,69 +699,40 @@ int Listener_pat_shift_up(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	int32_t pat_num = argv[1]->i;
-	if (pat_num < 0 || pat_num >= PATTERNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
-		return 0;
-	}
-	Song* song = player->song;
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
 	Pat_table* table = Song_get_pats(song);
 	Pattern* pat = Pat_table_get(table, pat_num);
 	int32_t col_num = argv[2]->i;
-	if (col_num < 0 || col_num > COLUMNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Column number");
-		return false;
-	}
+	check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
+			"The Column number (%ld)", (long)col_num);
 	Column* col = Pattern_global(pat);
 	if (col_num > 0)
 	{
 		col = Pattern_col(pat, col_num - 1);
 	}
 	int64_t beats = argv[3]->h;
-	int32_t part = argv[4]->i;
-	if (part < 0 || part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid start position for the shift");
-		return false;
-	}
-	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, part);
+	int32_t rem = argv[4]->i;
+	check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+			"The shift position remainder (%ld)", (long)rem);
+	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
 	int64_t len_beats = argv[5]->h;
-	int32_t len_part = argv[6]->i;
-	if (len_part < 0 || len_part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid length of the shift");
-		return false;
-	}
-	Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_part);
+	int32_t len_rem = argv[6]->i;
+	check_cond(lr, len_rem >= 0 && len_rem < RELTIME_FULL_PART,
+			"The shift length remainder (%ld)", (long)len_rem);
+	Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_rem);
 	Column_shift_up(col, pos, len);
-	if (!pat_info(lr, player_id, pat_num, pat))
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -1014,7 +750,6 @@ int Listener_pat_shift_down(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
@@ -1024,69 +759,40 @@ int Listener_pat_shift_down(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	int32_t pat_num = argv[1]->i;
-	if (pat_num < 0 || pat_num >= PATTERNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
-		return 0;
-	}
-	Song* song = player->song;
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
 	Pat_table* table = Song_get_pats(song);
 	Pattern* pat = Pat_table_get(table, pat_num);
 	int32_t col_num = argv[2]->i;
-	if (col_num < 0 || col_num > COLUMNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Column number");
-		return false;
-	}
+	check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
+			"The Column number (%ld)", (long)col_num);
 	Column* col = Pattern_global(pat);
 	if (col_num > 0)
 	{
 		col = Pattern_col(pat, col_num - 1);
 	}
 	int64_t beats = argv[3]->h;
-	int32_t part = argv[4]->i;
-	if (part < 0 || part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid start position for the shift");
-		return false;
-	}
-	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, part);
+	int32_t rem = argv[4]->i;
+	check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+			"The shift position remainder (%ld)", (long)rem);
+	Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
 	int64_t len_beats = argv[5]->h;
-	int32_t len_part = argv[6]->i;
-	if (len_part < 0 || len_part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid length of the shift");
-		return false;
-	}
-	Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_part);
+	int32_t len_rem = argv[6]->i;
+	check_cond(lr, len_rem >= 0 && len_rem < RELTIME_FULL_PART,
+			"The shift length remainder (%ld)", (long)len_rem);
+	Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_rem);
 	Column_shift_down(col, pos, len);
-	if (!pat_info(lr, player_id, pat_num, pat))
+	if (!pat_info(lr, song_id, pat_num, pat))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", player_id, pat_num);
+	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
@@ -1158,8 +864,8 @@ static bool pat_info(Listener* lr,
 		int ret = lo_send(lr->host, lr->method_path, "iihi",
 				song_id,
 				pat_num,
-				pat_len->beats,
-				pat_len->part);
+				Reltime_get_beats(pat_len),
+				Reltime_get_rem(pat_len));
 		if (ret == -1)
 		{
 			return false;

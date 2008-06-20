@@ -95,6 +95,26 @@ Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part);
 
 
 /**
+ * Gets the beat count of a Reltime.
+ *
+ * \param r       The Reltime -- must not be \c NULL.
+ *
+ * \return   The beat count.
+ */
+int64_t Reltime_get_beats(Reltime* r);
+
+
+/**
+ * Gets the remainder part of a Reltime.
+ *
+ * \param r       The Reltime -- must not be \c NULL.
+ *
+ * \return   The remainder part.
+ */
+int32_t Reltime_get_rem(Reltime* r);
+
+
+/**
  * Computes the sum of two Reltime objects.
  *
  * If the beat count overflows during the calculation, the behaviour is

@@ -45,7 +45,6 @@ int Listener_get_orders(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
@@ -56,19 +55,9 @@ int Listener_get_orders(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Order* order = Song_get_order(song);
 	assert(order != NULL);
 	for (uint16_t i = 0; i < SUBSONGS_MAX; ++i)
@@ -77,7 +66,7 @@ int Listener_get_orders(const char* path,
 		{
 			continue;
 		}
-		if (!order_info(lr, player_id, i, order))
+		if (!order_info(lr, song_id, i, order))
 		{
 			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
@@ -95,7 +84,6 @@ int Listener_set_order(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
@@ -106,49 +94,27 @@ int Listener_set_order(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Order* order = Song_get_order(song);
 	assert(order != NULL);
 	int32_t subsong = argv[1]->i;
-	if (subsong < 0 || subsong >= SUBSONGS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
-		return 0;
-	}
+	check_cond(lr, subsong >= 0 && subsong < SUBSONGS_MAX,
+			"The subsong number (%ld)", (long)subsong);
 	int32_t order_index = argv[2]->i;
-	if (order_index < 0 || order_index >= ORDERS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid order number");
-		return 0;
-	}
+	check_cond(lr, order_index >= 0 && order_index < ORDERS_MAX,
+			"The order number (%ld)", (long)order_index);
 	int32_t pattern = argv[3]->i;
-	if ((pattern < 0 || pattern >= PATTERNS_MAX) && pattern != ORDER_NONE)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Pattern number");
-		return 0;
-	}
+	check_cond(lr, (pattern >= 0 && pattern < PATTERNS_MAX) || pattern == ORDER_NONE,
+			"The pattern number (%ld)", (long)pattern);
 	if (!Order_set(order, subsong, order_index, pattern))
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
 		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
 		return 0;
 	}
-	if (!order_info(lr, player_id, subsong, order))
+	if (!order_info(lr, song_id, subsong, order))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -165,7 +131,6 @@ int Listener_ins_order(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
@@ -176,35 +141,17 @@ int Listener_ins_order(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Order* order = Song_get_order(song);
 	assert(order != NULL);
 	int32_t subsong = argv[1]->i;
-	if (subsong < 0 || subsong >= SUBSONGS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
-		return 0;
-	}
+	check_cond(lr, subsong >= 0 && subsong < SUBSONGS_MAX,
+			"The subsong number (%ld)", (long)subsong);
 	int32_t order_index = argv[2]->i;
-	if (order_index < 0 || order_index >= ORDERS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid order number");
-		return 0;
-	}
+	check_cond(lr, order_index >= 0 && order_index < ORDERS_MAX,
+			"The order number (%ld)", (long)order_index);
 	for (int32_t i = ORDERS_MAX - 2; i >= order_index; --i)
 	{
 		int16_t pat = Order_get(order, subsong, i);
@@ -221,7 +168,7 @@ int Listener_ins_order(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
 		return 0;
 	}
-	if (!order_info(lr, player_id, subsong, order))
+	if (!order_info(lr, song_id, subsong, order))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -238,7 +185,6 @@ int Listener_del_order(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
@@ -249,35 +195,17 @@ int Listener_del_order(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
-	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
-		return 0;
-	}
-	Song* song = player->song;
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	Order* order = Song_get_order(song);
 	assert(order != NULL);
 	int32_t subsong = argv[1]->i;
-	if (subsong < 0 || subsong >= SUBSONGS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
-		return 0;
-	}
+	check_cond(lr, subsong >= 0 && subsong < SUBSONGS_MAX,
+			"The subsong number (%ld)", (long)subsong);
 	int32_t order_index = argv[2]->i;
-	if (order_index < 0 || order_index >= ORDERS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid order number");
-		return 0;
-	}
+	check_cond(lr, order_index >= 0 && order_index < ORDERS_MAX,
+			"The order number (%ld)", (long)order_index);
 	for (int32_t i = order_index; i < ORDERS_MAX - 2; ++i)
 	{
 		int32_t pat = Order_get(order, subsong, i + 1);
@@ -294,7 +222,7 @@ int Listener_del_order(const char* path,
 		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
 		return 0;
 	}
-	if (!order_info(lr, player_id, subsong, order))
+	if (!order_info(lr, song_id, subsong, order))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;

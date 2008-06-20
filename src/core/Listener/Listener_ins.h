@@ -24,7 +24,7 @@
 #define K_LISTENER_INS_H
 
 
-#include "lo/lo.h"
+#include "Listener.h"
 
 
 /**
@@ -52,12 +52,7 @@
  * The response consists of one ins_info method call for each existing
  * Instrument.
  */
-int Listener_get_insts(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_insts;
 
 
 /**
@@ -70,12 +65,7 @@ int Listener_get_insts(const char* path,
  *            number will be removed if one exists.
  * \li \c i   The type of the new Instrument.
  */
-int Listener_new_ins(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_new_ins;
 
 
 /**
@@ -87,12 +77,7 @@ int Listener_new_ins(const char* path,
  * \li \c i   The Instrument number (1..255).
  * \li \c s   The name.
  */
-int Listener_ins_set_name(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_ins_set_name;
 
 
 /**
@@ -103,12 +88,7 @@ int Listener_ins_set_name(const char* path,
  * \li \c i   The Song ID.
  * \li \c i   The Instrument number (1..255).
  */
-int Listener_del_ins(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_ins;
 
 
 #endif // K_LISTENER_INS_H

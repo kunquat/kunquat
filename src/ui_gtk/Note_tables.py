@@ -142,6 +142,7 @@ class Note_tables(gtk.HBox):
 		else:
 			pitch = args[4]
 			retuned = args[5]
+		if not self.tables[args[0]].notes: print('note_info')
 		self.tables[args[0]].notes[args[1]] = (args[2], is_ratio, pitch, retuned)
 
 	def note_mod_info(self, path, args, types):

@@ -34,12 +34,7 @@
  * can be referred to as 0-based indexes based on the order they appear on the
  * list.
  */
-int Listener_get_drivers(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_drivers;
 
 
 /**
@@ -48,12 +43,7 @@ int Listener_get_drivers(const char* path,
  * A response message will contain the ID of the active audio driver and the
  * current mixing frequency.
  */
-int Listener_active_driver(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_active_driver;
 
 
 /**
@@ -67,12 +57,7 @@ int Listener_active_driver(const char* path,
  * If initialisation succeeded, the response message contains the mixing
  * frequency. Otherwise, an error message will be sent.
  */
-int Listener_driver_init(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_driver_init;
 
 
 /**
@@ -80,12 +65,7 @@ int Listener_driver_init(const char* path,
  *
  * A response message is a notification "Closed driver #"
  */
-int Listener_driver_close(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_driver_close;
 
 
 #endif // K_LISTENER_DRIVER_H

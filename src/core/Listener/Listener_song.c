@@ -56,12 +56,17 @@ int Listener_new_song(const char* path,
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
-	Listener* l = user_data;
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
 	Player* player = NULL;
 	Song* song = new_Song(2, 128, 16); // TODO: get params from relevant parts of the Listener
 	if (song != NULL)
 	{
-		player = new_Player(l->freq, l->voice_count, song); // TODO: freq
+		player = new_Player(lr->freq, lr->voice_count, song); // TODO: freq
 	}
 	if (player == NULL)
 	{
@@ -69,15 +74,15 @@ int Listener_new_song(const char* path,
 		{
 			del_Song(song);
 		}
-		strcpy(l->method_path + l->host_path_len, "new_song");
-		lo_send(l->host, l->method_path, "s", "Couldn't allocate memory");
+		strcpy(lr->method_path + lr->host_path_len, "new_song");
+		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
 		return 0;
 	}
 	assert(song != NULL);
-	Playlist_ins(l->playlist, player);
-	l->player_cur = player;
-	strcpy(l->method_path + l->host_path_len, "new_song");
-	int ret = lo_send(l->host, l->method_path, "i", player->id);
+	Playlist_ins(lr->playlist, player);
+	lr->player_cur = player;
+	strcpy(lr->method_path + lr->host_path_len, "new_song");
+	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");
@@ -100,26 +105,26 @@ int Listener_get_songs(const char* path,
 	(void)argc;
 	(void)msg;
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	if (l->host == NULL)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
 		return 0;
 	}
-	assert(l->method_path != NULL);
+	assert(lr->method_path != NULL);
 	lo_message m = lo_message_new();
 	if (m == NULL)
 	{
 		fprintf(stderr, "Failed to send the response message\n");
 		return 0;
 	}
-	Player* player = l->playlist->first;
+	Player* player = lr->playlist->first;
 	while (player != NULL)
 	{
 		lo_message_add_int32(m, player->id);
 		player = player->next;
 	}
-	strcpy(l->method_path + l->host_path_len, "songs");
-	int ret = lo_send_message(l->host, l->method_path, m);
+	strcpy(lr->method_path + lr->host_path_len, "songs");
+	int ret = lo_send_message(lr->host, lr->method_path, m);
 	lo_message_free(m);
 	if (ret == -1)
 	{
@@ -138,33 +143,27 @@ int Listener_get_song_info(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* lr = user_data;
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
+	if (lr->host == NULL)
 	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
-	Song* song = player->song;
-	if (!song_info(lr, player_id, song))
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
+	if (!song_info(lr, song_id, song))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	for (int32_t i = 0; i < SUBSONGS_MAX; ++i)
 	{
-		if (!subsong_info(lr, player_id, i, song))
+		if (!subsong_info(lr, song_id, i, song))
 		{
 			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
@@ -182,24 +181,18 @@ int Listener_set_song_title(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* lr = user_data;
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
+	if (lr->host == NULL)
 	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
 	wchar_t title[SONG_NAME_MAX] = { L'\0' };
 	unsigned char* src = (unsigned char*)&argv[1]->s;
 	if (src == NULL)
@@ -215,9 +208,9 @@ int Listener_set_song_title(const char* path,
 		lo_send(lr->host, lr->method_path, "s",
 				"Illegal character sequence in the Song title");
 	}
-	Song* song = player->song;
+	Song* song = Player_get_song(lr->player_cur);
 	Song_set_name(song, title);
-	if (!song_info(lr, player_id, song))
+	if (!song_info(lr, song_id, song))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -234,41 +227,27 @@ int Listener_set_subsong_tempo(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* lr = user_data;
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
+	if (lr->host == NULL)
 	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
-	Song* song = player->song;
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	int32_t subsong = argv[1]->i;
-	if (subsong < 0 || subsong >= SUBSONGS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
-		return 0;
-	}
+	check_cond(lr, subsong >= 0 && subsong < SUBSONGS_MAX,
+			"The subsong number (%ld)", (long)subsong);
 	double tempo = argv[2]->d;
-	if (!isfinite(tempo) || tempo <= 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid tempo");
-		return 0;
-	}
+	check_cond(lr, isfinite(tempo) && tempo > 0,
+			"The tempo (%f)", tempo);
 	Song_set_tempo(song, subsong, tempo);
-	if (!subsong_info(lr, player_id, subsong, song))
+	if (!subsong_info(lr, song_id, subsong, song))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -285,41 +264,27 @@ int Listener_set_subsong_global_vol(const char* path,
 		void* user_data)
 {
 	(void)path;
-	(void)types;
 	(void)argc;
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
 	Listener* lr = user_data;
-	int32_t player_id = argv[0]->i;
-	Player* player = lr->player_cur;
-	if (player == NULL || player->id != player_id)
+	if (lr->host == NULL)
 	{
-		player = Playlist_get(lr->playlist, player_id);
-	}
-	if (player == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Song doesn't exist");
 		return 0;
 	}
-	Song* song = player->song;
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
 	int32_t subsong = argv[1]->i;
-	if (subsong < 0 || subsong >= SUBSONGS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid subsong number");
-		return 0;
-	}
+	check_cond(lr, subsong >= 0 && subsong < SUBSONGS_MAX,
+			"The subsong number (%ld)", (long)subsong);
 	double global_vol = argv[2]->d;
-	if (!isfinite(global_vol) && isinf(global_vol) != -1)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid global volume");
-		return 0;
-	}
+	check_cond(lr, isfinite(global_vol) || isinf(global_vol) == 1,
+			"The global volume (%f)", global_vol);
 	Song_set_global_vol(song, subsong, global_vol);
-	if (!subsong_info(lr, player_id, subsong, song))
+	if (!subsong_info(lr, song_id, subsong, song))
 	{
 		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
@@ -341,24 +306,20 @@ int Listener_del_song(const char* path,
 	(void)msg;
 	assert(argv != NULL);
 	assert(user_data != NULL);
-	Listener* l = user_data;
-	int32_t player_id = argv[0]->i;
-	Player* target = l->player_cur;
-	if (target == NULL || target->id != player_id)
+	Listener* lr = user_data;
+	if (lr->host == NULL)
 	{
-		target = Playlist_get(l->playlist, player_id);
-	}
-	if (target == NULL)
-	{
-		strcpy(l->method_path + l->host_path_len, "del_song");
-		lo_send(l->host, l->method_path, "");
 		return 0;
 	}
-	assert(target->id == player_id);
-	Playlist_remove(l->playlist, target);
-	l->player_cur = l->playlist->first;
-	strcpy(l->method_path + l->host_path_len, "del_song");
-	int ret = lo_send(l->host, l->method_path, "i", player_id);
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Player* target = lr->player_cur;
+	assert(target->id == song_id);
+	Playlist_remove(lr->playlist, target);
+	lr->player_cur = lr->playlist->first;
+	strcpy(lr->method_path + lr->host_path_len, "del_song");
+	int ret = lo_send(lr->host, lr->method_path, "i", song_id);
 	if (ret == -1)
 	{
 		fprintf(stderr, "Failed to send the response message\n");

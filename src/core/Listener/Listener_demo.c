@@ -294,10 +294,6 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Playlist_ins(lr->playlist, player);
-/*	if (lr->driver_id != -1)
-	{
-		Player_set_state(player, PLAY_SONG);
-	} */
 	strcpy(lr->method_path + lr->host_path_len, "new_song");
 	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
 	if (ret == -1)
@@ -305,12 +301,6 @@ int Listener_demo(const char* path,
 		fprintf(stderr, "Failed to send the response message\n");
 		return 0;
 	}
-#if 0
-	lo_arg song_id;
-	song_id.i = player->id;
-	lo_arg* song_id_p = &song_id;
-	Listener_get_pats(path, types, &song_id_p, 1, msg, user_data);
-#endif
 	return 0;
 
 cleanup:

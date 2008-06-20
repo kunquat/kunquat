@@ -37,6 +37,7 @@ class Songs(gtk.Notebook):
 		content = Song.Song(self.engine, self.server, args[0])
 		label = gtk.Label(str(args[0]))
 		self.append_page(content, label)
+		content.request_info()
 		content.show()
 		label.show()
 
@@ -47,6 +48,7 @@ class Songs(gtk.Notebook):
 			content = Song.Song(self.engine, self.server, id)
 			label = gtk.Label(str(id))
 			self.append_page(content, label)
+			content.request_info()
 			content.show()
 			label.show()
 

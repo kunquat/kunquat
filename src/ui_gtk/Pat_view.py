@@ -63,6 +63,7 @@ class Pat_view(gtk.Widget):
 			self.cursor = (self.pdata.len + (0,), self.cursor[1])
 
 	def event_info(self, path, args, types):
+		if not self.pdata: print('event_info')
 		if self.pdata.cols[args[1]] == None:
 			self.pdata.cols[args[1]] = {}
 		self.pdata.cols[args[1]][(args[2], args[3], args[4])] = args[5:]
@@ -755,7 +756,7 @@ class Pat_view(gtk.Widget):
 					time_sub(self.px_time(self.col_font_size), self.view_corner[0]))
 			self.view_corner = (time_sub((0, 0),
 					self.px_time(self.col_font_size)), self.view_corner[1])
-			if not (self.pdata and beat_last > self.pdata.len):
+			if self.pdata and beat_last <= self.pdata.len:
 				beat_last = min(time_add(self.view_corner[0], beat_count), self.pdata.len)
 		if self.cursor[0][:2] > beat_last:
 			diff = time_sub(self.cursor[0][:2], beat_last)
@@ -840,7 +841,7 @@ class Pat_view(gtk.Widget):
 			self.cur_field = 0
 
 	def draw_column(self, cr, num, x, y, height, start, end):
-		if self.pdata.cols[num]:
+		if self.pdata and self.pdata.cols[num]:
 			visible = [(k, v) for (k, v) in self.pdata.cols[num].iteritems()
 					if start <= k[:2] <= end]
 			visible.sort()

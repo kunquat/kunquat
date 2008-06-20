@@ -27,6 +27,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <Voice_pool.h>
 #include <Playlist.h>
@@ -71,8 +72,6 @@ typedef struct Listener
 	/// Current sound driver ID. Negative value implies none.
 	int driver_id;
 
-	/// The Voice pool used for mixing.
-	//Voice_pool* voices;
 	/// Number of Voices.
 	uint16_t voice_count;
 	/// Playback state information.
@@ -82,6 +81,14 @@ typedef struct Listener
 	/// Mixing frequency.
 	uint32_t freq;
 } Listener;
+
+
+typedef int Listener_callback(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data);
 
 
 #define METHOD_PATH_ALLOC(full, path, method) do\
@@ -98,6 +105,137 @@ typedef struct Listener
 
 
 /**
+ * Sends an OSC message and prints a notification on failure.
+ *
+ * \param lr            The Listener -- must not be \c NULL.
+ * \param method_name   The name of the method call -- must not be \c NULL.
+ * \param msg           The liblo message object -- must not be \c NULL.
+ * \param ret           An integer for storing the return value.
+ */
+#define send_msg(lr, method_name, msg, ret) do\
+	{\
+		assert((lr) != NULL);\
+		assert((method_name) != NULL);\
+		assert((msg) != NULL);\
+		strcpy((lr)->method_path + (lr)->host_path_len, (method_name));\
+		(ret) = lo_send_message((lr)->host, (lr)->method_path, (msg));\
+		if ((ret) == -1)\
+		{\
+			fprintf(stderr, "Couldn't send the response message at %s:%d\n",\
+					__FILE__, __LINE__);\
+		}\
+	} while (false)
+
+
+#define msg_alloc_fail() fprintf(stderr, "Couldn't allocate memory for"\
+		" the response message at %s:%d\n", __FILE__, __LINE__)
+
+
+/**
+ * Validates the type of an OSC argument.
+ *
+ * \param lr           The Listener -- must not be \c NULL.
+ * \param actual       The actual type descriptor of the value received.
+ * \param expected     The expected type descriptor.
+ * \param param_name   A human-readable name of the parameter -- must not be
+ *                     \c NULL. This is used in the error message.
+ */
+#define validate_type(lr, actual, expected, param_name) do\
+	{\
+		assert((lr) != NULL);\
+		assert((param_name) != NULL);\
+		if ((actual) != (expected))\
+		{\
+			lo_message msgv_ = lo_message_new();\
+			if (msgv_ == NULL)\
+			{\
+				msg_alloc_fail();\
+				return 0;\
+			}\
+			char err_str_[128] = { '\0' };\
+			snprintf(err_str_, 128, "Invalid type of %s: %c (expected %c)",\
+					(param_name), (actual), (expected));\
+			lo_message_add_string(msgv_, err_str_);\
+			int ret = 0;\
+			send_msg((lr), "error", msgv_, ret);\
+			lo_message_free(msgv_);\
+			return 0;\
+		}\
+	} while (false)
+
+
+/**
+ * Checks a condition.
+ *
+ * \param lr       The Listener -- must not be \c NULL.
+ * \param cond     The condition (a boolean expression) to be checked.
+ * \param format   A human-readable name of the parameter with an initial
+ *                 uppercase letter and the formatting of the values -- must
+ *                 not be \c NULL. This is used in the error message.
+ * \param ...      The checked parameter(s).
+ */
+#define check_cond(lr, cond, format, ...) do\
+	{\
+		assert((lr) != NULL);\
+		assert((format) != NULL);\
+		if (!(cond))\
+		{\
+			lo_message msgc_ = lo_message_new();\
+			if (msgc_ == NULL)\
+			{\
+				msg_alloc_fail();\
+				return 0;\
+			}\
+			char err_strc_[256] = { '\0' };\
+			snprintf(err_strc_, 256, format " does not meet the condition: %s",\
+					__VA_ARGS__, #cond);\
+			lo_message_add_string(msgc_, err_strc_);\
+			int ret = 0;\
+			send_msg((lr), "error", msgc_, ret);\
+			lo_message_free(msgc_);\
+			return 0;\
+		}\
+	} while (false)
+
+
+/**
+ * Gets the Player of the Song with the given ID.
+ *
+ * \param lr        The Listener -- must not be \c NULL.
+ * \param song_id   The ID of the Song.
+ * \param type      The OSC type description received from the caller.
+ */
+#define get_player(lr, song_id, type) do\
+	{\
+		assert((lr) != NULL);\
+		validate_type((lr), (type), 'i', "the Song ID");\
+		Player* player_ = (lr)->player_cur;\
+		if (player_ == NULL || player_->id != (song_id))\
+		{\
+			player_ = Playlist_get((lr)->playlist, (song_id));\
+		}\
+		if (player_ == NULL)\
+		{\
+			lo_message msgp_ = lo_message_new();\
+			if (msgp_ == NULL)\
+			{\
+				msg_alloc_fail();\
+				return 0;\
+			}\
+			lo_message_add_string(msgp_, "Song doesn't exist:");\
+			lo_message_add_int32(msgp_, (song_id));\
+			strcpy((lr)->method_path + (lr)->host_path_len, "error");\
+			int ret = 0;\
+			send_msg(lr, "error", msgp_, ret);\
+			lo_message_free(msgp_);\
+			return 0;\
+		}\
+		(lr)->player_cur = player_;\
+		assert(Player_get_id((lr)->player_cur) == (song_id));\
+	} while (false)
+
+
+/**
  * Registers a host application that uses Kunquat.
  *
  * The following OSC parameters are expected:
@@ -106,56 +244,31 @@ typedef struct Listener
  *
  * The Listener sends a confirmation message to the host on success.
  */
-int Listener_register_host(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_register_host;
 
 
 /**
  * Gets the Kunquat version.
  */
-int Listener_version(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_version;
 
 
 /**
  * Quits Kunquat.
  */
-int Listener_quit(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_quit;
 
 
 /**
  * Shows all the OSC methods of Kunquat.
  */
-int Listener_help(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_help;
 
 
 /**
  * A fallback method. A host, if registered, will be sent a notification.
  */
-int Listener_fallback(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_fallback;
 
 
 /**
@@ -166,12 +279,7 @@ int Listener_fallback(const char* path,
  * \li \c i   The number of Voices. This should be > \c 0 and
  *            <= \c MAX_VOICES.
  */
-int Listener_set_voices(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_voices;
 
 
 #endif // K_LISTENER_H

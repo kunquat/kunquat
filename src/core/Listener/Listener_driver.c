@@ -157,17 +157,9 @@ int Listener_driver_init(const char* path,
 	}
 	assert(lr->method_path != NULL);
 	int32_t driver_id = argv[0]->i;
-	if (driver_id < 0 ||
-			driver_id >= (int32_t)(sizeof(drivers) / sizeof(Driver_info)) - 1)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host,
-				lr->method_path,
-				"si",
-				"Invalid driver ID requested:",
-				driver_id);
-		return 0;
-	}
+	int32_t driver_count = (int32_t)(sizeof(drivers) / sizeof(Driver_info)) - 1;
+	check_cond(lr, driver_id >= 0 && driver_id < driver_count,
+			"The driver ID (%ld)", (long)driver_id);
 	assert(drivers[driver_id].name != NULL);
 	assert(drivers[driver_id].init != NULL);
 	if (lr->driver_id >= 0)

@@ -24,6 +24,9 @@
 #define K_LISTENER_PATTERN_H
 
 
+#include "Listener.h"
+
+
 /**
  * The Pattern part of the Listener will respond to most methods with the
  * response method <host_path>/event_info which contains the following
@@ -51,12 +54,7 @@
  * The response consists of one call of <host_path>/pat_info, zero or more
  * <host_path>/event_info calls and one <host_path>/events_sent call.
  */
-int Listener_get_pattern(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_pattern;
 
 
 /**
@@ -69,12 +67,7 @@ int Listener_get_pattern(const char* path,
  * The response consists of one pat_info method call for each existing
  * Pattern.
  */
-int Listener_get_pats(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_pats;
 
 
 /**
@@ -86,12 +79,7 @@ int Listener_get_pats(const char* path,
  * \li \c i   The Pattern number. An existing Pattern at this location will be
  *            removed.
  */
-int Listener_new_pat(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_new_pat;
 
 
 /**
@@ -109,12 +97,7 @@ int Listener_new_pat(const char* path,
  * \li \c s   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
-int Listener_pat_ins_event(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_ins_event;
 
 
 /**
@@ -132,12 +115,7 @@ int Listener_pat_ins_event(const char* path,
  * \li \c s   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
-int Listener_pat_mod_event(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_mod_event;
 
 
 /**
@@ -153,12 +131,7 @@ int Listener_pat_mod_event(const char* path,
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
  * \li \c i   The (0-based) order of the Event in this location.
  */
-int Listener_pat_del_event(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_del_event;
 
 
 /**
@@ -173,12 +146,7 @@ int Listener_pat_del_event(const char* path,
  * \li \c h   The beat number of the row.
  * \li \c i   The fine-grain position of the row (0..RELTIME_FULL_PART-1)
  */
-int Listener_pat_del_row(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_del_row;
 
 
 /**
@@ -198,12 +166,7 @@ int Listener_pat_del_row(const char* path,
  * \li \c i   The fine-grain position fo the shift length
  *            (0..RELTIME_FULL_PART-1)
  */
-int Listener_pat_shift_up(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_shift_up;
 
 
 /**
@@ -222,12 +185,7 @@ int Listener_pat_shift_up(const char* path,
  * \li \c i   The fine-grain position fo the shift length
  *            (0..RELTIME_FULL_PART-1)
  */
-int Listener_pat_shift_down(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_pat_shift_down;
 
 
 /**
@@ -238,12 +196,7 @@ int Listener_pat_shift_down(const char* path,
  * \li \c i   The Song ID.
  * \li \c i   The Pattern number (0..255).
  */
-int Listener_del_pat(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_pat;
 
 
 #endif // K_LISTENER_PATTERN_H

@@ -24,7 +24,7 @@
 #define K_LISTENER_SONG_H
 
 
-#include "lo/lo.h"
+#include "Listener.h"
 
 
 /**
@@ -47,12 +47,7 @@
  * sent. This ID serves as a reference to the Song. In case of an error one or
  * more strings describing the error are sent.
  */
-int Listener_new_song(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_new_song;
 
 
 /**
@@ -62,12 +57,7 @@ int Listener_new_song(const char* path,
  *
  * The response message contains all the Song IDs.
  */
-int Listener_get_songs(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_songs;
 
 
 /**
@@ -76,12 +66,7 @@ int Listener_get_songs(const char* path,
  *
  * The response method is <host_path>/song_info.
  */
-int Listener_get_song_info(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_get_song_info;
 
 
 /**
@@ -90,12 +75,7 @@ int Listener_get_song_info(const char* path,
  *
  * The response method is <host_path>/song_info.
  */
-int Listener_set_song_title(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_song_title;
 
 
 /**
@@ -107,12 +87,7 @@ int Listener_set_song_title(const char* path,
  * \li \c i   The subsong number.
  * \li \c d   The tempo.
  */
-int Listener_set_subsong_tempo(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_subsong_tempo;
 
 
 /**
@@ -124,12 +99,7 @@ int Listener_set_subsong_tempo(const char* path,
  * \li \c i   The subsong number.
  * \li \c d   The global volume.
  */
-int Listener_set_subsong_global_vol(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_set_subsong_global_vol;
 
 
 /**
@@ -140,12 +110,7 @@ int Listener_set_subsong_global_vol(const char* path,
  * If a Song is deleted, the ID number of the Song is sent. Otherwise no
  * parameters are sent.
  */
-int Listener_del_song(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data);
+Listener_callback Listener_del_song;
 
 
 #endif // K_LISTENER_SONG_H
