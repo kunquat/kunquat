@@ -19,14 +19,18 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import time
+
+
 Import('env')
 
+env_l = env.Clone()
 
-env.Append(CPPPATH = ['#/src/core'])
-env.Append(CPPPATH = ['#/src/core/Listener'])
+env_l.Append(CPPPATH = ['#/src/core'])
+env_l.Append(CPPPATH = ['#/src/core/Listener'])
 
-env.Append(LIBPATH = ['#/src/core'])
-env.Append(LIBS = ['core'])
+env_l.Append(LIBPATH = ['#/src/core'])
+env_l.Append(LIBS = ['core'])
 
 files = [
 	'Listener.c',
@@ -41,6 +45,9 @@ files = [
 	'utf8.c',
 ]
 
-env.Program('kunquatd', files)
+env_l.Append(CCFLAGS = ('-DBUILD_TIME=\'"' +
+		time.strftime('%Y-%m-%d') + '"\'').split(' '))
+
+env_l.Program('kunquatd', files)
 
 

@@ -94,7 +94,7 @@ Listener_callback Listener_new_pat;
  * \li \c h   The beat number of the Event.
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
  * \li \c i   The (0-based) order of the Event in this location.
- * \li \c s   The Event type.
+ * \li \c i   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
 Listener_callback Listener_pat_ins_event;
@@ -112,7 +112,7 @@ Listener_callback Listener_pat_ins_event;
  * \li \c h   The beat number of the Event.
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
  * \li \c i   The (0-based) order of the Event in this location.
- * \li \c s   The Event type.
+ * \li \c i   The Event type.
  * \li        Zero or more additional arguments depending on the Event type.
  */
 Listener_callback Listener_pat_mod_event;

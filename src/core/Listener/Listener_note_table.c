@@ -111,6 +111,45 @@ bool note_mod_info(Listener* lr,
 	} while (false)
 
 
+/**
+ * Sends an empty Note table.
+ * 
+ * \param lr        The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param index     The table index -- must be validated.
+ */
+#define send_empty_table(lr, song_id, index) do\
+	{\
+		assert((lr) != NULL);\
+		assert((index) >= 0);\
+		assert((index) < NOTE_TABLES_MAX);\
+		lo_message me_ = lo_message_new();\
+		if (me_ == NULL)\
+		{\
+			msg_alloc_fail();\
+			return 0;\
+		}\
+		lo_message_add_int32(me_, song_id);\
+		lo_message_add_int32(me_, index);\
+		lo_message_add_string(me_, "");\
+		lo_message_add_int32(me_, 0);\
+		lo_message_add_int32(me_, 0);\
+		lo_message_add_int32(me_, 0);\
+		lo_message_add_int32(me_, 0);\
+		lo_message_add_double(me_, 440);\
+		lo_message_add_true(me_);\
+		lo_message_add_int64(me_, 2);\
+		lo_message_add_int64(me_, 1);\
+		int rete_ = 0;\
+		send_msg((lr), "note_table_info", me_, rete_);\
+		lo_message_free(me_);\
+		if (rete_ == -1)\
+		{\
+			return 0;\
+		}\
+	} while (false)
+
+
 int Listener_get_note_table(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -136,32 +175,20 @@ int Listener_get_note_table(const char* path,
 	get_note_table(table, lr, song, table_index, types[1]);
 	if (table == NULL)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "note_table_info");
-		int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
-				song_id,
-				table_index,
-				"",
-				0, 0, 0, 0,
-				(double)440,
-				(int64_t)2, (int64_t)1);
+		send_empty_table(lr, song_id, table_index);
+		lo_message m = new_msg();
+		lo_message_add_int32(m, song_id);
+		lo_message_add_int32(m, table_index);
+		int ret = 0;
+		send_msg(lr, "notes_sent", m, ret);
+		lo_message_free(m);
 		if (ret == -1)
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
-		strcpy(lr->method_path + lr->host_path_len, "notes_sent");
-		ret = lo_send(lr->host, lr->method_path, "ii", song_id, table_index);
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
 		return 0;
 	}
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -195,17 +222,10 @@ int Listener_set_note_table_name(const char* path,
 	}
 	wchar_t name[NOTE_TABLE_NAME_MAX] = { L'\0' };
 	unsigned char* src = (unsigned char*)&argv[2]->s;
-	if (from_utf8(name, src, NOTE_TABLE_NAME_MAX) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Note table name");
-	}
+	from_utf8_check(lr, name, src, NOTE_TABLE_NAME_MAX,
+			"the name of the Note table");
 	Note_table_set_name(table, name);
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -242,14 +262,15 @@ int Listener_set_note_table_ref_note(const char* path,
 			"The reference note index (%ld)", (long)ref_note_index);
 	if (!Note_table_set_ref_note(table, ref_note_index))
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "si", "No note at index", ref_note_index);
+		lo_message m = new_msg();
+		lo_message_add_string(m, "No note at index");
+		lo_message_add_int32(m, ref_note_index);
+		int ret = 0;
+		send_msg(lr, "error", m, ret);
+		lo_message_free(m);
 		return 0;
 	}
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -285,10 +306,7 @@ int Listener_set_note_table_ref_pitch(const char* path,
 	check_cond(lr, isfinite(ref_pitch) && ref_pitch > 0,
 			"The reference pitch (%f)", ref_pitch);
 	Note_table_set_ref_pitch(table, ref_pitch);
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -310,14 +328,10 @@ int Listener_set_note_table_octave_ratio(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (strcmp(types, "iiThh") != 0
-			&& strcmp(types, "iiTd") != 0
-			&& strcmp(types, "iiFd") != 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "ss", "Invalid type description:", types);
-		return 0;
-	}
+	check_cond(lr, strcmp(types, "iiThh") == 0
+			|| strcmp(types, "iiTd") == 0
+			|| strcmp(types, "iiFd") == 0,
+			"The argument type list (%s)", types);
 	int32_t song_id = argv[0]->i;
 	get_player(lr, song_id, types[0]);
 	Song* song = Player_get_song(lr->player_cur);
@@ -355,10 +369,7 @@ int Listener_set_note_table_octave_ratio(const char* path,
 				"The octave width (%fc)", cents);
 		Note_table_set_octave_ratio_cents(table, cents);
 	}
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -395,12 +406,8 @@ int Listener_set_note_name(const char* path,
 			"The note index (%ld)", (long)note_index);
 	wchar_t name[NOTE_TABLE_NOTE_NAME_MAX] = { L'\0' };
 	unsigned char* src = (unsigned char*)&argv[3]->s;
-	if (from_utf8(name, src, NOTE_TABLE_NOTE_NAME_MAX) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Note table name");
-	}
+	from_utf8_check(lr, name, src, NOTE_TABLE_NOTE_NAME_MAX,
+			"the name of the Note table");
 	Real* ratio = Real_init(REAL_AUTO);
 	if (Note_table_get_note_ratio(table, note_index) != NULL)
 	{
@@ -419,10 +426,7 @@ int Listener_set_note_name(const char* path,
 	{
 		Note_table_set_note(table, note_index, name, ratio);
 	}
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -444,14 +448,10 @@ int Listener_set_note_ratio(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (strcmp(types, "iiiThh") != 0
-			&& strcmp(types, "iiiTd") != 0
-			&& strcmp(types, "iiiFd") != 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "ss", "Invalid type description:", types);
-		return 0;
-	}
+	check_cond(lr, strcmp(types, "iiiThh") == 0
+			|| strcmp(types, "iiiTd") == 0
+			|| strcmp(types, "iiiFd") == 0,
+			"The argument type list (%s)", types);
 	int32_t song_id = argv[0]->i;
 	get_player(lr, song_id, types[0]);
 	Song* song = Player_get_song(lr->player_cur);
@@ -503,10 +503,7 @@ int Listener_set_note_ratio(const char* path,
 				"The note ratio (%fc)", cents);
 		Note_table_set_note_cents(table, note_index, name, cents);
 	}
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -536,24 +533,15 @@ int Listener_del_note(const char* path,
 	get_note_table(table, lr, song, table_index, types[1]);
 	if (table == NULL)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "note_table_info");
-		int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
-				song_id,
-				table_index,
-				"",
-				0, 0, 0, 0,
-				(double)440,
-				(int64_t)2, (int64_t)1);
+		send_empty_table(lr, song_id, table_index);
+		lo_message m = new_msg();
+		lo_message_add_int32(m, song_id);
+		lo_message_add_int32(m, table_index);
+		int ret = 0;
+		send_msg(lr, "notes_sent", m, ret);
+		lo_message_free(m);
 		if (ret == -1)
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
-		strcpy(lr->method_path + lr->host_path_len, "notes_sent");
-		ret = lo_send(lr->host, lr->method_path, "ii", song_id, table_index);
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
 		return 0;
@@ -562,10 +550,7 @@ int Listener_del_note(const char* path,
 	check_cond(lr, note_index >= 0 && note_index < NOTE_TABLE_NOTES,
 			"The note index (%ld)", (long)note_index);
 	Note_table_del_note(table, note_index);
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -604,10 +589,7 @@ int Listener_ins_note(const char* path,
 	swprintf(name, NOTE_TABLE_NOTE_NAME_MAX - 1, L"(%d)", (int)note_index);
 	Real* ratio = Real_init(REAL_AUTO);
 	Note_table_ins_note(table, note_index, name, ratio);
-	if (!note_table_info(lr, song_id, table, table_index))
-	{
-		return 0;
-	}
+	note_table_info(lr, song_id, table, table_index);
 	return 0;
 }
 
@@ -639,26 +621,13 @@ int Listener_del_note_table(const char* path,
 	{
 		Song_remove_notes(song, table_index);
 	}
-	strcpy(lr->method_path + lr->host_path_len, "note_table_info");
-	int ret = lo_send(lr->host, lr->method_path, "iisiiiidThh",
-			song_id,
-			table_index,
-			"",
-			0, 0, 0, 0,
-			(double)440,
-			(int64_t)2, (int64_t)1);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
-	strcpy(lr->method_path + lr->host_path_len, "notes_sent");
-	ret = lo_send(lr->host, lr->method_path, "ii", song_id, table_index);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	send_empty_table(lr, song_id, table_index);
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, table_index);
+	int ret = 0;
+	send_msg(lr, "notes_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -672,17 +641,13 @@ static bool note_table_info(Listener* lr,
 	assert(table != NULL);
 	assert(table_index >= 0);
 	assert(table_index < NOTE_TABLES_MAX);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, table_index);
 	unsigned char mbs[NOTE_TABLE_NAME_MAX * 6] = { '\0' };
 	wchar_t* src = Note_table_get_name(table);
-	if (to_utf8(mbs, src, NOTE_TABLE_NAME_MAX * 6) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Note table name");
-	}
+	to_utf8_check(lr, mbs, src, NOTE_TABLE_NAME_MAX * 6,
+			"the name of the Note table");
 	lo_message_add_string(m, (char*)mbs);
 	lo_message_add_int32(m, Note_table_get_note_count(table));
 	lo_message_add_int32(m, Note_table_get_note_mod_count(table));
@@ -709,19 +674,17 @@ static bool note_table_info(Listener* lr,
 		lo_message_add_false(m);
 		lo_message_add_double(m, oct_cents);
 	}
-	strcpy(lr->method_path + lr->host_path_len, "note_table_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "note_table_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return false;
 	}
 	for (int i = 0; i < Note_table_get_note_count(table); ++i)
 	{
 		if (!note_info(lr, song_id, table, table_index, i))
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return false;
 		}
 	}
@@ -729,15 +692,16 @@ static bool note_table_info(Listener* lr,
 	{
 		if (!note_mod_info(lr, song_id, table, table_index, i))
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return false;
 		}
 	}
-	strcpy(lr->method_path + lr->host_path_len, "notes_sent");
-	ret = lo_send(lr->host, lr->method_path, "ii", song_id, table_index);
+	m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, table_index);
+	send_msg(lr, "notes_sent", m, ret);
+	lo_message_free(m);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return false;
 	}
 	return true;
@@ -756,18 +720,14 @@ static bool note_info(Listener* lr,
 	assert(table_index < NOTE_TABLES_MAX);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTES);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, table_index);
 	lo_message_add_int32(m, index);
 	unsigned char mbs[NOTE_TABLE_NOTE_NAME_MAX * 6] = { '\0' };
 	wchar_t* src = Note_table_get_note_name(table, index);
-	if (to_utf8(mbs, src, NOTE_TABLE_NOTE_NAME_MAX * 6) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Note name");
-	}
+	to_utf8_check(lr, mbs, src, NOTE_TABLE_NOTE_NAME_MAX * 6,
+			"the name of the note");
 	lo_message_add_string(m, (char*)mbs);
 	bool is_ratio = isnan(Note_table_get_note_cents(table, index));
 	if (is_ratio)
@@ -808,8 +768,8 @@ static bool note_info(Listener* lr,
 	{
 		lo_message_add_double(m, Note_table_get_cur_note_cents(table, index));
 	}
-	strcpy(lr->method_path + lr->host_path_len, "note_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "note_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{
@@ -831,18 +791,14 @@ bool note_mod_info(Listener* lr,
 	assert(table_index < NOTE_TABLES_MAX);
 	assert(index >= 0);
 	assert(index < NOTE_TABLE_NOTE_MODS);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, table_index);
 	lo_message_add_int32(m, index);
 	unsigned char mbs[NOTE_TABLE_NOTE_MOD_NAME_MAX * 6] = { '\0' };
 	wchar_t* src = Note_table_get_note_mod_name(table, index);
-	if (to_utf8(mbs, src, NOTE_TABLE_NOTE_MOD_NAME_MAX * 6) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Note modifier name");
-	}
+	to_utf8_check(lr, mbs, src, NOTE_TABLE_NOTE_MOD_NAME_MAX * 6,
+			"the name of the note modifier");
 	lo_message_add_string(m, (char*)mbs);
 	bool is_ratio = isnan(Note_table_get_note_mod_cents(table, index));
 	if (is_ratio)
@@ -865,8 +821,8 @@ bool note_mod_info(Listener* lr,
 		lo_message_add_false(m);
 		lo_message_add_double(m, Note_table_get_note_mod_cents(table, index));
 	}
-	strcpy(lr->method_path + lr->host_path_len, "note_mod_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "note_mod_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{

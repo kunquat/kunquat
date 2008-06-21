@@ -100,7 +100,6 @@ int Listener_get_insts(const char* path,
 		{
 			if (!ins_info(lr, song_id, i, ins))
 			{
-				fprintf(stderr, "Couldn't send the response message\n");
 				return 0;
 			}
 		}
@@ -153,28 +152,20 @@ int Listener_new_ins(const char* path,
 				32); // XXX: get event count from the configuration
 		if (ins == NULL)
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
-			return 0;
+			send_memory_fail(lr, "the new Instrument");
 		}
 		Instrument_set_note_table(ins, Song_get_active_notes(song));
 		if (!Ins_table_set(table, ins_num, ins))
 		{
 			del_Instrument(ins);
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
-			return 0;
+			send_memory_fail(lr, "the new Instrument");
 		}
 	}
 	else
 	{
 		Ins_table_remove(table, ins_num);
 	}
-	if (!ins_info(lr, song_id, ins_num, ins))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	ins_info(lr, song_id, ins_num, ins);
 	return 0;
 }
 
@@ -208,19 +199,11 @@ int Listener_ins_set_name(const char* path,
 	{
 		wchar_t name[INS_NAME_MAX] = { L'\0' };
 		unsigned char* src = (unsigned char*)&argv[2]->s;
-		if (from_utf8(name, src, INS_NAME_MAX) == EILSEQ)
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"Illegal character sequence in the Instrument name");
-		}
+		from_utf8_check(lr, name, src, INS_NAME_MAX,
+				"the name of the Instrument");
 		Instrument_set_name(ins, name);
 	}
-	if (!ins_info(lr, lr->player_cur->id, argv[1]->i, ins))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	ins_info(lr, lr->player_cur->id, argv[1]->i, ins);
 	return 0;
 }
 
@@ -243,26 +226,19 @@ int Listener_del_ins(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (argv[1]->i < 1 || argv[1]->i > INSTRUMENTS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "si", "Invalid Instrument number:", argv[1]->i);
-		return 0;
-	}
+	int32_t ins_num = argv[1]->i;
+	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+			"The Instrument number (%ld)", (long)ins_num);
 	int32_t song_id = argv[0]->i;
 	get_player(lr, song_id, types[0]);
 	Song* song = Player_get_song(lr->player_cur);
 	Ins_table* table = Song_get_insts(song);
 	assert(table != NULL);
-	if (Ins_table_get(table, argv[1]->i) != NULL)
+	if (Ins_table_get(table, ins_num) != NULL)
 	{
-		Ins_table_remove(table, argv[1]->i);
+		Ins_table_remove(table, ins_num);
 	}
-	if (!ins_info(lr, song_id, argv[1]->i, NULL))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	ins_info(lr, song_id, ins_num, NULL);
 	return 0;
 }
 
@@ -293,7 +269,7 @@ static bool ins_info(Listener* lr,
 {
 	assert(lr != NULL);
 	assert(lr->host != NULL);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, ins_num);
 	if (ins != NULL)
@@ -301,12 +277,8 @@ static bool ins_info(Listener* lr,
 		lo_message_add_int32(m, Instrument_get_type(ins));
 		unsigned char mbs[INS_NAME_MAX * 6] = { '\0' };
 		wchar_t* src = Instrument_get_name(ins);
-		if (to_utf8(mbs, src, INS_NAME_MAX * 6) == EILSEQ)
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"Illegal character sequence in the Instrument name");
-		}
+		to_utf8_check(lr, mbs, src, INS_NAME_MAX * 6,
+				"the name of the Instrument");
 		lo_message_add_string(m, (char*)mbs);
 	}
 	else
@@ -314,8 +286,8 @@ static bool ins_info(Listener* lr,
 		lo_message_add_int32(m, INS_TYPE_NONE);
 		lo_message_add_string(m, "");
 	}
-	strcpy(lr->method_path + lr->host_path_len, "ins_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "ins_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{

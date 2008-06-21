@@ -68,7 +68,6 @@ int Listener_get_orders(const char* path,
 		}
 		if (!order_info(lr, song_id, i, order))
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
 	}
@@ -110,15 +109,9 @@ int Listener_set_order(const char* path,
 			"The pattern number (%ld)", (long)pattern);
 	if (!Order_set(order, subsong, order_index, pattern))
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
-		return 0;
+		send_memory_fail(lr, "the new order");
 	}
-	if (!order_info(lr, song_id, subsong, order))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	order_info(lr, song_id, subsong, order);
 	return 0;
 }
 
@@ -157,22 +150,14 @@ int Listener_ins_order(const char* path,
 		int16_t pat = Order_get(order, subsong, i);
 		if (!Order_set(order, subsong, i + 1, pat))
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
-			return 0;
+			send_memory_fail(lr, "the new order");
 		}
 	}
 	if (!Order_set(order, subsong, order_index, ORDER_NONE))
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
-		return 0;
+		send_memory_fail(lr, "the new order");
 	}
-	if (!order_info(lr, song_id, subsong, order))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	order_info(lr, song_id, subsong, order);
 	return 0;
 }
 
@@ -211,22 +196,14 @@ int Listener_del_order(const char* path,
 		int32_t pat = Order_get(order, subsong, i + 1);
 		if (!Order_set(order, subsong, i, pat))
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
-			return 0;
+			send_memory_fail(lr, "the new order");
 		}
 	}
 	if (!Order_set(order, subsong, ORDERS_MAX - 1, ORDER_NONE))
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory for new order");
-		return 0;
+		send_memory_fail(lr, "the new order");
 	}
-	if (!order_info(lr, song_id, subsong, order))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	order_info(lr, song_id, subsong, order);
 	return 0;
 }
 
@@ -240,7 +217,7 @@ static bool order_info(Listener* lr,
 	assert(subsong >= 0);
 	assert(subsong < SUBSONGS_MAX);
 	assert(order != NULL);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, subsong);
 	uint16_t to_be_added = 0;
@@ -259,8 +236,8 @@ static bool order_info(Listener* lr,
 			to_be_added = i + 1;
 		}
 	}
-	strcpy(lr->method_path + lr->host_path_len, "order_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "order_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{

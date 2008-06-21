@@ -32,8 +32,6 @@ import Song
 class Songs(gtk.Notebook):
 
 	def new_song(self, path, args, types):
-		if types[0] == 's':
-			return
 		content = Song.Song(self.engine, self.server, args[0])
 		label = gtk.Label(str(args[0]))
 		self.append_page(content, label)

@@ -147,31 +147,17 @@ int Listener_get_pattern(const char* path,
 	Pattern* pat = Pat_table_get(table, pat_num);
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
-
-/*
- * \li \c i   The Song ID.
- * \li \c i   The Pattern number. A new Pattern will be created if necessary.
- * \li \c i   The Column number -- must be between (0..64). 0 is the global
- *            Event column.
- * \li \c h   The beat number of the Event.
- * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
- * \li \c i   The (0-based) order of the Event in this location.
- * \li \c s   The Event type.
- * \li        Zero or more additional arguments depending on the Event type.
- */
 
 static bool check_event_reference(Listener* lr,
 		const char* types,
@@ -194,78 +180,47 @@ static bool check_event_reference(Listener* lr,
 	*song = Player_get_song(lr->player_cur);
 	Pat_table* table = Song_get_pats(*song);
 	int32_t pat_num = argv[1]->i;
-	if (types[1] != 'i' || pat_num < 0 || pat_num >= PATTERNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Pattern number");
-		return false;
-	}
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
 	*pat = Pat_table_get(table, pat_num);
 	if (*pat == NULL)
 	{
 		if (expect_pat)
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"Couldn't find the Pattern");
+			lo_message m = new_msg();
+			lo_message_add_string(m, "Couldn't find the Pattern");
+			int ret = 0;
+			send_msg(lr, "error", m, ret);
+			lo_message_free(m);
 			return false;
 		}
 		*pat = new_Pattern();
 		if (*pat == NULL)
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"Couldn't allocate memory for new Pattern");
-			return false;
+			send_memory_fail(lr, "the new Pattern");
 		}
 		if (!Pat_table_set(table, pat_num, *pat))
 		{
 			del_Pattern(*pat);
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"Couldn't allocate memory for new Pattern");
-			return false;
+			send_memory_fail(lr, "the new Pattern");
 		}
 	}
 	int32_t col_num = argv[2]->i;
-	if (types[2] != 'i' || col_num < 0 || col_num > COLUMNS_MAX)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Column number");
-		return false;
-	}
+	check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
+			"The Column number (%ld)", (long)col_num);
 	*col = Pattern_global(*pat);
 	if (col_num > 0)
 	{
 		*col = Pattern_col(*pat, col_num - 1);
 	}
 	int64_t beats = argv[3]->h;
-	if (types[3] != 'h')
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid beat number");
-		return false;
-	}
-	int32_t part = argv[4]->i;
-	if (types[4] != 'i' || part < 0 || part >= RELTIME_FULL_PART)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Event position number");
-		return false;
-	}
-	Reltime_set(pos, beats, part);
+	int32_t rem = argv[4]->i;
+	check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+			"The row position remainder (%ld)", (long)rem);
+	Reltime_set(pos, beats, rem);
 	int32_t event_order = argv[5]->i;
-	if (types[5] != 'i' || event_order < 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Event order index");
-		return false;
-	}
+	check_cond(lr, event_order >= 0,
+			"The Event order index (%ld)", (long)event_order);
 	return true;
 }
 
@@ -281,65 +236,53 @@ static bool check_event_data(Listener* lr,
 	assert(types != NULL);
 	assert(argv != NULL);
 	int32_t event_type = argv[6]->i;
-	if (!EVENT_TYPE_IS_VALID(event_type))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Event type");
-		return false;
-	}
-	if (!EVENT_TYPE_IS_GENERAL(event_type)
-			&& (global != EVENT_TYPE_IS_GLOBAL(event_type)))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Event type is unsupported in this channel");
-		return false;
-	}
+	check_cond(lr, EVENT_TYPE_IS_VALID(event_type),
+			"The Event type (%ld)", (long)event_type);
+	check_cond(lr, EVENT_TYPE_IS_GENERAL(event_type)
+			|| (global == EVENT_TYPE_IS_GLOBAL(event_type)),
+			"The Event type (%ld) is unsupported in this channel -- it",
+			(long)event_type);
 	char* type_desc = Event_type_get_field_types(event_type);
-	if (type_desc == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Unused Event type");
-		return false;
-	}
+	check_cond(lr, type_desc != NULL,
+			"The Event type (%ld) is unused -- the type description",
+			(long)event_type);
 	int field_count = strlen(type_desc);
-	if (argc - 7 < field_count)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Not enough Event type fields");
-		return false;
-	}
+	int num_args = argc - 7;
+	check_cond(lr, num_args == field_count,
+			"The number of Event parameters (%d)", num_args);
 	Event_reset(event, event_type);
 	for (int i = 0; i < field_count; ++i)
 	{
-		if ((type_desc[i] == 'i' && types[7 + i] != 'h')
-				|| (type_desc[i] == 'f' && types[7 + i] != 'd'))
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "si",
-					"Invalid type of field", (int32_t)i);
-			return false;
-		}
+		char type = types[7 + i];
 		if (type_desc[i] == 'i')
 		{
-			if (!Event_set_int(event, i, argv[7 + i]->i))
+			check_cond(lr, type == 'h',
+					"The type of the Event field #%d (%c)", i, type);
+			if (!Event_set_int(event, i, argv[7 + i]->h))
 			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "si",
-						"Invalid range of field", (int32_t)i);
+				lo_message m = new_msg();
+				lo_message_add_string(m, "Invalid value of the field");
+				lo_message_add_int32(m, i);
+				lo_message_add_int32(m, argv[7 + i]->h);
+				int ret = 0;
+				send_msg(lr, "error", m, ret);
+				lo_message_free(m);
 				return false;
 			}
 		}
 		else if (type_desc[i] == 'f')
 		{
+			check_cond(lr, type == 'd',
+					"The type of the Event field #%d (%c)", i, type);
 			if (!Event_set_float(event, i, argv[7 + i]->d))
 			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "si",
-						"Invalid range of field", (int32_t)i);
+				lo_message m = new_msg();
+				lo_message_add_string(m, "Invalid value of the field");
+				lo_message_add_int32(m, i);
+				lo_message_add_double(m, argv[7 + i]->d);
+				int ret = 0;
+				send_msg(lr, "error", m, ret);
+				lo_message_free(m);
 				return false;
 			}
 		}
@@ -380,43 +323,27 @@ int Listener_pat_del_event(const char* path,
 	int32_t pat_num = argv[1]->i;
 	int32_t event_order = argv[5]->i;
 	Event* event = Column_get_edit(col, pos);
-	if (event == NULL || Reltime_cmp(pos, Event_pos(event)) != 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"No Event in the given location");
-		return 0;
-	}
+	check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
+			"No Event found -- the Event retrieved (%p)", event);
 	for (int32_t i = 0; i < event_order; ++i)
 	{
 		event = Column_get_next_edit(col);
-		if (event == NULL || Reltime_cmp(pos, Event_pos(event)) != 0)
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"No Event in the given location");
-			return 0;
-		}
+		check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
+				"No Event found -- the Event retrieved (%p)", event);
 	}
-	if (!Column_remove(col, event))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"No Event in the given location");
-		return 0;
-	}
+	bool column_removed = Column_remove(col, event);
+	check_cond(lr, column_removed,
+			"No Event in the given location -- the result (%s)", "false");
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -437,13 +364,8 @@ int Listener_pat_mod_event(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (argc < 7)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Not enough arguments (at least 7 needed)");
-		return 0;
-	}
+	check_cond(lr, strncmp(types, "iiihiii", 7) == 0,
+			"The argument type list (%s)", types);
 	Song* song = NULL;
 	Pattern* pat = NULL;
 	Column* col = NULL;
@@ -460,31 +382,16 @@ int Listener_pat_mod_event(const char* path,
 	int32_t col_num = argv[2]->i;
 	int32_t event_order = argv[5]->i;
 	int32_t event_type = argv[6]->i;
-	if (!EVENT_TYPE_IS_VALID(event_type))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Event type");
-		return 0;
-	}
+	check_cond(lr, EVENT_TYPE_IS_VALID(event_type),
+			"The Event type (%ld)", (long)event_type);
 	Event* event = Column_get_edit(col, pos);
-	if (event == NULL || Reltime_cmp(pos, Event_pos(event)) != 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"No Event in the given location");
-		return 0;
-	}
+	check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
+			"No Event found -- the Event retrieved (%p)", event);
 	for (int32_t i = 0; i < event_order; ++i)
 	{
 		event = Column_get_next_edit(col);
-		if (event == NULL || Reltime_cmp(pos, Event_pos(event)) != 0)
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "s",
-					"No Event in the given location");
-			return 0;
-		}
+		check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
+				"No Event found -- the Event retrieved (%p)", event);
 	}
 	union { int64_t i; double d; } orig_values[EVENT_FIELDS];
 	Event_type orig_type = Event_get_type(event);
@@ -527,16 +434,14 @@ int Listener_pat_mod_event(const char* path,
 	}
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -557,13 +462,8 @@ int Listener_pat_ins_event(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (argc < 7)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Not enough arguments (at least 7 needed)");
-		return 0;
-	}
+	check_cond(lr, strncmp(types, "iiihiii", 7) == 0,
+			"The argument type list (%s)", types);
 	Song* song = NULL;
 	Pattern* pat = NULL;
 	Column* col = NULL;
@@ -580,20 +480,12 @@ int Listener_pat_ins_event(const char* path,
 	int32_t col_num = argv[2]->i;
 	int32_t event_order = argv[5]->i;
 	int32_t event_type = argv[6]->i;
-	if (!EVENT_TYPE_IS_VALID(event_type))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Invalid Event type");
-		return 0;
-	}
+	check_cond(lr, EVENT_TYPE_IS_VALID(event_type),
+			"The Event type (%ld)", (long)event_type);
 	Event* event = new_Event(pos, event_type);
 	if (event == NULL)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Couldn't allocate memory for new Event");
-		return 0;
+		send_memory_fail(lr, "the new Event");
 	}
 	if (!check_event_data(lr, types, argv, argc, col_num == 0, event))
 	{
@@ -603,24 +495,19 @@ int Listener_pat_ins_event(const char* path,
 	if (!Column_ins(col, event))
 	{
 		del_Event(event);
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Couldn't allocate memory for new Event");
-		return 0;
+		send_memory_fail(lr, "the new Event");
 	}
 	Column_move(col, event, event_order);
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -667,16 +554,14 @@ int Listener_pat_del_row(const char* path,
 	{
 		if (!pat_info(lr, song_id, pat_num, pat))
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
-		strcpy(lr->method_path + lr->host_path_len, "events_sent");
-		int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
+		lo_message m = new_msg();
+		lo_message_add_int32(m, song_id);
+		lo_message_add_int32(m, pat_num);
+		int ret = 0;
+		send_msg(lr, "events_sent", m, ret);
+		lo_message_free(m);
 	}
 	return 0;
 }
@@ -728,16 +613,14 @@ int Listener_pat_shift_up(const char* path,
 	Column_shift_up(col, pos, len);
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -788,16 +671,14 @@ int Listener_pat_shift_down(const char* path,
 	Column_shift_down(col, pos, len);
 	if (!pat_info(lr, song_id, pat_num, pat))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "events_sent");
-	int ret = lo_send(lr->host, lr->method_path, "ii", song_id, pat_num);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	int ret = 0;
+	send_msg(lr, "events_sent", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -816,7 +697,7 @@ static bool event_info(Listener* lr,
 	assert(index >= 0);
 	assert(event != NULL);
 	Reltime* pos = Event_pos(event);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, pat_num);
 	lo_message_add_int32(m, ch_num);
@@ -841,8 +722,8 @@ static bool event_info(Listener* lr,
 		default:
 			break;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "event_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "event_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{
@@ -860,12 +741,14 @@ static bool pat_info(Listener* lr,
 	if (pat != NULL)
 	{
 		Reltime* pat_len = Pattern_get_length(pat);
-		strcpy(lr->method_path + lr->host_path_len, "pat_info");
-		int ret = lo_send(lr->host, lr->method_path, "iihi",
-				song_id,
-				pat_num,
-				Reltime_get_beats(pat_len),
-				Reltime_get_rem(pat_len));
+		lo_message m = new_msg();
+		lo_message_add_int32(m, song_id);
+		lo_message_add_int32(m, pat_num);
+		lo_message_add_int64(m, Reltime_get_beats(pat_len));
+		lo_message_add_int32(m, Reltime_get_rem(pat_len));
+		int ret = 0;
+		send_msg(lr, "pat_info", m, ret);
+		lo_message_free(m);
 		if (ret == -1)
 		{
 			return false;
@@ -903,11 +786,14 @@ static bool pat_info(Listener* lr,
 	}
 	else
 	{
-		strcpy(lr->method_path + lr->host_path_len, "pat_info");
-		int ret = lo_send(lr->host, lr->method_path, "iihi",
-				song_id,
-				pat_num,
-				(int64_t)16, (int32_t)0);
+		lo_message m = new_msg();
+		lo_message_add_int32(m, song_id);
+		lo_message_add_int32(m, pat_num);
+		lo_message_add_int64(m, 16);
+		lo_message_add_int32(m, 0);
+		int ret = 0;
+		send_msg(lr, "pat_info", m, ret);
+		lo_message_free(m);
 		if (ret == -1)
 		{
 			return false;

@@ -74,20 +74,16 @@ int Listener_new_song(const char* path,
 		{
 			del_Song(song);
 		}
-		strcpy(lr->method_path + lr->host_path_len, "new_song");
-		lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
-		return 0;
+		send_memory_fail(lr, "the new Song");
 	}
 	assert(song != NULL);
 	Playlist_ins(lr->playlist, player);
 	lr->player_cur = player;
-	strcpy(lr->method_path + lr->host_path_len, "new_song");
-	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Failed to send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, player->id);
+	int ret = 0;
+	send_msg(lr, "new_song", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -111,26 +107,16 @@ int Listener_get_songs(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	lo_message m = lo_message_new();
-	if (m == NULL)
-	{
-		fprintf(stderr, "Failed to send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
 	Player* player = lr->playlist->first;
 	while (player != NULL)
 	{
 		lo_message_add_int32(m, player->id);
 		player = player->next;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "songs");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "songs", m, ret);
 	lo_message_free(m);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Failed to send the response message\n");
-		return 0;
-	}
 	return 0;
 }
 
@@ -158,14 +144,12 @@ int Listener_get_song_info(const char* path,
 	Song* song = Player_get_song(lr->player_cur);
 	if (!song_info(lr, song_id, song))
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return 0;
 	}
 	for (int32_t i = 0; i < SUBSONGS_MAX; ++i)
 	{
 		if (!subsong_info(lr, song_id, i, song))
 		{
-			fprintf(stderr, "Couldn't send the response message\n");
 			return 0;
 		}
 	}
@@ -195,26 +179,11 @@ int Listener_set_song_title(const char* path,
 	get_player(lr, song_id, types[0]);
 	wchar_t title[SONG_NAME_MAX] = { L'\0' };
 	unsigned char* src = (unsigned char*)&argv[1]->s;
-	if (src == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"NULL string passed as the new title");
-		return 0;
-	}
-	if (from_utf8(title, src, SONG_NAME_MAX) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Song title");
-	}
+	check_cond(lr, src != NULL, "The song title (%s)", src);
+	from_utf8_check(lr, title, src, SONG_NAME_MAX, "the Song title");
 	Song* song = Player_get_song(lr->player_cur);
 	Song_set_name(song, title);
-	if (!song_info(lr, song_id, song))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	song_info(lr, song_id, song);
 	return 0;
 }
 
@@ -247,11 +216,7 @@ int Listener_set_subsong_tempo(const char* path,
 	check_cond(lr, isfinite(tempo) && tempo > 0,
 			"The tempo (%f)", tempo);
 	Song_set_tempo(song, subsong, tempo);
-	if (!subsong_info(lr, song_id, subsong, song))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	subsong_info(lr, song_id, subsong, song);
 	return 0;
 }
 
@@ -284,11 +249,7 @@ int Listener_set_subsong_global_vol(const char* path,
 	check_cond(lr, isfinite(global_vol) || isinf(global_vol) == 1,
 			"The global volume (%f)", global_vol);
 	Song_set_global_vol(song, subsong, global_vol);
-	if (!subsong_info(lr, song_id, subsong, song))
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	subsong_info(lr, song_id, subsong, song);
 	return 0;
 }
 
@@ -318,13 +279,11 @@ int Listener_del_song(const char* path,
 	assert(target->id == song_id);
 	Playlist_remove(lr->playlist, target);
 	lr->player_cur = lr->playlist->first;
-	strcpy(lr->method_path + lr->host_path_len, "del_song");
-	int ret = lo_send(lr->host, lr->method_path, "i", song_id);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Failed to send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	int ret = 0;
+	send_msg(lr, "del_song", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -335,21 +294,16 @@ static bool song_info(Listener* lr,
 {
 	assert(lr != NULL);
 	assert(song != NULL);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	unsigned char mbs[SONG_NAME_MAX * 6] = { '\0' };
 	wchar_t* src = Song_get_name(song);
-	if (to_utf8(mbs, src, SONG_NAME_MAX * 6) == EILSEQ)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Illegal character sequence in the Song title");
-	}
+	to_utf8_check(lr, mbs, src, SONG_NAME_MAX * 6, "the Song title");
 	lo_message_add_string(m, (char*)mbs);
 	lo_message_add_double(m, song->mix_vol);
 	lo_message_add_int32(m, song->init_subsong);
-	strcpy(lr->method_path + lr->host_path_len, "song_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "song_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{
@@ -368,15 +322,15 @@ static bool subsong_info(Listener* lr,
 	assert(subsong >= 0);
 	assert(subsong < SUBSONGS_MAX);
 	assert(song != NULL);
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	lo_message_add_int32(m, song_id);
 	lo_message_add_int32(m, subsong);
 	double tempo = Song_get_tempo(song, subsong);
 	double global_vol = Song_get_global_vol(song, subsong);
 	lo_message_add_double(m, tempo);
 	lo_message_add_double(m, global_vol);
-	strcpy(lr->method_path + lr->host_path_len, "subsong_info");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "subsong_info", m, ret);
 	lo_message_free(m);
 	if (ret == -1)
 	{

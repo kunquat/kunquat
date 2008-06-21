@@ -100,8 +100,11 @@ int Listener_play_song(const char* path,
 	get_player(lr, player_id, types[0]);
 	if (lr->driver_id == -1)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "No active driver");
+		lo_message m = new_msg();
+		lo_message_add_string(m, "No active driver");
+		int ret = 0;
+		send_msg(lr, "notify", m, ret);
+		lo_message_free(m);
 		return 0;
 	}
 	Player_play_song(lr->player_cur);
@@ -127,8 +130,11 @@ int Listener_play_subsong(const char* path,
 	get_player(lr, player_id, types[0]);
 	if (lr->driver_id == -1)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "No active driver");
+		lo_message m = new_msg();
+		lo_message_add_string(m, "No active driver");
+		int ret = 0;
+		send_msg(lr, "notify", m, ret);
+		lo_message_free(m);
 		return 0;
 	}
 	int32_t subsong = argv[1]->i;
@@ -158,8 +164,11 @@ int Listener_play_pattern(const char* path,
 	get_player(lr, player_id, types[0]);
 	if (lr->driver_id == -1)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "No active driver");
+		lo_message m = new_msg();
+		lo_message_add_string(m, "No active driver");
+		int ret = 0;
+		send_msg(lr, "notify", m, ret);
+		lo_message_free(m);
 		return 0;
 	}
 	int32_t pat_num = argv[1]->i;
@@ -190,11 +199,10 @@ int Listener_play_event(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	if (argc < 3)
+	check_cond(lr, strncmp("iii", types, 3) == 0,
+			"The argument type list (%s)", types);
+	if (lr->driver_id == -1)
 	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Not enough arguments (at least 3 needed)");
 		return 0;
 	}
 	int32_t player_id = argv[0]->i;
@@ -202,65 +210,54 @@ int Listener_play_event(const char* path,
 	Playdata* play = Player_get_playdata(lr->player_cur);
 	assert(play != NULL);
 	int32_t ch = argv[1]->i;
-	if (types[1] != 'i' || ch < 1 || ch > 64)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Channel number");
-		return 0;
-	}
+	check_cond(lr, ch >= 1 && ch <= 64,
+			"The Channel number (%ld)", (long)ch);
 	--ch;
 	int32_t event_type = argv[2]->i;
-	if (types[2] != 'i' || !EVENT_TYPE_IS_INS(event_type))
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Invalid Event type");
-		return 0;
-	}
+	check_cond(lr, EVENT_TYPE_IS_INS(event_type),
+			"The Event type (%ld)", (long)event_type);
 	char* type_desc = Event_type_get_field_types(event_type);
-	if (type_desc == NULL)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Unused Event type");
-		return 0;
-	}
+	check_cond(lr, type_desc != NULL,
+			"The Event type (%ld) is unused -- the type description",
+			(long)event_type);
 	int field_count = strlen(type_desc);
-	if (argc - 3 < field_count)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s",
-				"Not enough Event type fields");
-		return 0;
-	}
+	int num_args = argc - 3;
+	check_cond(lr, num_args == field_count,
+			"The number of Event parameters (%d)", num_args);
 	Event* event = play->channels[ch]->single;
 	Event_reset(event, event_type);
 	for (int i = 0; i < field_count; ++i)
 	{
-		if ((type_desc[i] == 'i' && types[3 + i] != 'h')
-				|| (type_desc[i] == 'f' && types[3 + i] != 'd'))
-		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host, lr->method_path, "si",
-					"Invalid type of field", (int32_t)i);
-			return 0;
-		}
+		char type = types[3 + i];
 		if (type_desc[i] == 'i')
 		{
-			if (!Event_set_int(event, i, argv[3 + i]->i))
+			check_cond(lr, type == 'h',
+					"The type of the Event field #%d (%c)", i, type);
+			if (!Event_set_int(event, i, argv[3 + i]->h))
 			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "si",
-						"Invalid range of field", (int32_t)i);
+				lo_message m = new_msg();
+				lo_message_add_string(m, "Invalid value of the field");
+				lo_message_add_int32(m, i);
+				lo_message_add_int32(m, argv[3 + i]->h);
+				int ret = 0;
+				send_msg(lr, "error", m, ret);
+				lo_message_free(m);
 				return 0;
 			}
 		}
 		else if (type_desc[i] == 'f')
 		{
+			check_cond(lr, type == 'd',
+					"The type of the Event field #%d (%c)", i, type);
 			if (!Event_set_float(event, i, argv[3 + i]->d))
 			{
-				strcpy(lr->method_path + lr->host_path_len, "error");
-				lo_send(lr->host, lr->method_path, "si",
-						"Invalid range of field", (int32_t)i);
+				lo_message m = new_msg();
+				lo_message_add_string(m, "Invalid value of the field");
+				lo_message_add_int32(m, i);
+				lo_message_add_double(m, argv[3 + i]->d);
+				int ret = 0;
+				send_msg(lr, "error", m, ret);
+				lo_message_free(m);
 				return 0;
 			}
 		}
@@ -278,10 +275,14 @@ static bool player_state(Listener* lr,
 {
 	assert(lr != NULL);
 	assert(state != NULL);
-	strcpy(lr->method_path + lr->host_path_len, "player_state");
-	if (lo_send(lr->host, lr->method_path, "is", song_id, state) == -1)
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_string(m, state);
+	int ret = 0;
+	send_msg(lr, "player_state", m, ret);
+	lo_message_free(m);
+	if (ret == -1)
 	{
-		fprintf(stderr, "Couldn't send the response message\n");
 		return false;
 	}
 	return true;

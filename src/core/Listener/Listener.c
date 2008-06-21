@@ -145,8 +145,8 @@ void Listener_error(int num, const char* msg, const char* where);
 
 int main(void)
 {
-	Listener* l = Listener_init(&(Listener){ .done = false });
-	if (l == NULL)
+	Listener* lr = Listener_init(&(Listener){ .done = false });
+	if (lr == NULL)
 	{
 		exit(LISTENER_ERROR_CREATE);
 	}
@@ -154,23 +154,23 @@ int main(void)
 	{
 		fd_set rfds;
 		FD_ZERO(&rfds);
-		FD_SET(l->lo_fd, &rfds);
-		int ret = select(l->lo_fd + 1, &rfds, NULL, NULL, NULL);
+		FD_SET(lr->lo_fd, &rfds);
+		int ret = select(lr->lo_fd + 1, &rfds, NULL, NULL, NULL);
 		if (ret == -1)
 		{
-			Listener_uninit(l);
+			Listener_uninit(lr);
 			fprintf(stderr, "select() error\n");
 			exit(LISTENER_ERROR_SELECT);
 		}
 		else if (ret > 0)
 		{
-			if (FD_ISSET(l->lo_fd, &rfds))
+			if (FD_ISSET(lr->lo_fd, &rfds))
 			{
-				lo_server_recv_noblock(l->s, 0);
+				lo_server_recv_noblock(lr->s, 0);
 			}
 		}
-	} while (!l->done);
-	Listener_uninit(l);
+	} while (!lr->done);
+	Listener_uninit(lr);
 	exit(LISTENER_ERROR_NONE);
 }
 
@@ -339,11 +339,18 @@ int Listener_register_host(const char* path,
 		goto cleanup;
 	}
 	strcpy(lr->method_path, lr->host_path);
-	strcpy(lr->method_path + lr->host_path_len, "notify");
-	int ret = lo_send(lr->host, lr->method_path, "s", "Hello");
+	lo_message m = lo_message_new();
+	if (m == NULL)
+	{
+		msg_alloc_fail();
+		goto cleanup;
+	}
+	lo_message_add_string(m, "Hello");
+	int ret = 0;
+	send_msg(lr, "notify", m, ret);
+	lo_message_free(m);
 	if (ret == -1)
 	{
-		fprintf(stderr, "Couldn't send the confirmation message\n");
 		goto cleanup;
 	}
 	return 0;
@@ -398,18 +405,17 @@ int Listener_version(const char* path,
 	{
 		return 0;
 	}
-	strcpy(lr->method_path + lr->host_path_len, "version");
-	int ret = lo_send(lr->host,
-			lr->method_path,
-			"iii",
-			(int32_t)KUNQUAT_VERSION_MAJOR,
-			(int32_t)KUNQUAT_VERSION_MINOR,
-			(int32_t)KUNQUAT_VERSION_PATCH);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send version information\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	char ver_str[32] = { '\0' };
+	snprintf(ver_str, 32, "%d.%d.%d",
+			KUNQUAT_VERSION_MAJOR,
+			KUNQUAT_VERSION_MINOR,
+			KUNQUAT_VERSION_PATCH);
+	lo_message_add_string(m, ver_str);
+	lo_message_add_string(m, BUILD_TIME);
+	int ret = 0;
+	send_msg(lr, "version", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -441,8 +447,14 @@ int Listener_quit(const char* path,
 	if (lr->host != NULL)
 	{
 		assert(lr->method_path != NULL);
-		strcpy(lr->method_path + lr->host_path_len, "notify");
-		lo_send(lr->host, lr->method_path, "s", "Bye");
+		lo_message m = lo_message_new();
+		if (m != NULL)
+		{
+			lo_message_add_string(m, "Bye");
+			int ret = 0;
+			send_msg(lr, "notify", m, ret);
+			lo_message_free(m);
+		}
 	}
 	lr->done = true;
 	return 0;
@@ -467,19 +479,14 @@ int Listener_help(const char* path,
 	{
 		return 0;
 	}
-	lo_message m = lo_message_new();
+	lo_message m = new_msg();
 	for (int i = 0; methods[i].path != NULL; ++i)
 	{
 		lo_message_add_string(m, methods[i].path);
 	}
-	strcpy(lr->method_path + lr->host_path_len, "notify");
-	int ret = lo_send_message(lr->host, lr->method_path, m);
+	int ret = 0;
+	send_msg(lr, "notify", m, ret);
 	lo_message_free(m);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send help\n");
-		return 0;
-	}
 	return 0;
 }
 
@@ -501,13 +508,13 @@ int Listener_fallback(const char* path,
 		return 0;
 	}
 	assert(lr->method_path != NULL);
-	strcpy(lr->method_path + lr->host_path_len, "notify");
-	int ret = lo_send(lr->host, lr->method_path, "sss", "Unrecognised command:", path, types);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Couldn't send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_string(m, "Unrecognised command:");
+	lo_message_add_string(m, path);
+	lo_message_add_string(m, types);
+	int ret = 0;
+	send_msg(lr, "notify", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 
@@ -531,44 +538,25 @@ int Listener_set_voices(const char* path,
 	}
 	assert(lr->method_path != NULL);
 	int32_t voices = argv[0]->i;
-	if (voices <= 0 || voices > MAX_VOICES)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host,
-				lr->method_path,
-				"si",
-				"Invalid number of Voices requested:",
-				voices);
-		return 0;
-	}
+	check_cond(lr, voices > 0 && voices <= MAX_VOICES,
+			"The number of Voices (%ld)", (long)voices);
 	lr->voice_count = (uint16_t)voices;
 	Player* player = lr->playlist->first;
-	int32_t fail_count = 0;
 	while (player != NULL)
 	{
 		if (!Voice_pool_resize(player->voices, voices))
 		{
-			strcpy(lr->method_path + lr->host_path_len, "error");
-			lo_send(lr->host,
-					lr->method_path,
-					"si",
-					"Couldn't allocate memory for Voices of Song",
-					player->id);
-			++fail_count;
+			send_memory_fail(lr, "the Voices of the Song");
 		}
 		player = player->next;
 	}
-	if (fail_count == 0)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "notify");
-		int ret = lo_send(lr->host, lr->method_path, "sis",
-				"Allocated", (int32_t)voices, "Voices");
-		if (ret == -1)
-		{
-			fprintf(stderr, "Couldn't send the response message\n");
-			return 0;
-		}
-	}
+	lo_message m = new_msg();
+	lo_message_add_string(m, "Allocated");
+	lo_message_add_int32(m, voices);
+	lo_message_add_string(m, "Voices");
+	int ret = 0;
+	send_msg(lr, "notify", m, ret);
+	lo_message_free(m);
 	return 0;
 }
 

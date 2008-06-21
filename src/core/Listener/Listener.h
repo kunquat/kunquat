@@ -31,6 +31,7 @@
 
 #include <Voice_pool.h>
 #include <Playlist.h>
+#include "utf8.h"
 
 #include "lo/lo.h"
 
@@ -129,6 +130,47 @@ typedef int Listener_callback(const char* path,
 
 #define msg_alloc_fail() fprintf(stderr, "Couldn't allocate memory for"\
 		" the response message at %s:%d\n", __FILE__, __LINE__)
+
+
+/**
+ * Sends a message reporting that kunquat has run out of memory and gives up.
+ *
+ * \param lr     The Listener -- must not be \c NULL.
+ * \param desc   Textual description of the object for which kunquat couldn't
+ *               allocate memory -- must not be \c NULL.
+ */
+#define send_memory_fail(lr, desc) do\
+	{\
+		assert((lr) != NULL);\
+		assert((desc) != NULL);\
+		lo_message mm_ = lo_message_new();\
+		if (mm_ == NULL)\
+		{\
+			msg_alloc_fail();\
+			return 0;\
+		}\
+		lo_message_add_string(mm_, "Couldn't allocate memory for");\
+		lo_message_add_string(mm_, (desc));\
+		int ret = 0;\
+		send_msg((lr), "error", mm_, ret);\
+		lo_message_free(mm_);\
+		return 0;\
+	} while (false)
+
+
+/**
+ * Creates a liblo message. Assumes that the message is stored into the
+ * variable \a m. It expands into two statements so it must always be
+ * surrounded by braces if used inside a loop or conditional statement.
+ */
+#define new_msg() lo_message_new(); do\
+	{\
+		if (m == NULL)\
+		{\
+			msg_alloc_fail();\
+			return 0;\
+		}\
+	} while (false)
 
 
 /**
@@ -233,6 +275,71 @@ typedef int Listener_callback(const char* path,
 		(lr)->player_cur = player_;\
 		assert(Player_get_id((lr)->player_cur) == (song_id));\
 	} while (false)
+
+
+/**
+ * Encodes a string to UTF-8 and notifies in the case of illegal characters.
+ *
+ * \param lr     The Listener -- must not be \c NULL.
+ * \param mbs    The target string -- must not be \c NULL.
+ * \param src    The wide-character source string -- must not be \c NULL.
+ * \param len    The maximum number of characters to be written.
+ * \param desc   A description of the string -- must not be \c NULL.
+ */
+#define to_utf8_check(lr, mbs, src, len, desc) do\
+	{\
+		assert((lr) != NULL);\
+		assert((mbs) != NULL);\
+		assert((src) != NULL);\
+		assert((desc) != NULL);\
+		if (to_utf8((mbs), (src), (len)) == EILSEQ)\
+		{\
+			lo_message msgu_ = lo_message_new();\
+			if (msgu_ == NULL)\
+			{\
+				msg_alloc_fail();\
+			}\
+			char err_stru_[128] = { '\0' };\
+			snprintf(err_stru_, 128, "Illegal characters in %s", (desc));\
+			lo_message_add_string(msgu_, err_stru_);\
+			int ret = 0;\
+			send_msg(lr, "error", msgu_, ret);\
+			lo_message_free(msgu_);\
+		}\
+	} while (false)
+
+
+/**
+ * Decodes a string from UTF-8 and notifies in the case of illegal characters.
+ *
+ * \param lr     The Listener -- must not be \c NULL.
+ * \param wcs    The target string -- must not be \c NULL.
+ * \param src    The UTF-8 source string -- must not be \c NULL.
+ * \param len    The maximum number of characters to be written.
+ * \param desc   A description of the string -- must not be \c NULL.
+ */
+#define from_utf8_check(lr, wcs, src, len, desc) do\
+	{\
+		assert((lr) != NULL);\
+		assert((wcs) != NULL);\
+		assert((src) != NULL);\
+		assert((desc) != NULL);\
+		if (from_utf8((wcs), (src), (len)) == EILSEQ)\
+		{\
+			lo_message msgu_ = lo_message_new();\
+			if (msgu_ == NULL)\
+			{\
+				msg_alloc_fail();\
+			}\
+			char err_stru_[128] = { '\0' };\
+			snprintf(err_stru_, 128, "Illegal character sequence in %s",\
+					(desc));\
+			lo_message_add_string(msgu_, err_stru_);\
+			int ret = 0;\
+			send_msg(lr, "error", msgu_, ret);\
+			lo_message_free(msgu_);\
+		}\
+	} while(false)
 
 
 /**

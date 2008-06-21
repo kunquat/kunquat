@@ -58,6 +58,8 @@ class Instruments(gtk.HBox):
 
 	def select_ins(self, selection):
 		_, cur = selection.get_selected_rows()
+		if cur == []:
+			return
 		self.cur_index = cur[0][0] + 1
 		self.set_details(cur[0][0])
 

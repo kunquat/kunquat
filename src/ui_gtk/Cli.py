@@ -69,6 +69,14 @@ class Cli(gtk.VBox):
 			out = '<kunquat> ' + out
 			gobject.idle_add(self.update_history, out)
 
+	def error(self, path, args):
+		out = 'Error: ' + ' '.join([str(a) for a in args])
+		self.reply.pop(0)
+		self.reply.push(0, out)
+		if self.history:
+			out = '<kunquat> ' + out
+			gobject.idle_add(self.update_history, out)
+
 	def fallback(self, path, args, types):
 		out = '<kunquat> ' + path + ' ' + ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
 		if self.history:
@@ -82,6 +90,7 @@ class Cli(gtk.VBox):
 		self.server = server
 
 		self.server.add_method('/kunquat_gtk/notify', None, self.notify)
+		self.server.add_method('/kunquat_gtk/error', None, self.error)
 		self.server.add_method(None, None, self.fallback)
 
 		gtk.VBox.__init__(self)

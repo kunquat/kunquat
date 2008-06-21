@@ -294,13 +294,11 @@ int Listener_demo(const char* path,
 		goto cleanup;
 	}
 	Playlist_ins(lr->playlist, player);
-	strcpy(lr->method_path + lr->host_path_len, "new_song");
-	int ret = lo_send(lr->host, lr->method_path, "i", player->id);
-	if (ret == -1)
-	{
-		fprintf(stderr, "Failed to send the response message\n");
-		return 0;
-	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, player->id);
+	int ret = 0;
+	send_msg(lr, "new_song", m, ret);
+	lo_message_free(m);
 	return 0;
 
 cleanup:
@@ -313,8 +311,7 @@ cleanup:
 	{
 		del_Song(song);
 	}
-	strcpy(lr->method_path + lr->host_path_len, "error");
-	lo_send(lr->host, lr->method_path, "s", "Couldn't allocate memory");
+	send_memory_fail(lr, "the demo");
 	return 0;
 }
 
