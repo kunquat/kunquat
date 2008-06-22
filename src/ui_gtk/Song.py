@@ -97,7 +97,7 @@ class Song(gtk.VBox):
 	def player_state(self, path, args, types):
 		pass
 
-	def set_play(self, button):
+	def set_play_subsong(self, button):
 		liblo.send(self.engine, '/kunquat/play_subsong',
 				self.song_id,
 				self.cur_subsong)
@@ -140,8 +140,6 @@ class Song(gtk.VBox):
 
 		self.user_set_tempo = False
 
-		play_button = gtk.Button(' Play ')
-		play_button.connect('clicked', self.set_play)
 		stop_button = gtk.Button(' Stop ')
 		stop_button.connect('clicked', self.set_stop)
 
@@ -149,8 +147,6 @@ class Song(gtk.VBox):
 		label = gtk.Label('Title:')
 		self.title = gtk.Entry(SONG_TITLE_MAX)
 		self.title_handler = self.title.connect('changed', self.title_entry)
-		info_bar.pack_start(play_button, False, False)
-		play_button.show()
 		info_bar.pack_start(stop_button, False, False)
 		stop_button.show()
 		info_bar.pack_start(label, False, False)
@@ -162,6 +158,10 @@ class Song(gtk.VBox):
 		info_bar.show()
 
 		subsong_bar = gtk.HBox()
+		play_button = gtk.Button(' Play ')
+		play_button.connect('clicked', self.set_play_subsong)
+		subsong_bar.pack_start(play_button, False, False)
+		play_button.show()
 		label = gtk.Label('Subsong:')
 		subsong_bar.pack_start(label, False, False)
 		label.show()

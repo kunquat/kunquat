@@ -28,12 +28,23 @@
 
 
 /**
+ * The response method <host_path>/pat_info contains the following
+ * arguments:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number (0..PATTERNS_MAX-1).
+ * \li \c h   The beat count of the Pattern length.
+ * \li \c i   The remainder of the Pattern length.
+ */
+
+
+/**
  * The Pattern part of the Listener will respond to most methods with the
  * response method <host_path>/event_info which contains the following
  * arguments if the host call has succeeded:
  *
  * \li \c i   The Song ID.
- * \li \c i   The Pattern number (0..255).
+ * \li \c i   The Pattern number (0..PATTERNS_MAX-1).
  * \li \c i   The Column number (0..64). 0 is the global Event column.
  * \li \c h   The beat number of the Event.
  * \li \c i   The fine-grain position of the Event (0..RELTIME_FULL_PART-1)
@@ -80,6 +91,22 @@ Listener_callback Listener_get_pats;
  *            removed.
  */
 Listener_callback Listener_new_pat;
+
+
+/**
+ * Sets the length of the Pattern.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Pattern number. A new Pattern will be created if necessary.
+ * \li \c h   The number of whole beats in the Pattern.
+ * \li \c i   The remainder of the length.
+ *
+ * The response method is <host_path>/pat_meta which contains the same
+ * arguments.
+ */
+Listener_callback Listener_set_pat_len;
 
 
 /**

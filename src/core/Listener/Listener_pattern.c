@@ -159,6 +159,63 @@ int Listener_get_pattern(const char* path,
 }
 
 
+int Listener_set_pat_len(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	int32_t pat_num = argv[1]->i;
+	check_cond(lr, pat_num >= 0 && pat_num < PATTERNS_MAX,
+			"The Pattern number (%ld)", (long)pat_num);
+	Song* song = Player_get_song(lr->player_cur);
+	Pat_table* table = Song_get_pats(song);
+	Pattern* pat = Pat_table_get(table, pat_num);
+	if (pat == NULL)
+	{
+		pat = new_Pattern();
+		if (pat == NULL)
+		{
+			send_memory_fail(lr, "the new Pattern");
+		}
+		if (!Pat_table_set(table, pat_num, pat))
+		{
+			del_Pattern(pat);
+			send_memory_fail(lr, "the new Pattern");
+		}
+		assert(pat != NULL);
+	}
+	int64_t beats = argv[2]->h;
+	int32_t rem = argv[3]->i;
+	check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+			"The Pattern length remainder (%ld)", (long)rem);
+	Reltime* len = Reltime_set(RELTIME_AUTO, beats, rem);
+	Pattern_set_length(pat, len);
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, pat_num);
+	lo_message_add_int64(m, beats);
+	lo_message_add_int32(m, rem);
+	int ret = 0;
+	send_msg(lr, "pat_meta", m, ret);
+	lo_message_free(m);
+	return 0;
+}
+
+
 static bool check_event_reference(Listener* lr,
 		const char* types,
 		lo_arg** argv,

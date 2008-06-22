@@ -58,9 +58,13 @@ class Pat_view(gtk.Widget):
 		self.subsong = subsong
 
 	def pat_info(self, path, args, types):
-		self.pdata = Pat_info(args[0], (args[1], args[2]))
+		if 'pat_info' in path:
+			self.pdata = Pat_info(args[0], (args[1], args[2]))
 		if self.cursor[0][:2] > self.pdata.len:
 			self.cursor = (self.pdata.len + (0,), self.cursor[1])
+		if 'pat_meta' in path:
+			self.pdata.len = (args[1], args[2])
+			self.queue_draw()
 
 	def event_info(self, path, args, types):
 		if not self.pdata: print('event_info')

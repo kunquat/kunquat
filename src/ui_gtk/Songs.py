@@ -169,6 +169,7 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/order_info', None, self.order_info)
 		self.server.add_method('/kunquat_gtk/ins_info', None, self.ins_info)
 		self.server.add_method('/kunquat_gtk/pat_info', 'iihi', self.pat_info)
+		self.server.add_method('/kunquat_gtk/pat_meta', 'iihi', self.pat_info)
 		self.server.add_method('/kunquat_gtk/event_info', None, self.event_info)
 		self.server.add_method('/kunquat_gtk/events_sent', 'ii', self.events_sent)
 		self.server.add_method('/kunquat_gtk/note_table_info', None, self.note_table_info)

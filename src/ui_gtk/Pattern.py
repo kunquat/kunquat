@@ -28,7 +28,7 @@ import liblo
 
 from Pat_view import Pat_view
 
-from Pat_helper import PATTERNS
+from Pat_helper import PATTERNS, RELTIME_FULL_PART
 
 
 class Pattern(gtk.VBox):
@@ -42,6 +42,13 @@ class Pattern(gtk.VBox):
 	def pat_info(self, path, args, types):
 		self.pat_view.pat_info(path, args, types)
 		self.pat_spin.set_value(args[0])
+		if not self.user_set_len:
+			self.len_spin.get_adjustment().handler_block(self.hlen)
+			self.len_biased = 10000 * args[1] + (args[2] * 10000 / RELTIME_FULL_PART)
+			self.len_spin.set_value(float(self.len_biased) / 10000)
+			self.len_spin.get_adjustment().handler_unblock(self.hlen)
+		else:
+			self.user_set_len = False
 
 	def event_info(self, path, args, types):
 		self.pat_view.event_info(path, args, types)
@@ -67,6 +74,17 @@ class Pattern(gtk.VBox):
 	def pat_changed(self, adj):
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, adj.value)
 
+	def len_changed(self, adj):
+		self.user_set_len = True
+		self.len_biased = long(round(adj.get_value() * 10000))
+		beats = self.len_biased // 10000
+		rem = int((self.len_biased * RELTIME_FULL_PART // 10000) % RELTIME_FULL_PART)
+		liblo.send(self.engine, '/kunquat/set_pat_len',
+				self.song_id,
+				int(self.pat_spin.get_value()),
+				beats,
+				rem)
+
 	def octave_changed(self, adj):
 		self.pat_view.set_octave(int(adj.get_value()))
 
@@ -80,18 +98,33 @@ class Pattern(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
+		self.user_set_len = False
+		self.len_biased = 160000
+
 		hb = gtk.HBox()
+
+		label = gtk.Label('Pattern:')
+		hb.pack_start(label, False, False)
+		label.show()
 
 		adj = gtk.Adjustment(0, 0, PATTERNS - 1, 1)
 		self.pat_spin = gtk.SpinButton(adj)
 		adj.connect('value-changed', self.pat_changed)
-		hb.pack_end(self.pat_spin, False, False)
+		hb.pack_start(self.pat_spin, False, False)
 		self.pat_spin.show()
-		
-		label = gtk.Label('Pattern:')
-		hb.pack_end(label, False, False)
+
+		label = gtk.Label('Length:')
+		hb.pack_start(label, False, False)
 		label.show()
 
+		len_adj = gtk.Adjustment(16, 0, 65536, 0.0001, 0.1)
+		self.len_spin = gtk.SpinButton(len_adj, digits=4)
+		self.len_spin.set_snap_to_ticks(True)
+		self.len_spin.set_numeric(True)
+		self.hlen = len_adj.connect('value-changed', self.len_changed)
+		hb.pack_start(self.len_spin, False, False)
+		self.len_spin.show()
+		
 		oct_adj = gtk.Adjustment(4, -3, 0xc, 1)
 		self.octave_spin = gtk.SpinButton(oct_adj)
 		oct_adj.connect('value-changed', self.octave_changed)
