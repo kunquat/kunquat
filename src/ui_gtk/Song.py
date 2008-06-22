@@ -68,6 +68,7 @@ class Song(gtk.VBox):
 
 	def ins_info(self, path, args, types):
 		self.instruments.ins_info(path, args, types)
+		self.pattern.ins_info(path, args, types)
 
 	def pat_info(self, path, args, types):
 		self.pattern.pat_info(path, args, types)

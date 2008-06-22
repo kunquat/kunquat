@@ -71,6 +71,9 @@ class Pattern(gtk.VBox):
 	def notes_sent(self, path, args, types):
 		self.pat_view.notes_sent(path, args, types)
 
+	def ins_info(self, path, args, types):
+		self.pat_view.ins_info(path, args, types)
+
 	def pat_changed(self, adj):
 		liblo.send(self.engine, '/kunquat/get_pattern', self.song_id, adj.value)
 

@@ -96,6 +96,12 @@ class Pat_view(gtk.Widget):
 	def notes_sent(self, path, args, types):
 		self.queue_draw()
 
+	def ins_info(self, path, args, types):
+		if args[1] != 0:
+			self.instruments[args[0]] = args[1]
+		elif args[0] in self.instruments:
+			del self.instruments[args[0]]
+
 #	def handle_motion_notify(self, widget, event):
 #		print('motion')
 #		return True
@@ -1116,12 +1122,16 @@ class Pat_view(gtk.Widget):
 			ends += [starts[-1] + 1]
 			starts += [ends[-1]]
 			ends += [starts[-1] + 1]
-			errors += [False, False, False]
+			errors += [False]
 			if cur_set and self.ev_note_on_got_minus == 2:
 				note += '-'
 			else:
 				note += '%x' % event[3]
 			note += ' %02X' % event[4]
+			if event[4] in self.instruments:
+				errors += [False, False]
+			else:
+				errors += [True, True]
 			cur_offset = self.event_str_set_attrs(attrs,
 					self.ptheme['Note On colour'], starts, ends, errors, cur_set)
 			if get_cur_offset:
@@ -1308,6 +1318,8 @@ class Pat_view(gtk.Widget):
 			evtype.NOTE_ON: 4, # note, (note_mod,) octave, ins_digit1, ins_digit2
 			evtype.NOTE_OFF: 1,
 		}
+
+		self.instruments = {}
 
 
 gobject.type_register(Pat_view)
