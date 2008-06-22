@@ -798,19 +798,65 @@ class Pat_view(gtk.Widget):
 				self.ruler_width, min(self.time_px(end), height - self.col_font_size))
 		cr.fill()
 		cr.set_source_rgb(*self.ptheme['Ruler fg colour'])
-		for beat in range(max(start[0], 0), end[0] + 1):
-			if not start <= (beat, 0) <= end:
+		mark_time_min = self.px_time(6)
+		mark_distance_min = mark_time_min[0] + float(mark_time_min[1]) / RELTIME_FULL_PART
+		mark_step_size = 2**math.ceil(math.log(mark_distance_min, 2))
+		if mark_step_size == 0:
+			mark_step_size = 2**(-1024)
+		mark_limit = end[0] + float(end[1]) / RELTIME_FULL_PART
+		first_mark = start[0] + float(start[1]) / RELTIME_FULL_PART
+		first_mark = math.ceil(first_mark / mark_step_size) * mark_step_size
+		mark_pos = max(0, first_mark)
+		num_time_min = self.px_time(self.ruler_font_size * 3)
+		num_distance_min = num_time_min[0] + float(num_time_min[1]) / RELTIME_FULL_PART
+		num_step_size = 2**math.ceil(math.log(num_distance_min, 2))
+		num_limit = end[0] + float(end[1]) / RELTIME_FULL_PART
+		first_num = start[0] + float(start[1]) / RELTIME_FULL_PART
+		first_num = math.ceil(first_num / num_step_size) * num_step_size
+		num_pos = max(num_step_size, first_num)
+		while mark_pos <= mark_limit:
+			distance = self.time_px(time_sub((mark_pos, 0), start))
+			distance = distance + self.col_font_size
+			cr.move_to(self.ruler_width, distance)
+			if mark_pos == 0 or mark_pos >= (self.pdata.len[0] +
+					float(self.pdata.len[1]) / RELTIME_FULL_PART):
+				cr.rel_line_to(-self.ruler_width, 0)
+			if math.floor(mark_pos) == mark_pos:
+				cr.rel_line_to(-6, 0)
+			else:
+				cr.rel_line_to(-3, 0)
+			cr.stroke()
+			if mark_pos < num_pos or mark_pos >= (self.pdata.len[0] +
+					float(self.pdata.len[1]) / RELTIME_FULL_PART):
+				mark_pos += mark_step_size
 				continue
-			pl = self.create_pango_layout('%d' % beat)
+			mark_pos += mark_step_size
+			num_disp = '%.3f' % num_pos
+			posb = 1000 * num_pos
+			if math.floor(posb) == posb:
+				while num_disp[-1] == '0':
+					num_disp = num_disp[:-1]
+				if num_disp[-1] == '.':
+					num_disp = num_disp[:-1]
+			pl = self.create_pango_layout(num_disp)
 			pl.set_font_description(self.ruler_font)
 			rw, rh = pl.get_size()
 			rw //= pango.SCALE
 			rh //= pango.SCALE
-			distance = self.time_px(time_sub((beat, 0), start))
+			distance = self.time_px(time_sub((num_pos, 0), start))
 			distance = distance + self.col_font_size - (rh / 2)
-			cr.move_to(self.ruler_width - rw - 2, distance)
+			cr.move_to(self.ruler_width - rw - 5, distance)
 			cr.update_layout(pl)
 			cr.show_layout(pl)
+			num_pos += num_step_size
+
+		distance = self.time_px(time_sub(self.cursor[0][:2], start))
+		distance = distance + self.col_font_size
+		cr.set_source_rgb(*self.ptheme['Cursor colour'])
+		cr.move_to(0, distance)
+		cr.rel_line_to(self.ruler_width, 0)
+		cr.stroke()
+
 		cr.set_source_rgb(*self.ptheme['Border colour'])
 		cr.move_to(self.ruler_width - 0.5, 0)
 		cr.rel_line_to(0, height)
@@ -1206,7 +1252,7 @@ class Pat_view(gtk.Widget):
 		self.subsong = 0
 
 		self.ptheme = {
-			'Ruler font': 'Sans 10',
+			'Ruler font': 'Sans 8',
 			'Column font': 'Sans 10',
 			'Column width': 7,
 			'Beat height': 80,
@@ -1284,7 +1330,7 @@ class Pat_view(gtk.Widget):
 
 		self.ruler_font = pango.FontDescription(self.ptheme['Ruler font'])
 		self.ruler_font_size = self.ruler_font.get_size() // pango.SCALE
-		self.ruler_width = self.ruler_font_size * 3
+		self.ruler_width = self.ruler_font_size * 6
 		self.col_font = pango.FontDescription(self.ptheme['Column font'])
 		self.col_font_size = int(self.col_font.get_size() * 1.6) // pango.SCALE
 		self.col_width = self.ptheme['Column width'] * self.col_font_size
