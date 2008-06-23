@@ -29,7 +29,7 @@ import liblo
 
 class Driver_select(gtk.Window):
 
-	def set_drivers(self, path, args):
+	def drivers(self, path, args, types):
 		self.driver_list.clear()
 		for arg in ['No sound'] + args:
 			iter = self.driver_list.append()
@@ -48,7 +48,7 @@ class Driver_select(gtk.Window):
 		self.cur_driver = args[0]
 		self.hz.set_text(str(args[1]))
 
-	def active_driver(self, path, args):
+	def active_driver(self, path, args, types):
 		cur = args[0] + 1
 		selection = self.driver_view.get_selection()
 		if not selection.path_is_selected(cur):
@@ -70,15 +70,20 @@ class Driver_select(gtk.Window):
 		if self.update_table:
 			self.update_table = False
 
+	def handle_osc(self, path, args, types):
+		ps = path.split('/')
+		assert ps[1] == 'kunquat_gtk', 'Incorrect OSC path'
+		gobject.idle_add(Driver_select.__dict__[ps[2]], self, path, args, types)
+
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
 
 		self.update_table = False
 		
-		self.server.add_method('/kunquat_gtk/drivers', None, self.set_drivers)
-		self.server.add_method('/kunquat_gtk/active_driver', 'ii', self.active_driver)
-		self.server.add_method('/kunquat_gtk/driver_init', None, self.driver_init)
+		self.server.add_method('/kunquat_gtk/drivers', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/active_driver', 'ii', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/driver_init', None, self.handle_osc)
 
 		gtk.Window.__init__(self)
 

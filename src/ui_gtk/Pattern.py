@@ -120,7 +120,7 @@ class Pattern(gtk.VBox):
 		hb.pack_start(label, False, False)
 		label.show()
 
-		len_adj = gtk.Adjustment(16, 0, 65536, 0.0001, 0.1)
+		len_adj = gtk.Adjustment(16, 0, 65536, 0.0001, 1)
 		self.len_spin = gtk.SpinButton(len_adj, digits=4)
 		self.len_spin.set_snap_to_ticks(True)
 		self.len_spin.set_numeric(True)

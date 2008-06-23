@@ -61,7 +61,7 @@ class Cli(gtk.VBox):
 		liblo.send(self.engine, msg)
 		widget.set_text('')
 
-	def notify(self, path, args):
+	def notify(self, path, args, types):
 		out = ' '.join([str(a) for a in args])
 		self.reply.pop(0)
 		self.reply.push(0, out)
@@ -69,7 +69,7 @@ class Cli(gtk.VBox):
 			out = '<kunquat> ' + out
 			gobject.idle_add(self.update_history, out)
 
-	def error(self, path, args):
+	def error(self, path, args, types):
 		out = 'Error: ' + ' '.join([str(a) for a in args])
 		self.reply.pop(0)
 		self.reply.push(0, out)
@@ -85,13 +85,19 @@ class Cli(gtk.VBox):
 	def set_log(self, log):
 		self.history = log
 
+	def handle_osc(self, path, args, types):
+		ps = path.split('/')
+		if ps[1] != 'kunquat_gtk':
+			return
+		gobject.idle_add(Cli.__dict__[ps[2]], self, path, args, types)
+
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
 
-		self.server.add_method('/kunquat_gtk/notify', None, self.notify)
-		self.server.add_method('/kunquat_gtk/error', None, self.error)
-		self.server.add_method(None, None, self.fallback)
+		self.server.add_method('/kunquat_gtk/notify', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/error', None, self.handle_osc)
+		self.server.add_method(None, None, self.handle_osc)
 
 		gtk.VBox.__init__(self)
 

@@ -39,7 +39,7 @@ class Songs(gtk.Notebook):
 		content.show()
 		label.show()
 
-	def songs(self, path, args):
+	def songs(self, path, args, types):
 		all_songs = set(args)
 		shown_songs = set([self.get_nth_page(i).song_id for i in range(self.get_n_pages())])
 		for id in all_songs - shown_songs:
@@ -105,14 +105,17 @@ class Songs(gtk.Notebook):
 		new_song(path, [args[0]], ['i'])
 		pat_info(path, args, types)
 
+	def pat_meta(self, path, args, types):
+		self.pat_info(self, path, args, types)
+
 	def event_info(self, path, args, types):
 		for i in range(self.get_n_pages()):
 			content = self.get_nth_page(i)
 			if content.song_id == args[0]:
 				content.event_info(path, args[1:], types[1:])
 				return
-		new_song(path, [args[0]], ['i'])
-		event_info(path, args, types)
+#		new_song(path, [args[0]], ['i'])
+#		event_info(path, args, types)
 
 	def events_sent(self, path, args, types):
 		for i in range(self.get_n_pages()):
@@ -157,26 +160,31 @@ class Songs(gtk.Notebook):
 				content.player_state(path, args[1:], types[1:])
 				return
 
+	def handle_osc(self, path, args, types):
+		ps = path.split('/')
+		assert ps[1] == 'kunquat_gtk', 'Incorrect OSC path'
+		gobject.idle_add(Songs.__dict__[ps[2]], self, path, args, types)
+
 	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
 
-		self.server.add_method('/kunquat_gtk/new_song', None, self.new_song)
-		self.server.add_method('/kunquat_gtk/songs', None, self.songs)
-		self.server.add_method('/kunquat_gtk/song_info', 'isdi', self.song_info)
-		self.server.add_method('/kunquat_gtk/subsong_info', 'iidd', self.subsong_info)
-		self.server.add_method('/kunquat_gtk/del_song', None, self.del_song)
-		self.server.add_method('/kunquat_gtk/order_info', None, self.order_info)
-		self.server.add_method('/kunquat_gtk/ins_info', None, self.ins_info)
-		self.server.add_method('/kunquat_gtk/pat_info', 'iihi', self.pat_info)
-		self.server.add_method('/kunquat_gtk/pat_meta', 'iihi', self.pat_info)
-		self.server.add_method('/kunquat_gtk/event_info', None, self.event_info)
-		self.server.add_method('/kunquat_gtk/events_sent', 'ii', self.events_sent)
-		self.server.add_method('/kunquat_gtk/note_table_info', None, self.note_table_info)
-		self.server.add_method('/kunquat_gtk/note_info', None, self.note_info)
-		self.server.add_method('/kunquat_gtk/note_mod_info', None, self.note_info)
-		self.server.add_method('/kunquat_gtk/notes_sent', 'ii', self.notes_sent)
-		self.server.add_method('/kunquat_gtk/player_state', 'is', self.player_state)
+		self.server.add_method('/kunquat_gtk/new_song', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/songs', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/song_info', 'isdi', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/subsong_info', 'iidd', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/del_song', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/order_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/ins_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/pat_info', 'iihi', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/pat_meta', 'iihi', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/event_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/events_sent', 'ii', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/note_table_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/note_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/note_mod_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/notes_sent', 'ii', self.handle_osc)
+		self.server.add_method('/kunquat_gtk/player_state', 'is', self.handle_osc)
 
 		gtk.Notebook.__init__(self)
 
