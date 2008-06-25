@@ -38,18 +38,18 @@ typedef struct Voice_state
 	pitch_t freq;
 	/// The current playback position.
 	uint64_t pos;
-	/// The current playback position fine grain.
-	double pos_part;
+	/// The current playback position remainder.
+	double pos_rem;
 	/// The current relative playback position.
 	uint64_t rel_pos;
-	/// The current relative playback position fine grain.
-	double rel_pos_part;
+	/// The current relative playback position remainder.
+	double rel_pos_rem;
 	/// Whether the note is still on.
 	bool note_on;
 	/// Note Off position.
 	uint64_t noff_pos;
-	/// Note Off position fine grain.
-	double noff_pos_part;
+	/// Note Off position remainder.
+	double noff_pos_rem;
 } Voice_state;
 
 

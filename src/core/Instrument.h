@@ -45,7 +45,7 @@ typedef enum
 	/// A simple sine wave instrument for testing by ear.
 	INS_TYPE_SINE,
 	/// A sample-based type common in tracker programs.
-	INS_TYPE_PCM_RAM,
+	INS_TYPE_PCM,
 	/// A type for reading audio data from disk -- used for large audio files.
 	INS_TYPE_PCM_DISK,
 	/// An implementation of Paul Nasca's PADsynth algorithm.
@@ -69,10 +69,16 @@ typedef struct Instrument
 	frame_t** gbufs;
 	/// Mixing buffer length.
 	uint32_t buf_len;
-	/// Global event queue (esp. pedal events go here).
+	/// Instrument event queue (esp. pedal events go here).
 	Event_queue* events;
 	/// An indirect reference to the current Note table used.
 	Note_table** notes;
+	/// Type-specific data.
+	void* type_data;
+	/// Initialiser for type-specific data -- returns \c 0 on success.
+	int (*init)(struct Instrument*);
+	/// Uninitialiser for type-specific data.
+	void (*uninit)(struct Instrument*);
 	/// Mixing algorithm used.
 	void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
 } Instrument;

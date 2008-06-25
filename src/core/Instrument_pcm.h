@@ -20,25 +20,26 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include "Voice_state.h"
+#ifndef K_INSTRUMENT_PCM_H
+#define K_INSTRUMENT_PCM_H
 
 
-Voice_state* Voice_state_init(Voice_state* state)
-{
-	assert(state != NULL);
-	state->active = true;
-	state->freq = 0;
-	state->pos = 0;
-	state->pos_rem = 0;
-	state->rel_pos = 0;
-	state->rel_pos_rem = 0;
-	state->note_on = true;
-	state->noff_pos = 0;
-	state->noff_pos_rem = 0;
-	return state;
-}
+#include <Instrument.h>
+
+
+int Instrument_pcm_init(Instrument* ins);
+
+
+void Instrument_pcm_uninit(Instrument* ins);
+
+
+void Instrument_pcm_mix(Instrument* ins,
+		Voice_state* state,
+		uint32_t nframes,
+		uint32_t offset,
+		uint32_t freq);
+
+
+#endif // K_INSTRUMENT_PCM_H
 
 

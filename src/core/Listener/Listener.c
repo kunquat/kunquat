@@ -554,7 +554,14 @@ int Listener_set_voices(const char* path,
 	lo_message m = new_msg();
 	lo_message_add_string(m, "Allocated");
 	lo_message_add_int32(m, voices);
-	lo_message_add_string(m, "Voices");
+	if (voices == 1)
+	{
+		lo_message_add_string(m, "Voice");
+	}
+	else
+	{
+		lo_message_add_string(m, "Voices");
+	}
 	int ret = 0;
 	send_msg(lr, "notify", m, ret);
 	lo_message_free(m);

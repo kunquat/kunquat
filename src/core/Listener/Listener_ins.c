@@ -132,10 +132,10 @@ int Listener_new_ins(const char* path,
 	int32_t ins_type = argv[2]->i;
 	check_cond(lr, ins_type >= INS_TYPE_NONE && ins_type < INS_TYPE_LAST,
 			"The Instrument type (%ld)", (long)ins_type);
-	if (argv[2]->i > INS_TYPE_SINE)
+	if (argv[2]->i > INS_TYPE_PCM)
 	{
 		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Only debug and sine instruments supported");
+		lo_send(lr->host, lr->method_path, "s", "Only debug, sine and pcm instruments supported");
 		return 0;
 	}
 	int32_t song_id = argv[0]->i;

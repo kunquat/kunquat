@@ -54,27 +54,27 @@ void Instrument_sine_mix(Instrument* ins,
 	{
 		double val_l = 0;
 		double val_r = 0;
-		val_l = val_r = sin(state->rel_pos_part) / 6;
-		if (state->pos_part < 0.002)
+		val_l = val_r = sin(state->rel_pos_rem) / 6;
+		if (state->pos_rem < 0.002)
 		{
-			val_l = val_r = val_l * (state->pos_part * 500);
-			state->pos_part += 1.0 / freq;
+			val_l = val_r = val_l * (state->pos_rem * 500);
+			state->pos_rem += 1.0 / freq;
 		}
 		if (!state->note_on)
 		{
-			if (state->noff_pos_part < 0.002)
+			if (state->noff_pos_rem < 0.002)
 			{
-				val_l = val_r = val_l * (1 - (state->noff_pos_part * 333));
+				val_l = val_r = val_l * (1 - (state->noff_pos_rem * 333));
 			}
 			else
 			{
-				val_l = val_r = (val_l / 3) * (1 - state->noff_pos_part);
+				val_l = val_r = (val_l / 3) * (1 - state->noff_pos_rem);
 			}
 		}
-		state->rel_pos_part += state->freq * PI_2 / freq;
-		if (state->rel_pos_part >= PI_2)
+		state->rel_pos_rem += state->freq * PI_2 / freq;
+		if (state->rel_pos_rem >= PI_2)
 		{
-			state->rel_pos_part -= floor(state->rel_pos_part / PI_2) * PI_2;
+			state->rel_pos_rem -= floor(state->rel_pos_rem / PI_2) * PI_2;
 		}
 		ins->bufs[0][i] += val_l;
 		ins->bufs[1][i] += val_r;
@@ -84,8 +84,8 @@ void Instrument_sine_mix(Instrument* ins,
 		}
 		if (!state->note_on)
 		{
-			state->noff_pos_part += 1.0 / freq;
-			if (state->noff_pos_part >= 1)
+			state->noff_pos_rem += 1.0 / freq;
+			if (state->noff_pos_rem >= 1)
 			{
 				state->active = false;
 				return;

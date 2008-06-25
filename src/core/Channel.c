@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include "Channel.h"
 
@@ -107,16 +108,18 @@ void Channel_set_voices(Channel* ch,
 				if (ch->fg == NULL)
 				{
 					// The Voice has been given to another channel -- giving up
+#if 0
 					next = NULL;
 					if (col != NULL)
 					{
-						Column_get_next(col);
+						next = Column_get_next(col);
 					}
 					if (next == NULL)
 					{
 						break;
 					}
 					next_pos = Event_pos(next);
+#endif
 					continue;
 				}
 				Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);

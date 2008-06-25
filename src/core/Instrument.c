@@ -27,6 +27,7 @@
 #include "Instrument.h"
 #include "Instrument_debug.h"
 #include "Instrument_sine.h"
+#include "Instrument_pcm.h"
 
 #include <xmemory.h>
 
@@ -59,16 +60,39 @@ Instrument* new_Instrument(Ins_type type,
 	ins->pbufs = NULL;
 	ins->bufs = ins->gbufs = bufs;
 	ins->buf_len = buf_len;
+	ins->type_data = NULL;
 	switch (type)
 	{
 		case INS_TYPE_DEBUG:
 			ins->mix = Instrument_debug_mix;
+			ins->init = NULL;
+			ins->uninit = NULL;
 			break;
 		case INS_TYPE_SINE:
 			ins->mix = Instrument_sine_mix;
+			ins->init = NULL;
+			ins->uninit = NULL;
+			break;
+		case INS_TYPE_PCM:
+			ins->mix = Instrument_pcm_mix;
+			ins->init = Instrument_pcm_init;
+			ins->uninit = Instrument_pcm_uninit;
 			break;
 		default:
+			ins->init = NULL;
+			ins->uninit = NULL;
 			ins->mix = NULL;
+			assert(false);
+	}
+	assert((ins->init == NULL) == (ins->uninit == NULL));
+	if (ins->init != NULL)
+	{
+		if ((*ins->init)(ins) != 0)
+		{
+			del_Event_queue(ins->events);
+			xfree(ins);
+			return NULL;
+		}
 	}
 	ins->notes = NULL;
 	return ins;
@@ -160,7 +184,11 @@ void Instrument_mix(Instrument* ins,
 void del_Instrument(Instrument* ins)
 {
 	assert(ins != NULL);
-	xfree(ins->events);
+	del_Event_queue(ins->events);
+	if (ins->uninit != NULL)
+	{
+		(*ins->uninit)(ins);
+	}
 	if (ins->pbufs != NULL)
 	{
 		assert(ins->pbufs[0] != NULL);

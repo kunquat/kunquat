@@ -106,7 +106,7 @@ class Songs(gtk.Notebook):
 		pat_info(path, args, types)
 
 	def pat_meta(self, path, args, types):
-		self.pat_info(self, path, args, types)
+		self.pat_info(path, args, types)
 
 	def event_info(self, path, args, types):
 		for i in range(self.get_n_pages()):

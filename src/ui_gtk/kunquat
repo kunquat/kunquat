@@ -35,6 +35,7 @@ import Cli
 
 
 gobject.threads_init()
+gtk.gdk.threads_init()
 
 
 class Kunquat_gtk:
@@ -139,6 +140,7 @@ class Kunquat_gtk:
 
 
 if __name__ == '__main__':
+	gtk.gdk.threads_enter()
 	try:
 		app = Kunquat_gtk('osc.udp://localhost:7770/')
 	except liblo.AddressError, err:
@@ -148,5 +150,6 @@ if __name__ == '__main__':
 		print 'Couldn\'t register as an OSC server: ', str(err)
 		sys.exit()
 	app.main()
+	gtk.gdk.threads_leave()
 
 

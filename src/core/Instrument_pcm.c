@@ -22,21 +22,63 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <stdint.h>
 #include <math.h>
 
-#include "Instrument_debug.h"
+#include "Instrument_pcm.h"
+#include <Sample.h>
+
+#include <xmemory.h>
 
 
-void Instrument_debug_mix(Instrument* ins,
+typedef struct pcm_type_data
+{
+	Sample* sample;
+} pcm_type_data;
+
+
+int Instrument_pcm_init(Instrument* ins)
+{
+	assert(ins != NULL);
+	pcm_type_data* type_data = xalloc(pcm_type_data);
+	if (type_data == NULL)
+	{
+		return 1;
+	}
+	type_data->sample = new_Sample();
+	if (type_data->sample == NULL)
+	{
+		xfree(type_data);
+		return 1;
+	}
+	ins->type_data = type_data;
+	return 0;
+}
+
+
+void Instrument_pcm_uninit(Instrument* ins)
+{
+	assert(ins != NULL);
+	assert(ins->type_data != NULL);
+	pcm_type_data* type_data = ins->type_data;
+	if (type_data->sample != NULL)
+	{
+		del_Sample(type_data->sample);
+	}
+	xfree(ins->type_data);
+	return;
+}
+
+
+void Instrument_pcm_mix(Instrument* ins,
 		Voice_state* state,
 		uint32_t nframes,
 		uint32_t offset,
 		uint32_t freq)
 {
 	assert(ins != NULL);
+	assert(ins->type_data != NULL);
 	assert(state != NULL);
-//	assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
+//	assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
 	assert(freq > 0);
 	assert(ins->bufs[0] != NULL);
 	assert(ins->bufs[1] != NULL);
@@ -44,50 +86,13 @@ void Instrument_debug_mix(Instrument* ins,
 	{
 		return;
 	}
-	for (uint32_t i = offset; i < nframes; ++i)
+	pcm_type_data* type_data = ins->type_data;
+	if (type_data->sample == NULL)
 	{
-		double val_l = 0;
-		double val_r = 0;
-		if (state->rel_pos == 0)
-		{
-			val_l = 1.0;
-			val_r = 1.0;
-			state->rel_pos = 1;
-		}
-		else
-		{
-			val_l = 0.5;
-			val_r = 0.5;
-		}
-		if (!state->note_on)
-		{
-			val_l = -val_l;
-			val_r = -val_r;
-		}
-		ins->bufs[0][i] += val_l;
-		ins->bufs[1][i] += val_r;
-		state->rel_pos_rem += state->freq / freq;
-		if (!state->note_on)
-		{
-			state->noff_pos_rem += state->freq / freq;
-			if (state->noff_pos_rem >= 2)
-			{
-				state->active = false;
-				return;
-			}
-		}
-		if (state->rel_pos_rem >= 1)
-		{
-			++state->pos;
-			if (state->pos >= 10)
-			{
-				state->active = false;
-				return;
-			}
-			state->rel_pos = 0;
-			state->rel_pos_rem -= floor(state->rel_pos_rem);
-		}
+		state->active = false;
+		return;
 	}
+	Sample_mix(type_data->sample, ins->bufs, state, nframes, offset, freq);
 	return;
 }
 
