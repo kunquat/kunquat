@@ -83,13 +83,23 @@ Sample* new_Sample(void);
 
 
 /**
- * Loads a file into a Sample.
+ * Loads contents from a file into a Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
  * \param in       The input file -- must not be \c NULL.
  * \param format   The input file format -- must be valid.
  */
 bool Sample_load(Sample* sample, FILE* in, Sample_format format);
+
+
+/**
+ * Loads a given path into a Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param path     The input file path -- must not be \c NULL.
+ * \param format   The input file format -- must be valid.
+ */
+bool Sample_load_path(Sample* sample, char* path, Sample_format format);
 
 
 /**

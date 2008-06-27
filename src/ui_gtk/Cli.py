@@ -97,7 +97,7 @@ class Cli(gtk.VBox):
 
 		self.server.add_method('/kunquat_gtk/notify', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/error', None, self.handle_osc)
-		self.server.add_method(None, None, self.handle_osc)
+		self.server.add_method(None, None, self.fallback)
 
 		gtk.VBox.__init__(self)
 

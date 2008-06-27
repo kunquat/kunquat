@@ -251,7 +251,10 @@ void Channel_reset(Channel* ch)
 void del_Channel(Channel* ch)
 {
 	assert(ch != NULL);
-	xfree(ch->note_off);
+	assert(ch->note_off != NULL);
+	assert(ch->single != NULL);
+	del_Event(ch->note_off);
+	del_Event(ch->single);
 	xfree(ch);
 	return;
 }

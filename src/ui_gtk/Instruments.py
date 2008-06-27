@@ -36,6 +36,67 @@ class Instruments(gtk.HBox):
 		if self.cur_index == args[0]:
 			self.set_details(args[0] - 1)
 
+	def ins_type_field(self, path, args, types):
+		if args[0] != self.cur_index:
+			return
+		if args[1] not in self.field_map:
+			return
+		field_data = self.field_map[args[1]]
+		if field_data[0] == 'p':
+			field_data[1].set_text(args[2])
+
+	def path_selected(self, button, file_sel, field_index):
+		print((field_index, file_sel.get_filename()))
+		path = file_sel.get_filename()
+		file_sel.destroy()
+		liblo.send(self.engine, '/kunquat/ins_set_type_field',
+				self.song_id,
+				self.cur_index,
+				field_index,
+				path)
+
+	def browse_activate(self, button):
+		file_sel = gtk.FileSelection()
+		file_sel.ok_button.connect('clicked', self.path_selected,
+				file_sel, button.field_index)
+		file_sel.cancel_button.connect('clicked', lambda w: file_sel.destroy())
+		file_sel.show()
+
+	def ins_type_desc(self, path, args, types):
+		if args[0] != self.cur_index:
+			return
+		for _ in range(self.type_fields.get_n_pages()):
+			self.type_fields.remove_page(0)
+		self.field_map = {}
+		prev_category = None
+		for i in range(1, len(args), 3):
+			id = (i - 1) / 3
+			label = gtk.Label(args[i + 1])
+			field = None
+			if args[i + 2] == 'p':
+				field = gtk.HBox()
+				field.pack_start(label, False, False)
+				entry = gtk.Entry()
+				entry.field_index = id
+				field.pack_start(entry)
+				browse = gtk.Button('Browse...')
+				browse.field_index = id
+				browse.connect('clicked', self.browse_activate)
+				field.pack_start(browse, False, False)
+				self.field_map[id] = ('p', entry)
+			if prev_category != args[0]:
+				prev_category = args[0]
+				contents = gtk.VBox()
+				tab_label = gtk.Label(args[i])
+				self.type_fields.append_page(contents, tab_label)
+			cur_cont = self.type_fields.get_nth_page(self.type_fields.get_n_pages() - 1)
+			cur_cont.pack_start(field, False, False)
+			liblo.send(self.engine, '/kunquat/ins_get_type_field',
+					self.song_id,
+					self.cur_index,
+					id)
+		self.type_fields.show_all()
+
 	def name_changed(self, cell, path, new_text):
 		liblo.send(self.engine, '/kunquat/ins_set_name',
 				self.song_id,
@@ -68,12 +129,18 @@ class Instruments(gtk.HBox):
 			self.types.handler_block(self.htypes)
 			self.types.set_active(0)
 			self.types.handler_unblock(self.htypes)
+			self.field_map = {}
+			for _ in range(self.type_fields.get_n_pages()):
+				self.type_fields.remove_page(0)
 			return
 		self.types.handler_block(self.htypes)
 		self.types.set_active(self.ins_details[index][0])
 		self.types.handler_unblock(self.htypes)
-		if self.ins_details[index][0] <= 2:
-			return
+		liblo.send(self.engine, '/kunquat/ins_get_type_desc',
+				self.song_id,
+				self.cur_index)
+#		if self.ins_details[index][0] <= 2:
+#			return
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
@@ -82,6 +149,7 @@ class Instruments(gtk.HBox):
 
 		self.cur_index = 1
 		self.ins_details = [None for _ in range(255)]
+		self.type_fields = gtk.Notebook()
 		
 		self.types = gtk.combo_box_new_text()
 		self.types.append_text('None')
@@ -124,6 +192,11 @@ class Instruments(gtk.HBox):
 		ins_details = gtk.VBox()
 		ins_details.pack_start(self.types, False, False)
 		self.types.show()
+
+		ins_details.pack_start(self.type_fields)
+		self.type_fields.show()
+		self.field_map = {}
+
 		self.pack_start(ins_details)
 		ins_details.show()
 

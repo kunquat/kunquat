@@ -50,6 +50,13 @@ class Songs(gtk.Notebook):
 			content.show()
 			label.show()
 
+	def find_song(self, id):
+		for i in range(self.get_n_pages()):
+			content = self.get_nth_page(i)
+			if content.song_id == id:
+				return content
+		return None
+
 	def song_info(self, path, args, types):
 		for i in range(self.get_n_pages()):
 			content = self.get_nth_page(i)
@@ -160,6 +167,16 @@ class Songs(gtk.Notebook):
 				content.player_state(path, args[1:], types[1:])
 				return
 
+	def ins_type_desc(self, path, args, types):
+		content = self.find_song(args[0])
+		content.ins_type_desc(path, args[1:], types[1:])
+		return False
+
+	def ins_type_field(self, path, args, types):
+		content = self.find_song(args[0])
+		content.ins_type_field(path, args[1:], types[1:])
+		return False
+
 	def handle_osc(self, path, args, types):
 		ps = path.split('/')
 		assert ps[1] == 'kunquat_gtk', 'Incorrect OSC path'
@@ -176,6 +193,8 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/del_song', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/order_info', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/ins_info', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/ins_type_desc', None, self.handle_osc)
+		self.server.add_method('/kunquat_gtk/ins_type_field', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/pat_info', 'iihi', self.handle_osc)
 		self.server.add_method('/kunquat_gtk/pat_meta', 'iihi', self.handle_osc)
 		self.server.add_method('/kunquat_gtk/event_info', None, self.handle_osc)

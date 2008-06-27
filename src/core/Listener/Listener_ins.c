@@ -208,6 +208,180 @@ int Listener_ins_set_name(const char* path,
 }
 
 
+int Listener_ins_get_type_desc(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	int32_t ins_num = argv[1]->i;
+	Instrument* ins = NULL;
+	if (!ins_get(lr, song_id, ins_num, &ins))
+	{
+		return 0;
+	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, ins_num);
+	if (ins != NULL)
+	{
+		Instrument_field* type_desc = Instrument_get_type_desc(ins);
+		while (type_desc != NULL && type_desc->category != NULL)
+		{
+			assert(type_desc->param_name != NULL);
+			assert(type_desc->param_type != NULL);
+			lo_message_add_string(m, type_desc->category);
+			lo_message_add_string(m, type_desc->param_name);
+			lo_message_add_string(m, type_desc->param_type);
+			++type_desc;
+		}
+	}
+	int ret = 0;
+	send_msg(lr, "ins_type_desc", m, ret);
+	lo_message_free(m);
+	return 0;
+}
+
+
+int Listener_ins_get_type_field(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	int32_t ins_num = argv[1]->i;
+	int32_t field_index = argv[2]->i;
+	Instrument* ins = NULL;
+	if (!ins_get(lr, song_id, ins_num, &ins))
+	{
+		return 0;
+	}
+	check_cond(lr, field_index >= 0,
+			"The index of the Instrument field (%ld)", (long)field_index);
+	if (ins == NULL)
+	{
+		return 0;
+	}
+	void* data = NULL;
+	char* type = NULL;
+	if (!Instrument_get_field(ins, field_index, &data, &type))
+	{
+		return 0;
+	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, ins_num);
+	lo_message_add_int32(m, field_index);
+	if (strcmp(type, "p") == 0)
+	{
+		char* path = data;
+		lo_message_add_string(m, path);
+	}
+	int ret = 0;
+	send_msg(lr, "ins_type_field", m, ret);
+	lo_message_free(m);
+	return 0;
+}
+
+
+int Listener_ins_set_type_field(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	int32_t ins_num = argv[1]->i;
+	int32_t field_index = argv[2]->i;
+	Instrument* ins = NULL;
+	if (!ins_get(lr, song_id, ins_num, &ins))
+	{
+		return 0;
+	}
+	check_cond(lr, field_index >= 0,
+			"The index of the Instrument field (%ld)", (long)field_index);
+	if (ins == NULL)
+	{
+		return 0;
+	}
+	void* data = NULL;
+	char* type = NULL;
+	if (!Instrument_get_field(ins, field_index, &data, &type))
+	{
+		return 0;
+	}
+	if (types[3] == 's')
+	{
+		if (strcmp(type, "p") != 0)
+		{
+			return 0;
+		}
+		char* str = &argv[3]->s;
+		if (!Instrument_set_field(ins, field_index, str))
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
+	lo_message m = new_msg();
+	lo_message_add_int32(m, song_id);
+	lo_message_add_int32(m, ins_num);
+	lo_message_add_int32(m, field_index);
+	if (strcmp(type, "p") == 0)
+	{
+		char* path = &argv[3]->s;
+		lo_message_add_string(m, path);
+	}
+	int ret = 0;
+	send_msg(lr, "ins_type_field", m, ret);
+	lo_message_free(m);
+	return 0;
+}
+
+
 int Listener_del_ins(const char* path,
 		const char* types,
 		lo_arg** argv,

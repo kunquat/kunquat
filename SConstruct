@@ -114,6 +114,12 @@ if not env.GetOption('clean'):
 		print 'liblo not found.'
 		Exit(1)
 
+	conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
+	conf.env.Append(CCFLAGS = '-Duint=uint32_t')
+	if not conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
+		print 'WavPack not found.'
+		Exit(1)
+
 	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
 		audio_found = True
 		conf.env.Append(CCFLAGS = '-DENABLE_JACK')

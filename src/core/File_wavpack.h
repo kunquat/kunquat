@@ -20,35 +20,19 @@
  */
 
 
-#ifndef K_INSTRUMENT_PCM_H
-#define K_INSTRUMENT_PCM_H
+#ifndef K_FILE_WAVPACK_H
+#define K_FILE_WAVPACK_H
 
 
-#include <Instrument.h>
+#include <stdbool.h>
+#include <stdio.h>
+
+#include <Sample.h>
 
 
-int Instrument_pcm_init(Instrument* ins);
+bool File_wavpack_load_sample(Sample* sample, FILE* in);
 
 
-void Instrument_pcm_uninit(Instrument* ins);
-
-
-void Instrument_pcm_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
-
-
-Instrument_field* Instrument_pcm_get_type_desc(void);
-
-
-bool Instrument_pcm_get_field(Instrument* ins, int index, void* data, char** type);
-
-
-bool Instrument_pcm_set_field(Instrument* ins, int index, void* data);
-
-
-#endif // K_INSTRUMENT_PCM_H
+#endif // K_FILE_WAVPACK_H
 
 

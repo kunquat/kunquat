@@ -81,62 +81,6 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 }
 
 
-#if 0
-int Playdata_process_jack(jack_nframes_t nframes, void* arg)
-{
-	Playdata* data = NULL;
-	jack_default_audio_sample_t* out_l = NULL;
-	jack_default_audio_sample_t* out_r = NULL;
-	assert(arg != NULL);
-	data = (Playdata*)arg;
-	if (!data->play)
-	{
-		return 0;
-	}
-	assert(data->active);
-	assert(data->play > STOP);
-	assert(data->play < PLAY_LAST);
-	assert(data->freq > 0);
-	assert(data->song != NULL);
-	out_l = jack_port_get_buffer(data->ports[0], nframes);
-	out_r = jack_port_get_buffer(data->ports[1], nframes);
-	memset(out_l, 0, nframes * sizeof(jack_default_audio_sample_t));
-	memset(out_r, 0, nframes * sizeof(jack_default_audio_sample_t));
-	if (data->tempo <= 0)
-	{
-		assert(data->song->tempo > 0);
-		data->tempo = data->song->tempo;
-		data->order = 0;
-		Duration_init(&(data->pos));
-	}
-	if (data->play == PLAY_PATTERN)
-	{
-		Duration addition;
-		unsigned long mixed = 0;
-		Pattern* cur = NULL;
-		memset(out_l, 0, sizeof(jack_default_audio_sample_t) * nframes);
-		cur = Song_get_pattern(data->song, data->pattern);
-		if (cur == NULL)
-		{
-			data->play = 0;
-			return 0;
-		}
-		mixed = Pattern_mix(cur, data->channels, &(data->pos), data->song->instruments, nframes, out_l, data->freq);
-		Duration_add(Duration_fromframes(&addition, mixed, 120, data->freq), &(data->pos), &(data->pos));
-		memcpy(out_r, out_l, sizeof(jack_default_audio_sample_t) * nframes);
-		if (mixed < nframes)
-		{
-			memset(out_l + mixed, 0, sizeof(jack_default_audio_sample_t) * (nframes - mixed));
-			memset(out_r + mixed, 0, sizeof(jack_default_audio_sample_t) * (nframes - mixed));
-			data->play = 0;
-			Duration_set(&(data->pos), 0, 0);
-		}
-	}
-	return 0;
-}
-#endif
-
-
 void del_Playdata(Playdata* play)
 {
 	int i = 0;

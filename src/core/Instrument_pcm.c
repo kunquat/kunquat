@@ -24,10 +24,18 @@
 #include <assert.h>
 #include <math.h>
 
+#include <Instrument.h>
 #include "Instrument_pcm.h"
 #include <Sample.h>
 
 #include <xmemory.h>
+
+
+static Instrument_field pcm_fields[] =
+{
+	{ "Sample", "Path", "p", NULL },
+	{ NULL, NULL, NULL, NULL }
+};
 
 
 typedef struct pcm_type_data
@@ -51,6 +59,7 @@ int Instrument_pcm_init(Instrument* ins)
 		return 1;
 	}
 	ins->type_data = type_data;
+	ins->type_desc = pcm_fields;
 	return 0;
 }
 
@@ -66,6 +75,57 @@ void Instrument_pcm_uninit(Instrument* ins)
 	}
 	xfree(ins->type_data);
 	return;
+}
+
+
+bool Instrument_pcm_get_field(Instrument* ins, int index, void* data, char** type)
+{
+	assert(ins != NULL);
+	assert(ins->type == INS_TYPE_PCM);
+	assert(ins->type_data != NULL);
+	assert(ins->type_desc == pcm_fields);
+	assert(index >= 0);
+	assert(data != NULL);
+	assert(type != NULL);
+	if (index > 0)
+	{
+		return false;
+	}
+	*type = pcm_fields[index].param_type;
+	pcm_type_data* type_data = ins->type_data;
+	char** path = data;
+	if (type_data->sample == NULL
+			|| type_data->sample->path == NULL)
+	{
+		static char* empty_path = "";
+		*path = empty_path;
+		return true;
+	}
+	*path = type_data->sample->path;
+	return true;
+}
+
+
+bool Instrument_pcm_set_field(Instrument* ins, int index, void* data)
+{
+	assert(ins != NULL);
+	assert(ins->type == INS_TYPE_PCM);
+	assert(ins->type_data != NULL);
+	assert(ins->type_desc == pcm_fields);
+	assert(index >= 0);
+	assert(data != NULL);
+	if (index > 0)
+	{
+		return false;
+	}
+	char* path = data;
+	if (path == NULL)
+	{
+		return false;
+	}
+	pcm_type_data* type_data = ins->type_data;
+	assert(type_data->sample != NULL);
+	return Sample_load_path(type_data->sample, path, SAMPLE_FORMAT_WAVPACK);
 }
 
 

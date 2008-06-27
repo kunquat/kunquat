@@ -43,6 +43,7 @@ files = [
 	'Instrument_debug.c',
 	'Instrument_sine.c',
 	'Instrument_pcm.c',
+	'File_wavpack.c',
 	'Sample.c',
 	'Etable.c',
 	'Ins_table.c',

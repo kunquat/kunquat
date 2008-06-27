@@ -61,6 +61,9 @@ Instrument* new_Instrument(Ins_type type,
 	ins->bufs = ins->gbufs = bufs;
 	ins->buf_len = buf_len;
 	ins->type_data = NULL;
+	ins->type_desc = NULL;
+	ins->get_field = NULL;
+	ins->set_field = NULL;
 	switch (type)
 	{
 		case INS_TYPE_DEBUG:
@@ -77,6 +80,8 @@ Instrument* new_Instrument(Ins_type type,
 			ins->mix = Instrument_pcm_mix;
 			ins->init = Instrument_pcm_init;
 			ins->uninit = Instrument_pcm_uninit;
+			ins->get_field = Instrument_pcm_get_field;
+			ins->set_field = Instrument_pcm_set_field;
 			break;
 		default:
 			ins->init = NULL;
@@ -87,7 +92,7 @@ Instrument* new_Instrument(Ins_type type,
 	assert((ins->init == NULL) == (ins->uninit == NULL));
 	if (ins->init != NULL)
 	{
-		if ((*ins->init)(ins) != 0)
+		if (ins->init(ins) != 0)
 		{
 			del_Event_queue(ins->events);
 			xfree(ins);
@@ -103,6 +108,39 @@ Ins_type Instrument_get_type(Instrument* ins)
 {
 	assert(ins != NULL);
 	return ins->type;
+}
+
+
+Instrument_field* Instrument_get_type_desc(Instrument* ins)
+{
+	assert(ins != NULL);
+	return ins->type_desc;
+}
+
+
+bool Instrument_get_field(Instrument* ins, int index, void* data, char** type)
+{
+	assert(ins != NULL);
+	assert(index >= 0);
+	assert(data != NULL);
+	if (ins->get_field == NULL)
+	{
+		return false;
+	}
+	return ins->get_field(ins, index, data, type);
+}
+
+
+bool Instrument_set_field(Instrument* ins, int index, void* data)
+{
+	assert(ins != NULL);
+	assert(index >= 0);
+	assert(data != NULL);
+	if (ins->set_field == NULL)
+	{
+		return false;
+	}
+	return ins->set_field(ins, index, data);
 }
 
 
@@ -187,7 +225,7 @@ void del_Instrument(Instrument* ins)
 	del_Event_queue(ins->events);
 	if (ins->uninit != NULL)
 	{
-		(*ins->uninit)(ins);
+		ins->uninit(ins);
 	}
 	if (ins->pbufs != NULL)
 	{
