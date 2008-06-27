@@ -45,8 +45,7 @@ class Instruments(gtk.HBox):
 		if field_data[0] == 'p':
 			field_data[1].set_text(args[2])
 
-	def path_selected(self, button, file_sel, field_index):
-		print((field_index, file_sel.get_filename()))
+	def path_selected(self, file_sel, field_index):
 		path = file_sel.get_filename()
 		file_sel.destroy()
 		liblo.send(self.engine, '/kunquat/ins_set_type_field',
@@ -55,11 +54,24 @@ class Instruments(gtk.HBox):
 				field_index,
 				path)
 
+	def browse_response(self, file_sel, id, field_index):
+		if id == gtk.RESPONSE_CANCEL:
+			file_sel.destroy()
+		elif id == gtk.RESPONSE_OK:
+			path = file_sel.get_filename()
+			file_sel.destroy()
+			liblo.send(self.engine, '/kunquat/ins_set_type_field',
+					self.song_id,
+					self.cur_index,
+					field_index,
+					path)
+
 	def browse_activate(self, button):
-		file_sel = gtk.FileSelection()
-		file_sel.ok_button.connect('clicked', self.path_selected,
-				file_sel, button.field_index)
-		file_sel.cancel_button.connect('clicked', lambda w: file_sel.destroy())
+		file_sel = gtk.FileChooserDialog(buttons=(gtk.STOCK_CANCEL,
+				gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+		file_sel.connect('file-activated', self.path_selected,
+				button.field_index)
+		file_sel.connect('response', self.browse_response, button.field_index)
 		file_sel.show()
 
 	def ins_type_desc(self, path, args, types):
