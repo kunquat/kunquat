@@ -57,10 +57,41 @@ typedef enum
 
 typedef struct Instrument_field
 {
+	/// The category of the parameter.
 	char* category;
-	char* param_name;
-	char* param_type;
-	struct Instrument_field* field;
+	/// The name of the parameter.
+	char* name;
+	/**
+	 * The type of the parameter.
+	 *
+	 * Valid types are:
+	 *
+	 * \li \c 'p'   Path.
+	 * \li \c 'i'   Integer.
+	 * \li \c 'f'   Floating-point number.
+	 * \li \c 'r'   Ratio.
+	 *
+	 * Using multiple types indicate that any one of those types is
+	 * acceptable.
+	 */
+	char* type;
+	/**
+	 * Constraints set on the parameter.
+	 *
+	 * Valid constraints are:
+	 *
+	 * \li \c "!v"    Not v. v may also be omitted, in which case the
+	 *                constraint is "not empty".
+	 * \li \c ">v"    Greater than v.
+	 * \li \c ">=v"   Greater than or equal to v.
+	 * \li \c "<v"    Less than v.
+	 * \li \c "<=v"   Less than or equal to v.
+	 * \li \c "rv"    Matches against regular expression v.
+	 *
+	 * Multiple constraints can be ANDed with "-&-" and ORed with "-|-".
+	 */
+	char* constraint;
+//	struct Instrument_field* field;
 } Instrument_field;
 
 

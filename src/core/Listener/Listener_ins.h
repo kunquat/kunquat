@@ -51,6 +51,7 @@
  * \li \li \c s   The category of the field.
  * \li \li \c s   The name of the field.
  * \li \li \c s   The type of the field.
+ * \li \li \c s   The constraints of the field.
  *
  * Possible field types are:
  *

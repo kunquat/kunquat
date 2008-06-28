@@ -242,11 +242,13 @@ int Listener_ins_get_type_desc(const char* path,
 		Instrument_field* type_desc = Instrument_get_type_desc(ins);
 		while (type_desc != NULL && type_desc->category != NULL)
 		{
-			assert(type_desc->param_name != NULL);
-			assert(type_desc->param_type != NULL);
+			assert(type_desc->name != NULL);
+			assert(type_desc->type != NULL);
+			assert(type_desc->constraint != NULL);
 			lo_message_add_string(m, type_desc->category);
-			lo_message_add_string(m, type_desc->param_name);
-			lo_message_add_string(m, type_desc->param_type);
+			lo_message_add_string(m, type_desc->name);
+			lo_message_add_string(m, type_desc->type);
+			lo_message_add_string(m, type_desc->constraint);
 			++type_desc;
 		}
 	}

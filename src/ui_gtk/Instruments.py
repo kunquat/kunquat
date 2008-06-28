@@ -43,7 +43,7 @@ class Instruments(gtk.HBox):
 			return
 		field_data = self.field_map[args[1]]
 		if field_data[0] == 'p':
-			field_data[1].set_text(args[2])
+			field_data[2].set_text(args[2])
 
 	def path_selected(self, file_sel, ins_num, field_index):
 		path = file_sel.get_filename()
@@ -67,12 +67,21 @@ class Instruments(gtk.HBox):
 					path)
 
 	def browse_activate(self, button):
+		patterns = button.constraints.split('-|-')
+		for x in patterns:
+			assert x[0] == 'r', 'Path filtering rule is not a regular expression'
+		patterns = map(lambda x: x[1:], patterns)
+		filter = gtk.FileFilter()
+		filter.set_name(button.filter_name)
+		for x in patterns:
+			filter.add_pattern(x)
 		file_sel = gtk.FileChooserDialog(buttons=(gtk.STOCK_CANCEL,
 				gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
 		file_sel.connect('file-activated', self.path_selected,
 				self.cur_index, button.field_index)
 		file_sel.connect('response', self.browse_response,
 				self.cur_index, button.field_index)
+		file_sel.add_filter(filter)
 		file_sel.show()
 
 	def ins_type_desc(self, path, args, types):
@@ -82,8 +91,8 @@ class Instruments(gtk.HBox):
 			self.type_fields.remove_page(0)
 		self.field_map = {}
 		prev_category = None
-		for i in range(1, len(args), 3):
-			id = (i - 1) / 3
+		for i in range(1, len(args), 4):
+			id = (i - 1) / 4
 			label = gtk.Label(args[i + 1])
 			field = None
 			if args[i + 2] == 'p':
@@ -94,9 +103,11 @@ class Instruments(gtk.HBox):
 				field.pack_start(entry)
 				browse = gtk.Button('Browse...')
 				browse.field_index = id
+				browse.constraints = args[i + 3]
+				browse.filter_name = args[i + 1]
 				browse.connect('clicked', self.browse_activate)
 				field.pack_start(browse, False, False)
-				self.field_map[id] = ('p', entry)
+				self.field_map[id] = ('p', args[i + 3], entry)
 			if prev_category != args[0]:
 				prev_category = args[0]
 				contents = gtk.VBox()

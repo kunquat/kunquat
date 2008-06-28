@@ -33,7 +33,7 @@
 
 static Instrument_field pcm_fields[] =
 {
-	{ "Sample", "Path", "p", NULL },
+	{ "Sample", "Path", "p", "r*.wv" },
 	{ NULL, NULL, NULL, NULL }
 };
 
@@ -91,7 +91,7 @@ bool Instrument_pcm_get_field(Instrument* ins, int index, void* data, char** typ
 	{
 		return false;
 	}
-	*type = pcm_fields[index].param_type;
+	*type = pcm_fields[index].type;
 	pcm_type_data* type_data = ins->type_data;
 	char** path = data;
 	if (type_data->sample == NULL
