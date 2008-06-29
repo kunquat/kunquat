@@ -34,6 +34,7 @@
 static Instrument_field pcm_fields[] =
 {
 	{ "Sample", "Path", "p", "r*.wv" },
+	{ "Sample", "440 Hz frequency", "f", ">0-&-<2147483647" },
 	{ NULL, NULL, NULL, NULL }
 };
 
@@ -87,22 +88,38 @@ bool Instrument_pcm_get_field(Instrument* ins, int index, void* data, char** typ
 	assert(index >= 0);
 	assert(data != NULL);
 	assert(type != NULL);
-	if (index > 0)
+	if (index > 1)
 	{
 		return false;
 	}
 	*type = pcm_fields[index].type;
 	pcm_type_data* type_data = ins->type_data;
-	char** path = data;
-	if (type_data->sample == NULL
-			|| type_data->sample->path == NULL)
+	if (index == 0)
 	{
-		static char* empty_path = "";
-		*path = empty_path;
+		char** path = data;
+		if (type_data->sample == NULL
+			|| type_data->sample->path == NULL)
+		{
+			static char* empty_path = "";
+			*path = empty_path;
+			return true;
+		}
+		*path = type_data->sample->path;
 		return true;
 	}
-	*path = type_data->sample->path;
-	return true;
+	else if (index == 1)
+	{
+		double** val = data;
+		if (type_data->sample == NULL)
+		{
+			static double none = 44100;
+			*val = &none;
+			return true;
+		}
+		*val = &type_data->sample->mid_freq;
+		return true;
+	}
+	return false;
 }
 
 
@@ -114,18 +131,33 @@ bool Instrument_pcm_set_field(Instrument* ins, int index, void* data)
 	assert(ins->type_desc == pcm_fields);
 	assert(index >= 0);
 	assert(data != NULL);
-	if (index > 0)
-	{
-		return false;
-	}
-	char* path = data;
-	if (path == NULL)
+	if (index > 1)
 	{
 		return false;
 	}
 	pcm_type_data* type_data = ins->type_data;
-	assert(type_data->sample != NULL);
-	return Sample_load_path(type_data->sample, path, SAMPLE_FORMAT_WAVPACK);
+	if (index == 0)
+	{
+		char* path = data;
+		if (path == NULL)
+		{
+			return false;
+		}
+		assert(type_data->sample != NULL);
+		return Sample_load_path(type_data->sample, path, SAMPLE_FORMAT_WAVPACK);
+	}
+	else if (index == 1)
+	{
+		double* val = data;
+		if (val == NULL || *val <= 0)
+		{
+			return false;
+		}
+		assert(type_data->sample != NULL);
+		type_data->sample->mid_freq = *val;
+		return true;
+	}
+	return false;
 }
 
 

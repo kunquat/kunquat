@@ -307,6 +307,16 @@ int Listener_ins_get_type_field(const char* path,
 		char* path = data;
 		lo_message_add_string(m, path);
 	}
+	else if (strcmp(type, "i") == 0)
+	{
+		int64_t* num = data;
+		lo_message_add_int64(m, *num);
+	}
+	else if (strcmp(type, "f") == 0)
+	{
+		double* num = data;
+		lo_message_add_double(m, *num);
+	}
 	int ret = 0;
 	send_msg(lr, "ins_type_field", m, ret);
 	lo_message_free(m);
@@ -354,7 +364,7 @@ int Listener_ins_set_type_field(const char* path,
 	}
 	if (types[3] == 's')
 	{
-		if (strcmp(type, "p") != 0)
+		if (strchr(type, 'p') == NULL)
 		{
 			return 0;
 		}
@@ -364,8 +374,38 @@ int Listener_ins_set_type_field(const char* path,
 			return 0;
 		}
 	}
+	else if (types[3] == 'h')
+	{
+		if (strchr(type, 'i') == NULL)
+		{
+			return 0;
+		}
+		int64_t num = argv[3]->h;
+		if (!Instrument_set_field(ins, field_index, &num))
+		{
+			return 0;
+		}
+	}
+	else if (types[3] == 'd')
+	{
+		if (strchr(type, 'f') == NULL)
+		{
+			return 0;
+		}
+		double num = argv[3]->d;
+		if (!Instrument_set_field(ins, field_index, &num))
+		{
+			return 0;
+		}
+	}
 	else
 	{
+		lo_message m = new_msg();
+		lo_message_add_string(m, "Unsupported type:");
+		lo_message_add_char(m, types[3]);
+		int ret = 0;
+		send_msg(lr, "error", m, ret);
+		lo_message_free(m);
 		return 0;
 	}
 	lo_message m = new_msg();

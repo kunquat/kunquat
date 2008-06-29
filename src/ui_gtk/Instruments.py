@@ -44,15 +44,24 @@ class Instruments(gtk.HBox):
 		field_data = self.field_map[args[1]]
 		if field_data[0] == 'p':
 			field_data[2].set_text(args[2])
+		elif field_data[0] == 'i' or field_data[0] == 'f':
+			spin = field_data[2]
+			adj = spin.get_adjustment()
+			if not adj.user_set:
+				adj.handler_block(adj.shandle)
+				spin.set_value(args[2])
+				adj.handler_unblock(adj.shandle)
+			else:
+				adj.user_set = False
 
-	def path_selected(self, file_sel, ins_num, field_index):
-		path = file_sel.get_filename()
-		file_sel.destroy()
-		liblo.send(self.engine, '/kunquat/ins_set_type_field',
-				self.song_id,
-				ins_num,
-				field_index,
-				path)
+#	def path_selected(self, file_sel, ins_num, field_index):
+#		path = file_sel.get_filename()
+#		file_sel.destroy()
+#		liblo.send(self.engine, '/kunquat/ins_set_type_field',
+#				self.song_id,
+#				ins_num,
+#				field_index,
+#				path)
 
 	def browse_response(self, file_sel, id, ins_num, field_index):
 		if id == gtk.RESPONSE_CANCEL:
@@ -65,6 +74,14 @@ class Instruments(gtk.HBox):
 					ins_num,
 					field_index,
 					path)
+			if self.cur_index == ins_num:
+				for field_id in self.field_map:
+					if field_id == field_index:
+						continue
+					liblo.send(self.engine, '/kunquat/ins_get_type_field',
+							self.song_id,
+							ins_num,
+							field_id)
 
 	def browse_activate(self, button):
 		patterns = button.constraints.split('-|-')
@@ -77,12 +94,37 @@ class Instruments(gtk.HBox):
 			filter.add_pattern(x)
 		file_sel = gtk.FileChooserDialog(buttons=(gtk.STOCK_CANCEL,
 				gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-		file_sel.connect('file-activated', self.path_selected,
-				self.cur_index, button.field_index)
+		file_sel.connect('file-activated', self.browse_response,
+				gtk.RESPONSE_OK, self.cur_index, button.field_index)
 		file_sel.connect('response', self.browse_response,
 				self.cur_index, button.field_index)
 		file_sel.add_filter(filter)
 		file_sel.show()
+
+	def num_change(self, adj):
+		assert adj.field_index in self.field_map, 'Unexpected field'
+		adj.user_set = True
+		val = None
+		type = None
+		if self.field_map[adj.field_index][0] == 'i':
+			val = long(adj.get_value())
+			type = 'h'
+		else:
+			assert self.field_map[adj.field_index][0] == 'f', 'Unexpected type of the field'
+			val = float(adj.get_value())
+			type = 'd'
+		liblo.send(self.engine, '/kunquat/ins_set_type_field',
+				self.song_id,
+				self.cur_index,
+				adj.field_index,
+				(type, val))
+		for field_id in self.field_map:
+			if field_id == adj.field_index:
+				continue
+			liblo.send(self.engine, '/kunquat/ins_get_type_field',
+					self.song_id,
+					self.cur_index,
+					field_id)
 
 	def ins_type_desc(self, path, args, types):
 		if args[0] != self.cur_index:
@@ -108,6 +150,56 @@ class Instruments(gtk.HBox):
 				browse.connect('clicked', self.browse_activate)
 				field.pack_start(browse, False, False)
 				self.field_map[id] = ('p', args[i + 3], entry)
+			if args[i + 2] == 'i':
+				field = gtk.HBox()
+				field.pack_start(label, False, False)
+				constraints = args[i + 3].split('-&-')
+				vmin = 0
+				vmax = 32767
+				for c in constraints:
+					if c[:2] == '>=':
+						vmin = int(c[2:])
+					elif c[:1] == '>':
+						vmin = int(c[1:]) + 1
+					elif c[:2] == '<=':
+						vmax = int(c[2:])
+					elif c[:1] == '<':
+						vmax = int(c[1:]) - 1
+				adj = gtk.Adjustment(vmin, vmin, vmax, 1, 10)
+				adj.user_set = False
+				adj.field_index = id
+				adj.shandle = adj.connect('value-changed', self.num_change)
+				spin = gtk.SpinButton(digits=0)
+				spin.set_numeric(True)
+				spin.set_snap_to_ticks(True)
+				field.pack_start(spin)
+				self.field_map[id] = ('i', args[i + 3], spin)
+				spin.set_adjustment(adj)
+			if args[i + 2] == 'f':
+				field = gtk.HBox()
+				field.pack_start(label, False, False)
+				constraints = args[i + 3].split('-&-')
+				vmin = 0
+				vmax = 32767
+				for c in constraints:
+					if c[:2] == '>=':
+						vmin = float(c[2:])
+					elif c[:1] == '>':
+						vmin = float(c[1:]) + 0.001
+					elif c[:2] == '<=':
+						vmax = float(c[2:])
+					elif c[:1] == '<':
+						vmax = float(c[1:]) - 0.001
+				adj = gtk.Adjustment(vmin, vmin, vmax, 0.001, 1)
+				adj.user_set = False
+				adj.field_index = id
+				adj.shandle = adj.connect('value-changed', self.num_change)
+				spin = gtk.SpinButton(digits=3)
+				spin.set_numeric(True)
+				spin.set_snap_to_ticks(True)
+				field.pack_start(spin)
+				self.field_map[id] = ('f', args[i + 3], spin)
+				spin.set_adjustment(adj)
 			if prev_category != args[0]:
 				prev_category = args[0]
 				contents = gtk.VBox()
