@@ -30,9 +30,9 @@ opts.AddOptions(
 	BoolOption('tests', 'Build and run tests.', True),
 	('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
 	BoolOption('enable_jack', 'Enable JACK driver.', True),
-	BoolOption('enable_alsa', 'Enable ALSA driver.', True),
 	BoolOption('enable_ao', 'Enable libao driver.', True),
-	PathOption('liblo_path', 'liblo installation path.', None, PathOption.PathAccept)
+	BoolOption('enable_alsa', 'Enable ALSA driver (not recommended!).', False),
+	PathOption('liblo_path', 'Alternative liblo installation path.', '', PathOption.PathAccept)
 )
 
 
