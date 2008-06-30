@@ -107,39 +107,61 @@ if not env.GetOption('clean'):
 		conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
 	if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
-		print 'Math library not found.'
+		print('Error: Math library not found.')
 		Exit(1)
 
 	if not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
-		print 'liblo not found.'
+		print('Error: liblo not found.')
 		Exit(1)
 
 	conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
 	conf.env.Append(CCFLAGS = '-Duint=uint32_t')
 	if not conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
-		print 'WavPack not found.'
+		print('Error: WavPack not found.')
 		Exit(1)
 
-	if env['enable_jack'] and conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
-		audio_found = True
-		conf.env.Append(CCFLAGS = '-DENABLE_JACK')
-	else:
-		env['enable_jack'] = False
-
-	if env['enable_alsa'] and conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
-		audio_found = True
-		conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
-	else:
-		env['enable_alsa'] = False
-
-	if env['enable_ao'] and conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
-		audio_found = True
-		conf.env.Append(CCFLAGS = '-DENABLE_AO')
-	else:
-		env['enable_ao'] = False
+	if env['enable_jack']:
+		if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
+			audio_found = True
+			conf.env.Append(CCFLAGS = '-DENABLE_JACK')
+		else:
+			print('Warning: JACK driver was requested but JACK was not found.')
+			env['enable_jack'] = False
 	
+	need_pthread = env['enable_alsa'] or env['enable_ao']
+	pthread_found = False
+	if need_pthread and not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
+		names = []
+		if env['enable_alsa']:
+			names += ['ALSA']
+			env['enable_alsa'] = False
+		if env['enable_ao']:
+			names += ['ao']
+			env['enable_ao'] = False
+		dr = 'driver requires'
+		if len(names) > 1:
+			dr = 'drivers require'
+		print('Warning: The requested %s %s pthread which was not found.' %
+				(' and '.join(names), dr))
+
+	if env['enable_alsa']:
+		if conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
+			audio_found = True
+			conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
+		else:
+			print('Warning: ALSA driver was requested but ALSA was not found.')
+			env['enable_alsa'] = False
+
+	if env['enable_ao']:
+		if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
+			audio_found = True
+			conf.env.Append(CCFLAGS = '-DENABLE_AO')
+		else:
+			print('Warning: libao driver was requested but libao was not found.')
+			env['enable_ao'] = False
+
 	if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
-		print 'Building of unit tests requires Check.'
+		print('Error: Building of unit tests was requested but Check was not found.')
 		Exit(1)
 		
 	env = conf.Finish()

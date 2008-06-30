@@ -28,6 +28,7 @@
 
 #include <Reltime.h>
 #include <Event.h>
+#include <AAtree.h>
 
 
 typedef struct Event_list
@@ -38,32 +39,12 @@ typedef struct Event_list
 } Event_list;
 
 
-typedef struct AAnode
-{
-	int level;
-	Event_list* elist;
-	Event_list* elist_tail;
-	struct AAnode* parent;
-	struct AAnode* left;
-	struct AAnode* right;
-} AAnode;
-
-
-typedef struct AAtree
-{
-	AAnode* nil;
-	AAnode* root;
-} AAtree;
-
-
 typedef struct Column
 {
 	Reltime len;
-	AAnode* last;
 	Event_list* last_elist;
-	AAnode* last_from_host;
 	Event_list* last_elist_from_host;
-	AAtree events;
+	AAtree* events;
 } Column;
 
 

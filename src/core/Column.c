@@ -32,75 +32,57 @@
 #include <xmemory.h>
 
 
-static AAnode* aapred(AAnode* node);
+static Event_list* new_Event_list(Event_list* nil, Event* event);
 
-static AAnode* aasucc(AAnode* node);
+static Event_list* Event_list_init(Event_list* elist);
 
-static AAnode* aaskew(AAnode* root);
-
-static AAnode* aasplit(AAnode* root);
-
-static void aafree(AAnode* node);
-
-#ifndef NDEBUG
-#define aavalidate(node, msg) (assert(aavalidate_(node, msg)))
-static bool aavalidate_(AAnode* node, char* msg);
-#else
-#define aavalidate(node, msg) (void)0
-#endif
-
-
-static Event_list* new_Event_list(Event* event);
-
-static Event_list* new_Event_list(Event* event)
-{
-	assert(event != NULL);
-	Event_list* elist = xalloc(Event_list);
-	if (elist == NULL)
-	{
-		return NULL;
-	}
-	elist->event = event;
-	elist->prev = elist->next = NULL;
-	return elist;
-}
-
+static int Event_list_cmp(Event_list* list1, Event_list* list2);
 
 static void del_Event_list(Event_list* elist);
 
 
-static AAnode* new_AAnode(AAnode* nil, Event* event);
-
-static AAnode* new_AAnode(AAnode* nil, Event* event)
+static Event_list* new_Event_list(Event_list* nil, Event* event)
 {
 	assert(!(nil == NULL) || (event == NULL));
 	assert(!(event == NULL) || (nil == NULL));
-	AAnode* node = xalloc(AAnode);
-	if (node == NULL)
+	Event_list* elist = xalloc(Event_list);
+	if (elist == NULL)
 	{
 		return NULL;
 	}
 	if (nil == NULL)
 	{
 		assert(event == NULL);
-		node->elist = node->elist_tail = NULL;
-		node->level = 0;
-		node->parent = node->left = node->right = node;
+		elist->event = NULL;
+		elist->prev = elist->next = elist;
 	}
 	else
 	{
 		assert(event != NULL);
-		node->elist = new_Event_list(event);
-		if (node->elist == NULL)
-		{
-			xfree(node);
-			return NULL;
-		}
-		node->elist_tail = node->elist;
-		node->level = 1;
-		node->parent = node->left = node->right = nil;
+		elist->event = event;
+		elist->prev = elist->next = nil;
 	}
-	return node;
+	return elist;
+}
+
+
+static Event_list* Event_list_init(Event_list* elist)
+{
+	assert(elist != NULL);
+	elist->prev = elist->next = elist;
+	return elist;
+}
+
+
+static int Event_list_cmp(Event_list* list1, Event_list* list2)
+{
+	assert(list1 != NULL);
+	assert(list2 != NULL);
+	Event* ev1 = list1->next->event;
+	Event* ev2 = list2->next->event;
+	assert(ev1 != NULL);
+	assert(ev2 != NULL);
+	return Reltime_cmp(Event_pos(ev1), Event_pos(ev2));
 }
 
 
@@ -111,14 +93,13 @@ Column* new_Column(Reltime* len)
 	{
 		return NULL;
 	}
-	col->events.nil = new_AAnode(NULL, NULL);
-	if (col->events.nil == NULL)
+	col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
+			(void (*)(void*))del_Event_list);
+	if (col->events == NULL)
 	{
 		xfree(col);
 		return NULL;
 	}
-	col->events.root = col->events.nil;
-	aavalidate(col->events.root, "init");
 	if (len != NULL)
 	{
 		Reltime_copy(&col->len, len);
@@ -127,9 +108,7 @@ Column* new_Column(Reltime* len)
 	{
 		Reltime_set(&col->len, INT64_MAX, 0);
 	}
-	col->last = col->events.nil;
 	col->last_elist = NULL;
-	col->last_from_host = col->events.nil;
 	col->last_elist_from_host = NULL;
 	return col;
 }
@@ -139,116 +118,65 @@ bool Column_ins(Column* col, Event* event)
 {
 	assert(col != NULL);
 	assert(event != NULL);
-	aavalidate(col->events.root, "before insert");
-	if (col->events.root->level == 0)
+	Event_list* key = Event_list_init(&(Event_list){ .event = event });
+	Event_list* ret = AAtree_get(col->events, key, 1);
+	if (ret == NULL || Reltime_cmp(Event_pos(event),
+			Event_pos(ret->next->event)) != 0)
 	{
-		col->events.root = new_AAnode(col->events.nil, event);
-		if (col->events.root == NULL)
-		{
-			col->events.root = col->events.nil;
-			return false;
-		}
-		aavalidate(col->events.root, "insert root");
-		return true;
-	}
-	AAnode* cur = col->events.root;
-	AAnode* prev = NULL;
-	assert(cur->elist != NULL);
-	int diff = 1;
-	while (cur->level > 0 && diff != 0)
-	{
-		assert(cur->elist != NULL);
-		diff = Reltime_cmp(Event_pos(event), Event_pos(cur->elist->event));
-		prev = cur;
-		if (diff < 0)
-		{
-			cur = cur->left;
-		}
-		else if (diff > 0)
-		{
-			cur = cur->right;
-		}
-	}
-	assert(prev != NULL);
-	if (diff == 0)
-	{
-		Event_list* new_last = new_Event_list(event);
-		if (new_last == NULL)
+		Event_list* nil = new_Event_list(NULL, NULL);
+		if (nil == NULL)
 		{
 			return false;
 		}
-		assert(cur->elist != NULL);
-		assert(cur->elist_tail != NULL);
-		new_last->prev = cur->elist_tail;
-		cur->elist_tail->next = new_last;
-		cur->elist_tail = new_last;
-		aavalidate(col->events.root, "insert");
+		Event_list* node = new_Event_list(nil, event);
+		if (node == NULL)
+		{
+			del_Event_list(nil);
+			return false;
+		}
+		nil->prev = nil->next = node;
+		node->prev = node->next = nil;
+		if (!AAtree_ins(col->events, nil))
+		{
+			del_Event_list(nil);
+			del_Event_list(node);
+			return false;
+		}
 		return true;
 	}
-	AAnode* new_node = new_AAnode(col->events.nil, event);
-	if (new_node == NULL)
+	assert(ret->next != ret);
+	assert(ret->prev != ret);
+	assert(ret->event == NULL);
+	Event_list* node = new_Event_list(ret, event);
+	if (node == NULL)
 	{
 		return false;
 	}
-	if (diff < 0)
-	{
-		assert(prev->left->level == 0);
-		prev->left = new_node;
-		new_node->parent = prev;
-	}
-	else
-	{
-		assert(diff > 0);
-		assert(prev->right->level == 0);
-		prev->right = new_node;
-		new_node->parent = prev;
-	}
-	cur = new_node->parent;
-	while (cur->level > 0)
-	{
-		AAnode* parent = cur->parent;
-		AAnode** child = NULL;
-		if (parent->left == cur)
-		{
-			child = &parent->left;
-		}
-		else if (parent->right == cur)
-		{
-			child = &parent->right;
-		}
-		else
-		{
-			assert(parent->level == 0);
-			child = &col->events.root;
-		}
-		assert(child != NULL);
-		cur = aaskew(cur);
-		cur = aasplit(cur);
-		aavalidate(cur, "balance");
-		*child = cur;
-		cur = cur->parent;
-	}
-	aavalidate(col->events.root, "insert rebalance");
+	node->prev = ret->prev;
+	node->next = ret;
+	ret->prev->next = node;
+	ret->prev = node;
 	return true;
 }
-
-
-static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback);
 
 
 Event* Column_get(Column* col, const Reltime* pos)
 {
 	assert(col != NULL);
 	assert(pos != NULL);
-	AAnode* found = Column_get_node(col, pos, true);
-	assert(found != NULL);
-	if (found->elist == NULL)
+	Event* event = &(Event){ .type = EVENT_TYPE_NONE };
+	Reltime_copy(&event->pos, pos);
+	Event_list* key = Event_list_init(&(Event_list){ .event = event });
+	col->last_elist = AAtree_get(col->events, key, 0);
+	if (col->last_elist == NULL)
 	{
-		assert(found->level == 0);
 		return NULL;
 	}
-	assert(found->elist->event != NULL);
-	return found->elist->event;
+	assert(col->last_elist->event == NULL);
+	assert(col->last_elist->next != col->last_elist);
+	col->last_elist = col->last_elist->next;
+	assert(col->last_elist->event != NULL);
+	return col->last_elist->event;
 }
 
 
@@ -256,77 +184,45 @@ Event* Column_get_edit(Column* col, const Reltime* pos)
 {
 	assert(col != NULL);
 	assert(pos != NULL);
-	AAnode* found = Column_get_node(col, pos, false);
-	assert(found != NULL);
-	if (found->elist == NULL)
+	Event* event = &(Event){ .type = EVENT_TYPE_NONE };
+	Reltime_copy(&event->pos, pos);
+	Event_list* key = Event_list_init(&(Event_list){ .event = event });
+	col->last_elist_from_host = AAtree_get(col->events, key, 1);
+	if (col->last_elist_from_host == NULL)
 	{
-		assert(found->level == 0);
 		return NULL;
 	}
-	assert(found->elist->event != NULL);
-	return found->elist->event;
-}
-
-
-static AAnode* Column_get_node(Column* col, const Reltime* pos, bool playback)
-{
-	assert(col != NULL);
-	assert(pos != NULL);
-	AAnode* ret = col->events.nil;
-	AAnode* cur = col->events.root;
-	aavalidate(cur, "get");
-	AAnode** last = &col->last;
-	Event_list** last_elist = &col->last_elist;
-	if (!playback)
-	{
-		last = &col->last_from_host;
-		last_elist = &col->last_elist_from_host;
-	}
-	while (cur->level > 0)
-	{
-		assert(cur->elist != NULL);
-		assert(cur->elist->event != NULL);
-		int diff = Reltime_cmp(pos, Event_pos(cur->elist->event));
-		if (diff < 0)
-		{
-			ret = cur;
-			*last = cur;
-			*last_elist = (*last)->elist;
-			cur = cur->left;
-		}
-		else if (diff > 0)
-		{
-			cur = cur->right;
-		}
-		else
-		{
-			*last = cur;
-			*last_elist = cur->elist;
-			return cur;
-		}
-	}
-	return ret;
+	assert(col->last_elist_from_host->event == NULL);
+	assert(col->last_elist_from_host->next != col->last_elist_from_host);
+	col->last_elist_from_host = col->last_elist_from_host->next;
+	assert(col->last_elist_from_host->event != NULL);
+	return col->last_elist_from_host->event;
 }
 
 
 Event* Column_get_next(Column* col)
 {
 	assert(col != NULL);
-	assert(col->last != NULL);
 	if (col->last_elist == NULL)
 	{
 		return NULL;
 	}
+	assert(col->last_elist->event != NULL);
+	assert(col->last_elist != col->last_elist->next);
 	col->last_elist = col->last_elist->next;
+	if (col->last_elist->event != NULL)
+	{
+		return col->last_elist->event;
+	}
+	col->last_elist = AAtree_get_next(col->events, 0);
 	if (col->last_elist == NULL)
 	{
-		col->last = aasucc(col->last);
-		col->last_elist = col->last->elist;
-		if (col->last_elist == NULL)
-		{
-			return NULL;
-		}
+		return NULL;
 	}
+	assert(col->last_elist->event == NULL);
+	assert(col->last_elist->next != col->last_elist);
+	col->last_elist = col->last_elist->next;
+	assert(col->last_elist->event != NULL);
 	return col->last_elist->event;
 }
 
@@ -334,21 +230,26 @@ Event* Column_get_next(Column* col)
 Event* Column_get_next_edit(Column* col)
 {
 	assert(col != NULL);
-	assert(col->last_from_host != NULL);
 	if (col->last_elist_from_host == NULL)
 	{
 		return NULL;
 	}
+	assert(col->last_elist_from_host->event != NULL);
+	assert(col->last_elist_from_host != col->last_elist_from_host->next);
 	col->last_elist_from_host = col->last_elist_from_host->next;
+	if (col->last_elist_from_host->event != NULL)
+	{
+		return col->last_elist_from_host->event;
+	}
+	col->last_elist_from_host = AAtree_get_next(col->events, 1);
 	if (col->last_elist_from_host == NULL)
 	{
-		col->last_from_host = aasucc(col->last_from_host);
-		col->last_elist_from_host = col->last_from_host->elist;
-		if (col->last_elist_from_host == NULL)
-		{
-			return NULL;
-		}
+		return NULL;
 	}
+	assert(col->last_elist_from_host->event == NULL);
+	assert(col->last_elist_from_host->next != col->last_elist_from_host);
+	col->last_elist_from_host = col->last_elist_from_host->next;
+	assert(col->last_elist_from_host->event != NULL);
 	return col->last_elist_from_host->event;
 }
 
@@ -357,20 +258,21 @@ bool Column_move(Column* col, Event* event, unsigned int index)
 {
 	assert(col != NULL);
 	assert(event != NULL);
-	Reltime* pos = Event_pos(event);
-	AAnode* target = Column_get_node(col, pos, false);
-	if (target->level <= 0)
+	Event_list* key = Event_list_init(&(Event_list){ .event = event });
+	Event_list* target = AAtree_get(col->events, key, 1);
+	if (target == NULL)
 	{
-		assert(target->level == 0);
 		assert(false);
 		return false;
 	}
+	assert(target->event == NULL);
 	Event_list* src = NULL;
 	Event_list* shifted = NULL;
-	Event_list* cur = target->elist;
+	Event_list* cur = target->next;
 	assert(cur != NULL);
+	assert(cur->event != NULL);
 	unsigned int idx = 0;
-	while (cur != NULL)
+	while (cur != target)
 	{
 		if (idx == index)
 		{
@@ -389,28 +291,15 @@ bool Column_move(Column* col, Event* event, unsigned int index)
 		++idx;
 	}
 	assert(src != NULL);
-	if (src->prev != NULL)
-	{
-		src->prev->next = src->next;
-	}
-	else
-	{
-		target->elist = src->next;
-	}
-	if (src->next != NULL)
-	{
-		src->next->prev = src->prev;
-	}
-	else
-	{
-		target->elist_tail = src->prev;
-	}
+	src->prev->next = src->next;
+	src->next->prev = src->prev;
 	if (shifted == NULL)
 	{
-		src->prev = target->elist_tail;
-		assert(target->elist_tail->prev != NULL);
-		target->elist_tail->next = src;
-		target->elist_tail = src;
+		src->prev = target->prev;
+		assert(target->prev->prev != NULL);
+		assert(target->prev->prev != target);
+		target->prev->next = src;
+		target->prev = src;
 	}
 	else
 	{
@@ -425,7 +314,7 @@ bool Column_move(Column* col, Event* event, unsigned int index)
 		}
 		else
 		{
-			target->elist = src;
+			target->next = src;
 		}
 		if (src->next != NULL)
 		{
@@ -433,10 +322,9 @@ bool Column_move(Column* col, Event* event, unsigned int index)
 		}
 		else
 		{
-			target->elist_tail = src;
+			target->prev = src;
 		}
 	}
-	aavalidate(col->events.root, "move");
 	return true;
 }
 
@@ -445,156 +333,40 @@ bool Column_remove(Column* col, Event* event)
 {
 	assert(col != NULL);
 	assert(event != NULL);
-	assert(col->events.root->parent == col->events.nil);
-	if (col->events.root->level == 0)
+	Event_list* key = Event_list_init(&(Event_list){ .event = event });
+	Event_list* target = AAtree_get(col->events, key, 1);
+	if (target == NULL || Reltime_cmp(Event_pos(event),
+			Event_pos(target->next->event)) != 0)
 	{
 		return false;
 	}
-	AAnode* cur = col->events.root;
-	int diff = 1;
-	while (cur->level > 0 && diff != 0)
+	assert(target->event == NULL);
+	Event_list* elist = target->next;
+	while (elist != target && elist->event != event)
 	{
-		diff = Reltime_cmp(Event_pos(event), Event_pos(cur->elist->event));
-		if (diff < 0)
-		{
-			cur = cur->left;
-		}
-		else if (diff > 0)
-		{
-			cur = cur->right;
-		}
-		else
-		{
-			Event_list* elist = cur->elist;
-			while (elist != NULL && elist->event != event)
-			{
-				elist = elist->next;
-			}
-			if (elist == NULL)
-			{
-				return false;
-			}
-			Event_list* eprev = elist->prev;
-			Event_list* enext = elist->next;
-			assert(!(eprev == NULL) || elist == cur->elist);
-			assert(!(enext == NULL) || elist == cur->elist_tail);
-			del_Event(elist->event);
-			xfree(elist);
-			if (cur->elist != cur->elist_tail)
-			{
-				assert(eprev != NULL || enext != NULL);
-				if (eprev != NULL)
-				{
-					eprev->next = enext;
-				}
-				else
-				{
-					cur->elist = enext;
-				}
-				if (enext != NULL)
-				{
-					enext->prev = eprev;
-				}
-				else
-				{
-					cur->elist_tail = eprev;
-				}
-				aavalidate(col->events.root, "remove w/o balance");
-				return true;
-			}
-			assert(elist == cur->elist);
-			cur->elist = cur->elist_tail = NULL;
-		}
+		elist = elist->next;
+		assert(elist != NULL);
 	}
-	assert(cur != NULL);
-	assert(cur->elist == NULL);
-	if (cur->level == 0)
+	if (elist == target)
 	{
 		return false;
 	}
-	if (cur == col->last)
+	Event_list* eprev = elist->prev;
+	Event_list* enext = elist->next;
+	if (eprev != enext)
 	{
-		col->last = aasucc(col->last);
+		assert(eprev != target || enext != target);
+		del_Event(elist->event);
+		xfree(elist);
+		eprev->next = enext;
+		enext->prev = eprev;
+		return true;
 	}
-	if (cur->left->level != 0 && cur->right->level != 0)
-	{
-		assert(cur->left->level > 0);
-		assert(cur->right->level > 0);
-		AAnode* pred = aapred(cur);
-		assert(pred != NULL);
-		assert(pred->right->level == 0);
-		cur->elist = pred->elist;
-		cur->elist_tail = pred->elist_tail;
-		pred->elist = pred->elist_tail = NULL;
-		cur = pred;
-	}
-	assert(cur->left->level == 0 || cur->right->level == 0);
-	AAnode** child = NULL;
-	AAnode* parent = cur->parent;
-	if (cur == cur->parent->left)
-	{
-		child = &cur->parent->left;
-	}
-	else if (cur == cur->parent->right)
-	{
-		child = &cur->parent->right;
-	}
-	else
-	{
-		assert(cur == col->events.root);
-		child = &col->events.root;
-		parent = col->events.nil;
-	}
-	assert(child != NULL);
-	if (cur->left->level > 0)
-	{
-		assert(cur->right->level == 0);
-		*child = cur->left;
-		cur->left->parent = parent;
-	}
-	else
-	{
-		*child = cur->right;
-		cur->right->parent = parent;
-	}
-	AAnode* node = cur->parent;
-	cur->left = cur->right = col->events.nil;
-	aafree(cur);
-	cur = node;
-	while (cur->level > 0)
-	{
-		parent = cur->parent;
-		child = NULL;
-		if (parent->left == cur)
-		{
-			child = &parent->left;
-		}
-		else if (parent->right == cur)
-		{
-			child = &parent->right;
-		}
-		else
-		{
-			assert(parent->level == 0);
-			child = &col->events.root;
-		}
-		if (cur->left->level < cur->level - 1
-				|| cur->right->level < cur->level - 1)
-		{
-			--cur->level;
-			if (cur->right->level > cur->level)
-			{
-				cur->right->level = cur->level;
-			}
-			assert(child != NULL);
-			cur = aaskew(cur);
-			cur = aasplit(cur);
-			*child = cur;
-		}
-		aavalidate(cur, "balance");
-		cur = cur->parent;
-	}
-	aavalidate(col->events.root, "remove");
+	assert(eprev == target);
+	assert(enext == target);
+	target = AAtree_remove(col->events, key);
+	assert(target != NULL);
+	del_Event_list(target);
 	return true;
 }
 
@@ -611,7 +383,6 @@ bool Column_remove_row(Column* col, Reltime* pos)
 		assert(modified);
 		target = Column_get_edit(col, pos);
 	}
-	aavalidate(col->events.root, "remove row");
 	return modified;
 }
 
@@ -629,7 +400,6 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
 		assert(modified);
 		target = Column_get_edit(col, start);
 	}
-	aavalidate(col->events.root, "remove block");
 	return modified;
 }
 
@@ -651,7 +421,6 @@ bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
 		Reltime_sub(ev_pos, ev_pos, len);
 		target = Column_get_next_edit(col);
 	}
-	aavalidate(col->events.root, "shift up");
 	return removed;
 }
 
@@ -668,7 +437,6 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
 		Reltime_add(ev_pos, ev_pos, len);
 		target = Column_get_next_edit(col);
 	}
-	aavalidate(col->events.root, "shift down");
 	return;
 }
 
@@ -676,13 +444,9 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
 void Column_clear(Column* col)
 {
 	assert(col != NULL);
-	aavalidate(col->events.root, "clear");
-	if (col->events.root != col->events.nil)
-	{
-		aafree(col->events.root);
-		col->events.root = col->events.nil;
-	}
-	col->last = col->events.nil;
+	col->last_elist = NULL;
+	col->last_elist_from_host = NULL;
+	AAtree_clear(col->events);
 	return;
 }
 
@@ -706,279 +470,29 @@ Reltime* Column_length(Column* col)
 void del_Column(Column* col)
 {
 	assert(col != NULL);
-	aavalidate(col->events.root, "del");
-	Column_clear(col);
-	xfree(col->events.nil);
+	del_AAtree(col->events);
 	xfree(col);
 	return;
-}
-
-
-static AAnode* aapred(AAnode* node)
-{
-	assert(node != NULL);
-	assert(node->level > 0);
-	if (node->left->level > 0)
-	{
-		node = node->left;
-		while (node->right->level > 0)
-		{
-			node = node->right;
-		}
-		return node;
-	}
-	AAnode* prev = node;
-	node = node->parent;
-	while (prev == node->left)
-	{
-		prev = node;
-		node = node->parent;
-	}
-	return node;
-}
-
-
-static AAnode* aasucc(AAnode* node)
-{
-	assert(node != NULL);
-	if (node->level == 0)
-	{
-		return node;
-	}
-	if (node->right->level > 0)
-	{
-		node = node->right;
-		while (node->left->level > 0)
-		{
-			node = node->left;
-		}
-		return node;
-	}
-	AAnode* prev = node;
-	node = node->parent;
-	while (prev == node->right)
-	{
-		prev = node;
-		node = node->parent;
-	}
-	return node;
-}
-
-
-static AAnode* aaskew(AAnode* root)
-{
-	assert(root != NULL);
-	if (root->level == 0)
-	{
-		return root;
-	}
-	if (root->left->level == root->level)
-	{
-		AAnode* new_root = root->left;
-		root->left = new_root->right;
-		new_root->right = root;
-		root->left->parent = root;
-		new_root->parent = root->parent;
-		root->parent = new_root;
-		root = new_root;
-	}
-	root->right = aaskew(root->right);
-	return root;
-}
-
-
-static AAnode* aasplit(AAnode* root)
-{
-	assert(root != NULL);
-	if (root->level == 0)
-	{
-		return root;
-	}
-	if (root->level == root->right->right->level)
-	{
-		AAnode* new_root = root->right;
-		root->right = new_root->left;
-		new_root->left = root;
-		root->right->parent = root;
-		new_root->parent = root->parent;
-		root->parent = new_root;
-		root = new_root;
-		++root->level;
-		root->right = aasplit(root->right);
-	}
-	return root;
 }
 
 
 static void del_Event_list(Event_list* elist)
 {
 	assert(elist != NULL);
-	assert(elist->event != NULL);
-	while (elist != NULL)
+	assert(elist->event == NULL);
+	Event_list* cur = elist->next;
+	assert(cur->event != NULL);
+	while (cur->event != NULL)
 	{
-		Event_list* next = elist->next;
-		assert(elist->event != NULL);
-		del_Event(elist->event);
-		xfree(elist);
-		elist = next;
+		Event_list* next = cur->next;
+		assert(cur->event != NULL);
+		del_Event(cur->event);
+		xfree(cur);
+		cur = next;
 	}
+	assert(cur == elist);
+	xfree(cur);
 	return;
 }
-
-
-static void aafree(AAnode* node)
-{
-	assert(node != NULL);
-	if (node->level == 0)
-	{
-		return;
-	}
-	aafree(node->left);
-	aafree(node->right);
-	if (node->elist != NULL)
-	{
-		del_Event_list(node->elist);
-	}
-	xfree(node);
-	return;
-}
-
-
-#ifndef NDEBUG
-static bool aavalidate_(AAnode* node, char* msg)
-{
-	if (node == NULL
-			|| node->parent == NULL
-			|| node->left == NULL
-			|| node->right == NULL)
-	{
-		return false;
-	}
-/*	fprintf(stderr, "level %d: parent: %6lx, left: %6lx, this: %6lx, right: %6lx\n",
-			node->level,
-			(long)node->parent % (long)nil,
-			(long)node->left % (long)nil,
-			(long)node % (long)nil,
-			(long)node->right % (long)nil); */
-	if (node->level == 0)
-	{
-		if (node->elist != NULL)
-		{
-			return false;
-		}
-		if (node->left != node)
-		{
-			return false;
-		}
-		if (node->right != node)
-		{
-			return false;
-		}
-		return true;
-	}
-	if (node->left == node)
-	{
-		return false;
-	}
-	if (node->right == node)
-	{
-		return false;
-	}
-	if (node->parent == node)
-	{
-		return false;
-	}
-	if (node->left->level > 0 && node->left->parent != node)
-	{
-		return false;
-	}
-	if (node->right->level > 0 && node->right->parent != node)
-	{
-		return false;
-	}
-	if (node->level != node->left->level + 1)
-	{
-		return false;
-	}
-	if (node->level == node->right->right->level)
-	{
-		return false;
-	}
-	if (node->level != node->right->level
-			&& node->level != node->right->level + 1)
-	{
-		return false;
-	}
-	if (node->elist == NULL)
-	{
-		return false;
-	}
-	else
-	{
-		Event_list* elist = node->elist;
-		while (elist != NULL)
-		{
-			if (elist->event == NULL)
-			{
-				return false;
-			}
-			if (elist->prev == NULL)
-			{
-				if (node->elist != elist)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (node->elist == elist)
-				{
-					return false;
-				}
-				if (elist->prev->next != elist)
-				{
-					return false;
-				}
-			}
-			if (elist->next == NULL)
-			{
-				if (node->elist_tail != elist)
-				{
-					return false;
-				}
-			}
-			else
-			{
-				if (node->elist_tail == elist)
-				{
-					return false;
-				}
-				if (elist->next->prev != elist)
-				{
-					return false;
-				}
-			}
-			elist = elist->next;
-		}
-	}
-	if (node->left->elist != NULL
-			&& Reltime_cmp(Event_pos(node->left->elist->event),
-					Event_pos(node->elist->event)) > 0)
-	{
-		return false;
-	}
-	if (node->right->elist != NULL
-			&& Reltime_cmp(Event_pos(node->right->elist->event),
-					Event_pos(node->elist->event)) < 0)
-	{
-		return false;
-	}
-	if (aavalidate_(node->left, msg) && aavalidate_(node->right, msg))
-	{
-		return true;
-	}
-	return false;
-}
-#endif
 
 

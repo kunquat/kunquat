@@ -49,6 +49,7 @@ files = [
 	'Ins_table.c',
 	'Voice.c',
 	'Voice_pool.c',
+	'AAtree.c',
 	'Column.c',
 	'Channel.c',
 	'Order.c',
