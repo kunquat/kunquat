@@ -29,26 +29,62 @@ import liblo
 import Song
 
 
+gtk.rc_parse_string("""
+	style "tab-close-button-style" {
+		GtkWidget::focus-padding = 0
+		GtkWidget::focus-line-width = 0
+		xthickness = 0
+		ythickness = 0
+	}
+	widget "*.tab-close-button" style "tab-close-button-style"
+	""")
+
+
 class Songs(gtk.Notebook):
+
+	def set_close_size(self, button, prev_style):
+		x, y = gtk.icon_size_lookup_for_settings(button.get_settings(),
+				gtk.ICON_SIZE_MENU)
+		button.set_size_request(x + 2, y + 2)
+
+	def close_song(self, button, id):
+		liblo.send(self.engine, '/kunquat/del_song', id)
+
+	def create_tab_head(self, title, id):
+		if not title:
+			title = '(untitled #%d)' % id
+		label = gtk.Label('%d: %s' % (id, title))
+		image = gtk.image_new_from_stock(gtk.STOCK_CLOSE, gtk.ICON_SIZE_MENU)
+		close = gtk.Button()
+		close.set_relief(gtk.RELIEF_NONE)
+		close.set_focus_on_click(False)
+		close.add(image)
+		close.set_name('tab-close-button')
+		close.connect('style-set', self.set_close_size)
+		close.connect('clicked', self.close_song, id)
+		head = gtk.HBox(spacing=5)
+		head.pack_start(label)
+		head.pack_start(close, False, False)
+		return head
 
 	def new_song(self, path, args, types):
 		content = Song.Song(self.engine, self.server, args[0])
-		label = gtk.Label(str(args[0]))
-		self.append_page(content, label)
+		head = self.create_tab_head('', args[0])
+		self.append_page(content, head)
 		content.request_info()
 		content.show()
-		label.show()
+		head.show_all()
 
 	def songs(self, path, args, types):
 		all_songs = set(args)
 		shown_songs = set([self.get_nth_page(i).song_id for i in range(self.get_n_pages())])
 		for id in all_songs - shown_songs:
 			content = Song.Song(self.engine, self.server, id)
-			label = gtk.Label(str(id))
-			self.append_page(content, label)
+			head = self.create_tab_head('', id)
+			self.append_page(content, head)
 			content.request_info()
 			content.show()
-			label.show()
+			head.show_all()
 
 	def find_song(self, id):
 		for i in range(self.get_n_pages()):
@@ -62,8 +98,10 @@ class Songs(gtk.Notebook):
 			content = self.get_nth_page(i)
 			if content.song_id == args[0]:
 				content.song_info(path, args[1:], types[1:])
-				label = self.get_tab_label(content)
+				label = self.get_tab_label(content).get_children()[0]
 				if label:
+					if not args[1]:
+						args[1] = '(untitled #%d)' % content.song_id
 					label.set_label(str(content.song_id) + ': ' + args[1])
 				return
 		new_song(path, [args[0]], ['i'])

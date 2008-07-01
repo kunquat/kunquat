@@ -93,10 +93,18 @@ class Kunquat_gtk:
 
 		self.tools = gtk.Toolbar()
 
+		new_song_button = gtk.ToolButton()
+		new_song_button.set_label('New Song')
+		new_song_button.connect('clicked', lambda x:
+				liblo.send(self.engine, '/kunquat/new_song'))
+		self.tools.insert(new_song_button, -1)
+		new_song_button.show()
+		new_song_button = None
+
 		driver_button = gtk.ToggleToolButton()
 		driver_button.set_label('Drivers')
 		driver_button.connect('toggled', self.set_window_display, self.drivers)
-		self.tools.insert(driver_button, 0)
+		self.tools.insert(driver_button, -1)
 		driver_button.show()
 		self.drivers.connect('delete-event', self.hide_window, driver_button)
 		driver_button = None
