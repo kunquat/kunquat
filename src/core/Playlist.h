@@ -29,6 +29,8 @@
 
 typedef struct Playlist
 {
+	uint32_t buf_count;
+	uint32_t buf_size;
 	Player* first;
 } Playlist;
 
@@ -71,6 +73,48 @@ Player* Playlist_get(Playlist* playlist, int32_t id);
  * \param player     The Player -- must not be \c NULL.
  */
 void Playlist_remove(Playlist* playlist, Player* player);
+
+
+/**
+ * Sets the number of buffers.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param count      The buffer count -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Playlist_set_buf_count(Playlist* playlist, int count);
+
+
+/**
+ * Gets the number of buffers.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ *
+ * \return   The number of buffers.
+ */
+int Playlist_get_buf_count(Playlist* playlist);
+
+
+/**
+ * Sets the size of buffers.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param buf_size   The new size of a single buffer -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Playlist_set_buf_size(Playlist* playlist, uint32_t size);
+
+
+/**
+ * Gets the size of a single buffer in the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ *
+ * \return   The buffer size.
+ */
+uint32_t Playlist_get_buf_size(Playlist* playlist);
 
 
 /**

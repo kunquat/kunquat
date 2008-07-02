@@ -35,6 +35,8 @@ Playlist* new_Playlist(void)
 	{
 		return NULL;
 	}
+	playlist->buf_count = 2;
+	playlist->buf_size = 128;
 	playlist->first = NULL;
 	return playlist;
 }
@@ -90,6 +92,57 @@ void Playlist_remove(Playlist* playlist, Player* player)
 	}
 	del_Player(player);
 	return;
+}
+
+
+bool Playlist_set_buf_count(Playlist* playlist, int count)
+{
+	assert(playlist != NULL);
+	assert(count > 0);
+	assert(count <= BUF_COUNT_MAX);
+	Player* player = playlist->first;
+	while (player != NULL)
+	{
+		if (!Song_set_buf_count(Player_get_song(player), count))
+		{
+			return false;
+		}
+		player = player->next;
+	}
+	playlist->buf_count = count;
+	return true;
+}
+
+
+int Playlist_get_buf_count(Playlist* playlist)
+{
+	assert(playlist != NULL);
+	return playlist->buf_count;
+}
+
+
+bool Playlist_set_buf_size(Playlist* playlist, uint32_t size)
+{
+	assert(playlist != NULL);
+	assert(size > 0);
+	Player* player = playlist->first;
+	while (player != NULL)
+	{
+		if (!Song_set_buf_size(Player_get_song(player), size))
+		{
+			return false;
+		}
+		player = player->next;
+	}
+	playlist->buf_size = size;
+	return true;
+}
+
+
+uint32_t Playlist_get_buf_size(Playlist* playlist)
+{
+	assert(playlist != NULL);
+	return playlist->buf_size;
 }
 
 

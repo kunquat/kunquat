@@ -127,7 +127,7 @@ class Kunquat_gtk:
 		self.contents.pack_start(self.box)
 		self.box.show()
 
-		self.contents.pack_end(self.cli, False, False)
+		self.contents.pack_start(self.cli, False, False)
 		self.cli.show()
 
 		self.window.add(self.contents)

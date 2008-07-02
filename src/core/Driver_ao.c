@@ -93,6 +93,11 @@ bool Driver_ao_init(Playlist* playlist, uint32_t* freq)
 {
 	assert(playlist != NULL);
 	assert(freq != NULL);
+	if (!Playlist_set_buf_size(playlist, K_AO_BUF_SIZE))
+	{
+		fprintf(stderr, "Couldn't resize the audio buffers.\n");
+		return false;
+	}
 	ao_initialize();
 	int driver_id = ao_default_driver_id();
 	if (driver_id == -1)
@@ -187,6 +192,7 @@ static int Driver_ao_process(uint32_t nframes, Playlist* playlist)
 	assert(playlist != NULL);
 	static frame_t mix_l[K_AO_BUF_SIZE];
 	static frame_t mix_r[K_AO_BUF_SIZE];
+	static frame_t* mixs[2] = { mix_l, mix_r };
 	for (uint32_t i = 0; i < K_AO_BUF_SIZE; ++i)
 	{
 		mix_l[i] = mix_r[i] = 0;
@@ -202,10 +208,19 @@ static int Driver_ao_process(uint32_t nframes, Playlist* playlist)
 		assert(player->play->mode > STOP);
 		assert(player->play->mode < PLAY_LAST);
 		int buf_count = Song_get_buf_count(player->song);
-		frame_t** bufs = Song_get_bufs(player->song);
-		bufs[0] = mix_l;
-		bufs[1] = mix_r;
+		if (buf_count > 2)
+		{
+			buf_count = 2;
+		}
 		uint32_t mixed = Player_mix(player, nframes);
+		frame_t** bufs = Song_get_bufs(player->song);
+		for (int i = 0; i < buf_count; ++i)
+		{
+			for (uint32_t k = 0; k < mixed; ++k)
+			{
+				mixs[i][k] += bufs[i][k];
+			}
+		}
 		if (buf_count == 1)
 		{
 			for (uint32_t i = 0; i < mixed; ++i)

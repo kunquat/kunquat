@@ -64,7 +64,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg);
  *
  * \return   Zero on success, non-zero on error.
  */
-//static int Driver_jack_bufsize(jack_nframes_t nframes, void* arg);
+static int Driver_jack_bufsize(jack_nframes_t nframes, void* arg);
 
 
 /**
@@ -124,7 +124,14 @@ bool Driver_jack_init(Playlist* playlist, uint32_t* freq)
 		{
 			return false;
 		}
-		if (jack_set_process_callback(handle, Driver_jack_process, playlist) != 0)
+		if (jack_set_process_callback(handle,
+				Driver_jack_process, playlist) != 0)
+		{
+			handle = NULL;
+			return false;
+		}
+		if (jack_set_buffer_size_callback(handle,
+				Driver_jack_bufsize, playlist) != 0)
 		{
 			handle = NULL;
 			return false;
@@ -151,6 +158,10 @@ bool Driver_jack_init(Playlist* playlist, uint32_t* freq)
 		{
 			return false;
 		}
+	}
+	if (!Playlist_set_buf_size(playlist, jack_get_buffer_size(handle)))
+	{
+		return false;
 	}
 	if (!active)
 	{
@@ -208,10 +219,11 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	{
 		return 0;
 	}
-	Playlist* playlist = (Playlist*)arg;
+	Playlist* playlist = arg;
 	Player* player = playlist->first;
 	jack_default_audio_sample_t* jbuf_l = jack_port_get_buffer(ports[0], nframes);
 	jack_default_audio_sample_t* jbuf_r = jack_port_get_buffer(ports[1], nframes);
+	jack_default_audio_sample_t* jbufs[2] = { jbuf_l, jbuf_r };
 	for (uint32_t i = 0; i < nframes; ++i)
 	{
 		jbuf_l[i] = jbuf_r[i] = 0;
@@ -226,10 +238,19 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 		assert(player->play->mode > STOP);
 		assert(player->play->mode < PLAY_LAST);
 		int buf_count = Song_get_buf_count(player->song);
-		frame_t** bufs = Song_get_bufs(player->song);
-		bufs[0] = jbuf_l;
-		bufs[1] = jbuf_r;
+		if (buf_count > 2)
+		{
+			buf_count = 2;
+		}
 		uint32_t mixed = Player_mix(player, nframes);
+		frame_t** bufs = Song_get_bufs(player->song);
+		for (int i = 0; i < buf_count; ++i)
+		{
+			for (uint32_t k = 0; k < mixed; ++k)
+			{
+				jbufs[i][k] += bufs[i][k];
+			}
+		}
 		if (buf_count == 1)
 		{
 			for (uint32_t i = 0; i < mixed; ++i)
@@ -238,6 +259,18 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 			}
 		}
 		player = player->next;
+	}
+	return 0;
+}
+
+
+static int Driver_jack_bufsize(jack_nframes_t nframes, void* arg)
+{
+	assert(arg != NULL);
+	Playlist* playlist = arg;
+	if (!Playlist_set_buf_size(playlist, nframes))
+	{
+		return -1;
 	}
 	return 0;
 }

@@ -212,6 +212,18 @@ uint16_t Song_get_subsong(Song* song);
 
 
 /**
+ * Sets the number of buffers in the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param count   The number of buffers -- must be > \c 0 and
+ *                < \c BUF_COUNT_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Song_set_buf_count(Song* song, int count);
+
+
+/**
  * Gets the number of buffers in the Song.
  *
  * \param song   The Song -- must not be \c NULL.
@@ -219,6 +231,17 @@ uint16_t Song_get_subsong(Song* song);
  * \return   The number of buffers.
  */
 int Song_get_buf_count(Song* song);
+
+
+/**
+ * Sets the size of buffers in the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param size   The new size for a single buffer -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Song_set_buf_size(Song* song, uint32_t size);
 
 
 /**

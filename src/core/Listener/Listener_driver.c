@@ -152,6 +152,7 @@ int Listener_driver_init(const char* path,
 	if (lr->driver_id >= 0)
 	{
 		drivers[lr->driver_id].close();
+		sleep(1); // Used to prevent another driver from initialising too early.
 	}
 	lr->freq = 1;
 	if (!drivers[driver_id].init(lr->playlist, &lr->freq))
@@ -216,7 +217,6 @@ int Listener_driver_close(const char* path,
 	int ret = 0;
 	send_msg(lr, "notify", m, ret);
 	lo_message_free(m);
-	sleep(1); // Used to prevent another driver from initialising too early.
 	return 0;
 }
 

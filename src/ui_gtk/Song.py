@@ -180,7 +180,7 @@ class Song(gtk.VBox):
 		label = gtk.Label('Initial tempo:')
 		subsong_bar.pack_start(label, False, False)
 		label.show()
-		tempo_adj = gtk.Adjustment(120, 16, 480, 0.1)
+		tempo_adj = gtk.Adjustment(120, 16, 480, 0.1, 1)
 		self.tempo = gtk.SpinButton(tempo_adj, digits=1)
 		self.tempo.set_snap_to_ticks(True)
 		self.tempo.set_numeric(True)

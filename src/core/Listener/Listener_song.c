@@ -63,7 +63,9 @@ int Listener_new_song(const char* path,
 	}
 	assert(lr->method_path != NULL);
 	Player* player = NULL;
-	Song* song = new_Song(2, 128, 16); // TODO: get params from relevant parts of the Listener
+	Song* song = new_Song(Playlist_get_buf_count(lr->playlist),
+			Playlist_get_buf_size(lr->playlist),
+			16); // TODO: get from the Listener
 	if (song != NULL)
 	{
 		player = new_Player(lr->freq, lr->voice_count, song); // TODO: freq

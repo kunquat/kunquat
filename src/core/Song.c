@@ -143,6 +143,17 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 	{
 		return 0;
 	}
+	if (nframes > song->buf_size)
+	{
+		nframes = song->buf_size;
+	}
+	for (int i = 0; i < song->buf_count; ++i)
+	{
+		for (uint32_t k = 0; k < nframes; ++k)
+		{
+			song->bufs[i][k] = 0;
+		}
+	}
 	uint32_t mixed = 0;
 	while (mixed < nframes && play->mode)
 	{
@@ -196,6 +207,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 			}
 		}
 		assert(!Event_queue_get(song->events, &event, &proc_until));
+	}
+	double vol = exp2(song->mix_vol / 6);
+	for (int i = 0; i < song->buf_count; ++i)
+	{
+		for (uint32_t k = 0; k < mixed; ++k)
+		{
+			song->bufs[i][k] *= vol;
+		}
 	}
 	return mixed;
 }
@@ -291,10 +310,78 @@ uint16_t Song_get_subsong(Song* song)
 }
 
 
+bool Song_set_buf_count(Song* song, int count)
+{
+	assert(song != NULL);
+	assert(count > 0);
+	assert(count <= BUF_COUNT_MAX);
+	if (song->buf_count == count)
+	{
+		return true;
+	}
+	else if (count < song->buf_count)
+	{
+		for (int i = count; i < song->buf_count; ++i)
+		{
+			xfree(song->priv_bufs[i]);
+			song->bufs[i] = NULL;
+		}
+		// TODO: remove Instrument buffers
+	}
+	else
+	{
+		for (int i = song->buf_count; i < count; ++i)
+		{
+			song->priv_bufs[i] = xnalloc(frame_t, song->buf_size);
+			if (song->priv_bufs[i] == NULL)
+			{
+				return false;
+			}
+			song->bufs[i] = song->priv_bufs[i];
+		}
+		// TODO: create Instrument buffers
+	}
+	song->buf_count = count;
+	return true;
+}
+
+
 int Song_get_buf_count(Song* song)
 {
 	assert(song != NULL);
 	return song->buf_count;
+}
+
+
+bool Song_set_buf_size(Song* song, uint32_t size)
+{
+	assert(song != NULL);
+	assert(size > 0);
+	if (song->buf_size == size)
+	{
+		return true;
+	}
+	for (int i = 0; i < song->buf_count; ++i)
+	{
+		frame_t* new_buf = xrealloc(frame_t, size, song->priv_bufs[i]);
+		if (new_buf == NULL)
+		{
+			if (i == 0) // first change failed -- keep the original state
+			{
+				return false;
+			}
+			if (size < song->buf_size)
+			{
+				song->buf_size = size;
+			}
+			return false;
+		}
+		song->priv_bufs[i] = new_buf;
+		song->bufs[i] = song->priv_bufs[i];
+	}
+	// TODO: resize Instrument buffers
+	song->buf_size = size;
+	return true;
 }
 
 
