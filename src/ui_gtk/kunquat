@@ -29,7 +29,6 @@ import liblo
 import sys
 
 import Driver_select
-import Log
 import Songs
 import Cli
 
@@ -81,8 +80,6 @@ class Kunquat_gtk:
 		self.songs = Songs.Songs(self.engine, self.s)
 
 		self.cli = Cli.Cli(self.engine, self.s)
-
-		self.log = Log.Log(self.engine, self.s, self.cli)
 		
 		self.window = gtk.Window()
 		self.window.set_title('Kunquat')
@@ -108,14 +105,6 @@ class Kunquat_gtk:
 		driver_button.show()
 		self.drivers.connect('delete-event', self.hide_window, driver_button)
 		driver_button = None
-
-		log_button = gtk.ToggleToolButton()
-		log_button.set_label('Log')
-		log_button.connect('toggled', self.set_window_display, self.log)
-		self.tools.insert(log_button, -1)
-		log_button.show()
-		self.log.connect('delete_event', self.hide_window, log_button)
-		log_button = None
 
 		self.box = gtk.HBox()
 		self.box.pack_start(self.songs)

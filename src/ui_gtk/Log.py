@@ -57,7 +57,7 @@ class Log(gtk.Window):
 		gobject.idle_add(self.update_history, out)
 	"""
 
-	def __init__(self, engine, server, cli):
+	def __init__(self, engine, server):
 		self.engine = engine
 		self.server = server
 
@@ -74,7 +74,5 @@ class Log(gtk.Window):
 
 		self.add(hist_scroll)
 		hist_scroll.show()
-
-		cli.set_log(self.history)
 
 

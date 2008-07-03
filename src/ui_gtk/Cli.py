@@ -26,8 +26,21 @@ import gobject
 
 import liblo
 
+import Log
+
 
 class Cli(gtk.VBox):
+
+	def set_window_display(self, button, window):
+		if button.get_active():
+			window.show()
+		else:
+			window.hide()
+
+	def hide_window(self, window, event, button):
+		window.hide()
+		button.set_active(False)
+		return True
 
 	def update_history(self, text):
 		if not self.history:
@@ -82,9 +95,6 @@ class Cli(gtk.VBox):
 		if self.history:
 			gobject.idle_add(self.update_history, out)
 
-	def set_log(self, log):
-		self.history = log
-
 	def handle_osc(self, path, args, types):
 		ps = path.split('/')
 		if ps[1] != 'kunquat_gtk':
@@ -101,9 +111,19 @@ class Cli(gtk.VBox):
 
 		gtk.VBox.__init__(self)
 
-		self.history = None
-
 		self.reply = gtk.Statusbar()
+		self.reply.set_has_resize_grip(False)
+
+		self.log = Log.Log(self.engine, self.server)
+		self.history = self.log.history
+
+		log_button = gtk.ToggleButton()
+		log_button.set_label('Log')
+		log_button.connect('toggled', self.set_window_display, self.log)
+		self.reply.pack_end(log_button, False, False)
+		log_button.show()
+		self.log.connect('delete_event', self.hide_window, log_button)
+		log_button = None
 
 		cmd = gtk.Entry()
 		cmd.connect('activate', self.cmd_entry)
