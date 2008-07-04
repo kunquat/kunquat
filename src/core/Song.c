@@ -123,7 +123,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 				i * 100);
 	}
 	song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
-	song->mix_vol = 0;
+	song->mix_vol = -8;
 	song->init_subsong = 0;
 	for (int i = 0; i < SUBSONGS_MAX; ++i)
 	{

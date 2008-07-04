@@ -30,6 +30,7 @@ import Instruments
 import Pattern
 import Orders
 import Note_tables
+import Song_opts
 
 
 SONG_TITLE_MAX = 127
@@ -46,11 +47,11 @@ class Song(gtk.VBox):
 		liblo.send(self.engine, '/kunquat/get_orders', self.song_id)
 
 	def song_info(self, path, args, types):
-		self.mix_vol = args[1]
 		self.init_subsong = args[2]
 		self.title.handler_block(self.title_handler)
 		self.title.set_text(args[0])
 		self.title.handler_unblock(self.title_handler)
+		self.song_opts.song_info(path, args, types)
 
 	def subsong_info(self, path, args, types):
 		self.subsong_inits[args[0]] = (args[1], args[2])
@@ -141,7 +142,6 @@ class Song(gtk.VBox):
 
 		self.subsong_inits = [(120, 0) for _ in range(SUBSONGS_MAX)]
 
-		self.mix_vol = 0.0
 		self.init_subsong = 0
 		self.cur_subsong = 0
 
@@ -197,6 +197,7 @@ class Song(gtk.VBox):
 		self.pattern = Pattern.Pattern(engine, server, song_id)
 		self.orders = Orders.Orders(engine, server, song_id)
 		self.note_tables = Note_tables.Note_tables(engine, server, song_id)
+		self.song_opts = Song_opts.Song_opts(engine, server, song_id)
 
 		label = gtk.Label('Pattern editor')
 		nb.append_page(self.pattern, label)
@@ -213,6 +214,10 @@ class Song(gtk.VBox):
 		label = gtk.Label('Note tables')
 		nb.append_page(self.note_tables, label)
 		self.note_tables.show()
+		label.show()
+		label = gtk.Label('Song options')
+		nb.append_page(self.song_opts, label)
+		self.song_opts.show()
 		label.show()
 
 		self.pack_start(nb)

@@ -190,6 +190,36 @@ int Listener_set_song_title(const char* path,
 }
 
 
+int Listener_set_mix_vol(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)argc;
+	(void)msg;
+	assert(argv != NULL);
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	get_player(lr, song_id, types[0]);
+	Song* song = Player_get_song(lr->player_cur);
+	double mix_vol = argv[1]->d;
+	check_cond(lr, mix_vol <= 0,
+			"The mixing volume (%f)\n", mix_vol);
+	Song_set_mix_vol(song, mix_vol);
+	song_info(lr, song_id, song);
+	return 0;
+}
+
+
 int Listener_set_subsong_tempo(const char* path,
 		const char* types,
 		lo_arg** argv,

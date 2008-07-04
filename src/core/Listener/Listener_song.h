@@ -79,6 +79,17 @@ Listener_callback Listener_set_song_title;
 
 
 /**
+ * Sets the mixing volume of the given Song.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c d   The mixing volume (< 0) in dBfs.
+ */
+Listener_callback Listener_set_mix_vol;
+
+
+/**
  * Sets the tempo of the given subsong.
  *
  * The following OSC arguments are expected:

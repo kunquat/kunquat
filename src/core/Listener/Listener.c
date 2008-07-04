@@ -73,6 +73,7 @@ static Method_desc methods[] =
 	{ "/kunquat/get_songs", "", Listener_get_songs },
 	{ "/kunquat/get_song_info", "i", Listener_get_song_info },
 	{ "/kunquat/set_song_title", "is", Listener_set_song_title },
+	{ "/kunquat/set_mix_vol", "id", Listener_set_mix_vol },
 	{ "/kunquat/set_subsong_tempo", "iid", Listener_set_subsong_tempo },
 	{ "/kunquat/set_subsong_global_vol", "iid", Listener_set_subsong_global_vol },
 	{ "/kunquat/del_song", "i", Listener_del_song },
