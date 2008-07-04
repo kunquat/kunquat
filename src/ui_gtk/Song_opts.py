@@ -34,6 +34,9 @@ class Song_opts(gtk.VBox):
 		self.mix_vol.set_value(args[1])
 		self.mix_vol.get_adjustment().handler_unblock(self.hmix_vol)
 
+	def format_dbfs(self, scale, value):
+		return '%.2f dBFS' % value
+
 	def set_mix_vol(self, adj):
 		assert adj.get_value() <= 0, 'Attempted to send an invalid volume.'
 		liblo.send(self.engine, '/kunquat/set_mix_vol',
@@ -52,6 +55,7 @@ class Song_opts(gtk.VBox):
 		self.hmix_vol = adj.connect('value-changed', self.set_mix_vol)
 		self.mix_vol = gtk.HScale(adj)
 		self.mix_vol.set_digits(2)
+		self.mix_vol.connect('format-value', self.format_dbfs)
 		box = gtk.HBox()
 		box.pack_start(label, False, False)
 		box.pack_start(self.mix_vol)

@@ -84,7 +84,7 @@ Listener_callback Listener_set_song_title;
  * The following OSC arguments are expected:
  *
  * \li \c i   The Song ID.
- * \li \c d   The mixing volume (< 0) in dBfs.
+ * \li \c d   The mixing volume (< 0) in dBFS.
  */
 Listener_callback Listener_set_mix_vol;
 

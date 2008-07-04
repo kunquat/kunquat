@@ -162,7 +162,6 @@ int Listener_demo(const char* path,
 	}
 	Note_table_set_name(notes, L"5-limit JI (C major)");
 	Song_set_tempo(song, 0, 110);
-	Song_set_mix_vol(song, 0);
 	Song_set_global_vol(song, 0, 0);
 	player = new_Player(lr->freq, lr->voice_count, song);
 	if (player == NULL)
