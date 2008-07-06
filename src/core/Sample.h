@@ -103,6 +103,35 @@ bool Sample_load_path(Sample* sample, char* path, Sample_format format);
 
 
 /**
+ * Gets the path of the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The path.
+ */
+char* Sample_get_path(Sample* sample);
+
+
+/**
+ * Sets the middle frequency of the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param freq     The middle frequency -- must be > \c 0.
+ */
+void Sample_set_freq(Sample* sample, double freq);
+
+
+/**
+ * Gets the middle frequency of the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The middle frequency.
+ */
+double Sample_get_freq(Sample* sample);
+
+
+/**
  * Mixes a Sample.
  *
  * \param sample    The Sample -- must not be \c NULL.

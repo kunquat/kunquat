@@ -24,7 +24,13 @@
 #define K_INSTRUMENT_PCM_H
 
 
+#include <math.h>
+
+#include <Sample.h>
 #include <Instrument.h>
+
+
+#define PCM_SAMPLES_MAX (512)
 
 
 int Instrument_pcm_init(Instrument* ins);
@@ -40,13 +46,75 @@ void Instrument_pcm_mix(Instrument* ins,
 		uint32_t freq);
 
 
-Instrument_field* Instrument_pcm_get_type_desc(void);
+/**
+ * Loads a Sample into the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL and must be a PCM
+ *                instrument.
+ * \param index   The destination index -- must be >= \c 0 and
+ *                < \c PCM_SAMPLES_MAX. Any previously loaded Sample in the
+ *                index will be removed.
+ * \param path    The input path. If this is \c NULL, the Sample stored in
+ *                \a index will be removed.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Instrument_pcm_set_sample(Instrument* ins,
+		uint16_t index,
+		char* path);
 
 
-bool Instrument_pcm_get_field(Instrument* ins, int index, void* data, char** type);
+/**
+ * Gets a Sample from the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL and must be a PCM
+ *                instrument.
+ * \param index   The destination index -- must be >= \c 0 and
+ *                < \c PCM_SAMPLES_MAX.
+ *
+ * \return   The Sample if one exists, otherwise \c NULL.
+ */
+Sample* Instrument_pcm_get_sample(Instrument* ins, uint16_t index);
 
 
-bool Instrument_pcm_set_field(Instrument* ins, int index, void* data);
+/**
+ * Gets the path of a Sample in the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL and must be a PCM
+ *                instrument.
+ * \param index   The destination index -- must be >= \c 0 and
+ *                < \c PCM_SAMPLES_MAX.
+ *
+ * \return   The path of the sample if one exists, otherwise \c NULL.
+ */
+char* Instrument_pcm_get_path(Instrument* ins, uint16_t index);
+
+
+/**
+ * Sets the middle frequency of a Sample.
+ *
+ * \param ins     The Instrument -- must not be \c NULL and must be a PCM
+ *                instrument.
+ * \param index   The destination index -- must be >= \c 0 and
+ *                < \c PCM_SAMPLES_MAX.
+ * \param freq    The middle frequency -- must be > \c 0.
+ */
+void Instrument_pcm_set_sample_freq(Instrument* ins,
+		uint16_t index,
+		double freq);
+
+
+/**
+ * Gets the middle frequency of a Sample.
+ *
+ * \param ins     The Instrument -- must not be \c NULL and must be a PCM
+ *                instrument.
+ * \param index   The destination index -- must be >= \c 0 and
+ *                < \c PCM_SAMPLES_MAX.
+ *
+ * \return   The middle frequency of the sample if one exists, otherwise \c 0.
+ */
+double Instrument_pcm_get_sample_freq(Instrument* ins, uint16_t index);
 
 
 #endif // K_INSTRUMENT_PCM_H

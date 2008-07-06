@@ -32,44 +32,8 @@
 #include <Song.h>
 #include <Ins_table.h>
 #include <Instrument.h>
+#include <Instrument_pcm.h>
 #include <Song_limits.h>
-
-
-/**
- * Finds the Instrument based on given Song ID and Instrument number.
- *
- * If the requested Song exists, it will be made current Song.
- *
- * \param l         The Listener -- must not be \c NULL.
- * \param song_id   The Song ID.
- * \param ins_num   The Instrument number.
- * \param ins       The location to which the Instrument will be stored
- *                  -- must not be \c NULL.
- *
- * \return   \c true if the Song exists and Instrument number is valid,
- *           otherwise \c false. Note that \c true will be returned if the
- *           search parameters are valid but no Instrument is found.
- */
-static bool ins_get(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument** ins);
-
-
-/**
- * Sends the ins_info message.
- *
- * \param l         The Listener -- must not be \c NULL.
- * \param song_id   The Song ID.
- * \param ins_num   The Instrument number.
- * \param ins       The Instrument located in \a song_id, \a ins_num.
- *
- * \return   \c true if the message was sent successfully, otherwise \c false.
- */
-static bool ins_info(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument* ins);
 
 
 int Listener_get_insts(const char* path,
@@ -208,222 +172,6 @@ int Listener_ins_set_name(const char* path,
 }
 
 
-int Listener_ins_get_type_desc(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-	(void)path;
-	(void)types;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t song_id = argv[0]->i;
-	int32_t ins_num = argv[1]->i;
-	Instrument* ins = NULL;
-	if (!ins_get(lr, song_id, ins_num, &ins))
-	{
-		return 0;
-	}
-	lo_message m = new_msg();
-	lo_message_add_int32(m, song_id);
-	lo_message_add_int32(m, ins_num);
-	if (ins != NULL)
-	{
-		Instrument_field* type_desc = Instrument_get_type_desc(ins);
-		while (type_desc != NULL && type_desc->category != NULL)
-		{
-			assert(type_desc->name != NULL);
-			assert(type_desc->type != NULL);
-			assert(type_desc->constraint != NULL);
-			lo_message_add_string(m, type_desc->category);
-			lo_message_add_string(m, type_desc->name);
-			lo_message_add_string(m, type_desc->type);
-			lo_message_add_string(m, type_desc->constraint);
-			++type_desc;
-		}
-	}
-	int ret = 0;
-	send_msg(lr, "ins_type_desc", m, ret);
-	lo_message_free(m);
-	return 0;
-}
-
-
-int Listener_ins_get_type_field(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-	(void)path;
-	(void)types;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t song_id = argv[0]->i;
-	int32_t ins_num = argv[1]->i;
-	int32_t field_index = argv[2]->i;
-	Instrument* ins = NULL;
-	if (!ins_get(lr, song_id, ins_num, &ins))
-	{
-		return 0;
-	}
-	check_cond(lr, field_index >= 0,
-			"The index of the Instrument field (%ld)", (long)field_index);
-	if (ins == NULL)
-	{
-		return 0;
-	}
-	void* data = NULL;
-	char* type = NULL;
-	if (!Instrument_get_field(ins, field_index, &data, &type))
-	{
-		return 0;
-	}
-	lo_message m = new_msg();
-	lo_message_add_int32(m, song_id);
-	lo_message_add_int32(m, ins_num);
-	lo_message_add_int32(m, field_index);
-	if (strcmp(type, "p") == 0)
-	{
-		char* path = data;
-		lo_message_add_string(m, path);
-	}
-	else if (strcmp(type, "i") == 0)
-	{
-		int64_t* num = data;
-		lo_message_add_int64(m, *num);
-	}
-	else if (strcmp(type, "f") == 0)
-	{
-		double* num = data;
-		lo_message_add_double(m, *num);
-	}
-	int ret = 0;
-	send_msg(lr, "ins_type_field", m, ret);
-	lo_message_free(m);
-	return 0;
-}
-
-
-int Listener_ins_set_type_field(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
-{
-	(void)path;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t song_id = argv[0]->i;
-	int32_t ins_num = argv[1]->i;
-	int32_t field_index = argv[2]->i;
-	Instrument* ins = NULL;
-	if (!ins_get(lr, song_id, ins_num, &ins))
-	{
-		return 0;
-	}
-	check_cond(lr, field_index >= 0,
-			"The index of the Instrument field (%ld)", (long)field_index);
-	if (ins == NULL)
-	{
-		return 0;
-	}
-	void* data = NULL;
-	char* type = NULL;
-	if (!Instrument_get_field(ins, field_index, &data, &type))
-	{
-		return 0;
-	}
-	if (types[3] == 's')
-	{
-		if (strchr(type, 'p') == NULL)
-		{
-			return 0;
-		}
-		char* str = &argv[3]->s;
-		if (!Instrument_set_field(ins, field_index, str))
-		{
-			return 0;
-		}
-	}
-	else if (types[3] == 'h')
-	{
-		if (strchr(type, 'i') == NULL)
-		{
-			return 0;
-		}
-		int64_t num = argv[3]->h;
-		if (!Instrument_set_field(ins, field_index, &num))
-		{
-			return 0;
-		}
-	}
-	else if (types[3] == 'd')
-	{
-		if (strchr(type, 'f') == NULL)
-		{
-			return 0;
-		}
-		double num = argv[3]->d;
-		if (!Instrument_set_field(ins, field_index, &num))
-		{
-			return 0;
-		}
-	}
-	else
-	{
-		lo_message m = new_msg();
-		lo_message_add_string(m, "Unsupported type:");
-		lo_message_add_char(m, types[3]);
-		int ret = 0;
-		send_msg(lr, "error", m, ret);
-		lo_message_free(m);
-		return 0;
-	}
-	lo_message m = new_msg();
-	lo_message_add_int32(m, song_id);
-	lo_message_add_int32(m, ins_num);
-	lo_message_add_int32(m, field_index);
-	if (strcmp(type, "p") == 0)
-	{
-		char* path = &argv[3]->s;
-		lo_message_add_string(m, path);
-	}
-	int ret = 0;
-	send_msg(lr, "ins_type_field", m, ret);
-	lo_message_free(m);
-	return 0;
-}
-
-
 int Listener_del_ins(const char* path,
 		const char* types,
 		lo_arg** argv,
@@ -459,7 +207,7 @@ int Listener_del_ins(const char* path,
 }
 
 
-static bool ins_get(Listener* lr,
+bool ins_get(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument** ins)
@@ -478,7 +226,7 @@ static bool ins_get(Listener* lr,
 }
 
 
-static bool ins_info(Listener* lr,
+bool ins_info(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,
 		Instrument* ins)
@@ -496,6 +244,24 @@ static bool ins_info(Listener* lr,
 		to_utf8_check(lr, mbs, src, INS_NAME_MAX * 6,
 				"the name of the Instrument");
 		lo_message_add_string(m, (char*)mbs);
+		switch (Instrument_get_type(ins))
+		{
+			case INS_TYPE_PCM:
+				for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
+				{
+					if (Instrument_pcm_get_sample(ins, i) == NULL)
+					{
+						continue;
+					}
+					lo_message_add_int32(m, i);
+					lo_message_add_string(m, Instrument_pcm_get_path(ins, i));
+					lo_message_add_double(m,
+							Instrument_pcm_get_sample_freq(ins, i));
+				}
+				break;
+			default:
+				break;
+		}
 	}
 	else
 	{

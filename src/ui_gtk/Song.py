@@ -71,12 +71,6 @@ class Song(gtk.VBox):
 		self.instruments.ins_info(path, args, types)
 		self.pattern.ins_info(path, args, types)
 
-	def ins_type_desc(self, path, args, types):
-		self.instruments.ins_type_desc(path, args, types)
-
-	def ins_type_field(self, path, args, types):
-		self.instruments.ins_type_field(path, args, types)
-
 	def pat_info(self, path, args, types):
 		self.pattern.pat_info(path, args, types)
 

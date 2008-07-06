@@ -107,6 +107,13 @@ bool Sample_load_path(Sample* sample, char* path, Sample_format format)
 }
 
 
+char* Sample_get_path(Sample* sample)
+{
+	assert(sample != NULL);
+	return sample->path;
+}
+
+
 void Sample_mix(Sample* sample,
 		frame_t** bufs,
 		Voice_state* state,
@@ -200,6 +207,21 @@ void Sample_mix(Sample* sample,
 		}
 	}
 	return;
+}
+
+
+void Sample_set_freq(Sample* sample, double freq)
+{
+	assert(sample != NULL);
+	sample->mid_freq = freq;
+	return;
+}
+
+
+double Sample_get_freq(Sample* sample)
+{
+	assert(sample != NULL);
+	return sample->mid_freq;
 }
 
 

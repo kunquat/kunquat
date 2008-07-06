@@ -199,20 +199,8 @@ class Songs(gtk.Notebook):
 				return
 
 	def player_state(self, path, args, types):
-		for i in range(self.get_n_pages()):
-			content = self.get_nth_page(i)
-			if content.song_id == args[0]:
-				content.player_state(path, args[1:], types[1:])
-				return
-
-	def ins_type_desc(self, path, args, types):
 		content = self.find_song(args[0])
-		content.ins_type_desc(path, args[1:], types[1:])
-		return False
-
-	def ins_type_field(self, path, args, types):
-		content = self.find_song(args[0])
-		content.ins_type_field(path, args[1:], types[1:])
+		content.player_state(path, args[1:], types[1:])
 		return False
 
 	def handle_osc(self, path, args, types):

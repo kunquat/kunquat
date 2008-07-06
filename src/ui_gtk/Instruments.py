@@ -32,186 +32,101 @@ class Instruments(gtk.HBox):
 	def ins_info(self, path, args, types):
 		iter = self.it_view.get_model().get_iter(args[0] - 1)
 		self.ins_table.set_value(iter, 1, args[2])
-		self.ins_details[args[0] - 1] = args[1:]
+		self.ins_params[args[0] - 1] = args[1:]
+		if args[1] <= 2:
+			self.ui_params[args[0] - 1] = None
+		elif args[1] == 3:
+			if (not self.ui_params[args[0] - 1] or
+					self.ui_params[args[0] - 1].get_name() != 'pcm'):
+				self.ui_params[args[0] - 1] = self.build_pcm_details(args[0])
+			pcm_details = self.ui_params[args[0] - 1]
+			samples = pcm_details.get_nth_page(0)
+			sample_details = samples.get_children()[0]
+			sample_path = sample_details.get_children()[0]
+			sample_path_str = sample_path.get_children()[1]
+			sample_freq = sample_details.get_children()[1]
+			sample_freq_val = sample_freq.get_children()[1]
+			for i in range(3, len(args), 3):
+				if args[i] == 0:
+					path = args[i + 1]
+					if sample_path_str.get_text() != path:
+						sample_path_str.set_text(path)
+					if not sample_freq_val.user_set:
+						sample_freq_val.handler_block(sample_freq_val.shid)
+						sample_freq_val.set_value(args[i + 2])
+						sample_freq_val.handler_unblock(sample_freq_val.shid)
+					else:
+						sample_freq_val.user_set = False
+					
 		if self.cur_index == args[0]:
-			self.set_details(args[0] - 1)
+			self.select_ins(self.it_view.get_selection())
 
-	def ins_type_field(self, path, args, types):
-		if args[0] != self.cur_index:
-			return
-		if args[1] not in self.field_map:
-			return
-		field_data = self.field_map[args[1]]
-		if field_data[0] == 'p':
-			field_data[2].set_text(args[2])
-		elif field_data[0] == 'i' or field_data[0] == 'f':
-			spin = field_data[2]
-			adj = spin.get_adjustment()
-			if not adj.user_set:
-				adj.handler_block(adj.shandle)
-				spin.set_value(args[2])
-				adj.handler_unblock(adj.shandle)
-			else:
-				adj.user_set = False
+	def build_pcm_details(self, ins_num):
+		pcm_details = gtk.Notebook()
+		samples = gtk.HBox()
+		# TODO: add Sample list here
+		sample_details = gtk.VBox()
 
-#	def path_selected(self, file_sel, ins_num, field_index):
-#		path = file_sel.get_filename()
-#		file_sel.destroy()
-#		liblo.send(self.engine, '/kunquat/ins_set_type_field',
-#				self.song_id,
-#				ins_num,
-#				field_index,
-#				path)
+		sample_path = gtk.HBox()
+		sample_details.pack_start(sample_path, False, False)
+		sample_path_label = gtk.Label('Path')
+		sample_path.pack_start(sample_path_label, False, False)
+		sample_path_str = gtk.Entry()
+		sample_path.pack_start(sample_path_str)
+		sample_path_browse = gtk.Button('Browse...')
+		sample_path_browse.connect('clicked', self.browse_sample,
+				ins_num, 0)
+		sample_path.pack_start(sample_path_browse, False, False)
 
-	def browse_response(self, file_sel, id, ins_num, field_index):
+		sample_freq = gtk.HBox()
+		sample_details.pack_start(sample_freq, False, False)
+		sample_freq_label = gtk.Label('440 Hz frequency')
+		sample_freq.pack_start(sample_freq_label, False, False)
+		adj = gtk.Adjustment(44100, 1, 2147483647, 0.01, 1)
+		sample_freq_val = gtk.SpinButton(adj, digits=2)
+		shid = sample_freq_val.connect('value-changed', self.change_mid_freq,
+				ins_num, 0)
+		sample_freq_val.shid = shid
+		sample_freq_val.user_set = False
+		sample_freq.pack_start(sample_freq_val, False, False)
+
+		samples.pack_start(sample_details)
+		pcm_details.append_page(samples, gtk.Label('Samples'))
+		pcm_details.set_name('pcm')
+		return pcm_details
+
+	def change_mid_freq(self, spin, ins_num, sample_num):
+		spin.user_set = True
+		liblo.send(self.engine, '/kunquat/ins_pcm_sample_set_mid_freq',
+				self.song_id,
+				ins_num,
+				sample_num,
+				spin.get_value())
+
+	def load_sample(self, file_sel, id, ins_num, sample_num):
 		if id == gtk.RESPONSE_CANCEL:
 			file_sel.destroy()
 		elif id == gtk.RESPONSE_OK:
 			path = file_sel.get_filename()
 			file_sel.destroy()
-			liblo.send(self.engine, '/kunquat/ins_set_type_field',
+			liblo.send(self.engine, '/kunquat/ins_pcm_load_sample',
 					self.song_id,
 					ins_num,
-					field_index,
+					sample_num,
 					path)
-			if self.cur_index == ins_num:
-				for field_id in self.field_map:
-					if field_id == field_index:
-						continue
-					liblo.send(self.engine, '/kunquat/ins_get_type_field',
-							self.song_id,
-							ins_num,
-							field_id)
 
-	def browse_activate(self, button):
-		patterns = button.constraints.split('-|-')
-		for x in patterns:
-			assert x[0] == 'r', 'Path filtering rule is not a regular expression'
-		patterns = map(lambda x: x[1:], patterns)
+	def browse_sample(self, button, ins_num, sample_num):
 		filter = gtk.FileFilter()
-		filter.set_name(button.filter_name)
-		for x in patterns:
-			filter.add_pattern(x)
+		filter.set_name('WavPack files')
+		filter.add_pattern('*.wv')
 		file_sel = gtk.FileChooserDialog(buttons=(gtk.STOCK_CANCEL,
 				gtk.RESPONSE_CANCEL, gtk.STOCK_OPEN, gtk.RESPONSE_OK))
-		file_sel.connect('file-activated', self.browse_response,
-				gtk.RESPONSE_OK, self.cur_index, button.field_index)
-		file_sel.connect('response', self.browse_response,
-				self.cur_index, button.field_index)
+		file_sel.connect('file-activated', self.load_sample,
+				gtk.RESPONSE_OK, ins_num, sample_num)
+		file_sel.connect('response', self.load_sample,
+				ins_num, sample_num)
 		file_sel.add_filter(filter)
 		file_sel.show()
-
-	def num_change(self, adj):
-		assert adj.field_index in self.field_map, 'Unexpected field'
-		adj.user_set = True
-		val = None
-		type = None
-		if self.field_map[adj.field_index][0] == 'i':
-			val = long(adj.get_value())
-			type = 'h'
-		else:
-			assert self.field_map[adj.field_index][0] == 'f', 'Unexpected type of the field'
-			val = float(adj.get_value())
-			type = 'd'
-		liblo.send(self.engine, '/kunquat/ins_set_type_field',
-				self.song_id,
-				self.cur_index,
-				adj.field_index,
-				(type, val))
-		for field_id in self.field_map:
-			if field_id == adj.field_index:
-				continue
-			liblo.send(self.engine, '/kunquat/ins_get_type_field',
-					self.song_id,
-					self.cur_index,
-					field_id)
-
-	def ins_type_desc(self, path, args, types):
-		if args[0] != self.cur_index:
-			return
-		for _ in range(self.type_fields.get_n_pages()):
-			self.type_fields.remove_page(0)
-		self.field_map = {}
-		prev_category = None
-		for i in range(1, len(args), 4):
-			id = (i - 1) / 4
-			label = gtk.Label(args[i + 1])
-			field = None
-			if args[i + 2] == 'p':
-				field = gtk.HBox()
-				field.pack_start(label, False, False)
-				entry = gtk.Entry()
-				entry.field_index = id
-				field.pack_start(entry)
-				browse = gtk.Button('Browse...')
-				browse.field_index = id
-				browse.constraints = args[i + 3]
-				browse.filter_name = args[i + 1]
-				browse.connect('clicked', self.browse_activate)
-				field.pack_start(browse, False, False)
-				self.field_map[id] = ('p', args[i + 3], entry)
-			if args[i + 2] == 'i':
-				field = gtk.HBox()
-				field.pack_start(label, False, False)
-				constraints = args[i + 3].split('-&-')
-				vmin = 0
-				vmax = 32767
-				for c in constraints:
-					if c[:2] == '>=':
-						vmin = int(c[2:])
-					elif c[:1] == '>':
-						vmin = int(c[1:]) + 1
-					elif c[:2] == '<=':
-						vmax = int(c[2:])
-					elif c[:1] == '<':
-						vmax = int(c[1:]) - 1
-				adj = gtk.Adjustment(vmin, vmin, vmax, 1, 10)
-				adj.user_set = False
-				adj.field_index = id
-				adj.shandle = adj.connect('value-changed', self.num_change)
-				spin = gtk.SpinButton(digits=0)
-				spin.set_numeric(True)
-				spin.set_snap_to_ticks(True)
-				field.pack_start(spin)
-				self.field_map[id] = ('i', args[i + 3], spin)
-				spin.set_adjustment(adj)
-			if args[i + 2] == 'f':
-				field = gtk.HBox()
-				field.pack_start(label, False, False)
-				constraints = args[i + 3].split('-&-')
-				vmin = 0
-				vmax = 32767
-				for c in constraints:
-					if c[:2] == '>=':
-						vmin = float(c[2:])
-					elif c[:1] == '>':
-						vmin = float(c[1:]) + 0.001
-					elif c[:2] == '<=':
-						vmax = float(c[2:])
-					elif c[:1] == '<':
-						vmax = float(c[1:]) - 0.001
-				adj = gtk.Adjustment(vmin, vmin, vmax, 0.001, 1)
-				adj.user_set = False
-				adj.field_index = id
-				adj.shandle = adj.connect('value-changed', self.num_change)
-				spin = gtk.SpinButton(digits=3)
-				spin.set_numeric(True)
-				spin.set_snap_to_ticks(True)
-				field.pack_start(spin)
-				self.field_map[id] = ('f', args[i + 3], spin)
-				spin.set_adjustment(adj)
-			if prev_category != args[0]:
-				prev_category = args[0]
-				contents = gtk.VBox()
-				tab_label = gtk.Label(args[i])
-				self.type_fields.append_page(contents, tab_label)
-			cur_cont = self.type_fields.get_nth_page(self.type_fields.get_n_pages() - 1)
-			cur_cont.pack_start(field, False, False)
-			liblo.send(self.engine, '/kunquat/ins_get_type_field',
-					self.song_id,
-					self.cur_index,
-					id)
-		self.type_fields.show_all()
 
 	def name_changed(self, cell, path, new_text):
 		liblo.send(self.engine, '/kunquat/ins_set_name',
@@ -221,8 +136,8 @@ class Instruments(gtk.HBox):
 
 	def change_type(self, combobox):
 		old_name = None
-		if self.ins_details[self.cur_index - 1]:
-			old_name = self.ins_details[self.cur_index - 1][1]
+		if self.ins_params[self.cur_index - 1]:
+			old_name = self.ins_params[self.cur_index - 1][1]
 		liblo.send(self.engine, '/kunquat/new_ins',
 				self.song_id,
 				self.cur_index,
@@ -238,25 +153,21 @@ class Instruments(gtk.HBox):
 		if cur == []:
 			return
 		self.cur_index = cur[0][0] + 1
-		self.set_details(cur[0][0])
-
-	def set_details(self, index):
-		if not self.ins_details[index]:
-			self.types.handler_block(self.htypes)
-			self.types.set_active(0)
-			self.types.handler_unblock(self.htypes)
-			self.field_map = {}
-			for _ in range(self.type_fields.get_n_pages()):
-				self.type_fields.remove_page(0)
-			return
 		self.types.handler_block(self.htypes)
-		self.types.set_active(self.ins_details[index][0])
+		if self.ins_params[self.cur_index - 1]:
+			self.types.set_active(self.ins_params[self.cur_index - 1][0])
+		else:
+			self.types.set_active(0)
 		self.types.handler_unblock(self.htypes)
-		liblo.send(self.engine, '/kunquat/ins_get_type_desc',
-				self.song_id,
-				self.cur_index)
-#		if self.ins_details[index][0] <= 2:
-#			return
+		chs = self.ins_details.get_children()
+		if len(chs) == 2:
+			if chs[1] == self.ui_params[self.cur_index - 1]:
+				return
+			self.ins_details.remove(chs[1])
+			chs[1].hide()
+		if self.ui_params[self.cur_index - 1]:
+			self.ins_details.pack_start(self.ui_params[self.cur_index - 1])
+			self.ui_params[self.cur_index - 1].show_all()
 
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
@@ -264,8 +175,8 @@ class Instruments(gtk.HBox):
 		self.song_id = song_id
 
 		self.cur_index = 1
-		self.ins_details = [None for _ in range(255)]
-		self.type_fields = gtk.Notebook()
+		self.ins_params = [None for _ in range(255)]
+		self.ui_params = [None for _ in range(255)]
 		
 		self.types = gtk.combo_box_new_text()
 		self.types.append_text('None')
@@ -274,6 +185,10 @@ class Instruments(gtk.HBox):
 		self.types.append_text('PCM')
 		self.types.set_active(0)
 		self.htypes = self.types.connect('changed', self.change_type)
+
+		self.ins_details = gtk.VBox()
+		self.ins_details.pack_start(self.types, False, False)
+		self.types.show()
 
 		gtk.HBox.__init__(self)
 
@@ -305,15 +220,7 @@ class Instruments(gtk.HBox):
 		self.pack_start(it_scroll)
 		it_scroll.show()
 
-		ins_details = gtk.VBox()
-		ins_details.pack_start(self.types, False, False)
-		self.types.show()
-
-		ins_details.pack_start(self.type_fields)
-		self.type_fields.show()
-		self.field_map = {}
-
-		self.pack_start(ins_details)
-		ins_details.show()
+		self.pack_start(self.ins_details)
+		self.ins_details.show()
 
 

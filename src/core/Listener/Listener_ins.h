@@ -28,7 +28,7 @@
 
 
 /**
- * The Instrument part of the Listener will respond to many methods with the
+ * The Instrument part of the Listener will respond to most methods with the
  * response method <host_path>/ins_info which contains the following arguments
  * if the host call has succeeded:
  *
@@ -39,34 +39,50 @@
  * \li        Zero or more additional arguments dependent on the Instrument type.
  *
  * The None, Debug and Sine types have no additional arguments.
+ *
+ * The PCM type adds the following arguments for each existing Sample:
+ *
+ * \li \c i   The Sample number.
+ * \li \c s   The path of the Sample.
+ * \li \c d   The middle frequency of the Sample.
  */
 
-/**
- * Type information of an Instrument is sent via the method
- * <host_path>/ins_type_desc which contains the following arguments:
- *
- * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1..255).
- * \li        The following arguments zero or more times:
- * \li \li \c s   The category of the field.
- * \li \li \c s   The name of the field.
- * \li \li \c s   The type of the field.
- * \li \li \c s   The constraints of the field.
- *
- * Possible field types are:
- *
- * \li "p"   Path.
- */
 
 /**
- * A type-specific field of an Instrument is sent via the method
- * <host_path>/ins_type_field which contains the following arguments:
+ * Finds the Instrument based on given Song ID and Instrument number.
  *
- * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1..255).
- * \li \c i   The index of the field.
- * \li        Other fields dependent on the type.
+ * If the requested Song exists, it will be made current Song.
+ *
+ * \param l         The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param ins_num   The Instrument number.
+ * \param ins       The location to which the Instrument will be stored
+ *                  -- must not be \c NULL.
+ *
+ * \return   \c true if the Song exists and Instrument number is valid,
+ *           otherwise \c false. Note that \c true will be returned if the
+ *           search parameters are valid but no Instrument is found.
  */
+bool ins_get(Listener* lr,
+		int32_t song_id,
+		int32_t ins_num,
+		Instrument** ins);
+
+
+/**
+ * Sends the ins_info message.
+ *
+ * \param l         The Listener -- must not be \c NULL.
+ * \param song_id   The Song ID.
+ * \param ins_num   The Instrument number.
+ * \param ins       The Instrument located in \a song_id, \a ins_num.
+ *
+ * \return   \c true if the message was sent successfully, otherwise \c false.
+ */
+bool ins_info(Listener* lr,
+		int32_t song_id,
+		int32_t ins_num,
+		Instrument* ins);
 
 
 /**
@@ -105,48 +121,6 @@ Listener_callback Listener_new_ins;
  * \li \c s   The name.
  */
 Listener_callback Listener_ins_set_name;
-
-
-/**
- * Gets the type field description of the Instrument.
- *
- * The following OSC arguments are expected:
- *
- * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1..255).
- *
- * The response method is <host_path>/ins_type_desc.
- */
-Listener_callback Listener_ins_get_type_desc;
-
-
-/**
- * Gets a type-specific field value of the Instrument.
- *
- * The following OSC arguments are expected:
- *
- * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1..255).
- * \li \c i   The index of the field (>= 0).
- *
- * The response method is <host_path>/ins_type_field.
- */
-Listener_callback Listener_ins_get_type_field;
-
-
-/**
- * Gets a type-specific field value of the Instrument.
- *
- * The following OSC arguments are expected:
- *
- * \li \c i   The Song ID.
- * \li \c i   The Instrument number (1..255).
- * \li \c i   The index of the field.
- * \li        One or more fields dependent on the type.
- *
- * The response method is <host_path>/ins_type_field.
- */
-Listener_callback Listener_ins_set_type_field;
 
 
 /**

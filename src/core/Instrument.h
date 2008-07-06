@@ -55,46 +55,6 @@ typedef enum
 } Ins_type;
 
 
-typedef struct Instrument_field
-{
-	/// The category of the parameter.
-	char* category;
-	/// The name of the parameter.
-	char* name;
-	/**
-	 * The type of the parameter.
-	 *
-	 * Valid types are:
-	 *
-	 * \li \c 'p'   Path.
-	 * \li \c 'i'   Integer.
-	 * \li \c 'f'   Floating-point number.
-	 * \li \c 'r'   Ratio.
-	 *
-	 * Using multiple types indicate that any one of those types is
-	 * acceptable.
-	 */
-	char* type;
-	/**
-	 * Constraints set on the parameter.
-	 *
-	 * Valid constraints are:
-	 *
-	 * \li \c "!v"    Not v. v may also be omitted, in which case the
-	 *                constraint is "not empty".
-	 * \li \c ">v"    Greater than v.
-	 * \li \c ">=v"   Greater than or equal to v.
-	 * \li \c "<v"    Less than v.
-	 * \li \c "<=v"   Less than or equal to v.
-	 * \li \c "rv"    Matches against regular expression v.
-	 *
-	 * Multiple constraints can be ANDed with "-&-" and ORed with "-|-".
-	 */
-	char* constraint;
-//	struct Instrument_field* field;
-} Instrument_field;
-
-
 typedef struct Instrument
 {
 	/// Instrument type.
@@ -115,12 +75,6 @@ typedef struct Instrument
 	Note_table** notes;
 	/// Type-specific data.
 	void* type_data;
-	/// Description of type-specific settings.
-	Instrument_field* type_desc;
-	/// Function for getting a type-specific field.
-	bool (*get_field)(struct Instrument*, int index, void* data, char** type);
-	/// Function for setting a type-specific field.
-	bool (*set_field)(struct Instrument*, int index, void* data);
 	/// Initialiser for type-specific data -- returns \c 0 on success.
 	int (*init)(struct Instrument*);
 	/// Uninitialiser for type-specific data.
@@ -156,43 +110,6 @@ Instrument* new_Instrument(Ins_type type,
  * \return   The Instrument type.
  */
 Ins_type Instrument_get_type(Instrument* ins);
-
-
-/**
- * Gets the type description of the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The type description. If the Instrument doesn't have
- *           type-specific fields, \c NULL is returned.
- */
-Instrument_field* Instrument_get_type_desc(Instrument* ins);
-
-
-/**
- * Gets a type-specific field value of the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the field -- must be >= \c 0.
- * \param data    The storage destination for the value.
- * \param type    The storage destination for the type of \a data.
- *
- * \return   \c true if a value was correctly returned. Otherwise \c false is
- *           returned and \a data remains unchanged.
- */
-bool Instrument_get_field(Instrument* ins, int index, void* data, char** type);
-
-
-/**
- * Sets a type-specific field value of the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the field -- must be >= \c 0.
- * \param data    The new value.
- *
- * \return   \c true if \a data was correctly set, otherwise \c false.
- */
-bool Instrument_set_field(Instrument* ins, int index, void* data);
 
 
 /**

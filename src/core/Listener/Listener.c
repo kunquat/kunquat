@@ -37,6 +37,7 @@
 #include "Listener_driver.h"
 #include "Listener_song.h"
 #include "Listener_ins.h"
+#include "Listener_ins_pcm.h"
 #include "Listener_pattern.h"
 #include "Listener_order.h"
 #include "Listener_note_table.h"
@@ -80,9 +81,9 @@ static Method_desc methods[] =
 	{ "/kunquat/get_insts", "i", Listener_get_insts },
 	{ "/kunquat/new_ins", "iii", Listener_new_ins },
 	{ "/kunquat/ins_set_name", "iis", Listener_ins_set_name },
-	{ "/kunquat/ins_get_type_desc", "ii", Listener_ins_get_type_desc },
-	{ "/kunquat/ins_get_type_field", "iii", Listener_ins_get_type_field },
-	{ "/kunquat/ins_set_type_field", NULL, Listener_ins_set_type_field },
+//	{ "/kunquat/ins_pcm_get_sample_info", TODO },
+	{ "/kunquat/ins_pcm_load_sample", "iiis", Listener_ins_pcm_load_sample },
+	{ "/kunquat/ins_pcm_sample_set_mid_freq", "iiid", Listener_ins_pcm_sample_set_mid_freq },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
 	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
 	{ "/kunquat/set_pat_len", "iihi", Listener_set_pat_len },

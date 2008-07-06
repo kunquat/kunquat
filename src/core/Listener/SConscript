@@ -37,6 +37,7 @@ files = [
 	'Listener_driver.c',
 	'Listener_song.c',
 	'Listener_ins.c',
+	'Listener_ins_pcm.c',
 	'Listener_demo.c',
 	'Listener_pattern.c',
 	'Listener_order.c',
