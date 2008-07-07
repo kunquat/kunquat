@@ -41,13 +41,24 @@ class Instruments(gtk.HBox):
 				self.ui_params[args[0] - 1] = self.build_pcm_details(args[0])
 			pcm_details = self.ui_params[args[0] - 1]
 			samples = pcm_details.get_nth_page(0)
-			sample_details = samples.get_children()[0]
+			sample_details = samples.get_children()[1]
 			sample_path = sample_details.get_children()[0]
 			sample_path_str = sample_path.get_children()[1]
 			sample_freq = sample_details.get_children()[1]
 			sample_freq_val = sample_freq.get_children()[1]
+
+			sample_list_scroll = samples.get_children()[0]
+			sample_list_view = sample_list_scroll.get_child()
+			sample_selection = sample_list_view.get_selection()
+			_, sr = sample_selection.get_selected_rows()
+			if sr:
+				pcm_details.sample_info['cur'] = sr[0][0]
+
+			found_samples = set()
 			for i in range(3, len(args), 3):
-				if args[i] == 0:
+				found_samples.add(args[i])
+				pcm_details.sample_info['samples'][args[i]] = args[i + 1:i + 3]
+				if args[i] == pcm_details.sample_info['cur']:
 					path = args[i + 1]
 					if sample_path_str.get_text() != path:
 						sample_path_str.set_text(path)
@@ -57,6 +68,18 @@ class Instruments(gtk.HBox):
 						sample_freq_val.handler_unblock(sample_freq_val.shid)
 					else:
 						sample_freq_val.user_set = False
+			not_found = set(range(512)) - found_samples
+			for i in not_found:
+				if i in pcm_details.sample_info['samples']:
+					del pcm_details.sample_info['samples'][i]
+					if i == pcm_details.sample_info['cur']:
+						sample_path_str.set_text('')
+						if not sample_freq_val.user_set:
+							sample_freq_val.handler_block(sample_freq_val.shid)
+							sample_freq_val.set_value(44100)
+							sample_freq_val.handler_unblock(sample_freq_val.shid)
+						else:
+							sample_freq_val.user_set = False
 					
 		if self.cur_index == args[0]:
 			self.select_ins(self.it_view.get_selection())
@@ -64,7 +87,24 @@ class Instruments(gtk.HBox):
 	def build_pcm_details(self, ins_num):
 		pcm_details = gtk.Notebook()
 		samples = gtk.HBox()
-		# TODO: add Sample list here
+
+		sample_store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
+		sample_list = gtk.TreeView(sample_store)
+		for i in range(512):
+			iter = sample_store.append()
+			sample_store.set(iter, 0, '%03X' % i)
+		cell = gtk.CellRendererText()
+		column = gtk.TreeViewColumn('#', cell, text=0)
+		sample_list.append_column(column)
+		cell = gtk.CellRendererText()
+		cell.set_property('editable', True)
+#		cell.connect('edited', TODO)
+		column = gtk.TreeViewColumn('Name', cell, text=1)
+		sample_list.append_column(column)
+		sample_scroll = gtk.ScrolledWindow()
+		sample_scroll.add(sample_list)
+		samples.pack_start(sample_scroll)
+
 		sample_details = gtk.VBox()
 
 		sample_path = gtk.HBox()
@@ -75,8 +115,12 @@ class Instruments(gtk.HBox):
 		sample_path.pack_start(sample_path_str)
 		sample_path_browse = gtk.Button('Browse...')
 		sample_path_browse.connect('clicked', self.browse_sample,
-				ins_num, 0)
+				ins_num, pcm_details)
 		sample_path.pack_start(sample_path_browse, False, False)
+		sample_path_remove = gtk.Button('Remove')
+		sample_path_remove.connect('clicked', self.remove_sample,
+				ins_num, pcm_details)
+		sample_path.pack_start(sample_path_remove, False, False)
 
 		sample_freq = gtk.HBox()
 		sample_details.pack_start(sample_freq, False, False)
@@ -85,7 +129,7 @@ class Instruments(gtk.HBox):
 		adj = gtk.Adjustment(44100, 1, 2147483647, 0.01, 1)
 		sample_freq_val = gtk.SpinButton(adj, digits=2)
 		shid = sample_freq_val.connect('value-changed', self.change_mid_freq,
-				ins_num, 0)
+				ins_num, pcm_details)
 		sample_freq_val.shid = shid
 		sample_freq_val.user_set = False
 		sample_freq.pack_start(sample_freq_val, False, False)
@@ -93,9 +137,46 @@ class Instruments(gtk.HBox):
 		samples.pack_start(sample_details)
 		pcm_details.append_page(samples, gtk.Label('Samples'))
 		pcm_details.set_name('pcm')
+		pcm_details.sample_info = {}
+		pcm_details.sample_info['path'] = sample_path_str
+		pcm_details.sample_info['freq'] = sample_freq_val
+		pcm_details.sample_info['cur'] = -1
+		pcm_details.sample_info['samples'] = {}
+
+		selection = sample_list.get_selection()
+		selection.connect('changed', self.change_sample, pcm_details)
+		selection.select_path(0)
 		return pcm_details
 
-	def change_mid_freq(self, spin, ins_num, sample_num):
+	def change_sample(self, selection, pcm_details):
+		_, cur = selection.get_selected_rows()
+		if not cur:
+			return
+		cur = cur[0][0]
+		if cur == pcm_details.sample_info['cur']:
+			return
+		pcm_details.sample_info['cur'] = cur
+		if cur not in pcm_details.sample_info['samples']:
+			pcm_details.sample_info['path'].set_text('')
+			pcm_details.sample_info['freq'].handler_block(
+					pcm_details.sample_info['freq'].shid)
+			pcm_details.sample_info['freq'].set_value(44100)
+			pcm_details.sample_info['freq'].handler_unblock(
+					pcm_details.sample_info['freq'].shid)
+			return
+		pcm_details.sample_info['path'].set_text(
+				pcm_details.sample_info['samples'][cur][0])
+		pcm_details.sample_info['freq'].handler_block(
+				pcm_details.sample_info['freq'].shid)
+		pcm_details.sample_info['freq'].set_value(
+				pcm_details.sample_info['samples'][cur][1])
+		pcm_details.sample_info['freq'].handler_unblock(
+				pcm_details.sample_info['freq'].shid)
+
+	def change_mid_freq(self, spin, ins_num, pcm_details):
+		sample_num = pcm_details.sample_info['cur']
+		if sample_num < 0:
+			return
 		spin.user_set = True
 		liblo.send(self.engine, '/kunquat/ins_pcm_sample_set_mid_freq',
 				self.song_id,
@@ -115,7 +196,10 @@ class Instruments(gtk.HBox):
 					sample_num,
 					path)
 
-	def browse_sample(self, button, ins_num, sample_num):
+	def browse_sample(self, button, ins_num, pcm_details):
+		sample_num = pcm_details.sample_info['cur']
+		if sample_num < 0:
+			return
 		filter = gtk.FileFilter()
 		filter.set_name('WavPack files')
 		filter.add_pattern('*.wv')
@@ -127,6 +211,15 @@ class Instruments(gtk.HBox):
 				ins_num, sample_num)
 		file_sel.add_filter(filter)
 		file_sel.show()
+
+	def remove_sample(self, button, ins_num, pcm_details):
+		sample_num = pcm_details.sample_info['cur']
+		if sample_num < 0:
+			return
+		liblo.send(self.engine, '/kunquat/ins_pcm_remove_sample',
+				self.song_id,
+				ins_num,
+				sample_num)
 
 	def name_changed(self, cell, path, new_text):
 		liblo.send(self.engine, '/kunquat/ins_set_name',
@@ -204,12 +297,12 @@ class Instruments(gtk.HBox):
 		selection.select_path(0)
 
 		cell = gtk.CellRendererText()
-		column = gtk.TreeViewColumn('#', cell, text = 0)
+		column = gtk.TreeViewColumn('#', cell, text=0)
 		self.it_view.append_column(column)
 		cell = gtk.CellRendererText()
 		cell.set_property('editable', True)
 		cell.connect('edited', self.name_changed)
-		column = gtk.TreeViewColumn('Name', cell, text = 1)
+		column = gtk.TreeViewColumn('Name', cell, text=1)
 		self.it_view.append_column(column)
 
 		it_scroll = gtk.ScrolledWindow()

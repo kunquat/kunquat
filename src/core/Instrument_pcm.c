@@ -100,8 +100,14 @@ bool Instrument_pcm_set_sample(Instrument* ins,
 	assert(ins->type == INS_TYPE_PCM);
 	assert(ins->type_data != NULL);
 	assert(index < PCM_SAMPLES_MAX);
+	pcm_type_data* type_data = ins->type_data;
 	if (path == NULL)
 	{
+		if (type_data->samples[index] != NULL)
+		{
+			del_Sample(type_data->samples[index]);
+			type_data->samples[index] = NULL;
+		}
 		return true;
 	}
 	Sample* sample = new_Sample();
@@ -109,7 +115,6 @@ bool Instrument_pcm_set_sample(Instrument* ins,
 	{
 		return false;
 	}
-	pcm_type_data* type_data = ins->type_data;
 	if (!Sample_load_path(sample, path, SAMPLE_FORMAT_WAVPACK))
 	{
 		del_Sample(sample);

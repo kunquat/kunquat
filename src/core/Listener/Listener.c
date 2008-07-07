@@ -84,6 +84,7 @@ static Method_desc methods[] =
 //	{ "/kunquat/ins_pcm_get_sample_info", TODO },
 	{ "/kunquat/ins_pcm_load_sample", "iiis", Listener_ins_pcm_load_sample },
 	{ "/kunquat/ins_pcm_sample_set_mid_freq", "iiid", Listener_ins_pcm_sample_set_mid_freq },
+	{ "/kunquat/ins_pcm_remove_sample", "iii", Listener_ins_pcm_remove_sample },
 	{ "/kunquat/del_ins", "ii", Listener_del_ins },
 	{ "/kunquat/get_pattern", "ii", Listener_get_pattern },
 	{ "/kunquat/set_pat_len", "iihi", Listener_set_pat_len },

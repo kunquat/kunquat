@@ -65,6 +65,18 @@ Listener_callback Listener_ins_pcm_load_sample;
 Listener_callback Listener_ins_pcm_sample_set_mid_freq;
 
 
+/**
+ * Removes a Sample from a PCM Instrument.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ * \li \c i   The index of the Sample.
+ */
+Listener_callback Listener_ins_pcm_remove_sample;
+
+
 #endif // K_LISTENER_INS_PCM_H
 
 
