@@ -28,7 +28,7 @@
 
 
 /**
- * All player methods respond with one or more calls of the method
+ * Most player methods respond with one or more calls of the method
  * <host_path>/player_state which contains the following arguments:
  *
  * \li \c i   The Song ID.
@@ -96,6 +96,39 @@ Listener_callback Listener_play_pattern;
  * \li        Zero or more additional arguments depending on the Event type.
  */
 Listener_callback Listener_play_event;
+
+
+/**
+ * Gets statistics from the player.
+ *
+ * No OSC arguments are expected from the caller.
+ *
+ * The response method is <host_path>/play_stats and contains the following
+ * arguments:
+ *
+ * \li \c i   Number of channels mixed.
+ *
+ * For each channel:
+ *
+ * \li \c d   The maximum amplitude value since the last call. Values above
+ *            1.0 indicate clipping.
+ * \li \c d   The minimum amplitude value since the last call. Values below
+ *            -1.0 indicate clipping.
+ *
+ * For each Song:
+ * 
+ * \li \c i   The Song ID.
+ * \li \c T/F True if and only if there is anything playing, in which case:
+ * \li \c i   The maximum number of Voices used since the last call.
+ * \li \c T/F True if and only if there is a Pattern playing, in which case:
+ * \li \c i   The Pattern number.
+ * \li \c h   The Pattern playback beat.
+ * \li \c i   The Pattern playback position remainder.
+ * \li \c T/F True if and only if there is a subsong playing, in which case:
+ * \li \c i   The subsong number.
+ * \li \c i   The order index.
+ */
+Listener_callback Listener_play_stats;
 
 
 #endif // K_LISTENER_PLAYER_H

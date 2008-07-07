@@ -92,16 +92,6 @@ uint32_t Player_mix(Player* player, uint32_t nframes)
 	{
 		return 0;
 	}
-/*	int buf_count = Song_get_buf_count(player->song);
-	frame_t** bufs = Song_get_bufs(player->song);
-	for (int i = 0; i < buf_count; ++i)
-	{
-		assert(bufs[i] != NULL);
-		for (uint32_t k = 0; k < nframes; ++k)
-		{
-			bufs[i][k] = 0;
-		}
-	} */
 	return Song_mix(player->song, nframes, player->play);
 }
 
@@ -116,6 +106,7 @@ void Player_play_pattern(Player* player, int16_t num, double tempo)
 	Player_stop(player);
 	player->play->pattern = num;
 	player->play->tempo = tempo;
+	Playdata_reset_stats(player->play);
 	player->play->mode = PLAY_PATTERN;
 	return;
 }
@@ -128,6 +119,7 @@ void Player_play_subsong(Player* player, uint16_t subsong)
 	Player_stop(player);
 	player->play->subsong = subsong;
 	player->play->tempo = Song_get_tempo(player->song, player->play->subsong);
+	Playdata_reset_stats(player->play);
 	player->play->mode = PLAY_SONG;
 	return;
 }
@@ -138,6 +130,7 @@ void Player_play_song(Player* player)
 	assert(player != NULL);
 	Player_stop(player);
 	player->play->subsong = Song_get_subsong(player->song);
+	Playdata_reset_stats(player->play);
 	player->play->mode = PLAY_SONG;
 	return;
 }
@@ -151,6 +144,7 @@ void Player_play_event(Player* player)
 		return;
 	}
 	Player_stop(player);
+	Playdata_reset_stats(player->play);
 	player->play->mode = PLAY_EVENT;
 	return;
 }

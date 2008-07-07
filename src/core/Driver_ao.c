@@ -235,6 +235,20 @@ static int Driver_ao_process(uint32_t nframes, Playlist* playlist)
 		out_buf[i * 2] = (short)(mix_l[i] * 32767);
 		out_buf[(i * 2) + 1] = (short)(mix_r[i] * 32767);
 	}
+	for (int i = 0; i < 2; ++i)
+	{
+		for (uint32_t k = 0; k < K_AO_BUF_SIZE; ++k)
+		{
+			if (playlist->max_values[i] < mixs[i][k])
+			{
+				playlist->max_values[i] = mixs[i][k];
+			}
+			if (playlist->min_values[i] > mixs[i][k])
+			{
+				playlist->min_values[i] = mixs[i][k];
+			}
+		}
+	}
 	if (!ao_play(device, (void*)out_buf, K_AO_BUF_SIZE * 2 * 2))
 	{
 		return -1;

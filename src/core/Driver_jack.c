@@ -230,13 +230,14 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 	}
 	while (player != NULL)
 	{
-		if (!player->play->mode)
+		Playdata* play = Player_get_playdata(player);
+		if (!play->mode)
 		{
 			player = player->next;
 			continue;
 		}
-		assert(player->play->mode > STOP);
-		assert(player->play->mode < PLAY_LAST);
+		assert(play->mode > STOP);
+		assert(play->mode < PLAY_LAST);
 		int buf_count = Song_get_buf_count(player->song);
 		if (buf_count > 2)
 		{
@@ -259,6 +260,20 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 			}
 		}
 		player = player->next;
+	}
+	for (int i = 0; i < 2; ++i)
+	{
+		for (uint32_t k = 0; k < nframes; ++k)
+		{
+			if (playlist->max_values[i] < jbufs[i][k])
+			{
+				playlist->max_values[i] = jbufs[i][k];
+			}
+			if (playlist->min_values[i] > jbufs[i][k])
+			{
+				playlist->min_values[i] = jbufs[i][k];
+			}
+		}
 	}
 	return 0;
 }

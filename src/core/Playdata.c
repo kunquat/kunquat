@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <Voice_pool.h>
 #include <Channel.h>
@@ -68,6 +69,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
 	Reltime_init(&play->play_time);
 	play->play_frames = 0;
 	Reltime_init(&play->pos);
+	Playdata_reset_stats(play);
 	return play;
 }
 
@@ -77,6 +79,14 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 	assert(play != NULL);
 	assert(freq > 0);
 	play->freq = freq;
+	return;
+}
+
+
+void Playdata_reset_stats(Playdata* play)
+{
+	assert(play != NULL);
+	play->active_voices = 0;
 	return;
 }
 

@@ -76,6 +76,8 @@ typedef struct Playdata
 	Voice_pool* voice_pool;
 	/// The channels used.
 	Channel* channels[COLUMNS_MAX];
+	/// Number of Voices used simultaneously.
+	uint16_t active_voices;
 } Playdata;
 
 
@@ -102,6 +104,14 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
  * \param freq   The mixing frequency -- must be > \c 0.
  */
 void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
+
+
+/**
+ * Resets playback statistics.
+ *
+ * \param play   The Playdata object -- must not be \c NULL.
+ */
+void Playdata_reset_stats(Playdata* play);
 
 
 /**

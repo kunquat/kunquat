@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include "Playlist.h"
 
@@ -38,6 +39,7 @@ Playlist* new_Playlist(void)
 	playlist->buf_count = 2;
 	playlist->buf_size = 128;
 	playlist->first = NULL;
+	Playlist_reset_stats(playlist);
 	return playlist;
 }
 
@@ -154,6 +156,25 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq)
 	while (player != NULL)
 	{
 		Player_set_mix_freq(player, freq);
+		player = player->next;
+	}
+	return;
+}
+
+
+void Playlist_reset_stats(Playlist* playlist)
+{
+	assert(playlist != NULL);
+	for (int i = 0; i < BUF_COUNT_MAX; ++i)
+	{
+		playlist->max_values[i] = -INFINITY;
+		playlist->min_values[i] = INFINITY;
+	}
+	Player* player = playlist->first;
+	while (player != NULL)
+	{
+		Playdata* play = Player_get_playdata(player);
+		Playdata_reset_stats(play);
 		player = player->next;
 	}
 	return;

@@ -32,6 +32,8 @@ typedef struct Playlist
 	uint32_t buf_count;
 	uint32_t buf_size;
 	Player* first;
+	double max_values[BUF_COUNT_MAX];
+	double min_values[BUF_COUNT_MAX];
 } Playlist;
 
 
@@ -124,6 +126,14 @@ uint32_t Playlist_get_buf_size(Playlist* playlist);
  * \param freq       The mixing frequency -- must be > \c 0.
  */
 void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq);
+
+
+/**
+ * Resets playback statistics.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ */
+void Playlist_reset_stats(Playlist* playlist);
 
 
 /**

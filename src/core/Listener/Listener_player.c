@@ -37,6 +37,89 @@ static bool player_state(Listener* lr,
 		char* state);
 
 
+int Listener_play_stats(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	Player* player = lr->playlist->first;
+	lo_message m = new_msg();
+	lo_message_add_int32(m, 2); // TODO: Get the number of buffers from the driver
+	for (int i = 0; i < 2; ++i)
+	{
+		double max_value = 0;
+		if (isfinite(lr->playlist->max_values[i]))
+		{
+			max_value = lr->playlist->max_values[i];
+		}
+		double min_value = 0;
+		if (isfinite(lr->playlist->min_values[i]))
+		{
+			min_value = lr->playlist->min_values[i];
+		}
+		lo_message_add_double(m, max_value);
+		lo_message_add_double(m, min_value);
+	}
+	while (player != NULL)
+	{
+		lo_message_add_int32(m, player->id);
+		Playdata* play = Player_get_playdata(player);
+		if (play->mode > STOP)
+		{
+			lo_message_add_true(m);
+		}
+		else
+		{
+			lo_message_add_false(m);
+			player = player->next;
+			continue;
+		}
+		lo_message_add_int32(m, play->active_voices);
+		if (play->mode >= PLAY_PATTERN)
+		{
+			lo_message_add_true(m);
+		}
+		else
+		{
+			lo_message_add_false(m);
+			player = player->next;
+			continue;
+		}
+		lo_message_add_int32(m, play->pattern);
+		Reltime* pos = &play->pos;
+		lo_message_add_int64(m, Reltime_get_beats(pos));
+		lo_message_add_int32(m, Reltime_get_rem(pos));
+		if (play->mode >= PLAY_SONG)
+		{
+			lo_message_add_true(m);
+		}
+		else
+		{
+			lo_message_add_false(m);
+			player = player->next;
+			continue;
+		}
+		lo_message_add_int32(m, play->subsong);
+		lo_message_add_int32(m, play->order_index);
+		player = player->next;
+	}
+	int ret = 0;
+	send_msg(lr, "play_stats", m, ret);
+	lo_message_free(m);
+	Playlist_reset_stats(lr->playlist);
+	return 0;
+}
+
+
 int Listener_stop(const char* path,
 		const char* types,
 		lo_arg** argv,

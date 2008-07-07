@@ -124,7 +124,12 @@ uint32_t Pattern_mix(Pattern* pat,
 					play->tempo,
 					play->freq);
 		}
-		Voice_pool_mix(play->voice_pool, nframes, mixed, play->freq);
+		uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+				nframes, mixed, play->freq);
+		if (play->active_voices < active_voices)
+		{
+			play->active_voices = active_voices;
+		}
 		return nframes;
 	}
 	while (mixed < nframes
@@ -235,7 +240,12 @@ uint32_t Pattern_mix(Pattern* pat,
 			to_be_mixed = nframes - mixed;
 		}
 		// - Mix the Voice pool
-		Voice_pool_mix(play->voice_pool, to_be_mixed + mixed, mixed, play->freq);
+		uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+				to_be_mixed + mixed, mixed, play->freq);
+		if (play->active_voices < active_voices)
+		{
+			play->active_voices = active_voices;
+		}
 		// - Increment play->pos
 		Reltime_copy(&play->pos, limit);
 		mixed += to_be_mixed;
