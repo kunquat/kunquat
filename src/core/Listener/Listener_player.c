@@ -115,7 +115,7 @@ int Listener_play_stats(const char* path,
 	int ret = 0;
 	send_msg(lr, "play_stats", m, ret);
 	lo_message_free(m);
-	Playlist_reset_stats(lr->playlist);
+	Playlist_schedule_reset(lr->playlist);
 	return 0;
 }
 

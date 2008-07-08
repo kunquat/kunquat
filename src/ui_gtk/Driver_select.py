@@ -60,12 +60,12 @@ class Driver_select(gtk.Window):
 	def set_driver(self, widget, data = None):
 		_, cur = widget.get_selected_rows()
 		cur = cur[0][0] - 1
-#		if self.cur_driver >= 0 and not self.update_table:
-#			liblo.send(self.engine, '/kunquat/driver_close')
-#		self.cur_driver = -1
-#		self.hz.set_text('0')
-		if cur >= 0 and not self.update_table:
-			liblo.send(self.engine, '/kunquat/driver_init', cur)
+		if not self.update_table:
+			if cur >= 0:
+				liblo.send(self.engine, '/kunquat/driver_init', cur)
+			else:
+				liblo.send(self.engine, '/kunquat/driver_close')
+				self.hz.set_text('1')
 		self.cur_driver = cur
 		if self.update_table:
 			self.update_table = False

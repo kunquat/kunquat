@@ -24,6 +24,8 @@
 #define K_PLAYLIST_H
 
 
+#include <stdbool.h>
+
 #include <Player.h>
 
 
@@ -34,6 +36,7 @@ typedef struct Playlist
 	Player* first;
 	double max_values[BUF_COUNT_MAX];
 	double min_values[BUF_COUNT_MAX];
+	bool reset;
 } Playlist;
 
 
@@ -134,6 +137,14 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq);
  * \param playlist   The Playlist -- must not be \c NULL.
  */
 void Playlist_reset_stats(Playlist* playlist);
+
+
+/**
+ * Schedules a reset of playback statistics.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ */
+void Playlist_schedule_reset(Playlist* playlist);
 
 
 /**

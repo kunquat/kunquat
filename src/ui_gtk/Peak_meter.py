@@ -31,21 +31,25 @@ import liblo
 class Peak_meter(gtk.Widget):
 
 	def player_state(self, path, args, types):
-		if args[1] == 'stop':
+		if self.active:
+			return
+		self.active = True
+		gobject.timeout_add(self.update_rate, self.request_update)
+
+	def play_stats(self, path, args, types):
+		self.channels = args[0]
+		if 'T' not in types:
 			self.active = False
 			for i in range(self.channels):
 				self.levels[i] = None
 				self.clipped[i] = False
+				self.peaks[i] = None
+				self.peak_times[i] = 0
 			self.queue_draw()
 			return
-		if self.active:
-			return
-		self.active = True
-		gobject.timeout_add(40, self.request_update)
-
-	def play_stats(self, path, args, types):
-		self.channels = args[0]
 		for i in range(self.channels):
+			if self.peaks[i] != None:
+				self.peak_times[i] += self.update_rate
 			peak_val = abs(args[(i * 2) + 1])
 			neg_peak = abs(args[(i * 2) + 2])
 			if peak_val < neg_peak:
@@ -57,6 +61,12 @@ class Peak_meter(gtk.Widget):
 				self.levels[i] = None
 				continue
 			self.levels[i] = math.log(peak_val, 2) * 6
+			if not self.peaks[i] or self.peaks[i] < self.levels[i]:
+				self.peaks[i] = self.levels[i]
+				self.peak_times[i] = 0
+			if self.peak_times[i] > self.peak_time:
+				self.peaks[i] = None
+				self.peak_times[i] = 0
 		self.queue_draw()
 
 	def request_update(self):
@@ -138,22 +148,27 @@ class Peak_meter(gtk.Widget):
 		meter_on_grad.add_color_stop_rgb(1.0, max_r, max_g, max_b)
 
 		for i in range(self.channels):
-			cr.rectangle(0, i * (ch_width + ch_border),
-					meter_length, ch_width)
+			meter_y = i * (ch_width + ch_border)
+			cr.rectangle(0, meter_y, meter_length, ch_width)
 			cr.set_source(meter_off_grad)
 			cr.fill()
+			cr.set_source(meter_on_grad)
 			if self.levels[i] != None and self.levels[i] > -self.range:
 				level = meter_length * (self.levels[i] + self.range) / self.range
-				cr.rectangle(0, i * (ch_width + ch_border),
+				cr.rectangle(0, meter_y,
 						level, ch_width)
-				cr.set_source(meter_on_grad)
+				cr.fill()
+			if self.peaks[i] != None and self.peaks[i] > -self.range:
+				level = meter_length * (self.peaks[i] + self.range) / self.range
+				cr.rectangle(level - 3, meter_y,
+						3, ch_width)
 				cr.fill()
 			if self.clipped[i]:
 				cr.set_source_rgb(*self.ptheme['Clip colour'])
 			else:
 				w_alpha = self.ptheme['Clip colour'] + (0.3,)
 				cr.set_source_rgba(*w_alpha)
-			cr.rectangle(clip_ind_x, i * (ch_width + ch_border),
+			cr.rectangle(clip_ind_x, meter_y,
 					clip_ind_width, ch_width)
 			cr.fill()
 
@@ -171,20 +186,23 @@ class Peak_meter(gtk.Widget):
 		self.engine = engine
 		self.server = server
 
+		self.active = False
+
 		self.ptheme = {
 			'Background colour': (0, 0, 0),
 			'Clip colour': (1, 0.2, 0.2),
 			'High colour': (1, 0.9, 0.4),
 			'Low colour': (0.2, 0.8, 0.3),
 		}
-
-		self.active = False
-
+		self.update_rate = 20
+		self.peak_time = 1000
 		self.range = 60
 
 		self.channels = 2
 
 		self.levels = [None for _ in range(2)]
+		self.peaks = [None for _ in range(2)]
+		self.peak_times = [0 for _ in range(2)]
 		self.clipped = [False for _ in range(2)]
 
 

@@ -261,6 +261,7 @@ static int Driver_jack_process(jack_nframes_t nframes, void* arg)
 		}
 		player = player->next;
 	}
+	Playlist_reset_stats(playlist);
 	for (int i = 0; i < 2; ++i)
 	{
 		for (uint32_t k = 0; k < nframes; ++k)

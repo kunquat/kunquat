@@ -39,6 +39,7 @@ Playlist* new_Playlist(void)
 	playlist->buf_count = 2;
 	playlist->buf_size = 128;
 	playlist->first = NULL;
+	playlist->reset = true;
 	Playlist_reset_stats(playlist);
 	return playlist;
 }
@@ -165,6 +166,10 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq)
 void Playlist_reset_stats(Playlist* playlist)
 {
 	assert(playlist != NULL);
+	if (!playlist->reset)
+	{
+		return;
+	}
 	for (int i = 0; i < BUF_COUNT_MAX; ++i)
 	{
 		playlist->max_values[i] = -INFINITY;
@@ -177,7 +182,15 @@ void Playlist_reset_stats(Playlist* playlist)
 		Playdata_reset_stats(play);
 		player = player->next;
 	}
+	playlist->reset = false;
 	return;
+}
+
+
+void Playlist_schedule_reset(Playlist* playlist)
+{
+	assert(playlist != NULL);
+	playlist->reset = true;
 }
 
 
