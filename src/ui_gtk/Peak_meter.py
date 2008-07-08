@@ -59,9 +59,9 @@ class Peak_meter(gtk.Widget):
 				self.clipped[i] = True
 			elif peak_val <= 0.0:
 				self.levels[i] = None
-				continue
-			self.levels[i] = math.log(peak_val, 2) * 6
-			if not self.peaks[i] or self.peaks[i] < self.levels[i]:
+			else:
+				self.levels[i] = math.log(peak_val, 2) * 6
+			if self.peaks[i] == None or self.peaks[i] < self.levels[i]:
 				self.peaks[i] = self.levels[i]
 				self.peak_times[i] = 0
 			if self.peak_times[i] > self.peak_time:

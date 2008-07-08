@@ -79,7 +79,7 @@ class Driver_select(gtk.Window):
 		self.engine = engine
 		self.server = server
 
-		self.update_table = False
+		self.update_table = True
 		
 		self.server.add_method('/kunquat_gtk/drivers', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/active_driver', 'ii', self.handle_osc)
