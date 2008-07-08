@@ -229,7 +229,6 @@ class Songs(gtk.Notebook):
 		self.server.add_method('/kunquat_gtk/note_info', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/note_mod_info', None, self.handle_osc)
 		self.server.add_method('/kunquat_gtk/notes_sent', 'ii', self.handle_osc)
-		self.server.add_method('/kunquat_gtk/player_state', 'is', self.handle_osc)
 
 		gtk.Notebook.__init__(self)
 

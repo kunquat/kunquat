@@ -31,6 +31,7 @@ import sys
 import Driver_select
 import Songs
 import Cli
+from Peak_meter import Peak_meter
 
 
 gobject.threads_init()
@@ -72,12 +73,22 @@ class Kunquat_gtk:
 		button.set_active(False)
 		return True
 
+	def player_state(self, path, args, types):
+		self.songs.player_state(path, args, types)
+		self.peak.player_state(path, args, types)
+
+	def play_stats(self, path, args, types):
+		self.peak.play_stats(path, args, types)
+
 	def __init__(self, engine_url):
 		self.connect(engine_url)
 
 		self.drivers = Driver_select.Driver_select(self.engine, self.s)
 
 		self.songs = Songs.Songs(self.engine, self.s)
+
+		self.s.add_method('/kunquat_gtk/player_state', 'is', self.player_state)
+		self.s.add_method('/kunquat_gtk/play_stats', None, self.play_stats)
 
 		self.cli = Cli.Cli(self.engine, self.s)
 		
@@ -115,6 +126,10 @@ class Kunquat_gtk:
 		self.tools.show()
 		self.contents.pack_start(self.box)
 		self.box.show()
+
+		self.peak = Peak_meter(self.engine, self.s)
+		self.contents.pack_start(self.peak, False, False)
+		self.peak.show()
 
 		self.contents.pack_start(self.cli, False, False)
 		self.cli.show()
