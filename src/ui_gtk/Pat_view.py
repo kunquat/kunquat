@@ -510,6 +510,11 @@ class Pat_view(gtk.Widget):
 					self.cursor[0][0],
 					self.cursor[0][1],
 					self.cursor[0][2])
+			if self.cursor[1] > 0:
+				liblo.send(self.engine, '/kunquat/play_event',
+						self.song_id,
+						self.cursor[1],
+						evtype.NOTE_OFF)
 
 	def act_pat_prev(self, event):
 		if event.type == gdk.KEY_RELEASE:
