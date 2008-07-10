@@ -72,7 +72,7 @@ void Voice_init(Voice* voice, Instrument* ins)
 {
 	assert(voice != NULL);
 	assert(ins != NULL);
-	voice->prio = VOICE_PRIO_FG;
+	voice->prio = VOICE_PRIO_NEW;
 	voice->ins = ins;
 	Voice_state_init(&voice->state);
 	Event_queue_clear(voice->events);
@@ -140,7 +140,14 @@ void Voice_mix(Voice* voice,
 				voice->state.note_on ? "Note On" : "Note Off",
 				(unsigned long long)voice->state.noff_pos,
 				voice->state.noff_pos_part); */
-		Instrument_mix(voice->ins, &voice->state, mix_until, mixed, freq);
+		if (voice->prio < VOICE_PRIO_NEW)
+		{
+			Instrument_mix(voice->ins, &voice->state, mix_until, mixed, freq);
+		}
+		else
+		{
+			voice->prio = VOICE_PRIO_NEW - 1;
+		}
 		if (event_found)
 		{
 			if (EVENT_TYPE_IS_GENERAL(Event_get_type(next)))

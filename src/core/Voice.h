@@ -35,7 +35,8 @@ typedef enum
 {
 	VOICE_PRIO_INACTIVE = 0,
 	VOICE_PRIO_BG,
-	VOICE_PRIO_FG
+	VOICE_PRIO_FG,
+	VOICE_PRIO_NEW
 } Voice_prio;
 
 

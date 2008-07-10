@@ -112,8 +112,8 @@ START_TEST (mix)
 		abort();
 	}
 	Voice_init(voice, ins);
-	fail_unless(voice->prio == VOICE_PRIO_FG,
-			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
+	fail_unless(voice->prio == VOICE_PRIO_NEW,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
 	fail_unless(Voice_add_event(voice, ev_on, 0),
 			"Voice_add_event() failed.");
 	Voice_mix(voice, 128, 0, 8);
@@ -152,8 +152,8 @@ START_TEST (mix)
 		buf_l[i] = buf_r[i] = 0;
 	}
 	Voice_init(voice, ins);
-	fail_unless(voice->prio == VOICE_PRIO_FG,
-			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
+	fail_unless(voice->prio == VOICE_PRIO_NEW,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
 	fail_unless(Voice_add_event(voice, ev_on, 0),
 			"Voice_add_event() failed.");
 	fail_unless(Voice_add_event(voice, ev_off, 20),
@@ -212,8 +212,8 @@ START_TEST (mix)
 		buf_l[i] = buf_r[i] = 0;
 	}
 	Voice_init(voice, ins);
-	fail_unless(voice->prio == VOICE_PRIO_FG,
-			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_FG).", voice->prio);
+	fail_unless(voice->prio == VOICE_PRIO_NEW,
+			"Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
 	fail_unless(Voice_add_event(voice, ev_on, 0),
 			"Voice_add_event() failed.");
 	fail_unless(Voice_add_event(voice, ev_off, 70),

@@ -32,6 +32,11 @@
 
 #define PCM_SAMPLES_MAX (512)
 
+#define PCM_SOURCES_MAX (16)
+#define PCM_STYLES_MAX (16)
+#define PCM_STRENGTHS_MAX (16)
+#define PCM_RANDOMS_MAX (8)
+
 
 int Instrument_pcm_init(Instrument* ins);
 
@@ -115,6 +120,41 @@ void Instrument_pcm_set_sample_freq(Instrument* ins,
  * \return   The middle frequency of the sample if one exists, otherwise \c 0.
  */
 double Instrument_pcm_get_sample_freq(Instrument* ins, uint16_t index);
+
+
+/**
+ * Sets a Sample mapping.
+ *
+ * \param ins           The Instrument -- must not be \c NULL and must be a
+ *                      PCM instrument.
+ * \param source        The (virtual) sound source of the Instrument -- must
+ *                      be < \c PCM_SOURCES_MAX. This is 0 in most cases
+ *                      but may be used to distinguish between e.g. different
+ *                      strings in a stringed instrument.
+ * \param style         The (virtual) style of the Instrument -- must be
+ *                      < \c PCM_STYLES_MAX. This is 0 in most cases but
+ *                      may be used to distinguish between e.g. different
+ *                      playing styles.
+ * \param strength_id   The index of the strength setting -- must be
+ *                      < \c PCM_STRENGTHS_MAX.
+ * \param ins_freq      The lower bound of the note frequency for this
+ *                      mapping -- must be > \c 0.
+ * \param index         The index of the entry -- must be
+ *                      < \c PCM_RANDOMS_MAX. If there are Samples defined
+ *                      for multiple indices, one is chosen randomly.
+ * \param sample        The index of the actual Sample in the Sample table --
+ *                      must be < \c PCM_SAMPLES_MAX.
+ * \param freq_scale    The scale factor used for calculating the Sample
+ *                      frequency -- must be > \c 0.
+ * \param vol_scale     The scale factor used for calculating the Sample
+ *                      volume -- must be > \c 0.
+ *
+ * \return   The actual index entry (see \a index) that was set, or a negative
+ *           value if memory allocation failed.
+ */
+int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
+		uint8_t source, uint8_t style, uint8_t strength_id, double ins_freq, uint8_t index,
+		uint16_t sample, double freq_scale, double vol_scale);
 
 
 #endif // K_INSTRUMENT_PCM_H
