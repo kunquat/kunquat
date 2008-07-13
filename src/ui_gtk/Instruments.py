@@ -36,6 +36,13 @@ class Instruments(gtk.HBox):
 		if args[1] <= 2:
 			self.ui_params[args[0] - 1] = None
 		elif args[1] == 3:
+			styles_start = args.index('__styles') + 1
+			maps_start = args.index('__maps') + 1
+			sample_descs = args[3:styles_start - 1]
+			style_descs = args[styles_start:maps_start - 1]
+			map_descs = args[maps_start:]
+			print(style_descs)
+			print(map_descs)
 			if (not self.ui_params[args[0] - 1] or
 					self.ui_params[args[0] - 1].get_name() != 'pcm'):
 				self.ui_params[args[0] - 1] = self.build_pcm_details(args[0])
@@ -55,16 +62,16 @@ class Instruments(gtk.HBox):
 				pcm_details.sample_info['cur'] = sr[0][0]
 
 			found_samples = set()
-			for i in range(3, len(args), 3):
-				found_samples.add(args[i])
-				pcm_details.sample_info['samples'][args[i]] = args[i + 1:i + 3]
-				if args[i] == pcm_details.sample_info['cur']:
-					path = args[i + 1]
+			for i in range(0, len(sample_descs), 3):
+				found_samples.add(sample_descs[i])
+				pcm_details.sample_info['samples'][sample_descs[i]] = sample_descs[i + 1:i + 3]
+				if sample_descs[i] == pcm_details.sample_info['cur']:
+					path = sample_descs[i + 1]
 					if sample_path_str.get_text() != path:
 						sample_path_str.set_text(path)
 					if not sample_freq_val.user_set:
 						sample_freq_val.handler_block(sample_freq_val.shid)
-						sample_freq_val.set_value(args[i + 2])
+						sample_freq_val.set_value(sample_descs[i + 2])
 						sample_freq_val.handler_unblock(sample_freq_val.shid)
 					else:
 						sample_freq_val.user_set = False
@@ -135,13 +142,34 @@ class Instruments(gtk.HBox):
 		sample_freq.pack_start(sample_freq_val, False, False)
 
 		samples.pack_start(sample_details)
+
 		pcm_details.append_page(samples, gtk.Label('Samples'))
-		pcm_details.set_name('pcm')
 		pcm_details.sample_info = {}
 		pcm_details.sample_info['path'] = sample_path_str
 		pcm_details.sample_info['freq'] = sample_freq_val
 		pcm_details.sample_info['cur'] = -1
 		pcm_details.sample_info['samples'] = {}
+
+		mappings = gtk.VBox()
+		map_store = gtk.ListStore(gobject.TYPE_DOUBLE, gobject.TYPE_STRING)
+		map_view = gtk.TreeView(map_store)
+		cell = gtk.CellRendererText()
+		cell.set_property('editable', True)
+#		cell.connect('edited', TODO: ins freq)
+		column = gtk.TreeViewColumn('Freq', cell, text=0)
+		map_view.append_column(column)
+		cell = gtk.CellRendererText()
+		cell.set_property('editable', True)
+#		cell.connect('edited', TODO: sample details)
+		column = gtk.TreeViewColumn('Sample(s)', cell, text=1)
+		map_view.append_column(column)
+		map_scroll = gtk.ScrolledWindow()
+		map_scroll.add(map_view)
+		mappings.pack_start(map_scroll)
+
+		pcm_details.append_page(mappings, gtk.Label('Sample mapping'))
+
+		pcm_details.set_name('pcm')
 
 		selection = sample_list.get_selection()
 		selection.connect('changed', self.change_sample, pcm_details)

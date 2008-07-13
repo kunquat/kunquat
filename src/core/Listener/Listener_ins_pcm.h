@@ -28,6 +28,53 @@
 
 
 /**
+ * The response call <host_path>/ins_info contains the following extra
+ * arguments for PCM instruments:
+ *
+ * For each existing Sample:
+ *
+ * \li \c i   The Sample number.
+ * \li \c s   The path of the Sample.
+ * \li \c d   The middle frequency of the Sample.
+ *
+ * These are followed by the string "__styles". Then, for each style defined:
+ *
+ * \li \c i   The number of the style.
+ * \li \c s   The name of the style.
+ *
+ * These are followed by the string "__maps". Then, for each mapping defined:
+ *
+ * \li \c i   The sound source to which this mapping is applied.
+ * \li \c i   The index of the style to which this mapping is applied.
+ * \li \c i   The number of strength levels.
+ * \li        For each strength level:
+ * \li \li \c d   The lower threshold strength for the level.
+ * \li \li \c i   The number of frequency levels.
+ * \li \li        For each frequency level:
+ * \li \li \li \c d   The lower threshold frequency for the level.
+ * \li \li \li \c i   The number of samples for this frequency/strength level.
+ * \li \li \li        For each sample:
+ * \li \li \li \li \c i   The Sample number.
+ * \li \li \li \li \c d   The frequency scale factor for this sample.
+ * \li \li \li \li \c d   The volume scale factor for this sample.
+ */
+
+
+/**
+ * Adds parameters specific to the PCM Instrument type into an outgoing
+ * ins_info call.
+ *
+ * \param lr    The Listener -- must not be \c NULL.
+ * \param m     The OSC message -- must not be \c NULL.
+ * \param ins   The Instrument -- must not be \c NULL and must be a PCM
+ *              Instrument.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins);
+
+
+/**
  * Gets detailed information about a Sample in a PCM Instrument.
  *
  * The following OSC arguments are expected:

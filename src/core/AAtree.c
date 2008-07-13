@@ -233,6 +233,41 @@ void* AAtree_get(AAtree* tree, void* key, int iter)
 }
 
 
+void* AAtree_get_at_most(AAtree* tree, void* key, int iter)
+{
+	assert(tree != NULL);
+	assert(key != NULL);
+	assert(iter >= 0);
+	assert(iter <= 1);
+	aavalidate(tree->root, "get");
+	AAnode** last = &tree->iters[iter];
+	*last = NULL;
+	AAnode* ret = tree->nil;
+	AAnode* cur = tree->root;
+	while (cur->level > 0)
+	{
+		assert(cur->data != NULL);
+		int diff = tree->cmp(key, cur->data);
+		if (diff < 0)
+		{
+			cur = cur->left;
+		}
+		else if (diff > 0)
+		{
+			ret = cur;
+			*last = cur;
+			cur = cur->right;
+		}
+		else
+		{
+			*last = cur;
+			return cur->data;
+		}
+	}
+	return ret->data;
+}
+
+
 void* AAtree_get_next(AAtree* tree, int iter)
 {
 	assert(tree != NULL);

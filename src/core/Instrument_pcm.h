@@ -28,6 +28,7 @@
 
 #include <Sample.h>
 #include <Instrument.h>
+#include <AAtree.h>
 
 
 #define PCM_SAMPLES_MAX (512)
@@ -36,6 +37,32 @@
 #define PCM_STYLES_MAX (16)
 #define PCM_STRENGTHS_MAX (16)
 #define PCM_RANDOMS_MAX (8)
+
+
+typedef struct freq_entry
+{
+	pitch_t freq;
+	int choices;
+	double freq_scale[PCM_RANDOMS_MAX];
+	double vol_scale[PCM_RANDOMS_MAX];
+	uint16_t sample[PCM_RANDOMS_MAX];
+} freq_entry;
+
+
+typedef struct freq_map
+{
+	double strength;
+	uint16_t entry_count;
+	AAtree* tree;
+} freq_map;
+
+
+typedef struct pcm_type_data
+{
+	uint8_t freq_map_count;
+	freq_map freq_maps[PCM_STRENGTHS_MAX];
+	Sample* samples[PCM_SAMPLES_MAX];
+} pcm_type_data;
 
 
 int Instrument_pcm_init(Instrument* ins);

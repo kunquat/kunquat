@@ -34,34 +34,9 @@
 #include <xmemory.h>
 
 
-typedef struct freq_entry
-{
-	pitch_t freq;
-	int choices;
-	double freq_scale[PCM_RANDOMS_MAX];
-	double vol_scale[PCM_RANDOMS_MAX];
-	uint16_t sample[PCM_RANDOMS_MAX];
-} freq_entry;
-
-
 static freq_entry* new_freq_entry(pitch_t freq);
 
 static int freq_entry_cmp(freq_entry* f1, freq_entry* f2);
-
-
-typedef struct freq_map
-{
-	double strength;
-	AAtree* tree;
-} freq_map;
-
-
-typedef struct pcm_type_data
-{
-	uint8_t freq_map_count;
-	freq_map freq_maps[PCM_STRENGTHS_MAX];
-	Sample* samples[PCM_SAMPLES_MAX];
-} pcm_type_data;
 
 
 int Instrument_pcm_init(Instrument* ins)
@@ -72,6 +47,8 @@ int Instrument_pcm_init(Instrument* ins)
 	{
 		return 1;
 	}
+	type_data->freq_maps[0].strength = 0;
+	type_data->freq_maps[0].entry_count = 0;
 	type_data->freq_maps[0].tree = new_AAtree(
 			(int (*)(void*, void*))freq_entry_cmp, free);
 	if (type_data->freq_maps[0].tree == NULL)
@@ -82,7 +59,9 @@ int Instrument_pcm_init(Instrument* ins)
 	type_data->freq_maps[0].strength = 0;
 	for (uint8_t i = 1; i < PCM_STRENGTHS_MAX; ++i)
 	{
+		type_data->freq_maps[i].strength = 0;
 		type_data->freq_maps[i].tree = NULL;
+		type_data->freq_maps[i].entry_count = 0;
 	}
 	type_data->freq_map_count = 1;
 	for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
@@ -295,6 +274,7 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
 		xfree(entry);
 		return -1;
 	}
+	++type_data->freq_maps[0].entry_count;
 	return 0;
 }
 
@@ -308,7 +288,7 @@ static Sample* state_to_sample(Instrument* ins, Voice_state* state)
 	pcm_type_data* type_data = ins->type_data;
 	assert(type_data->freq_maps[0].tree != NULL);
 	freq_entry* key = &(freq_entry){ .freq = state->freq };
-	freq_entry* entry = AAtree_get(type_data->freq_maps[0].tree, key, 0);
+	freq_entry* entry = AAtree_get_at_most(type_data->freq_maps[0].tree, key, 0);
 	if (entry == NULL)
 	{
 		return NULL;
@@ -346,11 +326,11 @@ static int freq_entry_cmp(freq_entry* f1, freq_entry* f2)
 	assert(f2 != NULL);
 	if (f1->freq < f2->freq)
 	{
-		return 1;
+		return -1;
 	}
 	else if (f1->freq > f2->freq)
 	{
-		return -1;
+		return 1;
 	}
 	return 0;
 }

@@ -169,3 +169,63 @@ int Listener_ins_pcm_remove_sample(const char* path,
 }
 
 
+bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
+{
+	assert(lr != NULL);
+	assert(m != NULL);
+	assert(ins != NULL);
+	assert(Instrument_get_type(ins) == INS_TYPE_PCM);
+	pcm_type_data* type_data = ins->type_data;
+	for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
+	{
+		if (Instrument_pcm_get_sample(ins, i) == NULL)
+		{
+			continue;
+		}
+		lo_message_add_int32(m, i);
+		lo_message_add_string(m, Instrument_pcm_get_path(ins, i));
+		lo_message_add_double(m,
+				Instrument_pcm_get_sample_freq(ins, i));
+	}
+	lo_message_add_string(m, "__styles");
+	// TODO: send styles
+	lo_message_add_string(m, "__maps");
+	// TODO: send all maps
+	lo_message_add_int32(m, 0); // source
+	lo_message_add_int32(m, 0); // style
+	lo_message_add_int32(m, 1); // # of strength levels
+
+	lo_message_add_double(m, 0); // strength threshold
+	lo_message_add_int32(m, type_data->freq_maps[0].entry_count); // # of frequency levels
+
+	freq_entry* key = &(freq_entry){ .freq = 0 };
+	freq_entry* entry = AAtree_get(type_data->freq_maps[0].tree, key, 1);
+	while (entry != NULL)
+	{
+		lo_message_add_double(m, entry->freq);
+		lo_message_add_int32(m, entry->choices);
+		for (int i = 0; i < entry->choices; ++i)
+		{
+			lo_message_add_int32(m, entry->sample[i]);
+			lo_message_add_double(m, entry->freq_scale[i]);
+			lo_message_add_double(m, entry->vol_scale[i]);
+		}
+		entry = AAtree_get_next(type_data->freq_maps[0].tree, 1);
+	}
+	
+	return true;
+}
+
+/* \li        For each strength level:
+ * \li \li \c d   The lower threshold value for the level.
+ * \li \li \c i   The number of frequency levels.
+ * \li \li        For each frequency level:
+ * \li \li \li \c d   The lower threshold frequency for the level.
+ * \li \li \li \c i   The number of samples for this frequency/strength level.
+ * \li \li \li        For each sample:
+ * \li \li \li \li \c i   The Sample number.
+ * \li \li \li \li \c d   The frequency scale factor for this sample.
+ * \li \li \li \li \c d   The volume scale factor for this sample.
+ */
+
+

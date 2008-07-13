@@ -82,6 +82,18 @@ void* AAtree_get(AAtree* tree, void* key, int iter);
 
 
 /**
+ * Gets the last element less than or equal to the given key.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ * \param iter   The iterator index -- must be \c 0 or \c 1.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAtree_get_at_most(AAtree* tree, void* key, int iter);
+
+
+/**
  * Gets the element next to the previous one retrieved from the AAtree.
  *
  * If not preceded by a successful call to AAtree_get() with the given

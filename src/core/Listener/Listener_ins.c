@@ -27,6 +27,7 @@
 
 #include "Listener.h"
 #include "Listener_ins.h"
+#include "Listener_ins_pcm.h"
 #include "utf8.h"
 
 #include <Song.h>
@@ -247,16 +248,10 @@ bool ins_info(Listener* lr,
 		switch (Instrument_get_type(ins))
 		{
 			case INS_TYPE_PCM:
-				for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
+				if (!ins_info_pcm(lr, m, ins))
 				{
-					if (Instrument_pcm_get_sample(ins, i) == NULL)
-					{
-						continue;
-					}
-					lo_message_add_int32(m, i);
-					lo_message_add_string(m, Instrument_pcm_get_path(ins, i));
-					lo_message_add_double(m,
-							Instrument_pcm_get_sample_freq(ins, i));
+					lo_message_free(m);
+					return false;
 				}
 				break;
 			default:

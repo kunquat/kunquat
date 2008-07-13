@@ -40,11 +40,7 @@
  *
  * The None, Debug and Sine types have no additional arguments.
  *
- * The PCM type adds the following arguments for each existing Sample:
- *
- * \li \c i   The Sample number.
- * \li \c s   The path of the Sample.
- * \li \c d   The middle frequency of the Sample.
+ * For extra arguments of the PCM type, see Listener_ins_pcm.h.
  */
 
 
