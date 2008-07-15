@@ -27,6 +27,15 @@ import gobject
 import liblo
 
 
+class sample_map:
+
+	def __init__(self, source, style, strengths):
+		self.source = source
+		self.style = style
+		self.maps = [{} for _ in range(strengths)]
+		self.strengths = []
+
+
 class Instruments(gtk.HBox):
 
 	def ins_info(self, path, args, types):
@@ -41,8 +50,8 @@ class Instruments(gtk.HBox):
 			sample_descs = args[3:styles_start - 1]
 			style_descs = args[styles_start:maps_start - 1]
 			map_descs = args[maps_start:]
-			print(style_descs)
-			print(map_descs)
+#			print(style_descs)
+#			print(map_descs)
 			if (not self.ui_params[args[0] - 1] or
 					self.ui_params[args[0] - 1].get_name() != 'pcm'):
 				self.ui_params[args[0] - 1] = self.build_pcm_details(args[0])
@@ -87,6 +96,39 @@ class Instruments(gtk.HBox):
 							sample_freq_val.handler_unblock(sample_freq_val.shid)
 						else:
 							sample_freq_val.user_set = False
+
+			while map_descs:
+				source = map_descs.pop(0)
+				style = map_descs.pop(0)
+				strengths = map_descs.pop(0)
+				smap = sample_map(source, style, strengths)
+				for m in smap.maps:
+					smap.strengths.append(map_descs.pop(0))
+					freq_levels = map_descs.pop(0)
+					for f in range(freq_levels):
+						min_freq = map_descs.pop(0)
+						rand_choices = map_descs.pop(0)
+						for c in range(rand_choices):
+							sample_num = map_descs.pop(0)
+							freq_scale = map_descs.pop(0)
+							vol_scale = map_descs.pop(0)
+							if (min_freq, c) not in m:
+								m[(min_freq, c)] = []
+							m[(min_freq, c)].append((sample_num, freq_scale, vol_scale))
+				pcm_details.sample_info['maps'][(source, style)] = smap
+
+			map_view = pcm_details.sample_info['map_view']
+			map_model = map_view.get_model()
+			iter = map_model.get_iter_first()
+			map = pcm_details.sample_info['maps'][(0, 0)].maps[0]
+			for (k, v) in map.iteritems():
+				freq, _ = k
+				desc = ','.join([str(x) for x in v[0]])
+				if not iter:
+					iter = map_model.append()
+				map_model.set_value(iter, 0, freq)
+				map_model.set_value(iter, 1, desc)
+				iter = map_model.iter_next(iter)
 					
 		if self.cur_index == args[0]:
 			self.select_ins(self.it_view.get_selection())
@@ -167,6 +209,21 @@ class Instruments(gtk.HBox):
 		map_scroll.add(map_view)
 		mappings.pack_start(map_scroll)
 
+		map_context = gtk.Menu()
+		map_insert = gtk.MenuItem('Insert')
+		map_remove = gtk.MenuItem('Remove')
+		map_context.append(map_insert)
+		map_context.append(map_remove)
+		map_insert.show()
+		map_remove.show()
+		map_insert.connect('activate', self.pcm_new_mapping, ins_num, pcm_details)
+		map_remove.connect('activate', self.pcm_del_mapping, ins_num, pcm_details)
+		map_view.connect('button-press-event', self.pcm_mapping_context, pcm_details)
+
+		pcm_details.sample_info['map_context'] = map_context
+		pcm_details.sample_info['map_view'] = map_view
+		pcm_details.sample_info['maps'] = {}
+
 		pcm_details.append_page(mappings, gtk.Label('Sample mapping'))
 
 		pcm_details.set_name('pcm')
@@ -175,6 +232,28 @@ class Instruments(gtk.HBox):
 		selection.connect('changed', self.change_sample, pcm_details)
 		selection.select_path(0)
 		return pcm_details
+
+	def pcm_mapping_context(self, treeview, event, pcm_details):
+		if event.button != 3:
+			return False
+		x = int(event.x)
+		y = int(event.y)
+		time = event.time
+		pinfo = treeview.get_path_at_pos(x, y)
+		treeview.grab_focus()
+		if pinfo is not None:
+			path, col, cellx, celly = pinfo
+			treeview.set_cursor(path, col, 0)
+		pcm_details.sample_info['map_context'].popup(None, None, None,
+				event.button,
+				time)
+		return True
+
+	def pcm_new_mapping(self, menuitem, ins_num, pcm_details):
+		print('new mapping')
+
+	def pcm_del_mapping(self, menuitem, ins_num, pcm_details):
+		print('remove mapping')
 
 	def change_sample(self, selection, pcm_details):
 		_, cur = selection.get_selected_rows()

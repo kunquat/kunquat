@@ -69,12 +69,22 @@ int Instrument_pcm_init(Instrument* ins)
 		type_data->samples[i] = NULL;
 	}
 	ins->type_data = type_data;
-	// XXX: testing
-	if (Instrument_pcm_set_sample_mapping(ins, 0, 0, 0, 440, 0, 0, 1, 1) < 0)
+	if (Instrument_pcm_set_sample_mapping(ins,
+			0, // source
+			0, // style
+			0, // strength id
+			1, // ins freq
+			0, // random choice index
+			0, // sample table index
+			1, // freq scale
+			1) // vol scale
+			< 0)
 	{
-		assert(false);
+		Instrument_pcm_uninit(ins);
+		return 1;
 	}
-	if (Instrument_pcm_set_sample_mapping(ins, 0, 0, 0, 16, 0, 1, 1, 1) < 0)
+	// XXX: testing
+	if (Instrument_pcm_set_sample_mapping(ins, 0, 0, 0, 880, 0, 1, 1, 1) < 0)
 	{
 		assert(false);
 	}
@@ -86,6 +96,7 @@ int Instrument_pcm_init(Instrument* ins)
 void Instrument_pcm_uninit(Instrument* ins)
 {
 	assert(ins != NULL);
+	assert(ins->type == INS_TYPE_PCM);
 	assert(ins->type_data != NULL);
 	pcm_type_data* type_data = ins->type_data;
 	for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
