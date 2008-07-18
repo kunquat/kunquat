@@ -169,6 +169,121 @@ int Listener_ins_pcm_remove_sample(const char* path,
 }
 
 
+int Listener_ins_pcm_set_mapping(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	int32_t ins_num = argv[1]->i;
+	Instrument* ins = NULL;
+	if (!ins_get(lr, song_id, ins_num, &ins))
+	{
+		return 0;
+	}
+	check_cond(lr, ins != NULL,
+			"The Instrument #%ld", (long)ins_num);
+	check_cond(lr, Instrument_get_type(ins) == INS_TYPE_PCM,
+			"The Instrument type (%d)", (int)Instrument_get_type(ins));
+	int32_t source = argv[2]->i;
+	check_cond(lr, source >= 0 && source < PCM_SOURCES_MAX,
+			"The sound source (%ld)", (long)source);
+	int32_t style = argv[3]->i;
+	check_cond(lr, style >= 0 && style < PCM_STYLES_MAX,
+			"The style index (%ld)", (long)style);
+	int32_t strength = argv[4]->i;
+	check_cond(lr, strength >= 0 && strength < PCM_STRENGTHS_MAX,
+			"The strength index (%ld)", (long)strength);
+	double freq = argv[5]->d;
+	check_cond(lr, freq > 0,
+			"The lower-bound frequency (%f)", freq);
+	int32_t index = argv[6]->i;
+	check_cond(lr, index >= 0 && PCM_RANDOMS_MAX,
+			"The random choice index (%ld)", (long)index);
+	int32_t sample = argv[7]->i;
+	check_cond(lr, sample >= 0 && sample < PCM_SAMPLES_MAX,
+			"The Sample table index (%ld)", (long)sample);
+	double freq_scale = argv[8]->d;
+	check_cond(lr, freq_scale > 0,
+			"The frequency scale factor (%f)", freq_scale);
+	double vol_scale = argv[9]->d;
+	check_cond(lr, vol_scale > 0,
+			"The volume scale factor (%f)", vol_scale);
+	if (Instrument_pcm_set_sample_mapping(ins,
+			source, style, strength, freq, index,
+			sample, freq_scale, vol_scale) < 0)
+	{
+		send_memory_fail(lr, "the Sample mapping");
+	}
+	ins_info(lr, song_id, ins_num, ins);
+	return 0;
+}
+
+
+int Listener_ins_pcm_del_mapping(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	int32_t song_id = argv[0]->i;
+	int32_t ins_num = argv[1]->i;
+	Instrument* ins = NULL;
+	if (!ins_get(lr, song_id, ins_num, &ins))
+	{
+		return 0;
+	}
+	check_cond(lr, ins != NULL,
+			"The Instrument #%ld", (long)ins_num);
+	check_cond(lr, Instrument_get_type(ins) == INS_TYPE_PCM,
+			"The Instrument type (%d)", (int)Instrument_get_type(ins));
+	int32_t source = argv[2]->i;
+	check_cond(lr, source >= 0 && source < PCM_SOURCES_MAX,
+			"The sound source (%ld)", (long)source);
+	int32_t style = argv[3]->i;
+	check_cond(lr, style >= 0 && style < PCM_STYLES_MAX,
+			"The style index (%ld)", (long)style);
+	int32_t strength = argv[4]->i;
+	check_cond(lr, strength >= 0 && strength < PCM_STRENGTHS_MAX,
+			"The strength index (%ld)", (long)strength);
+	double freq = argv[5]->d;
+	check_cond(lr, freq > 0,
+			"The lower-bound frequency (%f)", freq);
+	int32_t index = argv[6]->i;
+	check_cond(lr, index >= 0 && PCM_RANDOMS_MAX,
+			"The random choice index (%ld)", (long)index);
+	Instrument_pcm_del_sample_mapping(ins,
+			source, style, strength, freq, index);
+	ins_info(lr, song_id, ins_num, ins);
+	return 0;
+}
+
+
 bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
 {
 	assert(lr != NULL);
@@ -215,17 +330,5 @@ bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
 	
 	return true;
 }
-
-/* \li        For each strength level:
- * \li \li \c d   The lower threshold value for the level.
- * \li \li \c i   The number of frequency levels.
- * \li \li        For each frequency level:
- * \li \li \li \c d   The lower threshold frequency for the level.
- * \li \li \li \c i   The number of samples for this frequency/strength level.
- * \li \li \li        For each sample:
- * \li \li \li \li \c i   The Sample number.
- * \li \li \li \li \c d   The frequency scale factor for this sample.
- * \li \li \li \li \c d   The volume scale factor for this sample.
- */
 
 

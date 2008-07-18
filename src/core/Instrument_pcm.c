@@ -38,6 +38,8 @@ static freq_entry* new_freq_entry(pitch_t freq);
 
 static int freq_entry_cmp(freq_entry* f1, freq_entry* f2);
 
+static void del_freq_entry(freq_entry* entry);
+
 
 int Instrument_pcm_init(Instrument* ins)
 {
@@ -290,6 +292,38 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
 }
 
 
+bool Instrument_pcm_del_sample_mapping(Instrument* ins,
+		uint8_t source,
+		uint8_t style,
+		uint8_t strength_id,
+		double ins_freq,
+		uint8_t index)
+{
+	assert(ins != NULL);
+	assert(ins->type == INS_TYPE_PCM);
+	assert(ins->type_data != NULL);
+	assert(source < PCM_SOURCES_MAX);
+	assert(style < PCM_STYLES_MAX);
+	assert(strength_id < PCM_STRENGTHS_MAX);
+	assert(ins_freq > 0);
+	assert(index < PCM_RANDOMS_MAX);
+	pcm_type_data* type_data = ins->type_data;
+	assert(type_data->freq_maps[0].tree != NULL);
+	freq_entry* key = &(freq_entry){ .freq = ins_freq };
+	freq_entry* entry = AAtree_get(type_data->freq_maps[0].tree, key, 1);
+	if (entry == NULL || index >= entry->choices)
+	{
+		return false;
+	}
+	freq_entry* ret = AAtree_remove(type_data->freq_maps[0].tree, entry);
+	assert(ret == entry);
+	del_freq_entry(ret);
+	assert(type_data->freq_maps[0].entry_count > 0);
+	--type_data->freq_maps[0].entry_count;
+	return true;
+}
+
+
 static Sample* state_to_sample(Instrument* ins, Voice_state* state)
 {
 	assert(ins != NULL);
@@ -344,6 +378,14 @@ static int freq_entry_cmp(freq_entry* f1, freq_entry* f2)
 		return 1;
 	}
 	return 0;
+}
+
+
+static void del_freq_entry(freq_entry* entry)
+{
+	assert(entry != NULL);
+	xfree(entry);
+	return;
 }
 
 

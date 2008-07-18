@@ -129,6 +129,9 @@ class Instruments(gtk.HBox):
 				map_model.set_value(iter, 0, freq)
 				map_model.set_value(iter, 1, desc)
 				iter = map_model.iter_next(iter)
+			while iter:
+				if not map_model.remove(iter):
+					iter = None
 					
 		if self.cur_index == args[0]:
 			self.select_ins(self.it_view.get_selection())
@@ -197,12 +200,12 @@ class Instruments(gtk.HBox):
 		map_view = gtk.TreeView(map_store)
 		cell = gtk.CellRendererText()
 		cell.set_property('editable', True)
-#		cell.connect('edited', TODO: ins freq)
+		cell.connect('edited', self.pcm_set_mapping, ins_num, pcm_details, 0)
 		column = gtk.TreeViewColumn('Freq', cell, text=0)
 		map_view.append_column(column)
 		cell = gtk.CellRendererText()
 		cell.set_property('editable', True)
-#		cell.connect('edited', TODO: sample details)
+		cell.connect('edited', self.pcm_set_mapping, ins_num, pcm_details, 1)
 		column = gtk.TreeViewColumn('Sample(s)', cell, text=1)
 		map_view.append_column(column)
 		map_scroll = gtk.ScrolledWindow()
@@ -250,10 +253,82 @@ class Instruments(gtk.HBox):
 		return True
 
 	def pcm_new_mapping(self, menuitem, ins_num, pcm_details):
-		print('new mapping')
+#		print('new mapping for %d' % ins_num)
+		map_view = pcm_details.sample_info['map_view']
+		list = map_view.get_model()
+		cur = map_view.get_cursor()
+		pos = 0
+		if cur[0]:
+			pos = cur[0][0]
+		list.insert(pos)
 
 	def pcm_del_mapping(self, menuitem, ins_num, pcm_details):
-		print('remove mapping')
+		map_view = pcm_details.sample_info['map_view']
+		cur = map_view.get_cursor()
+		if not cur[0]:
+			return
+		pos = cur[0][0]
+		list = map_view.get_model()
+		iter = list.get_iter(pos)
+		if not iter:
+			return
+		freq = list.get_value(iter, 0)
+#		print('remove mapping %f of %d' % (freq, ins_num))
+		if freq <= 0:
+			list.remove(iter)
+			return
+		liblo.send(self.engine, '/kunquat/ins_pcm_del_mapping',
+				self.song_id,
+				ins_num,
+				0, 0, 0, # source, style, strength
+				freq,
+				0) # random choice entry
+
+	def pcm_set_mapping(self, cell, path, new_text, ins_num, pcm_details, col):
+		list = pcm_details.sample_info['map_view'].get_model()
+		iter = list.get_iter(path)
+		old_freq = list.get_value(iter, 0)
+		freq = old_freq
+		desc = list.get_value(iter, 1)
+		if col == 0:
+			freq = float(new_text)
+		elif col == 1:
+			desc = new_text
+		if freq <= 0:
+			list.set_value(iter, 1, desc)
+			return
+		if not desc:
+			list.set_value(iter, 0, freq)
+			return
+		desc = desc.strip()
+		values = desc.split(',')
+		if len(values) < 3:
+			list.set_value(iter, 0, freq)
+			return
+		sample = int(values[0])
+		freq_scale = float(values[1])
+		vol_scale = float(values[2])
+		if sample < 0 or sample >= 512 or freq_scale <= 0 or vol_scale <= 0:
+			list.set_value(iter, 0, freq)
+			return
+#		print('old mapping %f -> %s' % (freq, desc))
+#		print('set_mapping %s for %d at %d' % (new_text, ins_num, col))
+		if col == 0 and old_freq != freq:
+			liblo.send(self.engine, '/kunquat/ins_pcm_del_mapping',
+					self.song_id,
+					ins_num,
+					0, 0, 0,
+					old_freq,
+					0)
+		liblo.send(self.engine, '/kunquat/ins_pcm_set_mapping',
+				self.song_id,
+				ins_num,
+				0, 0, 0, # source, style, strength
+				freq,
+				0, # random choice entry
+				sample,
+				freq_scale,
+				vol_scale)
 
 	def change_sample(self, selection, pcm_details):
 		_, cur = selection.get_selected_rows()

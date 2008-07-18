@@ -124,6 +124,41 @@ Listener_callback Listener_ins_pcm_sample_set_mid_freq;
 Listener_callback Listener_ins_pcm_remove_sample;
 
 
+/**
+ * Sets a Sample mapping of a PCM Instrument.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ * \li \c i   The sound source.
+ * \li \c i   The index of the style.
+ * \li \c i   The index of the strength level.
+ * \li \c d   The lower-bound frequency.
+ * \li \c i   The index of the entry among random-choice Samples.
+ * \li \c i   The Sample table index.
+ * \li \c d   The frequency scale factor.
+ * \li \c d   The volume scale factor.
+ */
+Listener_callback Listener_ins_pcm_set_mapping;
+
+
+/**
+ * Removes a Sample mapping from a PCM Instrument.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ * \li \c i   The sound source.
+ * \li \c i   The index of the style.
+ * \li \c i   The index of the strength level.
+ * \li \c d   The lower-bound frequency.
+ * \li \c i   The index of the entry among random-choice Samples.
+ */
+Listener_callback Listener_ins_pcm_del_mapping;
+
+
 #endif // K_LISTENER_INS_PCM_H
 
 

@@ -184,6 +184,37 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
 		uint16_t sample, double freq_scale, double vol_scale);
 
 
+/**
+ * Removes a Sample mapping.
+ *
+ * \param ins           The Instrument -- must not be \c NULL and must be a
+ *                      PCM instrument.
+ * \param source        The (virtual) sound source of the Instrument -- must
+ *                      be < \c PCM_SOURCES_MAX. This is 0 in most cases
+ *                      but may be used to distinguish between e.g. different
+ *                      strings in a stringed instrument.
+ * \param style         The (virtual) style of the Instrument -- must be
+ *                      < \c PCM_STYLES_MAX. This is 0 in most cases but
+ *                      may be used to distinguish between e.g. different
+ *                      playing styles.
+ * \param strength_id   The index of the strength setting -- must be
+ *                      < \c PCM_STRENGTHS_MAX.
+ * \param ins_freq      The lower bound of the note frequency for this
+ *                      mapping -- must be > \c 0.
+ * \param index         The index of the entry -- must be
+ *                      < \c PCM_RANDOMS_MAX. If there are Samples defined
+ *                      for multiple indices, one is chosen randomly.
+ *
+ * \return   \c true if the mapping changed, otherwise \c false.
+ */
+bool Instrument_pcm_del_sample_mapping(Instrument* ins,
+		uint8_t source,
+		uint8_t style,
+		uint8_t strength_id,
+		double ins_freq,
+		uint8_t index);
+
+
 #endif // K_INSTRUMENT_PCM_H
 
 
