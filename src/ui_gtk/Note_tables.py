@@ -417,6 +417,7 @@ class Note_tables(gtk.HBox):
 				gobject.TYPE_STRING,
 				gobject.TYPE_STRING)
 		self.notes_view = gtk.TreeView(self.notes_list)
+		self.notes_view.set_enable_search(False)
 		self.notes_view.connect('button-press-event', self.note_list_click)
 		#selection = self.notes_view.get_selection()
 		#selection.connect('changed', self.select_note)
@@ -463,6 +464,7 @@ class Note_tables(gtk.HBox):
 		self.table_list = gtk.ListStore(gobject.TYPE_STRING,
 				gobject.TYPE_STRING)
 		self.list_view = gtk.TreeView(self.table_list)
+		self.list_view.set_enable_search(False)
 		self.list_view.connect('button-press-event', self.table_list_click)
 		selection = self.list_view.get_selection()
 		selection.connect('changed', self.select_table)

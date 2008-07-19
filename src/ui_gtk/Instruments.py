@@ -142,6 +142,7 @@ class Instruments(gtk.HBox):
 
 		sample_store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
 		sample_list = gtk.TreeView(sample_store)
+		sample_list.set_enable_search(False)
 		for i in range(512):
 			iter = sample_store.append()
 			sample_store.set(iter, 0, '%03X' % i)
@@ -198,6 +199,7 @@ class Instruments(gtk.HBox):
 		mappings = gtk.VBox()
 		map_store = gtk.ListStore(gobject.TYPE_DOUBLE, gobject.TYPE_STRING)
 		map_view = gtk.TreeView(map_store)
+		map_view.set_enable_search(False)
 		cell = gtk.CellRendererText()
 		cell.set_property('editable', True)
 		cell.connect('edited', self.pcm_set_mapping, ins_num, pcm_details, 0)
@@ -469,6 +471,7 @@ class Instruments(gtk.HBox):
 
 		self.ins_table = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)
 		self.it_view = gtk.TreeView(self.ins_table)
+		self.it_view.set_enable_search(False)
 		selection = self.it_view.get_selection()
 		selection.connect('changed', self.select_ins)
 

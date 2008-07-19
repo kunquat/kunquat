@@ -43,6 +43,7 @@ class Orders(gtk.ScrolledWindow):
 			iter = list.append()
 			list.set(iter, 0, '%02X' % i)
 		list_view = gtk.TreeView(list)
+		list_view.set_enable_search(False)
 		cell = gtk.CellRendererText()
 		col = gtk.TreeViewColumn('#', cell, text=0)
 		list_view.append_column(col)
