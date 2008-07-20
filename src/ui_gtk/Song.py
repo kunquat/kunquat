@@ -127,6 +127,12 @@ class Song(gtk.VBox):
 				self.cur_subsong,
 				tempo)
 
+	def octave_changed(self, adj):
+		self.pattern.octave_changed(adj)
+
+	def ins_changed(self, adj):
+		self.pattern.ins_changed(adj)
+
 	def __init__(self, engine, server, song_id):
 		self.engine = engine
 		self.server = server
@@ -182,13 +188,34 @@ class Song(gtk.VBox):
 		subsong_bar.pack_start(self.tempo, False, False)
 		self.tempo.show()
 
+		# The name 'subsong_bar' isn't quite fitting here
+		oct_adj = gtk.Adjustment(4, -3, 0xc, 1)
+		self.octave_spin = gtk.SpinButton(oct_adj)
+		oct_adj.connect('value-changed', self.octave_changed)
+		subsong_bar.pack_end(self.octave_spin, False, False)
+		self.octave_spin.show()
+
+		label = gtk.Label('Base octave:')
+		subsong_bar.pack_end(label, False, False)
+		label.show()
+
+		ins_adj = gtk.Adjustment(1, 1, 255, 1)
+		self.ins_spin = gtk.SpinButton(ins_adj)
+		ins_adj.connect('value-changed', self.ins_changed)
+		subsong_bar.pack_end(self.ins_spin, False, False)
+		self.ins_spin.show()
+
+		label = gtk.Label('Instrument:')
+		subsong_bar.pack_end(label, False, False)
+		label.show()
+
 		self.pack_start(subsong_bar, False, False)
 		subsong_bar.show()
 
 		nb = gtk.Notebook()
 
 		self.instruments = Instruments.Instruments(engine, server, song_id)
-		self.pattern = Pattern.Pattern(engine, server, song_id)
+		self.pattern = Pattern.Pattern(engine, server, song_id, oct_adj, ins_adj)
 		self.orders = Orders.Orders(engine, server, song_id)
 		self.note_tables = Note_tables.Note_tables(engine, server, song_id)
 		self.song_opts = Song_opts.Song_opts(engine, server, song_id)

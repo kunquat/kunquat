@@ -94,7 +94,7 @@ class Pattern(gtk.VBox):
 	def ins_changed(self, adj):
 		self.pat_view.set_ins(int(adj.get_value()))
 
-	def __init__(self, engine, server, song_id):
+	def __init__(self, engine, server, song_id, oct_adj, ins_adj):
 		self.engine = engine
 		self.server = server
 		self.song_id = song_id
@@ -128,26 +128,6 @@ class Pattern(gtk.VBox):
 		hb.pack_start(self.len_spin, False, False)
 		self.len_spin.show()
 		
-		oct_adj = gtk.Adjustment(4, -3, 0xc, 1)
-		self.octave_spin = gtk.SpinButton(oct_adj)
-		oct_adj.connect('value-changed', self.octave_changed)
-		hb.pack_end(self.octave_spin, False, False)
-		self.octave_spin.show()
-
-		label = gtk.Label('Base octave:')
-		hb.pack_end(label, False, False)
-		label.show()
-
-		ins_adj = gtk.Adjustment(1, 1, 255, 1)
-		self.ins_spin = gtk.SpinButton(ins_adj)
-		ins_adj.connect('value-changed', self.ins_changed)
-		hb.pack_end(self.ins_spin, False, False)
-		self.ins_spin.show()
-
-		label = gtk.Label('Instrument:')
-		hb.pack_end(label, False, False)
-		label.show()
-
 		self.pack_start(hb, False, False)
 		hb.show()
 
