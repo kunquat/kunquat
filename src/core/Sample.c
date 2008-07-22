@@ -133,7 +133,7 @@ void Sample_mix(Sample* sample,
 	}
 	for (uint32_t i = offset; i < nframes; ++i)
 	{
-		if (state->pos >= sample->len)
+		if (state->rel_pos >= sample->len)
 		{
 			state->active = false;
 			break;
@@ -144,66 +144,66 @@ void Sample_mix(Sample* sample,
 		{
 			float* buf_l = sample->data[0];
 //			float* buf_r = sample->data[1];
-			float cur = buf_l[state->pos];
+			float cur = buf_l[state->rel_pos];
 			float next = 0;
-			if (state->pos + 1 < sample->len)
+			if (state->rel_pos + 1 < sample->len)
 			{
-				next = buf_l[state->pos + 1];
+				next = buf_l[state->rel_pos + 1];
 			}
-			val_l = val_r = cur * (1 - state->pos_rem)
-					+ next * (state->pos_rem);
+			val_l = val_r = cur * (1 - state->rel_pos_rem)
+					+ next * (state->rel_pos_rem);
 		}
 		else if (sample->bits == 8)
 		{
 			int8_t* buf_l = sample->data[0];
 //			int8_t* buf_r = sample->data[1];
-			int8_t cur = buf_l[state->pos];
+			int8_t cur = buf_l[state->rel_pos];
 			int8_t next = 0;
-			if (state->pos + 1 < sample->len)
+			if (state->rel_pos + 1 < sample->len)
 			{
-				next = buf_l[state->pos + 1];
+				next = buf_l[state->rel_pos + 1];
 			}
-			val_l = val_r = ((frame_t)cur / 0x80) * (1 - state->pos_rem)
-					+ ((frame_t)next / 0x80) * (state->pos_rem);
+			val_l = val_r = ((frame_t)cur / 0x80) * (1 - state->rel_pos_rem)
+					+ ((frame_t)next / 0x80) * (state->rel_pos_rem);
 		}
 		else if (sample->bits == 16)
 		{
 			int16_t* buf_l = sample->data[0];
 //			int16_t* buf_r = sample->data[1];
-			int16_t cur = buf_l[state->pos];
+			int16_t cur = buf_l[state->rel_pos];
 			int16_t next = 0;
-			if (state->pos + 1 < sample->len)
+			if (state->rel_pos + 1 < sample->len)
 			{
-				next = buf_l[state->pos + 1];
+				next = buf_l[state->rel_pos + 1];
 			}
-			val_l = val_r = ((frame_t)cur / 0x8000) * (1 - state->pos_rem)
-					+ ((frame_t)next / 0x8000) * (state->pos_rem);
+			val_l = val_r = ((frame_t)cur / 0x8000) * (1 - state->rel_pos_rem)
+					+ ((frame_t)next / 0x8000) * (state->rel_pos_rem);
 		}
 		else
 		{
 			assert(sample->bits == 32);
 			int16_t* buf_l = sample->data[0];
 //			int16_t* buf_r = sample->data[1];
-			int16_t cur = buf_l[state->pos];
+			int16_t cur = buf_l[state->rel_pos];
 			int16_t next = 0;
-			if (state->pos + 1 < sample->len)
+			if (state->rel_pos + 1 < sample->len)
 			{
-				next = buf_l[state->pos + 1];
+				next = buf_l[state->rel_pos + 1];
 			}
-			val_l = val_r = ((frame_t)cur / 0x80000000UL) * (1 - state->pos_rem)
-					+ ((frame_t)next / 0x80000000UL) * (state->pos_rem);
+			val_l = val_r = ((frame_t)cur / 0x80000000UL) * (1 - state->rel_pos_rem)
+					+ ((frame_t)next / 0x80000000UL) * (state->rel_pos_rem);
 		}
 		bufs[0][i] += val_l;
 		bufs[1][i] += val_r;
 		double advance = (state->freq / 440) * sample->mid_freq / freq;
 		uint64_t adv = floor(advance);
 		double adv_rem = advance - adv;
-		state->pos += adv;
-		state->pos_rem += adv_rem;
-		if (state->pos_rem >= 1)
+		state->rel_pos += adv;
+		state->rel_pos_rem += adv_rem;
+		if (state->rel_pos_rem >= 1)
 		{
-			state->pos_rem -= 1;
-			++state->pos;
+			state->rel_pos_rem -= 1;
+			++state->rel_pos;
 		}
 	}
 	return;

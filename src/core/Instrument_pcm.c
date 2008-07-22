@@ -85,12 +85,6 @@ int Instrument_pcm_init(Instrument* ins)
 		Instrument_pcm_uninit(ins);
 		return 1;
 	}
-	// XXX: testing
-	if (Instrument_pcm_set_sample_mapping(ins, 0, 0, 0, 880, 0, 1, 1, 1) < 0)
-	{
-		assert(false);
-	}
-	// end testing
 	return 0;
 }
 

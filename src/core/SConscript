@@ -39,6 +39,7 @@ files = [
 	'Event.c',
 	'Event_queue.c',
 	'Voice_state.c',
+	'Envelope.c',
 	'Instrument.c',
 	'Instrument_debug.c',
 	'Instrument_sine.c',
