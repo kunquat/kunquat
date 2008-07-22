@@ -415,10 +415,13 @@ class Instruments(gtk.HBox):
 		old_name = None
 		if self.ins_params[self.cur_index - 1]:
 			old_name = self.ins_params[self.cur_index - 1][1]
+		new_type = combobox.get_active()
+		if new_type > 0:
+			new_type += 1
 		liblo.send(self.engine, '/kunquat/new_ins',
 				self.song_id,
 				self.cur_index,
-				combobox.get_active())
+				new_type)
 		if old_name:
 			liblo.send(self.engine, '/kunquat/ins_set_name',
 					self.song_id,
@@ -432,7 +435,10 @@ class Instruments(gtk.HBox):
 		self.cur_index = cur[0][0] + 1
 		self.types.handler_block(self.htypes)
 		if self.ins_params[self.cur_index - 1]:
-			self.types.set_active(self.ins_params[self.cur_index - 1][0])
+			type_index = self.ins_params[self.cur_index - 1][0]
+			if type_index > 0:
+				type_index -= 1
+			self.types.set_active(type_index)
 		else:
 			self.types.set_active(0)
 		self.types.handler_unblock(self.htypes)
@@ -457,7 +463,6 @@ class Instruments(gtk.HBox):
 		
 		self.types = gtk.combo_box_new_text()
 		self.types.append_text('None')
-		self.types.append_text('Debug')
 		self.types.append_text('Sine')
 		self.types.append_text('PCM')
 		self.types.set_active(0)

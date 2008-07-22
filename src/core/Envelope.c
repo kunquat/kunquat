@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <math.h>
 
 #include "Envelope.h"
@@ -54,6 +55,10 @@ Envelope* new_Envelope(int nodes_max,
 	env->node_count = 0;
 	env->nodes_max = nodes_max;
 	env->nodes_res = nodes_max;
+	for (int i = 0; i < ENVELOPE_MARKS_MAX; ++i)
+	{
+		env->marks[i] = -1;
+	}
 	env->interp = ENVELOPE_INT_LINEAR;
 	env->min_x = min_x;
 	env->max_x = max_x;
@@ -86,6 +91,25 @@ void Envelope_set_interp(Envelope* env, Envelope_int interp)
 }
 
 
+void Envelope_set_mark(Envelope* env, int index, int value)
+{
+	assert(env != NULL);
+	assert(index >= 0);
+	assert(index < ENVELOPE_MARKS_MAX);
+	env->marks[index] = value;
+	return;
+}
+
+
+int Envelope_get_mark(Envelope* env, int index)
+{
+	assert(env != NULL);
+	assert(index >= 0);
+	assert(index < ENVELOPE_MARKS_MAX);
+	return env->marks[index];
+}
+
+
 Envelope_int Envelope_get_interp(Envelope* env)
 {
 	assert(env != NULL);
@@ -102,6 +126,18 @@ int Envelope_set_node(Envelope* env, double x, double y)
 	{
 		assert(env->node_count == env->nodes_max);
 		return -1;
+	}
+	if (env->node_count > 0)
+	{
+		if (x < env->nodes[0] && (env->first_x_locked || env->first_y_locked))
+		{
+			return -1;
+		}
+		if (x > env->nodes[env->node_count * 2 - 2]
+				&& (env->last_x_locked || env->last_y_locked))
+		{
+			return -1;
+		}
 	}
 	int start = 0;
 	int end = env->node_count - 1;
@@ -130,6 +166,13 @@ int Envelope_set_node(Envelope* env, double x, double y)
 	}
 	env->nodes[start * 2] = x;
 	env->nodes[start * 2 + 1] = y;
+	for (int i = 0; i < ENVELOPE_MARKS_MAX; ++i)
+	{
+		if (env->marks[i] >= start)
+		{
+			++env->marks[i];
+		}
+	}
 	return start;
 }
 
@@ -142,12 +185,28 @@ bool Envelope_del_node(Envelope* env, int index)
 	{
 		return false;
 	}
+	if (index == 0 && (env->first_x_locked || env->first_y_locked))
+	{
+		return false;
+	}
+	if (index == env->node_count - 1
+			&& (env->last_x_locked || env->last_y_locked))
+	{
+		return false;
+	}
 	for (int i = index * 2; i < env->node_count * 2 - 2; i += 2)
 	{
 		env->nodes[i] = env->nodes[i + 2];
 		env->nodes[i + 1] = env->nodes[i + 3];
 	}
 	--env->node_count;
+	for (int i = 0; i < ENVELOPE_MARKS_MAX; ++i)
+	{
+		if (env->marks[i] > index)
+		{
+			--env->marks[i];
+		}
+	}
 	return true;
 }
 
@@ -281,10 +340,10 @@ double Envelope_get_value(Envelope* env, double x)
 	assert(start < env->node_count);
 	assert(end >= 0);
 	assert(start == end + 1);
-	int prev_x = env->nodes[end * 2];
-	int prev_y = env->nodes[end * 2 + 1];
-	int next_x = env->nodes[start * 2];
-	int next_y = env->nodes[start * 2 + 1];
+	double prev_x = env->nodes[end * 2];
+	double prev_y = env->nodes[end * 2 + 1];
+	double next_x = env->nodes[start * 2];
+	double next_y = env->nodes[start * 2 + 1];
 	switch (env->interp)
 	{
 		case ENVELOPE_INT_NEAREST:
@@ -301,8 +360,8 @@ double Envelope_get_value(Envelope* env, double x)
 		case ENVELOPE_INT_LINEAR:
 		{
 			double interval = next_x - prev_x;
-			double y = prev_y * (x - prev_x) / interval
-					+ next_y * (next_x - x) / interval;
+			double y = prev_y * (next_x - x) / interval
+					+ next_y * (x - prev_x) / interval;
 			return y;
 		} break;
 		default:

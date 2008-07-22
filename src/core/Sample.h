@@ -31,6 +31,7 @@
 
 #include <frame_t.h>
 #include <Voice_state.h>
+#include <Instrument.h>
 
 
 typedef enum
@@ -135,15 +136,15 @@ double Sample_get_freq(Sample* sample);
  * Mixes a Sample.
  *
  * \param sample    The Sample -- must not be \c NULL.
- * \param bufs      The mixing buffers -- must not be \c NULL. Also, the
- *                  buffer array must contain at least one buffer.
+ * \param ins       The instrument containing the Sample -- must not be
+ *                  \c NULL.
  * \param state     The Voice state -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed.
  * \param offset    The buffer offset.
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Sample_mix(Sample* sample,
-		frame_t** bufs,
+		Instrument* ins,
 		Voice_state* state,
 		uint32_t nframes,
 		uint32_t offset,

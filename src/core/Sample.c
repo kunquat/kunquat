@@ -115,16 +115,17 @@ char* Sample_get_path(Sample* sample)
 
 
 void Sample_mix(Sample* sample,
-		frame_t** bufs,
+		Instrument* ins,
 		Voice_state* state,
 		uint32_t nframes,
 		uint32_t offset,
 		uint32_t freq)
 {
 	assert(sample != NULL);
-	assert(bufs != NULL);
-	assert(bufs[0] != NULL);
-	assert(bufs[1] != NULL);
+	assert(ins != NULL);
+	assert(ins->bufs != NULL);
+	assert(ins->bufs[0] != NULL);
+	assert(ins->bufs[1] != NULL);
 	assert(state != NULL);
 	assert(freq > 0);
 	if (!state->active)
@@ -193,8 +194,24 @@ void Sample_mix(Sample* sample,
 			val_l = val_r = ((frame_t)cur / 0x80000000UL) * (1 - state->rel_pos_rem)
 					+ ((frame_t)next / 0x80000000UL) * (state->rel_pos_rem);
 		}
-		bufs[0][i] += val_l;
-		bufs[1][i] += val_r;
+		if (!state->note_on && ins->volume_off_env_enabled)
+		{
+			double scale = Envelope_get_value(ins->volume_off_env,
+					state->off_ve_pos);
+			if (!isfinite(scale))
+			{
+				state->active = false;
+				break;
+			}
+			if (!state->pedal)
+			{
+				state->off_ve_pos += 1.0 / freq;
+			}
+			val_l *= scale;
+			val_r *= scale;
+		}
+		ins->bufs[0][i] += val_l;
+		ins->bufs[1][i] += val_r;
 		double advance = (state->freq / 440) * sample->mid_freq / freq;
 		uint64_t adv = floor(advance);
 		double adv_rem = advance - adv;

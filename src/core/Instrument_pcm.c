@@ -232,7 +232,7 @@ void Instrument_pcm_mix(Instrument* ins,
 	{
 		return;
 	}
-	Sample_mix(sample, ins->bufs, state, nframes, offset, freq);
+	Sample_mix(sample, ins, state, nframes, offset, freq);
 	return;
 }
 

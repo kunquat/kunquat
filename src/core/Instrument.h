@@ -25,11 +25,13 @@
 
 
 #include <wchar.h>
+#include <stdbool.h>
 
 #include <frame_t.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
 #include <Note_table.h>
+#include <Envelope.h>
 #include <Song_limits.h>
 
 
@@ -73,6 +75,18 @@ typedef struct Instrument
 	Event_queue* events;
 	/// An indirect reference to the current Note table used.
 	Note_table** notes;
+	/// Note On volume envelope toggle.
+	bool volume_on_env_enabled;
+	/// Note on volume envelope.
+	Envelope* volume_on_env;
+	/// Note On volume envelope scale factor (frequency -> speed).
+	double volume_on_env_scale;
+	/// Note Off volume envelope toggle.
+	bool volume_off_env_enabled;
+	/// Note Off volume envelope.
+	Envelope* volume_off_env;
+	/// Note Off volume envelope scale factor (frequency -> speed).
+	double volume_off_env_scale;
 	/// Type-specific data.
 	void* type_data;
 	/// Initialiser for type-specific data -- returns \c 0 on success.

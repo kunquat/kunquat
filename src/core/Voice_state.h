@@ -26,6 +26,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <Envelope.h>
 
 #include <pitch_t.h>
 
@@ -50,6 +51,12 @@ typedef struct Voice_state
 	uint64_t noff_pos;
 	/// Note Off position remainder.
 	double noff_pos_rem;
+	/// Whether the pedal is active.
+	bool pedal;
+	/// Note On volume envelope position.
+	double on_ve_pos;
+	/// Note Off volume envelope position.
+	double off_ve_pos;
 } Voice_state;
 
 

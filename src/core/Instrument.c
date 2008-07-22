@@ -55,6 +55,37 @@ Instrument* new_Instrument(Ins_type type,
 		xfree(ins);
 		return NULL;
 	}
+	ins->volume_on_env = new_Envelope(32,
+			0, INFINITY, 0, // min, max, step of x
+			0, 1, 0); // ditto for y
+	if (ins->volume_on_env == NULL)
+	{
+		del_Event_queue(ins->events);
+		xfree(ins);
+		return NULL;
+	}
+	ins->volume_off_env = new_Envelope(32,
+			0, INFINITY, 0, // min, max, step of x
+			0, 1, 0); // ditto for y
+	if (ins->volume_off_env == NULL)
+	{
+		del_Envelope(ins->volume_on_env);
+		del_Event_queue(ins->events);
+		xfree(ins);
+		return NULL;
+	}
+	ins->volume_on_env_enabled = false;
+	ins->volume_on_env_scale = 1;
+	ins->volume_off_env_enabled = true;
+	ins->volume_off_env_scale = 1;
+	Envelope_set_node(ins->volume_on_env, 0, 1);
+	Envelope_set_node(ins->volume_on_env, 1, 1);
+	Envelope_set_first_lock(ins->volume_on_env, true, false);
+	Envelope_set_node(ins->volume_off_env, 0, 1);
+	Envelope_set_node(ins->volume_off_env, 0.2, 0.4);
+	Envelope_set_node(ins->volume_off_env, 2, 0);
+	Envelope_set_first_lock(ins->volume_off_env, true, false);
+	Envelope_set_last_lock(ins->volume_off_env, false, true);
 	ins->type = type;
 	ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
 	ins->pbufs = NULL;
@@ -180,6 +211,8 @@ void Instrument_mix(Instrument* ins,
 void del_Instrument(Instrument* ins)
 {
 	assert(ins != NULL);
+	del_Envelope(ins->volume_on_env);
+	del_Envelope(ins->volume_off_env);
 	del_Event_queue(ins->events);
 	if (ins->uninit != NULL)
 	{

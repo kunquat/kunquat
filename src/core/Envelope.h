@@ -28,6 +28,9 @@
 #include <math.h>
 
 
+#define ENVELOPE_MARKS_MAX (4)
+
+
 typedef enum
 {
 	// Nearest neighbour.
@@ -55,6 +58,7 @@ typedef struct Envelope
 	int node_count;
 	int nodes_max;
 	int nodes_res;
+	int marks[ENVELOPE_MARKS_MAX];
 	double* nodes;
 } Envelope;
 
@@ -108,6 +112,29 @@ Envelope_int Envelope_get_interp(Envelope* env);
 
 
 /**
+ * Sets a mark on the Envelope.
+ *
+ * \param env     The Envelope -- must not be \c NULL.
+ * \param index   The mark index -- must be >= \c 0 and
+ *                < \c ENVELOPE_MARKS_MAX.
+ * \param value   The value of the mark (a negative value unsets the mark).
+ */
+void Envelope_set_mark(Envelope* env, int index, int value);
+
+
+/**
+ * Gets a mark of the Envelope.
+ *
+ * \param env     The Envelope -- must not be \c NULL.
+ * \param index   The mark index -- must be >= \c 0 and
+ *                < \c ENVELOPE_MARKS_MAX.
+ *
+ * \return   The value of the mark, or a negative value if unset.
+ */
+int Envelope_get_mark(Envelope* env, int index);
+
+
+/**
  * Sets a node in the Envelope.
  *
  * \param env   The Envelope -- must not be \c NULL.
@@ -116,7 +143,8 @@ Envelope_int Envelope_get_interp(Envelope* env);
  *
  * \return   The index of the new node, or \c -1 if the configuration of the
  *           Envelope prevents a node to be inserted here, or \c -2 if memory
- *           allocation failed.
+ *           allocation failed. Memory allocation will not fail if the
+ *           envelope contains 4 nodes or less.
  */
 int Envelope_set_node(Envelope* env, double x, double y);
 
