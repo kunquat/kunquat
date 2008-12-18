@@ -49,7 +49,7 @@
  *
  * If the requested Song exists, it will be made current Song.
  *
- * \param l         The Listener -- must not be \c NULL.
+ * \param lr        The Listener -- must not be \c NULL.
  * \param song_id   The Song ID.
  * \param ins_num   The Instrument number.
  * \param ins       The location to which the Instrument will be stored
@@ -128,6 +128,73 @@ Listener_callback Listener_ins_set_name;
  * \li \c i   The Instrument number (1..255).
  */
 Listener_callback Listener_del_ins;
+
+
+/**
+ * /kunquat/ins_get_volume_envelope
+ * 
+ * Gets information on the volume envelope.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ *
+ * The response method is <host_path>/ins_env_volume and contains the
+ * following arguments:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ * \li \c T/F Whether the envelope is enabled.
+ * \li \c T/F Whether the envelope carry is enabled.
+ * \li \c d   The center frequency of the stretch factor.
+ * \li \c d   The stretch factor.
+ * \li \c T/F Whether the envelope loop is enabled.
+ * \li \c i   The start node of the loop.
+ * \li \c i   The end node of the loop.
+ * \li        The node coordinates as specified in Listener_envelope.h.
+ */
+
+
+/**
+ * /kunquat/ins_get_off_volume_envelope
+ * 
+ * Gets information on the Note Off volume envelope.
+ *
+ * The following OSC arguments are expected:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ *
+ * The response method is <host_path>/ins_env_off_volume and contains the
+ * following arguments:
+ *
+ * \li \c i   The Song ID.
+ * \li \c i   The Instrument number (1..255).
+ * \li \c T/F Whether the envelope is enabled.
+ * \li \c d   The center frequency of the stretch factor.
+ * \li \c d   The stretch factor.
+ * \li        The node coordinates as specified in Listener_envelope.h.
+ */
+
+
+/**
+ * /kunquat/ins_get_force_volume_envelope
+ */
+
+
+/**
+ * /kunquat/ins_get_force_pitch_envelope
+ */
+
+
+/**
+ * /kunquat/ins_get_force_filter_envelope
+ */
+
+
+// shared by all instrument envelope retrieval methods
+Listener_callback Listener_ins_get_envelope;
 
 
 #endif // K_LISTENER_INS_H

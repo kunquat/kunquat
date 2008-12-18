@@ -38,6 +38,7 @@ opts.AddOptions(
 
 compile_flags = [
 '-std=c99',
+'-pedantic',
 '-Wall',
 '-Wextra',
 '-Werror',

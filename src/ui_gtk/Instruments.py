@@ -26,6 +26,8 @@ import gobject
 
 import liblo
 
+from Envelope import Envelope
+
 
 class sample_map:
 
@@ -56,7 +58,7 @@ class Instruments(gtk.HBox):
 					self.ui_params[args[0] - 1].get_name() != 'pcm'):
 				self.ui_params[args[0] - 1] = self.build_pcm_details(args[0])
 			pcm_details = self.ui_params[args[0] - 1]
-			samples = pcm_details.get_nth_page(0)
+			samples = pcm_details.get_nth_page(2)
 			sample_details = samples.get_children()[1]
 			sample_path = sample_details.get_children()[0]
 			sample_path_str = sample_path.get_children()[1]
@@ -121,7 +123,10 @@ class Instruments(gtk.HBox):
 			map_model = map_view.get_model()
 			iter = map_model.get_iter_first()
 			map = pcm_details.sample_info['maps'][(0, 0)].maps[0]
-			for (k, v) in map.iteritems():
+			map_list = map.items()
+			if map_list:
+				map_list.sort()
+			for (k, v) in map_list:
 				freq, _ = k
 				desc = ','.join([str(x) for x in v[0]])
 				if not iter:
@@ -138,6 +143,16 @@ class Instruments(gtk.HBox):
 
 	def build_pcm_details(self, ins_num):
 		pcm_details = gtk.Notebook()
+
+		force = gtk.VBox()
+		pcm_details.append_page(force, gtk.Label('Force'))
+
+		volume = gtk.VBox()
+		on_volume_env = Envelope(self.engine, self.server, self.song_id,
+				(0, 1024, 0.001, True), (0, 1, 0.01, False))
+		volume.pack_start(on_volume_env, False, False)
+		pcm_details.append_page(volume, gtk.Label('Volume'))
+
 		samples = gtk.HBox()
 
 		sample_store = gtk.ListStore(gobject.TYPE_STRING, gobject.TYPE_STRING)

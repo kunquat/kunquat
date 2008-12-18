@@ -75,18 +75,82 @@ typedef struct Instrument
 	Event_queue* events;
 	/// An indirect reference to the current Note table used.
 	Note_table** notes;
-	/// Note On volume envelope toggle.
-	bool volume_on_env_enabled;
-	/// Note on volume envelope.
-	Envelope* volume_on_env;
-	/// Note On volume envelope scale factor (frequency -> speed).
-	double volume_on_env_scale;
+
+	/// Pedal setting.
+	bool pedal;
+
+	/// Default force.
+	double default_force;
+	/// Force variation.
+	double force_variation;
+
+	/// Force-volume envelope toggle.
+	bool force_volume_env_enabled;
+	/// Force-volume envelope.
+	Envelope* force_volume_env;
+
+	/// Force-filter envelope toggle.
+	bool force_filter_env_enabled;
+	/// Force-filter envelope.
+	Envelope* force_filter_env;
+
+	/// Force-pitch envelope toggle.
+	bool force_pitch_env_enabled;
+	/// Force-pitch envelope.
+	Envelope* force_pitch_env;
+	/// Force-pitch envelope scale factor.
+	double force_pitch_env_scale;
+
+	/// Instrument volume.
+	double volume;
+
+	/// Volume envelope toggle.
+	bool volume_env_enabled;
+	/// Volume envelope carry.
+	bool volume_env_carry;
+	/// Volume envelope.
+	Envelope* volume_env;
+	/// Volume envelope scale factor (frequency -> speed).
+	double volume_env_scale;
+	/// Volume envelope scale center frequency.
+	double volume_env_center;
+
 	/// Note Off volume envelope toggle.
 	bool volume_off_env_enabled;
 	/// Note Off volume envelope.
 	Envelope* volume_off_env;
 	/// Note Off volume envelope scale factor (frequency -> speed).
 	double volume_off_env_scale;
+	/// Note Off volume envelope scale center frequency.
+	double volume_off_env_center;
+
+	/// Default panning toggle.
+	bool panning_enabled;
+	/// Default panning.
+	double panning;
+	/// Pitch-panning envelope toggle.
+	bool pitch_pan_env_enabled;
+	/// Pitch-panning envelope.
+	Envelope* pitch_pan_env;
+
+	/// Filter envelope toggle.
+	bool filter_env_enabled;
+	/// Filter envelope.
+	Envelope* filter_env;
+	/// Filter envelope scale factor (frequency -> speed).
+	double filter_env_scale;
+	/// Filter envelope scale center frequency.
+	double filter_env_center;
+
+	/// Note Off filter envelope toggle.
+	bool filter_off_env_enabled;
+	/// Note Off filter envelope.
+	Envelope* filter_off_env;
+	/// Note Off filter envelope scale factor (frequency -> speed).
+	double filter_off_env_scale;
+	/// Note Off filter envelope scale center frequency.
+	double filter_off_env_center;
+
 	/// Type-specific data.
 	void* type_data;
 	/// Initialiser for type-specific data -- returns \c 0 on success.

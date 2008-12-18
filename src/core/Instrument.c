@@ -49,51 +49,158 @@ Instrument* new_Instrument(Ins_type type,
 	{
 		return NULL;
 	}
+	ins->pbufs = NULL;
+	ins->events = NULL;
+	ins->notes = NULL;
+	ins->force_volume_env = NULL;
+	ins->force_filter_env = NULL;
+	ins->force_pitch_env = NULL;
+	ins->volume_env = NULL;
+	ins->volume_off_env = NULL;
+	ins->pitch_pan_env = NULL;
+	ins->filter_env = NULL;
+	ins->filter_off_env = NULL;
+	ins->type_data = NULL;
+	ins->init = NULL;
+	ins->uninit = NULL;
+	ins->mix = NULL;
 	ins->events = new_Event_queue(events);
 	if (ins->events == NULL)
 	{
-		xfree(ins);
+		del_Instrument(ins);
 		return NULL;
 	}
-	ins->volume_on_env = new_Envelope(32,
-			0, INFINITY, 0, // min, max, step of x
-			0, 1, 0); // ditto for y
-	if (ins->volume_on_env == NULL)
+
+	ins->pedal = false;
+
+	ins->default_force = 1;
+	ins->force_variation = 0;
+
+	ins->force_volume_env = new_Envelope(8,
+			0, 1, 0, // min, max, step of x
+			0, 1, 0); // min, max, step of y
+	if (ins->force_volume_env == NULL)
 	{
-		del_Event_queue(ins->events);
-		xfree(ins);
+		del_Instrument(ins);
 		return NULL;
 	}
+	ins->force_volume_env_enabled = false;
+	Envelope_set_node(ins->force_volume_env, 0, 0);
+	Envelope_set_node(ins->force_volume_env, 1, 1);
+	Envelope_set_first_lock(ins->force_volume_env, true, true);
+	Envelope_set_last_lock(ins->force_volume_env, true, false);
+
+	ins->force_filter_env = new_Envelope(8,
+			0, 1, 0, // min, max, step of x
+			0, 1, 0); // min, max, step of y
+	if (ins->force_filter_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->force_filter_env_enabled = false;
+	Envelope_set_node(ins->force_filter_env, 0, 1);
+	Envelope_set_node(ins->force_filter_env, 1, 1);
+	Envelope_set_first_lock(ins->force_filter_env, true, false);
+	Envelope_set_last_lock(ins->force_filter_env, true, false);
+
+	ins->force_pitch_env = new_Envelope(8,
+			0, 1, 0, // min, max, step of x
+			-1, 1, 0); // min, max, step of y
+	if (ins->force_pitch_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->force_pitch_env_enabled = false;
+	Envelope_set_node(ins->force_pitch_env, 0, 0);
+	Envelope_set_node(ins->force_pitch_env, 1, 0);
+	Envelope_set_first_lock(ins->force_pitch_env, true, false);
+	Envelope_set_last_lock(ins->force_pitch_env, true, false);
+
+	ins->volume = 1;
+	ins->volume_env = new_Envelope(32,
+			0, INFINITY, 0, // min, max, step of x
+			0, 1, 0); // min, max, step of y
+	if (ins->volume_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->volume_env_enabled = false;
+	ins->volume_env_carry = false;
+	ins->volume_env_scale = 1;
+	ins->volume_env_center = 440;
+	Envelope_set_node(ins->volume_env, 0, 1);
+	Envelope_set_node(ins->volume_env, 1, 1);
+	Envelope_set_first_lock(ins->volume_env, true, false);
+
 	ins->volume_off_env = new_Envelope(32,
 			0, INFINITY, 0, // min, max, step of x
-			0, 1, 0); // ditto for y
+			0, 1, 0); // min, max, step of y
 	if (ins->volume_off_env == NULL)
 	{
-		del_Envelope(ins->volume_on_env);
-		del_Event_queue(ins->events);
-		xfree(ins);
+		del_Instrument(ins);
 		return NULL;
 	}
-	ins->volume_on_env_enabled = false;
-	ins->volume_on_env_scale = 1;
 	ins->volume_off_env_enabled = true;
 	ins->volume_off_env_scale = 1;
-	Envelope_set_node(ins->volume_on_env, 0, 1);
-	Envelope_set_node(ins->volume_on_env, 1, 1);
-	Envelope_set_first_lock(ins->volume_on_env, true, false);
+	ins->volume_off_env_center = 440;
 	Envelope_set_node(ins->volume_off_env, 0, 1);
 	Envelope_set_node(ins->volume_off_env, 0.2, 0.4);
 	Envelope_set_node(ins->volume_off_env, 2, 0);
 	Envelope_set_first_lock(ins->volume_off_env, true, false);
 	Envelope_set_last_lock(ins->volume_off_env, false, true);
+
+	ins->pitch_pan_env = new_Envelope(8,
+			-1, 1, 0, // min, max, step of x
+			-1, 1, 0); // min, max, step of y
+	if (ins->pitch_pan_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->pitch_pan_env_enabled = false;
+	Envelope_set_node(ins->pitch_pan_env, -1, 0);
+	Envelope_set_node(ins->pitch_pan_env, 0, 0);
+	Envelope_set_node(ins->pitch_pan_env, 1, 0);
+	Envelope_set_first_lock(ins->pitch_pan_env, true, false);
+	Envelope_set_last_lock(ins->pitch_pan_env, true, false);
+
+	ins->filter_env = new_Envelope(32,
+			0, INFINITY, 0, // min, max, step of x
+			0, 1, 0); // min, max, step of y
+	if (ins->filter_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->filter_env_enabled = false;
+	ins->filter_env_scale = 1;
+	ins->filter_env_center = 440;
+	Envelope_set_node(ins->filter_env, 0, 1);
+	Envelope_set_node(ins->filter_env, 1, 1);
+	Envelope_set_first_lock(ins->filter_env, true, false);
+
+	ins->filter_off_env = new_Envelope(32,
+			0, INFINITY, 0, // min, max, step of x
+			0, 1, 0); // min, max, step of y
+	if (ins->filter_off_env == NULL)
+	{
+		del_Instrument(ins);
+		return NULL;
+	}
+	ins->filter_off_env_enabled = false;
+	ins->filter_off_env_scale = 1;
+	ins->filter_off_env_center = 440;
+	Envelope_set_node(ins->filter_off_env, 0, 1);
+	Envelope_set_node(ins->filter_off_env, 1, 1);
+	Envelope_set_first_lock(ins->filter_off_env, true, false);
+
 	ins->type = type;
 	ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
-	ins->pbufs = NULL;
 	ins->bufs = ins->gbufs = bufs;
 	ins->buf_len = buf_len;
-	ins->type_data = NULL;
-	ins->init = NULL;
-	ins->uninit = NULL;
 	switch (type)
 	{
 		case INS_TYPE_DEBUG:
@@ -116,12 +223,10 @@ Instrument* new_Instrument(Ins_type type,
 	{
 		if (ins->init(ins) != 0)
 		{
-			del_Event_queue(ins->events);
-			xfree(ins);
+			del_Instrument(ins);
 			return NULL;
 		}
 	}
-	ins->notes = NULL;
 	return ins;
 }
 
@@ -211,9 +316,42 @@ void Instrument_mix(Instrument* ins,
 void del_Instrument(Instrument* ins)
 {
 	assert(ins != NULL);
-	del_Envelope(ins->volume_on_env);
-	del_Envelope(ins->volume_off_env);
-	del_Event_queue(ins->events);
+	if (ins->force_volume_env != NULL)
+	{
+		del_Envelope(ins->force_volume_env);
+	}
+	if (ins->force_filter_env != NULL)
+	{
+		del_Envelope(ins->force_filter_env);
+	}
+	if (ins->force_pitch_env != NULL)
+	{
+		del_Envelope(ins->force_pitch_env);
+	}
+	if (ins->volume_env != NULL)
+	{
+		del_Envelope(ins->volume_env);
+	}
+	if (ins->volume_off_env != NULL)
+	{
+		del_Envelope(ins->volume_off_env);
+	}
+	if (ins->pitch_pan_env != NULL)
+	{
+		del_Envelope(ins->pitch_pan_env);
+	}
+	if (ins->filter_env != NULL)
+	{
+		del_Envelope(ins->filter_env);
+	}
+	if (ins->filter_off_env != NULL)
+	{
+		del_Envelope(ins->filter_off_env);
+	}
+	if (ins->events != NULL)
+	{
+		del_Event_queue(ins->events);
+	}
 	if (ins->uninit != NULL)
 	{
 		ins->uninit(ins);

@@ -208,6 +208,35 @@ int Listener_del_ins(const char* path,
 }
 
 
+int Listener_ins_get_envelope(const char* path,
+		const char* types,
+		lo_arg** argv,
+		int argc,
+		lo_message msg,
+		void* user_data)
+{
+	(void)path;
+	(void)types;
+	(void)argv;
+	(void)argc;
+	(void)msg;
+	assert(user_data != NULL);
+	Listener* lr = user_data;
+	if (lr->host == NULL)
+	{
+		return 0;
+	}
+	assert(lr->method_path != NULL);
+	Instrument* ins = NULL;
+	if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
+	{
+		return 0;
+	}
+	check_cond(lr, ins != NULL, "The Instrument (%ld)", (long)argv[1]->i);
+	return 0; // TODO: This is unfinished...
+}
+
+
 bool ins_get(Listener* lr,
 		int32_t song_id,
 		int32_t ins_num,

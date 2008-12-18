@@ -381,12 +381,12 @@ int Listener_pat_del_event(const char* path,
 	int32_t event_order = argv[5]->i;
 	Event* event = Column_get_edit(col, pos);
 	check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
-			"No Event found -- the Event retrieved (%p)", event);
+			"No Event found -- the Event retrieved (%p)", (void*)event);
 	for (int32_t i = 0; i < event_order; ++i)
 	{
 		event = Column_get_next_edit(col);
 		check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
-				"No Event found -- the Event retrieved (%p)", event);
+				"No Event found -- the Event retrieved (%p)", (void*)event);
 	}
 	bool column_removed = Column_remove(col, event);
 	check_cond(lr, column_removed,
@@ -443,12 +443,12 @@ int Listener_pat_mod_event(const char* path,
 			"The Event type (%ld)", (long)event_type);
 	Event* event = Column_get_edit(col, pos);
 	check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
-			"No Event found -- the Event retrieved (%p)", event);
+			"No Event found -- the Event retrieved (%p)", (void*)event);
 	for (int32_t i = 0; i < event_order; ++i)
 	{
 		event = Column_get_next_edit(col);
 		check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
-				"No Event found -- the Event retrieved (%p)", event);
+				"No Event found -- the Event retrieved (%p)", (void*)event);
 	}
 	union { int64_t i; double d; } orig_values[EVENT_FIELDS];
 	Event_type orig_type = Event_get_type(event);
