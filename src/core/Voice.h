@@ -40,6 +40,10 @@ typedef enum
 } Voice_prio;
 
 
+/**
+ * This contains all the playback state information of a single note being
+ * played.
+ */
 typedef struct Voice
 {
 	uint16_t pool_index;   ///< Storage position in the Voice pool.

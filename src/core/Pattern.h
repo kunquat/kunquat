@@ -32,6 +32,9 @@
 #include <Song_limits.h>
 
 
+/**
+ * This object contains a section of music.
+ */
 typedef struct Pattern
 {
 	Column* global;

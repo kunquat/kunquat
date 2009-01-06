@@ -42,6 +42,10 @@ typedef enum
 } Envelope_int;
 
 
+/**
+ * Envelope defines a mapping from one type of a value to another. They are
+ * used mostly in Instruments.
+ */
 typedef struct Envelope
 {
 	double min_x;

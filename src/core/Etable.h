@@ -27,6 +27,10 @@
 #include <stdbool.h>
 
 
+/**
+ * This is a simple table object. It can store any type of an object as long
+ * as the user provides a destructor function for the type.
+ */
 typedef struct Etable
 {
 	int size;

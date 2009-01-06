@@ -33,6 +33,11 @@
 #include <Column.h>
 
 
+/**
+ * This object contains playback information of a channel. A single channel
+ * may contain 0 or 1 foreground (fully controllable) Voices and 0 or more
+ * background (released) Voices.
+ */
 typedef struct Channel
 {
 	/// The Instrument table.
@@ -41,11 +46,11 @@ typedef struct Channel
 	Voice* fg;
 	/// The reservation identification.
 	uint64_t fg_id;
-	/// The Event associated with the foreground Voice. XXX: not needed?
+	// /// The Event associated with the foreground Voice. XXX: not needed?
 	//Event* fg_event;
 	/// A Note Off event for triggering implicit Note Offs.
 	Event* note_off;
-	/// The absolute starting time of the foreground Voice. XXX: not needed?
+	// /// The absolute starting time of the foreground Voice. XXX: not needed?
 	//Reltime fg_start;
 	/// An Event used for single note playback control.
 	Event* single;

@@ -37,6 +37,15 @@ typedef struct AAnode
 } AAnode;
 
 
+/**
+ * This is a balanced binary tree (AA tree). It can store any type of an
+ * object as long as the user provides comparison and destructor functions for
+ * the type.
+ *
+ * Without debug code, insertion, removal and search of an element take
+ * O(log n) time where n is the total number of elements stored. In debug mode
+ * these operations take O(n) time.
+ */
 typedef struct AAtree
 {
 	AAnode* nil;

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2007 Tomi Jylhä-Ollila
+ * Copyright 2008 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,6 +28,9 @@
 #include <stdint.h>
 
 
+/**
+ * Real is a combination of rational number and floating-point number types.
+ */
 typedef struct Real
 {
 	bool is_frac;

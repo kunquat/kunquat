@@ -41,6 +41,9 @@ typedef struct Subsong
 } Subsong;
 
 
+/**
+ * Order specifies the order in which Patterns are played.
+ */
 typedef struct Order
 {
 	Etable* subs;

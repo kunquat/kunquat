@@ -49,6 +49,9 @@ typedef enum
 } Sample_format;
 
 
+/**
+ * Sample contains a digital sound sample.
+ */
 typedef struct Sample
 {
 	/// The path of the file (if applicable -- otherwise NULL).

@@ -30,6 +30,9 @@
 #include <Voice.h>
 
 
+/**
+ * Voice pool manages the allocation of Voices.
+ */
 typedef struct Voice_pool
 {
 	uint16_t size;

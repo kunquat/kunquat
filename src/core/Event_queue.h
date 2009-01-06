@@ -37,6 +37,9 @@ typedef struct Event_queue_node
 } Event_queue_node;
 
 
+/**
+ * Event queue is a buffer for upcoming Events during playback.
+ */
 typedef struct Event_queue
 {
 	/// The size of the queue.

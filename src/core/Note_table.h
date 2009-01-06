@@ -31,6 +31,9 @@
 #include <wchar.h>
 
 
+/**
+ * This object contains the tuning specification.
+ */
 typedef struct Note_table
 {
 	wchar_t name[NOTE_TABLE_NAME_MAX];

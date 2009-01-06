@@ -81,6 +81,9 @@ typedef enum
 char* Event_type_get_field_types(Event_type type);
 
 
+/**
+ * Event describes a modification of playback state.
+ */
 typedef struct Event
 {
 	/// The Event position.

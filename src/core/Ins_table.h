@@ -30,6 +30,9 @@
 #include <Etable.h>
 
 
+/**
+ * This is the storage object for Instruments.
+ */
 typedef struct Ins_table
 {
 	int size;
