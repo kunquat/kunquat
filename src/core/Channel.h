@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -40,20 +40,20 @@
  */
 typedef struct Channel
 {
-	/// The Instrument table.
-	Ins_table* insts;
-	/// The Voice in the foreground.
-	Voice* fg;
-	/// The reservation identification.
-	uint64_t fg_id;
-	// /// The Event associated with the foreground Voice. XXX: not needed?
-	//Event* fg_event;
-	/// A Note Off event for triggering implicit Note Offs.
-	Event* note_off;
-	// /// The absolute starting time of the foreground Voice. XXX: not needed?
-	//Reltime fg_start;
-	/// An Event used for single note playback control.
-	Event* single;
+    /// The Instrument table.
+    Ins_table* insts;
+    /// The Voice in the foreground.
+    Voice* fg;
+    /// The reservation identification.
+    uint64_t fg_id;
+    // /// The Event associated with the foreground Voice. XXX: not needed?
+    //Event* fg_event;
+    /// A Note Off event for triggering implicit Note Offs.
+    Event* note_off;
+    // /// The absolute starting time of the foreground Voice. XXX: not needed?
+    //Reltime fg_start;
+    /// An Event used for single note playback control.
+    Event* single;
 } Channel;
 
 
@@ -84,13 +84,13 @@ Channel* new_Channel(Ins_table* insts);
  * \param freq     The mixing frequency -- must be > \c 0.
  */
 void Channel_set_voices(Channel* ch,
-		Voice_pool* pool,
-		Column* col,
-		Reltime* start,
-		Reltime* end,
-		uint32_t offset,
-		double tempo,
-		uint32_t freq);
+        Voice_pool* pool,
+        Column* col,
+        Reltime* start,
+        Reltime* end,
+        uint32_t offset,
+        double tempo,
+        uint32_t freq);
 
 
 /**

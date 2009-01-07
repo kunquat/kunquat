@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,67 +33,67 @@
 
 
 void Instrument_sine_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq)
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq)
 {
-	assert(ins != NULL);
-	assert(state != NULL);
-//	assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
-	assert(freq > 0);
-	assert(ins->bufs[0] != NULL);
-	assert(ins->bufs[1] != NULL);
-	if (!state->active)
-	{
-		return;
-	}
-	double max_amp = 0;
-//	fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
-	for (uint32_t i = offset; i < nframes; ++i)
-	{
-		double val_l = 0;
-		double val_r = 0;
-		val_l = val_r = sin(state->rel_pos_rem) / 6;
-		if (state->pos_rem < 0.002)
-		{
-			val_l = val_r = val_l * (state->pos_rem * 500);
-			state->pos_rem += 1.0 / freq;
-		}
-		if (!state->note_on)
-		{
-			if (state->noff_pos_rem < 0.002)
-			{
-				val_l = val_r = val_l * (1 - (state->noff_pos_rem * 333));
-			}
-			else
-			{
-				val_l = val_r = (val_l / 3) * (1 - state->noff_pos_rem);
-			}
-		}
-		state->rel_pos_rem += state->freq * PI_2 / freq;
-		if (state->rel_pos_rem >= PI_2)
-		{
-			state->rel_pos_rem -= floor(state->rel_pos_rem / PI_2) * PI_2;
-		}
-		ins->bufs[0][i] += val_l;
-		ins->bufs[1][i] += val_r;
-		if (fabs(val_l) > max_amp)
-		{
-			max_amp = fabs(val_l);
-		}
-		if (!state->note_on)
-		{
-			state->noff_pos_rem += 1.0 / freq;
-			if (state->noff_pos_rem >= 1)
-			{
-				state->active = false;
-				return;
-			}
-		}
-	}
-//	fprintf(stderr, "max_amp is %lf\n", max_amp);
-	return;
+    assert(ins != NULL);
+    assert(state != NULL);
+//  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
+    assert(freq > 0);
+    assert(ins->bufs[0] != NULL);
+    assert(ins->bufs[1] != NULL);
+    if (!state->active)
+    {
+        return;
+    }
+    double max_amp = 0;
+//  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
+    for (uint32_t i = offset; i < nframes; ++i)
+    {
+        double val_l = 0;
+        double val_r = 0;
+        val_l = val_r = sin(state->rel_pos_rem) / 6;
+        if (state->pos_rem < 0.002)
+        {
+            val_l = val_r = val_l * (state->pos_rem * 500);
+            state->pos_rem += 1.0 / freq;
+        }
+        if (!state->note_on)
+        {
+            if (state->noff_pos_rem < 0.002)
+            {
+                val_l = val_r = val_l * (1 - (state->noff_pos_rem * 333));
+            }
+            else
+            {
+                val_l = val_r = (val_l / 3) * (1 - state->noff_pos_rem);
+            }
+        }
+        state->rel_pos_rem += state->freq * PI_2 / freq;
+        if (state->rel_pos_rem >= PI_2)
+        {
+            state->rel_pos_rem -= floor(state->rel_pos_rem / PI_2) * PI_2;
+        }
+        ins->bufs[0][i] += val_l;
+        ins->bufs[1][i] += val_r;
+        if (fabs(val_l) > max_amp)
+        {
+            max_amp = fabs(val_l);
+        }
+        if (!state->note_on)
+        {
+            state->noff_pos_rem += 1.0 / freq;
+            if (state->noff_pos_rem >= 1)
+            {
+                state->active = false;
+                return;
+            }
+        }
+    }
+//  fprintf(stderr, "max_amp is %lf\n", max_amp);
+    return;
 }
 
 

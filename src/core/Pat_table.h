@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -32,8 +32,8 @@
 
 typedef struct Pat_table
 {
-	int size;
-	Etable* pats;
+    int size;
+    Etable* pats;
 } Pat_table;
 
 

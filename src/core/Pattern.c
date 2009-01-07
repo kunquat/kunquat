@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -35,235 +35,235 @@
 
 Pattern* new_Pattern(void)
 {
-	Pattern* pat = xalloc(Pattern);
-	if (pat == NULL)
-	{
-		return NULL;
-	}
-	pat->global = new_Column(NULL);
-	if (pat->global == NULL)
-	{
-		xfree(pat);
-		return NULL;
-	}
-	for (int i = 0; i < COLUMNS_MAX; ++i)
-	{
-		pat->cols[i] = new_Column(NULL);
-		if (pat->cols[i] == NULL)
-		{
-			for (--i; i >= 0; --i)
-			{
-				del_Column(pat->cols[i]);
-			}
-			del_Column(pat->global);
-			xfree(pat);
-			return NULL;
-		}
-	}
-	Reltime_set(&pat->length, 16, 0);
-	return pat;
+    Pattern* pat = xalloc(Pattern);
+    if (pat == NULL)
+    {
+        return NULL;
+    }
+    pat->global = new_Column(NULL);
+    if (pat->global == NULL)
+    {
+        xfree(pat);
+        return NULL;
+    }
+    for (int i = 0; i < COLUMNS_MAX; ++i)
+    {
+        pat->cols[i] = new_Column(NULL);
+        if (pat->cols[i] == NULL)
+        {
+            for (--i; i >= 0; --i)
+            {
+                del_Column(pat->cols[i]);
+            }
+            del_Column(pat->global);
+            xfree(pat);
+            return NULL;
+        }
+    }
+    Reltime_set(&pat->length, 16, 0);
+    return pat;
 }
 
 
 void Pattern_set_length(Pattern* pat, Reltime* length)
 {
-	assert(pat != NULL);
-	assert(length != NULL);
-	assert(length->beats >= 0);
-	Reltime_copy(&pat->length, length);
-	return;
+    assert(pat != NULL);
+    assert(length != NULL);
+    assert(length->beats >= 0);
+    Reltime_copy(&pat->length, length);
+    return;
 }
 
 
 Reltime* Pattern_get_length(Pattern* pat)
 {
-	assert(pat != NULL);
-	return &pat->length;
+    assert(pat != NULL);
+    return &pat->length;
 }
 
 
 Column* Pattern_col(Pattern* pat, int index)
 {
-	assert(pat != NULL);
-	assert(index >= 0);
-	assert(index < COLUMNS_MAX);
-	return pat->cols[index];
+    assert(pat != NULL);
+    assert(index >= 0);
+    assert(index < COLUMNS_MAX);
+    return pat->cols[index];
 }
 
 
 Column* Pattern_global(Pattern* pat)
 {
-	assert(pat != NULL);
-	return pat->global;
+    assert(pat != NULL);
+    return pat->global;
 }
 
 
 uint32_t Pattern_mix(Pattern* pat,
-		uint32_t nframes,
-		uint32_t offset,
-		Playdata* play)
+        uint32_t nframes,
+        uint32_t offset,
+        Playdata* play)
 {
-//	assert(pat != NULL);
-	assert(offset < nframes);
-	assert(play != NULL);
-	uint32_t mixed = offset;
-	if (pat == NULL)
-	{
-		Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
-				nframes - mixed,
-				play->tempo,
-				play->freq);
-		for (int i = 0; i < COLUMNS_MAX; ++i)
-		{
-			Channel_set_voices(play->channels[i],
-					play->voice_pool,
-					NULL,
-					&play->pos,
-					limit,
-					mixed,
-					play->tempo,
-					play->freq);
-		}
-		uint16_t active_voices = Voice_pool_mix(play->voice_pool,
-				nframes, mixed, play->freq);
-		if (play->active_voices < active_voices)
-		{
-			play->active_voices = active_voices;
-		}
-		return nframes;
-	}
-	while (mixed < nframes
-			// TODO: and we still want to mix this pattern
-			&& Reltime_cmp(&play->pos, &pat->length) <= 0)
-	{
-		Event* next_global = Column_get(pat->global, &play->pos);
-		Reltime* next_global_pos = NULL;
-		if (next_global != NULL)
-		{
-			next_global_pos = Event_pos(next_global);
-		}
-		// - Evaluate global events
-		while (next_global != NULL
-				&& Reltime_cmp(next_global_pos, &play->pos) == 0)
-		{
-			if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_TEMPO)
-			{
-				Event_float(next_global, 0, &play->tempo);
-			}
-			if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
-					|| EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
-			{
-				if (!Event_queue_ins(play->events, next_global, mixed))
-				{
-					// Queue is full, ignore remaining events... TODO: notify
-					next_global = Column_get(pat->global,
-							Reltime_add(RELTIME_AUTO, &play->pos,
-									Reltime_set(RELTIME_AUTO, 0, 1)));
-					if (next_global != NULL)
-					{
-						next_global_pos = Event_pos(next_global);
-					}
-					break;
-				}
-			}
-			next_global = Column_get_next(pat->global);
-			if (next_global != NULL)
-			{
-				next_global_pos = Event_pos(next_global);
-			}
-		}
-		if (Reltime_cmp(&play->pos, &pat->length) >= 0)
-		{
-			assert(Reltime_cmp(&play->pos, &pat->length) == 0);
-			Reltime_init(&play->pos);
-			if (play->mode == PLAY_PATTERN)
-			{
-				Reltime_set(&play->pos, 0, 0);
-				break;
-			}
-			++play->order_index;
-			if (play->order_index >= ORDERS_MAX)
-			{
-				play->order_index = 0;
-				play->pattern = -1;
-			}
-			else
-			{
-				play->pattern = Order_get(play->order,
-						play->subsong,
-						play->order_index);
-			}
-			break;
-		}
-		assert(next_global == NULL || next_global_pos != NULL);
-		uint32_t to_be_mixed = nframes - mixed;
-		Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
-				to_be_mixed,
-				play->tempo,
-				play->freq);
-		Reltime_add(limit, limit, &play->pos);
-		// - Check for the end of pattern
-		if (Reltime_cmp(&pat->length, limit) < 0)
-		{
-			Reltime_copy(limit, &pat->length);
-			to_be_mixed = Reltime_toframes(
-					Reltime_sub(RELTIME_AUTO, limit, &play->pos),
-					play->tempo,
-					play->freq);
-		}
-		// - Check first upcoming global event position to figure out how much we can mix for now
-		if (next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
-		{
-			assert(next_global_pos != NULL);
-			Reltime_copy(limit, next_global_pos);
-			to_be_mixed = Reltime_toframes(
-					Reltime_sub(RELTIME_AUTO, limit, &play->pos),
-					play->tempo,
-					play->freq);
-		}
-		// - Tell each channel to set up Voices
-		for (int i = 0; i < COLUMNS_MAX; ++i)
-		{
-			Channel_set_voices(play->channels[i],
-					play->voice_pool,
-					pat->cols[i],
-					&play->pos,
-					limit,
-					mixed,
-					play->tempo,
-					play->freq);
-		}
-		// - Calculate the number of frames to be mixed
-		assert(Reltime_cmp(&play->pos, limit) <= 0);
-		if (to_be_mixed > nframes - mixed)
-		{
-			to_be_mixed = nframes - mixed;
-		}
-		// - Mix the Voice pool
-		uint16_t active_voices = Voice_pool_mix(play->voice_pool,
-				to_be_mixed + mixed, mixed, play->freq);
-		if (play->active_voices < active_voices)
-		{
-			play->active_voices = active_voices;
-		}
-		// - Increment play->pos
-		Reltime_copy(&play->pos, limit);
-		mixed += to_be_mixed;
-	}
-	return mixed - offset;
+//  assert(pat != NULL);
+    assert(offset < nframes);
+    assert(play != NULL);
+    uint32_t mixed = offset;
+    if (pat == NULL)
+    {
+        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
+                nframes - mixed,
+                play->tempo,
+                play->freq);
+        for (int i = 0; i < COLUMNS_MAX; ++i)
+        {
+            Channel_set_voices(play->channels[i],
+                    play->voice_pool,
+                    NULL,
+                    &play->pos,
+                    limit,
+                    mixed,
+                    play->tempo,
+                    play->freq);
+        }
+        uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+                nframes, mixed, play->freq);
+        if (play->active_voices < active_voices)
+        {
+            play->active_voices = active_voices;
+        }
+        return nframes;
+    }
+    while (mixed < nframes
+            // TODO: and we still want to mix this pattern
+            && Reltime_cmp(&play->pos, &pat->length) <= 0)
+    {
+        Event* next_global = Column_get(pat->global, &play->pos);
+        Reltime* next_global_pos = NULL;
+        if (next_global != NULL)
+        {
+            next_global_pos = Event_pos(next_global);
+        }
+        // - Evaluate global events
+        while (next_global != NULL
+                && Reltime_cmp(next_global_pos, &play->pos) == 0)
+        {
+            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_TEMPO)
+            {
+                Event_float(next_global, 0, &play->tempo);
+            }
+            if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
+                    || EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
+            {
+                if (!Event_queue_ins(play->events, next_global, mixed))
+                {
+                    // Queue is full, ignore remaining events... TODO: notify
+                    next_global = Column_get(pat->global,
+                            Reltime_add(RELTIME_AUTO, &play->pos,
+                                    Reltime_set(RELTIME_AUTO, 0, 1)));
+                    if (next_global != NULL)
+                    {
+                        next_global_pos = Event_pos(next_global);
+                    }
+                    break;
+                }
+            }
+            next_global = Column_get_next(pat->global);
+            if (next_global != NULL)
+            {
+                next_global_pos = Event_pos(next_global);
+            }
+        }
+        if (Reltime_cmp(&play->pos, &pat->length) >= 0)
+        {
+            assert(Reltime_cmp(&play->pos, &pat->length) == 0);
+            Reltime_init(&play->pos);
+            if (play->mode == PLAY_PATTERN)
+            {
+                Reltime_set(&play->pos, 0, 0);
+                break;
+            }
+            ++play->order_index;
+            if (play->order_index >= ORDERS_MAX)
+            {
+                play->order_index = 0;
+                play->pattern = -1;
+            }
+            else
+            {
+                play->pattern = Order_get(play->order,
+                        play->subsong,
+                        play->order_index);
+            }
+            break;
+        }
+        assert(next_global == NULL || next_global_pos != NULL);
+        uint32_t to_be_mixed = nframes - mixed;
+        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
+                to_be_mixed,
+                play->tempo,
+                play->freq);
+        Reltime_add(limit, limit, &play->pos);
+        // - Check for the end of pattern
+        if (Reltime_cmp(&pat->length, limit) < 0)
+        {
+            Reltime_copy(limit, &pat->length);
+            to_be_mixed = Reltime_toframes(
+                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+                    play->tempo,
+                    play->freq);
+        }
+        // - Check first upcoming global event position to figure out how much we can mix for now
+        if (next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
+        {
+            assert(next_global_pos != NULL);
+            Reltime_copy(limit, next_global_pos);
+            to_be_mixed = Reltime_toframes(
+                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+                    play->tempo,
+                    play->freq);
+        }
+        // - Tell each channel to set up Voices
+        for (int i = 0; i < COLUMNS_MAX; ++i)
+        {
+            Channel_set_voices(play->channels[i],
+                    play->voice_pool,
+                    pat->cols[i],
+                    &play->pos,
+                    limit,
+                    mixed,
+                    play->tempo,
+                    play->freq);
+        }
+        // - Calculate the number of frames to be mixed
+        assert(Reltime_cmp(&play->pos, limit) <= 0);
+        if (to_be_mixed > nframes - mixed)
+        {
+            to_be_mixed = nframes - mixed;
+        }
+        // - Mix the Voice pool
+        uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+                to_be_mixed + mixed, mixed, play->freq);
+        if (play->active_voices < active_voices)
+        {
+            play->active_voices = active_voices;
+        }
+        // - Increment play->pos
+        Reltime_copy(&play->pos, limit);
+        mixed += to_be_mixed;
+    }
+    return mixed - offset;
 }
 
 
 void del_Pattern(Pattern* pat)
 {
-	assert(pat != NULL);
-	for (int i = 0; i < COLUMNS_MAX; ++i)
-	{
-		del_Column(pat->cols[i]);
-	}
-	del_Column(pat->global);
-	xfree(pat);
-	return;
+    assert(pat != NULL);
+    for (int i = 0; i < COLUMNS_MAX; ++i)
+    {
+        del_Column(pat->cols[i]);
+    }
+    del_Column(pat->global);
+    xfree(pat);
+    return;
 }
 
 

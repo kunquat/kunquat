@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -38,46 +38,46 @@
  */
 typedef enum Play_mode
 {
-	STOP = 0,       ///< Don't play.
-	PLAY_EVENT,     ///< Play a single event.
-	PLAY_PATTERN,   ///< Play one pattern.
-	PLAY_SONG,      ///< Play a song.
-	PLAY_LAST       ///< Sentinel value -- never used as a mode.
+    STOP = 0,       ///< Don't play.
+    PLAY_EVENT,     ///< Play a single event.
+    PLAY_PATTERN,   ///< Play one pattern.
+    PLAY_SONG,      ///< Play a song.
+    PLAY_LAST       ///< Sentinel value -- never used as a mode.
 } Play_mode;
 
 
 typedef struct Playdata
 {
-	/// Current playback mode.
-	Play_mode mode;
-	/// Mixing frequency.
-	uint32_t freq;
-	/// Size of a tick in frames. TODO: implement if needed
-//	uint16_t tick_size;
-	/// The Order lists.
-	Order* order;
-	/// The global event queue.
-	Event_queue* events;
-	/// The number of beats played since the start of playback.
-	Reltime play_time;
-	/// The number of frames mixed since the start of playback.
-	uint64_t play_frames;
-	/// Current tempo.
-	double tempo;
-	/// Current subsong -- only relevant if \a play = \c PLAY_SONG.
-	uint16_t subsong;
-	/// Current order -- only relevant if \a play = \c PLAY_SONG.
-	uint16_t order_index;
-	/// Current pattern.
-	int16_t pattern;
-	/// Current position inside a pattern.
-	Reltime pos;
-	/// The Voice pool used.
-	Voice_pool* voice_pool;
-	/// The channels used.
-	Channel* channels[COLUMNS_MAX];
-	/// Number of Voices used simultaneously.
-	uint16_t active_voices;
+    /// Current playback mode.
+    Play_mode mode;
+    /// Mixing frequency.
+    uint32_t freq;
+    /// Size of a tick in frames. TODO: implement if needed
+//  uint16_t tick_size;
+    /// The Order lists.
+    Order* order;
+    /// The global event queue.
+    Event_queue* events;
+    /// The number of beats played since the start of playback.
+    Reltime play_time;
+    /// The number of frames mixed since the start of playback.
+    uint64_t play_frames;
+    /// Current tempo.
+    double tempo;
+    /// Current subsong -- only relevant if \a play = \c PLAY_SONG.
+    uint16_t subsong;
+    /// Current order -- only relevant if \a play = \c PLAY_SONG.
+    uint16_t order_index;
+    /// Current pattern.
+    int16_t pattern;
+    /// Current position inside a pattern.
+    Reltime pos;
+    /// The Voice pool used.
+    Voice_pool* voice_pool;
+    /// The channels used.
+    Channel* channels[COLUMNS_MAX];
+    /// Number of Voices used simultaneously.
+    uint16_t active_voices;
 } Playdata;
 
 

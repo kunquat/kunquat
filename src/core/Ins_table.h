@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -35,8 +35,8 @@
  */
 typedef struct Ins_table
 {
-	int size;
-	Etable* insts;
+    int size;
+    Etable* insts;
 } Ins_table;
 
 

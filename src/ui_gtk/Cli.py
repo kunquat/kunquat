@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2008 Tomi Jylhä-Ollila
+# Copyright 2009 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -31,106 +31,106 @@ import Log
 
 class Cli(gtk.VBox):
 
-	def set_window_display(self, button, window):
-		if button.get_active():
-			window.show()
-		else:
-			window.hide()
+    def set_window_display(self, button, window):
+        if button.get_active():
+            window.show()
+        else:
+            window.hide()
 
-	def hide_window(self, window, event, button):
-		window.hide()
-		button.set_active(False)
-		return True
+    def hide_window(self, window, event, button):
+        window.hide()
+        button.set_active(False)
+        return True
 
-	def update_history(self, text):
-		if not self.history:
-			return
-		if text == '':
-			return
-		buf = self.history.get_buffer()
-		iter = buf.get_end_iter()
-		offset = iter.get_offset()
-		if iter.get_offset() != 0:
-			buf.insert(iter, '\n')
-		buf.insert(iter, text)
-		mark = buf.create_mark('end', iter, False)
-		self.history.scroll_to_mark(mark, 0)
-		buf.delete_mark(mark)
+    def update_history(self, text):
+        if not self.history:
+            return
+        if text == '':
+            return
+        buf = self.history.get_buffer()
+        iter = buf.get_end_iter()
+        offset = iter.get_offset()
+        if iter.get_offset() != 0:
+            buf.insert(iter, '\n')
+        buf.insert(iter, text)
+        mark = buf.create_mark('end', iter, False)
+        self.history.scroll_to_mark(mark, 0)
+        buf.delete_mark(mark)
 
-	def cmd_entry(self, widget):
-		self.reply.pop(0)
-		if not self.history:
-			return
-		text = widget.get_text()
-		if text == '':
-			return
-		self.update_history(text)
-		args = text.split()
-		msg = liblo.Message('/kunquat/' + args[0])
-		for arg in args[1:]:
-			if arg.isdigit():
-				arg = int(arg)
-			msg.add(arg)
-		liblo.send(self.engine, msg)
-		widget.set_text('')
+    def cmd_entry(self, widget):
+        self.reply.pop(0)
+        if not self.history:
+            return
+        text = widget.get_text()
+        if text == '':
+            return
+        self.update_history(text)
+        args = text.split()
+        msg = liblo.Message('/kunquat/' + args[0])
+        for arg in args[1:]:
+            if arg.isdigit():
+                arg = int(arg)
+            msg.add(arg)
+        liblo.send(self.engine, msg)
+        widget.set_text('')
 
-	def notify(self, path, args, types):
-		out = ' '.join([str(a) for a in args])
-		self.reply.pop(0)
-		self.reply.push(0, out)
-		if self.history:
-			out = '<kunquat> ' + out
-			gobject.idle_add(self.update_history, out)
+    def notify(self, path, args, types):
+        out = ' '.join([str(a) for a in args])
+        self.reply.pop(0)
+        self.reply.push(0, out)
+        if self.history:
+            out = '<kunquat> ' + out
+            gobject.idle_add(self.update_history, out)
 
-	def error(self, path, args, types):
-		out = 'Error: ' + ' '.join([str(a) for a in args])
-		self.reply.pop(0)
-		self.reply.push(0, out)
-		if self.history:
-			out = '<kunquat> ' + out
-			gobject.idle_add(self.update_history, out)
+    def error(self, path, args, types):
+        out = 'Error: ' + ' '.join([str(a) for a in args])
+        self.reply.pop(0)
+        self.reply.push(0, out)
+        if self.history:
+            out = '<kunquat> ' + out
+            gobject.idle_add(self.update_history, out)
 
-	def fallback(self, path, args, types):
-		out = '<kunquat> ' + path + ' ' + ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
-		if self.history:
-			gobject.idle_add(self.update_history, out)
+    def fallback(self, path, args, types):
+        out = '<kunquat> ' + path + ' ' + ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
+        if self.history:
+            gobject.idle_add(self.update_history, out)
 
-	def handle_osc(self, path, args, types):
-		ps = path.split('/')
-		if ps[1] != 'kunquat_gtk':
-			return
-		gobject.idle_add(Cli.__dict__[ps[2]], self, path, args, types)
+    def handle_osc(self, path, args, types):
+        ps = path.split('/')
+        if ps[1] != 'kunquat_gtk':
+            return
+        gobject.idle_add(Cli.__dict__[ps[2]], self, path, args, types)
 
-	def __init__(self, engine, server):
-		self.engine = engine
-		self.server = server
+    def __init__(self, engine, server):
+        self.engine = engine
+        self.server = server
 
-		self.server.add_method('/kunquat_gtk/notify', None, self.handle_osc)
-		self.server.add_method('/kunquat_gtk/error', None, self.handle_osc)
-		self.server.add_method(None, None, self.fallback)
+        self.server.add_method('/kunquat_gtk/notify', None, self.handle_osc)
+        self.server.add_method('/kunquat_gtk/error', None, self.handle_osc)
+        self.server.add_method(None, None, self.fallback)
 
-		gtk.VBox.__init__(self)
+        gtk.VBox.__init__(self)
 
-		self.reply = gtk.Statusbar()
-		self.reply.set_has_resize_grip(False)
+        self.reply = gtk.Statusbar()
+        self.reply.set_has_resize_grip(False)
 
-		self.log = Log.Log(self.engine, self.server)
-		self.history = self.log.history
+        self.log = Log.Log(self.engine, self.server)
+        self.history = self.log.history
 
-		log_button = gtk.ToggleButton()
-		log_button.set_label('Log')
-		log_button.connect('toggled', self.set_window_display, self.log)
-		self.reply.pack_end(log_button, False, False)
-		log_button.show()
-		self.log.connect('delete_event', self.hide_window, log_button)
-		log_button = None
+        log_button = gtk.ToggleButton()
+        log_button.set_label('Log')
+        log_button.connect('toggled', self.set_window_display, self.log)
+        self.reply.pack_end(log_button, False, False)
+        log_button.show()
+        self.log.connect('delete_event', self.hide_window, log_button)
+        log_button = None
 
-		cmd = gtk.Entry()
-		cmd.connect('activate', self.cmd_entry)
+        cmd = gtk.Entry()
+        cmd.connect('activate', self.cmd_entry)
 
-		self.pack_start(self.reply, False, False)
-		self.reply.show()
-		self.pack_end(cmd, False, False)
-		cmd.show()
+        self.pack_start(self.reply, False, False)
+        self.reply.show()
+        self.pack_end(cmd, False, False)
+        cmd.show()
 
 

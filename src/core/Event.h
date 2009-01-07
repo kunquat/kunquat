@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,29 +33,29 @@
 
 typedef enum
 {
-	/// An uninitialised event.
-	EVENT_TYPE_NONE = 0,
-	/// Evaluate a conditional expression.
-	EVENT_TYPE_GENERAL_COND,
-	/// Sentinel -- never used as a valid type.
-	EVENT_TYPE_GENERAL_LAST = 63,
-	/// Set a variable.
-	EVENT_TYPE_GLOBAL_SET_VAR,
-	/// Set tempo.
-	/// Fields: BPM (float)
-	EVENT_TYPE_GLOBAL_TEMPO,
-	/// Set global volume.
-	EVENT_TYPE_GLOBAL_VOLUME,
-	/// Sentinel -- never used as a valid type.
-	EVENT_TYPE_GLOBAL_LAST = 127,
-	/// Note On event.
-	/// Fields: note, modifier (optional), octave, instrument
-	EVENT_TYPE_NOTE_ON,
-	/// Note Off event.
-	/// Fields: none
-	EVENT_TYPE_NOTE_OFF,
-	/// Sentinel -- never used as a valid type.
-	EVENT_TYPE_LAST
+    /// An uninitialised event.
+    EVENT_TYPE_NONE = 0,
+    /// Evaluate a conditional expression.
+    EVENT_TYPE_GENERAL_COND,
+    /// Sentinel -- never used as a valid type.
+    EVENT_TYPE_GENERAL_LAST = 63,
+    /// Set a variable.
+    EVENT_TYPE_GLOBAL_SET_VAR,
+    /// Set tempo.
+    /// Fields: BPM (float)
+    EVENT_TYPE_GLOBAL_TEMPO,
+    /// Set global volume.
+    EVENT_TYPE_GLOBAL_VOLUME,
+    /// Sentinel -- never used as a valid type.
+    EVENT_TYPE_GLOBAL_LAST = 127,
+    /// Note On event.
+    /// Fields: note, modifier (optional), octave, instrument
+    EVENT_TYPE_NOTE_ON,
+    /// Note Off event.
+    /// Fields: none
+    EVENT_TYPE_NOTE_OFF,
+    /// Sentinel -- never used as a valid type.
+    EVENT_TYPE_LAST
 } Event_type;
 
 
@@ -86,16 +86,16 @@ char* Event_type_get_field_types(Event_type type);
  */
 typedef struct Event
 {
-	/// The Event position.
-	Reltime pos;
-	/// The Event type.
-	Event_type type;
-	/// The data fields.
-	union
-	{
-		int64_t i;
-		double d;
-	} fields[EVENT_FIELDS];
+    /// The Event position.
+    Reltime pos;
+    /// The Event type.
+    Event_type type;
+    /// The data fields.
+    union
+    {
+        int64_t i;
+        double d;
+    } fields[EVENT_FIELDS];
 } Event;
 
 

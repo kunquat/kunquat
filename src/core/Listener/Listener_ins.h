@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -60,9 +60,9 @@
  *           search parameters are valid but no Instrument is found.
  */
 bool ins_get(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument** ins);
+        int32_t song_id,
+        int32_t ins_num,
+        Instrument** ins);
 
 
 /**
@@ -76,9 +76,9 @@ bool ins_get(Listener* lr,
  * \return   \c true if the message was sent successfully, otherwise \c false.
  */
 bool ins_info(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument* ins);
+        int32_t song_id,
+        int32_t ins_num,
+        Instrument* ins);
 
 
 /**

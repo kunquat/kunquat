@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -41,27 +41,27 @@
 
 typedef struct freq_entry
 {
-	pitch_t freq;
-	int choices;
-	double freq_scale[PCM_RANDOMS_MAX];
-	double vol_scale[PCM_RANDOMS_MAX];
-	uint16_t sample[PCM_RANDOMS_MAX];
+    pitch_t freq;
+    int choices;
+    double freq_scale[PCM_RANDOMS_MAX];
+    double vol_scale[PCM_RANDOMS_MAX];
+    uint16_t sample[PCM_RANDOMS_MAX];
 } freq_entry;
 
 
 typedef struct freq_map
 {
-	double strength;
-	uint16_t entry_count;
-	AAtree* tree;
+    double strength;
+    uint16_t entry_count;
+    AAtree* tree;
 } freq_map;
 
 
 typedef struct pcm_type_data
 {
-	uint8_t freq_map_count;
-	freq_map freq_maps[PCM_STRENGTHS_MAX];
-	Sample* samples[PCM_SAMPLES_MAX];
+    uint8_t freq_map_count;
+    freq_map freq_maps[PCM_STRENGTHS_MAX];
+    Sample* samples[PCM_SAMPLES_MAX];
 } pcm_type_data;
 
 
@@ -72,10 +72,10 @@ void Instrument_pcm_uninit(Instrument* ins);
 
 
 void Instrument_pcm_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq);
 
 
 /**
@@ -92,8 +92,8 @@ void Instrument_pcm_mix(Instrument* ins,
  * \return   \c true if successful, otherwise \c false.
  */
 bool Instrument_pcm_set_sample(Instrument* ins,
-		uint16_t index,
-		char* path);
+        uint16_t index,
+        char* path);
 
 
 /**
@@ -132,8 +132,8 @@ char* Instrument_pcm_get_path(Instrument* ins, uint16_t index);
  * \param freq    The middle frequency -- must be > \c 0.
  */
 void Instrument_pcm_set_sample_freq(Instrument* ins,
-		uint16_t index,
-		double freq);
+        uint16_t index,
+        double freq);
 
 
 /**
@@ -180,8 +180,8 @@ double Instrument_pcm_get_sample_freq(Instrument* ins, uint16_t index);
  *           value if memory allocation failed.
  */
 int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
-		uint8_t source, uint8_t style, uint8_t strength_id, double ins_freq, uint8_t index,
-		uint16_t sample, double freq_scale, double vol_scale);
+        uint8_t source, uint8_t style, uint8_t strength_id, double ins_freq, uint8_t index,
+        uint16_t sample, double freq_scale, double vol_scale);
 
 
 /**
@@ -208,11 +208,11 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
  * \return   \c true if the mapping changed, otherwise \c false.
  */
 bool Instrument_pcm_del_sample_mapping(Instrument* ins,
-		uint8_t source,
-		uint8_t style,
-		uint8_t strength_id,
-		double ins_freq,
-		uint8_t index);
+        uint8_t source,
+        uint8_t style,
+        uint8_t strength_id,
+        double ins_freq,
+        uint8_t index);
 
 
 #endif // K_INSTRUMENT_PCM_H

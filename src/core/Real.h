@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,16 +33,16 @@
  */
 typedef struct Real
 {
-	bool is_frac;
-	union
-	{
-		struct
-		{
-			int64_t numerator;
-			int64_t denominator;
-		} frac;
-		double doub;
-	} fod;
+    bool is_frac;
+    union
+    {
+        struct
+        {
+            int64_t numerator;
+            int64_t denominator;
+        } frac;
+        double doub;
+    } fod;
 } Real;
 
 
@@ -74,9 +74,9 @@ Real* Real_init(Real* real);
  * \return   The parameter \a real.
  */
 Real* Real_init_as_frac(
-		Real* real,
-		int64_t numerator,
-		int64_t denominator);
+        Real* real,
+        int64_t numerator,
+        int64_t denominator);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -52,10 +52,10 @@
  * \return   \c true if successful, otherwise \c false.
  */
 bool env_info(Listener* lr,
-		lo_message m,
-		char* path,
-		int32_t ins_num,
-		Envelope* env);
+        lo_message m,
+        char* path,
+        int32_t ins_num,
+        Envelope* env);
 
 
 #endif // K_LISTENER_ENVELOPE_H

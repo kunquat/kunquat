@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,10 +28,10 @@
 
 
 void Instrument_debug_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq);
 
 
 #endif // K_INSTRUMENT_DEBUG_H

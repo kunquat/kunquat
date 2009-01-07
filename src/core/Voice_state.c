@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,20 +28,20 @@
 
 Voice_state* Voice_state_init(Voice_state* state)
 {
-	assert(state != NULL);
-	state->active = true;
-	state->freq = 0;
-	state->pos = 0;
-	state->pos_rem = 0;
-	state->rel_pos = 0;
-	state->rel_pos_rem = 0;
-	state->note_on = true;
-	state->noff_pos = 0;
-	state->noff_pos_rem = 0;
-	state->pedal = false;
-	state->on_ve_pos = 0;
-	state->off_ve_pos = 0;
-	return state;
+    assert(state != NULL);
+    state->active = true;
+    state->freq = 0;
+    state->pos = 0;
+    state->pos_rem = 0;
+    state->rel_pos = 0;
+    state->rel_pos_rem = 0;
+    state->note_on = true;
+    state->noff_pos = 0;
+    state->noff_pos_rem = 0;
+    state->pedal = false;
+    state->on_ve_pos = 0;
+    state->off_ve_pos = 0;
+    return state;
 }
 
 

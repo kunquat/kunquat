@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -34,27 +34,27 @@ Suite* Voice_state_suite(void);
 
 START_TEST (init)
 {
-	Voice_state state;
-	Voice_state* ret = Voice_state_init(&state);
-	fail_unless(ret == &state,
-			"Voice_state_init() returned %p instead of %p.", ret, &state);
-	fail_unless(state.active,
-			"Voice_state_init() didn't set active to true.");
-	fail_unless(state.pos == 0,
-			"Voice_state_init() set pos to %llu instead of 0.", (unsigned long long)state.pos);
-	fail_unless(state.pos_rem == 0,
-			"Voice_state_init() set pos_rem to %lf instead of 0.", state.pos_rem);
-	fail_unless(state.rel_pos == 0,
-			"Voice_state_init() set rel_pos to %llu instead of 0.", (unsigned long long)state.rel_pos);
-	fail_unless(state.rel_pos_rem == 0,
-			"Voice_state_init() set rel_pos_rem to %lf instead of 0.", state.rel_pos_rem);
+    Voice_state state;
+    Voice_state* ret = Voice_state_init(&state);
+    fail_unless(ret == &state,
+            "Voice_state_init() returned %p instead of %p.", ret, &state);
+    fail_unless(state.active,
+            "Voice_state_init() didn't set active to true.");
+    fail_unless(state.pos == 0,
+            "Voice_state_init() set pos to %llu instead of 0.", (unsigned long long)state.pos);
+    fail_unless(state.pos_rem == 0,
+            "Voice_state_init() set pos_rem to %lf instead of 0.", state.pos_rem);
+    fail_unless(state.rel_pos == 0,
+            "Voice_state_init() set rel_pos to %llu instead of 0.", (unsigned long long)state.rel_pos);
+    fail_unless(state.rel_pos_rem == 0,
+            "Voice_state_init() set rel_pos_rem to %lf instead of 0.", state.rel_pos_rem);
 }
 END_TEST
 
 #ifndef NDEBUG
 START_TEST (init_break_state_null)
 {
-	Voice_state_init(NULL);
+    Voice_state_init(NULL);
 }
 END_TEST
 #endif
@@ -62,36 +62,36 @@ END_TEST
 
 Suite* Voice_state_suite(void)
 {
-	Suite* s = suite_create("Voice_state");
-	TCase* tc_init = tcase_create("init");
-	suite_add_tcase(s, tc_init);
+    Suite* s = suite_create("Voice_state");
+    TCase* tc_init = tcase_create("init");
+    suite_add_tcase(s, tc_init);
 
-	int timeout = 10;
-	tcase_set_timeout(tc_init, timeout);
+    int timeout = 10;
+    tcase_set_timeout(tc_init, timeout);
 
-	tcase_add_test(tc_init, init);
+    tcase_add_test(tc_init, init);
 
 #ifndef NDEBUG
-	tcase_add_test_raise_signal(tc_init, init_break_state_null, SIGABRT);
+    tcase_add_test_raise_signal(tc_init, init_break_state_null, SIGABRT);
 #endif
 
-	return s;
+    return s;
 }
 
 
 int main(void)
 {
-	int fail_count = 0;
-	Suite* s = Voice_state_suite();
-	SRunner* sr = srunner_create(s);
-	srunner_run_all(sr, CK_NORMAL);
-	fail_count = srunner_ntests_failed(sr);
-	srunner_free(sr);
-	if (fail_count > 0)
-	{
-		exit(EXIT_FAILURE);
-	}
-	exit(EXIT_SUCCESS);
+    int fail_count = 0;
+    Suite* s = Voice_state_suite();
+    SRunner* sr = srunner_create(s);
+    srunner_run_all(sr, CK_NORMAL);
+    fail_count = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    if (fail_count > 0)
+    {
+        exit(EXIT_FAILURE);
+    }
+    exit(EXIT_SUCCESS);
 }
 
 

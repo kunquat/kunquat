@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -38,268 +38,268 @@
 
 
 int Listener_get_insts(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
+        const char* types,
+        lo_arg** argv,
+        int argc,
+        lo_message msg,
+        void* user_data)
 {
-	(void)path;
-	(void)argc;
-	(void)msg;
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t song_id = argv[0]->i;
-	get_player(lr, song_id, types[0]);
-	Song* song = Player_get_song(lr->player_cur);
-	Ins_table* table = Song_get_insts(song);
-	for (int i = 1; i <= INSTRUMENTS_MAX; ++i)
-	{
-		Instrument* ins = Ins_table_get(table, i);
-		if (ins != NULL)
-		{
-			if (!ins_info(lr, song_id, i, ins))
-			{
-				return 0;
-			}
-		}
-	}
-	return 0;
+    (void)path;
+    (void)argc;
+    (void)msg;
+    assert(user_data != NULL);
+    Listener* lr = user_data;
+    if (lr->host == NULL)
+    {
+        return 0;
+    }
+    assert(lr->method_path != NULL);
+    int32_t song_id = argv[0]->i;
+    get_player(lr, song_id, types[0]);
+    Song* song = Player_get_song(lr->player_cur);
+    Ins_table* table = Song_get_insts(song);
+    for (int i = 1; i <= INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(table, i);
+        if (ins != NULL)
+        {
+            if (!ins_info(lr, song_id, i, ins))
+            {
+                return 0;
+            }
+        }
+    }
+    return 0;
 }
 
 
 int Listener_new_ins(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
+        const char* types,
+        lo_arg** argv,
+        int argc,
+        lo_message msg,
+        void* user_data)
 {
-	(void)path;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t ins_num = argv[1]->i;
-	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
-			"The Instrument number (%ld)", (long)ins_num);
-	int32_t ins_type = argv[2]->i;
-	check_cond(lr, ins_type >= INS_TYPE_NONE && ins_type < INS_TYPE_LAST,
-			"The Instrument type (%ld)", (long)ins_type);
-	if (argv[2]->i > INS_TYPE_PCM)
-	{
-		strcpy(lr->method_path + lr->host_path_len, "error");
-		lo_send(lr->host, lr->method_path, "s", "Only debug, sine and pcm instruments supported");
-		return 0;
-	}
-	int32_t song_id = argv[0]->i;
-	get_player(lr, song_id, types[0]);
-	Song* song = Player_get_song(lr->player_cur);
-	Ins_table* table = Song_get_insts(song);
-	assert(table != NULL);
-	Instrument* ins = NULL;
-	if (ins_type != INS_TYPE_NONE)
-	{
-		ins = new_Instrument(argv[2]->i,
-				Song_get_bufs(song),
-				Song_get_buf_size(song),
-				32); // XXX: get event count from the configuration
-		if (ins == NULL)
-		{
-			send_memory_fail(lr, "the new Instrument");
-		}
-		Instrument_set_note_table(ins, Song_get_active_notes(song));
-		if (!Ins_table_set(table, ins_num, ins))
-		{
-			del_Instrument(ins);
-			send_memory_fail(lr, "the new Instrument");
-		}
-	}
-	else
-	{
-		Ins_table_remove(table, ins_num);
-	}
-	ins_info(lr, song_id, ins_num, ins);
-	return 0;
+    (void)path;
+    (void)argc;
+    (void)msg;
+    assert(argv != NULL);
+    assert(user_data != NULL);
+    Listener* lr = user_data;
+    if (lr->host == NULL)
+    {
+        return 0;
+    }
+    assert(lr->method_path != NULL);
+    int32_t ins_num = argv[1]->i;
+    check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+            "The Instrument number (%ld)", (long)ins_num);
+    int32_t ins_type = argv[2]->i;
+    check_cond(lr, ins_type >= INS_TYPE_NONE && ins_type < INS_TYPE_LAST,
+            "The Instrument type (%ld)", (long)ins_type);
+    if (argv[2]->i > INS_TYPE_PCM)
+    {
+        strcpy(lr->method_path + lr->host_path_len, "error");
+        lo_send(lr->host, lr->method_path, "s", "Only debug, sine and pcm instruments supported");
+        return 0;
+    }
+    int32_t song_id = argv[0]->i;
+    get_player(lr, song_id, types[0]);
+    Song* song = Player_get_song(lr->player_cur);
+    Ins_table* table = Song_get_insts(song);
+    assert(table != NULL);
+    Instrument* ins = NULL;
+    if (ins_type != INS_TYPE_NONE)
+    {
+        ins = new_Instrument(argv[2]->i,
+                Song_get_bufs(song),
+                Song_get_buf_size(song),
+                32); // XXX: get event count from the configuration
+        if (ins == NULL)
+        {
+            send_memory_fail(lr, "the new Instrument");
+        }
+        Instrument_set_note_table(ins, Song_get_active_notes(song));
+        if (!Ins_table_set(table, ins_num, ins))
+        {
+            del_Instrument(ins);
+            send_memory_fail(lr, "the new Instrument");
+        }
+    }
+    else
+    {
+        Ins_table_remove(table, ins_num);
+    }
+    ins_info(lr, song_id, ins_num, ins);
+    return 0;
 }
 
 
 int Listener_ins_set_name(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
+        const char* types,
+        lo_arg** argv,
+        int argc,
+        lo_message msg,
+        void* user_data)
 {
-	(void)path;
-	(void)types;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(&argv[2]->s != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	Instrument* ins = NULL;
-	if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
-	{
-		return 0;
-	}
-	if (ins != NULL)
-	{
-		wchar_t name[INS_NAME_MAX] = { L'\0' };
-		unsigned char* src = (unsigned char*)&argv[2]->s;
-		from_utf8_check(lr, name, src, INS_NAME_MAX,
-				"the name of the Instrument");
-		Instrument_set_name(ins, name);
-	}
-	ins_info(lr, lr->player_cur->id, argv[1]->i, ins);
-	return 0;
+    (void)path;
+    (void)types;
+    (void)argc;
+    (void)msg;
+    assert(argv != NULL);
+    assert(&argv[2]->s != NULL);
+    assert(user_data != NULL);
+    Listener* lr = user_data;
+    if (lr->host == NULL)
+    {
+        return 0;
+    }
+    assert(lr->method_path != NULL);
+    Instrument* ins = NULL;
+    if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
+    {
+        return 0;
+    }
+    if (ins != NULL)
+    {
+        wchar_t name[INS_NAME_MAX] = { L'\0' };
+        unsigned char* src = (unsigned char*)&argv[2]->s;
+        from_utf8_check(lr, name, src, INS_NAME_MAX,
+                "the name of the Instrument");
+        Instrument_set_name(ins, name);
+    }
+    ins_info(lr, lr->player_cur->id, argv[1]->i, ins);
+    return 0;
 }
 
 
 int Listener_del_ins(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
+        const char* types,
+        lo_arg** argv,
+        int argc,
+        lo_message msg,
+        void* user_data)
 {
-	(void)path;
-	(void)argc;
-	(void)msg;
-	assert(argv != NULL);
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	int32_t ins_num = argv[1]->i;
-	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
-			"The Instrument number (%ld)", (long)ins_num);
-	int32_t song_id = argv[0]->i;
-	get_player(lr, song_id, types[0]);
-	Song* song = Player_get_song(lr->player_cur);
-	Ins_table* table = Song_get_insts(song);
-	assert(table != NULL);
-	if (Ins_table_get(table, ins_num) != NULL)
-	{
-		Ins_table_remove(table, ins_num);
-	}
-	ins_info(lr, song_id, ins_num, NULL);
-	return 0;
+    (void)path;
+    (void)argc;
+    (void)msg;
+    assert(argv != NULL);
+    assert(user_data != NULL);
+    Listener* lr = user_data;
+    if (lr->host == NULL)
+    {
+        return 0;
+    }
+    assert(lr->method_path != NULL);
+    int32_t ins_num = argv[1]->i;
+    check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+            "The Instrument number (%ld)", (long)ins_num);
+    int32_t song_id = argv[0]->i;
+    get_player(lr, song_id, types[0]);
+    Song* song = Player_get_song(lr->player_cur);
+    Ins_table* table = Song_get_insts(song);
+    assert(table != NULL);
+    if (Ins_table_get(table, ins_num) != NULL)
+    {
+        Ins_table_remove(table, ins_num);
+    }
+    ins_info(lr, song_id, ins_num, NULL);
+    return 0;
 }
 
 
 int Listener_ins_get_envelope(const char* path,
-		const char* types,
-		lo_arg** argv,
-		int argc,
-		lo_message msg,
-		void* user_data)
+        const char* types,
+        lo_arg** argv,
+        int argc,
+        lo_message msg,
+        void* user_data)
 {
-	(void)path;
-	(void)types;
-	(void)argv;
-	(void)argc;
-	(void)msg;
-	assert(user_data != NULL);
-	Listener* lr = user_data;
-	if (lr->host == NULL)
-	{
-		return 0;
-	}
-	assert(lr->method_path != NULL);
-	Instrument* ins = NULL;
-	if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
-	{
-		return 0;
-	}
-	check_cond(lr, ins != NULL, "The Instrument (%ld)", (long)argv[1]->i);
-	return 0; // TODO: This is unfinished...
+    (void)path;
+    (void)types;
+    (void)argv;
+    (void)argc;
+    (void)msg;
+    assert(user_data != NULL);
+    Listener* lr = user_data;
+    if (lr->host == NULL)
+    {
+        return 0;
+    }
+    assert(lr->method_path != NULL);
+    Instrument* ins = NULL;
+    if (!ins_get(lr, argv[0]->i, argv[1]->i, &ins))
+    {
+        return 0;
+    }
+    check_cond(lr, ins != NULL, "The Instrument (%ld)", (long)argv[1]->i);
+    return 0; // TODO: This is unfinished...
 }
 
 
 bool ins_get(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument** ins)
+        int32_t song_id,
+        int32_t ins_num,
+        Instrument** ins)
 {
-	assert(lr != NULL);
-	assert(lr->method_path != NULL);
-	assert(ins != NULL);
-	check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
-			"The Instrument number (%ld)", (long)ins_num);
-	get_player(lr, song_id, 'i');
-	Song* song = Player_get_song(lr->player_cur);
-	Ins_table* table = Song_get_insts(song);
-	assert(table != NULL);
-	*ins = Ins_table_get(table, ins_num);
-	return true;
+    assert(lr != NULL);
+    assert(lr->method_path != NULL);
+    assert(ins != NULL);
+    check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
+            "The Instrument number (%ld)", (long)ins_num);
+    get_player(lr, song_id, 'i');
+    Song* song = Player_get_song(lr->player_cur);
+    Ins_table* table = Song_get_insts(song);
+    assert(table != NULL);
+    *ins = Ins_table_get(table, ins_num);
+    return true;
 }
 
 
 bool ins_info(Listener* lr,
-		int32_t song_id,
-		int32_t ins_num,
-		Instrument* ins)
+        int32_t song_id,
+        int32_t ins_num,
+        Instrument* ins)
 {
-	assert(lr != NULL);
-	assert(lr->host != NULL);
-	lo_message m = new_msg();
-	lo_message_add_int32(m, song_id);
-	lo_message_add_int32(m, ins_num);
-	if (ins != NULL)
-	{
-		lo_message_add_int32(m, Instrument_get_type(ins));
-		unsigned char mbs[INS_NAME_MAX * 6] = { '\0' };
-		wchar_t* src = Instrument_get_name(ins);
-		to_utf8_check(lr, mbs, src, INS_NAME_MAX * 6,
-				"the name of the Instrument");
-		lo_message_add_string(m, (char*)mbs);
-		switch (Instrument_get_type(ins))
-		{
-			case INS_TYPE_PCM:
-				if (!ins_info_pcm(lr, m, ins))
-				{
-					lo_message_free(m);
-					return false;
-				}
-				break;
-			default:
-				break;
-		}
-	}
-	else
-	{
-		lo_message_add_int32(m, INS_TYPE_NONE);
-		lo_message_add_string(m, "");
-	}
-	int ret = 0;
-	send_msg(lr, "ins_info", m, ret);
-	lo_message_free(m);
-	if (ret == -1)
-	{
-		return false;
-	}
-	return true;
+    assert(lr != NULL);
+    assert(lr->host != NULL);
+    lo_message m = new_msg();
+    lo_message_add_int32(m, song_id);
+    lo_message_add_int32(m, ins_num);
+    if (ins != NULL)
+    {
+        lo_message_add_int32(m, Instrument_get_type(ins));
+        unsigned char mbs[INS_NAME_MAX * 6] = { '\0' };
+        wchar_t* src = Instrument_get_name(ins);
+        to_utf8_check(lr, mbs, src, INS_NAME_MAX * 6,
+                "the name of the Instrument");
+        lo_message_add_string(m, (char*)mbs);
+        switch (Instrument_get_type(ins))
+        {
+            case INS_TYPE_PCM:
+                if (!ins_info_pcm(lr, m, ins))
+                {
+                    lo_message_free(m);
+                    return false;
+                }
+                break;
+            default:
+                break;
+        }
+    }
+    else
+    {
+        lo_message_add_int32(m, INS_TYPE_NONE);
+        lo_message_add_string(m, "");
+    }
+    int ret = 0;
+    send_msg(lr, "ins_info", m, ret);
+    lo_message_free(m);
+    if (ret == -1)
+    {
+        return false;
+    }
+    return true;
 }
 
 

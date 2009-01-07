@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -36,27 +36,27 @@
  */
 typedef struct Note_table
 {
-	wchar_t name[NOTE_TABLE_NAME_MAX];
-	int note_count;
-	int ref_note;
-	int ref_note_retuned;
-	pitch_t ref_pitch;
-	Real octave_ratio;
-	double oct_ratio_cents;
-	Real oct_factors[NOTE_TABLE_OCTAVES];
-	struct
-	{
-		wchar_t name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
-		double cents;
-		Real ratio;
-	} note_mods[NOTE_TABLE_NOTE_MODS];
-	struct
-	{
-		wchar_t name[NOTE_TABLE_NOTE_NAME_MAX];
-		double cents;
-		Real ratio;
-		Real ratio_retuned;
-	} notes[NOTE_TABLE_NOTES];
+    wchar_t name[NOTE_TABLE_NAME_MAX];
+    int note_count;
+    int ref_note;
+    int ref_note_retuned;
+    pitch_t ref_pitch;
+    Real octave_ratio;
+    double oct_ratio_cents;
+    Real oct_factors[NOTE_TABLE_OCTAVES];
+    struct
+    {
+        wchar_t name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
+        double cents;
+        Real ratio;
+    } note_mods[NOTE_TABLE_NOTE_MODS];
+    struct
+    {
+        wchar_t name[NOTE_TABLE_NOTE_NAME_MAX];
+        double cents;
+        Real ratio;
+        Real ratio_retuned;
+    } notes[NOTE_TABLE_NOTES];
 } Note_table;
 
 
@@ -223,9 +223,9 @@ double Note_table_get_octave_ratio_cents(Note_table* table);
  *           \a index.
  */
 int Note_table_set_note(Note_table* table,
-		int index,
-		wchar_t* name,
-		Real* ratio);
+        int index,
+        wchar_t* name,
+        Real* ratio);
 
 
 /**
@@ -244,9 +244,9 @@ int Note_table_set_note(Note_table* table,
  *           \a index.
  */
 int Note_table_set_note_cents(Note_table* table,
-		int index,
-		wchar_t* name,
-		double cents);
+        int index,
+        wchar_t* name,
+        double cents);
 
 
 /**
@@ -264,9 +264,9 @@ int Note_table_set_note_cents(Note_table* table,
  *           \a index.
  */
 int Note_table_ins_note(Note_table* table,
-		int index,
-		wchar_t* name,
-		Real* ratio);
+        int index,
+        wchar_t* name,
+        Real* ratio);
 
 
 /**
@@ -284,9 +284,9 @@ int Note_table_ins_note(Note_table* table,
  *           \a index.
  */
 int Note_table_ins_note_cents(Note_table* table,
-		int index,
-		wchar_t* name,
-		double cents);
+        int index,
+        wchar_t* name,
+        double cents);
 
 
 /**
@@ -396,9 +396,9 @@ double Note_table_get_cur_note_cents(Note_table* table, int index);
  *           \a index.
  */
 int Note_table_set_note_mod(Note_table* table,
-		int index,
-		wchar_t* name,
-		Real* ratio);
+        int index,
+        wchar_t* name,
+        Real* ratio);
 
 
 /**
@@ -416,9 +416,9 @@ int Note_table_set_note_mod(Note_table* table,
  *           \a index.
  */
 int Note_table_set_note_mod_cents(Note_table* table,
-		int index,
-		wchar_t* name,
-		double cents);
+        int index,
+        wchar_t* name,
+        double cents);
 
 
 /**
@@ -436,9 +436,9 @@ int Note_table_set_note_mod_cents(Note_table* table,
  *           \a index.
  */
 int Note_table_ins_note_mod(Note_table* table,
-		int index,
-		wchar_t* name,
-		Real* ratio);
+        int index,
+        wchar_t* name,
+        Real* ratio);
 
 
 /**
@@ -456,9 +456,9 @@ int Note_table_ins_note_mod(Note_table* table,
  *           \a index.
  */
 int Note_table_ins_note_mod_cents(Note_table* table,
-		int index,
-		wchar_t* name,
-		double cents);
+        int index,
+        wchar_t* name,
+        double cents);
 
 
 /**
@@ -539,9 +539,9 @@ double Note_table_get_note_mod_cents(Note_table* table, int index);
  * \return   The pitch if the note exists, otherwise a negative value.
  */
 pitch_t Note_table_get_pitch(Note_table* table,
-		int index,
-		int mod,
-		int octave);
+        int index,
+        int mod,
+        int octave);
 
 
 /**

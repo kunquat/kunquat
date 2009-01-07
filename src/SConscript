@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2008 Tomi Jylhä-Ollila
+# Copyright 2009 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -27,7 +27,7 @@ SConscript('core/SConscript')
 
 
 if not env.GetOption('clean') and 'check' in env['LIBS']:
-	env['LIBS'].remove('check')
+    env['LIBS'].remove('check')
 
 #print 'src: ' + env.Dump('LIBS')
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -31,69 +31,69 @@
 
 Ins_table* new_Ins_table(int size)
 {
-	assert(size > 0);
-	Ins_table* table = xalloc(Ins_table);
-	if (table == NULL)
-	{
-		return NULL;
-	}
-	table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
-	if (table->insts == NULL)
-	{
-		xfree(table);
-		return NULL;
-	}
-	table->size = size;
-	return table;
+    assert(size > 0);
+    Ins_table* table = xalloc(Ins_table);
+    if (table == NULL)
+    {
+        return NULL;
+    }
+    table->insts = new_Etable(size, (void (*)(void*))del_Instrument);
+    if (table->insts == NULL)
+    {
+        xfree(table);
+        return NULL;
+    }
+    table->size = size;
+    return table;
 }
 
 
 bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
 {
-	assert(table != NULL);
-	assert(index > 0);
-	assert(index <= table->size);
-	assert(ins != NULL);
-	--index;
-	return Etable_set(table->insts, index, ins);
+    assert(table != NULL);
+    assert(index > 0);
+    assert(index <= table->size);
+    assert(ins != NULL);
+    --index;
+    return Etable_set(table->insts, index, ins);
 }
 
 
 Instrument* Ins_table_get(Ins_table* table, int index)
 {
-	assert(table != NULL);
-	assert(index > 0);
-	assert(index <= table->size);
-	--index;
-	return Etable_get(table->insts, index);
+    assert(table != NULL);
+    assert(index > 0);
+    assert(index <= table->size);
+    --index;
+    return Etable_get(table->insts, index);
 }
 
 
 void Ins_table_remove(Ins_table* table, int index)
 {
-	assert(table != NULL);
-	assert(index > 0);
-	assert(index <= table->size);
-	--index;
-	Etable_remove(table->insts, index);
-	return;
+    assert(table != NULL);
+    assert(index > 0);
+    assert(index <= table->size);
+    --index;
+    Etable_remove(table->insts, index);
+    return;
 }
 
 
 void Ins_table_clear(Ins_table* table)
 {
-	assert(table != NULL);
-	Etable_clear(table->insts);
-	return;
+    assert(table != NULL);
+    Etable_clear(table->insts);
+    return;
 }
 
 
 void del_Ins_table(Ins_table* table)
 {
-	assert(table != NULL);
-	del_Etable(table->insts);
-	xfree(table);
-	return;
+    assert(table != NULL);
+    del_Etable(table->insts);
+    xfree(table);
+    return;
 }
 
 

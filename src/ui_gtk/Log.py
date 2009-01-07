@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2008 Tomi Jylhä-Ollila
+# Copyright 2009 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -27,52 +27,52 @@ import gobject
 
 class Log(gtk.Window):
 
-	"""
-	def update_history(self, text):
-		if text == '':
-			return
-		buf = self.history.get_buffer()
-		iter = buf.get_end_iter()
-		offset = iter.get_offset()
-		if iter.get_offset() != 0:
-			buf.insert(iter, '\n')
-		buf.insert(iter, text)
-		mark = buf.create_mark('end', iter, False)
-		self.history.scroll_to_mark(mark, 0)
-		buf.delete_mark(mark)
+    """
+    def update_history(self, text):
+        if text == '':
+            return
+        buf = self.history.get_buffer()
+        iter = buf.get_end_iter()
+        offset = iter.get_offset()
+        if iter.get_offset() != 0:
+            buf.insert(iter, '\n')
+        buf.insert(iter, text)
+        mark = buf.create_mark('end', iter, False)
+        self.history.scroll_to_mark(mark, 0)
+        buf.delete_mark(mark)
 
-	def cmd_entry(self, widget):
-		text = widget.get_text()
-		if text == '':
-			return
-		self.update_history(text)
+    def cmd_entry(self, widget):
+        text = widget.get_text()
+        if text == '':
+            return
+        self.update_history(text)
 
-	def notify(self, path, args):
-		out = '<kunquat> ' + ' '.join([str(a) for a in args])
-		gobject.idle_add(self.update_history, out)
+    def notify(self, path, args):
+        out = '<kunquat> ' + ' '.join([str(a) for a in args])
+        gobject.idle_add(self.update_history, out)
 
-	def fallback(self, path, args, types):
-		out = '<kunquat> ' + path + ' '
-		out += ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
-		gobject.idle_add(self.update_history, out)
-	"""
+    def fallback(self, path, args, types):
+        out = '<kunquat> ' + path + ' '
+        out += ' '.join([t + ':' + str(a) for a, t in zip(args, types)])
+        gobject.idle_add(self.update_history, out)
+    """
 
-	def __init__(self, engine, server):
-		self.engine = engine
-		self.server = server
+    def __init__(self, engine, server):
+        self.engine = engine
+        self.server = server
 
-		gtk.Window.__init__(self)
+        gtk.Window.__init__(self)
 
-		self.history = gtk.TextView()
-		self.history.set_editable(False)
-		self.history.set_wrap_mode(gtk.WRAP_CHAR)
+        self.history = gtk.TextView()
+        self.history.set_editable(False)
+        self.history.set_wrap_mode(gtk.WRAP_CHAR)
 
-		hist_scroll = gtk.ScrolledWindow()
-		hist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
-		hist_scroll.add(self.history)
-		self.history.show()
+        hist_scroll = gtk.ScrolledWindow()
+        hist_scroll.set_policy(gtk.POLICY_AUTOMATIC, gtk.POLICY_ALWAYS)
+        hist_scroll.add(self.history)
+        self.history.show()
 
-		self.add(hist_scroll)
-		hist_scroll.show()
+        self.add(hist_scroll)
+        hist_scroll.show()
 
 

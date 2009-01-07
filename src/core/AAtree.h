@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,11 +29,11 @@
 
 typedef struct AAnode
 {
-	int level;
-	void* data;
-	struct AAnode* parent;
-	struct AAnode* left;
-	struct AAnode* right;
+    int level;
+    void* data;
+    struct AAnode* parent;
+    struct AAnode* left;
+    struct AAnode* right;
 } AAnode;
 
 
@@ -48,11 +48,11 @@ typedef struct AAnode
  */
 typedef struct AAtree
 {
-	AAnode* nil;
-	AAnode* root;
-	AAnode* iters[2];
-	int (*cmp)(void*, void*);
-	void (*destroy)(void*);
+    AAnode* nil;
+    AAnode* root;
+    AAnode* iters[2];
+    int (*cmp)(void*, void*);
+    void (*destroy)(void*);
 } AAtree;
 
 

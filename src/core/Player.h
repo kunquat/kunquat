@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -36,12 +36,12 @@
 
 typedef struct Player
 {
-	Song* song;
-	Playdata* play;
-	int32_t id;
-	Voice_pool* voices;
-	struct Player* prev;
-	struct Player* next;
+    Song* song;
+    Playdata* play;
+    int32_t id;
+    Voice_pool* voices;
+    struct Player* prev;
+    struct Player* next;
 } Player;
 
 

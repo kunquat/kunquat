@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2008 Tomi Jylhä-Ollila
+# Copyright 2009 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -24,7 +24,7 @@ Import('env')
 Export('env')
 
 if env['tests']:
-	SConscript('test/SConscript')
+    SConscript('test/SConscript')
 
 SConscript('Listener/SConscript')
 
@@ -33,43 +33,43 @@ SConscript('Listener/SConscript')
 env.Append(CPPPATH = ['#/src/core'])
 
 files = [
-	'Real.c',
-	'Note_table.c',
-	'Reltime.c',
-	'Event.c',
-	'Event_queue.c',
-	'Voice_state.c',
-	'Envelope.c',
-	'Instrument.c',
-	'Instrument_debug.c',
-	'Instrument_sine.c',
-	'Instrument_pcm.c',
-	'File_wavpack.c',
-	'Sample.c',
-	'Etable.c',
-	'Ins_table.c',
-	'Voice.c',
-	'Voice_pool.c',
-	'AAtree.c',
-	'Column.c',
-	'Channel.c',
-	'Order.c',
-	'Pat_table.c',
-	'Pattern.c',
-	'Song.c',
-	'Playdata.c',
-	'Player.c',
-	'Playlist.c',
+    'Real.c',
+    'Note_table.c',
+    'Reltime.c',
+    'Event.c',
+    'Event_queue.c',
+    'Voice_state.c',
+    'Envelope.c',
+    'Instrument.c',
+    'Instrument_debug.c',
+    'Instrument_sine.c',
+    'Instrument_pcm.c',
+    'File_wavpack.c',
+    'Sample.c',
+    'Etable.c',
+    'Ins_table.c',
+    'Voice.c',
+    'Voice_pool.c',
+    'AAtree.c',
+    'Column.c',
+    'Channel.c',
+    'Order.c',
+    'Pat_table.c',
+    'Pattern.c',
+    'Song.c',
+    'Playdata.c',
+    'Player.c',
+    'Playlist.c',
 ]
 
 if env['enable_jack']:
-	files += ['Driver_jack.c']
+    files += ['Driver_jack.c']
 
 if env['enable_alsa']:
-	files += ['Driver_alsa.c']
+    files += ['Driver_alsa.c']
 
 if env['enable_ao']:
-	files += ['Driver_ao.c']
+    files += ['Driver_ao.c']
 
 env.StaticLibrary('core', files)
 

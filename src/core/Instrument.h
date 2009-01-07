@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -37,128 +37,128 @@
 
 typedef enum
 {
-	/// Not a valid type.
-	INS_TYPE_NONE = 0,
-	/// A type used for debugging.
-	/// Output is a narrow pulse wave (with one sample value 1, the rest are
-	/// 0.5) that lasts no more than 10 phase cycles. Note Off lasts no more
-	/// than two phase cycles with all sample values negated.
-	INS_TYPE_DEBUG,
-	/// A simple sine wave instrument for testing by ear.
-	INS_TYPE_SINE,
-	/// A sample-based type common in tracker programs.
-	INS_TYPE_PCM,
-	/// A type for reading audio data from disk -- used for large audio files.
-	INS_TYPE_PCM_DISK,
-	/// An implementation of Paul Nasca's PADsynth algorithm.
-	INS_TYPE_PADSYNTH,
-	/// Sentinel -- never used as a valid type.
-	INS_TYPE_LAST
+    /// Not a valid type.
+    INS_TYPE_NONE = 0,
+    /// A type used for debugging.
+    /// Output is a narrow pulse wave (with one sample value 1, the rest are
+    /// 0.5) that lasts no more than 10 phase cycles. Note Off lasts no more
+    /// than two phase cycles with all sample values negated.
+    INS_TYPE_DEBUG,
+    /// A simple sine wave instrument for testing by ear.
+    INS_TYPE_SINE,
+    /// A sample-based type common in tracker programs.
+    INS_TYPE_PCM,
+    /// A type for reading audio data from disk -- used for large audio files.
+    INS_TYPE_PCM_DISK,
+    /// An implementation of Paul Nasca's PADsynth algorithm.
+    INS_TYPE_PADSYNTH,
+    /// Sentinel -- never used as a valid type.
+    INS_TYPE_LAST
 } Ins_type;
 
 
 typedef struct Instrument
 {
-	/// Instrument type.
-	Ins_type type;
-	/// The name of the Instrument.
-	wchar_t name[INS_NAME_MAX];
-	/// Mixing buffer used (same as either \a pbuf or \a gbuf).
-	frame_t** bufs;
-	/// Private mixing buffer (required when Instrument-level effects are used).
-	frame_t** pbufs;
-	/// Global mixing buffer.
-	frame_t** gbufs;
-	/// Mixing buffer length.
-	uint32_t buf_len;
-	/// Instrument event queue (esp. pedal events go here).
-	Event_queue* events;
-	/// An indirect reference to the current Note table used.
-	Note_table** notes;
+    /// Instrument type.
+    Ins_type type;
+    /// The name of the Instrument.
+    wchar_t name[INS_NAME_MAX];
+    /// Mixing buffer used (same as either \a pbuf or \a gbuf).
+    frame_t** bufs;
+    /// Private mixing buffer (required when Instrument-level effects are used).
+    frame_t** pbufs;
+    /// Global mixing buffer.
+    frame_t** gbufs;
+    /// Mixing buffer length.
+    uint32_t buf_len;
+    /// Instrument event queue (esp. pedal events go here).
+    Event_queue* events;
+    /// An indirect reference to the current Note table used.
+    Note_table** notes;
 
-	/// Pedal setting.
-	bool pedal;
+    /// Pedal setting.
+    bool pedal;
 
-	/// Default force.
-	double default_force;
-	/// Force variation.
-	double force_variation;
+    /// Default force.
+    double default_force;
+    /// Force variation.
+    double force_variation;
 
-	/// Force-volume envelope toggle.
-	bool force_volume_env_enabled;
-	/// Force-volume envelope.
-	Envelope* force_volume_env;
+    /// Force-volume envelope toggle.
+    bool force_volume_env_enabled;
+    /// Force-volume envelope.
+    Envelope* force_volume_env;
 
-	/// Force-filter envelope toggle.
-	bool force_filter_env_enabled;
-	/// Force-filter envelope.
-	Envelope* force_filter_env;
+    /// Force-filter envelope toggle.
+    bool force_filter_env_enabled;
+    /// Force-filter envelope.
+    Envelope* force_filter_env;
 
-	/// Force-pitch envelope toggle.
-	bool force_pitch_env_enabled;
-	/// Force-pitch envelope.
-	Envelope* force_pitch_env;
-	/// Force-pitch envelope scale factor.
-	double force_pitch_env_scale;
+    /// Force-pitch envelope toggle.
+    bool force_pitch_env_enabled;
+    /// Force-pitch envelope.
+    Envelope* force_pitch_env;
+    /// Force-pitch envelope scale factor.
+    double force_pitch_env_scale;
 
-	/// Instrument volume.
-	double volume;
+    /// Instrument volume.
+    double volume;
 
-	/// Volume envelope toggle.
-	bool volume_env_enabled;
-	/// Volume envelope carry.
-	bool volume_env_carry;
-	/// Volume envelope.
-	Envelope* volume_env;
-	/// Volume envelope scale factor (frequency -> speed).
-	double volume_env_scale;
-	/// Volume envelope scale center frequency.
-	double volume_env_center;
+    /// Volume envelope toggle.
+    bool volume_env_enabled;
+    /// Volume envelope carry.
+    bool volume_env_carry;
+    /// Volume envelope.
+    Envelope* volume_env;
+    /// Volume envelope scale factor (frequency -> speed).
+    double volume_env_scale;
+    /// Volume envelope scale center frequency.
+    double volume_env_center;
 
-	/// Note Off volume envelope toggle.
-	bool volume_off_env_enabled;
-	/// Note Off volume envelope.
-	Envelope* volume_off_env;
-	/// Note Off volume envelope scale factor (frequency -> speed).
-	double volume_off_env_scale;
-	/// Note Off volume envelope scale center frequency.
-	double volume_off_env_center;
+    /// Note Off volume envelope toggle.
+    bool volume_off_env_enabled;
+    /// Note Off volume envelope.
+    Envelope* volume_off_env;
+    /// Note Off volume envelope scale factor (frequency -> speed).
+    double volume_off_env_scale;
+    /// Note Off volume envelope scale center frequency.
+    double volume_off_env_center;
 
-	/// Default panning toggle.
-	bool panning_enabled;
-	/// Default panning.
-	double panning;
-	/// Pitch-panning envelope toggle.
-	bool pitch_pan_env_enabled;
-	/// Pitch-panning envelope.
-	Envelope* pitch_pan_env;
+    /// Default panning toggle.
+    bool panning_enabled;
+    /// Default panning.
+    double panning;
+    /// Pitch-panning envelope toggle.
+    bool pitch_pan_env_enabled;
+    /// Pitch-panning envelope.
+    Envelope* pitch_pan_env;
 
-	/// Filter envelope toggle.
-	bool filter_env_enabled;
-	/// Filter envelope.
-	Envelope* filter_env;
-	/// Filter envelope scale factor (frequency -> speed).
-	double filter_env_scale;
-	/// Filter envelope scale center frequency.
-	double filter_env_center;
+    /// Filter envelope toggle.
+    bool filter_env_enabled;
+    /// Filter envelope.
+    Envelope* filter_env;
+    /// Filter envelope scale factor (frequency -> speed).
+    double filter_env_scale;
+    /// Filter envelope scale center frequency.
+    double filter_env_center;
 
-	/// Note Off filter envelope toggle.
-	bool filter_off_env_enabled;
-	/// Note Off filter envelope.
-	Envelope* filter_off_env;
-	/// Note Off filter envelope scale factor (frequency -> speed).
-	double filter_off_env_scale;
-	/// Note Off filter envelope scale center frequency.
-	double filter_off_env_center;
+    /// Note Off filter envelope toggle.
+    bool filter_off_env_enabled;
+    /// Note Off filter envelope.
+    Envelope* filter_off_env;
+    /// Note Off filter envelope scale factor (frequency -> speed).
+    double filter_off_env_scale;
+    /// Note Off filter envelope scale center frequency.
+    double filter_off_env_center;
 
-	/// Type-specific data.
-	void* type_data;
-	/// Initialiser for type-specific data -- returns \c 0 on success.
-	int (*init)(struct Instrument*);
-	/// Uninitialiser for type-specific data.
-	void (*uninit)(struct Instrument*);
-	/// Mixing algorithm used.
-	void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
+    /// Type-specific data.
+    void* type_data;
+    /// Initialiser for type-specific data -- returns \c 0 on success.
+    int (*init)(struct Instrument*);
+    /// Uninitialiser for type-specific data.
+    void (*uninit)(struct Instrument*);
+    /// Mixing algorithm used.
+    void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
 } Instrument;
 
 
@@ -175,9 +175,9 @@ typedef struct Instrument
  *           failed.
  */
 Instrument* new_Instrument(Ins_type type,
-		frame_t** bufs,
-		uint32_t buf_len,
-		uint8_t events);
+        frame_t** bufs,
+        uint32_t buf_len,
+        uint8_t events);
 
 
 /**
@@ -232,10 +232,10 @@ void Instrument_set_note_table(Instrument* ins, Note_table** notes);
  *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  */
 void Instrument_process_note(Instrument* ins,
-		Voice_state* state,
-		int note,
-		int mod,
-		int octave);
+        Voice_state* state,
+        int note,
+        int mod,
+        int octave);
 
 
 /**
@@ -250,10 +250,10 @@ void Instrument_process_note(Instrument* ins,
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Instrument_mix(Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq);
 
 
 /**

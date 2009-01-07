@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -36,8 +36,8 @@
 
 typedef struct Subsong
 {
-	int res;
-	int16_t* pats;
+    int res;
+    int16_t* pats;
 } Subsong;
 
 
@@ -46,7 +46,7 @@ typedef struct Subsong
  */
 typedef struct Order
 {
-	Etable* subs;
+    Etable* subs;
 } Order;
 
 

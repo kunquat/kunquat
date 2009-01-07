@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,18 +33,18 @@
 
 typedef struct Event_list
 {
-	Event* event;
-	struct Event_list* prev;
-	struct Event_list* next;
+    Event* event;
+    struct Event_list* prev;
+    struct Event_list* next;
 } Event_list;
 
 
 typedef struct Column
 {
-	Reltime len;
-	Event_list* last_elist;
-	Event_list* last_elist_from_host;
-	AAtree* events;
+    Reltime len;
+    Event_list* last_elist;
+    Event_list* last_elist_from_host;
+    AAtree* events;
 } Column;
 
 

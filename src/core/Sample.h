@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -36,16 +36,16 @@
 
 typedef enum
 {
-	/// Uninitialised.
-	SAMPLE_FORMAT_NONE,
-	/// The native format.
-	// SAMPLE_FORMAT_KS,
-	/// WavPack.
-	SAMPLE_FORMAT_WAVPACK,
-	/// Vorbis.
-	// SAMPLE_FORMAT_VORBIS,
-	/// Sentinel -- not a valid format.
-	SAMPLE_FORMAT_LAST
+    /// Uninitialised.
+    SAMPLE_FORMAT_NONE,
+    /// The native format.
+    // SAMPLE_FORMAT_KS,
+    /// WavPack.
+    SAMPLE_FORMAT_WAVPACK,
+    /// Vorbis.
+    // SAMPLE_FORMAT_VORBIS,
+    /// Sentinel -- not a valid format.
+    SAMPLE_FORMAT_LAST
 } Sample_format;
 
 
@@ -54,26 +54,26 @@ typedef enum
  */
 typedef struct Sample
 {
-	/// The path of the file (if applicable -- otherwise NULL).
-	char* path;
-	/// The (compression) format.
-	Sample_format format;
-	/// Whether the sample (sound) data has changed after loading.
-	bool changed;
-	/// Whether this sample uses lossy compression.
-	bool is_lossy;
-	/// The number of channels (1 or 2).
-	int channels;
-	/// The bit resolution (8, 16, 24 or 32).
-	int bits;
-	/// Whether this sample is in floating point format.
-	bool is_float;
-	/// The length of the sample (in amplitude values per channel).
-	uint64_t len;
-	/// The playback frequency used to represent 440 Hz tone.
-	double mid_freq;
-	/// The sample data.
-	void* data[2];
+    /// The path of the file (if applicable -- otherwise NULL).
+    char* path;
+    /// The (compression) format.
+    Sample_format format;
+    /// Whether the sample (sound) data has changed after loading.
+    bool changed;
+    /// Whether this sample uses lossy compression.
+    bool is_lossy;
+    /// The number of channels (1 or 2).
+    int channels;
+    /// The bit resolution (8, 16, 24 or 32).
+    int bits;
+    /// Whether this sample is in floating point format.
+    bool is_float;
+    /// The length of the sample (in amplitude values per channel).
+    uint64_t len;
+    /// The playback frequency used to represent 440 Hz tone.
+    double mid_freq;
+    /// The sample data.
+    void* data[2];
 } Sample;
 
 
@@ -147,11 +147,11 @@ double Sample_get_freq(Sample* sample);
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Sample_mix(Sample* sample,
-		Instrument* ins,
-		Voice_state* state,
-		uint32_t nframes,
-		uint32_t offset,
-		uint32_t freq);
+        Instrument* ins,
+        Voice_state* state,
+        uint32_t nframes,
+        uint32_t offset,
+        uint32_t freq);
 
 
 /**

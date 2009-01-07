@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -37,41 +37,41 @@
 
 typedef struct Song
 {
-	/// Number of buffers (channels) used for mixing.
-	int buf_count;
-	/// Buffer size.
-	uint32_t buf_size;
-	/// Buffers.
-	frame_t** bufs;
-	/// Private buffers.
-	frame_t* priv_bufs[BUF_COUNT_MAX];
-	/// The Order lists.
-	Order* order;
-	/// The Patterns.
-	Pat_table* pats;
-	/// The Instruments.
-	Ins_table* insts;
-	/// The Note tables.
-	Note_table* notes[NOTE_TABLES_MAX];
-	/// A reference to the currently active Note table.
-	Note_table** active_notes;
-	/// Global events.
-	Event_queue* events;
-	/// The name of the Song.
-	wchar_t name[SONG_NAME_MAX];
-	struct
-	{
-		/// Initial tempo.
-		double tempo;
-		/// Initial global volume.
-		double global_vol;
-		/// Initial Note table.
-		Note_table* notes;
-	} subsong_inits[SUBSONGS_MAX];
-	/// Mixing volume.
-	double mix_vol;
-	/// Initial subsong number.
-	uint16_t init_subsong;
+    /// Number of buffers (channels) used for mixing.
+    int buf_count;
+    /// Buffer size.
+    uint32_t buf_size;
+    /// Buffers.
+    frame_t** bufs;
+    /// Private buffers.
+    frame_t* priv_bufs[BUF_COUNT_MAX];
+    /// The Order lists.
+    Order* order;
+    /// The Patterns.
+    Pat_table* pats;
+    /// The Instruments.
+    Ins_table* insts;
+    /// The Note tables.
+    Note_table* notes[NOTE_TABLES_MAX];
+    /// A reference to the currently active Note table.
+    Note_table** active_notes;
+    /// Global events.
+    Event_queue* events;
+    /// The name of the Song.
+    wchar_t name[SONG_NAME_MAX];
+    struct
+    {
+        /// Initial tempo.
+        double tempo;
+        /// Initial global volume.
+        double global_vol;
+        /// Initial Note table.
+        Note_table* notes;
+    } subsong_inits[SUBSONGS_MAX];
+    /// Mixing volume.
+    double mix_vol;
+    /// Initial subsong number.
+    uint16_t init_subsong;
 } Song;
 
 

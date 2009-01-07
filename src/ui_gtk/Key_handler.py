@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2008 Tomi Jylhä-Ollila
+# Copyright 2009 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -30,21 +30,21 @@ import liblo
 
 class Key_handler(gtk.Window):
 
-	def handle_key(self, widget, event):
-#		print(event.keyval)
-		pass
+    def handle_key(self, widget, event):
+#       print(event.keyval)
+        pass
 
-	def set_key(self, key, action):
-		if key in self.keys_to_act:
-			pass # key conflict
+    def set_key(self, key, action):
+        if key in self.keys_to_act:
+            pass # key conflict
 
-	def __init__(self, engine, server):
-		self.engine = engine
-		self.server = server
+    def __init__(self, engine, server):
+        self.engine = engine
+        self.server = server
 
-		keys_to_act = {}
-		act_to_keys = {}
+        keys_to_act = {}
+        act_to_keys = {}
 
-		gtk.Window.__init__(self)
+        gtk.Window.__init__(self)
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -42,11 +42,11 @@
  */
 typedef struct Reltime
 {
-	/// The number of beats.
-	int64_t beats;
-	/// Part of a beat.
-	/// Valid values are inside the interval [0, RELTIME_FULL_PART).
-	int32_t part;
+    /// The number of beats.
+    int64_t beats;
+    /// Part of a beat.
+    /// Valid values are inside the interval [0, RELTIME_FULL_PART).
+    int32_t part;
 } Reltime;
 
 
@@ -168,8 +168,8 @@ Reltime* Reltime_copy(Reltime* dest, const Reltime* src);
  * \return   The number of frames.
  */
 uint32_t Reltime_toframes(const Reltime* r,
-		double tempo,
-		uint32_t freq);
+        double tempo,
+        uint32_t freq);
 
 
 /**
@@ -183,9 +183,9 @@ uint32_t Reltime_toframes(const Reltime* r,
  * \return   The parameter \a r.
  */
 Reltime* Reltime_fromframes(Reltime* r,
-		uint32_t frames,
-		double tempo,
-		uint32_t freq);
+        uint32_t frames,
+        double tempo,
+        uint32_t freq);
 
 
 #endif // K_RELTIME_H

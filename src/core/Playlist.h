@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -31,12 +31,12 @@
 
 typedef struct Playlist
 {
-	uint32_t buf_count;
-	uint32_t buf_size;
-	Player* first;
-	double max_values[BUF_COUNT_MAX];
-	double min_values[BUF_COUNT_MAX];
-	bool reset;
+    uint32_t buf_count;
+    uint32_t buf_size;
+    Player* first;
+    double max_values[BUF_COUNT_MAX];
+    double min_values[BUF_COUNT_MAX];
+    bool reset;
 } Playlist;
 
 

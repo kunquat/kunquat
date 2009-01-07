@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,30 +33,30 @@
 
 typedef struct Voice_state
 {
-	/// Whether there is anything left to process.
-	bool active;
-	/// The frequency at which the note is played.
-	pitch_t freq;
-	/// The current playback position.
-	uint64_t pos;
-	/// The current playback position remainder.
-	double pos_rem;
-	/// The current relative playback position.
-	uint64_t rel_pos;
-	/// The current relative playback position remainder.
-	double rel_pos_rem;
-	/// Whether the note is still on.
-	bool note_on;
-	/// Note Off position.
-	uint64_t noff_pos;
-	/// Note Off position remainder.
-	double noff_pos_rem;
-	/// Whether the pedal is active.
-	bool pedal;
-	/// Note On volume envelope position.
-	double on_ve_pos;
-	/// Note Off volume envelope position.
-	double off_ve_pos;
+    /// Whether there is anything left to process.
+    bool active;
+    /// The frequency at which the note is played.
+    pitch_t freq;
+    /// The current playback position.
+    uint64_t pos;
+    /// The current playback position remainder.
+    double pos_rem;
+    /// The current relative playback position.
+    uint64_t rel_pos;
+    /// The current relative playback position remainder.
+    double rel_pos_rem;
+    /// Whether the note is still on.
+    bool note_on;
+    /// Note Off position.
+    uint64_t noff_pos;
+    /// Note Off position remainder.
+    double noff_pos_rem;
+    /// Whether the pedal is active.
+    bool pedal;
+    /// Note On volume envelope position.
+    double on_ve_pos;
+    /// Note Off volume envelope position.
+    double off_ve_pos;
 } Voice_state;
 
 

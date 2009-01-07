@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,10 +33,10 @@
 
 typedef enum
 {
-	VOICE_PRIO_INACTIVE = 0,
-	VOICE_PRIO_BG,
-	VOICE_PRIO_FG,
-	VOICE_PRIO_NEW
+    VOICE_PRIO_INACTIVE = 0,
+    VOICE_PRIO_BG,
+    VOICE_PRIO_FG,
+    VOICE_PRIO_NEW
 } Voice_prio;
 
 
@@ -46,12 +46,12 @@ typedef enum
  */
 typedef struct Voice
 {
-	uint16_t pool_index;   ///< Storage position in the Voice pool.
-	uint64_t id;           ///< An identification number for this initialisation.
-	Voice_prio prio;       ///< Current priority of the Voice.
-	Event_queue* events;   ///< Upcoming events.
-	Instrument* ins;       ///< The Instrument played.
-	Voice_state state;     ///< The current playback state.
+    uint16_t pool_index;   ///< Storage position in the Voice pool.
+    uint64_t id;           ///< An identification number for this initialisation.
+    Voice_prio prio;       ///< Current priority of the Voice.
+    Event_queue* events;   ///< Upcoming events.
+    Instrument* ins;       ///< The Instrument played.
+    Voice_state state;     ///< The current playback state.
 } Voice;
 
 
@@ -130,9 +130,9 @@ bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
  * \param freq     The mixing frequency -- must be > \c 0.
  */
 void Voice_mix(Voice* voice,
-		uint32_t amount,
-		uint32_t offset,
-		uint32_t freq);
+        uint32_t amount,
+        uint32_t offset,
+        uint32_t freq);
 
 
 /**

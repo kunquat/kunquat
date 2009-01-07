@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -32,66 +32,66 @@
 
 Pat_table* new_Pat_table(int size)
 {
-	assert(size > 0);
-	Pat_table* table = xalloc(Pat_table);
-	if (table == NULL)
-	{
-		return NULL;
-	}
-	table->pats = new_Etable(size, (void (*)(void*))del_Pattern);
-	if (table->pats == NULL)
-	{
-		xfree(table);
-		return NULL;
-	}
-	table->size = size;
-	return table;
+    assert(size > 0);
+    Pat_table* table = xalloc(Pat_table);
+    if (table == NULL)
+    {
+        return NULL;
+    }
+    table->pats = new_Etable(size, (void (*)(void*))del_Pattern);
+    if (table->pats == NULL)
+    {
+        xfree(table);
+        return NULL;
+    }
+    table->size = size;
+    return table;
 }
 
 
 bool Pat_table_set(Pat_table* table, int index, Pattern* pat)
 {
-	assert(table != NULL);
-	assert(index >= 0);
-	assert(index < table->size);
-	assert(pat != NULL);
-	return Etable_set(table->pats, index, pat);
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+    assert(pat != NULL);
+    return Etable_set(table->pats, index, pat);
 }
 
 
 Pattern* Pat_table_get(Pat_table* table, int index)
 {
-	assert(table != NULL);
-	assert(index >= 0);
-	assert(index < table->size);
-	return Etable_get(table->pats, index);
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+    return Etable_get(table->pats, index);
 }
 
 
 void Pat_table_remove(Pat_table* table, int index)
 {
-	assert(table != NULL);
-	assert(index >= 0);
-	assert(index < table->size);
-	Etable_remove(table->pats, index);
-	return;
+    assert(table != NULL);
+    assert(index >= 0);
+    assert(index < table->size);
+    Etable_remove(table->pats, index);
+    return;
 }
 
 
 void Pat_table_clear(Pat_table* table)
 {
-	assert(table != NULL);
-	Etable_clear(table->pats);
-	return;
+    assert(table != NULL);
+    Etable_clear(table->pats);
+    return;
 }
 
 
 void del_Pat_table(Pat_table* table)
 {
-	assert(table != NULL);
-	del_Etable(table->pats);
-	xfree(table);
-	return;
+    assert(table != NULL);
+    del_Etable(table->pats);
+    xfree(table);
+    return;
 }
 
 

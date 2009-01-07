@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,26 +28,26 @@
 
 
 bool env_info(Listener* lr,
-		lo_message m,
-		char* path,
-		int32_t ins_num,
-		Envelope* env)
+        lo_message m,
+        char* path,
+        int32_t ins_num,
+        Envelope* env)
 {
-	assert(lr != NULL);
-	assert(m != NULL);
-	assert(path != NULL);
-	assert(ins_num >= 0);
-	assert(env != NULL);
-	int nodes = Envelope_node_count(env);
-	lo_message_add_int32(m, nodes);
-	for (int i = 0; i < nodes; ++i)
-	{
-		double* node = Envelope_get_node(env, i);
-		assert(node != NULL);
-		lo_message_add_double(m, node[0]);
-		lo_message_add_double(m, node[1]);
-	}
-	return true;
+    assert(lr != NULL);
+    assert(m != NULL);
+    assert(path != NULL);
+    assert(ins_num >= 0);
+    assert(env != NULL);
+    int nodes = Envelope_node_count(env);
+    lo_message_add_int32(m, nodes);
+    for (int i = 0; i < nodes; ++i)
+    {
+        double* node = Envelope_get_node(env, i);
+        assert(node != NULL);
+        lo_message_add_double(m, node[0]);
+        lo_message_add_double(m, node[1]);
+    }
+    return true;
 }
 
 

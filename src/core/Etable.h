@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,10 +33,10 @@
  */
 typedef struct Etable
 {
-	int size;
-	int res;
-	void** els;
-	void (*destroy)(void* el);
+    int size;
+    int res;
+    void** els;
+    void (*destroy)(void* el);
 } Etable;
 
 

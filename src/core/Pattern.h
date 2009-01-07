@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -37,9 +37,9 @@
  */
 typedef struct Pattern
 {
-	Column* global;
-	Column* cols[COLUMNS_MAX];
-	Reltime length;
+    Column* global;
+    Column* cols[COLUMNS_MAX];
+    Reltime length;
 } Pattern;
 
 
@@ -111,9 +111,9 @@ Column* Pattern_global(Pattern* pat);
  *           mixing of the Pattern is complete.
  */
 uint32_t Pattern_mix(Pattern* pat,
-		uint32_t nframes,
-		uint32_t offset,
-		Playdata* play);
+        uint32_t nframes,
+        uint32_t offset,
+        Playdata* play);
 
 
 /**
