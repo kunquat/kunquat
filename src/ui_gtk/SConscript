@@ -19,17 +19,37 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import time
+
+
 Import('env')
 
-Export('env')
+env_gtk = env.Clone()
 
-SConscript('core/SConscript')
-SConscript('ui_gtk/SConscript')
+env_gtk.ParseConfig('pkg-config --cflags --libs gtk+-2.0')
 
+env_gtk.Append(CPPPATH = ['#/src/core'])
 
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
+env_gtk.Append(LIBPATH = ['#/src/core'])
+env_gtk.Append(LIBS = ['core'])
 
-#print 'src: ' + env.Dump('LIBS')
+env_gtk.ParseConfig('pkg-config --cflags --libs gtk+-2.0')
+
+env_gtk.Append(CPPPATH = ['#/src/core'])
+
+env_gtk.Append(LIBPATH = ['#/src/core'])
+env_gtk.Append(LIBS = ['core'])
+
+files = [
+    'Key_handler.c',
+    'Songs.c',
+    'Song_view.c',
+    'main.c',
+]
+
+env_gtk.Append(CCFLAGS = ('-DBUILD_TIME=\'"' +
+        time.strftime('%Y-%m-%d') + '"\'').split(' '))
+
+env_gtk.Program('kunquat', files)
 
 
