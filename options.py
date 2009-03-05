@@ -4,7 +4,7 @@
 debug = True
 
 # Build and run tests.
-tests = True
+tests = False
 
 # Optimisation level (0..3).
 optimise = 2

@@ -150,7 +150,8 @@ void Playlist_schedule_reset(Playlist* playlist);
 /**
  * Destroys an existing Playlist.
  *
- * \param playlist   The Playlist -- must not be \c NULL.
+ * \param playlist   The Playlist -- must not be \c NULL. All the Players
+ *                   contained in the Playlist are also destroyed.
  */
 void del_Playlist(Playlist* playlist);
 

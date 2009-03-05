@@ -157,6 +157,8 @@ void Player_set_mix_freq(Player* player, uint32_t freq);
 /**
  * Destroys an existing Player.
  *
+ * The Song inside the player is also destroyed.
+ *
  * \param player   The Player -- must not be \c NULL.
  */
 void del_Player(Player* player);

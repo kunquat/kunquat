@@ -10,16 +10,24 @@
 #include "Song_view.h"
 
 
+static GtkWidgetClass* parent_class = NULL;
+
+
+static void Song_view_destroy(GtkObject* obj);
+
+
 static void Song_view_class_init(Song_view_class* cl)
 {
-    (void)cl;
+    parent_class = gtk_type_class(gtk_widget_get_type());
+    GtkObjectClass* ocl = (GtkObjectClass*)cl;
+    ocl->destroy = Song_view_destroy;
     return;
 }
 
 
 static void Song_view_init(Song_view* sv)
 {
-    (void)sv;
+    sv->player = NULL;
     return;
 }
 
@@ -48,12 +56,43 @@ GType Song_view_get_type(void)
 }
 
 
-GtkWidget* Song_view_new(void)
+GtkWidget* Song_view_new(Player* player)
 {
+    g_assert(player != NULL);
     Song_view* sv = SONG_VIEW(g_object_new(SONG_VIEW_TYPE, NULL));
-    GTK_BOX(sv)->spacing = 0;
-    GTK_BOX(sv)->homogeneous = FALSE;
+    sv->player = player;
+    gtk_box_set_spacing(GTK_BOX(sv), 0);
+    gtk_box_set_homogeneous(GTK_BOX(sv), FALSE);
     return GTK_WIDGET(sv);
+}
+
+
+Player* Song_view_get_player(Song_view* sv)
+{
+    g_warn_if_fail(sv != NULL);
+    return sv->player;
+}
+
+
+Player* Song_view_detach_player(Song_view* sv)
+{
+    Player* player = sv->player;
+    sv->player = NULL;
+    return player;
+}
+
+
+static void Song_view_destroy(GtkObject* obj)
+{
+    g_return_if_fail(obj != NULL);
+    g_return_if_fail(IS_SONG_VIEW(obj));
+    Song_view* sv = SONG_VIEW(obj);
+    sv->player = NULL;
+    if (GTK_OBJECT_CLASS(parent_class)->destroy)
+    {
+        (*GTK_OBJECT_CLASS(parent_class)->destroy)(obj);
+    }
+    return;
 }
 
 

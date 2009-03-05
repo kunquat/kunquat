@@ -75,10 +75,10 @@ GtkWidget* Key_handler_new(Songs* songs)
 
 gboolean Key_handler_handle(GtkWidget* kh, GdkEventKey* event, gpointer data)
 {
-    assert(kh != NULL);
-    assert(event != NULL);
+    g_assert(kh != NULL);
+    g_assert(event != NULL);
     (void)data;
-    printf("%lu\n", (unsigned long)event->keyval);
+    g_print("%lu\n", (unsigned long)event->keyval);
     return TRUE;
 }
 

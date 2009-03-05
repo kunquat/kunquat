@@ -4,7 +4,11 @@
 #define K_UI_SONG_VIEW_H
 
 
+#include <stdint.h>
+
 #include <glib.h>
+
+#include <Player.h>
 
 
 G_BEGIN_DECLS
@@ -20,6 +24,7 @@ G_BEGIN_DECLS
 typedef struct _Song_view
 {
     GtkVBox vbox;
+    Player* player;
 } Song_view;
 
 
@@ -32,7 +37,36 @@ typedef struct _Song_view_class
 GType Song_view_get_type(void);
 
 
-GtkWidget* Song_view_new(void);
+/**
+ * Creates a new Song view.
+ *
+ * \param player   The Player associated with this Song view -- must not be
+ *                 \c NULL.
+ *
+ * \return   The new Song view.
+ */
+GtkWidget* Song_view_new(Player* player);
+
+
+/**
+ * Returns the Player associated with the Song view.
+ *
+ * \param sv   The Song view -- must not be \c NULL.
+ *
+ * \return   The Player, or \c NULL if the Player has been detached.
+ */
+Player* Song_view_get_player(Song_view* sv);
+
+
+/**
+ * Detaches the Player associated with the Song view.
+ *
+ * \param sv   The Song view -- must not be \c NULL.
+ *
+ * \return   The Player detached, or \c NULL if the Player was already
+ *           detached.
+ */
+Player* Song_view_detach_player(Song_view* sv);
 
 
 G_END_DECLS
