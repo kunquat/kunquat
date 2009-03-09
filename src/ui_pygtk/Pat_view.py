@@ -600,7 +600,7 @@ class Pat_view(gtk.Widget):
         key_mask |= event.state & gdk.CONTROL_MASK
         key_mask |= event.state & gdk.SHIFT_MASK
         key_mask |= event.state & gdk.MOD1_MASK
-        key_mask |= event.state & gdk.MOD2_MASK
+        #key_mask |= event.state & gdk.MOD2_MASK # This acts in a weird way...
         key_mask |= event.state & gdk.MOD3_MASK
         key_mask |= event.state & gdk.MOD4_MASK
         key_mask |= event.state & gdk.MOD5_MASK
