@@ -28,12 +28,21 @@ In order to run the user interface you'll need:
 Additionally, if you're building the test code, you'll need:
 
   Check (http://check.sourceforge.net/)
+   
 
+    Installing the Dependencies
+    ---------------------------
 
-On a freshly installed Ubuntu system you should be able to get all the
-required stuff (except for pyliblo) by running the following command:
+Ubuntu:
 
-sudo apt-get install build-essential scons liblo0-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check
+On Ubuntu 9.04 (Jaunty Jackalope) you should be able to get all the
+required stuff by running the following command:
+
+sudo apt-get install build-essential scons liblo0-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check pyliblo-utils
+
+On Ubuntu 8.04 (Hardy Heron) and Ubuntu Ubuntu 8.10 (Intrepid Ibex),
+you need to first enable downloads from Dominic Sacré's PPA.
+See https://launchpad.net/~dooooomi/+archive/ppa for details.
 
 
     Building instructions
