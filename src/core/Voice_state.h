@@ -31,6 +31,12 @@
 #include <pitch_t.h>
 
 
+typedef struct Voice_state_sine
+{
+    double phase;
+} Voice_state_sine;
+
+
 typedef struct Voice_state
 {
     /// Whether there is anything left to process.
@@ -57,17 +63,42 @@ typedef struct Voice_state
     double on_ve_pos;
     /// Note Off volume envelope position.
     double off_ve_pos;
+    /// Instrument-specific fields.
+    union
+    {
+        Voice_state_sine sine;
+//        Voice_state_pcm pcm;
+    } ins_fields;
 } Voice_state;
 
 
 /**
  * Initialises a Voice state.
  *
+ * \param state        The Voice state -- must not be \c NULL.
+ * \param init_state   The initialiser for Instrument-specific data, if
+ *                     applicable.
+ *
+ * \return   The parameter \a state.
+ */
+Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state*));
+
+
+/**
+ * Clears a Voice state.
  * \param state   The Voice state -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state);
+Voice_state* Voice_state_clear(Voice_state* state);
+
+
+/**
+ * Initialises the Sine Instrument parameters.
+ *
+ * \param sine   The Sine parameters -- must not be \c NULL.
+ */
+void Voice_state_sine_init(Voice_state* state);
 
 
 #endif // K_VOICE_STATE_H

@@ -155,6 +155,8 @@ typedef struct Instrument
     void* type_data;
     /// Initialiser for type-specific data -- returns \c 0 on success.
     int (*init)(struct Instrument*);
+    /// Initialiser for type-specific Voice state information.
+    void (*init_state)(Voice_state*);
     /// Uninitialiser for type-specific data.
     void (*uninit)(struct Instrument*);
     /// Mixing algorithm used.

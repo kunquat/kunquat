@@ -26,22 +26,44 @@
 #include "Voice_state.h"
 
 
-Voice_state* Voice_state_init(Voice_state* state)
+Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state*))
 {
     assert(state != NULL);
+    Voice_state_clear(state);
     state->active = true;
+    state->note_on = true;
+    if (init_state != NULL)
+    {
+        init_state(state);
+    }
+    return state;
+}
+
+
+Voice_state* Voice_state_clear(Voice_state* state)
+{
+    assert(state != NULL);
+    state->active = false;
     state->freq = 0;
     state->pos = 0;
     state->pos_rem = 0;
     state->rel_pos = 0;
     state->rel_pos_rem = 0;
-    state->note_on = true;
+    state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
     state->pedal = false;
     state->on_ve_pos = 0;
     state->off_ve_pos = 0;
     return state;
+}
+
+
+void Voice_state_sine_init(Voice_state* state)
+{
+    assert(state != NULL);
+    state->ins_fields.sine.phase = 0;
+    return;
 }
 
 

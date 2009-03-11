@@ -62,6 +62,7 @@ Instrument* new_Instrument(Ins_type type,
     ins->filter_off_env = NULL;
     ins->type_data = NULL;
     ins->init = NULL;
+    ins->init_state = NULL;
     ins->uninit = NULL;
     ins->mix = NULL;
     ins->events = new_Event_queue(events);
@@ -208,6 +209,7 @@ Instrument* new_Instrument(Ins_type type,
             break;
         case INS_TYPE_SINE:
             ins->mix = Instrument_sine_mix;
+            ins->init_state = Voice_state_sine_init;
             break;
         case INS_TYPE_PCM:
             ins->mix = Instrument_pcm_mix;

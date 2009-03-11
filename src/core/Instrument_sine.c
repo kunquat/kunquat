@@ -54,7 +54,7 @@ void Instrument_sine_mix(Instrument* ins,
     {
         double val_l = 0;
         double val_r = 0;
-        val_l = val_r = sin(state->rel_pos_rem) / 6;
+        val_l = val_r = sin(state->ins_fields.sine.phase) / 6;
         if (state->pos_rem < 0.002)
         {
             val_l = val_r = val_l * (state->pos_rem * 500);
@@ -71,10 +71,10 @@ void Instrument_sine_mix(Instrument* ins,
                 val_l = val_r = (val_l / 3) * (1 - state->noff_pos_rem);
             }
         }
-        state->rel_pos_rem += state->freq * PI_2 / freq;
-        if (state->rel_pos_rem >= PI_2)
+        state->ins_fields.sine.phase += state->freq * PI_2 / freq;
+        if (state->ins_fields.sine.phase >= PI_2)
         {
-            state->rel_pos_rem -= floor(state->rel_pos_rem / PI_2) * PI_2;
+            state->ins_fields.sine.phase -= floor(state->ins_fields.sine.phase / PI_2) * PI_2;
         }
         ins->bufs[0][i] += val_l;
         ins->bufs[1][i] += val_r;

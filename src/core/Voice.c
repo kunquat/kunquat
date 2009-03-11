@@ -48,7 +48,7 @@ Voice* new_Voice(uint8_t events)
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->ins = NULL;
-    Voice_state_init(&voice->state);
+    Voice_state_clear(&voice->state);
     return voice;
 }
 
@@ -74,7 +74,7 @@ void Voice_init(Voice* voice, Instrument* ins)
     assert(ins != NULL);
     voice->prio = VOICE_PRIO_NEW;
     voice->ins = ins;
-    Voice_state_init(&voice->state);
+    Voice_state_init(&voice->state, ins->init_state);
     Event_queue_clear(voice->events);
     return;
 }
@@ -86,7 +86,7 @@ void Voice_reset(Voice* voice)
     voice->prio = VOICE_PRIO_INACTIVE;
     Event_queue_clear(voice->events);
     voice->ins = NULL;
-    Voice_state_init(&voice->state);
+    Voice_state_clear(&voice->state);
     return;
 }
 

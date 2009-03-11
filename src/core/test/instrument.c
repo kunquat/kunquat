@@ -114,7 +114,7 @@ START_TEST (mix)
         abort();
     }
     Voice_state state;
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     state.freq = 16;
     Instrument_mix(ins, &state, 128, 0, 64);
     fail_unless(!state.active,
@@ -140,7 +140,7 @@ START_TEST (mix)
                     "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
         }
     }
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -183,7 +183,7 @@ START_TEST (mix)
                     "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
         }
     }
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -227,7 +227,7 @@ START_TEST (mix)
         }
     }
     
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -271,7 +271,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
     
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -315,7 +315,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
     
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 1;
@@ -359,7 +359,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
     }
 
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -388,7 +388,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
 
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -425,7 +425,7 @@ END_TEST
 START_TEST (mix_break_ins_null)
 {
     Voice_state state;
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     Instrument_mix(NULL, &state, 0, 0, 1);
 }
 END_TEST
@@ -460,7 +460,7 @@ START_TEST (mix_break_nframes_inv)
         return;
     }
     Voice_state state;
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     Instrument_mix(ins, &state, 2, 0, 1);
     del_Instrument(ins);
 }
@@ -479,7 +479,7 @@ START_TEST (mix_break_freq_inv)
         return;
     }
     Voice_state state;
-    Voice_state_init(&state);
+    Voice_state_init(&state, NULL);
     Instrument_mix(ins, &state, 1, 0, 0);
     del_Instrument(ins);
 }
