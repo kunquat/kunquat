@@ -125,6 +125,8 @@ void Channel_set_voices(Channel* ch,
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
                 uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
                         + offset;
+                // FIXME: it seems that we may use ch->note_off for several Voices
+                //        -- this leads to slightly incorrect Note Off positions
                 if (!Voice_add_event(ch->fg, ch->note_off, abs_pos))
                 {
                     // Kill the Voice so that it doesn't
