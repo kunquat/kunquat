@@ -126,6 +126,12 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         uint16_t active_voices = Voice_pool_mix(play->voice_pool,
                 nframes, mixed, play->freq);
+        if (active_voices == 0)
+        {
+            play->active_voices = 0;
+            play->mode = STOP;
+            return nframes;
+        }
         if (play->active_voices < active_voices)
         {
             play->active_voices = active_voices;
