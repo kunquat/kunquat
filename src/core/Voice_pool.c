@@ -140,6 +140,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     {
         return false;
     }
+    pool->voices = new_voices;
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
         pool->voices[i] = NULL;
