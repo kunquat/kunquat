@@ -25,6 +25,8 @@ Export('env')
 
 SConscript('core/SConscript')
 SConscript('ui_gtk/SConscript')
+if env['enable_listener']:
+    SConscript('Listener/SConscript')
 
 
 if not env.GetOption('clean') and 'check' in env['LIBS']:

@@ -26,8 +26,6 @@ Export('env')
 if env['tests']:
     SConscript('test/SConscript')
 
-SConscript('Listener/SConscript')
-
 #print 'core: ' + env.Dump('LIBS')
 
 env.Append(CPPPATH = ['#/src/core'])

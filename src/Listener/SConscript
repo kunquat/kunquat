@@ -27,7 +27,7 @@ Import('env')
 env_l = env.Clone()
 
 env_l.Append(CPPPATH = ['#/src/core'])
-env_l.Append(CPPPATH = ['#/src/core/Listener'])
+env_l.Append(CPPPATH = ['#/src/Listener'])
 
 env_l.Append(LIBPATH = ['#/src/core'])
 env_l.Append(LIBS = ['core'])

@@ -32,6 +32,7 @@ opts.AddOptions(
     BoolOption('enable_jack', 'Enable JACK driver.', True),
     BoolOption('enable_ao', 'Enable libao driver.', True),
     BoolOption('enable_alsa', 'Enable ALSA driver (not recommended!).', False),
+    BoolOption('enable_listener', 'Enable Listener over Open Sound Control (requires liblo) (deprecated)', False),
     PathOption('liblo_path', 'Alternative liblo installation path.', '', PathOption.PathAccept)
 )
 
@@ -59,7 +60,7 @@ if env['optimise'] > 0 and env['optimise'] <= 3:
     env.Append(CCFLAGS = [oflag])
 
 
-if env['liblo_path']:
+if env['enable_listener'] and env['liblo_path']:
     env.Append(CPPPATH = env['liblo_path'] + '/include')
     env.Append(LIBPATH = env['liblo_path'] + '/lib')
 
@@ -111,8 +112,8 @@ if not env.GetOption('clean'):
         print('Error: Math library not found.')
         Exit(1)
 
-    if not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
-        print('Error: liblo not found.')
+    if env['enable_listener'] and not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
+        print('Error: Listener was requested but liblo was not found.')
         Exit(1)
 
     conf.env.Append(CCFLAGS = '-Dushort=uint16_t')

@@ -19,6 +19,9 @@ enable_ao = True
 # NOTE: Using this driver is not recommended! Use the libao driver instead.
 enable_alsa = False
 
+# Enable Listener over Open Sound Control (requires liblo) (deprecated)
+enable_listener = True
+
 # Installation path of liblo -- leave blank for system default.
 # Headers are searched from <dir>/include and the library from <dir>/lib.
 # Make sure that the environment variable LD_LIBRARY_PATH also includes the
