@@ -24,16 +24,16 @@ def valid_optimise(key, val, env):
         raise Exception, 'Invalid optimisation value %s (must be in range 0..3)' % val
 
 
-opts = Options(['options.py'])
-opts.AddOptions(
-    BoolOption('debug', 'Build in debug mode.', True),
-    BoolOption('tests', 'Build and run tests.', True),
+opts = Variables(['options.py'])
+opts.AddVariables(
+    BoolVariable('debug', 'Build in debug mode.', True),
+    BoolVariable('tests', 'Build and run tests.', True),
     ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
-    BoolOption('enable_jack', 'Enable JACK driver.', True),
-    BoolOption('enable_ao', 'Enable libao driver.', True),
-    BoolOption('enable_alsa', 'Enable ALSA driver (not recommended!).', False),
-    BoolOption('enable_listener', 'Enable Listener over Open Sound Control (requires liblo) (deprecated)', False),
-    PathOption('liblo_path', 'Alternative liblo installation path.', '', PathOption.PathAccept)
+    BoolVariable('enable_jack', 'Enable JACK driver.', True),
+    BoolVariable('enable_ao', 'Enable libao driver.', True),
+    BoolVariable('enable_alsa', 'Enable ALSA driver (not recommended!).', False),
+    BoolVariable('enable_listener', 'Enable Listener over Open Sound Control (requires liblo) (deprecated)', False),
+    PathVariable('liblo_path', 'Alternative liblo installation path.', '', PathVariable.PathAccept)
 )
 
 
