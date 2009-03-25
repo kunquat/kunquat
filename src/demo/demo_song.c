@@ -20,23 +20,9 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-#include <stdio.h>
-#include <string.h>
-#include <math.h>
+#include <stdint.h>
 
-#include <Reltime.h>
-#include <Event.h>
-#include <Instrument.h>
-#include <Ins_table.h>
-#include <Pattern.h>
-#include <Pat_table.h>
-#include <Song.h>
-
-#include "Listener.h"
-#include "Listener_demo.h"
-#include "Listener_pattern.h"
+#include "demo_song.h"
 
 
 typedef struct Ndesc
@@ -46,6 +32,7 @@ typedef struct Ndesc
     int note;
     int octave;
 } Ndesc;
+
 
 static Ndesc demo_p1ch1[] =
 {
@@ -123,28 +110,10 @@ static Ndesc demo_p2ch2[] =
 };
 
 
-int Listener_demo(const char* path,
-        const char* types,
-        lo_arg** argv,
-        int argc,
-        lo_message msg,
-        void* user_data)
+Player* demo_song_create(uint32_t nframes, uint32_t freq)
 {
-    (void)path;
-    (void)types;
-    (void)argv;
-    (void)argc;
-    (void)msg;
-    assert(user_data != NULL);
-    Listener* lr = user_data;
-    if (lr->host == NULL)
-    {
-        return 0;
-    }
+    Song* song = new_Song(2, nframes, 16);
     Player* player = NULL;
-    Song* song = new_Song(Playlist_get_buf_count(lr->playlist),
-            Playlist_get_buf_size(lr->playlist),
-            16); // TODO: get params from relevant parts of the Listener
     if (song == NULL)
     {
         goto cleanup;
@@ -163,14 +132,13 @@ int Listener_demo(const char* path,
     Note_table_set_name(notes, L"5-limit JI (C major)");
     Song_set_tempo(song, 0, 110);
     Song_set_global_vol(song, 0, 0);
-    player = new_Player(lr->freq, lr->voice_count, song);
+    player = new_Player(freq, 64, song);
     if (player == NULL)
     {
         goto cleanup;
     }
-    assert(song != NULL);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, 128, 16);
+    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, nframes, 16);
     if (ins == NULL)
     {
         goto cleanup;
@@ -294,16 +262,10 @@ int Listener_demo(const char* path,
     {
         goto cleanup;
     }
-    Playlist_ins(lr->playlist, player);
-    lo_message m = new_msg();
-    lo_message_add_int32(m, player->id);
-    int ret = 0;
-    send_msg(lr, "new_song", m, ret);
-    lo_message_free(m);
-    return 0;
+    return player;
 
 cleanup:
-    
+
     if (player != NULL)
     {
         del_Player(player);
@@ -312,8 +274,7 @@ cleanup:
     {
         del_Song(song);
     }
-    send_memory_fail(lr, "the demo");
-    return 0;
+    return NULL;
 }
 
 

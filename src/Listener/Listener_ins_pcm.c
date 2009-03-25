@@ -287,6 +287,7 @@ int Listener_ins_pcm_del_mapping(const char* path,
 bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
 {
     assert(lr != NULL);
+    (void)lr;
     assert(m != NULL);
     assert(ins != NULL);
     assert(Instrument_get_type(ins) == INS_TYPE_PCM);

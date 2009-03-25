@@ -163,6 +163,58 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq)
 }
 
 
+void Playlist_mix(Playlist* playlist, uint32_t nframes, frame_t** bufs)
+{
+    assert(playlist != NULL);
+    assert(bufs != NULL);
+    assert(bufs[0] != NULL);
+    Player* player = playlist->first;
+    int max_buf_count = 0;
+    while (player != NULL)
+    {
+        Playdata* play = Player_get_playdata(player);
+        if (!play->mode)
+        {
+            player = player->next;
+            continue;
+        }
+        assert(play->mode > STOP);
+        assert(play->mode < PLAY_LAST);
+        uint32_t mixed = Player_mix(player, nframes);
+        int buf_count = Song_get_buf_count(player->song);
+        if (max_buf_count < buf_count)
+        {
+            max_buf_count = buf_count;
+        }
+        frame_t** song_bufs = Song_get_bufs(player->song);
+        for (int i = 0; i < buf_count; ++i)
+        {
+            assert(bufs[i] != NULL);
+            for (uint32_t k = 0; k < mixed; ++k)
+            {
+                bufs[i][k] += song_bufs[i][k];
+            }
+        }
+        player = player->next;
+    }
+    for (int i = 0; i < max_buf_count; ++i)
+    {
+        for (uint32_t k = 0; k < nframes; ++k)
+        {
+            if (playlist->max_values[i] < bufs[i][k])
+            {
+                playlist->max_values[i] = bufs[i][k];
+            }
+            if (playlist->min_values[i] > bufs[i][k])
+            {
+                playlist->min_values[i] = bufs[i][k];
+            }
+        }
+    }
+    return;
+}
+
+
 void Playlist_reset_stats(Playlist* playlist)
 {
     assert(playlist != NULL);

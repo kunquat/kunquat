@@ -26,14 +26,15 @@ def valid_optimise(key, val, env):
 
 opts = Variables(['options.py'])
 opts.AddVariables(
-    BoolVariable('debug', 'Build in debug mode.', True),
-    BoolVariable('tests', 'Build and run tests.', True),
     ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
-    BoolVariable('enable_jack', 'Enable JACK driver.', True),
-    BoolVariable('enable_ao', 'Enable libao driver.', True),
-    BoolVariable('enable_alsa', 'Enable ALSA driver (not recommended!).', False),
+    BoolVariable('enable_debug', 'Build in debug mode.', True),
+    BoolVariable('enable_tests', 'Build and run tests.', True),
+    BoolVariable('enable_demo', 'Enable the command line demo', True),
     BoolVariable('enable_listener', 'Enable Listener over Open Sound Control (requires liblo) (deprecated)', False),
-    PathVariable('liblo_path', 'Alternative liblo installation path.', '', PathVariable.PathAccept)
+    BoolVariable('with_jack', 'Enable JACK driver.', True),
+    BoolVariable('with_ao', 'Enable libao driver.', True),
+    BoolVariable('with_alsa', 'Enable ALSA driver (not recommended!).', False),
+    PathVariable('with_liblo_path', 'Alternative liblo installation path.', '', PathVariable.PathAccept)
 )
 
 
@@ -50,7 +51,7 @@ env = Environment(options = opts, CCFLAGS = compile_flags)
 Help(opts.GenerateHelpText(env))
 
 
-if env['debug']:
+if env['enable_debug']:
     env.Append(CCFLAGS = ['-g'])
 else:
     env.Append(CCFLAGS = ['-DNDEBUG'])
@@ -60,9 +61,9 @@ if env['optimise'] > 0 and env['optimise'] <= 3:
     env.Append(CCFLAGS = [oflag])
 
 
-if env['enable_listener'] and env['liblo_path']:
-    env.Append(CPPPATH = env['liblo_path'] + '/include')
-    env.Append(LIBPATH = env['liblo_path'] + '/lib')
+if env['enable_listener'] and env['with_liblo_path']:
+    env.Append(CPPPATH = env['with_liblo_path'] + '/include')
+    env.Append(LIBPATH = env['with_liblo_path'] + '/lib')
 
 
 audio_found = False
@@ -122,47 +123,47 @@ if not env.GetOption('clean'):
         print('Error: WavPack not found.')
         Exit(1)
 
-    if env['enable_jack']:
+    if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DENABLE_JACK')
         else:
             print('Warning: JACK driver was requested but JACK was not found.')
-            env['enable_jack'] = False
+            env['with_jack'] = False
     
-    need_pthread = env['enable_alsa'] or env['enable_ao']
+    need_pthread = env['with_alsa'] or env['with_ao']
     pthread_found = False
     if need_pthread and not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
         names = []
-        if env['enable_alsa']:
+        if env['with_alsa']:
             names += ['ALSA']
-            env['enable_alsa'] = False
-        if env['enable_ao']:
+            env['with_alsa'] = False
+        if env['with_ao']:
             names += ['ao']
-            env['enable_ao'] = False
+            env['with_ao'] = False
         dr = 'driver requires'
         if len(names) > 1:
             dr = 'drivers require'
         print('Warning: The requested %s %s pthread which was not found.' %
                 (' and '.join(names), dr))
 
-    if env['enable_alsa']:
+    if env['with_alsa']:
         if conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
         else:
             print('Warning: ALSA driver was requested but ALSA was not found.')
-            env['enable_alsa'] = False
+            env['with_alsa'] = False
 
-    if env['enable_ao']:
+    if env['with_ao']:
         if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DENABLE_AO')
         else:
             print('Warning: libao driver was requested but libao was not found.')
-            env['enable_ao'] = False
+            env['with_ao'] = False
 
-    if env['tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
+    if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
         print('Error: Building of unit tests was requested but Check was not found.')
         Exit(1)
         

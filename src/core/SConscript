@@ -23,7 +23,7 @@ Import('env')
 
 Export('env')
 
-if env['tests']:
+if env['enable_tests']:
     SConscript('test/SConscript')
 
 #print 'core: ' + env.Dump('LIBS')
@@ -60,14 +60,14 @@ files = [
     'Playlist.c',
 ]
 
-if env['enable_jack']:
+if env['with_jack']:
     files += ['Driver_jack.c']
 
-if env['enable_alsa']:
-    files += ['Driver_alsa.c']
-
-if env['enable_ao']:
+if env['with_ao']:
     files += ['Driver_ao.c']
+
+if env['with_alsa']:
+    files += ['Driver_alsa.c']
 
 env.StaticLibrary('core', files)
 

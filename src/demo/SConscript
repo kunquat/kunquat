@@ -21,19 +21,18 @@
 
 Import('env')
 
-Export('env')
+env_l = env.Clone()
 
-SConscript('core/SConscript')
-if env['enable_demo']:
-    SConscript('demo/SConscript')
-SConscript('ui_gtk/SConscript')
-if env['enable_listener']:
-    SConscript('Listener/SConscript')
+env_l.Append(CPPPATH = ['#/src/core'])
 
+env_l.Append(LIBPATH = ['#/src/core'])
+env_l.Append(LIBS = ['core'])
 
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
+files = [
+    'demo.c',
+    'demo_song.c',
+]
 
-#print 'src: ' + env.Dump('LIBS')
+env_l.Program('demo', files)
 
 

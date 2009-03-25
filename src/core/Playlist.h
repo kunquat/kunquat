@@ -132,6 +132,19 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq);
 
 
 /**
+ * Mixes the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param nframes    The number of frames to be mixed.
+ * \param bufs       An array of mixing buffers -- must not be \c NULL.
+ *                   The array must contain enough mixing buffers (maximum
+ *                   amount returned by Song_set_buf_count for each Song).
+ *                   The function does not initialise the buffers to 0.
+ */
+void Playlist_mix(Playlist* playlist, uint32_t nframes, frame_t** bufs);
+
+
+/**
  * Resets playback statistics.
  *
  * \param playlist   The Playlist -- must not be \c NULL.

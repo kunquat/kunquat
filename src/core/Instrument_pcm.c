@@ -245,6 +245,10 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
         uint8_t index,
         uint16_t sample, double freq_scale, double vol_scale)
 {
+    (void)source;
+    (void)style;
+    (void)strength_id;
+    (void)index;
     assert(ins != NULL);
     assert(ins->type == INS_TYPE_PCM);
     assert(ins->type_data != NULL);
@@ -293,6 +297,9 @@ bool Instrument_pcm_del_sample_mapping(Instrument* ins,
         double ins_freq,
         uint8_t index)
 {
+    (void)source;
+    (void)style;
+    (void)strength_id;
     assert(ins != NULL);
     assert(ins->type == INS_TYPE_PCM);
     assert(ins->type_data != NULL);
