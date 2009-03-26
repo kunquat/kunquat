@@ -173,7 +173,7 @@ Player* demo_song_create(uint32_t nframes, uint32_t freq)
         Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
                 (int)floor(demo_p1ch1[i].pos),
                 (int)((demo_p1ch1[i].pos - floor(demo_p1ch1[i].pos))
-                        * RELTIME_FULL_PART)));
+                        * RELTIME_BEAT)));
         if (demo_p1ch1[i].type == EVENT_TYPE_NOTE_ON)
         {
             Event_set_int(ev, 0, demo_p1ch1[i].note);
@@ -209,7 +209,7 @@ Player* demo_song_create(uint32_t nframes, uint32_t freq)
         Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
                 (int)floor(demo_p2ch1[i].pos),
                 (int)((demo_p2ch1[i].pos - floor(demo_p2ch1[i].pos))
-                        * RELTIME_FULL_PART)));
+                        * RELTIME_BEAT)));
         if (demo_p2ch1[i].type == EVENT_TYPE_NOTE_ON)
         {
             Event_set_int(ev, 0, demo_p2ch1[i].note);
@@ -234,7 +234,7 @@ Player* demo_song_create(uint32_t nframes, uint32_t freq)
         Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
                 (int)floor(demo_p2ch2[i].pos),
                 (int)((demo_p2ch2[i].pos - floor(demo_p2ch2[i].pos))
-                        * RELTIME_FULL_PART)));
+                        * RELTIME_BEAT)));
         if (demo_p2ch2[i].type == EVENT_TYPE_NOTE_ON)
         {
             Event_set_int(ev, 0, demo_p2ch2[i].note);

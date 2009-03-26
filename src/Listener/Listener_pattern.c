@@ -200,7 +200,7 @@ int Listener_set_pat_len(const char* path,
     }
     int64_t beats = argv[2]->h;
     int32_t rem = argv[3]->i;
-    check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+    check_cond(lr, rem >= 0 && rem < RELTIME_BEAT,
             "The Pattern length remainder (%ld)", (long)rem);
     Reltime* len = Reltime_set(RELTIME_AUTO, beats, rem);
     Pattern_set_length(pat, len);
@@ -272,7 +272,7 @@ static bool check_event_reference(Listener* lr,
     }
     int64_t beats = argv[3]->h;
     int32_t rem = argv[4]->i;
-    check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+    check_cond(lr, rem >= 0 && rem < RELTIME_BEAT,
             "The row position remainder (%ld)", (long)rem);
     Reltime_set(pos, beats, rem);
     int32_t event_order = argv[5]->i;
@@ -604,7 +604,7 @@ int Listener_pat_del_row(const char* path,
     }
     int64_t beats = argv[3]->h;
     int32_t rem = argv[4]->i;
-    check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+    check_cond(lr, rem >= 0 && rem < RELTIME_BEAT,
             "The row position remainder (%ld)", (long)rem);
     Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
     if (Column_remove_row(col, pos))
@@ -659,12 +659,12 @@ int Listener_pat_shift_up(const char* path,
     }
     int64_t beats = argv[3]->h;
     int32_t rem = argv[4]->i;
-    check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+    check_cond(lr, rem >= 0 && rem < RELTIME_BEAT,
             "The shift position remainder (%ld)", (long)rem);
     Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
     int64_t len_beats = argv[5]->h;
     int32_t len_rem = argv[6]->i;
-    check_cond(lr, len_rem >= 0 && len_rem < RELTIME_FULL_PART,
+    check_cond(lr, len_rem >= 0 && len_rem < RELTIME_BEAT,
             "The shift length remainder (%ld)", (long)len_rem);
     Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_rem);
     Column_shift_up(col, pos, len);
@@ -717,12 +717,12 @@ int Listener_pat_shift_down(const char* path,
     }
     int64_t beats = argv[3]->h;
     int32_t rem = argv[4]->i;
-    check_cond(lr, rem >= 0 && rem < RELTIME_FULL_PART,
+    check_cond(lr, rem >= 0 && rem < RELTIME_BEAT,
             "The shift position remainder (%ld)", (long)rem);
     Reltime* pos = Reltime_set(RELTIME_AUTO, beats, rem);
     int64_t len_beats = argv[5]->h;
     int32_t len_rem = argv[6]->i;
-    check_cond(lr, len_rem >= 0 && len_rem < RELTIME_FULL_PART,
+    check_cond(lr, len_rem >= 0 && len_rem < RELTIME_BEAT,
             "The shift length remainder (%ld)", (long)len_rem);
     Reltime* len = Reltime_set(RELTIME_AUTO, len_beats, len_rem);
     Column_shift_down(col, pos, len);
@@ -758,8 +758,8 @@ static bool event_info(Listener* lr,
     lo_message_add_int32(m, song_id);
     lo_message_add_int32(m, pat_num);
     lo_message_add_int32(m, ch_num);
-    lo_message_add_int64(m, pos->beats);
-    lo_message_add_int32(m, pos->part);
+    lo_message_add_int64(m, Reltime_get_beats(pos));
+    lo_message_add_int32(m, Reltime_get_rem(pos));
     lo_message_add_int32(m, index);
     lo_message_add_int32(m, event->type);
     bool got_val = false;

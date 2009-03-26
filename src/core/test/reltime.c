@@ -43,8 +43,8 @@ START_TEST (init)
             "Reltime_init() returned %p instead of %p.", rp, &rel);
     fail_unless(rp->beats == 0,
             "Reltime_init() set beats to %lld instead of 0.", (long long)rp->beats);
-    fail_unless(rp->part == 0,
-            "Reltime_init() set part to %ld instead of 0.", (long)rp->part);
+    fail_unless(rp->rem == 0,
+            "Reltime_init() set remainder to %ld instead of 0.", (long)rp->rem);
 }
 END_TEST
 
@@ -59,9 +59,9 @@ END_TEST
 START_TEST (set)
 {
     int64_t beat_values[] = { INT64_MIN, INT64_MIN + 1, -1, 0, 1, INT64_MAX - 1, INT64_MAX };
-    int32_t part_values[] = { 0, 1, RELTIME_FULL_PART - 1 };
+    int32_t part_values[] = { 0, 1, RELTIME_BEAT - 1 };
     int32_t all_parts[] = { INT32_MIN, INT32_MIN + 1, -1, 0, 1,
-            RELTIME_FULL_PART - 1, RELTIME_FULL_PART, INT32_MAX - 1, INT32_MAX };
+            RELTIME_BEAT - 1, RELTIME_BEAT, INT32_MAX - 1, INT32_MAX };
     for (size_t i = 0; i < sizeof(beat_values) / sizeof(int64_t); ++i)
     {
         for (size_t k = 0; k < sizeof(part_values) / sizeof(int32_t); ++k)
@@ -69,16 +69,16 @@ START_TEST (set)
             for (size_t l = 0; l < sizeof(all_parts) / sizeof(int32_t); ++l)
             {
                 Reltime* r = Reltime_init(&(Reltime){ .beats = 0 });
-                r->part = all_parts[l];
+                r->rem = all_parts[l];
                 Reltime* s = Reltime_set(r, beat_values[i], part_values[k]);
                 fail_unless(s == r,
                         "Reltime_set() returned %p instead of %p.", s, r);
                 fail_unless(s->beats == beat_values[i],
                         "Reltime_set() set beats to %lld instead of %lld.",
                         (long long)s->beats, (long long)beat_values[i]);
-                fail_unless(s->part == part_values[k],
+                fail_unless(s->rem == part_values[k],
                         "Reltime_set() set part to %lld instead of %lld.",
-                        (long long)s->part, (long long)part_values[k]);
+                        (long long)s->rem, (long long)part_values[k]);
             }
         }
     }
@@ -106,7 +106,7 @@ END_TEST
 
 START_TEST (set_break_part3)
 {
-    Reltime_set(&(Reltime){ .beats = 0 }, 0, RELTIME_FULL_PART);
+    Reltime_set(&(Reltime){ .beats = 0 }, 0, RELTIME_BEAT);
 }
 END_TEST
 
@@ -130,8 +130,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MIN, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -141,8 +141,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN + 1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MIN + 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN + 1, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MIN + 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -152,8 +152,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 1);
+    Reltime_set(r2, -1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -163,8 +163,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 0, RELTIME_BEAT - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -174,8 +174,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, 1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 1, RELTIME_BEAT - 1);
+    Reltime_set(r2, 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -185,8 +185,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MAX - 1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MAX - 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MAX - 1, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MAX - 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -196,8 +196,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MAX, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MAX, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
@@ -212,15 +212,15 @@ START_TEST (cmp)
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     Reltime_set(r1, INT64_MIN, 0);
-    Reltime_set(r2, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, INT64_MIN, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 2);
-    Reltime_set(r2, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 2);
+    Reltime_set(r2, INT64_MIN, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -237,15 +237,15 @@ START_TEST (cmp)
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     Reltime_set(r1, -1, 0);
-    Reltime_set(r2, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, -1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 2);
-    Reltime_set(r2, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 2);
+    Reltime_set(r2, -1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -262,15 +262,15 @@ START_TEST (cmp)
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     Reltime_set(r1, 0, 0);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 2);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 0, RELTIME_BEAT - 2);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -287,15 +287,15 @@ START_TEST (cmp)
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     Reltime_set(r1, 1, 0);
-    Reltime_set(r2, 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, 1, RELTIME_FULL_PART - 2);
-    Reltime_set(r2, 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 1, RELTIME_BEAT - 2);
+    Reltime_set(r2, 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -312,15 +312,15 @@ START_TEST (cmp)
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     Reltime_set(r1, INT64_MAX, 0);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MAX, RELTIME_FULL_PART - 2);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MAX, RELTIME_BEAT - 2);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -337,8 +337,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MIN + 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MIN + 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -354,8 +354,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -371,8 +371,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 0, RELTIME_BEAT - 1);
+    Reltime_set(r2, 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -388,8 +388,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MAX - 1, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MAX - 1, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -405,8 +405,8 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
@@ -416,14 +416,14 @@ START_TEST (cmp)
 
     // beats and parts unequal
     Reltime_set(r1, INT64_MIN, 0);
-    Reltime_set(r2, INT64_MIN + 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, INT64_MIN + 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 1);
     Reltime_set(r2, INT64_MIN + 1, 0);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
@@ -433,14 +433,14 @@ START_TEST (cmp)
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     
     Reltime_set(r1, -1, 0);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 1);
     Reltime_set(r2, 0, 0);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
@@ -450,14 +450,14 @@ START_TEST (cmp)
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     
     Reltime_set(r1, 0, 0);
-    Reltime_set(r2, 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, 1, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 0, RELTIME_BEAT - 1);
     Reltime_set(r2, 1, 0);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
@@ -467,14 +467,14 @@ START_TEST (cmp)
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     
     Reltime_set(r1, INT64_MAX - 1, 0);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MAX - 1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MAX - 1, RELTIME_BEAT - 1);
     Reltime_set(r2, INT64_MAX, 0);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
@@ -484,14 +484,14 @@ START_TEST (cmp)
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
     
     Reltime_set(r1, INT64_MIN, 0);
-    Reltime_set(r2, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, INT64_MAX, RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
             "Reltime_cmp() returned %s instead of smaller.", CMPTEXT(res));
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    Reltime_set(r1, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, INT64_MIN, RELTIME_BEAT - 1);
     Reltime_set(r2, INT64_MAX, 0);
     res = Reltime_cmp(r1, r2);
     fail_unless(res < 0,
@@ -517,56 +517,56 @@ END_TEST
 
 START_TEST (cmp_break_inv11)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_cmp(br, Reltime_init(&(Reltime){ .beats = 0 }));
 }
 END_TEST
 
 START_TEST (cmp_break_inv12)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_cmp(br, Reltime_init(&(Reltime){ .beats = 0 }));
 }
 END_TEST
 
 START_TEST (cmp_break_inv13)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_cmp(br, Reltime_init(&(Reltime){ .beats = 0 }));
 }
 END_TEST
 
 START_TEST (cmp_break_inv14)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_cmp(br, Reltime_init(&(Reltime){ .beats = 0 }));
 }
 END_TEST
 
 START_TEST (cmp_break_inv21)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_cmp(Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
 END_TEST
 
 START_TEST (cmp_break_inv22)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_cmp(Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
 END_TEST
 
 START_TEST (cmp_break_inv23)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_cmp(Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
 END_TEST
 
 START_TEST (cmp_break_inv24)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_cmp(Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
 END_TEST
@@ -577,7 +577,7 @@ START_TEST (add)
 {
     Reltime* ret = NULL;
     Reltime* res = Reltime_init(RELTIME_AUTO);
-    res->part = -1;
+    res->rem = -1;
     Reltime* r1 = Reltime_init(RELTIME_AUTO);
     Reltime* r2 = Reltime_init(RELTIME_AUTO);
     Reltime* exp = Reltime_init(RELTIME_AUTO);
@@ -590,15 +590,15 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, 0, 1);
@@ -608,17 +608,17 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 1);
     Reltime_set(r2, 0, 1);
     Reltime_set(exp, 0, 0);
     ret = Reltime_add(res, r1, r2);
@@ -626,33 +626,33 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
-    Reltime_set(exp, 1, RELTIME_FULL_PART - 2);
+    Reltime_set(r1, 0, RELTIME_BEAT - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
+    Reltime_set(exp, 1, RELTIME_BEAT - 2);
     ret = Reltime_add(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, 0, 0);
@@ -662,15 +662,15 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 0, 0);
@@ -680,15 +680,15 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 1, 0);
     Reltime_set(r2, 0, 0);
@@ -698,15 +698,15 @@ START_TEST (add)
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_add(res, r2, r1);
     fail_unless(ret == res,
             "Reltime_add() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_add() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 }
 END_TEST
 
@@ -737,7 +737,7 @@ END_TEST
 
 START_TEST (add_break_inv21)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -745,7 +745,7 @@ END_TEST
 
 START_TEST (add_break_inv22)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -753,7 +753,7 @@ END_TEST
 
 START_TEST (add_break_inv23)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -761,7 +761,7 @@ END_TEST
 
 START_TEST (add_break_inv24)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -769,7 +769,7 @@ END_TEST
 
 START_TEST (add_break_inv31)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -777,7 +777,7 @@ END_TEST
 
 START_TEST (add_break_inv32)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -785,7 +785,7 @@ END_TEST
 
 START_TEST (add_break_inv33)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -793,7 +793,7 @@ END_TEST
 
 START_TEST (add_break_inv34)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_add(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -805,54 +805,54 @@ START_TEST (sub)
 {
     Reltime* ret = NULL;
     Reltime* res = Reltime_init(RELTIME_AUTO);
-    res->part = -1;
+    res->rem = -1;
     Reltime* r1 = Reltime_init(RELTIME_AUTO);
     Reltime* r2 = Reltime_init(RELTIME_AUTO);
     Reltime* exp = Reltime_init(RELTIME_AUTO);
 
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, -1, 1);
-    Reltime_set(exp, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(exp, -1, RELTIME_BEAT - 1);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, 0, 1);
-    Reltime_set(exp, -2, RELTIME_FULL_PART - 1);
+    Reltime_set(exp, -2, RELTIME_BEAT - 1);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(r1, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, -1, RELTIME_BEAT - 1);
     Reltime_set(r2, 0, 1);
-    Reltime_set(exp, -1, RELTIME_FULL_PART - 2);
+    Reltime_set(exp, -1, RELTIME_BEAT - 2);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(r1, 0, RELTIME_FULL_PART - 1);
-    Reltime_set(r2, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(r1, 0, RELTIME_BEAT - 1);
+    Reltime_set(r2, 0, RELTIME_BEAT - 1);
     Reltime_set(exp, 0, 0);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, 0, 0);
@@ -862,8 +862,8 @@ START_TEST (sub)
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 0, 0);
@@ -873,8 +873,8 @@ START_TEST (sub)
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 1, 0);
     Reltime_set(r2, 0, 0);
@@ -884,8 +884,8 @@ START_TEST (sub)
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, -1, 0);
@@ -895,8 +895,8 @@ START_TEST (sub)
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 1, 0);
@@ -906,30 +906,30 @@ START_TEST (sub)
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 0, 1);
-    Reltime_set(exp, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(exp, -1, RELTIME_BEAT - 1);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(r1, 0, 0);
-    Reltime_set(r2, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(r2, -1, RELTIME_BEAT - 1);
     Reltime_set(exp, 0, 1);
     ret = Reltime_sub(res, r1, r2);
     fail_unless(ret == res,
             "Reltime_sub() returned %p instead of %p.", ret, res);
     fail_unless(Reltime_cmp(res, exp) == 0,
             "Reltime_sub() returned %lld:%ld (expected %lld:%ld).",
-            (long long)res->beats, (long)res->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)res->beats, (long)res->rem,
+            (long long)exp->beats, (long)exp->rem);
 }
 END_TEST
 
@@ -960,7 +960,7 @@ END_TEST
 
 START_TEST (sub_break_inv21)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -968,7 +968,7 @@ END_TEST
 
 START_TEST (sub_break_inv22)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -976,7 +976,7 @@ END_TEST
 
 START_TEST (sub_break_inv23)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -984,7 +984,7 @@ END_TEST
 
 START_TEST (sub_break_inv24)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }), br,
             Reltime_init(&(Reltime){ .beats = 0 }));
 }
@@ -992,7 +992,7 @@ END_TEST
 
 START_TEST (sub_break_inv31)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -1000,7 +1000,7 @@ END_TEST
 
 START_TEST (sub_break_inv32)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -1008,7 +1008,7 @@ END_TEST
 
 START_TEST (sub_break_inv33)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -1016,7 +1016,7 @@ END_TEST
 
 START_TEST (sub_break_inv34)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_sub(Reltime_init(&(Reltime){ .beats = 0 }),
             Reltime_init(&(Reltime){ .beats = 0 }), br);
 }
@@ -1030,7 +1030,7 @@ START_TEST (copy)
     Reltime* src = Reltime_init(RELTIME_AUTO);
     Reltime* dest = Reltime_init(RELTIME_AUTO);
 
-    Reltime_set(src, INT64_MAX, RELTIME_FULL_PART - 1);
+    Reltime_set(src, INT64_MAX, RELTIME_BEAT - 1);
     ret = Reltime_copy(dest, src);
     fail_unless(ret == dest,
             "Reltime_copy() returned %p instead of %p.", ret, dest);
@@ -1051,7 +1051,7 @@ START_TEST (copy)
     fail_unless(Reltime_cmp(dest, src) == 0,
             "Reltime_copy() didn't produce a copy equal to the original.");
 
-    Reltime_set(src, 0, RELTIME_FULL_PART - 1);
+    Reltime_set(src, 0, RELTIME_BEAT - 1);
     ret = Reltime_copy(dest, src);
     fail_unless(ret == dest,
             "Reltime_copy() returned %p instead of %p.", ret, dest);
@@ -1065,7 +1065,7 @@ START_TEST (copy)
     fail_unless(Reltime_cmp(dest, src) == 0,
             "Reltime_copy() didn't produce a copy equal to the original.");
 
-    Reltime_set(src, -1, RELTIME_FULL_PART - 1);
+    Reltime_set(src, -1, RELTIME_BEAT - 1);
     ret = Reltime_copy(dest, src);
     fail_unless(ret == dest,
             "Reltime_copy() returned %p instead of %p.", ret, dest);
@@ -1079,7 +1079,7 @@ START_TEST (copy)
     fail_unless(Reltime_cmp(dest, src) == 0,
             "Reltime_copy() didn't produce a copy equal to the original.");
 
-    Reltime_set(src, INT64_MIN, RELTIME_FULL_PART - 1);
+    Reltime_set(src, INT64_MIN, RELTIME_BEAT - 1);
     ret = Reltime_copy(dest, src);
     fail_unless(ret == dest,
             "Reltime_copy() returned %p instead of %p.", ret, dest);
@@ -1110,28 +1110,28 @@ END_TEST
 
 START_TEST (copy_break_inv21)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_copy(Reltime_init(RELTIME_AUTO), br);
 }
 END_TEST
 
 START_TEST (copy_break_inv22)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_copy(Reltime_init(RELTIME_AUTO), br);
 }
 END_TEST
 
 START_TEST (copy_break_inv23)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_copy(Reltime_init(RELTIME_AUTO), br);
 }
 END_TEST
 
 START_TEST (copy_break_inv24)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_copy(Reltime_init(RELTIME_AUTO), br);
 }
 END_TEST
@@ -1166,7 +1166,7 @@ START_TEST (toframes)
     fail_unless(res == 96000,
             "Reltime_toframes() returned %ld instead of 96000.", (long)res);
 
-    Reltime_set(r, 0, RELTIME_FULL_PART / 2);
+    Reltime_set(r, 0, RELTIME_BEAT / 2);
     res = Reltime_toframes(r, 60, 44100);
     fail_unless(res == 22050,
             "Reltime_toframes() returned %ld instead of 22050.", (long)res);
@@ -1177,7 +1177,7 @@ START_TEST (toframes)
     fail_unless(res == 48000,
             "Reltime_toframes() returned %ld instead of 48000.", (long)res);
 
-    Reltime_set(r, 1, RELTIME_FULL_PART / 2);
+    Reltime_set(r, 1, RELTIME_BEAT / 2);
     res = Reltime_toframes(r, 60, 44100);
     fail_unless(res == 66150,
             "Reltime_toframes() returned %ld instead of 66150.", (long)res);
@@ -1199,28 +1199,28 @@ END_TEST
 
 START_TEST (toframes_break_inv11)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MIN };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MIN };
     Reltime_toframes(br, 1, 1);
 }
 END_TEST
 
 START_TEST (toframes_break_inv12)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime_toframes(br, 1, 1);
 }
 END_TEST
 
 START_TEST (toframes_break_inv13)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = RELTIME_FULL_PART };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = RELTIME_BEAT };
     Reltime_toframes(br, 1, 1);
 }
 END_TEST
 
 START_TEST (toframes_break_inv14)
 {
-    Reltime* br = &(Reltime){ .beats = 0, .part = INT32_MAX };
+    Reltime* br = &(Reltime){ .beats = 0, .rem = INT32_MAX };
     Reltime_toframes(br, 1, 1);
 }
 END_TEST
@@ -1233,7 +1233,7 @@ END_TEST
 
 START_TEST (toframes_break_inv16)
 {
-    Reltime_toframes(Reltime_set(RELTIME_AUTO, -1, RELTIME_FULL_PART - 1), 1, 1);
+    Reltime_toframes(Reltime_set(RELTIME_AUTO, -1, RELTIME_BEAT - 1), 1, 1);
 }
 END_TEST
 
@@ -1259,7 +1259,7 @@ END_TEST
 
 START_TEST (fromframes)
 {
-    Reltime* r = &(Reltime){ .beats = 0, .part = -1 };
+    Reltime* r = &(Reltime){ .beats = 0, .rem = -1 };
     Reltime* ret = NULL;
     Reltime* exp = Reltime_init(RELTIME_AUTO);
 
@@ -1268,29 +1268,29 @@ START_TEST (fromframes)
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 0, DBL_MIN, UINT32_MAX);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 0, DBL_MAX, UINT32_MAX);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 0, DBL_MAX, UINT32_MAX);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
 
     Reltime_set(exp, 1, 0);
     ret = Reltime_fromframes(r, 44100, 60, 44100);
@@ -1298,47 +1298,47 @@ START_TEST (fromframes)
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 48000, 120, 96000);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(exp, 0, RELTIME_FULL_PART / 2);
+    Reltime_set(exp, 0, RELTIME_BEAT / 2);
     ret = Reltime_fromframes(r, 22050, 60, 44100);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 24000, 120, 96000);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
 
-    Reltime_set(exp, 1, RELTIME_FULL_PART / 2);
+    Reltime_set(exp, 1, RELTIME_BEAT / 2);
     ret = Reltime_fromframes(r, 66150, 60, 44100);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
     ret = Reltime_fromframes(r, 72000, 120, 96000);
     fail_unless(ret == r,
             "Reltime_fromframes() returned %p instead of %p.", ret, r);
     fail_unless(Reltime_cmp(r, exp) == 0,
             "Reltime_fromframes() returned %lld:%ld instead of %lld:%ld.",
-            (long long)r->beats, (long)r->part,
-            (long long)exp->beats, (long)exp->part);
+            (long long)r->beats, (long)r->rem,
+            (long long)exp->beats, (long)exp->rem);
 }
 END_TEST
 

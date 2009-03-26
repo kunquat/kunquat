@@ -392,7 +392,7 @@ START_TEST (mix)
     Event_set_int(ev2_on, 1, -1);
     Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
     Event_set_int(ev2_on, 3, 1);
-    Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_FULL_PART / 4));
+    Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_BEAT / 4));
     col = Pattern_col(pat, 0);
     if (!Column_ins(col, ev2_on))
     {

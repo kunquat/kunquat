@@ -32,7 +32,7 @@
  * others, powers of 2 up to 2^7, powers of 3 up to 3^4, and all positive
  * integers up to and including 18.
  */
-#define RELTIME_FULL_PART (882161280L)
+#define RELTIME_BEAT (882161280L)
 
 
 /**
@@ -44,9 +44,9 @@ typedef struct Reltime
 {
     /// The number of beats.
     int64_t beats;
-    /// Part of a beat.
-    /// Valid values are inside the interval [0, RELTIME_FULL_PART).
-    int32_t part;
+    /// Remainder of a beat.
+    /// Valid values are inside the interval [0, RELTIME_BEAT).
+    int32_t rem;
 } Reltime;
 
 
@@ -86,12 +86,12 @@ int Reltime_cmp(const Reltime* r1, const Reltime* r2);
  *
  * \param r       The Reltime object -- must not be \c NULL.
  * \param beats   The number of beats.
- * \param part    The size of the remaining part -- must be >= \c 0 and
- *                < \c RELTIME_FULL_PART.
+ * \param rem     The size of the remaining part -- must be >= \c 0 and
+ *                < \c RELTIME_BEAT.
  *
  * \return   The parameter \a r.
  */
-Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part);
+Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t rem);
 
 
 /**

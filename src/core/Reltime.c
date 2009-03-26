@@ -27,7 +27,7 @@
 
 
 #ifndef NDEBUG
-    #define Reltime_validate(r) assert((r) != NULL), assert((r)->part >= 0), assert ((r)->part < RELTIME_FULL_PART)
+    #define Reltime_validate(r) assert((r) != NULL), assert((r)->rem >= 0), assert((r)->rem < RELTIME_BEAT)
 #else
     #define Reltime_validate(r) ((void)0)
 #endif
@@ -37,7 +37,7 @@ Reltime* Reltime_init(Reltime* r)
 {
     assert(r != NULL);
     r->beats = 0;
-    r->part = 0;
+    r->rem = 0;
     return r;
 }
 
@@ -50,21 +50,21 @@ int Reltime_cmp(const Reltime* r1, const Reltime* r2)
         return -1;
     else if (r1->beats > r2->beats)
         return 1;
-    else if (r1->part < r2->part)
+    else if (r1->rem < r2->rem)
         return -1;
-    else if (r1->part > r2->part)
+    else if (r1->rem > r2->rem)
         return 1;
     return 0;
 }
 
 
-Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t part)
+Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t rem)
 {
     assert(r != NULL);
-    assert(part >= 0);
-    assert(part < RELTIME_FULL_PART);
+    assert(rem >= 0);
+    assert(rem < RELTIME_BEAT);
     r->beats = beats;
-    r->part = part;
+    r->rem = rem;
     return r;
 }
 
@@ -79,7 +79,7 @@ int64_t Reltime_get_beats(Reltime* r)
 int32_t Reltime_get_rem(Reltime* r)
 {
     assert(r != NULL);
-    return r->part;
+    return r->rem;
 }
 
 
@@ -89,19 +89,19 @@ Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2)
     Reltime_validate(r2);
     assert(result != NULL);
     result->beats = r1->beats + r2->beats;
-    result->part = r1->part + r2->part;
-    if (result->part >= RELTIME_FULL_PART)
+    result->rem = r1->rem + r2->rem;
+    if (result->rem >= RELTIME_BEAT)
     {
         ++result->beats;
-        result->part -= RELTIME_FULL_PART;
+        result->rem -= RELTIME_BEAT;
     }
-    else if (result->part < 0)
+    else if (result->rem < 0)
     {
         --result->beats;
-        result->part += RELTIME_FULL_PART;
+        result->rem += RELTIME_BEAT;
     }
-    assert(result->part >= 0);
-    assert(result->part < RELTIME_FULL_PART);
+    assert(result->rem >= 0);
+    assert(result->rem < RELTIME_BEAT);
     return result;
 }
 
@@ -112,19 +112,19 @@ Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2)
     Reltime_validate(r2);
     assert(result != NULL);
     result->beats = r1->beats - r2->beats;
-    result->part = r1->part - r2->part;
-    if (result->part < 0)
+    result->rem = r1->rem - r2->rem;
+    if (result->rem < 0)
     {
         --result->beats;
-        result->part += RELTIME_FULL_PART;
+        result->rem += RELTIME_BEAT;
     }
-    else if (result->part >= RELTIME_FULL_PART)
+    else if (result->rem >= RELTIME_BEAT)
     {
         ++result->beats;
-        result->part -= RELTIME_FULL_PART;
+        result->rem -= RELTIME_BEAT;
     }
-    assert(result->part >= 0);
-    assert(result->part < RELTIME_FULL_PART);
+    assert(result->rem >= 0);
+    assert(result->rem < RELTIME_BEAT);
     return result;
 }
 
@@ -134,7 +134,7 @@ Reltime* Reltime_copy(Reltime* dest, const Reltime* src)
     assert(dest != NULL);
     Reltime_validate(src);
     dest->beats = src->beats;
-    dest->part = src->part;
+    dest->rem = src->rem;
     return dest;
 }
 
@@ -148,7 +148,7 @@ uint32_t Reltime_toframes(const Reltime* r,
     assert(tempo > 0);
     assert(freq > 0);
     return (uint32_t)((r->beats
-            + ((double)r->part / RELTIME_FULL_PART)) * 60 * freq / tempo);
+            + ((double)r->rem / RELTIME_BEAT)) * 60 * freq / tempo);
 }
 
 
@@ -162,7 +162,7 @@ Reltime* Reltime_fromframes(Reltime* r,
     assert(freq > 0);
     double val = (double)frames * tempo / freq / 60;
     r->beats = (int64_t)val;
-    r->part = (int32_t)((val - r->beats) * RELTIME_FULL_PART);
+    r->rem = (int32_t)((val - r->beats) * RELTIME_BEAT);
     return r;
 }
 
