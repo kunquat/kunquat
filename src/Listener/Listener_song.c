@@ -79,7 +79,7 @@ int Listener_new_song(const char* path,
         send_memory_fail(lr, "the new Song");
     }
     assert(song != NULL);
-    Playlist_ins(lr->playlist, player);
+    Playlist_ins_player(lr->playlist, player);
     lr->player_cur = player;
     lo_message m = new_msg();
     lo_message_add_int32(m, player->id);
@@ -309,7 +309,7 @@ int Listener_del_song(const char* path,
     get_player(lr, song_id, types[0]);
     Player* target = lr->player_cur;
     assert(target->id == song_id);
-    Playlist_remove(lr->playlist, target);
+    Playlist_remove_player(lr->playlist, target);
     lr->player_cur = lr->playlist->first;
     lo_message m = new_msg();
     lo_message_add_int32(m, song_id);

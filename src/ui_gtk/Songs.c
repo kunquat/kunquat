@@ -194,7 +194,7 @@ bool Songs_add_song(Songs* songs)
     }
     gtk_widget_show_all(sv);
     gtk_widget_show_all(tab_label);
-    Playlist_ins(songs->playlist, player);
+    Playlist_ins_player(songs->playlist, player);
     return true;
 }
 
@@ -212,7 +212,7 @@ static void Songs_remove_song(GtkNotebook* songs_nb,
     Song_view* sv = SONG_VIEW(song_view);
     Player* player = Song_view_detach_player(sv);
     g_assert(player != NULL);
-    Playlist_remove(songs->playlist, player);
+    Playlist_remove_player(songs->playlist, player);
     return;
 }
 

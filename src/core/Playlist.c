@@ -38,6 +38,8 @@ Playlist* new_Playlist(void)
     }
     playlist->buf_count = 2;
     playlist->buf_size = 128;
+    playlist->freq = 44100;
+    playlist->voices = 64;
     playlist->first = NULL;
     playlist->reset = true;
     Playlist_reset_stats(playlist);
@@ -45,7 +47,55 @@ Playlist* new_Playlist(void)
 }
 
 
-void Playlist_ins(Playlist* playlist, Player* player)
+int32_t Playlist_ins(Playlist* playlist, Song* song)
+{
+    assert(playlist != NULL);
+    assert(song != NULL);
+    if (!Song_set_buf_size(song, playlist->buf_size))
+    {
+        return -1;
+    }
+    if (!Song_set_buf_count(song, playlist->buf_count))
+    {
+        return -1;
+    }
+    Player* player = new_Player(playlist->freq, playlist->voices, song);
+    if (player == NULL)
+    {
+        return -1;
+    }
+    Playlist_ins_player(playlist, player);
+    return Player_get_id(player);
+}
+
+
+Song* Playlist_get(Playlist* playlist, int32_t id)
+{
+    assert(playlist != NULL);
+    Player* player = Playlist_get_player(playlist, id);
+    if (player == NULL)
+    {
+        return NULL;
+    }
+    assert(Player_get_song(player) != NULL);
+    return Player_get_song(player);
+}
+
+
+void Playlist_remove(Playlist* playlist, int32_t id)
+{
+    assert(playlist != NULL);
+    Player* player = Playlist_get_player(playlist, id);
+    if (player == NULL)
+    {
+        return;
+    }
+    Playlist_remove_player(playlist, player);
+    return;
+}
+
+
+void Playlist_ins_player(Playlist* playlist, Player* player)
 {
     assert(playlist != NULL);
     assert(player != NULL);
@@ -62,7 +112,7 @@ void Playlist_ins(Playlist* playlist, Player* player)
 }
 
 
-Player* Playlist_get(Playlist* playlist, int32_t id)
+Player* Playlist_get_player(Playlist* playlist, int32_t id)
 {
     assert(playlist != NULL);
     Player* cur = playlist->first;
@@ -74,7 +124,7 @@ Player* Playlist_get(Playlist* playlist, int32_t id)
 }
 
 
-void Playlist_remove(Playlist* playlist, Player* player)
+void Playlist_remove_player(Playlist* playlist, Player* player)
 {
     assert(playlist != NULL);
     assert(player != NULL);
@@ -94,6 +144,40 @@ void Playlist_remove(Playlist* playlist, Player* player)
         playlist->first = next;
     }
     del_Player(player);
+    return;
+}
+
+
+void Playlist_play_song(Playlist* playlist, int32_t id)
+{
+    assert(playlist != NULL);
+    Player* player = playlist->first;
+    while (player != NULL)
+    {
+        if (Player_get_id(player) == id)
+        {
+            Player_play_song(player);
+            break;
+        }
+        player = player->next;
+    }
+    return;
+}
+
+
+void Playlist_stop_song(Playlist* playlist, int32_t id)
+{
+    assert(playlist != NULL);
+    Player* player = playlist->first;
+    while (player != NULL)
+    {
+        if (Player_get_id(player) == id)
+        {
+            Player_stop(player);
+            break;
+        }
+        player = player->next;
+    }
     return;
 }
 
@@ -153,6 +237,7 @@ void Playlist_set_mix_freq(Playlist* playlist, uint32_t freq)
 {
     assert(playlist != NULL);
     assert(freq > 0);
+    playlist->freq = freq;
     Player* player = playlist->first;
     while (player != NULL)
     {

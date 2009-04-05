@@ -110,10 +110,9 @@ static Ndesc demo_p2ch2[] =
 };
 
 
-Player* demo_song_create(uint32_t nframes, uint32_t freq)
+Song* demo_song_create(void)
 {
-    Song* song = new_Song(2, nframes, 16);
-    Player* player = NULL;
+    Song* song = new_Song(2, 128, 16);
     if (song == NULL)
     {
         goto cleanup;
@@ -132,13 +131,8 @@ Player* demo_song_create(uint32_t nframes, uint32_t freq)
     Note_table_set_name(notes, L"5-limit JI (C major)");
     Song_set_tempo(song, 0, 110);
     Song_set_global_vol(song, 0, 0);
-    player = new_Player(freq, 64, song);
-    if (player == NULL)
-    {
-        goto cleanup;
-    }
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, nframes, 16);
+    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, 128, 16);
     if (ins == NULL)
     {
         goto cleanup;
@@ -262,15 +256,11 @@ Player* demo_song_create(uint32_t nframes, uint32_t freq)
     {
         goto cleanup;
     }
-    return player;
+    return song;
 
 cleanup:
 
-    if (player != NULL)
-    {
-        del_Player(player);
-    }
-    else if (song != NULL)
+    if (song != NULL)
     {
         del_Song(song);
     }

@@ -32,11 +32,9 @@
 /**
  * Inserts the demo song into a Playlist.
  *
- * \param pl   The Playlist -- must not be \c NULL.
- *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Player* demo_song_create(uint32_t nframes, uint32_t freq);
+Song* demo_song_create(void);
 
 
 #endif // K_DEMO_SONG_H

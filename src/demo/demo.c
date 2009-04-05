@@ -73,30 +73,30 @@ int main(void)
 {
     audio_callback_data* data =
             &(audio_callback_data){ .active = false,
-                                    .pl = new_Playlist(),
+                                    .pl = NULL,
                                     .nframes = 0,
                                     .freq = 0 };
-    if (data->pl == NULL)
-    {
-        fprintf(stderr, "Couldn't allocate memory for Playlist\n");
-        exit(EXIT_FAILURE);
-    }
     if (!audio_init_jack(data))
     {
         fprintf(stderr, "Couldn't initialise JACK\n");
         exit(EXIT_FAILURE);
     }
-    Player* player = demo_song_create(data->nframes, data->freq);
-    if (player == NULL)
+    Song* song = demo_song_create();
+    if (song == NULL)
     {
         fprintf(stderr, "Couldn't create the demo Song\n");
         exit(EXIT_FAILURE);
     }
-    Playlist_ins(data->pl, player);
+    int32_t song_id = Playlist_ins(data->pl, song);
+    if (song_id == -1)
+    {
+        fprintf(stderr, "Couldn't add the demo Song into the Playlist\n");
+        exit(EXIT_FAILURE);
+    }
     fprintf(stderr, "Playing the demo, Enter to quit...\n");
-    Player_play_song(player);
+    Playlist_play_song(data->pl, song_id);
     getchar();
-    Player_stop(player);
+    Playlist_stop_song(data->pl, song_id);
     audio_close_jack(data);
     exit(EXIT_SUCCESS);
 }
@@ -139,6 +139,11 @@ static int audio_jack_process(jack_nframes_t nframes, void* arg)
 static bool audio_init_jack(audio_callback_data* user_data)
 {
     assert(user_data != NULL);
+    user_data->pl = new_Playlist();
+    if (user_data->pl == NULL)
+    {
+        return false;
+    }
     user_data->driver.jack.client = NULL;
     user_data->driver.jack.ports[0] = user_data->driver.jack.ports[1] = NULL;
     jack_status_t status = 0;
@@ -215,6 +220,7 @@ static bool audio_init_jack(audio_callback_data* user_data)
     }
     free(available_ports);
     user_data->freq = jack_get_sample_rate(user_data->driver.jack.client);
+    Playlist_set_mix_freq(user_data->pl, user_data->freq);
     user_data->active = true;
     return true;
 }

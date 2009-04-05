@@ -33,6 +33,8 @@ typedef struct Playlist
 {
     uint32_t buf_count;
     uint32_t buf_size;
+    uint32_t freq;        ///< Mixing frequency used.
+    uint16_t voices;      ///< Number of Voices reserved per Song.
     Player* first;
     double max_values[BUF_COUNT_MAX];
     double min_values[BUF_COUNT_MAX];
@@ -50,34 +52,92 @@ Playlist* new_Playlist(void);
 
 
 /**
+ * Inserts a Song into the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param song       The Song -- must not be \c NULL.
+ *
+ * \return   The new (nonnegative) Song ID if successful, or -1 if memory
+ *           allocation failed.
+ */
+int32_t Playlist_ins(Playlist* playlist, Song* song);
+
+
+/**
+ * Gets a Song from the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param id         The ID of the Song.
+ *
+ * \return   The Song if found, otherwise \c NULL.
+ */
+Song* Playlist_get(Playlist* playlist, int32_t id);
+
+
+/**
+ * Removes a Song from the Playlist.
+ *
+ * The Song is deleted by the function.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param id         The ID of the Song.
+ */
+void Playlist_remove(Playlist* playlist, int32_t id);
+
+
+/**
  * Inserts a Player into the Playlist.
+ *
+ * \deprecated   Don't use this in new code -- use Playlist_ins instead.
  *
  * \param playlist   The Playlist -- must not be \c NULL.
  * \param player     The Player -- must not be \c NULL.
  */
-void Playlist_ins(Playlist* playlist, Player* player);
+void Playlist_ins_player(Playlist* playlist, Player* player);
 
 
 /**
  * Gets a Player from the Playlist.
+ *
+ * \deprecated   Don't use this in new code -- use Playlist_get instead.
  *
  * \param playlist   The Playlist -- must not be \c NULL.
  * \param id         The ID of the Player.
  *
  * \return   The Player if found, otherwise \c NULL.
  */
-Player* Playlist_get(Playlist* playlist, int32_t id);
+Player* Playlist_get_player(Playlist* playlist, int32_t id);
 
 
 /**
  * Removes a Player from the Playlist.
+ *
+ * \deprecated   Don't use this in new code -- use Playlist_remove instead.
  *
  * The Player is deleted by the function.
  *
  * \param playlist   The Playlist -- must not be \c NULL.
  * \param player     The Player -- must not be \c NULL.
  */
-void Playlist_remove(Playlist* playlist, Player* player);
+void Playlist_remove_player(Playlist* playlist, Player* player);
+
+
+/**
+ * Plays a Song in the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param id         The Song ID.
+ */
+void Playlist_play_song(Playlist* playlist, int32_t id);
+
+
+/**
+ * Stops playback of a Song in the Playlist.
+ *
+ * \param playlist   The Playlist -- must not be \c NULL.
+ * \param id         The Song ID.
+ */
+void Playlist_stop_song(Playlist* playlist, int32_t id);
 
 
 /**

@@ -294,7 +294,7 @@ int Listener_demo(const char* path,
     {
         goto cleanup;
     }
-    Playlist_ins(lr->playlist, player);
+    Playlist_ins_player(lr->playlist, player);
     lo_message m = new_msg();
     lo_message_add_int32(m, player->id);
     int ret = 0;

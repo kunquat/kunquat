@@ -254,7 +254,7 @@ typedef int Listener_callback(const char* path,
         Player* player_ = (lr)->player_cur;\
         if (player_ == NULL || player_->id != (song_id))\
         {\
-            player_ = Playlist_get((lr)->playlist, (song_id));\
+            player_ = Playlist_get_player((lr)->playlist, (song_id));\
         }\
         if (player_ == NULL)\
         {\
