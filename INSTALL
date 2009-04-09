@@ -38,7 +38,7 @@ Ubuntu:
 On Ubuntu 9.04 (Jaunty Jackalope) you should be able to get all the
 required stuff by running the following command:
 
-sudo apt-get install build-essential scons liblo0-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check pyliblo-utils libgtk2.0-dev
+sudo apt-get install build-essential scons liblo0-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev python-liblo
 
 On Ubuntu 8.04 (Hardy Heron) and Ubuntu Ubuntu 8.10 (Intrepid Ibex),
 you need to first enable downloads from Dominic Sacré's PPA.
