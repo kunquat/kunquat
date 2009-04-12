@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Event.h"
+#include <Event.h>
 
 #include <Note_table.h>
 #include <Song_limits.h>

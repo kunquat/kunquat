@@ -39,6 +39,10 @@ typedef struct Event_list
 } Event_list;
 
 
+/**
+ * Column is a container for Events in a Pattern. It typically contains a
+ * "monophonic" section of music, or the global Events.
+ */
 typedef struct Column
 {
     Reltime len;

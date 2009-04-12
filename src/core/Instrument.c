@@ -25,7 +25,7 @@
 #include <stdio.h>
 
 #include <Generator.h>
-#include "Instrument.h"
+#include <Instrument.h>
 
 #include <xmemory.h>
 

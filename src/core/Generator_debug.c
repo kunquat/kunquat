@@ -25,7 +25,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "Generator_debug.h"
+#include <Generator_debug.h>
 
 #include <xmemory.h>
 

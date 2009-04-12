@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Event_queue.h"
+#include <Event_queue.h>
 
 #include <xmemory.h>
 

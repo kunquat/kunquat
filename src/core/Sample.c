@@ -27,7 +27,7 @@
 #include <string.h>
 #include <math.h>
 
-#include "Sample.h"
+#include <Sample.h>
 #include <File_wavpack.h>
 
 #include <xmemory.h>

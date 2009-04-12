@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Reltime.h"
+#include <Reltime.h>
 
 
 #ifndef NDEBUG

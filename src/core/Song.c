@@ -29,7 +29,7 @@
 
 #include <Real.h>
 
-#include "Song.h"
+#include <Song.h>
 
 #include <xmemory.h>
 

@@ -25,7 +25,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include "Channel.h"
+#include <Channel.h>
 
 #include <Reltime.h>
 #include <Event.h>

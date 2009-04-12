@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Etable.h"
+#include <Etable.h>
 
 #include <xmemory.h>
 

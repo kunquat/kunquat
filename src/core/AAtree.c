@@ -24,7 +24,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
-#include "AAtree.h"
+#include <AAtree.h>
 
 #include <xmemory.h>
 

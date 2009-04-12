@@ -27,7 +27,7 @@
 
 #include <AAtree.h>
 #include <Generator.h>
-#include "Generator_pcm.h"
+#include <Generator_pcm.h>
 #include <Sample.h>
 #include <pitch_t.h>
 

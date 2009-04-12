@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Voice_state.h"
+#include <Voice_state.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state*))

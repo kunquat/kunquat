@@ -27,7 +27,7 @@
 #include <math.h>
 
 #include <Generator.h>
-#include "Generator_sine.h"
+#include <Generator_sine.h>
 
 #include <xmemory.h>
 

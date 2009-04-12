@@ -25,7 +25,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include "Player.h"
+#include <Player.h>
 
 #include <xmemory.h>
 

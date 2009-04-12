@@ -30,7 +30,7 @@
 #include <Channel.h>
 #include <Reltime.h>
 
-#include "Playdata.h"
+#include <Playdata.h>
 
 #include <xmemory.h>
 

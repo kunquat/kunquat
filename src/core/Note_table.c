@@ -29,7 +29,7 @@
 
 #include <xmemory.h>
 
-#include "Note_table.h"
+#include <Note_table.h>
 
 
 #define NOTE_EXISTS(table, index) ((table)->notes[(index)].name[0] != '\0')

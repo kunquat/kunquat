@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Pat_table.h"
+#include <Pat_table.h>
 
 #include <Pattern.h>
 

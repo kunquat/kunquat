@@ -29,27 +29,21 @@
 #include <Voice_state.h>
 
 
+/**
+ * Generator is an object used for creating sound based on a specific sound
+ * synthesising method.
+ *
+ * The Generator class does not contain a constructor -- only Generators of
+ * a specific type can be created.
+ */
 typedef struct Generator
 {
     Gen_type type;
-    int (*init)(struct Generator*);
     void (*init_state)(Voice_state*);
-    void (*uninit)(struct Generator*);
     void (*destroy)(struct Generator*);
     void (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t);
     Instrument_params* ins_params;
 } Generator;
-
-
-/**
- * Creates a new Generator.
- *
- * \param type   The type of the Generator -- must be a valid type.
- *
- * \return   The new Generator if successful, or \c NULL if memory allocation
- *           failed.
- */
-bool Generator_init(Generator* gen, Gen_type type);
 
 
 /**

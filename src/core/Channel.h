@@ -35,8 +35,8 @@
 
 /**
  * This object contains playback information of a channel. A single channel
- * may contain 0 or 1 foreground (fully controllable) Voices and 0 or more
- * background (released) Voices.
+ * may contain 0 or 1 foreground (fully controllable) Voices -- background
+ * Voices are only present in the Voice pool.
  */
 typedef struct Channel
 {

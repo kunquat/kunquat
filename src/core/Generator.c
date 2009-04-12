@@ -23,53 +23,9 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include "Generator.h"
+#include <Generator.h>
 
 #include <xmemory.h>
-
-
-#if 0
-bool Generator_init(Generator* gen, Gen_type type, Instrument_params* ins_params)
-{
-    assert(gen != NULL);
-    assert(type > GEN_TYPE_NONE);
-    assert(type < GEN_TYPE_LAST);
-    assert(ins_params != NULL);
-    gen->type = type;
-    gen->init = NULL;
-    gen->init_state = NULL;
-    gen->uninit = NULL;
-    gen->mix = NULL;
-    switch (type)
-    {
-        case GEN_TYPE_DEBUG:
-            gen->mix = Generator_debug_mix;
-            break;
-        case GEN_TYPE_SINE:
-            gen->mix = Generator_sine_mix;
-            gen->init_state = Voice_state_sine_init;
-            break;
-        case GEN_TYPE_PCM:
-            gen->mix = Generator_pcm_mix;
-            gen->init = Generator_pcm_init;
-            gen->uninit = Generator_pcm_uninit;
-            break;
-        default:
-            assert(false);
-    }
-    assert(gen->mix != NULL);
-    assert((gen->init == NULL) == (gen->uninit == NULL));
-    if (gen->init != NULL)
-    {
-        if (gen->init(gen) != 0)
-        {
-            xfree(gen);
-            return NULL;
-        }
-    }
-    return gen;
-}
-#endif
 
 
 Gen_type Generator_get_type(Generator* gen)

@@ -31,7 +31,7 @@
 #include <unistd.h>
 
 #include <Sample.h>
-#include "File_wavpack.h"
+#include <File_wavpack.h>
 
 #include <wavpack/wavpack.h>
 

@@ -190,7 +190,7 @@ void Instrument_process_note(Instrument* ins,
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Instrument_mix(Instrument* ins,
-        Voice_state* state,
+        Voice_state* states,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq);

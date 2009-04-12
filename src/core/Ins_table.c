@@ -24,7 +24,7 @@
 #include <assert.h>
 
 #include <Instrument.h>
-#include "Ins_table.h"
+#include <Ins_table.h>
 
 #include <xmemory.h>
 
