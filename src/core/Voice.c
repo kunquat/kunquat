@@ -48,7 +48,10 @@ Voice* new_Voice(uint8_t events)
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->ins = NULL;
-    Voice_state_clear(&voice->state);
+    for (int i = 0; i < GENERATORS_MAX; ++i)
+    {
+        Voice_state_clear(&voice->states[i]);
+    }
     return voice;
 }
 
@@ -74,7 +77,10 @@ void Voice_init(Voice* voice, Instrument* ins)
     assert(ins != NULL);
     voice->prio = VOICE_PRIO_NEW;
     voice->ins = ins;
-    Voice_state_init(&voice->state, ins->init_state);
+    for (int i = 0; i < GENERATORS_MAX && Instrument_get_gen(ins, i) != NULL; ++i)
+    {
+        Voice_state_init(&voice->states[i], ins->gens[i]->init_state);
+    }
     Event_queue_clear(voice->events);
     return;
 }
@@ -85,8 +91,11 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
     voice->prio = VOICE_PRIO_INACTIVE;
     Event_queue_clear(voice->events);
+    for (int i = 0; i < GENERATORS_MAX; ++i)
+    {
+        Voice_state_clear(&voice->states[i]);
+    }
     voice->ins = NULL;
-    Voice_state_clear(&voice->state);
     return;
 }
 
@@ -105,6 +114,7 @@ void Voice_mix(Voice* voice,
         uint32_t freq)
 {
     assert(voice != NULL);
+    assert(voice->ins != NULL);
     assert(freq > 0);
     if (voice->prio == VOICE_PRIO_INACTIVE)
     {
@@ -142,7 +152,7 @@ void Voice_mix(Voice* voice,
                 voice->state.noff_pos_part); */
         if (voice->prio < VOICE_PRIO_NEW)
         {
-            Instrument_mix(voice->ins, &voice->state, mix_until, mixed, freq);
+            Instrument_mix(voice->ins, voice->states, mix_until, mixed, freq);
         }
         else
         {
@@ -167,13 +177,16 @@ void Voice_mix(Voice* voice,
                         Event_int(next, 1, &note_mod);
                         Event_int(next, 2, &note_octave);
                         Instrument_process_note(voice->ins,
-                                &voice->state,
+                                voice->states,
                                 (int)note,
                                 (int)note_mod,
                                 (int)note_octave);
                         break;
                     case EVENT_TYPE_NOTE_OFF:
-                        voice->state.note_on = false;
+                        for (int i = 0; i < GENERATORS_MAX && voice->ins->gens[i] != NULL; ++i)
+                        {
+                            voice->states[i].note_on = false;
+                        }
                         break;
                     default:
                         break;
@@ -184,11 +197,16 @@ void Voice_mix(Voice* voice,
         mix_until = nframes;
         event_found = Event_queue_get(voice->events, &next, &mix_until);
     }
-    if (!voice->state.active)
+    bool active = false;
+    for (int i = 0; i < GENERATORS_MAX && voice->ins->gens[i] != NULL && !active; ++i)
+    {
+        active |= voice->states[i].active;
+    }
+    if (!active)
     {
         voice->prio = VOICE_PRIO_INACTIVE;
     }
-    else if (!voice->state.note_on)
+    else if (!voice->states[0].note_on) // Should be the same for all Generators
     {
         voice->prio = VOICE_PRIO_BG;
     }

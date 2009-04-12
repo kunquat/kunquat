@@ -28,6 +28,7 @@
 
 #include <Reltime.h>
 #include <Event.h>
+#include <Generator_sine.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 #include <Pattern.h>
@@ -170,11 +171,18 @@ int Listener_demo(const char* path,
     }
     assert(song != NULL);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, 128, 16);
     if (ins == NULL)
     {
         goto cleanup;
     }
+    Generator_sine* gen_sine = new_Generator_sine(Instrument_get_params(ins));
+    if (gen_sine == NULL)
+    {
+        del_Instrument(ins);
+        goto cleanup;
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_sine);
     Instrument_set_name(ins, L"sine");
     Instrument_set_note_table(ins, Song_get_active_notes(song));
     Ins_table* insts = Song_get_insts(song);

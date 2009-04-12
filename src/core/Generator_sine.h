@@ -20,20 +20,46 @@
  */
 
 
-#ifndef K_INSTRUMENT_DEBUG_H
-#define K_INSTRUMENT_DEBUG_H
+#ifndef K_GENERATOR_SINE_H
+#define K_GENERATOR_SINE_H
 
 
-#include <Instrument.h>
+#include <Generator.h>
+#include <Voice_state.h>
 
 
-void Instrument_debug_mix(Instrument* ins,
+typedef struct Generator_sine
+{
+    Generator parent;
+} Generator_sine;
+
+
+/**
+ * Creates a new Sine Generator.
+ *
+ * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ *
+ * \return   The new Sine Generator if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Generator_sine* new_Generator_sine(Instrument_params* ins_params);
+
+
+void Generator_sine_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq);
 
 
-#endif // K_INSTRUMENT_DEBUG_H
+/**
+ * Destroys an existing Sine Generator.
+ *
+ * \param gen   The Sine Generator -- must not be \c NULL.
+ */
+void del_Generator_sine(Generator* gen);
+
+
+#endif // K_GENERATOR_SINE_H
 
 

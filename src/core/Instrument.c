@@ -24,21 +24,16 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <Generator.h>
 #include "Instrument.h"
-#include "Instrument_debug.h"
-#include "Instrument_sine.h"
-#include "Instrument_pcm.h"
 
 #include <xmemory.h>
 
 
-Instrument* new_Instrument(Ins_type type,
-        frame_t** bufs,
+Instrument* new_Instrument(frame_t** bufs,
         uint32_t buf_len,
         uint8_t events)
 {
-    assert(type > INS_TYPE_NONE);
-    assert(type < INS_TYPE_LAST);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     assert(bufs[1] != NULL);
@@ -49,22 +44,13 @@ Instrument* new_Instrument(Ins_type type,
     {
         return NULL;
     }
-    ins->pbufs = NULL;
+    if (Instrument_params_init(&ins->params, bufs, buf_len) == NULL)
+    {
+        xfree(ins);
+        return NULL;
+    }
     ins->events = NULL;
     ins->notes = NULL;
-    ins->force_volume_env = NULL;
-    ins->force_filter_env = NULL;
-    ins->force_pitch_env = NULL;
-    ins->volume_env = NULL;
-    ins->volume_off_env = NULL;
-    ins->pitch_pan_env = NULL;
-    ins->filter_env = NULL;
-    ins->filter_off_env = NULL;
-    ins->type_data = NULL;
-    ins->init = NULL;
-    ins->init_state = NULL;
-    ins->uninit = NULL;
-    ins->mix = NULL;
     ins->events = new_Event_queue(events);
     if (ins->events == NULL)
     {
@@ -72,171 +58,76 @@ Instrument* new_Instrument(Ins_type type,
         return NULL;
     }
 
-    ins->pedal = false;
-
     ins->default_force = 1;
     ins->force_variation = 0;
 
-    ins->force_volume_env = new_Envelope(8,
-            0, 1, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->force_volume_env == NULL)
+    for (int i = 0; i < GENERATORS_MAX; ++i)
     {
-        del_Instrument(ins);
-        return NULL;
+        ins->gens[i] = NULL;
     }
-    ins->force_volume_env_enabled = false;
-    Envelope_set_node(ins->force_volume_env, 0, 0);
-    Envelope_set_node(ins->force_volume_env, 1, 1);
-    Envelope_set_first_lock(ins->force_volume_env, true, true);
-    Envelope_set_last_lock(ins->force_volume_env, true, false);
 
-    ins->force_filter_env = new_Envelope(8,
-            0, 1, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->force_filter_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->force_filter_env_enabled = false;
-    Envelope_set_node(ins->force_filter_env, 0, 1);
-    Envelope_set_node(ins->force_filter_env, 1, 1);
-    Envelope_set_first_lock(ins->force_filter_env, true, false);
-    Envelope_set_last_lock(ins->force_filter_env, true, false);
-
-    ins->force_pitch_env = new_Envelope(8,
-            0, 1, 0, // min, max, step of x
-            -1, 1, 0); // min, max, step of y
-    if (ins->force_pitch_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->force_pitch_env_enabled = false;
-    Envelope_set_node(ins->force_pitch_env, 0, 0);
-    Envelope_set_node(ins->force_pitch_env, 1, 0);
-    Envelope_set_first_lock(ins->force_pitch_env, true, false);
-    Envelope_set_last_lock(ins->force_pitch_env, true, false);
-
-    ins->volume = 1;
-    ins->volume_env = new_Envelope(32,
-            0, INFINITY, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->volume_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->volume_env_enabled = false;
-    ins->volume_env_carry = false;
-    ins->volume_env_scale = 1;
-    ins->volume_env_center = 440;
-    Envelope_set_node(ins->volume_env, 0, 1);
-    Envelope_set_node(ins->volume_env, 1, 1);
-    Envelope_set_first_lock(ins->volume_env, true, false);
-
-    ins->volume_off_env = new_Envelope(32,
-            0, INFINITY, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->volume_off_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->volume_off_env_enabled = true;
-    ins->volume_off_env_scale = 1;
-    ins->volume_off_env_center = 440;
-    Envelope_set_node(ins->volume_off_env, 0, 1);
-    Envelope_set_node(ins->volume_off_env, 0.2, 0.4);
-    Envelope_set_node(ins->volume_off_env, 2, 0);
-    Envelope_set_first_lock(ins->volume_off_env, true, false);
-    Envelope_set_last_lock(ins->volume_off_env, false, true);
-
-    ins->pitch_pan_env = new_Envelope(8,
-            -1, 1, 0, // min, max, step of x
-            -1, 1, 0); // min, max, step of y
-    if (ins->pitch_pan_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->pitch_pan_env_enabled = false;
-    Envelope_set_node(ins->pitch_pan_env, -1, 0);
-    Envelope_set_node(ins->pitch_pan_env, 0, 0);
-    Envelope_set_node(ins->pitch_pan_env, 1, 0);
-    Envelope_set_first_lock(ins->pitch_pan_env, true, false);
-    Envelope_set_last_lock(ins->pitch_pan_env, true, false);
-
-    ins->filter_env = new_Envelope(32,
-            0, INFINITY, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->filter_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->filter_env_enabled = false;
-    ins->filter_env_scale = 1;
-    ins->filter_env_center = 440;
-    Envelope_set_node(ins->filter_env, 0, 1);
-    Envelope_set_node(ins->filter_env, 1, 1);
-    Envelope_set_first_lock(ins->filter_env, true, false);
-
-    ins->filter_off_env = new_Envelope(32,
-            0, INFINITY, 0, // min, max, step of x
-            0, 1, 0); // min, max, step of y
-    if (ins->filter_off_env == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->filter_off_env_enabled = false;
-    ins->filter_off_env_scale = 1;
-    ins->filter_off_env_center = 440;
-    Envelope_set_node(ins->filter_off_env, 0, 1);
-    Envelope_set_node(ins->filter_off_env, 1, 1);
-    Envelope_set_first_lock(ins->filter_off_env, true, false);
-
-    ins->type = type;
     ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
-    ins->bufs = ins->gbufs = bufs;
-    ins->buf_len = buf_len;
-    switch (type)
-    {
-        case INS_TYPE_DEBUG:
-            ins->mix = Instrument_debug_mix;
-            break;
-        case INS_TYPE_SINE:
-            ins->mix = Instrument_sine_mix;
-            ins->init_state = Voice_state_sine_init;
-            break;
-        case INS_TYPE_PCM:
-            ins->mix = Instrument_pcm_mix;
-            ins->init = Instrument_pcm_init;
-            ins->uninit = Instrument_pcm_uninit;
-            break;
-        default:
-            ins->mix = NULL;
-            assert(false);
-    }
-    assert((ins->init == NULL) == (ins->uninit == NULL));
-    if (ins->init != NULL)
-    {
-        if (ins->init(ins) != 0)
-        {
-            del_Instrument(ins);
-            return NULL;
-        }
-    }
     return ins;
 }
 
 
-Ins_type Instrument_get_type(Instrument* ins)
+Instrument_params* Instrument_get_params(Instrument* ins)
 {
     assert(ins != NULL);
-    return ins->type;
+    return &ins->params;
+}
+
+
+int Instrument_set_gen(Instrument* ins,
+        int index,
+        Generator* gen)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < GENERATORS_MAX);
+    assert(gen != NULL);
+    if (ins->gens[index] != NULL)
+    {
+        del_Generator(ins->gens[index]);
+        ins->gens[index] = NULL;
+    }
+    while (index > 0 && ins->gens[index - 1] == NULL)
+    {
+        --index;
+    }
+    ins->gens[index] = gen;
+    return index;
+}
+
+
+Generator* Instrument_get_gen(Instrument* ins,
+        int index)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < GENERATORS_MAX);
+    return ins->gens[index];
+}
+
+
+void Instrument_del_gen(Instrument* ins, int index)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < GENERATORS_MAX);
+    if (ins->gens[index] == NULL)
+    {
+        return;
+    }
+    del_Generator(ins->gens[index]);
+    ins->gens[index] = NULL;
+    while (index < GENERATORS_MAX - 1 && ins->gens[index + 1] != NULL)
+    {
+        ins->gens[index] = ins->gens[index + 1];
+        ins->gens[index + 1] = NULL;
+        ++index;
+    }
+    return;
 }
 
 
@@ -267,13 +158,13 @@ void Instrument_set_note_table(Instrument* ins, Note_table** notes)
 
 
 void Instrument_process_note(Instrument* ins,
-        Voice_state* state,
+        Voice_state* states,
         int note,
         int mod,
         int octave)
 {
     assert(ins != NULL);
-    assert(state != NULL);
+    assert(states != NULL);
     assert(note >= 0);
     assert(note < NOTE_TABLE_NOTES);
     assert(mod < NOTE_TABLE_NOTE_MODS);
@@ -286,30 +177,28 @@ void Instrument_process_note(Instrument* ins,
     pitch_t freq = Note_table_get_pitch(*ins->notes, note, mod, octave);
     if (freq > 0)
     {
-        state->freq = freq;
+        for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
+        {
+            states[i].freq = freq;
+        }
     }
     return;
 }
 
 
 void Instrument_mix(Instrument* ins,
-        Voice_state* state,
+        Voice_state* states,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq)
 {
     assert(ins != NULL);
-    assert(state != NULL);
+    assert(states != NULL);
 //  assert(nframes <= ins->buf_len);
     assert(freq > 0);
-    assert(ins->mix != NULL);
-    if (!state->active)
+    for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
-        return;
-    }
-    if (ins->mix != NULL)
-    {
-        ins->mix(ins, state, nframes, offset, freq);
+        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq);
     }
     return;
 }
@@ -318,53 +207,14 @@ void Instrument_mix(Instrument* ins,
 void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
-    if (ins->force_volume_env != NULL)
-    {
-        del_Envelope(ins->force_volume_env);
-    }
-    if (ins->force_filter_env != NULL)
-    {
-        del_Envelope(ins->force_filter_env);
-    }
-    if (ins->force_pitch_env != NULL)
-    {
-        del_Envelope(ins->force_pitch_env);
-    }
-    if (ins->volume_env != NULL)
-    {
-        del_Envelope(ins->volume_env);
-    }
-    if (ins->volume_off_env != NULL)
-    {
-        del_Envelope(ins->volume_off_env);
-    }
-    if (ins->pitch_pan_env != NULL)
-    {
-        del_Envelope(ins->pitch_pan_env);
-    }
-    if (ins->filter_env != NULL)
-    {
-        del_Envelope(ins->filter_env);
-    }
-    if (ins->filter_off_env != NULL)
-    {
-        del_Envelope(ins->filter_off_env);
-    }
+    Instrument_params_uninit(&ins->params);
     if (ins->events != NULL)
     {
         del_Event_queue(ins->events);
     }
-    if (ins->uninit != NULL)
+    for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
-        ins->uninit(ins);
-    }
-    if (ins->pbufs != NULL)
-    {
-        assert(ins->pbufs[0] != NULL);
-        assert(ins->pbufs[1] != NULL);
-        xfree(ins->pbufs[0]);
-        xfree(ins->pbufs[1]);
-        xfree(ins->pbufs);
+        del_Generator(ins->gens[i]);
     }
     xfree(ins);
 }

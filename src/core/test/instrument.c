@@ -31,6 +31,7 @@
 
 #include <frame_t.h>
 #include <Voice_state.h>
+#include <Generator_debug.h>
 #include <Instrument.h>
 
 
@@ -42,7 +43,7 @@ START_TEST (new)
     frame_t buf_l[100] = { 0 };
     frame_t buf_r[100] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 100, 1);
+    Instrument* ins = new_Instrument(bufs, 100, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -53,29 +54,9 @@ START_TEST (new)
 END_TEST
 
 #ifndef NDEBUG
-START_TEST (new_break_type_inv1)
-{
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_NONE, bufs, 1, 1);
-    del_Instrument(ins);
-}
-END_TEST
-
-START_TEST (new_break_type_inv2)
-{
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_LAST, bufs, 1, 1);
-    del_Instrument(ins);
-}
-END_TEST
-
 START_TEST (new_break_bufs_null)
 {
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, NULL, 1, 1);
+    Instrument* ins = new_Instrument(NULL, 1, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -85,7 +66,7 @@ START_TEST (new_break_buf_len_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 0, 1);
+    Instrument* ins = new_Instrument(bufs, 0, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -95,7 +76,7 @@ START_TEST (new_break_events_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 1, 0);
+    Instrument* ins = new_Instrument(bufs, 1, 0);
     del_Instrument(ins);
 }
 END_TEST
@@ -107,12 +88,19 @@ START_TEST (mix)
     frame_t buf_l[128] = { 0 };
     frame_t buf_r[128] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, 128, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
     Voice_state_init(&state, NULL);
     state.freq = 16;
@@ -435,12 +423,19 @@ START_TEST (mix_break_state_null)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         return;
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Instrument_mix(ins, NULL, 0, 0, 1);
     del_Instrument(ins);
 }
@@ -453,12 +448,19 @@ START_TEST (mix_break_nframes_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         return;
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
     Voice_state_init(&state, NULL);
     Instrument_mix(ins, &state, 2, 0, 1);
@@ -472,12 +474,19 @@ START_TEST (mix_break_freq_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         return;
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
     Voice_state_init(&state, NULL);
     Instrument_mix(ins, &state, 1, 0, 0);
@@ -503,8 +512,6 @@ Suite* Instrument_suite(void)
     tcase_add_test(tc_mix, mix);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_new, new_break_type_inv1, SIGABRT);
-    tcase_add_test_raise_signal(tc_new, new_break_type_inv2, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_bufs_null, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_buf_len_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_events_inv, SIGABRT);

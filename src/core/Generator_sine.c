@@ -26,29 +26,50 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "Instrument_sine.h"
+#include <Generator.h>
+#include "Generator_sine.h"
+
+#include <xmemory.h>
 
 
 #define PI_2 (3.14159265358979323846 * 2)
 
 
-void Instrument_sine_mix(Instrument* ins,
+Generator_sine* new_Generator_sine(Instrument_params* ins_params)
+{
+    assert(ins_params != NULL);
+    Generator_sine* sine = xalloc(Generator_sine);
+    if (sine == NULL)
+    {
+        return NULL;
+    }
+    sine->parent.destroy = del_Generator_sine;
+    sine->parent.type = GEN_TYPE_SINE;
+    sine->parent.init_state = Voice_state_sine_init;
+    sine->parent.mix = Generator_sine_mix;
+    sine->parent.ins_params = ins_params;
+    return sine;
+}
+
+
+void Generator_sine_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq)
 {
-    assert(ins != NULL);
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SINE);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(ins->bufs[0] != NULL);
-    assert(ins->bufs[1] != NULL);
+    assert(gen->ins_params->bufs[0] != NULL);
+    assert(gen->ins_params->bufs[1] != NULL);
     if (!state->active)
     {
         return;
     }
-    double max_amp = 0;
+//    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     for (uint32_t i = offset; i < nframes; ++i)
     {
@@ -76,12 +97,12 @@ void Instrument_sine_mix(Instrument* ins,
         {
             state->ins_fields.sine.phase -= floor(state->ins_fields.sine.phase / PI_2) * PI_2;
         }
-        ins->bufs[0][i] += val_l;
-        ins->bufs[1][i] += val_r;
-        if (fabs(val_l) > max_amp)
+        gen->ins_params->bufs[0][i] += val_l;
+        gen->ins_params->bufs[1][i] += val_r;
+/*        if (fabs(val_l) > max_amp)
         {
             max_amp = fabs(val_l);
-        }
+        } */
         if (!state->note_on)
         {
             state->noff_pos_rem += 1.0 / freq;
@@ -93,6 +114,16 @@ void Instrument_sine_mix(Instrument* ins,
         }
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
+    return;
+}
+
+
+void del_Generator_sine(Generator* gen)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SINE);
+    Generator_sine* sine = (Generator_sine*)gen;
+    xfree(sine);
     return;
 }
 

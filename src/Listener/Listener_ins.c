@@ -32,8 +32,10 @@
 
 #include <Song.h>
 #include <Ins_table.h>
+#include <Generator_debug.h>
+#include <Generator_sine.h>
+#include <Generator_pcm.h>
 #include <Instrument.h>
-#include <Instrument_pcm.h>
 #include <Song_limits.h>
 
 
@@ -95,9 +97,9 @@ int Listener_new_ins(const char* path,
     check_cond(lr, ins_num >= 1 && ins_num <= INSTRUMENTS_MAX,
             "The Instrument number (%ld)", (long)ins_num);
     int32_t ins_type = argv[2]->i;
-    check_cond(lr, ins_type >= INS_TYPE_NONE && ins_type < INS_TYPE_LAST,
+    check_cond(lr, ins_type >= GEN_TYPE_NONE && ins_type < GEN_TYPE_LAST,
             "The Instrument type (%ld)", (long)ins_type);
-    if (argv[2]->i > INS_TYPE_PCM)
+    if (argv[2]->i > GEN_TYPE_PCM)
     {
         strcpy(lr->method_path + lr->host_path_len, "error");
         lo_send(lr->host, lr->method_path, "s", "Only debug, sine and pcm instruments supported");
@@ -109,16 +111,51 @@ int Listener_new_ins(const char* path,
     Ins_table* table = Song_get_insts(song);
     assert(table != NULL);
     Instrument* ins = NULL;
-    if (ins_type != INS_TYPE_NONE)
+    if (ins_type != GEN_TYPE_NONE)
     {
-        ins = new_Instrument(argv[2]->i,
-                Song_get_bufs(song),
+        ins = new_Instrument(Song_get_bufs(song),
                 Song_get_buf_size(song),
                 32); // XXX: get event count from the configuration
         if (ins == NULL)
         {
             send_memory_fail(lr, "the new Instrument");
         }
+        Generator* gen = NULL;
+        switch (ins_type)
+        {
+            case GEN_TYPE_DEBUG:
+            {
+                Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+                if (gen_debug == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_debug;
+            }
+            break;
+            case GEN_TYPE_SINE:
+            {
+                Generator_sine* gen_sine = new_Generator_sine(Instrument_get_params(ins));
+                if (gen_sine == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_sine;
+            }
+            break;
+            case GEN_TYPE_PCM:
+            {
+                Generator_pcm* gen_pcm = new_Generator_pcm(Instrument_get_params(ins));
+                if (gen_pcm == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_pcm;
+            }
+            break;
+        }
+        assert(gen != NULL);
+        Instrument_set_gen(ins, 0, gen);
         Instrument_set_note_table(ins, Song_get_active_notes(song));
         if (!Ins_table_set(table, ins_num, ins))
         {
@@ -268,15 +305,17 @@ bool ins_info(Listener* lr,
     lo_message_add_int32(m, ins_num);
     if (ins != NULL)
     {
-        lo_message_add_int32(m, Instrument_get_type(ins));
+        Generator* gen = Instrument_get_gen(ins, 0);
+        assert(gen != NULL);
+        lo_message_add_int32(m, Generator_get_type(gen));
         unsigned char mbs[INS_NAME_MAX * 6] = { '\0' };
         wchar_t* src = Instrument_get_name(ins);
         to_utf8_check(lr, mbs, src, INS_NAME_MAX * 6,
                 "the name of the Instrument");
         lo_message_add_string(m, (char*)mbs);
-        switch (Instrument_get_type(ins))
+        switch (Generator_get_type(gen))
         {
-            case INS_TYPE_PCM:
+            case GEN_TYPE_PCM:
                 if (!ins_info_pcm(lr, m, ins))
                 {
                     lo_message_free(m);
@@ -289,7 +328,7 @@ bool ins_info(Listener* lr,
     }
     else
     {
-        lo_message_add_int32(m, INS_TYPE_NONE);
+        lo_message_add_int32(m, GEN_TYPE_NONE);
         lo_message_add_string(m, "");
     }
     int ret = 0;

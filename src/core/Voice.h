@@ -51,7 +51,7 @@ typedef struct Voice
     Voice_prio prio;       ///< Current priority of the Voice.
     Event_queue* events;   ///< Upcoming events.
     Instrument* ins;       ///< The Instrument played.
-    Voice_state state;     ///< The current playback state.
+    Voice_state states[GENERATORS_MAX];   ///< The current playback state.
 } Voice;
 
 

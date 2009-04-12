@@ -35,6 +35,7 @@
 
 #define INSTRUMENTS_MAX (255)
 #define INS_NAME_MAX (64)
+#define GENERATORS_MAX (8)
 
 #define BUF_COUNT_MAX (2)
 

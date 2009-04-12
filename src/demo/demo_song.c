@@ -24,6 +24,8 @@
 
 #include "demo_song.h"
 
+#include <Generator_sine.h>
+
 
 typedef struct Ndesc
 {
@@ -132,11 +134,18 @@ Song* demo_song_create(void)
     Song_set_tempo(song, 0, 110);
     Song_set_global_vol(song, 0, 0);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(INS_TYPE_SINE, bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, 128, 16);
     if (ins == NULL)
     {
         goto cleanup;
     }
+    Generator_sine* sine_gen = new_Generator_sine(Instrument_get_params(ins));
+    if (sine_gen == NULL)
+    {
+        del_Instrument(ins);
+        goto cleanup;
+    }
+    Instrument_set_gen(ins, 0, (Generator*)sine_gen);
     Instrument_set_name(ins, L"sine");
     Instrument_set_note_table(ins, Song_get_active_notes(song));
     Ins_table* insts = Song_get_insts(song);

@@ -34,6 +34,7 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
 #include <Voice_pool.h>
@@ -492,12 +493,19 @@ START_TEST (mix)
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 256, 16);
+    Instrument* ins = new_Instrument(bufs, 256, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Instrument_set_note_table(ins, &notes);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))

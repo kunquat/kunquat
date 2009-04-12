@@ -26,8 +26,8 @@
 #include <stdio.h>
 
 #include <AAtree.h>
-#include <Instrument.h>
-#include "Instrument_pcm.h"
+#include <Generator.h>
+#include "Generator_pcm.h"
 #include <Sample.h>
 #include <pitch_t.h>
 
@@ -41,40 +41,43 @@ static int freq_entry_cmp(freq_entry* f1, freq_entry* f2);
 static void del_freq_entry(freq_entry* entry);
 
 
-int Instrument_pcm_init(Instrument* ins)
+Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
 {
-    assert(ins != NULL);
-    pcm_type_data* type_data = xalloc(pcm_type_data);
-    if (type_data == NULL)
+    assert(ins_params != NULL);
+    Generator_pcm* pcm = xalloc(Generator_pcm);
+    if (pcm == NULL)
     {
-        return 1;
+        return NULL;
     }
-    type_data->freq_maps[0].strength = 0;
-    type_data->freq_maps[0].entry_count = 0;
-    type_data->freq_maps[0].tree = new_AAtree(
+    pcm->parent.destroy = del_Generator_pcm;
+    pcm->parent.type = GEN_TYPE_PCM;
+    pcm->parent.init_state = NULL;
+    pcm->parent.mix = Generator_pcm_mix;
+    pcm->parent.ins_params = ins_params;
+    pcm->freq_maps[0].force = 0;
+    pcm->freq_maps[0].entry_count = 0;
+    pcm->freq_maps[0].tree = new_AAtree(
             (int (*)(void*, void*))freq_entry_cmp, free);
-    if (type_data->freq_maps[0].tree == NULL)
+    if (pcm->freq_maps[0].tree == NULL)
     {
-        xfree(type_data);
-        return 1;
+        xfree(pcm);
+        return NULL;
     }
-    type_data->freq_maps[0].strength = 0;
-    for (uint8_t i = 1; i < PCM_STRENGTHS_MAX; ++i)
+    for (uint8_t i = 1; i < PCM_FORCES_MAX; ++i)
     {
-        type_data->freq_maps[i].strength = 0;
-        type_data->freq_maps[i].tree = NULL;
-        type_data->freq_maps[i].entry_count = 0;
+        pcm->freq_maps[i].force = 0;
+        pcm->freq_maps[i].tree = NULL;
+        pcm->freq_maps[i].entry_count = 0;
     }
-    type_data->freq_map_count = 1;
+    pcm->freq_map_count = 1;
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
-        type_data->samples[i] = NULL;
+        pcm->samples[i] = NULL;
     }
-    ins->type_data = type_data;
-    if (Instrument_pcm_set_sample_mapping(ins,
+    if (Generator_pcm_set_sample_mapping(pcm,
             0, // source
             0, // style
-            0, // strength id
+            0, // force id
             1, // ins freq
             0, // random choice index
             0, // sample table index
@@ -82,47 +85,44 @@ int Instrument_pcm_init(Instrument* ins)
             1) // vol scale
             < 0)
     {
-        Instrument_pcm_uninit(ins);
-        return 1;
+        del_Generator_pcm((Generator*)pcm);
+        return NULL;
     }
-    return 0;
+    return pcm;
 }
 
 
-void Instrument_pcm_uninit(Instrument* ins)
+void del_Generator_pcm(Generator* gen)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
-    pcm_type_data* type_data = ins->type_data;
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_PCM);
+    Generator_pcm* pcm = (Generator_pcm*)gen;
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
-        if (type_data->samples[i] != NULL)
+        if (pcm->samples[i] != NULL)
         {
-            del_Sample(type_data->samples[i]);
+            del_Sample(pcm->samples[i]);
         }
     }
-    del_AAtree(type_data->freq_maps[0].tree);
-    xfree(ins->type_data);
+    del_AAtree(pcm->freq_maps[0].tree);
+    xfree(pcm);
     return;
 }
 
 
-bool Instrument_pcm_set_sample(Instrument* ins,
+bool Generator_pcm_set_sample(Generator_pcm* pcm,
         uint16_t index,
         char* path)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    pcm_type_data* type_data = ins->type_data;
     if (path == NULL)
     {
-        if (type_data->samples[index] != NULL)
+        if (pcm->samples[index] != NULL)
         {
-            del_Sample(type_data->samples[index]);
-            type_data->samples[index] = NULL;
+            del_Sample(pcm->samples[index]);
+            pcm->samples[index] = NULL;
         }
         return true;
     }
@@ -136,134 +136,124 @@ bool Instrument_pcm_set_sample(Instrument* ins,
         del_Sample(sample);
         return false;
     }
-    if (type_data->samples[index] != NULL)
+    if (pcm->samples[index] != NULL)
     {
-        del_Sample(type_data->samples[index]);
-        type_data->samples[index] = NULL;
+        del_Sample(pcm->samples[index]);
+        pcm->samples[index] = NULL;
     }
-    type_data->samples[index] = sample;
+    pcm->samples[index] = sample;
     return true;
 }
 
 
-Sample* Instrument_pcm_get_sample(Instrument* ins, uint16_t index)
+Sample* Generator_pcm_get_sample(Generator_pcm* pcm, uint16_t index)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    pcm_type_data* type_data = ins->type_data;
-    return type_data->samples[index];
+    return pcm->samples[index];
 }
 
 
-char* Instrument_pcm_get_path(Instrument* ins, uint16_t index)
+char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    pcm_type_data* type_data = ins->type_data;
-    if (type_data->samples[index] == NULL)
+    if (pcm->samples[index] == NULL)
     {
         return NULL;
     }
-    return Sample_get_path(type_data->samples[index]);
+    return Sample_get_path(pcm->samples[index]);
 }
 
 
-void Instrument_pcm_set_sample_freq(Instrument* ins,
+void Generator_pcm_set_sample_freq(Generator_pcm* pcm,
         uint16_t index,
         double freq)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
     assert(freq > 0);
-    pcm_type_data* type_data = ins->type_data;
-    if (type_data->samples[index] == NULL)
+    if (pcm->samples[index] == NULL)
     {
         return;
     }
-    Sample_set_freq(type_data->samples[index], freq);
+    Sample_set_freq(pcm->samples[index], freq);
     return;
 }
 
 
-double Instrument_pcm_get_sample_freq(Instrument* ins, uint16_t index)
+double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    pcm_type_data* type_data = ins->type_data;
-    if (type_data->samples[index] == NULL)
+    if (pcm->samples[index] == NULL)
     {
         return 0;
     }
-    return Sample_get_freq(type_data->samples[index]);
+    return Sample_get_freq(pcm->samples[index]);
 }
 
 
-static Sample* state_to_sample(Instrument* ins, Voice_state* state);
+static Sample* state_to_sample(Generator_pcm* pcm, Voice_state* state);
 
 
-void Instrument_pcm_mix(Instrument* ins,
+void Generator_pcm_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_PCM);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(ins->bufs[0] != NULL);
-    assert(ins->bufs[1] != NULL);
+    assert(gen->ins_params->bufs[0] != NULL);
+    assert(gen->ins_params->bufs[1] != NULL);
     if (!state->active)
     {
         return;
     }
-    Sample* sample = state_to_sample(ins, state);
+    Generator_pcm* pcm = (Generator_pcm*)gen;
+    Sample* sample = state_to_sample(pcm, state);
     if (sample == NULL)
     {
         return;
     }
-    Sample_mix(sample, ins, state, nframes, offset, freq);
+    Sample_mix(sample, gen, state, nframes, offset, freq);
     return;
 }
 
 
-int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
+int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
         uint8_t source,
         uint8_t style,
-        uint8_t strength_id,
+        uint8_t force_id,
         double ins_freq,
         uint8_t index,
         uint16_t sample, double freq_scale, double vol_scale)
 {
     (void)source;
     (void)style;
-    (void)strength_id;
+    (void)force_id;
     (void)index;
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(source < PCM_SOURCES_MAX);
     assert(style < PCM_STYLES_MAX);
-    assert(strength_id < PCM_STRENGTHS_MAX);
+    assert(force_id < PCM_FORCES_MAX);
     assert(ins_freq > 0);
     assert(index < PCM_RANDOMS_MAX);
     assert(sample < PCM_SAMPLES_MAX);
     assert(freq_scale > 0);
     assert(vol_scale > 0);
-    pcm_type_data* type_data = ins->type_data;
-    assert(type_data->freq_maps[0].tree != NULL);
+    assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = ins_freq };
-    freq_entry* entry = AAtree_get(type_data->freq_maps[0].tree, key, 1);
+    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key, 1);
     if (entry != NULL && entry->freq == ins_freq)
     {
         entry->sample[0] = sample;
@@ -280,61 +270,57 @@ int8_t Instrument_pcm_set_sample_mapping(Instrument* ins,
     entry->sample[0] = sample;
     entry->freq_scale[0] = freq_scale;
     entry->vol_scale[0] = vol_scale;
-    if (!AAtree_ins(type_data->freq_maps[0].tree, entry))
+    if (!AAtree_ins(pcm->freq_maps[0].tree, entry))
     {
         xfree(entry);
         return -1;
     }
-    ++type_data->freq_maps[0].entry_count;
+    ++pcm->freq_maps[0].entry_count;
     return 0;
 }
 
 
-bool Instrument_pcm_del_sample_mapping(Instrument* ins,
+bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
         uint8_t source,
         uint8_t style,
-        uint8_t strength_id,
+        uint8_t force_id,
         double ins_freq,
         uint8_t index)
 {
     (void)source;
     (void)style;
-    (void)strength_id;
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    (void)force_id;
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(source < PCM_SOURCES_MAX);
     assert(style < PCM_STYLES_MAX);
-    assert(strength_id < PCM_STRENGTHS_MAX);
+    assert(force_id < PCM_FORCES_MAX);
     assert(ins_freq > 0);
     assert(index < PCM_RANDOMS_MAX);
-    pcm_type_data* type_data = ins->type_data;
-    assert(type_data->freq_maps[0].tree != NULL);
+    assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = ins_freq };
-    freq_entry* entry = AAtree_get(type_data->freq_maps[0].tree, key, 1);
+    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key, 1);
     if (entry == NULL || index >= entry->choices)
     {
         return false;
     }
-    freq_entry* ret = AAtree_remove(type_data->freq_maps[0].tree, entry);
+    freq_entry* ret = AAtree_remove(pcm->freq_maps[0].tree, entry);
     assert(ret == entry);
     del_freq_entry(ret);
-    assert(type_data->freq_maps[0].entry_count > 0);
-    --type_data->freq_maps[0].entry_count;
+    assert(pcm->freq_maps[0].entry_count > 0);
+    --pcm->freq_maps[0].entry_count;
     return true;
 }
 
 
-static Sample* state_to_sample(Instrument* ins, Voice_state* state)
+static Sample* state_to_sample(Generator_pcm* pcm, Voice_state* state)
 {
-    assert(ins != NULL);
-    assert(ins->type == INS_TYPE_PCM);
-    assert(ins->type_data != NULL);
+    assert(pcm != NULL);
+    assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(state != NULL);
-    pcm_type_data* type_data = ins->type_data;
-    assert(type_data->freq_maps[0].tree != NULL);
+    assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = state->freq };
-    freq_entry* entry = AAtree_get_at_most(type_data->freq_maps[0].tree, key, 0);
+    freq_entry* entry = AAtree_get_at_most(pcm->freq_maps[0].tree, key, 0);
     if (entry == NULL)
     {
         return NULL;
@@ -342,7 +328,7 @@ static Sample* state_to_sample(Instrument* ins, Voice_state* state)
     assert(entry->choices > 0);
     int choice = rand() % entry->choices;
     assert(entry->sample[choice] < PCM_SAMPLES_MAX);
-    return type_data->samples[entry->sample[choice]];
+    return pcm->samples[entry->sample[choice]];
 }
 
 

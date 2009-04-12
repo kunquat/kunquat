@@ -27,6 +27,8 @@
 #include <wchar.h>
 #include <stdbool.h>
 
+#include <Instrument_params.h>
+#include <Generator.h>
 #include <frame_t.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
@@ -35,139 +37,31 @@
 #include <Song_limits.h>
 
 
-typedef enum
-{
-    /// Not a valid type.
-    INS_TYPE_NONE = 0,
-    /// A type used for debugging.
-    /// Output is a narrow pulse wave (with one sample value 1, the rest are
-    /// 0.5) that lasts no more than 10 phase cycles. Note Off lasts no more
-    /// than two phase cycles with all sample values negated.
-    INS_TYPE_DEBUG,
-    /// A simple sine wave instrument for testing by ear.
-    INS_TYPE_SINE,
-    /// A sample-based type common in tracker programs.
-    INS_TYPE_PCM,
-    /// A type for reading audio data from disk -- used for large audio files.
-    INS_TYPE_PCM_DISK,
-    /// An implementation of Paul Nasca's PADsynth algorithm.
-    INS_TYPE_PADSYNTH,
-    /// Sentinel -- never used as a valid type.
-    INS_TYPE_LAST
-} Ins_type;
-
-
 typedef struct Instrument
 {
-    /// Instrument type.
-    Ins_type type;
     /// The name of the Instrument.
     wchar_t name[INS_NAME_MAX];
-    /// Mixing buffer used (same as either \a pbuf or \a gbuf).
-    frame_t** bufs;
-    /// Private mixing buffer (required when Instrument-level effects are used).
-    frame_t** pbufs;
-    /// Global mixing buffer.
-    frame_t** gbufs;
-    /// Mixing buffer length.
-    uint32_t buf_len;
     /// Instrument event queue (esp. pedal events go here).
     Event_queue* events;
     /// An indirect reference to the current Note table used.
     Note_table** notes;
-
-    /// Pedal setting.
-    bool pedal;
 
     /// Default force.
     double default_force;
     /// Force variation.
     double force_variation;
 
-    /// Force-volume envelope toggle.
-    bool force_volume_env_enabled;
-    /// Force-volume envelope.
-    Envelope* force_volume_env;
+    /// All the Instrument parameters that Generators need.
+    Instrument_params params;
 
-    /// Force-filter envelope toggle.
-    bool force_filter_env_enabled;
-    /// Force-filter envelope.
-    Envelope* force_filter_env;
-
-    /// Force-pitch envelope toggle.
-    bool force_pitch_env_enabled;
-    /// Force-pitch envelope.
-    Envelope* force_pitch_env;
-    /// Force-pitch envelope scale factor.
-    double force_pitch_env_scale;
-
-    /// Instrument volume.
-    double volume;
-
-    /// Volume envelope toggle.
-    bool volume_env_enabled;
-    /// Volume envelope carry.
-    bool volume_env_carry;
-    /// Volume envelope.
-    Envelope* volume_env;
-    /// Volume envelope scale factor (frequency -> speed).
-    double volume_env_scale;
-    /// Volume envelope scale center frequency.
-    double volume_env_center;
-
-    /// Note Off volume envelope toggle.
-    bool volume_off_env_enabled;
-    /// Note Off volume envelope.
-    Envelope* volume_off_env;
-    /// Note Off volume envelope scale factor (frequency -> speed).
-    double volume_off_env_scale;
-    /// Note Off volume envelope scale center frequency.
-    double volume_off_env_center;
-
-    /// Default panning toggle.
-    bool panning_enabled;
-    /// Default panning.
-    double panning;
-    /// Pitch-panning envelope toggle.
-    bool pitch_pan_env_enabled;
-    /// Pitch-panning envelope.
-    Envelope* pitch_pan_env;
-
-    /// Filter envelope toggle.
-    bool filter_env_enabled;
-    /// Filter envelope.
-    Envelope* filter_env;
-    /// Filter envelope scale factor (frequency -> speed).
-    double filter_env_scale;
-    /// Filter envelope scale center frequency.
-    double filter_env_center;
-
-    /// Note Off filter envelope toggle.
-    bool filter_off_env_enabled;
-    /// Note Off filter envelope.
-    Envelope* filter_off_env;
-    /// Note Off filter envelope scale factor (frequency -> speed).
-    double filter_off_env_scale;
-    /// Note Off filter envelope scale center frequency.
-    double filter_off_env_center;
-
-    /// Type-specific data.
-    void* type_data;
-    /// Initialiser for type-specific data -- returns \c 0 on success.
-    int (*init)(struct Instrument*);
-    /// Initialiser for type-specific Voice state information.
-    void (*init_state)(Voice_state*);
-    /// Uninitialiser for type-specific data.
-    void (*uninit)(struct Instrument*);
-    /// Mixing algorithm used.
-    void (*mix)(struct Instrument*, Voice_state*, uint32_t, uint32_t, uint32_t);
+    /// Generators.
+    Generator* gens[GENERATORS_MAX];
 } Instrument;
 
 
 /**
  * Creates a new Instrument.
  *
- * \param type      The type of the Instrument -- must be a valid type.
  * \param bufs      The global mixing buffers -- must not be \c NULL.
  *                  Additionally, bufs[0] and bufs[1] must not be \c NULL.
  * \param buf_len   The length of a mixing buffer -- must be > \c 0.
@@ -176,20 +70,64 @@ typedef struct Instrument
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(Ins_type type,
-        frame_t** bufs,
+Instrument* new_Instrument(frame_t** bufs,
         uint32_t buf_len,
         uint8_t events);
 
 
 /**
- * Gets the type of the Instrument.
+ * Gets the Instrument parameters of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
- * \return   The Instrument type.
+ * \return   The Instrument parameters.
  */
-Ins_type Instrument_get_type(Instrument* ins);
+Instrument_params* Instrument_get_params(Instrument* ins);
+
+
+/**
+ * Sets a Generator of the Instrument.
+ *
+ * If a Generator already exists at the specified index, it will be removed.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the Generator -- must be >= \c 0 and
+ *                < \c GENERATORS_MAX.
+ * \param gen     The Generator -- must not be \c NULL.
+ *
+ * \return   The actual index of the Generator. This is less than or equal to
+ *           \a index.
+ */
+int Instrument_set_gen(Instrument* ins,
+        int index,
+        Generator* gen);
+
+
+/**
+ * Gets a Generator of the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the Generator -- must be >= \c 0 and
+ *                < \c GENERATORS_MAX.
+ *
+ * \return   The Generator if found, otherwise \c NULL.
+ */
+Generator* Instrument_get_gen(Instrument* ins,
+        int index);
+
+
+/**
+ * Removes a Generator of the Instrument.
+ *
+ * The Generators located at greater indices will be shifted backward in the
+ * table. If the target Generator doesn't exist, the Instrument won't be
+ * modified.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the Generator -- must be >= \c 0 and
+ *                < \c GENERATORS_MAX.
+ */
+void Instrument_del_gen(Instrument* ins, int index);
 
 
 /**
@@ -225,7 +163,7 @@ void Instrument_set_note_table(Instrument* ins, Note_table** notes);
  * Handles a given note as appropriate for the Instrument.
  *
  * \param ins      The Instrument -- must not be \c NULL.
- * \param state    The Voice state -- must not be \c NULL.
+ * \param states   The array of Voice states -- must not be \c NULL.
  * \param note     The note number -- must be >= \c 0 and
  *                 < \c NOTE_TABLE_NOTES.
  * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
@@ -234,7 +172,7 @@ void Instrument_set_note_table(Instrument* ins, Note_table** notes);
  *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  */
 void Instrument_process_note(Instrument* ins,
-        Voice_state* state,
+        Voice_state* states,
         int note,
         int mod,
         int octave);
@@ -244,7 +182,7 @@ void Instrument_process_note(Instrument* ins,
  * Mixes the Instrument.
  *
  * \param ins       The Instrument -- must not be \c NULL.
- * \param state     The Voice state -- must not be \c NULL.
+ * \param states    The array of Voice states -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed -- must not be greater
  *                  than the mixing buffer size.
  * \param offset    The starting frame offset (\a nframes - \a offset are

@@ -33,6 +33,7 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
 #include <Voice_pool.h>
@@ -73,12 +74,19 @@ START_TEST (get_voice)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_pool* pool = new_Voice_pool(2, 1);
     if (pool == NULL)
     {
@@ -140,12 +148,19 @@ START_TEST (mix)
     frame_t buf_l[128] = { 0 };
     frame_t buf_r[128] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(INS_TYPE_DEBUG, bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, 128, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
+    Generator_debug* gen_debug = new_Generator_debug(Instrument_get_params(ins));
+    if (gen_debug == NULL)
+    {
+        fprintf(stderr, "new_Generator_debug() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Note_table* notes = new_Note_table(L"test", 2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {

@@ -25,21 +25,41 @@
 #include <stdint.h>
 #include <math.h>
 
-#include "Instrument_debug.h"
+#include "Generator_debug.h"
+
+#include <xmemory.h>
 
 
-void Instrument_debug_mix(Instrument* ins,
+Generator_debug* new_Generator_debug(Instrument_params* ins_params)
+{
+    assert(ins_params != NULL);
+    Generator_debug* debug = xalloc(Generator_debug);
+    if (debug == NULL)
+    {
+        return NULL;
+    }
+    debug->parent.destroy = del_Generator_debug;
+    debug->parent.type = GEN_TYPE_DEBUG;
+    debug->parent.init_state = NULL;
+    debug->parent.mix = Generator_debug_mix;
+    debug->parent.ins_params = ins_params;
+    return debug;
+}
+
+
+void Generator_debug_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,
         uint32_t offset,
         uint32_t freq)
 {
-    assert(ins != NULL);
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_DEBUG);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(ins->bufs[0] != NULL);
-    assert(ins->bufs[1] != NULL);
+    assert(gen->ins_params->bufs[0] != NULL);
+    assert(gen->ins_params->bufs[1] != NULL);
     if (!state->active)
     {
         return;
@@ -64,8 +84,8 @@ void Instrument_debug_mix(Instrument* ins,
             val_l = -val_l;
             val_r = -val_r;
         }
-        ins->bufs[0][i] += val_l;
-        ins->bufs[1][i] += val_r;
+        gen->ins_params->bufs[0][i] += val_l;
+        gen->ins_params->bufs[1][i] += val_r;
         state->rel_pos_rem += state->freq / freq;
         if (!state->note_on)
         {
@@ -88,6 +108,16 @@ void Instrument_debug_mix(Instrument* ins,
             state->rel_pos_rem -= floor(state->rel_pos_rem);
         }
     }
+    return;
+}
+
+
+void del_Generator_debug(Generator* gen)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_DEBUG);
+    Generator_debug* debug = (Generator_debug*)gen;
+    xfree(debug);
     return;
 }
 
