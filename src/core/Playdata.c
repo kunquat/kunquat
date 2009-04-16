@@ -44,6 +44,12 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     {
         return NULL;
     }
+    play->citer = new_Column_iter(NULL);
+    if (play->citer == NULL)
+    {
+        xfree(play);
+        return NULL;
+    }
     play->voice_pool = pool;
     for (int i = 0; i < COLUMNS_MAX; ++i)
     {
@@ -54,6 +60,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
             {
                 del_Channel(play->channels[i]);
             }
+            del_Column_iter(play->citer);
             xfree(play);
             return NULL;
         }

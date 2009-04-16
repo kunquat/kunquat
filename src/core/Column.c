@@ -32,6 +32,15 @@
 #include <xmemory.h>
 
 
+struct Column_iter
+{
+    uint32_t version;
+    Column* col;
+    AAiter* tree_iter;
+    Event_list* elist;
+};
+
+
 static Event_list* new_Event_list(Event_list* nil, Event* event);
 
 static Event_list* Event_list_init(Event_list* elist);
@@ -86,6 +95,106 @@ static int Event_list_cmp(Event_list* list1, Event_list* list2)
 }
 
 
+Column_iter* new_Column_iter(Column* col)
+{
+    Column_iter* iter = xalloc(Column_iter);
+    if (iter == NULL)
+    {
+        return NULL;
+    }
+    iter->col = col;
+    iter->version = (col != NULL) ? col->version : 0;
+    AAtree* events = (col != NULL) ? col->events : NULL;
+    iter->tree_iter = new_AAiter(events);
+    if (iter->tree_iter == NULL)
+    {
+        xfree(iter);
+        return NULL;
+    }
+    iter->elist = NULL;
+    return iter;
+}
+
+
+void Column_iter_change_col(Column_iter* iter, Column* col)
+{
+    assert(iter != NULL);
+    assert(col != NULL);
+    iter->col = col;
+    iter->version = col->version;
+    AAiter_change_tree(iter->tree_iter, col->events);
+    iter->elist = NULL;
+    return;
+}
+
+
+Event* Column_iter_get(Column_iter* iter, const Reltime* pos)
+{
+    assert(iter != NULL);
+    assert(pos != NULL);
+    if (iter->col == NULL)
+    {
+        return NULL;
+    }
+    iter->version = iter->col->version;
+    Event* event = &(Event){ .type = EVENT_TYPE_NONE };
+    Reltime_copy(&event->pos, pos);
+    Event_list* key = Event_list_init(&(Event_list){ .event = event });
+    iter->elist = AAiter_get(iter->tree_iter, key);
+    if (iter->elist == NULL)
+    {
+        return NULL;
+    }
+    assert(iter->elist->event == NULL);
+    assert(iter->elist->next != iter->elist);
+    iter->elist = iter->elist->next;
+    assert(iter->elist->event != NULL);
+    return iter->elist->event;
+}
+
+
+Event* Column_iter_get_next(Column_iter* iter)
+{
+    assert(iter != NULL);
+    if (iter->elist == NULL || iter->col == NULL)
+    {
+        return NULL;
+    }
+    if (iter->version != iter->col->version)
+    {
+        iter->elist = NULL;
+        iter->version = iter->col->version;
+        return NULL;
+    }
+    assert(iter->elist->event != NULL);
+    assert(iter->elist != iter->elist->next);
+    iter->elist = iter->elist->next;
+    if (iter->elist->event != NULL)
+    {
+        return iter->elist->event;
+    }
+    iter->elist = AAiter_get_next(iter->tree_iter);
+    if (iter->elist == NULL)
+    {
+        return NULL;
+    }
+    assert(iter->elist->event == NULL);
+    assert(iter->elist->next != iter->elist);
+    iter->elist = iter->elist->next;
+    assert(iter->elist->event != NULL);
+    return iter->elist->event;
+}
+
+
+void del_Column_iter(Column_iter* iter)
+{
+    assert(iter != NULL);
+    del_AAiter(iter->tree_iter);
+    xfree(iter);
+    return;
+}
+
+
 Column* new_Column(Reltime* len)
 {
     Column* col = xalloc(Column);
@@ -93,10 +202,18 @@ Column* new_Column(Reltime* len)
     {
         return NULL;
     }
+    col->version = 1;
+    col->edit_iter = new_Column_iter(col);
+    if (col->edit_iter == NULL)
+    {
+        xfree(col);
+        return NULL;
+    }
     col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {
+        del_Column_iter(col->edit_iter);
         xfree(col);
         return NULL;
     }
@@ -118,8 +235,9 @@ bool Column_ins(Column* col, Event* event)
 {
     assert(col != NULL);
     assert(event != NULL);
+    ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    Event_list* ret = AAtree_get(col->events, key, 1);
+    Event_list* ret = AAtree_get(col->events, key);
     if (ret == NULL || Reltime_cmp(Event_pos(event),
             Event_pos(ret->next->event)) != 0)
     {
@@ -160,106 +278,13 @@ bool Column_ins(Column* col, Event* event)
 }
 
 
-Event* Column_get(Column* col, const Reltime* pos)
-{
-    assert(col != NULL);
-    assert(pos != NULL);
-    Event* event = &(Event){ .type = EVENT_TYPE_NONE };
-    Reltime_copy(&event->pos, pos);
-    Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    col->last_elist = AAtree_get(col->events, key, 0);
-    if (col->last_elist == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist->event == NULL);
-    assert(col->last_elist->next != col->last_elist);
-    col->last_elist = col->last_elist->next;
-    assert(col->last_elist->event != NULL);
-    return col->last_elist->event;
-}
-
-
-Event* Column_get_edit(Column* col, const Reltime* pos)
-{
-    assert(col != NULL);
-    assert(pos != NULL);
-    Event* event = &(Event){ .type = EVENT_TYPE_NONE };
-    Reltime_copy(&event->pos, pos);
-    Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    col->last_elist_from_host = AAtree_get(col->events, key, 1);
-    if (col->last_elist_from_host == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist_from_host->event == NULL);
-    assert(col->last_elist_from_host->next != col->last_elist_from_host);
-    col->last_elist_from_host = col->last_elist_from_host->next;
-    assert(col->last_elist_from_host->event != NULL);
-    return col->last_elist_from_host->event;
-}
-
-
-Event* Column_get_next(Column* col)
-{
-    assert(col != NULL);
-    if (col->last_elist == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist->event != NULL);
-    assert(col->last_elist != col->last_elist->next);
-    col->last_elist = col->last_elist->next;
-    if (col->last_elist->event != NULL)
-    {
-        return col->last_elist->event;
-    }
-    col->last_elist = AAtree_get_next(col->events, 0);
-    if (col->last_elist == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist->event == NULL);
-    assert(col->last_elist->next != col->last_elist);
-    col->last_elist = col->last_elist->next;
-    assert(col->last_elist->event != NULL);
-    return col->last_elist->event;
-}
-
-
-Event* Column_get_next_edit(Column* col)
-{
-    assert(col != NULL);
-    if (col->last_elist_from_host == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist_from_host->event != NULL);
-    assert(col->last_elist_from_host != col->last_elist_from_host->next);
-    col->last_elist_from_host = col->last_elist_from_host->next;
-    if (col->last_elist_from_host->event != NULL)
-    {
-        return col->last_elist_from_host->event;
-    }
-    col->last_elist_from_host = AAtree_get_next(col->events, 1);
-    if (col->last_elist_from_host == NULL)
-    {
-        return NULL;
-    }
-    assert(col->last_elist_from_host->event == NULL);
-    assert(col->last_elist_from_host->next != col->last_elist_from_host);
-    col->last_elist_from_host = col->last_elist_from_host->next;
-    assert(col->last_elist_from_host->event != NULL);
-    return col->last_elist_from_host->event;
-}
-
-
 bool Column_move(Column* col, Event* event, unsigned int index)
 {
     assert(col != NULL);
     assert(event != NULL);
+    ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    Event_list* target = AAtree_get(col->events, key, 1);
+    Event_list* target = AAtree_get(col->events, key);
     if (target == NULL)
     {
         assert(false);
@@ -333,8 +358,9 @@ bool Column_remove(Column* col, Event* event)
 {
     assert(col != NULL);
     assert(event != NULL);
+    ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
-    Event_list* target = AAtree_get(col->events, key, 1);
+    Event_list* target = AAtree_get(col->events, key);
     if (target == NULL || Reltime_cmp(Event_pos(event),
             Event_pos(target->next->event)) != 0)
     {
@@ -375,13 +401,14 @@ bool Column_remove_row(Column* col, Reltime* pos)
 {
     assert(col != NULL);
     assert(pos != NULL);
+    ++col->version;
     bool modified = false;
-    Event* target = Column_get_edit(col, pos);
+    Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL && Reltime_cmp(Event_pos(target), pos) == 0)
     {
         modified = Column_remove(col, target);
         assert(modified);
-        target = Column_get_edit(col, pos);
+        target = Column_iter_get(col->edit_iter, pos);
     }
     return modified;
 }
@@ -392,13 +419,14 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
     assert(col != NULL);
     assert(start != NULL);
     assert(end != NULL);
+    ++col->version;
     bool modified = false;
-    Event* target = Column_get_edit(col, start);
+    Event* target = Column_iter_get(col->edit_iter, start);
     while (target != NULL && Reltime_cmp(Event_pos(target), end) <= 0)
     {
         modified = Column_remove_row(col, Event_pos(target));
         assert(modified);
-        target = Column_get_edit(col, start);
+        target = Column_iter_get(col->edit_iter, start);
     }
     return modified;
 }
@@ -409,17 +437,18 @@ bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
     assert(col != NULL);
     assert(pos != NULL);
     assert(len != NULL);
+    ++col->version;
     bool removed = false;
     Reltime* del_end = Reltime_set(RELTIME_AUTO, 0, 1);
     del_end = Reltime_sub(del_end, len, del_end);
     del_end = Reltime_add(del_end, pos, del_end);
     removed = Column_remove_block(col, pos, del_end);
-    Event* target = Column_get_edit(col, pos);
+    Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
         Reltime* ev_pos = Event_pos(target);
         Reltime_sub(ev_pos, ev_pos, len);
-        target = Column_get_next_edit(col);
+        target = Column_iter_get_next(col->edit_iter);
     }
     return removed;
 }
@@ -430,12 +459,13 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
     assert(col != NULL);
     assert(pos != NULL);
     assert(len != NULL);
-    Event* target = Column_get_edit(col, pos);
+    ++col->version;
+    Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
         Reltime* ev_pos = Event_pos(target);
         Reltime_add(ev_pos, ev_pos, len);
-        target = Column_get_next_edit(col);
+        target = Column_iter_get_next(col->edit_iter);
     }
     return;
 }
@@ -444,9 +474,11 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
 void Column_clear(Column* col)
 {
     assert(col != NULL);
+    ++col->version;
     col->last_elist = NULL;
     col->last_elist_from_host = NULL;
     AAtree_clear(col->events);
+    Column_iter_change_col(col->edit_iter, col);
     return;
 }
 
@@ -471,6 +503,7 @@ void del_Column(Column* col)
 {
     assert(col != NULL);
     del_AAtree(col->events);
+    del_Column_iter(col->edit_iter);
     xfree(col);
     return;
 }

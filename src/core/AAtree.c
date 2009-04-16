@@ -32,6 +32,23 @@
 #define AATREE_MAX_ITERS (2)
 
 
+struct AAnode
+{
+    int level;
+    void* data;
+    struct AAnode* parent;
+    struct AAnode* left;
+    struct AAnode* right;
+};
+
+
+struct AAiter
+{
+    AAtree* tree;
+    AAnode* node;
+};
+
+
 static AAnode* aapred(AAnode* node);
 
 static AAnode* aasucc(AAnode* node);
@@ -48,6 +65,39 @@ static bool aavalidate_(AAnode* node, char* msg);
 #else
 #define aavalidate(node, msg) (void)0
 #endif
+
+
+AAiter* new_AAiter(AAtree* tree)
+{
+    AAiter* iter = xalloc(AAiter);
+    if (iter == NULL)
+    {
+        return NULL;
+    }
+    iter->tree = tree;
+    iter->node = NULL;
+    return iter;
+}
+
+#define AAITER_AUTO(t) (&(AAiter){ .tree = (t), .node = NULL })
+
+
+void AAiter_change_tree(AAiter* iter, AAtree* tree)
+{
+    assert(iter != NULL);
+    assert(tree != NULL);
+    iter->tree = tree;
+    iter->node = NULL;
+    return;
+}
+
+
+void del_AAiter(AAiter* iter)
+{
+    assert(iter != NULL);
+    xfree(iter);
+    return;
+}
 
 
 static AAnode* new_AAnode(AAnode* nil, void* data);
@@ -198,14 +248,14 @@ bool AAtree_ins(AAtree* tree, void* data)
 }
 
 
-void* AAtree_get(AAtree* tree, void* key, int iter)
+void* AAiter_get(AAiter* iter, void* key)
 {
-    assert(tree != NULL);
+    assert(iter != NULL);
     assert(key != NULL);
-    assert(iter >= 0);
-    assert(iter <= 1);
+    assert(iter->tree != NULL);
+    AAtree* tree = iter->tree;
     aavalidate(tree->root, "get");
-    AAnode** last = &tree->iters[iter];
+    AAnode** last = &iter->node;
     *last = NULL;
     AAnode* ret = tree->nil;
     AAnode* cur = tree->root;
@@ -233,14 +283,23 @@ void* AAtree_get(AAtree* tree, void* key, int iter)
 }
 
 
-void* AAtree_get_at_most(AAtree* tree, void* key, int iter)
+void* AAtree_get(AAtree* tree, void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
-    assert(iter >= 0);
-    assert(iter <= 1);
+    AAiter* iter = AAITER_AUTO(tree);
+    return AAiter_get(iter, key);
+}
+
+
+void* AAiter_get_at_most(AAiter* iter, void* key)
+{
+    assert(iter != NULL);
+    assert(key != NULL);
+    assert(iter->tree != NULL);
+    AAtree* tree = iter->tree;
     aavalidate(tree->root, "get");
-    AAnode** last = &tree->iters[iter];
+    AAnode** last = &iter->node;
     *last = NULL;
     AAnode* ret = tree->nil;
     AAnode* cur = tree->root;
@@ -268,21 +327,30 @@ void* AAtree_get_at_most(AAtree* tree, void* key, int iter)
 }
 
 
-void* AAtree_get_next(AAtree* tree, int iter)
+void* AAtree_get_at_most(AAtree* tree, void* key)
 {
     assert(tree != NULL);
-    assert(iter >= 0);
-    assert(iter <= 1);
-    if (tree->iters[iter] == tree->nil)
+    assert(key != NULL);
+    AAiter* iter = AAITER_AUTO(tree);
+    return AAiter_get_at_most(iter, key);
+}
+
+
+void* AAiter_get_next(AAiter* iter)
+{
+    assert(iter != NULL);
+    assert(iter->tree != NULL);
+    AAtree* tree = iter->tree;
+    if (iter->node == tree->nil)
     {
         return NULL;
     }
-    tree->iters[iter] = aasucc(tree->iters[iter]);
-    if (tree->iters[iter] == tree->nil)
+    iter->node = aasucc(iter->node);
+    if (iter->node == tree->nil)
     {
         return NULL;
     }
-    return tree->iters[iter]->data;
+    return iter->node->data;
 }
 
 

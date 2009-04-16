@@ -127,6 +127,12 @@ START_TEST (set_voices)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         abort();
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
     if (ev1_on == NULL)
     {
@@ -169,9 +175,10 @@ START_TEST (set_voices)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
+    Column_iter_change_col(citer, col);
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_set(RELTIME_AUTO, 10, 0),
             0,
@@ -207,7 +214,7 @@ START_TEST (set_voices)
     {
         Channel_set_voices(ch,
                 pool,
-                col,
+                citer,
                 Reltime_set(RELTIME_AUTO, i / 8, (RELTIME_BEAT / 8) * (i % 8)),
                 Reltime_set(RELTIME_AUTO, (i + i) / 8, (RELTIME_BEAT / 8) * ((i + 1) % 8)),
                 i,
@@ -266,7 +273,7 @@ START_TEST (set_voices)
     }
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_set(RELTIME_AUTO, 10, 0),
             0,
@@ -324,7 +331,7 @@ START_TEST (set_voices)
     {
         Channel_set_voices(ch,
                 pool,
-                col,
+                citer,
                 Reltime_set(RELTIME_AUTO, i / 8, (RELTIME_BEAT / 8) * (i % 8)),
                 Reltime_set(RELTIME_AUTO, (i + i) / 8, (RELTIME_BEAT / 8) * ((i + 1) % 8)),
                 i,
@@ -373,6 +380,7 @@ START_TEST (set_voices)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
 
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Channel(ch);
@@ -402,14 +410,21 @@ START_TEST (set_voices_break_ch_null)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(NULL,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
             0,
             1,
             1);
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Ins_table(table);
@@ -436,14 +451,21 @@ START_TEST (set_voices_break_pool_null)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(ch,
             NULL,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
             0,
             1,
             1);
+    del_Column_iter(citer);
     del_Column(col);
     del_Channel(ch);
     del_Ins_table(table);
@@ -513,14 +535,21 @@ START_TEST (set_voices_break_start_null)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             NULL,
             Reltime_init(RELTIME_AUTO),
             0,
             1,
             1);
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Channel(ch);
@@ -554,14 +583,21 @@ START_TEST (set_voices_break_end_null)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             NULL,
             0,
             1,
             1);
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Channel(ch);
@@ -595,14 +631,21 @@ START_TEST (set_voices_break_tempo_inv)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
             0,
             0,
             1);
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Channel(ch);
@@ -636,14 +679,21 @@ START_TEST (set_voices_break_freq_inv)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         return;
     }
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
+        abort();
+    }
     Channel_set_voices(ch,
             pool,
-            col,
+            citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
             0,
             1,
             0);
+    del_Column_iter(citer);
     del_Column(col);
     del_Voice_pool(pool);
     del_Channel(ch);

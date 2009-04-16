@@ -253,7 +253,7 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
     assert(vol_scale > 0);
     assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = ins_freq };
-    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key, 1);
+    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key);
     if (entry != NULL && entry->freq == ins_freq)
     {
         entry->sample[0] = sample;
@@ -299,7 +299,7 @@ bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
     assert(index < PCM_RANDOMS_MAX);
     assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = ins_freq };
-    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key, 1);
+    freq_entry* entry = AAtree_get(pcm->freq_maps[0].tree, key);
     if (entry == NULL || index >= entry->choices)
     {
         return false;
@@ -320,7 +320,7 @@ static Sample* state_to_sample(Generator_pcm* pcm, Voice_state* state)
     assert(state != NULL);
     assert(pcm->freq_maps[0].tree != NULL);
     freq_entry* key = &(freq_entry){ .freq = state->freq };
-    freq_entry* entry = AAtree_get_at_most(pcm->freq_maps[0].tree, key, 0);
+    freq_entry* entry = AAtree_get_at_most(pcm->freq_maps[0].tree, key);
     if (entry == NULL)
     {
         return NULL;

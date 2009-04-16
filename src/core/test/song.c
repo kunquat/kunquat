@@ -58,26 +58,17 @@ Playdata* init_play(Song* song)
         fprintf(stderr, "Test used init_play() incorrectly\n");
         return NULL;
     }
-    Playdata* play = xalloc(Playdata);
-    if (play == NULL)
-    {
-        fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
-        return NULL;
-    }
-    play->voice_pool = new_Voice_pool(16, 16);
-    if (play->voice_pool == NULL)
+    Voice_pool* voice_pool = new_Voice_pool(16, 16);
+    if (voice_pool == NULL)
     {
         fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
         return NULL;
     }
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    Playdata* play = new_Playdata(1, voice_pool, Song_get_insts(song));
+    if (play == NULL)
     {
-        play->channels[i] = new_Channel(song->insts);
-        if (play->channels[i] == NULL)
-        {
-            fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
-            return NULL;
-        }
+        fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
+        return NULL;
     }
     play->mode = STOP;
     play->freq = 0;

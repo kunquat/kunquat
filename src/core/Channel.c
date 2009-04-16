@@ -64,7 +64,7 @@ Channel* new_Channel(Ins_table* insts)
 
 void Channel_set_voices(Channel* ch,
         Voice_pool* pool,
-        Column* col,
+        Column_iter* citer,
         Reltime* start,
         Reltime* end,
         uint32_t offset,
@@ -73,7 +73,7 @@ void Channel_set_voices(Channel* ch,
 {
     assert(ch != NULL);
     assert(pool != NULL);
-//  assert(col != NULL);
+//  assert(citer != NULL);
     assert(start != NULL);
     assert(end != NULL);
     assert(tempo > 0);
@@ -82,9 +82,9 @@ void Channel_set_voices(Channel* ch,
     if (Reltime_cmp(Event_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
     {
         next = NULL;
-        if (col != NULL)
+        if (citer != NULL)
         {
-            next = Column_get(col, start);
+            next = Column_iter_get(citer, start);
         }
         if (next == NULL)
         {
@@ -110,9 +110,9 @@ void Channel_set_voices(Channel* ch,
                     // The Voice has been given to another channel -- giving up
 #if 0
                     next = NULL;
-                    if (col != NULL)
+                    if (citer != NULL)
                     {
-                        next = Column_get_next(col);
+                        next = Column_iter_get_next(citer);
                     }
                     if (next == NULL)
                     {
@@ -142,9 +142,9 @@ void Channel_set_voices(Channel* ch,
             if (num <= 0)
             {
                 next = NULL;
-                if (col != NULL)
+                if (citer != NULL)
                 {
-                    next = Column_get_next(col);
+                    next = Column_iter_get_next(citer);
                 }
                 if (next == NULL)
                 {
@@ -157,9 +157,9 @@ void Channel_set_voices(Channel* ch,
             if (ins == NULL)
             {
                 next = NULL;
-                if (col != NULL)
+                if (citer != NULL)
                 {
-                    next = Column_get_next(col);
+                    next = Column_iter_get_next(citer);
                 }
                 if (next == NULL)
                 {
@@ -192,9 +192,9 @@ void Channel_set_voices(Channel* ch,
             {
                 // The Voice has been given to another channel -- giving up
                 next = NULL;
-                if (col != NULL)
+                if (citer != NULL)
                 {
-                    next = Column_get_next(col);
+                    next = Column_iter_get_next(citer);
                 }
                 if (next == NULL)
                 {
@@ -218,17 +218,17 @@ void Channel_set_voices(Channel* ch,
         {
             Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));
             next = NULL;
-            if (col != NULL)
+            if (citer != NULL)
             {
-                next = Column_get(col, start);
+                next = Column_iter_get(citer, start);
             }
         }
         else
         {
             next = NULL;
-            if (col != NULL)
+            if (citer != NULL)
             {
-                next = Column_get_next(col);
+                next = Column_iter_get_next(citer);
             }
         }
         if (next == NULL)

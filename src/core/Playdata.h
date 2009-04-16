@@ -74,6 +74,8 @@ typedef struct Playdata
     Reltime pos;
     /// The Voice pool used.
     Voice_pool* voice_pool;
+    /// Column iterator.
+    Column_iter* citer;
     /// The channels used.
     Channel* channels[COLUMNS_MAX];
     /// Number of Voices used simultaneously.

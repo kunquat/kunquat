@@ -27,14 +27,10 @@
 #include <stdbool.h>
 
 
-typedef struct AAnode
-{
-    int level;
-    void* data;
-    struct AAnode* parent;
-    struct AAnode* left;
-    struct AAnode* right;
-} AAnode;
+typedef struct AAnode AAnode;
+
+
+typedef struct AAiter AAiter;
 
 
 /**
@@ -54,6 +50,69 @@ typedef struct AAtree
     int (*cmp)(void*, void*);
     void (*destroy)(void*);
 } AAtree;
+
+
+/**
+ * Creates an iterator for the AAtree.
+ *
+ * \param tree   The AAtree.
+ *
+ * \return   The new iterator if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+AAiter* new_AAiter(AAtree* tree);
+
+
+/**
+ * Changes the AAtree into which the AAiter is connected.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ * \param tree   The AAtree -- must not be \c NULL.
+ */
+void AAiter_change_tree(AAiter* iter, AAtree* tree);
+
+
+/**
+ * Gets the first element greater than or equal to the given key.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAiter_get(AAiter* iter, void* key);
+
+
+/**
+ * Gets the last element less than or equal to the given key.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAiter_get_at_most(AAiter* iter, void* key);
+
+
+/**
+ * Gets the element next to the previous one retrieved through the AAiter.
+ *
+ * If not preceded by a successful call to AAiter_get() with the given
+ * iterator, this function returns \c NULL.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAiter_get_next(AAiter* iter);
+
+
+/**
+ * Destroys an existing AAiter.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ */
+void del_AAiter(AAiter* iter);
 
 
 /**
@@ -81,13 +140,15 @@ bool AAtree_ins(AAtree* tree, void* data);
 /**
  * Gets the first element greater than or equal to the given key.
  *
+ * This function does not preserve context information and therefore
+ * does not have a corresponding "next" variant.
+ *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
- * \param iter   The iterator index -- must be \c 0 or \c 1.
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get(AAtree* tree, void* key, int iter);
+void* AAtree_get(AAtree* tree, void* key);
 
 
 /**
@@ -95,25 +156,10 @@ void* AAtree_get(AAtree* tree, void* key, int iter);
  *
  * \param tree   The AAtree -- must not be \c NULL.
  * \param key    The key -- must not be \c NULL.
- * \param iter   The iterator index -- must be \c 0 or \c 1.
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_at_most(AAtree* tree, void* key, int iter);
-
-
-/**
- * Gets the element next to the previous one retrieved from the AAtree.
- *
- * If not preceded by a successful call to AAtree_get() with the given
- * iterator index, this function returns \c NULL.
- *
- * \param tree   The AAtree -- must not be \c NULL.
- * \param iter   The iterator index -- must be \c 0 or \c 1.
- *
- * \return   The element if one exists, otherwise \c NULL.
- */
-void* AAtree_get_next(AAtree* tree, int iter);
+void* AAtree_get_at_most(AAtree* tree, void* key);
 
 
 /**

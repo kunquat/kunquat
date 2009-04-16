@@ -376,19 +376,25 @@ int Listener_pat_del_event(const char* path,
     assert(song != NULL);
     assert(pat != NULL);
     assert(col != NULL);
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        send_memory_fail(lr, "the Column iterator");
+    }
     int32_t song_id = argv[0]->i;
     int32_t pat_num = argv[1]->i;
     int32_t event_order = argv[5]->i;
-    Event* event = Column_get_edit(col, pos);
+    Event* event = Column_iter_get(citer, pos);
     check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
             "No Event found -- the Event retrieved (%p)", (void*)event);
     for (int32_t i = 0; i < event_order; ++i)
     {
-        event = Column_get_next_edit(col);
+        event = Column_iter_get_next(citer);
         check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
                 "No Event found -- the Event retrieved (%p)", (void*)event);
     }
     bool column_removed = Column_remove(col, event);
+    del_Column_iter(citer);
     check_cond(lr, column_removed,
             "No Event in the given location -- the result (%s)", "false");
     if (!pat_info(lr, song_id, pat_num, pat))
@@ -434,6 +440,11 @@ int Listener_pat_mod_event(const char* path,
     assert(song != NULL);
     assert(pat != NULL);
     assert(col != NULL);
+    Column_iter* citer = new_Column_iter(col);
+    if (citer == NULL)
+    {
+        send_memory_fail(lr, "the Column iterator");
+    }
     int32_t song_id = argv[0]->i;
     int32_t pat_num = argv[1]->i;
     int32_t col_num = argv[2]->i;
@@ -441,15 +452,16 @@ int Listener_pat_mod_event(const char* path,
     int32_t event_type = argv[6]->i;
     check_cond(lr, EVENT_TYPE_IS_VALID(event_type),
             "The Event type (%ld)", (long)event_type);
-    Event* event = Column_get_edit(col, pos);
+    Event* event = Column_iter_get(citer, pos);
     check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
             "No Event found -- the Event retrieved (%p)", (void*)event);
     for (int32_t i = 0; i < event_order; ++i)
     {
-        event = Column_get_next_edit(col);
+        event = Column_iter_get_next(citer);
         check_cond(lr, event != NULL && Reltime_cmp(pos, Event_pos(event)) == 0,
                 "No Event found -- the Event retrieved (%p)", (void*)event);
     }
+    del_Column_iter(citer);
     union { int64_t i; double d; } orig_values[EVENT_FIELDS];
     Event_type orig_type = Event_get_type(event);
     char* orig_types = Event_type_get_field_types(orig_type);
@@ -810,14 +822,20 @@ static bool pat_info(Listener* lr,
         {
             return false;
         }
+        Column_iter* citer = new_Column_iter(Pattern_global(pat));
+        if (citer == NULL)
+        {
+            send_memory_fail(lr, "the Column iterator");
+        }
         for (int i = -1; i < COLUMNS_MAX; ++i)
         {
             Column* col = Pattern_global(pat);
             if (i > -1)
             {
                 col = Pattern_col(pat, i);
+                Column_iter_change_col(citer, col);
             }
-            Event* event = Column_get_edit(col, Reltime_init(RELTIME_AUTO));
+            Event* event = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
             int index = 0;
             Reltime* prev_time = Reltime_set(RELTIME_AUTO, INT64_MIN, 0);
             Reltime* time = RELTIME_AUTO;
@@ -837,7 +855,7 @@ static bool pat_info(Listener* lr,
                 {
                     return false;
                 }
-                event = Column_get_next_edit(col);
+                event = Column_iter_get_next(citer);
             }
         }
     }

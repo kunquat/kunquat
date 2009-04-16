@@ -142,7 +142,8 @@ uint32_t Pattern_mix(Pattern* pat,
             // TODO: and we still want to mix this pattern
             && Reltime_cmp(&play->pos, &pat->length) <= 0)
     {
-        Event* next_global = Column_get(pat->global, &play->pos);
+        Column_iter_change_col(play->citer, pat->global);
+        Event* next_global = Column_iter_get(play->citer, &play->pos);
         Reltime* next_global_pos = NULL;
         if (next_global != NULL)
         {
@@ -162,7 +163,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 if (!Event_queue_ins(play->events, next_global, mixed))
                 {
                     // Queue is full, ignore remaining events... TODO: notify
-                    next_global = Column_get(pat->global,
+                    next_global = Column_iter_get(play->citer,
                             Reltime_add(RELTIME_AUTO, &play->pos,
                                     Reltime_set(RELTIME_AUTO, 0, 1)));
                     if (next_global != NULL)
@@ -172,7 +173,7 @@ uint32_t Pattern_mix(Pattern* pat,
                     break;
                 }
             }
-            next_global = Column_get_next(pat->global);
+            next_global = Column_iter_get_next(play->citer);
             if (next_global != NULL)
             {
                 next_global_pos = Event_pos(next_global);
@@ -230,9 +231,10 @@ uint32_t Pattern_mix(Pattern* pat,
         // - Tell each channel to set up Voices
         for (int i = 0; i < COLUMNS_MAX; ++i)
         {
+            Column_iter_change_col(play->citer, pat->cols[i]);
             Channel_set_voices(play->channels[i],
                     play->voice_pool,
-                    pat->cols[i],
+                    play->citer,
                     &play->pos,
                     limit,
                     mixed,

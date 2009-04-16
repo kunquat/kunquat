@@ -25,10 +25,14 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
+
+
+typedef struct Column_iter Column_iter;
 
 
 typedef struct Event_list
@@ -46,10 +50,64 @@ typedef struct Event_list
 typedef struct Column
 {
     Reltime len;
+    uint32_t version;
     Event_list* last_elist;
     Event_list* last_elist_from_host;
+    Column_iter* edit_iter;
     AAtree* events;
 } Column;
+
+
+/**
+ * Creates a new Column iterator.
+ *
+ * \param col   The Column associated with the iterator.
+ */
+Column_iter* new_Column_iter(Column* col);
+
+
+/**
+ * Changes the Column associated with the Column iterator.
+ *
+ * \param iter   The Column iterator -- must not be \c NULL.
+ * \param col    The Column -- must not be \c NULL.
+ */
+void Column_iter_change_col(Column_iter* iter, Column* col);
+
+
+/**
+ * Gets an Event from the Column.
+ *
+ * The first Event with position greater than or equal to the given position
+ * will be returned.
+ *
+ * \param iter   The Column iterator -- must not be \c NULL.
+ * \param pos    The position of the Event -- must not be \c NULL.
+ *
+ * \return   The Event if one exists, otherwise \c NULL.
+ */
+Event* Column_iter_get(Column_iter* iter, const Reltime* pos);
+
+
+/**
+ * Gets the Event next to the previous Event retrieved from the Column.
+ *
+ * If not preceded by a successful call to Column_iter_get(), \c NULL will be
+ * returned.
+ *
+ * \param iter   The Column iterator -- must not be \c NULL.
+ *
+ * \return   The Event if one exists, otherwise \c NULL.
+ */
+Event* Column_iter_get_next(Column_iter* iter);
+
+
+/**
+ * Destroys an existing Column iterator.
+ *
+ * \param iter   The Column iterator -- must not be \c NULL.
+ */
+void del_Column_iter(Column_iter* iter);
 
 
 /**
@@ -76,63 +134,6 @@ Column* new_Column(Reltime* len);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Column_ins(Column* col, Event* event);
-
-
-/**
- * Gets an Event from the Column. Only the playback routine shall call this.
- *
- * The first Event with position greater than or equal to the given position
- * will be returned.
- *
- * \param col   The Column -- must not be \c NULL.
- * \param pos   The position of the Event -- must not be \c NULL.
- *
- * \return   The Event if one exists, otherwise \c NULL.
- */
-Event* Column_get(Column* col, const Reltime* pos);
-
-
-/**
- * Gets an Event from the Column. Code other than the playback routine shall
- * use this version.
- *
- * The first Event with position greater than or equal to the given position
- * will be returned.
- *
- * \param col   The Column -- must not be \c NULL.
- * \param pos   The position of the Event -- must not be \c NULL.
- *
- * \return   The Event if one exists, otherwise \c NULL.
- */
-Event* Column_get_edit(Column* col, const Reltime* pos);
-
-
-/**
- * Gets the Event next to the previous Event retrieved from the Column. Only
- * the playback routine shall call this.
- *
- * If not preceded by a successful call to Column_get(), \c NULL will be
- * returned.
- *
- * \param col   The Column -- must not be \c NULL.
- *
- * \return   The Event if one exists, otherwise \c NULL.
- */
-Event* Column_get_next(Column* col);
-
-
-/**
- * Gets the Event next to the previous Event retrieved from the Column. Code
- * other than the playback routine shall use this version.
- *
- * If not preceded by a successful call to Column_get(), \c NULL will be
- * returned.
- *
- * \param col   The Column -- must not be \c NULL.
- *
- * \return   The Event if one exists, otherwise \c NULL.
- */
-Event* Column_get_next_edit(Column* col);
 
 
 /**

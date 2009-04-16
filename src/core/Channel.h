@@ -73,7 +73,7 @@ Channel* new_Channel(Ins_table* insts);
  *
  * \param ch       The Channel -- must not be \c NULL.
  * \param pool     The Voice pool -- must not be \c NULL.
- * \param col      The Column -- must not be \c NULL.
+ * \param citer    The Column iterator -- must not be \c NULL.
  * \param start    The timestamp for first possible Event(s) to be included
  *                 -- must not be \c NULL.
  * \param end      The timestamp at and after which no Events will be
@@ -85,7 +85,7 @@ Channel* new_Channel(Ins_table* insts);
  */
 void Channel_set_voices(Channel* ch,
         Voice_pool* pool,
-        Column* col,
+        Column_iter* citer,
         Reltime* start,
         Reltime* end,
         uint32_t offset,

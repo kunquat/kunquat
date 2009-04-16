@@ -303,6 +303,11 @@ bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
     Generator* gen = Instrument_get_gen(ins, 0);
     assert(Generator_get_type(gen) == GEN_TYPE_PCM);
     Generator_pcm* gen_pcm = (Generator_pcm*)gen;
+    AAiter* iter = new_AAiter(gen_pcm->freq_maps[0].tree);
+    if (iter == NULL)
+    {
+        send_memory_fail(lr, "the mapping iterator");
+    }
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
         if (Generator_pcm_get_sample(gen_pcm, i) == NULL)
@@ -326,7 +331,7 @@ bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
     lo_message_add_int32(m, gen_pcm->freq_maps[0].entry_count); // # of frequency levels
 
     freq_entry* key = &(freq_entry){ .freq = 0 };
-    freq_entry* entry = AAtree_get(gen_pcm->freq_maps[0].tree, key, 1);
+    freq_entry* entry = AAiter_get(iter, key);
     while (entry != NULL)
     {
         lo_message_add_double(m, entry->freq);
@@ -337,8 +342,9 @@ bool ins_info_pcm(Listener* lr, lo_message m, Instrument* ins)
             lo_message_add_double(m, entry->freq_scale[i]);
             lo_message_add_double(m, entry->vol_scale[i]);
         }
-        entry = AAtree_get_next(gen_pcm->freq_maps[0].tree, 1);
+        entry = AAiter_get_next(iter);
     }
+    del_AAiter(iter);
     
     return true;
 }
