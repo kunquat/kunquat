@@ -31,6 +31,9 @@
 #define ENVELOPE_MARKS_MAX (4)
 
 
+/**
+ * The interpolation method used for an Envelope.
+ */
 typedef enum
 {
     // Nearest neighbour.
@@ -46,25 +49,7 @@ typedef enum
  * Envelope defines a mapping from one type of a value to another. They are
  * used mostly in Instruments.
  */
-typedef struct Envelope
-{
-    double min_x;
-    double max_x;
-    double step_x;
-    double min_y;
-    double max_y;
-    double step_y;
-    bool first_x_locked;
-    bool first_y_locked;
-    bool last_x_locked;
-    bool last_y_locked;
-    Envelope_int interp;
-    int node_count;
-    int nodes_max;
-    int nodes_res;
-    int marks[ENVELOPE_MARKS_MAX];
-    double* nodes;
-} Envelope;
+typedef struct Envelope Envelope;
 
 
 /**

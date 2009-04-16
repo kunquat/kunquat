@@ -23,9 +23,23 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <Etable.h>
 #include <Order.h>
 
 #include <xmemory.h>
+
+
+typedef struct Subsong
+{
+    int res;
+    int16_t* pats;
+} Subsong;
+
+
+struct Order
+{
+    Etable* subs;
+};
 
 
 /**

@@ -28,6 +28,15 @@
 #include <xmemory.h>
 
 
+struct Etable
+{
+    int size;
+    int res;
+    void** els;
+    void (*destroy)(void* el);
+};
+
+
 Etable* new_Etable(int size, void (*destroy)(void*))
 {
     assert(size > 0);

@@ -28,6 +28,26 @@
 #include <xmemory.h>
 
 
+typedef struct Event_queue_node
+{
+    uint32_t pos;
+    Event* event;
+} Event_queue_node;
+
+
+struct Event_queue
+{
+    /// The size of the queue.
+    int size;
+    /// The index of the first Event.
+    int start;
+    /// The number of Events inserted.
+    int count;
+    /// Storage for the Events and their positions in frames.
+    Event_queue_node* queue;
+};
+
+
 Event_queue* new_Event_queue(int size)
 {
     assert(size > 0);

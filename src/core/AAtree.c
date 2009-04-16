@@ -29,23 +29,29 @@
 #include <xmemory.h>
 
 
-#define AATREE_MAX_ITERS (2)
-
-
-struct AAnode
+typedef struct AAnode
 {
     int level;
     void* data;
     struct AAnode* parent;
     struct AAnode* left;
     struct AAnode* right;
-};
+} AAnode;
 
 
 struct AAiter
 {
     AAtree* tree;
     AAnode* node;
+};
+
+
+struct AAtree
+{
+    AAnode* nil;
+    AAnode* root;
+    int (*cmp)(void*, void*);
+    void (*destroy)(void*);
 };
 
 
@@ -145,10 +151,6 @@ AAtree* new_AAtree(int (*cmp)(void*, void*), void (*destroy)(void*))
         return NULL;
     }
     tree->root = tree->nil;
-    for (int i = 0; i < AATREE_MAX_ITERS; ++i)
-    {
-        tree->iters[i] = tree->nil;
-    }
     tree->cmp = cmp;
     tree->destroy = destroy;
     aavalidate(tree->root, "init");
@@ -382,13 +384,6 @@ void* AAtree_remove(AAtree* tree, void* key)
     {
         return NULL;
     }
-    for (int i = 0; i < AATREE_MAX_ITERS; ++i)
-    {
-        if (cur == tree->iters[i])
-        {
-            tree->iters[i] = aasucc(tree->iters[i]);
-        }
-    }
     void* data = cur->data;
     cur->data = NULL;
     if (cur->left->level != 0 && cur->right->level != 0)
@@ -481,10 +476,6 @@ void AAtree_clear(AAtree* tree)
     {
         aafree(tree->root, tree->destroy);
         tree->root = tree->nil;
-    }
-    for (int i = 0; i < AATREE_MAX_ITERS; ++i)
-    {
-        tree->iters[i] = tree->nil;
     }
     return;
 }

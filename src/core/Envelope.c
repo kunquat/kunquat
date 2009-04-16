@@ -30,6 +30,27 @@
 #include <xmemory.h>
 
 
+struct Envelope
+{
+    double min_x;
+    double max_x;
+    double step_x;
+    double min_y;
+    double max_y;
+    double step_y;
+    bool first_x_locked;
+    bool first_y_locked;
+    bool last_x_locked;
+    bool last_y_locked;
+    Envelope_int interp;
+    int node_count;
+    int nodes_max;
+    int nodes_res;
+    int marks[ENVELOPE_MARKS_MAX];
+    double* nodes;
+};
+
+
 Envelope* new_Envelope(int nodes_max,
         double min_x, double max_x, double step_x,
         double min_y, double max_y, double step_y)

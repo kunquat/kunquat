@@ -661,6 +661,10 @@ int Listener_pat_shift_up(const char* path,
             "The Pattern number (%ld)", (long)pat_num);
     Pat_table* table = Song_get_pats(song);
     Pattern* pat = Pat_table_get(table, pat_num);
+    if (pat == NULL)
+    {
+        return 0;
+    }
     int32_t col_num = argv[2]->i;
     check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
             "The Column number (%ld)", (long)col_num);
@@ -719,6 +723,10 @@ int Listener_pat_shift_down(const char* path,
             "The Pattern number (%ld)", (long)pat_num);
     Pat_table* table = Song_get_pats(song);
     Pattern* pat = Pat_table_get(table, pat_num);
+    if (pat == NULL)
+    {
+        return 0;
+    }
     int32_t col_num = argv[2]->i;
     check_cond(lr, col_num >= 0 && col_num <= COLUMNS_MAX,
             "The Column number (%ld)", (long)col_num);

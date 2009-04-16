@@ -23,10 +23,18 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <Etable.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 
 #include <xmemory.h>
+
+
+struct Ins_table
+{
+    int size;
+    Etable* insts;
+};
 
 
 Ins_table* new_Ins_table(int size)

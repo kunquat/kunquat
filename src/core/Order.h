@@ -27,27 +27,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <Etable.h>
 #include <Song_limits.h>
 
 
 #define ORDER_NONE (-1)
 
 
-typedef struct Subsong
-{
-    int res;
-    int16_t* pats;
-} Subsong;
-
-
 /**
  * Order specifies the order in which Patterns are played.
  */
-typedef struct Order
-{
-    Etable* subs;
-} Order;
+typedef struct Order Order;
 
 
 /**

@@ -27,9 +27,9 @@
 #include <stdbool.h>
 
 
-typedef struct AAnode AAnode;
-
-
+/**
+ * AAiter is an iterator used for getting elements from an AAtree.
+ */
 typedef struct AAiter AAiter;
 
 
@@ -42,14 +42,7 @@ typedef struct AAiter AAiter;
  * O(log n) time where n is the total number of elements stored. In debug mode
  * these operations take O(n) time.
  */
-typedef struct AAtree
-{
-    AAnode* nil;
-    AAnode* root;
-    AAnode* iters[2];
-    int (*cmp)(void*, void*);
-    void (*destroy)(void*);
-} AAtree;
+typedef struct AAtree AAtree;
 
 
 /**

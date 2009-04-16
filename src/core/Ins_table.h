@@ -27,17 +27,12 @@
 #include <stdbool.h>
 
 #include <Instrument.h>
-#include <Etable.h>
 
 
 /**
  * This is the storage object for Instruments.
  */
-typedef struct Ins_table
-{
-    int size;
-    Etable* insts;
-} Ins_table;
+typedef struct Ins_table Ins_table;
 
 
 /**

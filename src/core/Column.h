@@ -32,30 +32,17 @@
 #include <AAtree.h>
 
 
+/**
+ * Column_iter is used for retrieving Events from a Column.
+ */
 typedef struct Column_iter Column_iter;
-
-
-typedef struct Event_list
-{
-    Event* event;
-    struct Event_list* prev;
-    struct Event_list* next;
-} Event_list;
 
 
 /**
  * Column is a container for Events in a Pattern. It typically contains a
- * "monophonic" section of music, or the global Events.
+ * "monophonic" section of music, or global Events.
  */
-typedef struct Column
-{
-    Reltime len;
-    uint32_t version;
-    Event_list* last_elist;
-    Event_list* last_elist_from_host;
-    Column_iter* edit_iter;
-    AAtree* events;
-} Column;
+typedef struct Column Column;
 
 
 /**

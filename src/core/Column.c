@@ -32,12 +32,29 @@
 #include <xmemory.h>
 
 
+typedef struct Event_list
+{
+    Event* event;
+    struct Event_list* prev;
+    struct Event_list* next;
+} Event_list;
+
+
 struct Column_iter
 {
     uint32_t version;
     Column* col;
     AAiter* tree_iter;
     Event_list* elist;
+};
+
+
+struct Column
+{
+    Reltime len;
+    uint32_t version;
+    Column_iter* edit_iter;
+    AAtree* events;
 };
 
 
@@ -203,17 +220,17 @@ Column* new_Column(Reltime* len)
         return NULL;
     }
     col->version = 1;
-    col->edit_iter = new_Column_iter(col);
-    if (col->edit_iter == NULL)
-    {
-        xfree(col);
-        return NULL;
-    }
     col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {
-        del_Column_iter(col->edit_iter);
+        xfree(col);
+        return NULL;
+    }
+    col->edit_iter = new_Column_iter(col);
+    if (col->edit_iter == NULL)
+    {
+        del_AAtree(col->events);
         xfree(col);
         return NULL;
     }
@@ -225,8 +242,6 @@ Column* new_Column(Reltime* len)
     {
         Reltime_set(&col->len, INT64_MAX, 0);
     }
-    col->last_elist = NULL;
-    col->last_elist_from_host = NULL;
     return col;
 }
 
@@ -475,8 +490,6 @@ void Column_clear(Column* col)
 {
     assert(col != NULL);
     ++col->version;
-    col->last_elist = NULL;
-    col->last_elist_from_host = NULL;
     AAtree_clear(col->events);
     Column_iter_change_col(col->edit_iter, col);
     return;
