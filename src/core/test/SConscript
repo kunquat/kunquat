@@ -29,85 +29,66 @@ env_test.Append(LIBS = ['core'])
 
 real = env_test.Program('real', ['real.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(real, real[0].abspath)
+    env_test.AddPostAction(real, 'env ' + real[0].abspath)
 
 note_table = env_test.Program('note_table', ['note_table.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(note_table, note_table[0].abspath)
-Depends(note_table, 'real')
+    env_test.AddPostAction(note_table, 'env ' + note_table[0].abspath)
 
 reltime = env_test.Program('reltime', ['reltime.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(reltime, reltime[0].abspath)
+    env_test.AddPostAction(reltime, 'env ' + reltime[0].abspath)
 
 event = env_test.Program('event', ['event.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(event, event[0].abspath)
-Depends(event, 'reltime')
+    env_test.AddPostAction(event, 'env ' + event[0].abspath)
 
 event_queue = env_test.Program('event_queue', ['event_queue.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(event_queue, event_queue[0].abspath)
-Depends(event_queue, 'event')
+    env_test.AddPostAction(event_queue, 'env ' + event_queue[0].abspath)
 
 voice_state = env_test.Program('voice_state', ['voice_state.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(voice_state, voice_state[0].abspath)
+    env_test.AddPostAction(voice_state, 'env ' + voice_state[0].abspath)
 
 instrument = env_test.Program('instrument', ['instrument.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(instrument, instrument[0].abspath)
-Depends(instrument, 'voice_state')
-Depends(instrument, 'event_queue')
-Depends(instrument, 'note_table')
+    env_test.AddPostAction(instrument, 'env ' + instrument[0].abspath)
 
 ins_table = env_test.Program('ins_table', ['ins_table.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(ins_table, ins_table[0].abspath)
-Depends(ins_table, 'instrument')
+    env_test.AddPostAction(ins_table, 'env ' + ins_table[0].abspath)
 
 voice = env_test.Program('voice', ['voice.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(voice, voice[0].abspath)
-Depends(voice, 'instrument')
+    env_test.AddPostAction(voice, 'env ' + voice[0].abspath)
 
 voice_pool = env_test.Program('voice_pool', ['voice_pool.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(voice_pool, voice_pool[0].abspath)
-Depends(voice_pool, 'voice')
+    env_test.AddPostAction(voice_pool, 'env ' + voice_pool[0].abspath)
 
 column = env_test.Program('column', ['column.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(column, column[0].abspath)
-#Depends(column, 'reltime')
-Depends(column, 'event')
+    env_test.AddPostAction(column, 'env ' + column[0].abspath)
 
 channel = env_test.Program('channel', ['channel.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(channel, channel[0].abspath)
-Depends(channel, 'column')
-Depends(channel, 'voice_pool')
-Depends(channel, 'ins_table')
+    env_test.AddPostAction(channel, 'env ' + channel[0].abspath)
 
 order = env_test.Program('order', ['order.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(order, order[0].abspath)
+    env_test.AddPostAction(order, 'env ' + order[0].abspath)
 
 pat_table = env_test.Program('pat_table', ['pat_table.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(pat_table, pat_table[0].abspath)
+    env_test.AddPostAction(pat_table, 'env ' + pat_table[0].abspath)
 
 pattern = env_test.Program('pattern', ['pattern.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(pattern, pattern[0].abspath)
-Depends(pattern, 'channel')
-#Depends(pattern, 'column')
-Depends(pattern, 'order')
-Depends(pattern, 'pat_table')
+    env_test.AddPostAction(pattern, 'env ' + pattern[0].abspath)
 
 song = env_test.Program('song', ['song.c'])
 if not env.GetOption('clean'):
-    env_test.AddPostAction(song, song[0].abspath)
-Depends(song, 'pattern')
+    env_test.AddPostAction(song, 'env ' + song[0].abspath)
 
 
