@@ -203,7 +203,7 @@ void Sample_mix(Sample* sample,
                 state->active = false;
                 break;
             }
-            if (!state->pedal)
+            if (state->pedal < 0.5)
             {
                 state->off_ve_pos += 1.0 / freq;
             }

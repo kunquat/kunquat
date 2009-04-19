@@ -76,26 +76,53 @@ void Generator_sine_mix(Generator* gen,
         double val_l = 0;
         double val_r = 0;
         val_l = val_r = sin(state->ins_fields.sine.phase) / 6;
+        if (!state->note_on && (state->pos_rem == 0)
+                && !gen->ins_params->volume_off_env_enabled)
+        {
+            return;
+        }
         if (state->pos_rem < 0.002)
         {
             val_l = val_r = val_l * (state->pos_rem * 500);
             state->pos_rem += 1.0 / freq;
         }
-        if (!state->note_on)
-        {
-            if (state->noff_pos_rem < 0.002)
-            {
-                val_l = val_r = val_l * (1 - (state->noff_pos_rem * 333));
-            }
-            else
-            {
-                val_l = val_r = (val_l / 3) * (1 - state->noff_pos_rem);
-            }
-        }
         state->ins_fields.sine.phase += state->freq * PI_2 / freq;
         if (state->ins_fields.sine.phase >= PI_2)
         {
             state->ins_fields.sine.phase -= floor(state->ins_fields.sine.phase / PI_2) * PI_2;
+            ++state->pos;
+        }
+        if (!state->note_on)
+        {
+            if (gen->ins_params->volume_off_env_enabled)
+            {
+                double scale = Envelope_get_value(gen->ins_params->volume_off_env,
+                        state->off_ve_pos);
+                if (!isfinite(scale))
+                {
+                    state->active = false;
+                    return;
+                }
+                if (state->pedal < 0.5)
+                {
+                    state->off_ve_pos += 1.0 / freq;
+                }
+                val_l *= scale;
+                val_r *= scale;
+            }
+            else
+            {
+                if (state->noff_pos_rem < 1)
+                {
+                    val_l = val_r = val_l * (1 - state->noff_pos_rem);
+                }
+                else
+                {
+                    state->active = false;
+                    return;
+                }
+                state->noff_pos_rem += 2.0 / freq;
+            }
         }
         gen->ins_params->bufs[0][i] += val_l;
         gen->ins_params->bufs[1][i] += val_r;
@@ -103,15 +130,6 @@ void Generator_sine_mix(Generator* gen,
         {
             max_amp = fabs(val_l);
         } */
-        if (!state->note_on)
-        {
-            state->noff_pos_rem += 1.0 / freq;
-            if (state->noff_pos_rem >= 1)
-            {
-                state->active = false;
-                return;
-            }
-        }
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return;

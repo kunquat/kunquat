@@ -99,8 +99,8 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->volume_off_env_scale = 1;
     ip->volume_off_env_center = 440;
     Envelope_set_node(ip->volume_off_env, 0, 1);
-    Envelope_set_node(ip->volume_off_env, 0.2, 0.4);
-    Envelope_set_node(ip->volume_off_env, 2, 0);
+    Envelope_set_node(ip->volume_off_env, 0.02, 0.3);
+    Envelope_set_node(ip->volume_off_env, 1, 0);
     Envelope_set_first_lock(ip->volume_off_env, true, false);
     Envelope_set_last_lock(ip->volume_off_env, false, true);
 
