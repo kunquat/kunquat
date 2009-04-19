@@ -355,7 +355,7 @@ double Envelope_get_value(Envelope* env, double x)
         }
         else
         {
-            return env->nodes[middle * 2];
+            return env->nodes[middle * 2 + 1];
         }
     }
     assert(start < env->node_count);
