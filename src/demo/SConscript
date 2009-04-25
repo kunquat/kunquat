@@ -33,6 +33,11 @@ files = [
     'demo_song.c',
 ]
 
+if env['with_jack']:
+    files += ['Audio_jack.c']
+#if env['with_ao']:
+#    files += ['Audio_ao.c']
+
 env_l.Program('demo', files)
 
 
