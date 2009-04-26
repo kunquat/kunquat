@@ -29,6 +29,7 @@
 
 #include <kunquat.h>
 
+#include "Audio_ao.h"
 #include "Audio_jack.h"
 #include "demo_song.h"
 
@@ -43,6 +44,9 @@ typedef struct Driver_info
 
 static Driver_info drivers[] =
 {
+#ifdef ENABLE_AO
+    { "ao", Audio_ao_open, Audio_ao_close },
+#endif
 #ifdef ENABLE_JACK
     { "jack", Audio_jack_open, Audio_jack_close },
 #endif
@@ -67,7 +71,11 @@ Driver_info* get_driver(char* name)
 
 int main(int argc, char** argv)
 {
+#ifdef ENABLE_JACK
     char* selection = "jack";
+#else
+    char* selection = "ao";
+#endif
     if (argc > 1)
     {
         if (argc == 3 && strcmp(argv[1], "-d") == 0)

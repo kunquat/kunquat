@@ -20,42 +20,40 @@
  */
 
 
-#ifndef AUDIO_JACK_H
-#define AUDIO_JACK_H
+#ifndef AUDIO_AO_H
+#define AUDIO_AO_H
 
 
-#ifdef ENABLE_JACK
+#ifdef ENABLE_AO
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
-#include <jack/jack.h>
+#include <ao/ao.h>
 
 #include <kunquat.h>
 
 
 /**
- * Creates a JACK client.
+ * Creates a libao client.
  *
  * \param pl   The Playlist -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Audio_jack_open(Playlist* pl);
+bool Audio_ao_open(Playlist* pl);
 
 
 /**
- * Closes the JACK client.
+ * Closes the libao client.
  */
-void Audio_jack_close(void);
+void Audio_ao_close(void);
 
 
-#else
+#endif // ENABLE_AO
 
 
-#endif // ENABLE_JACK
-
-
-#endif // AUDIO_JACK_H
+#endif // AUDIO_AO_H
 
 
