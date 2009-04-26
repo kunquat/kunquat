@@ -108,6 +108,11 @@ void del_Playdata(Playdata* play)
         assert(play->channels[i] != NULL);
         del_Channel(play->channels[i]);
     }
+    if (play->citer != NULL)
+    {
+        del_Column_iter(play->citer);
+        play->citer = NULL;
+    }
     xfree(play);
     return;
 }
