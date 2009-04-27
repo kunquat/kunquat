@@ -60,6 +60,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->pitch_pan_env = NULL;
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
+    ip->notes = NULL;
 
     ip->pedal = 0;
     ip->volume = 1;

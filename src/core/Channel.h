@@ -31,6 +31,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <Column.h>
+#include <Song_limits.h>
 
 
 /**
@@ -40,20 +41,12 @@
  */
 typedef struct Channel
 {
-    /// The Instrument table.
-    Ins_table* insts;
-    /// The Voice in the foreground.
-    Voice* fg;
-    /// The reservation identification.
-    uint64_t fg_id;
-    // /// The Event associated with the foreground Voice. XXX: not needed?
-    //Event* fg_event;
-    /// A Note Off event for triggering implicit Note Offs.
-    Event* note_off;
-    // /// The absolute starting time of the foreground Voice. XXX: not needed?
-    //Reltime fg_start;
-    /// An Event used for single note playback control.
-    Event* single;
+    Ins_table* insts; ///< The Instrument table.
+    int fg_count; ///< Number of Voices in the foreground.
+    Voice* fg[GENERATORS_MAX]; ///< The Voices in the foreground.
+    uint64_t fg_id[GENERATORS_MAX]; ///< The reservation identifications.
+    Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
+    Event* single; ///< An Event used for single note playback control.
 } Channel;
 
 

@@ -29,6 +29,7 @@
 
 #include <frame_t.h>
 #include <Envelope.h>
+#include <Note_table.h>
 
 
 typedef struct Instrument_params
@@ -41,6 +42,9 @@ typedef struct Instrument_params
     frame_t** gbufs;
     /// Mixing buffer length.
     uint32_t buf_len;
+    
+    /// An indirect reference to the current Note table used.
+    Note_table** notes;
 
     /// Pedal setting (0 = fully released, 1.0 = fully depressed).
     double pedal;
@@ -124,6 +128,8 @@ typedef struct Instrument_params
  * \param bufs      The global mixing buffers -- must not be \c NULL and must
  *                  contain at least two buffers.
  * \param buf_len   The length of the buffers -- must be > \c 0.
+ * \param notes     An indirect reference to the Note table -- must not be
+ *                  \c NULL. Also, *notes must not be \c NULL.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
  *           allocation failed.

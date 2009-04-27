@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include <Event_queue.h>
-#include <Instrument.h>
+#include <Generator.h>
 #include <Voice_state.h>
 
 
@@ -50,8 +50,8 @@ typedef struct Voice
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
     Event_queue* events;   ///< Upcoming events.
-    Instrument* ins;       ///< The Instrument played.
-    Voice_state states[GENERATORS_MAX];   ///< The current playback state.
+    Generator* gen;        ///< The Generator.
+    Voice_state state;     ///< The current playback state.
 } Voice;
 
 
@@ -96,9 +96,9 @@ uint64_t Voice_id(Voice* voice);
  * Initialises the Voice for mixing.
  *
  * \param voice   The Voice -- must not be \c NULL.
- * \param ins     The Instrument used -- must not be \c NULL.
+ * \param gen     The Generator used -- must not be \c NULL.
  */
-void Voice_init(Voice* voice, Instrument* ins);
+void Voice_init(Voice* voice, Generator* gen);
 
 
 /**

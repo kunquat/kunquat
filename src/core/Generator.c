@@ -35,6 +35,32 @@ Gen_type Generator_get_type(Generator* gen)
 }
 
 
+void Generator_process_note(Generator* gen,
+        Voice_state* state,
+        int note,
+        int mod,
+        int octave)
+{
+    assert(gen != NULL);
+    assert(state != NULL);
+    assert(note >= 0);
+    assert(note < NOTE_TABLE_NOTES);
+    assert(mod < NOTE_TABLE_NOTE_MODS);
+    assert(octave >= NOTE_TABLE_OCTAVE_FIRST);
+    assert(octave <= NOTE_TABLE_OCTAVE_LAST);
+    if (gen->ins_params->notes == NULL || *gen->ins_params->notes == NULL)
+    {
+        return;
+    }
+    pitch_t freq = Note_table_get_pitch(*gen->ins_params->notes, note, mod, octave);
+    if (freq > 0)
+    {
+        state->freq = freq;
+    }
+    return;
+}
+
+
 void Generator_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,

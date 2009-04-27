@@ -119,7 +119,7 @@ START_TEST (mix)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Voice_init(voice, ins);
+    Voice_init(voice, Instrument_get_gen(ins, 0));
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -159,7 +159,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, ins);
+    Voice_init(voice, Instrument_get_gen(ins, 0));
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -219,7 +219,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, ins);
+    Voice_init(voice, Instrument_get_gen(ins, 0));
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),

@@ -39,23 +39,16 @@
 
 typedef struct Instrument
 {
-    /// The name of the Instrument.
-    wchar_t name[INS_NAME_MAX];
-    /// Instrument event queue (esp. pedal events go here).
-    Event_queue* events;
-    /// An indirect reference to the current Note table used.
-    Note_table** notes;
+    wchar_t name[INS_NAME_MAX]; ///< The name of the Instrument.
+    Event_queue* events; ///< Instrument event queue (esp. pedal events go here).
 
-    /// Default force.
-    double default_force;
-    /// Force variation.
-    double force_variation;
+    double default_force; ///< Default force.
+    double force_variation; ///< Force variation.
 
-    /// All the Instrument parameters that Generators need.
-    Instrument_params params;
+    Instrument_params params; ///< All the Instrument parameters that Generators need.
 
-    /// Generators.
-    Generator* gens[GENERATORS_MAX];
+    int gen_count; ///< Number of Generators.
+    Generator* gens[GENERATORS_MAX]; ///< Generators.
 } Instrument;
 
 
@@ -83,6 +76,16 @@ Instrument* new_Instrument(frame_t** bufs,
  * \return   The Instrument parameters.
  */
 Instrument_params* Instrument_get_params(Instrument* ins);
+
+
+/**
+ * Gets the number of Generators used by the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The number of Generators.
+ */
+int Instrument_get_gen_count(Instrument* ins);
 
 
 /**
@@ -157,25 +160,6 @@ wchar_t* Instrument_get_name(Instrument* ins);
  *                \c NULL.
  */
 void Instrument_set_note_table(Instrument* ins, Note_table** notes);
-
-
-/**
- * Handles a given note as appropriate for the Instrument.
- *
- * \param ins      The Instrument -- must not be \c NULL.
- * \param states   The array of Voice states -- must not be \c NULL.
- * \param note     The note number -- must be >= \c 0 and
- *                 < \c NOTE_TABLE_NOTES.
- * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
- *                 Negative value means that no modifier will be applied.
- * \param octave   The octave -- must be >= \c NOTE_TABLE_OCTAVE_FIRST
- *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
- */
-void Instrument_process_note(Instrument* ins,
-        Voice_state* states,
-        int note,
-        int mod,
-        int octave);
 
 
 /**

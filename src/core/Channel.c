@@ -56,8 +56,12 @@ Channel* new_Channel(Ins_table* insts)
         return NULL;
     }
     ch->insts = insts;
-    ch->fg = NULL;
-    ch->fg_id = 0;
+    ch->fg_count = 0;
+    for (int i = 0; i < GENERATORS_MAX; ++i)
+    {
+        ch->fg[i] = NULL;
+        ch->fg_id[i] = 0;
+    }
     return ch;
 }
 
@@ -101,42 +105,35 @@ void Channel_set_voices(Channel* ch,
         assert(Reltime_cmp(start, next_pos) <= 0);
         if (Event_get_type(next) == EVENT_TYPE_NOTE_ON)
         {
-            if (ch->fg != NULL)
+            for (int i = 0; i < ch->fg_count; ++i)
             {
-                // move the old Voice to the background
-                ch->fg = Voice_pool_get_voice(pool, ch->fg, ch->fg_id);
-                if (ch->fg == NULL)
+                if (ch->fg[i] != NULL)
                 {
-                    // The Voice has been given to another channel -- giving up
-#if 0
-                    next = NULL;
-                    if (citer != NULL)
+                    // move the old Voice to the background
+                    ch->fg[i] = Voice_pool_get_voice(pool, ch->fg[i], ch->fg_id[i]);
+                    if (ch->fg[i] == NULL)
                     {
-                        next = Column_iter_get_next(citer);
+                        // The Voice has been given to another channel -- giving up
+                        continue;
                     }
-                    if (next == NULL)
+                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                            + offset;
+                    // FIXME: it seems that we may use ch->note_off for several Voices
+                    //        -- this leads to slightly incorrect Note Off positions
+                    if (!Voice_add_event(ch->fg[i], ch->note_off, abs_pos))
                     {
-                        break;
+                        // Kill the Voice so that it doesn't
+                        // stay active indefinitely
+                        Voice_reset(ch->fg[i]);
+                        ch->fg[i] = NULL;
+                        ch->fg_id[i] = 0;
+                        // TODO: notify in case of failure
                     }
-                    next_pos = Event_pos(next);
-#endif
-                    continue;
-                }
-                Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                        + offset;
-                // FIXME: it seems that we may use ch->note_off for several Voices
-                //        -- this leads to slightly incorrect Note Off positions
-                if (!Voice_add_event(ch->fg, ch->note_off, abs_pos))
-                {
-                    // Kill the Voice so that it doesn't
-                    // stay active indefinitely
-                    Voice_reset(ch->fg);
-                    ch->fg = NULL;
-                    ch->fg_id = 0;
-                    // TODO: notify in case of failure
+                    ch->fg[i] = NULL;
                 }
             }
+            ch->fg_count = 0;
             int64_t num = 0;
             Event_int(next, 3, &num);
             if (num <= 0)
@@ -168,50 +165,57 @@ void Channel_set_voices(Channel* ch,
                 next_pos = Event_pos(next);
                 continue;
             }
-            // allocate new voice
-            ch->fg = Voice_pool_get_voice(pool, NULL, 0);
-            assert(ch->fg != NULL);
-            ch->fg_id = Voice_id(ch->fg);
-            Voice_init(ch->fg, ins);
-            Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-            uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                    + offset;
-            if (!Voice_add_event(ch->fg, next, abs_pos))
+            // allocate new Voices
+            ch->fg_count = Instrument_get_gen_count(ins);
+            for (int i = 0; i < ch->fg_count; ++i)
             {
-                // This really shouldn't occur here!
-                //  - implies that Voice is uninitialised
-                //    or cannot contain any events
-                assert(false);
+                assert(Instrument_get_gen(ins, i) != NULL);
+                ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
+                assert(ch->fg[i] != NULL);
+                ch->fg_id[i] = Voice_id(ch->fg[i]);
+                Voice_init(ch->fg[i], Instrument_get_gen(ins, i));
+                Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                        + offset;
+                if (!Voice_add_event(ch->fg[i], next, abs_pos))
+                {
+                    // This really shouldn't occur here!
+                    //  - implies that the Voice is uninitialised
+                    //    or cannot contain any events
+                    assert(false);
+                }
             }
         }
-        else if (ch->fg != NULL &&
+        else if (ch->fg_count > 0 &&
                 !EVENT_TYPE_IS_GLOBAL(Event_get_type(next)))
         {
-            ch->fg = Voice_pool_get_voice(pool, ch->fg, ch->fg_id);
-            if (ch->fg == NULL)
+            bool voices_active = false;
+            for (int i = 0; i < ch->fg_count; ++i)
             {
-                // The Voice has been given to another channel -- giving up
-                next = NULL;
-                if (citer != NULL)
+                if (ch->fg[i] != NULL)
                 {
-                    next = Column_iter_get_next(citer);
+                    ch->fg[i] = Voice_pool_get_voice(pool, ch->fg[i], ch->fg_id[i]);
+                    if (ch->fg[i] == NULL)
+                    {
+                        // The Voice has been given to another channel -- giving up
+                        continue;
+                    }
+                    voices_active = true;
+                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                            + offset;
+                    if (!Voice_add_event(ch->fg[i], next, abs_pos))
+                    {
+                        Voice_reset(ch->fg[i]);
+                        ch->fg[i] = NULL;
+                        ch->fg_id[i] = 0;
+                        // TODO: notify in case of failure
+                    }
                 }
-                if (next == NULL)
-                {
-                    break;
-                }
-                next_pos = Event_pos(next);
-                continue;
             }
-            Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-            uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                    + offset;
-            if (!Voice_add_event(ch->fg, next, abs_pos))
+            if (!voices_active)
             {
-                Voice_reset(ch->fg);
-                ch->fg = NULL;
-                ch->fg_id = 0;
-                // TODO: notify in case of failure
+                ch->fg_count = 0;
             }
         }
         if (next == ch->single)
@@ -244,8 +248,12 @@ void Channel_set_voices(Channel* ch,
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
-    ch->fg = NULL;
-    ch->fg_id = 0;
+    for (int i = 0; i < ch->fg_count; ++i)
+    {
+        ch->fg[i] = NULL;
+        ch->fg_id[i] = 0;
+    }
+    ch->fg_count = 0;
     return;
 }
 

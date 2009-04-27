@@ -50,7 +50,6 @@ Instrument* new_Instrument(frame_t** bufs,
         return NULL;
     }
     ins->events = NULL;
-    ins->notes = NULL;
     ins->events = new_Event_queue(events);
     if (ins->events == NULL)
     {
@@ -61,6 +60,7 @@ Instrument* new_Instrument(frame_t** bufs,
     ins->default_force = 1;
     ins->force_variation = 0;
 
+    ins->gen_count = 0;
     for (int i = 0; i < GENERATORS_MAX; ++i)
     {
         ins->gens[i] = NULL;
@@ -78,6 +78,13 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
+int Instrument_get_gen_count(Instrument* ins)
+{
+    assert(ins != NULL);
+    return ins->gen_count;
+}
+
+
 int Instrument_set_gen(Instrument* ins,
         int index,
         Generator* gen)
@@ -90,6 +97,10 @@ int Instrument_set_gen(Instrument* ins,
     {
         del_Generator(ins->gens[index]);
         ins->gens[index] = NULL;
+    }
+    else
+    {
+        ++ins->gen_count;
     }
     while (index > 0 && ins->gens[index - 1] == NULL)
     {
@@ -119,6 +130,7 @@ void Instrument_del_gen(Instrument* ins, int index)
     {
         return;
     }
+    --ins->gen_count;
     del_Generator(ins->gens[index]);
     ins->gens[index] = NULL;
     while (index < GENERATORS_MAX - 1 && ins->gens[index + 1] != NULL)
@@ -152,36 +164,7 @@ void Instrument_set_note_table(Instrument* ins, Note_table** notes)
 {
     assert(ins != NULL);
     assert(notes != NULL);
-    ins->notes = notes;
-    return;
-}
-
-
-void Instrument_process_note(Instrument* ins,
-        Voice_state* states,
-        int note,
-        int mod,
-        int octave)
-{
-    assert(ins != NULL);
-    assert(states != NULL);
-    assert(note >= 0);
-    assert(note < NOTE_TABLE_NOTES);
-    assert(mod < NOTE_TABLE_NOTE_MODS);
-    assert(octave >= NOTE_TABLE_OCTAVE_FIRST);
-    assert(octave <= NOTE_TABLE_OCTAVE_LAST);
-    if (ins->notes == NULL || *ins->notes == NULL)
-    {
-        return;
-    }
-    pitch_t freq = Note_table_get_pitch(*ins->notes, note, mod, octave);
-    if (freq > 0)
-    {
-        for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
-        {
-            states[i].freq = freq;
-        }
-    }
+    ins->params.notes = notes;
     return;
 }
 
