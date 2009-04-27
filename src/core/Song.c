@@ -33,6 +33,10 @@
 
 #include <xmemory.h>
 
+/*<test>*/
+#define ORDER 10
+#include <Filter.c>
+/*</test>*/
 
 Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 {
@@ -137,6 +141,21 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 
 uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 {
+/*<test>*/
+  static int ready=0;
+  static double coeffsa[ORDER+1];
+  static double coeffsb[ORDER];
+  static frame_t histbuff[ORDER];
+  if(ready==0)
+  {
+    for(int i=0;i<ORDER;++i)
+      histbuff[i]=0.0;
+/*     simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffs); */
+    bilinear_butterworth_iir_create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
+    ready=1;
+  }
+/*</test>*/
+
     assert(song != NULL);
     assert(play != NULL);
     if (play->mode == STOP)
@@ -216,6 +235,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             song->bufs[i][k] *= vol;
         }
     }
+/*<test>*/
+/*     fir_filter(ORDER, coeffs, histbuff, mixed, song->bufs[0], song->bufs[1]); */
+    iir_filter_df2(ORDER, coeffsa, ORDER, coeffsb, histbuff, mixed, song->bufs[0], song->bufs[1]);
+    for (uint32_t k = 0; k < mixed; ++k)
+    {
+      song->bufs[0][k] = song->bufs[1][k];
+    }
+/*</test>*/
     return mixed;
 }
 
