@@ -34,7 +34,7 @@
 #include <xmemory.h>
 
 /*<test>*/
-#define ORDER 10
+#define ORDER 4
 #include <Filter.c>
 /*</test>*/
 
@@ -151,7 +151,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     for(int i=0;i<ORDER;++i)
       histbuff[i]=0.0;
 /*     simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffs); */
-    bilinear_butterworth_iir_create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
+    bilinear_butterworth_order4_iir_create(600.0/play->freq, coeffsa, coeffsb);
     ready=1;
   }
 /*</test>*/

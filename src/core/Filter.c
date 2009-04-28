@@ -19,7 +19,7 @@
 
 #include <math.h>
 
-#define PI 3.1415926535897932
+#define PI 3.14159265358979323846
 #define MAX(x,y) ((x)>(y) ? (x) : (y))
 
 double sinc(double x)
@@ -32,6 +32,22 @@ void simple_lowpass_fir_create(int n, double freq, double coeffs[])
   int i;
   for(i=0;i<=n;++i)
     coeffs[i] = 2*freq*sinc(PI*freq*(2*i-n));
+}
+
+void bilinear_butterworth_order4_iir_create(double freq, double coeffsa[], double coeffsb[])
+{
+  double temp = pow(2*tan(freq/2),-4.0);
+  
+  coeffsa[0] = -0.504374719530898117145;
+  coeffsa[1] = -1.60874354597798109129;
+  coeffsa[2] =  0.0796926446274308548755;
+  coeffsa[3] =  1.31517472294929891469;
+
+  coeffsb[0] =  0.0176093188792406600703*temp;
+  coeffsb[1] =  0.0704372755169626402813*temp;
+  coeffsb[2] =  0.105655913275443960422*temp;
+  coeffsb[3] =  0.0704372755169626402813*temp;
+  coeffsb[4] =  0.0176093188792406600703*temp;
 }
 
 void bilinear_butterworth_iir_create(int n, double freq, double coeffsa[], double coeffsb[])
