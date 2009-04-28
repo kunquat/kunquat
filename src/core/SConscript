@@ -37,6 +37,7 @@ files = [
     'Event.c',
     'Event_queue.c',
     'Voice_state.c',
+    'Voice_state_sine.c',
     'Envelope.c',
     'Generator.c',
     'Generator_debug.c',

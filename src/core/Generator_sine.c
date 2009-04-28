@@ -28,6 +28,7 @@
 
 #include <Generator.h>
 #include <Generator_sine.h>
+#include <Voice_state_sine.h>
 
 #include <xmemory.h>
 
@@ -71,11 +72,12 @@ void Generator_sine_mix(Generator* gen,
     }
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
+    Voice_state_sine* sine_state = (Voice_state_sine*)state;
     for (uint32_t i = offset; i < nframes; ++i)
     {
         double val_l = 0;
         double val_r = 0;
-        val_l = val_r = sin(state->ins_fields.sine.phase) / 6;
+        val_l = val_r = sin(sine_state->phase) / 6;
         if (!state->note_on && (state->pos_rem == 0)
                 && !gen->ins_params->volume_off_env_enabled)
         {
@@ -86,10 +88,10 @@ void Generator_sine_mix(Generator* gen,
             val_l = val_r = val_l * (state->pos_rem * 500);
             state->pos_rem += 1.0 / freq;
         }
-        state->ins_fields.sine.phase += state->freq * PI_2 / freq;
-        if (state->ins_fields.sine.phase >= PI_2)
+        sine_state->phase += state->freq * PI_2 / freq;
+        if (sine_state->phase >= PI_2)
         {
-            state->ins_fields.sine.phase -= floor(state->ins_fields.sine.phase / PI_2) * PI_2;
+            sine_state->phase -= floor(sine_state->phase / PI_2) * PI_2;
             ++state->pos;
         }
         if (!state->note_on)

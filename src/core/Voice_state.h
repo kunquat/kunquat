@@ -31,44 +31,20 @@
 #include <pitch_t.h>
 
 
-typedef struct Voice_state_sine
-{
-    double phase;
-} Voice_state_sine;
-
-
 typedef struct Voice_state
 {
-    /// Whether there is anything left to process.
-    bool active;
-    /// The frequency at which the note is played.
-    pitch_t freq;
-    /// The current playback position.
-    uint64_t pos;
-    /// The current playback position remainder.
-    double pos_rem;
-    /// The current relative playback position.
-    uint64_t rel_pos;
-    /// The current relative playback position remainder.
-    double rel_pos_rem;
-    /// Whether the note is still on.
-    bool note_on;
-    /// Note Off position.
-    uint64_t noff_pos;
-    /// Note Off position remainder.
-    double noff_pos_rem;
-    /// Whether the pedal is active.
-    bool pedal;
-    /// Note On volume envelope position.
-    double on_ve_pos;
-    /// Note Off volume envelope position.
-    double off_ve_pos;
-    /// Instrument-specific fields.
-    union
-    {
-        Voice_state_sine sine;
-//        Voice_state_pcm pcm;
-    } ins_fields;
+    bool active; ///< Whether there is anything left to process.
+    pitch_t freq; ///< The frequency at which the note is played.
+    uint64_t pos; ///< The current playback position.
+    double pos_rem; ///< The current playback position remainder.
+    uint64_t rel_pos; ///< The current relative playback position.
+    double rel_pos_rem; ///< The current relative playback position remainder.
+    bool note_on; ///< Whether the note is still on.
+    uint64_t noff_pos; ///< Note Off position.
+    double noff_pos_rem; ///< Note Off position remainder.
+    bool pedal; ///< Whether the pedal is active.
+    double on_ve_pos; ///< Note On volume envelope position.
+    double off_ve_pos; ///< Note Off volume envelope position.
 } Voice_state;
 
 
@@ -91,14 +67,6 @@ Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_clear(Voice_state* state);
-
-
-/**
- * Initialises the Sine Instrument parameters.
- *
- * \param sine   The Sine parameters -- must not be \c NULL.
- */
-void Voice_state_sine_init(Voice_state* state);
 
 
 #endif // K_VOICE_STATE_H

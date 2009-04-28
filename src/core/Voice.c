@@ -48,7 +48,7 @@ Voice* new_Voice(uint8_t events)
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->gen = NULL;
-    Voice_state_clear(&voice->state);
+    Voice_state_clear(&voice->state.generic);
     return voice;
 }
 
@@ -74,7 +74,7 @@ void Voice_init(Voice* voice, Generator* gen)
     assert(gen != NULL);
     voice->prio = VOICE_PRIO_NEW;
     voice->gen = gen;
-    Voice_state_init(&voice->state, gen->init_state);
+    Voice_state_init(&voice->state.generic, gen->init_state);
     Event_queue_clear(voice->events);
     return;
 }
@@ -85,7 +85,7 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
     voice->prio = VOICE_PRIO_INACTIVE;
     Event_queue_clear(voice->events);
-    Voice_state_clear(&voice->state);
+    Voice_state_clear(&voice->state.generic);
     voice->gen = NULL;
     return;
 }
@@ -127,7 +127,7 @@ void Voice_mix(Voice* voice,
         }
         if (voice->prio < VOICE_PRIO_NEW)
         {
-            Generator_mix(voice->gen, &voice->state, mix_until, mixed, freq);
+            Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq);
         }
         else
         {
@@ -152,13 +152,13 @@ void Voice_mix(Voice* voice,
                         Event_int(next, 1, &note_mod);
                         Event_int(next, 2, &note_octave);
                         Generator_process_note(voice->gen,
-                                &voice->state,
+                                &voice->state.generic,
                                 (int)note,
                                 (int)note_mod,
                                 (int)note_octave);
                         break;
                     case EVENT_TYPE_NOTE_OFF:
-                        voice->state.note_on = false;
+                        voice->state.generic.note_on = false;
                         break;
                     default:
                         break;
@@ -169,11 +169,11 @@ void Voice_mix(Voice* voice,
         mix_until = nframes;
         event_found = Event_queue_get(voice->events, &next, &mix_until);
     }
-    if (!voice->state.active)
+    if (!voice->state.generic.active)
     {
         voice->prio = VOICE_PRIO_INACTIVE;
     }
-    else if (!voice->state.note_on)
+    else if (!voice->state.generic.note_on)
     {
         voice->prio = VOICE_PRIO_BG;
     }

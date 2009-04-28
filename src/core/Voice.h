@@ -28,7 +28,7 @@
 
 #include <Event_queue.h>
 #include <Generator.h>
-#include <Voice_state.h>
+#include <Voice_state_sine.h>
 
 
 typedef enum
@@ -51,7 +51,12 @@ typedef struct Voice
     Voice_prio prio;       ///< Current priority of the Voice.
     Event_queue* events;   ///< Upcoming events.
     Generator* gen;        ///< The Generator.
-    Voice_state state;     ///< The current playback state.
+    /// The current playback state.
+    union
+    {
+        Voice_state generic;
+        Voice_state_sine sine;
+    } state;
 } Voice;
 
 
