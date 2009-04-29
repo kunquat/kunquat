@@ -19,7 +19,7 @@
 
 #include <math.h>
 
-#define PI 3.14159265358979323846
+#define PI  3.14159265358979323846
 #define MAX(x,y) ((x)>(y) ? (x) : (y))
 
 double sinc(double x)
@@ -27,79 +27,22 @@ double sinc(double x)
   return x == 0.0 ? 1.0 : sin(x)/x;
 }
 
-void simple_lowpass_fir_create(int n, double freq, double coeffs[])
+void simple_lowpass_fir_create(int n, double f, double coeffs[])
 {
   int i;
   for(i=0;i<=n;++i)
-    coeffs[i] = 2*freq*sinc(PI*freq*(2*i-n));
+    coeffs[i] = 2*f*sinc(PI*f*(2*i-n));
 }
 
-void bilinear_butterworth_order4_iir_create(double freq, double coeffsa[], double coeffsb[])
+void bilinear_butterworth_order2_lowpass_iir__create(double f, double coeffsa[], double coeffsb[])
 {
-  double temp = pow(2*tan(freq/2),-4.0);
-  
-  coeffsa[0] = -0.504374719530898117145;
-  coeffsa[1] = -1.60874354597798109129;
-  coeffsa[2] =  0.0796926446274308548755;
-  coeffsa[3] =  1.31517472294929891469;
+  f = 2*tan(PI*f);
 
-  coeffsb[0] =  0.0176093188792406600703*temp;
-  coeffsb[1] =  0.0704372755169626402813*temp;
-  coeffsb[2] =  0.105655913275443960422*temp;
-  coeffsb[3] =  0.0704372755169626402813*temp;
-  coeffsb[4] =  0.0176093188792406600703*temp;
-}
-
-void bilinear_butterworth_iir_create(int n, double freq, double coeffsa[], double coeffsb[])
-{
-  int i,j;
-  double temp1[n+1];
-  double temp2[n+1];
-
-  freq = 2*tan(freq/2);
-
-  for(i=0;i<=n;++i)
-    temp1[i] = 0.0;
-
-  if(n%2==0)
-    temp1[0] = 1.0;
-  else
-  {
-    temp1[0] = 3.0;
-    temp1[1] = -1.0;
-  }
-
-  for(i=1;i<=n/2;++i)
-  {
-    for(j=0;j<=n;++j)
-      temp2[j] = (5 - 4*cos((2*j+n-1)*PI/(2*n)))*temp1[j];
-
-    for(j=0;j<=n-1;++j)
-      temp2[j+1] -= 6*temp1[j];
-
-    for(j=0;j<=n-2;++j)
-      temp2[j+2] += (5 + 4*cos((2*j+n-1)*PI/(2*n)))*temp1[j];
-
-    for(j=0;j<=n;++j)
-      temp1[j] = temp2[j];
-  }
-
-  for(i=0;i<=n;++i)
-    temp1[i] *= pow(freq, -n);
-
-  for(i=0;i<n;++i)
-    coeffsa[i] = temp1[i+1]/temp1[0];
-
-  for(i=0;i<n;i++)
-    coeffsb[i] = 0.0;
-  coeffsb[n] = 1.0;
-
-  for(i=n;i>=0;i--)
-    for(j=i;j<n;j++)
-      coeffsb[j] += coeffsb[j + 1];
-
-  for(i=0;i<=n;i++)
-    coeffsb[i] /= temp1[0];
+  coeffsa[0] = 2*(f*f-4)/((f+2*sqrt(2))*f+4);
+  coeffsa[1] = ((f-2*sqrt(2))*f+4)/((f+2*sqrt(2))*f+4);
+  coeffsb[0] = f*f/((f+2*sqrt(2))*f+4);
+  coeffsb[1] = f*f/((f+2*sqrt(2))*f+4);
+  coeffsb[2] = f*f/((f+2*sqrt(2))*f+4);
 }
 
 void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t inbuff[], frame_t outbuff[])
@@ -199,6 +142,7 @@ void iir_filter_df2(int na, double coeffsa[], int nb, double coeffsb[], frame_t 
   for(;i<MAX(na,nb);++i)
     histbuff[i] = inbuff[amount-na+i];
 }
+
 
 void iir_filter_pure(int n, double coeffs[], frame_t histbuff[], int amount, frame_t inbuff[], frame_t outbuff[])
 {
