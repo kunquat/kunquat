@@ -143,8 +143,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 {
 /*<test>*/
   static int ready=0;
-  static double coeffsa[ORDER+1] = {0.0};
-  static double coeffsb[ORDER] = {0.0};
+  static double coeffsa[ORDER] = {0.0};
+  static double coeffsb[ORDER+1] = {0.0};
   static frame_t histbuffa[ORDER] = {0.0};
   static frame_t histbuffb[ORDER] = {0.0};
   if(ready==0)

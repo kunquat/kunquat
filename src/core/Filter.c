@@ -41,7 +41,7 @@ void bilinear_butterworth_order2_lowpass_iir__create(double f, double coeffsa[],
   coeffsa[0] = 2*(f*f-4)/((f+2*sqrt(2))*f+4);
   coeffsa[1] = ((f-2*sqrt(2))*f+4)/((f+2*sqrt(2))*f+4);
   coeffsb[0] = f*f/((f+2*sqrt(2))*f+4);
-  coeffsb[1] = f*f/((f+2*sqrt(2))*f+4);
+  coeffsb[1] = 2*f*f/((f+2*sqrt(2))*f+4);
   coeffsb[2] = f*f/((f+2*sqrt(2))*f+4);
 }
 
