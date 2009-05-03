@@ -145,6 +145,17 @@ void* AAtree_get(AAtree* tree, void* key);
 
 
 /**
+ * Gets the element matching the given key exactly.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAtree_get_exact(AAtree* tree, void* key);
+
+
+/**
  * Gets the last element less than or equal to the given key.
  *
  * \param tree   The AAtree -- must not be \c NULL.

@@ -294,6 +294,20 @@ void* AAtree_get(AAtree* tree, void* key)
 }
 
 
+void* AAtree_get_exact(AAtree* tree, void* key)
+{
+    assert(tree != NULL);
+    assert(key != NULL);
+    AAiter* iter = AAITER_AUTO(tree);
+    void* ret = AAiter_get(iter, key);
+    if (tree->cmp(ret, key) == 0)
+    {
+        return ret;
+    }
+    return NULL;
+}
+
+
 void* AAiter_get_at_most(AAiter* iter, void* key)
 {
     assert(iter != NULL);
