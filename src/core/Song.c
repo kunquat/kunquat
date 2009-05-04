@@ -34,7 +34,7 @@
 #include <xmemory.h>
 
 /*<test>*/
-#define ORDER 2
+#define ORDER 3
 #include <Filter.c>
 /*</test>*/
 
@@ -150,7 +150,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
   if(ready==0)
   {
 /*     simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffs); */
-    bilinear_butterworth_order2_lowpass_iir__create(600.0/play->freq, coeffsa, coeffsb);
+    bilinear_butterworth_lowpass_iir__create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
     ready=1;
   }
 /*</test>*/
