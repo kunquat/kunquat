@@ -146,7 +146,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
   static double coeffsa[ORDER] = {0.0};
   static double coeffsb[ORDER+1] = {0.0};
   static frame_t histbuffa[ORDER] = {0.0};
-  static frame_t histbuffb[ORDER] = {0.0};
+  //  static frame_t histbuffb[ORDER] = {0.0};
   if(ready==0)
   {
 /*     simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffs); */

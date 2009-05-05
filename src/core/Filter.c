@@ -57,7 +57,7 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[], double coeffsb[])
 {
   int i;
-  double a0,fna0;
+  double a0=1.0,fna0;
 
   f = 2*tan(PI*f);
 
@@ -65,7 +65,7 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
   {
   case 1:
     a0 = f+2;
-    coeffsa[0] = (f-2);
+    coeffsa[0] = f-2;
     break;
   case 2:
     a0 = (f+2*sqrt(2))*f+4;
@@ -77,6 +77,13 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
     coeffsa[0] = ((f-4)*f+8)*f-8;
     coeffsa[1] = ((3*f-4)*f-8)*f+24;
     coeffsa[2] = ((3*f+4)*f-8)*f-24;
+    break;
+  case 4:
+    a0 = (((f+2*sqrt(4+2*sqrt(2)))*f+8+4*sqrt(2))*f+8*sqrt(4+2*sqrt(2)))*f+16;
+    coeffsa[0] = (((f-2*sqrt(4+2*sqrt(2)))*f+8+4*sqrt(2))*f-8*sqrt(4+2*sqrt(2)))*f+16;
+    coeffsa[1] = ((4*f-4*sqrt(4+2*sqrt(2)))*f*f+16*sqrt(4+2*sqrt(2)))*f-64;
+    coeffsa[2] = (6*f*f-16-8*sqrt(2))*f*f+96;
+    coeffsa[3] = ((4*f+4*sqrt(4+2*sqrt(2)))*f*f-16*sqrt(4+2*sqrt(2)))*f-64;
   }
 
   for(i=0;i<n;++i)
@@ -109,7 +116,7 @@ void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t 
   for(i=0,j=amount;j<n;++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=0;i<n;++i,++j)
+  for(j=amount-i;i<n;++i,++j)
     histbuff[i] = inbuff[j];
 }
 
@@ -132,7 +139,7 @@ void iir_filter_df1(int na, double coeffsa[], frame_t histbuffa[], int nb, doubl
       temp += histbuffb[k]*coeffsb[j];
 
     for(k-=nb;j<=nb;++j,++k)
-      temp += inbuff[i-nb+j]*coeffsb[j];
+      temp += inbuff[k]*coeffsb[j];
 
     outbuff[i] = temp;
   }
@@ -140,13 +147,13 @@ void iir_filter_df1(int na, double coeffsa[], frame_t histbuffa[], int nb, doubl
   for(i=0,j=amount;j<na;++i,++j)
     histbuffa[i] = histbuffa[j];
 
-  for(j=0;i<na;++i)
+  for(j=amount-i;i<na;++i,++j)
     histbuffa[i] = outbuff[j];
 
   for(i=0,j=amount;j<nb;++i,++j)
     histbuffb[i] = histbuffb[j];
 
-  for(j=0;i<nb;++i,++j)
+  for(j=amount-i;i<nb;++i,++j)
     histbuffb[i] = inbuff[j];
 }
 
@@ -182,7 +189,7 @@ void iir_filter_df2(int na, double coeffsa[], int nb, double coeffsb[], frame_t 
   for(i=0,j=amount;j<MAX(na,nb);++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=0;i<MAX(na,nb);++i,++j)
+  for(j=amount-i;i<MAX(na,nb);++i,++j)
     histbuff[i] = inbuff[j];
 }
 
@@ -210,6 +217,6 @@ void iir_filter_pure(int n, double coeffs[], frame_t histbuff[], int amount, fra
   for(i=0,j=amount;j<n;++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=0;i<n;++i,++j)
+  for(j=amount-i;i<n;++i,++j)
     histbuff[i] = outbuff[j];
 }
