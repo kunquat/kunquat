@@ -18,8 +18,9 @@
  */
 
 #include <math.h>
+#include <stdarg.h>
 
-#define PI  3.14159265358979323846
+#define PI 3.14159265358979323846
 #define MAX(x,y) ((x)>(y) ? (x) : (y))
 #define MIN(x,y) ((x)<(y) ? (x) : (y))
 
@@ -47,12 +48,31 @@ int binom(int n, int k)
   return (k==0 || k==n) ? 1 : binom(n-1,k-1) + binom(n-1,k);
 }
 
+double poly(double x, int n, ...)
+{
+  va_list k;
+  int i;
+  double y;
+
+  va_start(k, n);
+
+  y = va_arg(k, double);
+  for (i=0;i<n;++i)
+    y = y*x + va_arg(k, double);
+  va_end(k);
+  return y;
+}
+
 void simple_lowpass_fir_create(int n, double f, double coeffs[])
 {
   int i;
   for(i=0;i<=n;++i)
     coeffs[i] = 2*f*sinc(PI*f*(2*i-n));
 }
+
+#define C1 1.41421356237309504880 //sqrt(2)
+#define C2 2.61312592975275305571 //sqrt(4+2*sqrt(2)) or equivalenty sqrt(2+sqrt(2))+sqrt(2-sqrt(2))
+#define C3 2.23606797749978969641 //sqrt(5)
 
 void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[], double coeffsb[])
 {
@@ -64,26 +84,34 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
   switch(n)
   {
   case 1:
-    a0 = f+2;
-    coeffsa[0] = f-2;
+    coeffsa[0] = poly(f, 1, 1.0, -2.0);
+    a0         = poly(f, 1, 1.0,  2.0);
     break;
   case 2:
-    a0 = (f+2*sqrt(2))*f+4;
-    coeffsa[0] = (f-2*sqrt(2))*f+4;
-    coeffsa[1] = 2*f*f-8;
+    coeffsa[0] = poly(f, 2, 1.0, -2*C1, 4.0);
+    coeffsa[1] = poly(f, 2, 2.0,   0.0, 4.0);
+    a0         = poly(f, 2, 1.0,  2*C1, 4.0);
     break;
   case 3:
-    a0 = ((f+4)*f+8)*f+8;
-    coeffsa[0] = ((f-4)*f+8)*f-8;
-    coeffsa[1] = ((3*f-4)*f-8)*f+24;
-    coeffsa[2] = ((3*f+4)*f-8)*f-24;
+    coeffsa[0] = poly(f, 3, 1.0, -4.0,  8.0,  -8.0);
+    coeffsa[1] = poly(f, 3, 3.0, -4.0, -8.0,  24.0);
+    coeffsa[2] = poly(f, 3, 3.0,  4.0, -8.0, -24.0);
+    a0         = poly(f, 3, 1.0,  4.0,  8.0,   8.0);
     break;
   case 4:
-    a0 = (((f+2*sqrt(4+2*sqrt(2)))*f+8+4*sqrt(2))*f+8*sqrt(4+2*sqrt(2)))*f+16;
-    coeffsa[0] = (((f-2*sqrt(4+2*sqrt(2)))*f+8+4*sqrt(2))*f-8*sqrt(4+2*sqrt(2)))*f+16;
-    coeffsa[1] = ((4*f-4*sqrt(4+2*sqrt(2)))*f*f+16*sqrt(4+2*sqrt(2)))*f-64;
-    coeffsa[2] = (6*f*f-16-8*sqrt(2))*f*f+96;
-    coeffsa[3] = ((4*f+4*sqrt(4+2*sqrt(2)))*f*f-16*sqrt(4+2*sqrt(2)))*f-64;
+    coeffsa[0] = poly(f, 4, 1.0, -2*C2,   8.0+4*C1,  -8*C2, 16.0);
+    coeffsa[1] = poly(f, 4, 4.0, -4*C2,        0.0,  16*C2, 64.0);
+    coeffsa[2] = poly(f, 4, 6.0,   0.0, -16.0-8*C1,    0.0, 96.0);
+    coeffsa[3] = poly(f, 4, 4.0,  4*C2,        0.0, -16*C2, 64.0);
+    a0         = poly(f, 4, 1.0,  2*C2,   8.0+4*C1,   8*C2, 16.0);
+    break;
+  case 5:
+    coeffsa[0] = poly(f, 5,  1.0, -2.0-2*C3,  12.0+4*C3, -24.0 -8*C3,  16.0+16*C3,  -32.0);
+    coeffsa[1] = poly(f, 5,  5.0, -6.0-6*C3,  12.0+4*C3,  24.0 +8*C3, -48.0-48*C3, -160.0);
+    coeffsa[2] = poly(f, 5, 10.0, -4.0-4*C3, -24.0-8*C3,  48.0+16*C3,  32.0+32*C3, -320.0);
+    coeffsa[3] = poly(f, 5, 10.0,  4.0+4*C3, -24.0-8*C3, -48.0-16*C3,  32.0+32*C3,  320.0);
+    coeffsa[4] = poly(f, 5,  5.0,  6.0+6*C3,  12.0+4*C3, -24.0 -8*C3, -48.0-48*C3,  160.0);
+    a0         = poly(f, 5,  1.0,  2.0+2*C3,  12.0+4*C3,  24.0 +8*C3,  16.0+16*C3,   32.0);
   }
 
   for(i=0;i<n;++i)
@@ -116,7 +144,7 @@ void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t 
   for(i=0,j=amount;j<n;++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=amount-i;i<n;++i,++j)
+  for(j=amount-(n-i);i<n;++i,++j)
     histbuff[i] = inbuff[j];
 }
 
@@ -147,13 +175,13 @@ void iir_filter_df1(int na, double coeffsa[], frame_t histbuffa[], int nb, doubl
   for(i=0,j=amount;j<na;++i,++j)
     histbuffa[i] = histbuffa[j];
 
-  for(j=amount-i;i<na;++i,++j)
+  for(j=amount-(na-i);i<na;++i,++j)
     histbuffa[i] = outbuff[j];
 
   for(i=0,j=amount;j<nb;++i,++j)
     histbuffb[i] = histbuffb[j];
 
-  for(j=amount-i;i<nb;++i,++j)
+  for(j=amount-(nb-i);i<nb;++i,++j)
     histbuffb[i] = inbuff[j];
 }
 
@@ -189,7 +217,7 @@ void iir_filter_df2(int na, double coeffsa[], int nb, double coeffsb[], frame_t 
   for(i=0,j=amount;j<MAX(na,nb);++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=amount-i;i<MAX(na,nb);++i,++j)
+  for(j=amount-(MAX(na,nb)-i);i<MAX(na,nb);++i,++j)
     histbuff[i] = inbuff[j];
 }
 
@@ -217,6 +245,6 @@ void iir_filter_pure(int n, double coeffs[], frame_t histbuff[], int amount, fra
   for(i=0,j=amount;j<n;++i,++j)
     histbuff[i] = histbuff[j];
 
-  for(j=amount-i;i<n;++i,++j)
+  for(j=amount-(n-i);i<n;++i,++j)
     histbuff[i] = outbuff[j];
 }
