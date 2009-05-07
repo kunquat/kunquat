@@ -88,9 +88,9 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
     a0         = poly(f, 1, 1.0,  2.0);
     break;
   case 2:
-    coeffsa[0] = poly(f, 2, 1.0, -2*C1, 4.0);
-    coeffsa[1] = poly(f, 2, 2.0,   0.0, 4.0);
-    a0         = poly(f, 2, 1.0,  2*C1, 4.0);
+    coeffsa[0] = poly(f, 2, 1.0, -2*C1,  4.0);
+    coeffsa[1] = poly(f, 2, 2.0,   0.0, -8.0);
+    a0         = poly(f, 2, 1.0,  2*C1,  4.0);
     break;
   case 3:
     coeffsa[0] = poly(f, 3, 1.0, -4.0,  8.0,  -8.0);
@@ -99,18 +99,18 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
     a0         = poly(f, 3, 1.0,  4.0,  8.0,   8.0);
     break;
   case 4:
-    coeffsa[0] = poly(f, 4, 1.0, -2*C2,   8.0+4*C1,  -8*C2, 16.0);
-    coeffsa[1] = poly(f, 4, 4.0, -4*C2,        0.0,  16*C2, 64.0);
-    coeffsa[2] = poly(f, 4, 6.0,   0.0, -16.0-8*C1,    0.0, 96.0);
-    coeffsa[3] = poly(f, 4, 4.0,  4*C2,        0.0, -16*C2, 64.0);
-    a0         = poly(f, 4, 1.0,  2*C2,   8.0+4*C1,   8*C2, 16.0);
+    coeffsa[0] = poly(f, 4, 1.0, -2*C2,   8.0+4*C1,  -8*C2,  16.0);
+    coeffsa[1] = poly(f, 4, 4.0, -4*C2,        0.0,  16*C2, -64.0);
+    coeffsa[2] = poly(f, 4, 6.0,   0.0, -16.0-8*C1,    0.0,  96.0);
+    coeffsa[3] = poly(f, 4, 4.0,  4*C2,        0.0, -16*C2, -64.0);
+    a0         = poly(f, 4, 1.0,  2*C2,   8.0+4*C1,   8*C2,  16.0);
     break;
   case 5:
     coeffsa[0] = poly(f, 5,  1.0, -2.0-2*C3,  12.0+4*C3, -24.0 -8*C3,  16.0+16*C3,  -32.0);
-    coeffsa[1] = poly(f, 5,  5.0, -6.0-6*C3,  12.0+4*C3,  24.0 +8*C3, -48.0-48*C3, -160.0);
+    coeffsa[1] = poly(f, 5,  5.0, -6.0-6*C3,  12.0+4*C3,  24.0 +8*C3, -48.0-48*C3,  160.0);
     coeffsa[2] = poly(f, 5, 10.0, -4.0-4*C3, -24.0-8*C3,  48.0+16*C3,  32.0+32*C3, -320.0);
     coeffsa[3] = poly(f, 5, 10.0,  4.0+4*C3, -24.0-8*C3, -48.0-16*C3,  32.0+32*C3,  320.0);
-    coeffsa[4] = poly(f, 5,  5.0,  6.0+6*C3,  12.0+4*C3, -24.0 -8*C3, -48.0-48*C3,  160.0);
+    coeffsa[4] = poly(f, 5,  5.0,  6.0+6*C3,  12.0+4*C3, -24.0 -8*C3, -48.0-48*C3, -160.0);
     a0         = poly(f, 5,  1.0,  2.0+2*C3,  12.0+4*C3,  24.0 +8*C3,  16.0+16*C3,   32.0);
   }
 
