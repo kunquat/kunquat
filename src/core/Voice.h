@@ -30,6 +30,9 @@
 #include <Generator.h>
 #include <Voice_state_sine.h>
 #include <Voice_state_triangle.h>
+#include <Voice_state_square.h>
+#include <Voice_state_square303.h>
+#include <Voice_state_sawtooth.h>
 
 
 typedef enum
@@ -58,6 +61,9 @@ typedef struct Voice
         Voice_state generic;
         Voice_state_sine sine;
         Voice_state_triangle triangle;
+        Voice_state_square square;
+        Voice_state_square303 square303;
+        Voice_state_sawtooth sawtooth;
     } state;
 } Voice;
 

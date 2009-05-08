@@ -33,8 +33,11 @@
 #include <Song.h>
 #include <Ins_table.h>
 #include <Generator_debug.h>
-#include <Generator_triangle.h>
 #include <Generator_sine.h>
+#include <Generator_triangle.h>
+#include <Generator_square.h>
+#include <Generator_square303.h>
+#include <Generator_sawtooth.h>
 #include <Generator_pcm.h>
 #include <Instrument.h>
 #include <Song_limits.h>
@@ -152,6 +155,36 @@ int Listener_new_ins(const char* path,
                     send_memory_fail(lr, "the Generator of the new Instrument");
                 }
                 gen = (Generator*)gen_triangle;
+            }
+            break;
+            case GEN_TYPE_SQUARE:
+            {
+                Generator_square* gen_square = new_Generator_square(Instrument_get_params(ins));
+                if (gen_square == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_square;
+            }
+            break;
+            case GEN_TYPE_SQUARE303:
+            {
+                Generator_square303* gen_square303 = new_Generator_square303(Instrument_get_params(ins));
+                if (gen_square303 == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_square303;
+            }
+            break;
+            case GEN_TYPE_SAWTOOTH:
+            {
+                Generator_sawtooth* gen_sawtooth = new_Generator_sawtooth(Instrument_get_params(ins));
+                if (gen_sawtooth == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_sawtooth;
             }
             break;
             case GEN_TYPE_PCM:
