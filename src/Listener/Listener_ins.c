@@ -33,6 +33,7 @@
 #include <Song.h>
 #include <Ins_table.h>
 #include <Generator_debug.h>
+#include <Generator_triangle.h>
 #include <Generator_sine.h>
 #include <Generator_pcm.h>
 #include <Instrument.h>
@@ -141,6 +142,16 @@ int Listener_new_ins(const char* path,
                     send_memory_fail(lr, "the Generator of the new Instrument");
                 }
                 gen = (Generator*)gen_sine;
+            }
+            break;
+            case GEN_TYPE_TRIANGLE:
+            {
+                Generator_triangle* gen_triangle = new_Generator_triangle(Instrument_get_params(ins));
+                if (gen_triangle == NULL)
+                {
+                    send_memory_fail(lr, "the Generator of the new Instrument");
+                }
+                gen = (Generator*)gen_triangle;
             }
             break;
             case GEN_TYPE_PCM:

@@ -29,6 +29,7 @@
 #include <Event_queue.h>
 #include <Generator.h>
 #include <Voice_state_sine.h>
+#include <Voice_state_triangle.h>
 
 
 typedef enum
@@ -56,6 +57,7 @@ typedef struct Voice
     {
         Voice_state generic;
         Voice_state_sine sine;
+        Voice_state_triangle triangle;
     } state;
 } Voice;
 

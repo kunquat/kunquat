@@ -479,6 +479,7 @@ class Instruments(gtk.HBox):
         self.types = gtk.combo_box_new_text()
         self.types.append_text('None')
         self.types.append_text('Sine')
+        self.types.append_text('Triangle')
         self.types.append_text('PCM')
         self.types.set_active(0)
         self.htypes = self.types.connect('changed', self.change_type)
