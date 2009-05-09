@@ -31,7 +31,6 @@
 #include <Generator_square.h>
 #include <Voice_state_square.h>
 #include <Song_limits.h>
-#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -52,19 +51,15 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
     return square;
 }
 
-double square_sgn(double x)
-{
-    if(x < 0)
-    {
-        return -1.0;
-    }
-    return 1.0;
-}
 
-double square(double x)
+double square(double phase, double pulse_width)
 {
-    return square_sgn(sin(x));
-} 
+    if (phase < pulse_width)
+    {
+        return 1.0;
+    }
+    return -1.0;
+}
 
 
 void Generator_square_mix(Generator* gen,
@@ -87,14 +82,14 @@ void Generator_square_mix(Generator* gen,
     for (uint32_t i = offset; i < nframes; ++i)
     {
         double vals[BUF_COUNT_MAX] = { 0 };
-        vals[0] = vals[1] = square(square_state->phase) / 6;
+        vals[0] = vals[1] = square(square_state->phase, square_state->pulse_width) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        square_state->phase += state->freq * PI * 2 / freq;
-        if (square_state->phase >= PI * 2)
+        square_state->phase += state->freq / freq;
+        if (square_state->phase >= 1)
         {
-            square_state->phase -= floor(square_state->phase / PI * 2) * PI * 2;
-            ++state->pos;
+            square_state->phase -= floor(square_state->phase);
         }
+        state->pos = 1; // XXX: hackish
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];

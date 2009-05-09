@@ -31,7 +31,6 @@
 #include <Generator_triangle.h>
 #include <Voice_state_triangle.h>
 #include <Song_limits.h>
-#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -52,10 +51,16 @@ Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
     return triangle;
 }
 
-double triangle(double x)
+
+double triangle(double phase)
 {
-    return acos(sin(x));
+    if (phase < 0.5)
+    {
+        return (phase * 4) - 1;
+    }
+    return (phase * (-4)) + 3;
 }
+
 
 void Generator_triangle_mix(Generator* gen,
         Voice_state* state,
@@ -79,12 +84,12 @@ void Generator_triangle_mix(Generator* gen,
         double vals[BUF_COUNT_MAX] = { 0 };
         vals[0] = vals[1] = triangle(triangle_state->phase) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        triangle_state->phase += state->freq * PI * 2 / freq;
-        if (triangle_state->phase >= PI * 2)
+        triangle_state->phase += state->freq / freq;
+        if (triangle_state->phase >= 1)
         {
-            triangle_state->phase -= floor(triangle_state->phase / PI * 2) * PI * 2;
-            ++state->pos;
+            triangle_state->phase -= floor(triangle_state->phase);
         }
+        state->pos = 1; // XXX: hackish
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];

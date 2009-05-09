@@ -31,7 +31,6 @@
 #include <Generator_sawtooth.h>
 #include <Voice_state_sawtooth.h>
 #include <Song_limits.h>
-#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -52,10 +51,12 @@ Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
     return sawtooth;
 }
 
-double sawtooth(double x)
+
+double sawtooth(double phase)
 {
-    return atan(tan(x/2));
+    return (phase * 2) - 1;
 } 
+
 
 void Generator_sawtooth_mix(Generator* gen,
         Voice_state* state,
@@ -79,12 +80,12 @@ void Generator_sawtooth_mix(Generator* gen,
         double vals[BUF_COUNT_MAX] = { 0 };
         vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        sawtooth_state->phase += state->freq * PI * 2 / freq;
-        if (sawtooth_state->phase >= PI * 2)
+        sawtooth_state->phase += state->freq / freq;
+        if (sawtooth_state->phase >= 1)
         {
-            sawtooth_state->phase -= floor(sawtooth_state->phase / PI * 2) * PI * 2;
-            ++state->pos;
+            sawtooth_state->phase -= floor(sawtooth_state->phase);
         }
+        state->pos = 1; // XXX: hackish
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];

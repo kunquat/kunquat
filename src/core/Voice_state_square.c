@@ -31,6 +31,7 @@ void Voice_state_square_init(Voice_state* state)
     assert(state != NULL);
     Voice_state_square* square_state = (Voice_state_square*)state;
     square_state->phase = 0;
+    square_state->pulse_width = 0.5;
     return;
 }
 

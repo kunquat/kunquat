@@ -209,8 +209,8 @@ void Sample_mix(Sample* sample,
         state->pos_rem += adv_rem;
         if (state->pos_rem >= 1)
         {
-            state->pos += ceil(state->pos_rem) - 1;
-            state->pos_rem -= ceil(state->pos_rem) - 1;
+            state->pos += floor(state->pos_rem);
+            state->pos_rem -= floor(state->pos_rem);
         }
     }
     return;

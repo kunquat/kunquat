@@ -31,7 +31,6 @@
 #include <Generator_square303.h>
 #include <Voice_state_square303.h>
 #include <Song_limits.h>
-#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -52,19 +51,22 @@ Generator_square303* new_Generator_square303(Instrument_params* ins_params)
     return square303;
 }
 
-double square303_sgn(double x)
-{
-    if(x < 0)
-    {
-        return -1.0;
-    }
-    return 1.0;
-}
 
-double square303(double x)
+double square303(double phase)
 {
-    return square303_sgn(sin(x)) - acos(sin(x)) / 5.0;
+    double flip = 1;
+    if (phase >= 0.25 && phase < 0.75)
+    {
+        flip = -1;
+    }
+    phase *= 2;
+    if (phase >= 1)
+    {
+        phase -= 1;
+    }
+    return ((phase * 2) - 1) * flip;
 } 
+
 
 void Generator_square303_mix(Generator* gen,
         Voice_state* state,
@@ -88,12 +90,12 @@ void Generator_square303_mix(Generator* gen,
         double vals[BUF_COUNT_MAX] = { 0 };
         vals[0] = vals[1] = square303(square303_state->phase) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        square303_state->phase += state->freq * PI * 2 / freq;
-        if (square303_state->phase >= PI * 2)
+        square303_state->phase += state->freq / freq;
+        if (square303_state->phase >= 1)
         {
-            square303_state->phase -= floor(square303_state->phase / PI * 2) * PI * 2;
-            ++state->pos;
+            square303_state->phase -= floor(square303_state->phase);
         }
+        state->pos = 1; // XXX: hackish
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];

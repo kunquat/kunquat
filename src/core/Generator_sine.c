@@ -73,14 +73,14 @@ void Generator_sine_mix(Generator* gen,
     for (uint32_t i = offset; i < nframes; ++i)
     {
         double vals[BUF_COUNT_MAX] = { 0 };
-        vals[0] = vals[1] = sin(sine_state->phase) / 6;
+        vals[0] = vals[1] = sin(sine_state->phase * PI * 2) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        sine_state->phase += state->freq * PI * 2 / freq;
-        if (sine_state->phase >= PI * 2)
+        sine_state->phase += state->freq / freq;
+        if (sine_state->phase >= 1)
         {
-            sine_state->phase -= floor(sine_state->phase / PI * 2) * PI * 2;
-            ++state->pos;
+            sine_state->phase -= floor(sine_state->phase);
         }
+        state->pos = 1; // XXX: hackish
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];

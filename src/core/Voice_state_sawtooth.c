@@ -30,7 +30,7 @@ void Voice_state_sawtooth_init(Voice_state* state)
 {
     assert(state != NULL);
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
-    sawtooth_state->phase = 0;
+    sawtooth_state->phase = 0.25;
     return;
 }
 

@@ -30,7 +30,7 @@ void Voice_state_square303_init(Voice_state* state)
 {
     assert(state != NULL);
     Voice_state_square303* square303_state = (Voice_state_square303*)state;
-    square303_state->phase = 0;
+    square303_state->phase = 0.5;
     return;
 }
 

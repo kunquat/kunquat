@@ -31,6 +31,7 @@ typedef struct Voice_state_square
 {
     Voice_state parent;
     double phase;
+    double pulse_width;
 } Voice_state_square;
 
 

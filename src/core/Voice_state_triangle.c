@@ -30,7 +30,7 @@ void Voice_state_triangle_init(Voice_state* state)
 {
     assert(state != NULL);
     Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
-    triangle_state->phase = 0;
+    triangle_state->phase = 0.25;
     return;
 }
 
