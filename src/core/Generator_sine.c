@@ -66,7 +66,7 @@ void Generator_sine_mix(Generator* gen,
     assert(freq > 0);
     assert(gen->ins_params->bufs[0] != NULL);
     assert(gen->ins_params->bufs[1] != NULL);
-    Generator_common_check_active(state, gen);
+    Generator_common_check_active(gen, state);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_sine* sine_state = (Voice_state_sine*)state;
@@ -74,14 +74,14 @@ void Generator_sine_mix(Generator* gen,
     {
         double vals[BUF_COUNT_MAX] = { 0 };
         vals[0] = vals[1] = sin(sine_state->phase) / 6;
-        Generator_common_ramp_attack(state, gen, vals, 2, freq);
+        Generator_common_ramp_attack(gen, state, vals, 2, freq);
         sine_state->phase += state->freq * PI * 2 / freq;
         if (sine_state->phase >= PI * 2)
         {
             sine_state->phase -= floor(sine_state->phase / PI * 2) * PI * 2;
             ++state->pos;
         }
-        Generator_common_handle_note_off(state, gen, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];
 /*        if (fabs(val_l) > max_amp)

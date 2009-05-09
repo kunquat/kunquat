@@ -70,7 +70,7 @@ void Generator_triangle_mix(Generator* gen,
     assert(freq > 0);
     assert(gen->ins_params->bufs[0] != NULL);
     assert(gen->ins_params->bufs[1] != NULL);
-    Generator_common_check_active(state, gen);
+    Generator_common_check_active(gen, state);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
@@ -78,14 +78,14 @@ void Generator_triangle_mix(Generator* gen,
     {
         double vals[BUF_COUNT_MAX] = { 0 };
         vals[0] = vals[1] = triangle(triangle_state->phase) / 6;
-        Generator_common_ramp_attack(state, gen, vals, 2, freq);
+        Generator_common_ramp_attack(gen, state, vals, 2, freq);
         triangle_state->phase += state->freq * PI * 2 / freq;
         if (triangle_state->phase >= PI * 2)
         {
             triangle_state->phase -= floor(triangle_state->phase / PI * 2) * PI * 2;
             ++state->pos;
         }
-        Generator_common_handle_note_off(state, gen, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
         gen->ins_params->bufs[1][i] += vals[1];
 /*        if (fabs(val_l) > max_amp)

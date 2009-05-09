@@ -28,7 +28,9 @@
 #include <math.h>
 
 #include <Sample.h>
+#include <Generator_common.h>
 #include <File_wavpack.h>
+#include <Song_limits.h>
 
 #include <xmemory.h>
 
@@ -128,10 +130,7 @@ void Sample_mix(Sample* sample,
     assert(gen->ins_params->bufs[1] != NULL);
     assert(state != NULL);
     assert(freq > 0);
-    if (!state->active)
-    {
-        return;
-    }
+    Generator_common_check_active(gen, state);
     for (uint32_t i = offset; i < nframes; ++i)
     {
         if (state->rel_pos >= sample->len)
@@ -139,8 +138,7 @@ void Sample_mix(Sample* sample,
             state->active = false;
             break;
         }
-        frame_t val_l = 0;
-        frame_t val_r = 0;
+        frame_t vals[BUF_COUNT_MAX] = { 0 };
         if (sample->is_float)
         {
             float* buf_l = sample->data[0];
@@ -151,7 +149,7 @@ void Sample_mix(Sample* sample,
             {
                 next = buf_l[state->rel_pos + 1];
             }
-            val_l = val_r = cur * (1 - state->rel_pos_rem)
+            vals[0] = vals[1] = cur * (1 - state->rel_pos_rem)
                     + next * (state->rel_pos_rem);
         }
         else if (sample->bits == 8)
@@ -164,7 +162,7 @@ void Sample_mix(Sample* sample,
             {
                 next = buf_l[state->rel_pos + 1];
             }
-            val_l = val_r = ((frame_t)cur / 0x80) * (1 - state->rel_pos_rem)
+            vals[0] = vals[1] = ((frame_t)cur / 0x80) * (1 - state->rel_pos_rem)
                     + ((frame_t)next / 0x80) * (state->rel_pos_rem);
         }
         else if (sample->bits == 16)
@@ -177,7 +175,7 @@ void Sample_mix(Sample* sample,
             {
                 next = buf_l[state->rel_pos + 1];
             }
-            val_l = val_r = ((frame_t)cur / 0x8000) * (1 - state->rel_pos_rem)
+            vals[0] = vals[1] = ((frame_t)cur / 0x8000) * (1 - state->rel_pos_rem)
                     + ((frame_t)next / 0x8000) * (state->rel_pos_rem);
         }
         else
@@ -191,27 +189,12 @@ void Sample_mix(Sample* sample,
             {
                 next = buf_l[state->rel_pos + 1];
             }
-            val_l = val_r = ((frame_t)cur / 0x80000000UL) * (1 - state->rel_pos_rem)
+            vals[0] = vals[1] = ((frame_t)cur / 0x80000000UL) * (1 - state->rel_pos_rem)
                     + ((frame_t)next / 0x80000000UL) * (state->rel_pos_rem);
         }
-        if (!state->note_on && gen->ins_params->volume_off_env_enabled)
-        {
-            double scale = Envelope_get_value(gen->ins_params->volume_off_env,
-                    state->off_ve_pos);
-            if (!isfinite(scale))
-            {
-                state->active = false;
-                break;
-            }
-            if (state->pedal < 0.5)
-            {
-                state->off_ve_pos += 1.0 / freq;
-            }
-            val_l *= scale;
-            val_r *= scale;
-        }
-        gen->ins_params->bufs[0][i] += val_l;
-        gen->ins_params->bufs[1][i] += val_r;
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        gen->ins_params->bufs[0][i] += vals[0];
+        gen->ins_params->bufs[1][i] += vals[1];
         double advance = (state->freq / 440) * sample->mid_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
@@ -221,6 +204,13 @@ void Sample_mix(Sample* sample,
         {
             state->rel_pos_rem -= 1;
             ++state->rel_pos;
+        }
+        state->pos += adv;
+        state->pos_rem += adv_rem;
+        if (state->pos_rem >= 1)
+        {
+            state->pos += ceil(state->pos_rem) - 1;
+            state->pos_rem -= ceil(state->pos_rem) - 1;
         }
     }
     return;

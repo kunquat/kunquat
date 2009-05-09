@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <math.h>
 
 #include <Voice_state.h>
@@ -29,7 +30,11 @@
 #include <frame_t.h>
 
 
-#define Generator_common_check_active(state, gen) \
+#define RAMP_ATTACK_TIME (500.0)
+#define RAMP_RELEASE_TIME (200.0)
+
+
+#define Generator_common_check_active(gen, state) \
     do\
     {\
         if (!(state)->active || (!(state)->note_on &&\
@@ -37,12 +42,13 @@
                                  ((state)->pos_rem == 0) &&\
                                  !(gen)->ins_params->volume_off_env_enabled))\
         {\
+            (state)->active = false;\
             return;\
         }\
     } while (false)
 
 
-#define Generator_common_ramp_attack(state, gen, frames, frame_count, freq) \
+#define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
     do\
     {\
         if ((state)->ramp_attack < 1)\
@@ -51,12 +57,12 @@
             {\
                 (frames)[i] *= (state)->ramp_attack;\
             }\
-            (state)->ramp_attack += 500.0 / (freq);\
+            (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);\
         }\
     } while (false)
 
 
-#define Generator_common_handle_note_off(state, gen, frames, frame_count, freq) \
+#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq) \
     do\
     {\
         if (!(state)->note_on)\
@@ -90,7 +96,7 @@
                     (state)->active = false;\
                     return;\
                 }\
-                (state)->ramp_release += 200.0 / (freq);\
+                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);\
             }\
         }\
     } while (false)

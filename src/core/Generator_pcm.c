@@ -27,6 +27,7 @@
 
 #include <AAtree.h>
 #include <Generator.h>
+#include <Generator_common.h>
 #include <Generator_pcm.h>
 #include <Sample.h>
 #include <pitch_t.h>
@@ -214,10 +215,7 @@ void Generator_pcm_mix(Generator* gen,
     assert(freq > 0);
     assert(gen->ins_params->bufs[0] != NULL);
     assert(gen->ins_params->bufs[1] != NULL);
-    if (!state->active)
-    {
-        return;
-    }
+    Generator_common_check_active(gen, state);
     Generator_pcm* pcm = (Generator_pcm*)gen;
     Sample* sample = state_to_sample(pcm, state);
     if (sample == NULL)
