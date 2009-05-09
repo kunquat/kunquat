@@ -44,9 +44,9 @@ class Instruments(gtk.HBox):
         iter = self.it_view.get_model().get_iter(args[0] - 1)
         self.ins_table.set_value(iter, 1, args[2])
         self.ins_params[args[0] - 1] = args[1:]
-        if args[1] <= 2:
+        if args[1] < 7:
             self.ui_params[args[0] - 1] = None
-        elif args[1] == 3:
+        elif args[1] == 7:
             styles_start = args.index('__styles') + 1
             maps_start = args.index('__maps') + 1
             sample_descs = args[3:styles_start - 1]
@@ -479,6 +479,10 @@ class Instruments(gtk.HBox):
         self.types = gtk.combo_box_new_text()
         self.types.append_text('None')
         self.types.append_text('Sine')
+        self.types.append_text('Triangle')
+        self.types.append_text('Square')
+        self.types.append_text('303 Square')
+        self.types.append_text('Sawtooth')
         self.types.append_text('PCM')
         self.types.set_active(0)
         self.htypes = self.types.connect('changed', self.change_type)

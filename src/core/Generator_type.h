@@ -35,6 +35,14 @@ typedef enum
     GEN_TYPE_DEBUG,
     /// A simple sine wave instrument for testing by ear.
     GEN_TYPE_SINE,
+    /// A simple triangle wave generator.
+    GEN_TYPE_TRIANGLE,
+    /// A simple square wave generator.
+    GEN_TYPE_SQUARE,
+    /// A simple 303 square wave generator.
+    GEN_TYPE_SQUARE303,
+    /// A simple sawtooth wave generator.
+    GEN_TYPE_SAWTOOTH,
     /// A sample-based type common in tracker programs.
     GEN_TYPE_PCM,
     /// A type for reading audio data from disk -- used for large audio files.
