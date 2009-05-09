@@ -33,18 +33,20 @@
 
 typedef struct Voice_state
 {
-    bool active; ///< Whether there is anything left to process.
-    pitch_t freq; ///< The frequency at which the note is played.
-    uint64_t pos; ///< The current playback position.
-    double pos_rem; ///< The current playback position remainder.
-    uint64_t rel_pos; ///< The current relative playback position.
-    double rel_pos_rem; ///< The current relative playback position remainder.
-    bool note_on; ///< Whether the note is still on.
-    uint64_t noff_pos; ///< Note Off position.
-    double noff_pos_rem; ///< Note Off position remainder.
-    bool pedal; ///< Whether the pedal is active.
-    double on_ve_pos; ///< Note On volume envelope position.
-    double off_ve_pos; ///< Note Off volume envelope position.
+    bool active;           ///< Whether there is anything left to process.
+    pitch_t freq;          ///< The frequency at which the note is played.
+    double ramp_attack;    ///< The current state of volume ramp during attack.
+    double ramp_release;   ///< The current state of volume ramp during release.
+    uint64_t pos;          ///< The current playback position.
+    double pos_rem;        ///< The current playback position remainder.
+    uint64_t rel_pos;      ///< The current relative playback position.
+    double rel_pos_rem;    ///< The current relative playback position remainder.
+    bool note_on;          ///< Whether the note is still on.
+    uint64_t noff_pos;     ///< Note Off position.
+    double noff_pos_rem;   ///< Note Off position remainder.
+    bool pedal;            ///< Whether the pedal is active.
+    double on_ve_pos;      ///< Note On volume envelope position.
+    double off_ve_pos;     ///< Note Off volume envelope position.
 } Voice_state;
 
 
