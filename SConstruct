@@ -34,6 +34,7 @@ opts.AddVariables(
     BoolVariable('with_jack', 'Enable JACK driver.', True),
     BoolVariable('with_ao', 'Enable libao driver.', True),
     BoolVariable('with_alsa', 'Enable ALSA driver (not recommended!).', False),
+    BoolVariable('with_openal', 'Enable OpenAL driver.', True),
     PathVariable('with_liblo_path', 'Alternative liblo installation path.', '', PathVariable.PathAccept)
 )
 
@@ -162,6 +163,15 @@ if not env.GetOption('clean'):
         else:
             print('Warning: libao driver was requested but libao was not found.')
             env['with_ao'] = False
+
+    if env['with_openal']:
+        if conf.CheckLibWithHeader('openal', ['AL/al.h', 'AL/alc.h'], 'C') and\
+           conf.CheckLibWithHeader('alut', 'AL/alut.h', 'C'):
+            audio_found = True
+            conf.env.Append(CCFLAGS = '-DENABLE_OPENAL')
+        else:
+            print('Warning: openal driver was requested but openal was not found.')
+            env['with_openal'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
         print('Error: Building of unit tests was requested but Check was not found.')
