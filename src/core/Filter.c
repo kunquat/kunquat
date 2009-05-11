@@ -19,6 +19,7 @@
 
 #include <math.h>
 #include <stdarg.h>
+#include <string.h>
 
 #define PI 3.14159265358979323846
 #define MAX(x,y) ((x)>(y) ? (x) : (y))
@@ -61,6 +62,23 @@ double poly(double x, int n, ...)
     y = y*x + va_arg(k, double);
   va_end(k);
   return y;
+}
+
+#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper) { \
+for((j)=0,(k)=(i);(k)<(n);++(j),++(k))                               \
+  (acc) oper (histbuff)[(k)]*(coeffs)[(j)];                          \
+                                                                     \
+for((k)-=(n);(j)<(n);++(j),++(k))                                    \
+  (acc) oper (sourcebuff)[(k)]*(coeffs)[(j)];                        \
+}
+
+#define BUFFER(histbuff, sourcebuff, n, amount) {                                \
+if((amount)<(n)){                                                                \
+  memmove(&(histbuff)[0], &(histbuff)[(amount)], ((n)-(amount))*sizeof(double)); \
+  memcpy(&(histbuff)[(n)-(amount)], &(sourcebuff)[0], (amount)*sizeof(double));  \
+}                                                                                \
+ else                                                                            \
+  memcpy(&(histbuff)[0], &(sourcebuff)[(amount)-(n)], (n)*sizeof(double));       \
 }
 
 void simple_lowpass_fir_create(int n, double f, double coeffs[])
@@ -130,22 +148,14 @@ void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t 
 
   for(i=0;i<amount;++i)
   {
-    temp = 0.0;
+    temp = inbuff[i]*coeffs[n];
 
-    for(j=0,k=i;k<n;++j,++k)
-      temp += histbuff[k]*coeffs[j];
-
-    for(k-=n;j<=n;++j,++k)
-      temp += inbuff[k]*coeffs[j];
+    DPROD(histbuff, inbuff, coeffs, n, i, temp, j, k, +=);
 
     outbuff[i] = temp;
   }
 
-  for(i=0,j=amount;j<n;++i,++j)
-    histbuff[i] = histbuff[j];
-
-  for(j=amount-(n-i);i<n;++i,++j)
-    histbuff[i] = inbuff[j];
+  BUFFER(histbuff, inbuff, n, amount);
 }
 
 void iir_filter_df1(int na, double coeffsa[], frame_t histbuffa[], int nb, double coeffsb[], frame_t histbuffb[], int amount, frame_t inbuff[], frame_t outbuff[])
@@ -155,34 +165,18 @@ void iir_filter_df1(int na, double coeffsa[], frame_t histbuffa[], int nb, doubl
 
   for(i=0;i<amount;++i)
   {
-    temp = 0.0;
+    temp = inbuff[i]*coeffsb[nb];
 
-    for(j=0,k=i;k<na;++j,++k)
-      temp -= histbuffa[k]*coeffsa[j];
+    DPROD(histbuffa, outbuff, coeffsa, na, i, temp, j, k, -=);
 
-    for(k-=na;j<=na;++j,++k)
-      temp -= outbuff[k]*coeffsa[j];
-
-    for(j=0,k=i;k<nb;++j,++k)
-      temp += histbuffb[k]*coeffsb[j];
-
-    for(k-=nb;j<=nb;++j,++k)
-      temp += inbuff[k]*coeffsb[j];
+    DPROD(histbuffb,  inbuff, coeffsb, nb, i, temp, j, k, +=);
 
     outbuff[i] = temp;
   }
 
-  for(i=0,j=amount;j<na;++i,++j)
-    histbuffa[i] = histbuffa[j];
+  BUFFER(histbuffa, outbuff, na, amount);
 
-  for(j=amount-(na-i);i<na;++i,++j)
-    histbuffa[i] = outbuff[j];
-
-  for(i=0,j=amount;j<nb;++i,++j)
-    histbuffb[i] = histbuffb[j];
-
-  for(j=amount-(nb-i);i<nb;++i,++j)
-    histbuffb[i] = inbuff[j];
+  BUFFER(histbuffb,  inbuff, nb, amount);
 }
 
 
@@ -193,32 +187,20 @@ void iir_filter_df2(int na, double coeffsa[], int nb, double coeffsb[], frame_t 
 
   for(i=0;i<amount;++i)
   {
-    temp = 0.0;
+    temp = inbuff[i];
 
-    for(j=0,k=i;k<na;++j,++k)
-      temp -= histbuff[k]*coeffsa[j];
+    DPROD(histbuff, inbuff, coeffsa, na, i, temp, j, k, -=);
 
-    for(k-=na;j<=na;++j,++k)
-      temp -= inbuff[k]*coeffsa[j];
+    inbuff[i] = temp;
 
-    inbuff[i] += temp;
+    temp *= coeffsb[nb];
 
-    temp = 0.0;
-
-    for(j=0,k=i;k<nb;++j,++k)
-      temp += histbuff[k]*coeffsb[j];
-
-    for(k-=nb;j<=nb;++j,++k)
-      temp += inbuff[k]*coeffsb[j];
+    DPROD(histbuff, inbuff, coeffsb, nb, i, temp, j, k, +=);
 
     outbuff[i] = temp;
   }
 
-  for(i=0,j=amount;j<MAX(na,nb);++i,++j)
-    histbuff[i] = histbuff[j];
-
-  for(j=amount-(MAX(na,nb)-i);i<MAX(na,nb);++i,++j)
-    histbuff[i] = inbuff[j];
+  BUFFER(histbuff, inbuff, MAX(na,nb), amount);
 }
 
 
@@ -229,22 +211,12 @@ void iir_filter_pure(int n, double coeffs[], frame_t histbuff[], int amount, fra
 
   for(i=0;i<amount;++i)
   {
-    temp = 0.0;
+    temp = inbuff[i];
 
-    for(j=0,k=i;k<n;++j,++k)
-      temp -= histbuff[k]*coeffs[j];
-
-    for(k-=n;j<=n;++j,++k)
-      temp -= outbuff[k]*coeffs[j];
-
-    temp += inbuff[i];
+    DPROD(histbuff, outbuff, coeffs, n, i, temp, j, k, -=);
 
     outbuff[i] = temp;
   }
 
-  for(i=0,j=amount;j<n;++i,++j)
-    histbuff[i] = histbuff[j];
-
-  for(j=amount-(n-i);i<n;++i,++j)
-    histbuff[i] = outbuff[j];
+  BUFFER(histbuff, outbuff, n, amount);
 }
