@@ -31,6 +31,7 @@
 
 #include "Audio_ao.h"
 #include "Audio_jack.h"
+#include "Audio_openal.h"
 #include "demo_song.h"
 
 
@@ -49,6 +50,9 @@ static Driver_info drivers[] =
 #endif
 #ifdef ENABLE_JACK
     { "jack", Audio_jack_open, Audio_jack_close },
+#endif
+#ifdef ENABLE_OPENAL
+    { "openal", Audio_openal_open, Audio_openal_close },
 #endif
     { NULL, NULL, NULL }
 };
