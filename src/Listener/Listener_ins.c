@@ -118,8 +118,9 @@ int Listener_new_ins(const char* path,
     if (ins_type != GEN_TYPE_NONE)
     {
         ins = new_Instrument(Song_get_bufs(song),
-                Song_get_buf_size(song),
-                32); // XXX: get event count from the configuration
+                             Song_get_voice_bufs(song),
+                             Song_get_buf_size(song),
+                             32); // XXX: get event count from the configuration
         if (ins == NULL)
         {
             send_memory_fail(lr, "the new Instrument");

@@ -484,7 +484,7 @@ START_TEST (mix)
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, 256, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, 256, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

@@ -57,6 +57,8 @@ typedef struct Instrument
  *
  * \param bufs      The global mixing buffers -- must not be \c NULL.
  *                  Additionally, bufs[0] and bufs[1] must not be \c NULL.
+ * \param vbufs     The Voice mixing buffers -- must not be \c NULL.
+ *                  Additionally, vbufs[0] and vbufs[1] must not be \c NULL.
  * \param buf_len   The length of a mixing buffer -- must be > \c 0.
  * \param events    The maximum number of events per tick -- must be > \c 0.
  *
@@ -64,8 +66,9 @@ typedef struct Instrument
  *           failed.
  */
 Instrument* new_Instrument(frame_t** bufs,
-        uint32_t buf_len,
-        uint8_t events);
+                           frame_t** vbufs,
+                           uint32_t buf_len,
+                           uint8_t events);
 
 
 /**

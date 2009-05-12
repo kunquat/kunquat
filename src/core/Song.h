@@ -37,41 +37,26 @@
 
 typedef struct Song
 {
-    /// Number of buffers (channels) used for mixing.
-    int buf_count;
-    /// Buffer size.
-    uint32_t buf_size;
-    /// Buffers.
-    frame_t** bufs;
-    /// Private buffers.
-    frame_t* priv_bufs[BUF_COUNT_MAX];
-    /// The Order lists.
-    Order* order;
-    /// The Patterns.
-    Pat_table* pats;
-    /// The Instruments.
-    Ins_table* insts;
-    /// The Note tables.
-    Note_table* notes[NOTE_TABLES_MAX];
-    /// A reference to the currently active Note table.
-    Note_table** active_notes;
-    /// Global events.
-    Event_queue* events;
-    /// The name of the Song.
-    wchar_t name[SONG_NAME_MAX];
+    int buf_count;                      ///< Number of buffers used for mixing.
+    uint32_t buf_size;                  ///< Buffer size.
+    frame_t** bufs;                     ///< Buffers.
+    frame_t* priv_bufs[BUF_COUNT_MAX];  ///< Private buffers.
+    frame_t* voice_bufs[BUF_COUNT_MAX]; ///< Temporary buffers for Voices.
+    Order* order;                       ///< The Order lists.
+    Pat_table* pats;                    ///< The Patterns.
+    Ins_table* insts;                   ///< The Instruments.
+    Note_table* notes[NOTE_TABLES_MAX]; ///< The Note tables.
+    Note_table** active_notes;          ///< A reference to the currently active Note table.
+    Event_queue* events;                ///< Global events.
+    wchar_t name[SONG_NAME_MAX];        ///< The name of the Song.
     struct
     {
-        /// Initial tempo.
-        double tempo;
-        /// Initial global volume.
-        double global_vol;
-        /// Initial Note table.
-        Note_table* notes;
+        double tempo;                   ///< Initial tempo.
+        double global_vol;              ///< Initial global volume.
+        Note_table* notes;              ///< Initial Note table.
     } subsong_inits[SUBSONGS_MAX];
-    /// Mixing volume.
-    double mix_vol;
-    /// Initial subsong number.
-    uint16_t init_subsong;
+    double mix_vol;                     ///< Mixing volume.
+    uint16_t init_subsong;              ///< Initial subsong number.
 } Song;
 
 
@@ -262,6 +247,16 @@ uint32_t Song_get_buf_size(Song* song);
  * \return   The buffers.
  */
 frame_t** Song_get_bufs(Song* song);
+
+
+/**
+ * Gets the Voice buffers from the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Voice buffers.
+ */
+frame_t** Song_get_voice_bufs(Song* song);
 
 
 /**

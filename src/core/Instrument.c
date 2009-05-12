@@ -31,12 +31,16 @@
 
 
 Instrument* new_Instrument(frame_t** bufs,
-        uint32_t buf_len,
-        uint8_t events)
+                           frame_t** vbufs,
+                           uint32_t buf_len,
+                           uint8_t events)
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     assert(bufs[1] != NULL);
+    assert(vbufs != NULL);
+    assert(vbufs[0] != NULL);
+    assert(vbufs[1] != NULL);
     assert(buf_len > 0);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
@@ -44,7 +48,7 @@ Instrument* new_Instrument(frame_t** bufs,
     {
         return NULL;
     }
-    if (Instrument_params_init(&ins->params, bufs, buf_len) == NULL)
+    if (Instrument_params_init(&ins->params, bufs, vbufs, buf_len) == NULL)
     {
         xfree(ins);
         return NULL;

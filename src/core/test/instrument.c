@@ -43,7 +43,7 @@ START_TEST (new)
     frame_t buf_l[100] = { 0 };
     frame_t buf_r[100] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 100, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, 100, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -56,7 +56,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (new_break_bufs_null)
 {
-    Instrument* ins = new_Instrument(NULL, 1, 1);
+    Instrument* ins = new_Instrument(NULL, NULL, 1, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -66,7 +66,7 @@ START_TEST (new_break_buf_len_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 0, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, 0, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -76,7 +76,7 @@ START_TEST (new_break_events_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 1, 0);
+    Instrument* ins = new_Instrument(bufs, bufs, 1, 0);
     del_Instrument(ins);
 }
 END_TEST
@@ -88,7 +88,7 @@ START_TEST (mix)
     frame_t buf_l[128] = { 0 };
     frame_t buf_r[128] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, 128, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -423,7 +423,7 @@ START_TEST (mix_break_state_null)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -448,7 +448,7 @@ START_TEST (mix_break_nframes_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -474,7 +474,7 @@ START_TEST (mix_break_freq_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 1, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

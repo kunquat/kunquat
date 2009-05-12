@@ -34,90 +34,55 @@
 
 typedef struct Instrument_params
 {
-    /// Mixing buffer used (same as either \a pbuf or \a gbuf).
-    frame_t** bufs;
-    /// Private mixing buffer (required when Instrument-level effects are used).
-    frame_t** pbufs;
-    /// Global mixing buffer.
-    frame_t** gbufs;
-    /// Mixing buffer length.
-    uint32_t buf_len;
+    frame_t** bufs;   ///< Mixing buffer used (same as either \a pbuf or \a gbuf).
+    frame_t** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
+    frame_t** gbufs;  ///< Global mixing buffers.
+    frame_t** vbufs;  ///< Voice buffers.
+    uint32_t buf_len; ///< Mixing buffer length.
     
-    /// An indirect reference to the current Note table used.
-    Note_table** notes;
+    Note_table** notes; ///< An indirect reference to the current Note table used.
 
-    /// Pedal setting (0 = fully released, 1.0 = fully depressed).
-    double pedal;
+    double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
-    /// Force.
-    double force;
+    double force; ///< Force.
 
-    /// Force-volume envelope toggle.
-    bool force_volume_env_enabled;
-    /// Force-volume envelope.
-    Envelope* force_volume_env;
+    bool force_volume_env_enabled; ///< Force-volume envelope toggle.
+    Envelope* force_volume_env;    ///< Force-volume envelope.
 
-    /// Force-filter envelope toggle.
-    bool force_filter_env_enabled;
-    /// Force-filter envelope.
-    Envelope* force_filter_env;
+    bool force_filter_env_enabled; ///< Force-filter envelope toggle.
+    Envelope* force_filter_env;    ///< Force-filter envelope.
 
-    /// Force-pitch envelope toggle.
-    bool force_pitch_env_enabled;
-    /// Force-pitch envelope.
-    Envelope* force_pitch_env;
-    /// Force-pitch envelope scale factor.
-    double force_pitch_env_scale;
+    bool force_pitch_env_enabled;  ///< Force-pitch envelope toggle.
+    Envelope* force_pitch_env;     ///< Force-pitch envelope.
+    double force_pitch_env_scale;  ///< Force-pitch envelope scale factor.
 
-    /// Instrument volume.
-    double volume;
+    double volume; ///< Instrument volume.
 
-    /// Volume envelope toggle.
-    bool volume_env_enabled;
-    /// Volume envelope carry.
-    bool volume_env_carry;
-    /// Volume envelope.
-    Envelope* volume_env;
-    /// Volume envelope scale factor (frequency -> speed).
-    double volume_env_scale;
-    /// Volume envelope scale center frequency.
-    double volume_env_center;
+    bool volume_env_enabled;  ///< Volume envelope toggle.
+    bool volume_env_carry;    ///< Volume envelope carry.
+    Envelope* volume_env;     ///< Volume envelope.
+    double volume_env_scale;  ///< Volume envelope scale factor (frequency -> speed).
+    double volume_env_center; ///< Volume envelope scale center frequency.
 
-    /// Note Off volume envelope toggle.
-    bool volume_off_env_enabled;
-    /// Note Off volume envelope.
-    Envelope* volume_off_env;
-    /// Note Off volume envelope scale factor (frequency -> speed).
-    double volume_off_env_scale;
-    /// Note Off volume envelope scale center frequency.
-    double volume_off_env_center;
+    bool volume_off_env_enabled;  ///< Note Off volume envelope toggle.
+    Envelope* volume_off_env;     ///< Note Off volume envelope.
+    double volume_off_env_scale;  ///< Note Off volume envelope scale factor (frequency -> speed).
+    double volume_off_env_center; ///< Note Off volume envelope scale center frequency.
 
-    /// Default panning toggle.
-    bool panning_enabled;
-    /// Default panning.
-    double panning;
-    /// Pitch-panning envelope toggle.
-    bool pitch_pan_env_enabled;
-    /// Pitch-panning envelope.
-    Envelope* pitch_pan_env;
+    bool panning_enabled;       ///< Default panning toggle.
+    double panning;             ///< Default panning.
+    bool pitch_pan_env_enabled; ///< Pitch-panning envelope toggle.
+    Envelope* pitch_pan_env;    ///< Pitch-panning envelope.
 
-    /// Filter envelope toggle.
-    bool filter_env_enabled;
-    /// Filter envelope.
-    Envelope* filter_env;
-    /// Filter envelope scale factor (frequency -> speed).
-    double filter_env_scale;
-    /// Filter envelope scale center frequency.
-    double filter_env_center;
+    bool filter_env_enabled;    ///< Filter envelope toggle.
+    Envelope* filter_env;       ///< Filter envelope.
+    double filter_env_scale;    ///< Filter envelope scale factor (frequency -> speed).
+    double filter_env_center;   ///< Filter envelope scale center frequency.
 
-    /// Note Off filter envelope toggle.
-    bool filter_off_env_enabled;
-    /// Note Off filter envelope.
-    Envelope* filter_off_env;
-    /// Note Off filter envelope scale factor (frequency -> speed).
-    double filter_off_env_scale;
-    /// Note Off filter envelope scale center frequency.
-    double filter_off_env_center;
+    bool filter_off_env_enabled;  ///< Note Off filter envelope toggle.
+    Envelope* filter_off_env;     ///< Note Off filter envelope.
+    double filter_off_env_scale;  ///< Note Off filter envelope scale factor (frequency -> speed).
+    double filter_off_env_center; ///< Note Off filter envelope scale center frequency.
 } Instrument_params;
 
 
@@ -126,6 +91,8 @@ typedef struct Instrument_params
  *
  * \param ip        The Instrument parameters -- must not be \c NULL.
  * \param bufs      The global mixing buffers -- must not be \c NULL and must
+ *                  contain at least two buffers.
+ * \param vbufs     The Voice mixing buffers -- must not be \c NULL and must
  *                  contain at least two buffers.
  * \param buf_len   The length of the buffers -- must be > \c 0.
  * \param notes     An indirect reference to the Note table -- must not be
@@ -136,6 +103,7 @@ typedef struct Instrument_params
  */
 Instrument_params* Instrument_params_init(Instrument_params* ip,
         frame_t** bufs,
+        frame_t** vbufs,
         uint32_t buf_len);
 
 

@@ -122,7 +122,7 @@ START_TEST (mix)
     frame_t buf_l[256] = { 0 };
     frame_t buf_r[256] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, 128, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, 128, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
