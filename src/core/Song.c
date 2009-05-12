@@ -34,7 +34,7 @@
 #include <xmemory.h>
 
 /*<test>*/
-#define ORDER 5
+#define ORDER 6
 #include <Filter.c>
 /*</test>*/
 

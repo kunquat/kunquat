@@ -91,6 +91,8 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 #define C1 1.41421356237309504880 //sqrt(2)
 #define C2 2.61312592975275305571 //sqrt(4+2*sqrt(2)) or equivalenty sqrt(2+sqrt(2))+sqrt(2-sqrt(2))
 #define C3 2.23606797749978969641 //sqrt(5)
+#define C4 1.73205080756887729353 //sqrt(3)
+#define C5 2.44948974278317809820 //sqrt(6)
 
 void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[], double coeffsb[])
 {
@@ -102,34 +104,43 @@ void bilinear_butterworth_lowpass_iir__create(int n, double f, double coeffsa[],
   switch(n)
   {
   case 1:
-    coeffsa[0] = poly(f, 1, 1.0, -2.0);
-    a0         = poly(f, 1, 1.0,  2.0);
+    coeffsa[0] = poly(f, n, 1.0, -2.0);
+    a0         = poly(f, n, 1.0,  2.0);
     break;
   case 2:
-    coeffsa[0] = poly(f, 2, 1.0, -2*C1,  4.0);
-    coeffsa[1] = poly(f, 2, 2.0,   0.0, -8.0);
-    a0         = poly(f, 2, 1.0,  2*C1,  4.0);
+    coeffsa[0] = poly(f, n, 1.0, -2*C1,  4.0);
+    coeffsa[1] = poly(f, n, 2.0,   0.0, -8.0);
+    a0         = poly(f, n, 1.0,  2*C1,  4.0);
     break;
   case 3:
-    coeffsa[0] = poly(f, 3, 1.0, -4.0,  8.0,  -8.0);
-    coeffsa[1] = poly(f, 3, 3.0, -4.0, -8.0,  24.0);
-    coeffsa[2] = poly(f, 3, 3.0,  4.0, -8.0, -24.0);
-    a0         = poly(f, 3, 1.0,  4.0,  8.0,   8.0);
+    coeffsa[0] = poly(f, n, 1.0, -4.0,  8.0,  -8.0);
+    coeffsa[1] = poly(f, n, 3.0, -4.0, -8.0,  24.0);
+    coeffsa[2] = poly(f, n, 3.0,  4.0, -8.0, -24.0);
+    a0         = poly(f, n, 1.0,  4.0,  8.0,   8.0);
     break;
   case 4:
-    coeffsa[0] = poly(f, 4, 1.0, -2*C2,   8.0+4*C1,  -8*C2,  16.0);
-    coeffsa[1] = poly(f, 4, 4.0, -4*C2,        0.0,  16*C2, -64.0);
-    coeffsa[2] = poly(f, 4, 6.0,   0.0, -16.0-8*C1,    0.0,  96.0);
-    coeffsa[3] = poly(f, 4, 4.0,  4*C2,        0.0, -16*C2, -64.0);
-    a0         = poly(f, 4, 1.0,  2*C2,   8.0+4*C1,   8*C2,  16.0);
+    coeffsa[0] = poly(f, n, 1.0, -2*C2,   8.0+4*C1, - 8*C2,  16.0);
+    coeffsa[1] = poly(f, n, 4.0, -4*C2,        0.0,  16*C2, -64.0);
+    coeffsa[2] = poly(f, n, 6.0,   0.0, -16.0-8*C1,    0.0,  96.0);
+    coeffsa[3] = poly(f, n, 4.0,  4*C2,        0.0, -16*C2, -64.0);
+    a0         = poly(f, n, 1.0,  2*C2,   8.0+4*C1,   8*C2,  16.0);
     break;
   case 5:
-    coeffsa[0] = poly(f, 5,  1.0, -2.0-2*C3,  12.0+4*C3, -24.0 -8*C3,  16.0+16*C3,  -32.0);
-    coeffsa[1] = poly(f, 5,  5.0, -6.0-6*C3,  12.0+4*C3,  24.0 +8*C3, -48.0-48*C3,  160.0);
-    coeffsa[2] = poly(f, 5, 10.0, -4.0-4*C3, -24.0-8*C3,  48.0+16*C3,  32.0+32*C3, -320.0);
-    coeffsa[3] = poly(f, 5, 10.0,  4.0+4*C3, -24.0-8*C3, -48.0-16*C3,  32.0+32*C3,  320.0);
-    coeffsa[4] = poly(f, 5,  5.0,  6.0+6*C3,  12.0+4*C3, -24.0 -8*C3, -48.0-48*C3, -160.0);
-    a0         = poly(f, 5,  1.0,  2.0+2*C3,  12.0+4*C3,  24.0 +8*C3,  16.0+16*C3,   32.0);
+    coeffsa[0] = poly(f, n,  1.0, -2.0-2*C3,  12.0+4*C3, -24.0- 8*C3,  16.0+16*C3, - 32.0);
+    coeffsa[1] = poly(f, n,  5.0, -6.0-6*C3,  12.0+4*C3,  24.0+ 8*C3, -48.0-48*C3,  160.0);
+    coeffsa[2] = poly(f, n, 10.0, -4.0-4*C3, -24.0-8*C3,  48.0+16*C3,  32.0+32*C3, -320.0);
+    coeffsa[3] = poly(f, n, 10.0,  4.0+4*C3, -24.0-8*C3, -48.0-16*C3,  32.0+32*C3,  320.0);
+    coeffsa[4] = poly(f, n,  5.0,  6.0+6*C3,  12.0+4*C3, -24.0- 8*C3, -48.0-48*C3, -160.0);
+    a0         = poly(f, n,  1.0,  2.0+2*C3,  12.0+4*C3,  24.0+ 8*C3,  16.0+16*C3,   32.0);
+    break;
+  case 6:
+    coeffsa[0] = poly(f, n,  1.0, - 2*C1- 2*C5,  16.0+ 8*C4,  -24*C1-16*C5,   64.0+ 32*C4,  - 32*C1- 32*C5,    64.0);
+    coeffsa[1] = poly(f, n,  6.0, - 8*C1- 8*C5,  32.0+16*C4,           0.0, -128.0- 64*C4,   128*C1+128*C5, - 384.0);
+    coeffsa[2] = poly(f, n, 15.0, -10*C1-10*C5, -16.0- 8*C4,  -72*C1-48*C5, - 64.0- 32*C4,  -160*C1-160*C5,   960.0);
+    coeffsa[3] = poly(f, n, 20.0,          0.0, -64.0-32*C4,           0.0, -256.0-128*C4,             0.0, -1280.0);
+    coeffsa[4] = poly(f, n, 15.0,  10*C1+10*C5, -16.0- 8*C4,   72*C1+48*C5, - 64.0- 32*C4,   160*C1+160*C5,   960.0);
+    coeffsa[5] = poly(f, n,  6.0,   8*C1+ 8*C5,  32.0+16*C4,           0.0, -128.0- 64*C4,  -128*C1-128*C5, - 384.0);
+    a0         = poly(f, n,  1.0,   2*C1+ 2*C5,  16.0+ 8*C4,   24*C1+16*C5,   64.0+ 32*C4,    32*C1+ 32*C5,    64.0);
   }
 
   for(i=0;i<n;++i)
