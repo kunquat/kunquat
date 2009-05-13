@@ -94,6 +94,8 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 #define C4 1.73205080756887729353 //sqrt(3)
 #define C5 2.44948974278317809820 //sqrt(6)
 
+#define SIGN(s,i) (!((i) & 1) ? 0 : (s))
+
 void bilinear_butterworth_filter_create(int n, double f, double coeffsa[], double coeffsb[])
 {
   int i,s;
@@ -158,10 +160,7 @@ void bilinear_butterworth_filter_create(int n, double f, double coeffsa[], doubl
   fna0 = powi(f,n)/a0;
 
   for(i=0;i<=n;++i)
-  {
-    s = -s;
-    coeffsb[i] = binom(n,i)*fna0;
-  }
+    coeffsb[i] = SIGN(s,i)*binom(n,i)*fna0;
 }
 
 void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t inbuff[], frame_t outbuff[])
