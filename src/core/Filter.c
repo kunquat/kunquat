@@ -94,64 +94,53 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 #define C4 1.73205080756887729353 //sqrt(3)
 #define C5 2.44948974278317809820 //sqrt(6)
 
-#define SIGN(s,i) (!((i) & 1) ? 0 : (s))
-
-void bilinear_butterworth_filter_create(int n, double f, double coeffsa[], double coeffsb[])
+void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[], double coeffsb[])
 {
-  int i,s;
+  int i;
   double a0=1.0,fna0;
 
-  if(f>0.0)
-  {
     f = tan(PI*f);
-    s =  1;
-  }
-  else
-  {
-    f = 1.0/tan(-PI*f);
-    s = -1;
-  }
 
   switch(n)
   {
   case 1:
-    coeffsa[0] = s*poly(f, n, 1.0, -1.0);
-    a0         =   poly(f, n, 1.0,  1.0);
+    coeffsa[0] = poly(f, n, 1.0, -1.0);
+    a0         = poly(f, n, 1.0,  1.0);
     break;
   case 2:
-    coeffsa[0] =   poly(f, n, 1.0, -C1,  1.0);
-    coeffsa[1] = s*poly(f, n, 2.0, 0.0, -2.0);
-    a0         =   poly(f, n, 1.0,  C1,  1.0);
+    coeffsa[0] = poly(f, n, 1.0, -C1,  1.0);
+    coeffsa[1] = poly(f, n, 2.0, 0.0, -2.0);
+    a0         = poly(f, n, 1.0,  C1,  1.0);
     break;
   case 3:
-    coeffsa[0] = s*poly(f, n, 1.0, -2.0,  2.0, -1.0);
-    coeffsa[1] =   poly(f, n, 3.0, -2.0, -2.0,  3.0);
-    coeffsa[2] = s*poly(f, n, 3.0,  2.0, -2.0, -3.0);
-    a0         =   poly(f, n, 1.0,  2.0,  2.0,  1.0);
+    coeffsa[0] = poly(f, n, 1.0, -2.0,  2.0, -1.0);
+    coeffsa[1] = poly(f, n, 3.0, -2.0, -2.0,  3.0);
+    coeffsa[2] = poly(f, n, 3.0,  2.0, -2.0, -3.0);
+    a0         = poly(f, n, 1.0,  2.0,  2.0,  1.0);
     break;
   case 4:
-    coeffsa[0] =   poly(f, n, 1.0, -  C2,  2.0+  C1, -  C2,  1.0);
-    coeffsa[1] = s*poly(f, n, 4.0, -2*C2,       0.0,  2*C2, -4.0);
-    coeffsa[2] =   poly(f, n, 6.0,   0.0, -4.0-2*C1,   0.0,  6.0);
-    coeffsa[3] = s*poly(f, n, 4.0,  2*C2,       0.0, -2*C2, -4.0);
-    a0         =   poly(f, n, 1.0,    C2,  2.0+  C1,    C2,  1.0);
+    coeffsa[0] = poly(f, n, 1.0, -  C2,  2.0+  C1, -  C2,  1.0);
+    coeffsa[1] = poly(f, n, 4.0, -2*C2,       0.0,  2*C2, -4.0);
+    coeffsa[2] = poly(f, n, 6.0,   0.0, -4.0-2*C1,   0.0,  6.0);
+    coeffsa[3] = poly(f, n, 4.0,  2*C2,       0.0, -2*C2, -4.0);
+    a0         = poly(f, n, 1.0,    C2,  2.0+  C1,    C2,  1.0);
     break;
   case 5:
-    coeffsa[0] = s*poly(f, n,  1.0, -1.0-  C3,  3.0+  C3, -3.0-  C3,  1.0+  C3, - 1.0);
-    coeffsa[1] =   poly(f, n,  5.0, -3.0-3*C3,  3.0+  C3,  3.0+  C3, -3.0-3*C3,   5.0);
-    coeffsa[2] = s*poly(f, n, 10.0, -2.0-2*C3, -6.0-2*C3,  6.0+2*C3,  2.0+2*C3, -10.0);
-    coeffsa[3] =   poly(f, n, 10.0,  2.0+2*C3, -6.0-2*C3, -6.0-2*C3,  2.0+2*C3,  10.0);
-    coeffsa[4] = s*poly(f, n,  5.0,  3.0+3*C3,  3.0+  C3, -3.0-  C3, -3.0-3*C3, - 5.0);
-    a0         =   poly(f, n,  1.0,  1.0+  C3,  3.0+  C3,  3.0+  C3,  1.0+  C3,   1.0);
+    coeffsa[0] = poly(f, n,  1.0, -1.0-  C3,  3.0+  C3, -3.0-  C3,  1.0+  C3, - 1.0);
+    coeffsa[1] = poly(f, n,  5.0, -3.0-3*C3,  3.0+  C3,  3.0+  C3, -3.0-3*C3,   5.0);
+    coeffsa[2] = poly(f, n, 10.0, -2.0-2*C3, -6.0-2*C3,  6.0+2*C3,  2.0+2*C3, -10.0);
+    coeffsa[3] = poly(f, n, 10.0,  2.0+2*C3, -6.0-2*C3, -6.0-2*C3,  2.0+2*C3,  10.0);
+    coeffsa[4] = poly(f, n,  5.0,  3.0+3*C3,  3.0+  C3, -3.0-  C3, -3.0-3*C3, - 5.0);
+    a0         = poly(f, n,  1.0,  1.0+  C3,  3.0+  C3,  3.0+  C3,  1.0+  C3,   1.0);
     break;
   case 6:
-    coeffsa[0] =   poly(f, n,  1.0, -  C1-  C5,   4.0+2*C4, -3*C1-2*C5,   4.0+2*C4,  -  C1-  C5,   1.0);
-    coeffsa[1] = s*poly(f, n,  6.0, -4*C1-4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,   4*C1+4*C5, - 6.0);
-    coeffsa[2] =   poly(f, n, 15.0, -5*C1-5*C5, - 4.0-2*C4,  9*C1+6*C5, - 4.0-2*C4,  -5*C1-5*C5,  15.0);
-    coeffsa[3] = s*poly(f, n, 20.0,        0.0, -16.0-8*C4,        0.0,  16.0+8*C4,         0.0, -20.0);
-    coeffsa[4] =   poly(f, n, 15.0,  5*C1+5*C5, - 4.0-2*C4, -9*C1-6*C5, - 4.0-2*C4,   5*C1+5*C5,  15.0);
-    coeffsa[5] = s*poly(f, n,  6.0,  4*C1+4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,  -4*C1-4*C5, - 6.0);
-    a0         =   poly(f, n,  1.0,    C1+  C5,   4.0+2*C4,  3*C1+2*C5,   4.0+2*C4,     C1+  C5,   1.0);
+    coeffsa[0] = poly(f, n,  1.0, -  C1-  C5,   4.0+2*C4, -3*C1-2*C5,   4.0+2*C4,  -  C1-  C5,   1.0);
+    coeffsa[1] = poly(f, n,  6.0, -4*C1-4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,   4*C1+4*C5, - 6.0);
+    coeffsa[2] = poly(f, n, 15.0, -5*C1-5*C5, - 4.0-2*C4,  9*C1+6*C5, - 4.0-2*C4,  -5*C1-5*C5,  15.0);
+    coeffsa[3] = poly(f, n, 20.0,        0.0, -16.0-8*C4,        0.0,  16.0+8*C4,         0.0, -20.0);
+    coeffsa[4] = poly(f, n, 15.0,  5*C1+5*C5, - 4.0-2*C4, -9*C1-6*C5, - 4.0-2*C4,   5*C1+5*C5,  15.0);
+    coeffsa[5] = poly(f, n,  6.0,  4*C1+4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,  -4*C1-4*C5, - 6.0);
+    a0         = poly(f, n,  1.0,    C1+  C5,   4.0+2*C4,  3*C1+2*C5,   4.0+2*C4,     C1+  C5,   1.0);
   }
 
   for(i=0;i<n;++i)
@@ -160,7 +149,20 @@ void bilinear_butterworth_filter_create(int n, double f, double coeffsa[], doubl
   fna0 = powi(f,n)/a0;
 
   for(i=0;i<=n;++i)
-    coeffsb[i] = SIGN(s,i)*binom(n,i)*fna0;
+    coeffsb[i] = binom(n,i)*fna0;
+}
+
+void bilinear_butterworth_highpass_filter_create(int n, double f, double coeffsa[], double coeffsb[])
+{
+  int i;
+  
+  bilinear_butterworth_lowpass_filter_create(n, 1.0-f, coeffsa, coeffsb);
+
+  for(i=0;i<n;i+=2)
+    coeffsa[i] = -coeffsa[i];
+
+  for(i=1;i<=n;+=2)
+    coeffsb[i] = -coeffsb[i];
 }
 
 void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t inbuff[], frame_t outbuff[])
