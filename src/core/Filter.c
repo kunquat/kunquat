@@ -156,12 +156,12 @@ void bilinear_butterworth_highpass_filter_create(int n, double f, double coeffsa
 {
   int i;
   
-  bilinear_butterworth_lowpass_filter_create(n, 1.0-f, coeffsa, coeffsb);
+  bilinear_butterworth_lowpass_filter_create(n, 0.5-f, coeffsa, coeffsb);
 
-  for(i=0;i<n;i+=2)
+  for(i=!(n % 2);i<n;i+=2)
     coeffsa[i] = -coeffsa[i];
 
-  for(i=1;i<=n;+=2)
+  for(i=!(n % 2);i<=n;i+=2)
     coeffsb[i] = -coeffsb[i];
 }
 
