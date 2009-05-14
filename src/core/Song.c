@@ -149,9 +149,12 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
   //  static frame_t histbuffb[ORDER] = {0.0};
   if(ready==0)
   {
-/*     simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffs); */
+//    simple_lowpass_fir_create(ORDER, 600.0/play->freq, coeffsb);
 //    bilinear_butterworth_lowpass_filter_create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
-    bilinear_butterworth_highpass_filter_create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
+//    simple_lowpass_fir_create(ORDER, 0.5-600.0/play->freq, coeffsb);
+//    bilinear_butterworth_lowpass_filter_create(ORDER, 0.5-600.0/play->freq, coeffsa, coeffsb);
+    invert(ORDER, coeffsa);
+    invert(ORDER, coeffsb);
     ready=1;
   }
 /*</test>*/

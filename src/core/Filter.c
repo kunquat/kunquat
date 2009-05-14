@@ -152,17 +152,12 @@ void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[
     coeffsb[i] = binom(n,i)*fna0;
 }
 
-void bilinear_butterworth_highpass_filter_create(int n, double f, double coeffsa[], double coeffsb[])
+void invert(int n, double coeffs[])
 {
   int i;
   
-  bilinear_butterworth_lowpass_filter_create(n, 0.5-f, coeffsa, coeffsb);
-
   for(i=!(n % 2);i<n;i+=2)
-    coeffsa[i] = -coeffsa[i];
-
-  for(i=!(n % 2);i<=n;i+=2)
-    coeffsb[i] = -coeffsb[i];
+    coeffs[i] = -coeffs[i];
 }
 
 void fir_filter(int n, double coeffs[], frame_t histbuff[], int amount, frame_t inbuff[], frame_t outbuff[])
