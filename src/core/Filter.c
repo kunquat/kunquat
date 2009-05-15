@@ -155,12 +155,11 @@ void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[
 void bilinear_chebyshev_t1_lowpass_filter_create(int n, double f, double e, double coeffsa[], double coeffsb[])
 {
   int i;
-  double a0=1.0,fna0,sh,ch;
+  double a0=1.0,fna0,sh,ch,temp;
 
-  sh = (1.0+sqrt(1.0+e*e))/e;
-  ch = (1.0+sqrt(1.0-e*e))/e;
-  sh = (pow(sh,1.0/n)-pow(sh,-1.0/n))/2;
-  ch = (pow(ch,1.0/n)+pow(ch,-1.0/n))/2;
+  temp = (1.0+sqrt(1.0+e*e))/e;
+  sh = (pow(temp,1.0/n)-pow(temp,-1.0/n))/2;
+  ch = (pow(temp,1.0/n)+pow(temp,-1.0/n))/2;
 
 
   f = tan(PI*f);
