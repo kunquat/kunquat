@@ -34,7 +34,7 @@
 #include <xmemory.h>
 
 /*<test>*/
-#define ORDER 6
+#define ORDER 1
 #include <Filter.c>
 /*</test>*/
 
@@ -153,8 +153,9 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 //    bilinear_butterworth_lowpass_filter_create(ORDER, 600.0/play->freq, coeffsa, coeffsb);
 //    simple_lowpass_fir_create(ORDER, 0.5-600.0/play->freq, coeffsb);
 //    bilinear_butterworth_lowpass_filter_create(ORDER, 0.5-600.0/play->freq, coeffsa, coeffsb);
-    invert(ORDER, coeffsa);
-    invert(ORDER, coeffsb);
+    bilinear_chebyshev_t1_lowpass_filter_create(ORDER, 600.0/play->freq, 0.5, coeffsa, coeffsb);
+//    invert(ORDER, coeffsa);
+//    invert(ORDER, coeffsb);
     ready=1;
   }
 /*</test>*/
@@ -239,8 +240,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
     }
 /*<test>*/
-/*     fir_filter(ORDER, coeffs, histbuff, mixed, song->bufs[0], song->bufs[1]); */
-    iir_filter_df2(ORDER, coeffsa, ORDER, coeffsb, histbuffa, mixed, song->bufs[0], song->bufs[1]);
+//    fir_filter(ORDER, coeffs, histbuffb, mixed, song->bufs[0], song->bufs[1]);
+    iir_filter_df2(ORDER, coeffsb, ORDER, coeffsa, histbuffa, mixed, song->bufs[0], song->bufs[1]);
     for (uint32_t k = 0; k < mixed; ++k)
     {
       song->bufs[0][k] = song->bufs[1][k];

@@ -99,7 +99,7 @@ void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[
   int i;
   double a0=1.0,fna0;
 
-    f = tan(PI*f);
+  f = tan(PI*f);
 
   switch(n)
   {
@@ -150,6 +150,41 @@ void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[
 
   for(i=0;i<=n;++i)
     coeffsb[i] = binom(n,i)*fna0;
+}
+
+void bilinear_chebyshev_t1_lowpass_filter_create(int n, double f, double e, double coeffsa[], double coeffsb[])
+{
+  int i;
+  double a0=1.0,fna0,sh,ch;
+
+  sh = (1.0+sqrt(1.0+e*e))/e;
+  ch = (1.0+sqrt(1.0-e*e))/e;
+  sh = (pow(sh,1.0/n)-pow(sh,-1.0/n))/2;
+  ch = (pow(ch,1.0/n)+pow(ch,-1.0/n))/2;
+
+
+  f = tan(PI*f);
+
+  switch(n)
+    {
+    case 1:
+      coeffsa[0] = poly(f, n, sh, -1.0);
+      a0         = poly(f, n, sh,  1.0);
+      break;
+    case 2:
+      coeffsa[0] = poly(f, n, (sh*sh+ch*ch)/2, -sh*C1,  1.0);
+      coeffsa[1] = poly(f, n,  sh*sh+ch*ch   ,    0.0, -2.0);
+      a0         = poly(f, n, (sh*sh+ch*ch)/2,  sh*C1,  1.0); 
+    }
+
+  for(i=0;i<n;++i)
+    coeffsa[i] /= a0;
+
+  fna0 = powi(f,n)*e*(1 << (n-1))/a0;
+
+  for(i=0;i<=n;++i)
+    coeffsb[i] = binom(n,i)*fna0;
+
 }
 
 void invert(int n, double coeffs[])
