@@ -51,6 +51,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->pos_rem = 0;
     state->rel_pos = 0;
     state->rel_pos_rem = 0;
+    state->dir = 1;
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;

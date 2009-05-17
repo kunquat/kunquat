@@ -27,8 +27,11 @@
 #undef PI
 #define PI (3.14159265358979323846)
 
-#undef SQRT2
-#define SQRT2 (1.41421356237309504880)
+#undef MIN
+#define MIN(x,y) ((x) < (y) ? (x) : (y))
+
+#undef MAX
+#define MAX(x,y) ((x) > (y) ? (x) : (y))
 
 
 #endif // K_MATH_COMMON_H

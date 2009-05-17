@@ -41,6 +41,7 @@ typedef struct Voice_state
     double pos_rem;        ///< The current playback position remainder.
     uint64_t rel_pos;      ///< The current relative playback position.
     double rel_pos_rem;    ///< The current relative playback position remainder.
+    double dir;            ///< The current playback direction.
     bool note_on;          ///< Whether the note is still on.
     uint64_t noff_pos;     ///< Note Off position.
     double noff_pos_rem;   ///< Note Off position remainder.

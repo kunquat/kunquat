@@ -37,7 +37,7 @@
 typedef enum
 {
     /// Uninitialised.
-    SAMPLE_FORMAT_NONE,
+    SAMPLE_FORMAT_NONE = 0,
     /// The native format.
     // SAMPLE_FORMAT_KS,
     /// WavPack.
@@ -49,31 +49,32 @@ typedef enum
 } Sample_format;
 
 
+typedef enum
+{
+    SAMPLE_LOOP_OFF = 0, ///< No loop.
+    SAMPLE_LOOP_UNI,     ///< Unidirectional (forward) loop.
+    SAMPLE_LOOP_BI       ///< Bidirectional loop.
+} Sample_loop;
+
+
 /**
  * Sample contains a digital sound sample.
  */
 typedef struct Sample
 {
-    /// The path of the file (if applicable -- otherwise NULL).
-    char* path;
-    /// The (compression) format.
-    Sample_format format;
-    /// Whether the sample (sound) data has changed after loading.
-    bool changed;
-    /// Whether this sample uses lossy compression.
-    bool is_lossy;
-    /// The number of channels (1 or 2).
-    int channels;
-    /// The bit resolution (8, 16, 24 or 32).
-    int bits;
-    /// Whether this sample is in floating point format.
-    bool is_float;
-    /// The length of the sample (in amplitude values per channel).
-    uint64_t len;
-    /// The playback frequency used to represent 440 Hz tone.
-    double mid_freq;
-    /// The sample data.
-    void* data[2];
+    char* path;           ///< The path of the file (if applicable -- otherwise NULL).
+    Sample_format format; ///< The (compression) format.
+    bool changed;         ///< Whether the sample (sound) data has changed after loading.
+    bool is_lossy;        ///< Whether this sample uses lossy compression.
+    int channels;         ///< The number of channels (1 or 2).
+    int bits;             ///< The bit resolution (8, 16, 24 or 32).
+    bool is_float;        ///< Whether this sample is in floating point format.
+    Sample_loop loop;     ///< Loop setting.
+    uint64_t loop_start;  ///< Loop start.
+    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
+    uint64_t len;         ///< The length of the sample (in amplitude values per channel).
+    double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
+    void* data[2];        ///< The sample data.
 } Sample;
 
 
@@ -133,6 +134,83 @@ void Sample_set_freq(Sample* sample, double freq);
  * \return   The middle frequency.
  */
 double Sample_get_freq(Sample* sample);
+
+
+/**
+ * Gets the length of the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The length in frames/buffer.
+ */
+uint64_t Sample_get_len(Sample* sample);
+
+
+/**
+ * Sets the loop mode of the Sample.
+ *
+ * If the loop becomes enabled, the end points may be changed.
+ * The loop will not be enabled if the length of the sample is 0.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param loop     The loop mode -- must be \c SAMPLE_LOOP_OFF,
+ *                 \c SAMPLE_LOOP_UNI or \c SAMPLE_LOOP_BI.
+ */
+void Sample_set_loop(Sample* sample, Sample_loop loop);
+
+
+/**
+ * Gets the loop mode of the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The loop mode.
+ */
+Sample_loop Sample_get_loop(Sample* sample);
+
+
+/**
+ * Sets the start point of the Sample loop.
+ *
+ * If the start point is set past the end of the loop or Sample, the loop is
+ * turned off.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param start    The loop start -- must not be \c NULL.
+ */
+void Sample_set_loop_start(Sample* sample, uint64_t start);
+
+
+/**
+ * Gets the start point of the Sample loop.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The loop start.
+ */
+uint64_t Sample_get_loop_start(Sample* sample);
+
+
+/**
+ * Sets the end point of the Sample loop.
+ *
+ * If the end point is set at or before the start point or past the length of
+ * the Sample, the loop is turned off.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param end      The loop end -- must not be \c NULL.
+ */
+void Sample_set_loop_end(Sample* sample, uint64_t end);
+
+
+/**
+ * Gets the end point of the Sample loop.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ *
+ * \return   The loop start.
+ */
+uint64_t Sample_get_loop_end(Sample* sample);
 
 
 /**

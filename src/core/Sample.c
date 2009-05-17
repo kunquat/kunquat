@@ -31,6 +31,7 @@
 #include <Generator_common.h>
 #include <File_wavpack.h>
 #include <Song_limits.h>
+#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -49,6 +50,9 @@ Sample* new_Sample(void)
     sample->channels = 1;
     sample->bits = 16;
     sample->is_float = false;
+    sample->loop = SAMPLE_LOOP_OFF;
+    sample->loop_start = 0;
+    sample->loop_end = 0;
     sample->len = 0;
     sample->mid_freq = 48000;
     sample->data[0] = NULL;
@@ -116,6 +120,88 @@ char* Sample_get_path(Sample* sample)
 }
 
 
+void Sample_set_loop(Sample* sample, Sample_loop loop)
+{
+    assert(sample != NULL);
+    assert(   loop == SAMPLE_LOOP_OFF
+           || loop == SAMPLE_LOOP_UNI
+           || loop == SAMPLE_LOOP_BI);
+    if (sample->len == 0)
+    {
+        sample->loop = SAMPLE_LOOP_OFF;
+        return;
+    }
+    if (sample->loop_start > 0 && sample->loop_start >= sample->loop_end)
+    {
+        sample->loop_start = sample->loop_end - 1;
+    }
+    if (sample->loop_start >= sample->len)
+    {
+        sample->loop_start = sample->len - 1;
+    }
+    if (sample->loop_end <= sample->loop_start)
+    {
+        if (sample->loop_start == 0)
+        {
+            sample->loop_end = sample->len;
+        }
+        else
+        {
+            sample->loop_end = sample->loop_start + 1;
+        }
+    }
+    assert(sample->loop_start < sample->loop_end);
+    assert(sample->loop_end <= sample->len);
+    sample->loop = loop;
+    return;
+}
+
+
+Sample_loop Sample_get_loop(Sample* sample)
+{
+    assert(sample != NULL);
+    return sample->loop;
+}
+
+
+void Sample_set_loop_start(Sample* sample, uint64_t start)
+{
+    assert(sample != NULL);
+    if (start >= sample->len || start >= sample->loop_end)
+    {
+        sample->loop = SAMPLE_LOOP_OFF;
+    }
+    sample->loop_start = start;
+    return;
+}
+
+
+uint64_t Sample_get_loop_start(Sample* sample)
+{
+    assert(sample != NULL);
+    return sample->loop_start;
+}
+
+
+void Sample_set_loop_end(Sample* sample, uint64_t end)
+{
+    assert(sample != NULL);
+    if (end <= sample->loop_start || end > sample->loop_end)
+    {
+        sample->loop = SAMPLE_LOOP_OFF;
+    }
+    sample->loop_end = end;
+    return;
+}
+
+
+uint64_t Sample_get_loop_end(Sample* sample)
+{
+    assert(sample != NULL);
+    return sample->loop_end;
+}
+
+
 void Sample_mix(Sample* sample,
         Generator* gen,
         Voice_state* state,
@@ -138,6 +224,70 @@ void Sample_mix(Sample* sample,
             state->active = false;
             break;
         }
+        bool next_exists = false;
+        uint64_t next_pos = 0;
+        if (state->dir > 0 || sample->loop != SAMPLE_LOOP_BI)
+        {
+            uint64_t limit = sample->len;
+            if (sample->loop)
+            {
+                limit = sample->loop_end;
+            }
+            if (state->rel_pos + 1 < limit)
+            {
+                next_exists = true;
+                next_pos = state->rel_pos + 1;
+            }
+            else
+            {
+                if (sample->loop == SAMPLE_LOOP_UNI)
+                {
+                    next_exists = true;
+                    next_pos = sample->loop_start;
+                }
+                else if (sample->loop == SAMPLE_LOOP_BI)
+                {
+                    next_exists = true;
+                    if (state->rel_pos > sample->loop_start)
+                    {
+                        next_pos = state->rel_pos - 1;
+                    }
+                    else
+                    {
+                        next_pos = sample->loop_start;
+                    }
+                }
+            }
+        }
+        else if (sample->loop_start + 1 == sample->loop_end)
+        {
+            next_exists = true;
+            next_pos = sample->loop_start;
+        }
+        else
+        {
+            assert(sample->loop == SAMPLE_LOOP_BI);
+            next_exists = true;
+            if (state->rel_pos > sample->loop_start)
+            {
+                next_pos = state->rel_pos - 1;
+            }
+            else
+            {
+                next_pos = sample->loop_start + 1;
+            }
+            if (next_pos >= sample->loop_end)
+            {
+                next_pos = sample->loop_end - 1;
+            }
+        }
+        assert(!sample->loop || next_pos < sample->loop_end);
+        assert(next_pos < sample->len);
+        double mix_factor = state->rel_pos_rem;
+        if (next_pos < state->rel_pos)
+        {
+            mix_factor = 1 - state->rel_pos_rem;
+        }
         frame_t vals[BUF_COUNT_MAX] = { 0 };
         if (sample->is_float)
         {
@@ -145,12 +295,12 @@ void Sample_mix(Sample* sample,
 //          float* buf_r = sample->data[1];
             float cur = buf_l[state->rel_pos];
             float next = 0;
-            if (state->rel_pos + 1 < sample->len)
+            if (next_exists)
             {
-                next = buf_l[state->rel_pos + 1];
+                next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = cur * (1 - state->rel_pos_rem)
-                    + next * (state->rel_pos_rem);
+            vals[0] = vals[1] = cur * (1 - mix_factor)
+                    + next * mix_factor;
         }
         else if (sample->bits == 8)
         {
@@ -158,12 +308,12 @@ void Sample_mix(Sample* sample,
 //          int8_t* buf_r = sample->data[1];
             int8_t cur = buf_l[state->rel_pos];
             int8_t next = 0;
-            if (state->rel_pos + 1 < sample->len)
+            if (next_exists)
             {
-                next = buf_l[state->rel_pos + 1];
+                next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x80) * (1 - state->rel_pos_rem)
-                    + ((frame_t)next / 0x80) * (state->rel_pos_rem);
+            vals[0] = vals[1] = ((frame_t)cur / 0x80) * (1 - mix_factor)
+                    + ((frame_t)next / 0x80) * mix_factor;
         }
         else if (sample->bits == 16)
         {
@@ -171,12 +321,12 @@ void Sample_mix(Sample* sample,
 //          int16_t* buf_r = sample->data[1];
             int16_t cur = buf_l[state->rel_pos];
             int16_t next = 0;
-            if (state->rel_pos + 1 < sample->len)
+            if (next_exists)
             {
-                next = buf_l[state->rel_pos + 1];
+                next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x8000) * (1 - state->rel_pos_rem)
-                    + ((frame_t)next / 0x8000) * (state->rel_pos_rem);
+            vals[0] = vals[1] = ((frame_t)cur / 0x8000) * (1 - mix_factor)
+                    + ((frame_t)next / 0x8000) * mix_factor;
         }
         else
         {
@@ -185,12 +335,12 @@ void Sample_mix(Sample* sample,
 //          int16_t* buf_r = sample->data[1];
             int16_t cur = buf_l[state->rel_pos];
             int16_t next = 0;
-            if (state->rel_pos + 1 < sample->len)
+            if (next_exists)
             {
-                next = buf_l[state->rel_pos + 1];
+                next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x80000000UL) * (1 - state->rel_pos_rem)
-                    + ((frame_t)next / 0x80000000UL) * (state->rel_pos_rem);
+            vals[0] = vals[1] = ((frame_t)cur / 0x80000000UL) * (1 - mix_factor)
+                    + ((frame_t)next / 0x80000000UL) * mix_factor;
         }
         Generator_common_handle_note_off(gen, state, vals, 2, freq);
         gen->ins_params->bufs[0][i] += vals[0];
@@ -198,13 +348,6 @@ void Sample_mix(Sample* sample,
         double advance = (state->freq / 440) * sample->mid_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
-        state->rel_pos += adv;
-        state->rel_pos_rem += adv_rem;
-        if (state->rel_pos_rem >= 1)
-        {
-            state->rel_pos_rem -= 1;
-            ++state->rel_pos;
-        }
         state->pos += adv;
         state->pos_rem += adv_rem;
         if (state->pos_rem >= 1)
@@ -212,6 +355,62 @@ void Sample_mix(Sample* sample,
             state->pos += floor(state->pos_rem);
             state->pos_rem -= floor(state->pos_rem);
         }
+        if (sample->loop == SAMPLE_LOOP_OFF)
+        {
+            state->rel_pos = state->pos;
+            state->rel_pos_rem = state->pos_rem;
+            if (state->rel_pos >= sample->len)
+            {
+                state->active = false;
+                break;
+            }
+        }
+        else
+        {
+            uint64_t loop_len = sample->loop_end - sample->loop_start;
+            uint64_t limit = sample->loop == SAMPLE_LOOP_UNI
+                                           ? loop_len
+                                           : 2 * loop_len - 2;
+            uint64_t virt_pos = state->pos;
+            if (virt_pos < sample->loop_end)
+            {
+                state->dir = 1;
+                state->rel_pos = state->pos;
+                state->rel_pos_rem = state->pos_rem;
+            }
+            else if (sample->loop_start + 1 == sample->loop_end)
+            {
+                state->dir = 1;
+                state->rel_pos = sample->loop_start;
+                state->rel_pos_rem = 0;
+            }
+            else
+            {
+                virt_pos = ((virt_pos - sample->loop_start) % limit) + sample->loop_start;
+                if (sample->loop == SAMPLE_LOOP_UNI || virt_pos < sample->loop_end - 1)
+                {
+                    assert(sample->loop != SAMPLE_LOOP_UNI || virt_pos < sample->loop_end);
+                    state->dir = 1;
+                    state->rel_pos = virt_pos;
+                    state->rel_pos_rem = state->pos_rem;
+                }
+                else
+                {
+                    assert(sample->loop == SAMPLE_LOOP_BI);
+                    assert(virt_pos >= sample->loop_end - 1);
+                    state->dir = -1;
+                    uint64_t back = virt_pos - (sample->loop_end - 1);
+                    state->rel_pos = sample->loop_end - 1 - back;
+                    state->rel_pos_rem = state->pos_rem;
+                    if (state->rel_pos > sample->loop_start && state->rel_pos_rem > 0)
+                    {
+                        --state->rel_pos;
+                        state->rel_pos_rem = 1 - state->rel_pos_rem;
+                    }
+                }
+            }
+        }
+        assert(state->rel_pos < sample->len);
     }
     return;
 }
@@ -229,6 +428,13 @@ double Sample_get_freq(Sample* sample)
 {
     assert(sample != NULL);
     return sample->mid_freq;
+}
+
+
+uint64_t Sample_get_len(Sample* sample)
+{
+    assert(sample != NULL);
+    return sample->len;
 }
 
 
