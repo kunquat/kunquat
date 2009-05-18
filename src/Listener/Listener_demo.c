@@ -171,7 +171,11 @@ int Listener_demo(const char* path,
     }
     assert(song != NULL);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, Song_get_voice_bufs(song), 128, 16);
+    Instrument* ins = new_Instrument(bufs,
+                                     Song_get_voice_bufs(song),
+                                     Song_get_buf_count(song),
+                                     Song_get_buf_size(song),
+                                     16);
     if (ins == NULL)
     {
         goto cleanup;

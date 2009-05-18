@@ -119,6 +119,7 @@ int Listener_new_ins(const char* path,
     {
         ins = new_Instrument(Song_get_bufs(song),
                              Song_get_voice_bufs(song),
+                             Song_get_buf_count(song),
                              Song_get_buf_size(song),
                              32); // XXX: get event count from the configuration
         if (ins == NULL)

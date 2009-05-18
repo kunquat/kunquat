@@ -134,7 +134,11 @@ Song* demo_song_create(void)
     Song_set_tempo(song, 0, 110);
     Song_set_global_vol(song, 0, 0);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, Song_get_voice_bufs(song), 128, 16);
+    Instrument* ins = new_Instrument(bufs,
+                                     Song_get_voice_bufs(song),
+                                     Song_get_buf_count(song),
+                                     Song_get_buf_size(song),
+                                     16);
     if (ins == NULL)
     {
         goto cleanup;

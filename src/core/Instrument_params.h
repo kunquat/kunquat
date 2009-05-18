@@ -38,6 +38,7 @@ typedef struct Instrument_params
     frame_t** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
     frame_t** gbufs;  ///< Global mixing buffers.
     frame_t** vbufs;  ///< Voice buffers.
+    int buf_count;    ///< Number of mixing buffers.
     uint32_t buf_len; ///< Mixing buffer length.
     
     Note_table** notes; ///< An indirect reference to the current Note table used.
@@ -89,14 +90,15 @@ typedef struct Instrument_params
 /**
  * Initialises the Instrument parameters.
  *
- * \param ip        The Instrument parameters -- must not be \c NULL.
- * \param bufs      The global mixing buffers -- must not be \c NULL and must
- *                  contain at least two buffers.
- * \param vbufs     The Voice mixing buffers -- must not be \c NULL and must
- *                  contain at least two buffers.
- * \param buf_len   The length of the buffers -- must be > \c 0.
- * \param notes     An indirect reference to the Note table -- must not be
- *                  \c NULL. Also, *notes must not be \c NULL.
+ * \param ip          The Instrument parameters -- must not be \c NULL.
+ * \param bufs        The global mixing buffers -- must not be \c NULL and must
+ *                    contain at least two buffers.
+ * \param vbufs       The Voice mixing buffers -- must not be \c NULL and must
+ *                    contain at least two buffers.
+ * \param buf_count   The number of buffers -- must be > \c 0.
+ * \param buf_len     The length of the buffers -- must be > \c 0.
+ * \param notes       An indirect reference to the Note table -- must not be
+ *                    \c NULL. Also, *notes must not be \c NULL.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
  *           allocation failed.
@@ -104,6 +106,7 @@ typedef struct Instrument_params
 Instrument_params* Instrument_params_init(Instrument_params* ip,
         frame_t** bufs,
         frame_t** vbufs,
+        int buf_count,
         uint32_t buf_len);
 
 

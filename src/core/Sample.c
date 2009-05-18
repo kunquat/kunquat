@@ -202,27 +202,29 @@ uint64_t Sample_get_loop_end(Sample* sample)
 }
 
 
-void Sample_mix(Sample* sample,
-        Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+uint32_t Sample_mix(Sample* sample,
+                    Generator* gen,
+                    Voice_state* state,
+                    uint32_t nframes,
+                    uint32_t offset,
+                    uint32_t freq,
+                    int buf_count,
+                    frame_t** bufs)
 {
     assert(sample != NULL);
     assert(gen != NULL);
-    assert(gen->ins_params->bufs != NULL);
-    assert(gen->ins_params->bufs[0] != NULL);
-    assert(gen->ins_params->bufs[1] != NULL);
     assert(state != NULL);
     assert(freq > 0);
-    Generator_common_check_active(gen, state);
+    assert(buf_count > 0);
+    assert(bufs != NULL);
+    assert(bufs[0] != NULL);
+    Generator_common_check_active(gen, state, offset);
     for (uint32_t i = offset; i < nframes; ++i)
     {
         if (state->rel_pos >= sample->len)
         {
             state->active = false;
-            break;
+            return i;
         }
         bool next_exists = false;
         uint64_t next_pos = 0;
@@ -342,9 +344,9 @@ void Sample_mix(Sample* sample,
             vals[0] = vals[1] = ((frame_t)cur / 0x80000000UL) * (1 - mix_factor)
                     + ((frame_t)next / 0x80000000UL) * mix_factor;
         }
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
-        gen->ins_params->bufs[0][i] += vals[0];
-        gen->ins_params->bufs[1][i] += vals[1];
+        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
+        bufs[0][i] += vals[0];
+        bufs[1][i] += vals[1];
         double advance = (state->freq / 440) * sample->mid_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
@@ -362,7 +364,7 @@ void Sample_mix(Sample* sample,
             if (state->rel_pos >= sample->len)
             {
                 state->active = false;
-                break;
+                return i;
             }
         }
         else
@@ -412,7 +414,7 @@ void Sample_mix(Sample* sample,
         }
         assert(state->rel_pos < sample->len);
     }
-    return;
+    return nframes;
 }
 
 

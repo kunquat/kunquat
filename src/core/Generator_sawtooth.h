@@ -45,11 +45,13 @@ typedef struct Generator_sawtooth
 Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params);
 
 
-void Generator_sawtooth_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_sawtooth_mix(Generator* gen,
+                                Voice_state* state,
+                                uint32_t nframes,
+                                uint32_t offset,
+                                uint32_t freq,
+                                int buf_count,
+                                frame_t** bufs);
 
 
 /**

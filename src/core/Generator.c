@@ -36,10 +36,10 @@ Gen_type Generator_get_type(Generator* gen)
 
 
 void Generator_process_note(Generator* gen,
-        Voice_state* state,
-        int note,
-        int mod,
-        int octave)
+                            Voice_state* state,
+                            int note,
+                            int mod,
+                            int octave)
 {
     assert(gen != NULL);
     assert(state != NULL);
@@ -62,14 +62,24 @@ void Generator_process_note(Generator* gen,
 
 
 void Generator_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+                   Voice_state* state,
+                   uint32_t nframes,
+                   uint32_t offset,
+                   uint32_t freq)
 {
     assert(gen != NULL);
     assert(gen->mix != NULL);
-    gen->mix(gen, state, nframes, offset, freq);
+    uint32_t mixed = offset;
+    while (mixed < nframes)
+    {
+        mixed = gen->mix(gen, state, nframes, mixed, freq,
+                         gen->ins_params->buf_count,
+                         gen->ins_params->bufs);
+        if (!state->active)
+        {
+            break;
+        }
+    }
     return;
 }
 

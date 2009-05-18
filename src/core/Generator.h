@@ -41,7 +41,8 @@ typedef struct Generator
     Gen_type type;
     void (*init_state)(Voice_state*);
     void (*destroy)(struct Generator*);
-    void (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t);
+    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t,
+                int, frame_t**);
     Instrument_params* ins_params;
 } Generator;
 
@@ -69,10 +70,10 @@ Gen_type Generator_get_type(Generator* gen);
  *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
  */
 void Generator_process_note(Generator* ins,
-        Voice_state* states,
-        int note,
-        int mod,
-        int octave);
+                            Voice_state* states,
+                            int note,
+                            int mod,
+                            int octave);
 
 
 /**
@@ -87,10 +88,10 @@ void Generator_process_note(Generator* ins,
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Generator_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+                   Voice_state* state,
+                   uint32_t nframes,
+                   uint32_t offset,
+                   uint32_t freq);
 
 
 /**

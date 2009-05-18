@@ -224,12 +224,14 @@ uint64_t Sample_get_loop_end(Sample* sample);
  * \param offset    The buffer offset.
  * \param freq      The mixing frequency -- must be > \c 0.
  */
-void Sample_mix(Sample* sample,
-        Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Sample_mix(Sample* sample,
+                    Generator* gen,
+                    Voice_state* state,
+                    uint32_t nframes,
+                    uint32_t offset,
+                    uint32_t freq,
+                    int buf_count,
+                    frame_t** bufs);
 
 
 /**

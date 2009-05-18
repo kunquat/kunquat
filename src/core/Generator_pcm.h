@@ -79,11 +79,13 @@ typedef struct Generator_pcm
 Generator_pcm* new_Generator_pcm(Instrument_params* ins_params);
 
 
-void Generator_pcm_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_pcm_mix(Generator* gen,
+                           Voice_state* state,
+                           uint32_t nframes,
+                           uint32_t offset,
+                           uint32_t freq,
+                           int buf_count,
+                           frame_t** bufs);
 
 
 /**
@@ -100,8 +102,8 @@ void Generator_pcm_mix(Generator* gen,
  * \return   \c true if successful, otherwise \c false.
  */
 bool Generator_pcm_set_sample(Generator_pcm* pcm,
-        uint16_t index,
-        char* path);
+                              uint16_t index,
+                              char* path);
 
 
 /**
@@ -140,8 +142,8 @@ char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index);
  * \param freq    The middle frequency -- must be > \c 0.
  */
 void Generator_pcm_set_sample_freq(Generator_pcm* pcm,
-        uint16_t index,
-        double freq);
+                                   uint16_t index,
+                                   double freq);
 
 
 /**
@@ -216,11 +218,11 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
  * \return   \c true if the mapping changed, otherwise \c false.
  */
 bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
-        uint8_t source,
-        uint8_t style,
-        uint8_t force_id,
-        double ins_freq,
-        uint8_t index);
+                                      uint8_t source,
+                                      uint8_t style,
+                                      uint8_t force_id,
+                                      double ins_freq,
+                                      uint8_t index);
 
 
 /**

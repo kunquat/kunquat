@@ -45,11 +45,13 @@ typedef struct Generator_triangle
 Generator_triangle* new_Generator_triangle(Instrument_params* ins_params);
 
 
-void Generator_triangle_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_triangle_mix(Generator* gen,
+                                Voice_state* state,
+                                uint32_t nframes,
+                                uint32_t offset,
+                                uint32_t freq,
+                                int buf_count,
+                                frame_t** bufs);
 
 
 /**

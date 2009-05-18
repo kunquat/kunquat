@@ -45,11 +45,13 @@ typedef struct Generator_square
 Generator_square* new_Generator_square(Instrument_params* ins_params);
 
 
-void Generator_square_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_square_mix(Generator* gen,
+                              Voice_state* state,
+                              uint32_t nframes,
+                              uint32_t offset,
+                              uint32_t freq,
+                              int buf_count,
+                              frame_t** bufs);
 
 
 /**

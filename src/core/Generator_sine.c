@@ -53,20 +53,23 @@ Generator_sine* new_Generator_sine(Instrument_params* ins_params)
 }
 
 
-void Generator_sine_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+uint32_t Generator_sine_mix(Generator* gen,
+                            Voice_state* state,
+                            uint32_t nframes,
+                            uint32_t offset,
+                            uint32_t freq,
+                            int buf_count,
+                            frame_t** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SINE);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(gen->ins_params->bufs[0] != NULL);
-    assert(gen->ins_params->bufs[1] != NULL);
-    Generator_common_check_active(gen, state);
+    assert(buf_count > 0);
+    assert(bufs != NULL);
+    assert(bufs[0] != NULL);
+    Generator_common_check_active(gen, state, offset);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_sine* sine_state = (Voice_state_sine*)state;
@@ -81,16 +84,16 @@ void Generator_sine_mix(Generator* gen,
             sine_state->phase -= floor(sine_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
-        gen->ins_params->bufs[0][i] += vals[0];
-        gen->ins_params->bufs[1][i] += vals[1];
+        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
+        bufs[0][i] += vals[0];
+        bufs[1][i] += vals[1];
 /*        if (fabs(val_l) > max_amp)
         {
             max_amp = fabs(val_l);
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return;
+    return nframes;
 }
 
 

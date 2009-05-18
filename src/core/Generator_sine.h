@@ -45,11 +45,13 @@ typedef struct Generator_sine
 Generator_sine* new_Generator_sine(Instrument_params* ins_params);
 
 
-void Generator_sine_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_sine_mix(Generator* gen,
+                            Voice_state* state,
+                            uint32_t nframes,
+                            uint32_t offset,
+                            uint32_t freq,
+                            int buf_count,
+                            frame_t** bufs);
 
 
 /**

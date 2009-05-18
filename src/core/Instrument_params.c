@@ -43,6 +43,7 @@
 Instrument_params* Instrument_params_init(Instrument_params* ip,
         frame_t** bufs,
         frame_t** vbufs,
+        int buf_count,
         uint32_t buf_len)
 {
     assert(ip != NULL);
@@ -52,8 +53,10 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
     assert(vbufs[1] != NULL);
+    assert(buf_count > 0);
     assert(buf_len > 0);
     ip->bufs = ip->gbufs = bufs;
+    ip->buf_count = buf_count;
     ip->buf_len = buf_len;
     ip->pbufs = NULL;
     ip->vbufs = vbufs;

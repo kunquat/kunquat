@@ -47,22 +47,25 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params)
 }
 
 
-void Generator_debug_mix(Generator* gen,
+uint32_t Generator_debug_mix(Generator* gen,
         Voice_state* state,
         uint32_t nframes,
         uint32_t offset,
-        uint32_t freq)
+        uint32_t freq,
+        int buf_count,
+        frame_t** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_DEBUG);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(gen->ins_params->bufs[0] != NULL);
-    assert(gen->ins_params->bufs[1] != NULL);
+    assert(buf_count > 0);
+    assert(bufs != NULL);
+    assert(bufs[0] != NULL);
     if (!state->active)
     {
-        return;
+        return offset;
     }
     for (uint32_t i = offset; i < nframes; ++i)
     {
@@ -84,8 +87,8 @@ void Generator_debug_mix(Generator* gen,
             val_l = -val_l;
             val_r = -val_r;
         }
-        gen->ins_params->bufs[0][i] += val_l;
-        gen->ins_params->bufs[1][i] += val_r;
+        bufs[0][i] += val_l;
+        bufs[1][i] += val_r;
         state->rel_pos_rem += state->freq / freq;
         if (!state->note_on)
         {
@@ -93,7 +96,7 @@ void Generator_debug_mix(Generator* gen,
             if (state->noff_pos_rem >= 2)
             {
                 state->active = false;
-                return;
+                return i;
             }
         }
         if (state->rel_pos_rem >= 1)
@@ -102,13 +105,13 @@ void Generator_debug_mix(Generator* gen,
             if (state->pos >= 10)
             {
                 state->active = false;
-                return;
+                return i;
             }
             state->rel_pos = 0;
             state->rel_pos_rem -= floor(state->rel_pos_rem);
         }
     }
-    return;
+    return nframes;
 }
 
 

@@ -202,28 +202,30 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index)
 static Sample* state_to_sample(Generator_pcm* pcm, Voice_state* state);
 
 
-void Generator_pcm_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+uint32_t Generator_pcm_mix(Generator* gen,
+                           Voice_state* state,
+                           uint32_t nframes,
+                           uint32_t offset,
+                           uint32_t freq,
+                           int buf_count,
+                           frame_t** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_PCM);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
-    assert(gen->ins_params->bufs[0] != NULL);
-    assert(gen->ins_params->bufs[1] != NULL);
-    Generator_common_check_active(gen, state);
+    assert(buf_count > 0);
+    assert(bufs != NULL);
+    assert(bufs[0] != NULL);
+    Generator_common_check_active(gen, state, offset);
     Generator_pcm* pcm = (Generator_pcm*)gen;
     Sample* sample = state_to_sample(pcm, state);
     if (sample == NULL)
     {
-        return;
+        return offset;
     }
-    Sample_mix(sample, gen, state, nframes, offset, freq);
-    return;
+    return Sample_mix(sample, gen, state, nframes, offset, freq, buf_count, bufs);
 }
 
 

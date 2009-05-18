@@ -45,11 +45,13 @@ typedef struct Generator_square303
 Generator_square303* new_Generator_square303(Instrument_params* ins_params);
 
 
-void Generator_square303_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+uint32_t Generator_square303_mix(Generator* gen,
+                                 Voice_state* state,
+                                 uint32_t nframes,
+                                 uint32_t offset,
+                                 uint32_t freq,
+                                 int buf_count,
+                                 frame_t** bufs);
 
 
 /**

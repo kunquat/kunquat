@@ -34,71 +34,72 @@
 #define RAMP_RELEASE_TIME (200.0)
 
 
-#define Generator_common_check_active(gen, state) \
-    do\
-    {\
-        if (!(state)->active || (!(state)->note_on &&\
-                                 ((state)->pos == 0) &&\
-                                 ((state)->pos_rem == 0) &&\
-                                 !(gen)->ins_params->volume_off_env_enabled))\
-        {\
-            (state)->active = false;\
-            return;\
-        }\
+#define Generator_common_check_active(gen, state, mixed)                      \
+    do                                                                        \
+    {                                                                         \
+        if (!(state)->active || (!(state)->note_on &&                         \
+                                 ((state)->pos == 0) &&                       \
+                                 ((state)->pos_rem == 0) &&                   \
+                                 !(gen)->ins_params->volume_off_env_enabled)) \
+        {                                                                     \
+            (state)->active = false;                                          \
+            return (mixed);                                                   \
+        }                                                                     \
     } while (false)
 
 
 #define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
-    do\
-    {\
-        if ((state)->ramp_attack < 1)\
-        {\
-            for (int i = 0; i < (frame_count); ++i)\
-            {\
-                (frames)[i] *= (state)->ramp_attack;\
-            }\
-            (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);\
-        }\
+    do                                                                      \
+    {                                                                       \
+        if ((state)->ramp_attack < 1)                                       \
+        {                                                                   \
+            for (int i = 0; i < (frame_count); ++i)                         \
+            {                                                               \
+                (frames)[i] *= (state)->ramp_attack;                        \
+            }                                                               \
+            (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);              \
+        }                                                                   \
     } while (false)
 
 
-#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq) \
-    do\
-    {\
-        if (!(state)->note_on)\
-        {\
-            if ((gen)->ins_params->volume_off_env_enabled)\
-            {\
-                double scale = Envelope_get_value((gen)->ins_params->volume_off_env,\
-                                                  (state)->off_ve_pos);\
-                if (!isfinite(scale))\
-                {\
-                    (state)->active = false;\
-                    return;\
-                }\
-                (state)->off_ve_pos += (1.0 - (state)->pedal) / (freq);\
-                for (int i = 0; i < (frame_count); ++i)\
-                {\
-                    (frames)[i] *= scale;\
-                }\
-            }\
-            else\
-            {\
-                if ((state)->ramp_release < 1)\
-                {\
-                    for (int i = 0; i < (frame_count); ++i)\
-                    {\
-                        (frames)[i] *= 1 - (state)->ramp_release;\
-                    }\
-                }\
-                else\
-                {\
-                    (state)->active = false;\
-                    return;\
-                }\
-                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);\
-            }\
-        }\
+#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq,      \
+                                         mixed)                                      \
+    do                                                                               \
+    {                                                                                \
+        if (!(state)->note_on)                                                       \
+        {                                                                            \
+            if ((gen)->ins_params->volume_off_env_enabled)                           \
+            {                                                                        \
+                double scale = Envelope_get_value((gen)->ins_params->volume_off_env, \
+                                                  (state)->off_ve_pos);              \
+                if (!isfinite(scale))                                                \
+                {                                                                    \
+                    (state)->active = false;                                         \
+                    return (mixed);                                                  \
+                }                                                                    \
+                (state)->off_ve_pos += (1.0 - (state)->pedal) / (freq);              \
+                for (int i = 0; i < (frame_count); ++i)                              \
+                {                                                                    \
+                    (frames)[i] *= scale;                                            \
+                }                                                                    \
+            }                                                                        \
+            else                                                                     \
+            {                                                                        \
+                if ((state)->ramp_release < 1)                                       \
+                {                                                                    \
+                    for (int i = 0; i < (frame_count); ++i)                          \
+                    {                                                                \
+                        (frames)[i] *= 1 - (state)->ramp_release;                    \
+                    }                                                                \
+                }                                                                    \
+                else                                                                 \
+                {                                                                    \
+                    (state)->active = false;                                         \
+                    return (mixed);                                                  \
+                }                                                                    \
+                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
+            }                                                                        \
+        }                                                                            \
     } while (false)
 
 
