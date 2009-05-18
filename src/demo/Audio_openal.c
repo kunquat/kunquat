@@ -37,7 +37,7 @@
 
 
 #define FREQUENCY 44100
-#define NUM_BUFS 2
+#define NUM_BUFS 3
 #define BUF_LENGTH_MS 100
 #define NUM_FRAMES ((FREQUENCY * BUF_LENGTH_MS) / 1000)
 
@@ -151,7 +151,7 @@ bool Audio_openal_open(Playlist* pl)
     context->out_buf = calloc(NUM_FRAMES * 2, sizeof(int16_t)); // Stereo
     close_if_false(context->out_buf != NULL,
                    "Couldn't allocate memory for the audio buffer.");
-    for (int i = 0; i < NUM_BUFS; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         context->mix_bufs[i] = calloc(NUM_FRAMES, sizeof(frame_t));
         close_if_false(context->mix_bufs[i] != NULL,
@@ -290,7 +290,7 @@ void Audio_openal_close(void)
         free(context->out_buf);
         context->out_buf = NULL;
     }
-    for (int i = 0; i < NUM_BUFS; ++i)
+    for (int i = 0; i < 2; ++i)
     {
         if (context->mix_bufs[i] != NULL)
         {
