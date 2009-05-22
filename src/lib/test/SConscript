@@ -23,9 +23,9 @@ Import('env')
 
 env_test = env.Clone()
 
-env_test.Append(CPPPATH = ['#/src/core'])
-env_test.Append(LIBPATH = ['#/src/core'])
-env_test.Append(LIBS = ['core'])
+env_test.Append(CPPPATH = ['#/src/lib'])
+env_test.Append(LIBPATH = ['#/src/lib'])
+env_test.Append(LIBS = ['kunquat'])
 
 real = env_test.Program('real', ['real.c'])
 if not env.GetOption('clean'):

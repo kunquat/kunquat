@@ -26,9 +26,9 @@ Export('env')
 if env['enable_tests']:
     SConscript('test/SConscript')
 
-#print 'core: ' + env.Dump('LIBS')
+#print 'lib: ' + env.Dump('LIBS')
 
-env.Append(CPPPATH = ['#/src/core'])
+env.Append(CPPPATH = ['#/src/lib'])
 
 files = [
     'Real.c',
@@ -77,9 +77,6 @@ if env['with_jack']:
 if env['with_ao']:
     files += ['Driver_ao.c']
 
-if env['with_alsa']:
-    files += ['Driver_alsa.c']
-
-env.StaticLibrary('core', files)
+env.StaticLibrary('kunquat', files)
 
 

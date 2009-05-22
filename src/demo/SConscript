@@ -23,10 +23,10 @@ Import('env')
 
 env_l = env.Clone()
 
-env_l.Append(CPPPATH = ['#/src/core'])
+env_l.Append(CPPPATH = ['#/src/lib'])
 
-env_l.Append(LIBPATH = ['#/src/core'])
-env_l.Append(LIBS = ['core'])
+env_l.Append(LIBPATH = ['#/src/lib'])
+env_l.Append(LIBS = ['kunquat'])
 
 files = [
     'demo.c',

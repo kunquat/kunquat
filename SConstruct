@@ -30,12 +30,9 @@ opts.AddVariables(
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_tests', 'Build and run tests.', True),
     BoolVariable('enable_demo', 'Enable the command line demo', True),
-    BoolVariable('enable_listener', 'Enable Listener over Open Sound Control (requires liblo) (deprecated)', False),
-    BoolVariable('with_jack', 'Enable JACK driver.', True),
-    BoolVariable('with_ao', 'Enable libao driver.', True),
-    BoolVariable('with_alsa', 'Enable ALSA driver (not recommended!).', False),
-    BoolVariable('with_openal', 'Enable OpenAL driver.', True),
-    PathVariable('with_liblo_path', 'Alternative liblo installation path.', '', PathVariable.PathAccept)
+    BoolVariable('with_jack', 'Build JACK support.', True),
+    BoolVariable('with_ao', 'Build libao support.', True),
+    BoolVariable('with_openal', 'Build OpenAL support.', True),
 )
 
 
@@ -60,11 +57,6 @@ else:
 if env['optimise'] > 0 and env['optimise'] <= 3:
     oflag = '-O%s' % env['optimise']
     env.Append(CCFLAGS = [oflag])
-
-
-if env['enable_listener'] and env['with_liblo_path']:
-    env.Append(CPPPATH = env['with_liblo_path'] + '/include')
-    env.Append(LIBPATH = env['with_liblo_path'] + '/lib')
 
 
 audio_found = False
@@ -114,10 +106,6 @@ if not env.GetOption('clean'):
         print('Error: Math library not found.')
         Exit(1)
 
-    if env['enable_listener'] and not conf.CheckLibWithHeader('lo', 'lo/lo.h', 'C'):
-        print('Error: Listener was requested but liblo was not found.')
-        Exit(1)
-
     conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
     conf.env.Append(CCFLAGS = '-Duint=uint32_t')
     if not conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
@@ -132,29 +120,21 @@ if not env.GetOption('clean'):
             print('Warning: JACK driver was requested but JACK was not found.')
             env['with_jack'] = False
     
-    need_pthread = env['with_alsa'] or env['with_ao']
+    need_pthread = env['with_ao'] or env['with_openal']
     pthread_found = False
     if need_pthread and not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
         names = []
-        if env['with_alsa']:
-            names += ['ALSA']
-            env['with_alsa'] = False
         if env['with_ao']:
             names += ['ao']
             env['with_ao'] = False
+        if env['with_openal']:
+            names += ['OpenAL']
+            env['with_openal'] = False
         dr = 'driver requires'
         if len(names) > 1:
             dr = 'drivers require'
         print('Warning: The requested %s %s pthread which was not found.' %
                 (' and '.join(names), dr))
-
-    if env['with_alsa']:
-        if conf.CheckLibWithHeader('asound', 'alsa/asoundlib.h', 'C'):
-            audio_found = True
-            conf.env.Append(CCFLAGS = '-DENABLE_ALSA')
-        else:
-            print('Warning: ALSA driver was requested but ALSA was not found.')
-            env['with_alsa'] = False
 
     if env['with_ao']:
         if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):

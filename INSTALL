@@ -12,18 +12,13 @@ useful.
 Building of Kunquat depends on the following tools and libraries:
 
   scons (http://www.scons.org/)
-  liblo (http://liblo.sourceforge.net/)
   libwavpack (http://www.wavpack.com/)
 
 In order to get sound you'll need one of the following:
 
   JACK (http://jackaudio.org/)
-  libao (http://www.xiph.org/ao/) and a sound system supported by it
-  ALSA (http://www.alsa-project.org/)
-
-In order to run the old user interface you'll need:
-
-  pyliblo (http://das.nasophon.de/pyliblo/)
+  libao (http://www.xiph.org/ao/)
+  OpenAL (http://www.openal.org/)
 
 Additionally, if you're building the test code, you'll need:
 
@@ -35,14 +30,10 @@ Additionally, if you're building the test code, you'll need:
 
 Ubuntu:
 
-On Ubuntu 9.04 (Jaunty Jackalope) you should be able to get all the
-required stuff by running the following command:
+On a relatively new Ubuntu you should be able to get all the required stuff by
+running the following command:
 
-sudo apt-get install build-essential scons liblo0-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev python-liblo
-
-On Ubuntu 8.04 (Hardy Heron) and Ubuntu Ubuntu 8.10 (Intrepid Ibex),
-you need to first enable downloads from Dominic Sacré's PPA.
-See https://launchpad.net/~dooooomi/+archive/ppa for details.
+sudo apt-get install build-essential scons libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
 
 
     Building instructions

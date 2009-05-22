@@ -19,32 +19,30 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import pygtk
-pygtk.require('2.0')
-import gtk
-import gtk.gdk
-import gobject
-
-import liblo
+import time
 
 
-class Key_handler(gtk.Window):
+Import('env')
 
-    def handle_key(self, widget, event):
-#       print(event.keyval)
-        pass
+env_gtk = env.Clone()
 
-    def set_key(self, key, action):
-        if key in self.keys_to_act:
-            pass # key conflict
+env_gtk.ParseConfig('pkg-config --cflags --libs gtk+-2.0')
 
-    def __init__(self, engine, server):
-        self.engine = engine
-        self.server = server
+env_gtk.Append(CPPPATH = ['#/src/lib'])
 
-        keys_to_act = {}
-        act_to_keys = {}
+env_gtk.Append(LIBPATH = ['#/src/lib'])
+env_gtk.Append(LIBS = ['kunquat'])
 
-        gtk.Window.__init__(self)
+files = [
+    'Key_handler.c',
+    'Songs.c',
+    'Song_view.c',
+    'main.c',
+]
+
+#env_gtk.Append(CCFLAGS = ('-DBUILD_TIME=\'"' +
+#        time.strftime('%Y-%m-%d') + '"\'').split(' '))
+
+env_gtk.Program('kunquat', files)
 
 
