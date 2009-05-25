@@ -29,6 +29,8 @@
 #include <check.h>
 
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Reltime.h>
 
 
@@ -38,15 +40,15 @@ Suite* Event_suite(void);
 START_TEST (new)
 {
     Reltime* r = Reltime_init(RELTIME_AUTO);
-    Event* event = new_Event(r, EVENT_TYPE_NOTE_ON);
+    Event* event = new_Event_voice_note_on(r);
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    fail_if(r == Event_pos(event),
+    fail_if(r == Event_get_pos(event),
             "new_Event() didn't copy the position.");
-    fail_unless(Reltime_cmp(r, Event_pos(event)) == 0,
+    fail_unless(Reltime_cmp(r, Event_get_pos(event)) == 0,
             "new_Event() set the position incorrectly.");
     fail_unless(Event_get_type(event) == EVENT_TYPE_NOTE_ON,
             "new_Event() set the Event type to %d instead of EVENT_TYPE_NOTE_ON.", Event_get_type(event));

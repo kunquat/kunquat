@@ -33,6 +33,8 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -133,25 +135,25 @@ START_TEST (set_voices)
         fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev1_on = (Event*)new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev1_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev2_on = (Event*)new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev2_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -166,10 +168,14 @@ START_TEST (set_voices)
     // Note frequency is 2 Hz (2 cycles/beat).
     // Note starts at the beginning and plays until the end
     // Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event_set_int(ev1_on, 3, 1);
+    int64_t note = 0;
+    int64_t mod = -1;
+    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t instrument = 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
+    Event_set_field(ev1_on, 3, &instrument);
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -257,14 +263,19 @@ START_TEST (set_voices)
     }
     Channel_reset(ch);
     Voice_pool_reset(pool);
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
-    Event_set_int(ev1_on, 3, 1);
-    Event_set_int(ev2_on, 0, 0);
-    Event_set_int(ev2_on, 1, -1);
-    Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event_set_int(ev2_on, 3, 1);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    instrument = 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
+    Event_set_field(ev1_on, 3, &instrument);
+    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev2_on, 0, &note);
+    Event_set_field(ev2_on, 1, &mod);
+    Event_set_field(ev2_on, 2, &octave);
+    Event_set_field(ev2_on, 3, &instrument);
     Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_BEAT / 4));
     if (!Column_ins(col, ev2_on))
     {

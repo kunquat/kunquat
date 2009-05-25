@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include <Voice.h>
+#include <Event_voice.h>
 
 #include <xmemory.h>
 
@@ -141,7 +142,9 @@ void Voice_mix(Voice* voice,
             }
             else
             {
-                assert(EVENT_TYPE_IS_INS(Event_get_type(next)));
+                assert(EVENT_TYPE_IS_VOICE(Event_get_type(next)));
+                Event_voice_process((Event_voice*)next, voice);
+#if 0
                 int64_t note = -1;
                 int64_t note_mod = -1;
                 int64_t note_octave = INT64_MIN;
@@ -163,6 +166,7 @@ void Voice_mix(Voice* voice,
                     default:
                         break;
                 }
+#endif
             }
         }
         mixed = mix_until;

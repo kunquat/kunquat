@@ -108,7 +108,7 @@ static int Event_list_cmp(Event_list* list1, Event_list* list2)
     Event* ev2 = list2->next->event;
     assert(ev1 != NULL);
     assert(ev2 != NULL);
-    return Reltime_cmp(Event_pos(ev1), Event_pos(ev2));
+    return Reltime_cmp(Event_get_pos(ev1), Event_get_pos(ev2));
 }
 
 
@@ -253,8 +253,8 @@ bool Column_ins(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* ret = AAtree_get(col->events, key);
-    if (ret == NULL || Reltime_cmp(Event_pos(event),
-            Event_pos(ret->next->event)) != 0)
+    if (ret == NULL || Reltime_cmp(Event_get_pos(event),
+            Event_get_pos(ret->next->event)) != 0)
     {
         Event_list* nil = new_Event_list(NULL, NULL);
         if (nil == NULL)
@@ -376,8 +376,8 @@ bool Column_remove(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* target = AAtree_get(col->events, key);
-    if (target == NULL || Reltime_cmp(Event_pos(event),
-            Event_pos(target->next->event)) != 0)
+    if (target == NULL || Reltime_cmp(Event_get_pos(event),
+            Event_get_pos(target->next->event)) != 0)
     {
         return false;
     }
@@ -419,7 +419,7 @@ bool Column_remove_row(Column* col, Reltime* pos)
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, pos);
-    while (target != NULL && Reltime_cmp(Event_pos(target), pos) == 0)
+    while (target != NULL && Reltime_cmp(Event_get_pos(target), pos) == 0)
     {
         modified = Column_remove(col, target);
         assert(modified);
@@ -437,9 +437,9 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, start);
-    while (target != NULL && Reltime_cmp(Event_pos(target), end) <= 0)
+    while (target != NULL && Reltime_cmp(Event_get_pos(target), end) <= 0)
     {
-        modified = Column_remove_row(col, Event_pos(target));
+        modified = Column_remove_row(col, Event_get_pos(target));
         assert(modified);
         target = Column_iter_get(col->edit_iter, start);
     }
@@ -461,7 +461,7 @@ bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_pos(target);
+        Reltime* ev_pos = Event_get_pos(target);
         Reltime_sub(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }
@@ -478,7 +478,7 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_pos(target);
+        Reltime* ev_pos = Event_get_pos(target);
         Reltime_add(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }

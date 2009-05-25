@@ -33,6 +33,8 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -175,25 +177,25 @@ START_TEST (mix)
         fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -208,9 +210,12 @@ START_TEST (mix)
     // Note frequency is 2 Hz (2 cycles/beat).
     // Note starts at the beginning and plays until the end
     // Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
+    int64_t note = 0;
+    int64_t mod = -1;
+    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
     Voice* v1 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
@@ -260,9 +265,12 @@ START_TEST (mix)
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
     Voice_init(v1, Instrument_get_gen(ins, 0));
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
     fail_unless(Voice_add_event(v1, ev1_on, 0),
             "Voice_add_event() failed.");
     Voice* v2 = Voice_pool_get_voice(pool, NULL, 0);
@@ -271,9 +279,12 @@ START_TEST (mix)
     fail_if(v1 == v2,
             "Voice_pool_get_voice() returned an active Voice when inactive Voice was available.");
     Voice_init(v2, Instrument_get_gen(ins, 0));
-    Event_set_int(ev2_on, 0, 0);
-    Event_set_int(ev2_on, 1, -1);
-    Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev2_on, 0, &note);
+    Event_set_field(ev2_on, 1, &mod);
+    Event_set_field(ev2_on, 2, &octave);
     fail_unless(Voice_add_event(v2, ev2_on, 2),
             "Voice_add_event() failed.");
     Voice_pool_mix(pool, 128, 0, 8);
@@ -340,9 +351,12 @@ START_TEST (mix)
             "Voice_pool_get_voice() returned NULL unexpectedly.");
     uint64_t id1 = Voice_id(v1);
     Voice_init(v1, Instrument_get_gen(ins, 0));
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
     fail_unless(Voice_add_event(v1, ev1_on, 0),
             "Voice_add_event() failed.");
     v2 = Voice_pool_get_voice(pool, NULL, 0);
@@ -351,9 +365,12 @@ START_TEST (mix)
     fail_if(v1 == v2,
             "Voice_pool_get_voice() returned an active Voice when inactive Voice was available.");
     Voice_init(v2, Instrument_get_gen(ins, 0));
-    Event_set_int(ev2_on, 0, 0);
-    Event_set_int(ev2_on, 1, -1);
-    Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev2_on, 0, &note);
+    Event_set_field(ev2_on, 1, &mod);
+    Event_set_field(ev2_on, 2, &octave);
     fail_unless(Voice_add_event(v2, ev2_on, 0),
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(v2, ev2_off, 20),

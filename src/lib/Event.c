@@ -31,22 +31,15 @@
 #include <xmemory.h>
 
 
-char* Event_type_get_field_types(Event_type type)
+Event_field_desc* Event_get_field_types(Event* event)
 {
-    assert(EVENT_TYPE_IS_VALID(type));
-    switch (type)
-    {
-        case EVENT_TYPE_NOTE_ON:
-            return "iiii";
-        case EVENT_TYPE_NOTE_OFF:
-            return "";
-        default:
-            return NULL;
-    }
-    return NULL;
+    assert(event != NULL);
+    assert(event->field_types != NULL);
+    return event->field_types;
 }
 
 
+#if 0
 Event* new_Event(Reltime* pos, Event_type type)
 {
     assert(pos != NULL);
@@ -60,8 +53,10 @@ Event* new_Event(Reltime* pos, Event_type type)
     Event_reset(event, type);
     return event;
 }
+#endif
 
 
+#if 0
 void Event_reset(Event* event, Event_type type)
 {
     assert(event != NULL);
@@ -82,9 +77,10 @@ void Event_reset(Event* event, Event_type type)
     }
     return;
 }
+#endif
 
 
-Reltime* Event_pos(Event* event)
+Reltime* Event_get_pos(Event* event)
 {
     assert(event != NULL);
     return &event->pos;
@@ -107,6 +103,24 @@ Event_type Event_get_type(Event* event)
 }
 
 
+void* Event_get_field(Event* event, int index)
+{
+    assert(event != NULL);
+    assert(event->get != NULL);
+    return event->get(event, index);
+}
+
+
+bool Event_set_field(Event* event, int index, void* data)
+{
+    assert(event != NULL);
+    assert(event->set != NULL);
+    assert(data != NULL);
+    return event->set(event, index, data);
+}
+
+
+#if 0
 bool Event_int(Event* event, uint8_t index, int64_t* value)
 {
     assert(event != NULL);
@@ -225,12 +239,14 @@ bool Event_set_float(Event* event, uint8_t index, double value)
     }
     return false;
 }
+#endif
 
 
 void del_Event(Event* event)
 {
     assert(event != NULL);
-    xfree(event);
+    assert(event->destroy != NULL);
+    event->destroy(event);
     return;
 }
 

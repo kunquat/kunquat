@@ -29,6 +29,8 @@
 #include <check.h>
 
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Reltime.h>
 #include <Column.h>
 
@@ -83,7 +85,7 @@ START_TEST (ins)
     }
     for (int64_t i = 4; i >= 0; --i)
     {
-        Event* event = new_Event(Reltime_set(RELTIME_AUTO, i, 0), EVENT_TYPE_NOTE_ON);
+        Event* event = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (event == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -97,7 +99,7 @@ START_TEST (ins)
         Event* ret = Column_iter_get(citer, Reltime_set(RELTIME_AUTO, i, 0));
         fail_if(ret == NULL,
                 "Couldn't find the Event inserted at beat %lld.", (long long)i);
-        int64_t beat = Event_pos(ret)->beats;
+        int64_t beat = Event_get_pos(ret)->beats;
         fail_unless(beat == i,
                 "Column_get() returned Event %lld instead of %lld.",
                 (long long)beat, (long long)i);
@@ -106,13 +108,13 @@ START_TEST (ins)
             ret = Column_iter_get_next(citer);
             fail_if(ret == NULL,
                     "Couldn't find the Event inserted at beat %lld.", (long long)k);
-            beat = Event_pos(ret)->beats;
+            beat = Event_get_pos(ret)->beats;
             fail_unless(beat == k,
                     "Column_get() returned Event %lld instead of %lld.",
                     (long long)beat, (long long)k);
         }
     }
-    Event* event = new_Event(Reltime_set(RELTIME_AUTO, 2, 0), EVENT_TYPE_NOTE_ON);
+    Event* event = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 2, 0));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -128,7 +130,7 @@ START_TEST (ins)
             "Couldn't find the Event inserted at beat 2.");
     fail_if(ret == event,
             "Column_get() returned the wrong Event at beat 2.");
-    int64_t beat = Event_pos(ret)->beats;
+    int64_t beat = Event_get_pos(ret)->beats;
     fail_unless(beat == 2,
             "Column_get() returned Event %lld instead of 2.", (long long)beat);
     ret = Column_iter_get_next(citer);
@@ -136,7 +138,7 @@ START_TEST (ins)
             "Couldn't find the Event inserted at beat 2.");
     fail_unless(ret == event,
             "Column_get() returned the wrong Event at beat 2.");
-    beat = Event_pos(ret)->beats;
+    beat = Event_get_pos(ret)->beats;
     fail_unless(beat == 2,
             "Column_get() returned Event %lld instead of 2.", (long long)beat);
     del_Column_iter(citer);
@@ -147,7 +149,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (ins_break_col_null)
 {
-    Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -188,7 +190,7 @@ START_TEST (col_remove)
         fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
         abort();
     }
-    events[0] = new_Event(Reltime_set(RELTIME_AUTO, 0, 0), EVENT_TYPE_NOTE_ON);
+    events[0] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 0, 0));
     if (events[0] == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -205,7 +207,7 @@ START_TEST (col_remove)
             "Column_get() returned an Event from an empty Column.");
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event(Reltime_set(RELTIME_AUTO, i, 0), EVENT_TYPE_NOTE_ON);
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -286,7 +288,7 @@ START_TEST (col_remove)
     
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event(Reltime_set(RELTIME_AUTO, 1, 0), EVENT_TYPE_NOTE_ON);
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 1, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -362,7 +364,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (remove_break_col_null)
 {
-    Event* event = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -405,7 +407,7 @@ START_TEST (clear)
     Event* events[7] = { NULL };
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event(Reltime_set(RELTIME_AUTO, i, 0), EVENT_TYPE_NOTE_ON);
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");

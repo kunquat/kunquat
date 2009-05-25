@@ -147,17 +147,18 @@ uint32_t Pattern_mix(Pattern* pat,
         Reltime* next_global_pos = NULL;
         if (next_global != NULL)
         {
-            next_global_pos = Event_pos(next_global);
+            next_global_pos = Event_get_pos(next_global);
         }
         // - Evaluate global events
         while (next_global != NULL
                 && Reltime_cmp(next_global_pos, &play->pos) == 0)
         {
-            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_TEMPO)
+            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_SET_TEMPO)
             {
-                Event_float(next_global, 0, &play->tempo);
+                double* tempo = Event_get_field(next_global, 0);
+                play->tempo = *tempo;
             }
-            if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
+            else if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
                     || EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
             {
                 if (!Event_queue_ins(play->events, next_global, mixed))
@@ -168,7 +169,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                     Reltime_set(RELTIME_AUTO, 0, 1)));
                     if (next_global != NULL)
                     {
-                        next_global_pos = Event_pos(next_global);
+                        next_global_pos = Event_get_pos(next_global);
                     }
                     break;
                 }
@@ -176,7 +177,7 @@ uint32_t Pattern_mix(Pattern* pat,
             next_global = Column_iter_get_next(play->citer);
             if (next_global != NULL)
             {
-                next_global_pos = Event_pos(next_global);
+                next_global_pos = Event_get_pos(next_global);
             }
         }
         if (Reltime_cmp(&play->pos, &pat->length) >= 0)

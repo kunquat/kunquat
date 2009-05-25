@@ -30,55 +30,7 @@
 #include <Reltime.h>
 #include <Song_limits.h>
 
-
-typedef enum
-{
-    /// An uninitialised event.
-    EVENT_TYPE_NONE = 0,
-    /// Evaluate a conditional expression.
-    EVENT_TYPE_GENERAL_COND,
-    /// Sentinel -- never used as a valid type.
-    EVENT_TYPE_GENERAL_LAST = 63,
-    /// Set a variable.
-    EVENT_TYPE_GLOBAL_SET_VAR,
-    /// Set tempo.
-    /// Fields: BPM (float)
-    EVENT_TYPE_GLOBAL_TEMPO,
-    /// Set global volume.
-    EVENT_TYPE_GLOBAL_VOLUME,
-    /// Sentinel -- never used as a valid type.
-    EVENT_TYPE_GLOBAL_LAST = 127,
-    /// Note On event.
-    /// Fields: note, modifier (optional), octave, instrument
-    EVENT_TYPE_NOTE_ON,
-    /// Note Off event.
-    /// Fields: none
-    EVENT_TYPE_NOTE_OFF,
-    /// Sentinel -- never used as a valid type.
-    EVENT_TYPE_LAST
-} Event_type;
-
-
-#define EVENT_TYPE_IS_GENERAL(type) ((type) > EVENT_TYPE_NONE && (type) < EVENT_TYPE_GENERAL_LAST)
-#define EVENT_TYPE_IS_GLOBAL(type)  ((type) > EVENT_TYPE_GENERAL_LAST && (type) < EVENT_TYPE_GLOBAL_LAST)
-#define EVENT_TYPE_IS_INS(type)     ((type) > EVENT_TYPE_GLOBAL_LAST && (type) < EVENT_TYPE_LAST)
-#define EVENT_TYPE_IS_VALID(type)   (EVENT_TYPE_IS_GENERAL(type) || EVENT_TYPE_IS_GLOBAL(type) || EVENT_TYPE_IS_INS(type))
-
-
-/**
- * Gets a field type description of the given Event type.
- *
- * \param type   The Event type -- must be a valid type.
- *
- * \return   The type description -- must not be freed. The value is a string
- *           with a character describing the type of each field. Two types are
- *           supported: 'i' for 64-bit signed integer, and 'f' for
- *           double-precision floating point number. E.g. "iif" means that the
- *           Event contains three fields -- the first two are integers and the
- *           last one is float. \c NULL means that the given Event type is not
- *           in use.
- */
-char* Event_type_get_field_types(Event_type type);
+#include <Event_type.h>
 
 
 /**
@@ -86,38 +38,25 @@ char* Event_type_get_field_types(Event_type type);
  */
 typedef struct Event
 {
-    /// The Event position.
-    Reltime pos;
-    /// The Event type.
-    Event_type type;
-    /// The data fields.
-    union
-    {
-        int64_t i;
-        double d;
-    } fields[EVENT_FIELDS];
+    Reltime pos;                   ///< The Event position.
+    Event_type type;               ///< The Event type.
+    Event_field_desc* field_types; ///< The field type description.
+    bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
+    void* (*get)(struct Event* event, int index);            ///< Field getter.
+    void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 
 
 /**
- * Creates a new Event.
+ * Gets a field type description of the Event.
  *
- * \param pos    The position of the Event -- must not be \c NULL.
  * \param type   The Event type -- must be a valid type.
  *
- * \return   The new Event if successful, or \c NULL if memory allocation
- *           failed.
+ * \return   The type description -- must not be freed. The value is an array
+ *           terminated with a field type of \c EVENT_TYPE_NONE. See
+ *           See Event_type.h for details.
  */
-Event* new_Event(Reltime* pos, Event_type type);
-
-
-/**
- * Resets an Event and changes its type. The position will not be altered.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param type    The new Event type -- must be a valid type.
- */
-void Event_reset(Event* event, Event_type type);
+Event_field_desc* Event_get_field_types(Event* event);
 
 
 /**
@@ -127,7 +66,7 @@ void Event_reset(Event* event, Event_type type);
  *
  * \return   The position.
  */
-Reltime* Event_pos(Event* event);
+Reltime* Event_get_pos(Event* event);
 
 
 /**
@@ -150,59 +89,27 @@ Event_type Event_get_type(Event* event);
 
 
 /**
- * Retrieves a field interpreted as an integer from the Event.
- *
+ * Retrieves a field from the Event.
+ * 
  * \param event   The Event -- must not be \c NULL.
- * \param index   The index -- must be < \c EVENT_FIELDS.
- * \param value   The storage location of the read value -- must not be
- *                \c NULL. If the read fails, the memory area won't be
- *                changed.
+ * \param index   The index.
  *
- * \return   \c true if a valid value was read, otherwise \c false.
+ * \return   A pointer to the field if one exists, otherwise \c NULL.
  */
-bool Event_int(Event* event, uint8_t index, int64_t* value);
+void* Event_get_field(Event* event, int index);
 
 
 /**
- * Retrieves a field interpreted as a floating point value from the Event.
+ * Sets a field in the Event.
  *
  * \param event   The Event -- must not be \c NULL.
- * \param index   The index -- must be < \c EVENT_FIELDS.
- * \param value   The storage location of the read value -- must not be
- *                \c NULL. If the read fails, the memory area won't be
- *                changed.
+ * \param index   The index.
+ * \param data    A pointer to the value -- must not be \c NULL.
  *
- * \return   \c true if a valid value was read, otherwise \c false.
+ * \return   \c true if successful, or \c false if the index or value was
+ *           illegal.
  */
-bool Event_float(Event* event, uint8_t index, double* value);
-
-
-/**
- * Sets a field as an integer.
- *
- * The value must satisfy the requirements of the Event type.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param index   The index -- must be < \c EVENT_FIELDS.
- * \param value   The value to be set.
- *
- * \return   \c true if a value was correctly set, otherwise \c false.
- */
-bool Event_set_int(Event* event, uint8_t index, int64_t value);
-
-
-/**
- * Sets a field as a float.
- *
- * The value must satisfy the requirements of the Event type.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param index   The index -- must be < \c EVENT_FIELDS.
- * \param value   The value to be set.
- *
- * \return   \c true if a value was correctly set, otherwise \c false.
- */
-bool Event_set_float(Event* event, uint8_t index, double value);
+bool Event_set_field(Event* event, int index, void* data);
 
 
 /**
