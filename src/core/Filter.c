@@ -64,21 +64,24 @@ double poly(double x, int n, ...)
   return y;
 }
 
-#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper) { \
-for((j)=0,(k)=(i);(k)<(n);++(j),++(k))                               \
-  (acc) oper (histbuff)[(k)]*(coeffs)[(j)];                          \
+#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper)   \
+{                                                                    \
+  for((j)=0,(k)=(i);(k)<(n);++(j),++(k))			     \
+    (acc) oper (histbuff)[(k)]*(coeffs)[(j)];			     \
                                                                      \
-for((k)-=(n);(j)<(n);++(j),++(k))                                    \
-  (acc) oper (sourcebuff)[(k)]*(coeffs)[(j)];                        \
+  for((k)-=(n);(j)<(n);++(j),++(k))				     \
+    (acc) oper (sourcebuff)[(k)]*(coeffs)[(j)];		             \
 }
 
-#define BUFFER(histbuff, sourcebuff, n, amount) {                                \
-if((amount)<(n)){                                                                \
-  memmove(&(histbuff)[0], &(histbuff)[(amount)], ((n)-(amount))*sizeof(double)); \
-  memcpy(&(histbuff)[(n)-(amount)], &(sourcebuff)[0], (amount)*sizeof(double));  \
-}                                                                                \
- else                                                                            \
-  memcpy(&(histbuff)[0], &(sourcebuff)[(amount)-(n)], (n)*sizeof(double));       \
+#define BUFFER(histbuff, sourcebuff, n, amount)                                     \
+{                                                                                   \
+  if((amount)<(n))                                                                  \
+  {		                                                                    \
+    memmove(&(histbuff)[0], &(histbuff)[(amount)], ((n)-(amount))*sizeof(frame_t)); \
+    memcpy(&(histbuff)[(n)-(amount)], &(sourcebuff)[0], (amount)*sizeof(frame_t));  \
+  }									            \
+  else									            \
+    memcpy(&(histbuff)[0], &(sourcebuff)[(amount)-(n)], (n)*sizeof(frame_t)); \
 }
 
 void simple_lowpass_fir_create(int n, double f, double coeffs[])
