@@ -53,8 +53,9 @@ typedef struct Event
  * \param type   The Event type -- must be a valid type.
  *
  * \return   The type description -- must not be freed. The value is an array
+ *           containing a field type description for each field. The array is
  *           terminated with a field type of \c EVENT_TYPE_NONE. See
- *           See Event_type.h for details.
+ *           Event_type.h for details.
  */
 Event_field_desc* Event_get_field_types(Event* event);
 
@@ -89,18 +90,10 @@ Event_type Event_get_type(Event* event);
 
 
 /**
- * Retrieves a field from the Event.
- * 
- * \param event   The Event -- must not be \c NULL.
- * \param index   The index.
- *
- * \return   A pointer to the field if one exists, otherwise \c NULL.
- */
-void* Event_get_field(Event* event, int index);
-
-
-/**
  * Sets a field in the Event.
+ *
+ * If the given index is valid, the type and constraints of the field can
+ * be found in Event_get_field_types(event)[index].
  *
  * \param event   The Event -- must not be \c NULL.
  * \param index   The index.
@@ -110,6 +103,17 @@ void* Event_get_field(Event* event, int index);
  *           illegal.
  */
 bool Event_set_field(Event* event, int index, void* data);
+
+
+/**
+ * Retrieves a field from the Event.
+ * 
+ * \param event   The Event -- must not be \c NULL.
+ * \param index   The index.
+ *
+ * \return   A pointer to the field if one exists, otherwise \c NULL.
+ */
+void* Event_get_field(Event* event, int index);
 
 
 /**

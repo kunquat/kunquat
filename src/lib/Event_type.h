@@ -43,6 +43,12 @@ typedef enum
 } Event_type;
 
 
+#define EVENT_TYPE_IS_GENERAL(type) ((type) > EVENT_TYPE_NONE && (type) < EVENT_TYPE_GENERAL_LAST)
+#define EVENT_TYPE_IS_GLOBAL(type)  ((type) > EVENT_TYPE_GENERAL_LAST && (type) < EVENT_TYPE_GLOBAL_LAST)
+#define EVENT_TYPE_IS_VOICE(type)   ((type) > EVENT_TYPE_GLOBAL_LAST && (type) < EVENT_TYPE_LAST)
+#define EVENT_TYPE_IS_VALID(type)   (EVENT_TYPE_IS_GENERAL((type)) || EVENT_TYPE_IS_GLOBAL((type)) || EVENT_TYPE_IS_VOICE((type)))
+
+
 typedef enum
 {
     EVENT_FIELD_TYPE_NONE = 0,
@@ -56,6 +62,13 @@ typedef enum
 } Event_field_type;
 
 
+/**
+ * This is a convenience structure designed to facilitate user interface
+ * programming (editing of all Events with the same code).
+ *
+ * An Event_field_desc contains the format and valid range of a field in an
+ * Event.
+ */
 typedef struct Event_field_desc
 {
     Event_field_type type;
@@ -83,12 +96,6 @@ typedef struct Event_field_desc
         } Reltime_type;
     } range;
 } Event_field_desc;
-
-
-#define EVENT_TYPE_IS_GENERAL(type) ((type) > EVENT_TYPE_NONE && (type) < EVENT_TYPE_GENERAL_LAST)
-#define EVENT_TYPE_IS_GLOBAL(type)  ((type) > EVENT_TYPE_GENERAL_LAST && (type) < EVENT_TYPE_GLOBAL_LAST)
-#define EVENT_TYPE_IS_VOICE(type)   ((type) > EVENT_TYPE_GLOBAL_LAST && (type) < EVENT_TYPE_LAST)
-#define EVENT_TYPE_IS_VALID(type)   (EVENT_TYPE_IS_GENERAL((type)) || EVENT_TYPE_IS_GLOBAL((type)) || EVENT_TYPE_IS_VOICE((type)))
 
 
 #define Event_check_integral_range(num, field_desc)       \

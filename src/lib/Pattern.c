@@ -29,6 +29,7 @@
 #include <Playdata.h>
 #include <Event_queue.h>
 #include <Event.h>
+#include <Event_global.h>
 
 #include <xmemory.h>
 
@@ -153,10 +154,11 @@ uint32_t Pattern_mix(Pattern* pat,
         while (next_global != NULL
                 && Reltime_cmp(next_global_pos, &play->pos) == 0)
         {
+            // FIXME: conditional event handling must be processed here
+            //        instead of Song_mix.
             if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_SET_TEMPO)
             {
-                double* tempo = Event_get_field(next_global, 0);
-                play->tempo = *tempo;
+                Event_global_process((Event_global*)next_global, play);
             }
             else if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
                     || EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
