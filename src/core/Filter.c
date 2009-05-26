@@ -158,12 +158,12 @@ void bilinear_butterworth_lowpass_filter_create(int n, double f, double coeffsa[
 void bilinear_chebyshev_t1_lowpass_filter_create(int n, double f, double e, double coeffsa[], double coeffsb[])
 {
   int i;
-  double a0=1.0,fna0,sh,ch,temp;
+  double a0=1.0,fna0,sh,ch,temp1,temp2;
 
-  temp = (1.0+sqrt(1.0+e*e))/e;
-  sh = (pow(temp,1.0/n)-pow(temp,-1.0/n))/2;
-  ch = (pow(temp,1.0/n)+pow(temp,-1.0/n))/2;
-
+  temp1 = pow((sqrt(1.0+e*e)+1.0)/2,1.0/n);
+  temp2 = pow((sqrt(1.0+e*e)-1.0)/2,1.0/n);
+  sh = temp1-temp2;
+  ch = temp1+temp2;
 
   f = tan(PI*f);
 
@@ -182,7 +182,7 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n, double f, double e, doub
   for(i=0;i<n;++i)
     coeffsa[i] /= a0;
 
-  fna0 = powi(f,n)*e*(1 << (n-1))/a0;
+  fna0 = powi(f,n)/a0;
 
   for(i=0;i<=n;++i)
     coeffsb[i] = binom(n,i)*fna0;
@@ -245,13 +245,13 @@ void iir_filter_df2(int na, double coeffsa[], int nb, double coeffsb[], frame_t 
   {
     temp = inbuff[i];
 
-    DPROD(histbuff, inbuff, coeffsa, na, i, temp, j, k, -=);
+    DPROD(&histbuff[MAX(na,nb)-na], inbuff, coeffsa, na, i, temp, j, k, -=);
 
     inbuff[i] = temp;
 
     temp *= coeffsb[nb];
 
-    DPROD(histbuff, inbuff, coeffsb, nb, i, temp, j, k, +=);
+    DPROD(&histbuff[MAX(na,nb)-nb], inbuff, coeffsb, nb, i, temp, j, k, +=);
 
     outbuff[i] = temp;
   }
