@@ -182,7 +182,7 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n, double f, double e, doub
   for(i=0;i<n;++i)
     coeffsa[i] /= a0;
 
-  fna0 = powi(f,n)/a0;
+  fna0 = powi(f,n)/a0*(1.0+sqrt(1+e*e))/2;
 
   for(i=0;i<=n;++i)
     coeffsb[i] = binom(n,i)*fna0;
