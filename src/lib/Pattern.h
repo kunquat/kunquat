@@ -84,7 +84,7 @@ Reltime* Pattern_get_length(Pattern* pat);
  *
  * \return   The Column.
  */
-Column* Pattern_col(Pattern* pat, int index);
+Column* Pattern_get_col(Pattern* pat, int index);
 
 
 /**

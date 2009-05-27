@@ -83,7 +83,7 @@ Reltime* Pattern_get_length(Pattern* pat)
 }
 
 
-Column* Pattern_col(Pattern* pat, int index)
+Column* Pattern_get_col(Pattern* pat, int index)
 {
     assert(pat != NULL);
     assert(index >= 0);

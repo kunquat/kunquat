@@ -26,6 +26,8 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include <kunquat.h>
 
@@ -101,6 +103,27 @@ int main(int argc, char** argv)
             fprintf(stderr, "\n");
             exit(EXIT_SUCCESS);
         }
+    }
+    int last_dir = -1;
+    for (int i = 0; i < (int)strlen(argv[0]); ++i)
+    {
+        if (argv[0][i] == '/')
+        {
+            last_dir = i;
+        }
+    }
+    if (last_dir >= 0)
+    {
+        argv[0][last_dir] = '\0';
+        errno = 0;
+        if (chdir(argv[0]) < 0)
+        {
+            fprintf(stderr, "Couldn't change working directory to %s: %s\n", argv[0],
+                    strerror(errno));
+            fprintf(stderr, "If the creation of demo song fails, run the demo from"
+                            " the directory where it's located.\n");
+        }
+        argv[0][last_dir] = '/';
     }
     Driver_info* driver = get_driver(selection);
     if (driver == NULL)

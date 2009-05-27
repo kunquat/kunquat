@@ -20,140 +20,22 @@
  */
 
 
+#include <stdlib.h>
+#include <assert.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "demo_song.h"
 
 #include <Generator_sine.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
-
-
-typedef struct Ndesc
-{
-    Event_type type;
-    double pos;
-    int64_t note;
-    int64_t octave;
-} Ndesc;
-
-
-static Ndesc demo_p1ch1[] =
-{
-    { EVENT_TYPE_NOTE_ON,     0, 0, 5 },
-    { EVENT_TYPE_NOTE_OFF, 0.25, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   0.5, 0, 5 },
-    { EVENT_TYPE_NOTE_OFF,  0.7, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     1, 0, 5 },
-    { EVENT_TYPE_NOTE_ON,   1.5, 4, 5 },
-    { EVENT_TYPE_NOTE_ON,     2, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF,  2.2, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   2.5, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF,  2.6, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     3, 2, 5 },
-    { EVENT_TYPE_NOTE_ON,   3.5, 5, 5 },
-    { EVENT_TYPE_NOTE_ON,     4, 4, 5 },
-    { EVENT_TYPE_NOTE_OFF,  4.3, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   4.5, 0, 5 },
-    { EVENT_TYPE_NOTE_ON,     5, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF, 5.25, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   5.5, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF, 5.65, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     6, 0, 6 },
-    { EVENT_TYPE_NOTE_ON,     6, 0, 5 },
-    { EVENT_TYPE_NOTE_OFF,    7, 0, 0 },
-    { EVENT_TYPE_NONE, 0, 0, 0 }
-};
-
-static Ndesc demo_p2ch1[] =
-{
-    { EVENT_TYPE_NOTE_ON,     0, 4, 5 },
-    { EVENT_TYPE_NOTE_OFF,  0.2, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   0.5, 4, 5 },
-    { EVENT_TYPE_NOTE_OFF, 0.65, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     1, 4, 5 },
-    { EVENT_TYPE_NOTE_ON,   1.5, 7, 5 },
-    { EVENT_TYPE_NOTE_ON,     2, 5, 5 },
-    { EVENT_TYPE_NOTE_OFF,  2.6, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     3, 5, 5 },
-    { EVENT_TYPE_NOTE_OFF,  3.5, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     4, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF,  4.2, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,   4.5, 2, 5 },
-    { EVENT_TYPE_NOTE_OFF, 4.65, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     5, 2, 5 },
-    { EVENT_TYPE_NOTE_ON,   5.5, 5, 5 },
-    { EVENT_TYPE_NOTE_ON,     6, 4, 5 },
-    { EVENT_TYPE_NOTE_OFF,  6.6, 0, 0 },
-    { EVENT_TYPE_NOTE_ON,     7, 4, 5 },
-    { EVENT_TYPE_NOTE_OFF,  7.5, 0, 0 },
-    { EVENT_TYPE_NONE, 0, 0, 0 }
-};
-
-static Ndesc demo_p2ch2[] =
-{
-    { EVENT_TYPE_NOTE_ON,     2,  9, 5 },
-    { EVENT_TYPE_NOTE_ON,   2.5,  2, 6 },
-    { EVENT_TYPE_NOTE_ON,  2.75,  0, 6 },
-    { EVENT_TYPE_NOTE_ON,     3, 11, 5 },
-    { EVENT_TYPE_NOTE_OFF, 3.15,  0, 0 },
-    { EVENT_TYPE_NOTE_ON,   3.5,  9, 5 },
-    { EVENT_TYPE_NOTE_OFF,  3.6,  0, 0 },
-    { EVENT_TYPE_NOTE_ON,     4,  7, 5 },
-    { EVENT_TYPE_NOTE_OFF, 5.25,  0, 0 },
-    { EVENT_TYPE_NOTE_ON,   5.5,  9, 5 },
-    { EVENT_TYPE_NOTE_ON,  5.66, 10, 5 },
-    { EVENT_TYPE_NOTE_ON,  5.83, 11, 5 },
-    { EVENT_TYPE_NOTE_ON,     6,  0, 6 },
-    { EVENT_TYPE_NOTE_OFF,  6.2,  0, 0 },
-    { EVENT_TYPE_NOTE_ON,   6.5,  9, 5 },
-    { EVENT_TYPE_NOTE_OFF,  6.7,  0, 0 },
-    { EVENT_TYPE_NOTE_ON,     7,  7, 5 },
-    { EVENT_TYPE_NOTE_OFF,  7.4,  0, 0 },
-    { EVENT_TYPE_NONE, 0, 0, 0 }
-};
-
-
-bool insert(Ndesc* ndesc, Pattern* pat, int col_index)
-{
-    Event* ev = NULL;
-    if (ndesc->type == EVENT_TYPE_NOTE_ON)
-    {
-        ev = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
-    }
-    else if (ndesc->type == EVENT_TYPE_NOTE_OFF)
-    {
-        ev = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
-    }
-    if (ev == NULL)
-    {
-        return false;
-    }
-    Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
-            (int)floor(ndesc->pos),
-            (int)((ndesc->pos - floor(ndesc->pos))
-                    * RELTIME_BEAT)));
-    if (ndesc->type == EVENT_TYPE_NOTE_ON)
-    {
-        int64_t mod = -1;
-        int64_t ins = 1;
-        Event_set_field(ev, 0, &ndesc->note);
-        Event_set_field(ev, 1, &mod);
-        Event_set_field(ev, 2, &ndesc->octave);
-        Event_set_field(ev, 3, &ins);
-    }
-    Column* col = Pattern_col(pat, col_index);
-    if (!Column_ins(col, ev))
-    {
-        del_Event(ev);
-        return false;
-    }
-    return true;
-}
+#include <File_base.h>
 
 
 Song* demo_song_create(void)
 {
+    FILE* in = NULL;
     Song* song = new_Song(2, 128, 16);
     if (song == NULL)
     {
@@ -198,6 +80,7 @@ Song* demo_song_create(void)
         del_Instrument(ins);
         goto cleanup;
     }
+    
     Pattern* pat = new_Pattern();
     if (pat == NULL)
     {
@@ -210,13 +93,20 @@ Song* demo_song_create(void)
         goto cleanup;
     }
     Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
-    for (int i = 0; demo_p1ch1[i].type != EVENT_TYPE_NONE; ++i)
+    in = fopen("kunquat_m_00/patterns/000/000/events.json", "rb");
+    if (in == NULL)
     {
-        if (!insert(&demo_p1ch1[i], pat, 0))
-        {
-            goto cleanup;
-        }
+        goto cleanup;
     }
+    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 0 };
+    if (!Column_read(Pattern_get_col(pat, 0), in, state))
+    {
+        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
+        goto cleanup;
+    }
+    fclose(in);
+    in = NULL;
+    
     pat = new_Pattern();
     if (pat == NULL)
     {
@@ -228,20 +118,33 @@ Song* demo_song_create(void)
         goto cleanup;
     }
     Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
-    for (int i = 0; demo_p2ch1[i].type != EVENT_TYPE_NONE; ++i)
+    in = fopen("kunquat_m_00/patterns/001/000/events.json", "rb");
+    if (in == NULL)
     {
-        if (!insert(&demo_p2ch1[i], pat, 0))
-        {
-            goto cleanup;
-        }
+        goto cleanup;
     }
-    for (int i = 0; demo_p2ch2[i].type != EVENT_TYPE_NONE; ++i)
+    state->row = 0;
+    if (!Column_read(Pattern_get_col(pat, 0), in, state))
     {
-        if (!insert(&demo_p2ch2[i], pat, 1))
-        {
-            goto cleanup;
-        }
+        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
+        goto cleanup;
     }
+    fclose(in);
+    in = NULL;
+    in = fopen("kunquat_m_00/patterns/001/001/events.json", "rb");
+    if (in == NULL)
+    {
+        goto cleanup;
+    }
+    state->row = 0;
+    if (!Column_read(Pattern_get_col(pat, 1), in, state))
+    {
+        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
+        goto cleanup;
+    }
+    fclose(in);
+    in = NULL;
+
     Order* order = Song_get_order(song);
     if (!Order_set(order, 0, 0, 0))
     {
@@ -262,6 +165,10 @@ cleanup:
     if (song != NULL)
     {
         del_Song(song);
+    }
+    if (in != NULL)
+    {
+        fclose(in);
     }
     return NULL;
 }

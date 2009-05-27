@@ -559,13 +559,13 @@ START_TEST (mix)
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
     Event_set_field(ev2_on, 3, &instrument);
-    Column* col = Pattern_col(pat1, 0);
+    Column* col = Pattern_get_col(pat1, 0);
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    col = Pattern_col(pat2, 0);
+    col = Pattern_get_col(pat2, 0);
     if (!Column_ins(col, ev2_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");

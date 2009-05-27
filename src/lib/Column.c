@@ -277,7 +277,7 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
 
     char* str = data;
     str = read_const_char(str, '[', state); // start of Column
-    break_if(state->error, str);
+    break_if(state->error, data);
 
     str = read_const_char(str, ']', state); // check of empty Column
     if (!state->error)

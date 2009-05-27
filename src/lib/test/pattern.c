@@ -101,7 +101,7 @@ START_TEST (new)
     Column* cols[COLUMNS_MAX] = { NULL };
     for (int i = 0; i < COLUMNS_MAX; ++i)
     {
-        cols[i] = Pattern_col(pat, i);
+        cols[i] = Pattern_get_col(pat, i);
         fail_if(cols[i] == NULL,
                 "new_Pattern() didn't create Column #%d.", i);
         fail_if(cols[i] == glob,
@@ -203,7 +203,7 @@ START_TEST (mix)
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
     Event_set_field(ev1_on, 3, &instrument);
-    Column* col = Pattern_col(pat, 0);
+    Column* col = Pattern_get_col(pat, 0);
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -405,7 +405,7 @@ START_TEST (mix)
     Event_set_field(ev2_on, 2, &octave);
     Event_set_field(ev2_on, 3, &instrument);
     Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_BEAT / 4));
-    col = Pattern_col(pat, 0);
+    col = Pattern_get_col(pat, 0);
     if (!Column_ins(col, ev2_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -555,7 +555,7 @@ START_TEST (mix)
     Event_set_field(ev3_on, 2, &octave);
     Event_set_field(ev3_on, 3, &instrument);
     Event_set_pos(ev3_on, Reltime_set(RELTIME_AUTO, 3, 0));
-    col = Pattern_col(pat, 1);
+    col = Pattern_get_col(pat, 1);
     if (!Column_ins(col, ev3_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");

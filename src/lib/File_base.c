@@ -150,7 +150,7 @@ char* read_const_char(char* str, char result, Read_state* state)
         else
         {
             snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected '%c' instead of %#2x", result, (unsigned)*str);
+                    "Expected '%c' instead of %#04x", result, (unsigned)*str);
         }
         return str;
     }
@@ -509,7 +509,6 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     {
         return str;
     }
-    ++str;
     str = read_int(str, &rem, state);
     if (state->error)
     {
