@@ -75,6 +75,7 @@ Real* Real_init(Real* real)
     return Real_init_as_frac(real, 1, 1);
 }
 
+
 Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator)
 {
     assert(real != NULL);
@@ -85,6 +86,7 @@ Real* Real_init_as_frac(Real* real, int64_t numerator, int64_t denominator)
     return Real_normalise(real);
 }
 
+
 Real* Real_init_as_double(Real* real, double val)
 {
     assert(real != NULL);
@@ -93,11 +95,13 @@ Real* Real_init_as_double(Real* real, double val)
     return real;
 }
 
+
 bool Real_is_frac(Real* real)
 {
     Real_validate(real);
     return real->is_frac;
 }
+
 
 int64_t Real_get_numerator(Real* real)
 {
@@ -109,6 +113,7 @@ int64_t Real_get_numerator(Real* real)
     return real->fod.frac.numerator;
 }
 
+
 int64_t Real_get_denominator(Real* real)
 {
     Real_validate(real);
@@ -118,6 +123,7 @@ int64_t Real_get_denominator(Real* real)
     }
     return real->fod.frac.denominator;
 }
+
 
 double Real_get_double(Real* real)
 {

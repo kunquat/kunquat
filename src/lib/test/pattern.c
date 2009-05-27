@@ -33,6 +33,9 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_global_set_tempo.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -148,37 +151,37 @@ START_TEST (mix)
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev3_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev3_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev3_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* evg_tempo = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_GLOBAL_TEMPO);
+    Event* evg_tempo = new_Event_global_set_tempo(Reltime_init(RELTIME_AUTO));
     
     // Testing scenario 1:
     //
@@ -192,10 +195,14 @@ START_TEST (mix)
     play->freq = 8;
     play->tempo = 60;
     Reltime_init(&play->pos);
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event_set_int(ev1_on, 3, 1);
+    int64_t note = 0;
+    int64_t mod = -1;
+    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t instrument = 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
+    Event_set_field(ev1_on, 3, &instrument);
     Column* col = Pattern_col(pat, 0);
     if (!Column_ins(col, ev1_on))
     {
@@ -285,7 +292,8 @@ START_TEST (mix)
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
     Reltime_init(&play->pos);
-    Event_set_float(evg_tempo, 0, 120);
+    double tempo = 120;
+    Event_set_field(evg_tempo, 0, &tempo);
     Event_set_pos(evg_tempo, Reltime_set(RELTIME_AUTO, 2, 0));
     col = Pattern_global(pat);
     if (!Column_ins(col, evg_tempo))
@@ -383,14 +391,19 @@ START_TEST (mix)
     Voice_pool_reset(play->voice_pool);
     Reltime_init(&play->pos);
     play->tempo = 60;
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
-    Event_set_int(ev1_on, 3, 1);
-    Event_set_int(ev2_on, 0, 0);
-    Event_set_int(ev2_on, 1, -1);
-    Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event_set_int(ev2_on, 3, 1);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    instrument = 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
+    Event_set_field(ev1_on, 3, &instrument);
+    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev2_on, 0, &note);
+    Event_set_field(ev2_on, 1, &mod);
+    Event_set_field(ev2_on, 2, &octave);
+    Event_set_field(ev2_on, 3, &instrument);
     Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_BEAT / 4));
     col = Pattern_col(pat, 0);
     if (!Column_ins(col, ev2_on))
@@ -533,10 +546,14 @@ START_TEST (mix)
     Voice_pool_reset(play->voice_pool);
     Reltime_init(&play->pos);
     play->tempo = 60;
-    Event_set_int(ev3_on, 0, 0);
-    Event_set_int(ev3_on, 1, -1);
-    Event_set_int(ev3_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
-    Event_set_int(ev3_on, 3, 1);
+    note = 0;
+    mod = -1;
+    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    instrument = 1;
+    Event_set_field(ev3_on, 0, &note);
+    Event_set_field(ev3_on, 1, &mod);
+    Event_set_field(ev3_on, 2, &octave);
+    Event_set_field(ev3_on, 3, &instrument);
     Event_set_pos(ev3_on, Reltime_set(RELTIME_AUTO, 3, 0));
     col = Pattern_col(pat, 1);
     if (!Column_ins(col, ev3_on))

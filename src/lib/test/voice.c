@@ -33,6 +33,8 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -104,16 +106,19 @@ START_TEST (mix)
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event_set_int(ev_on, 0, 0);
-    Event_set_int(ev_on, 1, -1);
-    Event_set_int(ev_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event* ev_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    int64_t note = 0;
+    int64_t mod = -1;
+    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev_on, 0, &note);
+    Event_set_field(ev_on, 1, &mod);
+    Event_set_field(ev_on, 2, &octave);
+    Event* ev_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -307,7 +312,7 @@ START_TEST (mix_break_freq_inv)
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
         return;
     }
-    Event* ev_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");

@@ -110,6 +110,30 @@ Column* new_Column(Reltime* len);
 
 
 /**
+ * Reads a Column from a file.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param in      The input file -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Column_read(Column* col, FILE* in, Read_state* state);
+
+
+/**
+ * Writes the Column into a file.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param out     The output file -- must not be \c NULL.
+ * \param state   The Write state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Column_write(Column* col, FILE* out, Write_state* state);
+
+
+/**
  * Inserts a new Event into the Column.
  *
  * If other Events are already located at the target position, the new Event

@@ -25,14 +25,16 @@
 #include "demo_song.h"
 
 #include <Generator_sine.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 
 
 typedef struct Ndesc
 {
     Event_type type;
     double pos;
-    int note;
-    int octave;
+    int64_t note;
+    int64_t octave;
 } Ndesc;
 
 
@@ -112,6 +114,44 @@ static Ndesc demo_p2ch2[] =
 };
 
 
+bool insert(Ndesc* ndesc, Pattern* pat, int col_index)
+{
+    Event* ev = NULL;
+    if (ndesc->type == EVENT_TYPE_NOTE_ON)
+    {
+        ev = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    }
+    else if (ndesc->type == EVENT_TYPE_NOTE_OFF)
+    {
+        ev = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    }
+    if (ev == NULL)
+    {
+        return false;
+    }
+    Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
+            (int)floor(ndesc->pos),
+            (int)((ndesc->pos - floor(ndesc->pos))
+                    * RELTIME_BEAT)));
+    if (ndesc->type == EVENT_TYPE_NOTE_ON)
+    {
+        int64_t mod = -1;
+        int64_t ins = 1;
+        Event_set_field(ev, 0, &ndesc->note);
+        Event_set_field(ev, 1, &mod);
+        Event_set_field(ev, 2, &ndesc->octave);
+        Event_set_field(ev, 3, &ins);
+    }
+    Column* col = Pattern_col(pat, col_index);
+    if (!Column_ins(col, ev))
+    {
+        del_Event(ev);
+        return false;
+    }
+    return true;
+}
+
+
 Song* demo_song_create(void)
 {
     Song* song = new_Song(2, 128, 16);
@@ -172,26 +212,8 @@ Song* demo_song_create(void)
     Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
     for (int i = 0; demo_p1ch1[i].type != EVENT_TYPE_NONE; ++i)
     {
-        Event* ev = new_Event(Reltime_init(RELTIME_AUTO), demo_p1ch1[i].type);
-        if (ev == NULL)
+        if (!insert(&demo_p1ch1[i], pat, 0))
         {
-            goto cleanup;
-        }
-        Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
-                (int)floor(demo_p1ch1[i].pos),
-                (int)((demo_p1ch1[i].pos - floor(demo_p1ch1[i].pos))
-                        * RELTIME_BEAT)));
-        if (demo_p1ch1[i].type == EVENT_TYPE_NOTE_ON)
-        {
-            Event_set_int(ev, 0, demo_p1ch1[i].note);
-            Event_set_int(ev, 1, -1);
-            Event_set_int(ev, 2, demo_p1ch1[i].octave);
-            Event_set_int(ev, 3, 1);
-        }
-        Column* col = Pattern_col(pat, 0);
-        if (!Column_ins(col, ev))
-        {
-            del_Event(ev);
             goto cleanup;
         }
     }
@@ -208,51 +230,15 @@ Song* demo_song_create(void)
     Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
     for (int i = 0; demo_p2ch1[i].type != EVENT_TYPE_NONE; ++i)
     {
-        Event* ev = new_Event(Reltime_init(RELTIME_AUTO), demo_p2ch1[i].type);
-        if (ev == NULL)
+        if (!insert(&demo_p2ch1[i], pat, 0))
         {
-            goto cleanup;
-        }
-        Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
-                (int)floor(demo_p2ch1[i].pos),
-                (int)((demo_p2ch1[i].pos - floor(demo_p2ch1[i].pos))
-                        * RELTIME_BEAT)));
-        if (demo_p2ch1[i].type == EVENT_TYPE_NOTE_ON)
-        {
-            Event_set_int(ev, 0, demo_p2ch1[i].note);
-            Event_set_int(ev, 1, -1);
-            Event_set_int(ev, 2, demo_p2ch1[i].octave);
-            Event_set_int(ev, 3, 1);
-        }
-        Column* col = Pattern_col(pat, 0);
-        if (!Column_ins(col, ev))
-        {
-            del_Event(ev);
             goto cleanup;
         }
     }
     for (int i = 0; demo_p2ch2[i].type != EVENT_TYPE_NONE; ++i)
     {
-        Event* ev = new_Event(Reltime_init(RELTIME_AUTO), demo_p2ch2[i].type);
-        if (ev == NULL)
+        if (!insert(&demo_p2ch2[i], pat, 1))
         {
-            goto cleanup;
-        }
-        Event_set_pos(ev, Reltime_set(RELTIME_AUTO,
-                (int)floor(demo_p2ch2[i].pos),
-                (int)((demo_p2ch2[i].pos - floor(demo_p2ch2[i].pos))
-                        * RELTIME_BEAT)));
-        if (demo_p2ch2[i].type == EVENT_TYPE_NOTE_ON)
-        {
-            Event_set_int(ev, 0, demo_p2ch2[i].note);
-            Event_set_int(ev, 1, -1);
-            Event_set_int(ev, 2, demo_p2ch2[i].octave);
-            Event_set_int(ev, 3, 1);
-        }
-        Column* col = Pattern_col(pat, 1);
-        if (!Column_ins(col, ev))
-        {
-            del_Event(ev);
             goto cleanup;
         }
     }

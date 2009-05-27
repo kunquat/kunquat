@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 
 #include <Event.h>
 
@@ -31,60 +32,145 @@
 #include <xmemory.h>
 
 
-char* Event_type_get_field_types(Event_type type)
-{
-    assert(EVENT_TYPE_IS_VALID(type));
-    switch (type)
-    {
-        case EVENT_TYPE_NOTE_ON:
-            return "iiii";
-        case EVENT_TYPE_NOTE_OFF:
-            return "";
-        default:
-            return NULL;
-    }
-    return NULL;
-}
-
-
-Event* new_Event(Reltime* pos, Event_type type)
-{
-    assert(pos != NULL);
-    assert(EVENT_TYPE_IS_VALID(type));
-    Event* event = xalloc(Event);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Reltime_copy(&event->pos, pos);
-    Event_reset(event, type);
-    return event;
-}
-
-
-void Event_reset(Event* event, Event_type type)
+Event_field_desc* Event_get_field_types(Event* event)
 {
     assert(event != NULL);
-    assert(EVENT_TYPE_IS_VALID(type));
-    event->type = type;
-    switch (event->type)
-    {
-        case EVENT_TYPE_NOTE_ON:
-            event->fields[0].i = -1; // note
-            event->fields[1].i = -1; // modifier
-            event->fields[2].i = INT64_MIN; // octave
-            event->fields[3].i = 0; // instrument
-            break;
-        case EVENT_TYPE_NOTE_OFF:
-            break;
-        default:
-            break;
-    }
-    return;
+    assert(event->field_types != NULL);
+    return event->field_types;
 }
 
 
-Reltime* Event_pos(Event* event)
+int Event_get_field_count(Event* event)
+{
+    assert(event != NULL);
+    assert(event->field_types != NULL);
+    int count = 0;
+    while (event->field_types[count].type != EVENT_FIELD_TYPE_NONE)
+    {
+        ++count;
+    }
+    return count;
+}
+
+
+char* Event_read(Event* event, char* str, Read_state* state)
+{
+    assert(event != NULL);
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    int event_count = Event_get_field_count(event);
+    if (event_count > 0)
+    {
+        str = read_const_char(str, ',', state);
+        if (state->error)
+        {
+            return str;
+        }
+        str = read_const_char(str, '[', state);
+        if (state->error)
+        {
+            return str;
+        }
+        int field_count = Event_get_field_count(event);
+        for (int i = 0; i < field_count; ++i)
+        {
+            int64_t numi = 0;
+            double numd = NAN;
+            Real* real = Real_init(REAL_AUTO);
+            Reltime* rt = Reltime_init(RELTIME_AUTO);
+            void* data = NULL;
+            switch (event->field_types[i].type)
+            {
+                case EVENT_FIELD_TYPE_INT:
+                case EVENT_FIELD_TYPE_NOTE:
+                case EVENT_FIELD_TYPE_NOTE_MOD:
+                {
+                    str = read_int(str, &numi, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    data = &numi;
+                }
+                break;
+                case EVENT_FIELD_TYPE_DOUBLE:
+                {
+                    str = read_double(str, &numd, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    data = &numd;
+                }
+                break;
+                case EVENT_FIELD_TYPE_REAL:
+                {
+                    str = read_tuning(str, real, &numd, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    data = real;
+                }
+                break;
+                case EVENT_FIELD_TYPE_RELTIME:
+                {
+                    str = read_reltime(str, rt, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    data = rt;
+                }
+                break;
+                default:
+                {
+                    // Erroneous internal structures
+                    assert(false);
+                }
+                break;
+            }
+            assert(data != NULL);
+            if (!Event_set_field(event, i, data))
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "Field %d is not inside valid range.", i);
+                return str;
+            }
+            if (i < field_count - 1)
+            {
+                str = read_const_char(str, ',', state);
+                if (state->error)
+                {
+                    return str;
+                }
+            }
+        }
+        str = read_const_char(str, ']', state);
+        if (state->error)
+        {
+            return str;
+        }
+    }
+    return str;
+}
+
+
+bool Event_write(Event* event, FILE* out, Write_state* state)
+{
+    assert(event != NULL);
+    assert(out != NULL);
+    assert(state != NULL);
+    return false;
+}
+
+
+Reltime* Event_get_pos(Event* event)
 {
     assert(event != NULL);
     return &event->pos;
@@ -107,130 +193,28 @@ Event_type Event_get_type(Event* event)
 }
 
 
-bool Event_int(Event* event, uint8_t index, int64_t* value)
+void* Event_get_field(Event* event, int index)
 {
     assert(event != NULL);
-    assert(index < EVENT_FIELDS);
-    assert(value != NULL);
-    switch (event->type)
-    {
-        case EVENT_TYPE_NOTE_ON:
-            *value = event->fields[index].i;
-            return true;
-        case EVENT_TYPE_NOTE_OFF:
-        case EVENT_TYPE_GLOBAL_TEMPO:
-            break;
-        default:
-            break; // FIXME: replace with assert(0) after supporting all types
-    }
-    return false;
+    assert(event->get != NULL);
+    return event->get(event, index);
 }
 
 
-bool Event_float(Event* event, uint8_t index, double* value)
+bool Event_set_field(Event* event, int index, void* data)
 {
     assert(event != NULL);
-    assert(index < EVENT_FIELDS);
-    assert(value != NULL);
-    switch (event->type)
-    {
-        case EVENT_TYPE_GLOBAL_VOLUME:
-            if (index == 0)
-            {
-                *value = event->fields[index].d;
-                return true;
-            }
-            break;
-        case EVENT_TYPE_GLOBAL_TEMPO:
-            if (index == 0)
-            {
-                *value = event->fields[index].d;
-                return true;
-            }
-            break;
-        case EVENT_TYPE_NOTE_ON:
-        case EVENT_TYPE_NOTE_OFF:
-            break;
-        default:
-            break; // FIXME: replace with assert(0) after supporting all types
-    }
-    return false;
-}
-
-
-bool Event_set_int(Event* event, uint8_t index, int64_t value)
-{
-    assert(event != NULL);
-    assert(index < EVENT_FIELDS);
-    switch (event->type)
-    {
-        case EVENT_TYPE_NOTE_ON:
-            if (index == 0 && value >= 0 && value < NOTE_TABLE_NOTES)
-            {
-                event->fields[index].i = value;
-                return true;
-            }
-            else if (index == 1 && value >= -1 && value < NOTE_TABLE_NOTE_MODS)
-            {
-                event->fields[index].i = value;
-                return true;
-            }
-            else if (index == 2 && value >= NOTE_TABLE_OCTAVE_FIRST
-                    && value <= NOTE_TABLE_OCTAVE_LAST)
-            {
-                event->fields[index].i = value;
-                return true;
-            }
-            else if (index == 3 && value > 0 && value <= INSTRUMENTS_MAX)
-            {
-                event->fields[index].i = value;
-                return true;
-            }
-            break;
-        case EVENT_TYPE_NOTE_OFF:
-            break;
-        default:
-            break;
-    }
-    return false;
-}
-
-
-bool Event_set_float(Event* event, uint8_t index, double value)
-{
-    assert(event != NULL);
-    assert(index < EVENT_FIELDS);
-    (void)value;
-    switch (event->type)
-    {
-        case EVENT_TYPE_GLOBAL_VOLUME:
-            if (index == 0)
-            {
-                event->fields[index].d = value;
-                return true;
-            }
-            break;
-        case EVENT_TYPE_GLOBAL_TEMPO:
-            if (index == 0 && value > 0)
-            {
-                event->fields[index].d = value;
-                return true;
-            }
-            break;
-        case EVENT_TYPE_NOTE_ON:
-        case EVENT_TYPE_NOTE_OFF:
-            break;
-        default:
-            break;
-    }
-    return false;
+    assert(event->set != NULL);
+    assert(data != NULL);
+    return event->set(event, index, data);
 }
 
 
 void del_Event(Event* event)
 {
     assert(event != NULL);
-    xfree(event);
+    assert(event->destroy != NULL);
+    event->destroy(event);
     return;
 }
 
