@@ -1,0 +1,127 @@
+
+
+/*
+ * Copyright 2009 Tomi Jylhä-Ollila
+ *
+ * This file is part of Kunquat.
+ *
+ * Kunquat is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Kunquat is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+
+#ifndef K_FILE_TREE_H
+#define K_FILE_TREE_H
+
+
+#include <stdbool.h>
+
+#include <AAtree.h>
+
+
+typedef struct File_tree
+{
+    bool is_dir;          ///< Whether the File tree is a directory.
+    char* name;           ///< File name.
+    union
+    {
+        char* data;       ///< Contents of a regular file.
+        AAtree* children; ///< Contents of a directory.
+    } content;
+} File_tree;
+
+
+/**
+ * Creates a new File tree.
+ *
+ * \param name   The (file) name of the tree -- must not be \c NULL. The name
+ *               will not be copied.
+ * \param data   Contents of a regular file. If this is \c NULL, a directory
+ *               structure is created. The data will not be copied.
+ *
+ * \return   The new File tree if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+File_tree* new_File_tree(char* name, char* data);
+
+
+/**
+ * Compares two File tree objects (based on their names).
+ *
+ * \param tree1   The first File tree -- must not be \c NULL.
+ * \param tree2   The second File tree -- must not be \c NULL.
+ *
+ * \return   -1, 0, or 1 if \a tree1 is found, respectively, to be smaller,
+ *           equal to, or greater than \a tree2.
+ */
+int File_tree_cmp(File_tree* tree1, File_tree* tree2);
+
+
+/**
+ * Tells whether the File tree is a directory.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ *
+ * \return   \c true if \a tree is a directory, otherwise \c false.
+ */
+bool File_tree_is_dir(File_tree* tree);
+
+
+/**
+ * Inserts a child into the File tree.
+ *
+ * \param tree    The File tree -- must not be \c NULL and must be a
+ *                directory.
+ * \param child   The child node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \ç false if memory allocation failed.
+ */
+bool File_tree_ins_child(File_tree* tree, File_tree* child);
+
+
+/**
+ * Gets a child from the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL and must be a
+ *               directory.
+ * \param name   Name of the child.
+ *
+ * \return   The node matching \a name if found, otherwise \c NULL.
+ */
+File_tree* File_tree_get_child(File_tree* tree, char* name);
+
+
+/**
+ * Gets the data from the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL and must not be a
+ *               directory.
+ *
+ * \return   The data.
+ */
+char* File_tree_get_data(File_tree* tree);
+
+
+/**
+ * Destroys an existing File tree.
+ *
+ * All the subtrees and file contents will be destroyed.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ */
+void del_File_tree(File_tree* tree);
+
+
+#endif // K_FILE_TREE_H
+
+
