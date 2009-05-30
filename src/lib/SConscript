@@ -59,6 +59,7 @@ files = [
     'Instrument.c',
     'Instrument_params.c',
     'File_base.c',
+    'File_tree.c',
     'File_wavpack.c',
     'Sample.c',
     'Etable.c',

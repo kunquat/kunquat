@@ -45,14 +45,27 @@ typedef struct File_tree
  * Creates a new File tree.
  *
  * \param name   The (file) name of the tree -- must not be \c NULL. The name
- *               will not be copied.
+ *               will not be copied, and it must be dynamically allocated.
  * \param data   Contents of a regular file. If this is \c NULL, a directory
- *               structure is created. The data will not be copied.
+ *               structure is created. The data will not be copied, and it
+ *               must be dynamically allocated.
  *
  * \return   The new File tree if successful, or \c NULL if memory allocation
  *           failed.
  */
 File_tree* new_File_tree(char* name, char* data);
+
+
+/**
+ * Creates a new File tree from a directory tree in a file system.
+ *
+ * \param path   The (root) path of the directory to be read -- must not be
+ *               \c NULL.
+ *
+ * \return   The new File tree if successful. On error \c NULL is returned and
+ *           errno is set to indicate the error.
+ */
+File_tree* new_File_tree_from_fs(char* path);
 
 
 /**
