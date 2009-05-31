@@ -82,7 +82,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
                  "Pattern is not a directory");
         return false;
     }
-    File_tree* info = File_tree_get_child(tree, "info.json");
+    File_tree* info = File_tree_get_child(tree, "info_pat.json");
     if (info != NULL)
     {
         if (File_tree_is_dir(info))
