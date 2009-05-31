@@ -300,7 +300,7 @@ void* AAtree_get_exact(AAtree* tree, void* key)
     assert(key != NULL);
     AAiter* iter = AAITER_AUTO(tree);
     void* ret = AAiter_get(iter, key);
-    if (tree->cmp(ret, key) == 0)
+    if (ret != NULL && tree->cmp(ret, key) == 0)
     {
         return ret;
     }

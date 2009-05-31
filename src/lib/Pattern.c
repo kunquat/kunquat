@@ -116,16 +116,16 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
     char dir_name[] = "global";
     for (int i = -1; i < COLUMNS_MAX; ++i)
     {
-        File_tree* col_dir = File_tree_get_child(tree, dir_name);
-        if (col_dir != NULL)
+        File_tree* col_tree = File_tree_get_child(tree, dir_name);
+        if (col_tree != NULL)
         {
             if (i == -1)
             {
-                Column_read(Pattern_get_global(pat), col_dir, state);
+                Column_read(Pattern_get_global(pat), col_tree, state);
             }
             else
             {
-                Column_read(Pattern_get_col(pat, i), col_dir, state);
+                Column_read(Pattern_get_col(pat, i), col_tree, state);
             }
             if (state->error)
             {

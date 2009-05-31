@@ -22,10 +22,11 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <Pat_table.h>
-
 #include <Pattern.h>
+#include <Song_limits.h>
 
 #include <xmemory.h>
 
@@ -46,6 +47,57 @@ Pat_table* new_Pat_table(int size)
     }
     table->size = size;
     return table;
+}
+
+
+bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
+{
+    assert(table != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Pattern table is not a directory");
+        return false;
+    }
+    for (int i = 0; i < PATTERNS_MAX; ++i)
+    {
+        char dir_name[] = "000";
+        snprintf(dir_name, 4, "%03x", i);
+        File_tree* pat_tree = File_tree_get_child(tree, dir_name);
+        if (pat_tree != NULL)
+        {
+            Pattern* pat = new_Pattern();
+            if (pat == NULL)
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "Out of memory");
+                return false;
+            }
+            Pattern_read(pat, pat_tree, state);
+            if (state->error)
+            {
+                del_Pattern(pat);
+                return false;
+            }
+            if (!Pat_table_set(table, i, pat))
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "Out of memory");
+                del_Pattern(pat);
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 

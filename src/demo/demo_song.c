@@ -81,53 +81,19 @@ Song* demo_song_create(void)
         del_Instrument(ins);
         goto cleanup;
     }
-    
-    Pattern* pat = new_Pattern();
-    if (pat == NULL)
-    {
-        goto cleanup;
-    }
-    Pat_table* pats = Song_get_pats(song);
-    if (!Pat_table_set(pats, 0, pat))
-    {
-        del_Pattern(pat);
-        goto cleanup;
-    }
-    File_tree* pat_tree = new_File_tree_from_fs("kunquat_m_00/patterns/000");
-    if (pat_tree == NULL)
+
+    File_tree* pats_tree = new_File_tree_from_fs("kunquat_m_00/patterns");
+    if (pats_tree == NULL)
     {
         goto cleanup;
     }
     Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 0 };
-    if (!Pattern_read(pat, pat_tree, state))
-    {
-        del_File_tree(pat_tree);
-        goto cleanup;
-    }
-    del_File_tree(pat_tree);
-    
-    pat = new_Pattern();
-    if (pat == NULL)
+    Pat_table* pats = Song_get_pats(song);
+    if (!Pat_table_read(pats, pats_tree, state))
     {
         goto cleanup;
     }
-    if (!Pat_table_set(pats, 1, pat))
-    {
-        del_Pattern(pat);
-        goto cleanup;
-    }
-    pat_tree = new_File_tree_from_fs("kunquat_m_00/patterns/001");
-    if (pat_tree == NULL)
-    {
-        goto cleanup;
-    }
-    state->row = 0;
-    if (!Pattern_read(pat, pat_tree, state))
-    {
-        del_File_tree(pat_tree);
-        goto cleanup;
-    }
-    del_File_tree(pat_tree);
+    del_File_tree(pats_tree);
 
     Order* order = Song_get_order(song);
     if (!Order_set(order, 0, 0, 0))
