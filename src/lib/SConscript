@@ -70,6 +70,7 @@ files = [
     'Column.c',
     'Channel.c',
     'Order.c',
+    'Subsong.c',
     'Pat_table.c',
     'Pattern.c',
     'Song.c',

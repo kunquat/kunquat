@@ -53,6 +53,8 @@ Pat_table* new_Pat_table(int size);
  * \param table   The Pattern table -- must not be \c NULL.
  * \param tree    The File tree -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
  */
 bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state);
 

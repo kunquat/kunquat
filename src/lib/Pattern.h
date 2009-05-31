@@ -63,6 +63,8 @@ Pattern* new_Pattern(void);
  * \param pat     The Pattern -- must not be \c NULL.
  * \param tree    The File tree -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
  */
 bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
 

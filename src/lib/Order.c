@@ -13,7 +13,7 @@
  * Kunquat is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
+* GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
  * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
@@ -23,71 +23,17 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <Subsong.h>
 #include <Etable.h>
 #include <Order.h>
 
 #include <xmemory.h>
 
 
-typedef struct Subsong
-{
-    int res;
-    int16_t* pats;
-} Subsong;
-
-
 struct Order
 {
     Etable* subs;
 };
-
-
-/**
- * Creates a new Subsong.
- *
- * \return   The new Subsong if successful, or \c NULL if memory allocation
- *           failed.
- */
-static Subsong* new_Subsong(void);
-
-
-/**
- * Sets the pattern for the specified Subsong position.
- *
- * \param subsong   The Subsong -- must not be \c NULL.
- * \param index     The index -- must be >= \c 0 and < \c ORDERS_MAX.
- * \param pat       The pattern number -- must be >= \c 0 or ORDER_NONE.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-static bool Subsong_set(Subsong* ss, int index, int16_t pat);
-
-
-/**
- * Gets the pattern from the specified Subsong position.
- *
- * \param subsong   The Subsong -- must not be \c NULL.
- * \param index     The index -- must be >= \c 0 and < \c ORDERS_MAX.
- *
- * \return   The pattern number if one exists, otherwise ORDER_NONE.
- */
-static int16_t Subsong_get(Subsong* ss, int index);
-
-
-/**
- * Clears the Subsong.
- *
- * \param subsong   The Subsong -- must not be \c NULL.
- */
-// static void Subsong_clear(Subsong* ss);
-
-
-/**
- * Destroys an existing Subsong.
- *
- * \param subsong   The Subsong -- must not be \c NULL.
- */
-static void del_Subsong(Subsong* ss);
 
 
 Order* new_Order(void)
@@ -104,6 +50,49 @@ Order* new_Order(void)
         return NULL;
     }
     return order;
+}
+
+
+bool Order_read(Order* order, File_tree* tree, Read_state* state)
+{
+    assert(order != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Subsong collection is not a directory");
+        return false;
+    }
+    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    {
+        char dir_name[] = "ff";
+        snprintf(dir_name, 3, "%02x", i);
+        File_tree* subsong_tree = File_tree_get_child(tree, dir_name);
+        if (subsong_tree != NULL)
+        {
+            if (!Order_set(order, i, 0, 0))
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "Out of memory");
+                return false;
+            }
+            Subsong* ss = Etable_get(order->subs, i);
+            assert(ss != NULL);
+            Subsong_read(ss, subsong_tree, state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 
@@ -163,6 +152,14 @@ int16_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 }
 
 
+Subsong* Order_get_subsong(Order* order, uint16_t subsong)
+{
+    assert(order != NULL);
+    assert(subsong < SUBSONGS_MAX);
+    return Etable_get(order->subs, subsong);
+}
+
+
 bool Order_is_empty(Order* order, uint16_t subsong)
 {
     assert(order != NULL);
@@ -188,93 +185,6 @@ void del_Order(Order* order)
     assert(order != NULL);
     del_Etable(order->subs);
     xfree(order);
-    return;
-}
-
-
-static Subsong* new_Subsong(void)
-{
-    Subsong* ss = xalloc(Subsong);
-    if (ss == NULL)
-    {
-        return NULL;
-    }
-    ss->res = 8;
-    ss->pats = xnalloc(int16_t, ss->res);
-    if (ss->pats == NULL)
-    {
-        xfree(ss);
-        return NULL;
-    }
-    for (int i = 0; i < ss->res; ++i)
-    {
-        ss->pats[i] = ORDER_NONE;
-    }
-    return ss;
-}
-
-
-static bool Subsong_set(Subsong* ss, int index, int16_t pat)
-{
-    assert(ss != NULL);
-    assert(index >= 0);
-    assert(index < ORDERS_MAX);
-    assert(pat >= 0 || pat == ORDER_NONE);
-    if (index >= ss->res)
-    {
-        int new_res = ss->res << 1;
-        if (index >= new_res)
-        {
-            new_res = index + 1;
-        }
-        int16_t* new_pats = xrealloc(int16_t, new_res, ss->pats);
-        if (new_pats == NULL)
-        {
-            return false;
-        }
-        ss->pats = new_pats;
-        for (int i = ss->res; i < new_res; ++i)
-        {
-            ss->pats[i] = ORDER_NONE;
-        }
-        ss->res = new_res;
-    }
-    ss->pats[index] = pat;
-    return true;
-}
-
-
-static int16_t Subsong_get(Subsong* ss, int index)
-{
-    assert(ss != NULL);
-    assert(index >= 0);
-    assert(index < ORDERS_MAX);
-    if (index >= ss->res)
-    {
-        return ORDER_NONE;
-    }
-    return ss->pats[index];
-}
-
-
-#if 0
-static void Subsong_clear(Subsong* ss)
-{
-    assert(ss != NULL);
-    for (int i = 0; i < ss->res; ++i)
-    {
-        ss->pats[i] = ORDER_NONE;
-    }
-    return;
-}
-#endif
-
-
-static void del_Subsong(Subsong* ss)
-{
-    assert(ss != NULL);
-    xfree(ss->pats);
-    xfree(ss);
     return;
 }
 

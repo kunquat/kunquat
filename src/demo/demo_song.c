@@ -54,8 +54,6 @@ Song* demo_song_create(void)
                 Real_init_as_frac(REAL_AUTO, nums[i - 1], dens[i - 1]));
     }
     Note_table_set_name(notes, L"5-limit JI (C major)");
-    Song_set_tempo(song, 0, 110);
-    Song_set_global_vol(song, 0, 0);
     frame_t** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs,
                                      Song_get_voice_bufs(song),
@@ -91,23 +89,23 @@ Song* demo_song_create(void)
     Pat_table* pats = Song_get_pats(song);
     if (!Pat_table_read(pats, pats_tree, state))
     {
+        del_File_tree(pats_tree);
         goto cleanup;
     }
     del_File_tree(pats_tree);
 
+    File_tree* order_tree = new_File_tree_from_fs("kunquat_m_00/subsongs");
+    if (order_tree == NULL)
+    {
+        goto cleanup;
+    }
     Order* order = Song_get_order(song);
-    if (!Order_set(order, 0, 0, 0))
+    if (!Order_read(order, order_tree, state))
     {
+        del_File_tree(order_tree);
         goto cleanup;
     }
-    if (!Order_set(order, 0, 1, 1))
-    {
-        goto cleanup;
-    }
-    if (!Order_set(order, 0, 2, 0))
-    {
-        goto cleanup;
-    }
+
     return song;
 
 cleanup:

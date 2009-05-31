@@ -132,12 +132,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
     song->mix_vol = -8;
     song->init_subsong = 0;
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
-    {
-        song->subsong_inits[i].tempo = 120;
-        song->subsong_inits[i].global_vol = 0;
-        song->subsong_inits[i].notes = song->notes[0];
-    }
     return song;
 }
 
@@ -244,6 +238,7 @@ wchar_t* Song_get_name(Song* song)
 }
 
 
+#if 0
 void Song_set_tempo(Song* song, int subsong, double tempo)
 {
     assert(song != NULL);
@@ -263,6 +258,7 @@ double Song_get_tempo(Song* song, int subsong)
     assert(subsong < SUBSONGS_MAX);
     return song->subsong_inits[subsong].tempo;
 }
+#endif
 
 
 void Song_set_mix_vol(Song* song, double mix_vol)
@@ -281,6 +277,7 @@ double Song_get_mix_vol(Song* song)
 }
 
 
+#if 0
 void Song_set_global_vol(Song* song, int subsong, double global_vol)
 {
     assert(song != NULL);
@@ -299,6 +296,7 @@ double Song_get_global_vol(Song* song, int subsong)
     assert(subsong < SUBSONGS_MAX);
     return song->subsong_inits[subsong].global_vol;
 }
+#endif
 
 
 void Song_set_subsong(Song* song, uint16_t num)

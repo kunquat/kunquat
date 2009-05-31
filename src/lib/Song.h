@@ -49,12 +49,6 @@ typedef struct Song
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
     wchar_t name[SONG_NAME_MAX];        ///< The name of the Song.
-    struct
-    {
-        double tempo;                   ///< Initial tempo.
-        double global_vol;              ///< Initial global volume.
-        Note_table* notes;              ///< Initial Note table.
-    } subsong_inits[SUBSONGS_MAX];
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
 } Song;
