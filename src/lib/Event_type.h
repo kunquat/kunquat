@@ -30,16 +30,16 @@
 
 typedef enum
 {
-    EVENT_TYPE_NONE = 0,            ///< An uninitialised event.
-    EVENT_TYPE_GENERAL_COND,        ///< Evaluate a conditional expression.
-    EVENT_TYPE_GENERAL_LAST  =  63, ///< Sentinel -- never used as a valid type.
-    EVENT_TYPE_GLOBAL_SET_VAR,      ///< Set a variable.
-    EVENT_TYPE_GLOBAL_SET_TEMPO,    ///< Set tempo. (BPM (float))
-    EVENT_TYPE_GLOBAL_SET_VOLUME,   ///< Set global volume.
-    EVENT_TYPE_GLOBAL_LAST   = 127, ///< Sentinel -- never used as a valid type.
-    EVENT_TYPE_NOTE_ON       = 128, ///< Note On event. (note, modifier, octave, instrument)
-    EVENT_TYPE_NOTE_OFF      = 129, ///< Note Off event.
-    EVENT_TYPE_LAST                 ///< Sentinel -- never used as a valid type.
+    EVENT_TYPE_NONE = 0,                ///< An uninitialised event.
+    EVENT_TYPE_GENERAL_COND,            ///< Evaluate a conditional expression.
+    EVENT_TYPE_GENERAL_LAST      =  63, ///< Sentinel -- never used as a valid type.
+    EVENT_TYPE_GLOBAL_SET_TEMPO  =  64, ///< Set tempo. (BPM (float))
+    EVENT_TYPE_GLOBAL_SET_VOLUME =  65, ///< Set global volume.
+    EVENT_TYPE_GLOBAL_SET_VAR,          ///< Set a variable.
+    EVENT_TYPE_GLOBAL_LAST       = 127, ///< Sentinel -- never used as a valid type.
+    EVENT_TYPE_NOTE_ON           = 128, ///< Note On event. (note, modifier, octave, instrument)
+    EVENT_TYPE_NOTE_OFF          = 129, ///< Note Off event.
+    EVENT_TYPE_LAST                     ///< Sentinel -- never used as a valid type.
 } Event_type;
 
 
