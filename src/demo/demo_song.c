@@ -31,6 +31,7 @@
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <File_base.h>
+#include <File_tree.h>
 
 
 Song* demo_song_create(void)
@@ -92,20 +93,18 @@ Song* demo_song_create(void)
         del_Pattern(pat);
         goto cleanup;
     }
-    Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
-    in = fopen("kunquat_m_00/patterns/000/000/events.json", "rb");
-    if (in == NULL)
+    File_tree* pat_tree = new_File_tree_from_fs("kunquat_m_00/patterns/000");
+    if (pat_tree == NULL)
     {
         goto cleanup;
     }
     Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 0 };
-    if (!Column_read(Pattern_get_col(pat, 0), in, state))
+    if (!Pattern_read(pat, pat_tree, state))
     {
-        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
+        del_File_tree(pat_tree);
         goto cleanup;
     }
-    fclose(in);
-    in = NULL;
+    del_File_tree(pat_tree);
     
     pat = new_Pattern();
     if (pat == NULL)
@@ -117,33 +116,18 @@ Song* demo_song_create(void)
         del_Pattern(pat);
         goto cleanup;
     }
-    Pattern_set_length(pat, Reltime_set(RELTIME_AUTO, 8, 0));
-    in = fopen("kunquat_m_00/patterns/001/000/events.json", "rb");
-    if (in == NULL)
+    pat_tree = new_File_tree_from_fs("kunquat_m_00/patterns/001");
+    if (pat_tree == NULL)
     {
         goto cleanup;
     }
     state->row = 0;
-    if (!Column_read(Pattern_get_col(pat, 0), in, state))
+    if (!Pattern_read(pat, pat_tree, state))
     {
-        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
+        del_File_tree(pat_tree);
         goto cleanup;
     }
-    fclose(in);
-    in = NULL;
-    in = fopen("kunquat_m_00/patterns/001/001/events.json", "rb");
-    if (in == NULL)
-    {
-        goto cleanup;
-    }
-    state->row = 0;
-    if (!Column_read(Pattern_get_col(pat, 1), in, state))
-    {
-        fprintf(stderr, "Read error @ row %d: %s\n", state->row, state->message);
-        goto cleanup;
-    }
-    fclose(in);
-    in = NULL;
+    del_File_tree(pat_tree);
 
     Order* order = Song_get_order(song);
     if (!Order_set(order, 0, 0, 0))

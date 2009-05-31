@@ -95,7 +95,7 @@ START_TEST (new)
         fprintf(stderr, "new_Pattern() returned NULL -- out of memory?\n");
         abort();
     }
-    Column* glob = Pattern_global(pat);
+    Column* glob = Pattern_get_global(pat);
     fail_if(glob == NULL,
             "new_Pattern() didn't create a global Column.");
     Column* cols[COLUMNS_MAX] = { NULL };
@@ -295,7 +295,7 @@ START_TEST (mix)
     double tempo = 120;
     Event_set_field(evg_tempo, 0, &tempo);
     Event_set_pos(evg_tempo, Reltime_set(RELTIME_AUTO, 2, 0));
-    col = Pattern_global(pat);
+    col = Pattern_get_global(pat);
     if (!Column_ins(col, evg_tempo))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");

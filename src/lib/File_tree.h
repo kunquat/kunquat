@@ -91,6 +91,16 @@ bool File_tree_is_dir(File_tree* tree);
 
 
 /**
+ * Gets the name of the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ *
+ * \return   The name -- must not be freed.
+ */
+char* File_tree_get_name(File_tree* tree);
+
+
+/**
  * Inserts a child into the File tree.
  *
  * \param tree    The File tree -- must not be \c NULL and must be a

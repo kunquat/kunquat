@@ -30,6 +30,7 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
+#include <File_tree.h>
 
 
 /**
@@ -118,7 +119,7 @@ Column* new_Column(Reltime* len);
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Column_read(Column* col, FILE* in, Read_state* state);
+bool Column_read(Column* col, File_tree* tree, Read_state* state);
 
 
 /**

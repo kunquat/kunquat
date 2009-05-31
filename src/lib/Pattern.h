@@ -29,6 +29,7 @@
 #include <Playdata.h>
 #include <Column.h>
 #include <Reltime.h>
+#include <File_tree.h>
 #include <Song_limits.h>
 
 
@@ -54,6 +55,16 @@ typedef struct Pattern
  *           allocation failed.
  */
 Pattern* new_Pattern(void);
+
+
+/**
+ * Reads a Pattern from a File tree.
+ *
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ */
+bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
 
 
 /**
@@ -94,7 +105,7 @@ Column* Pattern_get_col(Pattern* pat, int index);
  *
  * \return   The global Column.
  */
-Column* Pattern_global(Pattern* pat);
+Column* Pattern_get_global(Pattern* pat);
 
 
 /**

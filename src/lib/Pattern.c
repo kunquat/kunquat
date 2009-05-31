@@ -66,6 +66,79 @@ Pattern* new_Pattern(void)
 }
 
 
+bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
+{
+    assert(pat != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Pattern is not a directory");
+        return false;
+    }
+    File_tree* info = File_tree_get_child(tree, "info.json");
+    if (info != NULL)
+    {
+        if (File_tree_is_dir(info))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Pattern info is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(info);
+        assert(str != NULL);
+        str = read_const_char(str, '{', state);
+        str = read_const_string(str, "length", state);
+        str = read_const_char(str, ':', state);
+        Reltime* len = Reltime_init(RELTIME_AUTO);
+        str = read_reltime(str, len, state);
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (Reltime_get_beats(len) < 0)
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Pattern length is negative");
+            return false;
+        }
+        Pattern_set_length(pat, len);
+    }
+    char dir_name[] = "global";
+    for (int i = -1; i < COLUMNS_MAX; ++i)
+    {
+        File_tree* col_dir = File_tree_get_child(tree, dir_name);
+        if (col_dir != NULL)
+        {
+            if (i == -1)
+            {
+                Column_read(Pattern_get_global(pat), col_dir, state);
+            }
+            else
+            {
+                Column_read(Pattern_get_col(pat, i), col_dir, state);
+            }
+            if (state->error)
+            {
+                fprintf(stderr, "Error @ row %d: %s\n", state->row, state->message);
+                return false;
+            }
+        }
+        snprintf(dir_name, 4, "%03d", i + 1);
+    }
+    return true;
+}
+
+
 void Pattern_set_length(Pattern* pat, Reltime* length)
 {
     assert(pat != NULL);
@@ -92,7 +165,7 @@ Column* Pattern_get_col(Pattern* pat, int index)
 }
 
 
-Column* Pattern_global(Pattern* pat)
+Column* Pattern_get_global(Pattern* pat)
 {
     assert(pat != NULL);
     return pat->global;

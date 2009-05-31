@@ -221,6 +221,13 @@ int File_tree_cmp(File_tree* tree1, File_tree* tree2)
 }
 
 
+char* File_tree_get_name(File_tree* tree)
+{
+    assert(tree != NULL);
+    return tree->name;
+}
+
+
 bool File_tree_is_dir(File_tree* tree)
 {
     assert(tree != NULL);

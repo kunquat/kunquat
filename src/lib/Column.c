@@ -250,39 +250,52 @@ Column* new_Column(Reltime* len)
 }
 
 
-#define break_if(error, str) \
-    do                       \
-    {                        \
-        if ((error))         \
-        {                    \
-            xfree(str);      \
-            return false;    \
-        }                    \
+#define break_if(error)   \
+    do                    \
+    {                     \
+        if ((error))      \
+        {                 \
+            return false; \
+        }                 \
     } while (false)
 
-bool Column_read(Column* col, FILE* in, Read_state* state)
+bool Column_read(Column* col, File_tree* tree, Read_state* state)
 {
     assert(col != NULL);
-    assert(in != NULL);
+    assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    char* data = read_file(in, state);
-    if (data == NULL)
+    if (!File_tree_is_dir(tree))
     {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Column is not a directory");
         return false;
     }
+    bool is_global = strcmp(File_tree_get_name(tree), "global") == 0;
+    File_tree* event_tree = File_tree_get_child(tree, "events.json");
+    if (event_tree == NULL)
+    {
+        return true;
+    }
+    if (File_tree_is_dir(event_tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Event list is a directory");
+        return false;
+    }
+    char* str = File_tree_get_data(event_tree);
 
-    char* str = data;
     str = read_const_char(str, '[', state); // start of Column
-    break_if(state->error, data);
+    break_if(state->error);
 
     str = read_const_char(str, ']', state); // check of empty Column
     if (!state->error)
     {
-        xfree(data);
         return true;
     }
     state->error = false;
@@ -292,24 +305,31 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
     while (expect_event)
     {
         str = read_const_char(str, '[', state);
-        break_if(state->error, data);
+        break_if(state->error);
 
         Reltime* pos = Reltime_init(RELTIME_AUTO);
         str = read_reltime(str, pos, state);
-        break_if(state->error, data);
+        break_if(state->error);
 
         str = read_const_char(str, ',', state);
-        break_if(state->error, data);
+        break_if(state->error);
 
         int64_t type = 0;
         str = read_int(str, &type, state);
-        break_if(state->error, data);
+        break_if(state->error);
         if (!EVENT_TYPE_IS_VALID(type))
         {
             state->error = true;
             snprintf(state->message, ERROR_MESSAGE_LENGTH,
                      "Invalid Event type: %" PRId64 "\n", type);
-            xfree(data);
+            return false;
+        }
+        if ((is_global && EVENT_TYPE_IS_VOICE(type)) ||
+                (!is_global && EVENT_TYPE_IS_GLOBAL(type)))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Incorrect Event type for %s column", is_global ? "global" : "note");
             return false;
         }
 
@@ -336,7 +356,6 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
                 state->error = true;
                 snprintf(state->message, ERROR_MESSAGE_LENGTH,
                          "Unsupported Event type: %" PRId64 "\n", type);
-                xfree(data);
                 return false;
             }
             break;
@@ -346,14 +365,11 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
             state->error = true;
             snprintf(state->message, ERROR_MESSAGE_LENGTH,
                      "Couldn't allocate memory for Event");
-            xfree(data);
-            del_Event(event);
             return false;
         }
         str = Event_read(event, str, state);
         if (state->error)
         {
-            xfree(data);
             del_Event(event);
             return false;
         }
@@ -362,13 +378,12 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
             state->error = true;
             snprintf(state->message, ERROR_MESSAGE_LENGTH,
                      "Couldn't insert Event");
-            xfree(data);
             del_Event(event);
             return false;
         }
         
         str = read_const_char(str, ']', state);
-        break_if(state->error, data);
+        break_if(state->error);
 
         str = read_const_char(str, ',', state);
         if (state->error)
@@ -382,11 +397,8 @@ bool Column_read(Column* col, FILE* in, Read_state* state)
     str = read_const_char(str, ']', state);
     if (state->error)
     {
-        xfree(data);
         return false;
     }
-
-    xfree(data);
     return true;
 }
 
