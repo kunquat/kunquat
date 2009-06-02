@@ -111,10 +111,10 @@ Column* new_Column(Reltime* len);
 
 
 /**
- * Reads a Column from a file.
+ * Reads a Column from a File tree.
  *
  * \param col     The Column -- must not be \c NULL.
- * \param in      The input file -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
