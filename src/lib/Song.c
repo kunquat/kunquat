@@ -101,8 +101,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->notes[0] = new_Note_table(L"12-tone equal temperament",
-            523.25113060119725,
+    song->notes[0] = new_Note_table(523.25113060119725,
             Real_init_as_frac(REAL_AUTO, 2, 1));
     if (song->notes[0] == NULL)
     {
@@ -115,18 +114,13 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    wchar_t* note_names[12] =
-            { L"C",  L"C#", L"D",  L"D#", L"E",  L"F",
-              L"F#", L"G",  L"G#", L"A",  L"A#", L"B" };
     Note_table_set_note(song->notes[0],
             0,
-            note_names[0],
             Real_init_as_frac(REAL_AUTO, 1, 1));
     for (int i = 1; i < 12; ++i)
     {
         Note_table_set_note_cents(song->notes[0],
                 i,
-                note_names[i],
                 i * 100);
     }
     song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
@@ -475,8 +469,7 @@ bool Song_create_notes(Song* song, int index)
         Note_table_clear(song->notes[index]);
         return true;
     }
-    song->notes[index] = new_Note_table(NULL,
-            440,
+    song->notes[index] = new_Note_table(440,
             Real_init_as_frac(REAL_AUTO, 2, 1));
     if (song->notes[index] == NULL)
     {

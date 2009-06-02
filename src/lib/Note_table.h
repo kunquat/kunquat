@@ -38,7 +38,6 @@
  */
 typedef struct Note_table
 {
-    wchar_t name[NOTE_TABLE_NAME_MAX];
     int note_count;
     int ref_note;
     int ref_note_retuned;
@@ -48,13 +47,11 @@ typedef struct Note_table
     Real oct_factors[NOTE_TABLE_OCTAVES];
     struct
     {
-        wchar_t name[NOTE_TABLE_NOTE_MOD_NAME_MAX];
         double cents;
         Real ratio;
     } note_mods[NOTE_TABLE_NOTE_MODS];
     struct
     {
-        wchar_t name[NOTE_TABLE_NOTE_NAME_MAX];
         double cents;
         Real ratio;
         Real ratio_retuned;
@@ -67,7 +64,6 @@ typedef struct Note_table
  *
  * The caller must eventually destroy the table with del_Note_table().
  *
- * \param name           The name of the table (this will be copied).
  * \param ref_pitch      The reference pitch -- must be > \c 0.
  * \param octave_ratio   The width of an octave -- must not be \c NULL and
  *                       must be greater than 0.
@@ -75,7 +71,7 @@ typedef struct Note_table
  * \return   The new Note table if successful, or \c NULL if memory allocation
  *           fails.
  */
-Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio);
+Note_table* new_Note_table(pitch_t ref_pitch, Real* octave_ratio);
 
 
 /**
@@ -88,25 +84,6 @@ Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio)
  * \return   \c true if successful, otherwise \c false.
  */
 bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state);
-
-
-/**
- * Sets a name for the Note table.
- *
- * \param table   The Note table -- must not be \c NULL.
- * \param name    The name.
- */
-void Note_table_set_name(Note_table* table, wchar_t* name);
-
-
-/**
- * Gets the name of the Note table.
- *
- * \param table   The Note table -- must not be \c NULL.
- *
- * \return   The name.
- */
-wchar_t* Note_table_get_name(Note_table* table);
 
 
 /**
@@ -229,7 +206,6 @@ double Note_table_get_octave_ratio_cents(Note_table* table);
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTES.
- * \param name    The name of the note -- must not be \c NULL or empty string.
  * \param ratio   The pitch ratio between the new note and reference pitch
  *                -- must not be \c NULL and must be > \c 0.
  *
@@ -238,7 +214,6 @@ double Note_table_get_octave_ratio_cents(Note_table* table);
  */
 int Note_table_set_note(Note_table* table,
         int index,
-        wchar_t* name,
         Real* ratio);
 
 
@@ -250,7 +225,6 @@ int Note_table_set_note(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTES.
- * \param name    The name of the note -- must not be \c NULL or empty string.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
@@ -259,7 +233,6 @@ int Note_table_set_note(Note_table* table,
  */
 int Note_table_set_note_cents(Note_table* table,
         int index,
-        wchar_t* name,
         double cents);
 
 
@@ -270,7 +243,6 @@ int Note_table_set_note_cents(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTES.
- * \param name    The name of the note -- must not be \c NULL or empty string.
  * \param ratio   The pitch ratio between the new note and reference pitch
  *                -- must not be \c NULL and must be > \c 0.
  *
@@ -279,7 +251,6 @@ int Note_table_set_note_cents(Note_table* table,
  */
 int Note_table_ins_note(Note_table* table,
         int index,
-        wchar_t* name,
         Real* ratio);
 
 
@@ -290,7 +261,6 @@ int Note_table_ins_note(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTES.
- * \param name    The name of the note -- must not be \c NULL or empty string.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
@@ -299,7 +269,6 @@ int Note_table_ins_note(Note_table* table,
  */
 int Note_table_ins_note_cents(Note_table* table,
         int index,
-        wchar_t* name,
         double cents);
 
 
@@ -331,18 +300,6 @@ void Note_table_del_note(Note_table* table, int index);
  *           will be returned.
  */
 int Note_table_move_note(Note_table* table, int index, int new_index);
-
-
-/**
- * Gets the name of a note in the Note table.
- *
- * \param table   The Note table -- must not be \c NULL.
- * \param index   The index of the note -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
- *
- * \return   The name if the note exists, otherwise \c NULL.
- */
-wchar_t* Note_table_get_note_name(Note_table* table, int index);
 
 
 /**
@@ -401,8 +358,6 @@ double Note_table_get_cur_note_cents(Note_table* table, int index);
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTE_MODS.
- * \param name    The name of the note modifier -- must not be \c NULL or
- *                empty string.
  * \param ratio   The pitch ratio between the unmodified note and note with
  *                this modifier -- must not be \c NULL and must be > \c 0.
  *
@@ -411,7 +366,6 @@ double Note_table_get_cur_note_cents(Note_table* table, int index);
  */
 int Note_table_set_note_mod(Note_table* table,
         int index,
-        wchar_t* name,
         Real* ratio);
 
 
@@ -421,8 +375,6 @@ int Note_table_set_note_mod(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTE_MODS.
- * \param name    The name of the note modifier -- must not be \c NULL or
- *                empty string.
  * \param cents   The pitch ratio between the unmodified note and note with
  *                this modifier -- must be a finite value.
  *
@@ -431,7 +383,6 @@ int Note_table_set_note_mod(Note_table* table,
  */
 int Note_table_set_note_mod_cents(Note_table* table,
         int index,
-        wchar_t* name,
         double cents);
 
 
@@ -442,7 +393,6 @@ int Note_table_set_note_mod_cents(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTE_MODS.
- * \param name    The name of the note modifier -- must not be \c NULL.
  * \param ratio   The pitch ratio between the unmodified note and note with
  *                this modifier -- must not be \c NULL and must be > \c 0.
  *
@@ -451,7 +401,6 @@ int Note_table_set_note_mod_cents(Note_table* table,
  */
 int Note_table_ins_note_mod(Note_table* table,
         int index,
-        wchar_t* name,
         Real* ratio);
 
 
@@ -462,7 +411,6 @@ int Note_table_ins_note_mod(Note_table* table,
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
  *                < \c NOTE_TABLE_NOTE_MODS.
- * \param name    The name of the note modifier -- must not be \c NULL.
  * \param cents   The pitch ratio between the unmodified note and note with
  *                this modifier -- must be a finite value.
  *
@@ -471,7 +419,6 @@ int Note_table_ins_note_mod(Note_table* table,
  */
 int Note_table_ins_note_mod_cents(Note_table* table,
         int index,
-        wchar_t* name,
         double cents);
 
 
@@ -500,18 +447,6 @@ void Note_table_del_note_mod(Note_table* table, int index);
  *           \a index will be returned.
  */
 int Note_table_move_note_mod(Note_table* table, int index, int new_index);
-
-
-/**
- * Gets the name of a note modifier in the Note table.
- *
- * \param table   The Note table -- must not be \c NULL.
- * \param index   The index of the note modifier -- must be >= \c 0
- *                and < \c NOTE_TABLE_NOTE_MODS.
- *
- * \return   The name if the note modifier exists, otherwise \c NULL.
- */
-wchar_t* Note_table_get_note_mod_name(Note_table* table, int index);
 
 
 /**

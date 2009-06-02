@@ -92,13 +92,13 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(L"test", 2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
         fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
         abort();
     }
-    Note_table_set_note(notes, 0, L"=", Real_init(REAL_AUTO));
+    Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
     Instrument_set_note_table(ins, &notes);
     Voice* voice = new_Voice(2);
     if (voice == NULL)
@@ -299,7 +299,7 @@ START_TEST (mix_break_freq_inv)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(L"test", 2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
         fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
