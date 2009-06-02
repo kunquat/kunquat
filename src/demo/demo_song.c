@@ -36,24 +36,28 @@
 
 Song* demo_song_create(void)
 {
-    FILE* in = NULL;
     Song* song = new_Song(2, 128, 16);
     if (song == NULL)
     {
         goto cleanup;
     }
     Song_set_name(song, L"Demo");
-    Note_table* notes = Song_get_notes(song, 0);
-    Note_table_set_ref_pitch(notes, 528);
-    int nums[] = { 16, 9, 6, 5, 4, 45, 3, 8, 5, 9, 15 };
-    int dens[] = { 15, 8, 5, 4, 3, 32, 2, 5, 3, 5, 8 };
-    for (int i = 1; i <= 11; ++i)
+
+    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 1 };
+    File_tree* notes_tree = new_File_tree_from_fs("kunquat_m_00/tunings/0/kunquat_t_00");
+    if (notes_tree == NULL)
     {
-        Note_table_set_note(notes, i,
-                Note_table_get_note_name(notes, i),
-                Real_init_as_frac(REAL_AUTO, nums[i - 1], dens[i - 1]));
+        goto cleanup;
     }
-    Note_table_set_name(notes, L"5-limit JI (C major)");
+    Note_table* notes = Song_get_notes(song, 0);
+    if (!Note_table_read(notes, notes_tree, state))
+    {
+        fprintf(stderr, "Note table reading failed @ row %d: %s\n", state->row, state->message);
+        del_File_tree(notes_tree);
+        goto cleanup;
+    }
+    del_File_tree(notes_tree);
+
     frame_t** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs,
                                      Song_get_voice_bufs(song),
@@ -85,7 +89,6 @@ Song* demo_song_create(void)
     {
         goto cleanup;
     }
-    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 0 };
     Pat_table* pats = Song_get_pats(song);
     if (!Pat_table_read(pats, pats_tree, state))
     {
@@ -105,6 +108,7 @@ Song* demo_song_create(void)
         del_File_tree(order_tree);
         goto cleanup;
     }
+    del_File_tree(order_tree);
 
     return song;
 
@@ -113,10 +117,6 @@ cleanup:
     if (song != NULL)
     {
         del_Song(song);
-    }
-    if (in != NULL)
-    {
-        fclose(in);
     }
     return NULL;
 }

@@ -393,6 +393,11 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
     double fl = 0;
     if (type[0] == '/')
     {
+        str = read_const_char(str, '[', state);
+        if (state->error)
+        {
+            return str;
+        }
         str = read_int(str, &num, state);
         if (state->error)
         {
@@ -419,12 +424,24 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
                     "Denominator must be positive");
             return str;
         }
+        str = read_const_char(str, ']', state);
+        if (state->error)
+        {
+            return str;
+        }
     }
     else if (type[0] == 'f' || type[0] == 'c')
     {
         str = read_double(str, &fl, state);
         if (state->error)
         {
+            return str;
+        }
+        if (!isfinite(fl))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Floating point value must be finite.");
             return str;
         }
     }

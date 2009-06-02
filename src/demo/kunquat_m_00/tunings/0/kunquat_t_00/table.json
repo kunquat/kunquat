@@ -2,8 +2,8 @@
 
 {
     "ref_note" : 0,
-    "ref_pitch" : 523.25113060119725,
-    "octave_ratio" : [ "/", [3, 2] ],
+    "ref_pitch" : 528,
+    "octave_ratio" : [ "/", [2, 1] ],
 
     "note_mods" :
     [

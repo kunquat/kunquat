@@ -26,10 +26,14 @@
 #include <wchar.h>
 #include <string.h>
 #include <math.h>
-
-#include <xmemory.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <Note_table.h>
+#include <File_base.h>
+#include <File_tree.h>
+
+#include <xmemory.h>
 
 
 #define NOTE_EXISTS(table, index) ((table)->notes[(index)].name[0] != '\0')
@@ -55,6 +59,261 @@ Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio)
     table->oct_ratio_cents = NAN;
     return table;
 }
+
+
+#define read_and_validate_tuning(str, ratio, cents, state)                        \
+    do                                                                            \
+    {                                                                             \
+        (str) = read_tuning((str), (ratio), &(cents), (state));                   \
+        if ((state)->error)                                                       \
+        {                                                                         \
+            return false;                                                         \
+        }                                                                         \
+        if (isnan((cents)))                                                       \
+        {                                                                         \
+            if ((Real_is_frac((ratio)) && Real_get_numerator((ratio)) <= 0)       \
+                    || (!Real_is_frac((ratio)) && Real_get_double((ratio)) <= 0)) \
+            {                                                                     \
+                (state)->error = true;                                            \
+                snprintf((state)->message, ERROR_MESSAGE_LENGTH,                  \
+                         "Ratio is not positive");                                \
+                return false;                                                     \
+            }                                                                     \
+        }                                                                         \
+    } while (false)
+
+bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
+{
+    assert(table != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Note table is not a directory");
+        return false;
+    }
+    const char* magic_id = "kunquat_";
+    char* name = File_tree_get_name(tree);
+    if (strncmp(name, magic_id, strlen(magic_id)) != 0)
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Directory is not a Kunquat file");
+        return false;
+    }
+    if (name[strlen(magic_id)] != 't'
+            || name[strlen(magic_id) + 1] != '_')
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Directory is not a tuning file");
+        return false;
+    }
+    const char* version = "00";
+    if (strcmp(name + strlen(magic_id) + 2, version) != 0)
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Unsupported tuning version");
+        return false;
+    }
+    File_tree* table_tree = File_tree_get_child(tree, "table.json");
+    if (table_tree != NULL)
+    {
+        if (File_tree_is_dir(table_tree))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Note table specification is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(table_tree);
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (!state->error)
+        {
+            return true;
+        }
+        state->error = false;
+        state->message[0] = '\0';
+        
+        bool expect_key = true;
+        while (expect_key)
+        {
+            char key[256] = { '\0' };
+            str = read_string(str, key, 256, state);
+            str = read_const_char(str, ':', state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (strcmp(key, "ref_note") == 0)
+            {
+                int64_t num = 0;
+                str = read_int(str, &num, state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (num < 0 || num >= NOTE_TABLE_NOTES)
+                {
+                    state->error = true;
+                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                             "Invalid reference note number: %" PRId64, num);
+                    return false;
+                }
+                table->ref_note = num;
+            }
+            else if (strcmp(key, "ref_pitch") == 0)
+            {
+                double num = 0;
+                str = read_double(str, &num, state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (num <= 0 || !isfinite(num))
+                {
+                    state->error = true;
+                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                             "Invalid reference pitch: %f", num);
+                    return false;
+                }
+                table->ref_pitch = num;
+            }
+            else if (strcmp(key, "octave_ratio") == 0)
+            {
+                Real* ratio = Real_init(REAL_AUTO);
+                double cents = NAN;
+                read_and_validate_tuning(str, ratio, cents, state);
+                if (!isnan(cents))
+                {
+                    Note_table_set_octave_ratio_cents(table, cents);
+                }
+                else
+                {
+                    Note_table_set_octave_ratio(table, ratio);
+                }
+            }
+            else if (strcmp(key, "note_mods") == 0
+                     || strcmp(key, "notes") == 0)
+            {
+                int count = 0;
+                str = read_const_char(str, '[', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                str = read_const_char(str, ']', state);
+                if (state->error)
+                {
+                    bool notes = strcmp(key, "notes") == 0;
+                    state->error = false;
+                    state->message[0] = '\0';
+                    bool expect_val = true;
+                    while (expect_val)
+                    {
+                        Real* ratio = Real_init(REAL_AUTO);
+                        double cents = NAN;
+                        read_and_validate_tuning(str, ratio, cents, state);
+                        if (!isnan(cents))
+                        {
+                            if (notes)
+                            {
+                                Note_table_set_note_cents(table, count, L"-", cents);
+                            }
+                            else
+                            {
+                                Note_table_set_note_mod_cents(table, count, L"-", cents);
+                            }
+                        }
+                        else
+                        {
+                            if (notes)
+                            {
+                                Note_table_set_note(table, count, L"-", ratio);
+                            }
+                            else
+                            {
+                                Note_table_set_note_mod(table, count, L"-", ratio);
+                            }
+                        }
+                        ++count;
+                        if (notes && count >= NOTE_TABLE_NOTES)
+                        {
+                            break;
+                        }
+                        else if (!notes && count >= NOTE_TABLE_NOTE_MODS)
+                        {
+                            break;
+                        }
+                        str = read_const_char(str, ',', state);
+                        if (state->error)
+                        {
+                            expect_val = false;
+                            state->error = false;
+                            state->message[0] = '\0';
+                        }
+                    }
+                    str = read_const_char(str, ']', state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (notes)
+                    {
+                        for (int i = count; i < NOTE_TABLE_NOTES; ++i)
+                        {
+                            table->notes[i].name[0] = L'\0';
+                            table->notes[i].cents = NAN;
+                            Real_init(&table->notes[i].ratio);
+                            Real_init(&table->notes[i].ratio_retuned);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "Unrecognised key in Note table: %s\n", key);
+                return false;
+            }
+            str = read_const_char(str, ',', state);
+            if (state->error)
+            {
+                expect_key = false;
+                state->error = false;
+                state->message[0] = '\0';
+            }
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (table->ref_note >= table->note_count)
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Reference note doesn't exist: %d\n", table->ref_note);
+            return false;
+        }
+    }
+    return true;
+}
+
+#undef read_and_validate_tuning
 
 
 void Note_table_clear(Note_table* table)

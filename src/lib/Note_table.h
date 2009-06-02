@@ -27,6 +27,8 @@
 #include <Real.h>
 #include <pitch_t.h>
 #include <Song_limits.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 #include <wchar.h>
 
@@ -74,6 +76,18 @@ typedef struct Note_table
  *           fails.
  */
 Note_table* new_Note_table(wchar_t* name, pitch_t ref_pitch, Real* octave_ratio);
+
+
+/**
+ * Reads a Note table from a File tree.
+ *
+ * \param table   The Note table -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state);
 
 
 /**
