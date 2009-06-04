@@ -217,6 +217,43 @@ char* read_const_string(char* str, char* result, Read_state* state)
 }
 
 
+char* read_bool(char* str, bool* result, Read_state* state)
+{
+    assert(str != NULL);
+    assert(result != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    str = skip_whitespace(str, state);
+    if (       str[0] == 't'
+            && str[1] == 'r'
+            && str[2] == 'u'
+            && str[3] == 'e')
+    {
+        str += 4;
+        *result = true;
+    }
+    else if (  str[0] == 'f'
+            && str[1] == 'a'
+            && str[2] == 'l'
+            && str[3] == 's'
+            && str[4] == 'e')
+    {
+        str += 5;
+        *result = false;
+    }
+    else
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Expected a valid boolean");
+    }
+    return str;
+}
+
+
 char* read_string(char* str, char* result, int max_len, Read_state* state)
 {
     assert(str != NULL);

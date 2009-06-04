@@ -61,6 +61,9 @@ char* read_const_char(char* str, char result, Read_state* state);
 char* read_const_string(char* str, char* result, Read_state* state);
 
 
+char* read_bool(char* str, bool* result, Read_state* state);
+
+
 char* read_string(char* str, char* result, int max_len, Read_state* state);
 
 

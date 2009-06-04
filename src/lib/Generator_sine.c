@@ -36,6 +36,9 @@
 #include <xmemory.h>
 
 
+static bool Generator_sine_read(Generator* gen, File_tree* tree, Read_state* state);
+
+
 Generator_sine* new_Generator_sine(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
@@ -44,12 +47,32 @@ Generator_sine* new_Generator_sine(Instrument_params* ins_params)
     {
         return NULL;
     }
+    sine->parent.enabled = true;
+    sine->parent.volume_dB = 0;
+    sine->parent.volume = 1;
+    sine->parent.read = Generator_sine_read;
     sine->parent.destroy = del_Generator_sine;
     sine->parent.type = GEN_TYPE_SINE;
     sine->parent.init_state = Voice_state_sine_init;
     sine->parent.mix = Generator_sine_mix;
     sine->parent.ins_params = ins_params;
     return sine;
+}
+
+
+static bool Generator_sine_read(Generator* gen, File_tree* tree, Read_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SINE);
+    assert(tree != NULL);
+    assert(state != NULL);
+    (void)gen;
+    (void)tree;
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
 }
 
 

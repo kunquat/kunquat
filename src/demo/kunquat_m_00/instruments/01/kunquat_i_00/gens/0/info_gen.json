@@ -1,7 +1,8 @@
 
 
 {
-    "type" : "sine"
+    "enabled" : true,
+    "volume" : 0
 }
 
 

@@ -104,11 +104,10 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     Envelope_set_first_lock(ip->volume_env, true, false);
 
     new_env_or_fail(ip->volume_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->volume_off_env_enabled = true;
+    ip->volume_off_env_enabled = false;
     ip->volume_off_env_scale = 1;
     ip->volume_off_env_center = 440;
     Envelope_set_node(ip->volume_off_env, 0, 1);
-    Envelope_set_node(ip->volume_off_env, 0.02, 0.3);
     Envelope_set_node(ip->volume_off_env, 1, 0);
     Envelope_set_first_lock(ip->volume_off_env, true, false);
     Envelope_set_last_lock(ip->volume_off_env, false, true);
