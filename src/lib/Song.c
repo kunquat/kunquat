@@ -443,6 +443,13 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
+Note_table** Song_get_note_tables(Song* song)
+{
+    assert(song != NULL);
+    return song->notes;
+}
+
+
 Note_table* Song_get_notes(Song* song, int index)
 {
     assert(song != NULL);

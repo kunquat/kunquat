@@ -34,6 +34,8 @@
 
 #define ERROR_MESSAGE_LENGTH (256)
 
+#define MAGIC_ID "kunquat_"
+
 
 typedef struct Read_state
 {

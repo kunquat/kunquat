@@ -158,12 +158,12 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
                     state->message[0] = '\0';
                 }
             }
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            del_Generator(gen);
-            return NULL;
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                del_Generator(gen);
+                return NULL;
+            }
         }
     }
 

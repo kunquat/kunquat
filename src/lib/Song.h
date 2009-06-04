@@ -284,6 +284,16 @@ Ins_table* Song_get_insts(Song* song);
 
 
 /**
+ * Gets the array of Note tables of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Note tables.
+ */
+Note_table** Song_get_note_tables(Song* song);
+
+
+/**
  * Gets a Note table of the Song.
  *
  * \param song    The Song -- must not be \c NULL.

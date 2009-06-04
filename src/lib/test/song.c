@@ -326,7 +326,7 @@ START_TEST (mix)
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 256, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -339,7 +339,7 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Instrument_set_note_table(ins, &notes);
+    Instrument_set_note_table(ins, 0);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))
     {

@@ -111,17 +111,16 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                  "Note table is not a directory");
         return false;
     }
-    const char* magic_id = "kunquat_";
     char* name = File_tree_get_name(tree);
-    if (strncmp(name, magic_id, strlen(magic_id)) != 0)
+    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
     {
         state->error = true;
         snprintf(state->message, ERROR_MESSAGE_LENGTH,
                  "Directory is not a Kunquat file");
         return false;
     }
-    if (name[strlen(magic_id)] != 't'
-            || name[strlen(magic_id) + 1] != '_')
+    if (name[strlen(MAGIC_ID)] != 't'
+            || name[strlen(MAGIC_ID) + 1] != '_')
     {
         state->error = true;
         snprintf(state->message, ERROR_MESSAGE_LENGTH,
@@ -129,7 +128,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         return false;
     }
     const char* version = "00";
-    if (strcmp(name + strlen(magic_id) + 2, version) != 0)
+    if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
         state->error = true;
         snprintf(state->message, ERROR_MESSAGE_LENGTH,

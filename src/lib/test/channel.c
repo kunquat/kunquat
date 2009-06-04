@@ -79,7 +79,8 @@ START_TEST (set_voices)
     frame_t buf_l[128] = { 0 };
     frame_t buf_r[128] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, 16);
+    Note_table* note_tables[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, note_tables, note_tables, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -98,8 +99,9 @@ START_TEST (set_voices)
         fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
         abort();
     }
+    note_tables[0] = notes;
     Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
-    Instrument_set_note_table(ins, &notes);
+    Instrument_set_note_table(ins, 0);
     Ins_table* table = new_Ins_table(1);
     if (table == NULL)
     {

@@ -63,27 +63,26 @@ Song* demo_song_create(void)
                                      Song_get_voice_bufs(song),
                                      Song_get_buf_count(song),
                                      Song_get_buf_size(song),
+                                     Song_get_note_tables(song),
+                                     Song_get_active_notes(song),
                                      16);
     if (ins == NULL)
     {
         goto cleanup;
     }
-    File_tree* gen_tree = new_File_tree_from_fs("kunquat_m_00/instruments/01/kunquat_i_00/gens/0");
-    if (gen_tree == NULL)
+    File_tree* ins_tree = new_File_tree_from_fs("kunquat_m_00/instruments/01/kunquat_i_00");
+    if (ins_tree == NULL)
     {
-        goto cleanup;
-    }
-    Generator* sine_gen = new_Generator_from_file_tree(gen_tree, state, Instrument_get_params(ins));
-    if (sine_gen == NULL)
-    {
-        del_File_tree(gen_tree);
         del_Instrument(ins);
         goto cleanup;
     }
-    del_File_tree(gen_tree);
-    Instrument_set_gen(ins, 0, sine_gen);
-    Instrument_set_name(ins, L"sine");
-    Instrument_set_note_table(ins, Song_get_active_notes(song));
+    if (!Instrument_read(ins, ins_tree, state))
+    {
+        del_Instrument(ins);
+        del_File_tree(ins_tree);
+        goto cleanup;
+    }
+    del_File_tree(ins_tree);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))
     {
