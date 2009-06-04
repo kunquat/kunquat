@@ -22,14 +22,17 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
 #include <wchar.h>
 
 #include <Real.h>
-
 #include <Song.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 #include <xmemory.h>
 
@@ -124,9 +127,243 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
                 i * 100);
     }
     song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
-    song->mix_vol = -8;
+    song->mix_vol_dB = -8;
+    song->mix_vol = exp2(song->mix_vol_dB / 6);
     song->init_subsong = 0;
     return song;
+}
+
+
+bool Song_read(Song* song, File_tree* tree, Read_state* state)
+{
+    assert(song != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Song is not a directory");
+        return false;
+    }
+    char* name = File_tree_get_name(tree);
+    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Directory is not a Kunquat file");
+        return false;
+    }
+    if (strncmp(name + strlen(MAGIC_ID), "s_", 2) != 0)
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Directory is not a Song file");
+        return false;
+    }
+    const char* version = "00";
+    if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
+    {
+        state->error = true;
+        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                 "Unsupported Song version");
+        return false;
+    }
+    File_tree* info_tree = File_tree_get_child(tree, "info_song.json");
+    if (info_tree != NULL)
+    {
+        if (File_tree_is_dir(info_tree))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Song info is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(info_tree);
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            state->error = false;
+            state->message[0] = '\0';
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (strcmp(key, "buf_count") == 0)
+                {
+                    int64_t num = 0;
+                    str = read_int(str, &num, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (num < 1 || num > BUF_COUNT_MAX)
+                    {
+                        state->error = true;
+                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                                 "Unsupported number of mixing buffers: %" PRId64, num);
+                        return false;
+                    }
+                    if (!Song_set_buf_count(song, num))
+                    {
+                        state->error = true;
+                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                                 "Couldn't allocate memory for mixing buffers");
+                        return false;
+                    }
+                }
+                else if (strcmp(key, "mix_vol") == 0)
+                {
+                    str = read_double(str, &song->mix_vol_dB, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (!isfinite(song->mix_vol_dB) && song->mix_vol_dB != -INFINITY)
+                    {
+                        state->error = true;
+                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                                 "Invalid mixing volume: %f", song->mix_vol_dB);
+                        song->mix_vol_dB = 0;
+                        return false;
+                    }
+                    song->mix_vol = exp2(song->mix_vol_dB / 6);
+                }
+                else if (strcmp(key, "init_subsong") == 0)
+                {
+                    int64_t num = 0;
+                    str = read_int(str, &num, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (num < 0 || num >= SUBSONGS_MAX)
+                    {
+                        state->error = true;
+                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                                 "Invalid initial Subsong number: %" PRId64, num);
+                        return false;
+                    }
+                    Song_set_subsong(song, num);
+                }
+                else
+                {
+                    state->error = true;
+                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                             "Unrecognised key in Song info: %s", key);
+                    return false;
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                str = read_const_char(str, ',', state);
+                if (state->error)
+                {
+                    expect_key = false;
+                    state->error = false;
+                    state->message[0] = '\0';
+                }
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    File_tree* nts_tree = File_tree_get_child(tree, "tunings");
+    if (nts_tree != NULL)
+    {
+        if (!File_tree_is_dir(nts_tree))
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Note table collection is not a directory");
+            return false;
+        }
+        for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+        {
+            char dir_name[] = "0";
+            snprintf(dir_name, 2, "%01x", i);
+            File_tree* index_tree = File_tree_get_child(nts_tree, dir_name);
+            if (index_tree != NULL)
+            {
+                if (!File_tree_is_dir(index_tree))
+                {
+                    state->error = true;
+                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                             "Note table at index %01x is not a directory", i);
+                    return false;
+                }
+                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquat_t_00");
+                if (notes_tree != NULL)
+                {
+                    if (!Song_create_notes(song, i))
+                    {
+                        state->error = true;
+                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                                 "Couldn't allocate memory for Note table");
+                        return false;
+                    }
+                    Note_table* notes = Song_get_notes(song, i);
+                    assert(notes != NULL);
+                    Note_table_read(notes, notes_tree, state);
+                    if (state->error)
+                    {
+                        Song_remove_notes(song, i);
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    File_tree* ss_tree = File_tree_get_child(tree, "subsongs");
+    if (ss_tree != NULL)
+    {
+        Order* order = Song_get_order(song);
+        if (!Order_read(order, ss_tree, state))
+        {
+            return false;
+        }
+    }
+    File_tree* pat_tree = File_tree_get_child(tree, "patterns");
+    if (pat_tree != NULL)
+    {
+        Pat_table* pats = Song_get_pats(song);
+        if (!Pat_table_read(pats, pat_tree, state))
+        {
+            return false;
+        }
+    }
+    File_tree* ins_tree = File_tree_get_child(tree, "instruments");
+    if (ins_tree != NULL)
+    {
+        Ins_table* insts = Song_get_insts(song);
+        if (!Ins_table_read(insts, ins_tree, state,
+                            Song_get_bufs(song),
+                            Song_get_voice_bufs(song),
+                            Song_get_buf_count(song),
+                            Song_get_buf_size(song),
+                            Song_get_note_tables(song),
+                            Song_get_active_notes(song),
+                            16)) // TODO: make configurable
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -203,12 +440,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    double vol = exp2(song->mix_vol / 6);
     for (int i = 0; i < song->buf_count; ++i)
     {
         for (uint32_t k = 0; k < mixed; ++k)
         {
-            song->bufs[i][k] *= vol;
+            song->bufs[i][k] *= song->mix_vol;
         }
     }
     return mixed;
@@ -259,7 +495,8 @@ void Song_set_mix_vol(Song* song, double mix_vol)
 {
     assert(song != NULL);
     assert(isfinite(mix_vol) || mix_vol == -INFINITY);
-    song->mix_vol = mix_vol;
+    song->mix_vol_dB = mix_vol;
+    song->mix_vol = exp2(mix_vol / 6);
     return;
 }
 
@@ -267,7 +504,7 @@ void Song_set_mix_vol(Song* song, double mix_vol)
 double Song_get_mix_vol(Song* song)
 {
     assert(song != NULL);
-    return song->mix_vol;
+    return song->mix_vol_dB;
 }
 
 

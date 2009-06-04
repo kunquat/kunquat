@@ -299,7 +299,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
             {
                 state->error = true;
                 snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "Unrecognised key in Note table: %s\n", key);
+                         "Unrecognised key in Note table: %s", key);
                 return false;
             }
             str = read_const_char(str, ',', state);
