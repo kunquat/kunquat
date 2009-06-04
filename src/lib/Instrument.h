@@ -66,7 +66,7 @@ typedef struct Instrument
  * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
  * \param note_tables     The Note tables of the Song -- must not be \c NULL.
- * \param default_notes   The default note table -- must not be \c NULL. Also,
+ * \param default_notes   The default Note table -- must not be \c NULL. Also,
  *                        *default_notes must be an element of \a note_tables.
  * \param events          The maximum number of events per tick -- must be > \c 0.
  *

@@ -58,37 +58,25 @@ Song* demo_song_create(void)
     }
     del_File_tree(notes_tree);
 
-    frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs,
-                                     Song_get_voice_bufs(song),
-                                     Song_get_buf_count(song),
-                                     Song_get_buf_size(song),
-                                     Song_get_note_tables(song),
-                                     Song_get_active_notes(song),
-                                     16);
-    if (ins == NULL)
-    {
-        goto cleanup;
-    }
-    File_tree* ins_tree = new_File_tree_from_fs("kunquat_m_00/instruments/01/kunquat_i_00");
-    if (ins_tree == NULL)
-    {
-        del_Instrument(ins);
-        goto cleanup;
-    }
-    if (!Instrument_read(ins, ins_tree, state))
-    {
-        del_Instrument(ins);
-        del_File_tree(ins_tree);
-        goto cleanup;
-    }
-    del_File_tree(ins_tree);
     Ins_table* insts = Song_get_insts(song);
-    if (!Ins_table_set(insts, 1, ins))
+    File_tree* insts_tree = new_File_tree_from_fs("kunquat_m_00/instruments");
+    if (insts_tree == NULL)
     {
-        del_Instrument(ins);
         goto cleanup;
     }
+    if (!Ins_table_read(insts, insts_tree, state,
+                        Song_get_bufs(song),
+                        Song_get_voice_bufs(song),
+                        Song_get_buf_count(song),
+                        Song_get_buf_size(song),
+                        Song_get_note_tables(song),
+                        Song_get_active_notes(song),
+                        16))
+    {
+        del_File_tree(insts_tree);
+        goto cleanup;
+    }
+    del_File_tree(insts_tree);
 
     File_tree* pats_tree = new_File_tree_from_fs("kunquat_m_00/patterns");
     if (pats_tree == NULL)
