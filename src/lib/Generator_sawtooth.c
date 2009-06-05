@@ -35,6 +35,9 @@
 #include <xmemory.h>
 
 
+static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state* state);
+
+
 Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
@@ -43,12 +46,30 @@ Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
     {
         return NULL;
     }
+    Generator_init(&sawtooth->parent);
+    sawtooth->parent.read = Generator_sawtooth_read;
     sawtooth->parent.destroy = del_Generator_sawtooth;
     sawtooth->parent.type = GEN_TYPE_SAWTOOTH;
     sawtooth->parent.init_state = Voice_state_sawtooth_init;
     sawtooth->parent.mix = Generator_sawtooth_mix;
     sawtooth->parent.ins_params = ins_params;
     return sawtooth;
+}
+
+
+static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SAWTOOTH);
+    assert(tree != NULL);
+    assert(state != NULL);
+    (void)gen;
+    (void)tree;
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
 }
 
 

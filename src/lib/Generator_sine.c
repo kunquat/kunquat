@@ -47,9 +47,7 @@ Generator_sine* new_Generator_sine(Instrument_params* ins_params)
     {
         return NULL;
     }
-    sine->parent.enabled = true;
-    sine->parent.volume_dB = 0;
-    sine->parent.volume = 1;
+    Generator_init(&sine->parent);
     sine->parent.read = Generator_sine_read;
     sine->parent.destroy = del_Generator_sine;
     sine->parent.type = GEN_TYPE_SINE;

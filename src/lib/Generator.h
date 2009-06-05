@@ -72,6 +72,14 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
 
 
 /**
+ * Initialises the general Generator parameters.
+ *
+ * \param gen   The Generator -- must not be \c NULL.
+ */
+void Generator_init(Generator* gen);
+
+
+/**
  * Returns the type of the Generator.
  *
  * \param gen   The Generator -- must not be \c NULL.

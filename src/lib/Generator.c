@@ -26,10 +26,23 @@
 
 #include <Generator.h>
 #include <Generator_sine.h>
+#include <Generator_sawtooth.h>
+#include <Generator_triangle.h>
+#include <Generator_square303.h>
 #include <File_base.h>
 #include <File_tree.h>
 
 #include <xmemory.h>
+
+
+void Generator_init(Generator* gen)
+{
+    assert(gen != NULL);
+    gen->enabled = true;
+    gen->volume_dB = 0;
+    gen->volume = 1;
+    return;
+}
 
 
 Generator* new_Generator_from_file_tree(File_tree* tree,
@@ -75,6 +88,18 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
     if (strcmp(type_str, "sine") == 0)
     {
         gen = (Generator*)new_Generator_sine(ins_params);
+    }
+    else if (strcmp(type_str, "sawtooth") == 0)
+    {
+        gen = (Generator*)new_Generator_sawtooth(ins_params);
+    }
+    else if (strcmp(type_str, "triangle") == 0)
+    {
+        gen = (Generator*)new_Generator_triangle(ins_params);
+    }
+    else if (strcmp(type_str, "square303") == 0)
+    {
+        gen = (Generator*)new_Generator_square303(ins_params);
     }
     else
     {
