@@ -295,8 +295,8 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         }
         for (int i = 0; i < NOTE_TABLES_MAX; ++i)
         {
-            char dir_name[] = "0";
-            snprintf(dir_name, 2, "%01x", i);
+            char dir_name[] = "t_0";
+            snprintf(dir_name, 4, "t_%01x", i);
             File_tree* index_tree = File_tree_get_child(nts_tree, dir_name);
             if (index_tree != NULL)
             {

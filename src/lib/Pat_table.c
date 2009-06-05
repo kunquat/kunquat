@@ -68,8 +68,8 @@ bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
     }
     for (int i = 0; i < PATTERNS_MAX; ++i)
     {
-        char dir_name[] = "000";
-        snprintf(dir_name, 4, "%03x", i);
+        char dir_name[] = "p_000";
+        snprintf(dir_name, 6, "p_%03x", i);
         File_tree* pat_tree = File_tree_get_child(tree, dir_name);
         if (pat_tree != NULL)
         {

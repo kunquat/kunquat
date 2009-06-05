@@ -229,8 +229,8 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         }
         for (int i = 0; i < GENERATORS_MAX; ++i)
         {
-            char dir_name[] = "0";
-            snprintf(dir_name, 2, "%01x", i);
+            char dir_name[] = "g_00";
+            snprintf(dir_name, 5, "g_%02x", i);
             File_tree* gen_tree = File_tree_get_child(gens_tree, dir_name);
             if (gen_tree != NULL)
             {

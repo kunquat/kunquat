@@ -89,8 +89,8 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
     }
     for (int i = 1; i < INSTRUMENTS_MAX; ++i)
     {
-        char dir_name[] = "00";
-        snprintf(dir_name, 3, "%02x", i);
+        char dir_name[] = "i_00";
+        snprintf(dir_name, 5, "i_%02x", i);
         File_tree* index_tree = File_tree_get_child(tree, dir_name);
         if (index_tree != NULL)
         {

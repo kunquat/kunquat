@@ -71,8 +71,8 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
     }
     for (int i = 0; i < SUBSONGS_MAX; ++i)
     {
-        char dir_name[] = "ff";
-        snprintf(dir_name, 3, "%02x", i);
+        char dir_name[] = "ss_ff";
+        snprintf(dir_name, 6, "ss_%02x", i);
         File_tree* subsong_tree = File_tree_get_child(tree, dir_name);
         if (subsong_tree != NULL)
         {

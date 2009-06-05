@@ -275,7 +275,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
                  "Column is not a directory");
         return false;
     }
-    bool is_global = strcmp(File_tree_get_name(tree), "global") == 0;
+    bool is_global = strcmp(File_tree_get_name(tree), "gc") == 0;
     File_tree* event_tree = File_tree_get_child(tree, "events.json");
     if (event_tree == NULL)
     {

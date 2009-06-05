@@ -113,7 +113,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         }
         Pattern_set_length(pat, len);
     }
-    char dir_name[] = "global";
+    char dir_name[7] = "gc";
     for (int i = -1; i < COLUMNS_MAX; ++i)
     {
         File_tree* col_tree = File_tree_get_child(tree, dir_name);
@@ -133,7 +133,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
                 return false;
             }
         }
-        snprintf(dir_name, 4, "%03d", i + 1);
+        snprintf(dir_name, 6, "vc_%02x", i + 1);
     }
     return true;
 }
