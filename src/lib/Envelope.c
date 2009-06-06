@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 
 #include <Envelope.h>
 
@@ -112,8 +113,12 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
     int node_count = 0;
     double node[2] = { 0 };
     bool expect_node = true;
-    Envelope_set_node(env, env->min_x, env->min_y);
-    Envelope_set_node(env, env->max_x, env->max_y);
+    double min_x = !isfinite(env->min_x) ? -DBL_MAX : env->min_x;
+    double min_y = !isfinite(env->min_y) ? -DBL_MAX : env->min_y;
+    double max_x = !isfinite(env->max_x) ? DBL_MAX : env->max_x;
+    double max_y = !isfinite(env->max_x) ? DBL_MAX : env->max_y;
+    Envelope_set_node(env, min_x, min_y);
+    Envelope_set_node(env, max_x, max_y);
     while (expect_node && node_count < env->nodes_max)
     {
         str = read_const_char(str, '[', state);
@@ -155,8 +160,8 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
                          env->max_x, env->max_y);
                 return str;
             }
-        }
-        ++node_count;
+    }
+    ++node_count;
     }
     str = read_const_char(str, ']', state);
     return str;

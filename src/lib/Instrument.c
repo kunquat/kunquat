@@ -217,6 +217,11 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
             }
         }
     }
+    Instrument_params_read(&ins->params, tree, state);
+    if (state->error)
+    {
+        return false;
+    }
     File_tree* gens_tree = File_tree_get_child(tree, "gens");
     if (gens_tree != NULL)
     {

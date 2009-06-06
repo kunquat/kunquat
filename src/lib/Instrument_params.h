@@ -30,6 +30,8 @@
 #include <frame_t.h>
 #include <Envelope.h>
 #include <Note_table.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 
 typedef struct Instrument_params
@@ -67,7 +69,7 @@ typedef struct Instrument_params
 
     bool volume_off_env_enabled;  ///< Note Off volume envelope toggle.
     Envelope* volume_off_env;     ///< Note Off volume envelope.
-    double volume_off_env_scale;  ///< Note Off volume envelope scale factor (frequency -> speed).
+    double volume_off_env_factor; ///< Note Off volume envelope scale factor (frequency -> speed).
     double volume_off_env_center; ///< Note Off volume envelope scale center frequency.
 
     bool panning_enabled;       ///< Default panning toggle.
@@ -109,6 +111,18 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
         int buf_count,
         uint32_t buf_len,
         Note_table** notes);
+
+
+/**
+ * Reads Instrument parameters from a File tree.
+ *
+ * \param ip      The Instrument parameters -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* state);
 
 
 /**

@@ -23,8 +23,11 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <Instrument_params.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \
@@ -38,7 +41,6 @@
             return NULL;\
         }\
     } while (false)
-
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
         frame_t** bufs,
@@ -107,7 +109,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
     new_env_or_fail(ip->volume_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
     ip->volume_off_env_enabled = false;
-    ip->volume_off_env_scale = 1;
+    ip->volume_off_env_factor = 1;
     ip->volume_off_env_center = 440;
     Envelope_set_node(ip->volume_off_env, 0, 1);
     Envelope_set_node(ip->volume_off_env, 1, 0);
@@ -141,6 +143,128 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     return ip;
 }
 
+#undef new_env_or_fail
+
+
+bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* state)
+{
+    assert(ip != NULL);
+    assert(tree != NULL);
+    assert(!File_tree_is_dir(tree));
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    char* str = File_tree_get_data(tree);
+    str = read_const_char(str, '{', state);
+    if (state->error)
+    {
+        return false;
+    }
+    str = read_const_char(str, '}', state);
+    if (!state->error)
+    {
+        return true;
+    }
+    state->error = false;
+    state->message[0] = '\0';
+    bool expect_key = true;
+    while (expect_key)
+    {
+        char key[128] = { '\0' };
+        str = read_string(str, key, 128, state);
+        str = read_const_char(str, ':', state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (strcmp(key, "enabled") == 0)
+        {
+            str = read_bool(str, &ip->volume_off_env_enabled, state);
+        }
+        else if (strcmp(key, "scale_factor") == 0)
+        {
+            str = read_double(str, &ip->volume_off_env_factor, state);
+        }
+        else if (strcmp(key, "scale_center") == 0)
+        {
+            str = read_double(str, &ip->volume_off_env_center, state);
+        }
+        else if (strcmp(key, "nodes") == 0)
+        {
+            str = Envelope_read(ip->volume_off_env, str, state);
+        }
+        else
+        {
+            state->error = true;
+            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                     "Unrecognised key in Note Off volume envelope: %s", key);
+            return false;
+        }
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, ',', state);
+        if (state->error)
+        {
+            expect_key = false;
+            state->error = false;
+            state->message[0] = '\0';
+        }
+    }
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
+}
+
+
+bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* state)
+{
+    assert(ip != NULL);
+    assert(tree != NULL);
+    assert(File_tree_is_dir(tree));
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    struct
+    {
+        char* name;
+        bool (*read)(Instrument_params*, File_tree*, Read_state*);
+    } files[] =
+    {
+        { "volume_off_env.json", read_volume_off_env },
+        { NULL, NULL }
+    };
+    for (int i = 0; files[i].name != NULL; ++i)
+    {
+        assert(files[i].read != NULL);
+        File_tree* obj_tree = File_tree_get_child(tree, files[i].name);
+        if (obj_tree != NULL)
+        {
+            if (File_tree_is_dir(obj_tree))
+            {
+                state->error = true;
+                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                         "File %s is a directory", files[i].name);
+                return false;
+            }
+            files[i].read(ip, obj_tree, state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 
 #define del_env_check(env)\
     do\
@@ -151,7 +275,6 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
             (env) = NULL;\
         }\
     } while (false)
-
 
 void Instrument_params_uninit(Instrument_params* ip)
 {
@@ -166,5 +289,7 @@ void Instrument_params_uninit(Instrument_params* ip)
     del_env_check(ip->filter_off_env);
     return;
 }
+
+#undef del_env_check
 
 
