@@ -104,44 +104,37 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Instrument is not a directory");
+        Read_state_set_error(state, "Instrument is not a directory");
         return false;
     }
     char* name = File_tree_get_name(tree);
     if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not a Kunquat file");
+        Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
     if (name[strlen(MAGIC_ID)] != 'i'
              || name[strlen(MAGIC_ID) + 1] != '_')
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not an instrument file");
+        Read_state_set_error(state, "Directory is not an instrument file");
         return false;
     }
     const char* version = "00";
     if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Unsupported instrument version");
+        Read_state_set_error(state, "Unsupported instrument version");
         return false;
     }
     File_tree* ins_tree = File_tree_get_child(tree, "info_ins.json");
     if (ins_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(ins_tree));
         if (File_tree_is_dir(ins_tree))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Instrument information file is a directory");
             return false;
         }
@@ -154,8 +147,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         str = read_const_char(str, '}', state);
         if (state->error)
         {
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
             bool expect_key = true;
             while (expect_key)
             {
@@ -184,8 +176,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                     }
                     if (num < -1 || num >= NOTE_TABLES_MAX)
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                        Read_state_set_error(state,
                                  "Invalid Note table index: %" PRId64, num);
                         return false;
                     }
@@ -193,8 +184,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                 }
                 else
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Unsupported field in instrument information: %s", key);
                     return false;
                 }
@@ -206,8 +196,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                 if (state->error)
                 {
                     expect_key = false;
-                    state->error = false;
-                    state->message[0] = '\0';
+                    Read_state_clear_error(state);
                 }
             }
             str = read_const_char(str, '}', state);
@@ -225,10 +214,10 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
     File_tree* gens_tree = File_tree_get_child(tree, "gens");
     if (gens_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(gens_tree));
         if (!File_tree_is_dir(gens_tree))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Generator collection is not a directory");
             return false;
         }

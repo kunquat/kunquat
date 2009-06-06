@@ -32,6 +32,7 @@
 #include <Reltime.h>
 
 
+#define STATE_PATH_LENGTH (512)
 #define ERROR_MESSAGE_LENGTH (256)
 
 #define MAGIC_ID "kunquat_"
@@ -40,6 +41,7 @@
 typedef struct Read_state
 {
     bool error;
+    char path[STATE_PATH_LENGTH];
     int row;
     char message[ERROR_MESSAGE_LENGTH];
 } Read_state;
@@ -48,10 +50,20 @@ typedef struct Read_state
 typedef struct Write_state
 {
     bool error;
+    char path[STATE_PATH_LENGTH];
     int row;
     char message[ERROR_MESSAGE_LENGTH];
     int indent;
 } Write_state;
+
+
+void Read_state_init(Read_state* state, char* path);
+
+
+void Read_state_set_error(Read_state* state, char* message, ...);
+
+
+void Read_state_clear_error(Read_state* state);
 
 
 char* read_file(FILE* in, Read_state* state);

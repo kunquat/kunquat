@@ -138,8 +138,7 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
                 return str;
             }
             expect_node = false;
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
             Envelope_move_node(env, node_count, node[0], node[1]);
         }
         else if (node_count == 0)
@@ -151,8 +150,7 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
             int ret = Envelope_set_node(env, node[0], node[1]);
             if (ret == -1)
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                Read_state_set_error(state,
                          "Node (%f,%f) outside valid range for this envelope"
                          " ((%f,%f)..(%f,%f))",
                          node[0], node[1],

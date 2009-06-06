@@ -33,6 +33,7 @@ typedef struct File_tree
 {
     bool is_dir;          ///< Whether the File tree is a directory.
     char* name;           ///< File name.
+    char* path;           ///< Path of the file.
     union
     {
         char* data;       ///< Contents of a regular file.
@@ -46,6 +47,8 @@ typedef struct File_tree
  *
  * \param name   The (file) name of the tree -- must not be \c NULL. The name
  *               will not be copied, and it must be dynamically allocated.
+ * \param path   The (file) path of the tree -- must not be \c NULL. The path
+ *               will not be copied, and it must be dynamically allocated.
  * \param data   Contents of a regular file. If this is \c NULL, a directory
  *               structure is created. The data will not be copied, and it
  *               must be dynamically allocated.
@@ -53,7 +56,7 @@ typedef struct File_tree
  * \return   The new File tree if successful, or \c NULL if memory allocation
  *           failed.
  */
-File_tree* new_File_tree(char* name, char* data);
+File_tree* new_File_tree(char* name, char* path, char* data);
 
 
 /**
@@ -98,6 +101,16 @@ bool File_tree_is_dir(File_tree* tree);
  * \return   The name -- must not be freed.
  */
 char* File_tree_get_name(File_tree* tree);
+
+
+/**
+ * Gets the path of the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ *
+ * \return   The path -- must not be freed.
+ */
+char* File_tree_get_path(File_tree* tree);
 
 
 /**

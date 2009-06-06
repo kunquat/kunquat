@@ -75,21 +75,19 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Pattern is not a directory");
+        Read_state_set_error(state, "Pattern is not a directory");
         return false;
     }
     File_tree* info = File_tree_get_child(tree, "info_pat.json");
     if (info != NULL)
     {
+        Read_state_init(state, File_tree_get_path(info));
         if (File_tree_is_dir(info))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Pattern info is a directory");
+            Read_state_set_error(state, "Pattern info is a directory");
             return false;
         }
         char* str = File_tree_get_data(info);
@@ -106,9 +104,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         }
         if (Reltime_get_beats(len) < 0)
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Pattern length is negative");
+            Read_state_set_error(state, "Pattern length is negative");
             return false;
         }
         Pattern_set_length(pat, len);
@@ -119,6 +115,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         File_tree* col_tree = File_tree_get_child(tree, dir_name);
         if (col_tree != NULL)
         {
+            Read_state_init(state, File_tree_get_path(col_tree));
             if (i == -1)
             {
                 Column_read(Pattern_get_global(pat), col_tree, state);
@@ -129,7 +126,6 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
             }
             if (state->error)
             {
-                fprintf(stderr, "Error @ row %d: %s\n", state->row, state->message);
                 return false;
             }
         }

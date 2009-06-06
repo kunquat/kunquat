@@ -143,44 +143,36 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Song is not a directory");
+        Read_state_set_error(state, "Song is not a directory");
         return false;
     }
     char* name = File_tree_get_name(tree);
     if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not a Kunquat file");
+        Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
     if (strncmp(name + strlen(MAGIC_ID), "s_", 2) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not a Song file");
+        Read_state_set_error(state, "Directory is not a Song file");
         return false;
     }
     const char* version = "00";
     if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Unsupported Song version");
+        Read_state_set_error(state, "Unsupported Song version");
         return false;
     }
     File_tree* info_tree = File_tree_get_child(tree, "info_song.json");
     if (info_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(info_tree));
         if (File_tree_is_dir(info_tree))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Song info is a directory");
+            Read_state_set_error(state, "Song info is a directory");
             return false;
         }
         char* str = File_tree_get_data(info_tree);
@@ -192,8 +184,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         str = read_const_char(str, '}', state);
         if (state->error)
         {
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
             bool expect_key = true;
             while (expect_key)
             {
@@ -210,15 +201,13 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     }
                     if (num < 1 || num > BUF_COUNT_MAX)
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                        Read_state_set_error(state,
                                  "Unsupported number of mixing buffers: %" PRId64, num);
                         return false;
                     }
                     if (!Song_set_buf_count(song, num))
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                        Read_state_set_error(state,
                                  "Couldn't allocate memory for mixing buffers");
                         return false;
                     }
@@ -232,8 +221,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     }
                     if (!isfinite(song->mix_vol_dB) && song->mix_vol_dB != -INFINITY)
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                        Read_state_set_error(state,
                                  "Invalid mixing volume: %f", song->mix_vol_dB);
                         song->mix_vol_dB = 0;
                         return false;
@@ -250,8 +238,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     }
                     if (num < 0 || num >= SUBSONGS_MAX)
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                        Read_state_set_error(state,
                                  "Invalid initial Subsong number: %" PRId64, num);
                         return false;
                     }
@@ -259,8 +246,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                 }
                 else
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Unrecognised key in Song info: %s", key);
                     return false;
                 }
@@ -272,8 +258,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                 if (state->error)
                 {
                     expect_key = false;
-                    state->error = false;
-                    state->message[0] = '\0';
+                    Read_state_clear_error(state);
                 }
             }
             str = read_const_char(str, '}', state);
@@ -286,10 +271,10 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
     File_tree* nts_tree = File_tree_get_child(tree, "tunings");
     if (nts_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(nts_tree));
         if (!File_tree_is_dir(nts_tree))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Note table collection is not a directory");
             return false;
         }
@@ -300,21 +285,21 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             File_tree* index_tree = File_tree_get_child(nts_tree, dir_name);
             if (index_tree != NULL)
             {
+                Read_state_init(state, File_tree_get_path(index_tree));
                 if (!File_tree_is_dir(index_tree))
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Note table at index %01x is not a directory", i);
                     return false;
                 }
                 File_tree* notes_tree = File_tree_get_child(index_tree, "kunquat_t_00");
                 if (notes_tree != NULL)
                 {
+                    Read_state_init(state, File_tree_get_path(notes_tree));
                     if (!Song_create_notes(song, i))
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                                 "Couldn't allocate memory for Note table");
+                        Read_state_set_error(state,
+                                 "Couldn't allocate memory for Note table %01x", i);
                         return false;
                     }
                     Note_table* notes = Song_get_notes(song, i);

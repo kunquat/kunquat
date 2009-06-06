@@ -55,26 +55,22 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
     {
         return NULL;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Generator is not a directory");
+        Read_state_set_error(state, "Generator is not a directory");
         return NULL;
     }
     File_tree* type_tree = File_tree_get_child(tree, "gen_type.json");
     if (type_tree == NULL)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Generator does not contain a type description");
+        Read_state_set_error(state, "Generator does not contain a type description");
         return NULL;
     }
+    Read_state_init(state, File_tree_get_path(type_tree));
     if (File_tree_is_dir(type_tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Type description of the Generator is a directory");
+        Read_state_set_error(state, "Type description of the Generator is a directory");
         return NULL;
     }
     char* str = File_tree_get_data(type_tree);
@@ -103,27 +99,23 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
     }
     else
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Unsupported Generator type: %s", type_str);
+        Read_state_set_error(state, "Unsupported Generator type: %s", type_str);
         return NULL;
     }
     if (gen == NULL)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Out of memory");
+        Read_state_set_error(state, "Couldn't allocate memory for the new Generator");
         return NULL;
     }
 
     File_tree* info_tree = File_tree_get_child(tree, "info_gen.json");
     if (info_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(info_tree));
         if (File_tree_is_dir(info_tree))
         {
             del_Generator(gen);
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Field description of the Generator is a directory");
             return NULL;
         }
@@ -137,8 +129,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
         str = read_const_char(str, '}', state);
         if (state->error)
         {
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
             char key[128] = { '\0' };
             bool expect_key = true;
             while (expect_key)
@@ -165,8 +156,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
                 else
                 {
                     del_Generator(gen);
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Unsupported key in Generator info: %s", key);
                     return NULL;
                 }
@@ -179,8 +169,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
                 if (state->error)
                 {
                     expect_key = false;
-                    state->error = false;
-                    state->message[0] = '\0';
+                    Read_state_clear_error(state);
                 }
             }
             str = read_const_char(str, '}', state);

@@ -167,8 +167,7 @@ bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* sta
     {
         return true;
     }
-    state->error = false;
-    state->message[0] = '\0';
+    Read_state_clear_error(state);
     bool expect_key = true;
     while (expect_key)
     {
@@ -197,8 +196,7 @@ bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* sta
         }
         else
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Unrecognised key in Note Off volume envelope: %s", key);
             return false;
         }
@@ -210,8 +208,7 @@ bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* sta
         if (state->error)
         {
             expect_key = false;
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
         }
     }
     str = read_const_char(str, '}', state);
@@ -248,11 +245,10 @@ bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* 
         File_tree* obj_tree = File_tree_get_child(tree, files[i].name);
         if (obj_tree != NULL)
         {
+            Read_state_init(state, File_tree_get_path(obj_tree));
             if (File_tree_is_dir(obj_tree))
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "File %s is a directory", files[i].name);
+                Read_state_set_error(state, "File %s is a directory", files[i].name);
                 return false;
             }
             files[i].read(ip, obj_tree, state);

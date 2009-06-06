@@ -69,11 +69,10 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Subsong is not a directory");
+        Read_state_set_error(state, "Subsong is not a directory");
         return false;
     }
     File_tree* info = File_tree_get_child(tree, "info_sub.json");
@@ -81,11 +80,10 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
     {
         return true;
     }
+    Read_state_init(state, File_tree_get_path(info));
     if (File_tree_is_dir(info))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Subsong description is a directory");
+        Read_state_set_error(state, "Subsong description is a directory");
         return false;
     }
     char* str = File_tree_get_data(info);
@@ -99,8 +97,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
     {
         return true;
     }
-    state->error = false;
-    state->message[0] = '\0';
+    Read_state_clear_error(state);
     char key[128] = { '\0' };
     bool expect_pair = true;
     while (expect_pair)
@@ -135,8 +132,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
             str = read_const_char(str, ']', state);
             if (state->error)
             {
-                state->error = false;
-                state->message[0] = '\0';
+                Read_state_clear_error(state);
                 bool expect_num = true;
                 int index = 0;
                 while (expect_num && index < ORDERS_MAX)
@@ -149,25 +145,21 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                     }
                     if ((num < 0 || num >= PATTERNS_MAX) && num != ORDER_NONE)
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                                 "Pattern number (%" PRId64 ") outside valid range",
-                                 num);
+                        Read_state_set_error(state,
+                                 "Pattern number (%" PRId64 ") is outside valid range", num);
                         return false;
                     }
                     if (!Subsong_set(ss, index, num))
                     {
-                        state->error = true;
-                        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                                 "Out of memory");
+                        Read_state_set_error(state,
+                                 "Couldn't allocate memory for a Subsong");
                         return false;
                     }
                     ++index;
                     str = read_const_char(str, ',', state);
                     if (state->error)
                     {
-                        state->error = false;
-                        state->message[0] = '\0';
+                        Read_state_clear_error(state);
                         expect_num = false;
                     }
                 }
@@ -180,9 +172,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         }
         else
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Unrecognised key in Subsong: %s\n", key);
+            Read_state_set_error(state, "Unrecognised key in Subsong: %s\n", key);
             return false;
         }
         if (state->error)
@@ -192,8 +182,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         str = read_const_char(str, ',', state);
         if (state->error)
         {
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
             expect_pair = false;
         }
     }

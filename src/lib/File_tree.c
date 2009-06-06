@@ -40,9 +40,10 @@
 #include <xmemory.h>
 
 
-File_tree* new_File_tree(char* name, char* data)
+File_tree* new_File_tree(char* name, char* path, char* data)
 {
     assert(name != NULL);
+    assert(path != NULL);
     File_tree* tree = xalloc(File_tree);
     if (tree == NULL)
     {
@@ -66,6 +67,7 @@ File_tree* new_File_tree(char* name, char* data)
         tree->content.data = data;
     }
     tree->name = name;
+    tree->path = path;
     return tree;
 }
 
@@ -81,6 +83,12 @@ File_tree* new_File_tree_from_fs(char* path)
     }
     int name_start = 0;
     int len = strlen(path);
+    char* path_name = xcalloc(char, len + 1);
+    if (path_name == NULL)
+    {
+        return NULL;
+    }
+    strcpy(path_name, path);
     for (int i = 0; i < len - 1; ++i) // -1: ignore a trailing '/'
     {
         if (path[i] == '/' && path[i + 1] != '/')
@@ -91,6 +99,7 @@ File_tree* new_File_tree_from_fs(char* path)
     char* name = xcalloc(char, (len + 1) - name_start);
     if (name == NULL)
     {
+        xfree(path_name);
         return NULL;
     }
     len -= name_start;
@@ -107,10 +116,11 @@ File_tree* new_File_tree_from_fs(char* path)
     File_tree* tree = NULL;
     if (S_ISDIR(info->st_mode))
     {
-        tree = new_File_tree(name, NULL);
+        tree = new_File_tree(name, path_name, NULL);
         if (tree == NULL)
         {
             xfree(name);
+            xfree(path_name);
             return NULL;
         }
         DIR* ds = opendir(path);
@@ -181,6 +191,7 @@ File_tree* new_File_tree_from_fs(char* path)
         if (in == NULL)
         {
             xfree(name);
+            xfree(path_name);
             return NULL;
         }
         char* data = read_file(in, state);
@@ -188,14 +199,16 @@ File_tree* new_File_tree_from_fs(char* path)
         if (state->error)
         {
             xfree(name);
+            xfree(path_name);
             return NULL;
         }
         assert(data != NULL);
-        tree = new_File_tree(name, data);
+        tree = new_File_tree(name, path_name, data);
         if (tree == NULL)
         {
             xfree(data);
             xfree(name);
+            xfree(path_name);
             return NULL;
         }
     }
@@ -225,6 +238,13 @@ char* File_tree_get_name(File_tree* tree)
 {
     assert(tree != NULL);
     return tree->name;
+}
+
+
+char* File_tree_get_path(File_tree* tree)
+{
+    assert(tree != NULL);
+    return tree->path;
 }
 
 
@@ -273,9 +293,13 @@ void del_File_tree(File_tree* tree)
     else
     {
         assert(tree->content.data != NULL);
-        xfree(tree->content.data);
+        if (tree->content.data != NULL)
+        {
+            xfree(tree->content.data);
+        }
     }
     xfree(tree->name);
+    xfree(tree->path);
     xfree(tree);
     return;
 }

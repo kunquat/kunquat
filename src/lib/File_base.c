@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #include <Real.h>
 #include <Reltime.h>
@@ -39,17 +40,50 @@
 #include <xmemory.h>
 
 
-#define return_null_if(cond, state, msg)                                \
-    do                                                                  \
-    {                                                                   \
-        if ((cond))                                                     \
-        {                                                               \
-            strncpy((state)->message, (msg), ERROR_MESSAGE_LENGTH - 1); \
-            (state)->message[ERROR_MESSAGE_LENGTH - 1] = '\0';          \
-            return NULL;                                                \
-        }                                                               \
-    } while (false)
+void Read_state_init(Read_state* state, char* path)
+{
+    assert(state != NULL);
+    assert(path != NULL);
+    Read_state_clear_error(state);
+    strncpy(state->path, path, STATE_PATH_LENGTH - 1);
+    state->path[STATE_PATH_LENGTH - 1] = '\0';
+    state->row = 1;
+    return;
+}
 
+
+void Read_state_set_error(Read_state* state, char* message, ...)
+{
+    assert(state != NULL);
+    assert(message != NULL);
+    state->error = true;
+    va_list args;
+    va_start(args, message);
+    vsnprintf(state->message, ERROR_MESSAGE_LENGTH, message, args);
+    va_end(args);
+    state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+    return;
+}
+
+
+void Read_state_clear_error(Read_state* state)
+{
+    assert(state != NULL);
+    state->error = false;
+    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+    return;
+}
+
+
+#define return_null_if(cond, state, msg)          \
+    do                                            \
+    {                                             \
+        if ((cond))                               \
+        {                                         \
+            Read_state_set_error((state), (msg)); \
+            return NULL;                          \
+        }                                         \
+    } while (false)
 
 char* read_file(FILE* in, Read_state* state)
 {
@@ -79,16 +113,13 @@ char* read_file(FILE* in, Read_state* state)
         location += 1024;
         if (read < 1024 && pos < length)
         {
-            strncpy(state->message, "Couldn't read data from the input file",
-                    ERROR_MESSAGE_LENGTH - 1);
-            state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+            Read_state_set_error(state, "Couldn't read data from the input file");
             xfree(data);
             return NULL;
         }
     }
     return data;
 }
-
 
 #undef return_null_if
 
@@ -141,16 +172,15 @@ char* read_const_char(char* str, char result, Read_state* state)
     str = skip_whitespace(str, state);
     if (*str != result)
     {
-        state->error = true;
         if (isprint(*str))
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected '%c' instead of '%c'", result, *str);
+            Read_state_set_error(state, "Expected '%c' instead of '%c'",
+                                 result, *str);
         }
         else
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected '%c' instead of %#04x", result, (unsigned)*str);
+            Read_state_set_error(state, "Expected '%c' instead of %#04x",
+                                         result, (unsigned)*str);
         }
         return str;
     }
@@ -174,16 +204,15 @@ char* read_const_string(char* str, char* result, Read_state* state)
     str = skip_whitespace(str, state);
     if (*str != '\"')
     {
-        state->error = true;
         if (isprint(*str))
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected beginning of a string instead of '%c'", *str);
+            Read_state_set_error(state,
+                   "Expected beginning of a string instead of '%c'", *str);
         }
         else
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected beginning of a string instead of %#2x", (unsigned)*str);
+            Read_state_set_error(state,
+                   "Expected beginning of a string instead of %#2x", (unsigned)*str);
         }
         return str;
     }
@@ -191,9 +220,7 @@ char* read_const_string(char* str, char* result, Read_state* state)
     int len = strlen(result);
     if (strncmp(str, result, len) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Unexpected string (expected \"%s\")", result);
+        Read_state_set_error(state, "Unexpected string (expected \"%s\")", result);
         return str;
     }
     for (int i = 0; i < len; ++i)
@@ -207,9 +234,7 @@ char* read_const_string(char* str, char* result, Read_state* state)
     }
     if (*str != '\"')
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Unexpected string (expected \"%s\")", result);
+        Read_state_set_error(state, "Unexpected string (expected \"%s\")", result);
         return str;
     }
     ++str;
@@ -246,9 +271,7 @@ char* read_bool(char* str, bool* result, Read_state* state)
     }
     else
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Expected a valid boolean");
+        Read_state_set_error(state, "Expected a valid boolean");
     }
     return str;
 }
@@ -266,15 +289,14 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
     str = skip_whitespace(str, state);
     if (*str != '\"')
     {
-        state->error = true;
         if (isprint(*str))
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                     "Expected beginning of a string instead of '%c'", *str);
         }
         else
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                     "Expected beginning of a string instead of %#2x", (unsigned)*str);
         }
         return str;
@@ -285,9 +307,7 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
         assert(result != NULL);
         if (*str == '\0')
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Unexpected end of string");
+            Read_state_set_error(state, "Unexpected end of string");
             return str;
         }
         if (*str == '\"')
@@ -315,8 +335,7 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
             }
             else if (strchr("\b\r\f", *str) == NULL)
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                Read_state_set_error(state,
                         "Unsupported escape sequence '\\%c'", *str);
                 return str;
             }
@@ -335,9 +354,7 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
     {
         if (*str == '\0')
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Unexpected end of string");
+            Read_state_set_error(state, "Unexpected end of string");
             return str;
         }
         ++str;
@@ -360,9 +377,7 @@ char* read_int(char* str, int64_t* result, Read_state* state)
     int64_t val = strtol(str, &end, 0);
     if (str == end)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Expected a valid integer");
+        Read_state_set_error(state, "Expected a valid integer");
         return str;
     }
     if (result != NULL)
@@ -386,9 +401,7 @@ char* read_double(char* str, double* result, Read_state* state)
     double val = strtod(str, &end);
     if (end == str)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Expected a valid floating point number");
+        Read_state_set_error(state, "Expected a valid floating point number");
         return str;
     }
     if (result != NULL)
@@ -416,8 +429,7 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
     str = read_string(str, type, 2, state);
     if (state->error)
     {
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Expected a type description of the ratio");
+        Read_state_set_error(state, "Expected a type description of the ratio");
         return str;
     }
     str = read_const_char(str, ',', state);
@@ -438,8 +450,7 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
         str = read_int(str, &num, state);
         if (state->error)
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected a numerator for a fraction");
+            Read_state_set_error(state, "Expected a numerator for a fraction");
             return str;
         }
         str = read_const_char(str, ',', state);
@@ -450,15 +461,12 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
         str = read_int(str, &den, state);
         if (state->error)
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Expected a denominator for a fraction");
+            Read_state_set_error(state, "Expected a denominator for a fraction");
             return str;
         }
         if (den <= 0)
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Denominator must be positive");
+            Read_state_set_error(state, "Denominator must be positive");
             return str;
         }
         str = read_const_char(str, ']', state);
@@ -476,24 +484,19 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
         }
         if (!isfinite(fl))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Floating point value must be finite.");
+            Read_state_set_error(state, "Floating point value must be finite.");
             return str;
         }
     }
     else
     {
-        state->error = true;
         if (isprint(type[0]))
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Invalid type description '%c'", type[0]);
+            Read_state_set_error(state, "Invalid type description '%c'", type[0]);
         }
         else
         {
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                    "Invalid type description (%#2x)", type[0]);
+            Read_state_set_error(state, "Invalid type description (%#2x)", type[0]);
         }
         return str;
     }
@@ -554,8 +557,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &beats, state);
     if (state->error)
     {
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid Reltime stamp");
         return str;
     }
     str = read_const_char(str, ',', state);
@@ -566,14 +568,12 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &rem, state);
     if (state->error)
     {
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid Reltime stamp");
         return str;
     }
     if (rem < 0 || rem > RELTIME_BEAT)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
+        Read_state_set_error(state,
                 "Reltime stamp remainder out of range [0..%ld)", RELTIME_BEAT);
         return str;
     }

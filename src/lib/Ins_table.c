@@ -80,11 +80,10 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Instrument table is not a directory");
+        Read_state_set_error(state, "Instrument table is not a directory");
         return false;
     }
     for (int i = 1; i < INSTRUMENTS_MAX; ++i)
@@ -94,10 +93,10 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
         File_tree* index_tree = File_tree_get_child(tree, dir_name);
         if (index_tree != NULL)
         {
+            Read_state_init(state, File_tree_get_path(index_tree));
             if (!File_tree_is_dir(index_tree))
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                Read_state_set_error(state,
                          "Instrument index %02x is not a directory", i);
                 return false;
             }
@@ -113,8 +112,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                                                  events);
                 if (ins == NULL)
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Couldn't allocate memory for instrument %02x", i);
                     return false;
                 }
@@ -124,10 +122,10 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     del_Instrument(ins);
                     return false;
                 }
+                Read_state_init(state, File_tree_get_path(ins_tree));
                 if (!Ins_table_set(table, i, ins))
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Couldn't insert Instrument %02x into the Instrument table", i);
                     return false;
                 }

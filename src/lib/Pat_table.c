@@ -59,11 +59,10 @@ bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Pattern table is not a directory");
+        Read_state_set_error(state, "Pattern table is not a directory");
         return false;
     }
     for (int i = 0; i < PATTERNS_MAX; ++i)
@@ -73,12 +72,12 @@ bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
         File_tree* pat_tree = File_tree_get_child(tree, dir_name);
         if (pat_tree != NULL)
         {
+            Read_state_init(state, File_tree_get_path(pat_tree));
             Pattern* pat = new_Pattern();
             if (pat == NULL)
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "Out of memory");
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for Pattern %03x", i);
                 return false;
             }
             Pattern_read(pat, pat_tree, state);
@@ -89,9 +88,8 @@ bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
             }
             if (!Pat_table_set(table, i, pat))
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "Out of memory");
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for Pattern %03x", i);
                 del_Pattern(pat);
                 return false;
             }

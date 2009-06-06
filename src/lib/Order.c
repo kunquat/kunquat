@@ -62,11 +62,10 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Subsong collection is not a directory");
+        Read_state_set_error(state, "Subsong collection is not a directory");
         return false;
     }
     for (int i = 0; i < SUBSONGS_MAX; ++i)
@@ -76,11 +75,11 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
         File_tree* subsong_tree = File_tree_get_child(tree, dir_name);
         if (subsong_tree != NULL)
         {
+            Read_state_init(state, File_tree_get_path(tree));
             if (!Order_set(order, i, 0, 0))
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "Out of memory");
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for subsong %02x", i);
                 return false;
             }
             Subsong* ss = Etable_get(order->subs, i);

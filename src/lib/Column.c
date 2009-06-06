@@ -268,11 +268,10 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Column is not a directory");
+        Read_state_set_error(state, "Column is not a directory");
         return false;
     }
     bool is_global = strcmp(File_tree_get_name(tree), "gc") == 0;
@@ -283,9 +282,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
     }
     if (File_tree_is_dir(event_tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Event list is a directory");
+        Read_state_init(state, "Event list is a directory");
         return false;
     }
     char* str = File_tree_get_data(event_tree);
@@ -298,8 +295,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
     {
         return true;
     }
-    state->error = false;
-    state->message[0] = '\0';
+    Read_state_clear_error(state);
 
     bool expect_event = true;
     while (expect_event)
@@ -319,16 +315,13 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         break_if(state->error);
         if (!EVENT_TYPE_IS_VALID(type))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Invalid Event type: %" PRId64 "\n", type);
+            Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
             return false;
         }
         if ((is_global && EVENT_TYPE_IS_VOICE(type)) ||
                 (!is_global && EVENT_TYPE_IS_GLOBAL(type)))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Incorrect Event type for %s column", is_global ? "global" : "note");
             return false;
         }
@@ -353,8 +346,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
             break;
             default:
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                Read_state_set_error(state,
                          "Unsupported Event type: %" PRId64 "\n", type);
                 return false;
             }
@@ -362,9 +354,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         }
         if (event == NULL)
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Couldn't allocate memory for Event");
+            Read_state_set_error(state, "Couldn't allocate memory for Event");
             return false;
         }
         str = Event_read(event, str, state);
@@ -375,9 +365,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         }
         if (!Column_ins(col, event))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                     "Couldn't insert Event");
+            Read_state_set_error(state, "Couldn't insert Event");
             del_Event(event);
             return false;
         }
@@ -389,8 +377,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         if (state->error)
         {
             expect_event = false;
-            state->error = false;
-            state->message[0] = '\0';
+            Read_state_clear_error(state);
         }
     }
 

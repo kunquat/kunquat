@@ -137,9 +137,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
             assert(data != NULL);
             if (!Event_set_field(event, i, data))
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                         "Field %d is not inside valid range.", i);
+                Read_state_set_error(state, "Field %d is not inside valid range.", i);
                 return str;
             }
             if (i < field_count - 1)

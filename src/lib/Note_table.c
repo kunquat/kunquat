@@ -86,9 +86,7 @@ Note_table* new_Note_table(pitch_t ref_pitch, Real* octave_ratio)
             if ((Real_is_frac((ratio)) && Real_get_numerator((ratio)) <= 0)       \
                     || (!Real_is_frac((ratio)) && Real_get_double((ratio)) <= 0)) \
             {                                                                     \
-                (state)->error = true;                                            \
-                snprintf((state)->message, ERROR_MESSAGE_LENGTH,                  \
-                         "Ratio is not positive");                                \
+                Read_state_set_error((state), "Ratio is not positive");           \
                 return false;                                                     \
             }                                                                     \
         }                                                                         \
@@ -104,44 +102,36 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
     {
         return false;
     }
+    Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Note table is not a directory");
+        Read_state_set_error(state, "Note table is not a directory");
         return false;
     }
     char* name = File_tree_get_name(tree);
     if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not a Kunquat file");
+        Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (name[strlen(MAGIC_ID)] != 't'
-            || name[strlen(MAGIC_ID) + 1] != '_')
+    if (strncmp(name + strlen(MAGIC_ID), "t_", 2) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Directory is not a tuning file");
+        Read_state_set_error(state, "Directory is not a tuning file");
         return false;
     }
     const char* version = "00";
     if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
-        state->error = true;
-        snprintf(state->message, ERROR_MESSAGE_LENGTH,
-                 "Unsupported tuning version");
+        Read_state_set_error(state, "Unsupported tuning version");
         return false;
     }
     File_tree* table_tree = File_tree_get_child(tree, "table.json");
     if (table_tree != NULL)
     {
+        Read_state_init(state, File_tree_get_path(table_tree));
         if (File_tree_is_dir(table_tree))
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Note table specification is a directory");
             return false;
         }
@@ -156,8 +146,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         {
             return true;
         }
-        state->error = false;
-        state->message[0] = '\0';
+        Read_state_clear_error(state);
         
         bool expect_key = true;
         while (expect_key)
@@ -179,8 +168,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                 }
                 if (num < 0 || num >= NOTE_TABLE_NOTES)
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Invalid reference note number: %" PRId64, num);
                     return false;
                 }
@@ -196,8 +184,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                 }
                 if (num <= 0 || !isfinite(num))
                 {
-                    state->error = true;
-                    snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                    Read_state_set_error(state,
                              "Invalid reference pitch: %f", num);
                     return false;
                 }
@@ -230,8 +217,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                 if (state->error)
                 {
                     bool notes = strcmp(key, "notes") == 0;
-                    state->error = false;
-                    state->message[0] = '\0';
+                    Read_state_clear_error(state);
                     bool expect_val = true;
                     while (expect_val)
                     {
@@ -273,8 +259,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                         if (state->error)
                         {
                             expect_val = false;
-                            state->error = false;
-                            state->message[0] = '\0';
+                            Read_state_clear_error(state);
                         }
                     }
                     str = read_const_char(str, ']', state);
@@ -297,8 +282,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
             }
             else
             {
-                state->error = true;
-                snprintf(state->message, ERROR_MESSAGE_LENGTH,
+                Read_state_set_error(state,
                          "Unrecognised key in Note table: %s", key);
                 return false;
             }
@@ -306,8 +290,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
             if (state->error)
             {
                 expect_key = false;
-                state->error = false;
-                state->message[0] = '\0';
+                Read_state_clear_error(state);
             }
         }
         str = read_const_char(str, '}', state);
@@ -317,8 +300,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         }
         if (table->ref_note >= table->note_count)
         {
-            state->error = true;
-            snprintf(state->message, ERROR_MESSAGE_LENGTH,
+            Read_state_set_error(state,
                      "Reference note doesn't exist: %d\n", table->ref_note);
             return false;
         }

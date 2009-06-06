@@ -36,7 +36,6 @@
 
 Song* demo_song_create(void)
 {
-    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 1 };
     Song* song = new_Song(2, 128, 16);
     if (song == NULL)
     {
@@ -48,11 +47,13 @@ Song* demo_song_create(void)
         del_Song(song);
         return NULL;
     }
+    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 1 };
     if (!Song_read(song, song_tree, state))
     {
         del_File_tree(song_tree);
         del_Song(song);
-        fprintf(stderr, "Error while loading the demo song: %s\n", state->message);
+        fprintf(stderr, "Error while loading the demo song:\n   %s:%d: %s\n",
+                        state->path, state->row, state->message);
         return NULL;
     }
     del_File_tree(song_tree);
