@@ -72,6 +72,18 @@ File_tree* new_File_tree_from_fs(char* path);
 
 
 /**
+ * Creates a new File tree from a tar archive (optionally with gzip or bzip2
+ * compression).
+ *
+ * \param path   The path of the tarball to be read -- must not be \c NULL.
+ *
+ * \return   The new File tree if successful. On error \c NULL is returned and
+ *           errno is set to indicate the error.
+ */
+File_tree* new_File_tree_from_tar(char* path, Read_state* state);
+
+
+/**
  * Compares two File tree objects (based on their names).
  *
  * \param tree1   The first File tree -- must not be \c NULL.
@@ -120,7 +132,7 @@ char* File_tree_get_path(File_tree* tree);
  *                directory.
  * \param child   The child node -- must not be \c NULL.
  *
- * \return   \c true if successful, or \ç false if memory allocation failed.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool File_tree_ins_child(File_tree* tree, File_tree* child);
 

@@ -60,7 +60,7 @@ typedef struct Write_state
 void Read_state_init(Read_state* state, char* path);
 
 
-void Read_state_set_error(Read_state* state, char* message, ...);
+void Read_state_set_error(Read_state* state, const char* message, ...);
 
 
 void Read_state_clear_error(Read_state* state);

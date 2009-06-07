@@ -33,6 +33,9 @@
 #include <dirent.h>
 #include <errno.h>
 
+#include <archive.h>
+#include <archive_entry.h>
+
 #include <AAtree.h>
 #include <File_base.h>
 #include <File_tree.h>
@@ -217,6 +220,262 @@ File_tree* new_File_tree_from_fs(char* path)
 }
 
 
+bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
+{
+    assert(tree != NULL);
+    assert(File_tree_is_dir(tree));
+    assert(path != NULL);
+    if (!File_tree_is_dir(tree))
+    {
+        return false;
+    }
+    const char* next_element = strchr(path, '/');
+    if (next_element == NULL)
+    {
+        int cpath_len = strlen(File_tree_get_path(tree)) + strlen(path);
+        char* cpath = xcalloc(char, cpath_len + 1);
+        if (cpath == NULL)
+        {
+            return false;
+        }
+        char* cname = xcalloc(char, strlen(path) + 1);
+        if (cname == NULL)
+        {
+            xfree(cpath);
+            return false;
+        }
+        strcpy(cpath, File_tree_get_path(tree));
+        strcat(cpath, path);
+        strcpy(cname, path);
+        File_tree* child = new_File_tree(cname, cpath, data);
+        if (child == NULL)
+        {
+            xfree(cpath);
+            xfree(cname);
+            return false;
+        }
+        if (!File_tree_ins_child(tree, child))
+        {
+            child->content.data = NULL;
+            del_File_tree(child);
+            return false;
+        }
+        return true;
+    }
+
+    int cname_len = next_element - path;
+    while (*next_element == '/')
+    {
+        ++next_element;
+    }
+    char* cname = xcalloc(char, cname_len + 1);
+    if (cname == NULL)
+    {
+        return false;
+    }
+    strncpy(cname, path, cname_len);
+    File_tree* child = File_tree_get_child(tree, cname);
+    if (child != NULL)
+    {
+        xfree(cname);
+        if (*next_element == '\0')
+        {
+            return true;
+        }
+        return File_tree_create_branch(child, next_element, data);
+    }
+    int cpath_len = strlen(File_tree_get_path(tree)) + cname_len;
+    char* cpath = xcalloc(char, cpath_len + 1);
+    if (cpath == NULL)
+    {
+        xfree(cname);
+        return false;
+    }
+    strcpy(cpath, File_tree_get_path(tree));
+    strncat(cpath, path, cname_len);
+    child = new_File_tree(cname, cpath, NULL);
+    if (child == NULL)
+    {
+        xfree(cpath);
+        xfree(cname);
+        return false;
+    }
+    if (!File_tree_ins_child(tree, child))
+    {
+        del_File_tree(child);
+        return false;
+    }
+    if (*next_element == '\0')
+    {
+        return true;
+    }
+    return File_tree_create_branch(child, next_element, data);
+}
+
+
+#define fail_if(cond, reader, state)                                       \
+    do                                                                     \
+    {                                                                      \
+        if ((cond))                                                        \
+        {                                                                  \
+            archive_read_finish((reader));                                 \
+            Read_state_set_error((state), archive_error_string((reader))); \
+            return false;                                                  \
+        }                                                                  \
+    } while (false)
+
+File_tree* new_File_tree_from_tar(char* path, Read_state* state)
+{
+    assert(path != NULL);
+    assert(state != NULL);
+    Read_state_init(state, path);
+    struct archive* reader = archive_read_new();
+    if (reader == NULL)
+    {
+        Read_state_set_error(state, "Couldn't allocate memory for the archive reader");
+        return NULL;
+    }
+    int err = ARCHIVE_FATAL;
+    err = archive_read_support_compression_bzip2(reader);
+    fail_if(err != ARCHIVE_OK, reader, state);
+    err = archive_read_support_compression_gzip(reader);
+    fail_if(err != ARCHIVE_OK, reader, state);
+    err = archive_read_support_format_tar(reader);
+    fail_if(err != ARCHIVE_OK, reader, state);
+
+    err = archive_read_open_filename(reader, path, 1024);
+    fail_if(err != ARCHIVE_OK, reader, state);
+
+    File_tree* root = NULL;
+    struct archive_entry* entry = NULL;
+    err = archive_read_next_header(reader, &entry);
+    fail_if(err < ARCHIVE_OK, reader, state);
+    if (err == ARCHIVE_OK)
+    {
+        if (archive_entry_filetype(entry) != AE_IFDIR)
+        {
+            archive_read_finish(reader);
+            Read_state_set_error(state, "The archive contains non-directories in the root");
+            return NULL;
+        }
+        const char* path = archive_entry_pathname(entry);
+        const char* solidus = strchr(path, '/');
+        int len = 0;
+        if (solidus == NULL)
+        {
+            len = strlen(path);
+        }
+        else
+        {
+            len = solidus - path;
+        }
+        char* rname = xcalloc(char, len + 1);
+        if (rname == NULL)
+        {
+            archive_read_finish(reader);
+            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            return NULL;
+        }
+        char* rpath = xcalloc(char, len + 1);
+        if (rpath == NULL)
+        {
+            xfree(rname);
+            archive_read_finish(reader);
+            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            return NULL;
+        }
+        strncpy(rname, path, len);
+        strncpy(rpath, path, len);
+        root = new_File_tree(rname, rpath, NULL);
+        if (root == NULL)
+        {
+            xfree(rpath);
+            xfree(rname);
+            archive_read_finish(reader);
+            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            return NULL;
+        }
+    }
+    char* root_path = File_tree_get_path(root);
+    int root_len = strlen(root_path);
+    while (err != ARCHIVE_EOF)
+    {
+        assert(err == ARCHIVE_OK);
+        assert(entry != NULL);
+        const char* path = archive_entry_pathname(entry);
+        const char* solidus = strchr(path, '/');
+        if (strncmp(path, root_path, root_len) != 0
+                || (path[root_len] != '/' && path[root_len] != '\0'))
+        {
+            del_File_tree(root);
+            archive_read_finish(reader);
+            Read_state_set_error(state, "Root of the archive contains several files");
+            return NULL;
+        }
+        if (solidus != NULL)
+        {
+            while (*solidus == '/')
+            {
+                ++solidus;
+            }
+            mode_t type = archive_entry_filetype(entry);
+            if (type == AE_IFDIR)
+            {
+                if (!File_tree_create_branch(root, solidus, NULL))
+                {
+                    del_File_tree(root);
+                    archive_read_finish(reader);
+                    Read_state_set_error(state, "Couldn't create path %s", path);
+                    return NULL;
+                }
+            }
+            else if (type == AE_IFREG)
+            {
+                int64_t length = archive_entry_size(entry);
+                char* data = xcalloc(char, length + 1);
+                if (data == NULL)
+                {
+                    del_File_tree(root);
+                    archive_read_finish(reader);
+                    Read_state_set_error(state, "Couldn't allocate memory for %s", path);
+                    return NULL;
+                }
+                long pos = 0;
+                char* location = data;
+                while (pos < length)
+                {
+                    ssize_t read = archive_read_data(reader, location, 1024);
+                    pos += 1024;
+                    location += 1024;
+                    if (read < 1024 && pos < length)
+                    {
+                        xfree(data);
+                        del_File_tree(root);
+                        archive_read_finish(reader);
+                        Read_state_set_error(state, "Couldn't read data from %s", path);
+                        return NULL;
+                    }
+                }
+                if (!File_tree_create_branch(root, solidus, data))
+                {
+                    xfree(data);
+                    del_File_tree(root);
+                    archive_read_finish(reader);
+                    Read_state_set_error(state, "Couldn't load the path %s", path);
+                    return NULL;
+                }
+            }
+        }
+        err = archive_read_next_header(reader, &entry);
+        fail_if(err < ARCHIVE_OK, reader, state);
+    }
+    archive_read_finish(reader);
+    return root;
+}
+
+#undef fail_if
+
+
 int File_tree_cmp(File_tree* tree1, File_tree* tree2)
 {
     assert(tree1 != NULL);
@@ -292,7 +551,6 @@ void del_File_tree(File_tree* tree)
     }
     else
     {
-        assert(tree->content.data != NULL);
         if (tree->content.data != NULL)
         {
             xfree(tree->content.data);
