@@ -62,20 +62,21 @@ File_tree* new_File_tree(char* name, char* path, char* data);
 /**
  * Creates a new File tree from a directory tree in a file system.
  *
- * \param path   The (root) path of the directory to be read -- must not be
- *               \c NULL.
+ * \param path    The (root) path of the directory to be read -- must not be
+ *                \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
  *
- * \return   The new File tree if successful. On error \c NULL is returned and
- *           errno is set to indicate the error.
+ * \return   The new File tree if successful, otherwise \c NULL.
  */
-File_tree* new_File_tree_from_fs(char* path);
+File_tree* new_File_tree_from_fs(char* path, Read_state* state);
 
 
 /**
  * Creates a new File tree from a tar archive (optionally with gzip or bzip2
  * compression).
  *
- * \param path   The path of the tarball to be read -- must not be \c NULL.
+ * \param path    The path of the tarball to be read -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
  *
  * \return   The new File tree if successful. On error \c NULL is returned and
  *           errno is set to indicate the error.

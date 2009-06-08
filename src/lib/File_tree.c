@@ -75,13 +75,20 @@ File_tree* new_File_tree(char* name, char* path, char* data)
 }
 
 
-File_tree* new_File_tree_from_fs(char* path)
+File_tree* new_File_tree_from_fs(char* path, Read_state* state)
 {
     assert(path != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Read_state_init(state, path);
     struct stat* info = &(struct stat){ .st_mode = 0 };
     errno = 0;
     if (stat(path, info) < 0)
     {
+        Read_state_set_error(state, strerror(errno));
         return NULL;
     }
     int name_start = 0;
@@ -89,6 +96,7 @@ File_tree* new_File_tree_from_fs(char* path)
     char* path_name = xcalloc(char, len + 1);
     if (path_name == NULL)
     {
+        Read_state_set_error(state, "Couldn't allocate memory for the File tree");
         return NULL;
     }
     strcpy(path_name, path);
@@ -102,6 +110,7 @@ File_tree* new_File_tree_from_fs(char* path)
     char* name = xcalloc(char, (len + 1) - name_start);
     if (name == NULL)
     {
+        Read_state_set_error(state, "Couldn't allocate memory for the File tree");
         xfree(path_name);
         return NULL;
     }
@@ -120,15 +129,19 @@ File_tree* new_File_tree_from_fs(char* path)
     if (S_ISDIR(info->st_mode))
     {
         tree = new_File_tree(name, path_name, NULL);
+        Read_state_init(state, path_name);
         if (tree == NULL)
         {
+            Read_state_set_error(state, "Couldn't allocate memory for the File tree");
             xfree(name);
             xfree(path_name);
             return NULL;
         }
+        errno = 0;
         DIR* ds = opendir(path);
         if (ds == NULL)
         {
+            Read_state_set_error(state, strerror(errno));
             del_File_tree(tree);
             return NULL;
         }
@@ -142,6 +155,7 @@ File_tree* new_File_tree_from_fs(char* path)
         int err = readdir_r(ds, de, &ret);
         if (err != 0)
         {
+            Read_state_set_error(state, strerror(err));
             del_File_tree(tree);
             closedir(ds);
             return NULL;
@@ -154,6 +168,7 @@ File_tree* new_File_tree_from_fs(char* path)
                 char* full_path = xcalloc(char, len + 2);
                 if (full_path == NULL)
                 {
+                    Read_state_set_error(state, "Couldn't allocate memory for a directory element");
                     del_File_tree(tree);
                     closedir(ds);
                     return NULL;
@@ -161,16 +176,19 @@ File_tree* new_File_tree_from_fs(char* path)
                 strcpy(full_path, path);
                 strcat(full_path, "/");
                 strcat(full_path, de->d_name);
-                File_tree* child = new_File_tree_from_fs(full_path);
+                Read_state_init(state, full_path);
+                File_tree* child = new_File_tree_from_fs(full_path, state);
                 xfree(full_path);
                 if (child == NULL)
                 {
+                    Read_state_set_error(state, "Couldn't allocate memory for the File tree");
                     del_File_tree(tree);
                     closedir(ds);
                     return NULL;
                 }
                 if (!File_tree_ins_child(tree, child))
                 {
+                    Read_state_set_error(state, "Couldn't allocate memory for the File tree");
                     del_File_tree(child);
                     del_File_tree(tree);
                     closedir(ds);
@@ -180,6 +198,7 @@ File_tree* new_File_tree_from_fs(char* path)
             err = readdir_r(ds, de, &ret);
             if (err != 0)
             {
+                Read_state_set_error(state, strerror(err));
                 del_File_tree(tree);
                 closedir(ds);
                 return NULL;
@@ -193,6 +212,7 @@ File_tree* new_File_tree_from_fs(char* path)
         FILE* in = fopen(path, "rb");
         if (in == NULL)
         {
+            Read_state_set_error(state, "Couldn't open file for reading");
             xfree(name);
             xfree(path_name);
             return NULL;
@@ -209,6 +229,7 @@ File_tree* new_File_tree_from_fs(char* path)
         tree = new_File_tree(name, path_name, data);
         if (tree == NULL)
         {
+            Read_state_set_error(state, "Couldn't allocate memory for the File tree");
             xfree(data);
             xfree(name);
             xfree(path_name);
@@ -328,6 +349,10 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
 {
     assert(path != NULL);
     assert(state != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
     Read_state_init(state, path);
     struct archive* reader = archive_read_new();
     if (reader == NULL)

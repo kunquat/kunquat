@@ -41,8 +41,8 @@ Song* demo_song_create(void)
     {
         return NULL;
     }
-    Read_state* state = &(Read_state){ .error = false, .message = { '\0' }, .row = 1 };
-//    File_tree* song_tree = new_File_tree_from_fs("kunquat_s_00");
+    Read_state* state = READ_STATE_AUTO;
+//    File_tree* song_tree = new_File_tree_from_fs("kunquat_s_00", state);
     File_tree* song_tree = new_File_tree_from_tar("demo.kqs.bz2", state);
     if (song_tree == NULL)
     {

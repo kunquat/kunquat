@@ -40,7 +40,7 @@
 #include <xmemory.h>
 
 
-void Read_state_init(Read_state* state, char* path)
+Read_state* Read_state_init(Read_state* state, char* path)
 {
     assert(state != NULL);
     assert(path != NULL);
@@ -48,7 +48,7 @@ void Read_state_init(Read_state* state, char* path)
     strncpy(state->path, path, STATE_PATH_LENGTH - 1);
     state->path[STATE_PATH_LENGTH - 1] = '\0';
     state->row = 1;
-    return;
+    return state;
 }
 
 
