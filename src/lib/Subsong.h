@@ -126,6 +126,26 @@ double Subsong_get_global_vol(Subsong* ss);
 
 
 /**
+ * Sets the initial default Note table of the Subsong.
+ *
+ * \param ss      The Subsong -- must not be \c NULL.
+ * \param index   The Note table index -- must be >= \c 0 and
+ *                < \c NOTE_TABLES_MAX.
+ */
+void Subsong_set_notes(Subsong* ss, int index);
+
+
+/**
+ * Gets the initial default Note table of the Subsong.
+ *
+ * \param ss   The Subsong -- must not be \c NULL.
+ *
+ * \return   The Note table index.
+ */
+int Subsong_get_notes(Subsong* ss);
+
+
+/**
  * Clears the Subsong.
  *
  * \param ss   The Subsong -- must not be \c NULL.

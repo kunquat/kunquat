@@ -155,15 +155,15 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (strncmp(name + strlen(MAGIC_ID), "s_", 2) != 0)
+    if (strncmp(name + strlen(MAGIC_ID), "c_", 2) != 0)
     {
-        Read_state_set_error(state, "Directory is not a Song file");
+        Read_state_set_error(state, "Directory is not a composition file");
         return false;
     }
     const char* version = "00";
     if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
-        Read_state_set_error(state, "Unsupported Song version");
+        Read_state_set_error(state, "Unsupported composition version");
         return false;
     }
     File_tree* info_tree = File_tree_get_child(tree, "info_song.json");
@@ -172,7 +172,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         Read_state_init(state, File_tree_get_path(info_tree));
         if (File_tree_is_dir(info_tree))
         {
-            Read_state_set_error(state, "Song info is a directory");
+            Read_state_set_error(state, "Composition info is a directory");
             return false;
         }
         char* str = File_tree_get_data(info_tree);
@@ -247,7 +247,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                 else
                 {
                     Read_state_set_error(state,
-                             "Unrecognised key in Song info: %s", key);
+                             "Unrecognised key in composition info: %s", key);
                     return false;
                 }
                 if (state->error)
@@ -268,20 +268,20 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    File_tree* nts_tree = File_tree_get_child(tree, "tunings");
+    File_tree* nts_tree = File_tree_get_child(tree, "scales");
     if (nts_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(nts_tree));
         if (!File_tree_is_dir(nts_tree))
         {
             Read_state_set_error(state,
-                     "Note table collection is not a directory");
+                     "Scale collection is not a directory");
             return false;
         }
         for (int i = 0; i < NOTE_TABLES_MAX; ++i)
         {
-            char dir_name[] = "t_0";
-            snprintf(dir_name, 4, "t_%01x", i);
+            char dir_name[] = "s_0";
+            snprintf(dir_name, 4, "s_%01x", i);
             File_tree* index_tree = File_tree_get_child(nts_tree, dir_name);
             if (index_tree != NULL)
             {
@@ -289,17 +289,17 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                 if (!File_tree_is_dir(index_tree))
                 {
                     Read_state_set_error(state,
-                             "Note table at index %01x is not a directory", i);
+                             "Scale at index %01x is not a directory", i);
                     return false;
                 }
-                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquat_t_00");
+                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquat_s_00");
                 if (notes_tree != NULL)
                 {
                     Read_state_init(state, File_tree_get_path(notes_tree));
                     if (!Song_create_notes(song, i))
                     {
                         Read_state_set_error(state,
-                                 "Couldn't allocate memory for Note table %01x", i);
+                                 "Couldn't allocate memory for scale %01x", i);
                         return false;
                     }
                     Note_table* notes = Song_get_notes(song, i);

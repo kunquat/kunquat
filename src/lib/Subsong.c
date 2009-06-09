@@ -111,15 +111,34 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         if (strcmp(key, "tempo") == 0)
         {
             str = read_double(str, &ss->tempo, state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (ss->tempo < 1 || ss->tempo > 999)
+            {
+                Read_state_set_error(state, "Tempo (%f) is outside valid range", ss->tempo);
+                return false;
+            }
         }
         else if (strcmp(key, "global_vol") == 0)
         {
             str = read_double(str, &ss->global_vol, state);
         }
-        else if (strcmp(key, "notes") == 0)
+        else if (strcmp(key, "scale") == 0)
         {
             int64_t num = 0;
             str = read_int(str, &num, state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (num < 0 || num >= NOTE_TABLES_MAX)
+            {
+                Read_state_set_error(state, "Scale number (%" PRId64
+                                     ") is outside valid range", num);
+                return false;
+            }
             ss->notes = num;
         }
         else if (strcmp(key, "patterns") == 0)
@@ -268,6 +287,23 @@ double Subsong_get_global_vol(Subsong* ss)
 {
     assert(ss != NULL);
     return ss->global_vol;
+}
+
+
+void Subsong_set_notes(Subsong* ss, int index)
+{
+    assert(ss != NULL);
+    assert(index >= 0);
+    assert(index < NOTE_TABLES_MAX);
+    ss->notes = index;
+    return;
+}
+
+
+int Subsong_get_notes(Subsong* ss)
+{
+    assert(ss != NULL);
+    return ss->notes;
 }
 
 

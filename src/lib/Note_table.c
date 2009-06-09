@@ -105,7 +105,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
     Read_state_init(state, File_tree_get_path(tree));
     if (!File_tree_is_dir(tree))
     {
-        Read_state_set_error(state, "Note table is not a directory");
+        Read_state_set_error(state, "Scale is not a directory");
         return false;
     }
     char* name = File_tree_get_name(tree);
@@ -114,15 +114,15 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (strncmp(name + strlen(MAGIC_ID), "t_", 2) != 0)
+    if (strncmp(name + strlen(MAGIC_ID), "s_", 2) != 0)
     {
-        Read_state_set_error(state, "Directory is not a tuning file");
+        Read_state_set_error(state, "Directory is not a scale file");
         return false;
     }
     const char* version = "00";
     if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
     {
-        Read_state_set_error(state, "Unsupported tuning version");
+        Read_state_set_error(state, "Unsupported scale version");
         return false;
     }
     File_tree* table_tree = File_tree_get_child(tree, "table.json");
@@ -132,7 +132,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         if (File_tree_is_dir(table_tree))
         {
             Read_state_set_error(state,
-                     "Note table specification is a directory");
+                     "Scale specification is a directory");
             return false;
         }
         char* str = File_tree_get_data(table_tree);
@@ -283,7 +283,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
             else
             {
                 Read_state_set_error(state,
-                         "Unrecognised key in Note table: %s", key);
+                         "Unrecognised key in scale: %s", key);
                 return false;
             }
             str = read_const_char(str, ',', state);

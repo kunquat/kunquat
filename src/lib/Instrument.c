@@ -116,8 +116,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (name[strlen(MAGIC_ID)] != 'i'
-             || name[strlen(MAGIC_ID) + 1] != '_')
+    if (strncmp(name + strlen(MAGIC_ID), "i_", 2) != 0)
     {
         Read_state_set_error(state, "Directory is not an instrument file");
         return false;
@@ -166,7 +165,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                 {
                     str = read_double(str, &ins->force_variation, state);
                 }
-                else if (strcmp(key, "note_table") == 0)
+                else if (strcmp(key, "scale") == 0)
                 {
                     int64_t num = -1;
                     str = read_int(str, &num, state);
@@ -177,7 +176,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                     if (num < -1 || num >= NOTE_TABLES_MAX)
                     {
                         Read_state_set_error(state,
-                                 "Invalid Note table index: %" PRId64, num);
+                                 "Invalid scale index: %" PRId64, num);
                         return false;
                     }
                     Instrument_set_note_table(ins, num);
