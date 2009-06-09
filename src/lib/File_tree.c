@@ -37,14 +37,17 @@
 #include <archive_entry.h>
 
 #include <AAtree.h>
+#include <Sample.h>
 #include <File_base.h>
 #include <File_tree.h>
+#include <File_wavpack.h>
 
 #include <xmemory.h>
 
 
-File_tree* new_File_tree(char* name, char* path, char* data)
+File_tree* new_File_tree(File_tree_type type, char* name, char* path, void* data)
 {
+    assert(type == FILE_TREE_DIR || type == FILE_TREE_REG || type == FILE_TREE_SAMPLE);
     assert(name != NULL);
     assert(path != NULL);
     File_tree* tree = xalloc(File_tree);
@@ -52,8 +55,9 @@ File_tree* new_File_tree(char* name, char* path, char* data)
     {
         return NULL;
     }
-    if (data == NULL)
+    if (type == FILE_TREE_DIR)
     {
+        assert(data == NULL);
         AAtree* children = new_AAtree((int (*)(void*, void*))File_tree_cmp,
                                       (void (*)(void*))del_File_tree);
         if (children == NULL)
@@ -61,17 +65,48 @@ File_tree* new_File_tree(char* name, char* path, char* data)
             xfree(tree);
             return NULL;
         }
-        tree->is_dir = true;
         tree->content.children = children;
+    }
+    else if (type == FILE_TREE_SAMPLE)
+    {
+        assert(data != NULL);
+        tree->content.sample = data;
     }
     else
     {
-        tree->is_dir = false;
+        assert(type == FILE_TREE_REG);
+        assert(data != NULL);
         tree->content.data = data;
     }
+    tree->type = type;
     tree->name = name;
     tree->path = path;
     return tree;
+}
+
+
+bool has_suffix(const char* str, const char* suffix)
+{
+    assert(str != NULL);
+    assert(suffix != NULL);
+    if (suffix[0] == '\0')
+    {
+        return true;
+    }
+    int str_end = strlen(str) - 1;
+    int suffix_end = strlen(suffix) - 1;
+    if (str_end < suffix_end)
+    {
+        return false;
+    }
+    for (int i = str_end, j = suffix_end; j >= 0; --i, --j)
+    {
+        if (str[i] != suffix[j])
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -128,7 +163,7 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
     File_tree* tree = NULL;
     if (S_ISDIR(info->st_mode))
     {
-        tree = new_File_tree(name, path_name, NULL);
+        tree = new_File_tree(FILE_TREE_DIR, name, path_name, NULL);
         Read_state_init(state, path_name);
         if (tree == NULL)
         {
@@ -208,7 +243,6 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
     }
     else
     {
-        Read_state* state = &(Read_state){ .error = false, .row = 0, .message = { '\0' } };
         FILE* in = fopen(path, "rb");
         if (in == NULL)
         {
@@ -217,23 +251,54 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
             xfree(path_name);
             return NULL;
         }
-        char* data = read_file(in, state);
-        fclose(in);
-        if (state->error)
+        if (has_suffix(path, ".wv"))
         {
-            xfree(name);
-            xfree(path_name);
-            return NULL;
+            Sample* sample = new_Sample();
+            if (sample == NULL)
+            {
+                Read_state_set_error(state, "Couldn't allocate memory for Sample");
+                xfree(name);
+                xfree(path_name);
+                return NULL;
+            }
+            if (!File_wavpack_load_sample(sample, in, NULL, NULL))
+            {
+                Read_state_set_error(state, "Couldn't load the WavPack file");
+                del_Sample(sample);
+                xfree(name);
+                xfree(path_name);
+                return NULL;
+            }
+            tree = new_File_tree(FILE_TREE_SAMPLE, name, path_name, sample);
+            if (tree == NULL)
+            {
+                Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+                del_Sample(sample);
+                xfree(name);
+                xfree(path_name);
+                return NULL;
+            }
         }
-        assert(data != NULL);
-        tree = new_File_tree(name, path_name, data);
-        if (tree == NULL)
+        else
         {
-            Read_state_set_error(state, "Couldn't allocate memory for the File tree");
-            xfree(data);
-            xfree(name);
-            xfree(path_name);
-            return NULL;
+            char* data = read_file(in, state);
+            fclose(in);
+            if (state->error)
+            {
+                xfree(name);
+                xfree(path_name);
+                return NULL;
+            }
+            assert(data != NULL);
+            tree = new_File_tree(FILE_TREE_REG, name, path_name, data);
+            if (tree == NULL)
+            {
+                Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+                xfree(data);
+                xfree(name);
+                xfree(path_name);
+                return NULL;
+            }
         }
     }
     assert(tree != NULL);
@@ -241,7 +306,7 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
 }
 
 
-bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
+bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type type, void* data)
 {
     assert(tree != NULL);
     assert(File_tree_is_dir(tree));
@@ -268,7 +333,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
         strcpy(cpath, File_tree_get_path(tree));
         strcat(cpath, path);
         strcpy(cname, path);
-        File_tree* child = new_File_tree(cname, cpath, data);
+        File_tree* child = new_File_tree(type, cname, cpath, data);
         if (child == NULL)
         {
             xfree(cpath);
@@ -303,7 +368,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
         {
             return true;
         }
-        return File_tree_create_branch(child, next_element, data);
+        return File_tree_create_branch(child, next_element, type, data);
     }
     int cpath_len = strlen(File_tree_get_path(tree)) + cname_len;
     char* cpath = xcalloc(char, cpath_len + 1);
@@ -314,7 +379,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
     }
     strcpy(cpath, File_tree_get_path(tree));
     strncat(cpath, path, cname_len);
-    child = new_File_tree(cname, cpath, NULL);
+    child = new_File_tree(FILE_TREE_DIR, cname, cpath, NULL);
     if (child == NULL)
     {
         xfree(cpath);
@@ -330,7 +395,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, char* data)
     {
         return true;
     }
-    return File_tree_create_branch(child, next_element, data);
+    return File_tree_create_branch(child, next_element, type, data);
 }
 
 
@@ -411,7 +476,7 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
         }
         strncpy(rname, path, len);
         strncpy(rpath, path, len);
-        root = new_File_tree(rname, rpath, NULL);
+        root = new_File_tree(FILE_TREE_DIR, rname, rpath, NULL);
         if (root == NULL)
         {
             xfree(rpath);
@@ -446,7 +511,7 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
             mode_t type = archive_entry_filetype(entry);
             if (type == AE_IFDIR)
             {
-                if (!File_tree_create_branch(root, solidus, NULL))
+                if (!File_tree_create_branch(root, solidus, FILE_TREE_DIR, NULL))
                 {
                     del_File_tree(root);
                     archive_read_finish(reader);
@@ -456,38 +521,68 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
             }
             else if (type == AE_IFREG)
             {
-                int64_t length = archive_entry_size(entry);
-                char* data = xcalloc(char, length + 1);
-                if (data == NULL)
+                if (has_suffix(solidus, ".wv"))
                 {
-                    del_File_tree(root);
-                    archive_read_finish(reader);
-                    Read_state_set_error(state, "Couldn't allocate memory for %s", path);
-                    return NULL;
+                    Sample* sample = new_Sample();
+                    if (sample == NULL)
+                    {
+                        del_File_tree(root);
+                        archive_read_finish(reader);
+                        Read_state_set_error(state, "Couldn't allocate memory for sample");
+                        return NULL;
+                    }
+                    if (!File_wavpack_load_sample(sample, NULL, reader, entry))
+                    {
+                        del_Sample(sample);
+                        del_File_tree(root);
+                        archive_read_finish(reader);
+                        Read_state_set_error(state, "Couldn't load the WavPack file");
+                        return NULL;
+                    }
+                    if (!File_tree_create_branch(root, solidus, FILE_TREE_SAMPLE, sample))
+                    {
+                        del_Sample(sample);
+                        del_File_tree(root);
+                        archive_read_finish(reader);
+                        Read_state_set_error(state, "Couldn't load the path %s", path);
+                        return NULL;
+                    }
                 }
-                long pos = 0;
-                char* location = data;
-                while (pos < length)
+                else
                 {
-                    ssize_t read = archive_read_data(reader, location, 1024);
-                    pos += 1024;
-                    location += 1024;
-                    if (read < 1024 && pos < length)
+                    int64_t length = archive_entry_size(entry);
+                    char* data = xcalloc(char, length + 1);
+                    if (data == NULL)
+                    {
+                        del_File_tree(root);
+                        archive_read_finish(reader);
+                        Read_state_set_error(state, "Couldn't allocate memory for %s", path);
+                        return NULL;
+                    }
+                    long pos = 0;
+                    char* location = data;
+                    while (pos < length)
+                    {
+                        ssize_t read = archive_read_data(reader, location, 1024);
+                        pos += 1024;
+                        location += 1024;
+                        if (read < 1024 && pos < length)
+                        {
+                            xfree(data);
+                            del_File_tree(root);
+                            archive_read_finish(reader);
+                            Read_state_set_error(state, "Couldn't read data from %s", path);
+                            return NULL;
+                        }
+                    }
+                    if (!File_tree_create_branch(root, solidus, FILE_TREE_REG, data))
                     {
                         xfree(data);
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't read data from %s", path);
+                        Read_state_set_error(state, "Couldn't load the path %s", path);
                         return NULL;
                     }
-                }
-                if (!File_tree_create_branch(root, solidus, data))
-                {
-                    xfree(data);
-                    del_File_tree(root);
-                    archive_read_finish(reader);
-                    Read_state_set_error(state, "Couldn't load the path %s", path);
-                    return NULL;
                 }
             }
         }
@@ -535,14 +630,14 @@ char* File_tree_get_path(File_tree* tree)
 bool File_tree_is_dir(File_tree* tree)
 {
     assert(tree != NULL);
-    return tree->is_dir;
+    return tree->type == FILE_TREE_DIR;
 }
 
 
 bool File_tree_ins_child(File_tree* tree, File_tree* child)
 {
     assert(tree != NULL);
-    assert(tree->is_dir);
+    assert(tree->type == FILE_TREE_DIR);
     assert(child != NULL);
     return AAtree_ins(tree->content.children, child);
 }
@@ -551,9 +646,9 @@ bool File_tree_ins_child(File_tree* tree, File_tree* child)
 File_tree* File_tree_get_child(File_tree* tree, char* name)
 {
     assert(tree != NULL);
-    assert(tree->is_dir);
+    assert(tree->type == FILE_TREE_DIR);
     assert(name != NULL);
-    File_tree* child = &(File_tree){ .is_dir = false, .name = name, .content.data = NULL };
+    File_tree* child = &(File_tree){ .type = FILE_TREE_REG, .name = name, .content.data = NULL };
     return AAtree_get_exact(tree->content.children, child);
 }
 
@@ -561,24 +656,50 @@ File_tree* File_tree_get_child(File_tree* tree, char* name)
 char* File_tree_get_data(File_tree* tree)
 {
     assert(tree != NULL);
-    assert(!tree->is_dir);
+    assert(tree->type == FILE_TREE_REG);
     return tree->content.data;
+}
+
+
+void* File_tree_get_sample(File_tree* tree)
+{
+    assert(tree != NULL);
+    assert(tree->type == FILE_TREE_SAMPLE);
+    return tree->content.sample;
+}
+
+
+void* File_tree_remove_sample(File_tree* tree)
+{
+    assert(tree != NULL);
+    assert(tree->type == FILE_TREE_SAMPLE);
+    Sample* sample = tree->content.sample;
+    tree->content.sample = NULL;
+    return sample;
 }
 
 
 void del_File_tree(File_tree* tree)
 {
     assert(tree != NULL);
-    if (tree->is_dir)
+    if (tree->type == FILE_TREE_DIR)
     {
         assert(tree->content.children != NULL);
         del_AAtree(tree->content.children);
     }
-    else
+    else if (tree->type == FILE_TREE_REG)
     {
         if (tree->content.data != NULL)
         {
             xfree(tree->content.data);
+        }
+    }
+    else
+    {
+        assert(tree->type == FILE_TREE_SAMPLE);
+        if (tree->content.sample != NULL)
+        {
+            del_Sample(tree->content.sample);
         }
     }
     xfree(tree->name);

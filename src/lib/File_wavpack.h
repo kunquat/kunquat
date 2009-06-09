@@ -28,9 +28,13 @@
 #include <stdio.h>
 
 #include <Sample.h>
+#include <archive.h>
+#include <archive_entry.h>
 
 
-bool File_wavpack_load_sample(Sample* sample, FILE* in);
+bool File_wavpack_load_sample(Sample* sample, FILE* in,
+                              struct archive* reader,
+                              struct archive_entry* entry);
 
 
 #endif // K_FILE_WAVPACK_H

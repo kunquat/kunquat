@@ -29,15 +29,24 @@
 #include <AAtree.h>
 
 
+typedef enum
+{
+    FILE_TREE_DIR,
+    FILE_TREE_REG,
+    FILE_TREE_SAMPLE
+} File_tree_type;
+
+
 typedef struct File_tree
 {
-    bool is_dir;          ///< Whether the File tree is a directory.
+    File_tree_type type;  ///< Whether the File tree is a directory.
     char* name;           ///< File name.
     char* path;           ///< Path of the file.
     union
     {
         char* data;       ///< Contents of a regular file.
         AAtree* children; ///< Contents of a directory.
+        void* sample;     ///< A Sample.
     } content;
 } File_tree;
 
@@ -56,7 +65,7 @@ typedef struct File_tree
  * \return   The new File tree if successful, or \c NULL if memory allocation
  *           failed.
  */
-File_tree* new_File_tree(char* name, char* path, char* data);
+File_tree* new_File_tree(File_tree_type type, char* name, char* path, void* data);
 
 
 /**
@@ -159,6 +168,28 @@ File_tree* File_tree_get_child(File_tree* tree, char* name);
  * \return   The data.
  */
 char* File_tree_get_data(File_tree* tree);
+
+
+/**
+ * Gets the Sample from the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL and must contain a
+ *               Sample.
+ *
+ * \return   The Sample.
+ */
+void* File_tree_get_sample(File_tree* tree);
+
+
+/**
+ * Removes the Sample from the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL and must contain a
+ *               Sample.
+ *
+ * \return   The Sample.
+ */
+void* File_tree_remove_sample(File_tree* tree);
 
 
 /**

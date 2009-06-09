@@ -77,7 +77,7 @@ bool Sample_load(Sample* sample, FILE* in, Sample_format format)
     }
     if (format == SAMPLE_FORMAT_WAVPACK)
     {
-        return File_wavpack_load_sample(sample, in);
+        return File_wavpack_load_sample(sample, in, NULL, NULL);
     }
     return false;
 }
