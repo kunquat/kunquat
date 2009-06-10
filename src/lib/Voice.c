@@ -75,7 +75,11 @@ void Voice_init(Voice* voice, Generator* gen)
     assert(gen != NULL);
     voice->prio = VOICE_PRIO_NEW;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic, gen->init_state);
+    Voice_state_init(&voice->state.generic);
+    if (gen->init_state != NULL)
+    {
+        gen->init_state(gen, &voice->state.generic);
+    }
     Event_queue_clear(voice->events);
     return;
 }

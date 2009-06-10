@@ -37,6 +37,8 @@
 
 static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state* state);
 
+void Generator_sawtooth_init_state(Generator* gen, Voice_state* state);
+
 
 Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
 {
@@ -50,7 +52,7 @@ Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
     sawtooth->parent.read = Generator_sawtooth_read;
     sawtooth->parent.destroy = del_Generator_sawtooth;
     sawtooth->parent.type = GEN_TYPE_SAWTOOTH;
-    sawtooth->parent.init_state = Voice_state_sawtooth_init;
+    sawtooth->parent.init_state = Generator_sawtooth_init_state;
     sawtooth->parent.mix = Generator_sawtooth_mix;
     sawtooth->parent.ins_params = ins_params;
     return sawtooth;
@@ -70,6 +72,18 @@ static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state*
         return false;
     }
     return true;
+}
+
+
+void Generator_sawtooth_init_state(Generator* gen, Voice_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SAWTOOTH);
+    assert(state != NULL);
+    Voice_state_init(state);
+    Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
+    sawtooth_state->phase = 0.25;
+    return;
 }
 
 

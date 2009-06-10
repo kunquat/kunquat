@@ -37,6 +37,8 @@
 
 bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state);
 
+void Generator_square303_init_state(Generator* gen, Voice_state* state);
+
 
 Generator_square303* new_Generator_square303(Instrument_params* ins_params)
 {
@@ -50,7 +52,7 @@ Generator_square303* new_Generator_square303(Instrument_params* ins_params)
     square303->parent.read = Generator_square303_read;
     square303->parent.destroy = del_Generator_square303;
     square303->parent.type = GEN_TYPE_SQUARE303;
-    square303->parent.init_state = Voice_state_square303_init;
+    square303->parent.init_state = Generator_square303_init_state;
     square303->parent.mix = Generator_square303_mix;
     square303->parent.ins_params = ins_params;
     return square303;
@@ -70,6 +72,18 @@ bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state
         return false;
     }
     return true;
+}
+
+
+void Generator_square303_init_state(Generator* gen, Voice_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SQUARE303);
+    assert(state != NULL);
+    Voice_state_init(state);
+    Voice_state_square303* square303_state = (Voice_state_square303*)state;
+    square303_state->phase = 0.5;
+    return;
 }
 
 

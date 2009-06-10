@@ -28,6 +28,7 @@
 #include <Generator_sine.h>
 #include <Generator_sawtooth.h>
 #include <Generator_triangle.h>
+#include <Generator_square.h>
 #include <Generator_square303.h>
 #include <File_base.h>
 #include <File_tree.h>
@@ -92,6 +93,10 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
     else if (strcmp(type_str, "triangle") == 0)
     {
         gen = (Generator*)new_Generator_triangle(ins_params);
+    }
+    else if (strcmp(type_str, "square") == 0)
+    {
+        gen = (Generator*)new_Generator_square(ins_params);
     }
     else if (strcmp(type_str, "square303") == 0)
     {

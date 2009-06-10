@@ -48,7 +48,7 @@ typedef struct Generator
     double volume_dB;
     double volume;
     bool (*read)(struct Generator*, File_tree*, Read_state*);
-    void (*init_state)(Voice_state*);
+    void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t,
                 int, frame_t**);

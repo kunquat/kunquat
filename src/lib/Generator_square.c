@@ -35,6 +35,11 @@
 #include <xmemory.h>
 
 
+static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* state);
+
+void Generator_square_init_state(Generator* gen, Voice_state* state);
+
+
 Generator_square* new_Generator_square(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
@@ -43,12 +48,60 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
     {
         return NULL;
     }
+    Generator_init(&square->parent);
+    square->parent.read = Generator_square_read;
     square->parent.destroy = del_Generator_square;
     square->parent.type = GEN_TYPE_SQUARE;
-    square->parent.init_state = Voice_state_square_init;
+    square->parent.init_state = Generator_square_init_state;
     square->parent.mix = Generator_square_mix;
     square->parent.ins_params = ins_params;
+    square->pulse_width = 0.5;
     return square;
+}
+
+
+static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SQUARE);
+    assert(tree != NULL);
+    assert(File_tree_is_dir(tree));
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    File_tree* square_tree = File_tree_get_child(tree, "square.json");
+    if (square_tree == NULL)
+    {
+        return true;
+    }
+    Generator_square* square = (Generator_square*)gen;
+    char* str = File_tree_get_data(square_tree);
+    str = read_const_char(str, '{', state);
+    str = read_const_string(str, "pulse_width", state);
+    str = read_const_char(str, ':', state);
+    str = read_double(str, &square->pulse_width, state);
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
+}
+
+
+void Generator_square_init_state(Generator* gen, Voice_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_SQUARE);
+    assert(state != NULL);
+    Voice_state_init(state);
+    Voice_state_square* square_state = (Voice_state_square*)state;
+    Generator_square* square = (Generator_square*)gen;
+    square_state->phase = 0;
+    square_state->pulse_width = square->pulse_width;
+    return;
 }
 
 
