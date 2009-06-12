@@ -71,12 +71,6 @@ files = [
     'Playlist.c',
 ]
 
-if env['with_jack']:
-    files += ['Driver_jack.c']
-
-if env['with_ao']:
-    files += ['Driver_ao.c']
-
 env.StaticLibrary('kunquat', files)
 
 
