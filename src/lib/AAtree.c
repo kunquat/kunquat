@@ -370,6 +370,24 @@ void* AAiter_get_next(AAiter* iter)
 }
 
 
+void* AAiter_get_prev(AAiter* iter)
+{
+    assert(iter != NULL);
+    assert(iter->tree != NULL);
+    AAtree* tree = iter->tree;
+    if (iter->node == tree->nil)
+    {
+        return NULL;
+    }
+    iter->node = aapred(iter->node);
+    if (iter->node == tree->nil)
+    {
+        return NULL;
+    }
+    return iter->node->data;
+}
+
+
 void* AAtree_remove(AAtree* tree, void* key)
 {
     assert(tree != NULL);

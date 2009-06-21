@@ -29,6 +29,7 @@
 #include <Event_queue.h>
 #include <Generator.h>
 #include <Voice_state_sine.h>
+#include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
 #include <Voice_state_square.h>
 #include <Voice_state_square303.h>
@@ -60,6 +61,7 @@ typedef struct Voice
     {
         Voice_state generic;
         Voice_state_sine sine;
+        Voice_state_pcm pcm;
         Voice_state_triangle triangle;
         Voice_state_square square;
         Voice_state_square303 square303;

@@ -34,6 +34,7 @@ typedef struct Voice_state
 {
     bool active;           ///< Whether there is anything left to process.
     pitch_t freq;          ///< The frequency at which the note is played.
+    double force;          ///< The current force.
     double ramp_attack;    ///< The current state of volume ramp during attack.
     double ramp_release;   ///< The current state of volume ramp during release.
     uint64_t pos;          ///< The current playback position.

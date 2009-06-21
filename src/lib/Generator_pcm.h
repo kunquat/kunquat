@@ -37,33 +37,32 @@
 
 #define PCM_SOURCES_MAX (16)
 #define PCM_STYLES_MAX (16)
-#define PCM_FORCES_MAX (16)
 #define PCM_RANDOMS_MAX (8)
 
 
-typedef struct freq_entry
+typedef struct Sample_entry
+{
+    double freq;
+    double vol_scale;
+    uint16_t sample;
+} Sample_entry;
+
+
+typedef struct Random_list
 {
     pitch_t freq;
-    int choices;
-    double freq_scale[PCM_RANDOMS_MAX];
-    double vol_scale[PCM_RANDOMS_MAX];
-    uint16_t sample[PCM_RANDOMS_MAX];
-} freq_entry;
-
-
-typedef struct freq_map
-{
+    double freq_tone;
     double force;
-    uint16_t entry_count;
-    AAtree* tree;
-} freq_map;
+    int entry_count;
+    Sample_entry entries[PCM_RANDOMS_MAX];
+} Random_list;
 
 
 typedef struct Generator_pcm
 {
     Generator parent;
-    uint8_t freq_map_count;
-    freq_map freq_maps[PCM_FORCES_MAX];
+    AAiter* iter;
+    AAtree* maps[PCM_SOURCES_MAX * PCM_STYLES_MAX];
     Sample* samples[PCM_SAMPLES_MAX];
 } Generator_pcm;
 
@@ -89,21 +88,18 @@ uint32_t Generator_pcm_mix(Generator* gen,
 
 
 /**
- * Loads a Sample into the PCM Generator.
+ * Sets a Sample in the PCM Generator.
  *
- * \param gen     The Generator -- must not be \c NULL and must be a PCM
- *                Generator.
- * \param index   The destination index -- must be >= \c 0 and
- *                < \c PCM_SAMPLES_MAX. Any previously loaded Sample in the
- *                index will be removed.
- * \param path    The input path. If this is \c NULL, the Sample stored in
- *                \a index will be removed.
- *
- * \return   \c true if successful, otherwise \c false.
+ * \param gen      The Generator -- must not be \c NULL and must be a PCM
+ *                 Generator.
+ * \param index    The destination index -- must be >= \c 0 and
+ *                 < \c PCM_SAMPLES_MAX. Any previously loaded Sample in the
+ *                 index will be removed.
+ * \param sample   The Sample -- must not be \c NULL.
  */
-bool Generator_pcm_set_sample(Generator_pcm* pcm,
+void Generator_pcm_set_sample(Generator_pcm* pcm,
                               uint16_t index,
-                              char* path);
+                              Sample* sample);
 
 
 /**
@@ -117,19 +113,6 @@ bool Generator_pcm_set_sample(Generator_pcm* pcm,
  * \return   The Sample if one exists, otherwise \c NULL.
  */
 Sample* Generator_pcm_get_sample(Generator_pcm* pcm, uint16_t index);
-
-
-/**
- * Gets the path of a Sample in the PCM Generator.
- *
- * \param gen     The Generator -- must not be \c NULL and must be a PCM
- *                Generator.
- * \param index   The destination index -- must be >= \c 0 and
- *                < \c PCM_SAMPLES_MAX.
- *
- * \return   The path of the sample if one exists, otherwise \c NULL.
- */
-char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index);
 
 
 /**
@@ -162,66 +145,60 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index);
 /**
  * Sets a Sample mapping.
  *
- * \param gen          The Generator -- must not be \c NULL and must be a
- *                     PCM Generator.
- * \param source       The (virtual) sound source of the Instrument -- must
- *                     be < \c PCM_SOURCES_MAX. This is 0 in most cases
- *                     but may be used to distinguish between e.g. different
- *                     strings in a stringed instrument.
- * \param style        The (virtual) style of the Instrument -- must be
- *                     < \c PCM_STYLES_MAX. This is 0 in most cases but
- *                     may be used to distinguish between e.g. different
- *                     playing styles.
- * \param force_id     The index of the force setting -- must be
- *                     < \c PCM_FORCES_MAX.
- * \param ins_freq     The lower bound of the note frequency for this
- *                     mapping -- must be > \c 0.
- * \param index        The index of the entry -- must be
- *                     < \c PCM_RANDOMS_MAX. If there are Samples defined
- *                     for multiple indices, one is chosen randomly.
- * \param sample       The index of the actual Sample in the Sample table --
- *                     must be < \c PCM_SAMPLES_MAX.
- * \param freq_scale   The scale factor used for calculating the Sample
- *                     frequency -- must be > \c 0.
- * \param vol_scale    The scale factor used for calculating the Sample
- *                     volume -- must be > \c 0.
+ * \param gen            The Generator -- must not be \c NULL and must be a
+ *                       PCM Generator.
+ * \param source         The (virtual) sound source of the Instrument -- must
+ *                       be < \c PCM_SOURCES_MAX. This is 0 in most cases
+ *                       but may be used to distinguish between e.g. different
+ *                       strings in a stringed instrument.
+ * \param style          The (virtual) style of the Instrument -- must be
+ *                       < \c PCM_STYLES_MAX. This is 0 in most cases but
+ *                       may be used to distinguish between e.g. different
+ *                       playing styles.
+ * \param force          The middle force -- must be finite.
+ * \param freq           The middle frequency -- must be > \c 0.
+ * \param index          The index of the entry -- must be
+ *                       < \c PCM_RANDOMS_MAX. If there are Samples defined
+ *                       for multiple indices, one is chosen randomly.
+ * \param sample         The index of the actual Sample in the Sample table --
+ *                       must be < \c PCM_SAMPLES_MAX.
+ * \param sample_freq    The Sample frequency in the middle point -- must be
+ *                       > \c 0.
+ * \param vol_scale      The scale factor used for calculating the Sample
+ *                       volume -- must be > \c 0.
  *
  * \return   The actual index entry (see \a index) that was set, or a negative
  *           value if memory allocation failed.
  */
 int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
-        uint8_t source, uint8_t style, uint8_t force_id, double ins_freq, uint8_t index,
-        uint16_t sample, double freq_scale, double vol_scale);
+        uint8_t source, uint8_t style, double force, double freq, uint8_t index,
+        uint16_t sample, double sample_freq, double vol_scale);
 
 
 /**
  * Removes a Sample mapping.
  *
- * \param gen        The Generator -- must not be \c NULL and must be a
- *                   PCM Generator.
- * \param source     The (virtual) sound source of the Instrument -- must
- *                   be < \c PCM_SOURCES_MAX. This is 0 in most cases
- *                   but may be used to distinguish between e.g. different
- *                   strings in a stringed instrument.
- * \param style      The (virtual) style of the Instrument -- must be
- *                   < \c PCM_STYLES_MAX. This is 0 in most cases but
- *                   may be used to distinguish between e.g. different
- *                   playing styles.
- * \param force_id   The index of the force setting -- must be
- *                   < \c PCM_FORCES_MAX.
- * \param ins_freq   The lower bound of the note frequency for this
- *                   mapping -- must be > \c 0.
- * \param index      The index of the entry -- must be
- *                   < \c PCM_RANDOMS_MAX. If there are Samples defined
- *                   for multiple indices, one is chosen randomly.
+ * \param gen      The Generator -- must not be \c NULL and must be a
+ *                 PCM Generator.
+ * \param source   The (virtual) sound source of the Instrument -- must
+ *                 be < \c PCM_SOURCES_MAX. This is 0 in most cases
+ *                 but may be used to distinguish between e.g. different
+ *                 strings in a stringed instrument.
+ * \param style    The (virtual) style of the Instrument -- must be
+ *                 < \c PCM_STYLES_MAX. This is 0 in most cases but
+ *                 may be used to distinguish between e.g. different
+ *                 playing styles.
+ * \param force    The middle force setting -- must be finite.
+ * \param freq     The middle frequency -- must be > \c 0.
+ * \param index    The index of the entry -- must be < \c PCM_RANDOMS_MAX.
  *
  * \return   \c true if the mapping changed, otherwise \c false.
  */
 bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
                                       uint8_t source,
                                       uint8_t style,
-                                      uint8_t force_id,
-                                      double ins_freq,
+                                      double force,
+                                      double freq,
                                       uint8_t index);
 
 

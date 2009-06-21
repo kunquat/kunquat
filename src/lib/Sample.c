@@ -61,6 +61,136 @@ Sample* new_Sample(void)
 }
 
 
+Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
+{
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Sample description is not a directory");
+        return NULL;
+    }
+    File_tree* sample_tree = NULL;
+    if ((sample_tree = File_tree_get_child(tree, "sample.wv")) == NULL
+//            && (sample_tree = File_tree_get_child(tree, "sample.ogg")) == NULL
+            )
+    {
+        return NULL;
+    }
+    Sample* sample = File_tree_remove_sample(sample_tree);
+    assert(sample != NULL);
+    File_tree* info_tree = File_tree_get_child(tree, "sample.json");
+    if (info_tree == NULL)
+    {
+        return sample;
+    }
+    Read_state_init(state, File_tree_get_path(info_tree));
+    if (File_tree_is_dir(info_tree))
+    {
+        Read_state_set_error(state, "Sample description is a directory");
+        del_Sample(sample);
+        return NULL;
+    }
+    char* str = File_tree_get_data(info_tree);
+    str = read_const_char(str, '{', state);
+    if (state->error)
+    {
+        del_Sample(sample);
+        return NULL;
+    }
+    str = read_const_char(str, '}', state);
+    if (!state->error)
+    {
+        return sample;
+    }
+    Read_state_clear_error(state);
+    Sample_loop loop = SAMPLE_LOOP_OFF;
+    int64_t loop_start = 0;
+    int64_t loop_end = 0;
+    bool expect_key = true;
+    while (expect_key)
+    {
+        char key[128] = { '\0' };
+        str = read_string(str, key, 128, state);
+        str = read_const_char(str, ':', state);
+        if (state->error)
+        {
+            del_Sample(sample);
+            return NULL;
+        }
+        if (strcmp(key, "mid_freq") == 0)
+        {
+            str = read_double(str, &sample->mid_freq, state);
+            if (!(sample->mid_freq > 0))
+            {
+                Read_state_set_error(state, "Sample frequency is not positive");
+            }
+        }
+        else if (strcmp(key, "loop_mode") == 0)
+        {
+            char mode[] = "off!";
+            str = read_string(str, mode, 5, state);
+            if (strcmp(mode, "off") == 0)
+            {
+                loop = SAMPLE_LOOP_OFF;
+            }
+            else if (strcmp(mode, "uni") == 0)
+            {
+                loop = SAMPLE_LOOP_UNI;
+            }
+            else if (strcmp(mode, "bi") == 0)
+            {
+                loop = SAMPLE_LOOP_BI;
+            }
+            else
+            {
+                Read_state_set_error(state, "Invalid Sample loop mode (must be"
+                                            " \"off\", \"uni\" or \"bi\")");
+            }
+        }
+        else if (strcmp(key, "loop_start") == 0)
+        {
+            str = read_int(str, &loop_start, state);
+        }
+        else if (strcmp(key, "loop_end") == 0)
+        {
+            str = read_int(str, &loop_end, state);
+        }
+        else
+        {
+            Read_state_set_error(state, "Unsupported key in Sample header: %s", key);
+        }
+        if (state->error)
+        {
+            del_Sample(sample);
+            return NULL;
+        }
+        str = read_const_char(str, ',', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            expect_key = false;
+        }
+    }
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        del_Sample(sample);
+        return NULL;
+    }
+    Sample_set_loop(sample, loop);
+    Sample_set_loop_end(sample, loop_end);
+    Sample_set_loop_start(sample, loop_start);
+    return sample;
+}
+
+
+#if 0
 bool Sample_load(Sample* sample, FILE* in, Sample_format format)
 {
     assert(sample != NULL);
@@ -111,6 +241,7 @@ bool Sample_load_path(Sample* sample, char* path, Sample_format format)
     }
     return ret;
 }
+#endif
 
 
 char* Sample_get_path(Sample* sample)
@@ -209,7 +340,9 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t offset,
                     uint32_t freq,
                     int buf_count,
-                    frame_t** bufs)
+                    frame_t** bufs,
+                    double middle_tone,
+                    double middle_freq)
 {
     assert(sample != NULL);
     assert(gen != NULL);
@@ -347,7 +480,7 @@ uint32_t Sample_mix(Sample* sample,
         Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
         bufs[0][i] += vals[0];
         bufs[1][i] += vals[1];
-        double advance = (state->freq / 440) * sample->mid_freq / freq;
+        double advance = (state->freq / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
         state->pos += adv;

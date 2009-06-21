@@ -37,7 +37,7 @@
 
 static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* state);
 
-void Generator_square_init_state(Generator* gen, Voice_state* state);
+static void Generator_square_init_state(Generator* gen, Voice_state* state);
 
 
 Generator_square* new_Generator_square(Instrument_params* ins_params)
@@ -76,6 +76,11 @@ static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* s
     {
         return true;
     }
+    if (File_tree_is_dir(square_tree))
+    {
+        Read_state_set_error(state, "Square Generator description is a directory");
+        return false;
+    }
     Generator_square* square = (Generator_square*)gen;
     char* str = File_tree_get_data(square_tree);
     str = read_const_char(str, '{', state);
@@ -91,7 +96,7 @@ static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* s
 }
 
 
-void Generator_square_init_state(Generator* gen, Voice_state* state)
+static void Generator_square_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE);

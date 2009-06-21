@@ -148,29 +148,6 @@ void Voice_mix(Voice* voice,
             {
                 assert(EVENT_TYPE_IS_VOICE(Event_get_type(next)));
                 Event_voice_process((Event_voice*)next, voice);
-#if 0
-                int64_t note = -1;
-                int64_t note_mod = -1;
-                int64_t note_octave = INT64_MIN;
-                switch (Event_get_type(next))
-                {
-                    case EVENT_TYPE_NOTE_ON:
-                        Event_int(next, 0, &note);
-                        Event_int(next, 1, &note_mod);
-                        Event_int(next, 2, &note_octave);
-                        Generator_process_note(voice->gen,
-                                &voice->state.generic,
-                                (int)note,
-                                (int)note_mod,
-                                (int)note_octave);
-                        break;
-                    case EVENT_TYPE_NOTE_OFF:
-                        voice->state.generic.note_on = false;
-                        break;
-                    default:
-                        break;
-                }
-#endif
             }
         }
         mixed = mix_until;

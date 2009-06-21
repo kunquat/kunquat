@@ -90,7 +90,7 @@ void* AAiter_get_at_most(AAiter* iter, void* key);
 /**
  * Gets the element next to the previous one retrieved through the AAiter.
  *
- * If not preceded by a successful call to AAiter_get() with the given
+ * If not preceded by a successful call to AAiter_get*() with the given
  * iterator, this function returns \c NULL.
  *
  * \param iter   The AAiter -- must not be \c NULL.
@@ -98,6 +98,19 @@ void* AAiter_get_at_most(AAiter* iter, void* key);
  * \return   The element if one exists, otherwise \c NULL.
  */
 void* AAiter_get_next(AAiter* iter);
+
+
+/**
+ * Gets the element before the previous one retrieved through the AAiter.
+ *
+ * If not preceded by a successful call to AAiter_get*() with the given
+ * iterator, this function returns \c NULL.
+ *
+ * \param iter   The AAiter -- must not be \c NULL.
+ *
+ * \return   The element if one exists, otherwise \c NULL.
+ */
+void* AAiter_get_prev(AAiter* iter);
 
 
 /**

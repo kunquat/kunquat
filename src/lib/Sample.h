@@ -88,6 +88,18 @@ Sample* new_Sample(void);
 
 
 /**
+ * Creates a Sample from a File tree.
+ *
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The Sample if found and read successfully, otherwise \c NULL.
+ *           The caller must check for errors in \a state.
+ */
+Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state);
+
+
+/**
  * Loads contents from a file into a Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.
@@ -216,13 +228,17 @@ uint64_t Sample_get_loop_end(Sample* sample);
 /**
  * Mixes a Sample.
  *
- * \param sample    The Sample -- must not be \c NULL.
- * \param gen       The Generator containing the Sample -- must not be
- *                  \c NULL.
- * \param state     The Voice state -- must not be \c NULL.
- * \param nframes   The number of frames to be mixed.
- * \param offset    The buffer offset.
- * \param freq      The mixing frequency -- must be > \c 0.
+ * \param sample        The Sample -- must not be \c NULL.
+ * \param gen           The Generator containing the Sample -- must not be
+ *                      \c NULL.
+ * \param state         The Voice state -- must not be \c NULL.
+ * \param nframes       The number of frames to be mixed.
+ * \param offset        The buffer offset.
+ * \param freq          The mixing frequency -- must be > \c 0.
+ * \param middle_tone   The frequency of the sound in the native speed of the
+ *                      Sample -- must be > \c 0.
+ * \param middle_freq   The mixing speed of the Sample used for playing
+ *                      \a middle_tone -- must be > \c 0.
  */
 uint32_t Sample_mix(Sample* sample,
                     Generator* gen,
@@ -231,7 +247,9 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t offset,
                     uint32_t freq,
                     int buf_count,
-                    frame_t** bufs);
+                    frame_t** bufs,
+                    double middle_tone,
+                    double middle_freq);
 
 
 /**

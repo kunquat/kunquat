@@ -41,6 +41,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     assert(state != NULL);
     state->active = false;
     state->freq = 0;
+    state->force = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
     state->pos = 0;

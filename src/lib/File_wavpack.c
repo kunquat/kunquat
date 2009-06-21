@@ -385,6 +385,9 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     sample->len = len;
     sample->channels = channels;
     sample->mid_freq = freq;
+    Sample_set_loop(sample, SAMPLE_LOOP_OFF);
+    Sample_set_loop_start(sample, 0);
+    Sample_set_loop_end(sample, 0);
     if (bits <= 8)
     {
         sample->bits = 8;
