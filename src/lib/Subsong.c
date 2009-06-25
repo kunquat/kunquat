@@ -175,12 +175,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                         return false;
                     }
                     ++index;
-                    str = read_const_char(str, ',', state);
-                    if (state->error)
-                    {
-                        Read_state_clear_error(state);
-                        expect_num = false;
-                    }
+                    check_next(str, state, expect_num);
                 }
                 str = read_const_char(str, ']', state);
                 if (state->error)
@@ -198,12 +193,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         {
             return false;
         }
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            expect_pair = false;
-        }
+        check_next(str, state, expect_pair);
     }
     str = read_const_char(str, '}', state);
     if (state->error)

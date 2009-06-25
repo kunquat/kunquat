@@ -207,12 +207,7 @@ static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state)
             list->entries[list->entry_count].vol_scale = vol_scale;
             list->entries[list->entry_count].sample = sample;
             ++list->entry_count;
-            str = read_const_char(str, ',', state);
-            if (state->error)
-            {
-                Read_state_clear_error(state);
-                expect_entry = false;
-            }
+            check_next(str, state, expect_entry);
         }
         str = read_const_char(str, ']', state);
 
@@ -222,12 +217,7 @@ static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state)
             del_AAtree(map);
             return NULL;
         }
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            expect_list = false;
-        }
+        check_next(str, state, expect_list);
     }
     str = read_const_char(str, ']', state);
     if (state->error)

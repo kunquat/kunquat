@@ -373,12 +373,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         str = read_const_char(str, ']', state);
         break_if(state->error);
 
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            expect_event = false;
-            Read_state_clear_error(state);
-        }
+        check_next(str, state, expect_event);
     }
 
     str = read_const_char(str, ']', state);

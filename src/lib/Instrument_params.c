@@ -204,12 +204,7 @@ bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* sta
         {
             return false;
         }
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            expect_key = false;
-            Read_state_clear_error(state);
-        }
+        check_next(str, state, expect_key);
     }
     str = read_const_char(str, '}', state);
     if (state->error)

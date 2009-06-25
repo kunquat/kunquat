@@ -661,7 +661,7 @@ char* File_tree_get_data(File_tree* tree)
 }
 
 
-void* File_tree_get_sample(File_tree* tree)
+struct Sample* File_tree_get_sample(File_tree* tree)
 {
     assert(tree != NULL);
     assert(tree->type == FILE_TREE_SAMPLE);
@@ -669,7 +669,7 @@ void* File_tree_get_sample(File_tree* tree)
 }
 
 
-void* File_tree_remove_sample(File_tree* tree)
+struct Sample* File_tree_remove_sample(File_tree* tree)
 {
     assert(tree != NULL);
     assert(tree->type == FILE_TREE_SAMPLE);

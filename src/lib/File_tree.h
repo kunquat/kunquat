@@ -37,6 +37,9 @@ typedef enum
 } File_tree_type;
 
 
+struct Sample;
+
+
 typedef struct File_tree
 {
     File_tree_type type;  ///< Whether the File tree is a directory.
@@ -46,7 +49,7 @@ typedef struct File_tree
     {
         char* data;       ///< Contents of a regular file.
         AAtree* children; ///< Contents of a directory.
-        void* sample;     ///< A Sample.
+        struct Sample* sample;   ///< A Sample.
     } content;
 } File_tree;
 
@@ -178,7 +181,7 @@ char* File_tree_get_data(File_tree* tree);
  *
  * \return   The Sample.
  */
-void* File_tree_get_sample(File_tree* tree);
+struct Sample* File_tree_get_sample(File_tree* tree);
 
 
 /**
@@ -189,7 +192,7 @@ void* File_tree_get_sample(File_tree* tree);
  *
  * \return   The Sample.
  */
-void* File_tree_remove_sample(File_tree* tree);
+struct Sample* File_tree_remove_sample(File_tree* tree);
 
 
 /**

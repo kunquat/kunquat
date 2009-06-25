@@ -64,6 +64,18 @@ typedef struct Write_state
                           .row = 0, .message = { '\0' }, .indent = 0 })
 
 
+#define check_next(str, state, expect)                \
+    do                                                \
+    {                                                 \
+        (str) = read_const_char((str), ',', (state)); \
+        if ((state)->error)                           \
+        {                                             \
+            Read_state_clear_error((state));          \
+            (expect) = false;                         \
+        }                                             \
+    } while (false)
+
+
 /**
  * Initialises a Read state.
  *

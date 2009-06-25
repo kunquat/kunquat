@@ -255,12 +255,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                         {
                             break;
                         }
-                        str = read_const_char(str, ',', state);
-                        if (state->error)
-                        {
-                            expect_val = false;
-                            Read_state_clear_error(state);
-                        }
+                        check_next(str, state, expect_val);
                     }
                     str = read_const_char(str, ']', state);
                     if (state->error)
@@ -286,12 +281,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                          "Unrecognised key in scale: %s", key);
                 return false;
             }
-            str = read_const_char(str, ',', state);
-            if (state->error)
-            {
-                expect_key = false;
-                Read_state_clear_error(state);
-            }
+            check_next(str, state, expect_key);
         }
         str = read_const_char(str, '}', state);
         if (state->error)

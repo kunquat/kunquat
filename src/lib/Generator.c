@@ -175,12 +175,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
                     del_Generator(gen);
                     return NULL;
                 }
-                str = read_const_char(str, ',', state);
-                if (state->error)
-                {
-                    expect_key = false;
-                    Read_state_clear_error(state);
-                }
+                check_next(str, state, expect_key);
             }
             str = read_const_char(str, '}', state);
             if (state->error)

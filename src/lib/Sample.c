@@ -170,12 +170,7 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
             del_Sample(sample);
             return NULL;
         }
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            expect_key = false;
-        }
+        check_next(str, state, expect_key);
     }
     str = read_const_char(str, '}', state);
     if (state->error)
