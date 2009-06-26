@@ -50,6 +50,18 @@ typedef struct Event
 
 
 /**
+ * Creates an Event of specified type.
+ *
+ * \param type   The Event type -- must be valid.
+ * \param pos    The Event position -- must not be \c NULL.
+ *
+ * \return   The new Event if successful, or \c NULL if memory allocation
+ *           failed or the Event type isn't supported.
+ */
+Event* new_Event(Event_type type, Reltime* pos);
+
+
+/**
  * Parses an Event from a string.
  *
  * \param event   The Event -- must not be \c NULL.

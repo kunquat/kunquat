@@ -35,6 +35,7 @@ files = [
     'Note_table.c',
     'Reltime.c',
     'Event.c',
+    'Event_creator.c',
     'Event_global.c',
     'Event_global_set_tempo.c',
     'Event_voice.c',

@@ -326,32 +326,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
             return false;
         }
 
-        Event* event = NULL;
-        switch (type)
-        {
-            case EVENT_TYPE_GLOBAL_SET_TEMPO:
-            {
-                event = new_Event_global_set_tempo(pos);
-            }
-            break;
-            case EVENT_TYPE_NOTE_ON:
-            {
-                event = new_Event_voice_note_on(pos);
-            }
-            break;
-            case EVENT_TYPE_NOTE_OFF:
-            {
-                event = new_Event_voice_note_off(pos);
-            }
-            break;
-            default:
-            {
-                Read_state_set_error(state,
-                         "Unsupported Event type: %" PRId64 "\n", type);
-                return false;
-            }
-            break;
-        }
+        Event* event = new_Event(type, pos);
         if (event == NULL)
         {
             Read_state_set_error(state, "Couldn't allocate memory for Event");
