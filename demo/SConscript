@@ -27,6 +27,7 @@ Import('env')
 env_demo = env.Clone()
 
 env_demo.Command('demo.kqt.bz2', 'kunquatc00',
-                 'tar cj --format=ustar -f ${TARGET.file} ${SOURCE.file}', chdir=1)
+                 'tar cj --format=ustar -f ${TARGET.file} ${SOURCE.file}',
+                 chdir=1, source_scanner=DirScanner)
 
 
