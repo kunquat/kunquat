@@ -77,10 +77,15 @@ Driver_info* get_driver(char* name)
 
 int main(int argc, char** argv)
 {
-#ifdef ENABLE_JACK
-    char* selection = "jack";
+    char* selection = "";
+#if defined(ENABLE_AO)
+    selection = "ao";
+#elif defined(ENABLE_JACK)
+    selection = "jack";
+#elif defined(ENABLE_OPENAL)
+    selection = "openal";
 #else
-    char* selection = "ao";
+#error "Demo requires an audio driver but none were configured."
 #endif
     if (argc > 1)
     {
