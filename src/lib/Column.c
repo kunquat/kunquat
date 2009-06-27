@@ -275,7 +275,15 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         return false;
     }
     bool is_global = strcmp(File_tree_get_name(tree), "gc") == 0;
-    File_tree* event_tree = File_tree_get_child(tree, "events.json");
+    File_tree* event_tree = NULL;
+    if (!is_global)
+    {
+        event_tree = File_tree_get_child(tree, "events.json");
+    }
+    else
+    {
+        event_tree = File_tree_get_child(tree, "gevents.json");
+    }
     if (event_tree == NULL)
     {
         return true;
