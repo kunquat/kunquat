@@ -169,6 +169,9 @@ if not env.GetOption('clean'):
 
 Export('env')
 
+if env['enable_demo']:
+    SConscript('demo/SConscript')
+
 SConscript('src/SConscript')
 
 

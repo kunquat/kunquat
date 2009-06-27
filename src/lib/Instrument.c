@@ -116,13 +116,13 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (strncmp(name + strlen(MAGIC_ID), "i_", 2) != 0)
+    if (name[strlen(MAGIC_ID)] != 'i')
     {
         Read_state_set_error(state, "Directory is not an instrument file");
         return false;
     }
     const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
+    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
     {
         Read_state_set_error(state, "Unsupported instrument version");
         return false;

@@ -155,13 +155,13 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (strncmp(name + strlen(MAGIC_ID), "c_", 2) != 0)
+    if (name[strlen(MAGIC_ID)] != 'c')
     {
         Read_state_set_error(state, "Directory is not a composition file");
         return false;
     }
     const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
+    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
     {
         Read_state_set_error(state, "Unsupported composition version");
         return false;
@@ -287,7 +287,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                              "Scale at index %01x is not a directory", i);
                     return false;
                 }
-                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquat_s_00");
+                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquats00");
                 if (notes_tree != NULL)
                 {
                     Read_state_init(state, File_tree_get_path(notes_tree));

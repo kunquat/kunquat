@@ -100,7 +100,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                          "Instrument index %02x is not a directory", i);
                 return false;
             }
-            File_tree* ins_tree = File_tree_get_child(index_tree, "kunquat_i_00");
+            File_tree* ins_tree = File_tree_get_child(index_tree, "kunquati00");
             if (ins_tree != NULL)
             {
                 Instrument* ins = new_Instrument(bufs,

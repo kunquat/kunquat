@@ -114,13 +114,13 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not a Kunquat file");
         return false;
     }
-    if (strncmp(name + strlen(MAGIC_ID), "s_", 2) != 0)
+    if (name[strlen(MAGIC_ID)] != 's')
     {
         Read_state_set_error(state, "Directory is not a scale file");
         return false;
     }
     const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 2, version) != 0)
+    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
     {
         Read_state_set_error(state, "Unsupported scale version");
         return false;
