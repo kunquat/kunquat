@@ -127,7 +127,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported instrument version");
         return false;
     }
-    File_tree* ins_tree = File_tree_get_child(tree, "info_ins.json");
+    File_tree* ins_tree = File_tree_get_child(tree, "instrument.json");
     if (ins_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(ins_tree));
@@ -205,33 +205,22 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
     {
         return false;
     }
-    File_tree* gens_tree = File_tree_get_child(tree, "gens");
-    if (gens_tree != NULL)
+    for (int i = 0; i < GENERATORS_MAX; ++i)
     {
-        Read_state_init(state, File_tree_get_path(gens_tree));
-        if (!File_tree_is_dir(gens_tree))
+        char dir_name[] = "generator_xx";
+        snprintf(dir_name, 13, "generator_%02x", i);
+        File_tree* gen_tree = File_tree_get_child(tree, dir_name);
+        if (gen_tree != NULL)
         {
-            Read_state_set_error(state,
-                     "Generator collection is not a directory");
-            return false;
-        }
-        for (int i = 0; i < GENERATORS_MAX; ++i)
-        {
-            char dir_name[] = "g_00";
-            snprintf(dir_name, 5, "g_%02x", i);
-            File_tree* gen_tree = File_tree_get_child(gens_tree, dir_name);
-            if (gen_tree != NULL)
+            Generator* gen = new_Generator_from_file_tree(gen_tree, state,
+                             Instrument_get_params(ins));
+            if (state->error)
             {
-                Generator* gen = new_Generator_from_file_tree(gen_tree, state,
-                                 Instrument_get_params(ins));
-                if (state->error)
-                {
-                    assert(gen == NULL);
-                    return false;
-                }
-                assert(gen != NULL);
-                Instrument_set_gen(ins, i, gen);
+                assert(gen == NULL);
+                return false;
             }
+            assert(gen != NULL);
+            Instrument_set_gen(ins, i, gen);
         }
     }
     return true;

@@ -118,7 +118,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
         return NULL;
     }
 
-    File_tree* info_tree = File_tree_get_child(tree, "info_gen.json");
+    File_tree* info_tree = File_tree_get_child(tree, "generator.json");
     if (info_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(info_tree));

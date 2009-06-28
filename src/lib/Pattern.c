@@ -81,7 +81,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Pattern is not a directory");
         return false;
     }
-    File_tree* info = File_tree_get_child(tree, "info_pat.json");
+    File_tree* info = File_tree_get_child(tree, "pattern.json");
     if (info != NULL)
     {
         Read_state_init(state, File_tree_get_path(info));
@@ -109,7 +109,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         }
         Pattern_set_length(pat, len);
     }
-    char dir_name[7] = "gc";
+    char dir_name[16] = "global_column";
     for (int i = -1; i < COLUMNS_MAX; ++i)
     {
         File_tree* col_tree = File_tree_get_child(tree, dir_name);
@@ -129,7 +129,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
                 return false;
             }
         }
-        snprintf(dir_name, 6, "vc_%02x", i + 1);
+        snprintf(dir_name, 16, "voice_column_%02x", i + 1);
     }
     return true;
 }

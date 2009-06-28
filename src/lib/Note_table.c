@@ -125,7 +125,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported scale version");
         return false;
     }
-    File_tree* table_tree = File_tree_get_child(tree, "table.json");
+    File_tree* table_tree = File_tree_get_child(tree, "scale.json");
     if (table_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(table_tree));

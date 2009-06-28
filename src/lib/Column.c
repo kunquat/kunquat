@@ -274,15 +274,15 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Column is not a directory");
         return false;
     }
-    bool is_global = strcmp(File_tree_get_name(tree), "gc") == 0;
+    bool is_global = strcmp(File_tree_get_name(tree), "global_column") == 0;
     File_tree* event_tree = NULL;
     if (!is_global)
     {
-        event_tree = File_tree_get_child(tree, "events.json");
+        event_tree = File_tree_get_child(tree, "voice_events.json");
     }
     else
     {
-        event_tree = File_tree_get_child(tree, "gevents.json");
+        event_tree = File_tree_get_child(tree, "global_events.json");
     }
     if (event_tree == NULL)
     {

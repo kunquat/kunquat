@@ -75,43 +75,34 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Sample description is not a directory");
         return NULL;
     }
-    File_tree* sample_tree = NULL;
-    if ((sample_tree = File_tree_get_child(tree, "sample.wv")) == NULL
-//            && (sample_tree = File_tree_get_child(tree, "sample.ogg")) == NULL
-            )
-    {
-        return NULL;
-    }
-    Sample* sample = File_tree_remove_sample(sample_tree);
-    assert(sample != NULL);
     File_tree* info_tree = File_tree_get_child(tree, "sample.json");
     if (info_tree == NULL)
     {
-        return sample;
+        return NULL;
     }
     Read_state_init(state, File_tree_get_path(info_tree));
     if (File_tree_is_dir(info_tree))
     {
         Read_state_set_error(state, "Sample description is a directory");
-        del_Sample(sample);
         return NULL;
     }
     char* str = File_tree_get_data(info_tree);
     str = read_const_char(str, '{', state);
     if (state->error)
     {
-        del_Sample(sample);
         return NULL;
     }
     str = read_const_char(str, '}', state);
     if (!state->error)
     {
-        return sample;
+        return NULL;
     }
     Read_state_clear_error(state);
     Sample_loop loop = SAMPLE_LOOP_OFF;
     int64_t loop_start = 0;
     int64_t loop_end = 0;
+    double mid_freq = 440;
+    Sample* sample = NULL;
     bool expect_key = true;
     while (expect_key)
     {
@@ -123,9 +114,35 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
             del_Sample(sample);
             return NULL;
         }
-        if (strcmp(key, "mid_freq") == 0)
+        if (strcmp(key, "format") == 0)
         {
-            str = read_double(str, &sample->mid_freq, state);
+            char format[32] = { '\0' };
+            str = read_string(str, format, 32, state);
+            if (!state->error)
+            {
+                if (strcmp(format, "WavPack") == 0)
+                {
+                    File_tree* sample_tree = File_tree_get_child(tree, "sample.wv");
+                    if (sample_tree == NULL)
+                    {
+                        Read_state_set_error(state, "Sample format is set to WavPack"
+                                                    " but sample.wv couldn't be found");
+                    }
+                    sample = File_tree_remove_sample(sample_tree);
+                    assert(sample != NULL);
+                }
+/*                else if (strcmp(format, "Ogg Vorbis") == 0)
+                {
+                } */
+                else
+                {
+                    Read_state_set_error(state, "Unrecognised Sample format: %s", format);
+                }
+            }
+        }
+        else if (strcmp(key, "mid_freq") == 0)
+        {
+            str = read_double(str, &mid_freq, state);
             if (!(sample->mid_freq > 0))
             {
                 Read_state_set_error(state, "Sample frequency is not positive");
@@ -167,76 +184,30 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
         }
         if (state->error)
         {
-            del_Sample(sample);
+            if (sample != NULL)
+            {
+                del_Sample(sample);
+            }
             return NULL;
         }
         check_next(str, state, expect_key);
     }
     str = read_const_char(str, '}', state);
+    if (sample == NULL)
+    {
+        return NULL;
+    }
     if (state->error)
     {
         del_Sample(sample);
         return NULL;
     }
+    sample->mid_freq = mid_freq;
     Sample_set_loop(sample, loop);
     Sample_set_loop_end(sample, loop_end);
     Sample_set_loop_start(sample, loop_start);
     return sample;
 }
-
-
-#if 0
-bool Sample_load(Sample* sample, FILE* in, Sample_format format)
-{
-    assert(sample != NULL);
-    assert(in != NULL);
-    assert(format > SAMPLE_FORMAT_NONE);
-    assert(format < SAMPLE_FORMAT_LAST);
-    for (int i = 0; i < 2; ++i)
-    {
-        if (sample->data[i] != NULL)
-        {
-            xfree(sample->data[i]);
-            sample->data[i] = NULL;
-        }
-    }
-    if (format == SAMPLE_FORMAT_WAVPACK)
-    {
-        return File_wavpack_load_sample(sample, in, NULL, NULL);
-    }
-    return false;
-}
-
-
-bool Sample_load_path(Sample* sample, char* path, Sample_format format)
-{
-    assert(sample != NULL);
-    assert(path != NULL);
-    assert(format > SAMPLE_FORMAT_NONE);
-    assert(format < SAMPLE_FORMAT_LAST);
-    FILE* in = fopen(path, "r");
-    if (in == NULL)
-    {
-        return false;
-    }
-    bool ret = Sample_load(sample, in, format);
-    fclose(in);
-    if (ret)
-    {
-        if (sample->path != NULL)
-        {
-            xfree(sample->path);
-            sample->path = NULL;
-        }
-        sample->path = xnalloc(char, strlen(path) + 1);
-        if (sample->path != NULL)
-        {
-            strcpy(sample->path, path);
-        }
-    }
-    return ret;
-}
-#endif
 
 
 char* Sample_get_path(Sample* sample)

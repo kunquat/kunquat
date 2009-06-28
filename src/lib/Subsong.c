@@ -75,7 +75,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Subsong is not a directory");
         return false;
     }
-    File_tree* info = File_tree_get_child(tree, "info_sub.json");
+    File_tree* info = File_tree_get_child(tree, "subsong.json");
     if (info == NULL)
     {
         return true;

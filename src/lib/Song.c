@@ -166,7 +166,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported composition version");
         return false;
     }
-    File_tree* info_tree = File_tree_get_child(tree, "info_song.json");
+    File_tree* info_tree = File_tree_get_child(tree, "composition.json");
     if (info_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(info_tree));
@@ -263,85 +263,62 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    File_tree* nts_tree = File_tree_get_child(tree, "scales");
-    if (nts_tree != NULL)
+    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
     {
-        Read_state_init(state, File_tree_get_path(nts_tree));
-        if (!File_tree_is_dir(nts_tree))
+        char dir_name[] = "scale_0";
+        snprintf(dir_name, 8, "scale_%01x", i);
+        File_tree* index_tree = File_tree_get_child(tree, dir_name);
+        if (index_tree != NULL)
         {
-            Read_state_set_error(state,
-                     "Scale collection is not a directory");
-            return false;
-        }
-        for (int i = 0; i < NOTE_TABLES_MAX; ++i)
-        {
-            char dir_name[] = "s_0";
-            snprintf(dir_name, 4, "s_%01x", i);
-            File_tree* index_tree = File_tree_get_child(nts_tree, dir_name);
-            if (index_tree != NULL)
+            Read_state_init(state, File_tree_get_path(index_tree));
+            if (!File_tree_is_dir(index_tree))
             {
-                Read_state_init(state, File_tree_get_path(index_tree));
-                if (!File_tree_is_dir(index_tree))
+                Read_state_set_error(state,
+                         "Scale at index %01x is not a directory", i);
+                return false;
+            }
+            File_tree* notes_tree = File_tree_get_child(index_tree, "kunquats00");
+            if (notes_tree != NULL)
+            {
+                Read_state_init(state, File_tree_get_path(notes_tree));
+                if (!Song_create_notes(song, i))
                 {
                     Read_state_set_error(state,
-                             "Scale at index %01x is not a directory", i);
+                             "Couldn't allocate memory for scale %01x", i);
                     return false;
                 }
-                File_tree* notes_tree = File_tree_get_child(index_tree, "kunquats00");
-                if (notes_tree != NULL)
+                Note_table* notes = Song_get_notes(song, i);
+                assert(notes != NULL);
+                Note_table_read(notes, notes_tree, state);
+                if (state->error)
                 {
-                    Read_state_init(state, File_tree_get_path(notes_tree));
-                    if (!Song_create_notes(song, i))
-                    {
-                        Read_state_set_error(state,
-                                 "Couldn't allocate memory for scale %01x", i);
-                        return false;
-                    }
-                    Note_table* notes = Song_get_notes(song, i);
-                    assert(notes != NULL);
-                    Note_table_read(notes, notes_tree, state);
-                    if (state->error)
-                    {
-                        Song_remove_notes(song, i);
-                        return false;
-                    }
+                    Song_remove_notes(song, i);
+                    return false;
                 }
             }
         }
     }
-    File_tree* ss_tree = File_tree_get_child(tree, "subsongs");
-    if (ss_tree != NULL)
+    Order* order = Song_get_order(song);
+    if (!Order_read(order, tree, state))
     {
-        Order* order = Song_get_order(song);
-        if (!Order_read(order, ss_tree, state))
-        {
-            return false;
-        }
+        return false;
     }
-    File_tree* pat_tree = File_tree_get_child(tree, "patterns");
-    if (pat_tree != NULL)
+    Pat_table* pats = Song_get_pats(song);
+    if (!Pat_table_read(pats, tree, state))
     {
-        Pat_table* pats = Song_get_pats(song);
-        if (!Pat_table_read(pats, pat_tree, state))
-        {
-            return false;
-        }
+        return false;
     }
-    File_tree* ins_tree = File_tree_get_child(tree, "instruments");
-    if (ins_tree != NULL)
+    Ins_table* insts = Song_get_insts(song);
+    if (!Ins_table_read(insts, tree, state,
+                        Song_get_bufs(song),
+                        Song_get_voice_bufs(song),
+                        Song_get_buf_count(song),
+                        Song_get_buf_size(song),
+                        Song_get_note_tables(song),
+                        Song_get_active_notes(song),
+                        16)) // TODO: make configurable
     {
-        Ins_table* insts = Song_get_insts(song);
-        if (!Ins_table_read(insts, ins_tree, state,
-                            Song_get_bufs(song),
-                            Song_get_voice_bufs(song),
-                            Song_get_buf_count(song),
-                            Song_get_buf_size(song),
-                            Song_get_note_tables(song),
-                            Song_get_active_notes(song),
-                            16)) // TODO: make configurable
-        {
-            return false;
-        }
+        return false;
     }
     return true;
 }

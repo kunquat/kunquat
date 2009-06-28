@@ -240,12 +240,22 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
     {
         return false;
     }
+    tree = File_tree_get_child(tree, "gen_pcm");
+    if (tree == NULL)
+    {
+        return true;
+    }
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "PCM Generator is not a directory");
+        return false;
+    }
     Read_state_init(state, File_tree_get_path(tree));
     Generator_pcm* pcm = (Generator_pcm*)gen;
     for (int i = 0; i < PCM_STYLES_MAX; ++i)
     {
-        char st_name[] = "st_XX";
-        snprintf(st_name, 5, "st_%01x", i);
+        char st_name[] = "style_x";
+        snprintf(st_name, 8, "style_%01x", i);
         File_tree* style_tree = File_tree_get_child(tree, st_name);
         if (style_tree != NULL)
         {
@@ -258,8 +268,8 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
             }
             for (int k = 0; k < PCM_SOURCES_MAX; ++k)
             {
-                char src_name[] = "src_XX";
-                snprintf(src_name, 6, "src_%01x", k);
+                char src_name[] = "source_x";
+                snprintf(src_name, 9, "source_%01x", k);
                 File_tree* source_tree = File_tree_get_child(style_tree, src_name);
                 if (source_tree != NULL)
                 {
@@ -270,7 +280,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
                                                     " is not a directory", i, k);
                         return false;
                     }
-                    File_tree* map_tree = File_tree_get_child(source_tree, "map.json");
+                    File_tree* map_tree = File_tree_get_child(source_tree, "sample_map.json");
                     if (map_tree != NULL)
                     {
                         if (File_tree_is_dir(map_tree))
@@ -293,7 +303,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
     }
     for (int i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
-        char dir_name[] = "sample_XXX";
+        char dir_name[] = "sample_xxx";
         snprintf(dir_name, 11, "sample_%03x", i);
         File_tree* sample_tree = File_tree_get_child(tree, dir_name);
         if (sample_tree != NULL)
