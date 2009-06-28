@@ -26,7 +26,7 @@ Export('env')
 SConscript('lib/SConscript')
 if env['enable_demo']:
     SConscript('demo/SConscript')
-SConscript('editor/SConscript')
+#SConscript('editor/SConscript')
 
 if not env.GetOption('clean') and 'check' in env['LIBS']:
     env['LIBS'].remove('check')

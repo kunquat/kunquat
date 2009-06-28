@@ -34,6 +34,8 @@
 #include <Note_table.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -93,15 +95,9 @@ START_TEST (new)
     }
     fail_if(Song_get_name(song) == NULL,
             "new_Song() created a Song without a name.");
-    double tempo = Song_get_tempo(song, 0);
-    fail_unless(isfinite(tempo) && tempo > 0,
-            "new_Song() created a Song without a sane initial tempo (%lf).", tempo);
     double mix_vol = Song_get_mix_vol(song);
     fail_unless(isfinite(mix_vol),
             "new_Song() created a Song without a sane initial mixing volume (%lf).", mix_vol);
-    double global_vol = Song_get_global_vol(song, 0);
-    fail_unless(isfinite(global_vol),
-            "new_Song() created a Song without a sane initial global volume (%lf).", global_vol);
     int buf_count = Song_get_buf_count(song);
     fail_unless(buf_count == 2,
             "new_Song() created a Song with a wrong amount of buffers (%d).", buf_count);
@@ -221,97 +217,6 @@ END_TEST
 #endif
 
 
-START_TEST (set_get_tempo)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        abort();
-    }
-    Song_set_tempo(song, 0, 16);
-    double ret = Song_get_tempo(song, 0);
-    fail_unless(ret, 16,
-            "Song_get_tempo() returned %lf instead of %lf.", ret, 16);
-    Song_set_tempo(song, 0, 120);
-    ret = Song_get_tempo(song, 0);
-    fail_unless(ret, 120,
-            "Song_get_tempo() returned %lf instead of %lf.", ret, 120);
-    Song_set_tempo(song, 0, 512);
-    ret = Song_get_tempo(song, 0);
-    fail_unless(ret, 512,
-            "Song_get_tempo() returned %lf instead of %lf.", ret, 512);
-    del_Song(song);
-}
-END_TEST
-
-#ifndef NDEBUG
-START_TEST (set_tempo_break_song_null)
-{
-    Song_set_tempo(NULL, 0, 120);
-}
-END_TEST
-
-START_TEST (set_tempo_break_tempo_inv1)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_tempo(song, 0, 0);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (set_tempo_break_tempo_inv2)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_tempo(song, 0, -INFINITY);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (set_tempo_break_tempo_inv3)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_tempo(song, 0, INFINITY);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (set_tempo_break_tempo_inv4)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_tempo(song, 0, NAN);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (get_tempo_break_song_null)
-{
-    Song_get_tempo(NULL, 0);
-}
-END_TEST
-#endif
-
-
 START_TEST (set_get_mix_vol)
 {
     Song* song = new_Song(1, 1, 1);
@@ -373,67 +278,6 @@ END_TEST
 #endif
 
 
-START_TEST (set_get_global_vol)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        abort();
-    }
-    Song_set_global_vol(song, 0, -INFINITY);
-    double ret = Song_get_global_vol(song, 0);
-    fail_unless(ret == -INFINITY,
-            "Song_get_global_vol() returned %lf instead of %lf.", ret, -INFINITY);
-    Song_set_global_vol(song, 0, 0);
-    ret = Song_get_global_vol(song, 0);
-    fail_unless(ret == 0,
-            "Song_get_global_vol() returned %lf instead of %lf.", ret, 0);
-    del_Song(song);
-}
-END_TEST
-
-#ifndef NDEBUG
-START_TEST (set_global_vol_break_song_null)
-{
-    Song_set_global_vol(NULL, 0, 0);
-}
-END_TEST
-
-START_TEST (set_global_vol_break_global_vol_inv1)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_global_vol(song, 0, INFINITY);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (set_global_vol_break_global_vol_inv2)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_global_vol(song, 0, NAN);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (get_global_vol_break_song_null)
-{
-    Song_get_global_vol(NULL, 0);
-}
-END_TEST
-#endif
-
-
 START_TEST (mix)
 {
     Song* song = new_Song(2, 256, 64);
@@ -442,9 +286,7 @@ START_TEST (mix)
         fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
         abort();
     }
-    Song_set_tempo(song, 0, 120);
     Song_set_mix_vol(song, 0);
-    Song_set_global_vol(song, 0, 0);
     Playdata* play = init_play(song);
     if (play == NULL) abort();
     Pattern* pat1 = new_Pattern();
@@ -484,7 +326,7 @@ START_TEST (mix)
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
     frame_t** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 256, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -497,32 +339,32 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Instrument_set_note_table(ins, &notes);
+    Instrument_set_note_table(ins, 0);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))
     {
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_ON);
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -544,21 +386,26 @@ START_TEST (mix)
     play->freq = 8;
     play->tempo = 120;
     Reltime_init(&play->pos);
-    Event_set_int(ev1_on, 0, 0);
-    Event_set_int(ev1_on, 1, -1);
-    Event_set_int(ev1_on, 2, NOTE_TABLE_MIDDLE_OCTAVE - 1);
-    Event_set_int(ev1_on, 3, 1);
-    Event_set_int(ev2_on, 0, 0);
-    Event_set_int(ev2_on, 1, -1);
-    Event_set_int(ev2_on, 2, NOTE_TABLE_MIDDLE_OCTAVE);
-    Event_set_int(ev2_on, 3, 1);
-    Column* col = Pattern_col(pat1, 0);
+    int64_t note = 0;
+    int64_t mod = -1;
+    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    int64_t instrument = 1;
+    Event_set_field(ev1_on, 0, &note);
+    Event_set_field(ev1_on, 1, &mod);
+    Event_set_field(ev1_on, 2, &octave);
+    Event_set_field(ev1_on, 3, &instrument);
+    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    Event_set_field(ev2_on, 0, &note);
+    Event_set_field(ev2_on, 1, &mod);
+    Event_set_field(ev2_on, 2, &octave);
+    Event_set_field(ev2_on, 3, &instrument);
+    Column* col = Pattern_get_col(pat1, 0);
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    col = Pattern_col(pat2, 0);
+    col = Pattern_get_col(pat2, 0);
     if (!Column_ins(col, ev2_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -671,9 +518,7 @@ Suite* Song_suite(void)
 
     tcase_add_test(tc_new, new);
     tcase_add_test(tc_set_get_name, set_get_name);
-    tcase_add_test(tc_set_get_tempo, set_get_tempo);
     tcase_add_test(tc_set_get_mix_vol, set_get_mix_vol);
-    tcase_add_test(tc_set_get_global_vol, set_get_global_vol);
     tcase_add_test(tc_mix, mix);
 
 #ifndef NDEBUG
@@ -686,22 +531,10 @@ Suite* Song_suite(void)
     tcase_add_test_raise_signal(tc_set_get_name, set_name_break_name_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_name, get_name_break_song_null, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_set_get_tempo, set_tempo_break_song_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_tempo, set_tempo_break_tempo_inv1, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_tempo, set_tempo_break_tempo_inv2, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_tempo, set_tempo_break_tempo_inv3, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_tempo, set_tempo_break_tempo_inv4, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_tempo, get_tempo_break_song_null, SIGABRT);
-
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_song_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_mix_vol_inv1, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_mix_vol_inv2, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_mix_vol, get_mix_vol_break_song_null, SIGABRT);
-
-    tcase_add_test_raise_signal(tc_set_get_global_vol, set_global_vol_break_song_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_global_vol, set_global_vol_break_global_vol_inv1, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_global_vol, set_global_vol_break_global_vol_inv2, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_global_vol, get_global_vol_break_song_null, SIGABRT);
 
     tcase_add_test_raise_signal(tc_mix, mix_break_song_null, SIGABRT);
     tcase_add_test_raise_signal(tc_mix, mix_break_play_null, SIGABRT);

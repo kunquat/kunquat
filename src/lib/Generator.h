@@ -24,9 +24,14 @@
 #define K_GENERATOR_H
 
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include <Generator_type.h>
 #include <Instrument_params.h>
 #include <Voice_state.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 
 /**
@@ -39,12 +44,39 @@
 typedef struct Generator
 {
     Gen_type type;
-    void (*init_state)(Voice_state*);
+    bool enabled;
+    double volume_dB;
+    double volume;
+    bool (*read)(struct Generator*, File_tree*, Read_state*);
+    void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t,
                 int, frame_t**);
     Instrument_params* ins_params;
 } Generator;
+
+
+/**
+ * Creates a Generator from a File tree.
+ *
+ * \param tree         The File tree -- must not be \c NULL.
+ * \param state        The Read state -- must not be \c NULL.
+ * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ *
+ * \return   The read Generator if successful, or \c NULL if failed. An error
+ *           message is stored in \a state.
+ */
+Generator* new_Generator_from_file_tree(File_tree* tree,
+                                        Read_state* state,
+                                        Instrument_params* ins_params);
+
+
+/**
+ * Initialises the general Generator parameters.
+ *
+ * \param gen   The Generator -- must not be \c NULL.
+ */
+void Generator_init(Generator* gen);
 
 
 /**

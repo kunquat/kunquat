@@ -22,10 +22,11 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <Pat_table.h>
-
 #include <Pattern.h>
+#include <Song_limits.h>
 
 #include <xmemory.h>
 
@@ -46,6 +47,55 @@ Pat_table* new_Pat_table(int size)
     }
     table->size = size;
     return table;
+}
+
+
+bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
+{
+    assert(table != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Pattern table is not a directory");
+        return false;
+    }
+    for (int i = 0; i < PATTERNS_MAX; ++i)
+    {
+        char dir_name[] = "pattern_000";
+        snprintf(dir_name, 12, "pattern_%03x", i);
+        File_tree* pat_tree = File_tree_get_child(tree, dir_name);
+        if (pat_tree != NULL)
+        {
+            Read_state_init(state, File_tree_get_path(pat_tree));
+            Pattern* pat = new_Pattern();
+            if (pat == NULL)
+            {
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for Pattern %03x", i);
+                return false;
+            }
+            Pattern_read(pat, pat_tree, state);
+            if (state->error)
+            {
+                del_Pattern(pat);
+                return false;
+            }
+            if (!Pat_table_set(table, i, pat))
+            {
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for Pattern %03x", i);
+                del_Pattern(pat);
+                return false;
+            }
+        }
+    }
+    return true;
 }
 
 

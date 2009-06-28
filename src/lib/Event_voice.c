@@ -23,14 +23,15 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <Voice_state_triangle.h>
+#include <Event_voice.h>
 
 
-void Voice_state_triangle_init(Voice_state* state)
+void Event_voice_process(Event_voice* event, Voice* voice)
 {
-    assert(state != NULL);
-    Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
-    triangle_state->phase = 0.25;
+    assert(event != NULL);
+    assert(EVENT_TYPE_IS_VOICE(event->parent.type));
+    assert(voice != NULL);
+    event->process(event, voice);
     return;
 }
 

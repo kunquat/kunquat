@@ -22,10 +22,15 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #include <Generator.h>
 #include <Instrument.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 #include <xmemory.h>
 
@@ -34,6 +39,8 @@ Instrument* new_Instrument(frame_t** bufs,
                            frame_t** vbufs,
                            int buf_count,
                            uint32_t buf_len,
+                           Note_table** note_tables,
+                           Note_table** default_notes,
                            uint8_t events)
 {
     assert(bufs != NULL);
@@ -44,13 +51,20 @@ Instrument* new_Instrument(frame_t** bufs,
     assert(vbufs[1] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
+    assert(note_tables != NULL);
+    assert(default_notes != NULL);
+    assert(default_notes >= &note_tables[0]);
+    assert(default_notes <= &note_tables[NOTE_TABLES_MAX - 1]);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {
         return NULL;
     }
-    if (Instrument_params_init(&ins->params, bufs, vbufs, buf_count, buf_len) == NULL)
+    if (Instrument_params_init(&ins->params,
+                               bufs, vbufs,
+                               buf_count, buf_len,
+                               default_notes) == NULL)
     {
         xfree(ins);
         return NULL;
@@ -66,6 +80,10 @@ Instrument* new_Instrument(frame_t** bufs,
     ins->default_force = 1;
     ins->force_variation = 0;
 
+    ins->note_tables = note_tables;
+    ins->default_notes = default_notes;
+    ins->notes_index = -1;
+
     ins->gen_count = 0;
     for (int i = 0; i < GENERATORS_MAX; ++i)
     {
@@ -74,6 +92,138 @@ Instrument* new_Instrument(frame_t** bufs,
 
     ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
     return ins;
+}
+
+
+bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
+{
+    assert(ins != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Instrument is not a directory");
+        return false;
+    }
+    char* name = File_tree_get_name(tree);
+    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
+    {
+        Read_state_set_error(state, "Directory is not a Kunquat file");
+        return false;
+    }
+    if (name[strlen(MAGIC_ID)] != 'i')
+    {
+        Read_state_set_error(state, "Directory is not an instrument file");
+        return false;
+    }
+    const char* version = "00";
+    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
+    {
+        Read_state_set_error(state, "Unsupported instrument version");
+        return false;
+    }
+    File_tree* ins_tree = File_tree_get_child(tree, "instrument.json");
+    if (ins_tree != NULL)
+    {
+        Read_state_init(state, File_tree_get_path(ins_tree));
+        if (File_tree_is_dir(ins_tree))
+        {
+            Read_state_set_error(state,
+                     "Instrument information file is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(ins_tree);
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (strcmp(key, "force") == 0)
+                {
+                    str = read_double(str, &ins->default_force, state);
+                }
+                else if (strcmp(key, "force_variation") == 0)
+                {
+                    str = read_double(str, &ins->force_variation, state);
+                }
+                else if (strcmp(key, "scale") == 0)
+                {
+                    int64_t num = -1;
+                    str = read_int(str, &num, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (num < -1 || num >= NOTE_TABLES_MAX)
+                    {
+                        Read_state_set_error(state,
+                                 "Invalid scale index: %" PRId64, num);
+                        return false;
+                    }
+                    Instrument_set_note_table(ins, num);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unsupported field in instrument information: %s", key);
+                    return false;
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    Instrument_params_read(&ins->params, tree, state);
+    if (state->error)
+    {
+        return false;
+    }
+    for (int i = 0; i < GENERATORS_MAX; ++i)
+    {
+        char dir_name[] = "generator_xx";
+        snprintf(dir_name, 13, "generator_%02x", i);
+        File_tree* gen_tree = File_tree_get_child(tree, dir_name);
+        if (gen_tree != NULL)
+        {
+            Generator* gen = new_Generator_from_file_tree(gen_tree, state,
+                             Instrument_get_params(ins));
+            if (state->error)
+            {
+                assert(gen == NULL);
+                return false;
+            }
+            assert(gen != NULL);
+            Instrument_set_gen(ins, i, gen);
+        }
+    }
+    return true;
 }
 
 
@@ -166,11 +316,19 @@ wchar_t* Instrument_get_name(Instrument* ins)
 }
 
 
-void Instrument_set_note_table(Instrument* ins, Note_table** notes)
+void Instrument_set_note_table(Instrument* ins, int index)
 {
     assert(ins != NULL);
-    assert(notes != NULL);
-    ins->params.notes = notes;
+    assert(index >= -1);
+    assert(index < NOTE_TABLES_MAX);
+    if (index == -1)
+    {
+        ins->params.notes = ins->default_notes;
+    }
+    else
+    {
+        ins->params.notes = &ins->note_tables[index];
+    }
     return;
 }
 

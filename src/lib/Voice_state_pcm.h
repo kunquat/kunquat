@@ -20,18 +20,25 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include <Voice_state_square303.h>
+#ifndef K_VOICE_STATE_PCM_H
+#define K_VOICE_STATE_PCM_H
 
 
-void Voice_state_square303_init(Voice_state* state)
+#include <Voice_state.h>
+
+
+typedef struct Voice_state_pcm
 {
-    assert(state != NULL);
-    Voice_state_square303* square303_state = (Voice_state_square303*)state;
-    square303_state->phase = 0.5;
-    return;
-}
+    Voice_state parent;
+    int sample;
+    double freq;
+    double volume;
+    uint8_t source;
+    uint8_t style;
+    double middle_tone;
+} Voice_state_pcm;
+
+
+#endif // K_VOICE_STATE_PCM_H
 
 

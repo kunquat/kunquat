@@ -47,6 +47,26 @@ Ins_table* new_Ins_table(int size);
 
 
 /**
+ * Reads an Instrument table from a File tree.
+ *
+ * \param table   The Pattern table -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ * \param song    The Song -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
+                    frame_t** bufs,
+                    frame_t** voice_bufs,
+                    int buf_count,
+                    uint32_t buf_len,
+                    Note_table** note_tables,
+                    Note_table** default_notes,
+                    uint8_t events);
+
+
+/**
  * Inserts a new Instrument into the Instrument table.
  *
  * If the target index already contains an Instrument, it will be deleted.

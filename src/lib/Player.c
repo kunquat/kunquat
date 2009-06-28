@@ -118,7 +118,15 @@ void Player_play_subsong(Player* player, uint16_t subsong)
     assert(subsong < SUBSONGS_MAX);
     Player_stop(player);
     player->play->subsong = subsong;
-    player->play->tempo = Song_get_tempo(player->song, player->play->subsong);
+    Subsong* ss = Order_get_subsong(player->play->order, player->play->subsong);
+    if (ss == NULL)
+    {
+        player->play->tempo = 120;
+    }
+    else
+    {
+        player->play->tempo = Subsong_get_tempo(ss);
+    }
     Playdata_reset_stats(player->play);
     player->play->mode = PLAY_SONG;
     return;
@@ -162,7 +170,15 @@ void Player_stop(Player* player)
     Reltime_init(&player->play->play_time);
     player->play->play_frames = 0;
     player->play->subsong = Song_get_subsong(player->song);
-    player->play->tempo = Song_get_tempo(player->song, player->play->subsong);
+    Subsong* ss = Order_get_subsong(player->play->order, player->play->subsong);
+    if (ss == NULL)
+    {
+        player->play->tempo = 120;
+    }
+    else
+    {
+        player->play->tempo = Subsong_get_tempo(ss);
+    }
     player->play->order_index = 0;
     player->play->pattern = 0;
     Reltime_init(&player->play->pos);

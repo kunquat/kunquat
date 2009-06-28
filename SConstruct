@@ -112,6 +112,10 @@ if not env.GetOption('clean'):
         print('Error: WavPack not found.')
         Exit(1)
 
+    if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
+        print('Error: libarchive not found.')
+        Exit(1)
+
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
             audio_found = True
@@ -164,6 +168,9 @@ if not env.GetOption('clean'):
 
 
 Export('env')
+
+if env['enable_demo']:
+    SConscript('demo/SConscript')
 
 SConscript('src/SConscript')
 

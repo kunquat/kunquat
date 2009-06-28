@@ -30,6 +30,8 @@
 #include <frame_t.h>
 #include <Envelope.h>
 #include <Note_table.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 
 typedef struct Instrument_params
@@ -67,7 +69,7 @@ typedef struct Instrument_params
 
     bool volume_off_env_enabled;  ///< Note Off volume envelope toggle.
     Envelope* volume_off_env;     ///< Note Off volume envelope.
-    double volume_off_env_scale;  ///< Note Off volume envelope scale factor (frequency -> speed).
+    double volume_off_env_factor; ///< Note Off volume envelope scale factor (frequency -> speed).
     double volume_off_env_center; ///< Note Off volume envelope scale center frequency.
 
     bool panning_enabled;       ///< Default panning toggle.
@@ -98,7 +100,7 @@ typedef struct Instrument_params
  * \param buf_count   The number of buffers -- must be > \c 0.
  * \param buf_len     The length of the buffers -- must be > \c 0.
  * \param notes       An indirect reference to the Note table -- must not be
- *                    \c NULL. Also, *notes must not be \c NULL.
+ *                    \c NULL.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
  *           allocation failed.
@@ -107,7 +109,20 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
         frame_t** bufs,
         frame_t** vbufs,
         int buf_count,
-        uint32_t buf_len);
+        uint32_t buf_len,
+        Note_table** notes);
+
+
+/**
+ * Reads Instrument parameters from a File tree.
+ *
+ * \param ip      The Instrument parameters -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* state);
 
 
 /**

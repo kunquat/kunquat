@@ -20,19 +20,24 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include <Voice_state_square.h>
+#ifndef K_EVENT_GLOBAL_SET_TEMPO_H
+#define K_EVENT_GLOBAL_SET_TEMPO_H
 
 
-void Voice_state_square_init(Voice_state* state)
+#include <Event_global.h>
+#include <Reltime.h>
+
+
+typedef struct Event_global_set_tempo
 {
-    assert(state != NULL);
-    Voice_state_square* square_state = (Voice_state_square*)state;
-    square_state->phase = 0;
-    square_state->pulse_width = 0.5;
-    return;
-}
+    Event_global parent;
+    double tempo;
+} Event_global_set_tempo;
+
+
+Event* new_Event_global_set_tempo(Reltime* pos);
+
+
+#endif // K_EVENT_GLOBAL_SET_TEMPO_H
 
 

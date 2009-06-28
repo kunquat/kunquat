@@ -30,6 +30,7 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
+#include <File_tree.h>
 
 
 /**
@@ -107,6 +108,30 @@ void del_Column_iter(Column_iter* iter);
  *           failed.
  */
 Column* new_Column(Reltime* len);
+
+
+/**
+ * Reads a Column from a File tree.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Column_read(Column* col, File_tree* tree, Read_state* state);
+
+
+/**
+ * Writes the Column into a file.
+ *
+ * \param col     The Column -- must not be \c NULL.
+ * \param out     The output file -- must not be \c NULL.
+ * \param state   The Write state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Column_write(Column* col, FILE* out, Write_state* state);
 
 
 /**

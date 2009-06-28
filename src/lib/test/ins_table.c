@@ -31,6 +31,7 @@
 #include <frame_t.h>
 #include <Instrument.h>
 #include <Ins_table.h>
+#include <Note_table.h>
 
 
 Suite* Ins_table_suite(void);
@@ -76,25 +77,26 @@ START_TEST (set_get)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins4 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins4 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins4 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -230,7 +232,8 @@ START_TEST (set_break_table_null)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -246,7 +249,8 @@ START_TEST (set_break_index_inv1)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -269,7 +273,8 @@ START_TEST (set_break_index_inv2)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -305,7 +310,8 @@ START_TEST (set_break_ins_dup)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -363,19 +369,20 @@ START_TEST (ins_table_remove)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -525,19 +532,20 @@ START_TEST (clear)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

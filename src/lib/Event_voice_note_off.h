@@ -20,18 +20,23 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include <Voice_state_sawtooth.h>
+#ifndef K_EVENT_VOICE_NOTE_OFF_H
+#define K_EVENT_VOICE_NOTE_OFF_H
 
 
-void Voice_state_sawtooth_init(Voice_state* state)
+#include <Event_voice.h>
+#include <Reltime.h>
+
+
+typedef struct Event_voice_note_off
 {
-    assert(state != NULL);
-    Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
-    sawtooth_state->phase = 0.25;
-    return;
-}
+    Event_voice parent;
+} Event_voice_note_off;
+
+
+Event* new_Event_voice_note_off(Reltime* pos);
+
+
+#endif // K_EVENT_VOICE_NOTE_OFF_H
 
 

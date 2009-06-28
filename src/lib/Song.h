@@ -33,6 +33,8 @@
 #include <Ins_table.h>
 #include <Note_table.h>
 #include <Playdata.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 
 typedef struct Song
@@ -49,12 +51,7 @@ typedef struct Song
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
     wchar_t name[SONG_NAME_MAX];        ///< The name of the Song.
-    struct
-    {
-        double tempo;                   ///< Initial tempo.
-        double global_vol;              ///< Initial global volume.
-        Note_table* notes;              ///< Initial Note table.
-    } subsong_inits[SUBSONGS_MAX];
+    double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
 } Song;
@@ -76,6 +73,18 @@ typedef struct Song
  *           failed.
  */
 Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
+
+
+/**
+ * Reads a Song from a File tree.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Song_read(Song* song, File_tree* tree, Read_state* state);
 
 
 /**
@@ -201,7 +210,7 @@ uint16_t Song_get_subsong(Song* song);
  *
  * \param song    The Song -- must not be \c NULL.
  * \param count   The number of buffers -- must be > \c 0 and
- *                < \c BUF_COUNT_MAX.
+ *                <= \c BUF_COUNT_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -287,6 +296,16 @@ Pat_table* Song_get_pats(Song* song);
  * \return   The Instrument table.
  */
 Ins_table* Song_get_insts(Song* song);
+
+
+/**
+ * Gets the array of Note tables of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The Note tables.
+ */
+Note_table** Song_get_note_tables(Song* song);
 
 
 /**

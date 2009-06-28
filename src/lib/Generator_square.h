@@ -31,6 +31,7 @@
 typedef struct Generator_square
 {
     Generator parent;
+    double pulse_width;
 } Generator_square;
 
 

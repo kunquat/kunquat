@@ -20,18 +20,30 @@
  */
 
 
-#include <stdlib.h>
-#include <assert.h>
-
-#include <Voice_state_sine.h>
+#ifndef K_EVENT_VOICE_H
+#define K_EVENT_VOICE_H
 
 
-void Voice_state_sine_init(Voice_state* state)
+#include <Event.h>
+#include <Voice.h>
+
+
+typedef struct Event_voice
 {
-    assert(state != NULL);
-    Voice_state_sine* sine_state = (Voice_state_sine*)state;
-    sine_state->phase = 0;
-    return;
-}
+    Event parent;
+    void (*process)(struct Event_voice* event, Voice* voice);
+} Event_voice;
+
+
+/**
+ * Processes the Voice event.
+ *
+ * \param event   The Voice event -- must not be \c NULL.
+ * \param voice   The Voice -- must not be \c NULL.
+ */
+void Event_voice_process(Event_voice* event, Voice* voice);
+
+
+#endif // K_EVENT_VOICE_H
 
 

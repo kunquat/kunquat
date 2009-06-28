@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include <Voice.h>
+#include <Event_voice.h>
 
 #include <xmemory.h>
 
@@ -74,7 +75,11 @@ void Voice_init(Voice* voice, Generator* gen)
     assert(gen != NULL);
     voice->prio = VOICE_PRIO_NEW;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic, gen->init_state);
+    Voice_state_init(&voice->state.generic);
+    if (gen->init_state != NULL)
+    {
+        gen->init_state(gen, &voice->state.generic);
+    }
     Event_queue_clear(voice->events);
     return;
 }
@@ -141,28 +146,8 @@ void Voice_mix(Voice* voice,
             }
             else
             {
-                assert(EVENT_TYPE_IS_INS(Event_get_type(next)));
-                int64_t note = -1;
-                int64_t note_mod = -1;
-                int64_t note_octave = INT64_MIN;
-                switch (Event_get_type(next))
-                {
-                    case EVENT_TYPE_NOTE_ON:
-                        Event_int(next, 0, &note);
-                        Event_int(next, 1, &note_mod);
-                        Event_int(next, 2, &note_octave);
-                        Generator_process_note(voice->gen,
-                                &voice->state.generic,
-                                (int)note,
-                                (int)note_mod,
-                                (int)note_octave);
-                        break;
-                    case EVENT_TYPE_NOTE_OFF:
-                        voice->state.generic.note_on = false;
-                        break;
-                    default:
-                        break;
-                }
+                assert(EVENT_TYPE_IS_VOICE(Event_get_type(next)));
+                Event_voice_process((Event_voice*)next, voice);
             }
         }
         mixed = mix_until;

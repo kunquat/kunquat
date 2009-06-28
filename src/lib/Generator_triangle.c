@@ -35,6 +35,11 @@
 #include <xmemory.h>
 
 
+bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state);
+
+void Generator_triangle_init_state(Generator* gen, Voice_state* state);
+
+
 Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
@@ -43,12 +48,42 @@ Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
     {
         return NULL;
     }
+    Generator_init(&triangle->parent);
+    triangle->parent.read = Generator_triangle_read;
     triangle->parent.destroy = del_Generator_triangle;
     triangle->parent.type = GEN_TYPE_TRIANGLE;
-    triangle->parent.init_state = Voice_state_triangle_init;
+    triangle->parent.init_state = Generator_triangle_init_state;
     triangle->parent.mix = Generator_triangle_mix;
     triangle->parent.ins_params = ins_params;
     return triangle;
+}
+
+
+bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_TRIANGLE);
+    assert(tree != NULL);
+    assert(state != NULL);
+    (void)gen;
+    (void)tree;
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
+}
+
+
+void Generator_triangle_init_state(Generator* gen, Voice_state* state)
+{
+    assert(gen != NULL);
+    assert(gen->type == GEN_TYPE_TRIANGLE);
+    assert(state != NULL);
+    Voice_state_init(state);
+    Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
+    triangle_state->phase = 0.25;
+    return;
 }
 
 

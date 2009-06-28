@@ -35,7 +35,7 @@ Suite* Voice_state_suite(void);
 START_TEST (init)
 {
     Voice_state state;
-    Voice_state* ret = Voice_state_init(&state, NULL);
+    Voice_state* ret = Voice_state_init(&state);
     fail_unless(ret == &state,
             "Voice_state_init() returned %p instead of %p.", ret, &state);
     fail_unless(state.active,
@@ -54,7 +54,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (init_break_state_null)
 {
-    Voice_state_init(NULL, NULL);
+    Voice_state_init(NULL);
 }
 END_TEST
 #endif

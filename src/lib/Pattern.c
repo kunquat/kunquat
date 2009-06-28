@@ -29,6 +29,7 @@
 #include <Playdata.h>
 #include <Event_queue.h>
 #include <Event.h>
+#include <Event_global.h>
 
 #include <xmemory.h>
 
@@ -65,6 +66,75 @@ Pattern* new_Pattern(void)
 }
 
 
+bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
+{
+    assert(pat != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Pattern is not a directory");
+        return false;
+    }
+    File_tree* info = File_tree_get_child(tree, "pattern.json");
+    if (info != NULL)
+    {
+        Read_state_init(state, File_tree_get_path(info));
+        if (File_tree_is_dir(info))
+        {
+            Read_state_set_error(state, "Pattern info is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(info);
+        assert(str != NULL);
+        str = read_const_char(str, '{', state);
+        str = read_const_string(str, "length", state);
+        str = read_const_char(str, ':', state);
+        Reltime* len = Reltime_init(RELTIME_AUTO);
+        str = read_reltime(str, len, state);
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (Reltime_get_beats(len) < 0)
+        {
+            Read_state_set_error(state, "Pattern length is negative");
+            return false;
+        }
+        Pattern_set_length(pat, len);
+    }
+    char dir_name[16] = "global_column";
+    for (int i = -1; i < COLUMNS_MAX; ++i)
+    {
+        File_tree* col_tree = File_tree_get_child(tree, dir_name);
+        if (col_tree != NULL)
+        {
+            Read_state_init(state, File_tree_get_path(col_tree));
+            if (i == -1)
+            {
+                Column_read(Pattern_get_global(pat), col_tree, state);
+            }
+            else
+            {
+                Column_read(Pattern_get_col(pat, i), col_tree, state);
+            }
+            if (state->error)
+            {
+                return false;
+            }
+        }
+        snprintf(dir_name, 16, "voice_column_%02x", i + 1);
+    }
+    return true;
+}
+
+
 void Pattern_set_length(Pattern* pat, Reltime* length)
 {
     assert(pat != NULL);
@@ -82,7 +152,7 @@ Reltime* Pattern_get_length(Pattern* pat)
 }
 
 
-Column* Pattern_col(Pattern* pat, int index)
+Column* Pattern_get_col(Pattern* pat, int index)
 {
     assert(pat != NULL);
     assert(index >= 0);
@@ -91,7 +161,7 @@ Column* Pattern_col(Pattern* pat, int index)
 }
 
 
-Column* Pattern_global(Pattern* pat)
+Column* Pattern_get_global(Pattern* pat)
 {
     assert(pat != NULL);
     return pat->global;
@@ -147,17 +217,19 @@ uint32_t Pattern_mix(Pattern* pat,
         Reltime* next_global_pos = NULL;
         if (next_global != NULL)
         {
-            next_global_pos = Event_pos(next_global);
+            next_global_pos = Event_get_pos(next_global);
         }
         // - Evaluate global events
         while (next_global != NULL
                 && Reltime_cmp(next_global_pos, &play->pos) == 0)
         {
-            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_TEMPO)
+            // FIXME: conditional event handling must be processed here
+            //        instead of Song_mix.
+            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_SET_TEMPO)
             {
-                Event_float(next_global, 0, &play->tempo);
+                Event_global_process((Event_global*)next_global, play);
             }
-            if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
+            else if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
                     || EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
             {
                 if (!Event_queue_ins(play->events, next_global, mixed))
@@ -168,7 +240,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                     Reltime_set(RELTIME_AUTO, 0, 1)));
                     if (next_global != NULL)
                     {
-                        next_global_pos = Event_pos(next_global);
+                        next_global_pos = Event_get_pos(next_global);
                     }
                     break;
                 }
@@ -176,7 +248,7 @@ uint32_t Pattern_mix(Pattern* pat,
             next_global = Column_iter_get_next(play->citer);
             if (next_global != NULL)
             {
-                next_global_pos = Event_pos(next_global);
+                next_global_pos = Event_get_pos(next_global);
             }
         }
         if (Reltime_cmp(&play->pos, &pat->length) >= 0)

@@ -22,14 +22,17 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
 #include <wchar.h>
 
 #include <Real.h>
-
 #include <Song.h>
+#include <File_base.h>
+#include <File_tree.h>
 
 #include <xmemory.h>
 
@@ -101,8 +104,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->notes[0] = new_Note_table(L"12-tone equal temperament",
-            523.25113060119725,
+    song->notes[0] = new_Note_table(523.25113060119725,
             Real_init_as_frac(REAL_AUTO, 2, 1));
     if (song->notes[0] == NULL)
     {
@@ -115,30 +117,210 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    wchar_t* note_names[12] =
-            { L"C",  L"C#", L"D",  L"D#", L"E",  L"F",
-              L"F#", L"G",  L"G#", L"A",  L"A#", L"B" };
     Note_table_set_note(song->notes[0],
             0,
-            note_names[0],
             Real_init_as_frac(REAL_AUTO, 1, 1));
     for (int i = 1; i < 12; ++i)
     {
         Note_table_set_note_cents(song->notes[0],
                 i,
-                note_names[i],
                 i * 100);
     }
     song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
-    song->mix_vol = -8;
+    song->mix_vol_dB = -8;
+    song->mix_vol = exp2(song->mix_vol_dB / 6);
     song->init_subsong = 0;
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
-    {
-        song->subsong_inits[i].tempo = 120;
-        song->subsong_inits[i].global_vol = 0;
-        song->subsong_inits[i].notes = song->notes[0];
-    }
     return song;
+}
+
+
+bool Song_read(Song* song, File_tree* tree, Read_state* state)
+{
+    assert(song != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Song is not a directory");
+        return false;
+    }
+    char* name = File_tree_get_name(tree);
+    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
+    {
+        Read_state_set_error(state, "Directory is not a Kunquat file");
+        return false;
+    }
+    if (name[strlen(MAGIC_ID)] != 'c')
+    {
+        Read_state_set_error(state, "Directory is not a composition file");
+        return false;
+    }
+    const char* version = "00";
+    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
+    {
+        Read_state_set_error(state, "Unsupported composition version");
+        return false;
+    }
+    File_tree* info_tree = File_tree_get_child(tree, "composition.json");
+    if (info_tree != NULL)
+    {
+        Read_state_init(state, File_tree_get_path(info_tree));
+        if (File_tree_is_dir(info_tree))
+        {
+            Read_state_set_error(state, "Composition info is a directory");
+            return false;
+        }
+        char* str = File_tree_get_data(info_tree);
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (strcmp(key, "buf_count") == 0)
+                {
+                    int64_t num = 0;
+                    str = read_int(str, &num, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (num < 1 || num > BUF_COUNT_MAX)
+                    {
+                        Read_state_set_error(state,
+                                 "Unsupported number of mixing buffers: %" PRId64, num);
+                        return false;
+                    }
+                    if (!Song_set_buf_count(song, num))
+                    {
+                        Read_state_set_error(state,
+                                 "Couldn't allocate memory for mixing buffers");
+                        return false;
+                    }
+                }
+                else if (strcmp(key, "mix_vol") == 0)
+                {
+                    str = read_double(str, &song->mix_vol_dB, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (!isfinite(song->mix_vol_dB) && song->mix_vol_dB != -INFINITY)
+                    {
+                        Read_state_set_error(state,
+                                 "Invalid mixing volume: %f", song->mix_vol_dB);
+                        song->mix_vol_dB = 0;
+                        return false;
+                    }
+                    song->mix_vol = exp2(song->mix_vol_dB / 6);
+                }
+                else if (strcmp(key, "init_subsong") == 0)
+                {
+                    int64_t num = 0;
+                    str = read_int(str, &num, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (num < 0 || num >= SUBSONGS_MAX)
+                    {
+                        Read_state_set_error(state,
+                                 "Invalid initial Subsong number: %" PRId64, num);
+                        return false;
+                    }
+                    Song_set_subsong(song, num);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unrecognised key in composition info: %s", key);
+                    return false;
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    {
+        char dir_name[] = "scale_0";
+        snprintf(dir_name, 8, "scale_%01x", i);
+        File_tree* index_tree = File_tree_get_child(tree, dir_name);
+        if (index_tree != NULL)
+        {
+            Read_state_init(state, File_tree_get_path(index_tree));
+            if (!File_tree_is_dir(index_tree))
+            {
+                Read_state_set_error(state,
+                         "Scale at index %01x is not a directory", i);
+                return false;
+            }
+            File_tree* notes_tree = File_tree_get_child(index_tree, "kunquats00");
+            if (notes_tree != NULL)
+            {
+                Read_state_init(state, File_tree_get_path(notes_tree));
+                if (!Song_create_notes(song, i))
+                {
+                    Read_state_set_error(state,
+                             "Couldn't allocate memory for scale %01x", i);
+                    return false;
+                }
+                Note_table* notes = Song_get_notes(song, i);
+                assert(notes != NULL);
+                Note_table_read(notes, notes_tree, state);
+                if (state->error)
+                {
+                    Song_remove_notes(song, i);
+                    return false;
+                }
+            }
+        }
+    }
+    Order* order = Song_get_order(song);
+    if (!Order_read(order, tree, state))
+    {
+        return false;
+    }
+    Pat_table* pats = Song_get_pats(song);
+    if (!Pat_table_read(pats, tree, state))
+    {
+        return false;
+    }
+    Ins_table* insts = Song_get_insts(song);
+    if (!Ins_table_read(insts, tree, state,
+                        Song_get_bufs(song),
+                        Song_get_voice_bufs(song),
+                        Song_get_buf_count(song),
+                        Song_get_buf_size(song),
+                        Song_get_note_tables(song),
+                        Song_get_active_notes(song),
+                        16)) // TODO: make configurable
+    {
+        return false;
+    }
+    return true;
 }
 
 
@@ -215,12 +397,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    double vol = exp2(song->mix_vol / 6);
     for (int i = 0; i < song->buf_count; ++i)
     {
         for (uint32_t k = 0; k < mixed; ++k)
         {
-            song->bufs[i][k] *= vol;
+            song->bufs[i][k] *= song->mix_vol;
         }
     }
     return mixed;
@@ -244,6 +425,7 @@ wchar_t* Song_get_name(Song* song)
 }
 
 
+#if 0
 void Song_set_tempo(Song* song, int subsong, double tempo)
 {
     assert(song != NULL);
@@ -263,13 +445,15 @@ double Song_get_tempo(Song* song, int subsong)
     assert(subsong < SUBSONGS_MAX);
     return song->subsong_inits[subsong].tempo;
 }
+#endif
 
 
 void Song_set_mix_vol(Song* song, double mix_vol)
 {
     assert(song != NULL);
     assert(isfinite(mix_vol) || mix_vol == -INFINITY);
-    song->mix_vol = mix_vol;
+    song->mix_vol_dB = mix_vol;
+    song->mix_vol = exp2(mix_vol / 6);
     return;
 }
 
@@ -277,10 +461,11 @@ void Song_set_mix_vol(Song* song, double mix_vol)
 double Song_get_mix_vol(Song* song)
 {
     assert(song != NULL);
-    return song->mix_vol;
+    return song->mix_vol_dB;
 }
 
 
+#if 0
 void Song_set_global_vol(Song* song, int subsong, double global_vol)
 {
     assert(song != NULL);
@@ -299,6 +484,7 @@ double Song_get_global_vol(Song* song, int subsong)
     assert(subsong < SUBSONGS_MAX);
     return song->subsong_inits[subsong].global_vol;
 }
+#endif
 
 
 void Song_set_subsong(Song* song, uint16_t num)
@@ -451,6 +637,13 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
+Note_table** Song_get_note_tables(Song* song)
+{
+    assert(song != NULL);
+    return song->notes;
+}
+
+
 Note_table* Song_get_notes(Song* song, int index)
 {
     assert(song != NULL);
@@ -477,8 +670,7 @@ bool Song_create_notes(Song* song, int index)
         Note_table_clear(song->notes[index]);
         return true;
     }
-    song->notes[index] = new_Note_table(NULL,
-            440,
+    song->notes[index] = new_Note_table(440,
             Real_init_as_frac(REAL_AUTO, 2, 1));
     if (song->notes[index] == NULL)
     {

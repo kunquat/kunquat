@@ -24,9 +24,13 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdint.h>
+#include <inttypes.h>
 
 #include <Reltime.h>
-
+#include <Event_global_set_tempo.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Column.h>
 
 #include <xmemory.h>
@@ -108,7 +112,7 @@ static int Event_list_cmp(Event_list* list1, Event_list* list2)
     Event* ev2 = list2->next->event;
     assert(ev1 != NULL);
     assert(ev2 != NULL);
-    return Reltime_cmp(Event_pos(ev1), Event_pos(ev2));
+    return Reltime_cmp(Event_get_pos(ev1), Event_get_pos(ev2));
 }
 
 
@@ -246,6 +250,135 @@ Column* new_Column(Reltime* len)
 }
 
 
+#define break_if(error)   \
+    do                    \
+    {                     \
+        if ((error))      \
+        {                 \
+            return false; \
+        }                 \
+    } while (false)
+
+bool Column_read(Column* col, File_tree* tree, Read_state* state)
+{
+    assert(col != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Column is not a directory");
+        return false;
+    }
+    bool is_global = strcmp(File_tree_get_name(tree), "global_column") == 0;
+    File_tree* event_tree = NULL;
+    if (!is_global)
+    {
+        event_tree = File_tree_get_child(tree, "voice_events.json");
+    }
+    else
+    {
+        event_tree = File_tree_get_child(tree, "global_events.json");
+    }
+    if (event_tree == NULL)
+    {
+        return true;
+    }
+    if (File_tree_is_dir(event_tree))
+    {
+        Read_state_init(state, "Event list is a directory");
+        return false;
+    }
+    char* str = File_tree_get_data(event_tree);
+
+    str = read_const_char(str, '[', state); // start of Column
+    break_if(state->error);
+
+    str = read_const_char(str, ']', state); // check of empty Column
+    if (!state->error)
+    {
+        return true;
+    }
+    Read_state_clear_error(state);
+
+    bool expect_event = true;
+    while (expect_event)
+    {
+        str = read_const_char(str, '[', state);
+        break_if(state->error);
+
+        Reltime* pos = Reltime_init(RELTIME_AUTO);
+        str = read_reltime(str, pos, state);
+        break_if(state->error);
+
+        str = read_const_char(str, ',', state);
+        break_if(state->error);
+
+        int64_t type = 0;
+        str = read_int(str, &type, state);
+        break_if(state->error);
+        if (!EVENT_TYPE_IS_VALID(type))
+        {
+            Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
+            return false;
+        }
+        if ((is_global && EVENT_TYPE_IS_VOICE(type)) ||
+                (!is_global && EVENT_TYPE_IS_GLOBAL(type)))
+        {
+            Read_state_set_error(state,
+                     "Incorrect Event type for %s column", is_global ? "global" : "note");
+            return false;
+        }
+
+        Event* event = new_Event(type, pos);
+        if (event == NULL)
+        {
+            Read_state_set_error(state, "Couldn't allocate memory for Event");
+            return false;
+        }
+        str = Event_read(event, str, state);
+        if (state->error)
+        {
+            del_Event(event);
+            return false;
+        }
+        if (!Column_ins(col, event))
+        {
+            Read_state_set_error(state, "Couldn't insert Event");
+            del_Event(event);
+            return false;
+        }
+        
+        str = read_const_char(str, ']', state);
+        break_if(state->error);
+
+        check_next(str, state, expect_event);
+    }
+
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        return false;
+    }
+    return true;
+}
+
+#undef break_if
+
+
+bool Column_write(Column* col, FILE* out, Write_state* state)
+{
+    assert(col != NULL);
+    assert(out != NULL);
+    assert(state != NULL);
+    return false;
+}
+
+
 bool Column_ins(Column* col, Event* event)
 {
     assert(col != NULL);
@@ -253,8 +386,8 @@ bool Column_ins(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* ret = AAtree_get(col->events, key);
-    if (ret == NULL || Reltime_cmp(Event_pos(event),
-            Event_pos(ret->next->event)) != 0)
+    if (ret == NULL || Reltime_cmp(Event_get_pos(event),
+            Event_get_pos(ret->next->event)) != 0)
     {
         Event_list* nil = new_Event_list(NULL, NULL);
         if (nil == NULL)
@@ -376,8 +509,8 @@ bool Column_remove(Column* col, Event* event)
     ++col->version;
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     Event_list* target = AAtree_get(col->events, key);
-    if (target == NULL || Reltime_cmp(Event_pos(event),
-            Event_pos(target->next->event)) != 0)
+    if (target == NULL || Reltime_cmp(Event_get_pos(event),
+            Event_get_pos(target->next->event)) != 0)
     {
         return false;
     }
@@ -419,7 +552,7 @@ bool Column_remove_row(Column* col, Reltime* pos)
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, pos);
-    while (target != NULL && Reltime_cmp(Event_pos(target), pos) == 0)
+    while (target != NULL && Reltime_cmp(Event_get_pos(target), pos) == 0)
     {
         modified = Column_remove(col, target);
         assert(modified);
@@ -437,9 +570,9 @@ bool Column_remove_block(Column* col, Reltime* start, Reltime* end)
     ++col->version;
     bool modified = false;
     Event* target = Column_iter_get(col->edit_iter, start);
-    while (target != NULL && Reltime_cmp(Event_pos(target), end) <= 0)
+    while (target != NULL && Reltime_cmp(Event_get_pos(target), end) <= 0)
     {
-        modified = Column_remove_row(col, Event_pos(target));
+        modified = Column_remove_row(col, Event_get_pos(target));
         assert(modified);
         target = Column_iter_get(col->edit_iter, start);
     }
@@ -461,7 +594,7 @@ bool Column_shift_up(Column* col, Reltime* pos, Reltime* len)
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_pos(target);
+        Reltime* ev_pos = Event_get_pos(target);
         Reltime_sub(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }
@@ -478,7 +611,7 @@ void Column_shift_down(Column* col, Reltime* pos, Reltime* len)
     Event* target = Column_iter_get(col->edit_iter, pos);
     while (target != NULL)
     {
-        Reltime* ev_pos = Event_pos(target);
+        Reltime* ev_pos = Event_get_pos(target);
         Reltime_add(ev_pos, ev_pos, len);
         target = Column_iter_get_next(col->edit_iter);
     }

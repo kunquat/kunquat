@@ -29,6 +29,8 @@
 
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_voice_note_on.h>
+#include <Event_voice_note_off.h>
 #include <Column.h>
 
 #include <xmemory.h>
@@ -42,13 +44,13 @@ Channel* new_Channel(Ins_table* insts)
     {
         return NULL;
     }
-    ch->note_off = new_Event(Reltime_init(RELTIME_AUTO), EVENT_TYPE_NOTE_OFF);
+    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ch->note_off == NULL)
     {
         xfree(ch);
         return NULL;
     }
-    ch->single = new_Event(Reltime_set(RELTIME_AUTO, -1, 0), EVENT_TYPE_NOTE_OFF);
+    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
     if (ch->single == NULL)
     {
         del_Event(ch->note_off);
@@ -67,13 +69,13 @@ Channel* new_Channel(Ins_table* insts)
 
 
 void Channel_set_voices(Channel* ch,
-        Voice_pool* pool,
-        Column_iter* citer,
-        Reltime* start,
-        Reltime* end,
-        uint32_t offset,
-        double tempo,
-        uint32_t freq)
+                        Voice_pool* pool,
+                        Column_iter* citer,
+                        Reltime* start,
+                        Reltime* end,
+                        uint32_t offset,
+                        double tempo,
+                        uint32_t freq)
 {
     assert(ch != NULL);
     assert(pool != NULL);
@@ -83,7 +85,7 @@ void Channel_set_voices(Channel* ch,
     assert(tempo > 0);
     assert(freq > 0);
     Event* next = ch->single;
-    if (Reltime_cmp(Event_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
+    if (Reltime_cmp(Event_get_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
     {
         next = NULL;
         if (citer != NULL)
@@ -99,7 +101,7 @@ void Channel_set_voices(Channel* ch,
     {
         Event_set_pos(ch->single, start);
     }
-    Reltime* next_pos = Event_pos(next);
+    Reltime* next_pos = Event_get_pos(next);
     while (Reltime_cmp(next_pos, end) < 0)
     {
         assert(Reltime_cmp(start, next_pos) <= 0);
@@ -134,9 +136,9 @@ void Channel_set_voices(Channel* ch,
                 }
             }
             ch->fg_count = 0;
-            int64_t num = 0;
-            Event_int(next, 3, &num);
-            if (num <= 0)
+            int64_t* num = Event_get_field(next, 3);
+            assert(num != NULL);
+            if (*num <= 0)
             {
                 next = NULL;
                 if (citer != NULL)
@@ -147,10 +149,10 @@ void Channel_set_voices(Channel* ch,
                 {
                     break;
                 }
-                next_pos = Event_pos(next);
+                next_pos = Event_get_pos(next);
                 continue;
             }
-            Instrument* ins = Ins_table_get(ch->insts, (int)num);
+            Instrument* ins = Ins_table_get(ch->insts, *num);
             if (ins == NULL)
             {
                 next = NULL;
@@ -162,7 +164,7 @@ void Channel_set_voices(Channel* ch,
                 {
                     break;
                 }
-                next_pos = Event_pos(next);
+                next_pos = Event_get_pos(next);
                 continue;
             }
             // allocate new Voices
@@ -239,7 +241,7 @@ void Channel_set_voices(Channel* ch,
         {
             break;
         }
-        next_pos = Event_pos(next);
+        next_pos = Event_get_pos(next);
     }
     return;
 }

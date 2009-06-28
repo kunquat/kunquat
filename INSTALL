@@ -12,6 +12,7 @@ useful.
 Building of Kunquat depends on the following tools and libraries:
 
   scons (http://www.scons.org/)
+  libarchive (http://code.google.com/p/libarchive/)
   libwavpack (http://www.wavpack.com/)
 
 In order to get sound you'll need one of the following:
@@ -33,7 +34,7 @@ Ubuntu:
 On a relatively new Ubuntu you should be able to get all the required stuff by
 running the following command:
 
-sudo apt-get install build-essential scons libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
 
 
     Building instructions

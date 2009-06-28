@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 
 #include <Envelope.h>
 
@@ -92,6 +93,76 @@ Envelope* new_Envelope(int nodes_max,
     env->last_x_locked = false;
     env->last_y_locked = false;
     return env;
+}
+
+
+char* Envelope_read(Envelope* env, char* str, Read_state* state)
+{
+    assert(env != NULL);
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    str = read_const_char(str, '[', state);
+    if (state->error)
+    {
+        return str;
+    }
+    int node_count = 0;
+    double node[2] = { 0 };
+    bool expect_node = true;
+    double min_x = !isfinite(env->min_x) ? -DBL_MAX : env->min_x;
+    double min_y = !isfinite(env->min_y) ? -DBL_MAX : env->min_y;
+    double max_x = !isfinite(env->max_x) ? DBL_MAX : env->max_x;
+    double max_y = !isfinite(env->max_x) ? DBL_MAX : env->max_y;
+    Envelope_set_node(env, min_x, min_y);
+    Envelope_set_node(env, max_x, max_y);
+    while (expect_node && node_count < env->nodes_max)
+    {
+        str = read_const_char(str, '[', state);
+        str = read_double(str, &node[0], state);
+        str = read_const_char(str, ',', state);
+        str = read_double(str, &node[1], state);
+        str = read_const_char(str, ']', state);
+        if (state->error)
+        {
+            return str;
+        }
+        str = read_const_char(str, ',', state);
+        if (state->error)
+        {
+            if (node_count == 0)
+            {
+                return str;
+            }
+            expect_node = false;
+            Read_state_clear_error(state);
+            Envelope_move_node(env, node_count, node[0], node[1]);
+        }
+        else if (node_count == 0)
+        {
+            Envelope_move_node(env, 0, node[0], node[1]);
+        }
+        else
+        {
+            int ret = Envelope_set_node(env, node[0], node[1]);
+            if (ret == -1)
+            {
+                Read_state_set_error(state,
+                         "Node (%f,%f) outside valid range for this envelope"
+                         " ((%f,%f)..(%f,%f))",
+                         node[0], node[1],
+                         env->min_x, env->min_y,
+                         env->max_x, env->max_y);
+                return str;
+            }
+    }
+    ++node_count;
+    }
+    str = read_const_char(str, ']', state);
+    return str;
 }
 
 

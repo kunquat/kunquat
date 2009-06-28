@@ -300,7 +300,7 @@ void* AAtree_get_exact(AAtree* tree, void* key)
     assert(key != NULL);
     AAiter* iter = AAITER_AUTO(tree);
     void* ret = AAiter_get(iter, key);
-    if (tree->cmp(ret, key) == 0)
+    if (ret != NULL && tree->cmp(ret, key) == 0)
     {
         return ret;
     }
@@ -362,6 +362,24 @@ void* AAiter_get_next(AAiter* iter)
         return NULL;
     }
     iter->node = aasucc(iter->node);
+    if (iter->node == tree->nil)
+    {
+        return NULL;
+    }
+    return iter->node->data;
+}
+
+
+void* AAiter_get_prev(AAiter* iter)
+{
+    assert(iter != NULL);
+    assert(iter->tree != NULL);
+    AAtree* tree = iter->tree;
+    if (iter->node == tree->nil)
+    {
+        return NULL;
+    }
+    iter->node = aapred(iter->node);
     if (iter->node == tree->nil)
     {
         return NULL;

@@ -1,0 +1,15 @@
+
+
+{
+    "enabled" : true,
+    "scale_factor" : 1,
+    "scale_center" : 440,
+    "nodes" :
+    [
+        [0, 1],
+        [0.02, 0.3],
+        [1, 0]
+    ]
+}
+
+

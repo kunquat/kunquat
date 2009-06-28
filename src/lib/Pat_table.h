@@ -28,6 +28,7 @@
 
 #include <Etable.h>
 #include <Pattern.h>
+#include <File_tree.h>
 
 
 typedef struct Pat_table
@@ -44,6 +45,18 @@ typedef struct Pat_table
  *           allocation failed.
  */
 Pat_table* new_Pat_table(int size);
+
+
+/**
+ * Reads a Pattern table from a File tree.
+ *
+ * \param table   The Pattern table -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state);
 
 
 /**

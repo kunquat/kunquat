@@ -43,7 +43,8 @@ START_TEST (new)
     frame_t buf_l[100] = { 0 };
     frame_t buf_r[100] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 100, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 100, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -56,7 +57,8 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (new_break_bufs_null)
 {
-    Instrument* ins = new_Instrument(NULL, NULL, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(NULL, NULL, 2, 1, nts, nts, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -66,7 +68,8 @@ START_TEST (new_break_buf_len_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 0, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 0, nts, nts, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -76,7 +79,8 @@ START_TEST (new_break_events_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 0);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 0);
     del_Instrument(ins);
 }
 END_TEST
@@ -88,7 +92,8 @@ START_TEST (mix)
     frame_t buf_l[128] = { 0 };
     frame_t buf_r[128] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, 16);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -102,7 +107,7 @@ START_TEST (mix)
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     state.freq = 16;
     Instrument_mix(ins, &state, 128, 0, 64);
     fail_unless(!state.active,
@@ -128,7 +133,7 @@ START_TEST (mix)
                     "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
         }
     }
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -171,7 +176,7 @@ START_TEST (mix)
                     "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
         }
     }
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -215,7 +220,7 @@ START_TEST (mix)
         }
     }
     
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -259,7 +264,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
     
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -303,7 +308,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
     
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 1;
@@ -347,7 +352,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 1).", bufs[0][i], i);
     }
 
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -376,7 +381,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
 
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     for (int i = 0; i < 128; ++i)
     {
         buf_l[i] = 0;
@@ -413,7 +418,7 @@ END_TEST
 START_TEST (mix_break_ins_null)
 {
     Voice_state state;
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     Instrument_mix(NULL, &state, 0, 0, 1);
 }
 END_TEST
@@ -423,7 +428,8 @@ START_TEST (mix_break_state_null)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -474,7 +480,8 @@ START_TEST (mix_break_freq_inv)
     frame_t buf_l[1] = { 0 };
     frame_t buf_r[1] = { 0 };
     frame_t* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -488,7 +495,7 @@ START_TEST (mix_break_freq_inv)
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
-    Voice_state_init(&state, NULL);
+    Voice_state_init(&state);
     Instrument_mix(ins, &state, 1, 0, 0);
     del_Instrument(ins);
 }

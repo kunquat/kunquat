@@ -28,9 +28,9 @@
 #include <stdbool.h>
 
 #include <Song_limits.h>
-
-
-#define ORDER_NONE (-1)
+#include <File_base.h>
+#include <File_tree.h>
+#include <Subsong.h>
 
 
 /**
@@ -46,6 +46,18 @@ typedef struct Order Order;
  *           failed.
  */
 Order* new_Order(void);
+
+
+/**
+ * Reads an Order from a File tree.
+ *
+ * \param order   The Order -- must not be \c NULL.
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Order_read(Order* order, File_tree* tree, Read_state* state);
 
 
 /**
@@ -72,9 +84,21 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat);
  * \param index     The pattern index in the subsong -- must be >= \c 0 and
  *                  < \c ORDERS_MAX.
  *
- * \return   The pattern number if one exists, otherwise ORDER_NONE.
+ * \return   The pattern number if one exists, otherwise \c ORDER_NONE.
  */
 int16_t Order_get(Order* order, uint16_t subsong, uint16_t index);
+
+
+/**
+ * Gets a Subsong from the Order.
+ *
+ * \param order     The Order -- must not be \c NULL.
+ * \param subsong   The subsong number -- must be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
+ *
+ * \return   The Subsong if one exists, otherwise \c NULL.
+ */
+Subsong* Order_get_subsong(Order* order, uint16_t subsong);
 
 
 /**

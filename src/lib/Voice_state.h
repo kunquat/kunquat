@@ -26,7 +26,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <Envelope.h>
 
 #include <pitch_t.h>
 
@@ -35,6 +34,7 @@ typedef struct Voice_state
 {
     bool active;           ///< Whether there is anything left to process.
     pitch_t freq;          ///< The frequency at which the note is played.
+    double force;          ///< The current force.
     double ramp_attack;    ///< The current state of volume ramp during attack.
     double ramp_release;   ///< The current state of volume ramp during release.
     uint64_t pos;          ///< The current playback position.
@@ -55,12 +55,10 @@ typedef struct Voice_state
  * Initialises a Voice state.
  *
  * \param state        The Voice state -- must not be \c NULL.
- * \param init_state   The initialiser for Instrument-specific data, if
- *                     applicable.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state*));
+Voice_state* Voice_state_init(Voice_state* state);
 
 
 /**

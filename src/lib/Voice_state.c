@@ -26,16 +26,12 @@
 #include <Voice_state.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state, void (*init_state)(Voice_state*))
+Voice_state* Voice_state_init(Voice_state* state)
 {
     assert(state != NULL);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
-    if (init_state != NULL)
-    {
-        init_state(state);
-    }
     return state;
 }
 
@@ -45,6 +41,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     assert(state != NULL);
     state->active = false;
     state->freq = 0;
+    state->force = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
     state->pos = 0;

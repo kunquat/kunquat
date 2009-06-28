@@ -27,6 +27,9 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include <File_base.h>
+#include <File_tree.h>
+
 
 #define ENVELOPE_MARKS_MAX (4)
 
@@ -69,6 +72,19 @@ typedef struct Envelope Envelope;
 Envelope* new_Envelope(int nodes_max,
         double min_x, double max_x, double step_x,
         double min_y, double max_y, double step_y);
+
+
+/**
+ * Parses an Envelope from a string.
+ *
+ * \param env     The Envelope -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The position in the string after the parsing. The caller must
+ *           check for errors through \a state.
+ */
+char* Envelope_read(Envelope* env, char* str, Read_state* state);
 
 
 /**
@@ -175,7 +191,6 @@ double* Envelope_get_node(Envelope* env, int index);
  *           exist.
  */
 double* Envelope_move_node(Envelope* env, int index, double x, double y);
-
 
 
 /**
