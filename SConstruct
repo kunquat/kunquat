@@ -29,7 +29,8 @@ opts.AddVariables(
     ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_tests', 'Build and run tests.', True),
-    BoolVariable('enable_demo', 'Enable the command line demo', True),
+    BoolVariable('enable_player', 'Enable kunquat-player.', True),
+    BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_jack', 'Build JACK support.', True),
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
@@ -169,8 +170,8 @@ if not env.GetOption('clean'):
 
 Export('env')
 
-if env['enable_demo']:
-    SConscript('demo/SConscript')
+if env['enable_examples']:
+    SConscript('examples/SConscript')
 
 SConscript('src/SConscript')
 

@@ -70,7 +70,8 @@ void Read_state_clear_error(Read_state* state)
 {
     assert(state != NULL);
     state->error = false;
-    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+    memset(state->message, 0, ERROR_MESSAGE_LENGTH);
+//    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
     return;
 }
 

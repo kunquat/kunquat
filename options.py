@@ -9,8 +9,11 @@ enable_debug = True
 # Build and run tests.
 enable_tests = False
 
-# Enable the command line demo
-enable_demo = True
+# Enable kunquat-player.
+enable_player = True
+
+# Build example Kunquat files.
+enable_examples = True
 
 # Build JACK support.
 with_jack = True

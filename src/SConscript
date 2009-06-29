@@ -24,8 +24,8 @@ Import('env')
 Export('env')
 
 SConscript('lib/SConscript')
-if env['enable_demo']:
-    SConscript('demo/SConscript')
+if env['enable_player']:
+    SConscript('player/SConscript')
 #SConscript('editor/SConscript')
 
 if not env.GetOption('clean') and 'check' in env['LIBS']:
