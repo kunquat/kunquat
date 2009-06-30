@@ -30,93 +30,90 @@
 #include <errno.h>
 
 #include <kunquat.h>
+#include <Audio.h>
+#include <Audio_ao.h>
 
-#include "Audio_ao.h"
+#include <xmemory.h>
 
 
 #define DEFAULT_BUF_SIZE (2048)
 
 
-typedef struct Audio_ao
+struct Audio_ao
 {
-    bool active;
+    Audio parent;
     bool thread_active;
-    uint32_t nframes;
-    uint32_t freq;
     pthread_t play_thread;
     ao_device* device;
     ao_sample_format format;
-    Playlist* pl;
     short* out_buf;
     frame_t* bufs[2];
-} Audio_ao;
-
-
-static Audio_ao context_;
-static Audio_ao* context = &context_;
+};
 
 
 static void* Audio_ao_thread(void* data);
 
 
-static int Audio_ao_process(uint32_t nframes, Audio_ao* context);
+static int Audio_ao_process(Audio_ao* audio_ao);
+
+void del_Audio_ao(Audio_ao* audio_ao);
 
 
-bool Audio_ao_open(Playlist* pl)
+Audio* new_Audio_ao(void)
 {
-    assert(pl != NULL);
-    context->pl = pl;
-    context->active = false;
-    context->thread_active = false;
-    context->nframes = 0;
-    context->freq = 0;
-    context->device = NULL;
-    context->out_buf = NULL;
-    context->bufs[0] = context->bufs[1] = NULL;
+    Audio_ao* audio_ao = xalloc(Audio_ao);
+    if (audio_ao == NULL)
+    {
+        return NULL;
+    }
+    if (!Audio_init(&audio_ao->parent, (void (*)(Audio*))del_Audio_ao))
+    {
+        xfree(audio_ao);
+        return NULL;
+    }
+    audio_ao->thread_active = false;
+    audio_ao->device = NULL;
+    audio_ao->out_buf = NULL;
+    audio_ao->bufs[0] = audio_ao->bufs[1] = NULL;
     ao_initialize();
     int driver_id = ao_default_driver_id();
     if (driver_id == -1)
     {
         fprintf(stderr, "Couldn't find a usable audio device.\n");
         ao_shutdown();
-        return false;
+        xfree(audio_ao);
+        return NULL;
     }
-    context->format.bits = 16;
-    context->format.rate = 44100;
-    context->format.channels = 2;
-    context->format.byte_format = AO_FMT_NATIVE;
+    audio_ao->format.bits = 16;
+    audio_ao->format.rate = 44100;
+    audio_ao->format.channels = 2;
+    audio_ao->format.byte_format = AO_FMT_NATIVE;
     errno = 0;
-    context->nframes = 0;
-    context->bufs[0] = context->bufs[1] = NULL;
-    context->out_buf = malloc(sizeof(short) * DEFAULT_BUF_SIZE * 2);
-    if (context->out_buf == NULL)
+    audio_ao->parent.nframes = 0;
+    audio_ao->bufs[0] = audio_ao->bufs[1] = NULL;
+    audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
+    if (audio_ao->out_buf == NULL)
     {
         fprintf(stderr, "Couldn't allocate memory for the audio buffer.\n");
-        Audio_ao_close();
+        del_Audio(&audio_ao->parent);
         ao_shutdown();
-        return false;
+        return NULL;
     }
     for (int i = 0; i < 2; ++i)
     {
-        context->bufs[i] = malloc(sizeof(frame_t) * DEFAULT_BUF_SIZE);
-        if (context->bufs[i] == NULL)
+        audio_ao->bufs[i] = xnalloc(frame_t, DEFAULT_BUF_SIZE);
+        if (audio_ao->bufs[i] == NULL)
         {
             fprintf(stderr, "Couldn't allocate memory for the mixing buffer.\n");
-            Audio_ao_close();
+            del_Audio(&audio_ao->parent);
             ao_shutdown();
-            return false;
+            return NULL;
         }
     }
-    context->nframes = DEFAULT_BUF_SIZE;
-    if (!Playlist_set_buf_size(context->pl, context->nframes))
-    {
-        fprintf(stderr, "Couldn't allocate memory for mixing buffers.\n");
-        Audio_ao_close();
-        ao_shutdown();
-        return false;
-    }
-    context->device = ao_open_live(driver_id, &context->format, NULL);
-    if (context->device == NULL)
+    audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
+    errno = 0;
+    audio_ao->device = ao_open_live(driver_id, &audio_ao->format, NULL);
+    if (audio_ao->device == NULL)
     {
         switch (errno)
         {
@@ -137,63 +134,80 @@ bool Audio_ao_open(Playlist* pl)
                 fprintf(stderr, "libao initialisation failed.\n");
                 break;
         }
-        Audio_ao_close();
+        del_Audio(&audio_ao->parent);
         ao_shutdown();
-        return false;
+        return NULL;
     }
-    context->active = true;
-    int err = pthread_create(&context->play_thread, NULL, Audio_ao_thread, context);
+    audio_ao->parent.freq = audio_ao->format.rate;
+    audio_ao->parent.active = true;
+    int err = pthread_create(&audio_ao->play_thread, NULL, Audio_ao_thread, audio_ao);
     if (err != 0)
     {
         fprintf(stderr, "Couldn't create audio thread for libao.\n");
-        Audio_ao_close();
-        return false;
+        del_Audio(&audio_ao->parent);
+        return NULL;
     }
-    context->thread_active = true;
-    context->freq = context->format.rate;
-    Playlist_set_mix_freq(context->pl, context->freq);
-    return true;
+    audio_ao->thread_active = true;
+    return (Audio*)audio_ao;
 }
 
 
 static void* Audio_ao_thread(void* data)
 {
-    assert(context->device != NULL);
     assert(data != NULL);
-    Audio_ao* context = data;
-    while (context->active)
+    Audio_ao* audio_ao = data;
+    while (audio_ao->parent.active)
     {
-        if (Audio_ao_process(context->nframes, context) < 0)
+        if (Audio_ao_process(audio_ao) < 0)
         {
             fprintf(stderr, "libao callback failed\n");
-            context->active = false;
+            audio_ao->parent.active = false;
         }
     }
     return NULL;
 }
 
 
-static int Audio_ao_process(uint32_t nframes, Audio_ao* context)
+static int Audio_ao_process(Audio_ao* audio_ao)
 {
-    assert(context != NULL);
-    if (!context->active)
+    assert(audio_ao != NULL);
+    if (!audio_ao->parent.active)
     {
         return 0;
     }
-    assert(context->bufs[0] != NULL);
-    assert(context->bufs[1] != NULL);
-    assert(context->out_buf != NULL);
-    for (uint32_t i = 0; i < context->nframes; ++i)
+    Audio_notify(&audio_ao->parent);
+    Player* player = audio_ao->parent.player;
+    if (player == NULL)
     {
-        context->bufs[0][i] = context->bufs[1][i] = 0;
+        return 0;
     }
-    Playlist_mix(context->pl, nframes, context->bufs);
-    for (uint32_t i = 0; i < context->nframes; ++i)
+    assert(audio_ao->bufs[0] != NULL);
+    assert(audio_ao->bufs[1] != NULL);
+    assert(audio_ao->out_buf != NULL);
+    for (uint32_t i = 0; i < audio_ao->parent.nframes; ++i)
     {
-        context->out_buf[i * 2] = (short)(context->bufs[0][i] * 32767);
-        context->out_buf[(i * 2) + 1] = (short)(context->bufs[1][i] * 32767);
+        audio_ao->bufs[0][i] = audio_ao->bufs[1][i] = 0;
     }
-    if (!ao_play(context->device, (void*)context->out_buf, context->nframes * 2 * 2))
+    uint32_t mixed = Player_mix(player, audio_ao->parent.nframes);
+    int buf_count = Song_get_buf_count(player->song);
+    frame_t** song_bufs = Song_get_bufs(player->song);
+    for (uint32_t i = 0; i < mixed; ++i)
+    {
+        audio_ao->out_buf[i * 2] = (short)(song_bufs[0][i] * INT16_MAX);
+        if (buf_count > 1)
+        {
+            audio_ao->out_buf[(i * 2) + 1] = (short)(song_bufs[1][i] * INT16_MAX);
+        }
+        else
+        {
+            audio_ao->out_buf[(i * 2) + 1] = audio_ao->out_buf[i * 2];
+        }
+    }
+    for (uint32_t i = mixed * 2; i < audio_ao->parent.nframes * 2; ++i)
+    {
+        audio_ao->out_buf[i] = 0;
+    }
+    if (!ao_play(audio_ao->device, (void*)audio_ao->out_buf, audio_ao->parent.nframes * 2 * 2))
     {
         return -1;
     }
@@ -201,38 +215,39 @@ static int Audio_ao_process(uint32_t nframes, Audio_ao* context)
 }
 
 
-void Audio_ao_close(void)
+void del_Audio_ao(Audio_ao* audio_ao)
 {
-    if (context->device != NULL)
+    assert(audio_ao != NULL);
+    if (audio_ao->device != NULL)
     {
-        context->active = false;
-        if (context->thread_active)
+        audio_ao->parent.active = false;
+        if (audio_ao->thread_active)
         {
-            pthread_join(context->play_thread, NULL);
-            context->thread_active = false;
+            pthread_join(audio_ao->play_thread, NULL);
+            audio_ao->thread_active = false;
         }
-        int ok = ao_close(context->device);
-        context->device = NULL;
+        int ok = ao_close(audio_ao->device);
+        audio_ao->device = NULL;
         if (!ok)
         {
             fprintf(stderr, "An error occurred while closing the libao driver.\n");
         }
         ao_shutdown();
     }
-    if (context->out_buf != NULL)
+    if (audio_ao->out_buf != NULL)
     {
-        free(context->out_buf);
-        context->out_buf = NULL;
+        xfree(audio_ao->out_buf);
+        audio_ao->out_buf = NULL;
     }
     for (int i = 0; i < 2; ++i)
     {
-        if (context->bufs[i] != NULL)
+        if (audio_ao->bufs[i] != NULL)
         {
-            free(context->bufs[i]);
-            context->bufs[i] = NULL;
+            xfree(audio_ao->bufs[i]);
+            audio_ao->bufs[i] = NULL;
         }
     }
-    context->pl = NULL;
+    xfree(audio_ao);
     return;
 }
 

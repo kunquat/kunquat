@@ -24,36 +24,20 @@
 #define AUDIO_JACK_H
 
 
-#ifdef ENABLE_JACK
-
-
 #include <stdbool.h>
 
-#include <jack/jack.h>
-
-#include <kunquat.h>
+#include <Audio.h>
 
 
-/**
- * Creates a JACK client.
- *
- * \param pl   The Playlist -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Audio_jack_open(Playlist* pl);
+typedef struct Audio_jack Audio_jack;
 
 
 /**
- * Closes the JACK client.
+ * Creates a new JACK client.
+ *
+ * \return   The new JACK client if successful, otherwise \c NULL.
  */
-void Audio_jack_close(void);
-
-
-#else
-
-
-#endif // ENABLE_JACK
+Audio* new_Audio_jack(void);
 
 
 #endif // AUDIO_JACK_H

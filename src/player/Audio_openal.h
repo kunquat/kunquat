@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Heikki Aitakangas
+ * Copyright 2009 Heikki Aitakangas, Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -24,35 +24,24 @@
 #define AUDIO_OPENAL_H
 
 
-#ifdef ENABLE_OPENAL
-
-
 #include <stdbool.h>
 #include <stdint.h>
 
 #include <AL/al.h>
 #include <AL/alut.h>
 
-#include <kunquat.h>
+#include <Audio.h>
+
+
+typedef struct Audio_openal Audio_openal;
 
 
 /**
- * Creates an OpenAL client.
+ * Creates a new OpenAL client.
  *
- * \param pl   The Playlist -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new OpenAL client if successful, otherwise \c NULL.
  */
-bool Audio_openal_open(Playlist* pl);
-
-
-/**
- * Closes the OpenAL client.
- */
-void Audio_openal_close(void);
-
-
-#endif // ENABLE_OPENAL
+Audio* new_Audio_openal(void);
 
 
 #endif // AUDIO_OPENAL_H

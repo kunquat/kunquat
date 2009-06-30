@@ -24,13 +24,14 @@ Import('env')
 env_l = env.Clone()
 
 env_l.Append(CPPPATH = ['#/src/lib'])
+env_l.Append(CPPPATH = ['#/src/player'])
 
 env_l.Append(LIBPATH = ['#/src/lib'])
 env_l.Append(LIBS = ['kunquat'])
 
 files = [
-    'demo.c',
-    'demo_song.c',
+    'kunquat-player.c',
+    'Audio.c',
 ]
 
 if env['with_jack']:

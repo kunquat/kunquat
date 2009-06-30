@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Heikki Aitakangas
+ * Copyright 2009 Heikki Aitakangas, Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,7 +33,10 @@
 
 #include <kunquat.h>
 
-#include "Audio_openal.h"
+#include <Audio.h>
+#include <Audio_openal.h>
+
+#include <xmemory.h>
 
 
 #define FREQUENCY 44100
@@ -42,29 +45,27 @@
 #define NUM_FRAMES ((FREQUENCY * BUF_LENGTH_MS) / 1000)
 
 
-typedef struct Audio_openal
+struct Audio_openal
 {
+    Audio     parent;
+
     bool      alut_inited;
     ALuint    source;
     ALuint    al_bufs[NUM_BUFS];
 
-    bool      active;
     bool      thread_active;
     pthread_t play_thread;
-
-    Playlist* pl;
     
     int16_t*  out_buf;
     frame_t*  mix_bufs[2];
-} Audio_openal;
+};
 
 
-static Audio_openal context_;
-static Audio_openal* context = &context_;
+static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer);
 
-
-static void Audio_openal_mix_buffer(Audio_openal* context, ALuint buffer);
 static void* Audio_openal_thread(void* data);
+
+static void del_Audio_openal(Audio_openal* audio_openal);
 
 
 #define close_if_false(EXPR,MSG)                                  \
@@ -72,7 +73,7 @@ static void* Audio_openal_thread(void* data);
         if (!(EXPR))                                              \
         {                                                         \
             fprintf(stderr, "OpenAL driver: %s\n", (MSG));        \
-            Audio_openal_close();                                 \
+            del_Audio(&audio_openal->parent);                     \
             return false;                                         \
         }                                                         \
     } while(false)
@@ -83,7 +84,7 @@ static void* Audio_openal_thread(void* data);
         if (alGetError() != AL_NO_ERROR)                      \
         {                                                     \
             fprintf(stderr, "OpenAL driver: %s\n", (MSG));    \
-            Audio_openal_close();                             \
+            del_Audio(&audio_openal->parent);                 \
             return false;                                     \
         }                                                     \
     } while(false)
@@ -94,29 +95,37 @@ static void* Audio_openal_thread(void* data);
         if (alGetError() != AL_NO_ERROR)                                \
         {                                                               \
             fprintf(stderr, "OpenAL driver: thread: %s\n", (MSG));      \
-            context->active = false;                                    \
+            audio_openal->parent.active = false;                        \
             return NULL;                                                \
         }                                                               \
     } while(false)
 
 
-bool Audio_openal_open(Playlist* pl)
+Audio* new_Audio_openal(void)
 {
-    assert(pl != NULL);
-    
+    Audio_openal* audio_openal = xalloc(Audio_openal);
+    if (audio_openal == NULL)
+    {
+        return NULL;
+    }
+    if (!Audio_init(&audio_openal->parent, (void (*)(Audio*))del_Audio_openal))
+    {
+        xfree(audio_openal);
+        return NULL;
+    }
+
     // Initial state is all empty values
     // Can't use 0 for the OpenAL source & buffer values, since that's
     // a special, always valid, value for them. Hopefully -1 isn't.
-    context->alut_inited = false;
-    context->source = (ALuint)-1;
+    audio_openal->alut_inited = false;
+    audio_openal->source = (ALuint)-1;
     for (int i = 0; i < NUM_BUFS; ++i)
     {
-        context->al_bufs[i] = (ALuint)-1;
+        audio_openal->al_bufs[i] = (ALuint)-1;
     }
-    context->active = context->thread_active = false;
-    context->pl = pl;
-    context->out_buf = NULL;
-    context->mix_bufs[0] = context->mix_bufs[1] = NULL;
+    audio_openal->parent.active = audio_openal->thread_active = false;
+    audio_openal->out_buf = NULL;
+    audio_openal->mix_bufs[0] = audio_openal->mix_bufs[1] = NULL;
     
     // Using alut here, since there's no need - for now - to use
     // other than the default audio device.
@@ -124,129 +133,141 @@ bool Audio_openal_open(Playlist* pl)
     {
         const char* err_str = alutGetErrorString(alutGetError());
         fprintf(stderr, "OpenAL initialization failed: %s\n", err_str);
-        return false;
+        xfree(audio_openal);
+        return NULL;
     }
-    context->alut_inited = true;
+    audio_openal->alut_inited = true;
+    audio_openal->parent.nframes = NUM_FRAMES;
+    audio_openal->parent.freq = FREQUENCY;
     
     // Making sure the OpenAL error status is not set, operations later on
     // will be checking it
     alGetError();
     
     // Reserving OpenAL resources
-    close_if_al_error(alGenSources(1, &context->source),
+    close_if_al_error(alGenSources(1, &audio_openal->source),
                       "Couldn't generate source.");
-    close_if_al_error(alGenBuffers(NUM_BUFS, context->al_bufs),
+    close_if_al_error(alGenBuffers(NUM_BUFS, audio_openal->al_bufs),
                       "Couldn't generate buffers.");
     
     // These source properties are necessary when playing mono sound or when
     // the OpenAL system is used simultaneously for some other playback
     // besides Kunquat
-    alSource3f(context->source, AL_POSITION,        0.0, 0.0, 0.0);
-    alSource3f(context->source, AL_VELOCITY,        0.0, 0.0, 0.0);
-    alSource3f(context->source, AL_DIRECTION,       0.0, 0.0, 0.0);
-    alSourcef( context->source, AL_ROLLOFF_FACTOR,  0.0          );
-    alSourcei( context->source, AL_SOURCE_RELATIVE, AL_TRUE      );
+    alSource3f(audio_openal->source, AL_POSITION,        0.0, 0.0, 0.0);
+    alSource3f(audio_openal->source, AL_VELOCITY,        0.0, 0.0, 0.0);
+    alSource3f(audio_openal->source, AL_DIRECTION,       0.0, 0.0, 0.0);
+    alSourcef( audio_openal->source, AL_ROLLOFF_FACTOR,  0.0          );
+    alSourcei( audio_openal->source, AL_SOURCE_RELATIVE, AL_TRUE      );
     
     // Reserving work buffers
-    context->out_buf = calloc(NUM_FRAMES * 2, sizeof(int16_t)); // Stereo
-    close_if_false(context->out_buf != NULL,
+    audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
+    close_if_false(audio_openal->out_buf != NULL,
                    "Couldn't allocate memory for the audio buffer.");
     for (int i = 0; i < 2; ++i)
     {
-        context->mix_bufs[i] = calloc(NUM_FRAMES, sizeof(frame_t));
-        close_if_false(context->mix_bufs[i] != NULL,
+        audio_openal->mix_bufs[i] = xcalloc(frame_t, NUM_FRAMES);
+        close_if_false(audio_openal->mix_bufs[i] != NULL,
                        "Couldn't allocate memory for the mixing buffer.");
     }
-    
-    // Playlist setup
-    close_if_false(Playlist_set_buf_size(context->pl, NUM_FRAMES),
-                   "Couldn't allocate memory for mixing buffers.");
-    Playlist_set_mix_freq(context->pl, FREQUENCY);
     
     // Mix first bufferfulls and queue them
     for (int i = 0; i < NUM_BUFS; ++i)
     {
-        close_if_al_error(Audio_openal_mix_buffer(context, context->al_bufs[i]),
+        close_if_al_error(Audio_openal_mix_buffer(audio_openal, audio_openal->al_bufs[i]),
                           "Failed to buffer data.");
     }
-    close_if_al_error(alSourceQueueBuffers(context->source, NUM_BUFS, context->al_bufs),
+    close_if_al_error(alSourceQueueBuffers(audio_openal->source, NUM_BUFS, audio_openal->al_bufs),
                       "Failed to queue inital buffers.");
     
     // Start the processing thread. It will set the audio source playing
-    context->active = true;
-    close_if_false(!pthread_create(&context->play_thread, NULL,
-                                   Audio_openal_thread, context),
+    audio_openal->parent.active = true;
+    close_if_false(!pthread_create(&audio_openal->play_thread, NULL,
+                                   Audio_openal_thread, audio_openal),
                    "Thread creation failed.");
-    context->thread_active = true;
+    audio_openal->thread_active = true;
     
-    return true;
+    return (Audio*)audio_openal;
 }
 
-static void Audio_openal_mix_buffer(Audio_openal* context, ALuint buffer)
+static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 {
-    assert(context->pl          != NULL);
-    assert(context->out_buf     != NULL);
-    assert(context->mix_bufs[0] != NULL);
-    assert(context->mix_bufs[1] != NULL);
+    assert(audio_openal->out_buf     != NULL);
+    assert(audio_openal->mix_bufs[0] != NULL);
+    assert(audio_openal->mix_bufs[1] != NULL);
     
     // Clear mixing buffers, Playlist_mix doesn't do it for us
-    memset(context->mix_bufs[0], 0, sizeof(frame_t) * NUM_FRAMES);
-    memset(context->mix_bufs[1], 0, sizeof(frame_t) * NUM_FRAMES);
+    memset(audio_openal->mix_bufs[0], 0, sizeof(frame_t) * NUM_FRAMES);
+    memset(audio_openal->mix_bufs[1], 0, sizeof(frame_t) * NUM_FRAMES);
     
     // Generate the sound
-    Playlist_mix(context->pl, NUM_FRAMES, context->mix_bufs);
-    
-    // Convert to interleaved 16-bit stereo
-    for (int i = 0; i < NUM_FRAMES; ++i)
+    Audio_notify(&audio_openal->parent);
+    Player* player = audio_openal->parent.player;
+    if (player != NULL)
     {
-        context->out_buf[i * 2]       = (int16_t)(context->mix_bufs[0][i] * INT16_MAX);
-        context->out_buf[(i * 2) + 1] = (int16_t)(context->mix_bufs[1][i] * INT16_MAX);
+        /*uint32_t mixed =*/ Player_mix(player, NUM_FRAMES); // nframes??
+        int buf_count = Song_get_buf_count(player->song);
+        frame_t** song_bufs = Song_get_bufs(player->song);
         
+        // Convert to interleaved 16-bit stereo
+        for (int i = 0; i < NUM_FRAMES; ++i)
+        {
+            audio_openal->out_buf[i * 2] = (int16_t)(song_bufs[0][i] * INT16_MAX);
+            if (buf_count > 1)
+            {
+                audio_openal->out_buf[(i * 2) + 1] = (int16_t)(song_bufs[1][i] * INT16_MAX);
+            }
+            else
+            {
+                audio_openal->out_buf[(i * 2) + 1] = audio_openal->out_buf[i * 2];
+            }
+        }
     }
     
     // Have OpenAL buffer the data. It will be copied from out_buf
     // to internal data structures.
     // Checking & handling errors from this are the responsibility
     // of the caller.
-    alBufferData(buffer, AL_FORMAT_STEREO16, context->out_buf,
+    alBufferData(buffer, AL_FORMAT_STEREO16, audio_openal->out_buf,
                  sizeof(int16_t) * 2 * NUM_FRAMES, FREQUENCY);
+
+    return;
 }
 
 static void* Audio_openal_thread(void* data)
 {
     assert(data != NULL);
-    Audio_openal* context = data;
+    Audio_openal* audio_openal = data;
     
     // Poll the OpenAL system every 0.5 buffer lengths to see if it's finished
     // processing any yet. If any are finished processing, unqueue, refill and
     // requeue them.
     // If the source had run out of data to play - or hadn't been started yet -
     // set it playing.
-    while (context->active)
+    while (audio_openal->parent.active)
     {
         ALint processed;
         ALenum state;
 
-        end_if_al_error(alGetSourcei(context->source, AL_BUFFERS_PROCESSED, &processed),
+        end_if_al_error(alGetSourcei(audio_openal->source, AL_BUFFERS_PROCESSED, &processed),
                         "Couldn't get number of processed buffers.");        
-        while(processed > 0)
+        while (processed > 0)
         {
             ALuint buffer;
             
-            end_if_al_error(alSourceUnqueueBuffers(context->source, 1, &buffer),
+            end_if_al_error(alSourceUnqueueBuffers(audio_openal->source, 1, &buffer),
                             "Couldn't unqueue a buffer.");
-            end_if_al_error(Audio_openal_mix_buffer(context, buffer),
+            end_if_al_error(Audio_openal_mix_buffer(audio_openal, buffer),
                             "Failed to buffer data.");
-            end_if_al_error(alSourceQueueBuffers(context->source, 1, &buffer),
+            end_if_al_error(alSourceQueueBuffers(audio_openal->source, 1, &buffer),
                             "Failed to queue buffer.");
             --processed;
         }
         
-        end_if_al_error(alGetSourcei(context->source, AL_SOURCE_STATE, &state),
+        end_if_al_error(alGetSourcei(audio_openal->source, AL_SOURCE_STATE, &state),
                         "Couldn't get source state.");
         if (state != AL_PLAYING)
         {
-            end_if_al_error(alSourcePlay(context->source),
+            end_if_al_error(alSourcePlay(audio_openal->source),
                             "Couldn't start source playing");
         }
         
@@ -256,46 +277,46 @@ static void* Audio_openal_thread(void* data)
     return NULL;
 }
 
-void Audio_openal_close(void)
+
+static void del_Audio_openal(Audio_openal* audio_openal)
 {
-    context->active = false;
-    if (context->thread_active)
+    assert(audio_openal != NULL);
+    audio_openal->parent.active = false;
+    if (audio_openal->thread_active)
     {
-        pthread_join(context->play_thread, NULL);
-        context->thread_active = false;
+        pthread_join(audio_openal->play_thread, NULL);
+        audio_openal->thread_active = false;
     }
-    if (context->alut_inited)
+    if (audio_openal->alut_inited)
     {
-        if (alIsSource(context->source))
+        if (alIsSource(audio_openal->source))
         {
-            alDeleteSources(1, &context->source);
-            context->source = (ALuint)-1;
+            alDeleteSources(1, &audio_openal->source);
+            audio_openal->source = (ALuint)-1;
         }
         for (int i = 0; i < NUM_BUFS; ++i)
         {
-            if (alIsBuffer(context->al_bufs[i]))
+            if (alIsBuffer(audio_openal->al_bufs[i]))
             {
-                alDeleteBuffers(1, &context->al_bufs[i]);
-                context->al_bufs[i] = (ALuint)-1;
+                alDeleteBuffers(1, &audio_openal->al_bufs[i]);
+                audio_openal->al_bufs[i] = (ALuint)-1;
             }
         }
         alutExit();
-        context->alut_inited = false;
+        audio_openal->alut_inited = false;
     }
     
-    context->pl = NULL;
-    
-    if (context->out_buf != NULL)
+    if (audio_openal->out_buf != NULL)
     {
-        free(context->out_buf);
-        context->out_buf = NULL;
+        xfree(audio_openal->out_buf);
+        audio_openal->out_buf = NULL;
     }
     for (int i = 0; i < 2; ++i)
     {
-        if (context->mix_bufs[i] != NULL)
+        if (audio_openal->mix_bufs[i] != NULL)
         {
-            free(context->mix_bufs[i]);
-            context->mix_bufs[i] = NULL;
+            xfree(audio_openal->mix_bufs[i]);
+            audio_openal->mix_bufs[i] = NULL;
         }    
     }
     

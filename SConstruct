@@ -116,6 +116,10 @@ if not env.GetOption('clean'):
     if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
         print('Error: libarchive not found.')
         Exit(1)
+    
+    if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
+        print('Error: POSIX threads not found.')
+        Exit(1)
 
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
@@ -124,22 +128,6 @@ if not env.GetOption('clean'):
         else:
             print('Warning: JACK driver was requested but JACK was not found.')
             env['with_jack'] = False
-    
-    need_pthread = env['with_ao'] or env['with_openal']
-    pthread_found = False
-    if need_pthread and not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
-        names = []
-        if env['with_ao']:
-            names += ['ao']
-            env['with_ao'] = False
-        if env['with_openal']:
-            names += ['OpenAL']
-            env['with_openal'] = False
-        dr = 'driver requires'
-        if len(names) > 1:
-            dr = 'drivers require'
-        print('Warning: The requested %s %s pthread which was not found.' %
-                (' and '.join(names), dr))
 
     if env['with_ao']:
         if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
