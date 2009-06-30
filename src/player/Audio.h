@@ -30,6 +30,7 @@
 #include <pthread.h>
 
 #include <kunquat.h>
+#include <kqt_Mix_state.h>
 
 
 typedef struct Audio
@@ -41,7 +42,7 @@ typedef struct Audio
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
-    int state;
+    kqt_Mix_state state;
 } Audio;
 
 
@@ -66,13 +67,13 @@ void Audio_set_player(Audio* audio, Player* player);
 
 
 /**
- * Closes the Audio.
+ * Gets the mixing frequency of the Audio.
  *
  * \param audio   The Audio -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The mixing frequency.
  */
-//bool Audio_close(Audio* audio);
+uint32_t Audio_get_freq(Audio* audio);
 
 
 /**
@@ -82,8 +83,11 @@ void Audio_set_player(Audio* audio, Player* player);
  * \a Audio_open and \a Audio_close calls.
  *
  * \param audio   The Audio -- must not be \c NULL and must be open.
+ * \param state   The Mix state structure -- must not be \c NULL.
+ *
+ * \return   \c true if Mix state could be retrieved, otherwise \c false.
  */
-int Audio_get_state(Audio* audio);
+bool Audio_get_state(Audio* audio, kqt_Mix_state* state);
 
 
 /**

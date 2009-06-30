@@ -43,7 +43,7 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*))
     audio->nframes = 0;
     audio->freq = 0;
     audio->player = NULL;
-    audio->state = 0;
+    kqt_Mix_state_init(&audio->state);
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
     {
@@ -67,22 +67,30 @@ void Audio_set_player(Audio* audio, Player* player)
 }
 
 
-int Audio_get_state(Audio* audio)
+uint32_t Audio_get_freq(Audio* audio)
 {
     assert(audio != NULL);
+    return audio->freq;
+}
+
+
+bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
+{
+    assert(audio != NULL);
+    assert(state != NULL);
     assert(audio->active);
     if (pthread_mutex_lock(&audio->state_mutex) != 0)
     {
-        return -1;
+        return false;
     }
     if (pthread_cond_wait(&audio->state_cond, &audio->state_mutex) != 0)
     {
         pthread_mutex_unlock(&audio->state_mutex);
-        return -1;
+        return false;
     }
-    int ret = audio->state;
+    kqt_Mix_state_copy(state, &audio->state);
     pthread_mutex_unlock(&audio->state_mutex);
-    return ret;
+    return true;
 }
 
 
@@ -110,11 +118,20 @@ int Audio_notify(Audio* audio)
     {
         if (audio->player != NULL && Player_get_playdata(audio->player)->mode)
         {
-            audio->state = 1;
+            Playdata* play = Player_get_playdata(audio->player);
+            audio->state.playing = play->mode != STOP;
+            audio->state.frames = play->play_frames;
+            audio->state.subsong = play->subsong;
+            audio->state.order = play->order_index;
+            audio->state.pattern = play->pattern;
+            Reltime_copy(&audio->state.pos, &play->pos);
+            audio->state.tempo = play->tempo;
+            audio->state.voices = play->active_voices;
+            Playdata_reset_stats(play);
         }
         else
         {
-            audio->state = 0;
+            audio->state.playing = false;
         }
         err = pthread_cond_signal(&audio->state_cond);
         err = pthread_mutex_unlock(&audio->state_mutex);

@@ -73,6 +73,7 @@ files = [
     'Playdata.c',
     'Player.c',
     'Playlist.c',
+    'kqt_Mix_state.c',
 ]
 
 env.StaticLibrary('kunquat', files)

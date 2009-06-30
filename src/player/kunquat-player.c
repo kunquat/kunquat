@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <Audio.h>
 #ifdef ENABLE_AO
@@ -146,11 +147,31 @@ int main(int argc, char** argv)
     }
     Audio_set_player(audio, player);
     Player_play_song(player);
-    int player_state = Audio_get_state(audio);
-    while (player_state > 0)
+    kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = true });
+    Audio_get_state(audio, mix_state);
+    uint16_t max_voices = 0;
+    while (mix_state->playing)
     {
-        player_state = Audio_get_state(audio);
+        int minutes = (mix_state->frames / Audio_get_freq(audio) / 60) % 60;
+        int ints = (mix_state->frames / Audio_get_freq(audio) / 60) % 60;
+        double seconds = ((double)mix_state->frames / Audio_get_freq(audio)) - ints;
+        if (mix_state->voices > max_voices)
+        {
+            max_voices = mix_state->voices;
+        }
+        double pos = Reltime_get_beats(&mix_state->pos) +
+                     ((double)Reltime_get_rem(&mix_state->pos) / RELTIME_BEAT);
+        fprintf(stderr, "Playing subsong: %02" PRIu16
+                        ", time: %02d:%04.1f"
+                        ", position: %02" PRIu16 "/%04.1f"
+                        ", voices: %" PRIu16 " (%" PRIu16 ")      \r",
+                        mix_state->subsong,
+                        minutes, seconds,
+                        mix_state->order, pos,
+                        mix_state->voices, max_voices);
+        Audio_get_state(audio, mix_state);
     }
+    fprintf(stderr, "\nDone.\n");
     del_Audio(audio);
     del_Player(player);
     exit(EXIT_SUCCESS);

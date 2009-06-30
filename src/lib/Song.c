@@ -404,6 +404,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             song->bufs[i][k] *= song->mix_vol;
         }
     }
+    play->play_frames += mixed;
     return mixed;
 }
 
