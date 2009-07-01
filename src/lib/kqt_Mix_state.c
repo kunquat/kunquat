@@ -24,7 +24,7 @@
 #include <math.h>
 
 #include <kqt_Mix_state.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 
 
 kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)
@@ -38,7 +38,7 @@ kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)
     state->subsong = 0;
     state->order = 0;
     state->pattern = 0;
-    Reltime_init(&state->pos);
+    kqt_Reltime_init(&state->pos);
     state->tempo = 0;
     state->voices = 0;
     for (int i = 0; i < 2; ++i)
@@ -62,7 +62,7 @@ kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src)
     dest->subsong = src->subsong;
     dest->order = src->order;
     dest->pattern = src->pattern;
-    Reltime_copy(&dest->pos, &src->pos);
+    kqt_Reltime_copy(&dest->pos, &src->pos);
     dest->tempo = src->tempo;
     dest->voices = src->voices;
     for (int i = 0; i < 2; ++i)

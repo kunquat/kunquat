@@ -28,7 +28,7 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 
 #include <Playdata.h>
 
@@ -73,9 +73,9 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->subsong = 0;
     play->order_index = 0;
     play->pattern = 0;
-    Reltime_init(&play->play_time);
+    kqt_Reltime_init(&play->play_time);
     play->play_frames = 0;
-    Reltime_init(&play->pos);
+    kqt_Reltime_init(&play->pos);
     Playdata_reset_stats(play);
     return play;
 }

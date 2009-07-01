@@ -28,7 +28,7 @@
 
 #include <check.h>
 
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
@@ -40,7 +40,7 @@ Suite* Event_queue_suite(void);
 
 START_TEST (new)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -89,19 +89,19 @@ END_TEST
 
 START_TEST (ins_get)
 {
-    Event* ev1 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev1 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev2 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev3 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev3 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev3 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -158,7 +158,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (ins_break_null_q)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -184,7 +184,7 @@ END_TEST
 
 START_TEST (get_break_null_q)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -212,7 +212,7 @@ END_TEST
 
 START_TEST (get_break_null_pos)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -234,19 +234,19 @@ END_TEST
 
 START_TEST (peek)
 {
-    Event* ev1 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev1 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev2 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev3 = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev3 = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev3 == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -301,7 +301,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (peek_break_null_q)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -315,7 +315,7 @@ END_TEST
 
 START_TEST (peek_break_inv_index)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -350,7 +350,7 @@ END_TEST
 
 START_TEST (peek_break_null_pos)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -372,7 +372,7 @@ END_TEST
 
 START_TEST (clear)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -409,7 +409,7 @@ END_TEST
 
 START_TEST (resize)
 {
-    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");

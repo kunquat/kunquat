@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 
+#include <kqt_Reltime.h>
 #include <Order.h>
 #include <Channel.h>
 #include <Voice_pool.h>
@@ -59,7 +60,7 @@ typedef struct Playdata
     /// The global event queue.
     Event_queue* events;
     /// The number of beats played since the start of playback.
-    Reltime play_time;
+    kqt_Reltime play_time;
     /// The number of frames mixed since the start of playback.
     uint64_t play_frames;
     /// Current tempo.
@@ -71,7 +72,7 @@ typedef struct Playdata
     /// Current pattern.
     int16_t pattern;
     /// Current position inside a pattern.
-    Reltime pos;
+    kqt_Reltime pos;
     /// The Voice pool used.
     Voice_pool* voice_pool;
     /// Column iterator.

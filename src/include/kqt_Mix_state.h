@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 
 
 typedef struct kqt_Mix_state
@@ -37,7 +37,7 @@ typedef struct kqt_Mix_state
     uint16_t subsong;      ///< Number of the current Subsong.
     uint16_t order;        ///< The current Order index.
     uint16_t pattern;      ///< The current Pattern index.
-    Reltime pos;           ///< The current position inside a Pattern.
+    kqt_Reltime pos;       ///< The current position inside a Pattern.
     double tempo;          ///< The current tempo (BPM).
     uint16_t voices;       ///< The maximum number of simultaneous Voices since the last update.
     double min_amps[2];    ///< Minimum amplitude values since the last update.

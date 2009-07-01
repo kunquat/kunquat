@@ -24,6 +24,7 @@ Import('env')
 env_l = env.Clone()
 
 env_l.Append(CPPPATH = ['#/src/lib'])
+env_l.Append(CPPPATH = ['#/src/include'])
 env_l.Append(CPPPATH = ['#/src/player'])
 
 env_l.Append(LIBPATH = ['#/src/lib'])

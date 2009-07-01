@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 #include <Event_voice_note_on.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 #include <Voice.h>
 #include <Note_table.h>
 #include <Song_limits.h>
@@ -69,7 +69,7 @@ static void del_Event_voice_note_on(Event* event);
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_note_on(Reltime* pos)
+Event* new_Event_voice_note_on(kqt_Reltime* pos)
 {
     assert(pos != NULL);
     Event_voice_note_on* event = xalloc(Event_voice_note_on);
@@ -77,7 +77,7 @@ Event* new_Event_voice_note_on(Reltime* pos)
     {
         return NULL;
     }
-    Reltime_copy(&event->parent.parent.pos, pos);
+    kqt_Reltime_copy(&event->parent.parent.pos, pos);
     event->parent.parent.type = EVENT_TYPE_NOTE_ON;
     event->parent.parent.field_types = note_on_desc;
     event->parent.parent.set = Event_voice_note_on_set;

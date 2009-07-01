@@ -25,7 +25,7 @@
 
 
 #include <Event_voice.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 
 
 typedef struct Event_voice_note_off
@@ -34,7 +34,7 @@ typedef struct Event_voice_note_off
 } Event_voice_note_off;
 
 
-Event* new_Event_voice_note_off(Reltime* pos);
+Event* new_Event_voice_note_off(kqt_Reltime* pos);
 
 
 #endif // K_EVENT_VOICE_NOTE_OFF_H

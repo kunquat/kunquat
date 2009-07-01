@@ -79,8 +79,8 @@ Channel* new_Channel(Ins_table* insts);
 void Channel_set_voices(Channel* ch,
         Voice_pool* pool,
         Column_iter* citer,
-        Reltime* start,
-        Reltime* end,
+        kqt_Reltime* start,
+        kqt_Reltime* end,
         uint32_t offset,
         double tempo,
         uint32_t freq);

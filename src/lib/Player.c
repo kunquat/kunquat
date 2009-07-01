@@ -167,7 +167,7 @@ void Player_stop(Player* player)
     {
         Channel_reset(player->play->channels[i]);
     }
-    Reltime_init(&player->play->play_time);
+    kqt_Reltime_init(&player->play->play_time);
     player->play->play_frames = 0;
     player->play->subsong = Song_get_subsong(player->song);
     Subsong* ss = Order_get_subsong(player->play->order, player->play->subsong);
@@ -181,7 +181,7 @@ void Player_stop(Player* player)
     }
     player->play->order_index = 0;
     player->play->pattern = 0;
-    Reltime_init(&player->play->pos);
+    kqt_Reltime_init(&player->play->pos);
     return;
 }
 

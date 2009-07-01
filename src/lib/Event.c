@@ -81,7 +81,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
             int64_t numi = 0;
             double numd = NAN;
             Real* real = Real_init(REAL_AUTO);
-            Reltime* rt = Reltime_init(RELTIME_AUTO);
+            kqt_Reltime* rt = kqt_Reltime_init(KQT_RELTIME_AUTO);
             void* data = NULL;
             switch (event->field_types[i].type)
             {
@@ -168,18 +168,18 @@ bool Event_write(Event* event, FILE* out, Write_state* state)
 }
 
 
-Reltime* Event_get_pos(Event* event)
+kqt_Reltime* Event_get_pos(Event* event)
 {
     assert(event != NULL);
     return &event->pos;
 }
 
 
-void Event_set_pos(Event* event, Reltime* pos)
+void Event_set_pos(Event* event, kqt_Reltime* pos)
 {
     assert(event != NULL);
     assert(pos != NULL);
-    Reltime_copy(&event->pos, pos);
+    kqt_Reltime_copy(&event->pos, pos);
     return;
 }
 

@@ -25,7 +25,7 @@
 
 
 #include <Event_global.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 
 
 typedef struct Event_global_set_tempo
@@ -35,7 +35,7 @@ typedef struct Event_global_set_tempo
 } Event_global_set_tempo;
 
 
-Event* new_Event_global_set_tempo(Reltime* pos);
+Event* new_Event_global_set_tempo(kqt_Reltime* pos);
 
 
 #endif // K_EVENT_GLOBAL_SET_TEMPO_H

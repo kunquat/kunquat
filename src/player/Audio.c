@@ -124,7 +124,7 @@ int Audio_notify(Audio* audio)
             audio->state.subsong = play->subsong;
             audio->state.order = play->order_index;
             audio->state.pattern = play->pattern;
-            Reltime_copy(&audio->state.pos, &play->pos);
+            kqt_Reltime_copy(&audio->state.pos, &play->pos);
             audio->state.tempo = play->tempo;
             audio->state.voices = play->active_voices;
             Playdata_reset_stats(play);

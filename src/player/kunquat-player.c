@@ -159,8 +159,8 @@ int main(int argc, char** argv)
         {
             max_voices = mix_state->voices;
         }
-        double pos = Reltime_get_beats(&mix_state->pos) +
-                     ((double)Reltime_get_rem(&mix_state->pos) / RELTIME_BEAT);
+        double pos = kqt_Reltime_get_beats(&mix_state->pos) +
+                     ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
         fprintf(stderr, "Playing subsong: %02" PRIu16
                         ", time: %02d:%04.1f"
                         ", position: %02" PRIu16 "/%04.1f"

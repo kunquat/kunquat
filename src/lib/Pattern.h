@@ -28,7 +28,7 @@
 
 #include <Playdata.h>
 #include <Column.h>
-#include <Reltime.h>
+#include <kqt_Reltime.h>
 #include <File_tree.h>
 #include <Song_limits.h>
 
@@ -40,7 +40,7 @@ typedef struct Pattern
 {
     Column* global;
     Column* cols[COLUMNS_MAX];
-    Reltime length;
+    kqt_Reltime length;
 } Pattern;
 
 
@@ -76,7 +76,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
  * \param length   The new length -- must not be \c NULL and must be
  *                 non-negative.
  */
-void Pattern_set_length(Pattern* pat, Reltime* length);
+void Pattern_set_length(Pattern* pat, kqt_Reltime* length);
 
 
 /**
@@ -86,7 +86,7 @@ void Pattern_set_length(Pattern* pat, Reltime* length);
  *
  * \return   The length -- must not be freed.
  */
-Reltime* Pattern_get_length(Pattern* pat);
+kqt_Reltime* Pattern_get_length(Pattern* pat);
 
 
 /**

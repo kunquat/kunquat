@@ -28,7 +28,7 @@ if env['enable_tests']:
 
 #print 'lib: ' + env.Dump('LIBS')
 
-env.Append(CPPPATH = ['#/src/lib'])
+env.Append(CPPPATH = ['#/src/lib', '#/src/include'])
 
 files = [
     'Real.c',
