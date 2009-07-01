@@ -57,7 +57,6 @@ struct Audio_openal
     pthread_t play_thread;
     
     int16_t*  out_buf;
-    frame_t*  mix_bufs[2];
 };
 
 
@@ -125,7 +124,6 @@ Audio* new_Audio_openal(void)
     }
     audio_openal->parent.active = audio_openal->thread_active = false;
     audio_openal->out_buf = NULL;
-    audio_openal->mix_bufs[0] = audio_openal->mix_bufs[1] = NULL;
     
     // Using alut here, since there's no need - for now - to use
     // other than the default audio device.
@@ -163,12 +161,6 @@ Audio* new_Audio_openal(void)
     audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
     close_if_false(audio_openal->out_buf != NULL,
                    "Couldn't allocate memory for the audio buffer.");
-    for (int i = 0; i < 2; ++i)
-    {
-        audio_openal->mix_bufs[i] = xcalloc(frame_t, NUM_FRAMES);
-        close_if_false(audio_openal->mix_bufs[i] != NULL,
-                       "Couldn't allocate memory for the mixing buffer.");
-    }
     
     // Mix first bufferfulls and queue them
     for (int i = 0; i < NUM_BUFS; ++i)
@@ -192,12 +184,6 @@ Audio* new_Audio_openal(void)
 static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 {
     assert(audio_openal->out_buf     != NULL);
-    assert(audio_openal->mix_bufs[0] != NULL);
-    assert(audio_openal->mix_bufs[1] != NULL);
-    
-    // Clear mixing buffers, Playlist_mix doesn't do it for us
-    memset(audio_openal->mix_bufs[0], 0, sizeof(frame_t) * NUM_FRAMES);
-    memset(audio_openal->mix_bufs[1], 0, sizeof(frame_t) * NUM_FRAMES);
     
     // Generate the sound
     Audio_notify(&audio_openal->parent);
@@ -310,14 +296,6 @@ static void del_Audio_openal(Audio_openal* audio_openal)
     {
         xfree(audio_openal->out_buf);
         audio_openal->out_buf = NULL;
-    }
-    for (int i = 0; i < 2; ++i)
-    {
-        if (audio_openal->mix_bufs[i] != NULL)
-        {
-            xfree(audio_openal->mix_bufs[i]);
-            audio_openal->mix_bufs[i] = NULL;
-        }    
     }
     
     return;

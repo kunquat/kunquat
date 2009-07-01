@@ -47,7 +47,6 @@ struct Audio_ao
     ao_device* device;
     ao_sample_format format;
     short* out_buf;
-    frame_t* bufs[2];
 };
 
 
@@ -74,7 +73,6 @@ Audio* new_Audio_ao(void)
     audio_ao->thread_active = false;
     audio_ao->device = NULL;
     audio_ao->out_buf = NULL;
-    audio_ao->bufs[0] = audio_ao->bufs[1] = NULL;
     ao_initialize();
     int driver_id = ao_default_driver_id();
     if (driver_id == -1)
@@ -90,7 +88,6 @@ Audio* new_Audio_ao(void)
     audio_ao->format.byte_format = AO_FMT_NATIVE;
     errno = 0;
     audio_ao->parent.nframes = 0;
-    audio_ao->bufs[0] = audio_ao->bufs[1] = NULL;
     audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
     if (audio_ao->out_buf == NULL)
     {
@@ -98,17 +95,6 @@ Audio* new_Audio_ao(void)
         del_Audio(&audio_ao->parent);
         ao_shutdown();
         return NULL;
-    }
-    for (int i = 0; i < 2; ++i)
-    {
-        audio_ao->bufs[i] = xnalloc(frame_t, DEFAULT_BUF_SIZE);
-        if (audio_ao->bufs[i] == NULL)
-        {
-            fprintf(stderr, "Couldn't allocate memory for the mixing buffer.\n");
-            del_Audio(&audio_ao->parent);
-            ao_shutdown();
-            return NULL;
-        }
     }
     audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
     errno = 0;
@@ -181,13 +167,7 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     {
         return 0;
     }
-    assert(audio_ao->bufs[0] != NULL);
-    assert(audio_ao->bufs[1] != NULL);
     assert(audio_ao->out_buf != NULL);
-    for (uint32_t i = 0; i < audio_ao->parent.nframes; ++i)
-    {
-        audio_ao->bufs[0][i] = audio_ao->bufs[1][i] = 0;
-    }
     uint32_t mixed = Player_mix(player, audio_ao->parent.nframes);
     int buf_count = Song_get_buf_count(player->song);
     frame_t** song_bufs = Song_get_bufs(player->song);
@@ -238,14 +218,6 @@ void del_Audio_ao(Audio_ao* audio_ao)
     {
         xfree(audio_ao->out_buf);
         audio_ao->out_buf = NULL;
-    }
-    for (int i = 0; i < 2; ++i)
-    {
-        if (audio_ao->bufs[i] != NULL)
-        {
-            xfree(audio_ao->bufs[i]);
-            audio_ao->bufs[i] = NULL;
-        }
     }
     xfree(audio_ao);
     return;
