@@ -159,12 +159,13 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     assert(audio_ao != NULL);
     if (!audio_ao->parent.active)
     {
+        Audio_notify(&audio_ao->parent);
         return 0;
     }
-    Audio_notify(&audio_ao->parent);
     Player* player = audio_ao->parent.player;
     if (player == NULL)
     {
+        Audio_notify(&audio_ao->parent);
         return 0;
     }
     assert(audio_ao->out_buf != NULL);
@@ -189,8 +190,10 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     }
     if (!ao_play(audio_ao->device, (void*)audio_ao->out_buf, audio_ao->parent.nframes * 2 * 2))
     {
+        Audio_notify(&audio_ao->parent);
         return -1;
     }
+    Audio_notify(&audio_ao->parent);
     return 0;
 }
 

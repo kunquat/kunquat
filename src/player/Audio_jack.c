@@ -64,12 +64,13 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     Audio_jack* audio_jack = (Audio_jack*)arg;
     if (!audio_jack->parent.active)
     {
+        Audio_notify(&audio_jack->parent);
         return 0;
     }
-    Audio_notify(&audio_jack->parent);
     Player* player = audio_jack->parent.player;
     if (player == NULL)
     {
+        Audio_notify(&audio_jack->parent);
         return 0;
     }
     jack_default_audio_sample_t* jbuf_l =
@@ -91,6 +92,7 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
             jbufs[i][k] += song_bufs[i][k];
         }
     }
+    Audio_notify(&audio_jack->parent);
     return 0;
 }
 

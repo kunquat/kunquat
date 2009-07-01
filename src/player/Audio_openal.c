@@ -183,10 +183,9 @@ Audio* new_Audio_openal(void)
 
 static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 {
-    assert(audio_openal->out_buf     != NULL);
+    assert(audio_openal->out_buf != NULL);
     
     // Generate the sound
-    Audio_notify(&audio_openal->parent);
     Player* player = audio_openal->parent.player;
     if (player != NULL)
     {
@@ -208,6 +207,7 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
             }
         }
     }
+    Audio_notify(&audio_openal->parent);
     
     // Have OpenAL buffer the data. It will be copied from out_buf
     // to internal data structures.
