@@ -184,12 +184,12 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     assert(audio_openal->out_buf != NULL);
     
     // Generate the sound
-    Player* player = audio_openal->parent.player;
-    if (player != NULL)
+    kqt_Context* context = audio_openal->parent.context;
+    if (context != NULL)
     {
-        /*uint32_t mixed =*/ Player_mix(player, NUM_FRAMES); // nframes??
-        int buf_count = Song_get_buf_count(player->song);
-        frame_t** song_bufs = Song_get_bufs(player->song);
+        /*uint32_t mixed =*/ kqt_Context_mix(context, NUM_FRAMES); // nframes??
+        int buf_count = Song_get_buf_count(context->song);
+        frame_t** song_bufs = Song_get_bufs(context->song);
         
         // Convert to interleaved 16-bit stereo
         for (int i = 0; i < NUM_FRAMES; ++i)

@@ -37,7 +37,7 @@
 #include <Audio_openal.h>
 #endif
 
-#include <Player.h>
+#include <kqt_Context.h>
 #include <File_tree.h>
 
 
@@ -137,17 +137,17 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     del_File_tree(tree);
-    Player* player = new_Player(audio->freq, 256, song);
-    if (player == NULL)
+    kqt_Context* context = new_kqt_Context(audio->freq, 256, song);
+    if (context == NULL)
     {
         fprintf(stderr, "Couldn't allocate memory for Player\n");
         del_Song(song);
         del_Audio(audio);
         exit(EXIT_FAILURE);
     }
-    Audio_set_player(audio, player);
-    Player_play_song(player);
-    kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = true });
+    Audio_set_context(audio, context);
+    kqt_Context_play_song(context);
+    kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = false });
     Audio_get_state(audio, mix_state);
     uint16_t max_voices = 0;
     while (mix_state->playing)
@@ -173,7 +173,7 @@ int main(int argc, char** argv)
     }
     fprintf(stderr, "\nDone.\n");
     del_Audio(audio);
-    del_Player(player);
+    del_kqt_Context(context);
     exit(EXIT_SUCCESS);
 }
 

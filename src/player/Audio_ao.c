@@ -161,26 +161,25 @@ static int Audio_ao_process(Audio_ao* audio_ao)
         Audio_notify(&audio_ao->parent);
         return 0;
     }
-    Player* player = audio_ao->parent.player;
-    if (player == NULL)
-    {
-        Audio_notify(&audio_ao->parent);
-        return 0;
-    }
+    uint32_t mixed = 0;
     assert(audio_ao->out_buf != NULL);
-    uint32_t mixed = Player_mix(player, audio_ao->parent.nframes);
-    int buf_count = Song_get_buf_count(player->song);
-    frame_t** song_bufs = Song_get_bufs(player->song);
-    for (uint32_t i = 0; i < mixed; ++i)
+    kqt_Context* context = audio_ao->parent.context;
+    if (context != NULL)
     {
-        audio_ao->out_buf[i * 2] = (short)(song_bufs[0][i] * INT16_MAX);
-        if (buf_count > 1)
+        mixed = kqt_Context_mix(context, audio_ao->parent.nframes);
+        int buf_count = Song_get_buf_count(context->song);
+        frame_t** song_bufs = Song_get_bufs(context->song);
+        for (uint32_t i = 0; i < mixed; ++i)
         {
-            audio_ao->out_buf[(i * 2) + 1] = (short)(song_bufs[1][i] * INT16_MAX);
-        }
-        else
-        {
-            audio_ao->out_buf[(i * 2) + 1] = audio_ao->out_buf[i * 2];
+            audio_ao->out_buf[i * 2] = (short)(song_bufs[0][i] * INT16_MAX);
+            if (buf_count > 1)
+            {
+                audio_ao->out_buf[(i * 2) + 1] = (short)(song_bufs[1][i] * INT16_MAX);
+            }
+            else
+            {
+                audio_ao->out_buf[(i * 2) + 1] = audio_ao->out_buf[i * 2];
+            }
         }
     }
     for (uint32_t i = mixed * 2; i < audio_ao->parent.nframes * 2; ++i)

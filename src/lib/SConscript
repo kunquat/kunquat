@@ -71,7 +71,7 @@ files = [
     'Pattern.c',
     'Song.c',
     'Playdata.c',
-    'Player.c',
+    'kqt_Context.c',
     'kqt_Mix_state.c',
 ]
 

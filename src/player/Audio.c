@@ -30,7 +30,7 @@
 #include <pthread.h>
 
 #include <Audio.h>
-#include <Player.h>
+#include <kqt_Context.h>
 
 #include <xmemory.h>
 
@@ -42,7 +42,7 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*))
     audio->active = false;
     audio->nframes = 0;
     audio->freq = 0;
-    audio->player = NULL;
+    audio->context = NULL;
     kqt_Mix_state_init(&audio->state);
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
@@ -58,11 +58,11 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*))
 }
 
 
-void Audio_set_player(Audio* audio, Player* player)
+void Audio_set_context(Audio* audio, kqt_Context* context)
 {
     assert(audio != NULL);
-    assert(player != NULL);
-    audio->player = player;
+    assert(context != NULL);
+    audio->context = context;
     return;
 }
 
@@ -116,9 +116,9 @@ int Audio_notify(Audio* audio)
     int err = pthread_mutex_trylock(&audio->state_mutex);
     if (err == 0)
     {
-        if (audio->player != NULL && Player_get_playdata(audio->player)->mode)
+        if (audio->context != NULL && kqt_Context_get_playdata(audio->context)->mode)
         {
-            Playdata* play = Player_get_playdata(audio->player);
+            Playdata* play = kqt_Context_get_playdata(audio->context);
             audio->state.playing = play->mode != STOP;
             audio->state.frames = play->play_frames;
             audio->state.subsong = play->subsong;

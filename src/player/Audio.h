@@ -29,7 +29,7 @@
 
 #include <pthread.h>
 
-#include <Player.h>
+#include <kqt_Context.h>
 #include <kqt_Mix_state.h>
 
 
@@ -38,7 +38,7 @@ typedef struct Audio
     bool active;
     uint32_t nframes;
     uint32_t freq;
-    Player* player;
+    kqt_Context* context;
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
@@ -58,12 +58,12 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*));
 
 
 /**
- * Sets the Player for the Audio.
+ * Sets the kqt_Context for the Audio.
  *
- * \param audio    The Audio -- must not be \c NULL.
- * \param player   The Player -- must not be \c NULL.
+ * \param audio     The Audio -- must not be \c NULL.
+ * \param context   The kqt_Context -- must not be \c NULL.
  */
-void Audio_set_player(Audio* audio, Player* player);
+void Audio_set_context(Audio* audio, kqt_Context* context);
 
 
 /**

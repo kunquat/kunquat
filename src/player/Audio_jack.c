@@ -45,13 +45,13 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
 {
     assert(arg != NULL);
     Audio_jack* audio_jack = (Audio_jack*)arg;
-    if (audio_jack->parent.player == NULL)
+    if (audio_jack->parent.context == NULL)
     {
         return 0;
     }
-    if (!Song_set_buf_size(Player_get_song(audio_jack->parent.player), nframes))
+    if (!Song_set_buf_size(kqt_Context_get_song(audio_jack->parent.context), nframes))
     {
-        audio_jack->parent.player = NULL;
+        audio_jack->parent.context = NULL;
         return -1;
     }
     return 0;
@@ -67,30 +67,29 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
         Audio_notify(&audio_jack->parent);
         return 0;
     }
-    Player* player = audio_jack->parent.player;
-    if (player == NULL)
-    {
-        Audio_notify(&audio_jack->parent);
-        return 0;
-    }
+    uint32_t mixed = 0;
+    kqt_Context* context = audio_jack->parent.context;
     jack_default_audio_sample_t* jbuf_l =
             jack_port_get_buffer(audio_jack->ports[0], nframes);
     jack_default_audio_sample_t* jbuf_r =
             jack_port_get_buffer(audio_jack->ports[1], nframes);
     jack_default_audio_sample_t* jbufs[2] = { jbuf_l, jbuf_r };
-    for (uint32_t i = 0; i < nframes; ++i)
+    if (context != NULL)
+    {
+        mixed = kqt_Context_mix(context, nframes);
+        int buf_count = Song_get_buf_count(context->song);
+        frame_t** song_bufs = Song_get_bufs(context->song);
+        for (int i = 0; i < buf_count; ++i)
+        {
+            for (uint32_t k = 0; k < mixed; ++k)
+            {
+                jbufs[i][k] = song_bufs[i][k];
+            }
+        }
+    }
+    for (uint32_t i = mixed; i < nframes; ++i)
     {
         jbuf_l[i] = jbuf_r[i] = 0;
-    }
-    uint32_t mixed = Player_mix(player, nframes);
-    int buf_count = Song_get_buf_count(player->song);
-    frame_t** song_bufs = Song_get_bufs(player->song);
-    for (int i = 0; i < buf_count; ++i)
-    {
-        for (uint32_t k = 0; k < mixed; ++k)
-        {
-            jbufs[i][k] += song_bufs[i][k];
-        }
     }
     Audio_notify(&audio_jack->parent);
     return 0;
