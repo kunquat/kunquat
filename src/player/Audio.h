@@ -29,7 +29,7 @@
 
 #include <pthread.h>
 
-#include <kunquat.h>
+#include <Player.h>
 #include <kqt_Mix_state.h>
 
 

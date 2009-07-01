@@ -30,7 +30,7 @@
 #include <pthread.h>
 
 #include <Audio.h>
-#include <kunquat.h>
+#include <Player.h>
 
 #include <xmemory.h>
 

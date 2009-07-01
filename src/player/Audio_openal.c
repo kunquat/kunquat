@@ -31,8 +31,6 @@
 #include <AL/al.h>
 #include <AL/alut.h>
 
-#include <kunquat.h>
-
 #include <Audio.h>
 #include <Audio_openal.h>
 

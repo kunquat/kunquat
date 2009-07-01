@@ -29,7 +29,6 @@
 #include <pthread.h>
 #include <errno.h>
 
-#include <kunquat.h>
 #include <Audio.h>
 #include <Audio_ao.h>
 

@@ -37,7 +37,7 @@
 #include <Audio_openal.h>
 #endif
 
-#include <kunquat.h>
+#include <Player.h>
 #include <File_tree.h>
 
 
