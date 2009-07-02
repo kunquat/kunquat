@@ -200,6 +200,26 @@ kqt_Context* kqt_new_Context_from_path(char* path,
 }
 
 
+void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state)
+{
+    if (context == NULL || mix_state == NULL)
+    {
+        return;
+    }
+    Playdata* play = context->play;
+    mix_state->playing = play->mode != STOP;
+    mix_state->frames = play->play_frames;
+    mix_state->subsong = play->subsong;
+    mix_state->order = play->order_index;
+    mix_state->pattern = play->pattern;
+    kqt_Reltime_copy(&mix_state->pos, &play->pos);
+    mix_state->tempo = play->tempo;
+    mix_state->voices = play->active_voices;
+    Playdata_reset_stats(play);
+    return;
+}
+
+
 Song* kqt_Context_get_song(kqt_Context* context)
 {
     assert(context != NULL);

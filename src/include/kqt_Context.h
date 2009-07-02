@@ -31,6 +31,7 @@
 #include <Voice_pool.h>
 
 #include <kqt_Error.h>
+#include <kqt_Mix_state.h>
 
 
 #define MAX_VOICES (1024)
@@ -78,6 +79,15 @@ kqt_Context* kqt_new_Context_from_path(char* path,
                                        uint16_t voice_count,
                                        uint8_t event_queue_size,
                                        kqt_Error* error);
+
+
+/**
+ * Gets playback statistics from the Kunquat Context.
+ *
+ * \param context     The Context.
+ * \param mix_state   The Mix state where the statistics shall be written.
+ */
+void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state);
 
 
 /**

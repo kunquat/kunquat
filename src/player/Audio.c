@@ -118,16 +118,7 @@ int Audio_notify(Audio* audio)
     {
         if (audio->context != NULL && kqt_Context_get_playdata(audio->context)->mode)
         {
-            Playdata* play = kqt_Context_get_playdata(audio->context);
-            audio->state.playing = play->mode != STOP;
-            audio->state.frames = play->play_frames;
-            audio->state.subsong = play->subsong;
-            audio->state.order = play->order_index;
-            audio->state.pattern = play->pattern;
-            kqt_Reltime_copy(&audio->state.pos, &play->pos);
-            audio->state.tempo = play->tempo;
-            audio->state.voices = play->active_voices;
-            Playdata_reset_stats(play);
+            kqt_Context_get_state(audio->context, &audio->state);
         }
         else
         {
