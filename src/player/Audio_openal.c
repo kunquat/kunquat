@@ -187,7 +187,8 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     kqt_Context* context = audio_openal->parent.context;
     if (context != NULL)
     {
-        /*uint32_t mixed =*/ kqt_Context_mix(context, NUM_FRAMES); // nframes??
+        /*uint32_t mixed =*/ kqt_Context_mix(context, NUM_FRAMES, // nframes??
+                                             audio_openal->parent.freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         

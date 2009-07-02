@@ -122,11 +122,12 @@ bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t nframes, kqt_Err
  *
  * \param context   The Context -- must not be \c NULL.
  * \param nframes   The number of frames to be mixed.
+ * \param freq      The mixing frequency -- must be > \c 0.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes.
  */
-uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes);
+uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq);
 
 
 /**

@@ -166,7 +166,7 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     kqt_Context* context = audio_ao->parent.context;
     if (context != NULL)
     {
-        mixed = kqt_Context_mix(context, audio_ao->parent.nframes);
+        mixed = kqt_Context_mix(context, audio_ao->parent.nframes, audio_ao->parent.freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (uint32_t i = 0; i < mixed; ++i)

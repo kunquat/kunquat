@@ -244,13 +244,18 @@ bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size, kqt_Error*
 }
 
 
-uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes)
+uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq)
 {
     assert(context != NULL);
     if (!context->play || context->song == NULL)
     {
         return 0;
     }
+    if (freq == 0)
+    {
+        return 0;
+    }
+    context->play->freq = freq;
     return Song_mix(context->song, nframes, context->play);
 }
 
