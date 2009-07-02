@@ -27,56 +27,10 @@
 #include <inttypes.h>
 
 #include <Audio.h>
-#ifdef ENABLE_AO
-#include <Audio_ao.h>
-#endif
-#ifdef ENABLE_JACK
-#include <Audio_jack.h>
-#endif
-#ifdef ENABLE_OPENAL
-#include <Audio_openal.h>
-#endif
 
 #include <kqt_Context.h>
 #include <kqt_Error.h>
 #include <kqt_Reltime.h>
-
-
-typedef struct Driver_info
-{
-    char* name;
-    Audio* (*create)(void);
-} Driver_info;
-
-
-static Driver_info drivers[] =
-{
-#ifdef ENABLE_AO
-    { "ao", new_Audio_ao },
-#endif
-#ifdef ENABLE_JACK
-    { "jack", new_Audio_jack },
-#endif
-#ifdef ENABLE_OPENAL
-    { "openal", new_Audio_openal },
-#endif
-    { NULL, NULL }
-};
-
-
-Driver_info* get_driver(char* name)
-{
-    Driver_info* cur = &drivers[0];
-    while (cur->name != NULL)
-    {
-        if (strcmp(name, cur->name) == 0)
-        {
-            return cur;
-        }
-        ++cur;
-    }
-    return NULL;
-}
 
 
 int main(int argc, char** argv)
@@ -100,17 +54,10 @@ int main(int argc, char** argv)
     {
         driver_selection = argv[3];
     }
-    Driver_info* driver = get_driver(driver_selection);
-    if (driver == NULL)
-    {
-        fprintf(stderr, "Unsupported driver: %s\n", driver_selection);
-        exit(EXIT_FAILURE);
-    }
-    assert(driver->create != NULL);
-    Audio* audio = driver->create();
+    Audio* audio = new_Audio(driver_selection);
     if (audio == NULL)
     {
-        fprintf(stderr, "Couldn't open the audio driver.\n");
+        fprintf(stderr, "Couldn't open the audio driver %s.\n", driver_selection);
         exit(EXIT_FAILURE);
     }
     kqt_Error* error = KQT_ERROR_AUTO;

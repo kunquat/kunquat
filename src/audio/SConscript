@@ -21,21 +21,22 @@
 
 Import('env')
 
-Export('env')
+env_a = env.Clone()
 
-SConscript('lib/SConscript')
+env_a.Append(CPPPATH = ['#/src/include', '#/src/audio'])
 
-if env['with_ao'] or env['with_jack'] or env['with_openal']:
-    SConscript('audio/SConscript')
+files = [
+    'Audio.c',
+    'Audio_creator.c',
+]
 
-if env['enable_player']:
-    SConscript('player/SConscript')
+if env_a['with_jack']:
+    files += ['Audio_jack.c']
+if env_a['with_ao']:
+    files += ['Audio_ao.c']
+if env_a['with_openal']:
+    files += ['Audio_openal.c']
 
-#SConscript('editor/SConscript')
-
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
-
-#print 'src: ' + env.Dump('LIBS')
+env_a.StaticLibrary('audio', files)
 
 

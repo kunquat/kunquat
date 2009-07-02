@@ -21,26 +21,17 @@
 
 Import('env')
 
-env_l = env.Clone()
+env_p = env.Clone()
 
-env_l.Append(CPPPATH = ['#/src/include'])
-env_l.Append(CPPPATH = ['#/src/player'])
+env_p.Append(CPPPATH = ['#/src/include', '#/src/audio', '#/src/player'])
 
-env_l.Append(LIBPATH = ['#/src/lib'])
-env_l.Append(LIBS = ['kunquat'])
+env_p.Append(LIBPATH = ['#/src/lib', '#/src/audio'])
+env_p.Append(LIBS = ['kunquat', 'audio'])
 
 files = [
     'kunquat-player.c',
-    'Audio.c',
 ]
 
-if env['with_jack']:
-    files += ['Audio_jack.c']
-if env['with_ao']:
-    files += ['Audio_ao.c']
-if env['with_openal']:
-    files += ['Audio_openal.c']
-
-env_l.Program('kunquat-player', files)
+env_p.Program('kunquat-player', files)
 
 

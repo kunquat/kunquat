@@ -47,6 +47,16 @@ typedef struct Audio
 
 
 /**
+ * Creates a new Audio.
+ *
+ * \param name   The name of the driver -- must not be \c NULL.
+ *
+ * \return   The new driver if successful, otherwise \c NULL.
+ */
+Audio* new_Audio(char* name);
+
+
+/**
  * Initialises the Audio.
  *
  * \param audio     The Audio -- must not be \c NULL.
