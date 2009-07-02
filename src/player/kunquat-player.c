@@ -112,7 +112,13 @@ int main(int argc, char** argv)
         fprintf(stderr, "Couldn't open the audio driver.\n");
         exit(EXIT_FAILURE);
     }
-    kqt_Context* context = kqt_new_Context_from_path(argv[1], audio->nframes, 256, 32);
+    kqt_Error* error = KQT_ERROR_AUTO;
+    kqt_Context* context = kqt_new_Context_from_path(argv[1], audio->nframes, 256, 32, error);
+    if (context == NULL)
+    {
+        fprintf(stderr, "%s\n", error->message);
+        exit(EXIT_FAILURE);
+    }
     Audio_set_context(audio, context);
     kqt_Context_play_song(context);
     kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = false });
