@@ -27,9 +27,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <AL/al.h>
-#include <AL/alut.h>
-
 #include <Audio.h>
 
 

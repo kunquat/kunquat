@@ -31,6 +31,7 @@
 
 #include <Audio.h>
 #include <kqt_Context.h>
+#include <kqt_Mix_state.h>
 
 #include <xmemory.h>
 
