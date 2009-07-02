@@ -60,7 +60,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         song->notes[i] = NULL;
     }
     song->active_notes = &song->notes[0];
-    song->bufs = xnalloc(frame_t*, BUF_COUNT_MAX);
+    song->bufs = xnalloc(kqt_frame*, BUF_COUNT_MAX);
     if (song->bufs == NULL)
     {
         del_Song(song);
@@ -68,7 +68,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     }
     for (int i = 0; i < buf_count; ++i)
     {
-        song->priv_bufs[i] = xnalloc(frame_t, buf_size);
+        song->priv_bufs[i] = xnalloc(kqt_frame, buf_size);
         if (song->priv_bufs[i] == NULL)
         {
             del_Song(song);
@@ -79,7 +79,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
             song->priv_bufs[i][k] = 0;
         }
         song->bufs[i] = song->priv_bufs[i];
-        song->voice_bufs[i] = xnalloc(frame_t, buf_size);
+        song->voice_bufs[i] = xnalloc(kqt_frame, buf_size);
         if (song->voice_bufs[i] == NULL)
         {
             del_Song(song);
@@ -528,13 +528,13 @@ bool Song_set_buf_count(Song* song, int count)
     {
         for (int i = song->buf_count; i < count; ++i)
         {
-            song->priv_bufs[i] = xnalloc(frame_t, song->buf_size);
+            song->priv_bufs[i] = xnalloc(kqt_frame, song->buf_size);
             if (song->priv_bufs[i] == NULL)
             {
                 return false;
             }
             song->bufs[i] = song->priv_bufs[i];
-            song->voice_bufs[i] = xnalloc(frame_t, song->buf_size);
+            song->voice_bufs[i] = xnalloc(kqt_frame, song->buf_size);
             if (song->voice_bufs[i] == NULL)
             {
                 return false;
@@ -564,7 +564,7 @@ bool Song_set_buf_size(Song* song, uint32_t size)
     }
     for (int i = 0; i < song->buf_count; ++i)
     {
-        frame_t* new_buf = xrealloc(frame_t, size, song->priv_bufs[i]);
+        kqt_frame* new_buf = xrealloc(kqt_frame, size, song->priv_bufs[i]);
         if (new_buf == NULL)
         {
             if (i == 0) // first change failed -- keep the original state
@@ -579,7 +579,7 @@ bool Song_set_buf_size(Song* song, uint32_t size)
         }
         song->priv_bufs[i] = new_buf;
         song->bufs[i] = song->priv_bufs[i];
-        new_buf = xrealloc(frame_t, size, song->voice_bufs[i]);
+        new_buf = xrealloc(kqt_frame, size, song->voice_bufs[i]);
         if (new_buf == NULL)
         {
             if (size < song->buf_size)
@@ -603,14 +603,14 @@ uint32_t Song_get_buf_size(Song* song)
 }
 
 
-frame_t** Song_get_bufs(Song* song)
+kqt_frame** Song_get_bufs(Song* song)
 {
     assert(song != NULL);
     return song->bufs;
 }
 
 
-frame_t** Song_get_voice_bufs(Song* song)
+kqt_frame** Song_get_voice_bufs(Song* song)
 {
     assert(song != NULL);
     return song->voice_bufs;

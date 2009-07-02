@@ -29,7 +29,7 @@
 
 #include <Instrument_params.h>
 #include <Generator.h>
-#include <frame_t.h>
+#include <kqt_frame.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
 #include <Note_table.h>
@@ -73,8 +73,8 @@ typedef struct Instrument
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(frame_t** bufs,
-                           frame_t** vbufs,
+Instrument* new_Instrument(kqt_frame** bufs,
+                           kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
                            Note_table** note_tables,

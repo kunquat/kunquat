@@ -116,7 +116,7 @@ int Audio_notify(Audio* audio)
     int err = pthread_mutex_trylock(&audio->state_mutex);
     if (err == 0)
     {
-        if (audio->context != NULL && kqt_Context_get_playdata(audio->context)->mode)
+        if (audio->context != NULL)
         {
             kqt_Context_get_state(audio->context, &audio->state);
         }

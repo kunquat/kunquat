@@ -101,7 +101,7 @@ START_TEST (new)
     int buf_count = Song_get_buf_count(song);
     fail_unless(buf_count == 2,
             "new_Song() created a Song with a wrong amount of buffers (%d).", buf_count);
-    frame_t** bufs = Song_get_bufs(song);
+    kqt_frame** bufs = Song_get_bufs(song);
     fail_if(bufs == NULL,
             "new_Song() created a Song without buffers.");
     fail_if(bufs[0] == NULL,
@@ -325,7 +325,7 @@ START_TEST (mix)
     }
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
-    frame_t** bufs = Song_get_bufs(song);
+    kqt_frame** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
     {

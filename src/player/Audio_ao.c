@@ -167,14 +167,14 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     if (context != NULL)
     {
         mixed = kqt_Context_mix(context, audio_ao->parent.nframes);
-        int buf_count = Song_get_buf_count(context->song);
-        frame_t** song_bufs = Song_get_bufs(context->song);
+        int buf_count = kqt_Context_get_buffer_count(context);
+        kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (uint32_t i = 0; i < mixed; ++i)
         {
-            audio_ao->out_buf[i * 2] = (short)(song_bufs[0][i] * INT16_MAX);
+            audio_ao->out_buf[i * 2] = (short)(bufs[0][i] * INT16_MAX);
             if (buf_count > 1)
             {
-                audio_ao->out_buf[(i * 2) + 1] = (short)(song_bufs[1][i] * INT16_MAX);
+                audio_ao->out_buf[(i * 2) + 1] = (short)(bufs[1][i] * INT16_MAX);
             }
             else
             {

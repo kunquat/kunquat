@@ -122,9 +122,9 @@ START_TEST (mix)
         fprintf(stderr, "new_Pattern() returned NULL -- out of memory?\n");
         abort();
     }
-    frame_t buf_l[256] = { 0 };
-    frame_t buf_r[256] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[256] = { 0 };
+    kqt_frame buf_r[256] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)

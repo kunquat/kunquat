@@ -35,8 +35,8 @@
 #include <xmemory.h>
 
 
-Instrument* new_Instrument(frame_t** bufs,
-                           frame_t** vbufs,
+Instrument* new_Instrument(kqt_frame** bufs,
+                           kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
                            Note_table** note_tables,

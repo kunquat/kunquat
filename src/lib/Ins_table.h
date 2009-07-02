@@ -57,8 +57,8 @@ Ins_table* new_Ins_table(int size);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
-                    frame_t** bufs,
-                    frame_t** voice_bufs,
+                    kqt_frame** bufs,
+                    kqt_frame** voice_bufs,
                     int buf_count,
                     uint32_t buf_len,
                     Note_table** note_tables,

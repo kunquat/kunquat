@@ -188,16 +188,16 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     if (context != NULL)
     {
         /*uint32_t mixed =*/ kqt_Context_mix(context, NUM_FRAMES); // nframes??
-        int buf_count = Song_get_buf_count(context->song);
-        frame_t** song_bufs = Song_get_bufs(context->song);
+        int buf_count = kqt_Context_get_buffer_count(context);
+        kqt_frame** bufs = kqt_Context_get_buffers(context);
         
         // Convert to interleaved 16-bit stereo
         for (int i = 0; i < NUM_FRAMES; ++i)
         {
-            audio_openal->out_buf[i * 2] = (int16_t)(song_bufs[0][i] * INT16_MAX);
+            audio_openal->out_buf[i * 2] = (int16_t)(bufs[0][i] * INT16_MAX);
             if (buf_count > 1)
             {
-                audio_openal->out_buf[(i * 2) + 1] = (int16_t)(song_bufs[1][i] * INT16_MAX);
+                audio_openal->out_buf[(i * 2) + 1] = (int16_t)(bufs[1][i] * INT16_MAX);
             }
             else
             {

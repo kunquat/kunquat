@@ -28,7 +28,7 @@
 
 #include <check.h>
 
-#include <frame_t.h>
+#include <kqt_frame.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 #include <Note_table.h>
@@ -74,9 +74,9 @@ END_TEST
 
 START_TEST (set_get)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
@@ -229,9 +229,9 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (set_break_table_null)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
@@ -246,9 +246,9 @@ END_TEST
 
 START_TEST (set_break_index_inv1)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
@@ -270,9 +270,9 @@ END_TEST
 
 START_TEST (set_break_index_inv2)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
@@ -307,9 +307,9 @@ END_TEST
 
 START_TEST (set_break_ins_dup)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
@@ -366,9 +366,9 @@ END_TEST
 
 START_TEST (ins_table_remove)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
@@ -529,9 +529,9 @@ END_TEST
 
 START_TEST (clear)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)

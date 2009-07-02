@@ -49,7 +49,7 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
     {
         return 0;
     }
-    if (!Song_set_buf_size(kqt_Context_get_song(audio_jack->parent.context), nframes))
+    if (!kqt_Context_set_buffer_size(audio_jack->parent.context, nframes, NULL))
     {
         audio_jack->parent.context = NULL;
         return -1;
@@ -77,13 +77,13 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     if (context != NULL)
     {
         mixed = kqt_Context_mix(context, nframes);
-        int buf_count = Song_get_buf_count(context->song);
-        frame_t** song_bufs = Song_get_bufs(context->song);
+        int buf_count = kqt_Context_get_buffer_count(context);
+        kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (int i = 0; i < buf_count; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {
-                jbufs[i][k] = song_bufs[i][k];
+                jbufs[i][k] = bufs[i][k];
             }
         }
     }

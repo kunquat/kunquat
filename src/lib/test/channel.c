@@ -76,9 +76,9 @@ END_TEST
 
 START_TEST (set_voices)
 {
-    frame_t buf_l[128] = { 0 };
-    frame_t buf_r[128] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[128] = { 0 };
+    kqt_frame buf_r[128] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* note_tables[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, note_tables, note_tables, 16);
     if (ins == NULL)

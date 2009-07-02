@@ -43,8 +43,8 @@
     } while (false)
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-        frame_t** bufs,
-        frame_t** vbufs,
+        kqt_frame** bufs,
+        kqt_frame** vbufs,
         int buf_count,
         uint32_t buf_len,
         Note_table** notes)

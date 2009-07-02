@@ -31,7 +31,10 @@
 
 void kqt_Error_set(kqt_Error* error, char* message, ...)
 {
-    assert(error != NULL);
+    if (error == NULL)
+    {
+        return;
+    }
     assert(message != NULL);
     error->error = true;
     va_list args;

@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include <Song_limits.h>
-#include <frame_t.h>
+#include <kqt_frame.h>
 #include <Order.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
@@ -41,9 +41,9 @@ typedef struct Song
 {
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
-    frame_t** bufs;                     ///< Buffers.
-    frame_t* priv_bufs[BUF_COUNT_MAX];  ///< Private buffers.
-    frame_t* voice_bufs[BUF_COUNT_MAX]; ///< Temporary buffers for Voices.
+    kqt_frame** bufs;                     ///< Buffers.
+    kqt_frame* priv_bufs[BUF_COUNT_MAX];  ///< Private buffers.
+    kqt_frame* voice_bufs[BUF_COUNT_MAX]; ///< Temporary buffers for Voices.
     Order* order;                       ///< The Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
@@ -255,7 +255,7 @@ uint32_t Song_get_buf_size(Song* song);
  *
  * \return   The buffers.
  */
-frame_t** Song_get_bufs(Song* song);
+kqt_frame** Song_get_bufs(Song* song);
 
 
 /**
@@ -265,7 +265,7 @@ frame_t** Song_get_bufs(Song* song);
  *
  * \return   The Voice buffers.
  */
-frame_t** Song_get_voice_bufs(Song* song);
+kqt_frame** Song_get_voice_bufs(Song* song);
 
 
 /**

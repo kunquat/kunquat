@@ -76,9 +76,9 @@ START_TEST (mix)
     // Note frequency is 2 Hz (2 cycles/beat).
     // Note starts at the beginning and plays until the end
     // Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
-    frame_t buf_l[128] = { 0 };
-    frame_t buf_r[128] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[128] = { 0 };
+    kqt_frame buf_r[128] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 2);
     if (ins == NULL)
@@ -285,9 +285,9 @@ END_TEST
 
 START_TEST (mix_break_freq_inv)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 2);
     if (ins == NULL)

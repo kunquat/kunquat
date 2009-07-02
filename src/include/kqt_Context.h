@@ -26,10 +26,7 @@
 
 #include <stdint.h>
 
-#include <Playdata.h>
-#include <Song.h>
-#include <Voice_pool.h>
-
+#include <kqt_frame.h>
 #include <kqt_Error.h>
 #include <kqt_Mix_state.h>
 
@@ -37,12 +34,7 @@
 #define MAX_VOICES (1024)
 
 
-typedef struct kqt_Context
-{
-    Song* song;
-    Playdata* play;
-    Voice_pool* voices;
-} kqt_Context;
+typedef struct kqt_Context kqt_Context;
 
 
 /**
@@ -53,6 +45,7 @@ typedef struct kqt_Context
  * \param buf_size           The size of the mixing buffer.
  * \param voice_count        The number of Voices used for mixing.
  * \param event_queue_size   The size of the Event queue for each Column.
+ * \param error              A location where error information shall be written.
  *
  * \return   The new Kunquat Context if successful, or \c NULL if memory
  *           allocation failed.
@@ -67,10 +60,12 @@ kqt_Context* kqt_new_Context(int buf_count,
 /**
  * Creates a new Kunquat Context from a file or a directory.
  *
- * \param path               The path to the Kunquat composition file or directory.
+ * \param path               The path to the Kunquat composition file or directory
+ *                           -- should not be \c NULL.
  * \param buf_size           The size of the mixing buffer.
  * \param voice_count        The number of Voices used for mixing.
  * \param event_queue_size   The size of the Event queue for each Column.
+ * \param error              A location where error information shall be written.
  *
  * \return   The new Kunquat Context if successful, otherwise \c NULL.
  */
@@ -84,30 +79,42 @@ kqt_Context* kqt_new_Context_from_path(char* path,
 /**
  * Gets playback statistics from the Kunquat Context.
  *
- * \param context     The Context.
+ * \param context     The Context -- should not be \c NULL.
  * \param mix_state   The Mix state where the statistics shall be written.
  */
 void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state);
 
 
 /**
- * Gets the Song of the Kunquat Context.
+ * Gets the number of mixing buffers in the Kunquat Context.
  *
- * \param context   The Context -- must not be \c NULL.
+ * \param context   The Context -- should not be \c NULL.
  *
- * \return   The Song.
+ * \return   The number of buffers, or \c 0 if \a context == \c NULL.
  */
-Song* kqt_Context_get_song(kqt_Context* context);
+int kqt_Context_get_buffer_count(kqt_Context* context);
 
 
 /**
- * Gets the Playdata of the Kunquat Context.
+ * Gets the mixing buffers in the Kunquat Context.
  *
- * \param context   The Context -- must not be \c NULL.
+ * \param context   The Context -- should not be \c NULL.
  *
- * \return   The Playdata.
+ * \return   The buffers, or \c NULL if \a context == \c NULL.
  */
-Playdata* kqt_Context_get_playdata(kqt_Context* context);
+kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
+
+
+/**
+ * Resizes the buffers in the Kunquat Context.
+ *
+ * \param context   The Context.
+ * \param size      The new buffer size -- should be > \c 0.
+ * \param error     A location where error information shall be written.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t nframes, kqt_Error* error);
 
 
 /**
@@ -178,8 +185,6 @@ void kqt_Context_set_mix_freq(kqt_Context* context, uint32_t freq);
 
 /**
  * Destroys an existing Kunquat Context.
- *
- * The Song inside the context is also destroyed.
  *
  * \param context   The Context -- must not be \c NULL.
  */

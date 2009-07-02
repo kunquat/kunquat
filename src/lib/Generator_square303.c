@@ -109,7 +109,7 @@ uint32_t Generator_square303_mix(Generator* gen,
                                  uint32_t offset,
                                  uint32_t freq,
                                  int buf_count,
-                                 frame_t** bufs)
+                                 kqt_frame** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE303);

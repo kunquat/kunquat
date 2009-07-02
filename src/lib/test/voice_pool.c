@@ -73,9 +73,9 @@ END_TEST
 
 START_TEST (get_voice)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
@@ -148,9 +148,9 @@ END_TEST
 
 START_TEST (mix)
 {
-    frame_t buf_l[128] = { 0 };
-    frame_t buf_r[128] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[128] = { 0 };
+    kqt_frame buf_r[128] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Note_table* nts[NOTE_TABLES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)

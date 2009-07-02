@@ -306,7 +306,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t offset,
                     uint32_t freq,
                     int buf_count,
-                    frame_t** bufs,
+                    kqt_frame** bufs,
                     double middle_tone,
                     double middle_freq)
 {
@@ -389,7 +389,7 @@ uint32_t Sample_mix(Sample* sample,
         {
             mix_factor = 1 - state->rel_pos_rem;
         }
-        frame_t vals[BUF_COUNT_MAX] = { 0 };
+        kqt_frame vals[BUF_COUNT_MAX] = { 0 };
         if (sample->is_float)
         {
             float* buf_l = sample->data[0];
@@ -413,8 +413,8 @@ uint32_t Sample_mix(Sample* sample,
             {
                 next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x80) * (1 - mix_factor)
-                    + ((frame_t)next / 0x80) * mix_factor;
+            vals[0] = vals[1] = ((kqt_frame)cur / 0x80) * (1 - mix_factor)
+                    + ((kqt_frame)next / 0x80) * mix_factor;
         }
         else if (sample->bits == 16)
         {
@@ -426,8 +426,8 @@ uint32_t Sample_mix(Sample* sample,
             {
                 next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x8000) * (1 - mix_factor)
-                    + ((frame_t)next / 0x8000) * mix_factor;
+            vals[0] = vals[1] = ((kqt_frame)cur / 0x8000) * (1 - mix_factor)
+                    + ((kqt_frame)next / 0x8000) * mix_factor;
         }
         else
         {
@@ -440,8 +440,8 @@ uint32_t Sample_mix(Sample* sample,
             {
                 next = buf_l[next_pos];
             }
-            vals[0] = vals[1] = ((frame_t)cur / 0x80000000UL) * (1 - mix_factor)
-                    + ((frame_t)next / 0x80000000UL) * mix_factor;
+            vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
+                    + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
         Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
         bufs[0][i] += vals[0];

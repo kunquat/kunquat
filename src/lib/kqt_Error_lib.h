@@ -30,7 +30,7 @@
 /**
  * Sets an error in the Error.
  *
- * \param error     The Error -- must not be \c NULL.
+ * \param error     The Error. If \a error == \c NULL, nothing happens.
  * \param message   The error message format -- must not be \c NULL. This and
  *                  subsequent arguments follow the printf family conventions.
  */
