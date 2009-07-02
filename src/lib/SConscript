@@ -33,7 +33,7 @@ env.Append(CPPPATH = ['#/src/lib', '#/src/include'])
 files = [
     'Real.c',
     'Note_table.c',
-    'Reltime.c',
+    'kqt_Reltime.c',
     'Event.c',
     'Event_creator.c',
     'Event_global.c',

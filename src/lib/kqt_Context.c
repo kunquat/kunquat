@@ -20,53 +20,128 @@
  */
 
 
+#define _POSIX_SOURCE
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
 #include <math.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include <kqt_Context.h>
 
 #include <xmemory.h>
 
 
-kqt_Context* new_kqt_Context(uint32_t freq, uint16_t voices, Song* song)
+kqt_Context* kqt_new_Context(int buf_count,
+                             uint32_t buf_size,
+                             uint16_t voice_count,
+                             uint8_t event_queue_size)
 {
-    static int32_t id = 0;
-    assert(freq > 0);
-    assert(voices > 0);
-    assert(voices < MAX_VOICES);
-    assert(song != NULL);
+    if (buf_count <= 0)
+    {
+        return NULL;
+    }
+    if (buf_size <= 0)
+    {
+        return NULL;
+    }
+    if (voice_count <= 0)
+    {
+        return NULL;
+    }
+    if (event_queue_size <= 0)
+    {
+        return NULL;
+    }
+    if (buf_count > BUF_COUNT_MAX)
+    {
+        buf_count = BUF_COUNT_MAX;
+    }
+    if (voice_count > MAX_VOICES)
+    {
+        voice_count = MAX_VOICES;
+    }
     kqt_Context* context = xalloc(kqt_Context);
     if (context == NULL)
     {
         return NULL;
     }
-    context->voices = new_Voice_pool(voices, 32); // TODO: event count
+    context->song = NULL;
+    context->play = NULL;
+    context->voices = NULL;
+    context->voices = new_Voice_pool(voice_count, event_queue_size);
     if (context->voices == NULL)
     {
-        xfree(context);
+        kqt_del_Context(context);
         return NULL;
     }
-    context->song = song;
-    context->play = new_Playdata(freq, context->voices, Song_get_insts(song));
+    context->song = new_Song(buf_count, buf_size, event_queue_size);
+    if (context->song == NULL)
+    {
+        kqt_del_Context(context);
+        return NULL;
+    }
+    context->play = new_Playdata(44100, context->voices, Song_get_insts(context->song));
     if (context->play == NULL)
     {
-        del_Voice_pool(context->voices);
-        xfree(context);
+        kqt_del_Context(context);
         return NULL;
     }
-    context->play->order = Song_get_order(song);
-    context->play->events = Song_get_events(song);
-    context->id = id++;
+    context->play->order = Song_get_order(context->song);
+    context->play->events = Song_get_events(context->song);
     return context;
 }
 
 
-int32_t kqt_Context_get_id(kqt_Context* context)
+kqt_Context* kqt_new_Context_from_path(char* path,
+                                       uint32_t buf_size,
+                                       uint16_t voice_count,
+                                       uint8_t event_queue_size)
 {
-    assert(context != NULL);
-    return context->id;
+    kqt_Context* context = kqt_new_Context(1, buf_size, voice_count, event_queue_size);
+    if (context == NULL)
+    {
+        return NULL;
+    }
+    struct stat* info = &(struct stat){ .st_mode = 0 };
+    errno = 0;
+    if (stat(path, info) < 0)
+    {
+        kqt_del_Context(context);
+        return NULL;
+    }
+    File_tree* tree = NULL;
+    Read_state* state = READ_STATE_AUTO;
+    if (S_ISDIR(info->st_mode))
+    {
+        tree = new_File_tree_from_fs(path, state);
+        if (tree == NULL)
+        {
+            kqt_del_Context(context);
+            return NULL;
+        }
+    }
+    else
+    {
+        tree = new_File_tree_from_tar(path, state);
+        if (tree == NULL)
+        {
+            kqt_del_Context(context);
+            return NULL;
+        }
+    }
+    assert(tree != NULL);
+    if (!Song_read(context->song, tree, state))
+    {
+        kqt_del_Context(context);
+        return NULL;
+    }
+    return context;
 }
 
 
@@ -194,11 +269,20 @@ void kqt_Context_set_mix_freq(kqt_Context* context, uint32_t freq)
 }
 
 
-void del_kqt_Context(kqt_Context* context)
+void kqt_del_Context(kqt_Context* context)
 {
-    assert(context != NULL);
-    del_Playdata(context->play);
-    del_Voice_pool(context->voices);
+    if (context == NULL)
+    {
+        return;
+    }
+    if (context->play != NULL)
+    {
+        del_Playdata(context->play);
+    }
+    if (context->voices != NULL)
+    {
+        del_Voice_pool(context->voices);
+    }
     if (context->song != NULL)
     {
         del_Song(context->song);

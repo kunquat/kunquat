@@ -112,39 +112,7 @@ int main(int argc, char** argv)
         fprintf(stderr, "Couldn't open the audio driver.\n");
         exit(EXIT_FAILURE);
     }
-    Song* song = new_Song(2, audio->nframes, 16);
-    if (song == NULL)
-    {
-        fprintf(stderr, "Couldn't create the Song\n");
-        del_Audio(audio);
-        exit(EXIT_FAILURE);
-    }
-    Read_state* state = READ_STATE_AUTO;
-    File_tree* tree = new_File_tree_from_tar(argv[1], state);
-    if (tree == NULL)
-    {
-        fprintf(stderr, "%s:%s:%d: %s\n", argv[1], state->path, state->row, state->message);
-        del_Song(song);
-        del_Audio(audio);
-        exit(EXIT_FAILURE);
-    }
-    if (!Song_read(song, tree, state))
-    {
-        fprintf(stderr, "%s:%d: %s\n", state->path, state->row, state->message);
-        del_File_tree(tree);
-        del_Song(song);
-        del_Audio(audio);
-        exit(EXIT_FAILURE);
-    }
-    del_File_tree(tree);
-    kqt_Context* context = new_kqt_Context(audio->freq, 256, song);
-    if (context == NULL)
-    {
-        fprintf(stderr, "Couldn't allocate memory for Player\n");
-        del_Song(song);
-        del_Audio(audio);
-        exit(EXIT_FAILURE);
-    }
+    kqt_Context* context = kqt_new_Context_from_path(argv[1], audio->nframes, 256, 32);
     Audio_set_context(audio, context);
     kqt_Context_play_song(context);
     kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = false });
@@ -173,7 +141,7 @@ int main(int argc, char** argv)
     }
     fprintf(stderr, "\nDone.\n");
     del_Audio(audio);
-    del_kqt_Context(context);
+    kqt_del_Context(context);
     exit(EXIT_SUCCESS);
 }
 

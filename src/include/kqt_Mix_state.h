@@ -47,6 +47,14 @@ typedef struct kqt_Mix_state
 
 
 /**
+ * A new instance of an uninitialised Mix state object with automatic storage
+ * allocation.
+ * Useful for passing as a parameter to an initialiser.
+ */
+#define KQT_MIX_STATE_AUTO (&(kqt_Mix_state){ .playing = false })
+
+
+/**
  * Initialises the Mix state.
  *
  * \param state   The Mix state. If \a state == \c NULL, nothing happens.
