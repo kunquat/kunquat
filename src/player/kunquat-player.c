@@ -186,11 +186,12 @@ int main(int argc, char** argv)
         fprintf(stderr, "Playing %s\n", argv[file_arg]);
         while (mix_state->playing)
         {
+            uint32_t frames = mix_state->frames;
             int status_line_pos = 0;
             int minutes = 0;
             double seconds = 0;
-            get_minutes_seconds(mix_state->frames, freq, &minutes, &seconds);
-            uint64_t frames_left = length_frames - mix_state->frames;
+            get_minutes_seconds(frames, freq, &minutes, &seconds);
+            uint64_t frames_left = length_frames - frames;
             int minutes_left = 0;
             double seconds_left = 0;
             get_minutes_seconds(frames_left, freq, &minutes_left, &seconds_left);

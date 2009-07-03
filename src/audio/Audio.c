@@ -74,6 +74,13 @@ uint32_t Audio_get_freq(Audio* audio)
 }
 
 
+uint32_t Audio_get_buffer_size(Audio* audio)
+{
+    assert(audio != NULL);
+    return audio->nframes;
+}
+
+
 bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
 {
     assert(audio != NULL);

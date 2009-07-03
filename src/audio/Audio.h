@@ -87,6 +87,16 @@ uint32_t Audio_get_freq(Audio* audio);
 
 
 /**
+ * Gets the buffer size of the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   The buffer size in frames.
+ */
+uint32_t Audio_get_buffer_size(Audio* audio);
+
+
+/**
  * Gets an updated state from the Audio.
  *
  * This call may block the calling thread. It may only be called between
