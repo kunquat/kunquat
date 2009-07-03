@@ -68,10 +68,10 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*));
 
 
 /**
- * Sets the kqt_Context for the Audio.
+ * Sets the Kunquat Context for the Audio.
  *
  * \param audio     The Audio -- must not be \c NULL.
- * \param context   The kqt_Context -- must not be \c NULL.
+ * \param context   The Context.
  */
 void Audio_set_context(Audio* audio, kqt_Context* context);
 

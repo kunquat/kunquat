@@ -62,7 +62,6 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*))
 void Audio_set_context(Audio* audio, kqt_Context* context)
 {
     assert(audio != NULL);
-    assert(context != NULL);
     audio->context = context;
     return;
 }
