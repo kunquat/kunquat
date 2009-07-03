@@ -81,6 +81,41 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
 }
 
 
+Playdata* new_Playdata_silent(uint32_t freq)
+{
+    assert(freq > 0);
+    Playdata* play = xalloc(Playdata);
+    if (play == NULL)
+    {
+        return NULL;
+    }
+    play->citer = new_Column_iter(NULL);
+    if (play->citer == NULL)
+    {
+        xfree(play);
+        return NULL;
+    }
+    play->voice_pool = NULL;
+    for (int i = 0; i < COLUMNS_MAX; ++i)
+    {
+        play->channels[i] = NULL;
+    }
+    play->mode = PLAY_SILENT;
+    play->freq = freq;
+    play->order = NULL;
+    play->events = NULL;
+    play->tempo = 0;
+    play->subsong = 0;
+    play->order_index = 0;
+    play->pattern = 0;
+    kqt_Reltime_init(&play->play_time);
+    play->play_frames = 0;
+    kqt_Reltime_init(&play->pos);
+    Playdata_reset_stats(play);
+    return play;
+}
+
+
 void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 {
     assert(play != NULL);
@@ -102,11 +137,16 @@ void del_Playdata(Playdata* play)
 {
     int i = 0;
     assert(play != NULL);
-    Voice_pool_reset(play->voice_pool);
+    if (play->voice_pool != NULL)
+    {
+        Voice_pool_reset(play->voice_pool);
+    }
     for (i = 0; i < COLUMNS_MAX; ++i)
     {
-        assert(play->channels[i] != NULL);
-        del_Channel(play->channels[i]);
+        if (play->channels[i] != NULL)
+        {
+            del_Channel(play->channels[i]);
+        }
     }
     if (play->citer != NULL)
     {

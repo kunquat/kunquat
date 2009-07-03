@@ -93,8 +93,6 @@ START_TEST (new)
         fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
         abort();
     }
-    fail_if(Song_get_name(song) == NULL,
-            "new_Song() created a Song without a name.");
     double mix_vol = Song_get_mix_vol(song);
     fail_unless(isfinite(mix_vol),
             "new_Song() created a Song without a sane initial mixing volume (%lf).", mix_vol);
@@ -149,69 +147,6 @@ END_TEST
 START_TEST (new_break_events_inv)
 {
     new_Song(1, 1, 0);
-}
-END_TEST
-#endif
-
-
-START_TEST (set_get_name)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        abort();
-    }
-    wchar_t name[132] = L"Name";
-    Song_set_name(song, name);
-    wchar_t* ret = Song_get_name(song);
-    fail_if(ret == NULL,
-            "Song_get_name() returned NULL.");
-    fail_if(name == ret,
-            "Song_set_name() copied the reference instead of the characters.");
-    fail_unless(wcscmp(name, ret) == 0,
-            "Song_set_name() copied the name incorrectly.");
-    for (int i = 4; i < 132; ++i)
-    {
-        name[i] = L'!';
-    }
-    Song_set_name(song, name);
-    ret = Song_get_name(song);
-    fail_if(ret == NULL,
-            "Song_get_name() returned NULL.");
-    fail_if(name == ret,
-            "Song_set_name() copied the reference instead of the characters.");
-    fail_unless(ret[127] == L'\0',
-            "Song_set_name() didn't truncate the name correctly.");
-    fail_unless(wcsncmp(name, ret, 127) == 0,
-            "Song_set_name() copied the name incorrectly.");
-    del_Song(song);
-}
-END_TEST
-
-#ifndef NDEBUG
-START_TEST (set_name_break_song_null)
-{
-    Song_set_name(NULL, L"Oops");
-}
-END_TEST
-
-START_TEST (set_name_break_name_null)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_name(song, NULL);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (get_name_break_song_null)
-{
-    Song_get_name(NULL);
 }
 END_TEST
 #endif
@@ -502,7 +437,6 @@ Suite* Song_suite(void)
     TCase* tc_set_get_global_vol = tcase_create("set_get_global_vol");
     TCase* tc_mix = tcase_create("mix");
     suite_add_tcase(s, tc_new);
-    suite_add_tcase(s, tc_set_get_name);
     suite_add_tcase(s, tc_set_get_tempo);
     suite_add_tcase(s, tc_set_get_mix_vol);
     suite_add_tcase(s, tc_set_get_global_vol);
@@ -517,7 +451,6 @@ Suite* Song_suite(void)
     tcase_set_timeout(tc_mix, timeout);
 
     tcase_add_test(tc_new, new);
-    tcase_add_test(tc_set_get_name, set_get_name);
     tcase_add_test(tc_set_get_mix_vol, set_get_mix_vol);
     tcase_add_test(tc_mix, mix);
 
@@ -526,10 +459,6 @@ Suite* Song_suite(void)
     tcase_add_test_raise_signal(tc_new, new_break_buf_count_inv2, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_buf_size_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_events_inv, SIGABRT);
-
-    tcase_add_test_raise_signal(tc_set_get_name, set_name_break_song_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_name, set_name_break_name_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_name, get_name_break_song_null, SIGABRT);
 
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_song_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_mix_vol_inv1, SIGABRT);

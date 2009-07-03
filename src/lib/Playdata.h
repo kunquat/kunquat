@@ -43,6 +43,7 @@ typedef enum Play_mode
     PLAY_EVENT,     ///< Play a single event.
     PLAY_PATTERN,   ///< Play one pattern.
     PLAY_SONG,      ///< Play a song.
+    PLAY_SILENT,    ///< Don't actually play -- just get some playback statistics.
     PLAY_LAST       ///< Sentinel value -- never used as a mode.
 } Play_mode;
 
@@ -98,6 +99,20 @@ typedef struct Playdata
  *           allocation failed.
  */
 Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
+
+
+/**
+ * Creates a new silent Playdata object (used for retrieving statistics).
+ *
+ * The caller shall eventually destroy the created object using
+ * del_Playdata().
+ *
+ * \param freq    The mixing frequency -- must be > \c 0.
+ *
+ * \return   The new Playdata object if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Playdata* new_Playdata_silent(uint32_t freq);
 
 
 /**

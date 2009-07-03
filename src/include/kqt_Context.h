@@ -77,6 +77,20 @@ kqt_Context* kqt_new_Context_from_path(char* path,
 
 
 /**
+ * Gets the length of the Kunquat Context.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param freq      The mixing frequency -- should be > \c 0.
+ *
+ * \return   The length in frames. NOTE: Despite the small unit of measurement
+ *           this should be considered an estimate only. So do not set buffer
+ *           sizes based on this value! The actual amount of frames to be
+ *           mixed may be lower or higher.
+ */
+uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq);
+
+
+/**
  * Gets playback statistics from the Kunquat Context.
  *
  * \param context     The Context -- should not be \c NULL.

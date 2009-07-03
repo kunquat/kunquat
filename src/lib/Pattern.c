@@ -179,6 +179,7 @@ uint32_t Pattern_mix(Pattern* pat,
     uint32_t mixed = offset;
     if (pat == NULL)
     {
+        assert(play->mode != PLAY_SILENT);
         kqt_Reltime* limit = kqt_Reltime_fromframes(KQT_RELTIME_AUTO,
                 nframes - mixed,
                 play->tempo,
@@ -300,31 +301,34 @@ uint32_t Pattern_mix(Pattern* pat,
                     play->tempo,
                     play->freq);
         }
-        // - Tell each channel to set up Voices
-        for (int i = 0; i < COLUMNS_MAX; ++i)
-        {
-            Column_iter_change_col(play->citer, pat->cols[i]);
-            Channel_set_voices(play->channels[i],
-                    play->voice_pool,
-                    play->citer,
-                    &play->pos,
-                    limit,
-                    mixed,
-                    play->tempo,
-                    play->freq);
-        }
         // - Calculate the number of frames to be mixed
         assert(kqt_Reltime_cmp(&play->pos, limit) <= 0);
         if (to_be_mixed > nframes - mixed)
         {
             to_be_mixed = nframes - mixed;
         }
-        // - Mix the Voice pool
-        uint16_t active_voices = Voice_pool_mix(play->voice_pool,
-                to_be_mixed + mixed, mixed, play->freq);
-        if (play->active_voices < active_voices)
+        if (play->mode != PLAY_SILENT)
         {
-            play->active_voices = active_voices;
+            // - Tell each channel to set up Voices
+            for (int i = 0; i < COLUMNS_MAX; ++i)
+            {
+                Column_iter_change_col(play->citer, pat->cols[i]);
+                Channel_set_voices(play->channels[i],
+                        play->voice_pool,
+                        play->citer,
+                        &play->pos,
+                        limit,
+                        mixed,
+                        play->tempo,
+                        play->freq);
+            }
+            // - Mix the Voice pool
+            uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+                    to_be_mixed + mixed, mixed, play->freq);
+            if (play->active_voices < active_voices)
+            {
+                play->active_voices = active_voices;
+            }
         }
         // - Increment play->pos
         kqt_Reltime_copy(&play->pos, limit);

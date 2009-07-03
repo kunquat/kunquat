@@ -49,6 +49,7 @@ struct kqt_Context
 {
     Song* song;
     Playdata* play;
+    Playdata* play_silent;
     Voice_pool* voices;
 };
 
@@ -95,7 +96,9 @@ kqt_Context* kqt_new_Context(int buf_count,
     }
     context->song = NULL;
     context->play = NULL;
+    context->play_silent = NULL;
     context->voices = NULL;
+
     context->voices = new_Voice_pool(voice_count, event_queue_size);
     if (context->voices == NULL)
     {
@@ -104,6 +107,7 @@ kqt_Context* kqt_new_Context(int buf_count,
         kqt_del_Context(context);
         return NULL;
     }
+
     context->song = new_Song(buf_count, buf_size, event_queue_size);
     if (context->song == NULL)
     {
@@ -112,6 +116,7 @@ kqt_Context* kqt_new_Context(int buf_count,
         kqt_del_Context(context);
         return NULL;
     }
+
     context->play = new_Playdata(44100, context->voices, Song_get_insts(context->song));
     if (context->play == NULL)
     {
@@ -122,6 +127,17 @@ kqt_Context* kqt_new_Context(int buf_count,
     }
     context->play->order = Song_get_order(context->song);
     context->play->events = Song_get_events(context->song);
+
+    context->play_silent = new_Playdata_silent(44100);
+    if (context->play_silent == NULL)
+    {
+        kqt_Error_set(error, "Couldn't allocate memory for the playback information"
+                             " in the Kunquat Context");
+        kqt_del_Context(context);
+        return NULL;
+    }
+    context->play_silent->order = Song_get_order(context->song);
+    context->play_silent->events = Song_get_events(context->song);
     return context;
 }
 
@@ -176,9 +192,37 @@ kqt_Context* kqt_new_Context_from_path(char* path,
     {
         kqt_Error_set(error, "%s:%d: %s", state->path, state->row, state->message);
         kqt_del_Context(context);
+        del_File_tree(tree);
         return NULL;
     }
+    del_File_tree(tree);
     return context;
+}
+
+
+uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq)
+{
+    if (context == NULL || freq <= 0)
+    {
+        return 0;
+    }
+    kqt_Reltime_init(&context->play_silent->play_time);
+    context->play_silent->play_frames = 0;
+    context->play_silent->subsong = Song_get_subsong(context->song);
+    Subsong* ss = Order_get_subsong(context->play_silent->order, context->play_silent->subsong);
+    if (ss == NULL)
+    {
+        context->play_silent->tempo = 120;
+    }
+    else
+    {
+        context->play_silent->tempo = Subsong_get_tempo(ss);
+    }
+    context->play_silent->order_index = 0;
+    context->play_silent->pattern = 0;
+    kqt_Reltime_init(&context->play_silent->pos);
+    context->play_silent->freq = freq;
+    return Song_get_length(context->song, context->play_silent);
 }
 
 
@@ -364,6 +408,10 @@ void kqt_del_Context(kqt_Context* context)
     if (context == NULL)
     {
         return;
+    }
+    if (context->play_silent != NULL)
+    {
+        del_Playdata(context->play_silent);
     }
     if (context->play != NULL)
     {

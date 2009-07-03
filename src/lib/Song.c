@@ -27,7 +27,6 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
-#include <wchar.h>
 
 #include <Real.h>
 #include <Song.h>
@@ -126,7 +125,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
                 i,
                 i * 100);
     }
-    song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
     song->mix_vol_dB = -8;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     song->init_subsong = 0;
@@ -336,18 +334,21 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     {
         nframes = song->buf_size;
     }
-    for (int i = 0; i < song->buf_count; ++i)
+    if (play->mode != PLAY_SILENT)
     {
-        for (uint32_t k = 0; k < nframes; ++k)
+        for (int i = 0; i < song->buf_count; ++i)
         {
-            song->bufs[i][k] = 0;
+            for (uint32_t k = 0; k < nframes; ++k)
+            {
+                song->bufs[i][k] = 0;
+            }
         }
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
     {
         Pattern* pat = NULL;
-        if (play->mode == PLAY_SONG)
+        if (play->mode >= PLAY_SONG)
         {
             int16_t pat_index = Order_get(song->order,
                     play->subsong,
@@ -397,11 +398,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    for (int i = 0; i < song->buf_count; ++i)
+    if (play->mode != PLAY_SILENT)
     {
-        for (uint32_t k = 0; k < mixed; ++k)
+        for (int i = 0; i < song->buf_count; ++i)
         {
-            song->bufs[i][k] *= song->mix_vol;
+            for (uint32_t k = 0; k < mixed; ++k)
+            {
+                song->bufs[i][k] *= song->mix_vol;
+            }
         }
     }
     play->play_frames += mixed;
@@ -409,44 +413,17 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 }
 
 
-void Song_set_name(Song* song, wchar_t* name)
+uint64_t Song_get_length(Song* song, Playdata* play)
 {
     assert(song != NULL);
-    assert(name != NULL);
-    wcsncpy(song->name, name, SONG_NAME_MAX - 1);
-    song->name[SONG_NAME_MAX - 1] = L'\0';
-    return;
+    assert(play != NULL);
+    play->mode = PLAY_SILENT;
+    while (play->mode)
+    {
+        Song_mix(song, play->freq, play);
+    }
+    return play->play_frames;
 }
-
-
-wchar_t* Song_get_name(Song* song)
-{
-    assert(song != NULL);
-    return song->name;
-}
-
-
-#if 0
-void Song_set_tempo(Song* song, int subsong, double tempo)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-    song->subsong_inits[subsong].tempo = tempo;
-    return;
-}
-
-
-double Song_get_tempo(Song* song, int subsong)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    return song->subsong_inits[subsong].tempo;
-}
-#endif
 
 
 void Song_set_mix_vol(Song* song, double mix_vol)
@@ -464,28 +441,6 @@ double Song_get_mix_vol(Song* song)
     assert(song != NULL);
     return song->mix_vol_dB;
 }
-
-
-#if 0
-void Song_set_global_vol(Song* song, int subsong, double global_vol)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    assert(isfinite(global_vol) || global_vol == -INFINITY);
-    song->subsong_inits[subsong].global_vol = global_vol;
-    return;
-}
-
-
-double Song_get_global_vol(Song* song, int subsong)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    return song->subsong_inits[subsong].global_vol;
-}
-#endif
 
 
 void Song_set_subsong(Song* song, uint16_t num)

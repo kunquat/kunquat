@@ -50,7 +50,6 @@ typedef struct Song
     Note_table* notes[NOTE_TABLES_MAX]; ///< The Note tables.
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
-    wchar_t name[SONG_NAME_MAX];        ///< The name of the Song.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
@@ -102,46 +101,17 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
 
 
 /**
- * Sets the name of the Song.
+ * Gets the length of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param name   The name to be set -- must not be \c NULL. Only the first
- *               SONG_NAME_MAX - 1 characters will be used.
+ * \param play   The Playdata -- must not be \c NULL.
+ *
+ * \return   The length in frames. NOTE: Despite the small unit of measurement
+ *           this should be considered an estimate only. So do not set buffer
+ *           sizes based on this value! The actual amount of frames to be
+ *           mixed may be lower or higher.
  */
-void Song_set_name(Song* song, wchar_t* name);
-
-
-/**
- * Gets the name of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The name.
- */
-wchar_t* Song_get_name(Song* song);
-
-
-/**
- * Sets the initial tempo of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- * \param tempo     The tempo -- must be finite and > \c 0.
- */
-void Song_set_tempo(Song* song, int subsong, double tempo);
-
-
-/**
- * Gets the initial tempo of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- *
- * \return   The tempo.
- */
-double Song_get_tempo(Song* song, int subsong);
+uint64_t Song_get_length(Song* song, Playdata* play);
 
 
 /**
@@ -161,29 +131,6 @@ void Song_set_mix_vol(Song* song, double mix_vol);
  * \return   The mixing volume.
  */
 double Song_get_mix_vol(Song* song);
-
-
-/**
- * Sets the initial global volume of the Song.
- *
- * \param song         The Song -- must not be \c NULL.
- * \param subsong      The subsong index -- must be >= \c 0 and
- *                     < \c SUBSONGS_MAX.
- * \param global_vol   The volume -- must be finite or -INFINITY.
- */
-void Song_set_global_vol(Song* song, int subsong, double global_vol);
-
-
-/**
- * Gets the initial global volume of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- *
- * \return   The global volume.
- */
-double Song_get_global_vol(Song* song, int subsong);
 
 
 /**
