@@ -56,7 +56,7 @@ static char* driver_names[] =
 
 void usage(void)
 {
-    fprintf(stderr, "Usage: kunquat-player [options] <file>\n");
+    fprintf(stderr, "Usage: kunquat-player [options] <files>\n");
     fprintf(stderr, "Options:\n");
     fprintf(stderr, "   -h, --help                 Show this help\n");
     fprintf(stderr, "   -d <drv>, --driver=<drv>   Choose audio driver\n");
@@ -154,7 +154,7 @@ int main(int argc, char** argv)
         }
         Audio_set_context(audio, context);
         kqt_Context_play_song(context);
-        kqt_Mix_state* mix_state = kqt_Mix_state_init(&(kqt_Mix_state){ .playing = false });
+        kqt_Mix_state* mix_state = kqt_Mix_state_init(KQT_MIX_STATE_AUTO);
         Audio_get_state(audio, mix_state);
         uint16_t max_voices = 0;
         fprintf(stderr, "Playing %s\n", argv[file_arg]);
@@ -162,6 +162,10 @@ int main(int argc, char** argv)
         {
             int minutes = (mix_state->frames / Audio_get_freq(audio) / 60) % 60;
             double seconds = remainder((double)mix_state->frames / Audio_get_freq(audio), 60);
+            if (seconds < 0)
+            {
+                seconds += 60;
+            }
             if (mix_state->voices > max_voices)
             {
                 max_voices = mix_state->voices;
