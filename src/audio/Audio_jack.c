@@ -75,7 +75,7 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     jack_default_audio_sample_t* jbuf_r =
             jack_port_get_buffer(audio_jack->ports[1], nframes);
     jack_default_audio_sample_t* jbufs[2] = { jbuf_l, jbuf_r };
-    if (context != NULL)
+    if (context != NULL && !audio_jack->parent.pause)
     {
         mixed = kqt_Context_mix(context, nframes, audio_jack->parent.freq);
         int buf_count = kqt_Context_get_buffer_count(context);

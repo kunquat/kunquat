@@ -143,7 +143,7 @@ static int Audio_null_process(Audio_null* audio_null)
         return 0;
     }
     kqt_Context* context = audio_null->parent.context;
-    if (context != NULL)
+    if (context != NULL && !audio_null->parent.pause)
     {
         kqt_Context_mix(context, audio_null->parent.nframes, audio_null->parent.freq);
     }

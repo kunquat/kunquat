@@ -298,6 +298,14 @@ int main(int argc, char** argv)
                     quit = true;
                     break;
                 }
+                else if (key == ' ')
+                {
+                    Audio_pause(audio, true);
+                    set_terminal(true, false);
+                    get_key();
+                    set_terminal(true, true);
+                    Audio_pause(audio, false);
+                }
             }
 
             Audio_get_state(audio, mix_state);

@@ -36,6 +36,7 @@
 typedef struct Audio
 {
     bool active;
+    bool pause;
     uint32_t nframes;
     uint32_t freq;
     kqt_Context* context;
@@ -121,6 +122,15 @@ uint32_t Audio_get_freq(Audio* audio);
  * \return   The buffer size in frames.
  */
 uint32_t Audio_get_buffer_size(Audio* audio);
+
+
+/**
+ * Pauses/resumes audio processing in the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ * \param pause   \c true to pause, \c false to resume.
+ */
+void Audio_pause(Audio* audio, bool pause);
 
 
 /**

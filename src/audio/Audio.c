@@ -46,6 +46,7 @@ bool Audio_init(Audio* audio,
     assert(close != NULL);
     assert(destroy != NULL);
     audio->active = false;
+    audio->pause = false;
     audio->nframes = 0;
     audio->freq = 0;
     audio->context = NULL;
@@ -101,6 +102,14 @@ uint32_t Audio_get_buffer_size(Audio* audio)
 {
     assert(audio != NULL);
     return audio->nframes;
+}
+
+
+void Audio_pause(Audio* audio, bool pause)
+{
+    assert(audio != NULL);
+    audio->pause = pause;
+    return;
 }
 
 

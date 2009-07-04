@@ -205,11 +205,12 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     assert(audio_openal->out_buf != NULL);
     
     // Generate the sound
+    uint32_t mixed = 0;
     kqt_Context* context = audio_openal->parent.context;
-    if (context != NULL)
+    if (context != NULL && !audio_openal->parent.pause)
     {
-        /*uint32_t mixed =*/ kqt_Context_mix(context, NUM_FRAMES, // nframes??
-                                             audio_openal->parent.freq);
+        mixed = kqt_Context_mix(context, audio_openal->parent.nframes,
+                                audio_openal->parent.freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         
@@ -226,6 +227,10 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
                 audio_openal->out_buf[(i * 2) + 1] = audio_openal->out_buf[i * 2];
             }
         }
+    }
+    for (uint32_t i = mixed * 2; i < audio_openal->parent.nframes * 2; ++i)
+    {
+        audio_openal->out_buf[i] = 0;
     }
     Audio_notify(&audio_openal->parent);
     
