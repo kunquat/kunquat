@@ -32,16 +32,13 @@
 
 #include <getopt.h>
 
-#include <termios.h>
-#include <unistd.h>
-#include <errno.h>
-#include <fcntl.h>
-
 #include <Audio.h>
 
 #include <kqt_Context.h>
 #include <kqt_Error.h>
 #include <kqt_Reltime.h>
+
+#include <keyboard.h>
 
 
 static char* driver_names[] =
@@ -96,105 +93,6 @@ void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* s
         *seconds += 60;
     }
     return;
-}
-
-
-bool set_terminal(bool interactive, bool immediate)
-{
-    struct termios* term = &(struct termios){ .c_lflag = 0 };
-    errno = 0;
-    if (tcgetattr(STDIN_FILENO, term) != 0)
-    {
-        perror("Couldn't retrieve terminal attributes");
-        return false;
-    }
-    if (interactive)
-    {
-        term->c_lflag &= ~ICANON;
-        term->c_lflag &= ~ECHO;
-    }
-    else
-    {
-        term->c_lflag |= ICANON;
-        term->c_lflag |= ECHO;
-    }
-    errno = 0;
-    if (tcsetattr(STDIN_FILENO, TCSANOW, term))
-    {
-        perror("Couldn't set terminal attributes");
-        return false;
-    }
-    errno = 0;
-    int flags = fcntl(STDIN_FILENO, F_GETFL);
-    if (flags == -1)
-    {
-        perror("Couldn't retrieve standard input attributes");
-        return false;
-    }
-    if (immediate)
-    {
-        flags |= O_NONBLOCK;
-    }
-    else
-    {
-        flags &= ~O_NONBLOCK;
-    }
-    if (fcntl(STDIN_FILENO, F_SETFL, flags) == -1)
-    {
-        perror("Couldn't set standard input attributes");
-        return false;
-    }
-    return true;
-}
-
-
-typedef enum
-{
-    KEY_NONE = 0,
-    KEY_LEFT,
-    KEY_DOWN,
-    KEY_UP,
-    KEY_RIGHT
-} Key;
-
-
-int get_key(void)
-{
-    char key = 0;
-    if (fread(&key, 1, 1, stdin) == 0)
-    {
-        return -1;
-    }
-    if (key == '\033')
-    {
-        char keys[2] = { '\0' };
-        int ret = fread(keys, 1, 2, stdin);
-        if (ret < 2)
-        {
-            return -1;
-        }
-        if (keys[0] == '[')
-        {
-            if (keys[1] == 'A')
-            {
-                return KEY_UP;
-            }
-            else if (keys[1] == 'B')
-            {
-                return KEY_DOWN;
-            }
-            else if (keys[1] == 'C')
-            {
-                return KEY_RIGHT;
-            }
-            else if (keys[1] == 'D')
-            {
-                return KEY_LEFT;
-            }
-        }
-        return -1;
-    }
-    return key;
 }
 
 

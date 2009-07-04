@@ -30,6 +30,7 @@ env_p.Append(LIBS = ['kunquat', 'audio'])
 
 files = [
     'kunquat-player.c',
+    'keyboard.c',
 ]
 
 env_p.Program('kunquat-player', files)
