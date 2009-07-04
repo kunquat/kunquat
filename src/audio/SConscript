@@ -28,6 +28,7 @@ env_a.Append(CPPPATH = ['#/src/include', '#/src/audio'])
 files = [
     'Audio.c',
     'Audio_creator.c',
+    'Audio_null.c',
 ]
 
 if env_a['with_jack']:

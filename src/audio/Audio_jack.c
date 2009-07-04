@@ -54,6 +54,7 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
         audio_jack->parent.context = NULL;
         return -1;
     }
+    audio_jack->parent.nframes = nframes;
     return 0;
 }
 
@@ -96,29 +97,12 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
 }
 
 
-static void del_Audio_jack(Audio_jack* audio_jack)
-{
-    assert(audio_jack != NULL);
-    audio_jack->parent.active = false;
-    if (audio_jack->client != NULL)
-    {
-        jack_client_close(audio_jack->client);
-        audio_jack->client = NULL;
-    }
-    xfree(audio_jack);
-    return;
-}
+static bool Audio_jack_open(Audio_jack* audio_jack);
 
+static bool Audio_jack_close(Audio_jack* audio_jack);
 
-#define destroy_if_fail(context, expr) do\
-    {\
-        if (!(expr))\
-        {\
-            del_Audio(&(context)->parent);\
-            return NULL;\
-        }\
-    }\
-    while (false)
+static void del_Audio_jack(Audio_jack* audio_jack);
+
 
 Audio* new_Audio_jack(void)
 {
@@ -127,19 +111,49 @@ Audio* new_Audio_jack(void)
     {
         return NULL;
     }
-    destroy_if_fail(audio_jack, Audio_init(&audio_jack->parent, 
-                (void (*)(Audio*))del_Audio_jack));
+    if (!Audio_init(&audio_jack->parent,
+                    (bool (*)(Audio*))Audio_jack_open,
+                    (bool (*)(Audio*))Audio_jack_close,
+                    (void (*)(Audio*))del_Audio_jack))
+    {
+        xfree(audio_jack);
+        return NULL;
+    }
     audio_jack->client = NULL;
     audio_jack->ports[0] = audio_jack->ports[1] = NULL;
+    return &audio_jack->parent;
+}
+
+
+static bool Audio_jack_open(Audio_jack* audio_jack)
+{
+    assert(audio_jack != NULL);
+    if (audio_jack->parent.active)
+    {
+        return false;
+    }
     
     jack_status_t status = 0;
     audio_jack->client = jack_client_open("Kunquat", JackNullOption, &status);
-    destroy_if_fail(audio_jack, audio_jack->client != NULL);
+    if (audio_jack->client == NULL)
+    {
+        return false;
+    }
 
-    destroy_if_fail(audio_jack, jack_set_process_callback(audio_jack->client,
-            Audio_jack_process, audio_jack) == 0);
-    destroy_if_fail(audio_jack, jack_set_buffer_size_callback(audio_jack->client,
-            Audio_jack_bufsize, audio_jack) == 0);
+    if (jack_set_process_callback(audio_jack->client,
+                                  Audio_jack_process,
+                                  audio_jack) != 0)
+    {
+        Audio_jack_close(audio_jack);
+        return false;
+    }
+    if (jack_set_buffer_size_callback(audio_jack->client,
+                                      Audio_jack_bufsize,
+                                      audio_jack) != 0)
+    {
+        Audio_jack_close(audio_jack);
+        return false;
+    }
 
     const char* port_names[] = { "out_l", "out_r" };
     for (int i = 0; i < 2; ++i)
@@ -148,18 +162,30 @@ Audio* new_Audio_jack(void)
                 port_names[i],
                 JACK_DEFAULT_AUDIO_TYPE,
                 JackPortIsOutput | JackPortIsTerminal, 0);
-        destroy_if_fail(audio_jack, audio_jack->ports[i] != NULL);
+        if (audio_jack->ports[i] == NULL)
+        {
+            Audio_jack_close(audio_jack);
+            return false;
+        }
     }
 
     audio_jack->parent.nframes = jack_get_buffer_size(audio_jack->client);
 
-    destroy_if_fail(audio_jack, jack_activate(audio_jack->client) == 0);
+    if (jack_activate(audio_jack->client) != 0)
+    {
+        Audio_jack_close(audio_jack);
+        return false;
+    }
 
     const char** available_ports = jack_get_ports(audio_jack->client,
             NULL,
             NULL,
             JackPortIsPhysical | JackPortIsInput);
-    destroy_if_fail(audio_jack, available_ports != NULL);
+    if (available_ports == NULL)
+    {
+        Audio_jack_close(audio_jack);
+        return false;
+    }
 
     for (int i = 0; i < 2; ++i)
     {
@@ -168,16 +194,37 @@ Audio* new_Audio_jack(void)
                 available_ports[i]) != 0)
         {
             free(available_ports);
-            del_Audio_jack(audio_jack);
+            Audio_jack_close(audio_jack);
             return NULL;
         }
     }
     free(available_ports);
     audio_jack->parent.freq = jack_get_sample_rate(audio_jack->client);
     audio_jack->parent.active = true;
-    return (Audio*)audio_jack;
+    return true;
 }
 
-#undef destroy_if_fail
+
+static bool Audio_jack_close(Audio_jack* audio_jack)
+{
+    assert(audio_jack != NULL);
+    audio_jack->parent.active = false;
+    if (audio_jack->client != NULL)
+    {
+        jack_client_close(audio_jack->client);
+        audio_jack->client = NULL;
+    }
+    audio_jack->ports[0] = audio_jack->ports[1] = NULL;
+    return true;
+}
+
+
+static void del_Audio_jack(Audio_jack* audio_jack)
+{
+    assert(audio_jack != NULL);
+    assert(!audio_jack->parent.active);
+    xfree(audio_jack);
+    return;
+}
 
 

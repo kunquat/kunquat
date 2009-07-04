@@ -25,6 +25,7 @@
 #include <string.h>
 
 #include <Audio.h>
+#include <Audio_null.h>
 #ifdef ENABLE_AO
 #include <Audio_ao.h>
 #endif
@@ -54,6 +55,7 @@ static Driver_info drivers[] =
 #ifdef ENABLE_OPENAL
     { "openal", new_Audio_openal },
 #endif
+    { "null", new_Audio_null },
     { NULL, NULL }
 };
 

@@ -51,10 +51,13 @@ struct Audio_ao
 
 static void* Audio_ao_thread(void* data);
 
-
 static int Audio_ao_process(Audio_ao* audio_ao);
 
-void del_Audio_ao(Audio_ao* audio_ao);
+static bool Audio_ao_open(Audio_ao* audio_ao);
+
+static bool Audio_ao_close(Audio_ao* audio_ao);
+
+static void del_Audio_ao(Audio_ao* audio_ao);
 
 
 Audio* new_Audio_ao(void)
@@ -64,7 +67,10 @@ Audio* new_Audio_ao(void)
     {
         return NULL;
     }
-    if (!Audio_init(&audio_ao->parent, (void (*)(Audio*))del_Audio_ao))
+    if (!Audio_init(&audio_ao->parent,
+                    (bool (*)(Audio*))Audio_ao_open,
+                    (bool (*)(Audio*))Audio_ao_close,
+                    (void (*)(Audio*))del_Audio_ao))
     {
         xfree(audio_ao);
         return NULL;
@@ -72,20 +78,10 @@ Audio* new_Audio_ao(void)
     audio_ao->thread_active = false;
     audio_ao->device = NULL;
     audio_ao->out_buf = NULL;
-    ao_initialize();
-    int driver_id = ao_default_driver_id();
-    if (driver_id == -1)
-    {
-        fprintf(stderr, "Couldn't find a usable audio device.\n");
-        ao_shutdown();
-        xfree(audio_ao);
-        return NULL;
-    }
     audio_ao->format.bits = 16;
     audio_ao->format.rate = 44100;
     audio_ao->format.channels = 2;
     audio_ao->format.byte_format = AO_FMT_NATIVE;
-    errno = 0;
     audio_ao->parent.nframes = 0;
     audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
     if (audio_ao->out_buf == NULL)
@@ -96,6 +92,25 @@ Audio* new_Audio_ao(void)
         return NULL;
     }
     audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
+    return &audio_ao->parent;
+}
+
+
+static bool Audio_ao_open(Audio_ao* audio_ao)
+{
+    assert(audio_ao != NULL);
+    if (audio_ao->parent.active)
+    {
+        return false;
+    }
+    ao_initialize();
+    int driver_id = ao_default_driver_id();
+    if (driver_id == -1)
+    {
+        fprintf(stderr, "Couldn't find a usable audio device.\n");
+        ao_shutdown();
+        return false;
+    }
     errno = 0;
     audio_ao->device = ao_open_live(driver_id, &audio_ao->format, NULL);
     if (audio_ao->device == NULL)
@@ -119,9 +134,8 @@ Audio* new_Audio_ao(void)
                 fprintf(stderr, "libao initialisation failed.\n");
                 break;
         }
-        del_Audio(&audio_ao->parent);
-        ao_shutdown();
-        return NULL;
+        Audio_close(&audio_ao->parent);
+        return false;
     }
     audio_ao->parent.freq = audio_ao->format.rate;
     audio_ao->parent.active = true;
@@ -129,11 +143,11 @@ Audio* new_Audio_ao(void)
     if (err != 0)
     {
         fprintf(stderr, "Couldn't create audio thread for libao.\n");
-        del_Audio(&audio_ao->parent);
-        return NULL;
+        Audio_close(&audio_ao->parent);
+        return false;
     }
     audio_ao->thread_active = true;
-    return (Audio*)audio_ao;
+    return true;
 }
 
 
@@ -196,12 +210,12 @@ static int Audio_ao_process(Audio_ao* audio_ao)
 }
 
 
-void del_Audio_ao(Audio_ao* audio_ao)
+static bool Audio_ao_close(Audio_ao* audio_ao)
 {
     assert(audio_ao != NULL);
+    audio_ao->parent.active = false;
     if (audio_ao->device != NULL)
     {
-        audio_ao->parent.active = false;
         if (audio_ao->thread_active)
         {
             pthread_join(audio_ao->play_thread, NULL);
@@ -209,12 +223,20 @@ void del_Audio_ao(Audio_ao* audio_ao)
         }
         int ok = ao_close(audio_ao->device);
         audio_ao->device = NULL;
+        ao_shutdown();
         if (!ok)
         {
             fprintf(stderr, "An error occurred while closing the libao driver.\n");
         }
-        ao_shutdown();
     }
+    return true;
+}
+
+
+void del_Audio_ao(Audio_ao* audio_ao)
+{
+    assert(audio_ao != NULL);
+    assert(!audio_ao->parent.active);
     if (audio_ao->out_buf != NULL)
     {
         xfree(audio_ao->out_buf);

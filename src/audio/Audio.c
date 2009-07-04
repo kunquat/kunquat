@@ -36,15 +36,22 @@
 #include <xmemory.h>
 
 
-bool Audio_init(Audio* audio, void (*destroy)(Audio*))
+bool Audio_init(Audio* audio,
+                bool (*open)(Audio*),
+                bool (*close)(Audio*),
+                void (*destroy)(Audio*))
 {
     assert(audio != NULL);
+    assert(open != NULL);
+    assert(close != NULL);
     assert(destroy != NULL);
     audio->active = false;
     audio->nframes = 0;
     audio->freq = 0;
     audio->context = NULL;
     kqt_Mix_state_init(&audio->state);
+    audio->open = open;
+    audio->close = close;
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
     {
@@ -56,6 +63,22 @@ bool Audio_init(Audio* audio, void (*destroy)(Audio*))
         return false;
     }
     return true;
+}
+
+
+bool Audio_open(Audio* audio)
+{
+    assert(audio != NULL);
+    assert(audio->open != NULL);
+    return audio->open(audio);
+}
+
+
+bool Audio_close(Audio* audio)
+{
+    assert(audio != NULL);
+    assert(audio->close != NULL);
+    return audio->close(audio);
 }
 
 
@@ -104,6 +127,11 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
 void del_Audio(Audio* audio)
 {
     assert(audio != NULL);
+    assert(audio->destroy != NULL);
+    if (audio->active)
+    {
+        audio->close(audio);
+    }
     while (pthread_cond_destroy(&audio->state_cond))
     {
         sleep(1);

@@ -50,6 +50,7 @@ static char* driver_names[] =
 #if defined(ENABLE_OPENAL)
     "openal",
 #endif
+    "null",
     NULL
 };
 
@@ -152,7 +153,13 @@ int main(int argc, char** argv)
     Audio* audio = new_Audio(driver_selection);
     if (audio == NULL)
     {
+        fprintf(stderr, "Couldn't create the audio driver %s.\n", driver_selection);
+        exit(EXIT_FAILURE);
+    }
+    if (!Audio_open(audio))
+    {
         fprintf(stderr, "Couldn't open the audio driver %s.\n", driver_selection);
+        del_Audio(audio);
         exit(EXIT_FAILURE);
     }
     for (int file_arg = optind; file_arg < argc; ++file_arg)
@@ -268,7 +275,7 @@ int main(int argc, char** argv)
     }
     fprintf(stderr, "Done.\n");
     del_Audio(audio);
-    exit(EXIT_SUCCESS);
+    return EXIT_SUCCESS;
 }
 
 

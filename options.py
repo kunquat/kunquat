@@ -15,11 +15,11 @@ enable_player = True
 # Build example Kunquat files.
 enable_examples = True
 
-# Build JACK support.
-with_jack = True
-
 # Build libao support.
 with_ao = True
+
+# Build JACK support.
+with_jack = True
 
 # Build OpenAL support.
 with_openal = True

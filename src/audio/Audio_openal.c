@@ -62,6 +62,10 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer);
 
 static void* Audio_openal_thread(void* data);
 
+static bool Audio_openal_open(Audio_openal* audio_openal);
+
+static bool Audio_openal_close(Audio_openal* audio_openal);
+
 static void del_Audio_openal(Audio_openal* audio_openal);
 
 
@@ -70,25 +74,25 @@ static void del_Audio_openal(Audio_openal* audio_openal);
         if (!(EXPR))                                              \
         {                                                         \
             fprintf(stderr, "OpenAL driver: %s\n", (MSG));        \
-            del_Audio(&audio_openal->parent);                     \
+            Audio_openal_close(audio_openal);                     \
             return false;                                         \
         }                                                         \
     } while(false)
 
 #define close_if_al_error(STMT,MSG)                           \
     do {                                                      \
-        STMT;                                                 \
+        (STMT);                                               \
         if (alGetError() != AL_NO_ERROR)                      \
         {                                                     \
             fprintf(stderr, "OpenAL driver: %s\n", (MSG));    \
-            del_Audio(&audio_openal->parent);                 \
+            Audio_openal_close(audio_openal);                 \
             return false;                                     \
         }                                                     \
     } while(false)
 
 #define end_if_al_error(STMT,MSG)                                       \
     do {                                                                \
-        STMT;                                                           \
+        (STMT);                                                         \
         if (alGetError() != AL_NO_ERROR)                                \
         {                                                               \
             fprintf(stderr, "OpenAL driver: thread: %s\n", (MSG));      \
@@ -105,12 +109,24 @@ Audio* new_Audio_openal(void)
     {
         return NULL;
     }
-    if (!Audio_init(&audio_openal->parent, (void (*)(Audio*))del_Audio_openal))
+    if (!Audio_init(&audio_openal->parent,
+                    (bool (*)(Audio*))Audio_openal_open,
+                    (bool (*)(Audio*))Audio_openal_close,
+                    (void (*)(Audio*))del_Audio_openal))
     {
         xfree(audio_openal);
         return NULL;
     }
 
+    // Reserving work buffers
+    audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
+    if (audio_openal->out_buf == NULL)
+    {
+        fprintf(stderr, "Couldn't allocate memory for the audio buffer.");
+        xfree(audio_openal);
+        return NULL;
+    }
+    
     // Initial state is all empty values
     // Can't use 0 for the OpenAL source & buffer values, since that's
     // a special, always valid, value for them. Hopefully -1 isn't.
@@ -121,7 +137,18 @@ Audio* new_Audio_openal(void)
         audio_openal->al_bufs[i] = (ALuint)-1;
     }
     audio_openal->parent.active = audio_openal->thread_active = false;
-    audio_openal->out_buf = NULL;
+
+    return &audio_openal->parent;
+}
+
+
+static bool Audio_openal_open(Audio_openal* audio_openal)
+{
+    assert(audio_openal != NULL);
+    if (audio_openal->parent.active)
+    {
+        return false;
+    }
     
     // Using alut here, since there's no need - for now - to use
     // other than the default audio device.
@@ -129,8 +156,7 @@ Audio* new_Audio_openal(void)
     {
         const char* err_str = alutGetErrorString(alutGetError());
         fprintf(stderr, "OpenAL initialization failed: %s\n", err_str);
-        xfree(audio_openal);
-        return NULL;
+        return false;
     }
     audio_openal->alut_inited = true;
     audio_openal->parent.nframes = NUM_FRAMES;
@@ -155,11 +181,6 @@ Audio* new_Audio_openal(void)
     alSourcef( audio_openal->source, AL_ROLLOFF_FACTOR,  0.0          );
     alSourcei( audio_openal->source, AL_SOURCE_RELATIVE, AL_TRUE      );
     
-    // Reserving work buffers
-    audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
-    close_if_false(audio_openal->out_buf != NULL,
-                   "Couldn't allocate memory for the audio buffer.");
-    
     // Mix first bufferfulls and queue them
     for (int i = 0; i < NUM_BUFS; ++i)
     {
@@ -175,9 +196,9 @@ Audio* new_Audio_openal(void)
                                    Audio_openal_thread, audio_openal),
                    "Thread creation failed.");
     audio_openal->thread_active = true;
-    
-    return (Audio*)audio_openal;
+    return true;
 }
+
 
 static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 {
@@ -217,6 +238,7 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 
     return;
 }
+
 
 static void* Audio_openal_thread(void* data)
 {
@@ -263,7 +285,7 @@ static void* Audio_openal_thread(void* data)
 }
 
 
-static void del_Audio_openal(Audio_openal* audio_openal)
+static bool Audio_openal_close(Audio_openal* audio_openal)
 {
     assert(audio_openal != NULL);
     audio_openal->parent.active = false;
@@ -290,13 +312,19 @@ static void del_Audio_openal(Audio_openal* audio_openal)
         alutExit();
         audio_openal->alut_inited = false;
     }
-    
+    return true;
+}
+
+
+static void del_Audio_openal(Audio_openal* audio_openal)
+{
+    assert(audio_openal != NULL);
+    assert(!audio_openal->parent.active);
     if (audio_openal->out_buf != NULL)
     {
         xfree(audio_openal->out_buf);
         audio_openal->out_buf = NULL;
     }
-    
     return;
 }
 

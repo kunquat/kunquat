@@ -39,6 +39,8 @@ typedef struct Audio
     uint32_t nframes;
     uint32_t freq;
     kqt_Context* context;
+    bool (*open)(struct Audio*);
+    bool (*close)(struct Audio*);
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
@@ -60,11 +62,36 @@ Audio* new_Audio(char* name);
  * Initialises the Audio.
  *
  * \param audio     The Audio -- must not be \c NULL.
+ * \param open      The opening function -- must not be \c NULL.
+ * \param close     The closing function -- must not be \c NULL.
  * \param destroy   The destructor of the Audio subclass -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Audio_init(Audio* audio, void (*destroy)(Audio*));
+bool Audio_init(Audio* audio,
+                bool (*open)(Audio*),
+                bool (*close)(Audio*),
+                void (*destroy)(Audio*));
+
+
+/**
+ * Opens the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_open(Audio* audio);
+
+
+/**
+ * Closes the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_close(Audio* audio);
 
 
 /**
