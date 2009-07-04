@@ -96,6 +96,23 @@ void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* s
 }
 
 
+#define print_status(line, pos, max, ...)      \
+    do                                         \
+    {                                          \
+        int printed = snprintf((line) + (pos), \
+                               (max) - (pos),  \
+                               __VA_ARGS__);   \
+        if (printed >= 0)                      \
+        {                                      \
+            (pos) += printed;                  \
+            if ((pos) >= (max))                \
+            {                                  \
+                (pos) = (max) - 1;             \
+            }                                  \
+        }                                      \
+    } while (false)
+
+
 int main(int argc, char** argv)
 {
     if (argc < 2)
@@ -201,6 +218,8 @@ int main(int argc, char** argv)
         int minutes_total = 0;
         double seconds_total = 0;
         get_minutes_seconds(length_frames, freq, &minutes_total, &seconds_total);
+        uint64_t clipped_l = 0;
+        uint64_t clipped_r = 0;
 
         const int status_line_max = 256;
         static char status_line[256] = { '\0' };
@@ -218,6 +237,8 @@ int main(int argc, char** argv)
         {
             if (interactive)
             {
+                clipped_l += mix_state->clipped[0];
+                clipped_r += mix_state->clipped[1];
                 uint32_t frames = mix_state->frames;
                 int status_line_pos = 0;
                 int minutes = 0;
@@ -233,50 +254,29 @@ int main(int argc, char** argv)
                 }
                 double pos = kqt_Reltime_get_beats(&mix_state->pos) +
                              ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
-                int printed = snprintf(status_line + status_line_pos,
-                                       status_line_max - status_line_pos,
-                                       "Subsong: %02" PRIu16
-                                       ", Time: %02d:%04.1f",
-                                       mix_state->subsong,
-                                       minutes, seconds);
-                if (printed >= 0)
-                {
-                    status_line_pos += printed;
-                    if (status_line_pos >= status_line_max)
-                    {
-                        status_line_pos = status_line_max - 1;
-                    }
-                }
+                print_status(status_line, status_line_pos, status_line_max,
+                             "Subsong: %02" PRIu16
+                             ", Time: %02d:%04.1f",
+                             mix_state->subsong,
+                             minutes, seconds);
                 if (length_frames >= mix_state->frames)
                 {
-                    printed = snprintf(status_line + status_line_pos,
-                                       status_line_max - status_line_pos,
-                                       " [%02d:%04.1f]"
-                                       " of %02d:%04.1f",
-                                       minutes_left, seconds_left,
-                                       minutes_total, seconds_total);
-                    if (printed >= 0)
-                    {
-                        status_line_pos += printed;
-                        if (status_line_pos >= status_line_max)
-                        {
-                            status_line_pos = status_line_max - 1;
-                        }
-                    }
+                    print_status(status_line, status_line_pos, status_line_max,
+                                 " [%02d:%04.1f]"
+                                 " of %02d:%04.1f",
+                                 minutes_left, seconds_left,
+                                 minutes_total, seconds_total);
                 }
-                printed = snprintf(status_line + status_line_pos,
-                                   status_line_max - status_line_pos,
-                                   ", Position: %02" PRIu16 "/%04.1f"
-                                   ", Voices: %" PRIu16 " (%" PRIu16 ")",
-                                   mix_state->order, pos,
-                                   mix_state->voices, max_voices);
-                if (printed >= 0)
+                print_status(status_line, status_line_pos, status_line_max,
+                             ", Position: %02" PRIu16 "/%04.1f"
+                             ", Voices: %" PRIu16 " (%" PRIu16 ")",
+                             mix_state->order, pos,
+                             mix_state->voices, max_voices);
+                if (clipped_l > 0 || clipped_r > 0)
                 {
-                    status_line_pos += printed;
-                    if (status_line_pos >= status_line_max)
-                    {
-                        status_line_pos = status_line_max - 1;
-                    }
+                    print_status(status_line, status_line_pos, status_line_max,
+                                 ", Clipped: %" PRIu64,
+                                 clipped_l + clipped_r);
                 }
                 if (status_line_pos >= status_line_bytes_used)
                 {

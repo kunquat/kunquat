@@ -129,6 +129,12 @@ void Playdata_reset_stats(Playdata* play)
 {
     assert(play != NULL);
     play->active_voices = 0;
+    for (int i = 0; i < BUF_COUNT_MAX; ++i)
+    {
+        play->min_amps[i] = INFINITY;
+        play->max_amps[i] = -INFINITY;
+        play->clipped[i] = 0;
+    }
     return;
 }
 

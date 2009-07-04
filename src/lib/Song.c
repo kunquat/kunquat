@@ -405,6 +405,18 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             for (uint32_t k = 0; k < mixed; ++k)
             {
                 song->bufs[i][k] *= song->mix_vol;
+                if (song->bufs[i][k] < play->min_amps[i])
+                {
+                    play->min_amps[i] = song->bufs[i][k];
+                }
+                if (song->bufs[i][k] > play->max_amps[i])
+                {
+                    play->max_amps[i] = song->bufs[i][k];
+                }
+                if (fabs(song->bufs[i][k]) > 1)
+                {
+                    ++play->clipped[i];
+                }
             }
         }
     }

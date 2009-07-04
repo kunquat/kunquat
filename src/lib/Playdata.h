@@ -50,38 +50,25 @@ typedef enum Play_mode
 
 typedef struct Playdata
 {
-    /// Current playback mode.
-    Play_mode mode;
-    /// Mixing frequency.
-    uint32_t freq;
-    /// Size of a tick in frames. TODO: implement if needed
-//  uint16_t tick_size;
-    /// The Order lists.
-    Order* order;
-    /// The global event queue.
-    Event_queue* events;
-    /// The number of beats played since the start of playback.
-    kqt_Reltime play_time;
-    /// The number of frames mixed since the start of playback.
-    uint64_t play_frames;
-    /// Current tempo.
-    double tempo;
-    /// Current subsong -- only relevant if \a play = \c PLAY_SONG.
-    uint16_t subsong;
-    /// Current order -- only relevant if \a play = \c PLAY_SONG.
-    uint16_t order_index;
-    /// Current pattern.
-    int16_t pattern;
-    /// Current position inside a pattern.
-    kqt_Reltime pos;
-    /// The Voice pool used.
-    Voice_pool* voice_pool;
-    /// Column iterator.
-    Column_iter* citer;
-    /// The channels used.
-    Channel* channels[COLUMNS_MAX];
-    /// Number of Voices used simultaneously.
-    uint16_t active_voices;
+    Play_mode mode;                   ///< Current playback mode.
+    uint32_t freq;                    ///< Mixing frequency.
+//  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
+    Order* order;                     ///< The Order lists.
+    Event_queue* events;              ///< The global event queue.
+    kqt_Reltime play_time;            ///< The number of beats played since the start of playback.
+    uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+    double tempo;                     ///< Current tempo.
+    uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
+    uint16_t order_index;             ///< Current order -- used when \a play == \c PLAY_SONG.
+    int16_t pattern;                  ///< Current pattern.
+    kqt_Reltime pos;                  ///< Current position inside a pattern.
+    Voice_pool* voice_pool;           ///< The Voice pool used.
+    Column_iter* citer;               ///< Column iterator.
+    Channel* channels[COLUMNS_MAX];   ///< The channels used.
+    uint16_t active_voices;           ///< Number of Voices used simultaneously.
+    double min_amps[BUF_COUNT_MAX];   ///< Minimum amplitude values encountered.
+    double max_amps[BUF_COUNT_MAX];   ///< Maximum amplitude values encountered.
+    uint64_t clipped[BUF_COUNT_MAX];  ///< Number of clipped frames encountered.
 } Playdata;
 
 

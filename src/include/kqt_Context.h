@@ -190,15 +190,6 @@ void kqt_Context_stop(kqt_Context* context);
 
 
 /**
- * Sets a new mixing frequency.
- * 
- * \param context   The Context -- must not be \c NULL.
- * \param freq      The mixing frequency -- must be > \c 0.
- */
-void kqt_Context_set_mix_freq(kqt_Context* context, uint32_t freq);
-
-
-/**
  * Destroys an existing Kunquat Context.
  *
  * \param context   The Context -- must not be \c NULL.

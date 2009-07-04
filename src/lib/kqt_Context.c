@@ -241,6 +241,12 @@ void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state)
     kqt_Reltime_copy(&mix_state->pos, &play->pos);
     mix_state->tempo = play->tempo;
     mix_state->voices = play->active_voices;
+    for (int i = 0; i < 2; ++i)
+    {
+        mix_state->min_amps[i] = play->min_amps[i];
+        mix_state->max_amps[i] = play->max_amps[i];
+        mix_state->clipped[i] = play->clipped[i];
+    }
     Playdata_reset_stats(play);
     return;
 }
@@ -390,15 +396,6 @@ void kqt_Context_stop(kqt_Context* context)
     context->play->order_index = 0;
     context->play->pattern = 0;
     kqt_Reltime_init(&context->play->pos);
-    return;
-}
-
-
-void kqt_Context_set_mix_freq(kqt_Context* context, uint32_t freq)
-{
-    assert(context != NULL);
-    assert(freq > 0);
-    Playdata_set_mix_freq(context->play, freq);
     return;
 }
 

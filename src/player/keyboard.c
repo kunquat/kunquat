@@ -20,6 +20,8 @@
  */
 
 
+#define _POSIX_SOURCE
+
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
