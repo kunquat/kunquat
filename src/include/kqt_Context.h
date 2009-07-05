@@ -182,14 +182,6 @@ void kqt_Context_play_song(kqt_Context* context);
 
 
 /**
- * Stops playback.
- *
- * \param context   The Context -- must not be \c NULL.
- */
-void kqt_Context_stop(kqt_Context* context);
-
-
-/**
  * Destroys an existing Kunquat Context.
  *
  * \param context   The Context -- must not be \c NULL.

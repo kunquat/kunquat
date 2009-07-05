@@ -54,6 +54,9 @@ struct kqt_Context
 };
 
 
+void kqt_Context_stop(kqt_Context* context);
+
+
 kqt_Context* kqt_new_Context(int buf_count,
                              uint32_t buf_size,
                              uint16_t voice_count,

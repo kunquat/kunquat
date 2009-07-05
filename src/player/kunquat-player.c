@@ -39,6 +39,7 @@
 #include <kqt_Reltime.h>
 
 #include <keyboard.h>
+#include <peak_meter.h>
 
 
 static char* driver_names[] =
@@ -209,7 +210,7 @@ int main(int argc, char** argv)
         if (context == NULL)
         {
             fprintf(stderr, "%s\n", error->message);
-            exit(EXIT_FAILURE);
+            continue;
         }
         Audio_set_context(audio, context);
 
@@ -223,7 +224,7 @@ int main(int argc, char** argv)
 
         const int status_line_max = 256;
         static char status_line[256] = { '\0' };
-        int status_line_bytes_used = 0;
+        int status_line_chars_used = 0;
         
         kqt_Context_play_song(context);
         kqt_Mix_state* mix_state = kqt_Mix_state_init(KQT_MIX_STATE_AUTO);
@@ -239,6 +240,11 @@ int main(int argc, char** argv)
             {
                 clipped_l += mix_state->clipped[0];
                 clipped_r += mix_state->clipped[1];
+                const int peak_meter_chars = 7;
+                char peak_meter[7 * 6] = { '\0' };
+                get_peak_meter(peak_meter, peak_meter_chars, mix_state, -40, -4);
+                int excess_chars = strlen(peak_meter) - peak_meter_chars;
+
                 uint32_t frames = mix_state->frames;
                 int status_line_pos = 0;
                 int minutes = 0;
@@ -255,8 +261,10 @@ int main(int argc, char** argv)
                 double pos = kqt_Reltime_get_beats(&mix_state->pos) +
                              ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
                 print_status(status_line, status_line_pos, status_line_max,
+                             "[%s] "
                              "Subsong: %02" PRIu16
                              ", Time: %02d:%04.1f",
+                             peak_meter,
                              mix_state->subsong,
                              minutes, seconds);
                 if (length_frames >= mix_state->frames)
@@ -272,24 +280,21 @@ int main(int argc, char** argv)
                              ", Voices: %" PRIu16 " (%" PRIu16 ")",
                              mix_state->order, pos,
                              mix_state->voices, max_voices);
-                if (clipped_l > 0 || clipped_r > 0)
+
+                status_line_pos -= excess_chars;
+                if (status_line_pos >= status_line_chars_used)
                 {
-                    print_status(status_line, status_line_pos, status_line_max,
-                                 ", Clipped: %" PRIu64,
-                                 clipped_l + clipped_r);
-                }
-                if (status_line_pos >= status_line_bytes_used)
-                {
-                    status_line_bytes_used = status_line_pos;
+                    status_line_chars_used = status_line_pos;
                 }
                 else
                 {
-                    for (int i = status_line_pos; i < status_line_bytes_used; ++i)
+                    for (int i = status_line_pos + excess_chars;
+                            i < status_line_chars_used + excess_chars; ++i)
                     {
                         status_line[i] = ' ';
                     }
-                    status_line[status_line_bytes_used] = '\0';
                 }
+                status_line[status_line_chars_used + excess_chars] = '\0';
                 fprintf(stderr, "%s\r", status_line);
              
                 int key = get_key();
@@ -301,13 +306,13 @@ int main(int argc, char** argv)
                 else if (key == ' ')
                 {
                     Audio_pause(audio, true);
+                    fprintf(stderr, "[ pause ]\r");
                     set_terminal(true, false);
                     get_key();
                     set_terminal(true, true);
                     Audio_pause(audio, false);
                 }
             }
-
             Audio_get_state(audio, mix_state);
         }
         if (interactive)

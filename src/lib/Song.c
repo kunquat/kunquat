@@ -334,7 +334,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     {
         nframes = song->buf_size;
     }
-    if (play->mode != PLAY_SILENT)
+    bool silent = play->mode == PLAY_SILENT; // we need the original value further down
+    if (!silent)
     {
         for (int i = 0; i < song->buf_count; ++i)
         {
@@ -398,7 +399,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    if (play->mode != PLAY_SILENT)
+    if (!silent)
     {
         for (int i = 0; i < song->buf_count; ++i)
         {
