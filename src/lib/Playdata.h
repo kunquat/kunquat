@@ -42,14 +42,15 @@ typedef enum Play_mode
     STOP = 0,       ///< Don't play.
     PLAY_EVENT,     ///< Play a single event.
     PLAY_PATTERN,   ///< Play one pattern.
-    PLAY_SONG,      ///< Play a song.
-    PLAY_SILENT,    ///< Don't actually play -- just get some playback statistics.
+    PLAY_SUBSONG,   ///< Play one subsong.
+    PLAY_SONG,      ///< Play all subsongs.
     PLAY_LAST       ///< Sentinel value -- never used as a mode.
 } Play_mode;
 
 
 typedef struct Playdata
 {
+    bool silent;                      ///< \c true if this Playdata is used for statistics only.
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
@@ -109,6 +110,15 @@ Playdata* new_Playdata_silent(uint32_t freq);
  * \param freq   The mixing frequency -- must be > \c 0.
  */
 void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
+
+
+/**
+ * Sets the subsong in the Playdata.
+ *
+ * \param play      The Playdata -- must not be \c NULL.
+ * \param subsong   The subsong number -- must be >= \c 0 and < \c SUBSONGS_MAX.
+ */
+void Playdata_set_subsong(Playdata* play, int subsong);
 
 
 /**

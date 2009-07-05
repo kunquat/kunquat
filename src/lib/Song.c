@@ -334,7 +334,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     {
         nframes = song->buf_size;
     }
-    bool silent = play->mode == PLAY_SILENT; // we need the original value further down
+    bool silent = play->silent; // we need the original value further down
     if (!silent)
     {
         for (int i = 0; i < song->buf_count; ++i)
@@ -349,7 +349,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     while (mixed < nframes && play->mode)
     {
         Pattern* pat = NULL;
-        if (play->mode >= PLAY_SONG)
+        if (play->mode >= PLAY_SUBSONG)
         {
             int16_t pat_index = Order_get(song->order,
                     play->subsong,
@@ -365,9 +365,20 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         if (pat == NULL && play->mode != PLAY_EVENT)
         {
-            // TODO: Stop or restart?
-            play->mode = STOP;
-            break;
+            if (play->mode < PLAY_SONG)
+            {
+                play->mode = STOP;
+                break;
+            }
+            assert(play->mode == PLAY_SONG);
+            if (play->subsong >= SUBSONGS_MAX - 1)
+            {
+                Playdata_set_subsong(play, 0);
+                play->mode = STOP;
+                break;
+            }
+            Playdata_set_subsong(play, play->subsong + 1);
+            continue;
         }
         uint32_t proc_start = mixed;
         mixed += Pattern_mix(pat, nframes, mixed, play);
@@ -430,7 +441,7 @@ uint64_t Song_get_length(Song* song, Playdata* play)
 {
     assert(song != NULL);
     assert(play != NULL);
-    play->mode = PLAY_SILENT;
+    assert(play->silent);
     while (play->mode)
     {
         Song_mix(song, play->freq, play);

@@ -179,7 +179,7 @@ uint32_t Pattern_mix(Pattern* pat,
     uint32_t mixed = offset;
     if (pat == NULL)
     {
-        assert(play->mode != PLAY_SILENT);
+        assert(!play->silent);
         kqt_Reltime* limit = kqt_Reltime_fromframes(KQT_RELTIME_AUTO,
                 nframes - mixed,
                 play->tempo,
@@ -307,7 +307,7 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             to_be_mixed = nframes - mixed;
         }
-        if (play->mode != PLAY_SILENT)
+        if (!play->silent)
         {
             // - Tell each channel to set up Voices
             for (int i = 0; i < COLUMNS_MAX; ++i)

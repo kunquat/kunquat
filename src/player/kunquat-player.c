@@ -29,6 +29,7 @@
 #include <string.h>
 #include <inttypes.h>
 #include <math.h>
+#include <errno.h>
 
 #include <getopt.h>
 
@@ -78,6 +79,9 @@ void usage(void)
     fprintf(stderr, "\n");
     fprintf(stderr, "   -q, --quiet                Quiet and non-interactive operation\n");
     fprintf(stderr, "                              (only error messages will be displayed)\n");
+    fprintf(stderr, "   -s, --subsong=<s>          Play the selected subsong\n");
+                                                   // FIXME: get bounds from lib
+    fprintf(stderr, "                              Valid range is -1..255, -1 means all subsongs\n");
     return;
 }
 
@@ -124,17 +128,19 @@ int main(int argc, char** argv)
 
     char* driver_selection = driver_names[0];
     bool interactive = true;
+    int subsong = -1;
 
     struct option long_options[] =
     {
         { "help", no_argument, NULL, 'h' },
         { "driver", required_argument, NULL, 'd' },
         { "quiet", no_argument, NULL, 'q' },
+        { "subsong", required_argument, NULL, 's' },
         { NULL, 0, NULL, 0 }
     };
     int opt = 0;
     int opt_index = 1;
-    while ((opt = getopt_long(argc, argv, ":hd:q", long_options, &opt_index)) != -1)
+    while ((opt = getopt_long(argc, argv, ":hd:qs:", long_options, &opt_index)) != -1)
     {
         switch (opt)
         {
@@ -152,6 +158,27 @@ int main(int argc, char** argv)
             case 'q':
             {
                 interactive = false;
+            }
+            break;
+            case 's':
+            {
+                errno = 0;
+                char* first_invalid = NULL;
+                long result = strtol(optarg, &first_invalid, 0);
+                if (optarg[0] == '\0' || *first_invalid != '\0')
+                {
+                    fprintf(stderr, "Subsong argument must be an integer\n");
+                    fprintf(stderr, "Use -h for help.\n");
+                    exit(EXIT_FAILURE);
+                }
+                int err = errno;
+                if (err == ERANGE || result < -1 || result > 255) // FIXME: get bounds from lib
+                {
+                    fprintf(stderr, "Subsong number is out of range\n");
+                    fprintf(stderr, "Use -h for help.\n");
+                    exit(EXIT_FAILURE);
+                }
+                subsong = result;
             }
             break;
             case ':':
@@ -211,6 +238,17 @@ int main(int argc, char** argv)
         {
             fprintf(stderr, "%s\n", error->message);
             continue;
+        }
+        if (subsong != -1)
+        {
+            char pos[64] = { '\0' };
+            snprintf(pos, 64, "%d", subsong);
+            if (!kqt_Context_set_position(context, pos, error))
+            {
+                fprintf(stderr, "%s\n", error->message);
+                kqt_del_Context(context);
+                continue;
+            }
         }
         Audio_set_context(audio, context);
 

@@ -44,6 +44,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     {
         return NULL;
     }
+    play->silent = false;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
     {
@@ -65,7 +66,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
             return NULL;
         }
     }
-    play->mode = STOP;
+    play->mode = PLAY_SONG;
     play->freq = freq;
     play->order = NULL;
     play->events = NULL;
@@ -89,6 +90,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    play->silent = true;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
     {
@@ -100,7 +102,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         play->channels[i] = NULL;
     }
-    play->mode = PLAY_SILENT;
+    play->mode = PLAY_SONG;
     play->freq = freq;
     play->order = NULL;
     play->events = NULL;
@@ -121,6 +123,29 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
     assert(play != NULL);
     assert(freq > 0);
     play->freq = freq;
+    return;
+}
+
+
+void Playdata_set_subsong(Playdata* play, int subsong)
+{
+    assert(play != NULL);
+    assert(subsong >= 0);
+    assert(subsong < SUBSONGS_MAX);
+    play->subsong = subsong;
+    play->order_index = 0;
+    if (!play->silent)
+    {
+        assert(play->voice_pool != NULL);
+        Voice_pool_reset(play->voice_pool);
+    }
+    Subsong* ss = Order_get_subsong(play->order, subsong);
+    if (ss == NULL)
+    {
+        play->tempo = 120;
+        return;
+    }
+    play->tempo = Subsong_get_tempo(ss);
     return;
 }
 

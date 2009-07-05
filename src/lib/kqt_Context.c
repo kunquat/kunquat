@@ -133,8 +133,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     }
     context->play->order = Song_get_order(context->song);
     context->play->events = Song_get_events(context->song);
-    kqt_Context_stop(context);
-    kqt_Context_set_position(context, NULL, NULL);
 
     context->play_silent = new_Playdata_silent(44100);
     if (context->play_silent == NULL)
@@ -146,6 +144,9 @@ kqt_Context* kqt_new_Context(int buf_count,
     }
     context->play_silent->order = Song_get_order(context->song);
     context->play_silent->events = Song_get_events(context->song);
+    
+    kqt_Context_stop(context);
+    kqt_Context_set_position(context, NULL, NULL);
     return context;
 }
 
@@ -218,18 +219,6 @@ uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq)
     }
     kqt_Reltime_init(&context->play_silent->play_time);
     context->play_silent->play_frames = 0;
-    context->play_silent->subsong = Song_get_subsong(context->song);
-    Subsong* ss = Order_get_subsong(context->play_silent->order, context->play_silent->subsong);
-    if (ss == NULL)
-    {
-        context->play_silent->tempo = 120;
-    }
-    else
-    {
-        context->play_silent->tempo = Subsong_get_tempo(ss);
-    }
-    context->play_silent->order_index = 0;
-    context->play_silent->pattern = 0;
     kqt_Reltime_init(&context->play_silent->pos);
     context->play_silent->freq = freq;
     return Song_get_length(context->song, context->play_silent);
@@ -329,33 +318,39 @@ bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* e
     }
     if (position == NULL)
     {
-        position = "0";
+        position = "-1";
     }
     char* str = position;
     Read_state* state = READ_STATE_AUTO;
-    int64_t subsong = 0;
+    int64_t subsong = -1;
     str = read_int(str, &subsong, state);
     if (state->error)
     {
         kqt_Error_set(error, "Invalid position indicator format");
         return false;
     }
-    if (subsong < 0 || subsong >= SUBSONGS_MAX)
+    if (subsong < -1 || subsong >= SUBSONGS_MAX)
     {
         kqt_Error_set(error, "Subsong number %" PRId64 " out of range");
         return false;
     }
     kqt_Context_stop(context);
     Playdata_reset_stats(context->play);
-    context->play->subsong = subsong;
-    Subsong* ss = Order_get_subsong(context->play->order, context->play->subsong);
-    if (ss == NULL)
+    Playdata_reset_stats(context->play_silent);
+    if (subsong == -1)
     {
-        context->play->mode = STOP;
-        return true;
+        context->play->mode = PLAY_SONG;
+        Playdata_set_subsong(context->play, 0);
+        context->play_silent->mode = PLAY_SONG;
+        Playdata_set_subsong(context->play_silent, 0);
     }
-    context->play->tempo = Subsong_get_tempo(ss);
-    context->play->mode = PLAY_SONG;
+    else
+    {
+        context->play->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(context->play, subsong);
+        context->play_silent->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(context->play_silent, subsong);
+    }
     return true;
 }
 
