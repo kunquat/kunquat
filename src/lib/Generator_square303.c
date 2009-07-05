@@ -79,6 +79,7 @@ void Generator_square303_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE303);
+    (void)gen;
     assert(state != NULL);
     Voice_state_init(state);
     Voice_state_square303* square303_state = (Voice_state_square303*)state;
@@ -117,6 +118,7 @@ uint32_t Generator_square303_mix(Generator* gen,
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(buf_count > 0);
+    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);

@@ -315,6 +315,7 @@ uint32_t Sample_mix(Sample* sample,
     assert(state != NULL);
     assert(freq > 0);
     assert(buf_count > 0);
+    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);

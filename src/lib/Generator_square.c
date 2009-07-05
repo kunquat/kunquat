@@ -144,6 +144,7 @@ uint32_t Generator_square_mix(Generator* gen,
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(buf_count > 0);
+    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);

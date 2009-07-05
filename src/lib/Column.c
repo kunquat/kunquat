@@ -375,6 +375,12 @@ bool Column_write(Column* col, FILE* out, Write_state* state)
     assert(col != NULL);
     assert(out != NULL);
     assert(state != NULL);
+    (void)col;
+    (void)out;
+    if (state->error)
+    {
+        return false;
+    }
     return false;
 }
 

@@ -27,6 +27,7 @@
 
 #include <unistd.h>
 
+#include <sys/time.h>
 #include <pthread.h>
 
 #include <Audio.h>
@@ -118,17 +119,66 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
     assert(audio != NULL);
     assert(state != NULL);
     assert(audio->active);
-    if (pthread_mutex_lock(&audio->state_mutex) != 0)
+    int err = pthread_mutex_lock(&audio->state_mutex);
+    if (err != 0)
     {
+        if (err == EINVAL)
+        {
+            fprintf(stderr, "\nAudio_get_state: invalid mutex\n");
+        }
+        else if (err == EDEADLK)
+        {
+            fprintf(stderr, "\nAudio_get_state: deadlock\n");
+        }
         return false;
     }
-    if (pthread_cond_wait(&audio->state_cond, &audio->state_mutex) != 0)
+    struct timeval now;
+    struct timespec timeout;
+    gettimeofday(&now, NULL);
+    if (now.tv_usec >= 500000)
     {
-        pthread_mutex_unlock(&audio->state_mutex);
+        timeout.tv_sec = now.tv_sec + 1;
+        timeout.tv_nsec = (now.tv_usec - 500000) * 1000;
+    }
+    else
+    {
+        timeout.tv_sec = now.tv_sec;
+        timeout.tv_nsec = (now.tv_usec + 500000) * 1000;
+    }
+    err = pthread_cond_timedwait(&audio->state_cond, &audio->state_mutex, &timeout);
+    if (err != 0)
+    {
+        if (err == ETIMEDOUT)
+        {
+            fprintf(stderr, "\nAudio_get_state: timed out\n");
+        }
+        else if (err == EINTR)
+        {
+            fprintf(stderr, "\nAudio_get_state: interrupted\n");
+        }
+        err = pthread_mutex_unlock(&audio->state_mutex);
+        if (err == EINVAL)
+        {
+            fprintf(stderr, "\nAudio_notify: invalid mutex\n");
+        }
+        else if (err == EPERM)
+        {
+            fprintf(stderr, "\nAudio_notify: unlocking mutex locked by someone else\n");
+        }
         return false;
     }
     kqt_Mix_state_copy(state, &audio->state);
-    pthread_mutex_unlock(&audio->state_mutex);
+    err = pthread_mutex_unlock(&audio->state_mutex);
+    if (err == EINVAL)
+    {
+        fprintf(stderr, "\nAudio_notify: invalid mutex\n");
+        return false;
+    }
+    else if (err == EPERM)
+    {
+        fprintf(stderr, "\nAudio_notify: unlocking mutex locked by someone else\n");
+        return false;
+    }
     return true;
 }
 
@@ -168,8 +218,16 @@ int Audio_notify(Audio* audio)
         {
             audio->state.playing = false;
         }
-        err = pthread_cond_signal(&audio->state_cond);
+        pthread_cond_broadcast(&audio->state_cond);
         err = pthread_mutex_unlock(&audio->state_mutex);
+        if (err == EINVAL)
+        {
+            fprintf(stderr, "\nAudio_notify: invalid mutex\n");
+        }
+        else if (err == EPERM)
+        {
+            fprintf(stderr, "\nAudio_notify: unlocking mutex locked by someone else\n");
+        }
     }
     return err;
 }

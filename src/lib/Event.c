@@ -164,6 +164,12 @@ bool Event_write(Event* event, FILE* out, Write_state* state)
     assert(event != NULL);
     assert(out != NULL);
     assert(state != NULL);
+    (void)event;
+    (void)out;
+    if (state->error)
+    {
+        return false;
+    }
     return false;
 }
 

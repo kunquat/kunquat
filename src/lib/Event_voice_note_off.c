@@ -70,6 +70,7 @@ static void Event_voice_note_off_process(Event_voice* event, Voice* voice)
     assert(event != NULL);
     assert(event->parent.type == EVENT_TYPE_NOTE_OFF);
     assert(voice != NULL);
+    (void)event;
     voice->state.generic.note_on = false;
     return;
 }

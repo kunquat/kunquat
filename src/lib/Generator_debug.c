@@ -63,6 +63,8 @@ uint32_t Generator_debug_mix(Generator* gen,
     assert(buf_count > 0);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
+    (void)gen;
+    (void)buf_count;
     if (!state->active)
     {
         return offset;
