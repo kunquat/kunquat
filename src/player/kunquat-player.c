@@ -226,7 +226,6 @@ int main(int argc, char** argv)
         static char status_line[256] = { '\0' };
         int status_line_chars_used = 0;
         
-        kqt_Context_play_song(context);
         kqt_Mix_state* mix_state = kqt_Mix_state_init(KQT_MIX_STATE_AUTO);
         Audio_get_state(audio, mix_state);
         uint16_t max_voices = 0;

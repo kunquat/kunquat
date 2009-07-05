@@ -134,7 +134,7 @@ bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t nframes, kqt_Err
 /**
  * Does mixing according to the state of the Kunquat Context.
  *
- * \param context   The Context -- must not be \c NULL.
+ * \param context   The Context -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed.
  * \param freq      The mixing frequency -- must be > \c 0.
  *
@@ -145,40 +145,16 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq);
 
 
 /**
- * Plays one Event. The caller should have set the Event in the desired
- * Channel beforehand.
+ * Sets the position to be played.
  *
- * \param context   The kqt_Context -- must not be \c NULL.
- */
-void kqt_Context_play_event(kqt_Context* context);
-
-
-/**
- * Plays one Pattern.
+ * Any notes that were being played will be cut off immediately.
  *
- * \param context   The Context -- must not be \c NULL.
- * \param num       The number of the Pattern -- must be >= \c 0 and
- *                  < \c PATTERNS_MAX.
- * \param tempo     The tempo -- must be > \c 0.
- */
-void kqt_Context_play_pattern(kqt_Context* context, int16_t num, double tempo);
-
-
-/**
- * Plays a subsong.
+ * \param position   The new position -- should not be \c NULL.
+ * \param error      A location where error information shall be written.
  *
- * \param context   The Context -- must not be \c NULL.
- * \param num       The number of the subsong -- must be < \c SUBSONGS_MAX.
+ * \return   \c true if successful, otherwise \c false.
  */
-void kqt_Context_play_subsong(kqt_Context* context, uint16_t subsong);
-
-
-/**
- * Plays the default subsong of the Song.
- *
- * \param context   The Context -- must not be \c NULL.
- */
-void kqt_Context_play_song(kqt_Context* context);
+bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* error);
 
 
 /**

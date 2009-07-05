@@ -24,6 +24,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
@@ -41,6 +43,7 @@
 #include <Song.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
+#include <File_base.h> // for string parsing
 
 #include <xmemory.h>
 
@@ -130,6 +133,8 @@ kqt_Context* kqt_new_Context(int buf_count,
     }
     context->play->order = Song_get_order(context->song);
     context->play->events = Song_get_events(context->song);
+    kqt_Context_stop(context);
+    kqt_Context_set_position(context, NULL, NULL);
 
     context->play_silent = new_Playdata_silent(44100);
     if (context->play_silent == NULL)
@@ -199,6 +204,8 @@ kqt_Context* kqt_new_Context_from_path(char* path,
         return NULL;
     }
     del_File_tree(tree);
+    kqt_Context_stop(context);
+    kqt_Context_set_position(context, NULL, NULL);
     return context;
 }
 
@@ -313,6 +320,47 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq)
 }
 
 
+bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* error)
+{
+    if (context == NULL)
+    {
+        kqt_Error_set(error, "Invalid Kunquat Context");
+        return false;
+    }
+    if (position == NULL)
+    {
+        position = "0";
+    }
+    char* str = position;
+    Read_state* state = READ_STATE_AUTO;
+    int64_t subsong = 0;
+    str = read_int(str, &subsong, state);
+    if (state->error)
+    {
+        kqt_Error_set(error, "Invalid position indicator format");
+        return false;
+    }
+    if (subsong < 0 || subsong >= SUBSONGS_MAX)
+    {
+        kqt_Error_set(error, "Subsong number %" PRId64 " out of range");
+        return false;
+    }
+    kqt_Context_stop(context);
+    Playdata_reset_stats(context->play);
+    context->play->subsong = subsong;
+    Subsong* ss = Order_get_subsong(context->play->order, context->play->subsong);
+    if (ss == NULL)
+    {
+        context->play->mode = STOP;
+        return true;
+    }
+    context->play->tempo = Subsong_get_tempo(ss);
+    context->play->mode = PLAY_SONG;
+    return true;
+}
+
+
+#if 0
 void kqt_Context_play_pattern(kqt_Context* context, int16_t num, double tempo)
 {
     assert(context != NULL);
@@ -373,6 +421,7 @@ void kqt_Context_play_event(kqt_Context* context)
     context->play->mode = PLAY_EVENT;
     return;
 }
+#endif
 
 
 void kqt_Context_stop(kqt_Context* context)
