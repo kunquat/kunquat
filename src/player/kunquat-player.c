@@ -43,6 +43,10 @@
 #include <peak_meter.h>
 
 
+#define PLAYER_NAME "kunquat-player"
+#define PLAYER_VERSION "0.0.1"
+
+
 static char* driver_names[] =
 {
 #if defined(ENABLE_AO)
@@ -61,27 +65,28 @@ static char* driver_names[] =
 
 void usage(void)
 {
-    fprintf(stderr, "Usage: kunquat-player [options] <files>\n");
-    fprintf(stderr, "Options:\n");
-    fprintf(stderr, "   -h, --help                 Show this help\n");
-    fprintf(stderr, "   -d <drv>, --driver=<drv>   Choose audio driver\n");
-    fprintf(stderr, "                              Supported drivers:");
+    fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n");
+    fprintf(stdout, "Options:\n");
+    fprintf(stdout, "   -h, --help                 Show this help\n");
+    fprintf(stdout, "   -d <drv>, --driver=<drv>   Use audio driver <drv>\n");
+    fprintf(stdout, "                              Supported drivers:");
     if (driver_names[0] == NULL)
     {
-        fprintf(stderr, " (none)\n");
+        fprintf(stdout, " (none)\n");
         return;
     }
-    fprintf(stderr, " %s", driver_names[0]);
+    fprintf(stdout, " %s", driver_names[0]);
     for (int i = 1; driver_names[i] != NULL; ++i)
     {
-        fprintf(stderr, ", %s", driver_names[i]);
+        fprintf(stdout, ", %s", driver_names[i]);
     }
-    fprintf(stderr, "\n");
-    fprintf(stderr, "   -q, --quiet                Quiet and non-interactive operation\n");
-    fprintf(stderr, "                              (only error messages will be displayed)\n");
-    fprintf(stderr, "   -s, --subsong=<s>          Play the selected subsong\n");
+    fprintf(stdout, "\n");
+    fprintf(stdout, "   -q, --quiet                Quiet and non-interactive operation\n");
+    fprintf(stdout, "                              (only error messages will be displayed)\n");
+    fprintf(stdout, "   -s, --subsong=<s>          Play the selected subsong\n");
                                                    // FIXME: get bounds from lib
-    fprintf(stderr, "                              Valid range is -1..255, -1 means all subsongs\n");
+    fprintf(stdout, "                              Valid range is -1..255, -1 means all subsongs\n");
+    fprintf(stdout, "       --version              Display version information and exit\n");
     return;
 }
 
@@ -97,6 +102,43 @@ void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* s
     {
         *seconds += 60;
     }
+    return;
+}
+
+
+char* get_iso_today(void)
+{
+    static char iso_date[] = "yyyy-mm-dd";
+    static char* mons[] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                            "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+    int m = 0;
+    for (int i = 0; i < 12; ++i)
+    {
+        if (strncmp(__DATE__, mons[i], 3) == 0)
+        {
+            m = i + 1;
+            break;
+        }
+    }
+    int d = atoi(__DATE__ + 4);
+    int y = atoi(__DATE__ + 7);
+    if (m == 0 || d == 0 || y == 0)
+    {
+        strcpy(iso_date, "unknown");
+        return iso_date;
+    }
+    snprintf(iso_date, 11, "%04d-%02d-%02d", y, m, d);
+    return iso_date;
+}
+
+
+void print_licence(void)
+{
+    fprintf(stdout, "Copyright 2009 Tomi Jylhä-Ollila\n");
+    fprintf(stdout, "License GPLv3+: GNU GPL version 3 or later"
+                    " <http://gnu.org/licenses/gpl.html>\n");
+    fprintf(stdout, "This is free software: you are free to change and redistribute it.\n");
+    fprintf(stdout, "There is NO WARRANTY, to the extent permitted by law.\n");
     return;
 }
 
@@ -136,6 +178,7 @@ int main(int argc, char** argv)
         { "driver", required_argument, NULL, 'd' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
+        { "version", no_argument, NULL, 'V' },
         { NULL, 0, NULL, 0 }
     };
     int opt = 0;
@@ -181,6 +224,16 @@ int main(int argc, char** argv)
                 subsong = result;
             }
             break;
+            case 'V':
+            {
+                char* iso_date = get_iso_today();
+                fprintf(stdout, PLAYER_NAME " " PLAYER_VERSION
+                                " (build date %s)\n",
+                                iso_date);
+                print_licence();
+                exit(EXIT_SUCCESS);
+            }
+            break;
             case ':':
             {
                 fprintf(stderr, "Option %s requires an argument\n", argv[opt_index]);
@@ -205,7 +258,10 @@ int main(int argc, char** argv)
     }
     if (optind >= argc)
     {
-        fprintf(stderr, "No input files.\n");
+        if (interactive)
+        {
+            fprintf(stderr, "No input files.\n");
+        }
         exit(EXIT_SUCCESS);
     }
     

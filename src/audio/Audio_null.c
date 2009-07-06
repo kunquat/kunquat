@@ -141,11 +141,11 @@ static void* Audio_null_thread(void* data)
 static int Audio_null_process(Audio_null* audio_null)
 {
     assert(audio_null != NULL);
+    struct timespec delay;
+    delay.tv_sec = 0;
+    delay.tv_nsec = 50000000;
     if (!audio_null->parent.active)
     {
-        struct timespec delay;
-        delay.tv_sec = 0;
-        delay.tv_nsec = 50000000;
         nanosleep(&delay, NULL);
         Audio_notify(&audio_null->parent);
         return 0;
@@ -156,6 +156,10 @@ static int Audio_null_process(Audio_null* audio_null)
         kqt_Context_mix(context,
                         audio_null->parent.nframes,
                         audio_null->parent.freq);
+    }
+    else
+    {
+        nanosleep(&delay, NULL);
     }
     Audio_notify(&audio_null->parent);
     return 0;
