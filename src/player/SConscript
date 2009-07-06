@@ -32,6 +32,7 @@ files = [
     'kunquat-player.c',
     'keyboard.c',
     'peak_meter.c',
+    'status_line.c',
 ]
 
 env_p.Program('kunquat-player', files)

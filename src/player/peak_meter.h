@@ -39,6 +39,7 @@
  *                    < \ə upper.
  * \param upper       The upper bound of the dB scale -- must be finite and
  *                    > \a lower.
+ * \param clipped     An array of clip counts -- must not be \c NULL.
  *
  * \return   The parameter \a str.
  */
@@ -46,7 +47,8 @@ char* get_peak_meter(char* str,
                      int len,
                      kqt_Mix_state* mix_state,
                      double lower,
-                     double upper);
+                     double upper,
+                     uint64_t* clipped);
 
 
 #endif // PEAK_METER_H

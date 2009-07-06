@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdint.h>
 #include <math.h>
 
 #include <kqt_Mix_state.h>
@@ -33,7 +34,8 @@ char* get_peak_meter(char* str,
                      int len,
                      kqt_Mix_state* mix_state,
                      double lower,
-                     double upper)
+                     double upper,
+                     uint64_t* clipped)
 {
     assert(str != NULL);
     assert(len > 0);
@@ -41,6 +43,7 @@ char* get_peak_meter(char* str,
     assert(isfinite(lower));
     assert(isfinite(upper));
     assert(lower < upper);
+    assert(clipped != NULL);
     double vols[2] = { -INFINITY, -INFINITY };
     for (int i = 0; i < 2; ++i)
     {
@@ -50,6 +53,7 @@ char* get_peak_meter(char* str,
             vols[i] = log2(vols[i] / 2) * 6;
         }
     }
+    len -= 3;
     int sizes[2] = { 0 };
     int scale = len * 2;
     double scale_dB = upper - lower;
@@ -58,6 +62,8 @@ char* get_peak_meter(char* str,
         sizes[i] = (vols[i] - lower) * scale / scale_dB;
     }
     char* pos = str;
+    strcpy(pos, "[");
+    pos += strlen(pos);
     for (int i = 0; i < len; ++i)
     {
         char block[7] = { '\0' };
@@ -109,11 +115,33 @@ char* get_peak_meter(char* str,
                 strcpy(block, " ");
             }
         }
-        int block_len = strlen(block);
         strcpy(pos, block);
-        pos += block_len;
-        assert((pos - str) < (len * 6));
+        pos += strlen(block);
+        assert((pos - str) < (len * 6 + 6));
     }
+
+    strcpy(pos, "]");
+    pos += strlen(pos);
+
+    char clip[7] = { '\0' };
+    if (clipped[0] > 0 && clipped[1] > 0)
+    {
+        strcpy(clip, "▌");
+    }
+    else if (clipped[0] > 0)
+    {
+        strcpy(clip, "▘");
+    }
+    else if (clipped[1] > 0)
+    {
+        strcpy(clip, "▖");
+    }
+    else
+    {
+        strcpy(clip, " ");
+    }
+    strcpy(pos, clip);
+    pos += strlen(clip);
     *pos = '\0';
     return str;
 }

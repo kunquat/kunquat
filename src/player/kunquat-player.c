@@ -40,7 +40,7 @@
 #include <kqt_Reltime.h>
 
 #include <keyboard.h>
-#include <peak_meter.h>
+#include <status_line.h>
 
 
 #define PLAYER_NAME "kunquat-player"
@@ -91,21 +91,6 @@ void usage(void)
 }
 
 
-void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* seconds)
-{
-    assert(freq > 0);
-    assert(minutes != NULL);
-    assert(seconds != NULL);
-    *minutes = (frames / freq / 60) % 60;
-    *seconds = remainder((double)frames / freq, 60);
-    if (*seconds < 0)
-    {
-        *seconds += 60;
-    }
-    return;
-}
-
-
 char* get_iso_today(void)
 {
     static char iso_date[] = "yyyy-mm-dd";
@@ -141,23 +126,6 @@ void print_licence(void)
     fprintf(stdout, "There is NO WARRANTY, to the extent permitted by law.\n");
     return;
 }
-
-
-#define print_status(line, pos, max, ...)      \
-    do                                         \
-    {                                          \
-        int printed = snprintf((line) + (pos), \
-                               (max) - (pos),  \
-                               __VA_ARGS__);   \
-        if (printed >= 0)                      \
-        {                                      \
-            (pos) += printed;                  \
-            if ((pos) >= (max))                \
-            {                                  \
-                (pos) = (max) - 1;             \
-            }                                  \
-        }                                      \
-    } while (false)
 
 
 int main(int argc, char** argv)
@@ -310,11 +278,7 @@ int main(int argc, char** argv)
 
         uint32_t freq = Audio_get_freq(audio);
         uint64_t length_frames = kqt_Context_get_length(context, freq);
-        int minutes_total = 0;
-        double seconds_total = 0;
-        get_minutes_seconds(length_frames, freq, &minutes_total, &seconds_total);
-        uint64_t clipped_l = 0;
-        uint64_t clipped_r = 0;
+        uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
         static char status_line[256] = { '\0' };
@@ -331,63 +295,23 @@ int main(int argc, char** argv)
         {
             if (interactive)
             {
-                clipped_l += mix_state->clipped[0];
-                clipped_r += mix_state->clipped[1];
-                const int peak_meter_chars = 7;
-                char peak_meter[7 * 6] = { '\0' };
-                get_peak_meter(peak_meter, peak_meter_chars, mix_state, -40, -4);
-                int excess_chars = strlen(peak_meter) - peak_meter_chars;
-
-                uint32_t frames = mix_state->frames;
-                int status_line_pos = 0;
-                int minutes = 0;
-                double seconds = 0;
-                get_minutes_seconds(frames, freq, &minutes, &seconds);
-                uint64_t frames_left = length_frames - frames;
-                int minutes_left = 0;
-                double seconds_left = 0;
-                get_minutes_seconds(frames_left, freq, &minutes_left, &seconds_left);
+                for (int i = 0; i < 2; ++i)
+                {
+                    clipped[i] += mix_state->clipped[i];
+                }
                 if (mix_state->voices > max_voices)
                 {
                     max_voices = mix_state->voices;
                 }
-                double pos = kqt_Reltime_get_beats(&mix_state->pos) +
-                             ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
-                print_status(status_line, status_line_pos, status_line_max,
-                             "[%s] "
-                             "Subsong: %02" PRIu16
-                             ", Time: %02d:%04.1f",
-                             peak_meter,
-                             mix_state->subsong,
-                             minutes, seconds);
-                if (length_frames >= mix_state->frames)
-                {
-                    print_status(status_line, status_line_pos, status_line_max,
-                                 " [%02d:%04.1f]"
-                                 " of %02d:%04.1f",
-                                 minutes_left, seconds_left,
-                                 minutes_total, seconds_total);
-                }
-                print_status(status_line, status_line_pos, status_line_max,
-                             ", Position: %02" PRIu16 "/%04.1f"
-                             ", Voices: %" PRIu16 " (%" PRIu16 ")",
-                             mix_state->order, pos,
-                             mix_state->voices, max_voices);
+                status_line_chars_used = get_status_line(status_line,
+                                                         status_line_max,
+                                                         mix_state,
+                                                         status_line_chars_used,
+                                                         clipped,
+                                                         length_frames,
+                                                         max_voices,
+                                                         freq);
 
-                status_line_pos -= excess_chars;
-                if (status_line_pos >= status_line_chars_used)
-                {
-                    status_line_chars_used = status_line_pos;
-                }
-                else
-                {
-                    for (int i = status_line_pos + excess_chars;
-                            i < status_line_chars_used + excess_chars; ++i)
-                    {
-                        status_line[i] = ' ';
-                    }
-                }
-                status_line[status_line_chars_used + excess_chars] = '\0';
                 fprintf(stderr, "%s\r", status_line);
              
                 int key = get_key();
