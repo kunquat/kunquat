@@ -94,6 +94,9 @@ void usage(void)
     fprintf(stdout, "\n");
     fprintf(stdout, "   --buffer-size n        Use audio buffer size n\n");
     fprintf(stdout, "                          Valid range is [64,262144]\n");
+    fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second/channel\n");
+    fprintf(stdout, "                          Valid range is [1000,384000]\n");
+    fprintf(stdout, "                          (drivers may set additional restrictions)\n");
     fprintf(stdout, "   -q, --quiet            Quiet and non-interactive operation\n");
     fprintf(stdout, "                          (only error messages will be displayed)\n");
     fprintf(stdout, "   --disable-unicode      Don't use Unicode for display\n");
@@ -190,12 +193,14 @@ int main(int argc, char** argv)
     int subsong = -1;
     bool unicode = true;
     long buffer_size = 0;
+    long frequency = 0;
 
     struct option long_options[] =
     {
         { "help", no_argument, NULL, 'h' },
         { "driver", required_argument, NULL, 'd' },
         { "buffer-size", required_argument, NULL, 'b' },
+        { "frequency", required_argument, NULL, 'F' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
         { "disable-unicode", no_argument, NULL, 'U' },
@@ -222,6 +227,11 @@ int main(int argc, char** argv)
             case 'b':
             {
                 buffer_size = read_long(optarg, "Buffer size", 64, 262144);
+            }
+            break;
+            case 'F':
+            {
+                frequency = read_long(optarg, "Mixing frequency", 1000, 384000);
             }
             break;
             case 'q':
@@ -286,6 +296,15 @@ int main(int argc, char** argv)
     if (buffer_size > 0)
     {
         if (!Audio_set_buffer_size(audio, buffer_size))
+        {
+            fprintf(stderr, "%s\n", Audio_get_error(audio));
+            del_Audio(audio);
+            exit(EXIT_FAILURE);
+        }
+    }
+    if (frequency > 0)
+    {
+        if (!Audio_set_freq(audio, frequency))
         {
             fprintf(stderr, "%s\n", Audio_get_error(audio));
             del_Audio(audio);

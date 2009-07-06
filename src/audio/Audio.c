@@ -58,6 +58,7 @@ bool Audio_init(Audio* audio,
     audio->open = open;
     audio->close = close;
     audio->set_buffer_size = NULL;
+    audio->set_freq = NULL;
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
     {
@@ -79,6 +80,31 @@ char* Audio_get_error(Audio* audio)
 }
 
 
+bool Audio_set_buffer_size(Audio* audio, uint32_t nframes)
+{
+    assert(audio != NULL);
+    if (audio->set_buffer_size == NULL)
+    {
+        Audio_set_error(audio, "Driver does not support buffer resizing");
+        return false;
+    }
+    return audio->set_buffer_size(audio, nframes);
+}
+
+
+bool Audio_set_freq(Audio* audio, uint32_t freq)
+{
+    assert(audio != NULL);
+    assert(freq > 0);
+    if (audio->set_freq == NULL)
+    {
+        Audio_set_error(audio, "Driver does not support changing mixing frequency");
+        return false;
+    }
+    return audio->set_freq(audio, freq);
+}
+
+
 bool Audio_open(Audio* audio)
 {
     assert(audio != NULL);
@@ -92,18 +118,6 @@ bool Audio_close(Audio* audio)
     assert(audio != NULL);
     assert(audio->close != NULL);
     return audio->close(audio);
-}
-
-
-bool Audio_set_buffer_size(Audio* audio, uint32_t nframes)
-{
-    assert(audio != NULL);
-    if (audio->set_buffer_size == NULL)
-    {
-        Audio_set_error(audio, "Driver does not support buffer resizing");
-        return false;
-    }
-    return audio->set_buffer_size(audio, nframes);
 }
 
 
@@ -165,7 +179,7 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
     {
         if (err == ETIMEDOUT)
         {
-            fprintf(stderr, "\nAudio_get_state: timed out\n");
+//            fprintf(stderr, "\nAudio_get_state: timed out\n");
         }
         else if (err == EINTR)
         {

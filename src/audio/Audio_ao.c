@@ -59,6 +59,8 @@ static bool Audio_ao_close(Audio_ao* audio_ao);
 
 static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes);
 
+static bool Audio_ao_set_freq(Audio_ao* audio_ao, uint32_t freq);
+
 static void del_Audio_ao(Audio_ao* audio_ao);
 
 
@@ -78,6 +80,7 @@ Audio* new_Audio_ao(void)
         return NULL;
     }
     audio_ao->parent.set_buffer_size = (bool (*)(Audio*, uint32_t))Audio_ao_set_buffer_size;
+    audio_ao->parent.set_freq = (bool (*)(Audio*, uint32_t))Audio_ao_set_freq;
     audio_ao->thread_active = false;
     audio_ao->device = NULL;
     audio_ao->out_buf = NULL;
@@ -85,6 +88,7 @@ Audio* new_Audio_ao(void)
     audio_ao->format.rate = 44100;
     audio_ao->format.channels = 2;
     audio_ao->format.byte_format = AO_FMT_NATIVE;
+    audio_ao->parent.freq = audio_ao->format.rate;
     audio_ao->parent.nframes = 0;
     audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
     if (audio_ao->out_buf == NULL)
@@ -140,7 +144,6 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
         }
         return false;
     }
-    audio_ao->parent.freq = audio_ao->format.rate;
     audio_ao->parent.active = true;
     int err = pthread_create(&audio_ao->play_thread, NULL, Audio_ao_thread, audio_ao);
     if (err != 0)
@@ -180,6 +183,22 @@ static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes)
     }
     audio_ao->out_buf = new_buf;
     audio->nframes = nframes;
+    return true;
+}
+
+
+static bool Audio_ao_set_freq(Audio_ao* audio_ao, uint32_t freq)
+{
+    assert(audio_ao != NULL);
+    assert(freq > 0);
+    Audio* audio = &audio_ao->parent;
+    if (audio->active)
+    {
+        Audio_set_error(audio, "Cannot set mixing frequency while the driver is active.");
+        return false;
+    }
+    audio->freq = freq;
+    audio_ao->format.rate = freq;
     return true;
 }
 

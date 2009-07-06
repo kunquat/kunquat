@@ -47,6 +47,7 @@ typedef struct Audio
     bool (*open)(struct Audio*);
     bool (*close)(struct Audio*);
     bool (*set_buffer_size)(struct Audio*, uint32_t nframes);
+    bool (*set_freq)(struct Audio*, uint32_t freq);
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
@@ -93,6 +94,28 @@ bool Audio_init(Audio* audio,
 
 
 /**
+ * Sets the buffer size in the Audio.
+ *
+ * \param audio     The Audio -- must not be \c NULL.
+ * \param nframes   The new size in frames -- must be > \c 0.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_set_buffer_size(Audio* audio, uint32_t nframes);
+
+
+/**
+ * Sets the mixing frequency in the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_set_freq(Audio* audio, uint32_t freq);
+
+
+/**
  * Opens the Audio.
  *
  * \param audio   The Audio -- must not be \c NULL.
@@ -110,17 +133,6 @@ bool Audio_open(Audio* audio);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Audio_close(Audio* audio);
-
-
-/**
- * Sets the buffer size in the Audio.
- *
- * \param audio     The Audio -- must not be \c NULL.
- * \param nframes   The new size in frames -- must be > \c 0.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Audio_set_buffer_size(Audio* audio, uint32_t nframes);
 
 
 /**
