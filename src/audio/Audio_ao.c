@@ -57,6 +57,8 @@ static bool Audio_ao_open(Audio_ao* audio_ao);
 
 static bool Audio_ao_close(Audio_ao* audio_ao);
 
+static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes);
+
 static void del_Audio_ao(Audio_ao* audio_ao);
 
 
@@ -75,6 +77,7 @@ Audio* new_Audio_ao(void)
         xfree(audio_ao);
         return NULL;
     }
+    audio_ao->parent.set_buffer_size = (bool (*)(Audio*, uint32_t))Audio_ao_set_buffer_size;
     audio_ao->thread_active = false;
     audio_ao->device = NULL;
     audio_ao->out_buf = NULL;
@@ -147,6 +150,38 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
         return false;
     }
     audio_ao->thread_active = true;
+    return true;
+}
+
+
+static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes)
+{
+    assert(audio_ao != NULL);
+    assert(nframes > 0);
+    if (audio_ao->parent.active)
+    {
+        Audio_set_error(&audio_ao->parent,
+                "Cannot set buffer size while the driver is active.");
+        return false;
+    }
+    if (audio_ao->parent.context != NULL)
+    {
+        if (kqt_Context_set_buffer_size(audio_ao->parent.context, nframes, NULL))
+        {
+            Audio_set_error(&audio_ao->parent,
+                    "Couldn't allocate memory for new buffers.");
+            return false;
+        }
+    }
+    short* new_buf = xrealloc(short, nframes * 2, audio_ao->out_buf);
+    if (new_buf == NULL)
+    {
+        Audio_set_error(&audio_ao->parent,
+                "Couldn't allocate memory for new buffers.");
+        return false;
+    }
+    audio_ao->out_buf = new_buf;
+    audio_ao->parent.nframes = nframes;
     return true;
 }
 

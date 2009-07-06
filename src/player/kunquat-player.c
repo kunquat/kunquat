@@ -78,9 +78,9 @@ void usage(void)
     fprintf(stdout, "\n");
     fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n\n");
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "   -h, --help                 Show this help and exit\n");
-    fprintf(stdout, "   -d <drv>, --driver=<drv>   Use audio driver <drv>\n");
-    fprintf(stdout, "                              Supported drivers:");
+    fprintf(stdout, "   -h, --help             Show this help and exit\n");
+    fprintf(stdout, "   -d drv, --driver=drv   Use audio driver <drv>\n");
+    fprintf(stdout, "                          Supported drivers:");
     if (driver_names[0] == NULL)
     {
         fprintf(stdout, " (none)\n");
@@ -92,13 +92,15 @@ void usage(void)
         fprintf(stdout, ", %s", driver_names[i]);
     }
     fprintf(stdout, "\n");
-    fprintf(stdout, "   -q, --quiet                Quiet and non-interactive operation\n");
-    fprintf(stdout, "                              (only error messages will be displayed)\n");
-    fprintf(stdout, "   --disable-unicode          Don't use Unicode for display\n");
-    fprintf(stdout, "   -s, --subsong=<s>          Play the selected subsong\n");
-                                                   // FIXME: get bounds from lib
-    fprintf(stdout, "                              Valid range is -1..255, -1 means all subsongs\n");
-    fprintf(stdout, "   --version                  Display version information and exit\n");
+    fprintf(stdout, "   --buffer-size n        Use audio buffer size n\n");
+    fprintf(stdout, "                          Valid range is [64,262144]\n");
+    fprintf(stdout, "   -q, --quiet            Quiet and non-interactive operation\n");
+    fprintf(stdout, "                          (only error messages will be displayed)\n");
+    fprintf(stdout, "   --disable-unicode      Don't use Unicode for display\n");
+    fprintf(stdout, "   -s, --subsong=s        Play the subsong s\n");
+                                               // FIXME: get bounds from lib
+    fprintf(stdout, "                          Valid range is [-1,255]; -1 means all subsongs\n");
+    fprintf(stdout, "   --version              Display version information and exit\n");
     fprintf(stdout, "\n");
     return;
 }
@@ -151,6 +153,30 @@ void print_version(void)
 }
 
 
+long read_long(char* str, char* desc, long min, long max)
+{
+    assert(str != NULL);
+    assert(desc != NULL);
+    assert(min <= max);
+    char* first_invalid = NULL;
+    long result = strtol(optarg, &first_invalid, 0);
+    int err = errno;
+    if (optarg[0] == '\0' || *first_invalid != '\0')
+    {
+        fprintf(stderr, "%s must be an integer\n", desc);
+        fprintf(stderr, "Use -h for help.\n");
+        exit(EXIT_FAILURE);
+    }
+    if (err == ERANGE || result < min || result > max)
+    {
+        fprintf(stderr, "%s is out of range [%ld,%ld]\n", desc, min, max);
+        fprintf(stderr, "Use -h for help.\n");
+        exit(EXIT_FAILURE);
+    }
+    return result;
+}
+
+
 int main(int argc, char** argv)
 {
     if (argc < 2)
@@ -163,11 +189,13 @@ int main(int argc, char** argv)
     bool interactive = true;
     int subsong = -1;
     bool unicode = true;
+    long buffer_size = 0;
 
     struct option long_options[] =
     {
         { "help", no_argument, NULL, 'h' },
         { "driver", required_argument, NULL, 'd' },
+        { "buffer-size", required_argument, NULL, 'b' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
         { "disable-unicode", no_argument, NULL, 'U' },
@@ -191,6 +219,11 @@ int main(int argc, char** argv)
                 driver_selection = optarg;
             }
             break;
+            case 'b':
+            {
+                buffer_size = read_long(optarg, "Buffer size", 64, 262144);
+            }
+            break;
             case 'q':
             {
                 interactive = false;
@@ -198,23 +231,7 @@ int main(int argc, char** argv)
             break;
             case 's':
             {
-                errno = 0;
-                char* first_invalid = NULL;
-                long result = strtol(optarg, &first_invalid, 0);
-                if (optarg[0] == '\0' || *first_invalid != '\0')
-                {
-                    fprintf(stderr, "Subsong argument must be an integer\n");
-                    fprintf(stderr, "Use -h for help.\n");
-                    exit(EXIT_FAILURE);
-                }
-                int err = errno;
-                if (err == ERANGE || result < -1 || result > 255) // FIXME: get bounds from lib
-                {
-                    fprintf(stderr, "Subsong number is out of range\n");
-                    fprintf(stderr, "Use -h for help.\n");
-                    exit(EXIT_FAILURE);
-                }
-                subsong = result;
+                subsong = read_long(optarg, "Subsong", -1, 255); // FIXME: get bounds from lib
             }
             break;
             case 'U':
@@ -259,11 +276,6 @@ int main(int argc, char** argv)
         }
         exit(EXIT_SUCCESS);
     }
-    
-    if (interactive && !set_terminal(true, true))
-    {
-        fprintf(stderr, "Couldn't set terminal attributes\n");
-    }
 
     Audio* audio = new_Audio(driver_selection);
     if (audio == NULL)
@@ -271,12 +283,27 @@ int main(int argc, char** argv)
         fprintf(stderr, "Couldn't create the audio driver %s.\n", driver_selection);
         exit(EXIT_FAILURE);
     }
+    if (buffer_size > 0)
+    {
+        if (!Audio_set_buffer_size(audio, buffer_size))
+        {
+            fprintf(stderr, "%s\n", Audio_get_error(audio));
+            del_Audio(audio);
+            exit(EXIT_FAILURE);
+        }
+    }
     if (!Audio_open(audio))
     {
         fprintf(stderr, "Couldn't open the audio driver %s.\n", driver_selection);
         del_Audio(audio);
         exit(EXIT_FAILURE);
     }
+    
+    if (interactive && !set_terminal(true, true))
+    {
+        fprintf(stderr, "Couldn't set terminal attributes\n");
+    }
+
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {

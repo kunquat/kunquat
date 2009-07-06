@@ -158,16 +158,8 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
     struct timeval now;
     struct timespec timeout;
     gettimeofday(&now, NULL);
-    if (now.tv_usec >= 500000)
-    {
-        timeout.tv_sec = now.tv_sec + 1;
-        timeout.tv_nsec = (now.tv_usec - 500000) * 1000;
-    }
-    else
-    {
-        timeout.tv_sec = now.tv_sec;
-        timeout.tv_nsec = (now.tv_usec + 500000) * 1000;
-    }
+    timeout.tv_sec = now.tv_sec + 1;
+    timeout.tv_nsec = now.tv_usec * 1000;
     err = pthread_cond_timedwait(&audio->state_cond, &audio->state_mutex, &timeout);
     if (err != 0)
     {
