@@ -33,15 +33,20 @@
 #include <kqt_Mix_state.h>
 
 
+#define AUDIO_ERROR_LENGTH (128)
+
+
 typedef struct Audio
 {
     bool active;
+    char error[AUDIO_ERROR_LENGTH];
     bool pause;
     uint32_t nframes;
     uint32_t freq;
     kqt_Context* context;
     bool (*open)(struct Audio*);
     bool (*close)(struct Audio*);
+    bool (*set_buffer_size)(struct Audio*, uint32_t nframes);
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
@@ -57,6 +62,17 @@ typedef struct Audio
  * \return   The new driver if successful, otherwise \c NULL.
  */
 Audio* new_Audio(char* name);
+
+
+/**
+ * Gets an error message from the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   The error message. This is never \c NULL. Empty string indicates
+ *           that the previous operation succeeded.
+ */
+char* Audio_get_error(Audio* audio);
 
 
 /**
@@ -93,6 +109,17 @@ bool Audio_open(Audio* audio);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Audio_close(Audio* audio);
+
+
+/**
+ * Sets the buffer size in the Audio.
+ *
+ * \param audio     The Audio -- must not be \c NULL.
+ * \param nframes   The new size in frames -- must be > \c 0.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_set_buffer_size(Audio* audio, uint32_t nframes);
 
 
 /**
@@ -150,12 +177,24 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state);
 /**
  * Sends a notification of state information change.
  *
+ * This function does not set the Audio error message.
+ *
  * \param audio   The Audio -- must not be \c NULL.
  *
  * \return   \c 0 if successful, otherwise an error code from POSIX thread
  *           functions.
  */
 int Audio_notify(Audio* audio);
+
+
+/**
+ * Sets an error message in the Audio.
+ *
+ * \param audio     The Audio -- must not be \c NULL.
+ * \param message   The error message format -- must not be \c NULL. This and
+ *                  subsequent arguments follow the printf family conventions.
+ */
+void Audio_set_error(Audio* audio, char* message, ...);
 
 
 /**

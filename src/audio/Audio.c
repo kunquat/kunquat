@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <stdarg.h>
 
 #include <unistd.h>
 
@@ -48,6 +49,7 @@ bool Audio_init(Audio* audio,
     assert(close != NULL);
     assert(destroy != NULL);
     audio->active = false;
+    memset(audio->error, '\0', AUDIO_ERROR_LENGTH);
     audio->pause = false;
     audio->nframes = 0;
     audio->freq = 0;
@@ -55,6 +57,7 @@ bool Audio_init(Audio* audio,
     kqt_Mix_state_init(&audio->state);
     audio->open = open;
     audio->close = close;
+    audio->set_buffer_size = NULL;
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
     {
@@ -66,6 +69,13 @@ bool Audio_init(Audio* audio,
         return false;
     }
     return true;
+}
+
+
+char* Audio_get_error(Audio* audio)
+{
+    assert(audio != NULL);
+    return audio->error;
 }
 
 
@@ -82,6 +92,18 @@ bool Audio_close(Audio* audio)
     assert(audio != NULL);
     assert(audio->close != NULL);
     return audio->close(audio);
+}
+
+
+bool Audio_set_buffer_size(Audio* audio, uint32_t nframes)
+{
+    assert(audio != NULL);
+    if (audio->set_buffer_size == NULL)
+    {
+        Audio_set_error(audio, "Driver does not support buffer resizing");
+        return false;
+    }
+    return audio->set_buffer_size(audio, nframes);
 }
 
 
@@ -235,6 +257,19 @@ int Audio_notify(Audio* audio)
         }
     }
     return err;
+}
+
+
+void Audio_set_error(Audio* audio, char* message, ...)
+{
+    assert(audio != NULL);
+    assert(message != NULL);
+    va_list args;
+    va_start(args, message);
+    vsnprintf(audio->error, AUDIO_ERROR_LENGTH, message, args);
+    va_end(args);
+    audio->error[AUDIO_ERROR_LENGTH - 1] = '\0';
+    return;
 }
 
 
