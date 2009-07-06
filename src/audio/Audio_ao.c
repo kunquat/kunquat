@@ -53,13 +53,13 @@ static void* Audio_ao_thread(void* data);
 
 static int Audio_ao_process(Audio_ao* audio_ao);
 
-static bool Audio_ao_open(Audio_ao* audio_ao);
-
-static bool Audio_ao_close(Audio_ao* audio_ao);
-
 static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes);
 
 static bool Audio_ao_set_freq(Audio_ao* audio_ao, uint32_t freq);
+
+static bool Audio_ao_open(Audio_ao* audio_ao);
+
+static bool Audio_ao_close(Audio_ao* audio_ao);
 
 static void del_Audio_ao(Audio_ao* audio_ao);
 

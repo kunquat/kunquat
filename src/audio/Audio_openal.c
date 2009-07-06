@@ -64,6 +64,8 @@ static void* Audio_openal_thread(void* data);
 
 static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nframes);
 
+static bool Audio_openal_set_freq(Audio_openal* audio_openal, uint32_t freq);
+
 static bool Audio_openal_open(Audio_openal* audio_openal);
 
 static bool Audio_openal_close(Audio_openal* audio_openal);
@@ -121,6 +123,8 @@ Audio* new_Audio_openal(void)
     }
     audio_openal->parent.set_buffer_size =
             (bool (*)(Audio*, uint32_t))Audio_openal_set_buffer_size;
+    audio_openal->parent.set_freq =
+            (bool (*)(Audio*, uint32_t))Audio_openal_set_freq;
 
     // Reserving work buffers
     audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
@@ -173,6 +177,21 @@ static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nf
     }
     audio_openal->out_buf = new_buf;
     audio->nframes = nframes;
+    return true;
+}
+
+
+static bool Audio_openal_set_freq(Audio_openal* audio_openal, uint32_t freq)
+{
+    assert(audio_openal != NULL);
+    assert(freq > 0);
+    Audio* audio = &audio_openal->parent;
+    if (audio->active)
+    {
+        Audio_set_error(audio, "Cannot set mixing frequency while the driver is active.");
+        return false;
+    }
+    audio->freq = freq;
     return true;
 }
 
