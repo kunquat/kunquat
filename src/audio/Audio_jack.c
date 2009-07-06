@@ -45,16 +45,18 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
 {
     assert(arg != NULL);
     Audio_jack* audio_jack = (Audio_jack*)arg;
-    if (audio_jack->parent.context == NULL)
+    Audio* audio = &audio_jack->parent;
+    if (audio->context == NULL)
     {
         return 0;
     }
-    if (!kqt_Context_set_buffer_size(audio_jack->parent.context, nframes, NULL))
+    if (!kqt_Context_set_buffer_size(audio->context, nframes, NULL))
     {
-        audio_jack->parent.context = NULL;
+        audio->context = NULL;
+        Audio_set_error(audio, "Couldn't resize Kunquat Context buffers");
         return -1;
     }
-    audio_jack->parent.nframes = nframes;
+    audio->nframes = nframes;
     return 0;
 }
 
@@ -63,21 +65,22 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
 {
     assert(arg != NULL);
     Audio_jack* audio_jack = (Audio_jack*)arg;
-    if (!audio_jack->parent.active)
+    Audio* audio = &audio_jack->parent;
+    if (!audio->active)
     {
-        Audio_notify(&audio_jack->parent);
+        Audio_notify(audio);
         return 0;
     }
     uint32_t mixed = 0;
-    kqt_Context* context = audio_jack->parent.context;
+    kqt_Context* context = audio->context;
     jack_default_audio_sample_t* jbuf_l =
             jack_port_get_buffer(audio_jack->ports[0], nframes);
     jack_default_audio_sample_t* jbuf_r =
             jack_port_get_buffer(audio_jack->ports[1], nframes);
     jack_default_audio_sample_t* jbufs[2] = { jbuf_l, jbuf_r };
-    if (context != NULL && !audio_jack->parent.pause)
+    if (context != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, nframes, audio_jack->parent.freq);
+        mixed = kqt_Context_mix(context, nframes, audio->freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (int i = 0; i < buf_count; ++i)
@@ -92,7 +95,7 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     {
         jbuf_l[i] = jbuf_r[i] = 0;
     }
-    Audio_notify(&audio_jack->parent);
+    Audio_notify(audio);
     return 0;
 }
 
@@ -128,8 +131,10 @@ Audio* new_Audio_jack(void)
 static bool Audio_jack_open(Audio_jack* audio_jack)
 {
     assert(audio_jack != NULL);
-    if (audio_jack->parent.active)
+    Audio* audio = &audio_jack->parent;
+    if (audio->active)
     {
+        Audio_set_error(audio, "Driver is already active");
         return false;
     }
     
@@ -137,6 +142,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
     audio_jack->client = jack_client_open("Kunquat", JackNullOption, &status);
     if (audio_jack->client == NULL)
     {
+        Audio_set_error(audio, "Couldn't register as a JACK client");
         return false;
     }
 
@@ -145,6 +151,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
                                   audio_jack) != 0)
     {
         Audio_jack_close(audio_jack);
+        Audio_set_error(audio, "Couldn't set JACK process callback");
         return false;
     }
     if (jack_set_buffer_size_callback(audio_jack->client,
@@ -152,6 +159,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
                                       audio_jack) != 0)
     {
         Audio_jack_close(audio_jack);
+        Audio_set_error(audio, "Couldn't set JACK buffer size callback");
         return false;
     }
 
@@ -165,6 +173,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
         if (audio_jack->ports[i] == NULL)
         {
             Audio_jack_close(audio_jack);
+            Audio_set_error(audio, "Couldn't register port %s", port_names[i]);
             return false;
         }
     }
@@ -174,6 +183,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
     if (jack_activate(audio_jack->client) != 0)
     {
         Audio_jack_close(audio_jack);
+        Audio_set_error(audio, "Couldn't activate JACK");
         return false;
     }
 
@@ -184,6 +194,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
     if (available_ports == NULL)
     {
         Audio_jack_close(audio_jack);
+        Audio_set_error(audio, "Couldn't retrieve JACK input ports");
         return false;
     }
 
@@ -195,6 +206,7 @@ static bool Audio_jack_open(Audio_jack* audio_jack)
         {
             free(available_ports);
             Audio_jack_close(audio_jack);
+            Audio_set_error(audio, "Couldn't connect port %s", port_names[i]);
             return NULL;
         }
     }

@@ -20,7 +20,7 @@
  */
 
 
-#define _POSIX_C_SOURCE 199309L // for nanosleep
+#define _XOPEN_SOURCE 500 // for usleep
 
 #include <stdlib.h>
 #include <stdbool.h>
@@ -30,7 +30,7 @@
 
 #include <pthread.h>
 
-#include <time.h> // for nanosleep
+#include <unistd.h> // for usleep
 
 #include <Audio.h>
 #include <Audio_null.h>
@@ -85,15 +85,18 @@ Audio* new_Audio_null(void)
 static bool Audio_null_open(Audio_null* audio_null)
 {
     assert(audio_null != NULL);
-    if (audio_null->parent.active)
+    Audio* audio = &audio_null->parent;
+    if (audio->active)
     {
+        Audio_set_error(audio, "Driver is already active");
         return false;
     }
-    audio_null->parent.active = true;
+    audio->active = true;
     int err = pthread_create(&audio_null->play_thread, NULL, Audio_null_thread, audio_null);
     if (err != 0)
     {
         audio_null->parent.active = false;
+        Audio_set_error(audio, "Couldn't create audio thread");
         return false;
     }
     audio_null->thread_active = true;
@@ -104,10 +107,6 @@ static bool Audio_null_open(Audio_null* audio_null)
 static bool Audio_null_close(Audio_null* audio_null)
 {
     assert(audio_null != NULL);
-    if (!audio_null->parent.active)
-    {
-        return false;
-    }
     audio_null->parent.active = false;
     int err = 0;
     if (audio_null->thread_active)
@@ -117,6 +116,7 @@ static bool Audio_null_close(Audio_null* audio_null)
     }
     if (err != 0)
     {
+        Audio_set_error(&audio_null->parent, "Couldn't close the null driver");
         return false;
     }
     return true;
@@ -141,27 +141,23 @@ static void* Audio_null_thread(void* data)
 static int Audio_null_process(Audio_null* audio_null)
 {
     assert(audio_null != NULL);
-    struct timespec delay;
-    delay.tv_sec = 0;
-    delay.tv_nsec = 50000000;
-    if (!audio_null->parent.active)
+    Audio* audio = &audio_null->parent;
+    if (!audio->active)
     {
-        nanosleep(&delay, NULL);
-        Audio_notify(&audio_null->parent);
+        usleep(100000);
+        Audio_notify(audio);
         return 0;
     }
-    kqt_Context* context = audio_null->parent.context;
-    if (context != NULL && !audio_null->parent.pause)
+    kqt_Context* context = audio->context;
+    if (context != NULL && !audio->pause)
     {
-        kqt_Context_mix(context,
-                        audio_null->parent.nframes,
-                        audio_null->parent.freq);
+        kqt_Context_mix(context, audio->nframes, audio->freq);
     }
     else
     {
-        nanosleep(&delay, NULL);
+        usleep(100000);
     }
-    Audio_notify(&audio_null->parent);
+    Audio_notify(audio);
     return 0;
 }
 
