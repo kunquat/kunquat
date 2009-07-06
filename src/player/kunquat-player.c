@@ -302,7 +302,7 @@ int main(int argc, char** argv)
     {
         if (!Audio_set_buffer_size(audio, buffer_size))
         {
-            fprintf(stderr, "%s\n", Audio_get_error(audio));
+            fprintf(stderr, "%s: %s\n", Audio_get_name(audio), Audio_get_error(audio));
             del_Audio(audio);
             exit(EXIT_FAILURE);
         }
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
     {
         if (!Audio_set_freq(audio, frequency))
         {
-            fprintf(stderr, "%s\n", Audio_get_error(audio));
+            fprintf(stderr, "%s: %s\n", Audio_get_name(audio), Audio_get_error(audio));
             del_Audio(audio);
             exit(EXIT_FAILURE);
         }

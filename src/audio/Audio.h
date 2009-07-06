@@ -38,6 +38,7 @@
 
 typedef struct Audio
 {
+    char* name;
     bool active;
     char error[AUDIO_ERROR_LENGTH];
     bool pause;
@@ -67,6 +68,16 @@ Audio* new_Audio(char* name);
 
 
 /**
+ * Gets the name of the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   The name.
+ */
+char* Audio_get_name(Audio* audio);
+
+
+/**
  * Gets an error message from the Audio.
  *
  * \param audio   The Audio -- must not be \c NULL.
@@ -81,6 +92,7 @@ char* Audio_get_error(Audio* audio);
  * Initialises the Audio.
  *
  * \param audio     The Audio -- must not be \c NULL.
+ * \param name      The name of the Audio -- must not be \c NULL.
  * \param open      The opening function -- must not be \c NULL.
  * \param close     The closing function -- must not be \c NULL.
  * \param destroy   The destructor of the Audio subclass -- must not be \c NULL.
@@ -88,6 +100,7 @@ char* Audio_get_error(Audio* audio);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Audio_init(Audio* audio,
+                char* name,
                 bool (*open)(Audio*),
                 bool (*close)(Audio*),
                 void (*destroy)(Audio*));

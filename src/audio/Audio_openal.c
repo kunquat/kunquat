@@ -114,6 +114,7 @@ Audio* new_Audio_openal(void)
         return NULL;
     }
     if (!Audio_init(&audio_openal->parent,
+                    "openal",
                     (bool (*)(Audio*))Audio_openal_open,
                     (bool (*)(Audio*))Audio_openal_close,
                     (void (*)(Audio*))del_Audio_openal))

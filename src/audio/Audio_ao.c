@@ -72,6 +72,7 @@ Audio* new_Audio_ao(void)
         return NULL;
     }
     if (!Audio_init(&audio_ao->parent,
+                    "ao",
                     (bool (*)(Audio*))Audio_ao_open,
                     (bool (*)(Audio*))Audio_ao_close,
                     (void (*)(Audio*))del_Audio_ao))

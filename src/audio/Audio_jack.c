@@ -115,6 +115,7 @@ Audio* new_Audio_jack(void)
         return NULL;
     }
     if (!Audio_init(&audio_jack->parent,
+                    "jack",
                     (bool (*)(Audio*))Audio_jack_open,
                     (bool (*)(Audio*))Audio_jack_close,
                     (void (*)(Audio*))del_Audio_jack))

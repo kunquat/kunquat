@@ -70,6 +70,7 @@ Audio* new_Audio_null(void)
         return NULL;
     }
     if (!Audio_init(&audio_null->parent,
+                    "null",
                     (bool (*)(Audio*))Audio_null_open,
                     (bool (*)(Audio*))Audio_null_close,
                     (void (*)(Audio*))del_Audio_null))

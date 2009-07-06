@@ -40,14 +40,17 @@
 
 
 bool Audio_init(Audio* audio,
+                char* name,
                 bool (*open)(Audio*),
                 bool (*close)(Audio*),
                 void (*destroy)(Audio*))
 {
     assert(audio != NULL);
+    assert(name != NULL);
     assert(open != NULL);
     assert(close != NULL);
     assert(destroy != NULL);
+    audio->name = name;
     audio->active = false;
     memset(audio->error, '\0', AUDIO_ERROR_LENGTH);
     audio->pause = false;
@@ -70,6 +73,13 @@ bool Audio_init(Audio* audio,
         return false;
     }
     return true;
+}
+
+
+char* Audio_get_name(Audio* audio)
+{
+    assert(audio != NULL);
+    return audio->name;
 }
 
 
