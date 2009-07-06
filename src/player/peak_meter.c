@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
@@ -35,7 +36,8 @@ char* get_peak_meter(char* str,
                      kqt_Mix_state* mix_state,
                      double lower,
                      double upper,
-                     uint64_t* clipped)
+                     uint64_t* clipped,
+                     bool unicode)
 {
     assert(str != NULL);
     assert(len > 0);
@@ -64,84 +66,128 @@ char* get_peak_meter(char* str,
     char* pos = str;
     strcpy(pos, "[");
     pos += strlen(pos);
-    for (int i = 0; i < len; ++i)
+    if (unicode)
     {
-        char block[7] = { '\0' };
-        if (i * 2 + 2 <= sizes[0])
+        for (int i = 0; i < len; ++i)
         {
-            // ▀
-            if (i * 2 + 2 <= sizes[1])
+            char block[7] = { '\0' };
+            if (i * 2 + 2 <= sizes[0])
             {
-                strcpy(block, "█");
+                // ▀
+                if (i * 2 + 2 <= sizes[1])
+                {
+                    strcpy(block, "█");
+                }
+                else if (i * 2 + 1 <= sizes[1])
+                {
+                    strcpy(block, "▛");
+                }
+                else
+                {
+                    strcpy(block, "▀");
+                }
             }
-            else if (i * 2 + 1 <= sizes[1])
+            else if (i * 2 + 1 <= sizes[0])
             {
-                strcpy(block, "▛");
+                // ▘
+                if (i * 2 + 2 <= sizes[1])
+                {
+                    strcpy(block, "▙");
+                }
+                else if (i * 2 + 1 <= sizes[1])
+                {
+                    strcpy(block, "▌");
+                }
+                else
+                {
+                    strcpy(block, "▘");
+                }
             }
             else
             {
-                strcpy(block, "▀");
+                // 
+                if (i * 2 + 2 <= sizes[1])
+                {
+                    strcpy(block, "▄");
+                }
+                else if (i * 2 + 1 <= sizes[1])
+                {
+                    strcpy(block, "▖");
+                }
+                else
+                {
+                    strcpy(block, " ");
+                }
             }
+            strcpy(pos, block);
+            pos += strlen(block);
+            assert((pos - str) < (len * 6 + 6));
         }
-        else if (i * 2 + 1 <= sizes[0])
+    }
+    else
+    {
+        for (int i = 0; i < len; ++i)
         {
-            // ▘
-            if (i * 2 + 2 <= sizes[1])
+            char block = ' ';
+            if (i * 2 + 2 <= sizes[0])
             {
-                strcpy(block, "▙");
+                block = '#';
             }
-            else if (i * 2 + 1 <= sizes[1])
+            else if (i * 2 + 1 <= sizes[0])
             {
-                strcpy(block, "▌");
+                if (i * 2 + 1 <= sizes[1])
+                {
+                    block = '#';
+                }
             }
             else
             {
-                strcpy(block, "▘");
+                if (i * 2 + 2 <= sizes[1])
+                {
+                    block = '#';
+                }
             }
+            *pos = block;
+            ++pos;
+            *pos = '\0';
+            assert((pos - str) < (len * 6 + 6));
         }
-        else
-        {
-            // 
-            if (i * 2 + 2 <= sizes[1])
-            {
-                strcpy(block, "▄");
-            }
-            else if (i * 2 + 1 <= sizes[1])
-            {
-                strcpy(block, "▖");
-            }
-            else
-            {
-                strcpy(block, " ");
-            }
-        }
-        strcpy(pos, block);
-        pos += strlen(block);
-        assert((pos - str) < (len * 6 + 6));
     }
 
     strcpy(pos, "]");
     pos += strlen(pos);
 
-    char clip[7] = { '\0' };
-    if (clipped[0] > 0 && clipped[1] > 0)
+    if (unicode)
     {
-        strcpy(clip, "▌");
-    }
-    else if (clipped[0] > 0)
-    {
-        strcpy(clip, "▘");
-    }
-    else if (clipped[1] > 0)
-    {
-        strcpy(clip, "▖");
+        char clip[7] = { '\0' };
+        if (clipped[0] > 0 && clipped[1] > 0)
+        {
+            strcpy(clip, "▌");
+        }
+        else if (clipped[0] > 0)
+        {
+            strcpy(clip, "▘");
+        }
+        else if (clipped[1] > 0)
+        {
+            strcpy(clip, "▖");
+        }
+        else
+        {
+            strcpy(clip, " ");
+        }
+        strcpy(pos, clip);
+        pos += strlen(clip);
     }
     else
     {
-        strcpy(clip, " ");
+        *pos = ' ';
+        if (clipped[0] > 0 || clipped[1] > 0)
+        {
+            *pos = '!';
+        }
+        ++pos;
     }
-    strcpy(pos, clip);
-    pos += strlen(clip);
     *pos = '\0';
     return str;
 }

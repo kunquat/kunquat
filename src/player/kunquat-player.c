@@ -63,11 +63,22 @@ static char* driver_names[] =
 };
 
 
+void usage(void);
+
+char* get_iso_today(void);
+
+void print_version(void);
+
+void print_licence(void);
+
+
 void usage(void)
 {
-    fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n");
+    print_version();
+    fprintf(stdout, "\n");
+    fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n\n");
     fprintf(stdout, "Options:\n");
-    fprintf(stdout, "   -h, --help                 Show this help\n");
+    fprintf(stdout, "   -h, --help                 Show this help and exit\n");
     fprintf(stdout, "   -d <drv>, --driver=<drv>   Use audio driver <drv>\n");
     fprintf(stdout, "                              Supported drivers:");
     if (driver_names[0] == NULL)
@@ -83,10 +94,12 @@ void usage(void)
     fprintf(stdout, "\n");
     fprintf(stdout, "   -q, --quiet                Quiet and non-interactive operation\n");
     fprintf(stdout, "                              (only error messages will be displayed)\n");
+    fprintf(stdout, "   --disable-unicode          Don't use Unicode for display\n");
     fprintf(stdout, "   -s, --subsong=<s>          Play the selected subsong\n");
                                                    // FIXME: get bounds from lib
     fprintf(stdout, "                              Valid range is -1..255, -1 means all subsongs\n");
-    fprintf(stdout, "       --version              Display version information and exit\n");
+    fprintf(stdout, "   --version                  Display version information and exit\n");
+    fprintf(stdout, "\n");
     return;
 }
 
@@ -128,6 +141,16 @@ void print_licence(void)
 }
 
 
+void print_version(void)
+{
+    char* iso_date = get_iso_today();
+    fprintf(stdout, PLAYER_NAME " " PLAYER_VERSION
+                    " (build date %s)\n",
+                    iso_date);
+    return;
+}
+
+
 int main(int argc, char** argv)
 {
     if (argc < 2)
@@ -139,6 +162,7 @@ int main(int argc, char** argv)
     char* driver_selection = driver_names[0];
     bool interactive = true;
     int subsong = -1;
+    bool unicode = true;
 
     struct option long_options[] =
     {
@@ -146,6 +170,7 @@ int main(int argc, char** argv)
         { "driver", required_argument, NULL, 'd' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
+        { "disable-unicode", no_argument, NULL, 'U' },
         { "version", no_argument, NULL, 'V' },
         { NULL, 0, NULL, 0 }
     };
@@ -192,12 +217,14 @@ int main(int argc, char** argv)
                 subsong = result;
             }
             break;
+            case 'U':
+            {
+                unicode = false;
+            }
+            break;
             case 'V':
             {
-                char* iso_date = get_iso_today();
-                fprintf(stdout, PLAYER_NAME " " PLAYER_VERSION
-                                " (build date %s)\n",
-                                iso_date);
+                print_version();
                 print_licence();
                 exit(EXIT_SUCCESS);
             }
@@ -310,7 +337,8 @@ int main(int argc, char** argv)
                                                          clipped,
                                                          length_frames,
                                                          max_voices,
-                                                         freq);
+                                                         freq,
+                                                         unicode);
 
                 fprintf(stderr, "%s\r", status_line);
              

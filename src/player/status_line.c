@@ -71,7 +71,8 @@ int get_status_line(char* line,
                     uint64_t* clipped,
                     uint64_t frames_total,
                     uint16_t voices,
-                    uint32_t freq)
+                    uint32_t freq,
+                    bool unicode)
 {
     assert(line != NULL);
     assert(min_len >= 0);
@@ -83,7 +84,7 @@ int get_status_line(char* line,
 
     const int peak_meter_chars = 10;
     char peak_meter[10 * 6] = { '\0' };
-    get_peak_meter(peak_meter, peak_meter_chars, mix_state, -40, -4, clipped);
+    get_peak_meter(peak_meter, peak_meter_chars, mix_state, -40, -4, clipped, unicode);
     int excess_chars = strlen(peak_meter) - peak_meter_chars;
 
     uint32_t frames = mix_state->frames;

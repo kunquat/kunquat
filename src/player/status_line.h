@@ -24,6 +24,7 @@
 #define STATUS_LINE_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <kqt_Mix_state.h>
@@ -41,6 +42,9 @@
  * \param frames_total   The length of the playback in frames.
  * \param max_voices     The maximum number of Voices used.
  * \param freq           The mixing frequency -- must be > \c 0.
+ * \param unicode        Use Unicode characters for display.
+ *
+ * \return   The new minimum line length. This is always >= \a min_len.
  */
 int get_status_line(char* line,
                     int max_len,
@@ -49,7 +53,8 @@ int get_status_line(char* line,
                     uint64_t* clipped,
                     uint64_t frames_total,
                     uint16_t max_voices,
-                    uint32_t freq);
+                    uint32_t freq,
+                    bool unicode);
 
 
 #endif // STATUS_LINE_H

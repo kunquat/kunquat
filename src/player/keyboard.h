@@ -29,8 +29,8 @@
 
 typedef enum
 {
-    KEY_NONE = 0,
-    KEY_LEFT,
+    KEY_NONE = -1,
+    KEY_LEFT = 256,
     KEY_DOWN,
     KEY_UP,
     KEY_RIGHT
@@ -48,7 +48,7 @@ int get_key(void);
 /**
  * Sets terminal attributes.
  *
- * \param interactive   If \c true, characters will not be echoed.
+ * \param interactive   If \c true, keys will be read as soon as they're pressed.
  * \param immediate     If \c true, \a get_key will not block.
  *
  * \return   \c true if successful, otherwise \c false.
