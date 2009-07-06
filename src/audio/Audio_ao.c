@@ -118,6 +118,7 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
     audio_ao->device = ao_open_live(driver_id, &audio_ao->format, NULL);
     if (audio_ao->device == NULL)
     {
+        Audio_close(&audio_ao->parent);
         switch (errno)
         {
             case AO_ENODRIVER:
@@ -137,7 +138,6 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
                 Audio_set_error(audio, "libao initialisation failed");
                 break;
         }
-        Audio_close(&audio_ao->parent);
         return false;
     }
     audio_ao->parent.freq = audio_ao->format.rate;
@@ -145,8 +145,8 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
     int err = pthread_create(&audio_ao->play_thread, NULL, Audio_ao_thread, audio_ao);
     if (err != 0)
     {
-        Audio_set_error(audio, "Couldn't create audio thread for libao");
         Audio_close(&audio_ao->parent);
+        Audio_set_error(audio, "Couldn't create audio thread for libao");
         return false;
     }
     audio_ao->thread_active = true;
@@ -168,7 +168,7 @@ static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes)
     {
         if (kqt_Context_set_buffer_size(audio->context, nframes, NULL))
         {
-            Audio_set_error(audio, "Couldn't allocate memory for new buffers.");
+            Audio_set_error(audio, "Couldn't allocate memory for Kunquat Context buffers.");
             return false;
         }
     }

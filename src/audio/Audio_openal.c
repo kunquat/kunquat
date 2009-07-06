@@ -62,6 +62,8 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer);
 
 static void* Audio_openal_thread(void* data);
 
+static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nframes);
+
 static bool Audio_openal_open(Audio_openal* audio_openal);
 
 static bool Audio_openal_close(Audio_openal* audio_openal);
@@ -73,32 +75,32 @@ static void del_Audio_openal(Audio_openal* audio_openal);
     do {                                                          \
         if (!(EXPR))                                              \
         {                                                         \
-            fprintf(stderr, "OpenAL driver: %s\n", (MSG));        \
+            Audio_set_error(audio, "OpenAL driver: %s\n", (MSG)); \
             Audio_openal_close(audio_openal);                     \
             return false;                                         \
         }                                                         \
     } while(false)
 
-#define close_if_al_error(STMT,MSG)                           \
-    do {                                                      \
-        (STMT);                                               \
-        if (alGetError() != AL_NO_ERROR)                      \
-        {                                                     \
-            fprintf(stderr, "OpenAL driver: %s\n", (MSG));    \
-            Audio_openal_close(audio_openal);                 \
-            return false;                                     \
-        }                                                     \
+#define close_if_al_error(STMT,MSG)                               \
+    do {                                                          \
+        (STMT);                                                   \
+        if (alGetError() != AL_NO_ERROR)                          \
+        {                                                         \
+            Audio_set_error(audio, "OpenAL driver: %s\n", (MSG)); \
+            Audio_openal_close(audio_openal);                     \
+            return false;                                         \
+        }                                                         \
     } while(false)
 
-#define end_if_al_error(STMT,MSG)                                       \
-    do {                                                                \
-        (STMT);                                                         \
-        if (alGetError() != AL_NO_ERROR)                                \
-        {                                                               \
-            fprintf(stderr, "OpenAL driver: thread: %s\n", (MSG));      \
-            audio_openal->parent.active = false;                        \
-            return NULL;                                                \
-        }                                                               \
+#define end_if_al_error(STMT,MSG)                                         \
+    do {                                                                  \
+        (STMT);                                                           \
+        if (alGetError() != AL_NO_ERROR)                                  \
+        {                                                                 \
+            Audio_set_error(audio, "OpenAL driver: thread: %s\n", (MSG)); \
+            audio_openal->parent.active = false;                          \
+            return NULL;                                                  \
+        }                                                                 \
     } while(false)
 
 
@@ -117,12 +119,13 @@ Audio* new_Audio_openal(void)
         xfree(audio_openal);
         return NULL;
     }
+    audio_openal->parent.set_buffer_size =
+            (bool (*)(Audio*, uint32_t))Audio_openal_set_buffer_size;
 
     // Reserving work buffers
     audio_openal->out_buf = xcalloc(int16_t, NUM_FRAMES * 2); // Stereo
     if (audio_openal->out_buf == NULL)
     {
-        fprintf(stderr, "Couldn't allocate memory for the audio buffer.");
         xfree(audio_openal);
         return NULL;
     }
@@ -137,16 +140,50 @@ Audio* new_Audio_openal(void)
         audio_openal->al_bufs[i] = (ALuint)-1;
     }
     audio_openal->parent.active = audio_openal->thread_active = false;
+    audio_openal->parent.nframes = NUM_FRAMES;
+    audio_openal->parent.freq = FREQUENCY;
 
     return &audio_openal->parent;
+}
+
+
+static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nframes)
+{
+    assert(audio_openal != NULL);
+    assert(nframes > 0);
+    Audio* audio = &audio_openal->parent;
+    if (audio->active)
+    {
+        Audio_set_error(audio, "Cannot set buffer size while the driver is active.");
+        return false;
+    }
+    if (audio->context != NULL)
+    {
+        if (kqt_Context_set_buffer_size(audio->context, nframes, NULL))
+        {
+            Audio_set_error(audio, "Couldn't allocate memory for Kunquat Context buffers.");
+            return false;
+        }
+    }
+    int16_t* new_buf = xrealloc(int16_t, nframes * 2, audio_openal->out_buf);
+    if (new_buf == NULL)
+    {
+        Audio_set_error(audio, "Couldn't allocate memory for new buffers.");
+        return false;
+    }
+    audio_openal->out_buf = new_buf;
+    audio->nframes = nframes;
+    return true;
 }
 
 
 static bool Audio_openal_open(Audio_openal* audio_openal)
 {
     assert(audio_openal != NULL);
-    if (audio_openal->parent.active)
+    Audio* audio = &audio_openal->parent;
+    if (audio->active)
     {
+        Audio_set_error(audio, "Driver is already active");
         return false;
     }
     
@@ -155,12 +192,10 @@ static bool Audio_openal_open(Audio_openal* audio_openal)
     if (alutInit(NULL, NULL) != AL_TRUE)
     {
         const char* err_str = alutGetErrorString(alutGetError());
-        fprintf(stderr, "OpenAL initialization failed: %s\n", err_str);
+        Audio_set_error(audio, "OpenAL initialization failed: %s\n", err_str);
         return false;
     }
     audio_openal->alut_inited = true;
-    audio_openal->parent.nframes = NUM_FRAMES;
-    audio_openal->parent.freq = FREQUENCY;
     
     // Making sure the OpenAL error status is not set, operations later on
     // will be checking it
@@ -191,7 +226,7 @@ static bool Audio_openal_open(Audio_openal* audio_openal)
                       "Failed to queue inital buffers.");
     
     // Start the processing thread. It will set the audio source playing
-    audio_openal->parent.active = true;
+    audio->active = true;
     close_if_false(!pthread_create(&audio_openal->play_thread, NULL,
                                    Audio_openal_thread, audio_openal),
                    "Thread creation failed.");
@@ -202,20 +237,21 @@ static bool Audio_openal_open(Audio_openal* audio_openal)
 
 static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
 {
+    assert(audio_openal != NULL);
     assert(audio_openal->out_buf != NULL);
+    Audio* audio = &audio_openal->parent;
     
     // Generate the sound
     uint32_t mixed = 0;
-    kqt_Context* context = audio_openal->parent.context;
-    if (context != NULL && !audio_openal->parent.pause)
+    kqt_Context* context = audio->context;
+    if (context != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, audio_openal->parent.nframes,
-                                audio_openal->parent.freq);
+        mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         
         // Convert to interleaved 16-bit stereo
-        for (int i = 0; i < NUM_FRAMES; ++i)
+        for (uint32_t i = 0; i < audio->nframes; ++i)
         {
             audio_openal->out_buf[i * 2] = (int16_t)(bufs[0][i] * INT16_MAX);
             if (buf_count > 1)
@@ -228,18 +264,18 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
             }
         }
     }
-    for (uint32_t i = mixed * 2; i < audio_openal->parent.nframes * 2; ++i)
+    for (uint32_t i = mixed * 2; i < audio->nframes * 2; ++i)
     {
         audio_openal->out_buf[i] = 0;
     }
-    Audio_notify(&audio_openal->parent);
+    Audio_notify(audio);
     
     // Have OpenAL buffer the data. It will be copied from out_buf
     // to internal data structures.
     // Checking & handling errors from this are the responsibility
     // of the caller.
     alBufferData(buffer, AL_FORMAT_STEREO16, audio_openal->out_buf,
-                 sizeof(int16_t) * 2 * NUM_FRAMES, FREQUENCY);
+                 sizeof(int16_t) * 2 * audio->nframes, audio->freq);
 
     return;
 }
@@ -249,13 +285,14 @@ static void* Audio_openal_thread(void* data)
 {
     assert(data != NULL);
     Audio_openal* audio_openal = data;
+    Audio* audio = &audio_openal->parent;
     
     // Poll the OpenAL system every 0.5 buffer lengths to see if it's finished
     // processing any yet. If any are finished processing, unqueue, refill and
     // requeue them.
     // If the source had run out of data to play - or hadn't been started yet -
     // set it playing.
-    while (audio_openal->parent.active)
+    while (audio->active)
     {
         ALint processed;
         ALenum state;
