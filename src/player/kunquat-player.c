@@ -76,10 +76,10 @@ void usage(void)
 {
     print_version();
     fprintf(stdout, "\n");
-    fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n\n");
-    fprintf(stdout, "Options:\n");
-    fprintf(stdout, "   -h, --help             Show this help and exit\n");
-    fprintf(stdout, "   -d drv, --driver=drv   Use audio driver <drv>\n");
+    fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n");
+
+    fprintf(stdout, "\nOutput options:\n");
+    fprintf(stdout, "   -d drv, --driver drv   Use audio driver drv\n");
     fprintf(stdout, "                          Supported drivers:");
     if (driver_names[0] == NULL)
     {
@@ -94,15 +94,20 @@ void usage(void)
     fprintf(stdout, "\n");
     fprintf(stdout, "   --buffer-size n        Use audio buffer size n\n");
     fprintf(stdout, "                          Valid range is [64,262144]\n");
-    fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second/channel\n");
+    fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second\n");
     fprintf(stdout, "                          Valid range is [1000,384000]\n");
     fprintf(stdout, "                          (drivers may set additional restrictions)\n");
+
+    fprintf(stdout, "\nPlayback options:\n");
+    fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
+                                               // FIXME: get bounds from lib
+    fprintf(stdout, "                          Valid range is [-1,255]; -1 means all subsongs\n");
+    
+    fprintf(stdout, "\nOther options:\n");
+    fprintf(stdout, "   -h, --help             Show this help and exit\n");
     fprintf(stdout, "   -q, --quiet            Quiet and non-interactive operation\n");
     fprintf(stdout, "                          (only error messages will be displayed)\n");
     fprintf(stdout, "   --disable-unicode      Don't use Unicode for display\n");
-    fprintf(stdout, "   -s, --subsong=s        Play the subsong s\n");
-                                               // FIXME: get bounds from lib
-    fprintf(stdout, "                          Valid range is [-1,255]; -1 means all subsongs\n");
     fprintf(stdout, "   --version              Display version information and exit\n");
     fprintf(stdout, "\n");
     return;

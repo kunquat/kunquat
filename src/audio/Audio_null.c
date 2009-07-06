@@ -53,6 +53,8 @@ static void* Audio_null_thread(void* data);
 
 static int Audio_null_process(Audio_null* audio_null);
 
+static bool Audio_null_set_freq(Audio_null* audio_null, uint32_t freq);
+
 static bool Audio_null_open(Audio_null* audio_null);
 
 static bool Audio_null_close(Audio_null* audio_null);
@@ -75,10 +77,26 @@ Audio* new_Audio_null(void)
         xfree(audio_null);
         return NULL;
     }
+    audio_null->parent.set_freq = (bool (*)(Audio*, uint32_t))Audio_null_set_freq;
     audio_null->thread_active = false;
     audio_null->parent.nframes = DEFAULT_BUF_SIZE;
     audio_null->parent.freq = 48000;
     return &audio_null->parent;
+}
+
+
+static bool Audio_null_set_freq(Audio_null* audio_null, uint32_t freq)
+{
+    assert(audio_null != NULL);
+    assert(freq > 0);
+    Audio* audio = &audio_null->parent;
+    if (audio->active)
+    {
+        Audio_set_error(audio, "Cannot set mixing frequency while the driver is active.");
+        return false;
+    }
+    audio->freq = freq;
+    return true;
 }
 
 
