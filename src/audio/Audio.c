@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
 #include <unistd.h>
@@ -218,7 +219,11 @@ int Audio_notify(Audio* audio)
         {
             audio->state.playing = false;
         }
-        pthread_cond_broadcast(&audio->state_cond);
+        err = pthread_cond_broadcast(&audio->state_cond);
+        if (err != 0)
+        {
+            fprintf(stderr, "\npthread_cond_broadcast failed: %s\n", strerror(err));
+        }
         err = pthread_mutex_unlock(&audio->state_mutex);
         if (err == EINVAL)
         {

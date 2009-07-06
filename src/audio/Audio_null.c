@@ -20,6 +20,8 @@
  */
 
 
+#define _POSIX_C_SOURCE 199309L // for nanosleep
+
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -27,6 +29,8 @@
 #include <stdio.h>
 
 #include <pthread.h>
+
+#include <time.h> // for nanosleep
 
 #include <Audio.h>
 #include <Audio_null.h>
@@ -139,13 +143,19 @@ static int Audio_null_process(Audio_null* audio_null)
     assert(audio_null != NULL);
     if (!audio_null->parent.active)
     {
+        struct timespec delay;
+        delay.tv_sec = 0;
+        delay.tv_nsec = 50000000;
+        nanosleep(&delay, NULL);
         Audio_notify(&audio_null->parent);
         return 0;
     }
     kqt_Context* context = audio_null->parent.context;
     if (context != NULL && !audio_null->parent.pause)
     {
-        kqt_Context_mix(context, audio_null->parent.nframes, audio_null->parent.freq);
+        kqt_Context_mix(context,
+                        audio_null->parent.nframes,
+                        audio_null->parent.freq);
     }
     Audio_notify(&audio_null->parent);
     return 0;
