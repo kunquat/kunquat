@@ -89,9 +89,7 @@ Audio* new_Audio_ao(void)
     audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
     if (audio_ao->out_buf == NULL)
     {
-        fprintf(stderr, "Couldn't allocate memory for the audio buffer.\n");
         del_Audio(&audio_ao->parent);
-        ao_shutdown();
         return NULL;
     }
     audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
@@ -102,15 +100,17 @@ Audio* new_Audio_ao(void)
 static bool Audio_ao_open(Audio_ao* audio_ao)
 {
     assert(audio_ao != NULL);
-    if (audio_ao->parent.active)
+    Audio* audio = &audio_ao->parent;
+    if (audio->active)
     {
+        Audio_set_error(audio, "Driver is already active");
         return false;
     }
     ao_initialize();
     int driver_id = ao_default_driver_id();
     if (driver_id == -1)
     {
-        fprintf(stderr, "Couldn't find a usable audio device.\n");
+        Audio_set_error(audio, "Couldn't find a usable audio device");
         ao_shutdown();
         return false;
     }
@@ -121,20 +121,20 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
         switch (errno)
         {
             case AO_ENODRIVER:
-                fprintf(stderr, "libao: Invalid driver ID.\n");
+                Audio_set_error(audio, "libao: Invalid driver ID");
                 break;
             case AO_ENOTLIVE:
-                fprintf(stderr, "libao: The device is not for live output.\n");
+                Audio_set_error(audio, "libao: The device is not for live output");
                 break;
             case AO_EBADOPTION:
-                fprintf(stderr, "libao: Invalid option.\n");
+                Audio_set_error(audio, "libao: Invalid option");
                 break;
             case AO_EOPENDEVICE:
-                fprintf(stderr, "libao: The device cannot be opened.\n");
+                Audio_set_error(audio, "libao: The device cannot be opened");
                 break;
             case AO_EFAIL:
             default:
-                fprintf(stderr, "libao initialisation failed.\n");
+                Audio_set_error(audio, "libao initialisation failed");
                 break;
         }
         Audio_close(&audio_ao->parent);
@@ -145,7 +145,7 @@ static bool Audio_ao_open(Audio_ao* audio_ao)
     int err = pthread_create(&audio_ao->play_thread, NULL, Audio_ao_thread, audio_ao);
     if (err != 0)
     {
-        fprintf(stderr, "Couldn't create audio thread for libao.\n");
+        Audio_set_error(audio, "Couldn't create audio thread for libao");
         Audio_close(&audio_ao->parent);
         return false;
     }
@@ -158,30 +158,28 @@ static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes)
 {
     assert(audio_ao != NULL);
     assert(nframes > 0);
-    if (audio_ao->parent.active)
+    Audio* audio = &audio_ao->parent;
+    if (audio->active)
     {
-        Audio_set_error(&audio_ao->parent,
-                "Cannot set buffer size while the driver is active.");
+        Audio_set_error(audio, "Cannot set buffer size while the driver is active.");
         return false;
     }
-    if (audio_ao->parent.context != NULL)
+    if (audio->context != NULL)
     {
-        if (kqt_Context_set_buffer_size(audio_ao->parent.context, nframes, NULL))
+        if (kqt_Context_set_buffer_size(audio->context, nframes, NULL))
         {
-            Audio_set_error(&audio_ao->parent,
-                    "Couldn't allocate memory for new buffers.");
+            Audio_set_error(audio, "Couldn't allocate memory for new buffers.");
             return false;
         }
     }
     short* new_buf = xrealloc(short, nframes * 2, audio_ao->out_buf);
     if (new_buf == NULL)
     {
-        Audio_set_error(&audio_ao->parent,
-                "Couldn't allocate memory for new buffers.");
+        Audio_set_error(audio, "Couldn't allocate memory for new buffers.");
         return false;
     }
     audio_ao->out_buf = new_buf;
-    audio_ao->parent.nframes = nframes;
+    audio->nframes = nframes;
     return true;
 }
 
@@ -205,17 +203,18 @@ static void* Audio_ao_thread(void* data)
 static int Audio_ao_process(Audio_ao* audio_ao)
 {
     assert(audio_ao != NULL);
-    if (!audio_ao->parent.active)
+    Audio* audio = &audio_ao->parent;
+    if (!audio->active)
     {
-        Audio_notify(&audio_ao->parent);
+        Audio_notify(audio);
         return 0;
     }
     uint32_t mixed = 0;
     assert(audio_ao->out_buf != NULL);
-    kqt_Context* context = audio_ao->parent.context;
-    if (context != NULL && !audio_ao->parent.pause)
+    kqt_Context* context = audio->context;
+    if (context != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, audio_ao->parent.nframes, audio_ao->parent.freq);
+        mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
         int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (uint32_t i = 0; i < mixed; ++i)
@@ -231,16 +230,16 @@ static int Audio_ao_process(Audio_ao* audio_ao)
             }
         }
     }
-    for (uint32_t i = mixed * 2; i < audio_ao->parent.nframes * 2; ++i)
+    for (uint32_t i = mixed * 2; i < audio->nframes * 2; ++i)
     {
         audio_ao->out_buf[i] = 0;
     }
-    if (!ao_play(audio_ao->device, (void*)audio_ao->out_buf, audio_ao->parent.nframes * 2 * 2))
+    if (!ao_play(audio_ao->device, (void*)audio_ao->out_buf, audio->nframes * 2 * 2))
     {
-        Audio_notify(&audio_ao->parent);
+        Audio_notify(audio);
         return -1;
     }
-    Audio_notify(&audio_ao->parent);
+    Audio_notify(audio);
     return 0;
 }
 
@@ -248,7 +247,8 @@ static int Audio_ao_process(Audio_ao* audio_ao)
 static bool Audio_ao_close(Audio_ao* audio_ao)
 {
     assert(audio_ao != NULL);
-    audio_ao->parent.active = false;
+    Audio* audio = &audio_ao->parent;
+    audio->active = false;
     if (audio_ao->device != NULL)
     {
         if (audio_ao->thread_active)
@@ -261,7 +261,8 @@ static bool Audio_ao_close(Audio_ao* audio_ao)
         ao_shutdown();
         if (!ok)
         {
-            fprintf(stderr, "An error occurred while closing the libao driver.\n");
+            Audio_set_error(audio, "An error occurred while closing the libao driver");
+            return false;
         }
     }
     return true;

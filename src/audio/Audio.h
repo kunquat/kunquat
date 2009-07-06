@@ -59,7 +59,8 @@ typedef struct Audio
  *
  * \param name   The name of the driver -- must not be \c NULL.
  *
- * \return   The new driver if successful, otherwise \c NULL.
+ * \return   The new driver if successful, or \c NULL if memory allocation
+ *           failed.
  */
 Audio* new_Audio(char* name);
 
