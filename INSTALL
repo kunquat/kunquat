@@ -54,4 +54,9 @@ To clean the build, run:
 
   scons -c
 
+This still leaves a couple of SCons-related files behind. If you need a more
+thorough clean, run:
+
+  scons -c --full-clean
+
 

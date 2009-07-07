@@ -19,6 +19,9 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import os
+
+
 def valid_optimise(key, val, env):
     if int(val) < 0 or int(val) > 3:
         raise Exception, 'Invalid optimisation value %s (must be in range 0..3)' % val
@@ -34,6 +37,12 @@ opts.AddVariables(
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
 )
+
+
+AddOption('--full-clean',
+          dest='full-clean',
+          nargs=0,
+          help='Remove all generated files when cleaning')
 
 
 compile_flags = [
@@ -162,6 +171,16 @@ if not env.GetOption('clean'):
         Exit(1)
         
     env = conf.Finish()
+
+elif GetOption('full-clean') != None:
+    if os.path.exists('.sconf_temp'):
+        for file in os.listdir('.sconf_temp'):
+            os.remove('.sconf_temp/' + file)
+        os.rmdir('.sconf_temp')
+    if os.path.exists('.sconsign.dblite'):
+        os.remove('.sconsign.dblite')
+    if os.path.exists('config.log'):
+        os.remove('config.log')
 
 
 #print 'Root: ' + env.Dump('LIBS')
