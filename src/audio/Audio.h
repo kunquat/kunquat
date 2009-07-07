@@ -49,6 +49,7 @@ typedef struct Audio
     bool (*close)(struct Audio*);
     bool (*set_buffer_size)(struct Audio*, uint32_t nframes);
     bool (*set_freq)(struct Audio*, uint32_t freq);
+    bool (*set_file)(struct Audio*, char* path);
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
@@ -126,6 +127,17 @@ bool Audio_set_buffer_size(Audio* audio, uint32_t nframes);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Audio_set_freq(Audio* audio, uint32_t freq);
+
+
+/**
+ * Sets the output file in the Audio.
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ * \param path    The path of the output file -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_set_file(Audio* audio, char* path);
 
 
 /**

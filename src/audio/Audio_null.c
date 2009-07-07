@@ -114,7 +114,7 @@ static bool Audio_null_open(Audio_null* audio_null)
     int err = pthread_create(&audio_null->play_thread, NULL, Audio_null_thread, audio_null);
     if (err != 0)
     {
-        audio_null->parent.active = false;
+        audio->active = false;
         Audio_set_error(audio, "Couldn't create audio thread");
         return false;
     }

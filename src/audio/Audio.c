@@ -62,6 +62,7 @@ bool Audio_init(Audio* audio,
     audio->close = close;
     audio->set_buffer_size = NULL;
     audio->set_freq = NULL;
+    audio->set_file = NULL;
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
     {
@@ -112,6 +113,19 @@ bool Audio_set_freq(Audio* audio, uint32_t freq)
         return false;
     }
     return audio->set_freq(audio, freq);
+}
+
+
+bool Audio_set_file(Audio* audio, char* path)
+{
+    assert(audio != NULL);
+    assert(path != NULL);
+    if (audio->set_file == NULL)
+    {
+        Audio_set_error(audio, "Driver does not support writing into an output file");
+        return false;
+    }
+    return audio->set_file(audio, path);
 }
 
 
