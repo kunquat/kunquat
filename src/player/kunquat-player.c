@@ -412,19 +412,19 @@ int main(int argc, char** argv)
                 fprintf(stderr, "%s\r", status_line);
              
                 int key = get_key();
-                if (key == 'q')
-                {
-                    quit = true;
-                    break;
-                }
-                else if (key == ' ')
+                if (key == ' ')
                 {
                     Audio_pause(audio, true);
                     fprintf(stderr, "[ pause ]\r");
                     set_terminal(true, false);
-                    get_key();
+                    key = get_key();
                     set_terminal(true, true);
                     Audio_pause(audio, false);
+                }
+                if (key == 'q')
+                {
+                    quit = true;
+                    break;
                 }
             }
             Audio_get_state(audio, mix_state);
