@@ -59,6 +59,7 @@ static char* driver_names[] =
     "openal",
 #endif
     "null",
+    "wav",
     NULL
 };
 
@@ -335,7 +336,7 @@ int main(int argc, char** argv)
     }
     if (!Audio_open(audio))
     {
-        fprintf(stderr, "Couldn't open the audio driver %s.\n", driver_selection);
+        fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
         del_Audio(audio);
         exit(EXIT_FAILURE);
     }
