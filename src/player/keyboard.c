@@ -69,7 +69,14 @@ bool set_terminal(bool interactive, bool immediate)
     }
     else
     {
-        term->c_cc[VMIN] = orig.c_cc[VMIN];
+        if (interactive)
+        {
+            term->c_cc[VMIN] = 1;
+        }
+        else
+        {
+            term->c_cc[VMIN] = orig.c_cc[VMIN];
+        }
         term->c_cc[VTIME] = orig.c_cc[VTIME];
     }
     errno = 0;
