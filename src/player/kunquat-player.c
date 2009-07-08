@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include <inttypes.h>
 #include <math.h>
 #include <errno.h>
@@ -103,7 +104,7 @@ void usage(void)
     fprintf(stdout, "\nPlayback options:\n");
     fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
                                                // FIXME: get bounds from lib
-    fprintf(stdout, "                          Valid range is [-1,255]; -1 means all subsongs\n");
+    fprintf(stdout, "                          Valid range is [0,255] (or 'all')\n");
     
     fprintf(stdout, "\nOther options:\n");
     fprintf(stdout, "   -h, --help             Show this help and exit\n");
@@ -111,6 +112,12 @@ void usage(void)
     fprintf(stdout, "                          (only error messages will be displayed)\n");
     fprintf(stdout, "   --disable-unicode      Don't use Unicode for display\n");
     fprintf(stdout, "   --version              Display version information and exit\n");
+    
+    fprintf(stdout, "\nSupported keys in interactive mode:\n");
+    fprintf(stdout, "   Space                  Pause/unpause\n");
+    fprintf(stdout, "   [0-9], 'a'             Select subsong ('a' plays all subsongs)\n");
+    fprintf(stdout, "   'q'                    Quit\n");
+    
     fprintf(stdout, "\n");
     return;
 }
@@ -255,7 +262,14 @@ int main(int argc, char** argv)
             break;
             case 's':
             {
-                subsong = read_long(optarg, "Subsong", -1, 255); // FIXME: get bounds from lib
+                if (strcmp(optarg, "all") == 0 || strcmp(optarg, "a") == 0)
+                {
+                    subsong = -1;
+                }
+                else
+                {
+                    subsong = read_long(optarg, "Subsong", 0, 255); // FIXME: get bounds from lib
+                }
             }
             break;
             case 'U':
@@ -421,10 +435,34 @@ int main(int argc, char** argv)
                     set_terminal(true, true);
                     Audio_pause(audio, false);
                 }
-                if (key == 'q')
+                if (tolower(key) == 'q')
                 {
                     quit = true;
                     break;
+                }
+                else if ((key >= '0' && key <= '9') || tolower(key) == 'a')
+                {
+                    char pos[64] = { '\0' };
+                    if (tolower(key) == 'a')
+                    {
+                        strcpy(pos, "-1");
+                    }
+                    else
+                    {
+                        pos[0] = key;
+                        pos[1] = '\0';
+                    }
+                    Audio_pause(audio, true);
+                    Audio_get_state(audio, mix_state);
+                    if (!kqt_Context_set_position(context, pos, error))
+                    {
+                        fprintf(stderr, "%s\n", error->message);
+                    }
+                    else
+                    {
+                        length_frames = kqt_Context_get_length(context, freq);
+                    }
+                    Audio_pause(audio, false);
                 }
             }
             Audio_get_state(audio, mix_state);
