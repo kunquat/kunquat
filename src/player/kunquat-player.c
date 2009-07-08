@@ -101,6 +101,9 @@ void usage(void)
     fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second\n");
     fprintf(stdout, "                          Valid range is [1000,384000]\n");
     fprintf(stdout, "                          (drivers may set additional restrictions)\n");
+    fprintf(stdout, "   --format fmt           Use frame format fmt\n");
+    fprintf(stdout, "                          ('i8', 'i16', 'i24', 'i32', 'f32')\n");
+    fprintf(stdout, "                          i = integer, f = float\n");
 
     fprintf(stdout, "\nPlayback options:\n");
     fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
@@ -210,6 +213,7 @@ int main(int argc, char** argv)
     long buffer_size = 0;
     long frequency = 0;
     char* out_path = NULL;
+    char* format = NULL;
 
     struct option long_options[] =
     {
@@ -218,6 +222,7 @@ int main(int argc, char** argv)
         { "file", required_argument, NULL, 'f' },
         { "buffer-size", required_argument, NULL, 'b' },
         { "frequency", required_argument, NULL, 'F' },
+        { "format", required_argument, NULL, 'G' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
         { "disable-unicode", no_argument, NULL, 'U' },
@@ -254,6 +259,11 @@ int main(int argc, char** argv)
             case 'F':
             {
                 frequency = read_long(optarg, "Mixing frequency", 1000, 384000);
+            }
+            break;
+            case 'G':
+            {
+                format = optarg;
             }
             break;
             case 'q':
@@ -322,34 +332,40 @@ int main(int argc, char** argv)
         fprintf(stderr, "Couldn't create the audio driver %s.\n", driver_selection);
         exit(EXIT_FAILURE);
     }
-    if (out_path != NULL)
+    bool audio_failed = false;
+    if (!audio_failed && out_path != NULL)
     {
         if (!Audio_set_file(audio, out_path))
         {
-            fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
-            del_Audio(audio);
-            exit(EXIT_FAILURE);
+            audio_failed = true;
         }
     }
-    if (buffer_size > 0)
+    if (!audio_failed && buffer_size > 0)
     {
         if (!Audio_set_buffer_size(audio, buffer_size))
         {
-            fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
-            del_Audio(audio);
-            exit(EXIT_FAILURE);
+            audio_failed = true;
         }
     }
-    if (frequency > 0)
+    if (!audio_failed && frequency > 0)
     {
         if (!Audio_set_freq(audio, frequency))
         {
-            fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
-            del_Audio(audio);
-            exit(EXIT_FAILURE);
+            audio_failed = true;
         }
     }
-    if (!Audio_open(audio))
+    if (!audio_failed && format != NULL)
+    {
+        if (!Audio_set_frame_format(audio, format))
+        {
+            audio_failed = true;
+        }
+    }
+    if (!audio_failed && !Audio_open(audio))
+    {
+        audio_failed = true;
+    }
+    if (audio_failed)
     {
         fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
         del_Audio(audio);

@@ -28,6 +28,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <pthread.h>
 
@@ -64,6 +65,8 @@ static bool Audio_wav_set_file(Audio_wav* audio_wav, char* path);
 
 static bool Audio_wav_set_freq(Audio_wav* audio_wav, uint32_t freq);
 
+static bool Audio_wav_set_frame_format(Audio_wav* audio_wav, char* format);
+
 static bool Audio_wav_open(Audio_wav* audio_wav);
 
 static bool Audio_wav_close(Audio_wav* audio_wav);
@@ -89,6 +92,7 @@ Audio* new_Audio_wav(void)
     }
     audio_wav->parent.set_file = (bool (*)(Audio*, char*))Audio_wav_set_file;
     audio_wav->parent.set_freq = (bool (*)(Audio*, uint32_t))Audio_wav_set_freq;
+    audio_wav->parent.set_frame_format = (bool (*)(Audio*, char*))Audio_wav_set_frame_format;
     audio_wav->thread_active = false;
     audio_wav->parent.nframes = DEFAULT_BUF_SIZE;
     audio_wav->parent.freq = 48000;
@@ -135,6 +139,49 @@ static bool Audio_wav_set_freq(Audio_wav* audio_wav, uint32_t freq)
     }
     audio->freq = freq;
     audio_wav->sfinfo.samplerate = audio->freq;
+    return true;
+}
+
+
+static bool Audio_wav_set_frame_format(Audio_wav* audio_wav, char* format)
+{
+    assert(audio_wav != NULL);
+    assert(format != NULL);
+    assert(strlen(format) >= 2);
+    assert(strlen(format) <= 3);
+    assert(format[0] == 'i' || format[0] == 'f');
+    assert(isdigit(format[1]));
+    assert(format[2] == '\0' || isdigit(format[2]));
+    if (strcmp(format, "i8") == 0)
+    {
+        audio_wav->sfinfo.format &= ~SF_FORMAT_SUBMASK;
+        audio_wav->sfinfo.format |= SF_FORMAT_PCM_U8;
+    }
+    else if (strcmp(format, "i16") == 0)
+    {
+        audio_wav->sfinfo.format &= ~SF_FORMAT_SUBMASK;
+        audio_wav->sfinfo.format |= SF_FORMAT_PCM_16;
+    }
+    else if (strcmp(format, "i24") == 0)
+    {
+        audio_wav->sfinfo.format &= ~SF_FORMAT_SUBMASK;
+        audio_wav->sfinfo.format |= SF_FORMAT_PCM_24;
+    }
+    else if (strcmp(format, "i32") == 0)
+    {
+        audio_wav->sfinfo.format &= ~SF_FORMAT_SUBMASK;
+        audio_wav->sfinfo.format |= SF_FORMAT_PCM_32;
+    }
+    else if (strcmp(format, "f32") == 0)
+    {
+        audio_wav->sfinfo.format &= ~SF_FORMAT_SUBMASK;
+        audio_wav->sfinfo.format |= SF_FORMAT_FLOAT;
+    }
+    else
+    {
+        Audio_set_error(&audio_wav->parent, "Unsupported frame format: %s", format);
+        return false;
+    }
     return true;
 }
 

@@ -26,6 +26,7 @@
 #include <string.h>
 #include <errno.h>
 #include <stdarg.h>
+#include <ctype.h>
 
 #include <unistd.h>
 
@@ -62,6 +63,7 @@ bool Audio_init(Audio* audio,
     audio->close = close;
     audio->set_buffer_size = NULL;
     audio->set_freq = NULL;
+    audio->set_frame_format = NULL;
     audio->set_file = NULL;
     audio->destroy = destroy;
     if (pthread_cond_init(&audio->state_cond, NULL) < 0)
@@ -109,10 +111,30 @@ bool Audio_set_freq(Audio* audio, uint32_t freq)
     assert(freq > 0);
     if (audio->set_freq == NULL)
     {
-        Audio_set_error(audio, "Driver does not support changing mixing frequency");
+        Audio_set_error(audio, "Driver does not support changing the mixing frequency");
         return false;
     }
     return audio->set_freq(audio, freq);
+}
+
+
+bool Audio_set_frame_format(Audio* audio, char* format)
+{
+    assert(audio != NULL);
+    assert(format != NULL);
+    if (audio->set_frame_format == NULL)
+    {
+        Audio_set_error(audio, "Driver does not support changing the frame format");
+        return false;
+    }
+    if (strlen(format) < 2 || strlen(format) > 3
+            || !(format[0] == 'i' || format[1] == 'f')
+            || !isdigit(format[1])
+            || !(format[2] == '\0' || isdigit(format[2])))
+    {
+        Audio_set_error(audio, "Invalid frame format: %s", format);
+    }
+    return audio->set_frame_format(audio, format);
 }
 
 

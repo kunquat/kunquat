@@ -49,6 +49,7 @@ typedef struct Audio
     bool (*close)(struct Audio*);
     bool (*set_buffer_size)(struct Audio*, uint32_t nframes);
     bool (*set_freq)(struct Audio*, uint32_t freq);
+    bool (*set_frame_format)(struct Audio*, char* format);
     bool (*set_file)(struct Audio*, char* path);
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
@@ -127,6 +128,21 @@ bool Audio_set_buffer_size(Audio* audio, uint32_t nframes);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Audio_set_freq(Audio* audio, uint32_t freq);
+
+
+/**
+ * Sets the frame format in the Audio.
+ *
+ * \param audio    The Audio -- must not be \c NULL.
+ * \param format   The format description -- must not be \c NULL.
+ *                 The description consists of number type ('i' for integer,
+ *                 'f' for float) and width. E.g. "i16" is 16-bit integer,
+ *                 "f32" is 32-bit float. 8-bit integers are unsigned, others
+ *                 are signed.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Audio_set_frame_format(Audio* audio, char* format);
 
 
 /**
