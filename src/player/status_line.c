@@ -37,7 +37,7 @@ void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* s
     assert(freq > 0);
     assert(minutes != NULL);
     assert(seconds != NULL);
-    *minutes = (frames / freq / 60) % 60;
+    *minutes = frames / freq / 60;
     *seconds = remainder((double)frames / freq, 60);
     if (*seconds < 0)
     {

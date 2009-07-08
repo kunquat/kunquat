@@ -385,6 +385,7 @@ int main(int argc, char** argv)
                 continue;
             }
         }
+
         Audio_set_context(audio, context);
 
         uint32_t freq = Audio_get_freq(audio);
@@ -424,13 +425,13 @@ int main(int argc, char** argv)
                                                          freq,
                                                          unicode);
 
-                fprintf(stderr, "%s\r", status_line);
+                fprintf(stderr, "\r%s\r", status_line);
              
                 int key = get_key();
                 if (key == ' ')
                 {
                     Audio_pause(audio, true);
-                    fprintf(stderr, "[ pause ]\r");
+                    fprintf(stderr, "\n --- PAUSE ---");
                     set_terminal(true, false);
                     key = get_key();
                     set_terminal(true, true);
