@@ -88,6 +88,16 @@ int16_t Subsong_get(Subsong* ss, int index);
 
 
 /**
+ * Gets the length of the Subsong.
+ *
+ * \param ss   The Subsong -- must not be \c NULL.
+ *
+ * \return   The length.
+ */
+int16_t Subsong_get_length(Subsong* ss);
+
+
+/**
  * Sets the initial tempo of the Subsong.
  *
  * \param ss      The Subsong -- must not be \c NULL.

@@ -247,6 +247,21 @@ int16_t Subsong_get(Subsong* ss, int index)
 }
 
 
+int16_t Subsong_get_length(Subsong* ss)
+{
+    assert(ss != NULL);
+    int length = 0;
+    for (length = 0; length < ss->res; ++length)
+    {
+        if (ss->pats[length] == ORDER_NONE)
+        {
+            break;
+        }
+    }
+    return length;
+}
+
+
 void Subsong_set_tempo(Subsong* ss, double tempo)
 {
     assert(ss != NULL);

@@ -78,6 +78,18 @@ bool kqt_Context_load(kqt_Context* context, char* path);
 
 
 /**
+ * Gets the length of a subsong in the Kunquat Context.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param subsong   The subsong number -- should be >= \c 0 and
+ *                  < \c SUBSONGS_MAX.
+ *
+ * \return   The length of the subsong, or \c -1 if arguments were invalid.
+ */
+int kqt_Context_get_subsong_length(kqt_Context* context, int subsong);
+
+
+/**
  * Gets the length of the Kunquat Context.
  *
  * \param context   The Context -- should not be \c NULL.
@@ -127,6 +139,9 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
  * \param size      The new buffer size -- should be > \c 0.
  *
  * \return   \c true if successful, otherwise \c false.
+ *           Note: If memory allocation fails, mixing is still possible but
+ *           only with min{old_size, new_size} frames at a time. However, it
+ *           may be a good idea to just give up in this case.
  */
 bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size);
 
@@ -136,7 +151,7 @@ bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size);
  *
  * \param context   The Context -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed.
- * \param freq      The mixing frequency -- must be > \c 0.
+ * \param freq      The mixing frequency -- should be > \c 0.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes.
@@ -159,7 +174,7 @@ bool kqt_Context_set_position(kqt_Context* context, char* position);
 /**
  * Destroys an existing Kunquat Context.
  *
- * \param context   The Context -- must not be \c NULL.
+ * \param context   The Context -- should not be \c NULL.
  */
 void kqt_del_Context(kqt_Context* context);
 

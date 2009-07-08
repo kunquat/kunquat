@@ -207,6 +207,27 @@ bool kqt_Context_load(kqt_Context* context, char* path)
 }
 
 
+int kqt_Context_get_subsong_length(kqt_Context* context, int subsong)
+{
+    if (context == NULL)
+    {
+        return -1;
+    }
+    if (subsong < 0 || subsong >= SUBSONGS_MAX)
+    {
+        kqt_Context_set_error(context, "Invalid subsong number: %d", subsong);
+        return -1;
+    }
+    assert(context->song != NULL);
+    Subsong* ss = Order_get_subsong(Song_get_order(context->song), subsong);
+    if (ss == NULL)
+    {
+        return 0;
+    }
+    return Subsong_get_length(ss);
+}
+
+
 uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq)
 {
     if (context == NULL)
