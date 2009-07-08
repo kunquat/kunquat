@@ -49,17 +49,19 @@
 
 static char* driver_names[] =
 {
-#if defined(ENABLE_AO)
+#if defined(WITH_AO)
     "ao",
 #endif
-#if defined(ENABLE_JACK)
+#if defined(WITH_JACK)
     "jack",
 #endif
-#if defined(ENABLE_OPENAL)
+#if defined(WITH_OPENAL)
     "openal",
 #endif
     "null",
+#if defined(WITH_SNDFILE)
     "wav",
+#endif
     NULL
 };
 

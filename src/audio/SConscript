@@ -29,7 +29,6 @@ files = [
     'Audio.c',
     'Audio_creator.c',
     'Audio_null.c',
-    'Audio_wav.c',
 ]
 
 if env_a['with_jack']:
@@ -38,6 +37,8 @@ if env_a['with_ao']:
     files += ['Audio_ao.c']
 if env_a['with_openal']:
     files += ['Audio_openal.c']
+if env_a['with_sndfile']:
+    files += ['Audio_wav.c']
 
 env_a.StaticLibrary('audio', files)
 

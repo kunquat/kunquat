@@ -26,15 +26,18 @@
 
 #include <Audio.h>
 #include <Audio_null.h>
-#include <Audio_wav.h>
-#ifdef ENABLE_AO
+
+#ifdef WITH_AO
 #include <Audio_ao.h>
 #endif
-#ifdef ENABLE_JACK
+#ifdef WITH_JACK
 #include <Audio_jack.h>
 #endif
-#ifdef ENABLE_OPENAL
+#ifdef WITH_OPENAL
 #include <Audio_openal.h>
+#endif
+#ifdef WITH_SNDFILE
+#include <Audio_wav.h>
 #endif
 
 
@@ -47,17 +50,19 @@ typedef struct Driver_info
 
 static Driver_info drivers[] =
 {
-#ifdef ENABLE_AO
+#ifdef WITH_AO
     { "ao", new_Audio_ao },
 #endif
-#ifdef ENABLE_JACK
+#ifdef WITH_JACK
     { "jack", new_Audio_jack },
 #endif
-#ifdef ENABLE_OPENAL
+#ifdef WITH_OPENAL
     { "openal", new_Audio_openal },
 #endif
     { "null", new_Audio_null },
+#ifdef WITH_SNDFILE
     { "wav", new_Audio_wav },
+#endif
     { NULL, NULL }
 };
 

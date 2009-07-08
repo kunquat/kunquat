@@ -34,6 +34,7 @@ opts.AddVariables(
     BoolVariable('with_jack', 'Build JACK support.', True),
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
+    BoolVariable('with_sndfile', 'Build libsndfile support.', True),
 )
 
 
@@ -69,22 +70,22 @@ if not env.GetOption('clean'):
 
     if not conf.CheckType('int8_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Dint8_t=int_least8_t')
-        conf.env.Append(CCFLAGS = '-DINT8_MIN=(-127)')
+        conf.env.Append(CCFLAGS = '-DINT8_MIN=(-128)')
         conf.env.Append(CCFLAGS = '-DINT8_MAX=(127)')
 
     if not conf.CheckType('int16_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Dint16_t=int_least8_t')
-        conf.env.Append(CCFLAGS = '-DINT16_MIN=(-32767)')
+        conf.env.Append(CCFLAGS = '-DINT16_MIN=(-32768)')
         conf.env.Append(CCFLAGS = '-DINT16_MAX=(32767)')
 
     if not conf.CheckType('int32_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Dint32_t=int_least32_t')
-        conf.env.Append(CCFLAGS = '-DINT32_MIN=(-2147483647L)')
+        conf.env.Append(CCFLAGS = '-DINT32_MIN=(-2147483648L)')
         conf.env.Append(CCFLAGS = '-DINT32_MAX=(2147483647L)')
 
     if not conf.CheckType('int64_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Dint64_t=int_least64_t')
-        conf.env.Append(CCFLAGS = '-DINT64_MIN=(-9223372036854775807LL)')
+        conf.env.Append(CCFLAGS = '-DINT64_MIN=(-9223372036854775808LL)')
         conf.env.Append(CCFLAGS = '-DINT64_MAX=(9223372036854775807LL)')
 
     if not conf.CheckType('uint8_t', '#include <stdint.h>'):
@@ -124,27 +125,35 @@ if not env.GetOption('clean'):
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
             audio_found = True
-            conf.env.Append(CCFLAGS = '-DENABLE_JACK')
+            conf.env.Append(CCFLAGS = '-DWITH_JACK')
         else:
-            print('Warning: JACK driver was requested but JACK was not found.')
+            print('Warning: JACK support was requested but JACK was not found.')
             env['with_jack'] = False
 
     if env['with_ao']:
         if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
             audio_found = True
-            conf.env.Append(CCFLAGS = '-DENABLE_AO')
+            conf.env.Append(CCFLAGS = '-DWITH_AO')
         else:
-            print('Warning: libao driver was requested but libao was not found.')
+            print('Warning: libao support was requested but libao was not found.')
             env['with_ao'] = False
 
     if env['with_openal']:
         if conf.CheckLibWithHeader('openal', ['AL/al.h', 'AL/alc.h'], 'C') and\
            conf.CheckLibWithHeader('alut', 'AL/alut.h', 'C'):
             audio_found = True
-            conf.env.Append(CCFLAGS = '-DENABLE_OPENAL')
+            conf.env.Append(CCFLAGS = '-DWITH_OPENAL')
         else:
-            print('Warning: openal driver was requested but openal was not found.')
+            print('Warning: OpenAL support was requested but OpenAL was not found.')
             env['with_openal'] = False
+
+    if env['with_sndfile']:
+        if conf.CheckLibWithHeader('sndfile', 'sndfile.h', 'C'):
+            env.ParseConfig('pkg-config --cflags --libs sndfile')
+            conf.env.Append(CCFLAGS = '-DWITH_SNDFILE')
+        else:
+            print('Warning: libsndfile support was requested but libsndfile was not found.')
+            env['with_sndfile'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
         print('Error: Building of unit tests was requested but Check was not found.')

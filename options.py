@@ -24,4 +24,7 @@ with_jack = True
 # Build OpenAL support.
 with_openal = True
 
+# Build libsndfile support (used for WAV exporting).
+with_sndfile = True
+
 

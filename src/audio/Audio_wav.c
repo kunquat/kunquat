@@ -27,10 +27,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
-#include <errno.h>
 #include <string.h>
 
 #include <pthread.h>
+
+#include <sndfile.h>
 
 #include <unistd.h> // for usleep
 
@@ -49,9 +50,9 @@ struct Audio_wav
     bool thread_active;
     pthread_t play_thread;
     char* path;
-    FILE* out;
-    bool header_written;
-    uint32_t chunk_size;
+    SF_INFO sfinfo;
+    SNDFILE* out;
+    float* out_buf;
 };
 
 
@@ -68,8 +69,6 @@ static bool Audio_wav_open(Audio_wav* audio_wav);
 static bool Audio_wav_close(Audio_wav* audio_wav);
 
 static void del_Audio_wav(Audio_wav* audio_wav);
-
-static int write_le(FILE* out, int64_t num, int bytes);
 
 
 Audio* new_Audio_wav(void)
@@ -94,9 +93,17 @@ Audio* new_Audio_wav(void)
     audio_wav->parent.nframes = DEFAULT_BUF_SIZE;
     audio_wav->parent.freq = 48000;
     audio_wav->path = NULL;
+    audio_wav->sfinfo.frames = 0;
+    audio_wav->sfinfo.samplerate = audio_wav->parent.freq;
+    audio_wav->sfinfo.channels = 2;
+    audio_wav->sfinfo.format = SF_FORMAT_WAV | SF_FORMAT_PCM_16;
     audio_wav->out = NULL;
-    audio_wav->header_written = false;
-    audio_wav->chunk_size = 0;
+    audio_wav->out_buf = xnalloc(float, audio_wav->parent.nframes * audio_wav->sfinfo.channels);
+    if (audio_wav->out_buf == NULL)
+    {
+        del_Audio(&audio_wav->parent);
+        return NULL;
+    }
     return &audio_wav->parent;
 }
 
@@ -127,6 +134,7 @@ static bool Audio_wav_set_freq(Audio_wav* audio_wav, uint32_t freq)
         return false;
     }
     audio->freq = freq;
+    audio_wav->sfinfo.samplerate = audio->freq;
     return true;
 }
 
@@ -140,19 +148,23 @@ static bool Audio_wav_open(Audio_wav* audio_wav)
         Audio_set_error(audio, "Driver requires an output file name");
         return false;
     }
-    audio_wav->out = fopen(audio_wav->path, "rb");
-    if (audio_wav->out != NULL)
+    if (!sf_format_check(&audio_wav->sfinfo))
     {
-        fclose(audio_wav->out);
-        audio_wav->out = NULL;
+        Audio_set_error(audio, "Invalid format parameters");
+        return false;
+    }
+    FILE* test = fopen(audio_wav->path, "rb");
+    if (test != NULL)
+    {
+        fclose(test);
         Audio_set_error(audio, "File %s already exists", audio_wav->path);
         return false;
     }
-    errno = 0;
-    audio_wav->out = fopen(audio_wav->path, "wb");
+    audio_wav->out = sf_open(audio_wav->path, SFM_WRITE, &audio_wav->sfinfo);
     if (audio_wav->out == NULL)
     {
-        Audio_set_error(audio, "Couldn't create file %s: %s", audio_wav->path, strerror(errno));
+        Audio_set_error(audio, "Couldn't create file %s: %s",
+                        audio_wav->path, sf_strerror(NULL));
         return false;
     }
     audio->active = true;
@@ -161,27 +173,12 @@ static bool Audio_wav_open(Audio_wav* audio_wav)
     {
         audio->active = false;
         Audio_set_error(audio, "Couldn't create audio thread");
+        sf_close(audio_wav->out);
+        audio_wav->out = NULL;
         return false;
     }
     audio_wav->thread_active = true;
     return true;
-}
-
-
-static int write_le(FILE* out, int64_t num, int bytes)
-{
-    assert(out != NULL);
-    assert(bytes > 0);
-    while (bytes > 0)
-    {
-        if (fputc(num & 0xff, out) == EOF)
-        {
-            return EOF;
-        }
-        num >>= 8;
-        --bytes;
-    }
-    return 0;
 }
 
 
@@ -202,49 +199,11 @@ static bool Audio_wav_close(Audio_wav* audio_wav)
     }
     if (audio_wav->out != NULL)
     {
-        if (audio_wav->header_written)
+        err = sf_close(audio_wav->out);
+        if (err != 0)
         {
-            err = 0;
-            errno = 0;
-            if (fseek(audio_wav->out, 4, SEEK_SET) == -1)
-            {
-                err = 1;
-                Audio_set_error(&audio_wav->parent,
-                                "Couldn't write the chunk length: %s", strerror(errno));
-            }
-            errno = 0;
-            if (write_le(audio_wav->out, audio_wav->chunk_size + 36, 4) == EOF)
-            {
-                err = 1;
-                Audio_set_error(&audio_wav->parent,
-                                "Couldn't write the chunk length");
-            }
-            errno = 0;
-            if (fseek(audio_wav->out, 40, SEEK_SET) == -1)
-            {
-                err = 1;
-                Audio_set_error(&audio_wav->parent,
-                                "Couldn't write the chunk length: %s", strerror(errno));
-            }
-            errno = 0;
-            if (write_le(audio_wav->out, audio_wav->chunk_size, 4) == EOF)
-            {
-                err = 1;
-                Audio_set_error(&audio_wav->parent,
-                                "Couldn't write the chunk length");
-            }
-            if (err != 0)
-            {
-                fclose(audio_wav->out);
-                audio_wav->out = NULL;
-                return false;
-            }
-        }
-        errno = 0;
-        if (fclose(audio_wav->out) == EOF)
-        {
-            Audio_set_error(&audio_wav->parent, "Couldn't close the file %s: %s",
-                            audio_wav->path, strerror(errno));
+            Audio_set_error(&audio_wav->parent, "Couldn't close the output file: %s",
+                            sf_error_number(err));
             audio_wav->out = NULL;
             return false;
         }
@@ -269,20 +228,6 @@ static void* Audio_wav_thread(void* data)
 }
 
 
-#define close_if_eof(audio_wav, operation)                            \
-    do                                                                \
-    {                                                                 \
-        if ((operation) == EOF)                                       \
-        {                                                             \
-            Audio_set_error(&(audio_wav)->parent,                     \
-                            "Couldn't write into the output file %s", \
-                            (audio_wav)->path);                       \
-            fclose((audio_wav)->out);                                 \
-            (audio_wav)->out = NULL;                                  \
-            (audio_wav)->parent.active = false;                       \
-        }                                                             \
-    } while (false)
-
 static int Audio_wav_process(Audio_wav* audio_wav)
 {
     assert(audio_wav != NULL);
@@ -294,47 +239,26 @@ static int Audio_wav_process(Audio_wav* audio_wav)
         return 0;
     }
     assert(audio_wav->out != NULL);
+    assert(audio_wav->out_buf != NULL);
     kqt_Context* context = audio->context;
     if (context != NULL && !audio->pause)
     {
-        int buf_count = kqt_Context_get_buffer_count(context);
-        int bits = 16;
-        if (!audio_wav->header_written)
-        {
-            close_if_eof(audio_wav, fputs("RIFF", audio_wav->out));
-            // Write zero chunk size for now
-            // -- come back when we finish writing
-            close_if_eof(audio_wav, write_le(audio_wav->out, 0, 4));
-            close_if_eof(audio_wav, fputs("WAVE", audio_wav->out));
-
-            close_if_eof(audio_wav, fputs("fmt ", audio_wav->out));   // subchunk ID
-            close_if_eof(audio_wav, write_le(audio_wav->out, 16, 4)); // fmt subchunk size
-            close_if_eof(audio_wav, write_le(audio_wav->out, 1, 2));  // format: PCM
-            close_if_eof(audio_wav, write_le(audio_wav->out, buf_count, 2));
-            close_if_eof(audio_wav, write_le(audio_wav->out, audio->freq, 4));
-            close_if_eof(audio_wav, write_le(audio_wav->out,
-                         audio->freq * buf_count * bits / 8, 4));     // byte rate
-            close_if_eof(audio_wav, write_le(audio_wav->out, buf_count * bits / 8, 2));
-            close_if_eof(audio_wav, write_le(audio_wav->out, bits, 2));
-
-            close_if_eof(audio_wav, fputs("data", audio_wav->out));
-            // Write zero chunk size for now
-            // -- come back when we finish writing
-            close_if_eof(audio_wav, write_le(audio_wav->out, 0, 4));
-            audio_wav->header_written = true;
-            audio_wav->chunk_size = 0;
-        }
         uint32_t mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
+        int buf_count = kqt_Context_get_buffer_count(context);
         kqt_frame** bufs = kqt_Context_get_buffers(context);
         for (uint32_t i = 0; i < mixed; ++i)
         {
-            for (int k = 0; k < buf_count; ++k)
+            audio_wav->out_buf[i * 2] = (float)bufs[0][i];
+            if (buf_count > 1)
             {
-                close_if_eof(audio_wav, write_le(audio_wav->out, 
-                             bufs[k][i] * INT16_MAX, 2));
+                audio_wav->out_buf[(i * 2) + 1] = (float)bufs[1][i];
+            }
+            else
+            {
+                audio_wav->out_buf[(i * 2) + 1] = audio_wav->out_buf[i * 2];
             }
         }
-        audio_wav->chunk_size += mixed * buf_count * bits / 8;
+        sf_writef_float(audio_wav->out, audio_wav->out_buf, mixed);
     }
     else
     {
@@ -344,13 +268,16 @@ static int Audio_wav_process(Audio_wav* audio_wav)
     return 0;
 }
 
-#undef close_if_eof
-
 
 static void del_Audio_wav(Audio_wav* audio_wav)
 {
     assert(audio_wav != NULL);
     assert(!audio_wav->parent.active);
+    if (audio_wav->out_buf != NULL)
+    {
+        xfree(audio_wav->out_buf);
+        audio_wav->out_buf = NULL;
+    }
     xfree(audio_wav);
     return;
 }
