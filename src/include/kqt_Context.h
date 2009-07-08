@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include <kqt_frame.h>
-#include <kqt_Error.h>
 #include <kqt_Mix_state.h>
 
 
@@ -45,7 +44,6 @@ typedef struct kqt_Context kqt_Context;
  * \param buf_size           The size of the mixing buffer.
  * \param voice_count        The number of Voices used for mixing.
  * \param event_queue_size   The size of the Event queue for each Column.
- * \param error              A location where error information shall be written.
  *
  * \return   The new Kunquat Context if successful, or \c NULL if memory
  *           allocation failed.
@@ -53,27 +51,30 @@ typedef struct kqt_Context kqt_Context;
 kqt_Context* kqt_new_Context(int buf_count,
                              uint32_t buf_size,
                              uint16_t voice_count,
-                             uint8_t event_queue_size,
-                             kqt_Error* error);
+                             uint8_t event_queue_size);
 
 
 /**
- * Creates a new Kunquat Context from a file or a directory.
+ * Gets error information from the Kunquat Context.
  *
- * \param path               The path to the Kunquat composition file or directory
- *                           -- should not be \c NULL.
- * \param buf_size           The size of the mixing buffer.
- * \param voice_count        The number of Voices used for mixing.
- * \param event_queue_size   The size of the Event queue for each Column.
- * \param error              A location where error information shall be written.
+ * \param context   The Context -- should not be \c NULL.
  *
- * \return   The new Kunquat Context if successful, otherwise \c NULL.
+ * \return   The error message. This is an empty string if no error has
+ *           occurred.
  */
-kqt_Context* kqt_new_Context_from_path(char* path,
-                                       uint32_t buf_size,
-                                       uint16_t voice_count,
-                                       uint8_t event_queue_size,
-                                       kqt_Error* error);
+char* kqt_Context_get_error(kqt_Context* context);
+
+
+/**
+ * Loads contents of a Kunquat file or directory into the Kunquat Context.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param path      The path to the Kunquat composition file or directory
+ *                  -- should not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool kqt_Context_load(kqt_Context* context, char* path);
 
 
 /**
@@ -122,13 +123,12 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
 /**
  * Resizes the buffers in the Kunquat Context.
  *
- * \param context   The Context.
+ * \param context   The Context -- should not be \c NULL.
  * \param size      The new buffer size -- should be > \c 0.
- * \param error     A location where error information shall be written.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t nframes, kqt_Error* error);
+bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size);
 
 
 /**
@@ -150,11 +150,10 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq);
  * Any notes that were being played will be cut off immediately.
  *
  * \param position   The new position -- should not be \c NULL.
- * \param error      A location where error information shall be written.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* error);
+bool kqt_Context_set_position(kqt_Context* context, char* position);
 
 
 /**

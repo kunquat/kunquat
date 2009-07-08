@@ -164,16 +164,17 @@ static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nf
     }
     if (audio->context != NULL)
     {
-        if (kqt_Context_set_buffer_size(audio->context, nframes, NULL))
+        if (kqt_Context_set_buffer_size(audio->context, nframes))
         {
-            Audio_set_error(audio, "Couldn't allocate memory for Kunquat Context buffers.");
+            Audio_set_error(audio, kqt_Context_get_error(audio->context));
+            audio->context = NULL;
             return false;
         }
     }
     int16_t* new_buf = xrealloc(int16_t, nframes * 2, audio_openal->out_buf);
     if (new_buf == NULL)
     {
-        Audio_set_error(audio, "Couldn't allocate memory for new buffers.");
+        Audio_set_error(audio, "Couldn't allocate memory for new output buffers.");
         return false;
     }
     audio_openal->out_buf = new_buf;

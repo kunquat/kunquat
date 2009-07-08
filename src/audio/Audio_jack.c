@@ -50,10 +50,10 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
     {
         return 0;
     }
-    if (!kqt_Context_set_buffer_size(audio->context, nframes, NULL))
+    if (!kqt_Context_set_buffer_size(audio->context, nframes))
     {
+        Audio_set_error(audio, kqt_Context_get_error(audio->context));
         audio->context = NULL;
-        Audio_set_error(audio, "Couldn't resize Kunquat Context buffers");
         return -1;
     }
     audio->nframes = nframes;

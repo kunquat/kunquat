@@ -29,6 +29,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
+#include <stdarg.h>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -36,8 +37,6 @@
 #include <errno.h>
 
 #include <kqt_Context.h>
-#include <kqt_Error.h>
-#include <kqt_Error_lib.h>
 
 #include <Song_limits.h>
 #include <Song.h>
@@ -48,14 +47,20 @@
 #include <xmemory.h>
 
 
+#define KQT_CONTEXT_ERROR_LENGTH (256)
+
+
 struct kqt_Context
 {
     Song* song;
     Playdata* play;
     Playdata* play_silent;
     Voice_pool* voices;
+    char error[KQT_CONTEXT_ERROR_LENGTH];
 };
 
+
+void kqt_Context_set_error(kqt_Context* context, char* message, ...);
 
 void kqt_Context_stop(kqt_Context* context);
 
@@ -63,27 +68,22 @@ void kqt_Context_stop(kqt_Context* context);
 kqt_Context* kqt_new_Context(int buf_count,
                              uint32_t buf_size,
                              uint16_t voice_count,
-                             uint8_t event_queue_size,
-                             kqt_Error* error)
+                             uint8_t event_queue_size)
 {
     if (buf_count <= 0)
     {
-        kqt_Error_set(error, "Number of buffers must be positive");
         return NULL;
     }
     if (buf_size <= 0)
     {
-        kqt_Error_set(error, "Buffer size must be positive");
         return NULL;
     }
     if (voice_count <= 0)
     {
-        kqt_Error_set(error, "Number of Voices must be positive");
         return NULL;
     }
     if (event_queue_size <= 0)
     {
-        kqt_Error_set(error, "Event queue size must be positive");
         return NULL;
     }
     if (buf_count > BUF_COUNT_MAX)
@@ -97,7 +97,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     kqt_Context* context = xalloc(kqt_Context);
     if (context == NULL)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for the Kunquat Context");
         return NULL;
     }
     context->song = NULL;
@@ -108,8 +107,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->voices = new_Voice_pool(voice_count, event_queue_size);
     if (context->voices == NULL)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for Voices"
-                             " in the Kunquat Context");
         kqt_del_Context(context);
         return NULL;
     }
@@ -117,8 +114,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->song = new_Song(buf_count, buf_size, event_queue_size);
     if (context->song == NULL)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for the composition"
-                             " in the Kunquat Context");
         kqt_del_Context(context);
         return NULL;
     }
@@ -126,8 +121,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->play = new_Playdata(44100, context->voices, Song_get_insts(context->song));
     if (context->play == NULL)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for the playback information"
-                             " in the Kunquat Context");
         kqt_del_Context(context);
         return NULL;
     }
@@ -137,8 +130,6 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->play_silent = new_Playdata_silent(44100);
     if (context->play_silent == NULL)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for the playback information"
-                             " in the Kunquat Context");
         kqt_del_Context(context);
         return NULL;
     }
@@ -146,32 +137,37 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->play_silent->events = Song_get_events(context->song);
     
     kqt_Context_stop(context);
-    kqt_Context_set_position(context, NULL, NULL);
+    kqt_Context_set_position(context, NULL);
     return context;
 }
 
 
-kqt_Context* kqt_new_Context_from_path(char* path,
-                                       uint32_t buf_size,
-                                       uint16_t voice_count,
-                                       uint8_t event_queue_size,
-                                       kqt_Error* error)
+char* kqt_Context_get_error(kqt_Context* context)
 {
+    if (context == NULL)
+    {
+        return NULL;
+    }
+    return context->error;
+}
+
+
+bool kqt_Context_load(kqt_Context* context, char* path)
+{
+    if (context == NULL)
+    {
+        return false;
+    }
     if (path == NULL)
     {
-        kqt_Error_set(error, "kqt_new_Context_from_path: path must not be NULL");
+        kqt_Context_set_error(context, "kqt_Context_load: path must not be NULL");
         return NULL;
     }
     struct stat* info = &(struct stat){ .st_mode = 0 };
     errno = 0;
     if (stat(path, info) < 0)
     {
-        kqt_Error_set(error, "Couldn't access %s: %s", path, strerror(errno));
-        return NULL;
-    }
-    kqt_Context* context = kqt_new_Context(1, buf_size, voice_count, event_queue_size, error);
-    if (context == NULL)
-    {
+        kqt_Context_set_error(context, "Couldn't access %s: %s", path, strerror(errno));
         return NULL;
     }
     File_tree* tree = NULL;
@@ -181,8 +177,8 @@ kqt_Context* kqt_new_Context_from_path(char* path,
         tree = new_File_tree_from_fs(path, state);
         if (tree == NULL)
         {
-            kqt_Error_set(error, "%s:%d: %s", state->path, state->row, state->message);
-            kqt_del_Context(context);
+            kqt_Context_set_error(context, "%s:%d: %s",
+                                  state->path, state->row, state->message);
             return NULL;
         }
     }
@@ -191,30 +187,35 @@ kqt_Context* kqt_new_Context_from_path(char* path,
         tree = new_File_tree_from_tar(path, state);
         if (tree == NULL)
         {
-            kqt_Error_set(error, "%s:%d: %s", state->path, state->row, state->message);
-            kqt_del_Context(context);
+            kqt_Context_set_error(context, "%s:%d: %s",
+                                  state->path, state->row, state->message);
             return NULL;
         }
     }
     assert(tree != NULL);
     if (!Song_read(context->song, tree, state))
     {
-        kqt_Error_set(error, "%s:%d: %s", state->path, state->row, state->message);
-        kqt_del_Context(context);
+        kqt_Context_set_error(context, "%s:%d: %s",
+                              state->path, state->row, state->message);
         del_File_tree(tree);
         return NULL;
     }
     del_File_tree(tree);
     kqt_Context_stop(context);
-    kqt_Context_set_position(context, NULL, NULL);
+    kqt_Context_set_position(context, NULL);
     return context;
 }
 
 
 uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq)
 {
-    if (context == NULL || freq <= 0)
+    if (context == NULL)
     {
+        return 0;
+    }
+    if (freq <= 0)
+    {
+        kqt_Context_set_error(context, "kqt_Context_get_length: freq must be positive");
         return 0;
     }
     kqt_Reltime_init(&context->play_silent->play_time);
@@ -271,22 +272,21 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context)
 }
 
 
-bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size, kqt_Error* error)
+bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size)
 {
     if (context == NULL)
     {
-        kqt_Error_set(error, "kqt_Context_set_buffer_size: context must not be NULL");
         return false;
     }
     if (size <= 0)
     {
-        kqt_Error_set(error, "kqt_Context_set_buffer_size: size must be positive");
+        kqt_Context_set_error(context, "kqt_Context_set_buffer_size: size must be positive");
         return false;
     }
     bool success = Song_set_buf_size(context->song, size);
     if (!success)
     {
-        kqt_Error_set(error, "Couldn't allocate memory for the new buffers");
+        kqt_Context_set_error(context, "Couldn't allocate memory for the new buffers");
         return false;
     }
     return true;
@@ -309,11 +309,10 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq)
 }
 
 
-bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* error)
+bool kqt_Context_set_position(kqt_Context* context, char* position)
 {
     if (context == NULL)
     {
-        kqt_Error_set(error, "Invalid Kunquat Context");
         return false;
     }
     if (position == NULL)
@@ -326,12 +325,12 @@ bool kqt_Context_set_position(kqt_Context* context, char* position, kqt_Error* e
     str = read_int(str, &subsong, state);
     if (state->error)
     {
-        kqt_Error_set(error, "Invalid position indicator format");
+        kqt_Context_set_error(context, "Invalid position indicator format");
         return false;
     }
     if (subsong < -1 || subsong >= SUBSONGS_MAX)
     {
-        kqt_Error_set(error, "Subsong number %" PRId64 " out of range");
+        kqt_Context_set_error(context, "Subsong number %" PRId64 " is out of range");
         return false;
     }
     kqt_Context_stop(context);
@@ -443,6 +442,19 @@ void kqt_Context_stop(kqt_Context* context)
     context->play->order_index = 0;
     context->play->pattern = 0;
     kqt_Reltime_init(&context->play->pos);
+    return;
+}
+
+
+void kqt_Context_set_error(kqt_Context* context, char* message, ...)
+{
+    assert(context != NULL);
+    assert(message != NULL);
+    va_list args;
+    va_start(args, message);
+    vsnprintf(context->error, KQT_CONTEXT_ERROR_LENGTH, message, args);
+    va_end(args);
+    context->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     return;
 }
 

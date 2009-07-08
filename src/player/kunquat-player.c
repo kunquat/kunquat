@@ -37,7 +37,6 @@
 #include <Audio.h>
 
 #include <kqt_Context.h>
-#include <kqt_Error.h>
 #include <kqt_Reltime.h>
 
 #include <keyboard.h>
@@ -176,7 +175,7 @@ long read_long(char* str, char* desc, long min, long max)
     assert(desc != NULL);
     assert(min <= max);
     char* first_invalid = NULL;
-    long result = strtol(optarg, &first_invalid, 0);
+    long result = strtol(str, &first_invalid, 0);
     int err = errno;
     if (optarg[0] == '\0' || *first_invalid != '\0')
     {
@@ -363,23 +362,25 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Error* error = KQT_ERROR_AUTO;
-        kqt_Context* context = kqt_new_Context_from_path(argv[file_arg],
-                                                         audio->nframes,
-                                                         256, 32,
-                                                         error);
+        kqt_Context* context = kqt_new_Context(1, audio->nframes, 256, 32);
         if (context == NULL)
         {
-            fprintf(stderr, "%s\n", error->message);
+            fprintf(stderr, "Couldn't allocate memory for the Kunquat Context\n");
+            continue;
+        }
+        if (!kqt_Context_load(context, argv[file_arg]))
+        {
+            fprintf(stderr, "%s\n", kqt_Context_get_error(context));
+            kqt_del_Context(context);
             continue;
         }
         if (subsong != -1)
         {
             char pos[64] = { '\0' };
             snprintf(pos, 64, "%d", subsong);
-            if (!kqt_Context_set_position(context, pos, error))
+            if (!kqt_Context_set_position(context, pos))
             {
-                fprintf(stderr, "%s\n", error->message);
+                fprintf(stderr, "%s\n", kqt_Context_get_error(context));
                 kqt_del_Context(context);
                 continue;
             }
@@ -454,9 +455,9 @@ int main(int argc, char** argv)
                     }
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    if (!kqt_Context_set_position(context, pos, error))
+                    if (!kqt_Context_set_position(context, pos))
                     {
-                        fprintf(stderr, "%s\n", error->message);
+                        fprintf(stderr, "%s\n", kqt_Context_get_error(context));
                     }
                     else
                     {
