@@ -120,6 +120,10 @@ void usage(void)
     fprintf(stdout, "\nSupported keys in interactive mode:\n");
     fprintf(stdout, "   Space                  Pause/unpause\n");
     fprintf(stdout, "   [0-9], 'a'             Select subsong ('a' plays all subsongs)\n");
+    fprintf(stdout, "   'p'                    Previous subsong\n");
+    fprintf(stdout, "   'n'                    Next subsong\n");
+    fprintf(stdout, "   Backspace, Left        Previous file\n");
+    fprintf(stdout, "   Return, Right          Next file\n");
     fprintf(stdout, "   'q'                    Quit\n");
     
     fprintf(stdout, "\n");
@@ -455,17 +459,36 @@ int main(int argc, char** argv)
                     set_terminal(true, true);
                     Audio_pause(audio, false);
                 }
-                if (tolower(key) == 'q')
+                if (key == 'q')
                 {
                     quit = true;
                     break;
                 }
-                else if ((key >= '0' && key <= '9') || tolower(key) == 'a')
+                else if ((key >= '0' && key <= '9') || key == 'a'
+                         || key == 'p' || key == 'n')
                 {
-                    char pos[64] = { '\0' };
+                    char pos[64] = "-1";
                     if (tolower(key) == 'a')
                     {
                         strcpy(pos, "-1");
+                    }
+                    else if (tolower(key) == 'p')
+                    {
+                        int subsong = mix_state->subsong - 1;
+                        if (subsong < 0)
+                        {
+                            subsong = 0;
+                        }
+                        snprintf(pos, 64, "%d", subsong);
+                    }
+                    else if (tolower(key) == 'n')
+                    {
+                        int subsong = mix_state->subsong + 1;
+                        if (subsong > 255)
+                        {
+                            subsong = 255;
+                        }
+                        snprintf(pos, 64, "%d", subsong);
                     }
                     else
                     {
@@ -483,6 +506,18 @@ int main(int argc, char** argv)
                         length_frames = kqt_Context_get_length(context, freq);
                     }
                     Audio_pause(audio, false);
+                }
+                else if (key == KEY_LEFT || key == KEY_BACKSPACE)
+                {
+                    if (file_arg > optind)
+                    {
+                        file_arg -= 2;
+                        break;
+                    }
+                }
+                else if (key == KEY_RIGHT || key == KEY_RETURN)
+                {
+                    break;
                 }
             }
             Audio_get_state(audio, mix_state);

@@ -125,6 +125,14 @@ int get_key(void)
         }
         return -1;
     }
+    else if (key == 10)
+    {
+        return KEY_RETURN;
+    }
+    else if (key == 127)
+    {
+        return KEY_BACKSPACE;
+    }
     return key;
 }
 

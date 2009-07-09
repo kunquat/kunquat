@@ -33,7 +33,9 @@ typedef enum
     KEY_LEFT = 256,
     KEY_DOWN,
     KEY_UP,
-    KEY_RIGHT
+    KEY_RIGHT,
+    KEY_RETURN,
+    KEY_BACKSPACE
 } Key;
 
 

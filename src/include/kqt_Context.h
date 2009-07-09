@@ -20,8 +20,8 @@
  */
 
 
-#ifndef K_CONTEXT_H
-#define K_CONTEXT_H
+#ifndef KQT_CONTEXT_H
+#define KQT_CONTEXT_H
 
 
 #include <stdint.h>
@@ -179,6 +179,6 @@ bool kqt_Context_set_position(kqt_Context* context, char* position);
 void kqt_del_Context(kqt_Context* context);
 
 
-#endif // K_CONTEXT_H
+#endif // KQT_CONTEXT_H
 
 
