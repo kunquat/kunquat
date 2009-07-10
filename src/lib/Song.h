@@ -101,17 +101,15 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
 
 
 /**
- * Gets the length of the Song.
+ * Skips part of the Song.
  *
- * \param song   The Song -- must not be \c NULL.
- * \param play   The Playdata -- must not be \c NULL.
+ * \param song     The Song -- must not be \c NULL.
+ * \param play     The Playdata -- must not be \c NULL.
+ * \param amount   The amount of frames to be skipped.
  *
- * \return   The length in frames. NOTE: Despite the small unit of measurement
- *           this should be considered an estimate only. So do not set buffer
- *           sizes based on this value! The actual amount of frames to be
- *           mixed may be lower or higher.
+ * \return   The amount of frames actually skipped. This is <= \a amount.
  */
-uint64_t Song_get_length(Song* song, Playdata* play);
+uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount);
 
 
 /**

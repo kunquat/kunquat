@@ -78,13 +78,13 @@ bool kqt_Context_load(kqt_Context* context, char* path);
 
 
 /**
- * Gets the length of a subsong in the Kunquat Context.
+ * Gets the length of a Subsong in the Kunquat Context.
  *
  * \param context   The Context -- should not be \c NULL.
- * \param subsong   The subsong number -- should be >= \c 0 and
+ * \param subsong   The Subsong number -- should be >= \c 0 and
  *                  < \c SUBSONGS_MAX.
  *
- * \return   The length of the subsong, or \c -1 if arguments were invalid.
+ * \return   The length of the Subsong, or \c -1 if arguments were invalid.
  */
 int kqt_Context_get_subsong_length(kqt_Context* context, int subsong);
 
@@ -93,23 +93,10 @@ int kqt_Context_get_subsong_length(kqt_Context* context, int subsong);
  * Gets the length of the Kunquat Context.
  *
  * \param context   The Context -- should not be \c NULL.
- * \param freq      The mixing frequency -- should be > \c 0.
  *
- * \return   The length in frames. NOTE: Despite the small unit of measurement
- *           this should be considered an estimate only. So do not set buffer
- *           sizes based on this value! The actual amount of frames to be
- *           mixed may be lower or higher.
+ * \return   The length in nanoseconds.
  */
-uint64_t kqt_Context_get_length(kqt_Context* context, uint32_t freq);
-
-
-/**
- * Gets playback statistics from the Kunquat Context.
- *
- * \param context     The Context -- should not be \c NULL.
- * \param mix_state   The Mix state where the statistics shall be written.
- */
-void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state);
+uint64_t kqt_Context_get_length_ns(kqt_Context* context);
 
 
 /**
@@ -147,6 +134,45 @@ bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size);
 
 
 /**
+ * Sets the position to be played in nanoseconds.
+ *
+ * Any notes that were being played will be cut off immediately.
+ * Notes that start playing before the given position will not be played.
+ *
+ * \param context       The Context -- should not be \c NULL.
+ * \param nanoseconds   The number of nanoseconds from the beginning --
+ *                      should not be negative.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds);
+
+
+/**
+ * Gets the current position in nanoseconds.
+ *
+ * \param context       The Context -- should not be \c NULL.
+ *
+ * \return   The amount of nanoseconds mixed since the start of mixing.
+ */
+long long kqt_Context_get_position_ns(kqt_Context* context);
+
+
+/**
+ * Sets the position to be played.
+ *
+ * Any notes that were being played will be cut off immediately.
+ * Notes that start playing before the given position will not be played.
+ *
+ * \param context    The Context -- should not be \c NULL.
+ * \param position   The new position -- should not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool kqt_Context_set_position(kqt_Context* context, char* position);
+
+
+/**
  * Does mixing according to the state of the Kunquat Context.
  *
  * \param context   The Context -- should not be \c NULL.
@@ -160,15 +186,121 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq);
 
 
 /**
- * Sets the position to be played.
+ * Tells whether mixing of the Kunquat Context has reached the end.
  *
- * Any notes that were being played will be cut off immediately.
+ * \param context   The Context -- should not be \c NULL.
  *
- * \param position   The new position -- should not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
+ * \return   \c true if the end has been reached, otherwise \c false.
  */
-bool kqt_Context_set_position(kqt_Context* context, char* position);
+bool kqt_Context_end_reached(kqt_Context* context);
+
+
+/**
+ * Gets the total number of frames mixed after the last position change.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ *
+ * \return   The number of frames.
+ */
+uint64_t kqt_Context_get_frames_mixed(kqt_Context* context);
+
+
+/**
+ * Gets the current position of the Kunquat Context.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ *
+ * \return   The position description, or \c NULL if \a context is invalid.
+ */
+char* kqt_Context_get_position(kqt_Context* context);
+
+
+/**
+ * Gets the current tempo in the Kunquat Context.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ *
+ * \return   The current tempo.
+ */
+double kqt_Context_get_tempo(kqt_Context* context);
+
+
+/**
+ * Gets the maximum number of simultaneous Voices used.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ *
+ * \return   The number of Voices.
+ */
+int kqt_Context_get_voice_count(kqt_Context* context);
+
+
+/**
+ * Gets the minimum amplitude value encountered.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param buffer    The buffer index (0 for left, 1 for right).
+ *
+ * \return   The minimum amplitude value, or \c INFINITY if nothing has been
+ *           mixed into the buffer.
+ */
+double kqt_Context_get_min_amplitude(kqt_Context* context, int buffer);
+
+
+/**
+ * Gets the maximum amplitude value encountered.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param buffer    The buffer index (0 for left, 1 for right).
+ *
+ * \return   The maximum amplitude value, or \c -INFINITY if nothing has been
+ *           mixed into the buffer.
+ */
+double kqt_Context_get_max_amplitude(kqt_Context* context, int buffer);
+
+
+/**
+ * Gets the number of clipped frames encountered.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ * \param buffer    The buffer index (0 for left, 1 for right).
+ *
+ * \return   The number of clipped frames.
+ */
+long kqt_Context_get_clipped(kqt_Context* context, int buffer);
+
+
+/**
+ * Resets mixing state statistics.
+ *
+ * The values that will be reset are number of Voices used, peak amplitude
+ * values and counts of clipped frames. Thus, it doesn't affect the playback.
+ *
+ * \param context   The Context -- should not be \c NULL.
+ */
+void kqt_Context_reset_stats(kqt_Context* context);
+
+
+/**
+ * Gets playback statistics from the Kunquat Context.
+ *
+ * This is a convenience function that retrieves the information provided by
+ * the following functions:
+ *
+ *    kqt_Context_end_reached
+ *    kqt_Context_get_position
+ *    kqt_Context_get_tempo
+ *    kqt_Context_get_voice_count
+ *    kqt_Context_get_min_amplitude
+ *    kqt_Context_get_max_amplitude
+ *    kqt_Context_get_clipped
+ *    
+ * It also calls kqt_Context_reset_stats.
+ *
+ * \param context     The Context -- should not be \c NULL.
+ * \param mix_state   The Mix state where the statistics shall be written.
+ */
+void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state);
 
 
 /**

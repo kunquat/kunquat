@@ -32,17 +32,18 @@
 
 typedef struct kqt_Mix_state
 {
-    bool playing;          ///< Whether anything is playing.
-    uint64_t frames;       ///< Number of frames mixed.
-    uint16_t subsong;      ///< Number of the current Subsong.
-    uint16_t order;        ///< The current Order index.
-    uint16_t pattern;      ///< The current Pattern index.
-    kqt_Reltime pos;       ///< The current position inside a Pattern.
-    double tempo;          ///< The current tempo (BPM).
-    uint16_t voices;       ///< The maximum number of simultaneous Voices since the last update.
-    double min_amps[2];    ///< Minimum amplitude values since the last update.
-    double max_amps[2];    ///< Maximum amplitude values since the last update.
-    uint64_t clipped[2];   ///< Number of clipped frames encountered.
+    bool playing;            ///< Whether anything is playing.
+    uint64_t frames;         ///< Number of frames mixed.
+    long long nanoseconds;   ///< Nanoseconds mixed.
+    uint16_t subsong;        ///< Number of the current Subsong.
+    uint16_t order;          ///< The current Order index.
+    uint16_t pattern;        ///< The current Pattern index.
+    kqt_Reltime pos;         ///< The current position inside a Pattern.
+    double tempo;            ///< The current tempo (BPM).
+    uint16_t voices;         ///< The maximum number of simultaneous Voices since the last update.
+    double min_amps[2];      ///< Minimum amplitude values since the last update.
+    double max_amps[2];      ///< Maximum amplitude values since the last update.
+    uint64_t clipped[2];     ///< Number of clipped frames encountered.
 } kqt_Mix_state;
 
 

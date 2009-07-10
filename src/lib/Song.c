@@ -32,6 +32,7 @@
 #include <Song.h>
 #include <File_base.h>
 #include <File_tree.h>
+#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -330,12 +331,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     {
         return 0;
     }
-    if (nframes > song->buf_size)
+    if (nframes > song->buf_size && !play->silent)
     {
         nframes = song->buf_size;
     }
-    bool silent = play->silent; // we need the original value further down
-    if (!silent)
+    if (!play->silent)
     {
         for (int i = 0; i < song->buf_count; ++i)
         {
@@ -410,7 +410,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    if (!silent)
+    if (!play->silent)
     {
         for (int i = 0; i < song->buf_count; ++i)
         {
@@ -437,16 +437,26 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 }
 
 
-uint64_t Song_get_length(Song* song, Playdata* play)
+uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
 {
     assert(song != NULL);
     assert(play != NULL);
-    assert(play->silent);
-    while (play->mode)
+    bool orig_silent = play->silent;
+    play->silent = true;
+    uint64_t mixed = 0;
+    while (mixed < amount)
     {
-        Song_mix(song, play->freq, play);
+        uint64_t max_mix = amount - mixed;
+        uint64_t nframes = MIN(max_mix, play->freq);
+        uint32_t inc = Song_mix(song, nframes, play);
+        mixed += inc;
+        if (inc < Song_get_buf_size(song))
+        {
+            break;
+        }
     }
-    return play->play_frames;
+    play->silent = orig_silent;
+    return mixed;
 }
 
 

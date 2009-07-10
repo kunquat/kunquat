@@ -32,13 +32,12 @@
 #include <peak_meter.h>
 
 
-void get_minutes_seconds(uint64_t frames, uint32_t freq, int* minutes, double* seconds)
+void get_minutes_seconds(long long ns, int* minutes, double* seconds)
 {
-    assert(freq > 0);
     assert(minutes != NULL);
     assert(seconds != NULL);
-    *minutes = frames / freq / 60;
-    *seconds = remainder((double)frames / freq, 60);
+    *minutes = (ns / 1000000000) / 60;
+    *seconds = remainder((double)ns / 1000000000, 60);
     if (*seconds < 0)
     {
         *seconds += 60;
@@ -69,7 +68,7 @@ int get_status_line(char* line,
                     kqt_Mix_state* mix_state,
                     int min_len,
                     uint64_t* clipped,
-                    uint64_t frames_total,
+                    long long ns_total,
                     uint16_t voices,
                     uint32_t freq,
                     bool unicode)
@@ -87,19 +86,19 @@ int get_status_line(char* line,
     get_peak_meter(peak_meter, peak_meter_chars, mix_state, -40, -4, clipped, unicode);
     int excess_chars = strlen(peak_meter) - peak_meter_chars;
 
-    uint32_t frames = mix_state->frames;
+    long long ns = mix_state->nanoseconds;
     int minutes = 0;
     double seconds = 0;
-    get_minutes_seconds(frames, freq, &minutes, &seconds);
+    get_minutes_seconds(ns, &minutes, &seconds);
 
-    uint64_t frames_left = frames_total - frames;
+    uint64_t ns_left = ns_total - ns;
     int minutes_left = 0;
     double seconds_left = 0;
-    get_minutes_seconds(frames_left, freq, &minutes_left, &seconds_left);
+    get_minutes_seconds(ns_left, &minutes_left, &seconds_left);
 
     int minutes_total = 0;
     double seconds_total = 0;
-    get_minutes_seconds(frames_total, freq, &minutes_total, &seconds_total);
+    get_minutes_seconds(ns_total, &minutes_total, &seconds_total);
 
     double pos = kqt_Reltime_get_beats(&mix_state->pos) +
                  ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
@@ -112,7 +111,7 @@ int get_status_line(char* line,
                  peak_meter,
                  mix_state->subsong,
                  minutes, seconds);
-    if (frames_total >= mix_state->frames)
+    if (ns_total >= mix_state->nanoseconds)
     {
         print_status(line, line_pos, max_len,
                      " [%02d:%04.1f]"

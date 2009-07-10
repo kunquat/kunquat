@@ -120,10 +120,12 @@ void usage(void)
     fprintf(stdout, "\nSupported keys in interactive mode:\n");
     fprintf(stdout, "   Space                  Pause/unpause\n");
     fprintf(stdout, "   [0-9], 'a'             Select subsong ('a' plays all subsongs)\n");
+    fprintf(stdout, "   Left                   Seek backwards 10 seconds\n");
+    fprintf(stdout, "   Right                  Seek forwards 10 seconds\n");
     fprintf(stdout, "   'p'                    Previous subsong\n");
     fprintf(stdout, "   'n'                    Next subsong\n");
-    fprintf(stdout, "   Backspace, Left        Previous file\n");
-    fprintf(stdout, "   Return, Right          Next file\n");
+    fprintf(stdout, "   Backspace              Previous file\n");
+    fprintf(stdout, "   Return                 Next file\n");
     fprintf(stdout, "   'q'                    Quit\n");
     
     fprintf(stdout, "\n");
@@ -411,7 +413,7 @@ int main(int argc, char** argv)
         Audio_set_context(audio, context);
 
         uint32_t freq = Audio_get_freq(audio);
-        uint64_t length_frames = kqt_Context_get_length(context, freq);
+        uint64_t length_ns = kqt_Context_get_length_ns(context);
         uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
@@ -442,7 +444,7 @@ int main(int argc, char** argv)
                                                          mix_state,
                                                          status_line_chars_used,
                                                          clipped,
-                                                         length_frames,
+                                                         length_ns,
                                                          max_voices,
                                                          freq,
                                                          unicode);
@@ -463,6 +465,34 @@ int main(int argc, char** argv)
                 {
                     quit = true;
                     break;
+                }
+                else if (key == KEY_LEFT)
+                {
+                    Audio_pause(audio, true);
+                    Audio_get_state(audio, mix_state);
+                    long long ns = kqt_Context_get_position_ns(context);
+                    ns -= 10000000000LL;
+                    if (ns < 0)
+                    {
+                        ns = 0;
+                    }
+                    if (!kqt_Context_set_position_ns(context, ns))
+                    {
+                        fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
+                    }
+                    Audio_pause(audio, false);
+                }
+                else if (key == KEY_RIGHT)
+                {
+                    Audio_pause(audio, true);
+                    Audio_get_state(audio, mix_state);
+                    long long ns = kqt_Context_get_position_ns(context);
+                    ns += 10000000000LL;
+                    if (!kqt_Context_set_position_ns(context, ns))
+                    {
+                        fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
+                    }
+                    Audio_pause(audio, false);
                 }
                 else if ((key >= '0' && key <= '9') || key == 'a'
                          || key == 'p' || key == 'n')
@@ -503,11 +533,11 @@ int main(int argc, char** argv)
                     }
                     else
                     {
-                        length_frames = kqt_Context_get_length(context, freq);
+                        length_ns = kqt_Context_get_length_ns(context);
                     }
                     Audio_pause(audio, false);
                 }
-                else if (key == KEY_LEFT || key == KEY_BACKSPACE)
+                else if (key == KEY_BACKSPACE)
                 {
                     if (file_arg > optind)
                     {
@@ -515,7 +545,7 @@ int main(int argc, char** argv)
                         break;
                     }
                 }
-                else if (key == KEY_RIGHT || key == KEY_RETURN)
+                else if (key == KEY_RETURN)
                 {
                     break;
                 }

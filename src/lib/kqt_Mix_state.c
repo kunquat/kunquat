@@ -35,6 +35,7 @@ kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)
     }
     state->playing = false;
     state->frames = 0;
+    state->nanoseconds = 0;
     state->subsong = 0;
     state->order = 0;
     state->pattern = 0;
@@ -59,6 +60,7 @@ kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src)
     }
     dest->playing = src->playing;
     dest->frames = src->frames;
+    dest->nanoseconds = src->nanoseconds;
     dest->subsong = src->subsong;
     dest->order = src->order;
     dest->pattern = src->pattern;

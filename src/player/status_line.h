@@ -33,16 +33,16 @@
 /**
  * Writes a status line.
  *
- * \param line           The string where the line will be written -- must not
- *                       be \c NULL.
- * \param max_len        The maximum length of \a line.
- * \param mix_state      The Kunquat mix state -- must not be \c NULL.
- * \param min_len        Minimum length of \a line -- must be < \a max_len.
- * \param clipped        An array of clip counts -- must not be \c NULL.
- * \param frames_total   The length of the playback in frames.
- * \param max_voices     The maximum number of Voices used.
- * \param freq           The mixing frequency -- must be > \c 0.
- * \param unicode        Use Unicode characters for display.
+ * \param line         The string where the line will be written -- must not
+ *                     be \c NULL.
+ * \param max_len      The maximum length of \a line.
+ * \param mix_state    The Kunquat mix state -- must not be \c NULL.
+ * \param min_len      Minimum length of \a line -- must be < \a max_len.
+ * \param clipped      An array of clip counts -- must not be \c NULL.
+ * \param ns_total     The length of the playback in frames.
+ * \param max_voices   The maximum number of Voices used.
+ * \param freq         The mixing frequency -- must be > \c 0.
+ * \param unicode      Use Unicode characters for display.
  *
  * \return   The new minimum line length. This is always >= \a min_len.
  */
@@ -51,7 +51,7 @@ int get_status_line(char* line,
                     kqt_Mix_state* mix_state,
                     int min_len,
                     uint64_t* clipped,
-                    uint64_t frames_total,
+                    long long ns_total,
                     uint16_t max_voices,
                     uint32_t freq,
                     bool unicode);
