@@ -24,6 +24,11 @@
 #define KQT_PLAYER_EXT_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <kunquat/Context.h>
 #include <kunquat/Player.h>
 
@@ -156,6 +161,11 @@ long kqt_Context_get_clipped(kqt_Context* context, int buffer);
  * \param context   The Context -- should not be \c NULL.
  */
 void kqt_Context_reset_stats(kqt_Context* context);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // KQT_PLAYER_EXT_H

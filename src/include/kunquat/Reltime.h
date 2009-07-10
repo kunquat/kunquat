@@ -24,6 +24,11 @@
 #define K_RELTIME_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 
 
@@ -186,6 +191,11 @@ kqt_Reltime* kqt_Reltime_fromframes(kqt_Reltime* r,
                                     uint32_t frames,
                                     double tempo,
                                     uint32_t freq);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // K_RELTIME_H

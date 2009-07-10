@@ -24,6 +24,11 @@
 #define KQT_LIMITS_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #define KQT_BUFFERS_MAX (2)
 
 #define KQT_VOICES_MAX (1024)
@@ -48,6 +53,11 @@
 #define KQT_SCALE_OCTAVE_FIRST (KQT_SCALE_OCTAVE_BIAS)
 #define KQT_SCALE_MIDDLE_OCTAVE (KQT_SCALE_MIDDLE_OCTAVE_UNBIASED + KQT_SCALE_OCTAVE_BIAS)
 #define KQT_SCALE_OCTAVE_LAST (KQT_SCALE_OCTAVES - 1 + KQT_SCALE_OCTAVE_BIAS)
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // KQT_LIMITS_H

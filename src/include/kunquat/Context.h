@@ -24,6 +24,11 @@
 #define KQT_CONTEXT_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <stdint.h>
 
 #include <kunquat/frame.h>
@@ -92,6 +97,11 @@ int kqt_Context_get_subsong_length(kqt_Context* context, int subsong);
  * \param context   The Context -- should not be \c NULL.
  */
 void kqt_del_Context(kqt_Context* context);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // KQT_CONTEXT_H

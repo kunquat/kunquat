@@ -24,7 +24,17 @@
 #define KQT_FRAME_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 typedef float kqt_frame;
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // KQT_FRAME_H

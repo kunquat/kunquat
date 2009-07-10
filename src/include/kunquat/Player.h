@@ -24,6 +24,11 @@
 #define KQT_PLAYER_H
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 #include <kunquat/Context.h>
 
 
@@ -117,6 +122,11 @@ int kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds);
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
 long long kqt_Context_get_position_ns(kqt_Context* context);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 
 #endif // KQT_PLAYER_H
