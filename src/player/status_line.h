@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kunquat/Mix_state.h>
+#include <Mix_state.h>
 
 
 /**
@@ -36,7 +36,7 @@
  * \param line         The string where the line will be written -- must not
  *                     be \c NULL.
  * \param max_len      The maximum length of \a line.
- * \param mix_state    The Kunquat mix state -- must not be \c NULL.
+ * \param mix_state    The Mix state -- must not be \c NULL.
  * \param min_len      Minimum length of \a line -- must be < \a max_len.
  * \param clipped      An array of clip counts -- must not be \c NULL.
  * \param ns_total     The length of the playback in frames.
@@ -48,7 +48,7 @@
  */
 int get_status_line(char* line,
                     int max_len,
-                    kqt_Mix_state* mix_state,
+                    Mix_state* mix_state,
                     int min_len,
                     uint64_t* clipped,
                     long long ns_total,

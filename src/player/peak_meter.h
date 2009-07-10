@@ -24,7 +24,7 @@
 #define PEAK_METER_H
 
 
-#include <kunquat/Mix_state.h>
+#include <Mix_state.h>
 
 
 /**
@@ -34,7 +34,7 @@
  *                    not be \c NULL.
  * \param len         The length of the string in Unicode characters -- must
  *                    be > \c 0.
- * \param mix_state   The Kunquat mix state -- must not be \c NULL.
+ * \param mix_state   The Mix state -- must not be \c NULL.
  * \param lower       The lower bound of the dB scale -- must be finite and
  *                    < \ə upper.
  * \param upper       The upper bound of the dB scale -- must be finite and
@@ -46,7 +46,7 @@
  */
 char* get_peak_meter(char* str,
                      int len,
-                     kqt_Mix_state* mix_state,
+                     Mix_state* mix_state,
                      double lower,
                      double upper,
                      uint64_t* clipped,

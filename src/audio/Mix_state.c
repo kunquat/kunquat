@@ -21,19 +21,18 @@
 
 
 #include <stdlib.h>
+#include <assert.h>
 #include <math.h>
 
 #include <kunquat/Player_ext.h>
-#include <kunquat/Mix_state.h>
 #include <kunquat/Reltime.h>
 
+#include <Mix_state.h>
 
-kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)
+
+Mix_state* Mix_state_init(Mix_state* state)
 {
-    if (state == NULL)
-    {
-        return NULL;
-    }
+    assert(state != NULL);
     state->playing = false;
     state->frames = 0;
     state->nanoseconds = 0;
@@ -53,12 +52,10 @@ kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)
 }
 
 
-kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src)
+Mix_state* Mix_state_copy(Mix_state* dest, Mix_state* src)
 {
-    if (dest == NULL || src == NULL)
-    {
-        return dest;
-    }
+    assert(dest != NULL);
+    assert(src != NULL);
     dest->playing = src->playing;
     dest->frames = src->frames;
     dest->nanoseconds = src->nanoseconds;
@@ -78,12 +75,10 @@ kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src)
 }
 
 
-void kqt_Mix_state_from_context(kqt_Mix_state* mix_state, kqt_Context* context)
+void Mix_state_from_context(Mix_state* mix_state, kqt_Context* context)
 {
-    if (context == NULL || mix_state == NULL)
-    {
-        return;
-    }
+    assert(mix_state != NULL);
+    assert(context != NULL);
     mix_state->playing = !kqt_Context_end_reached(context);
     mix_state->frames = kqt_Context_get_frames_mixed(context);
     mix_state->nanoseconds = kqt_Context_get_position_ns(context);

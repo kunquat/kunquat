@@ -36,7 +36,8 @@
 #include <Audio.h>
 #include <kunquat/Context.h>
 #include <kunquat/Player_ext.h>
-#include <kunquat/Mix_state.h>
+
+#include <Mix_state.h>
 
 #include <xmemory.h>
 
@@ -59,7 +60,7 @@ bool Audio_init(Audio* audio,
     audio->nframes = 0;
     audio->freq = 0;
     audio->context = NULL;
-    kqt_Mix_state_init(&audio->state);
+    Mix_state_init(&audio->state);
     audio->open = open;
     audio->close = close;
     audio->set_buffer_size = NULL;
@@ -198,7 +199,7 @@ void Audio_pause(Audio* audio, bool pause)
 }
 
 
-bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
+bool Audio_get_state(Audio* audio, Mix_state* state)
 {
     assert(audio != NULL);
     assert(state != NULL);
@@ -243,7 +244,7 @@ bool Audio_get_state(Audio* audio, kqt_Mix_state* state)
         }
         return false;
     }
-    kqt_Mix_state_copy(state, &audio->state);
+    Mix_state_copy(state, &audio->state);
     err = pthread_mutex_unlock(&audio->state_mutex);
     if (err == EINVAL)
     {
@@ -288,7 +289,7 @@ int Audio_notify(Audio* audio)
     {
         if (audio->context != NULL)
         {
-            kqt_Mix_state_from_context(&audio->state, audio->context);
+            Mix_state_from_context(&audio->state, audio->context);
         }
         else
         {

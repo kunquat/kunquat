@@ -65,7 +65,7 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
 
 int get_status_line(char* line,
                     int max_len,
-                    kqt_Mix_state* mix_state,
+                    Mix_state* mix_state,
                     int min_len,
                     uint64_t* clipped,
                     long long ns_total,

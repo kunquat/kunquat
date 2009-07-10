@@ -30,7 +30,8 @@
 #include <pthread.h>
 
 #include <kunquat/Context.h>
-#include <kunquat/Mix_state.h>
+
+#include <Mix_state.h>
 
 
 #define AUDIO_ERROR_LENGTH (128)
@@ -54,7 +55,7 @@ typedef struct Audio
     void (*destroy)(struct Audio*);
     pthread_cond_t state_cond;
     pthread_mutex_t state_mutex;
-    kqt_Mix_state state;
+    Mix_state state;
 } Audio;
 
 
@@ -225,7 +226,7 @@ void Audio_pause(Audio* audio, bool pause);
  *
  * \return   \c true if Mix state could be retrieved, otherwise \c false.
  */
-bool Audio_get_state(Audio* audio, kqt_Mix_state* state);
+bool Audio_get_state(Audio* audio, Mix_state* state);
 
 
 /**

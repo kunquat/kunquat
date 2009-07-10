@@ -27,13 +27,13 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <kunquat/Mix_state.h>
+#include <Mix_state.h>
 #include <peak_meter.h>
 
 
 char* get_peak_meter(char* str,
                      int len,
-                     kqt_Mix_state* mix_state,
+                     Mix_state* mix_state,
                      double lower,
                      double upper,
                      uint64_t* clipped,

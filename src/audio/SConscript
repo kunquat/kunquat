@@ -29,6 +29,7 @@ files = [
     'Audio.c',
     'Audio_creator.c',
     'Audio_null.c',
+    'Mix_state.c',
 ]
 
 if env_a['with_jack']:

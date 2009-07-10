@@ -20,8 +20,8 @@
  */
 
 
-#ifndef KQT_MIX_STATE_H
-#define KQT_MIX_STATE_H
+#ifndef MIX_STATE_H
+#define MIX_STATE_H
 
 
 #include <stdbool.h>
@@ -31,7 +31,7 @@
 #include <kunquat/Context.h>
 
 
-typedef struct kqt_Mix_state
+typedef struct Mix_state
 {
     bool playing;            ///< Whether anything is playing.
     uint64_t frames;         ///< Number of frames mixed.
@@ -45,7 +45,7 @@ typedef struct kqt_Mix_state
     double min_amps[2];      ///< Minimum amplitude values since the last update.
     double max_amps[2];      ///< Maximum amplitude values since the last update.
     uint64_t clipped[2];     ///< Number of clipped frames encountered.
-} kqt_Mix_state;
+} Mix_state;
 
 
 /**
@@ -53,29 +53,28 @@ typedef struct kqt_Mix_state
  * allocation.
  * Useful for passing as a parameter to an initialiser.
  */
-#define KQT_MIX_STATE_AUTO (&(kqt_Mix_state){ .playing = false })
+#define MIX_STATE_AUTO (&(Mix_state){ .playing = false })
 
 
 /**
  * Initialises the Mix state.
  *
- * \param state   The Mix state. If \a state == \c NULL, nothing happens.
+ * \param state   The Mix state -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
-kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state);
+Mix_state* Mix_state_init(Mix_state* state);
 
 
 /**
  * Copies a Mix state into another.
  *
- * \param dest   The destination Mix state. If \a dest == \c NULL, nothing
- *               happens.
- * \param src    The source Mix state. If \ə src == \c NULL, nothing happens.
+ * \param dest   The destination Mix state -- must not be \c NULL.
+ * \param src    The source Mix state -- must not be \c NULL.
  *
  * \return   The parameter \ə dest.
  */
-kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src);
+Mix_state* Mix_state_copy(Mix_state* dest, Mix_state* src);
 
 
 /**
@@ -96,12 +95,12 @@ kqt_Mix_state* kqt_Mix_state_copy(kqt_Mix_state* dest, kqt_Mix_state* src);
  * It also calls kqt_Context_reset_stats.
  *
  * \param mix_state   The Mix state where the statistics shall be written
- *                    -- should not be \c NULL.
- * \param context     The Context -- should not be \c NULL.
+ *                    -- must not be \c NULL.
+ * \param context     The Context -- must not be \c NULL.
  */
-void kqt_Mix_state_from_context(kqt_Mix_state* mix_state, kqt_Context* context);
+void Mix_state_from_context(Mix_state* mix_state, kqt_Context* context);
 
 
-#endif // KQT_MIX_STATE_H
+#endif // MIX_STATE_H
 
 
