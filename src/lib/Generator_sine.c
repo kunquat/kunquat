@@ -30,7 +30,7 @@
 #include <Generator_common.h>
 #include <Generator_sine.h>
 #include <Voice_state_sine.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <math_common.h>
 
 #include <xmemory.h>

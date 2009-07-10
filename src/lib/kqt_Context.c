@@ -40,11 +40,10 @@
 #include <kunquat/Context.h>
 #include <kunquat/Player_ext.h>
 
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
-#include <File_base.h> // for string parsing
 
 #include <xmemory.h>
 

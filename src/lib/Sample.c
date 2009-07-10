@@ -30,7 +30,7 @@
 #include <Sample.h>
 #include <Generator_common.h>
 #include <File_wavpack.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <math_common.h>
 
 #include <xmemory.h>

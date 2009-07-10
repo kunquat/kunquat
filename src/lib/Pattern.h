@@ -30,7 +30,7 @@
 #include <Column.h>
 #include <kunquat/Reltime.h>
 #include <File_tree.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 /**

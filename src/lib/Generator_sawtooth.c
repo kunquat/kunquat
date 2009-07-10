@@ -30,7 +30,7 @@
 #include <Generator_common.h>
 #include <Generator_sawtooth.h>
 #include <Voice_state_sawtooth.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 

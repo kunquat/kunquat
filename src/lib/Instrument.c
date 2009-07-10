@@ -89,8 +89,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
     {
         ins->gens[i] = NULL;
     }
-
-    ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
     return ins;
 }
 
@@ -296,23 +294,6 @@ void Instrument_del_gen(Instrument* ins, int index)
         ++index;
     }
     return;
-}
-
-
-void Instrument_set_name(Instrument* ins, wchar_t* name)
-{
-    assert(ins != NULL);
-    assert(name != NULL);
-    wcsncpy(ins->name, name, INS_NAME_MAX - 1);
-    ins->name[INS_NAME_MAX - 1] = L'\0';
-    return;
-}
-
-
-wchar_t* Instrument_get_name(Instrument* ins)
-{
-    assert(ins != NULL);
-    return ins->name;
 }
 
 

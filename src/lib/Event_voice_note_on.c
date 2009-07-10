@@ -28,7 +28,7 @@
 #include <kunquat/Reltime.h>
 #include <Voice.h>
 #include <Note_table.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 

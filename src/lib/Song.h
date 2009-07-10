@@ -26,7 +26,7 @@
 
 #include <stdint.h>
 
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <kunquat/frame.h>
 #include <Order.h>
 #include <Pat_table.h>

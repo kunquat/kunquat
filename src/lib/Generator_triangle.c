@@ -30,7 +30,7 @@
 #include <Generator_common.h>
 #include <Generator_triangle.h>
 #include <Voice_state_triangle.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 

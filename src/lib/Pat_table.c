@@ -26,7 +26,7 @@
 
 #include <Pat_table.h>
 #include <Pattern.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 

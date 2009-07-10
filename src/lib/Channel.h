@@ -31,7 +31,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <Column.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 /**

@@ -24,7 +24,6 @@
 #define K_INSTRUMENT_H
 
 
-#include <wchar.h>
 #include <stdbool.h>
 
 #include <Instrument_params.h>
@@ -34,12 +33,11 @@
 #include <Voice_state.h>
 #include <Note_table.h>
 #include <Envelope.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 typedef struct Instrument
 {
-    wchar_t name[INS_NAME_MAX]; ///< The name of the Instrument.
     Event_queue* events;        ///< Instrument event queue (esp. pedal events go here).
 
     double default_force;       ///< Default force.
@@ -128,8 +126,8 @@ int Instrument_get_gen_count(Instrument* ins);
  *           \a index.
  */
 int Instrument_set_gen(Instrument* ins,
-        int index,
-        Generator* gen);
+                       int index,
+                       Generator* gen);
 
 
 /**
@@ -141,8 +139,7 @@ int Instrument_set_gen(Instrument* ins,
  *
  * \return   The Generator if found, otherwise \c NULL.
  */
-Generator* Instrument_get_gen(Instrument* ins,
-        int index);
+Generator* Instrument_get_gen(Instrument* ins, int index);
 
 
 /**
@@ -157,25 +154,6 @@ Generator* Instrument_get_gen(Instrument* ins,
  *                < \c GENERATORS_MAX.
  */
 void Instrument_del_gen(Instrument* ins, int index);
-
-
-/**
- * Sets the name of the Instrument.
- *
- * \param ins    The Instrument -- must not be \c NULL.
- * \param name   The name -- must not be \c NULL.
- */
-void Instrument_set_name(Instrument* ins, wchar_t* name);
-
-
-/**
- * Gets the name of the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The name.
- */
-wchar_t* Instrument_get_name(Instrument* ins);
 
 
 /**
@@ -200,10 +178,10 @@ void Instrument_set_note_table(Instrument* ins, int index);
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Instrument_mix(Instrument* ins,
-        Voice_state* states,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+                    Voice_state* states,
+                    uint32_t nframes,
+                    uint32_t offset,
+                    uint32_t freq);
 
 
 /**

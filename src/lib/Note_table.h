@@ -26,7 +26,7 @@
 
 #include <Real.h>
 #include <pitch_t.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <File_base.h>
 #include <File_tree.h>
 

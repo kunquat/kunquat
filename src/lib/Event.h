@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include <kunquat/Reltime.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <File_base.h>
 
 #include <Event_type.h>
