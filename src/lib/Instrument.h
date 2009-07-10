@@ -50,7 +50,7 @@ typedef struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
     int gen_count;                   ///< Number of Generators.
-    Generator* gens[GENERATORS_MAX]; ///< Generators.
+    Generator* gens[KQT_GENERATORS_MAX]; ///< Generators.
 } Instrument;
 
 
@@ -119,7 +119,7 @@ int Instrument_get_gen_count(Instrument* ins);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  * \param gen     The Generator -- must not be \c NULL.
  *
  * \return   The actual index of the Generator. This is less than or equal to
@@ -135,7 +135,7 @@ int Instrument_set_gen(Instrument* ins,
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  *
  * \return   The Generator if found, otherwise \c NULL.
  */
@@ -151,7 +151,7 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  */
 void Instrument_del_gen(Instrument* ins, int index);
 
@@ -161,7 +161,7 @@ void Instrument_del_gen(Instrument* ins, int index);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Note table -- must be >= \c 0 and
- *                < \c NOTE_TABLES_MAX or \c -1 (default).
+ *                < \c KQT_SCALES_MAX or \c -1 (default).
  */
 void Instrument_set_note_table(Instrument* ins, int index);
 

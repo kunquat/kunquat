@@ -117,7 +117,7 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
     for (uint32_t i = offset; i < nframes; ++i)
     {
-        double vals[BUF_COUNT_MAX] = { 0 };
+        double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         sawtooth_state->phase += state->freq / freq;

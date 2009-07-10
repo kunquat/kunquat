@@ -52,7 +52,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
         return NULL;
     }
     play->voice_pool = pool;
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         play->channels[i] = new_Channel(insts);
         if (play->channels[i] == NULL)
@@ -98,7 +98,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
         return NULL;
     }
     play->voice_pool = NULL;
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         play->channels[i] = NULL;
     }
@@ -131,7 +131,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 {
     assert(play != NULL);
     assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
     play->subsong = subsong;
     play->order_index = 0;
     if (!play->silent)
@@ -154,7 +154,7 @@ void Playdata_reset_stats(Playdata* play)
 {
     assert(play != NULL);
     play->active_voices = 0;
-    for (int i = 0; i < BUF_COUNT_MAX; ++i)
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         play->min_amps[i] = INFINITY;
         play->max_amps[i] = -INFINITY;
@@ -172,7 +172,7 @@ void del_Playdata(Playdata* play)
     {
         Voice_pool_reset(play->voice_pool);
     }
-    for (i = 0; i < COLUMNS_MAX; ++i)
+    for (i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         if (play->channels[i] != NULL)
         {

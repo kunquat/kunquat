@@ -29,9 +29,6 @@
 #include <kunquat/frame.h>
 
 
-#define MAX_VOICES (1024)
-
-
 typedef struct kqt_Context kqt_Context;
 
 

@@ -37,19 +37,19 @@ static Event_field_desc note_on_desc[] =
 {
     {
         .type = EVENT_FIELD_TYPE_NOTE,
-        .range.integral_type = { 0, NOTE_TABLE_NOTES - 1 }
+        .range.integral_type = { 0, KQT_SCALE_NOTES - 1 }
     },
     {
         .type = EVENT_FIELD_TYPE_NOTE_MOD,
-        .range.integral_type = { -1, NOTE_TABLE_NOTE_MODS - 1 }
+        .range.integral_type = { -1, KQT_SCALE_NOTE_MODS - 1 }
     },
     {
         .type = EVENT_FIELD_TYPE_INT,
-        .range.integral_type = { NOTE_TABLE_OCTAVE_FIRST, NOTE_TABLE_OCTAVE_LAST }
+        .range.integral_type = { KQT_SCALE_OCTAVE_FIRST, KQT_SCALE_OCTAVE_LAST }
     },
     {
         .type = EVENT_FIELD_TYPE_INT,
-        .range.integral_type = { 0, INSTRUMENTS_MAX }
+        .range.integral_type = { 0, KQT_INSTRUMENTS_MAX }
     },
     {
         .type = EVENT_FIELD_TYPE_NONE
@@ -86,7 +86,7 @@ Event* new_Event_voice_note_on(kqt_Reltime* pos)
     event->parent.process = Event_voice_note_on_process;
     event->note = 0;
     event->mod = -1;
-    event->octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    event->octave = KQT_SCALE_MIDDLE_OCTAVE;
     event->instrument = 1;
     return (Event*)event;
 }

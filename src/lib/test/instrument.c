@@ -43,7 +43,7 @@ START_TEST (new)
     kqt_frame buf_l[100] = { 0 };
     kqt_frame buf_r[100] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 100, nts, nts, 1);
     if (ins == NULL)
     {
@@ -57,7 +57,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (new_break_bufs_null)
 {
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(NULL, NULL, 2, 1, nts, nts, 1);
     del_Instrument(ins);
 }
@@ -68,7 +68,7 @@ START_TEST (new_break_buf_len_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 0, nts, nts, 1);
     del_Instrument(ins);
 }
@@ -79,7 +79,7 @@ START_TEST (new_break_events_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 0);
     del_Instrument(ins);
 }
@@ -92,7 +92,7 @@ START_TEST (mix)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -428,7 +428,7 @@ START_TEST (mix_break_state_null)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -480,7 +480,7 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {

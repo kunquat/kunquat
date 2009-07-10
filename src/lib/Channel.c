@@ -59,7 +59,7 @@ Channel* new_Channel(Ins_table* insts)
     }
     ch->insts = insts;
     ch->fg_count = 0;
-    for (int i = 0; i < GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->fg[i] = NULL;
         ch->fg_id[i] = 0;

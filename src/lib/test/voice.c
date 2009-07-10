@@ -79,7 +79,7 @@ START_TEST (mix)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 2);
     if (ins == NULL)
     {
@@ -116,7 +116,7 @@ START_TEST (mix)
     }
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev_on, 0, &note);
     Event_set_field(ev_on, 1, &mod);
     Event_set_field(ev_on, 2, &octave);
@@ -288,7 +288,7 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 2);
     if (ins == NULL)
     {

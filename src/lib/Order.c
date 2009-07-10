@@ -43,7 +43,7 @@ Order* new_Order(void)
     {
         return NULL;
     }
-    order->subs = new_Etable(SUBSONGS_MAX, (void(*)(void*))del_Subsong);
+    order->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
     if (order->subs == NULL)
     {
         xfree(order);
@@ -68,7 +68,7 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Subsong collection is not a directory");
         return false;
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
         char dir_name[] = "subsong_xx";
         snprintf(dir_name, 11, "subsong_%02x", i);
@@ -98,8 +98,8 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
 bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
-    assert(index < ORDERS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(index < KQT_SECTIONS_MAX);
     assert(pat >= 0 || pat == ORDER_NONE);
     bool ss_is_new = false;
     Subsong* ss = Etable_get(order->subs, subsong);
@@ -140,8 +140,8 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
 int16_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
-    assert(index < ORDERS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(index < KQT_SECTIONS_MAX);
     Subsong* ss = Etable_get(order->subs, subsong);
     if (ss == NULL)
     {
@@ -154,7 +154,7 @@ int16_t Order_get(Order* order, uint16_t subsong, uint16_t index)
 Subsong* Order_get_subsong(Order* order, uint16_t subsong)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
     return Etable_get(order->subs, subsong);
 }
 
@@ -162,7 +162,7 @@ Subsong* Order_get_subsong(Order* order, uint16_t subsong)
 bool Order_is_empty(Order* order, uint16_t subsong)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
     Subsong* ss = Etable_get(order->subs, subsong);
     if (ss == NULL)
     {

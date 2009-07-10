@@ -64,21 +64,21 @@ START_TEST (new)
             "new_Note_table() didn't create an empty table.");
     fail_unless(table->ref_note == table->ref_note_retuned,
             "new_Note_table() didn't set retuned reference note correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real quotient;
         Real_div(&quotient, &(table->oct_factors[i]), &(table->oct_factors[i - 1]));
         fail_unless(Real_cmp(&quotient, &octave_ratio) == 0,
                 "new_Note_table() didn't create oct_factors[] correctly.");
     }
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real one;
         Real_init_as_frac(&one, -1, 1);
         fail_unless(Real_cmp(&(table->note_mods[i].ratio), &one) == 0,
                 "new_Note_table() didn't initialise note modifiers correctly.");
     }
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real one;
         Real_init_as_frac(&one, -1, 1);
@@ -104,21 +104,21 @@ START_TEST (new)
             "new_Note_table() didn't create an empty table.");
     fail_unless(table->ref_note == table->ref_note_retuned,
             "new_Note_table() didn't set retuned reference note correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real quotient;
         Real_div(&quotient, &(table->oct_factors[i]), &(table->oct_factors[i - 1]));
         fail_unless(Real_cmp(&quotient, &octave_ratio) == 0,
                 "new_Note_table() didn't create oct_factors[] correctly.");
     }
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real one;
         Real_init_as_frac(&one, -1, 1);
         fail_unless(Real_cmp(&(table->note_mods[i].ratio), &one) == 0,
                 "new_Note_table() didn't initialise note modifiers correctly.");
     }
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real one;
         Real_init_as_frac(&one, -1, 1);
@@ -335,7 +335,7 @@ START_TEST (set_octave_ratio)
     Note_table_set_octave_ratio(table, &octave_ratio);
     fail_unless(Real_cmp(&octave_ratio, &(table->octave_ratio)) == 0,
             "Note_table_set_octave_ratio() didn't set octave ratio correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real quotient;
         Real_div(&quotient, &(table->oct_factors[i]), &(table->oct_factors[i - 1]));
@@ -350,7 +350,7 @@ START_TEST (set_octave_ratio)
     Note_table_set_octave_ratio(table, &octave_ratio);
     fail_unless(Real_cmp(&octave_ratio, &(table->octave_ratio)) == 0,
             "Note_table_set_octave_ratio() didn't set octave ratio correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         fail_unless(Real_cmp(&(table->oct_factors[i]), &(table->oct_factors[i - 1])) == 0,
                 "Note_table_set_octave_ratio() didn't create oct_factors[] correctly.");
@@ -360,7 +360,7 @@ START_TEST (set_octave_ratio)
     Note_table_set_octave_ratio(table, &octave_ratio);
     fail_unless(Real_cmp(&octave_ratio, &(table->octave_ratio)) == 0,
             "Note_table_set_octave_ratio() didn't set octave ratio correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real quotient;
         Real_div(&quotient, &(table->oct_factors[i]), &(table->oct_factors[i - 1]));
@@ -372,7 +372,7 @@ START_TEST (set_octave_ratio)
     Note_table_set_octave_ratio(table, &octave_ratio);
     fail_unless(Real_cmp(&octave_ratio, &(table->octave_ratio)) == 0,
             "Note_table_set_octave_ratio() didn't set octave ratio correctly.");
-    for (i = 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (i = 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real quotient;
         Real_div(&quotient, &(table->oct_factors[i]), &(table->oct_factors[i - 1]));
@@ -549,23 +549,23 @@ START_TEST (set_note)
     fail_unless(table->note_count == 1,
             "Note_table_set_note() didn't increment the note count correctly.");
 
-    for (i = 1; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 1; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i, i + 1);
-        actual_index = Note_table_set_note(table, NOTE_TABLE_NOTES - 1, &note_ratio);
+        actual_index = Note_table_set_note(table, KQT_SCALE_NOTES - 1, &note_ratio);
         fail_unless(actual_index == i,
                 "Note_table_set_note() didn't return the correct index.");
         fail_unless(table->note_count == i + 1,
                 "Note_table_set_note() didn't increment the note count correctly.");
-        if (i < NOTE_TABLE_NOTES - 1)
+        if (i < KQT_SCALE_NOTES - 1)
         {
-            fail_if(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
+            fail_if(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio), &note_ratio) == 0,
                     "Note_table_set_note() incorrectly set the note ratio at the end of table.");
-            fail_if(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
+            fail_if(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
                     "Note_table_set_note() incorrectly set the retuned note ratio at the end of table.");
         }
     }
-    for (i = 1; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 1; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i, i + 1);
         fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -681,7 +681,7 @@ START_TEST (set_note_break_index3)
         return;
     }
 
-    Note_table_set_note(table, NOTE_TABLE_NOTES, &note_ratio);
+    Note_table_set_note(table, KQT_SCALE_NOTES, &note_ratio);
 
     del_Note_table(table);
 }
@@ -817,7 +817,7 @@ START_TEST (ins_note)
     fail_unless(table->note_count == 1,
             "Note_table_ins_note() didn't increment the note count correctly.");
 
-    for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 1; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         actual_index = Note_table_ins_note(table, 0, &note_ratio);
@@ -826,29 +826,29 @@ START_TEST (ins_note)
         fail_unless(table->note_count == i + 2,
                 "Note_table_ins_note() didn't increment the note count correctly.");
 /*      fprintf(stderr, "C should be at index %d, table->note_count = %d\n", i + 1, table->note_count); */
-        if (i < NOTE_TABLE_NOTES - 2)
+        if (i < KQT_SCALE_NOTES - 2)
         {
             Real_init_as_frac(&note_ratio, -1, 1);
-            fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
+            fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio), &note_ratio) == 0,
                     "Note_table_ins_note() put garbage after the inserted notes.");
-            fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
+            fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
                     "Note_table_ins_note() put garbage after the inserted notes.");
         }
         else
         {
             Real_init_as_frac(&note_ratio, 6, 5);
-            fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
+            fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio), &note_ratio) == 0,
                     "Note_table_ins_note() didn't shift notes forward correctly.");
-            fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
+            fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
                     "Note_table_ins_note() didn't shift notes forward correctly.");
         }
     }
-    for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 1; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
-        fail_unless(Real_cmp(&(table->notes[(NOTE_TABLE_NOTES - 2) - i].ratio), &note_ratio) == 0,
+        fail_unless(Real_cmp(&(table->notes[(KQT_SCALE_NOTES - 2) - i].ratio), &note_ratio) == 0,
                 "Note_table_ins_note() didn't shift notes forward correctly.");
-        fail_unless(Real_cmp(&(table->notes[(NOTE_TABLE_NOTES - 2) - i].ratio_retuned), &note_ratio) == 0,
+        fail_unless(Real_cmp(&(table->notes[(KQT_SCALE_NOTES - 2) - i].ratio_retuned), &note_ratio) == 0,
                 "Note_table_ins_note() didn't shift notes forward correctly.");
     }
     Real_init_as_frac(&note_ratio, 4, 3);
@@ -856,9 +856,9 @@ START_TEST (ins_note)
     fail_unless(actual_index == 1,
             "Note_table_ins_note() didn't return the correct index.");
     Real_init_as_frac(&note_ratio, 1, 2);
-    fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio), &note_ratio) == 0,
+    fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio), &note_ratio) == 0,
             "Note_table_ins_note() didn't replace the last note correctly.");
-    fail_unless(Real_cmp(&(table->notes[NOTE_TABLE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
+    fail_unless(Real_cmp(&(table->notes[KQT_SCALE_NOTES - 1].ratio_retuned), &note_ratio) == 0,
             "Note_table_ins_note() didn't replace the last note correctly.");
     
     Real_init_as_frac(&note_ratio, 1, INT64_MAX);
@@ -964,7 +964,7 @@ START_TEST (ins_note_break_index3)
         return;
     }
 
-    Note_table_ins_note(table, NOTE_TABLE_NOTES, &note_ratio);
+    Note_table_ins_note(table, KQT_SCALE_NOTES, &note_ratio);
 
     del_Note_table(table);
 }
@@ -1088,18 +1088,18 @@ START_TEST (del_note)
     Note_table_del_note(table, 0);
     fail_unless(table->note_count == 0,
             "Note_table_del_note() modified the note count of an empty table.");
-    Note_table_del_note(table, NOTE_TABLE_NOTES - 1);
+    Note_table_del_note(table, KQT_SCALE_NOTES - 1);
     fail_unless(table->note_count == 0,
             "Note_table_del_note() modified the note count of an empty table.");
 
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         Note_table_set_note(table, i, &note_ratio);
     }
-    assert(table->note_count == NOTE_TABLE_NOTES);
+    assert(table->note_count == KQT_SCALE_NOTES);
     old_count = table->note_count;
-    Note_table_del_note(table, NOTE_TABLE_NOTES - 1);
+    Note_table_del_note(table, KQT_SCALE_NOTES - 1);
     fail_unless(table->note_count == old_count - 1,
             "Note_table_del_note() didn't decrease the note count correctly.");
 
@@ -1107,7 +1107,7 @@ START_TEST (del_note)
     Note_table_del_note(table, 8);
     fail_unless(table->note_count == old_count - 1,
             "Note_table_del_note() didn't decrease the note count correctly.");
-    for (i = 0; i < NOTE_TABLE_NOTES - 2; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 2; ++i)
     {
         if (i < 8)
         {
@@ -1187,7 +1187,7 @@ START_TEST (del_note_break_index3)
         return;
     }
 
-    Note_table_del_note(table, NOTE_TABLE_NOTES);
+    Note_table_del_note(table, KQT_SCALE_NOTES);
 
     del_Note_table(table);
 }
@@ -1228,20 +1228,20 @@ START_TEST (move_note)
         abort();
     }
 
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         Note_table_set_note(table, i, &note_ratio);
         Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
     }
-    assert(table->note_count == NOTE_TABLE_NOTES);
+    assert(table->note_count == KQT_SCALE_NOTES);
 
-    actual_index = Note_table_move_note(table, 0, NOTE_TABLE_NOTES - 1);
-    fail_unless(actual_index == NOTE_TABLE_NOTES - 1,
+    actual_index = Note_table_move_note(table, 0, KQT_SCALE_NOTES - 1);
+    fail_unless(actual_index == KQT_SCALE_NOTES - 1,
             "Note_table_move_note() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
-        if (i == NOTE_TABLE_NOTES - 1)
+        if (i == KQT_SCALE_NOTES - 1)
         {
             Real_init_as_frac(&note_ratio, 1, 2);
             fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1262,10 +1262,10 @@ START_TEST (move_note)
     }
 
     Note_table_del_note(table, 0);
-    actual_index = Note_table_move_note(table, NOTE_TABLE_NOTES - 2, 0);
+    actual_index = Note_table_move_note(table, KQT_SCALE_NOTES - 2, 0);
     fail_unless(actual_index == 0,
             "Note_table_move_note() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 1; ++i)
     {
         if (i == 0)
         {
@@ -1287,10 +1287,10 @@ START_TEST (move_note)
         }
     }
 
-    actual_index = Note_table_move_note(table, NOTE_TABLE_NOTES - 1, 0); /* src is empty */
-    fail_unless(actual_index == NOTE_TABLE_NOTES - 1,
+    actual_index = Note_table_move_note(table, KQT_SCALE_NOTES - 1, 0); /* src is empty */
+    fail_unless(actual_index == KQT_SCALE_NOTES - 1,
             "Note_table_move_note() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 1; ++i)
     {
         if (i == 0)
         {
@@ -1312,12 +1312,12 @@ START_TEST (move_note)
         }
     }
 
-    actual_index = Note_table_move_note(table, 0, NOTE_TABLE_NOTES - 1); /* dest is empty */
-    fail_unless(actual_index == NOTE_TABLE_NOTES - 2,
+    actual_index = Note_table_move_note(table, 0, KQT_SCALE_NOTES - 1); /* dest is empty */
+    fail_unless(actual_index == KQT_SCALE_NOTES - 2,
             "Note_table_move_note() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTES - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES - 1; ++i)
     {
-        if (i == NOTE_TABLE_NOTES - 2)
+        if (i == KQT_SCALE_NOTES - 2)
         {
             Real_init_as_frac(&note_ratio, 1, 2);
             fail_unless(Real_cmp(&(table->notes[i].ratio), &note_ratio) == 0,
@@ -1396,7 +1396,7 @@ START_TEST (move_note_break_index3)
         return;
     }
 
-    Note_table_move_note(table, NOTE_TABLE_NOTES, 0);
+    Note_table_move_note(table, KQT_SCALE_NOTES, 0);
 
     del_Note_table(table);
 }
@@ -1468,7 +1468,7 @@ START_TEST (move_note_break_new_index3)
         return;
     }
 
-    Note_table_move_note(table, 0, NOTE_TABLE_NOTES);
+    Note_table_move_note(table, 0, KQT_SCALE_NOTES);
 
     del_Note_table(table);
 }
@@ -1512,15 +1512,15 @@ START_TEST (get_note_ratio)
     fail_unless(Note_table_get_note_ratio(table, 0) == NULL,
             "Note_table_get_note_ratio() didn't return NULL for non-existent note.");
     
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         Note_table_set_note(table, i, &note_ratio);
         Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
     }
-    assert(table->note_count == NOTE_TABLE_NOTES);
+    assert(table->note_count == KQT_SCALE_NOTES);
 
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         fail_unless(Real_cmp(Note_table_get_note_ratio(table, i), &note_ratio) == 0,
@@ -1586,7 +1586,7 @@ START_TEST (get_note_ratio_break_index3)
         return;
     }
 
-    Note_table_get_note_ratio(table, NOTE_TABLE_NOTES);
+    Note_table_get_note_ratio(table, KQT_SCALE_NOTES);
 
     del_Note_table(table);
 }
@@ -1636,19 +1636,19 @@ START_TEST (set_note_mod)
     fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) != 0,
             "Note_table_set_note_mod() incorrectly copied the reference of the modifier ratio.");
 
-    for (i = 1; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 1; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i, i + 1);
-        actual_index = Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS - 1, &mod_ratio);
+        actual_index = Note_table_set_note_mod(table, KQT_SCALE_NOTE_MODS - 1, &mod_ratio);
         fail_unless(actual_index == i,
                 "Note_table_set_note_mod() didn't return the correct index.");
-        if (i < NOTE_TABLE_NOTE_MODS - 1)
+        if (i < KQT_SCALE_NOTE_MODS - 1)
         {
-            fail_if(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
+            fail_if(Real_cmp(&(table->note_mods[KQT_SCALE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
                     "Note_table_set_note_mod() incorrectly set the modifier ratio at the end of table.");
         }
     }
-    for (i = 1; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 1; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i, i + 1);
         fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -1754,7 +1754,7 @@ START_TEST (set_note_mod_break_index3)
         return;
     }
 
-    Note_table_set_note_mod(table, NOTE_TABLE_NOTE_MODS, &mod_ratio);
+    Note_table_set_note_mod(table, KQT_SCALE_NOTE_MODS, &mod_ratio);
 
     del_Note_table(table);
 }
@@ -1884,30 +1884,30 @@ START_TEST (ins_note_mod)
     fail_unless(Real_cmp(&(table->note_mods[0].ratio), &mod_ratio) != 0,
             "Note_table_ins_note_mod() incorrectly copied the reference of the modifier ratio.");
 
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 1; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
         actual_index = Note_table_ins_note_mod(table, 0, &mod_ratio);
         fail_unless(actual_index == 0,
                 "Note_table_ins_note_mod() didn't return the correct index.");
 /*      fprintf(stderr, "# should be at index %d\n", i + 1); */
-        if (i < NOTE_TABLE_NOTE_MODS - 2)
+        if (i < KQT_SCALE_NOTE_MODS - 2)
         {
             Real_init_as_frac(&mod_ratio, -1, 1);
-            fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
+            fail_unless(Real_cmp(&(table->note_mods[KQT_SCALE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
                     "Note_table_ins_note_mod() put garbage after the inserted modifiers.");
         }
         else
         {
             Real_init_as_frac(&mod_ratio, 16, 15);
-            fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
+            fail_unless(Real_cmp(&(table->note_mods[KQT_SCALE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
                     "Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
         }
     }
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 1; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
-        fail_unless(Real_cmp(&(table->note_mods[(NOTE_TABLE_NOTE_MODS - 2) - i].ratio), &mod_ratio) == 0,
+        fail_unless(Real_cmp(&(table->note_mods[(KQT_SCALE_NOTE_MODS - 2) - i].ratio), &mod_ratio) == 0,
                 "Note_table_ins_note_mod() didn't shift modifiers forward correctly.");
     }
     Real_init_as_frac(&mod_ratio, 25, 24);
@@ -1915,7 +1915,7 @@ START_TEST (ins_note_mod)
     fail_unless(actual_index == 1,
             "Note_table_ins_note_mod() didn't return the correct index.");
     Real_init_as_frac(&mod_ratio, 1, 2);
-    fail_unless(Real_cmp(&(table->note_mods[NOTE_TABLE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
+    fail_unless(Real_cmp(&(table->note_mods[KQT_SCALE_NOTE_MODS - 1].ratio), &mod_ratio) == 0,
             "Note_table_ins_note_mod() didn't replace the last modifier correctly.");
     
     Real_init_as_frac(&mod_ratio, 1, INT64_MAX);
@@ -2013,7 +2013,7 @@ START_TEST (ins_note_mod_break_index3)
         return;
     }
 
-    Note_table_ins_note_mod(table, NOTE_TABLE_NOTE_MODS, &mod_ratio);
+    Note_table_ins_note_mod(table, KQT_SCALE_NOTE_MODS, &mod_ratio);
 
     del_Note_table(table);
 }
@@ -2135,15 +2135,15 @@ START_TEST (del_note_mod)
 
     Note_table_del_note_mod(table, 0);
 
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
         Note_table_set_note_mod(table, i, &mod_ratio);
     }
-    Note_table_del_note_mod(table, NOTE_TABLE_NOTE_MODS - 1);
+    Note_table_del_note_mod(table, KQT_SCALE_NOTE_MODS - 1);
 
     Note_table_del_note_mod(table, 3);
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 2; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 2; ++i)
     {
         if (i < 3)
         {
@@ -2218,7 +2218,7 @@ START_TEST (del_note_mod_break_index3)
         return;
     }
 
-    Note_table_del_note_mod(table, NOTE_TABLE_NOTE_MODS);
+    Note_table_del_note_mod(table, KQT_SCALE_NOTE_MODS);
 
     del_Note_table(table);
 }
@@ -2259,18 +2259,18 @@ START_TEST (move_note_mod)
         abort();
     }
 
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
         Note_table_set_note_mod(table, i, &mod_ratio);
     }
 
-    actual_index = Note_table_move_note_mod(table, 0, NOTE_TABLE_NOTE_MODS - 1);
-    fail_unless(actual_index == NOTE_TABLE_NOTE_MODS - 1,
+    actual_index = Note_table_move_note_mod(table, 0, KQT_SCALE_NOTE_MODS - 1);
+    fail_unless(actual_index == KQT_SCALE_NOTE_MODS - 1,
             "Note_table_move_note_mod() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
-        if (i == NOTE_TABLE_NOTE_MODS - 1)
+        if (i == KQT_SCALE_NOTE_MODS - 1)
         {
             Real_init_as_frac(&mod_ratio, 1, 2);
             fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2285,10 +2285,10 @@ START_TEST (move_note_mod)
     }
 
     Note_table_del_note_mod(table, 0);
-    actual_index = Note_table_move_note_mod(table, NOTE_TABLE_NOTE_MODS - 2, 0);
+    actual_index = Note_table_move_note_mod(table, KQT_SCALE_NOTE_MODS - 2, 0);
     fail_unless(actual_index == 0,
             "Note_table_move_note_mod() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 1; ++i)
     {
         if (i == 0)
         {
@@ -2304,10 +2304,10 @@ START_TEST (move_note_mod)
         }
     }
 
-    actual_index = Note_table_move_note_mod(table, NOTE_TABLE_NOTE_MODS - 1, 0); /* src is empty */
-    fail_unless(actual_index == NOTE_TABLE_NOTE_MODS - 1,
+    actual_index = Note_table_move_note_mod(table, KQT_SCALE_NOTE_MODS - 1, 0); /* src is empty */
+    fail_unless(actual_index == KQT_SCALE_NOTE_MODS - 1,
             "Note_table_move_note_mod() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 1; ++i)
     {
         if (i == 0)
         {
@@ -2323,12 +2323,12 @@ START_TEST (move_note_mod)
         }
     }
 
-    actual_index = Note_table_move_note_mod(table, 0, NOTE_TABLE_NOTE_MODS - 1); /* dest is empty */
-    fail_unless(actual_index == NOTE_TABLE_NOTE_MODS - 2,
+    actual_index = Note_table_move_note_mod(table, 0, KQT_SCALE_NOTE_MODS - 1); /* dest is empty */
+    fail_unless(actual_index == KQT_SCALE_NOTE_MODS - 2,
             "Note_table_move_note_mod() didn't return the correct index.");
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS - 1; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS - 1; ++i)
     {
-        if (i == NOTE_TABLE_NOTE_MODS - 2)
+        if (i == KQT_SCALE_NOTE_MODS - 2)
         {
             Real_init_as_frac(&mod_ratio, 1, 2);
             fail_unless(Real_cmp(&(table->note_mods[i].ratio), &mod_ratio) == 0,
@@ -2401,7 +2401,7 @@ START_TEST (move_note_mod_break_index3)
         return;
     }
 
-    Note_table_move_note_mod(table, NOTE_TABLE_NOTE_MODS, 0);
+    Note_table_move_note_mod(table, KQT_SCALE_NOTE_MODS, 0);
 
     del_Note_table(table);
 }
@@ -2473,7 +2473,7 @@ START_TEST (move_note_mod_break_new_index3)
         return;
     }
 
-    Note_table_move_note_mod(table, 0, NOTE_TABLE_NOTE_MODS);
+    Note_table_move_note_mod(table, 0, KQT_SCALE_NOTE_MODS);
 
     del_Note_table(table);
 }
@@ -2517,13 +2517,13 @@ START_TEST (get_note_mod_ratio)
     fail_unless(Note_table_get_note_mod_ratio(table, 0) == NULL,
             "Note_table_get_note_mod_ratio() didn't return NULL for non-existent modifier.");
 
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
         Note_table_set_note_mod(table, i, &mod_ratio);
     }
 
-    for (i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         Real_init_as_frac(&mod_ratio, i + 1, i + 2);
         fail_unless(Real_cmp(Note_table_get_note_mod_ratio(table, i), &mod_ratio) == 0,
@@ -2589,7 +2589,7 @@ START_TEST (get_note_mod_ratio_break_index3)
         return;
     }
 
-    Note_table_get_note_mod_ratio(table, NOTE_TABLE_NOTE_MODS);
+    Note_table_get_note_mod_ratio(table, KQT_SCALE_NOTE_MODS);
 
     del_Note_table(table);
 }
@@ -2629,23 +2629,23 @@ START_TEST (get_pitch)
         abort();
     }
 
-    fail_unless(Note_table_get_pitch(table, 0, -1, NOTE_TABLE_MIDDLE_OCTAVE) < 0,
+    fail_unless(Note_table_get_pitch(table, 0, -1, KQT_SCALE_MIDDLE_OCTAVE) < 0,
             "Note_table_get_pitch() didn't return a negative value for non-existent note.");
 
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         Note_table_set_note(table, i, &note_ratio);
         Real_init_as_frac(&(table->notes[i].ratio_retuned), i + 2, i + 1);
     }
-    assert(table->note_count == NOTE_TABLE_NOTES);
+    assert(table->note_count == KQT_SCALE_NOTES);
     Real_init_as_frac(&note_ratio, 16, 15);
     Note_table_set_note_mod(table, 0, &note_ratio);
     Real_init_as_frac(&note_ratio, 15, 16);
     Note_table_set_note_mod(table, 1, &note_ratio);
 
     /* without modifier */
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         double base_factor = 440;
         Real oct_mul;
@@ -2654,7 +2654,7 @@ START_TEST (get_pitch)
         Real_init_as_frac(&note_ratio, i + 2, i + 1);
         Real_init_as_frac(&wrong_ratio, i + 1, i + 2);
         Real_init_as_frac(&oct_mul, 1, 2);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE; j >= KQT_SCALE_OCTAVE_FIRST; --j)
         {
             fail_if(Note_table_get_pitch(table, i, -1, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2673,7 +2673,7 @@ START_TEST (get_pitch)
         Real_init_as_frac(&oct_mul, 2, 1);
         Real_mul(&note_ratio, &note_ratio, &oct_mul);
         Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE + 1; j <= KQT_SCALE_OCTAVE_LAST; ++j)
         {
             fail_if(Note_table_get_pitch(table, i, -1, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2690,7 +2690,7 @@ START_TEST (get_pitch)
     }
 
     /* with modifier # */
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         double base_factor = 440;
         Real oct_mul;
@@ -2703,7 +2703,7 @@ START_TEST (get_pitch)
         Real_init_as_frac(&mod_ratio, 16, 15);
         Real_mul(&note_ratio, &note_ratio, &mod_ratio);
         Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE; j >= KQT_SCALE_OCTAVE_FIRST; --j)
         {
             fail_if(Note_table_get_pitch(table, i, 0, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2721,7 +2721,7 @@ START_TEST (get_pitch)
         Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
         Real_mul(&note_ratio, &note_ratio, &mod_ratio);
         Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE + 1; j <= KQT_SCALE_OCTAVE_LAST; ++j)
         {
             fail_if(Note_table_get_pitch(table, i, 0, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2735,7 +2735,7 @@ START_TEST (get_pitch)
     }
 
     /* with modifier b */
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         double base_factor = 440;
         Real oct_mul;
@@ -2748,7 +2748,7 @@ START_TEST (get_pitch)
         Real_init_as_frac(&mod_ratio, 15, 16);
         Real_mul(&note_ratio, &note_ratio, &mod_ratio);
         Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE; j >= NOTE_TABLE_OCTAVE_FIRST; --j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE; j >= KQT_SCALE_OCTAVE_FIRST; --j)
         {
             fail_if(Note_table_get_pitch(table, i, 1, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2766,7 +2766,7 @@ START_TEST (get_pitch)
         Real_mul(&wrong_ratio, &wrong_ratio, &oct_mul);
         Real_mul(&note_ratio, &note_ratio, &mod_ratio);
         Real_mul(&wrong_ratio, &wrong_ratio, &mod_ratio);
-        for (j = NOTE_TABLE_MIDDLE_OCTAVE + 1; j <= NOTE_TABLE_OCTAVE_LAST; ++j)
+        for (j = KQT_SCALE_MIDDLE_OCTAVE + 1; j <= KQT_SCALE_OCTAVE_LAST; ++j)
         {
             fail_if(Note_table_get_pitch(table, i, 1, j)
                     - Real_mul_float(&wrong_ratio, base_factor) < 0.00000001,
@@ -2784,7 +2784,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (get_pitch_break_table)
 {
-    Note_table_get_pitch(NULL, 0, -1, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(NULL, 0, -1, KQT_SCALE_MIDDLE_OCTAVE);
 }
 END_TEST
 
@@ -2800,7 +2800,7 @@ START_TEST (get_pitch_break_index1)
         return;
     }
 
-    Note_table_get_pitch(table, -1, -1, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, -1, -1, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2818,7 +2818,7 @@ START_TEST (get_pitch_break_index2)
         return;
     }
 
-    Note_table_get_pitch(table, INT_MIN, -1, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, INT_MIN, -1, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2836,7 +2836,7 @@ START_TEST (get_pitch_break_index3)
         return;
     }
 
-    Note_table_get_pitch(table, NOTE_TABLE_NOTES, -1, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, KQT_SCALE_NOTES, -1, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2854,7 +2854,7 @@ START_TEST (get_pitch_break_index4)
         return;
     }
 
-    Note_table_get_pitch(table, INT_MAX, -1, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, INT_MAX, -1, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2872,7 +2872,7 @@ START_TEST (get_pitch_break_mod1)
         return;
     }
 
-    Note_table_get_pitch(table, 0, NOTE_TABLE_NOTE_MODS, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, 0, KQT_SCALE_NOTE_MODS, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2890,7 +2890,7 @@ START_TEST (get_pitch_break_mod2)
         return;
     }
 
-    Note_table_get_pitch(table, 0, INT_MAX, NOTE_TABLE_MIDDLE_OCTAVE);
+    Note_table_get_pitch(table, 0, INT_MAX, KQT_SCALE_MIDDLE_OCTAVE);
 
     del_Note_table(table);
 }
@@ -2908,7 +2908,7 @@ START_TEST (get_pitch_break_octave1)
         return;
     }
 
-    Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVE_FIRST - 1);
+    Note_table_get_pitch(table, 0, -1, KQT_SCALE_OCTAVE_FIRST - 1);
 
     del_Note_table(table);
 }
@@ -2944,7 +2944,7 @@ START_TEST (get_pitch_break_octave3)
         return;
     }
 
-    Note_table_get_pitch(table, 0, -1, NOTE_TABLE_OCTAVE_LAST + 1);
+    Note_table_get_pitch(table, 0, -1, KQT_SCALE_OCTAVE_LAST + 1);
 
     del_Note_table(table);
 }
@@ -3124,15 +3124,15 @@ START_TEST (retune)
                 "Note_table_retune() didn't handle trivial retuning correctly.");
     }
     
-    for (i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         Real_init_as_frac(&note_ratio, i + 1, i + 2);
         Note_table_set_note(table, i, &note_ratio);
     }
 
-    for (k = 1; k < NOTE_TABLE_NOTES; ++k)
+    for (k = 1; k < KQT_SCALE_NOTES; ++k)
     {
-        int fixed_point = NOTE_TABLE_NOTES / 2; /* NOTE_TABLE_NOTES / 2; */
+        int fixed_point = KQT_SCALE_NOTES / 2; /* KQT_SCALE_NOTES / 2; */
         new_ref = k;
         Note_table_retune(table, new_ref, fixed_point);
         Real_div(&fix_to_new_ratio, &(table->notes[fixed_point].ratio_retuned), &(table->notes[k].ratio_retuned));
@@ -3146,16 +3146,16 @@ START_TEST (retune)
         fail_unless(Real_cmp(&fix_to_new_ratio, &phafix_to_old_ratio) == 0,
                 "Note_table_retune() didn't calculate new_ref correctly.");
 
-        for (i = 1, new_ref = (new_ref + 1) % NOTE_TABLE_NOTES;
-                i < NOTE_TABLE_NOTES;
-                ++i, new_ref = (new_ref + 1) % NOTE_TABLE_NOTES)
+        for (i = 1, new_ref = (new_ref + 1) % KQT_SCALE_NOTES;
+                i < KQT_SCALE_NOTES;
+                ++i, new_ref = (new_ref + 1) % KQT_SCALE_NOTES)
         {
             Real orig;
             Real retuned;
             int prev = new_ref - 1;
             if (prev < 0)
             {
-                prev = NOTE_TABLE_NOTES - 1;
+                prev = KQT_SCALE_NOTES - 1;
             }
             Real_div(&orig, Note_table_get_note_ratio(table, i), Note_table_get_note_ratio(table, i - 1));
             Real_div(&retuned, &(table->notes[new_ref].ratio_retuned), &(table->notes[prev].ratio_retuned));
@@ -3217,7 +3217,7 @@ START_TEST (retune_break_new_ref1)
         return;
     }
 
-    Note_table_retune(table, NOTE_TABLE_NOTES, 0);
+    Note_table_retune(table, KQT_SCALE_NOTES, 0);
 
     del_Note_table(table);
 }
@@ -3289,7 +3289,7 @@ START_TEST (retune_break_fixed_point3)
         return;
     }
 
-    Note_table_retune(table, 0, NOTE_TABLE_NOTES);
+    Note_table_retune(table, 0, KQT_SCALE_NOTES);
 
     del_Note_table(table);
 }

@@ -47,7 +47,7 @@ Pattern* new_Pattern(void)
         xfree(pat);
         return NULL;
     }
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         pat->cols[i] = new_Column(NULL);
         if (pat->cols[i] == NULL)
@@ -110,7 +110,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         Pattern_set_length(pat, len);
     }
     char dir_name[16] = "global_column";
-    for (int i = -1; i < COLUMNS_MAX; ++i)
+    for (int i = -1; i < KQT_COLUMNS_MAX; ++i)
     {
         File_tree* col_tree = File_tree_get_child(tree, dir_name);
         if (col_tree != NULL)
@@ -156,7 +156,7 @@ Column* Pattern_get_col(Pattern* pat, int index)
 {
     assert(pat != NULL);
     assert(index >= 0);
-    assert(index < COLUMNS_MAX);
+    assert(index < KQT_COLUMNS_MAX);
     return pat->cols[index];
 }
 
@@ -184,7 +184,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 nframes - mixed,
                 play->tempo,
                 play->freq);
-        for (int i = 0; i < COLUMNS_MAX; ++i)
+        for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         {
             Channel_set_voices(play->channels[i],
                     play->voice_pool,
@@ -262,7 +262,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 break;
             }
             ++play->order_index;
-            if (play->order_index >= ORDERS_MAX)
+            if (play->order_index >= KQT_SECTIONS_MAX)
             {
                 play->order_index = 0;
                 play->pattern = -1;
@@ -310,7 +310,7 @@ uint32_t Pattern_mix(Pattern* pat,
         if (!play->silent)
         {
             // - Tell each channel to set up Voices
-            for (int i = 0; i < COLUMNS_MAX; ++i)
+            for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
                 Column_iter_change_col(play->citer, pat->cols[i]);
                 Channel_set_voices(play->channels[i],
@@ -341,7 +341,7 @@ uint32_t Pattern_mix(Pattern* pat,
 void del_Pattern(Pattern* pat)
 {
     assert(pat != NULL);
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         del_Column(pat->cols[i]);
     }

@@ -20,8 +20,8 @@
  */
 
 
-#ifndef K_NOTE_TABLE_H
-#define K_NOTE_TABLE_H
+#ifndef KQT_SCALE_H
+#define KQT_SCALE_H
 
 
 #include <Real.h>
@@ -44,18 +44,18 @@ typedef struct Note_table
     pitch_t ref_pitch;
     Real octave_ratio;
     double oct_ratio_cents;
-    Real oct_factors[NOTE_TABLE_OCTAVES];
+    Real oct_factors[KQT_SCALE_OCTAVES];
     struct
     {
         double cents;
         Real ratio;
-    } note_mods[NOTE_TABLE_NOTE_MODS];
+    } note_mods[KQT_SCALE_NOTE_MODS];
     struct
     {
         double cents;
         Real ratio;
         Real ratio_retuned;
-    } notes[NOTE_TABLE_NOTES];
+    } notes[KQT_SCALE_NOTES];
 } Note_table;
 
 
@@ -111,7 +111,7 @@ int Note_table_get_note_mod_count(Note_table* table);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the new reference note -- must be
- *                >= \c 0 and < \c NOTE_TABLE_NOTES.
+ *                >= \c 0 and < \c KQT_SCALE_NOTES.
  *
  * \return   \c true if successful, or \c false if there is no note
  *           at \a index.
@@ -205,7 +205,7 @@ double Note_table_get_octave_ratio_cents(Note_table* table);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  * \param ratio   The pitch ratio between the new note and reference pitch
  *                -- must not be \c NULL and must be > \c 0.
  *
@@ -224,7 +224,7 @@ int Note_table_set_note(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
@@ -242,7 +242,7 @@ int Note_table_set_note_cents(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  * \param ratio   The pitch ratio between the new note and reference pitch
  *                -- must not be \c NULL and must be > \c 0.
  *
@@ -260,7 +260,7 @@ int Note_table_ins_note(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
@@ -279,7 +279,7 @@ int Note_table_ins_note_cents(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be deleted -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  */
 void Note_table_del_note(Note_table* table, int index);
 
@@ -289,10 +289,10 @@ void Note_table_del_note(Note_table* table, int index);
  *
  * \param table     The Note table -- must not be NULL.
  * \param index     The index of the note to be moved -- must be >= 0 and
- *                  < NOTE_TABLE_NOTES. If this index is empty, the table
+ *                  < KQT_SCALE_NOTES. If this index is empty, the table
  *                  will remain unchanged.
  * \param new_index The destination index -- must be >= 0 and
- *                  < NOTE_TABLE_NOTES. If this index is empty, the note
+ *                  < KQT_SCALE_NOTES. If this index is empty, the note
  *                  will be moved to the end of the note listing.
  *
  * \return   The actual destination index. This is never larger than
@@ -307,7 +307,7 @@ int Note_table_move_note(Note_table* table, int index, int new_index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  *
  * \return   The ratio if the note exists, otherwise \c NULL.
  */
@@ -319,7 +319,7 @@ Real* Note_table_get_note_ratio(Note_table* table, int index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  *
  * \return   The ratio if the note exists, otherwise \c NULL.
  */
@@ -331,7 +331,7 @@ Real* Note_table_get_cur_note_ratio(Note_table* table, int index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  *
  * \return   The ratio in cents if the note exists and the ratio is defined in
  *           cents, otherwise \c NAN.
@@ -344,7 +344,7 @@ double Note_table_get_note_cents(Note_table* table, int index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTES.
+ *                < \c KQT_SCALE_NOTES.
  *
  * \return   The ratio in cents if the note exists and the ratio is defined in
  *           cents, otherwise \c NAN.
@@ -357,7 +357,7 @@ double Note_table_get_cur_note_cents(Note_table* table, int index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  * \param ratio   The pitch ratio between the unmodified note and note with
  *                this modifier -- must not be \c NULL and must be > \c 0.
  *
@@ -374,7 +374,7 @@ int Note_table_set_note_mod(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  * \param cents   The pitch ratio between the unmodified note and note with
  *                this modifier -- must be a finite value.
  *
@@ -392,7 +392,7 @@ int Note_table_set_note_mod_cents(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  * \param ratio   The pitch ratio between the unmodified note and note with
  *                this modifier -- must not be \c NULL and must be > \c 0.
  *
@@ -410,7 +410,7 @@ int Note_table_ins_note_mod(Note_table* table,
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the table to be set -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  * \param cents   The pitch ratio between the unmodified note and note with
  *                this modifier -- must be a finite value.
  *
@@ -428,7 +428,7 @@ int Note_table_ins_note_mod_cents(Note_table* table,
  *
  * \param table   The Note table -- must not be NULL.
  * \param index   The index of the table to be deleted -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  */
 void Note_table_del_note_mod(Note_table* table, int index);
 
@@ -438,9 +438,9 @@ void Note_table_del_note_mod(Note_table* table, int index);
  *
  * \param table       The Note table -- must not be \c NULL.
  * \param index       The index of the note modifier to be moved -- must be
- *                    >= \c 0 and < \c NOTE_TABLE_NOTE_MODS.
+ *                    >= \c 0 and < \c KQT_SCALE_NOTE_MODS.
  * \param new_index   The destination index -- must be >= \c 0 and
- *                    < \c NOTE_TABLE_NOTE_MODS.
+ *                    < \c KQT_SCALE_NOTE_MODS.
  *
  * \return   The actual destination index. This is never larger than
  *           \a new_index. If the note modifier at \a index doesn't exist,
@@ -454,7 +454,7 @@ int Note_table_move_note_mod(Note_table* table, int index, int new_index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note modifier -- must be >= \c 0
- *                and < \c NOTE_TABLE_NOTE_MODS.
+ *                and < \c KQT_SCALE_NOTE_MODS.
  *
  * \return   The ratio if the note modifier exists, otherwise \c NULL.
  */
@@ -466,7 +466,7 @@ Real* Note_table_get_note_mod_ratio(Note_table* table, int index);
  *
  * \param table   The Note table -- must not be \c NULL.
  * \param index   The index of the note modifier -- must be >= \c 0 and
- *                < \c NOTE_TABLE_NOTE_MODS.
+ *                < \c KQT_SCALE_NOTE_MODS.
  *
  * \return   The ratio in cents if the note modifier exists and the ratio is
  *           defined in cents, otherwise \c NAN.
@@ -479,11 +479,11 @@ double Note_table_get_note_mod_cents(Note_table* table, int index);
  *
  * \param table    The Note table -- must not be \c NULL.
  * \param index    The index of the note -- must be >= \c 0 and
- *                 < \c NOTE_TABLE_NOTES.
- * \param mod      The note modifier -- must be < \c NOTE_TABLE_NOTE_MODS.
+ *                 < \c KQT_SCALE_NOTES.
+ * \param mod      The note modifier -- must be < \c KQT_SCALE_NOTE_MODS.
  *                 Negative value means that no modifier will be used.
- * \param octave   The octave -- must be >= \c NOTE_TABLE_OCTAVE_FIRST
- *                 and <= \c NOTE_TABLE_OCTAVE_LAST.
+ * \param octave   The octave -- must be >= \c KQT_SCALE_OCTAVE_FIRST
+ *                 and <= \c KQT_SCALE_OCTAVE_LAST.
  *
  * \return   The pitch if the note exists, otherwise a negative value.
  */
@@ -498,10 +498,10 @@ pitch_t Note_table_get_pitch(Note_table* table,
  *
  * \param table         The Note table -- must not be \c NULL.
  * \param new_ref       The new reference note -- must be
- *                      < \c NOTE_TABLE_NOTES. If new_ref < \c 0, the tuning
+ *                      < \c KQT_SCALE_NOTES. If new_ref < \c 0, the tuning
  *                      will be reset to original.
  * \param fixed_point   A note whose frequency won't change in the retuning
- *                      process -- must be >= \c 0 and < \c NOTE_TABLE_NOTES.
+ *                      process -- must be >= \c 0 and < \c KQT_SCALE_NOTES.
  */
 void Note_table_retune(Note_table* table, int new_ref, int fixed_point);
 
@@ -536,6 +536,6 @@ void Note_table_clear(Note_table* table);
 void del_Note_table(Note_table* table);
 
 
-#endif // K_NOTE_TABLE_H
+#endif // KQT_SCALE_H
 
 

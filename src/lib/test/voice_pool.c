@@ -76,7 +76,7 @@ START_TEST (get_voice)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -151,7 +151,7 @@ START_TEST (mix)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -215,7 +215,7 @@ START_TEST (mix)
     // Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
@@ -270,7 +270,7 @@ START_TEST (mix)
     Voice_init(v1, Instrument_get_gen(ins, 0));
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
@@ -284,7 +284,7 @@ START_TEST (mix)
     Voice_init(v2, Instrument_get_gen(ins, 0));
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
@@ -356,7 +356,7 @@ START_TEST (mix)
     Voice_init(v1, Instrument_get_gen(ins, 0));
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
@@ -370,7 +370,7 @@ START_TEST (mix)
     Voice_init(v2, Instrument_get_gen(ins, 0));
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);

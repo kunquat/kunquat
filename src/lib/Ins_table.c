@@ -86,7 +86,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
         Read_state_set_error(state, "Instrument table is not a directory");
         return false;
     }
-    for (int i = 1; i < INSTRUMENTS_MAX; ++i)
+    for (int i = 1; i < KQT_INSTRUMENTS_MAX; ++i)
     {
         char dir_name[] = "instrument_xx";
         snprintf(dir_name, 14, "instrument_%02x", i);

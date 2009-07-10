@@ -98,8 +98,8 @@ START_TEST (new)
     Column* glob = Pattern_get_global(pat);
     fail_if(glob == NULL,
             "new_Pattern() didn't create a global Column.");
-    Column* cols[COLUMNS_MAX] = { NULL };
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    Column* cols[KQT_COLUMNS_MAX] = { NULL };
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         cols[i] = Pattern_get_col(pat, i);
         fail_if(cols[i] == NULL,
@@ -125,7 +125,7 @@ START_TEST (mix)
     kqt_frame buf_l[256] = { 0 };
     kqt_frame buf_r[256] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -199,7 +199,7 @@ START_TEST (mix)
     kqt_Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE;
     int64_t instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
@@ -395,13 +395,13 @@ START_TEST (mix)
     play->tempo = 60;
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
     Event_set_field(ev1_on, 3, &instrument);
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
@@ -550,7 +550,7 @@ START_TEST (mix)
     play->tempo = 60;
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     instrument = 1;
     Event_set_field(ev3_on, 0, &note);
     Event_set_field(ev3_on, 1, &mod);

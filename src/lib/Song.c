@@ -40,7 +40,7 @@
 Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 {
     assert(buf_count >= 1);
-    assert(buf_count <= BUF_COUNT_MAX);
+    assert(buf_count <= KQT_BUFFERS_MAX);
     assert(buf_size > 0);
     Song* song = xalloc(Song);
     if (song == NULL)
@@ -55,12 +55,12 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->order = NULL;
     song->pats = NULL;
     song->insts = NULL;
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->notes[i] = NULL;
     }
     song->active_notes = &song->notes[0];
-    song->bufs = xnalloc(kqt_frame*, BUF_COUNT_MAX);
+    song->bufs = xnalloc(kqt_frame*, KQT_BUFFERS_MAX);
     if (song->bufs == NULL)
     {
         del_Song(song);
@@ -92,13 +92,13 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->pats = new_Pat_table(PATTERNS_MAX);
+    song->pats = new_Pat_table(KQT_PATTERNS_MAX);
     if (song->pats == NULL)
     {
         del_Song(song);
         return NULL;
     }
-    song->insts = new_Ins_table(INSTRUMENTS_MAX);
+    song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     if (song->insts == NULL)
     {
         del_Song(song);
@@ -198,7 +198,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if (num < 1 || num > BUF_COUNT_MAX)
+                    if (num < 1 || num > KQT_BUFFERS_MAX)
                     {
                         Read_state_set_error(state,
                                  "Unsupported number of mixing buffers: %" PRId64, num);
@@ -235,7 +235,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if (num < 0 || num >= SUBSONGS_MAX)
+                    if (num < 0 || num >= KQT_SUBSONGS_MAX)
                     {
                         Read_state_set_error(state,
                                  "Invalid initial Subsong number: %" PRId64, num);
@@ -262,7 +262,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         char dir_name[] = "scale_0";
         snprintf(dir_name, 8, "scale_%01x", i);
@@ -371,7 +371,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
                 break;
             }
             assert(play->mode == PLAY_SONG);
-            if (play->subsong >= SUBSONGS_MAX - 1)
+            if (play->subsong >= KQT_SUBSONGS_MAX - 1)
             {
                 Playdata_set_subsong(play, 0);
                 play->mode = STOP;
@@ -480,7 +480,7 @@ double Song_get_mix_vol(Song* song)
 void Song_set_subsong(Song* song, uint16_t num)
 {
     assert(song != NULL);
-    assert(num < SUBSONGS_MAX);
+    assert(num < KQT_SUBSONGS_MAX);
     song->init_subsong = num;
     return;
 }
@@ -497,7 +497,7 @@ bool Song_set_buf_count(Song* song, int count)
 {
     assert(song != NULL);
     assert(count > 0);
-    assert(count <= BUF_COUNT_MAX);
+    assert(count <= KQT_BUFFERS_MAX);
     if (song->buf_count == count)
     {
         return true;
@@ -638,7 +638,7 @@ Note_table* Song_get_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     return song->notes[index];
 }
 
@@ -654,7 +654,7 @@ bool Song_create_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     if (song->notes[index] != NULL)
     {
         Note_table_clear(song->notes[index]);
@@ -674,7 +674,7 @@ void Song_remove_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     if (song->notes[index] != NULL)
     {
         del_Note_table(song->notes[index]);
@@ -718,7 +718,7 @@ void del_Song(Song* song)
     {
         del_Ins_table(song->insts);
     }
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         if (song->notes[i] != NULL)
         {

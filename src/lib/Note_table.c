@@ -166,7 +166,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                 {
                     return false;
                 }
-                if (num < 0 || num >= NOTE_TABLE_NOTES)
+                if (num < 0 || num >= KQT_SCALE_NOTES)
                 {
                     Read_state_set_error(state,
                              "Invalid reference note number: %" PRId64, num);
@@ -247,11 +247,11 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                             }
                         }
                         ++count;
-                        if (notes && count >= NOTE_TABLE_NOTES)
+                        if (notes && count >= KQT_SCALE_NOTES)
                         {
                             break;
                         }
-                        else if (!notes && count >= NOTE_TABLE_NOTE_MODS)
+                        else if (!notes && count >= KQT_SCALE_NOTE_MODS)
                         {
                             break;
                         }
@@ -264,7 +264,7 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
                     }
                     if (notes)
                     {
-                        for (int i = count; i < NOTE_TABLE_NOTES; ++i)
+                        for (int i = count; i < KQT_SCALE_NOTES; ++i)
                         {
                             if (!NOTE_EXISTS(table, i))
                             {
@@ -304,11 +304,11 @@ bool Note_table_read(Note_table* table, File_tree* tree, Read_state* state)
 void Note_table_clear(Note_table* table)
 {
     assert(table != NULL);
-    for (int i = 0; i < NOTE_TABLE_NOTE_MODS; ++i)
+    for (int i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
     {
         NOTE_MOD_CLEAR(table, i);
     }
-    for (int i = 0; i < NOTE_TABLE_NOTES; ++i)
+    for (int i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         NOTE_CLEAR(table, i);
     }
@@ -330,7 +330,7 @@ int Note_table_get_note_mod_count(Note_table* table)
 {
     assert(table != NULL);
     int count = 0;
-    while (count < NOTE_TABLE_NOTE_MODS && NOTE_MOD_EXISTS(table, count))
+    while (count < KQT_SCALE_NOTE_MODS && NOTE_MOD_EXISTS(table, count))
     {
         ++count;
     }
@@ -342,7 +342,7 @@ bool Note_table_set_ref_note(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (index >= table->note_count)
     {
         return false;
@@ -387,14 +387,14 @@ void Note_table_set_octave_ratio(Note_table* table, Real* octave_ratio)
     assert(octave_ratio != NULL);
     assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     Real_copy(&(table->octave_ratio), octave_ratio);
-    Real_init_as_frac(&(table->oct_factors[NOTE_TABLE_OCTAVES / 2]), 1, 1);
-    for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED - 1; i >= 0; --i)
+    Real_init_as_frac(&(table->oct_factors[KQT_SCALE_OCTAVES / 2]), 1, 1);
+    for (int i = KQT_SCALE_MIDDLE_OCTAVE_UNBIASED - 1; i >= 0; --i)
     {
         Real_div(&(table->oct_factors[i]),
                 &(table->oct_factors[i + 1]),
                 &(table->octave_ratio));
     }
-    for (int i = NOTE_TABLE_MIDDLE_OCTAVE_UNBIASED + 1; i < NOTE_TABLE_OCTAVES; ++i)
+    for (int i = KQT_SCALE_MIDDLE_OCTAVE_UNBIASED + 1; i < KQT_SCALE_OCTAVES; ++i)
     {
         Real_mul(&(table->oct_factors[i]),
                 &(table->oct_factors[i - 1]),
@@ -436,7 +436,7 @@ int Note_table_set_note(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     assert(ratio != NULL);
     assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     while (index > 0 && !NOTE_EXISTS(table, index - 1))
@@ -446,7 +446,7 @@ int Note_table_set_note(Note_table* table,
     }
     if (!NOTE_EXISTS(table, index))
     {
-        if (table->note_count < NOTE_TABLE_NOTES)
+        if (table->note_count < KQT_SCALE_NOTES)
         {
             ++(table->note_count);
         }
@@ -464,12 +464,12 @@ int Note_table_set_note_cents(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     assert(isfinite(cents));
     Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
     int actual_index = Note_table_set_note(table, index, ratio);
     assert(actual_index >= 0);
-    assert(actual_index < NOTE_TABLE_NOTES);
+    assert(actual_index < KQT_SCALE_NOTES);
     table->notes[actual_index].cents = cents;
     return actual_index;
 }
@@ -481,19 +481,19 @@ int Note_table_ins_note(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     assert(ratio != NULL);
     assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     if (!NOTE_EXISTS(table, index))
     {
         return Note_table_set_note(table, index, ratio);
     }
-    if (table->note_count < NOTE_TABLE_NOTES)
+    if (table->note_count < KQT_SCALE_NOTES)
     {
         ++(table->note_count);
     }
-    int i = MIN(table->note_count, NOTE_TABLE_NOTES - 1);
-/*    for (i = index; (i < NOTE_TABLE_NOTES - 1) && NOTE_EXISTS(table, i); ++i)
+    int i = MIN(table->note_count, KQT_SCALE_NOTES - 1);
+/*    for (i = index; (i < KQT_SCALE_NOTES - 1) && NOTE_EXISTS(table, i); ++i)
         ; */
     for (; i > index; --i)
     {
@@ -502,8 +502,8 @@ int Note_table_ins_note(Note_table* table,
         Real_copy(&(table->notes[i].ratio_retuned),
                 &(table->notes[i - 1].ratio_retuned));
     }
-    assert(NOTE_EXISTS(table, MIN(table->note_count, NOTE_TABLE_NOTES - 1))
-            == (table->note_count == NOTE_TABLE_NOTES));
+    assert(NOTE_EXISTS(table, MIN(table->note_count, KQT_SCALE_NOTES - 1))
+            == (table->note_count == KQT_SCALE_NOTES));
     NOTE_CLEAR(table, index);
     Real_copy(&(table->notes[index].ratio), ratio);
     Real_copy(&(table->notes[index].ratio_retuned), ratio);
@@ -517,12 +517,12 @@ int Note_table_ins_note_cents(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     assert(isfinite(cents));
     Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
     int actual_index = Note_table_ins_note(table, index, ratio);
     assert(actual_index >= 0);
-    assert(actual_index < NOTE_TABLE_NOTES);
+    assert(actual_index < KQT_SCALE_NOTES);
     table->notes[actual_index].cents = cents;
     return actual_index;
 }
@@ -532,7 +532,7 @@ void Note_table_del_note(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (!NOTE_EXISTS(table, index))
     {
         return;
@@ -552,7 +552,7 @@ void Note_table_del_note(Note_table* table, int index)
         }
     }
     int i = 0;
-    for (i = index; (i < NOTE_TABLE_NOTES - 1) && NOTE_EXISTS(table, i + 1); ++i)
+    for (i = index; (i < KQT_SCALE_NOTES - 1) && NOTE_EXISTS(table, i + 1); ++i)
     {
         table->notes[i].cents = table->notes[i + 1].cents;
         Real_copy(&(table->notes[i].ratio), &(table->notes[i + 1].ratio));
@@ -573,9 +573,9 @@ int Note_table_move_note(Note_table* table, int index, int new_index)
     Real tmpratio_retuned;
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     assert(new_index >= 0);
-    assert(new_index < NOTE_TABLE_NOTES);
+    assert(new_index < KQT_SCALE_NOTES);
     if (index == new_index)
     {
         return index;
@@ -609,7 +609,7 @@ Real* Note_table_get_note_ratio(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (!NOTE_EXISTS(table, index))
     {
         return NULL;
@@ -622,7 +622,7 @@ Real* Note_table_get_cur_note_ratio(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (!NOTE_EXISTS(table, index))
     {
         return NULL;
@@ -635,7 +635,7 @@ double Note_table_get_note_cents(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (!NOTE_EXISTS(table, index))
     {
         return NAN;
@@ -648,7 +648,7 @@ double Note_table_get_cur_note_cents(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
+    assert(index < KQT_SCALE_NOTES);
     if (!NOTE_EXISTS(table, index))
     {
         return NAN;
@@ -664,7 +664,7 @@ int Note_table_set_note_mod(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     assert(ratio != NULL);
     assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     while (index > 0 && !NOTE_MOD_EXISTS(table, index - 1))
@@ -684,12 +684,12 @@ int Note_table_set_note_mod_cents(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     assert(isfinite(cents));
     Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
     int actual_index = Note_table_set_note_mod(table, index, ratio);
     assert(actual_index >= 0);
-    assert(actual_index < NOTE_TABLE_NOTE_MODS);
+    assert(actual_index < KQT_SCALE_NOTE_MODS);
     table->note_mods[actual_index].cents = cents;
     return actual_index;
 }
@@ -701,7 +701,7 @@ int Note_table_ins_note_mod(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     assert(ratio != NULL);
     assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     if (!NOTE_MOD_EXISTS(table, index))
@@ -709,7 +709,7 @@ int Note_table_ins_note_mod(Note_table* table,
         return Note_table_set_note_mod(table, index, ratio);
     }
     int i = 0;
-    for (i = index; (i < NOTE_TABLE_NOTE_MODS - 1)
+    for (i = index; (i < KQT_SCALE_NOTE_MODS - 1)
             && NOTE_MOD_EXISTS(table, i); ++i)
         ;
     for (; i > index; --i)
@@ -730,12 +730,12 @@ int Note_table_ins_note_mod_cents(Note_table* table,
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     assert(isfinite(cents));
     Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
     int actual_index = Note_table_ins_note_mod(table, index, ratio);
     assert(actual_index >= 0);
-    assert(actual_index < NOTE_TABLE_NOTE_MODS);
+    assert(actual_index < KQT_SCALE_NOTE_MODS);
     table->note_mods[actual_index].cents = cents;
     return actual_index;
 }
@@ -746,12 +746,12 @@ void Note_table_del_note_mod(Note_table* table, int index)
     int i = 0;
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     if (!NOTE_MOD_EXISTS(table, index))
     {
         return;
     }
-    for (i = index; (i < NOTE_TABLE_NOTE_MODS - 1)
+    for (i = index; (i < KQT_SCALE_NOTE_MODS - 1)
             && NOTE_MOD_EXISTS(table, i + 1); ++i)
     {
         table->note_mods[i].cents = table->note_mods[i + 1].cents;
@@ -770,9 +770,9 @@ int Note_table_move_note_mod(Note_table* table, int index, int new_index)
     Real tmpratio;
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     assert(new_index >= 0);
-    assert(new_index < NOTE_TABLE_NOTE_MODS);
+    assert(new_index < KQT_SCALE_NOTE_MODS);
     if (index == new_index)
     {
         return index;
@@ -795,7 +795,7 @@ Real* Note_table_get_note_mod_ratio(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     if (!NOTE_MOD_EXISTS(table, index))
     {
         return NULL;
@@ -808,7 +808,7 @@ double Note_table_get_note_mod_cents(Note_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTE_MODS);
     if (!NOTE_MOD_EXISTS(table, index))
     {
         return NAN;
@@ -822,14 +822,14 @@ pitch_t Note_table_get_pitch(Note_table* table,
         int mod,
         int octave)
 {
-    octave -= NOTE_TABLE_OCTAVE_BIAS;
+    octave -= KQT_SCALE_OCTAVE_BIAS;
     Real final_ratio;
     assert(table != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLE_NOTES);
-    assert(mod < NOTE_TABLE_NOTE_MODS);
+    assert(index < KQT_SCALE_NOTES);
+    assert(mod < KQT_SCALE_NOTE_MODS);
     assert(octave >= 0);
-    assert(octave < NOTE_TABLE_OCTAVES);
+    assert(octave < KQT_SCALE_OCTAVES);
     if (!NOTE_EXISTS(table, index))
     {
         return -1;
@@ -852,14 +852,14 @@ pitch_t Note_table_get_pitch(Note_table* table,
 void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
 {
     assert(table != NULL);
-    assert(new_ref < NOTE_TABLE_NOTES);
+    assert(new_ref < KQT_SCALE_NOTES);
     assert(fixed_point >= 0);
-    assert(fixed_point < NOTE_TABLE_NOTES);
+    assert(fixed_point < KQT_SCALE_NOTES);
     if (new_ref < 0)
     {
         // reset to original
         table->ref_note_retuned = table->ref_note;
-        for (int i = 0; (i < NOTE_TABLE_NOTES) && NOTE_EXISTS(table, i); ++i)
+        for (int i = 0; (i < KQT_SCALE_NOTES) && NOTE_EXISTS(table, i); ++i)
         {
             Real_copy(&(table->notes[i].ratio_retuned),
                     &(table->notes[i].ratio));
@@ -902,7 +902,7 @@ void Note_table_retune(Note_table* table, int new_ref, int fixed_point)
                 &fixed_to_new_ref_ratio,
                 &(table->octave_ratio));
     }
-    static Real new_notes[NOTE_TABLE_NOTES];
+    static Real new_notes[KQT_SCALE_NOTES];
     Real_div(&(new_notes[new_ref]),
             &(table->notes[fixed_point].ratio_retuned),
             &fixed_to_new_ref_ratio);

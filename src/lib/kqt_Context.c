@@ -97,13 +97,13 @@ kqt_Context* kqt_new_Context(int buf_count,
         kqt_Context_set_error(NULL, "kqt_new_Context: event_queue_size must be positive");
         return NULL;
     }
-    if (buf_count > BUF_COUNT_MAX)
+    if (buf_count > KQT_BUFFERS_MAX)
     {
-        buf_count = BUF_COUNT_MAX;
+        buf_count = KQT_BUFFERS_MAX;
     }
-    if (voice_count > MAX_VOICES)
+    if (voice_count > KQT_VOICES_MAX)
     {
-        voice_count = MAX_VOICES;
+        voice_count = KQT_VOICES_MAX;
     }
     kqt_Context* context = xalloc(kqt_Context);
     if (context == NULL)
@@ -233,7 +233,7 @@ int kqt_Context_get_subsong_length(kqt_Context* context, int subsong)
         kqt_Context_set_error(NULL, "kqt_Context_get_subsong_length: context must not be NULL");
         return -1;
     }
-    if (subsong < 0 || subsong >= SUBSONGS_MAX)
+    if (subsong < 0 || subsong >= KQT_SUBSONGS_MAX)
     {
         kqt_Context_set_error(context, "Invalid subsong number: %d", subsong);
         return -1;
@@ -336,7 +336,7 @@ int kqt_unwrap_time(char* time,
     long long read_ns = 0;
     char* next = NULL;
     read_subsong = strtol(time, &next, 0);
-    if (read_subsong < -1 || read_subsong >= SUBSONGS_MAX)
+    if (read_subsong < -1 || read_subsong >= KQT_SUBSONGS_MAX)
     {
         return 0;
     }
@@ -346,7 +346,7 @@ int kqt_unwrap_time(char* time,
     {
         ++time;
         read_section = strtol(time, &next, 0);
-        if (read_section < 0 || read_section >= ORDERS_MAX)
+        if (read_section < 0 || read_section >= KQT_SECTIONS_MAX)
         {
             return 0;
         }
@@ -597,7 +597,7 @@ int kqt_Context_get_voice_count(kqt_Context* context)
 
 double kqt_Context_get_min_amplitude(kqt_Context* context, int buffer)
 {
-    if (context == NULL || buffer < 0 || buffer >= BUF_COUNT_MAX)
+    if (context == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return INFINITY;
     }
@@ -607,7 +607,7 @@ double kqt_Context_get_min_amplitude(kqt_Context* context, int buffer)
 
 double kqt_Context_get_max_amplitude(kqt_Context* context, int buffer)
 {
-    if (context == NULL || buffer < 0 || buffer >= BUF_COUNT_MAX)
+    if (context == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return -INFINITY;
     }
@@ -617,7 +617,7 @@ double kqt_Context_get_max_amplitude(kqt_Context* context, int buffer)
 
 long kqt_Context_get_clipped(kqt_Context* context, int buffer)
 {
-    if (context == NULL || buffer < 0 || buffer >= BUF_COUNT_MAX)
+    if (context == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return 0;
     }
@@ -630,7 +630,7 @@ void kqt_Context_play_pattern(kqt_Context* context, int16_t num, double tempo)
 {
     assert(context != NULL);
     assert(num >= 0);
-    assert(num < PATTERNS_MAX);
+    assert(num < KQT_PATTERNS_MAX);
     assert(isfinite(tempo));
     assert(tempo > 0);
     kqt_Context_stop(context);
@@ -645,7 +645,7 @@ void kqt_Context_play_pattern(kqt_Context* context, int16_t num, double tempo)
 void kqt_Context_play_subsong(kqt_Context* context, uint16_t subsong)
 {
     assert(context != NULL);
-    assert(subsong < SUBSONGS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
     kqt_Context_stop(context);
     context->play->subsong = subsong;
     Subsong* ss = Order_get_subsong(context->play->order, context->play->subsong);
@@ -694,7 +694,7 @@ void kqt_Context_stop(kqt_Context* context)
     assert(context != NULL);
     context->play->mode = STOP;
     Voice_pool_reset(context->voices);
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         Channel_reset(context->play->channels[i]);
     }

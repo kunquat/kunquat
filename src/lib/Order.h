@@ -65,9 +65,9 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state);
  *
  * \param order     The Order -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
+ *                  < \c KQT_SUBSONGS_MAX.
  * \param index     The pattern index in the subsong -- must be >= \c 0 and
- *                  < \c ORDERS_MAX.
+ *                  < \c KQT_SECTIONS_MAX.
  * \param pat       The pattern number -- must be >= \c 0 or ORDER_NONE.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -80,9 +80,9 @@ bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat);
  *
  * \param order     The Order -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
+ *                  < \c KQT_SUBSONGS_MAX.
  * \param index     The pattern index in the subsong -- must be >= \c 0 and
- *                  < \c ORDERS_MAX.
+ *                  < \c KQT_SECTIONS_MAX.
  *
  * \return   The pattern number if one exists, otherwise \c ORDER_NONE.
  */
@@ -94,7 +94,7 @@ int16_t Order_get(Order* order, uint16_t subsong, uint16_t index);
  *
  * \param order     The Order -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
+ *                  < \c KQT_SUBSONGS_MAX.
  *
  * \return   The Subsong if one exists, otherwise \c NULL.
  */
@@ -106,7 +106,7 @@ Subsong* Order_get_subsong(Order* order, uint16_t subsong);
  *
  * \param order     The Order -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
+ *                  < \c KQT_SUBSONGS_MAX.
  *
  * \return   \c true if and only if \a subsong is empty.
  */

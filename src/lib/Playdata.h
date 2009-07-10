@@ -65,11 +65,11 @@ typedef struct Playdata
     kqt_Reltime pos;                  ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
-    Channel* channels[COLUMNS_MAX];   ///< The channels used.
+    Channel* channels[KQT_COLUMNS_MAX];   ///< The channels used.
     uint16_t active_voices;           ///< Number of Voices used simultaneously.
-    double min_amps[BUF_COUNT_MAX];   ///< Minimum amplitude values encountered.
-    double max_amps[BUF_COUNT_MAX];   ///< Maximum amplitude values encountered.
-    uint64_t clipped[BUF_COUNT_MAX];  ///< Number of clipped frames encountered.
+    double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
+    double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.
+    uint64_t clipped[KQT_BUFFERS_MAX];  ///< Number of clipped frames encountered.
 } Playdata;
 
 
@@ -116,7 +116,7 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
  * Sets the subsong in the Playdata.
  *
  * \param play      The Playdata -- must not be \c NULL.
- * \param subsong   The subsong number -- must be >= \c 0 and < \c SUBSONGS_MAX.
+ * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.
  */
 void Playdata_set_subsong(Playdata* play, int subsong);
 

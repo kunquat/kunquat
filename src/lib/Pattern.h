@@ -39,7 +39,7 @@
 typedef struct Pattern
 {
     Column* global;
-    Column* cols[COLUMNS_MAX];
+    Column* cols[KQT_COLUMNS_MAX];
     kqt_Reltime length;
 } Pattern;
 
@@ -93,7 +93,7 @@ kqt_Reltime* Pattern_get_length(Pattern* pat);
  * Returns a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
- * \param index   The Column index -- must be >= \c 0 and < \c COLUMNS_MAX.
+ * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
  *
  * \return   The Column.
  */

@@ -134,7 +134,7 @@ END_TEST
 
 START_TEST (new_break_buf_count_inv2)
 {
-    new_Song(BUF_COUNT_MAX + 1, 1, 1);
+    new_Song(KQT_BUFFERS_MAX + 1, 1, 1);
 }
 END_TEST
 
@@ -323,13 +323,13 @@ START_TEST (mix)
     kqt_Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     int64_t instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
     Event_set_field(ev1_on, 3, &instrument);
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);

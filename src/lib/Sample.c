@@ -390,7 +390,7 @@ uint32_t Sample_mix(Sample* sample,
         {
             mix_factor = 1 - state->rel_pos_rem;
         }
-        kqt_frame vals[BUF_COUNT_MAX] = { 0 };
+        kqt_frame vals[KQT_BUFFERS_MAX] = { 0 };
         if (sample->is_float)
         {
             float* buf_l = sample->data[0];

@@ -213,10 +213,10 @@ void Generator_process_note(Generator* gen,
     assert(gen != NULL);
     assert(state != NULL);
     assert(note >= 0);
-    assert(note < NOTE_TABLE_NOTES);
-    assert(mod < NOTE_TABLE_NOTE_MODS);
-    assert(octave >= NOTE_TABLE_OCTAVE_FIRST);
-    assert(octave <= NOTE_TABLE_OCTAVE_LAST);
+    assert(note < KQT_SCALE_NOTES);
+    assert(mod < KQT_SCALE_NOTE_MODS);
+    assert(octave >= KQT_SCALE_OCTAVE_FIRST);
+    assert(octave <= KQT_SCALE_OCTAVE_LAST);
     if (gen->ins_params->notes == NULL || *gen->ins_params->notes == NULL)
     {
         return;

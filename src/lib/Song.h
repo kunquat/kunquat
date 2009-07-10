@@ -42,12 +42,12 @@ typedef struct Song
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
     kqt_frame** bufs;                     ///< Buffers.
-    kqt_frame* priv_bufs[BUF_COUNT_MAX];  ///< Private buffers.
-    kqt_frame* voice_bufs[BUF_COUNT_MAX]; ///< Temporary buffers for Voices.
+    kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
+    kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     Order* order;                       ///< The Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    Note_table* notes[NOTE_TABLES_MAX]; ///< The Note tables.
+    Note_table* notes[KQT_SCALES_MAX]; ///< The Note tables.
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -61,7 +61,7 @@ typedef struct Song
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
- *                    <= \a BUF_COUNT_MAX. Typically, this is 2 (stereo).
+ *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of a buffer -- must be > \c 0.
  * \param events      The maximum number of global events per tick -- must be
  *                    > \c 0.
@@ -135,7 +135,7 @@ double Song_get_mix_vol(Song* song);
  * Sets the initial subsong of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param num    The subsong number -- must be < \c SUBSONGS_MAX.
+ * \param num    The subsong number -- must be < \c KQT_SUBSONGS_MAX.
  */
 void Song_set_subsong(Song* song, uint16_t num);
 
@@ -155,7 +155,7 @@ uint16_t Song_get_subsong(Song* song);
  *
  * \param song    The Song -- must not be \c NULL.
  * \param count   The number of buffers -- must be > \c 0 and
- *                <= \c BUF_COUNT_MAX.
+ *                <= \c KQT_BUFFERS_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -257,7 +257,7 @@ Note_table** Song_get_note_tables(Song* song);
  * Gets a Note table of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *
  * \return   The Note table.
  */
@@ -278,7 +278,7 @@ Note_table** Song_get_active_notes(Song* song);
  * Creates a new Note table for the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -289,7 +289,7 @@ bool Song_create_notes(Song* song, int index);
  * Removes a Note table from the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *                If the Note table doesn't exist, nothing will be done.
  */
 void Song_remove_notes(Song* song, int index);
