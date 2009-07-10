@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <Song_limits.h>
 #include <File_base.h>
 

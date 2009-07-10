@@ -23,7 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 
 #ifndef NDEBUG

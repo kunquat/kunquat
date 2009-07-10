@@ -34,7 +34,7 @@
 #include <stdarg.h>
 
 #include <Real.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <File_base.h>
 
 #include <xmemory.h>

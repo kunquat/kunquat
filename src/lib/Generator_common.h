@@ -27,7 +27,7 @@
 
 #include <Voice_state.h>
 #include <Generator.h>
-#include <kqt_frame.h>
+#include <kunquat/frame.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)

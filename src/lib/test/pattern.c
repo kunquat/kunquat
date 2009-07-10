@@ -31,7 +31,7 @@
 
 #include <Real.h>
 #include <Note_table.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <Event.h>
 #include <Event_global_set_tempo.h>
 #include <Event_voice_note_on.h>

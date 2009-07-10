@@ -23,8 +23,8 @@
 #include <stdlib.h>
 #include <math.h>
 
-#include <kqt_Mix_state.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Mix_state.h>
+#include <kunquat/Reltime.h>
 
 
 kqt_Mix_state* kqt_Mix_state_init(kqt_Mix_state* state)

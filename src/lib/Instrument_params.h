@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <kqt_frame.h>
+#include <kunquat/frame.h>
 #include <Envelope.h>
 #include <Note_table.h>
 #include <File_base.h>

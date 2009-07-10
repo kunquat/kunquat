@@ -26,8 +26,8 @@
 
 #include <stdint.h>
 
-#include <kqt_frame.h>
-#include <kqt_Mix_state.h>
+#include <kunquat/frame.h>
+#include <kunquat/Mix_state.h>
 
 
 #define MAX_VOICES (1024)

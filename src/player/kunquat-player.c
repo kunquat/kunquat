@@ -36,8 +36,8 @@
 
 #include <Audio.h>
 
-#include <kqt_Context.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Context.h>
+#include <kunquat/Reltime.h>
 
 #include <keyboard.h>
 #include <status_line.h>

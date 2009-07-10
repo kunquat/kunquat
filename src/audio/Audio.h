@@ -29,8 +29,8 @@
 
 #include <pthread.h>
 
-#include <kqt_Context.h>
-#include <kqt_Mix_state.h>
+#include <kunquat/Context.h>
+#include <kunquat/Mix_state.h>
 
 
 #define AUDIO_ERROR_LENGTH (128)

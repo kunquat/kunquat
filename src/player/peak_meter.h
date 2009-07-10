@@ -24,7 +24,7 @@
 #define PEAK_METER_H
 
 
-#include <kqt_Mix_state.h>
+#include <kunquat/Mix_state.h>
 
 
 /**

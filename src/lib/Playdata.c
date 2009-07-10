@@ -28,7 +28,7 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 #include <Playdata.h>
 

@@ -25,7 +25,7 @@
 
 
 #include <Real.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 
 typedef enum

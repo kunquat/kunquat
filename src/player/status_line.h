@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kqt_Mix_state.h>
+#include <kunquat/Mix_state.h>
 
 
 /**

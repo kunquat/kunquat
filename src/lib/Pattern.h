@@ -28,7 +28,7 @@
 
 #include <Playdata.h>
 #include <Column.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <File_tree.h>
 #include <Song_limits.h>
 

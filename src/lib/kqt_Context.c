@@ -37,7 +37,7 @@
 #include <unistd.h>
 #include <errno.h>
 
-#include <kqt_Context.h>
+#include <kunquat/Context.h>
 
 #include <Song_limits.h>
 #include <Song.h>

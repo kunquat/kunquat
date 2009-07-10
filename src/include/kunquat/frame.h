@@ -20,13 +20,13 @@
  */
 
 
-#ifndef K_FRAME_H
-#define K_FRAME_H
+#ifndef KQT_FRAME_H
+#define KQT_FRAME_H
 
 
 typedef float kqt_frame;
 
 
-#endif // K_FRAME_H
+#endif // KQT_FRAME_H
 
 

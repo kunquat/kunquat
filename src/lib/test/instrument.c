@@ -29,7 +29,7 @@
 
 #include <check.h>
 
-#include <kqt_frame.h>
+#include <kunquat/frame.h>
 #include <Voice_state.h>
 #include <Generator_debug.h>
 #include <Instrument.h>

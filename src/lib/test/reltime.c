@@ -29,7 +29,7 @@
 
 #include <check.h>
 
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 
 Suite* kqt_Reltime_suite(void);

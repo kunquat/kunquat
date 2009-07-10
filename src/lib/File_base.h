@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include <Real.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 
 #define STATE_PATH_LENGTH (512)

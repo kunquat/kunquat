@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <Event_global_set_tempo.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>

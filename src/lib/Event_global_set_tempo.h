@@ -25,7 +25,7 @@
 
 
 #include <Event_global.h>
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 
 
 typedef struct Event_global_set_tempo

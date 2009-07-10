@@ -28,7 +28,7 @@
 
 #include <check.h>
 
-#include <kqt_frame.h>
+#include <kunquat/frame.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 #include <Note_table.h>

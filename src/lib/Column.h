@@ -27,7 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kqt_Reltime.h>
+#include <kunquat/Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
 #include <File_tree.h>

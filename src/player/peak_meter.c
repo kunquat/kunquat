@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <math.h>
 
-#include <kqt_Mix_state.h>
+#include <kunquat/Mix_state.h>
 #include <peak_meter.h>
 
 
