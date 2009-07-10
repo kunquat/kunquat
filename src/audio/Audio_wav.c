@@ -39,6 +39,8 @@
 #include <Audio.h>
 #include <Audio_wav.h>
 
+#include <kunquat/Player.h>
+
 #include <xmemory.h>
 
 

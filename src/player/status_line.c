@@ -104,12 +104,17 @@ int get_status_line(char* line,
                  ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
 
     int line_pos = 0;
+    print_status(line, line_pos, max_len, "%s", peak_meter);
+    if (mix_state->subsong == -1)
+    {
+        print_status(line, line_pos, max_len, "All subsongs");
+    }
+    else
+    {
+        print_status(line, line_pos, max_len, "Subsong: %d", mix_state->subsong);
+    }
     print_status(line, line_pos, max_len,
-                 "%s"
-                 "Subsong: %02" PRIu16
                  ", Time: %02d:%04.1f",
-                 peak_meter,
-                 mix_state->subsong,
                  minutes, seconds);
     if (ns_total >= mix_state->nanoseconds)
     {
@@ -122,7 +127,7 @@ int get_status_line(char* line,
     print_status(line, line_pos, max_len,
                  ", Position: %02" PRIu16 "/%04.1f"
                  ", Voices: %" PRIu16 " (%" PRIu16 ")",
-                 mix_state->order, pos,
+                 mix_state->section, pos,
                  mix_state->voices, voices);
 
     line_pos -= excess_chars;

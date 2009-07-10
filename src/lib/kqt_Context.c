@@ -38,6 +38,7 @@
 #include <errno.h>
 
 #include <kunquat/Context.h>
+#include <kunquat/Player_ext.h>
 
 #include <Song_limits.h>
 #include <Song.h>
@@ -73,9 +74,9 @@ void kqt_Context_stop(kqt_Context* context);
 
 
 kqt_Context* kqt_new_Context(int buf_count,
-                             uint32_t buf_size,
-                             uint16_t voice_count,
-                             uint8_t event_queue_size)
+                             long buf_size,
+                             short voice_count,
+                             short event_queue_size)
 {
     if (buf_count <= 0)
     {
@@ -170,24 +171,24 @@ char* kqt_Context_get_error(kqt_Context* context)
 }
 
 
-bool kqt_Context_load(kqt_Context* context, char* path)
+int kqt_Context_load(kqt_Context* context, char* path)
 {
     if (context == NULL)
     {
         kqt_Context_set_error(NULL, "kqt_Context_load: context must not be NULL");
-        return false;
+        return 0;
     }
     if (path == NULL)
     {
         kqt_Context_set_error(context, "kqt_Context_load: path must not be NULL");
-        return NULL;
+        return 0;
     }
     struct stat* info = &(struct stat){ .st_mode = 0 };
     errno = 0;
     if (stat(path, info) < 0)
     {
         kqt_Context_set_error(context, "Couldn't access %s: %s", path, strerror(errno));
-        return NULL;
+        return 0;
     }
     File_tree* tree = NULL;
     Read_state* state = READ_STATE_AUTO;
@@ -198,7 +199,7 @@ bool kqt_Context_load(kqt_Context* context, char* path)
         {
             kqt_Context_set_error(context, "%s:%d: %s",
                                   state->path, state->row, state->message);
-            return NULL;
+            return 0;
         }
     }
     else
@@ -208,7 +209,7 @@ bool kqt_Context_load(kqt_Context* context, char* path)
         {
             kqt_Context_set_error(context, "%s:%d: %s",
                                   state->path, state->row, state->message);
-            return NULL;
+            return 0;
         }
     }
     assert(tree != NULL);
@@ -217,12 +218,12 @@ bool kqt_Context_load(kqt_Context* context, char* path)
         kqt_Context_set_error(context, "%s:%d: %s",
                               state->path, state->row, state->message);
         del_File_tree(tree);
-        return NULL;
+        return 0;
     }
     del_File_tree(tree);
     kqt_Context_stop(context);
     kqt_Context_set_position(context, NULL);
-    return context;
+    return 1;
 }
 
 
@@ -248,7 +249,7 @@ int kqt_Context_get_subsong_length(kqt_Context* context, int subsong)
 }
 
 
-uint64_t kqt_Context_get_length_ns(kqt_Context* context)
+long long kqt_Context_get_length_ns(kqt_Context* context)
 {
     if (context == NULL)
     {
@@ -285,38 +286,49 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context)
 }
 
 
-bool kqt_Context_set_buffer_size(kqt_Context* context, uint32_t size)
+int kqt_Context_set_buffer_size(kqt_Context* context, long size)
 {
     if (context == NULL)
     {
-        kqt_Context_set_error(NULL, "kqt_Context_get_buffer_size: context must not be NULL");
-        return false;
+        kqt_Context_set_error(NULL, "kqt_Context_set_buffer_size: context must not be NULL");
+        return 0;
     }
     if (size <= 0)
     {
         kqt_Context_set_error(context, "kqt_Context_set_buffer_size: size must be positive");
-        return false;
+        return 0;
     }
     bool success = Song_set_buf_size(context->song, size);
     if (!success)
     {
         kqt_Context_set_error(context, "Couldn't allocate memory for the new buffers");
-        return false;
+        return 0;
     }
-    return true;
+    return 1;
 }
 
 
-bool parse_time(char* pos,
-                int* subsong,
-                int* section,
-                long long* beats,
-                long* remainder,
-                long long* nanoseconds)
+long kqt_Context_get_buffer_size(kqt_Context* context)
 {
-    if (pos == NULL)
+    if (context == NULL)
     {
-        return false;
+        kqt_Context_set_error(NULL, "kqt_Context_get_buffer_size: context must not be NULL");
+        return 0;
+    }
+    return Song_get_buf_size(context->song);
+}
+
+
+int kqt_unwrap_time(char* time,
+                    int* subsong,
+                    int* section,
+                    long long* beats,
+                    long* remainder,
+                    long long* nanoseconds)
+{
+    if (time == NULL)
+    {
+        return 0;
     }
     long read_subsong = -1;
     long read_section = 0;
@@ -324,61 +336,61 @@ bool parse_time(char* pos,
     long read_remainder = 0;
     long long read_ns = 0;
     char* next = NULL;
-    read_subsong = strtol(pos, &next, 0);
+    read_subsong = strtol(time, &next, 0);
     if (read_subsong < -1 || read_subsong >= SUBSONGS_MAX)
     {
-        return false;
+        return 0;
     }
-    pos = next;
+    time = next;
     next = NULL;
-    if (*pos == '/')
+    if (*time == '/')
     {
-        ++pos;
-        read_section = strtol(pos, &next, 0);
+        ++time;
+        read_section = strtol(time, &next, 0);
         if (read_section < 0 || read_section >= ORDERS_MAX)
         {
-            return false;
+            return 0;
         }
-        pos = next;
+        time = next;
         next = NULL;
     }
-    if (*pos == '/')
+    if (*time == '/')
     {
-        ++pos;
-        read_beats = strtoll(pos, &next, 0);
+        ++time;
+        read_beats = strtoll(time, &next, 0);
         if (read_beats < 0 || read_beats == LLONG_MAX)
         {
-            return false;
+            return 0;
         }
-        pos = next;
-        if (*pos != ':')
+        time = next;
+        if (*time != ':')
         {
-            return false;
+            return 0;
         }
-        ++pos;
+        ++time;
         next = NULL;
-        read_remainder = strtol(pos, &next, 0);
+        read_remainder = strtol(time, &next, 0);
         if (read_remainder < 0 || read_remainder >= KQT_RELTIME_BEAT)
         {
-            return false;
+            return 0;
         }
-        pos = next;
+        time = next;
         next = NULL;
     }
-    if (*pos == '+')
+    if (*time == '+')
     {
-        ++pos;
-        read_ns = strtoll(pos, &next, 0);
+        ++time;
+        read_ns = strtoll(time, &next, 0);
         if (read_ns < 0 || read_ns == LLONG_MAX)
         {
-            return false;
+            return 0;
         }
-        pos = next;
+        time = next;
         next = NULL;
     }
-    if (*pos != '\0')
+    if (*time != '\0')
     {
-        return false;
+        return 0;
     }
     if (subsong != NULL)
     {
@@ -400,21 +412,21 @@ bool parse_time(char* pos,
     {
         *nanoseconds = read_ns;
     }
-    return true;
+    return 1;
 }
 
 
-bool kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds)
+int kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds)
 {
     if (context == NULL)
     {
         kqt_Context_set_error(NULL, "kqt_Context_set_position_ns: context must not be NULL");
-        return false;
+        return 0;
     }
     if (nanoseconds < 0)
     {
         kqt_Context_set_error(NULL, "kqt_Context_set_position_ns: nanoseconds must not be negative");
-        return false;
+        return 0;
     }
     char pos[32] = { '\0' };
     int subsong = -1;
@@ -427,12 +439,12 @@ bool kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds)
 }
 
 
-bool kqt_Context_set_position(kqt_Context* context, char* position)
+int kqt_Context_set_position(kqt_Context* context, char* position)
 {
     if (context == NULL)
     {
         kqt_Context_set_error(NULL, "kqt_Context_set_position: context must not be NULL");
-        return false;
+        return 0;
     }
     if (position == NULL)
     {
@@ -445,7 +457,7 @@ bool kqt_Context_set_position(kqt_Context* context, char* position)
     long long beats = 0;
     long remainder = 0;
     long long nanoseconds = 0;
-    if (!parse_time(str, &subsong, &section, &beats, &remainder, &nanoseconds))
+    if (!kqt_unwrap_time(str, &subsong, &section, &beats, &remainder, &nanoseconds))
     {
         kqt_Context_set_error(context, "Invalid position indication: %s", position);
         return false;
@@ -480,7 +492,20 @@ bool kqt_Context_set_position(kqt_Context* context, char* position)
         Song_skip(context->song, context->play, frame_skip);
         kqt_Reltime_copy(&context->play_silent->pos, &context->play->pos);
     }
-    return true;
+    return 1;
+}
+
+
+void kqt_Context_reset_stats(kqt_Context* context)
+{
+    if (context == NULL)
+    {
+        kqt_Context_set_error(NULL, "kqt_Context_reset_stats: context must not be NULL");
+        return;
+    }
+    Playdata_reset_stats(context->play);
+    Playdata_reset_stats(context->play_silent);
+    return;
 }
 
 
@@ -495,7 +520,7 @@ long long kqt_Context_get_position_ns(kqt_Context* context)
 }
 
 
-uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq)
+long kqt_Context_mix(kqt_Context* context, long nframes, long freq)
 {
     assert(context != NULL);
     if (!context->play || context->song == NULL)
@@ -511,18 +536,18 @@ uint32_t kqt_Context_mix(kqt_Context* context, uint32_t nframes, uint32_t freq)
 }
 
 
-bool kqt_Context_end_reached(kqt_Context* context)
+int kqt_Context_end_reached(kqt_Context* context)
 {
     if (context == NULL)
     {
         kqt_Context_set_error(NULL, "kqt_Context_end_reached: context must not be NULL");
-        return true;
+        return 1;
     }
     return context->play->mode == STOP;
 }
 
 
-uint64_t kqt_Context_get_frames_mixed(kqt_Context* context)
+long long kqt_Context_get_frames_mixed(kqt_Context* context)
 {
     if (context == NULL)
     {
@@ -598,33 +623,6 @@ long kqt_Context_get_clipped(kqt_Context* context, int buffer)
         return 0;
     }
     return context->play->clipped[buffer];
-}
-
-
-void kqt_Context_get_state(kqt_Context* context, kqt_Mix_state* mix_state)
-{
-    if (context == NULL || mix_state == NULL)
-    {
-        return;
-    }
-    Playdata* play = context->play;
-    mix_state->playing = play->mode != STOP;
-    mix_state->frames = play->play_frames;
-    mix_state->nanoseconds = kqt_Context_get_position_ns(context);
-    mix_state->subsong = play->subsong;
-    mix_state->order = play->order_index;
-    mix_state->pattern = play->pattern;
-    kqt_Reltime_copy(&mix_state->pos, &play->pos);
-    mix_state->tempo = play->tempo;
-    mix_state->voices = play->active_voices;
-    for (int i = 0; i < 2; ++i)
-    {
-        mix_state->min_amps[i] = play->min_amps[i];
-        mix_state->max_amps[i] = play->max_amps[i];
-        mix_state->clipped[i] = play->clipped[i];
-    }
-    Playdata_reset_stats(play);
-    return;
 }
 
 

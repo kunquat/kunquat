@@ -34,6 +34,8 @@
 #include <Audio.h>
 #include <Audio_openal.h>
 
+#include <kunquat/Player.h>
+
 #include <xmemory.h>
 
 

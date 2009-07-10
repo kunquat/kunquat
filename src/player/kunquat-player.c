@@ -37,6 +37,8 @@
 #include <Audio.h>
 
 #include <kunquat/Context.h>
+#include <kunquat/Player.h>
+#include <kunquat/Player_ext.h>
 #include <kunquat/Reltime.h>
 
 #include <keyboard.h>

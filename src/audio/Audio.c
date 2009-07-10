@@ -35,6 +35,7 @@
 
 #include <Audio.h>
 #include <kunquat/Context.h>
+#include <kunquat/Player_ext.h>
 #include <kunquat/Mix_state.h>
 
 #include <xmemory.h>
@@ -287,7 +288,7 @@ int Audio_notify(Audio* audio)
     {
         if (audio->context != NULL)
         {
-            kqt_Context_get_state(audio->context, &audio->state);
+            kqt_Mix_state_from_context(&audio->state, audio->context);
         }
         else
         {
