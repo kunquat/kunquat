@@ -48,14 +48,14 @@ static int Audio_jack_bufsize(jack_nframes_t nframes, void* arg)
     assert(arg != NULL);
     Audio_jack* audio_jack = (Audio_jack*)arg;
     Audio* audio = &audio_jack->parent;
-    if (audio->context == NULL)
+    if (audio->handle == NULL)
     {
         return 0;
     }
-    if (!kqt_Context_set_buffer_size(audio->context, nframes))
+    if (!kqt_Handle_set_buffer_size(audio->handle, nframes))
     {
-        Audio_set_error(audio, kqt_Context_get_error(audio->context));
-        audio->context = NULL;
+        Audio_set_error(audio, kqt_Handle_get_error(audio->handle));
+        audio->handle = NULL;
         return -1;
     }
     audio->nframes = nframes;
@@ -74,17 +74,17 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
         return 0;
     }
     uint32_t mixed = 0;
-    kqt_Context* context = audio->context;
+    kqt_Handle* handle = audio->handle;
     jack_default_audio_sample_t* jbuf_l =
             jack_port_get_buffer(audio_jack->ports[0], nframes);
     jack_default_audio_sample_t* jbuf_r =
             jack_port_get_buffer(audio_jack->ports[1], nframes);
     jack_default_audio_sample_t* jbufs[2] = { jbuf_l, jbuf_r };
-    if (context != NULL && !audio->pause)
+    if (handle != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, nframes, audio->freq);
-        int buf_count = kqt_Context_get_buffer_count(context);
-        kqt_frame** bufs = kqt_Context_get_buffers(context);
+        mixed = kqt_Handle_mix(handle, nframes, audio->freq);
+        int buf_count = kqt_Handle_get_buffer_count(handle);
+        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
         for (int i = 0; i < buf_count; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)

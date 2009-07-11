@@ -34,7 +34,7 @@
 #include <pthread.h>
 
 #include <Audio.h>
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 #include <kunquat/Player_ext.h>
 
 #include <Mix_state.h>
@@ -59,7 +59,7 @@ bool Audio_init(Audio* audio,
     audio->pause = false;
     audio->nframes = 0;
     audio->freq = 0;
-    audio->context = NULL;
+    audio->handle = NULL;
     Mix_state_init(&audio->state);
     audio->open = open;
     audio->close = close;
@@ -169,10 +169,10 @@ bool Audio_close(Audio* audio)
 }
 
 
-void Audio_set_context(Audio* audio, kqt_Context* context)
+void Audio_set_handle(Audio* audio, kqt_Handle* handle)
 {
     assert(audio != NULL);
-    audio->context = context;
+    audio->handle = handle;
     return;
 }
 
@@ -287,9 +287,9 @@ int Audio_notify(Audio* audio)
     int err = pthread_mutex_trylock(&audio->state_mutex);
     if (err == 0)
     {
-        if (audio->context != NULL)
+        if (audio->handle != NULL)
         {
-            Mix_state_from_context(&audio->state, audio->context);
+            Mix_state_from_handle(&audio->state, audio->handle);
         }
         else
         {

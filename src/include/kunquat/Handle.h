@@ -20,8 +20,8 @@
  */
 
 
-#ifndef KQT_CONTEXT_H
-#define KQT_CONTEXT_H
+#ifndef KQT_HANDLE_H
+#define KQT_HANDLE_H
 
 
 #ifdef __cplusplus
@@ -33,62 +33,62 @@ extern "C" {
 #include <kunquat/frame.h>
 
 
-typedef struct kqt_Context kqt_Context;
+typedef struct kqt_Handle kqt_Handle;
 
 
 /**
- * Creates a new Kunquat Context.
+ * Creates a new Kunquat Handle.
  *
  * \param buffer_size   The size of the mixing buffers -- should be positive.
  *
- * \return   The new Kunquat Context if successful, or \c NULL if memory
+ * \return   The new Kunquat Handle if successful, or \c NULL if memory
  *           allocation failed.
  */
-kqt_Context* kqt_new_Context(long buffer_size);
+kqt_Handle* kqt_new_Handle(long buffer_size);
 
 
 /**
- * Gets error information from the Kunquat Context.
+ * Gets error information from the Kunquat Handle.
  *
- * \param context   The Context, or \c NULL if retrieving error information
- *                  that is not associated with a Kunquat Context.
+ * \param handle   The Handle, or \c NULL if retrieving error information
+ *                  that is not associated with a Kunquat Handle.
  *
  * \return   The error message. This is an empty string if no error has
  *           occurred.
  */
-char* kqt_Context_get_error(kqt_Context* context);
+char* kqt_Handle_get_error(kqt_Handle* handle);
 
 
 /**
  * Loads contents of a Kunquat composition file or directory.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  * \param path      The path to the Kunquat composition file or directory
  *                  -- should not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-int kqt_Context_load(kqt_Context* context, char* path);
+int kqt_Handle_load(kqt_Handle* handle, char* path);
 
 
 /**
- * Gets the length of a Subsong in the Kunquat Context.
+ * Gets the length of a Subsong in the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  * \param subsong   The Subsong number -- should be >= \c 0 and
  *                  < \c SUBSONGS_MAX.
  *
  * \return   The length of the Subsong, or \c -1 if arguments were invalid.
  */
-int kqt_Context_get_subsong_length(kqt_Context* context, int subsong);
+int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong);
 
 
 /**
- * Destroys an existing Kunquat Context.
+ * Destroys an existing Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  */
-void kqt_del_Context(kqt_Context* context);
+void kqt_del_Handle(kqt_Handle* handle);
 
 
 #ifdef __cplusplus
@@ -96,6 +96,6 @@ void kqt_del_Context(kqt_Context* context);
 #endif
 
 
-#endif // KQT_CONTEXT_H
+#endif // KQT_HANDLE_H
 
 

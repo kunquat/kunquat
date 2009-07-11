@@ -28,7 +28,7 @@
 #include <stdint.h>
 
 #include <kunquat/Reltime.h>
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 
 
 typedef struct Mix_state
@@ -78,27 +78,27 @@ Mix_state* Mix_state_copy(Mix_state* dest, Mix_state* src);
 
 
 /**
- * Gets playback statistics from a Kunquat Context.
+ * Gets playback statistics from a Kunquat Handle.
  *
  * This is a convenience function that retrieves the information provided by
  * the following functions:
  *
- *    kqt_Context_end_reached
- *    kqt_Context_get_position
- *    kqt_Context_get_position_ns
- *    kqt_Context_get_tempo
- *    kqt_Context_get_voice_count
- *    kqt_Context_get_min_amplitude
- *    kqt_Context_get_max_amplitude
- *    kqt_Context_get_clipped
+ *    kqt_Handle_end_reached
+ *    kqt_Handle_get_position
+ *    kqt_Handle_get_position_ns
+ *    kqt_Handle_get_tempo
+ *    kqt_Handle_get_voice_count
+ *    kqt_Handle_get_min_amplitude
+ *    kqt_Handle_get_max_amplitude
+ *    kqt_Handle_get_clipped
  *    
- * It also calls kqt_Context_reset_stats.
+ * It also calls kqt_Handle_reset_stats.
  *
  * \param mix_state   The Mix state where the statistics shall be written
  *                    -- must not be \c NULL.
- * \param context     The Context -- must not be \c NULL.
+ * \param handle      The Kunquat Handle -- must not be \c NULL.
  */
-void Mix_state_from_context(Mix_state* mix_state, kqt_Context* context);
+void Mix_state_from_handle(Mix_state* mix_state, kqt_Handle* handle);
 
 
 #endif // MIX_STATE_H

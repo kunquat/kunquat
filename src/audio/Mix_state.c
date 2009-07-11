@@ -75,30 +75,30 @@ Mix_state* Mix_state_copy(Mix_state* dest, Mix_state* src)
 }
 
 
-void Mix_state_from_context(Mix_state* mix_state, kqt_Context* context)
+void Mix_state_from_handle(Mix_state* mix_state, kqt_Handle* handle)
 {
     assert(mix_state != NULL);
-    assert(context != NULL);
-    mix_state->playing = !kqt_Context_end_reached(context);
-    mix_state->frames = kqt_Context_get_frames_mixed(context);
-    mix_state->nanoseconds = kqt_Context_tell_nanoseconds(context);
-    char* pos = kqt_Context_get_position(context);
+    assert(handle != NULL);
+    mix_state->playing = !kqt_Handle_end_reached(handle);
+    mix_state->frames = kqt_Handle_get_frames_mixed(handle);
+    mix_state->nanoseconds = kqt_Handle_tell_nanoseconds(handle);
+    char* pos = kqt_Handle_get_position(handle);
     long long beats = 0;
     long rem = 0;
     kqt_unwrap_time(pos, &mix_state->subsong, &mix_state->section, &beats, &rem, NULL);
-/*    mix_state->pattern = kqt_Context_get_pattern_index(context,
+/*    mix_state->pattern = kqt_Handle_get_pattern_index(handle,
                                                        mix_state->subsong,
                                                        mix_state->section); */
     kqt_Reltime_set(&mix_state->pos, beats, rem);
-    mix_state->tempo = kqt_Context_get_tempo(context);
-    mix_state->voices = kqt_Context_get_voice_count(context);
+    mix_state->tempo = kqt_Handle_get_tempo(handle);
+    mix_state->voices = kqt_Handle_get_voice_count(handle);
     for (int i = 0; i < 2; ++i)
     {
-        mix_state->min_amps[i] = kqt_Context_get_min_amplitude(context, i);
-        mix_state->max_amps[i] = kqt_Context_get_max_amplitude(context, i);
-        mix_state->clipped[i] = kqt_Context_get_clipped(context, i);
+        mix_state->min_amps[i] = kqt_Handle_get_min_amplitude(handle, i);
+        mix_state->max_amps[i] = kqt_Handle_get_max_amplitude(handle, i);
+        mix_state->clipped[i] = kqt_Handle_get_clipped(handle, i);
     }
-    kqt_Context_reset_stats(context);
+    kqt_Handle_reset_stats(handle);
     return;
 }
 

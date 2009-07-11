@@ -170,12 +170,12 @@ static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes)
         Audio_set_error(audio, "Cannot set buffer size while the driver is active.");
         return false;
     }
-    if (audio->context != NULL)
+    if (audio->handle != NULL)
     {
-        if (kqt_Context_set_buffer_size(audio->context, nframes))
+        if (kqt_Handle_set_buffer_size(audio->handle, nframes))
         {
-            Audio_set_error(audio, kqt_Context_get_error(audio->context));
-            audio->context = NULL;
+            Audio_set_error(audio, kqt_Handle_get_error(audio->handle));
+            audio->handle = NULL;
             return false;
         }
     }
@@ -234,12 +234,12 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     }
     uint32_t mixed = 0;
     assert(audio_ao->out_buf != NULL);
-    kqt_Context* context = audio->context;
-    if (context != NULL && !audio->pause)
+    kqt_Handle* handle = audio->handle;
+    if (handle != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
-        int buf_count = kqt_Context_get_buffer_count(context);
-        kqt_frame** bufs = kqt_Context_get_buffers(context);
+        mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
+        int buf_count = kqt_Handle_get_buffer_count(handle);
+        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
         for (uint32_t i = 0; i < mixed; ++i)
         {
             audio_ao->out_buf[i * 2] = (short)(bufs[0][i] * INT16_MAX);

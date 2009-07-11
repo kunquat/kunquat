@@ -169,10 +169,10 @@ static int Audio_null_process(Audio_null* audio_null)
         Audio_notify(audio);
         return 0;
     }
-    kqt_Context* context = audio->context;
-    if (context != NULL && !audio->pause)
+    kqt_Handle* handle = audio->handle;
+    if (handle != NULL && !audio->pause)
     {
-        kqt_Context_mix(context, audio->nframes, audio->freq);
+        kqt_Handle_mix(handle, audio->nframes, audio->freq);
     }
     else
     {

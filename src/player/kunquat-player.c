@@ -36,7 +36,7 @@
 
 #include <Audio.h>
 
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 #include <kunquat/Player.h>
 #include <kunquat/Player_ext.h>
 #include <kunquat/Reltime.h>
@@ -388,34 +388,34 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Context* context = kqt_new_Context(audio->nframes);
-        if (context == NULL)
+        kqt_Handle* handle = kqt_new_Handle(audio->nframes);
+        if (handle == NULL)
         {
-            fprintf(stderr, "Couldn't allocate memory for the Kunquat Context\n");
+            fprintf(stderr, "Couldn't allocate memory for the Kunquat Handle\n");
             continue;
         }
-        if (!kqt_Context_load(context, argv[file_arg]))
+        if (!kqt_Handle_load(handle, argv[file_arg]))
         {
-            fprintf(stderr, "%s\n", kqt_Context_get_error(context));
-            kqt_del_Context(context);
+            fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
             continue;
         }
         if (subsong != -1)
         {
             char pos[64] = { '\0' };
             snprintf(pos, 64, "%d", subsong);
-            if (!kqt_Context_set_position(context, pos))
+            if (!kqt_Handle_set_position(handle, pos))
             {
-                fprintf(stderr, "%s\n", kqt_Context_get_error(context));
-                kqt_del_Context(context);
+                fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+                kqt_del_Handle(handle);
                 continue;
             }
         }
 
-        Audio_set_context(audio, context);
+        Audio_set_handle(audio, handle);
 
         uint32_t freq = Audio_get_freq(audio);
-        uint64_t length_ns = kqt_Context_get_duration(context);
+        uint64_t length_ns = kqt_Handle_get_duration(handle);
         uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
@@ -472,15 +472,15 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Context_tell_nanoseconds(context);
+                    long long ns = kqt_Handle_tell_nanoseconds(handle);
                     ns -= 10000000000LL;
                     if (ns < 0)
                     {
                         ns = 0;
                     }
-                    if (!kqt_Context_seek_nanoseconds(context, ns))
+                    if (!kqt_Handle_seek_nanoseconds(handle, ns))
                     {
-                        fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
+                        fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
                     Audio_pause(audio, false);
                 }
@@ -488,11 +488,11 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Context_tell_nanoseconds(context);
+                    long long ns = kqt_Handle_tell_nanoseconds(handle);
                     ns += 10000000000LL;
-                    if (!kqt_Context_seek_nanoseconds(context, ns))
+                    if (!kqt_Handle_seek_nanoseconds(handle, ns))
                     {
-                        fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
+                        fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
                     Audio_pause(audio, false);
                 }
@@ -529,13 +529,13 @@ int main(int argc, char** argv)
                     }
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    if (!kqt_Context_set_position(context, pos))
+                    if (!kqt_Handle_set_position(handle, pos))
                     {
-                        fprintf(stderr, "%s\n", kqt_Context_get_error(context));
+                        fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
                     }
                     else
                     {
-                        length_ns = kqt_Context_tell_nanoseconds(context);
+                        length_ns = kqt_Handle_tell_nanoseconds(handle);
                     }
                     Audio_pause(audio, false);
                 }
@@ -558,9 +558,9 @@ int main(int argc, char** argv)
         {
             fprintf(stderr, "\n");
         }
-        Audio_set_context(audio, NULL);
+        Audio_set_handle(audio, NULL);
         Audio_get_state(audio, mix_state);
-        kqt_del_Context(context);
+        kqt_del_Handle(handle);
     }
     if (interactive)
     {

@@ -289,12 +289,12 @@ static int Audio_wav_process(Audio_wav* audio_wav)
     }
     assert(audio_wav->out != NULL);
     assert(audio_wav->out_buf != NULL);
-    kqt_Context* context = audio->context;
-    if (context != NULL && !audio->pause)
+    kqt_Handle* handle = audio->handle;
+    if (handle != NULL && !audio->pause)
     {
-        uint32_t mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
-        int buf_count = kqt_Context_get_buffer_count(context);
-        kqt_frame** bufs = kqt_Context_get_buffers(context);
+        uint32_t mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
+        int buf_count = kqt_Handle_get_buffer_count(handle);
+        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
         for (uint32_t i = 0; i < mixed; ++i)
         {
             audio_wav->out_buf[i * 2] = (float)bufs[0][i];

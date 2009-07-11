@@ -29,7 +29,7 @@ extern "C" {
 #endif
 
 
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 #include <kunquat/Player.h>
 
 
@@ -74,100 +74,100 @@ int kqt_unwrap_time(char* time,
  *
  * Important: Because the position of a section and a timestamp in time
  *            elapsed from the beginning is ambiguous, the function
- *            \a kqt_Context_get_position_ns shouldn't be used after a jump
+ *            \a kqt_Handle_tell_nanoseconds shouldn't be used after a jump
  *            to a section or timestamp.
  *
- * \param context    The Context -- should not be \c NULL.
+ * \param handle     The Handle -- should not be \c NULL.
  * \param position   The new position -- should not be \c NULL.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Context_set_position(kqt_Context* context, char* position);
+int kqt_Handle_set_position(kqt_Handle* handle, char* position);
 
 
 /**
- * Gets the current position of the Kunquat Context.
+ * Gets the current position of the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
- * \return   The position description, or \c NULL if \a context is invalid.
+ * \return   The position description, or \c NULL if \a handle is invalid.
  */
-char* kqt_Context_get_position(kqt_Context* context);
+char* kqt_Handle_get_position(kqt_Handle* handle);
 
 
 /**
- * Tells whether mixing of the Kunquat Context has reached the end.
+ * Tells whether mixing of the Kunquat Handle has reached the end.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   \c 1 if the end has been reached, otherwise \c 0.
  */
-int kqt_Context_end_reached(kqt_Context* context);
+int kqt_Handle_end_reached(kqt_Handle* handle);
 
 
 /**
  * Gets the total number of frames mixed after the last position change.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The number of frames.
  */
-long long kqt_Context_get_frames_mixed(kqt_Context* context);
+long long kqt_Handle_get_frames_mixed(kqt_Handle* handle);
 
 
 /**
- * Gets the current tempo in the Kunquat Context.
+ * Gets the current tempo in the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The current tempo.
  */
-double kqt_Context_get_tempo(kqt_Context* context);
+double kqt_Handle_get_tempo(kqt_Handle* handle);
 
 
 /**
  * Gets the maximum number of simultaneous Voices used.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The number of Voices.
  */
-int kqt_Context_get_voice_count(kqt_Context* context);
+int kqt_Handle_get_voice_count(kqt_Handle* handle);
 
 
 /**
  * Gets the minimum amplitude value encountered.
  *
- * \param context   The Context -- should not be \c NULL.
- * \param buffer    The buffer index (0 for left, 1 for right).
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param buffer   The buffer index (0 for left, 1 for right).
  *
  * \return   The minimum amplitude value, or \c INFINITY if nothing has been
  *           mixed into the buffer.
  */
-double kqt_Context_get_min_amplitude(kqt_Context* context, int buffer);
+double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer);
 
 
 /**
  * Gets the maximum amplitude value encountered.
  *
- * \param context   The Context -- should not be \c NULL.
- * \param buffer    The buffer index (0 for left, 1 for right).
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param buffer   The buffer index (0 for left, 1 for right).
  *
  * \return   The maximum amplitude value, or \c -INFINITY if nothing has been
  *           mixed into the buffer.
  */
-double kqt_Context_get_max_amplitude(kqt_Context* context, int buffer);
+double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer);
 
 
 /**
  * Gets the number of clipped frames encountered.
  *
- * \param context   The Context -- should not be \c NULL.
- * \param buffer    The buffer index (0 for left, 1 for right).
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param buffer   The buffer index (0 for left, 1 for right).
  *
  * \return   The number of clipped frames.
  */
-long kqt_Context_get_clipped(kqt_Context* context, int buffer);
+long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer);
 
 
 /**
@@ -176,9 +176,9 @@ long kqt_Context_get_clipped(kqt_Context* context, int buffer);
  * The values that will be reset are number of Voices used, peak amplitude
  * values and counts of clipped frames. Thus, it doesn't affect the playback.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  */
-void kqt_Context_reset_stats(kqt_Context* context);
+void kqt_Handle_reset_stats(kqt_Handle* handle);
 
 
 #ifdef __cplusplus

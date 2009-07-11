@@ -29,81 +29,81 @@ extern "C" {
 #endif
 
 
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 
 
 /**
- * Sets the buffer size of the Kunquat Context.
+ * Sets the buffer size of the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
- * \param size      The new buffer size -- should be > \c 0.
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param size     The new buffer size -- should be > \c 0.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  *           Note: If memory allocation fails, mixing is still possible but
  *           only with min{old_size, new_size} frames at a time. However, it
  *           may be a good idea to just give up in this case.
  */
-int kqt_Context_set_buffer_size(kqt_Context* context, long size);
+int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size);
 
 
 /**
- * Gets the buffer size of the Kunquat Context.
+ * Gets the buffer size of the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The size of a buffer in frames.
  */
-long kqt_Context_get_buffer_size(kqt_Context* context);
+long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Does mixing according to the state of the Kunquat Context.
+ * Does mixing according to the state of the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle    The Handle -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed.
  * \param freq      The mixing frequency -- should be > \c 0.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes.
  */
-long kqt_Context_mix(kqt_Context* context, long nframes, long freq);
+long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
 
 
 /**
- * Gets the length of the Kunquat Context in nanoseconds.
+ * Gets the length of the Kunquat Handle in nanoseconds.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The length in nanoseconds.
  */
-long long kqt_Context_get_duration(kqt_Context* context);
+long long kqt_Handle_get_duration(kqt_Handle* handle);
 
 
 /**
- * Gets the number of mixing buffers in the Kunquat Context.
+ * Gets the number of mixing buffers in the Kunquat Handle.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
- * \return   The number of buffers, or \c 0 if \a context == \c NULL.
+ * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
  */
-int kqt_Context_get_buffer_count(kqt_Context* context);
+int kqt_Handle_get_buffer_count(kqt_Handle* handle);
 
 
 /**
- * Gets the mixing buffers in the Kunquat Context.
+ * Gets the mixing buffers in the Kunquat Handle.
  *
  * The returned value \a bufs is an array of buffers where \a bufs[0]
  * contains the buffer of the first output channel (left channel in stereo),
  * \a bufs[1] contains the buffer of the second output channel, and so on.
- * \a bufs[kqt_Context_get_buffer_count(\a context)] is always \c NULL.
- * Each buffer contains kqt_Context_get_buffer_size(\a context) amplitude
+ * \a bufs[kqt_Handle_get_buffer_count(\a handle)] is always \c NULL.
+ * Each buffer contains kqt_Handle_get_buffer_size(\a handle) amplitude
  * values of type \a kqt_frame.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
- * \return   The buffers, or \c NULL if \a context == \c NULL.
+ * \return   The buffers, or \c NULL if \a handle == \c NULL.
  */
-kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
+kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle);
 
 
 /**
@@ -112,23 +112,23 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
  * Any notes that were being played will be cut off immediately.
  * Notes that start playing before the given position will not be played.
  *
- * \param context       The Context -- should not be \c NULL.
+ * \param handle        The Handle -- should not be \c NULL.
  * \param nanoseconds   The number of nanoseconds from the beginning --
  *                      should not be negative.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Context_seek_nanoseconds(kqt_Context* context, long long nanoseconds);
+int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds);
 
 
 /**
  * Gets the current position in nanoseconds.
  *
- * \param context   The Context -- should not be \c NULL.
+ * \param handle   The Handle -- should not be \c NULL.
  *
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
-long long kqt_Context_tell_nanoseconds(kqt_Context* context);
+long long kqt_Handle_tell_nanoseconds(kqt_Handle* handle);
 
 
 #ifdef __cplusplus

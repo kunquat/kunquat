@@ -164,12 +164,12 @@ static bool Audio_openal_set_buffer_size(Audio_openal* audio_openal, uint32_t nf
         Audio_set_error(audio, "Cannot set buffer size while the driver is active.");
         return false;
     }
-    if (audio->context != NULL)
+    if (audio->handle != NULL)
     {
-        if (kqt_Context_set_buffer_size(audio->context, nframes))
+        if (kqt_Handle_set_buffer_size(audio->handle, nframes))
         {
-            Audio_set_error(audio, kqt_Context_get_error(audio->context));
-            audio->context = NULL;
+            Audio_set_error(audio, kqt_Handle_get_error(audio->handle));
+            audio->handle = NULL;
             return false;
         }
     }
@@ -266,12 +266,12 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     
     // Generate the sound
     uint32_t mixed = 0;
-    kqt_Context* context = audio->context;
-    if (context != NULL && !audio->pause)
+    kqt_Handle* handle = audio->handle;
+    if (handle != NULL && !audio->pause)
     {
-        mixed = kqt_Context_mix(context, audio->nframes, audio->freq);
-        int buf_count = kqt_Context_get_buffer_count(context);
-        kqt_frame** bufs = kqt_Context_get_buffers(context);
+        mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
+        int buf_count = kqt_Handle_get_buffer_count(handle);
+        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
         
         // Convert to interleaved 16-bit stereo
         for (uint32_t i = 0; i < audio->nframes; ++i)

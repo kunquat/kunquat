@@ -29,7 +29,7 @@
 
 #include <pthread.h>
 
-#include <kunquat/Context.h>
+#include <kunquat/Handle.h>
 
 #include <Mix_state.h>
 
@@ -45,7 +45,7 @@ typedef struct Audio
     bool pause;
     uint32_t nframes;
     uint32_t freq;
-    kqt_Context* context;
+    kqt_Handle* handle;
     bool (*open)(struct Audio*);
     bool (*close)(struct Audio*);
     bool (*set_buffer_size)(struct Audio*, uint32_t nframes);
@@ -178,12 +178,12 @@ bool Audio_close(Audio* audio);
 
 
 /**
- * Sets the Kunquat Context for the Audio.
+ * Sets the Kunquat Handle for the Audio.
  *
- * \param audio     The Audio -- must not be \c NULL.
- * \param context   The Context.
+ * \param audio    The Audio -- must not be \c NULL.
+ * \param handle   The Handle.
  */
-void Audio_set_context(Audio* audio, kqt_Context* context);
+void Audio_set_handle(Audio* audio, kqt_Handle* handle);
 
 
 /**

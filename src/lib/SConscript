@@ -33,7 +33,7 @@ env.Append(CPPPATH = ['#/src/lib', '#/src/include'])
 files = [
     'Real.c',
     'Note_table.c',
-    'kqt_Reltime.c',
+    'Reltime.c',
     'Event.c',
     'Event_creator.c',
     'Event_global.c',
@@ -71,7 +71,7 @@ files = [
     'Pattern.c',
     'Song.c',
     'Playdata.c',
-    'kqt_Context.c',
+    'Handle.c',
 ]
 
 env.StaticLibrary('kunquat', files)
