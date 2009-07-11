@@ -48,10 +48,23 @@ kqt_Handle* kqt_new_Handle(long buffer_size);
 
 
 /**
+ * Creates a new Kunquat Handle from a composition file or directory.
+ *
+ * \param buffer_size   The size of the mixing buffers -- should be positive.
+ * \param path          The path to the Kunquat composition file or directory
+ *                      -- should not be \c NULL.
+ *
+ * \return   The new Kunquat Handle if successful, otherwise \c NULL
+ *           (check kqt_Handle_get_error(NULL) for error message).
+ */
+kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
+
+
+/**
  * Gets error information from the Kunquat Handle.
  *
  * \param handle   The Handle, or \c NULL if retrieving error information
- *                  that is not associated with a Kunquat Handle.
+ *                 that is not associated with a Kunquat Handle.
  *
  * \return   The error message. This is an empty string if no error has
  *           occurred.
@@ -60,21 +73,9 @@ char* kqt_Handle_get_error(kqt_Handle* handle);
 
 
 /**
- * Loads contents of a Kunquat composition file or directory.
- *
- * \param handle   The Handle -- should not be \c NULL.
- * \param path      The path to the Kunquat composition file or directory
- *                  -- should not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-int kqt_Handle_load(kqt_Handle* handle, char* path);
-
-
-/**
  * Gets the length of a Subsong in the Kunquat Handle.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle    The Handle -- should not be \c NULL.
  * \param subsong   The Subsong number -- should be >= \c 0 and
  *                  < \c SUBSONGS_MAX.
  *

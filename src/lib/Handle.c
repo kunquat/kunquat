@@ -117,34 +117,29 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
 }
 
 
-char* kqt_Handle_get_error(kqt_Handle* handle)
+kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
 {
-    if (handle == NULL)
+    if (buffer_size <= 0)
     {
-        return null_error;
-    }
-    return handle->error;
-}
-
-
-int kqt_Handle_load(kqt_Handle* handle, char* path)
-{
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_load: handle must not be NULL");
-        return 0;
+        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: buf_size must be positive");
+        return NULL;
     }
     if (path == NULL)
     {
-        kqt_Handle_set_error(handle, "kqt_Handle_load: path must not be NULL");
-        return 0;
+        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: path must not be NULL");
+        return NULL;
     }
     struct stat* info = &(struct stat){ .st_mode = 0 };
     errno = 0;
     if (stat(path, info) < 0)
     {
-        kqt_Handle_set_error(handle, "Couldn't access %s: %s", path, strerror(errno));
-        return 0;
+        kqt_Handle_set_error(NULL, "Couldn't access %s: %s", path, strerror(errno));
+        return NULL;
+    }
+    kqt_Handle* handle = kqt_new_Handle(buffer_size);
+    if (handle == NULL)
+    {
+        return NULL;
     }
     File_tree* tree = NULL;
     Read_state* state = READ_STATE_AUTO;
@@ -153,9 +148,10 @@ int kqt_Handle_load(kqt_Handle* handle, char* path)
         tree = new_File_tree_from_fs(path, state);
         if (tree == NULL)
         {
-            kqt_Handle_set_error(handle, "%s:%d: %s",
+            kqt_Handle_set_error(NULL, "%s:%d: %s",
                                   state->path, state->row, state->message);
-            return 0;
+            kqt_del_Handle(handle);
+            return NULL;
         }
     }
     else
@@ -163,23 +159,35 @@ int kqt_Handle_load(kqt_Handle* handle, char* path)
         tree = new_File_tree_from_tar(path, state);
         if (tree == NULL)
         {
-            kqt_Handle_set_error(handle, "%s:%d: %s",
+            kqt_Handle_set_error(NULL, "%s:%d: %s",
                                   state->path, state->row, state->message);
-            return 0;
+            kqt_del_Handle(handle);
+            return NULL;
         }
     }
     assert(tree != NULL);
     if (!Song_read(handle->song, tree, state))
     {
-        kqt_Handle_set_error(handle, "%s:%d: %s",
+        kqt_Handle_set_error(NULL, "%s:%d: %s",
                               state->path, state->row, state->message);
         del_File_tree(tree);
-        return 0;
+        kqt_del_Handle(handle);
+        return NULL;
     }
     del_File_tree(tree);
     kqt_Handle_stop(handle);
     kqt_Handle_set_position(handle, NULL);
-    return 1;
+    return handle;
+}
+
+
+char* kqt_Handle_get_error(kqt_Handle* handle)
+{
+    if (handle == NULL)
+    {
+        return null_error;
+    }
+    return handle->error;
 }
 
 
@@ -217,7 +225,7 @@ void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...)
     va_start(args, message);
     vsnprintf(error, KQT_CONTEXT_ERROR_LENGTH, message, args);
     va_end(args);
-    handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
+    error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     return;
 }
 

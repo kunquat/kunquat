@@ -388,16 +388,10 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Handle* handle = kqt_new_Handle(audio->nframes);
+        kqt_Handle* handle = kqt_new_Handle_from_path(audio->nframes, argv[file_arg]);
         if (handle == NULL)
         {
-            fprintf(stderr, "Couldn't allocate memory for the Kunquat Handle\n");
-            continue;
-        }
-        if (!kqt_Handle_load(handle, argv[file_arg]))
-        {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
-            kqt_del_Handle(handle);
+            fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
             continue;
         }
         if (subsong != -1)
