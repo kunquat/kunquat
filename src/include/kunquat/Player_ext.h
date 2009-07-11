@@ -42,6 +42,8 @@ extern "C" {
  * \param beats         Location where the beat count will be stored (optional).
  * \param remainder     Location where the beat remainder will be stored (optional).
  * \param nanoseconds   Location where the nanosecond count will be stored (optional).
+ *
+ * \return   \c 1 if \a time is a valid time representation, otherwise \c 0.
  */
 int kqt_unwrap_time(char* time, 
                     int* subsong,
@@ -57,10 +59,26 @@ int kqt_unwrap_time(char* time,
  * Any notes that were being played will be cut off immediately.
  * Notes that start playing before the given position will not be played.
  *
+ * The position is specified as a string with the following format:
+ *
+ * <subsong>[/<section>[/<timestamp>]][+<nanoseconds>]
+ *
+ * where
+ *
+ * <subsong> is the subsong number
+ * <section> is the section number
+ * <timestamp> is <beat>,<rem>
+ *                where <beat> is the beat count
+ *                      <rem> is the beat remainder (see kunquat/Reltime.h)
+ * <nanoseconds> is the non-negative offset in nanoseconds.
+ *
+ * Important: Because the position of a section and a timestamp in time
+ *            elapsed from the beginning is ambiguous, the function
+ *            \a kqt_Context_get_position_ns shouldn't be used after a jump
+ *            to a section or timestamp.
+ *
  * \param context    The Context -- should not be \c NULL.
  * \param position   The new position -- should not be \c NULL.
- *                   The position is a string with the format
- *                   "<subsong>[/<section>[/<timestamp>]][+<nanoseconds>]
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */

@@ -29,8 +29,7 @@ extern "C" {
 #endif
 
 
-#include <stdint.h>
-
+#include <kunquat/limits.h>
 #include <kunquat/frame.h>
 
 
@@ -40,26 +39,19 @@ typedef struct kqt_Context kqt_Context;
 /**
  * Creates a new Kunquat Context.
  *
- * \param buf_count          The number of buffers used for mixing. Currently,
- *                           this can be 1 (mono) or 2 (stereo).
- * \param buf_size           The size of the mixing buffer.
- * \param voice_count        The number of Voices used for mixing.
- * \param event_queue_size   The size of the Event queue for each Column.
+ * \param buffer_size   The size of the mixing buffers -- should be positive.
  *
  * \return   The new Kunquat Context if successful, or \c NULL if memory
  *           allocation failed.
  */
-kqt_Context* kqt_new_Context(int buf_count,
-                             long buf_size,
-                             short voice_count,
-                             short event_queue_size);
+kqt_Context* kqt_new_Context(long buffer_size);
 
 
 /**
  * Gets error information from the Kunquat Context.
  *
  * \param context   The Context, or \c NULL if retrieving error information
- *                  not associated with a Kunquat Context.
+ *                  that is not associated with a Kunquat Context.
  *
  * \return   The error message. This is an empty string if no error has
  *           occurred.

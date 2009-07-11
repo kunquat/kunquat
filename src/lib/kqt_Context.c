@@ -72,38 +72,12 @@ void kqt_Context_set_error(kqt_Context* context, char* message, ...);
 void kqt_Context_stop(kqt_Context* context);
 
 
-kqt_Context* kqt_new_Context(int buf_count,
-                             long buf_size,
-                             short voice_count,
-                             short event_queue_size)
+kqt_Context* kqt_new_Context(long buffer_size)
 {
-    if (buf_count <= 0)
-    {
-        kqt_Context_set_error(NULL, "kqt_new_Context: buf_count must be positive");
-        return NULL;
-    }
-    if (buf_size <= 0)
+    if (buffer_size <= 0)
     {
         kqt_Context_set_error(NULL, "kqt_new_Context: buf_size must be positive");
         return NULL;
-    }
-    if (voice_count <= 0)
-    {
-        kqt_Context_set_error(NULL, "kqt_new_Context: voice_count must be positive");
-        return NULL;
-    }
-    if (event_queue_size <= 0)
-    {
-        kqt_Context_set_error(NULL, "kqt_new_Context: event_queue_size must be positive");
-        return NULL;
-    }
-    if (buf_count > KQT_BUFFERS_MAX)
-    {
-        buf_count = KQT_BUFFERS_MAX;
-    }
-    if (voice_count > KQT_VOICES_MAX)
-    {
-        voice_count = KQT_VOICES_MAX;
     }
     kqt_Context* context = xalloc(kqt_Context);
     if (context == NULL)
@@ -118,6 +92,10 @@ kqt_Context* kqt_new_Context(int buf_count,
     context->error[0] = context->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     context->position[0] = context->position[POSITION_LENGTH - 1] = '\0';
 
+    int buffer_count = 2;
+    int voice_count = 256;
+    int event_queue_size = 32;
+
     context->voices = new_Voice_pool(voice_count, event_queue_size);
     if (context->voices == NULL)
     {
@@ -126,7 +104,7 @@ kqt_Context* kqt_new_Context(int buf_count,
         return NULL;
     }
 
-    context->song = new_Song(buf_count, buf_size, event_queue_size);
+    context->song = new_Song(buffer_count, buffer_size, event_queue_size);
     if (context->song == NULL)
     {
         kqt_del_Context(context);
@@ -248,11 +226,11 @@ int kqt_Context_get_subsong_length(kqt_Context* context, int subsong)
 }
 
 
-long long kqt_Context_get_length_ns(kqt_Context* context)
+long long kqt_Context_get_duration(kqt_Context* context)
 {
     if (context == NULL)
     {
-        kqt_Context_set_error(NULL, "kqt_Context_get_length: context must not be NULL");
+        kqt_Context_set_error(NULL, "kqt_Context_get_duration: context must not be NULL");
         return 0;
     }
     kqt_Reltime_init(&context->play_silent->play_time);
@@ -415,7 +393,7 @@ int kqt_unwrap_time(char* time,
 }
 
 
-int kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds)
+int kqt_Context_seek_nanoseconds(kqt_Context* context, long long nanoseconds)
 {
     if (context == NULL)
     {
@@ -508,7 +486,7 @@ void kqt_Context_reset_stats(kqt_Context* context)
 }
 
 
-long long kqt_Context_get_position_ns(kqt_Context* context)
+long long kqt_Context_tell_nanoseconds(kqt_Context* context)
 {
     if (context == NULL)
     {

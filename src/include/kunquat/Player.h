@@ -76,7 +76,7 @@ long kqt_Context_mix(kqt_Context* context, long nframes, long freq);
  *
  * \return   The length in nanoseconds.
  */
-long long kqt_Context_get_length_ns(kqt_Context* context);
+long long kqt_Context_get_duration(kqt_Context* context);
 
 
 /**
@@ -95,6 +95,10 @@ int kqt_Context_get_buffer_count(kqt_Context* context);
  * \param context   The Context -- should not be \c NULL.
  *
  * \return   The buffers, or \c NULL if \a context == \c NULL.
+ *           The returned value \a bufs is an array of buffers
+ *           where \a buf[0] contains the first channel, \a buf[1]
+ *           contains the second and so on.
+ *           \a buf[kqt_Context_get_buffer_count(context)] is always \c NULL.
  */
 kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
 
@@ -111,7 +115,7 @@ kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds);
+int kqt_Context_seek_nanoseconds(kqt_Context* context, long long nanoseconds);
 
 
 /**
@@ -121,7 +125,7 @@ int kqt_Context_set_position_ns(kqt_Context* context, long long nanoseconds);
  *
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
-long long kqt_Context_get_position_ns(kqt_Context* context);
+long long kqt_Context_tell_nanoseconds(kqt_Context* context);
 
 
 #ifdef __cplusplus

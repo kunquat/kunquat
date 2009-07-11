@@ -109,8 +109,8 @@ void usage(void)
 
     fprintf(stdout, "\nPlayback options:\n");
     fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
-                                               // FIXME: get bounds from lib
-    fprintf(stdout, "                          Valid range is [0,255] (or 'all')\n");
+    fprintf(stdout, "                          Valid range is [0,%d] (or 'all')\n",
+                                               KQT_SUBSONGS_MAX);
     
     fprintf(stdout, "\nOther options:\n");
     fprintf(stdout, "   -h, --help             Show this help and exit\n");
@@ -287,7 +287,7 @@ int main(int argc, char** argv)
                 }
                 else
                 {
-                    subsong = read_long(optarg, "Subsong", 0, 255); // FIXME: get bounds from lib
+                    subsong = read_long(optarg, "Subsong", 0, KQT_SUBSONGS_MAX - 1);
                 }
             }
             break;
@@ -388,7 +388,7 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Context* context = kqt_new_Context(1, audio->nframes, 256, 32);
+        kqt_Context* context = kqt_new_Context(audio->nframes);
         if (context == NULL)
         {
             fprintf(stderr, "Couldn't allocate memory for the Kunquat Context\n");
@@ -415,7 +415,7 @@ int main(int argc, char** argv)
         Audio_set_context(audio, context);
 
         uint32_t freq = Audio_get_freq(audio);
-        uint64_t length_ns = kqt_Context_get_length_ns(context);
+        uint64_t length_ns = kqt_Context_get_duration(context);
         uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
@@ -472,13 +472,13 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Context_get_position_ns(context);
+                    long long ns = kqt_Context_tell_nanoseconds(context);
                     ns -= 10000000000LL;
                     if (ns < 0)
                     {
                         ns = 0;
                     }
-                    if (!kqt_Context_set_position_ns(context, ns))
+                    if (!kqt_Context_seek_nanoseconds(context, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
                     }
@@ -488,9 +488,9 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Context_get_position_ns(context);
+                    long long ns = kqt_Context_tell_nanoseconds(context);
                     ns += 10000000000LL;
-                    if (!kqt_Context_set_position_ns(context, ns))
+                    if (!kqt_Context_seek_nanoseconds(context, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Context_get_error(context));
                     }
@@ -535,7 +535,7 @@ int main(int argc, char** argv)
                     }
                     else
                     {
-                        length_ns = kqt_Context_get_length_ns(context);
+                        length_ns = kqt_Context_tell_nanoseconds(context);
                     }
                     Audio_pause(audio, false);
                 }

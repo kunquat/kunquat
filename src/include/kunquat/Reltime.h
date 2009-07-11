@@ -47,11 +47,8 @@ extern "C" {
  */
 typedef struct kqt_Reltime
 {
-    /// The number of beats.
-    int64_t beats;
-    /// Remainder of a beat.
-    /// Valid values are inside the interval [0, KQT_RELTIME_BEAT).
-    int32_t rem;
+    long long beats; /// The number of beats.
+    long rem; /// Remainder of a beat -- always >= \c 0 and < \c KQT_RELTIME_BEAT.
 } kqt_Reltime;
 
 
@@ -96,7 +93,7 @@ int kqt_Reltime_cmp(const kqt_Reltime* r1, const kqt_Reltime* r2);
  *
  * \return   The parameter \a r.
  */
-kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem);
+kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, long long beats, long rem);
 
 
 /**
@@ -106,7 +103,7 @@ kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem);
  *
  * \return   The beat count.
  */
-int64_t kqt_Reltime_get_beats(const kqt_Reltime* r);
+long long kqt_Reltime_get_beats(const kqt_Reltime* r);
 
 
 /**
@@ -116,7 +113,7 @@ int64_t kqt_Reltime_get_beats(const kqt_Reltime* r);
  *
  * \return   The remainder part.
  */
-int32_t kqt_Reltime_get_rem(const kqt_Reltime* r);
+long kqt_Reltime_get_rem(const kqt_Reltime* r);
 
 
 /**
@@ -172,9 +169,9 @@ kqt_Reltime* kqt_Reltime_copy(kqt_Reltime* dest, const kqt_Reltime* src);
  *
  * \return   The number of frames.
  */
-uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
-                              double tempo,
-                              uint32_t freq);
+long kqt_Reltime_toframes(const kqt_Reltime* r,
+                          double tempo,
+                          long freq);
 
 
 /**
@@ -188,9 +185,9 @@ uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
  * \return   The parameter \a r.
  */
 kqt_Reltime* kqt_Reltime_fromframes(kqt_Reltime* r,
-                                    uint32_t frames,
+                                    long frames,
                                     double tempo,
-                                    uint32_t freq);
+                                    long freq);
 
 
 #ifdef __cplusplus

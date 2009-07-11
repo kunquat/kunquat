@@ -81,7 +81,7 @@ void Mix_state_from_context(Mix_state* mix_state, kqt_Context* context)
     assert(context != NULL);
     mix_state->playing = !kqt_Context_end_reached(context);
     mix_state->frames = kqt_Context_get_frames_mixed(context);
-    mix_state->nanoseconds = kqt_Context_get_position_ns(context);
+    mix_state->nanoseconds = kqt_Context_tell_nanoseconds(context);
     char* pos = kqt_Context_get_position(context);
     long long beats = 0;
     long rem = 0;

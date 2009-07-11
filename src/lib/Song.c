@@ -49,7 +49,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     }
     song->buf_count = buf_count;
     song->buf_size = buf_size;
-    song->bufs = NULL;
     song->priv_bufs[0] = NULL;
     song->voice_bufs[0] = NULL;
     song->order = NULL;
@@ -60,11 +59,9 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         song->notes[i] = NULL;
     }
     song->active_notes = &song->notes[0];
-    song->bufs = xnalloc(kqt_frame*, KQT_BUFFERS_MAX);
-    if (song->bufs == NULL)
+    for (int i = 0; i < KQT_BUFFERS_MAX + 1; ++i)
     {
-        del_Song(song);
-        return NULL;
+        song->bufs[i] = NULL;
     }
     for (int i = 0; i < buf_count; ++i)
     {
@@ -315,7 +312,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                         Song_get_buf_size(song),
                         Song_get_note_tables(song),
                         Song_get_active_notes(song),
-                        16)) // TODO: make configurable
+                        32)) // TODO: make configurable
     {
         return false;
     }
@@ -701,10 +698,6 @@ void del_Song(Song* song)
     for (int i = 0; i < song->buf_count && song->voice_bufs[i] != NULL; ++i)
     {
         xfree(song->voice_bufs[i]);
-    }
-    if (song->bufs != NULL)
-    {
-        xfree(song->bufs);
     }
     if (song->order != NULL)
     {

@@ -58,7 +58,7 @@ int kqt_Reltime_cmp(const kqt_Reltime* r1, const kqt_Reltime* r2)
 }
 
 
-kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem)
+kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, long long beats, long rem)
 {
     assert(r != NULL);
     assert(rem >= 0);
@@ -69,14 +69,14 @@ kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem)
 }
 
 
-int64_t kqt_Reltime_get_beats(const kqt_Reltime* r)
+long long kqt_Reltime_get_beats(const kqt_Reltime* r)
 {
     assert(r != NULL);
     return r->beats;
 }
 
 
-int32_t kqt_Reltime_get_rem(const kqt_Reltime* r)
+long kqt_Reltime_get_rem(const kqt_Reltime* r)
 {
     assert(r != NULL);
     return r->rem;
@@ -139,30 +139,30 @@ kqt_Reltime* kqt_Reltime_copy(kqt_Reltime* dest, const kqt_Reltime* src)
 }
 
 
-uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
-                              double tempo,
-                              uint32_t freq)
+long kqt_Reltime_toframes(const kqt_Reltime* r,
+                          double tempo,
+                          long freq)
 {
     kqt_Reltime_validate(r);
     assert(r->beats >= 0);
     assert(tempo > 0);
     assert(freq > 0);
-    return (uint32_t)((r->beats
+    return (long)((r->beats
             + ((double)r->rem / KQT_RELTIME_BEAT)) * 60 * freq / tempo);
 }
 
 
 kqt_Reltime* kqt_Reltime_fromframes(kqt_Reltime* r,
-                                    uint32_t frames,
+                                    long frames,
                                     double tempo,
-                                    uint32_t freq)
+                                    long freq)
 {
     assert(r != NULL);
     assert(tempo > 0);
     assert(freq > 0);
     double val = (double)frames * tempo / freq / 60;
-    r->beats = (int64_t)val;
-    r->rem = (int32_t)((val - r->beats) * KQT_RELTIME_BEAT);
+    r->beats = (long long)val;
+    r->rem = (long)((val - r->beats) * KQT_RELTIME_BEAT);
     return r;
 }
 
