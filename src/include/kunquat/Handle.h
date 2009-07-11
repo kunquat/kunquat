@@ -64,7 +64,7 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
  * Gets error information from the Kunquat Handle.
  *
  * \param handle   The Handle, or \c NULL if retrieving error information
- *                 that is not associated with a Kunquat Handle.
+ *                 that is not necessarily associated with a Kunquat Handle.
  *
  * \return   The error message. This is an empty string if no error has
  *           occurred.

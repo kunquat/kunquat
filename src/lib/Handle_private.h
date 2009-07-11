@@ -24,6 +24,8 @@
 #define KQT_HANDLE_PRIVATE_H
 
 
+#include <stdbool.h>
+
 #include <kunquat/Handle.h>
 #include <kunquat/Player_ext.h>
 
@@ -51,6 +53,31 @@ struct kqt_Handle
 void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...);
 
 void kqt_Handle_stop(kqt_Handle* handle);
+
+
+bool handle_is_valid(kqt_Handle* handle);
+
+#define check_handle(handle, func, ret)                                  \
+    do                                                                   \
+    {                                                                    \
+        if (!handle_is_valid((handle)))                                  \
+        {                                                                \
+            kqt_Handle_set_error(NULL,                                   \
+                    func ": Invalid Kunquat Handle: %p", (void*)handle); \
+            return (ret);                                                \
+        }                                                                \
+    } while (false)
+
+#define check_handle_void(handle, func)                                  \
+    do                                                                   \
+    {                                                                    \
+        if (!handle_is_valid((handle)))                                  \
+        {                                                                \
+            kqt_Handle_set_error(NULL,                                   \
+                    func ": Invalid Kunquat Handle: %p", (void*)handle); \
+            return;                                                      \
+        }                                                                \
+    } while (false)
 
 
 #endif // KQT_HANDLE_PRIVATE_H

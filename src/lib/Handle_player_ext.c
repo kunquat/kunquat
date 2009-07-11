@@ -134,11 +134,7 @@ int kqt_unwrap_time(char* time,
 
 int kqt_Handle_set_position(kqt_Handle* handle, char* position)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_set_position: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_set_position", 0);
     if (position == NULL)
     {
         position = "-1";
@@ -191,11 +187,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, char* position)
 
 char* kqt_Handle_get_position(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_position: handle must not be NULL");
-        return NULL;
-    }
+    check_handle(handle, "kqt_Handle_get_position", NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
              handle->play->mode == PLAY_SONG ? -1 : (int)handle->play->subsong,
              (int)handle->play->order_index,
@@ -207,51 +199,36 @@ char* kqt_Handle_get_position(kqt_Handle* handle)
 
 int kqt_Handle_end_reached(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_end_reached: handle must not be NULL");
-        return 1;
-    }
+    check_handle(handle, "kqt_Handle_end_reached", 1);
     return handle->play->mode == STOP;
 }
 
 
 long long kqt_Handle_get_frames_mixed(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_frames_mixed: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_frames_mixed", 0);
     return handle->play->play_frames;
 }
 
 
 double kqt_Handle_get_tempo(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_tempo: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_tempo", 0);
     return handle->play->tempo;
 }
 
 
 int kqt_Handle_get_voice_count(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_voice_count: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_voice_count", 0);
     return handle->play->active_voices;
 }
 
 
 double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer)
 {
-    if (handle == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
+    check_handle(handle, "kqt_Handle_get_min_amplitude", INFINITY);
+    if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return INFINITY;
     }
@@ -261,7 +238,8 @@ double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer)
 
 double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
 {
-    if (handle == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
+    check_handle(handle, "kqt_Handle_get_max_amplitude", -INFINITY);
+    if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return -INFINITY;
     }
@@ -271,7 +249,8 @@ double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
 
 long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer)
 {
-    if (handle == NULL || buffer < 0 || buffer >= KQT_BUFFERS_MAX)
+    check_handle(handle, "kqt_Handle_get_clipped", 0);
+    if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return 0;
     }
@@ -345,11 +324,7 @@ void kqt_Handle_play_event(kqt_Handle* handle)
 
 void kqt_Handle_reset_stats(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_reset_stats: handle must not be NULL");
-        return;
-    }
+    check_handle_void(handle, "kqt_Handle_reset_stats");
     Playdata_reset_stats(handle->play);
     Playdata_reset_stats(handle->play_silent);
     return;

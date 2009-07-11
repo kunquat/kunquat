@@ -29,6 +29,9 @@ extern "C" {
 #endif
 
 
+#define KQT_HANDLES_MAX (256)
+
+
 #define KQT_BUFFERS_MAX (2)
 
 #define KQT_VOICES_MAX (1024)

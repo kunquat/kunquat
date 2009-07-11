@@ -36,7 +36,7 @@
 
 long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 {
-    assert(handle != NULL);
+    check_handle(handle, "kqt_Handle_mix", 0);
     if (!handle->play || handle->song == NULL)
     {
         return 0;
@@ -52,11 +52,7 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 
 int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_set_buffer_size: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_set_buffer_size", 0);
     if (size <= 0)
     {
         kqt_Handle_set_error(handle, "kqt_Handle_set_buffer_size: size must be positive");
@@ -74,44 +70,28 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_buffer_size: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_buffer_size", 0);
     return Song_get_buf_size(handle->song);
 }
 
 
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_buffer_count: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_buffer_count", 0);
     return Song_get_buf_count(handle->song);
 }
 
 
 kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_buffers: handle must not be NULL");
-        return NULL;
-    }
+    check_handle(handle, "kqt_Handle_get_buffers", NULL);
     return Song_get_bufs(handle->song);
 }
 
 
 long long kqt_Handle_get_duration(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_duration: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_get_duration", 0);
     kqt_Reltime_init(&handle->play_silent->play_time);
     handle->play_silent->play_frames = 0;
     kqt_Reltime_init(&handle->play_silent->pos);
@@ -122,14 +102,11 @@ long long kqt_Handle_get_duration(kqt_Handle* handle)
 
 int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_seek_nanoseconds: handle must not be NULL");
-        return 0;
-    }
+    check_handle(handle, "kqt_Handle_seek_nanoseconds", 0);
     if (nanoseconds < 0)
     {
-        kqt_Handle_set_error(NULL, "kqt_Handle_seek_nanoseconds: nanoseconds must not be negative");
+        kqt_Handle_set_error(handle,
+                "kqt_Handle_seek_nanoseconds: nanoseconds must not be negative");
         return 0;
     }
     char pos[32] = { '\0' };
@@ -145,18 +122,14 @@ int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds)
 
 long long kqt_Handle_tell_nanoseconds(kqt_Handle* handle)
 {
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_Handle_tell_nanoseconds: handle must not be NULL");
-        return false;
-    }
+    check_handle(handle, "kqt_Handle_tell_nanoseconds", 0);
     return ((long long)handle->play->play_frames * 1000000000L) / handle->play->freq;
 }
 
 
 void kqt_Handle_stop(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    assert(handle_is_valid(handle));
     handle->play->mode = STOP;
     Voice_pool_reset(handle->voices);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)

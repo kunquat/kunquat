@@ -24,6 +24,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <limits.h>
@@ -47,8 +48,16 @@
 #include <xmemory.h>
 
 
+static kqt_Handle* handles[KQT_HANDLES_MAX] = { NULL };
+
+
 // For errors without an associated Kunquat Handle.
 static char null_error[KQT_CONTEXT_ERROR_LENGTH] = { '\0' };
+
+
+static bool add_handle(kqt_Handle* handle);
+
+static bool remove_handle(kqt_Handle* handle);
 
 
 kqt_Handle* kqt_new_Handle(long buffer_size)
@@ -62,6 +71,12 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
     if (handle == NULL)
     {
         kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
+        return NULL;
+    }
+    if (!add_handle(handle))
+    {
+        kqt_Handle_set_error(NULL, "Maximum amount of simultaneous Kunquat Handles reached");
+        xfree(handle);
         return NULL;
     }
     handle->song = NULL;
@@ -183,7 +198,7 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
 
 char* kqt_Handle_get_error(kqt_Handle* handle)
 {
-    if (handle == NULL)
+    if (!handle_is_valid(handle))
     {
         return null_error;
     }
@@ -193,9 +208,10 @@ char* kqt_Handle_get_error(kqt_Handle* handle)
 
 int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
 {
-    if (handle == NULL)
+    if (!handle_is_valid(handle))
     {
-        kqt_Handle_set_error(NULL, "kqt_Handle_get_subsong_length: handle must not be NULL");
+        kqt_Handle_set_error(NULL,
+                "kqt_Handle_get_subsong_length: Invalid Kunquat Handle: %p", (void*)handle);
         return -1;
     }
     if (subsong < 0 || subsong >= KQT_SUBSONGS_MAX)
@@ -216,25 +232,35 @@ int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
 void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...)
 {
     assert(message != NULL);
-    char* error = null_error;
-    if (handle != NULL)
-    {
-        error = handle->error;
-    }
     va_list args;
     va_start(args, message);
-    vsnprintf(error, KQT_CONTEXT_ERROR_LENGTH, message, args);
+    vsnprintf(null_error, KQT_CONTEXT_ERROR_LENGTH, message, args);
     va_end(args);
-    error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
+    null_error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
+    if (handle != NULL)
+    {
+        assert(handle_is_valid(handle));
+        va_start(args, message);
+        vsnprintf(handle->error, KQT_CONTEXT_ERROR_LENGTH, message, args);
+        va_end(args);
+        handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
+    }
     return;
 }
 
 
 void kqt_del_Handle(kqt_Handle* handle)
 {
-    if (handle == NULL)
+    if (!handle_is_valid(handle))
     {
-        kqt_Handle_set_error(NULL, "kqt_del_Handle: handle must not be NULL");
+        kqt_Handle_set_error(NULL,
+                "kqt_del_Handle: Invalid Kunquat Handle: %p", (void*)handle);
+        return;
+    }
+    if (!remove_handle(handle))
+    {
+        kqt_Handle_set_error(NULL,
+                "kqt_del_Handle: Invalid Kunquat Handle: %p", (void*)handle);
         return;
     }
     if (handle->play_silent != NULL)
@@ -255,6 +281,71 @@ void kqt_del_Handle(kqt_Handle* handle)
     }
     xfree(handle);
     return;
+}
+
+
+static bool add_handle(kqt_Handle* handle)
+{
+    assert(handle != NULL);
+#ifndef NDEBUG
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        assert(handles[i] != handle);
+    }
+#endif
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        if (handles[i] == NULL)
+        {
+            handles[i] = handle;
+            return true;
+        }
+    }
+    return false;
+}
+
+
+bool handle_is_valid(kqt_Handle* handle)
+{
+    if (handle == NULL)
+    {
+        return false;
+    }
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        if (handles[i] == handle)
+        {
+#ifndef NDEBUG
+            for (int k = i + 1; k < KQT_HANDLES_MAX; ++k)
+            {
+                assert(handles[k] != handle);
+            }
+#endif
+            return true;
+        }
+    }
+    return false;
+}
+
+
+static bool remove_handle(kqt_Handle* handle)
+{
+    assert(handle != NULL);
+    for (int i = 0; i < KQT_HANDLES_MAX; ++i)
+    {
+        if (handles[i] == handle)
+        {
+            handles[i] = NULL;
+#ifndef NDEBUG
+            for (int k = i + 1; k < KQT_HANDLES_MAX; ++k)
+            {
+                assert(handles[k] != handle);
+            }
+#endif
+            return true;
+        }
+    }
+    return false;
 }
 
 
