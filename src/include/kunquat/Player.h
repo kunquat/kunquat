@@ -92,13 +92,16 @@ int kqt_Context_get_buffer_count(kqt_Context* context);
 /**
  * Gets the mixing buffers in the Kunquat Context.
  *
+ * The returned value \a bufs is an array of buffers where \a bufs[0]
+ * contains the buffer of the first output channel (left channel in stereo),
+ * \a bufs[1] contains the buffer of the second output channel, and so on.
+ * \a bufs[kqt_Context_get_buffer_count(\a context)] is always \c NULL.
+ * Each buffer contains kqt_Context_get_buffer_size(\a context) amplitude
+ * values of type \a kqt_frame.
+ *
  * \param context   The Context -- should not be \c NULL.
  *
  * \return   The buffers, or \c NULL if \a context == \c NULL.
- *           The returned value \a bufs is an array of buffers
- *           where \a buf[0] contains the first channel, \a buf[1]
- *           contains the second and so on.
- *           \a buf[kqt_Context_get_buffer_count(context)] is always \c NULL.
  */
 kqt_frame** kqt_Context_get_buffers(kqt_Context* context);
 
