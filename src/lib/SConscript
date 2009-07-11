@@ -72,6 +72,8 @@ files = [
     'Song.c',
     'Playdata.c',
     'Handle.c',
+    'Handle_player.c',
+    'Handle_player_ext.c',
 ]
 
 env.StaticLibrary('kunquat', files)
