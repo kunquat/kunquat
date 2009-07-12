@@ -107,18 +107,20 @@ kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle);
 
 
 /**
- * Sets the position to be played in nanoseconds.
+ * Sets the position to be played.
  *
  * Any notes that were being played will be cut off immediately.
  * Notes that start playing before the given position will not be played.
  *
  * \param handle        The Handle -- should not be \c NULL.
+ * \param subsong       The Subsong number -- should be >= \c -1 and
+ *                      < \c KQT_SUBSONGS_MAX (\c -1 contains all Subsongs).
  * \param nanoseconds   The number of nanoseconds from the beginning --
  *                      should not be negative.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds);
+int kqt_Handle_seek(kqt_Handle* handle, int subsong, long long nanoseconds);
 
 
 /**
@@ -128,7 +130,7 @@ int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds);
  *
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
-long long kqt_Handle_tell_nanoseconds(kqt_Handle* handle);
+long long kqt_Handle_tell(kqt_Handle* handle);
 
 
 #ifdef __cplusplus

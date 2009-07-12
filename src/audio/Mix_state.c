@@ -81,7 +81,7 @@ void Mix_state_from_handle(Mix_state* mix_state, kqt_Handle* handle)
     assert(handle != NULL);
     mix_state->playing = !kqt_Handle_end_reached(handle);
     mix_state->frames = kqt_Handle_get_frames_mixed(handle);
-    mix_state->nanoseconds = kqt_Handle_tell_nanoseconds(handle);
+    mix_state->nanoseconds = kqt_Handle_tell(handle);
     char* pos = kqt_Handle_get_position(handle);
     long long beats = 0;
     long rem = 0;

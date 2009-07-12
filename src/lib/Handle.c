@@ -218,12 +218,26 @@ int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
                 "kqt_Handle_get_subsong_length: Invalid Kunquat Handle: %p", (void*)handle);
         return -1;
     }
-    if (subsong < 0 || subsong >= KQT_SUBSONGS_MAX)
+    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
         kqt_Handle_set_error(handle, "Invalid subsong number: %d", subsong);
         return -1;
     }
     assert(handle->song != NULL);
+    if (subsong == -1)
+    {
+        int total = 0;
+        for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
+        {
+            Subsong* ss = Order_get_subsong(Song_get_order(handle->song), i);
+            if (ss == NULL)
+            {
+                break;
+            }
+            total += Subsong_get_length(ss);
+        }
+        return total;
+    }
     Subsong* ss = Order_get_subsong(Song_get_order(handle->song), subsong);
     if (ss == NULL)
     {

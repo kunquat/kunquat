@@ -107,29 +107,30 @@ long long kqt_Handle_get_duration(kqt_Handle* handle)
 }
 
 
-int kqt_Handle_seek_nanoseconds(kqt_Handle* handle, long long nanoseconds)
+int kqt_Handle_seek(kqt_Handle* handle, int subsong, long long nanoseconds)
 {
-    check_handle(handle, "kqt_Handle_seek_nanoseconds", 0);
+    check_handle(handle, "kqt_Handle_seek", 0);
+    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
+    {
+        kqt_Handle_set_error(handle,
+                "kqt_Handle_seek: Invalid Subsong number: %d", subsong);
+        return 0;
+    }
     if (nanoseconds < 0)
     {
         kqt_Handle_set_error(handle,
-                "kqt_Handle_seek_nanoseconds: nanoseconds must not be negative");
+                "kqt_Handle_seek: nanoseconds must not be negative");
         return 0;
     }
     char pos[32] = { '\0' };
-    int subsong = -1;
-    if (handle->play->mode == PLAY_SUBSONG)
-    {
-        subsong = handle->play->subsong;
-    }
     snprintf(pos, 32, "%d+%lld", subsong, nanoseconds);
     return kqt_Handle_set_position(handle, pos);
 }
 
 
-long long kqt_Handle_tell_nanoseconds(kqt_Handle* handle)
+long long kqt_Handle_tell(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_tell_nanoseconds", 0);
+    check_handle(handle, "kqt_Handle_tell", 0);
     return ((long long)handle->play->play_frames * 1000000000L) / handle->play->freq;
 }
 

@@ -216,7 +216,7 @@ int main(int argc, char** argv)
 
     char* driver_selection = driver_names[0];
     bool interactive = true;
-    int subsong = -1;
+    int start_subsong = -1;
     bool unicode = true;
     long buffer_size = 0;
     long frequency = 0;
@@ -283,11 +283,11 @@ int main(int argc, char** argv)
             {
                 if (strcmp(optarg, "all") == 0 || strcmp(optarg, "a") == 0)
                 {
-                    subsong = -1;
+                    start_subsong = -1;
                 }
                 else
                 {
-                    subsong = read_long(optarg, "Subsong", 0, KQT_SUBSONGS_MAX - 1);
+                    start_subsong = read_long(optarg, "Subsong", 0, KQT_SUBSONGS_MAX - 1);
                 }
             }
             break;
@@ -394,11 +394,10 @@ int main(int argc, char** argv)
             fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
             continue;
         }
+        int subsong = start_subsong;
         if (subsong != -1)
         {
-            char pos[64] = { '\0' };
-            snprintf(pos, 64, "%d", subsong);
-            if (!kqt_Handle_set_position(handle, pos))
+            if (!kqt_Handle_seek(handle, subsong, 0))
             {
                 fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
                 kqt_del_Handle(handle);
@@ -466,13 +465,13 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Handle_tell_nanoseconds(handle);
+                    long long ns = kqt_Handle_tell(handle);
                     ns -= 10000000000LL;
                     if (ns < 0)
                     {
                         ns = 0;
                     }
-                    if (!kqt_Handle_seek_nanoseconds(handle, ns))
+                    if (!kqt_Handle_seek(handle, subsong, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
@@ -482,9 +481,9 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Handle_tell_nanoseconds(handle);
+                    long long ns = kqt_Handle_tell(handle);
                     ns += 10000000000LL;
-                    if (!kqt_Handle_seek_nanoseconds(handle, ns))
+                    if (!kqt_Handle_seek(handle, subsong, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
@@ -493,45 +492,39 @@ int main(int argc, char** argv)
                 else if ((key >= '0' && key <= '9') || key == 'a'
                          || key == 'p' || key == 'n')
                 {
-                    char pos[64] = "-1";
-                    if (tolower(key) == 'a')
+                    int new_subsong = -1;
+                    if (key == 'a')
                     {
-                        strcpy(pos, "-1");
+                        new_subsong = -1;
                     }
-                    else if (tolower(key) == 'p')
+                    else if (key == 'p')
                     {
-                        int subsong = mix_state->subsong - 1;
-                        if (subsong < 0)
-                        {
-                            subsong = 0;
-                        }
-                        snprintf(pos, 64, "%d", subsong);
+                        new_subsong = subsong - 1;
                     }
-                    else if (tolower(key) == 'n')
+                    else if (key == 'n')
                     {
-                        int subsong = mix_state->subsong + 1;
-                        if (subsong > 255)
-                        {
-                            subsong = 255;
-                        }
-                        snprintf(pos, 64, "%d", subsong);
+                        new_subsong = subsong + 1;
                     }
                     else
                     {
-                        pos[0] = key;
-                        pos[1] = '\0';
+                        new_subsong = key - '0';
                     }
-                    Audio_pause(audio, true);
-                    Audio_get_state(audio, mix_state);
-                    if (!kqt_Handle_set_position(handle, pos))
+                    if (new_subsong >= -1 && new_subsong < KQT_SUBSONGS_MAX
+                            && kqt_Handle_get_subsong_length(handle, new_subsong) > 0)
                     {
-                        fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+                        subsong = new_subsong;
+                        Audio_pause(audio, true);
+                        Audio_get_state(audio, mix_state);
+                        if (!kqt_Handle_seek(handle, subsong, 0))
+                        {
+                            fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
+                        }
+                        else
+                        {
+                            length_ns = kqt_Handle_get_duration(handle);
+                        }
+                        Audio_pause(audio, false);
                     }
-                    else
-                    {
-                        length_ns = kqt_Handle_get_duration(handle);
-                    }
-                    Audio_pause(audio, false);
                 }
                 else if (key == KEY_BACKSPACE)
                 {
@@ -543,7 +536,10 @@ int main(int argc, char** argv)
                 }
                 else if (key == KEY_RETURN)
                 {
-                    break;
+                    if (file_arg < argc - 1)
+                    {
+                        break;
+                    }
                 }
             }
             Audio_get_state(audio, mix_state);

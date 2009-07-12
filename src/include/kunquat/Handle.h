@@ -76,8 +76,9 @@ char* kqt_Handle_get_error(kqt_Handle* handle);
  * Gets the length of a Subsong in the Kunquat Handle.
  *
  * \param handle    The Handle -- should not be \c NULL.
- * \param subsong   The Subsong number -- should be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
+ * \param subsong   The Subsong number -- should be >= \c -1 and
+ *                  < \c SUBSONGS_MAX. Using \c -1 will return the total
+ *                  number of sections in all Subsongs.
  *
  * \return   The length of the Subsong, or \c -1 if arguments were invalid.
  */
