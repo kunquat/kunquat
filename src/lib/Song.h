@@ -41,7 +41,7 @@ typedef struct Song
 {
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
-    kqt_frame* bufs[KQT_BUFFERS_MAX + 1];   ///< Buffers.
+    kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     Order* order;                       ///< The Order lists.

@@ -59,7 +59,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         song->notes[i] = NULL;
     }
     song->active_notes = &song->notes[0];
-    for (int i = 0; i < KQT_BUFFERS_MAX + 1; ++i)
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         song->bufs[i] = NULL;
     }

@@ -85,7 +85,14 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_buffers", NULL);
-    return Song_get_bufs(handle->song);
+    kqt_frame** bufs = Song_get_bufs(handle->song);
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        handle->bufs[i] = bufs[i];
+    }
+    handle->bufs[Song_get_buf_count(handle->song)] = NULL;
+    handle->bufs[KQT_BUFFERS_MAX] = NULL;
+    return handle->bufs;
 }
 
 

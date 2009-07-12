@@ -80,6 +80,10 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         return NULL;
     }
     handle->song = NULL;
+    for (int i = 0; i < KQT_BUFFERS_MAX + 1; ++i)
+    {
+        handle->bufs[i] = NULL;
+    }
     handle->play = NULL;
     handle->play_silent = NULL;
     handle->voices = NULL;
