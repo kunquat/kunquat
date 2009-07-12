@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,23 +29,65 @@ extern "C" {
 #endif
 
 
+/**
+ * Maximum number of Kunquat Handles that can be open simultaneously.
+ */
 #define KQT_HANDLES_MAX (256)
 
 
+/**
+ * Maximum number of output buffers a Kunquat Handle can contain.
+ */
 #define KQT_BUFFERS_MAX (2)
 
+
+/**
+ * Maximum number of Voices used for mixing.
+ */
 #define KQT_VOICES_MAX (1024)
 
+
+/**
+ * Maximum number of Subsongs in a Kunquat Handle.
+ */
 #define KQT_SUBSONGS_MAX (256)
+
+
+/**
+ * Maximum number of sections in a Subsong.
+ */
 #define KQT_SECTIONS_MAX (256)
 
+
+/**
+ * Maximum number of Patterns in a Kunquat Handle.
+ */
 #define KQT_PATTERNS_MAX (1024)
 
+
+/**
+ * Maximum number of Voice Columns in a Kunquat Handle (Global Column not
+ * included).
+ */
 #define KQT_COLUMNS_MAX (64)
 
+
+/**
+ * Maximum number of Instruments in a Kunquat Handle (Note: Instrument
+ * indices start at 1).
+ */
 #define KQT_INSTRUMENTS_MAX (255)
+
+
+/**
+ * Maximum number of Generators in a Kunquat Instruemnt.
+ */
 #define KQT_GENERATORS_MAX (8)
 
+
+/**
+ * Maximum number of Scales in a Kunquat Handle.
+ */
 #define KQT_SCALES_MAX (16)
 
 #define KQT_SCALE_OCTAVES (16)

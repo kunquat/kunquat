@@ -74,6 +74,7 @@ files = [
     'Handle.c',
     'Handle_player.c',
     'Handle_player_ext.c',
+    'Handle_info.c',
 ]
 
 env.StaticLibrary('kunquat', files)

@@ -33,16 +33,40 @@ extern "C" {
 #include <kunquat/frame.h>
 
 
+/**
+ * \file kunquat/Handle.h
+ *
+ * \brief
+ * This module describes Kunquat Handle, the main identifier for accessing
+ * Kunquat compositions.
+ *
+ * \defgroup Handle Handle Creation and Minimal Diagnostics
+ */
+
+
+/**
+ * The identifier for accessing a single Kunquat composition.
+ *
+ * All functions that operate on Kunquat Handles may set an error message
+ * inside the Handle. See kqt_Handle_get_error for more information.
+ *
+ * Operations on Kunquat Handles are generally <b>not</b> thread-safe. In
+ * particular, multiple threads should not create new Kunquat Handles or
+ * access a single Kunquat Handle in parallel. However, accessing different
+ * Kunquat Handles from different threads in parallel should be safe.
+ */
 typedef struct kqt_Handle kqt_Handle;
 
 
 /**
  * Creates a new Kunquat Handle.
  *
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
+ *
  * \param buffer_size   The size of the mixing buffers -- should be positive.
  *
- * \return   The new Kunquat Handle if successful, or \c NULL if memory
- *           allocation failed.
+ * \return   The new Kunquat Handle if successful, otherwise \c NULL.
  */
 kqt_Handle* kqt_new_Handle(long buffer_size);
 
@@ -70,19 +94,6 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
  *           occurred.
  */
 char* kqt_Handle_get_error(kqt_Handle* handle);
-
-
-/**
- * Gets the length of a Subsong in the Kunquat Handle.
- *
- * \param handle    The Handle -- should not be \c NULL.
- * \param subsong   The Subsong number -- should be >= \c -1 and
- *                  < \c SUBSONGS_MAX. Using \c -1 will return the total
- *                  number of sections in all Subsongs.
- *
- * \return   The length of the Subsong, or \c -1 if arguments were invalid.
- */
-int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong);
 
 
 /**
