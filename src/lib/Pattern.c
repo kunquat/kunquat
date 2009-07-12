@@ -269,9 +269,12 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             else
             {
-                play->pattern = Order_get(play->order,
-                        play->subsong,
-                        play->order_index);
+                play->pattern = ORDER_NONE;
+                Subsong* ss = Order_get_subsong(play->order, play->subsong);
+                if (ss != NULL)
+                {
+                    play->pattern = Subsong_get(ss, play->order_index);
+                }
             }
             break;
         }

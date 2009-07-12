@@ -529,7 +529,7 @@ int main(int argc, char** argv)
                     }
                     else
                     {
-                        length_ns = kqt_Handle_tell_nanoseconds(handle);
+                        length_ns = kqt_Handle_get_duration(handle);
                     }
                     Audio_pause(audio, false);
                 }

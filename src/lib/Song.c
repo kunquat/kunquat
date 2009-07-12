@@ -348,9 +348,12 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = Order_get(song->order,
-                    play->subsong,
-                    play->order_index);
+            int16_t pat_index = ORDER_NONE;
+            Subsong* ss = Order_get_subsong(song->order, play->subsong);
+            if (ss != NULL)
+            {
+                pat_index = Subsong_get(ss, play->order_index);
+            }
             if (pat_index >= 0)
             {
                 pat = Pat_table_get(song->pats, pat_index);

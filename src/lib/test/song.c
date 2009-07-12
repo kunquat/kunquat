@@ -248,14 +248,25 @@ START_TEST (mix)
         abort();
     }
     Order* order = Song_get_order(song);
-    if (!Order_set(order, 0, 0, 0))
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 1, 1))
+    if (Order_set_subsong(order, 0, ss) < 0)
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, 0, 0))
+    {
+        fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, 1, 1))
+    {
+        fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
         abort();
     }
     Note_table* notes = Song_get_notes(song, 0);
