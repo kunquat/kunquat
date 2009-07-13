@@ -33,7 +33,60 @@ extern "C" {
 
 
 /**
+ * \defgroup Player Playing Kunquat compositions
+ *
+ * \brief
+ * This module describes a simple API for applications that use libkunquat
+ * for playing Kunquat compositions.
+ */
+
+
+/**
+ * Does mixing according to the state of the Kunquat Handle.
+ *
+ * \param handle    The Handle -- should not be \c NULL.
+ * \param nframes   The number of frames to be mixed.
+ * \param freq      The mixing frequency -- should be > \c 0.
+ *
+ * \return   The number of frames actually mixed. This is always
+ *           <= \a nframes.
+ */
+long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
+
+
+/**
+ * Gets the mixing buffers in the Kunquat Handle.
+ *
+ * The returned value \a bufs is an array of buffers where \a bufs[0]
+ * contains the buffer of the first output channel (left channel in stereo),
+ * \a bufs[1] contains the buffer of the second output channel, and so on.
+ * \a bufs[kqt_Handle_get_buffer_count(\a handle)] is always \c NULL.
+ * Each buffer contains kqt_Handle_get_buffer_size(\a handle) amplitude
+ * values of type \a kqt_frame.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ *
+ * \return   The buffers, or \c NULL if \a handle == \c NULL.
+ */
+kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle);
+
+
+/**
+ * Gets the number of mixing buffers in the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ *
+ * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
+ */
+int kqt_Handle_get_buffer_count(kqt_Handle* handle);
+
+
+/**
  * Sets the buffer size of the Kunquat Handle.
+ *
+ * This function is useful if the output buffer size changes in the calling
+ * application. See kqt_new_Handle for detailed explanation of how the buffer
+ * size is interpreted.
  *
  * \param handle   The Handle -- should not be \c NULL.
  * \param size     The new buffer size -- should be > \c 0.
@@ -57,20 +110,8 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Does mixing according to the state of the Kunquat Handle.
- *
- * \param handle    The Handle -- should not be \c NULL.
- * \param nframes   The number of frames to be mixed.
- * \param freq      The mixing frequency -- should be > \c 0.
- *
- * \return   The number of frames actually mixed. This is always
- *           <= \a nframes.
- */
-long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
-
-
-/**
- * Gets the length of the Kunquat Handle in nanoseconds.
+ * Gets the length of the current Subsong in the Kunquat Handle in
+ * nanoseconds.
  *
  * \param handle   The Handle -- should not be \c NULL.
  *
@@ -80,41 +121,14 @@ long long kqt_Handle_get_duration(kqt_Handle* handle);
 
 
 /**
- * Gets the number of mixing buffers in the Kunquat Handle.
- *
- * \param handle   The Handle -- should not be \c NULL.
- *
- * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
- */
-int kqt_Handle_get_buffer_count(kqt_Handle* handle);
-
-
-/**
- * Gets the mixing buffers in the Kunquat Handle.
- *
- * The returned value \a bufs is an array of buffers where \a bufs[0]
- * contains the buffer of the first output channel (left channel in stereo),
- * \a bufs[1] contains the buffer of the second output channel, and so on.
- * \a bufs[kqt_Handle_get_buffer_count(\a handle)] is always \c NULL.
- * Each buffer contains kqt_Handle_get_buffer_size(\a handle) amplitude
- * values of type \a kqt_frame.
- *
- * \param handle   The Handle -- should not be \c NULL.
- *
- * \return   The buffers, or \c NULL if \a handle == \c NULL.
- */
-kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle);
-
-
-/**
  * Sets the position to be played.
  *
- * Any notes that were being played will be cut off immediately.
+ * Any notes that were being mixed will be cut off immediately.
  * Notes that start playing before the given position will not be played.
  *
  * \param handle        The Handle -- should not be \c NULL.
  * \param subsong       The Subsong number -- should be >= \c -1 and
- *                      < \c KQT_SUBSONGS_MAX (\c -1 contains all Subsongs).
+ *                      < \c KQT_SUBSONGS_MAX (\c -1 indicates all Subsongs).
  * \param nanoseconds   The number of nanoseconds from the beginning --
  *                      should not be negative.
  *

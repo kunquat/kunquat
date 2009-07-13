@@ -74,8 +74,8 @@ int kqt_unwrap_time(char* time,
  *
  * Important: Because the position of a section and a timestamp in time
  *            elapsed from the beginning is ambiguous, the function
- *            \a kqt_Handle_tell_nanoseconds shouldn't be used after a jump
- *            to a section or timestamp.
+ *            \a kqt_Handle_tell shouldn't be used after a jump to a section
+ *            or timestamp.
  *
  * \param handle     The Handle -- should not be \c NULL.
  * \param position   The new position -- should not be \c NULL.
