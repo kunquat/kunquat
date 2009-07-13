@@ -41,7 +41,8 @@ int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
     }
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
-        kqt_Handle_set_error(handle, "Invalid subsong number: %d", subsong);
+        kqt_Handle_set_error(handle,
+                "kqt_Handle_get_subsong_length: Invalid subsong number: %d", subsong);
         return -1;
     }
     assert(handle->song != NULL);
