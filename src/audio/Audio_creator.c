@@ -36,9 +36,6 @@
 #ifdef WITH_OPENAL
 #include <Audio_openal.h>
 #endif
-#ifdef WITH_SNDFILE
-#include <Audio_wav.h>
-#endif
 
 
 typedef struct Driver_info
@@ -60,9 +57,6 @@ static Driver_info drivers[] =
     { "openal", new_Audio_openal },
 #endif
     { "null", new_Audio_null },
-#ifdef WITH_SNDFILE
-    { "wav", new_Audio_wav },
-#endif
     { NULL, NULL }
 };
 

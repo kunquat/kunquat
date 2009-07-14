@@ -62,9 +62,6 @@ static char* driver_names[] =
     "openal",
 #endif
     "null",
-#if defined(WITH_SNDFILE)
-    "wav",
-#endif
     NULL
 };
 
@@ -98,7 +95,6 @@ void usage(void)
         fprintf(stdout, ", %s", driver_names[i]);
     }
     fprintf(stdout, "\n");
-    fprintf(stdout, "   -f file, --file file   Write the audio data into file\n");
     fprintf(stdout, "   --buffer-size n        Use audio buffer size n\n");
     fprintf(stdout, "                          Valid range is [64,262144]\n");
     fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second\n");
@@ -221,14 +217,12 @@ int main(int argc, char** argv)
     bool unicode = true;
     long buffer_size = 0;
     long frequency = 0;
-    char* out_path = NULL;
     char* format = NULL;
 
     struct option long_options[] =
     {
         { "help", no_argument, NULL, 'h' },
         { "driver", required_argument, NULL, 'd' },
-        { "file", required_argument, NULL, 'f' },
         { "buffer-size", required_argument, NULL, 'b' },
         { "frequency", required_argument, NULL, 'F' },
         { "format", required_argument, NULL, 'G' },
@@ -240,7 +234,7 @@ int main(int argc, char** argv)
     };
     int opt = 0;
     int opt_index = 1;
-    while ((opt = getopt_long(argc, argv, ":hd:f:qs:", long_options, &opt_index)) != -1)
+    while ((opt = getopt_long(argc, argv, ":hd:qs:", long_options, &opt_index)) != -1)
     {
         switch (opt)
         {
@@ -253,11 +247,6 @@ int main(int argc, char** argv)
             case 'd':
             {
                 driver_selection = optarg;
-            }
-            break;
-            case 'f':
-            {
-                out_path = optarg;
             }
             break;
             case 'b':
@@ -342,13 +331,6 @@ int main(int argc, char** argv)
         exit(EXIT_FAILURE);
     }
     bool audio_failed = false;
-    if (!audio_failed && out_path != NULL)
-    {
-        if (!Audio_set_file(audio, out_path))
-        {
-            audio_failed = true;
-        }
-    }
     if (!audio_failed && buffer_size > 0)
     {
         if (!Audio_set_buffer_size(audio, buffer_size))

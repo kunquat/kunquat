@@ -24,6 +24,8 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <assert.h>
+#include <string.h>
+#include <ctype.h>
 
 #include <ao/ao.h>
 #include <pthread.h>
@@ -47,7 +49,7 @@ struct Audio_ao
     pthread_t play_thread;
     ao_device* device;
     ao_sample_format format;
-    short* out_buf;
+    int16_t* out_buf;
 };
 
 
@@ -58,6 +60,8 @@ static int Audio_ao_process(Audio_ao* audio_ao);
 static bool Audio_ao_set_buffer_size(Audio_ao* audio_ao, uint32_t nframes);
 
 static bool Audio_ao_set_freq(Audio_ao* audio_ao, uint32_t freq);
+
+//static bool Audio_ao_set_frame_format(Audio_ao* audio_ao, char* format);
 
 static bool Audio_ao_open(Audio_ao* audio_ao);
 
@@ -84,6 +88,7 @@ Audio* new_Audio_ao(void)
     }
     audio_ao->parent.set_buffer_size = (bool (*)(Audio*, uint32_t))Audio_ao_set_buffer_size;
     audio_ao->parent.set_freq = (bool (*)(Audio*, uint32_t))Audio_ao_set_freq;
+//    audio_ao->parent.set_frame_format = (bool (*)(Audio*, char*))Audio_ao_set_frame_format;
     audio_ao->thread_active = false;
     audio_ao->device = NULL;
     audio_ao->out_buf = NULL;
@@ -92,14 +97,13 @@ Audio* new_Audio_ao(void)
     audio_ao->format.channels = 2;
     audio_ao->format.byte_format = AO_FMT_NATIVE;
     audio_ao->parent.freq = audio_ao->format.rate;
-    audio_ao->parent.nframes = 0;
-    audio_ao->out_buf = xnalloc(short, DEFAULT_BUF_SIZE * 2);
+    audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
+    audio_ao->out_buf = xnalloc(int16_t, audio_ao->parent.nframes * 2);
     if (audio_ao->out_buf == NULL)
     {
         del_Audio(&audio_ao->parent);
         return NULL;
     }
-    audio_ao->parent.nframes = DEFAULT_BUF_SIZE;
     return &audio_ao->parent;
 }
 
@@ -207,6 +211,42 @@ static bool Audio_ao_set_freq(Audio_ao* audio_ao, uint32_t freq)
 }
 
 
+#if 0
+static bool Audio_ao_set_frame_format(Audio_ao* audio_ao, char* format)
+{
+    assert(audio_ao != NULL);
+    assert(format != NULL);
+    assert(strlen(format) >= 2);
+    assert(strlen(format) <= 3);
+    assert(format[0] == 'i' || format[0] == 'f');
+    assert(isdigit(format[1]));
+    assert(format[2] == '\0' || isdigit(format[2]));
+    if (format[0] == 'f')
+    {
+        return false;
+    }
+    int bits = atoi(format + 1);
+    if (bits != 8 && bits != 16 && bits != 32)
+    {
+        return false;
+    }
+    if (bits == audio_ao->format.bits)
+    {
+        return true;
+    }
+    void* new_buf = xrealloc(int8_t, audio_ao->parent.nframes * 2 * bits / 8,
+                             audio_ao->out_buf);
+    if (new_buf == NULL)
+    {
+        return false;
+    }
+    audio_ao->out_buf = new_buf;
+    audio_ao->format.bits = bits;
+    return false;
+}
+#endif
+
+
 static void* Audio_ao_thread(void* data)
 {
     assert(data != NULL);
@@ -253,9 +293,10 @@ static int Audio_ao_process(Audio_ao* audio_ao)
             }
         }
     }
-    for (uint32_t i = mixed * 2; i < audio->nframes * 2; ++i)
+    if (mixed < audio->nframes)
     {
-        audio_ao->out_buf[i] = 0;
+        memset((char*)audio_ao->out_buf + mixed * 2 * audio_ao->format.bits / 8, 0,
+                (audio->nframes - mixed) * 2 * audio_ao->format.bits / 8);
     }
     if (!ao_play(audio_ao->device, (void*)audio_ao->out_buf, audio->nframes * 2 * 2))
     {
