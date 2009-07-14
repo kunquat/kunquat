@@ -95,14 +95,11 @@ void usage(void)
         fprintf(stdout, ", %s", driver_names[i]);
     }
     fprintf(stdout, "\n");
-    fprintf(stdout, "   --buffer-size n        Use audio buffer size n\n");
+    fprintf(stdout, "   --buffer-size n        Use audio buffer size of n frames\n");
     fprintf(stdout, "                          Valid range is [64,262144]\n");
     fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second\n");
     fprintf(stdout, "                          Valid range is [1000,384000]\n");
     fprintf(stdout, "                          (drivers may set additional restrictions)\n");
-    fprintf(stdout, "   --format fmt           Use frame format fmt\n");
-    fprintf(stdout, "                          ('i8', 'i16', 'i24', 'i32', 'f32')\n");
-    fprintf(stdout, "                          i = integer, f = float\n");
 
     fprintf(stdout, "\nPlayback options:\n");
     fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
@@ -217,7 +214,6 @@ int main(int argc, char** argv)
     bool unicode = true;
     long buffer_size = 0;
     long frequency = 0;
-    char* format = NULL;
 
     struct option long_options[] =
     {
@@ -225,7 +221,6 @@ int main(int argc, char** argv)
         { "driver", required_argument, NULL, 'd' },
         { "buffer-size", required_argument, NULL, 'b' },
         { "frequency", required_argument, NULL, 'F' },
-        { "format", required_argument, NULL, 'G' },
         { "quiet", no_argument, NULL, 'q' },
         { "subsong", required_argument, NULL, 's' },
         { "disable-unicode", no_argument, NULL, 'U' },
@@ -257,11 +252,6 @@ int main(int argc, char** argv)
             case 'F':
             {
                 frequency = read_long(optarg, "Mixing frequency", 1000, 384000);
-            }
-            break;
-            case 'G':
-            {
-                format = optarg;
             }
             break;
             case 'q':
@@ -341,13 +331,6 @@ int main(int argc, char** argv)
     if (!audio_failed && frequency > 0)
     {
         if (!Audio_set_freq(audio, frequency))
-        {
-            audio_failed = true;
-        }
-    }
-    if (!audio_failed && format != NULL)
-    {
-        if (!Audio_set_frame_format(audio, format))
         {
             audio_failed = true;
         }
