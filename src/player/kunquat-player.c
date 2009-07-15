@@ -82,8 +82,8 @@ void usage(void)
     fprintf(stdout, "Usage: " PLAYER_NAME " [options] <files>\n");
 
     fprintf(stdout, "\nOutput options:\n");
-    fprintf(stdout, "   -d drv, --driver drv   Use audio driver drv\n");
-    fprintf(stdout, "                          Supported drivers:");
+    fprintf(stdout, "   -d drv, --driver drv    Use audio driver drv\n");
+    fprintf(stdout, "                           Supported drivers:");
     if (driver_names[0] == NULL)
     {
         fprintf(stdout, " (none)\n");
@@ -95,34 +95,34 @@ void usage(void)
         fprintf(stdout, ", %s", driver_names[i]);
     }
     fprintf(stdout, "\n");
-    fprintf(stdout, "   --buffer-size n        Use audio buffer size of n frames\n");
-    fprintf(stdout, "                          Valid range is [64,262144]\n");
-    fprintf(stdout, "   --frequency x          Set mixing frequency to x frames/second\n");
-    fprintf(stdout, "                          Valid range is [1000,384000]\n");
-    fprintf(stdout, "                          (drivers may set additional restrictions)\n");
+    fprintf(stdout, "   --buffer-size n         Use audio buffer size of n frames\n");
+    fprintf(stdout, "                           Valid range is [64,262144]\n");
+    fprintf(stdout, "   --frequency n           Set mixing frequency to n frames/second\n");
+    fprintf(stdout, "                           Valid range is [1000,384000]\n");
+    fprintf(stdout, "                           (drivers may set additional restrictions)\n");
 
     fprintf(stdout, "\nPlayback options:\n");
-    fprintf(stdout, "   -s, --subsong s        Play the subsong s\n");
-    fprintf(stdout, "                          Valid range is [0,%d] (or 'all')\n",
-                                               KQT_SUBSONGS_MAX);
+    fprintf(stdout, "   -s sub, --subsong sub   Play the subsong sub\n");
+    fprintf(stdout, "                           Valid range is [0,%d] (or 'all')\n",
+                                                KQT_SUBSONGS_MAX - 1);
     
     fprintf(stdout, "\nOther options:\n");
-    fprintf(stdout, "   -h, --help             Show this help and exit\n");
-    fprintf(stdout, "   -q, --quiet            Quiet and non-interactive operation\n");
-    fprintf(stdout, "                          (only error messages will be displayed)\n");
-    fprintf(stdout, "   --disable-unicode      Don't use Unicode for display\n");
-    fprintf(stdout, "   --version              Display version information and exit\n");
+    fprintf(stdout, "   -h, --help              Show this help and exit\n");
+    fprintf(stdout, "   -q, --quiet             Quiet and non-interactive operation\n");
+    fprintf(stdout, "                           (only error messages will be displayed)\n");
+    fprintf(stdout, "   --disable-unicode       Don't use Unicode for display\n");
+    fprintf(stdout, "   --version               Display version information and exit\n");
     
     fprintf(stdout, "\nSupported keys in interactive mode:\n");
-    fprintf(stdout, "   Space                  Pause/unpause\n");
-    fprintf(stdout, "   [0-9], 'a'             Select subsong ('a' plays all subsongs)\n");
-    fprintf(stdout, "   Left                   Seek backwards 10 seconds\n");
-    fprintf(stdout, "   Right                  Seek forwards 10 seconds\n");
-    fprintf(stdout, "   'p'                    Previous subsong\n");
-    fprintf(stdout, "   'n'                    Next subsong\n");
-    fprintf(stdout, "   Backspace              Previous file\n");
-    fprintf(stdout, "   Return                 Next file\n");
-    fprintf(stdout, "   'q'                    Quit\n");
+    fprintf(stdout, "   Space                   Pause/resume playback\n");
+    fprintf(stdout, "   [0-9], 'a'              Select subsong ('a' plays all subsongs)\n");
+    fprintf(stdout, "   Left                    Seek backwards 10 seconds\n");
+    fprintf(stdout, "   Right                   Seek forwards 10 seconds\n");
+    fprintf(stdout, "   'p'                     Previous subsong\n");
+    fprintf(stdout, "   'n'                     Next subsong\n");
+    fprintf(stdout, "   Backspace               Previous file\n");
+    fprintf(stdout, "   Return                  Next file\n");
+    fprintf(stdout, "   'q'                     Quit\n");
     
     fprintf(stdout, "\n");
     return;
