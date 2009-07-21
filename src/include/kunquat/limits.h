@@ -73,6 +73,14 @@ extern "C" {
 
 
 /**
+ * This specifies how many parts one beat is. It is divisible by, among
+ * others, powers of 2 up to 2^7, powers of 3 up to 3^4, and all positive
+ * integers up to and including 18.
+ */
+#define KQT_RELTIME_BEAT (882161280L)
+
+
+/**
  * Maximum number of Instruments in a Kunquat Handle (Note: Instrument
  * indices start at 1).
  */

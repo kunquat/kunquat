@@ -62,7 +62,6 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
         }                                      \
     } while (false)
 
-
 int get_status_line(char* line,
                     int max_len,
                     Mix_state* mix_state,
@@ -100,8 +99,7 @@ int get_status_line(char* line,
     double seconds_total = 0;
     get_minutes_seconds(ns_total, &minutes_total, &seconds_total);
 
-    double pos = kqt_Reltime_get_beats(&mix_state->pos) +
-                 ((double)kqt_Reltime_get_rem(&mix_state->pos) / KQT_RELTIME_BEAT);
+    double pos = mix_state->beat + ((double)mix_state->beat_rem / KQT_RELTIME_BEAT);
 
     int line_pos = 0;
     print_status(line, line_pos, max_len, "%s", peak_meter);
@@ -147,5 +145,7 @@ int get_status_line(char* line,
 
     return min_len;
 }
+
+#undef print_status
 
 

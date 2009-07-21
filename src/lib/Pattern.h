@@ -28,7 +28,7 @@
 
 #include <Playdata.h>
 #include <Column.h>
-#include <kunquat/Reltime.h>
+#include <Reltime.h>
 #include <File_tree.h>
 #include <kunquat/limits.h>
 

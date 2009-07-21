@@ -26,7 +26,7 @@
 
 #include <stdint.h>
 
-#include <kunquat/Reltime.h>
+#include <Reltime.h>
 #include <Order.h>
 #include <Channel.h>
 #include <Voice_pool.h>

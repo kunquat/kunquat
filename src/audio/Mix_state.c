@@ -25,7 +25,6 @@
 #include <math.h>
 
 #include <kunquat/Player_ext.h>
-#include <kunquat/Reltime.h>
 
 #include <Mix_state.h>
 
@@ -39,7 +38,8 @@ Mix_state* Mix_state_init(Mix_state* state)
     state->subsong = 0;
     state->section = 0;
     state->pattern = 0;
-    kqt_Reltime_init(&state->pos);
+    state->beat = 0;
+    state->beat_rem = 0;
     state->tempo = 0;
     state->voices = 0;
     for (int i = 0; i < 2; ++i)
@@ -62,7 +62,8 @@ Mix_state* Mix_state_copy(Mix_state* dest, Mix_state* src)
     dest->subsong = src->subsong;
     dest->section = src->section;
     dest->pattern = src->pattern;
-    kqt_Reltime_copy(&dest->pos, &src->pos);
+    dest->beat = src->beat;
+    dest->beat_rem = src->beat_rem;
     dest->tempo = src->tempo;
     dest->voices = src->voices;
     for (int i = 0; i < 2; ++i)
@@ -83,13 +84,11 @@ void Mix_state_from_handle(Mix_state* mix_state, kqt_Handle* handle)
     mix_state->frames = kqt_Handle_get_frames_mixed(handle);
     mix_state->nanoseconds = kqt_Handle_tell(handle);
     char* pos = kqt_Handle_get_position(handle);
-    long long beats = 0;
-    long rem = 0;
-    kqt_unwrap_time(pos, &mix_state->subsong, &mix_state->section, &beats, &rem, NULL);
+    kqt_unwrap_time(pos, &mix_state->subsong, &mix_state->section,
+            &mix_state->beat, &mix_state->beat_rem, NULL);
 /*    mix_state->pattern = kqt_Handle_get_pattern_index(handle,
                                                        mix_state->subsong,
                                                        mix_state->section); */
-    kqt_Reltime_set(&mix_state->pos, beats, rem);
     mix_state->tempo = kqt_Handle_get_tempo(handle);
     mix_state->voices = kqt_Handle_get_voice_count(handle);
     for (int i = 0; i < 2; ++i)

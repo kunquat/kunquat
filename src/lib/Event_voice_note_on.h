@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include <Event_voice.h>
-#include <kunquat/Reltime.h>
+#include <Reltime.h>
 
 
 typedef struct Event_voice_note_on

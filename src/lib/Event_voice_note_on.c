@@ -25,7 +25,7 @@
 #include <stdbool.h>
 
 #include <Event_voice_note_on.h>
-#include <kunquat/Reltime.h>
+#include <Reltime.h>
 #include <Voice.h>
 #include <Note_table.h>
 #include <kunquat/limits.h>

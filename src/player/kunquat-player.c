@@ -40,7 +40,6 @@
 #include <kunquat/Player.h>
 #include <kunquat/Player_ext.h>
 #include <kunquat/Info.h>
-#include <kunquat/Reltime.h>
 
 #include <keyboard.h>
 #include <status_line.h>

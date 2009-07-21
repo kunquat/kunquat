@@ -24,20 +24,9 @@
 #define K_RELTIME_H
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-
 #include <stdint.h>
 
-
-/**
- * This specifies how many parts one beat is. It is divisible by, among
- * others, powers of 2 up to 2^7, powers of 3 up to 3^4, and all positive
- * integers up to and including 18.
- */
-#define KQT_RELTIME_BEAT (882161280L)
+#include <kunquat/limits.h>
 
 
 /**
@@ -47,8 +36,8 @@ extern "C" {
  */
 typedef struct kqt_Reltime
 {
-    long long beats; /// The number of beats.
-    long rem; /// Remainder of a beat -- always >= \c 0 and < \c KQT_RELTIME_BEAT.
+    int64_t beats; /// The number of beats.
+    int32_t rem; /// Remainder of a beat -- always >= \c 0 and < \c KQT_RELTIME_BEAT.
 } kqt_Reltime;
 
 
@@ -93,7 +82,7 @@ int kqt_Reltime_cmp(const kqt_Reltime* r1, const kqt_Reltime* r2);
  *
  * \return   The parameter \a r.
  */
-kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, long long beats, long rem);
+kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem);
 
 
 /**
@@ -103,7 +92,7 @@ kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, long long beats, long rem);
  *
  * \return   The beat count.
  */
-long long kqt_Reltime_get_beats(const kqt_Reltime* r);
+int64_t kqt_Reltime_get_beats(const kqt_Reltime* r);
 
 
 /**
@@ -113,7 +102,7 @@ long long kqt_Reltime_get_beats(const kqt_Reltime* r);
  *
  * \return   The remainder part.
  */
-long kqt_Reltime_get_rem(const kqt_Reltime* r);
+int32_t kqt_Reltime_get_rem(const kqt_Reltime* r);
 
 
 /**
@@ -169,9 +158,9 @@ kqt_Reltime* kqt_Reltime_copy(kqt_Reltime* dest, const kqt_Reltime* src);
  *
  * \return   The number of frames.
  */
-long kqt_Reltime_toframes(const kqt_Reltime* r,
-                          double tempo,
-                          long freq);
+uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
+                              double tempo,
+                              uint32_t freq);
 
 
 /**
@@ -185,14 +174,9 @@ long kqt_Reltime_toframes(const kqt_Reltime* r,
  * \return   The parameter \a r.
  */
 kqt_Reltime* kqt_Reltime_fromframes(kqt_Reltime* r,
-                                    long frames,
+                                    uint32_t frames,
                                     double tempo,
-                                    long freq);
-
-
-#ifdef __cplusplus
-}
-#endif
+                                    uint32_t freq);
 
 
 #endif // K_RELTIME_H

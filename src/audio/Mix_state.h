@@ -27,7 +27,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <kunquat/Reltime.h>
 #include <kunquat/Handle.h>
 
 
@@ -39,7 +38,8 @@ typedef struct Mix_state
     int subsong;             ///< Number of the current Subsong.
     int section;             ///< The current section.
     uint16_t pattern;        ///< The current Pattern index.
-    kqt_Reltime pos;         ///< The current position inside a Pattern.
+    long long beat;          ///< The current beat inside a Pattern.
+    long beat_rem;           ///< The remainder of the beat.
     double tempo;            ///< The current tempo (BPM).
     uint16_t voices;         ///< The maximum number of simultaneous Voices since the last update.
     double min_amps[2];      ///< Minimum amplitude values since the last update.

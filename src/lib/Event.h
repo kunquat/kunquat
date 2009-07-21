@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <kunquat/Reltime.h>
+#include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
 
