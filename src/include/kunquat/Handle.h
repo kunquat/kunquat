@@ -35,6 +35,7 @@ extern "C" {
 
 /**
  * \defgroup Handle Handle Creation and Minimal Diagnostics
+ * \{
  *
  * \brief
  * This module describes Kunquat Handle, the main identifier for accessing
@@ -121,6 +122,9 @@ char* kqt_Handle_get_error(kqt_Handle* handle);
  * \param handle   The Handle -- should not be \c NULL.
  */
 void kqt_del_Handle(kqt_Handle* handle);
+
+
+/* \} */
 
 
 #ifdef __cplusplus

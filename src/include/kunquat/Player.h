@@ -35,6 +35,8 @@ extern "C" {
 /**
  * \defgroup Player Playing Kunquat compositions
  *
+ * \{
+ *
  * \brief
  * This module describes a simple API for applications that use libkunquat
  * for playing Kunquat compositions.
@@ -145,6 +147,9 @@ int kqt_Handle_seek(kqt_Handle* handle, int subsong, long long nanoseconds);
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
 long long kqt_Handle_tell(kqt_Handle* handle);
+
+
+/* \} */
 
 
 #ifdef __cplusplus
