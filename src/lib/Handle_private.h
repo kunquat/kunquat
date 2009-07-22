@@ -42,7 +42,6 @@
 struct kqt_Handle
 {
     Song* song;
-    kqt_frame* bufs[KQT_BUFFERS_MAX + 1];
     Playdata* play;
     Playdata* play_silent;
     Voice_pool* voices;

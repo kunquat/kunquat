@@ -271,7 +271,10 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     {
         mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
         int buf_count = kqt_Handle_get_buffer_count(handle);
-        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
+        kqt_frame* bufs[KQT_BUFFERS_MAX] = {
+            kqt_Handle_get_buffer(handle, 0),
+            kqt_Handle_get_buffer(handle, 1)
+        };
         
         // Convert to interleaved 16-bit stereo
         for (uint32_t i = 0; i < audio->nframes; ++i)

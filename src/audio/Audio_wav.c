@@ -294,7 +294,10 @@ static int Audio_wav_process(Audio_wav* audio_wav)
     {
         uint32_t mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
         int buf_count = kqt_Handle_get_buffer_count(handle);
-        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
+        kqt_frame* bufs[KQT_BUFFERS_MAX] = {
+            kqt_Handle_get_buffer(handle, 0),
+            kqt_Handle_get_buffer(handle, 1)
+        };
         for (uint32_t i = 0; i < mixed; ++i)
         {
             audio_wav->out_buf[i * 2] = (float)bufs[0][i];

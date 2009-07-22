@@ -68,8 +68,8 @@ typedef struct kqt_Handle kqt_Handle;
  * values (called \a frames) for one output channel. In a typical case, the
  * calling application should set this value based on the size of its own
  * output buffers: if the application uses buffers with \a n amplitude values
- * for one output channel (e.g. in 16-bit stereo, this takes \a n * \c 4
- * bytes), it should call kqt_new_Handle with a buffer size of \a n.
+ * for one output channel (e.g. in 16-bit stereo, this takes \a n * \c 4 bytes
+ * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
  * \param buffer_size   The size of the mixing buffers -- should be positive.
  *
@@ -91,7 +91,7 @@ kqt_Handle* kqt_new_Handle(long buffer_size);
  *                      -- should not be \c NULL.
  *
  * \return   The new Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(NULL) for error message).
+ *           (check kqt_Handle_get_error(\c NULL) for error message).
  */
 kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
 

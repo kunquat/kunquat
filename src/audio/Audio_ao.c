@@ -279,7 +279,10 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     {
         mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
         int buf_count = kqt_Handle_get_buffer_count(handle);
-        kqt_frame** bufs = kqt_Handle_get_buffers(handle);
+        kqt_frame* bufs[KQT_BUFFERS_MAX] = { 
+            kqt_Handle_get_buffer(handle, 0),
+            kqt_Handle_get_buffer(handle, 1)
+        };
         for (uint32_t i = 0; i < mixed; ++i)
         {
             audio_ao->out_buf[i * 2] = (short)(bufs[0][i] * INT16_MAX);

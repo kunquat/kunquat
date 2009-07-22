@@ -57,20 +57,16 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
 
 
 /**
- * Gets the mixing buffers in the Kunquat Handle.
- *
- * The returned value \a bufs is an array of buffers where \a bufs[0]
- * contains the buffer of the first output channel (left channel in stereo),
- * \a bufs[1] contains the buffer of the second output channel, and so on.
- * \a bufs[kqt_Handle_get_buffer_count(\a handle)] is always \c NULL.
- * Each buffer contains kqt_Handle_get_buffer_size(\a handle) amplitude
- * values of type \a kqt_frame.
+ * Gets a mixing buffer from the Kunquat Handle.
  *
  * \param handle   The Handle -- should not be \c NULL.
+ * \param index    The buffer number. In stereo mode, \c 0 is the left
+ *                 mixing buffer and \c 1 is the right one.
  *
- * \return   The buffers, or \c NULL if \a handle == \c NULL.
+ * \return   The buffers, or \c NULL if \a handle == \c NULL or \a index
+ *           is out of range.
  */
-kqt_frame** kqt_Handle_get_buffers(kqt_Handle* handle);
+kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
 
 
 /**
@@ -112,7 +108,7 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Gets the length of the current Subsong in the Kunquat Handle in
+ * Gets the duration of the current Subsong in the Kunquat Handle in
  * nanoseconds.
  *
  * \param handle   The Handle -- should not be \c NULL.
