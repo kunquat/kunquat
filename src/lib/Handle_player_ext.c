@@ -132,7 +132,7 @@ int kqt_unwrap_time(char* time,
 }
 
 
-int kqt_Handle_set_position(kqt_Handle* handle, char* position)
+int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
 {
     check_handle(handle, "kqt_Handle_set_position", 0);
     if (position == NULL)
@@ -185,7 +185,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, char* position)
 }
 
 
-char* kqt_Handle_get_position(kqt_Handle* handle)
+char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_position", NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",

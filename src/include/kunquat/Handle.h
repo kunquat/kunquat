@@ -40,6 +40,13 @@ extern "C" {
  * \brief
  * This module describes Kunquat Handle, the main identifier for accessing
  * Kunquat compositions.
+ *
+ * Every Kunquat composition is accessed through a Kunquat Handle which has
+ * the type kqt_Handle. The user needs to create a Kunquat Handle first, then
+ * operate the Handle in order to play and/or modify the composition, and
+ * finally release the allocated resources by destroying the Handle.
+ *
+ * An API for simple playback functionality is located in \c Player.h.
  */
 
 
@@ -50,9 +57,9 @@ extern "C" {
  * inside the Handle. See kqt_Handle_get_error for more information.
  *
  * Operations on Kunquat Handles are generally <b>not</b> thread-safe. In
- * particular, multiple threads should not create new Kunquat Handles or
- * access a single Kunquat Handle in parallel. However, accessing different
- * Kunquat Handles from different threads in parallel should be safe.
+ * particular, multiple threads must not create new Kunquat Handles or access
+ * a single Kunquat Handle in parallel. However, accessing different Kunquat
+ * Handles from different threads in parallel should be safe.
  */
 typedef struct kqt_Handle kqt_Handle;
 

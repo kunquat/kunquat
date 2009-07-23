@@ -82,7 +82,7 @@ int kqt_unwrap_time(char* time,
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_set_position(kqt_Handle* handle, char* position);
+int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position);
 
 
 /**
@@ -92,7 +92,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, char* position);
  *
  * \return   The position description, or \c NULL if \a handle is invalid.
  */
-char* kqt_Handle_get_position(kqt_Handle* handle);
+char* kqt_Handle_get_position_desc(kqt_Handle* handle);
 
 
 /**

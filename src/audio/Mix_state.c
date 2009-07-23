@@ -82,8 +82,8 @@ void Mix_state_from_handle(Mix_state* mix_state, kqt_Handle* handle)
     assert(handle != NULL);
     mix_state->playing = !kqt_Handle_end_reached(handle);
     mix_state->frames = kqt_Handle_get_frames_mixed(handle);
-    mix_state->nanoseconds = kqt_Handle_tell(handle);
-    char* pos = kqt_Handle_get_position(handle);
+    mix_state->nanoseconds = kqt_Handle_get_position(handle);
+    char* pos = kqt_Handle_get_position_desc(handle);
     kqt_unwrap_time(pos, &mix_state->subsong, &mix_state->section,
             &mix_state->beat, &mix_state->beat_rem, NULL);
 /*    mix_state->pattern = kqt_Handle_get_pattern_index(handle,

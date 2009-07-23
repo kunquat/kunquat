@@ -362,7 +362,7 @@ int main(int argc, char** argv)
         int subsong = start_subsong;
         if (subsong != -1)
         {
-            if (!kqt_Handle_seek(handle, subsong, 0))
+            if (!kqt_Handle_set_position(handle, subsong, 0))
             {
                 fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
                 kqt_del_Handle(handle);
@@ -430,13 +430,13 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Handle_tell(handle);
+                    long long ns = kqt_Handle_get_position(handle);
                     ns -= 10000000000LL;
                     if (ns < 0)
                     {
                         ns = 0;
                     }
-                    if (!kqt_Handle_seek(handle, subsong, ns))
+                    if (!kqt_Handle_set_position(handle, subsong, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
@@ -446,9 +446,9 @@ int main(int argc, char** argv)
                 {
                     Audio_pause(audio, true);
                     Audio_get_state(audio, mix_state);
-                    long long ns = kqt_Handle_tell(handle);
+                    long long ns = kqt_Handle_get_position(handle);
                     ns += 10000000000LL;
-                    if (!kqt_Handle_seek(handle, subsong, ns))
+                    if (!kqt_Handle_set_position(handle, subsong, ns))
                     {
                         fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                     }
@@ -480,7 +480,7 @@ int main(int argc, char** argv)
                         subsong = new_subsong;
                         Audio_pause(audio, true);
                         Audio_get_state(audio, mix_state);
-                        if (!kqt_Handle_seek(handle, subsong, 0))
+                        if (!kqt_Handle_set_position(handle, subsong, 0))
                         {
                             fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
                         }

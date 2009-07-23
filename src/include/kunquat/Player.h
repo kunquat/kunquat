@@ -40,6 +40,27 @@ extern "C" {
  * \brief
  * This module describes a simple API for applications that use libkunquat
  * for playing Kunquat compositions.
+ *
+ * After the Kunquat Handle has been created, the user can get the audio to
+ * be played in short sections. First the user mixes a short section of music
+ * into internal buffers and then transfers the necessary information from the
+ * internal buffers into its own output buffers. This process is repeated as
+ * many times as needed. The basic playback cycle may look like this:
+ *
+ * \code
+ * int buffer_count = kqt_Handle_get_buffer_count(handle);
+ * long buffer_size = kqt_Handle_get_buffer_size(handle);
+ * long mixed = 0;
+ * while ((mixed = kqt_Handle_mix(handle, buffer_size, 44100)) > 0)
+ * {
+ *     for (int i = 0; i < buffer_count; ++i)
+ *     {
+ *         kqt_frame* buffer = kqt_Handle_get_buffer(handle, i);
+ *         // convert (if necessary) and store the contents of
+ *         // buffer i into the output buffer of the program...
+ *     }
+ * }
+ * \endcode
  */
 
 
@@ -65,6 +86,9 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
  *
  * \return   The buffers, or \c NULL if \a handle == \c NULL or \a index
  *           is out of range.
+ *           Note: Do not cache the returned value! The location of the buffer
+ *           may change in memory, especially if the buffer size or the number
+ *           of buffers is changed.
  */
 kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
 
@@ -132,7 +156,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle);
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_seek(kqt_Handle* handle, int subsong, long long nanoseconds);
+int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanoseconds);
 
 
 /**
@@ -142,7 +166,7 @@ int kqt_Handle_seek(kqt_Handle* handle, int subsong, long long nanoseconds);
  *
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
-long long kqt_Handle_tell(kqt_Handle* handle);
+long long kqt_Handle_get_position(kqt_Handle* handle);
 
 
 /* \} */

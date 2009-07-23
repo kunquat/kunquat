@@ -127,7 +127,7 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
     handle->play_silent->events = Song_get_events(handle->song);
     
     kqt_Handle_stop(handle);
-    kqt_Handle_set_position(handle, NULL);
+    kqt_Handle_set_position_desc(handle, NULL);
     return handle;
 }
 
@@ -191,7 +191,7 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
     }
     del_File_tree(tree);
     kqt_Handle_stop(handle);
-    kqt_Handle_set_position(handle, NULL);
+    kqt_Handle_set_position_desc(handle, NULL);
     return handle;
 }
 
