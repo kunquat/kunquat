@@ -24,34 +24,23 @@
 #define AUDIO_AO_H
 
 
-#ifdef ENABLE_AO
-
-
 #include <stdbool.h>
 #include <stdint.h>
 
 #include <ao/ao.h>
 
-#include <kunquat.h>
+#include <Audio.h>
+
+
+typedef struct Audio_ao Audio_ao;
 
 
 /**
- * Creates a libao client.
+ * Creates a new libao client.
  *
- * \param pl   The Playlist -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new libao client if successful, otherwise \c NULL.
  */
-bool Audio_ao_open(Playlist* pl);
-
-
-/**
- * Closes the libao client.
- */
-void Audio_ao_close(void);
-
-
-#endif // ENABLE_AO
+Audio* new_Audio_ao(void);
 
 
 #endif // AUDIO_AO_H

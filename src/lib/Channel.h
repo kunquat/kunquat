@@ -31,7 +31,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <Column.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 /**
@@ -43,8 +43,8 @@ typedef struct Channel
 {
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
-    Voice* fg[GENERATORS_MAX]; ///< The Voices in the foreground.
-    uint64_t fg_id[GENERATORS_MAX]; ///< The reservation identifications.
+    Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
+    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
     Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
     Event* single; ///< An Event used for single note playback control.
 } Channel;
@@ -79,8 +79,8 @@ Channel* new_Channel(Ins_table* insts);
 void Channel_set_voices(Channel* ch,
         Voice_pool* pool,
         Column_iter* citer,
-        Reltime* start,
-        Reltime* end,
+        kqt_Reltime* start,
+        kqt_Reltime* end,
         uint32_t offset,
         double tempo,
         uint32_t freq);

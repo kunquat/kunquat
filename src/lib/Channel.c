@@ -44,13 +44,13 @@ Channel* new_Channel(Ins_table* insts)
     {
         return NULL;
     }
-    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    ch->note_off = (Event*)new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ch->note_off == NULL)
     {
         xfree(ch);
         return NULL;
     }
-    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
+    ch->single = (Event*)new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, -1, 0));
     if (ch->single == NULL)
     {
         del_Event(ch->note_off);
@@ -59,7 +59,7 @@ Channel* new_Channel(Ins_table* insts)
     }
     ch->insts = insts;
     ch->fg_count = 0;
-    for (int i = 0; i < GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->fg[i] = NULL;
         ch->fg_id[i] = 0;
@@ -71,8 +71,8 @@ Channel* new_Channel(Ins_table* insts)
 void Channel_set_voices(Channel* ch,
                         Voice_pool* pool,
                         Column_iter* citer,
-                        Reltime* start,
-                        Reltime* end,
+                        kqt_Reltime* start,
+                        kqt_Reltime* end,
                         uint32_t offset,
                         double tempo,
                         uint32_t freq)
@@ -85,7 +85,7 @@ void Channel_set_voices(Channel* ch,
     assert(tempo > 0);
     assert(freq > 0);
     Event* next = ch->single;
-    if (Reltime_cmp(Event_get_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
+    if (kqt_Reltime_cmp(Event_get_pos(ch->single), kqt_Reltime_init(KQT_RELTIME_AUTO)) < 0)
     {
         next = NULL;
         if (citer != NULL)
@@ -101,10 +101,10 @@ void Channel_set_voices(Channel* ch,
     {
         Event_set_pos(ch->single, start);
     }
-    Reltime* next_pos = Event_get_pos(next);
-    while (Reltime_cmp(next_pos, end) < 0)
+    kqt_Reltime* next_pos = Event_get_pos(next);
+    while (kqt_Reltime_cmp(next_pos, end) < 0)
     {
-        assert(Reltime_cmp(start, next_pos) <= 0);
+        assert(kqt_Reltime_cmp(start, next_pos) <= 0);
         if (Event_get_type(next) == EVENT_TYPE_NOTE_ON)
         {
             for (int i = 0; i < ch->fg_count; ++i)
@@ -118,8 +118,8 @@ void Channel_set_voices(Channel* ch,
                         // The Voice has been given to another channel -- giving up
                         continue;
                     }
-                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                    kqt_Reltime* rel_offset = kqt_Reltime_sub(KQT_RELTIME_AUTO, next_pos, start);
+                    uint32_t abs_pos = kqt_Reltime_toframes(rel_offset, tempo, freq)
                             + offset;
                     // FIXME: it seems that we may use ch->note_off for several Voices
                     //        -- this leads to slightly incorrect Note Off positions
@@ -176,8 +176,8 @@ void Channel_set_voices(Channel* ch,
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
                 Voice_init(ch->fg[i], Instrument_get_gen(ins, i));
-                Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                kqt_Reltime* rel_offset = kqt_Reltime_sub(KQT_RELTIME_AUTO, next_pos, start);
+                uint32_t abs_pos = kqt_Reltime_toframes(rel_offset, tempo, freq)
                         + offset;
                 if (!Voice_add_event(ch->fg[i], next, abs_pos))
                 {
@@ -203,8 +203,8 @@ void Channel_set_voices(Channel* ch,
                         continue;
                     }
                     voices_active = true;
-                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
+                    kqt_Reltime* rel_offset = kqt_Reltime_sub(KQT_RELTIME_AUTO, next_pos, start);
+                    uint32_t abs_pos = kqt_Reltime_toframes(rel_offset, tempo, freq)
                             + offset;
                     if (!Voice_add_event(ch->fg[i], next, abs_pos))
                     {
@@ -222,7 +222,7 @@ void Channel_set_voices(Channel* ch,
         }
         if (next == ch->single)
         {
-            Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));
+            Event_set_pos(ch->single, kqt_Reltime_set(KQT_RELTIME_AUTO, -1, 0));
             next = NULL;
             if (citer != NULL)
             {

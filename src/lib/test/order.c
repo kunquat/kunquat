@@ -42,11 +42,16 @@ START_TEST (new)
         fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
         abort();
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
-        for (int k = 0; k < ORDERS_MAX; ++k)
+        for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = Order_get(order, i, k);
+            int16_t ret = ORDER_NONE;
+            Subsong* ss = Order_get_subsong(order, i);
+            if (ss != NULL)
+            {
+                ret = Subsong_get(ss, k);
+            }
             fail_unless(ret == ORDER_NONE,
                     "Newly created Order contained %hd at subsong %hu, index %hu.",
                     (short int)ret,
@@ -67,47 +72,74 @@ START_TEST (set_get)
         fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 0, 0))
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 7, 7))
+    Subsong* ss_end = new_Subsong();
+    if (ss_end == NULL)
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 8, 8))
+    if (Order_set_subsong(order, 0, ss) < 0)
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 33, 33))
+    if (Order_set_subsong(order, KQT_SUBSONGS_MAX - 1, ss_end) < 0)
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, ORDERS_MAX - 1, ORDERS_MAX - 1))
+    if (!Subsong_set(ss, 0, 0))
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, SUBSONGS_MAX - 1, ORDERS_MAX - 1, SUBSONGS_MAX + ORDERS_MAX - 2))
+    if (!Subsong_set(ss, 7, 7))
     {
-        fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
         abort();
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    if (!Subsong_set(ss, 8, 8))
     {
-        for (int k = 0; k < ORDERS_MAX; ++k)
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, 33, 33))
+    {
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, KQT_SECTIONS_MAX - 1, KQT_SECTIONS_MAX - 1))
+    {
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss_end, KQT_SECTIONS_MAX - 1, 1 + KQT_SECTIONS_MAX - 1))
+    {
+        fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
+        abort();
+    }
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
+    {
+        for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = Order_get(order, i, k);
+            int16_t ret = ORDER_NONE;
+            Subsong* subsong = Order_get_subsong(order, i);
+            if (subsong != NULL)
+            {
+                ret = Subsong_get(subsong, k);
+            }
             if ((i == 0 && k == 0)
                     || (i == 0 && k == 7)
                     || (i == 0 && k == 8)
                     || (i == 0 && k == 33)
-                    || (i == 0 && k == ORDERS_MAX - 1)
-                    || (i == SUBSONGS_MAX - 1 && k == ORDERS_MAX - 1))
+                    || (i == 0 && k == KQT_SECTIONS_MAX - 1)
+                    || (i == 1 && k == KQT_SECTIONS_MAX - 1))
             {
                 fail_unless(ret == i + k,
                         "Order contained %hd instead of %d at subsong %d, index %d.",
@@ -121,22 +153,38 @@ START_TEST (set_get)
             }
         }
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
-        for (int k = 0; k < ORDERS_MAX; ++k)
+        Subsong* subsong = new_Subsong();
+        if (subsong == NULL)
         {
-            if (!Order_set(order, i, k, i + k))
+            fprintf(stderr, "new_Subsong() returned false -- out of memory?\n");
+            abort();
+        }
+        if (Order_set_subsong(order, i, subsong) < 0)
+        {
+            fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+            abort();
+        }
+        for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
+        {
+            if (!Subsong_set(subsong, k, i + k))
             {
-                fprintf(stderr, "Order_set() returned false -- out of memory?\n");
+                fprintf(stderr, "Subsong_set() returned false -- out of memory?\n");
                 abort();
             }
         }
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
-        for (int k = 0; k < ORDERS_MAX; ++k)
+        for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = Order_get(order, i, k);
+            int16_t ret = ORDER_NONE;
+            Subsong* subsong = Order_get_subsong(order, i);
+            if (subsong != NULL)
+            {
+                ret = Subsong_get(subsong, k);
+            }
             fail_unless(ret == i + k,
                     "Order contained %hd instead of %d at subsong %d, index %d.",
                     (short int)ret, i + k, i, k);
@@ -149,7 +197,34 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (set_break_order_null)
 {
-    Order_set(NULL, 0, 0, 0);
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
+    {
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Order_set_subsong(NULL, 0, ss);
+    del_Subsong(ss);
+}
+END_TEST
+
+START_TEST (set_break_index_inv)
+{
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
+    {
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Order* order = new_Order();
+    if (order == NULL)
+    {
+        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        return;
+    }
+    Order_set_subsong(order, KQT_SUBSONGS_MAX, ss);
+    del_Order(order);
+    del_Subsong(ss);
 }
 END_TEST
 
@@ -161,53 +236,14 @@ START_TEST (set_break_subsong_inv)
         fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
         return;
     }
-    Order_set(order, SUBSONGS_MAX, 0, 0);
-    del_Order(order);
-}
-END_TEST
-
-START_TEST (set_break_index_inv)
-{
-    Order* order = new_Order();
-    if (order == NULL)
-    {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
-        return;
-    }
-    Order_set(order, 0, ORDERS_MAX, 0);
-    del_Order(order);
-}
-END_TEST
-
-START_TEST (set_break_pat_inv)
-{
-    Order* order = new_Order();
-    if (order == NULL)
-    {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
-        return;
-    }
-    Order_set(order, 0, 0, ORDER_NONE - 1);
+    Order_set_subsong(order, 0, NULL);
     del_Order(order);
 }
 END_TEST
 
 START_TEST (get_break_order_null)
 {
-    Order_get(NULL, 0, 0);
-}
-END_TEST
-
-START_TEST (get_break_subsong_inv)
-{
-    Order* order = new_Order();
-    if (order == NULL)
-    {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
-        return;
-    }
-    Order_get(order, SUBSONGS_MAX, 0);
-    del_Order(order);
+    Order_get_subsong(NULL, 0);
 }
 END_TEST
 
@@ -219,7 +255,7 @@ START_TEST (get_break_index_inv)
         fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
         return;
     }
-    Order_get(order, 0, ORDERS_MAX);
+    Order_get_subsong(order, KQT_SUBSONGS_MAX);
     del_Order(order);
 }
 END_TEST
@@ -243,12 +279,10 @@ Suite* Order_suite(void)
 
 #ifndef NDEBUG
     tcase_add_test_raise_signal(tc_set_get, set_break_order_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get, set_break_subsong_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get, set_break_index_inv, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get, set_break_pat_inv, SIGABRT);
+    tcase_add_test_raise_signal(tc_set_get, set_break_subsong_inv, SIGABRT);
 
     tcase_add_test_raise_signal(tc_set_get, get_break_order_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get, get_break_subsong_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get, get_break_index_inv, SIGABRT);
 #endif
 

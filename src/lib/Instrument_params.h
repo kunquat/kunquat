@@ -27,7 +27,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <frame_t.h>
+#include <kunquat/frame.h>
 #include <Envelope.h>
 #include <Note_table.h>
 #include <File_base.h>
@@ -36,10 +36,10 @@
 
 typedef struct Instrument_params
 {
-    frame_t** bufs;   ///< Mixing buffer used (same as either \a pbuf or \a gbuf).
-    frame_t** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
-    frame_t** gbufs;  ///< Global mixing buffers.
-    frame_t** vbufs;  ///< Voice buffers.
+    kqt_frame** bufs;   ///< Mixing buffer used (same as either \a pbuf or \a gbuf).
+    kqt_frame** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
+    kqt_frame** gbufs;  ///< Global mixing buffers.
+    kqt_frame** vbufs;  ///< Voice buffers.
     int buf_count;    ///< Number of mixing buffers.
     uint32_t buf_len; ///< Mixing buffer length.
     
@@ -106,8 +106,8 @@ typedef struct Instrument_params
  *           allocation failed.
  */
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-        frame_t** bufs,
-        frame_t** vbufs,
+        kqt_frame** bufs,
+        kqt_frame** vbufs,
         int buf_count,
         uint32_t buf_len,
         Note_table** notes);

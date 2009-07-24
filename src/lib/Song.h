@@ -26,8 +26,8 @@
 
 #include <stdint.h>
 
-#include <Song_limits.h>
-#include <frame_t.h>
+#include <kunquat/limits.h>
+#include <kunquat/frame.h>
 #include <Order.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
@@ -41,16 +41,15 @@ typedef struct Song
 {
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
-    frame_t** bufs;                     ///< Buffers.
-    frame_t* priv_bufs[BUF_COUNT_MAX];  ///< Private buffers.
-    frame_t* voice_bufs[BUF_COUNT_MAX]; ///< Temporary buffers for Voices.
+    kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
+    kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
+    kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     Order* order;                       ///< The Order lists.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    Note_table* notes[NOTE_TABLES_MAX]; ///< The Note tables.
+    Note_table* notes[KQT_SCALES_MAX]; ///< The Note tables.
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
-    wchar_t name[SONG_NAME_MAX];        ///< The name of the Song.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
@@ -62,7 +61,7 @@ typedef struct Song
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
- *                    <= \a BUF_COUNT_MAX. Typically, this is 2 (stereo).
+ *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of a buffer -- must be > \c 0.
  * \param events      The maximum number of global events per tick -- must be
  *                    > \c 0.
@@ -102,46 +101,15 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
 
 
 /**
- * Sets the name of the Song.
+ * Skips part of the Song.
  *
- * \param song   The Song -- must not be \c NULL.
- * \param name   The name to be set -- must not be \c NULL. Only the first
- *               SONG_NAME_MAX - 1 characters will be used.
+ * \param song     The Song -- must not be \c NULL.
+ * \param play     The Playdata -- must not be \c NULL.
+ * \param amount   The amount of frames to be skipped.
+ *
+ * \return   The amount of frames actually skipped. This is <= \a amount.
  */
-void Song_set_name(Song* song, wchar_t* name);
-
-
-/**
- * Gets the name of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The name.
- */
-wchar_t* Song_get_name(Song* song);
-
-
-/**
- * Sets the initial tempo of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- * \param tempo     The tempo -- must be finite and > \c 0.
- */
-void Song_set_tempo(Song* song, int subsong, double tempo);
-
-
-/**
- * Gets the initial tempo of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- *
- * \return   The tempo.
- */
-double Song_get_tempo(Song* song, int subsong);
+uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount);
 
 
 /**
@@ -164,33 +132,10 @@ double Song_get_mix_vol(Song* song);
 
 
 /**
- * Sets the initial global volume of the Song.
- *
- * \param song         The Song -- must not be \c NULL.
- * \param subsong      The subsong index -- must be >= \c 0 and
- *                     < \c SUBSONGS_MAX.
- * \param global_vol   The volume -- must be finite or -INFINITY.
- */
-void Song_set_global_vol(Song* song, int subsong, double global_vol);
-
-
-/**
- * Gets the initial global volume of the Song.
- *
- * \param song      The Song -- must not be \c NULL.
- * \param subsong   The subsong index -- must be >= \c 0 and
- *                  < \c SUBSONGS_MAX.
- *
- * \return   The global volume.
- */
-double Song_get_global_vol(Song* song, int subsong);
-
-
-/**
  * Sets the initial subsong of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param num    The subsong number -- must be < \c SUBSONGS_MAX.
+ * \param num    The subsong number -- must be < \c KQT_SUBSONGS_MAX.
  */
 void Song_set_subsong(Song* song, uint16_t num);
 
@@ -210,7 +155,7 @@ uint16_t Song_get_subsong(Song* song);
  *
  * \param song    The Song -- must not be \c NULL.
  * \param count   The number of buffers -- must be > \c 0 and
- *                <= \c BUF_COUNT_MAX.
+ *                <= \c KQT_BUFFERS_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -255,7 +200,7 @@ uint32_t Song_get_buf_size(Song* song);
  *
  * \return   The buffers.
  */
-frame_t** Song_get_bufs(Song* song);
+kqt_frame** Song_get_bufs(Song* song);
 
 
 /**
@@ -265,7 +210,7 @@ frame_t** Song_get_bufs(Song* song);
  *
  * \return   The Voice buffers.
  */
-frame_t** Song_get_voice_bufs(Song* song);
+kqt_frame** Song_get_voice_bufs(Song* song);
 
 
 /**
@@ -312,7 +257,7 @@ Note_table** Song_get_note_tables(Song* song);
  * Gets a Note table of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *
  * \return   The Note table.
  */
@@ -333,7 +278,7 @@ Note_table** Song_get_active_notes(Song* song);
  * Creates a new Note table for the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -344,7 +289,7 @@ bool Song_create_notes(Song* song, int index);
  * Removes a Note table from the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < NOTE_TABLES_MAX.
+ * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
  *                If the Note table doesn't exist, nothing will be done.
  */
 void Song_remove_notes(Song* song, int index);

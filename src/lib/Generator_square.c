@@ -30,7 +30,7 @@
 #include <Generator_common.h>
 #include <Generator_square.h>
 #include <Voice_state_square.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 
@@ -136,7 +136,7 @@ uint32_t Generator_square_mix(Generator* gen,
                               uint32_t offset,
                               uint32_t freq,
                               int buf_count,
-                              frame_t** bufs)
+                              kqt_frame** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE);
@@ -144,6 +144,7 @@ uint32_t Generator_square_mix(Generator* gen,
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(buf_count > 0);
+    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
@@ -152,7 +153,7 @@ uint32_t Generator_square_mix(Generator* gen,
     Voice_state_square* square_state = (Voice_state_square*)state;
     for (uint32_t i = offset; i < nframes; ++i)
     {
-        double vals[BUF_COUNT_MAX] = { 0 };
+        double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = square(square_state->phase, square_state->pulse_width) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         square_state->phase += state->freq / freq;

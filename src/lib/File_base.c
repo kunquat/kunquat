@@ -70,7 +70,8 @@ void Read_state_clear_error(Read_state* state)
 {
     assert(state != NULL);
     state->error = false;
-    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
+    memset(state->message, 0, ERROR_MESSAGE_LENGTH);
+//    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
     return;
 }
 
@@ -539,7 +540,7 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state)
 }
 
 
-char* read_reltime(char* str, Reltime* result, Read_state* state)
+char* read_reltime(char* str, kqt_Reltime* result, Read_state* state)
 {
     assert(str != NULL);
     assert(state != NULL);
@@ -557,7 +558,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &beats, state);
     if (state->error)
     {
-        Read_state_set_error(state, "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid kqt_Reltime stamp");
         return str;
     }
     str = read_const_char(str, ',', state);
@@ -568,13 +569,13 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     str = read_int(str, &rem, state);
     if (state->error)
     {
-        Read_state_set_error(state, "Expected a valid Reltime stamp");
+        Read_state_set_error(state, "Expected a valid kqt_Reltime stamp");
         return str;
     }
-    if (rem < 0 || rem > RELTIME_BEAT)
+    if (rem < 0 || rem > KQT_RELTIME_BEAT)
     {
         Read_state_set_error(state,
-                "Reltime stamp remainder out of range [0..%ld)", RELTIME_BEAT);
+                "kqt_Reltime stamp remainder out of range [0..%ld)", KQT_RELTIME_BEAT);
         return str;
     }
     str = read_const_char(str, ']', state);
@@ -584,7 +585,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
     }
     if (result != NULL)
     {
-        Reltime_set(result, beats, rem);
+        kqt_Reltime_set(result, beats, rem);
     }
     return str;
 }

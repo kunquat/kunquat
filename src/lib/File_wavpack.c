@@ -151,6 +151,7 @@ static int set_pos_abs_tar(void* id, uint32_t pos)
     Tar_context* tc = id;
     assert(tc->reader != NULL);
     assert(tc->entry != NULL);
+    (void)tc;
     return -1;
 }
 
@@ -180,6 +181,7 @@ static int set_pos_rel_tar(void* id, int32_t delta, int mode)
     Tar_context* tc = id;
     assert(tc->reader != NULL);
     assert(tc->entry != NULL);
+    (void)tc;
     return -1;
 }
 
@@ -263,6 +265,7 @@ static int can_seek_tar(void* id)
     Tar_context* tc = id;
     assert(tc->reader != NULL);
     assert(tc->entry != NULL);
+    (void)tc;
     return 0;
 }
 

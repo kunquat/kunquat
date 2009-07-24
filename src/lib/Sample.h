@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <frame_t.h>
+#include <kunquat/frame.h>
 #include <Voice_state.h>
 #include <Generator.h>
 
@@ -247,7 +247,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t offset,
                     uint32_t freq,
                     int buf_count,
-                    frame_t** bufs,
+                    kqt_frame** bufs,
                     double middle_tone,
                     double middle_freq);
 

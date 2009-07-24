@@ -29,7 +29,7 @@
 
 #include <check.h>
 
-#include <frame_t.h>
+#include <kunquat/frame.h>
 #include <Voice_state.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
@@ -40,10 +40,10 @@ Suite* Instrument_suite(void);
 
 START_TEST (new)
 {
-    frame_t buf_l[100] = { 0 };
-    frame_t buf_r[100] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[100] = { 0 };
+    kqt_frame buf_r[100] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 100, nts, nts, 1);
     if (ins == NULL)
     {
@@ -57,7 +57,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (new_break_bufs_null)
 {
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(NULL, NULL, 2, 1, nts, nts, 1);
     del_Instrument(ins);
 }
@@ -65,10 +65,10 @@ END_TEST
 
 START_TEST (new_break_buf_len_inv)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 0, nts, nts, 1);
     del_Instrument(ins);
 }
@@ -76,10 +76,10 @@ END_TEST
 
 START_TEST (new_break_events_inv)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 0);
     del_Instrument(ins);
 }
@@ -89,10 +89,10 @@ END_TEST
 
 START_TEST (mix)
 {
-    frame_t buf_l[128] = { 0 };
-    frame_t buf_r[128] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[128] = { 0 };
+    kqt_frame buf_r[128] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -425,10 +425,10 @@ END_TEST
 
 START_TEST (mix_break_state_null)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -451,9 +451,9 @@ END_TEST
 #if 0
 START_TEST (mix_break_nframes_inv)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
     if (ins == NULL)
     {
@@ -477,10 +477,10 @@ END_TEST
 
 START_TEST (mix_break_freq_inv)
 {
-    frame_t buf_l[1] = { 0 };
-    frame_t buf_r[1] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[1] = { 0 };
+    kqt_frame buf_r[1] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {

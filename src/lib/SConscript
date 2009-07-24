@@ -28,7 +28,7 @@ if env['enable_tests']:
 
 #print 'lib: ' + env.Dump('LIBS')
 
-env.Append(CPPPATH = ['#/src/lib'])
+env.Append(CPPPATH = ['#/src/lib', '#/src/include'])
 
 files = [
     'Real.c',
@@ -71,8 +71,10 @@ files = [
     'Pattern.c',
     'Song.c',
     'Playdata.c',
-    'Player.c',
-    'Playlist.c',
+    'Handle.c',
+    'Handle_player.c',
+    'Handle_player_ext.c',
+    'Handle_info.c',
 ]
 
 env.StaticLibrary('kunquat', files)

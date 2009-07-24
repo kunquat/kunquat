@@ -27,12 +27,12 @@
 #include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
-#include <wchar.h>
 
 #include <Real.h>
 #include <Song.h>
 #include <File_base.h>
 #include <File_tree.h>
+#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -40,7 +40,7 @@
 Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
 {
     assert(buf_count >= 1);
-    assert(buf_count <= BUF_COUNT_MAX);
+    assert(buf_count <= KQT_BUFFERS_MAX);
     assert(buf_size > 0);
     Song* song = xalloc(Song);
     if (song == NULL)
@@ -49,26 +49,23 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     }
     song->buf_count = buf_count;
     song->buf_size = buf_size;
-    song->bufs = NULL;
     song->priv_bufs[0] = NULL;
     song->voice_bufs[0] = NULL;
     song->order = NULL;
     song->pats = NULL;
     song->insts = NULL;
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->notes[i] = NULL;
     }
     song->active_notes = &song->notes[0];
-    song->bufs = xnalloc(frame_t*, BUF_COUNT_MAX);
-    if (song->bufs == NULL)
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        del_Song(song);
-        return NULL;
+        song->bufs[i] = NULL;
     }
     for (int i = 0; i < buf_count; ++i)
     {
-        song->priv_bufs[i] = xnalloc(frame_t, buf_size);
+        song->priv_bufs[i] = xnalloc(kqt_frame, buf_size);
         if (song->priv_bufs[i] == NULL)
         {
             del_Song(song);
@@ -79,7 +76,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
             song->priv_bufs[i][k] = 0;
         }
         song->bufs[i] = song->priv_bufs[i];
-        song->voice_bufs[i] = xnalloc(frame_t, buf_size);
+        song->voice_bufs[i] = xnalloc(kqt_frame, buf_size);
         if (song->voice_bufs[i] == NULL)
         {
             del_Song(song);
@@ -92,13 +89,13 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->pats = new_Pat_table(PATTERNS_MAX);
+    song->pats = new_Pat_table(KQT_PATTERNS_MAX);
     if (song->pats == NULL)
     {
         del_Song(song);
         return NULL;
     }
-    song->insts = new_Ins_table(INSTRUMENTS_MAX);
+    song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     if (song->insts == NULL)
     {
         del_Song(song);
@@ -126,7 +123,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
                 i,
                 i * 100);
     }
-    song->name[0] = song->name[SONG_NAME_MAX - 1] = L'\0';
     song->mix_vol_dB = -8;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     song->init_subsong = 0;
@@ -199,7 +195,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if (num < 1 || num > BUF_COUNT_MAX)
+                    if (num < 1 || num > KQT_BUFFERS_MAX)
                     {
                         Read_state_set_error(state,
                                  "Unsupported number of mixing buffers: %" PRId64, num);
@@ -236,7 +232,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if (num < 0 || num >= SUBSONGS_MAX)
+                    if (num < 0 || num >= KQT_SUBSONGS_MAX)
                     {
                         Read_state_set_error(state,
                                  "Invalid initial Subsong number: %" PRId64, num);
@@ -263,7 +259,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         char dir_name[] = "scale_0";
         snprintf(dir_name, 8, "scale_%01x", i);
@@ -316,7 +312,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                         Song_get_buf_size(song),
                         Song_get_note_tables(song),
                         Song_get_active_notes(song),
-                        16)) // TODO: make configurable
+                        32)) // TODO: make configurable
     {
         return false;
     }
@@ -332,26 +328,32 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     {
         return 0;
     }
-    if (nframes > song->buf_size)
+    if (nframes > song->buf_size && !play->silent)
     {
         nframes = song->buf_size;
     }
-    for (int i = 0; i < song->buf_count; ++i)
+    if (!play->silent)
     {
-        for (uint32_t k = 0; k < nframes; ++k)
+        for (int i = 0; i < song->buf_count; ++i)
         {
-            song->bufs[i][k] = 0;
+            for (uint32_t k = 0; k < nframes; ++k)
+            {
+                song->bufs[i][k] = 0;
+            }
         }
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
     {
         Pattern* pat = NULL;
-        if (play->mode == PLAY_SONG)
+        if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = Order_get(song->order,
-                    play->subsong,
-                    play->order_index);
+            int16_t pat_index = ORDER_NONE;
+            Subsong* ss = Order_get_subsong(song->order, play->subsong);
+            if (ss != NULL)
+            {
+                pat_index = Subsong_get(ss, play->order_index);
+            }
             if (pat_index >= 0)
             {
                 pat = Pat_table_get(song->pats, pat_index);
@@ -363,9 +365,20 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         if (pat == NULL && play->mode != PLAY_EVENT)
         {
-            // TODO: Stop or restart?
-            play->mode = STOP;
-            break;
+            if (play->mode < PLAY_SONG)
+            {
+                play->mode = STOP;
+                break;
+            }
+            assert(play->mode == PLAY_SONG);
+            if (play->subsong >= KQT_SUBSONGS_MAX - 1)
+            {
+                Playdata_set_subsong(play, 0);
+                play->mode = STOP;
+                break;
+            }
+            Playdata_set_subsong(play, play->subsong + 1);
+            continue;
         }
         uint32_t proc_start = mixed;
         mixed += Pattern_mix(pat, nframes, mixed, play);
@@ -397,55 +410,54 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         }
         assert(!Event_queue_get(song->events, &event, &proc_until));
     }
-    for (int i = 0; i < song->buf_count; ++i)
+    if (!play->silent)
     {
-        for (uint32_t k = 0; k < mixed; ++k)
+        for (int i = 0; i < song->buf_count; ++i)
         {
-            song->bufs[i][k] *= song->mix_vol;
+            for (uint32_t k = 0; k < mixed; ++k)
+            {
+                song->bufs[i][k] *= song->mix_vol;
+                if (song->bufs[i][k] < play->min_amps[i])
+                {
+                    play->min_amps[i] = song->bufs[i][k];
+                }
+                if (song->bufs[i][k] > play->max_amps[i])
+                {
+                    play->max_amps[i] = song->bufs[i][k];
+                }
+                if (fabs(song->bufs[i][k]) > 1)
+                {
+                    ++play->clipped[i];
+                }
+            }
         }
     }
+    play->play_frames += mixed;
     return mixed;
 }
 
 
-void Song_set_name(Song* song, wchar_t* name)
+uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
 {
     assert(song != NULL);
-    assert(name != NULL);
-    wcsncpy(song->name, name, SONG_NAME_MAX - 1);
-    song->name[SONG_NAME_MAX - 1] = L'\0';
-    return;
+    assert(play != NULL);
+    bool orig_silent = play->silent;
+    play->silent = true;
+    uint64_t mixed = 0;
+    while (mixed < amount)
+    {
+        uint64_t max_mix = amount - mixed;
+        uint64_t nframes = MIN(max_mix, play->freq);
+        uint32_t inc = Song_mix(song, nframes, play);
+        mixed += inc;
+        if (inc < Song_get_buf_size(song))
+        {
+            break;
+        }
+    }
+    play->silent = orig_silent;
+    return mixed;
 }
-
-
-wchar_t* Song_get_name(Song* song)
-{
-    assert(song != NULL);
-    return song->name;
-}
-
-
-#if 0
-void Song_set_tempo(Song* song, int subsong, double tempo)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
-    song->subsong_inits[subsong].tempo = tempo;
-    return;
-}
-
-
-double Song_get_tempo(Song* song, int subsong)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    return song->subsong_inits[subsong].tempo;
-}
-#endif
 
 
 void Song_set_mix_vol(Song* song, double mix_vol)
@@ -465,32 +477,10 @@ double Song_get_mix_vol(Song* song)
 }
 
 
-#if 0
-void Song_set_global_vol(Song* song, int subsong, double global_vol)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    assert(isfinite(global_vol) || global_vol == -INFINITY);
-    song->subsong_inits[subsong].global_vol = global_vol;
-    return;
-}
-
-
-double Song_get_global_vol(Song* song, int subsong)
-{
-    assert(song != NULL);
-    assert(subsong >= 0);
-    assert(subsong < SUBSONGS_MAX);
-    return song->subsong_inits[subsong].global_vol;
-}
-#endif
-
-
 void Song_set_subsong(Song* song, uint16_t num)
 {
     assert(song != NULL);
-    assert(num < SUBSONGS_MAX);
+    assert(num < KQT_SUBSONGS_MAX);
     song->init_subsong = num;
     return;
 }
@@ -507,7 +497,7 @@ bool Song_set_buf_count(Song* song, int count)
 {
     assert(song != NULL);
     assert(count > 0);
-    assert(count <= BUF_COUNT_MAX);
+    assert(count <= KQT_BUFFERS_MAX);
     if (song->buf_count == count)
     {
         return true;
@@ -527,13 +517,13 @@ bool Song_set_buf_count(Song* song, int count)
     {
         for (int i = song->buf_count; i < count; ++i)
         {
-            song->priv_bufs[i] = xnalloc(frame_t, song->buf_size);
+            song->priv_bufs[i] = xnalloc(kqt_frame, song->buf_size);
             if (song->priv_bufs[i] == NULL)
             {
                 return false;
             }
             song->bufs[i] = song->priv_bufs[i];
-            song->voice_bufs[i] = xnalloc(frame_t, song->buf_size);
+            song->voice_bufs[i] = xnalloc(kqt_frame, song->buf_size);
             if (song->voice_bufs[i] == NULL)
             {
                 return false;
@@ -563,7 +553,7 @@ bool Song_set_buf_size(Song* song, uint32_t size)
     }
     for (int i = 0; i < song->buf_count; ++i)
     {
-        frame_t* new_buf = xrealloc(frame_t, size, song->priv_bufs[i]);
+        kqt_frame* new_buf = xrealloc(kqt_frame, size, song->priv_bufs[i]);
         if (new_buf == NULL)
         {
             if (i == 0) // first change failed -- keep the original state
@@ -578,7 +568,7 @@ bool Song_set_buf_size(Song* song, uint32_t size)
         }
         song->priv_bufs[i] = new_buf;
         song->bufs[i] = song->priv_bufs[i];
-        new_buf = xrealloc(frame_t, size, song->voice_bufs[i]);
+        new_buf = xrealloc(kqt_frame, size, song->voice_bufs[i]);
         if (new_buf == NULL)
         {
             if (size < song->buf_size)
@@ -602,14 +592,14 @@ uint32_t Song_get_buf_size(Song* song)
 }
 
 
-frame_t** Song_get_bufs(Song* song)
+kqt_frame** Song_get_bufs(Song* song)
 {
     assert(song != NULL);
     return song->bufs;
 }
 
 
-frame_t** Song_get_voice_bufs(Song* song)
+kqt_frame** Song_get_voice_bufs(Song* song)
 {
     assert(song != NULL);
     return song->voice_bufs;
@@ -648,7 +638,7 @@ Note_table* Song_get_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     return song->notes[index];
 }
 
@@ -664,7 +654,7 @@ bool Song_create_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     if (song->notes[index] != NULL)
     {
         Note_table_clear(song->notes[index]);
@@ -684,7 +674,7 @@ void Song_remove_notes(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     if (song->notes[index] != NULL)
     {
         del_Note_table(song->notes[index]);
@@ -712,10 +702,6 @@ void del_Song(Song* song)
     {
         xfree(song->voice_bufs[i]);
     }
-    if (song->bufs != NULL)
-    {
-        xfree(song->bufs);
-    }
     if (song->order != NULL)
     {
         del_Order(song->order);
@@ -728,7 +714,7 @@ void del_Song(Song* song)
     {
         del_Ins_table(song->insts);
     }
-    for (int i = 0; i < NOTE_TABLES_MAX; ++i)
+    for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         if (song->notes[i] != NULL)
         {

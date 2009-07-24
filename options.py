@@ -9,16 +9,22 @@ enable_debug = True
 # Build and run tests.
 enable_tests = False
 
-# Enable the command line demo
-enable_demo = True
+# Enable kunquat-player.
+enable_player = True
 
-# Build JACK support.
-with_jack = True
+# Build example Kunquat files.
+enable_examples = True
 
 # Build libao support.
 with_ao = True
 
+# Build JACK support.
+with_jack = True
+
 # Build OpenAL support.
 with_openal = True
+
+# Build libsndfile support (used for WAV exporting).
+with_sndfile = False
 
 

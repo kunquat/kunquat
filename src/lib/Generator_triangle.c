@@ -30,7 +30,7 @@
 #include <Generator_common.h>
 #include <Generator_triangle.h>
 #include <Voice_state_triangle.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 
@@ -79,6 +79,7 @@ void Generator_triangle_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_TRIANGLE);
+    (void)gen;
     assert(state != NULL);
     Voice_state_init(state);
     Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
@@ -103,7 +104,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
                                 uint32_t offset,
                                 uint32_t freq,
                                 int buf_count,
-                                frame_t** bufs)
+                                kqt_frame** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_TRIANGLE);
@@ -111,6 +112,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(buf_count > 0);
+    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
@@ -119,7 +121,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
     Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
     for (uint32_t i = offset; i < nframes; ++i)
     {
-        double vals[BUF_COUNT_MAX] = { 0 };
+        double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = triangle(triangle_state->phase) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         triangle_state->phase += state->freq / freq;

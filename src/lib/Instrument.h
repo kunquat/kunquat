@@ -24,22 +24,20 @@
 #define K_INSTRUMENT_H
 
 
-#include <wchar.h>
 #include <stdbool.h>
 
 #include <Instrument_params.h>
 #include <Generator.h>
-#include <frame_t.h>
+#include <kunquat/frame.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
 #include <Note_table.h>
 #include <Envelope.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 typedef struct Instrument
 {
-    wchar_t name[INS_NAME_MAX]; ///< The name of the Instrument.
     Event_queue* events;        ///< Instrument event queue (esp. pedal events go here).
 
     double default_force;       ///< Default force.
@@ -52,7 +50,7 @@ typedef struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
     int gen_count;                   ///< Number of Generators.
-    Generator* gens[GENERATORS_MAX]; ///< Generators.
+    Generator* gens[KQT_GENERATORS_MAX]; ///< Generators.
 } Instrument;
 
 
@@ -73,8 +71,8 @@ typedef struct Instrument
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(frame_t** bufs,
-                           frame_t** vbufs,
+Instrument* new_Instrument(kqt_frame** bufs,
+                           kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
                            Note_table** note_tables,
@@ -121,15 +119,15 @@ int Instrument_get_gen_count(Instrument* ins);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  * \param gen     The Generator -- must not be \c NULL.
  *
  * \return   The actual index of the Generator. This is less than or equal to
  *           \a index.
  */
 int Instrument_set_gen(Instrument* ins,
-        int index,
-        Generator* gen);
+                       int index,
+                       Generator* gen);
 
 
 /**
@@ -137,12 +135,11 @@ int Instrument_set_gen(Instrument* ins,
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  *
  * \return   The Generator if found, otherwise \c NULL.
  */
-Generator* Instrument_get_gen(Instrument* ins,
-        int index);
+Generator* Instrument_get_gen(Instrument* ins, int index);
 
 
 /**
@@ -154,28 +151,9 @@ Generator* Instrument_get_gen(Instrument* ins,
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c GENERATORS_MAX.
+ *                < \c KQT_GENERATORS_MAX.
  */
 void Instrument_del_gen(Instrument* ins, int index);
-
-
-/**
- * Sets the name of the Instrument.
- *
- * \param ins    The Instrument -- must not be \c NULL.
- * \param name   The name -- must not be \c NULL.
- */
-void Instrument_set_name(Instrument* ins, wchar_t* name);
-
-
-/**
- * Gets the name of the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The name.
- */
-wchar_t* Instrument_get_name(Instrument* ins);
 
 
 /**
@@ -183,7 +161,7 @@ wchar_t* Instrument_get_name(Instrument* ins);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Note table -- must be >= \c 0 and
- *                < \c NOTE_TABLES_MAX or \c -1 (default).
+ *                < \c KQT_SCALES_MAX or \c -1 (default).
  */
 void Instrument_set_note_table(Instrument* ins, int index);
 
@@ -200,10 +178,10 @@ void Instrument_set_note_table(Instrument* ins, int index);
  * \param freq      The mixing frequency -- must be > \c 0.
  */
 void Instrument_mix(Instrument* ins,
-        Voice_state* states,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq);
+                    Voice_state* states,
+                    uint32_t nframes,
+                    uint32_t offset,
+                    uint32_t freq);
 
 
 /**

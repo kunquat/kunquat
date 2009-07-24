@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Heikki Aitakangas
+ * Copyright 2009 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,41 +20,37 @@
  */
 
 
-#ifndef AUDIO_OPENAL_H
-#define AUDIO_OPENAL_H
+#ifndef KQT_INFO_H
+#define KQT_INFO_H
 
 
-#ifdef ENABLE_OPENAL
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-#include <stdbool.h>
-#include <stdint.h>
-
-#include <AL/al.h>
-#include <AL/alut.h>
-
-#include <kunquat.h>
+#include <kunquat/Handle.h>
+#include <kunquat/limits.h>
 
 
 /**
- * Creates an OpenAL client.
+ * Gets the length of a Subsong in the Kunquat Handle.
  *
- * \param pl   The Playlist -- must not be \c NULL.
+ * \param handle    The Handle -- should not be \c NULL.
+ * \param subsong   The Subsong number -- should be >= \c -1 and
+ *                  < \c KQT_SUBSONGS_MAX. Using \c -1 will return the total
+ *                  number of sections in all Subsongs.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The length of the Subsong, or \c -1 if arguments were invalid.
  */
-bool Audio_openal_open(Playlist* pl);
+int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong);
 
 
-/**
- * Closes the OpenAL client.
- */
-void Audio_openal_close(void);
+#ifdef __cplusplus
+}
+#endif
 
 
-#endif // ENABLE_OPENAL
-
-
-#endif // AUDIO_OPENAL_H
+#endif // KQT_INFO_H
 
 

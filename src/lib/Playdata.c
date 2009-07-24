@@ -44,6 +44,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     {
         return NULL;
     }
+    play->silent = false;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
     {
@@ -51,7 +52,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
         return NULL;
     }
     play->voice_pool = pool;
-    for (int i = 0; i < COLUMNS_MAX; ++i)
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         play->channels[i] = new_Channel(insts);
         if (play->channels[i] == NULL)
@@ -65,7 +66,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
             return NULL;
         }
     }
-    play->mode = STOP;
+    play->mode = PLAY_SONG;
     play->freq = freq;
     play->order = NULL;
     play->events = NULL;
@@ -73,9 +74,45 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->subsong = 0;
     play->order_index = 0;
     play->pattern = 0;
-    Reltime_init(&play->play_time);
+    kqt_Reltime_init(&play->play_time);
     play->play_frames = 0;
-    Reltime_init(&play->pos);
+    kqt_Reltime_init(&play->pos);
+    Playdata_reset_stats(play);
+    return play;
+}
+
+
+Playdata* new_Playdata_silent(uint32_t freq)
+{
+    assert(freq > 0);
+    Playdata* play = xalloc(Playdata);
+    if (play == NULL)
+    {
+        return NULL;
+    }
+    play->silent = true;
+    play->citer = new_Column_iter(NULL);
+    if (play->citer == NULL)
+    {
+        xfree(play);
+        return NULL;
+    }
+    play->voice_pool = NULL;
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        play->channels[i] = NULL;
+    }
+    play->mode = PLAY_SONG;
+    play->freq = freq;
+    play->order = NULL;
+    play->events = NULL;
+    play->tempo = 0;
+    play->subsong = 0;
+    play->order_index = 0;
+    play->pattern = 0;
+    kqt_Reltime_init(&play->play_time);
+    play->play_frames = 0;
+    kqt_Reltime_init(&play->pos);
     Playdata_reset_stats(play);
     return play;
 }
@@ -90,10 +127,39 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 }
 
 
+void Playdata_set_subsong(Playdata* play, int subsong)
+{
+    assert(play != NULL);
+    assert(subsong >= 0);
+    assert(subsong < KQT_SUBSONGS_MAX);
+    play->subsong = subsong;
+    play->order_index = 0;
+    if (!play->silent)
+    {
+        assert(play->voice_pool != NULL);
+        Voice_pool_reset(play->voice_pool);
+    }
+    Subsong* ss = Order_get_subsong(play->order, subsong);
+    if (ss == NULL)
+    {
+        play->tempo = 120;
+        return;
+    }
+    play->tempo = Subsong_get_tempo(ss);
+    return;
+}
+
+
 void Playdata_reset_stats(Playdata* play)
 {
     assert(play != NULL);
     play->active_voices = 0;
+    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
+    {
+        play->min_amps[i] = INFINITY;
+        play->max_amps[i] = -INFINITY;
+        play->clipped[i] = 0;
+    }
     return;
 }
 
@@ -102,11 +168,16 @@ void del_Playdata(Playdata* play)
 {
     int i = 0;
     assert(play != NULL);
-    Voice_pool_reset(play->voice_pool);
-    for (i = 0; i < COLUMNS_MAX; ++i)
+    if (play->voice_pool != NULL)
     {
-        assert(play->channels[i] != NULL);
-        del_Channel(play->channels[i]);
+        Voice_pool_reset(play->voice_pool);
+    }
+    for (i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        if (play->channels[i] != NULL)
+        {
+            del_Channel(play->channels[i]);
+        }
     }
     if (play->citer != NULL)
     {

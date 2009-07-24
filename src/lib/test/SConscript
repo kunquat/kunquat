@@ -23,7 +23,7 @@ Import('env')
 
 env_test = env.Clone()
 
-env_test.Append(CPPPATH = ['#/src/lib'])
+env_test.Append(CPPPATH = ['#/src/lib', '#/src/include'])
 env_test.Append(LIBPATH = ['#/src/lib'])
 env_test.Append(LIBS = ['kunquat'])
 

@@ -19,22 +19,22 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import SCons.Node.FS
-
-
 Import('env')
 
-env_demo = env.Clone()
+env_p = env.Clone()
 
-tar_cmd = 'tar cj --format=ustar -f ${TARGET.file} ${SOURCE.file}'
+env_p.Append(CPPPATH = ['#/src/include', '#/src/audio', '#/src/player'])
 
-env_demo.Command('demo.kqt.bz2', 'kunquatc00', tar_cmd,
-                 chdir=1, source_scanner=DirScanner)
+env_p.Append(LIBPATH = ['#/src/lib', '#/src/audio'])
+env_p.Append(LIBS = ['kunquat', 'audio'])
 
-env_demo.Command('demo_ins.kqti.bz2', 'kunquati00', tar_cmd,
-                 chdir=1, source_scanner=DirScanner)
+files = [
+    'kunquat-player.c',
+    'keyboard.c',
+    'peak_meter.c',
+    'status_line.c',
+]
 
-env_demo.Command('demo_scale.kqts.bz2', 'kunquats00', tar_cmd,
-                 chdir=1, source_scanner=DirScanner)
+env_p.Program('kunquat-player', files)
 
 

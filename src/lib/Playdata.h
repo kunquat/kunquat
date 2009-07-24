@@ -26,11 +26,12 @@
 
 #include <stdint.h>
 
+#include <Reltime.h>
 #include <Order.h>
 #include <Channel.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 
 /**
@@ -41,45 +42,34 @@ typedef enum Play_mode
     STOP = 0,       ///< Don't play.
     PLAY_EVENT,     ///< Play a single event.
     PLAY_PATTERN,   ///< Play one pattern.
-    PLAY_SONG,      ///< Play a song.
+    PLAY_SUBSONG,   ///< Play one subsong.
+    PLAY_SONG,      ///< Play all subsongs.
     PLAY_LAST       ///< Sentinel value -- never used as a mode.
 } Play_mode;
 
 
 typedef struct Playdata
 {
-    /// Current playback mode.
-    Play_mode mode;
-    /// Mixing frequency.
-    uint32_t freq;
-    /// Size of a tick in frames. TODO: implement if needed
-//  uint16_t tick_size;
-    /// The Order lists.
-    Order* order;
-    /// The global event queue.
-    Event_queue* events;
-    /// The number of beats played since the start of playback.
-    Reltime play_time;
-    /// The number of frames mixed since the start of playback.
-    uint64_t play_frames;
-    /// Current tempo.
-    double tempo;
-    /// Current subsong -- only relevant if \a play = \c PLAY_SONG.
-    uint16_t subsong;
-    /// Current order -- only relevant if \a play = \c PLAY_SONG.
-    uint16_t order_index;
-    /// Current pattern.
-    int16_t pattern;
-    /// Current position inside a pattern.
-    Reltime pos;
-    /// The Voice pool used.
-    Voice_pool* voice_pool;
-    /// Column iterator.
-    Column_iter* citer;
-    /// The channels used.
-    Channel* channels[COLUMNS_MAX];
-    /// Number of Voices used simultaneously.
-    uint16_t active_voices;
+    bool silent;                      ///< \c true if this Playdata is used for statistics only.
+    Play_mode mode;                   ///< Current playback mode.
+    uint32_t freq;                    ///< Mixing frequency.
+//  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
+    Order* order;                     ///< The Order lists.
+    Event_queue* events;              ///< The global event queue.
+    kqt_Reltime play_time;            ///< The number of beats played since the start of playback.
+    uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+    double tempo;                     ///< Current tempo.
+    uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
+    uint16_t order_index;             ///< Current order -- used when \a play == \c PLAY_SONG.
+    int16_t pattern;                  ///< Current pattern.
+    kqt_Reltime pos;                  ///< Current position inside a pattern.
+    Voice_pool* voice_pool;           ///< The Voice pool used.
+    Column_iter* citer;               ///< Column iterator.
+    Channel* channels[KQT_COLUMNS_MAX];   ///< The channels used.
+    uint16_t active_voices;           ///< Number of Voices used simultaneously.
+    double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
+    double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.
+    uint64_t clipped[KQT_BUFFERS_MAX];  ///< Number of clipped frames encountered.
 } Playdata;
 
 
@@ -100,12 +90,35 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
 
 
 /**
+ * Creates a new silent Playdata object (used for retrieving statistics).
+ *
+ * The caller shall eventually destroy the created object using
+ * del_Playdata().
+ *
+ * \param freq    The mixing frequency -- must be > \c 0.
+ *
+ * \return   The new Playdata object if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Playdata* new_Playdata_silent(uint32_t freq);
+
+
+/**
  * Sets a new mixing frequency.
  *
  * \param play   The Playdata object -- must not be \c NULL.
  * \param freq   The mixing frequency -- must be > \c 0.
  */
 void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
+
+
+/**
+ * Sets the subsong in the Playdata.
+ *
+ * \param play      The Playdata -- must not be \c NULL.
+ * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.
+ */
+void Playdata_set_subsong(Playdata* play, int subsong);
 
 
 /**

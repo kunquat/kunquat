@@ -27,7 +27,7 @@
 #include <inttypes.h>
 #include <math.h>
 
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <File_base.h>
 #include <File_tree.h>
 #include <Subsong.h>
@@ -133,7 +133,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
             {
                 return false;
             }
-            if (num < 0 || num >= NOTE_TABLES_MAX)
+            if (num < 0 || num >= KQT_SCALES_MAX)
             {
                 Read_state_set_error(state, "Scale number (%" PRId64
                                      ") is outside valid range", num);
@@ -154,7 +154,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                 Read_state_clear_error(state);
                 bool expect_num = true;
                 int index = 0;
-                while (expect_num && index < ORDERS_MAX)
+                while (expect_num && index < KQT_SECTIONS_MAX)
                 {
                     int64_t num = 0;
                     str = read_int(str, &num, state);
@@ -162,7 +162,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if ((num < 0 || num >= PATTERNS_MAX) && num != ORDER_NONE)
+                    if ((num < 0 || num >= KQT_PATTERNS_MAX) && num != ORDER_NONE)
                     {
                         Read_state_set_error(state,
                                  "Pattern number (%" PRId64 ") is outside valid range", num);
@@ -208,7 +208,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat)
 {
     assert(ss != NULL);
     assert(index >= 0);
-    assert(index < ORDERS_MAX);
+    assert(index < KQT_SECTIONS_MAX);
     assert(pat >= 0 || pat == ORDER_NONE);
     if (index >= ss->res)
     {
@@ -238,12 +238,27 @@ int16_t Subsong_get(Subsong* ss, int index)
 {
     assert(ss != NULL);
     assert(index >= 0);
-    assert(index < ORDERS_MAX);
+    assert(index < KQT_SECTIONS_MAX);
     if (index >= ss->res)
     {
         return ORDER_NONE;
     }
     return ss->pats[index];
+}
+
+
+int16_t Subsong_get_length(Subsong* ss)
+{
+    assert(ss != NULL);
+    int length = 0;
+    for (length = 0; length < ss->res; ++length)
+    {
+        if (ss->pats[length] == ORDER_NONE)
+        {
+            break;
+        }
+    }
+    return length;
 }
 
 
@@ -284,7 +299,7 @@ void Subsong_set_notes(Subsong* ss, int index)
 {
     assert(ss != NULL);
     assert(index >= 0);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     ss->notes = index;
     return;
 }

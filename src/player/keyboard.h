@@ -20,13 +20,44 @@
  */
 
 
-#ifndef K_KUNQUAT_H
-#define K_KUNQUAT_H
+#ifndef KEYBOARD_H
+#define KEYBOARD_H
 
 
-#include <Playlist.h>
+#include <stdbool.h>
 
 
-#endif // K_KUNQUAT_H
+typedef enum
+{
+    KEY_NONE = -1,
+    KEY_LEFT = 256,
+    KEY_DOWN,
+    KEY_UP,
+    KEY_RIGHT,
+    KEY_RETURN,
+    KEY_BACKSPACE
+} Key;
+
+
+/**
+ * Gets a key.
+ *
+ * \return   The key if one pressed, otherwise \c -1.
+ */
+int get_key(void);
+
+
+/**
+ * Sets terminal attributes.
+ *
+ * \param interactive   If \c true, keys will be read as soon as they're pressed.
+ * \param immediate     If \c true, \a get_key will not block.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool set_terminal(bool interactive, bool immediate);
+
+
+#endif // KEYBOARD_H
 
 

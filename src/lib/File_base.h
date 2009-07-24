@@ -219,7 +219,7 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state);
  *
  * \return   The position of \a str after parsing.
  */
-char* read_reltime(char* str, Reltime* result, Read_state* state);
+char* read_reltime(char* str, kqt_Reltime* result, Read_state* state);
 
 
 #endif // K_FILE_BASE_H

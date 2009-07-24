@@ -26,7 +26,7 @@
 
 #include <Pat_table.h>
 #include <Pattern.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 
 #include <xmemory.h>
 
@@ -65,7 +65,7 @@ bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Pattern table is not a directory");
         return false;
     }
-    for (int i = 0; i < PATTERNS_MAX; ++i)
+    for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
     {
         char dir_name[] = "pattern_000";
         snprintf(dir_name, 12, "pattern_%03x", i);

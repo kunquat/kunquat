@@ -35,8 +35,8 @@
 #include <xmemory.h>
 
 
-Instrument* new_Instrument(frame_t** bufs,
-                           frame_t** vbufs,
+Instrument* new_Instrument(kqt_frame** bufs,
+                           kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
                            Note_table** note_tables,
@@ -54,7 +54,7 @@ Instrument* new_Instrument(frame_t** bufs,
     assert(note_tables != NULL);
     assert(default_notes != NULL);
     assert(default_notes >= &note_tables[0]);
-    assert(default_notes <= &note_tables[NOTE_TABLES_MAX - 1]);
+    assert(default_notes <= &note_tables[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
@@ -85,12 +85,10 @@ Instrument* new_Instrument(frame_t** bufs,
     ins->notes_index = -1;
 
     ins->gen_count = 0;
-    for (int i = 0; i < GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ins->gens[i] = NULL;
     }
-
-    ins->name[0] = ins->name[INS_NAME_MAX - 1] = L'\0';
     return ins;
 }
 
@@ -173,7 +171,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if (num < -1 || num >= NOTE_TABLES_MAX)
+                    if (num < -1 || num >= KQT_SCALES_MAX)
                     {
                         Read_state_set_error(state,
                                  "Invalid scale index: %" PRId64, num);
@@ -205,7 +203,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
     {
         return false;
     }
-    for (int i = 0; i < GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         char dir_name[] = "generator_xx";
         snprintf(dir_name, 13, "generator_%02x", i);
@@ -247,7 +245,7 @@ int Instrument_set_gen(Instrument* ins,
 {
     assert(ins != NULL);
     assert(index >= 0);
-    assert(index < GENERATORS_MAX);
+    assert(index < KQT_GENERATORS_MAX);
     assert(gen != NULL);
     if (ins->gens[index] != NULL)
     {
@@ -272,7 +270,7 @@ Generator* Instrument_get_gen(Instrument* ins,
 {
     assert(ins != NULL);
     assert(index >= 0);
-    assert(index < GENERATORS_MAX);
+    assert(index < KQT_GENERATORS_MAX);
     return ins->gens[index];
 }
 
@@ -281,7 +279,7 @@ void Instrument_del_gen(Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(index >= 0);
-    assert(index < GENERATORS_MAX);
+    assert(index < KQT_GENERATORS_MAX);
     if (ins->gens[index] == NULL)
     {
         return;
@@ -289,7 +287,7 @@ void Instrument_del_gen(Instrument* ins, int index)
     --ins->gen_count;
     del_Generator(ins->gens[index]);
     ins->gens[index] = NULL;
-    while (index < GENERATORS_MAX - 1 && ins->gens[index + 1] != NULL)
+    while (index < KQT_GENERATORS_MAX - 1 && ins->gens[index + 1] != NULL)
     {
         ins->gens[index] = ins->gens[index + 1];
         ins->gens[index + 1] = NULL;
@@ -299,28 +297,11 @@ void Instrument_del_gen(Instrument* ins, int index)
 }
 
 
-void Instrument_set_name(Instrument* ins, wchar_t* name)
-{
-    assert(ins != NULL);
-    assert(name != NULL);
-    wcsncpy(ins->name, name, INS_NAME_MAX - 1);
-    ins->name[INS_NAME_MAX - 1] = L'\0';
-    return;
-}
-
-
-wchar_t* Instrument_get_name(Instrument* ins)
-{
-    assert(ins != NULL);
-    return ins->name;
-}
-
-
 void Instrument_set_note_table(Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(index >= -1);
-    assert(index < NOTE_TABLES_MAX);
+    assert(index < KQT_SCALES_MAX);
     if (index == -1)
     {
         ins->params.notes = ins->default_notes;
@@ -343,7 +324,7 @@ void Instrument_mix(Instrument* ins,
     assert(states != NULL);
 //  assert(nframes <= ins->buf_len);
     assert(freq > 0);
-    for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
         Generator_mix(ins->gens[i], &states[i], nframes, offset, freq);
     }
@@ -359,7 +340,7 @@ void del_Instrument(Instrument* ins)
     {
         del_Event_queue(ins->events);
     }
-    for (int i = 0; i < GENERATORS_MAX && ins->gens[i] != NULL; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
         del_Generator(ins->gens[i]);
     }

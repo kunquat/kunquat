@@ -404,8 +404,8 @@ bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type t
     {                                                                      \
         if ((cond))                                                        \
         {                                                                  \
-            archive_read_finish((reader));                                 \
             Read_state_set_error((state), archive_error_string((reader))); \
+            archive_read_finish((reader));                                 \
             return false;                                                  \
         }                                                                  \
     } while (false)

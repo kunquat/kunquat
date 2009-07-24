@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include <Reltime.h>
-#include <Song_limits.h>
+#include <kunquat/limits.h>
 #include <File_base.h>
 
 #include <Event_type.h>
@@ -40,7 +40,7 @@
  */
 typedef struct Event
 {
-    Reltime pos;                   ///< The Event position.
+    kqt_Reltime pos;                   ///< The Event position.
     Event_type type;               ///< The Event type.
     Event_field_desc* field_types; ///< The field type description.
     bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
@@ -58,7 +58,7 @@ typedef struct Event
  * \return   The new Event if successful, or \c NULL if memory allocation
  *           failed or the Event type isn't supported.
  */
-Event* new_Event(Event_type type, Reltime* pos);
+Event* new_Event(Event_type type, kqt_Reltime* pos);
 
 
 /**
@@ -116,7 +116,7 @@ int Event_get_field_count(Event* event);
  *
  * \return   The position.
  */
-Reltime* Event_get_pos(Event* event);
+kqt_Reltime* Event_get_pos(Event* event);
 
 
 /**
@@ -125,7 +125,7 @@ Reltime* Event_get_pos(Event* event);
  * \param event   The Event -- must not be \c NULL.
  * \param pos     The new position -- must not be \c NULL.
  */
-void Event_set_pos(Event* event, Reltime* pos);
+void Event_set_pos(Event* event, kqt_Reltime* pos);
 
 
 /**

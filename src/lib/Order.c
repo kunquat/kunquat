@@ -43,7 +43,7 @@ Order* new_Order(void)
     {
         return NULL;
     }
-    order->subs = new_Etable(SUBSONGS_MAX, (void(*)(void*))del_Subsong);
+    order->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
     if (order->subs == NULL)
     {
         xfree(order);
@@ -68,7 +68,7 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Subsong collection is not a directory");
         return false;
     }
-    for (int i = 0; i < SUBSONGS_MAX; ++i)
+    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
         char dir_name[] = "subsong_xx";
         snprintf(dir_name, 11, "subsong_%02x", i);
@@ -76,93 +76,63 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
         if (subsong_tree != NULL)
         {
             Read_state_init(state, File_tree_get_path(tree));
-            if (!Order_set(order, i, 0, 0))
+            Subsong* ss = new_Subsong();
+            if (ss == NULL)
             {
                 Read_state_set_error(state,
                          "Couldn't allocate memory for subsong %02x", i);
                 return false;
             }
-            Subsong* ss = Etable_get(order->subs, i);
-            assert(ss != NULL);
             Subsong_read(ss, subsong_tree, state);
             if (state->error)
             {
                 return false;
             }
+            if (Order_set_subsong(order, i, ss) < 0)
+            {
+                Read_state_set_error(state,
+                         "Couldn't allocate memory for subsong %02x", i);
+                return false;
+            }
+        }
+        else
+        {
+            break;
         }
     }
     return true;
 }
 
 
-bool Order_set(Order* order, uint16_t subsong, uint16_t index, int16_t pat)
+int16_t Order_set_subsong(Order* order, uint16_t index, Subsong* subsong)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
-    assert(index < ORDERS_MAX);
-    assert(pat >= 0 || pat == ORDER_NONE);
-    bool ss_is_new = false;
-    Subsong* ss = Etable_get(order->subs, subsong);
-    if (ss == NULL)
+    assert(index < KQT_SUBSONGS_MAX);
+    assert(subsong != NULL);
+    while (index > 0 && Etable_get(order->subs, index - 1) == NULL)
     {
-        if (pat == ORDER_NONE)
-        {
-            return true;
-        }
-        ss_is_new = true;
-        ss = new_Subsong();
-        if (ss == NULL)
-        {
-            return false;
-        }
-        if (!Etable_set(order->subs, subsong, ss))
-        {
-            del_Subsong(ss);
-            return false;
-        }
+        --index;
     }
-    if (pat == ORDER_NONE && Subsong_get(ss, index) == ORDER_NONE)
+    if (!Etable_set(order->subs, index, subsong))
     {
-        return true;
+        return -1;
     }
-    if (!Subsong_set(ss, index, pat))
-    {
-        if (ss_is_new)
-        {
-            Etable_remove(order->subs, subsong);
-        }
-        return false;
-    }
-    return true;
+    return index;
 }
 
 
-int16_t Order_get(Order* order, uint16_t subsong, uint16_t index)
+Subsong* Order_get_subsong(Order* order, uint16_t index)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
-    assert(index < ORDERS_MAX);
-    Subsong* ss = Etable_get(order->subs, subsong);
-    if (ss == NULL)
-    {
-        return ORDER_NONE;
-    }
-    return Subsong_get(ss, index);
-}
-
-
-Subsong* Order_get_subsong(Order* order, uint16_t subsong)
-{
-    assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
-    return Etable_get(order->subs, subsong);
+    assert(index < KQT_SUBSONGS_MAX);
+    return Etable_get(order->subs, index);
 }
 
 
 bool Order_is_empty(Order* order, uint16_t subsong)
 {
     assert(order != NULL);
-    assert(subsong < SUBSONGS_MAX);
+    assert(subsong < KQT_SUBSONGS_MAX);
     Subsong* ss = Etable_get(order->subs, subsong);
     if (ss == NULL)
     {

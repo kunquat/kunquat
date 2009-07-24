@@ -76,10 +76,10 @@ END_TEST
 
 START_TEST (set_voices)
 {
-    frame_t buf_l[128] = { 0 };
-    frame_t buf_r[128] = { 0 };
-    frame_t* bufs[2] = { buf_l, buf_r };
-    Note_table* note_tables[NOTE_TABLES_MAX] = { NULL };
+    kqt_frame buf_l[128] = { 0 };
+    kqt_frame buf_r[128] = { 0 };
+    kqt_frame* bufs[2] = { buf_l, buf_r };
+    Note_table* note_tables[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, note_tables, note_tables, 16);
     if (ins == NULL)
     {
@@ -137,25 +137,25 @@ START_TEST (set_voices)
         fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = (Event*)new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev1_on = (Event*)new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    Event* ev1_off = (Event*)new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = (Event*)new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev2_on = (Event*)new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    Event* ev2_off = (Event*)new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -172,7 +172,7 @@ START_TEST (set_voices)
     // Result should be (1, 0.5, 0.5, 0.5) 10 times, the rest are zero.
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE;
     int64_t instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
@@ -187,8 +187,8 @@ START_TEST (set_voices)
     Channel_set_voices(ch,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_set(RELTIME_AUTO, 10, 0),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_set(KQT_RELTIME_AUTO, 10, 0),
             0,
             60,
             8);
@@ -223,8 +223,8 @@ START_TEST (set_voices)
         Channel_set_voices(ch,
                 pool,
                 citer,
-                Reltime_set(RELTIME_AUTO, i / 8, (RELTIME_BEAT / 8) * (i % 8)),
-                Reltime_set(RELTIME_AUTO, (i + i) / 8, (RELTIME_BEAT / 8) * ((i + 1) % 8)),
+                kqt_Reltime_set(KQT_RELTIME_AUTO, i / 8, (KQT_RELTIME_BEAT / 8) * (i % 8)),
+                kqt_Reltime_set(KQT_RELTIME_AUTO, (i + i) / 8, (KQT_RELTIME_BEAT / 8) * ((i + 1) % 8)),
                 i,
                 60,
                 8);
@@ -267,18 +267,18 @@ START_TEST (set_voices)
     Voice_pool_reset(pool);
     note = 0;
     mod = -1;
-    octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
     Event_set_field(ev1_on, 3, &instrument);
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
     Event_set_field(ev2_on, 3, &instrument);
-    Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, RELTIME_BEAT / 4));
+    Event_set_pos(ev2_on, kqt_Reltime_set(KQT_RELTIME_AUTO, 0, KQT_RELTIME_BEAT / 4));
     if (!Column_ins(col, ev2_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -287,8 +287,8 @@ START_TEST (set_voices)
     Channel_set_voices(ch,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_set(RELTIME_AUTO, 10, 0),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_set(KQT_RELTIME_AUTO, 10, 0),
             0,
             60,
             8);
@@ -345,8 +345,8 @@ START_TEST (set_voices)
         Channel_set_voices(ch,
                 pool,
                 citer,
-                Reltime_set(RELTIME_AUTO, i / 8, (RELTIME_BEAT / 8) * (i % 8)),
-                Reltime_set(RELTIME_AUTO, (i + i) / 8, (RELTIME_BEAT / 8) * ((i + 1) % 8)),
+                kqt_Reltime_set(KQT_RELTIME_AUTO, i / 8, (KQT_RELTIME_BEAT / 8) * (i % 8)),
+                kqt_Reltime_set(KQT_RELTIME_AUTO, (i + i) / 8, (KQT_RELTIME_BEAT / 8) * ((i + 1) % 8)),
                 i,
                 60,
                 8);
@@ -432,8 +432,8 @@ START_TEST (set_voices_break_ch_null)
     Channel_set_voices(NULL,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             1,
             1);
@@ -473,8 +473,8 @@ START_TEST (set_voices_break_pool_null)
     Channel_set_voices(ch,
             NULL,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             1,
             1);
@@ -510,8 +510,8 @@ START_TEST (set_voices_break_col_null)
     Channel_set_voices(ch,
             pool,
             NULL,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             1,
             1);
@@ -558,7 +558,7 @@ START_TEST (set_voices_break_start_null)
             pool,
             citer,
             NULL,
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             1,
             1);
@@ -605,7 +605,7 @@ START_TEST (set_voices_break_end_null)
     Channel_set_voices(ch,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             NULL,
             0,
             1,
@@ -653,8 +653,8 @@ START_TEST (set_voices_break_tempo_inv)
     Channel_set_voices(ch,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             0,
             1);
@@ -701,8 +701,8 @@ START_TEST (set_voices_break_freq_inv)
     Channel_set_voices(ch,
             pool,
             citer,
-            Reltime_init(RELTIME_AUTO),
-            Reltime_init(RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
+            kqt_Reltime_init(KQT_RELTIME_AUTO),
             0,
             1,
             0);

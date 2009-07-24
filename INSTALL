@@ -31,8 +31,8 @@ Additionally, if you're building the test code, you'll need:
 
 Ubuntu:
 
-On a relatively new Ubuntu you should be able to get all the required stuff by
-running the following command:
+On a relatively new Ubuntu you should be able to get all the required and
+optional dependencies by running the following command:
 
 sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
 
@@ -58,5 +58,17 @@ This still leaves a couple of SCons-related files behind. If you need a more
 thorough clean, run:
 
   scons -c --full-clean
+
+
+    Running instructions
+    --------------------
+
+To hear the example composition, run:
+
+  src/player/kunquat-player examples/example.kqt.bz2
+
+To get more details on how to use kunquat-player, run:
+
+  src/player/kunquat-player -h
 
 

@@ -74,9 +74,9 @@ Playdata* init_play(Song* song)
     }
     play->mode = STOP;
     play->freq = 0;
-    Reltime_init(&play->play_time);
+    kqt_Reltime_init(&play->play_time);
     play->tempo = 0;
-    Reltime_init(&play->pos);
+    kqt_Reltime_init(&play->pos);
     play->order = song->order;
     play->subsong = 0;
     play->order_index = 0;
@@ -93,15 +93,13 @@ START_TEST (new)
         fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
         abort();
     }
-    fail_if(Song_get_name(song) == NULL,
-            "new_Song() created a Song without a name.");
     double mix_vol = Song_get_mix_vol(song);
     fail_unless(isfinite(mix_vol),
             "new_Song() created a Song without a sane initial mixing volume (%lf).", mix_vol);
     int buf_count = Song_get_buf_count(song);
     fail_unless(buf_count == 2,
             "new_Song() created a Song with a wrong amount of buffers (%d).", buf_count);
-    frame_t** bufs = Song_get_bufs(song);
+    kqt_frame** bufs = Song_get_bufs(song);
     fail_if(bufs == NULL,
             "new_Song() created a Song without buffers.");
     fail_if(bufs[0] == NULL,
@@ -136,7 +134,7 @@ END_TEST
 
 START_TEST (new_break_buf_count_inv2)
 {
-    new_Song(BUF_COUNT_MAX + 1, 1, 1);
+    new_Song(KQT_BUFFERS_MAX + 1, 1, 1);
 }
 END_TEST
 
@@ -149,69 +147,6 @@ END_TEST
 START_TEST (new_break_events_inv)
 {
     new_Song(1, 1, 0);
-}
-END_TEST
-#endif
-
-
-START_TEST (set_get_name)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        abort();
-    }
-    wchar_t name[132] = L"Name";
-    Song_set_name(song, name);
-    wchar_t* ret = Song_get_name(song);
-    fail_if(ret == NULL,
-            "Song_get_name() returned NULL.");
-    fail_if(name == ret,
-            "Song_set_name() copied the reference instead of the characters.");
-    fail_unless(wcscmp(name, ret) == 0,
-            "Song_set_name() copied the name incorrectly.");
-    for (int i = 4; i < 132; ++i)
-    {
-        name[i] = L'!';
-    }
-    Song_set_name(song, name);
-    ret = Song_get_name(song);
-    fail_if(ret == NULL,
-            "Song_get_name() returned NULL.");
-    fail_if(name == ret,
-            "Song_set_name() copied the reference instead of the characters.");
-    fail_unless(ret[127] == L'\0',
-            "Song_set_name() didn't truncate the name correctly.");
-    fail_unless(wcsncmp(name, ret, 127) == 0,
-            "Song_set_name() copied the name incorrectly.");
-    del_Song(song);
-}
-END_TEST
-
-#ifndef NDEBUG
-START_TEST (set_name_break_song_null)
-{
-    Song_set_name(NULL, L"Oops");
-}
-END_TEST
-
-START_TEST (set_name_break_name_null)
-{
-    Song* song = new_Song(1, 1, 1);
-    if (song == NULL)
-    {
-        fprintf(stderr, "new_Song() returned NULL -- out of memory?\n");
-        return;
-    }
-    Song_set_name(song, NULL);
-    del_Song(song);
-}
-END_TEST
-
-START_TEST (get_name_break_song_null)
-{
-    Song_get_name(NULL);
 }
 END_TEST
 #endif
@@ -313,19 +248,30 @@ START_TEST (mix)
         abort();
     }
     Order* order = Song_get_order(song);
-    if (!Order_set(order, 0, 0, 0))
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (!Order_set(order, 0, 1, 1))
+    if (Order_set_subsong(order, 0, ss) < 0)
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, 0, 0))
+    {
+        fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
+        abort();
+    }
+    if (!Subsong_set(ss, 1, 1))
+    {
+        fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
         abort();
     }
     Note_table* notes = Song_get_notes(song, 0);
     Note_table_set_ref_pitch(notes, 2);
-    frame_t** bufs = Song_get_bufs(song);
+    kqt_frame** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
     {
@@ -346,25 +292,25 @@ START_TEST (mix)
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev1_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    Event* ev1_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
+    Event* ev2_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+    Event* ev2_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -385,16 +331,16 @@ START_TEST (mix)
     play->mode = PLAY_SONG;
     play->freq = 8;
     play->tempo = 120;
-    Reltime_init(&play->pos);
+    kqt_Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
-    int64_t octave = NOTE_TABLE_MIDDLE_OCTAVE - 1;
+    int64_t octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
     int64_t instrument = 1;
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
     Event_set_field(ev1_on, 3, &instrument);
-    octave = NOTE_TABLE_MIDDLE_OCTAVE;
+    octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
@@ -502,7 +448,6 @@ Suite* Song_suite(void)
     TCase* tc_set_get_global_vol = tcase_create("set_get_global_vol");
     TCase* tc_mix = tcase_create("mix");
     suite_add_tcase(s, tc_new);
-    suite_add_tcase(s, tc_set_get_name);
     suite_add_tcase(s, tc_set_get_tempo);
     suite_add_tcase(s, tc_set_get_mix_vol);
     suite_add_tcase(s, tc_set_get_global_vol);
@@ -517,7 +462,6 @@ Suite* Song_suite(void)
     tcase_set_timeout(tc_mix, timeout);
 
     tcase_add_test(tc_new, new);
-    tcase_add_test(tc_set_get_name, set_get_name);
     tcase_add_test(tc_set_get_mix_vol, set_get_mix_vol);
     tcase_add_test(tc_mix, mix);
 
@@ -526,10 +470,6 @@ Suite* Song_suite(void)
     tcase_add_test_raise_signal(tc_new, new_break_buf_count_inv2, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_buf_size_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_new, new_break_events_inv, SIGABRT);
-
-    tcase_add_test_raise_signal(tc_set_get_name, set_name_break_song_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_name, set_name_break_name_null, SIGABRT);
-    tcase_add_test_raise_signal(tc_set_get_name, get_name_break_song_null, SIGABRT);
 
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_song_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get_mix_vol, set_mix_vol_break_mix_vol_inv1, SIGABRT);

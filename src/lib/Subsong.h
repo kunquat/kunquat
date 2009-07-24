@@ -68,7 +68,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
  * Sets the pattern for the specified Subsong position.
  *
  * \param ss      The Subsong -- must not be \c NULL.
- * \param index   The index -- must be >= \c 0 and < \c ORDERS_MAX.
+ * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
  * \param pat     The pattern number -- must be >= \c 0 or ORDER_NONE.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -80,11 +80,21 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat);
  * Gets the pattern from the specified Subsong position.
  *
  * \param ss      The Subsong -- must not be \c NULL.
- * \param index   The index -- must be >= \c 0 and < \c ORDERS_MAX.
+ * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
  *
  * \return   The pattern number if one exists, otherwise ORDER_NONE.
  */
 int16_t Subsong_get(Subsong* ss, int index);
+
+
+/**
+ * Gets the length of the Subsong.
+ *
+ * \param ss   The Subsong -- must not be \c NULL.
+ *
+ * \return   The length.
+ */
+int16_t Subsong_get_length(Subsong* ss);
 
 
 /**
@@ -130,7 +140,7 @@ double Subsong_get_global_vol(Subsong* ss);
  *
  * \param ss      The Subsong -- must not be \c NULL.
  * \param index   The Note table index -- must be >= \c 0 and
- *                < \c NOTE_TABLES_MAX.
+ *                < \c KQT_SCALES_MAX.
  */
 void Subsong_set_notes(Subsong* ss, int index);
 

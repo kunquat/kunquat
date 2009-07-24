@@ -20,42 +20,23 @@
  */
 
 
-#ifndef AUDIO_JACK_H
-#define AUDIO_JACK_H
+#ifndef KQT_FRAME_H
+#define KQT_FRAME_H
 
 
-#ifdef ENABLE_JACK
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 
-#include <stdbool.h>
-
-#include <jack/jack.h>
-
-#include <kunquat.h>
+typedef float kqt_frame;
 
 
-/**
- * Creates a JACK client.
- *
- * \param pl   The Playlist -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Audio_jack_open(Playlist* pl);
+#ifdef __cplusplus
+}
+#endif
 
 
-/**
- * Closes the JACK client.
- */
-void Audio_jack_close(void);
-
-
-#else
-
-
-#endif // ENABLE_JACK
-
-
-#endif // AUDIO_JACK_H
+#endif // KQT_FRAME_H
 
 

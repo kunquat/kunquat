@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2009 Heikki Aitakangas, Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,13 +20,27 @@
  */
 
 
-#ifndef K_FRAME_T_H
-#define K_FRAME_T_H
+#ifndef AUDIO_OPENAL_H
+#define AUDIO_OPENAL_H
 
 
-typedef float frame_t;
+#include <stdbool.h>
+#include <stdint.h>
+
+#include <Audio.h>
 
 
-#endif // K_FRAME_T_H
+typedef struct Audio_openal Audio_openal;
+
+
+/**
+ * Creates a new OpenAL client.
+ *
+ * \return   The new OpenAL client if successful, otherwise \c NULL.
+ */
+Audio* new_Audio_openal(void);
+
+
+#endif // AUDIO_OPENAL_H
 
 

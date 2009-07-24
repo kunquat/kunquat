@@ -39,7 +39,7 @@ Suite* Event_suite(void);
 
 START_TEST (new)
 {
-    Reltime* r = Reltime_init(RELTIME_AUTO);
+    kqt_Reltime* r = kqt_Reltime_init(KQT_RELTIME_AUTO);
     Event* event = new_Event_voice_note_on(r);
     if (event == NULL)
     {
@@ -48,7 +48,7 @@ START_TEST (new)
     }
     fail_if(r == Event_get_pos(event),
             "new_Event() didn't copy the position.");
-    fail_unless(Reltime_cmp(r, Event_get_pos(event)) == 0,
+    fail_unless(kqt_Reltime_cmp(r, Event_get_pos(event)) == 0,
             "new_Event() set the position incorrectly.");
     fail_unless(Event_get_type(event) == EVENT_TYPE_NOTE_ON,
             "new_Event() set the Event type to %d instead of EVENT_TYPE_NOTE_ON.", Event_get_type(event));
