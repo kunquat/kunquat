@@ -21,10 +21,6 @@ In order to get sound you'll need one of the following:
   libao (http://www.xiph.org/ao/)
   OpenAL (http://www.openal.org/)
 
-If you want to build WAV export support, you'll need:
-
-  libsndfile (http://www.mega-nerd.com/libsndfile/)
-
 Additionally, if you're building the test code, you'll need:
 
   Check (http://check.sourceforge.net/)
@@ -38,7 +34,7 @@ Ubuntu:
 On a relatively new Ubuntu you should be able to get all the required and
 optional dependencies by running the following command:
 
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
 
 
     Building instructions
@@ -57,5 +53,17 @@ To build Kunquat, run:
 To clean the build, run:
 
   scons -c
+
+
+    Running instructions
+    --------------------
+
+To hear the example composition, run:
+
+  src/player/kunquat-player examples/example.kqt.bz2
+
+To get more details on how to use kunquat-player, run:
+
+  src/player/kunquat-player -h
 
 
