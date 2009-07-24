@@ -35,7 +35,7 @@ typedef struct Event_global_set_tempo
 } Event_global_set_tempo;
 
 
-Event* new_Event_global_set_tempo(kqt_Reltime* pos);
+Event* new_Event_global_set_tempo(Reltime* pos);
 
 
 #endif // K_EVENT_GLOBAL_SET_TEMPO_H

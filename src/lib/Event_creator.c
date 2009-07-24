@@ -31,10 +31,10 @@
 #include <Event_voice_note_off.h>
 
 
-typedef Event* (*Event_cons)(kqt_Reltime* pos);
+typedef Event* (*Event_cons)(Reltime* pos);
 
 
-Event* new_Event(Event_type type, kqt_Reltime* pos)
+Event* new_Event(Event_type type, Reltime* pos)
 {
     assert(EVENT_TYPE_IS_VALID(type));
     assert(pos != NULL);

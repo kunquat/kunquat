@@ -180,25 +180,25 @@ START_TEST (mix)
         fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");

@@ -56,13 +56,13 @@ typedef struct Playdata
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Order* order;                     ///< The Order lists.
     Event_queue* events;              ///< The global event queue.
-    kqt_Reltime play_time;            ///< The number of beats played since the start of playback.
+    Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     double tempo;                     ///< Current tempo.
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t order_index;             ///< Current order -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.
-    kqt_Reltime pos;                  ///< Current position inside a pattern.
+    Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
     Channel* channels[KQT_COLUMNS_MAX];   ///< The channels used.

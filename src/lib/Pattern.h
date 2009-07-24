@@ -40,7 +40,7 @@ typedef struct Pattern
 {
     Column* global;
     Column* cols[KQT_COLUMNS_MAX];
-    kqt_Reltime length;
+    Reltime length;
 } Pattern;
 
 
@@ -76,7 +76,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
  * \param length   The new length -- must not be \c NULL and must be
  *                 non-negative.
  */
-void Pattern_set_length(Pattern* pat, kqt_Reltime* length);
+void Pattern_set_length(Pattern* pat, Reltime* length);
 
 
 /**
@@ -86,7 +86,7 @@ void Pattern_set_length(Pattern* pat, kqt_Reltime* length);
  *
  * \return   The length -- must not be freed.
  */
-kqt_Reltime* Pattern_get_length(Pattern* pat);
+Reltime* Pattern_get_length(Pattern* pat);
 
 
 /**

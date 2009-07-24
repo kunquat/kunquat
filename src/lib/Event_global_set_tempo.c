@@ -53,7 +53,7 @@ static void del_Event_global_set_tempo(Event* event);
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_set_tempo(kqt_Reltime* pos)
+Event* new_Event_global_set_tempo(Reltime* pos)
 {
     assert(pos != NULL);
     Event_global_set_tempo* event = xalloc(Event_global_set_tempo);
@@ -66,7 +66,7 @@ Event* new_Event_global_set_tempo(kqt_Reltime* pos)
     event->parent.parent.set = Event_global_set_tempo_set;
     event->parent.parent.get = Event_global_set_tempo_get;
     event->parent.parent.destroy = del_Event_global_set_tempo;
-    kqt_Reltime_copy(&event->parent.parent.pos, pos);
+    Reltime_copy(&event->parent.parent.pos, pos);
     event->parent.process = Event_global_set_tempo_process;
     return (Event*)event;
 }

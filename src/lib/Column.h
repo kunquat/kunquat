@@ -74,7 +74,7 @@ void Column_iter_change_col(Column_iter* iter, Column* col);
  *
  * \return   The Event if one exists, otherwise \c NULL.
  */
-Event* Column_iter_get(Column_iter* iter, const kqt_Reltime* pos);
+Event* Column_iter_get(Column_iter* iter, const Reltime* pos);
 
 
 /**
@@ -107,7 +107,7 @@ void del_Column_iter(Column_iter* iter);
  * \return   The new Column if successful, or \c NULL if memory allocation
  *           failed.
  */
-Column* new_Column(kqt_Reltime* len);
+Column* new_Column(Reltime* len);
 
 
 /**
@@ -180,7 +180,7 @@ bool Column_remove(Column* col, Event* event);
  * \return   \c true if Events were found at \a pos and removed, otherwise
  *           \a false.
  */
-bool Column_remove_row(Column* col, kqt_Reltime* pos);
+bool Column_remove_row(Column* col, Reltime* pos);
 
 
 /**
@@ -193,7 +193,7 @@ bool Column_remove_row(Column* col, kqt_Reltime* pos);
  *
  * \return   \c true if rows were found and removed, otherwise \c false.
  */
-bool Column_remove_block(Column* col, kqt_Reltime* start, kqt_Reltime* end);
+bool Column_remove_block(Column* col, Reltime* start, Reltime* end);
 
 
 /**
@@ -207,7 +207,7 @@ bool Column_remove_block(Column* col, kqt_Reltime* start, kqt_Reltime* end);
  *
  * \return   \c true if Events were removed, otherwise \c false.
  */
-bool Column_shift_up(Column* col, kqt_Reltime* pos, kqt_Reltime* len);
+bool Column_shift_up(Column* col, Reltime* pos, Reltime* len);
 
 
 /**
@@ -219,7 +219,7 @@ bool Column_shift_up(Column* col, kqt_Reltime* pos, kqt_Reltime* len);
  * \param len   The amount of shifting to be made -- must not be \c NULL.
  *              Events moved past the end of the Column will not be removed.
  */
-void Column_shift_down(Column* col, kqt_Reltime* pos, kqt_Reltime* len);
+void Column_shift_down(Column* col, Reltime* pos, Reltime* len);
 
 
 /**
@@ -237,7 +237,7 @@ void Column_clear(Column* col);
  * \param col   The Column -- must not be \c NULL.
  * \param len   The new Column length -- must not be \c NULL.
  */
-void Column_set_length(Column* col, kqt_Reltime* len);
+void Column_set_length(Column* col, Reltime* len);
 
 
 /**
@@ -247,7 +247,7 @@ void Column_set_length(Column* col, kqt_Reltime* len);
  *
  * \return   The current Column length.
  */
-kqt_Reltime* Column_length(Column* col);
+Reltime* Column_length(Column* col);
 
 
 /**

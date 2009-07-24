@@ -171,15 +171,15 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
     }
     handle->play->order_index = section;
     handle->play_silent->order_index = section;
-    kqt_Reltime_set(&handle->play->pos, beats, remainder);
-    kqt_Reltime_set(&handle->play_silent->pos, beats, remainder);
+    Reltime_set(&handle->play->pos, beats, remainder);
+    Reltime_set(&handle->play_silent->pos, beats, remainder);
     handle->play->play_frames = 0;
     handle->play_silent->play_frames = 0;
     if (nanoseconds > 0)
     {
         uint64_t frame_skip = ((double)nanoseconds / 1000000000) * handle->play->freq;
         Song_skip(handle->song, handle->play, frame_skip);
-        kqt_Reltime_copy(&handle->play_silent->pos, &handle->play->pos);
+        Reltime_copy(&handle->play_silent->pos, &handle->play->pos);
     }
     return 1;
 }
@@ -191,8 +191,8 @@ char* kqt_Handle_get_position_desc(kqt_Handle* handle)
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
              handle->play->mode == PLAY_SONG ? -1 : (int)handle->play->subsong,
              (int)handle->play->order_index,
-             (long long)kqt_Reltime_get_beats(&handle->play->pos),
-             (long)kqt_Reltime_get_rem(&handle->play->pos));
+             (long long)Reltime_get_beats(&handle->play->pos),
+             (long)Reltime_get_rem(&handle->play->pos));
     return handle->position;
 }
 

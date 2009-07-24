@@ -108,7 +108,7 @@ START_TEST (mix)
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -120,7 +120,7 @@ START_TEST (mix)
     Event_set_field(ev_on, 0, &note);
     Event_set_field(ev_on, 1, &mod);
     Event_set_field(ev_on, 2, &octave);
-    Event* ev_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -316,7 +316,7 @@ START_TEST (mix_break_freq_inv)
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
         return;
     }
-    Event* ev_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");

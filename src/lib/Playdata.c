@@ -74,9 +74,9 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->subsong = 0;
     play->order_index = 0;
     play->pattern = 0;
-    kqt_Reltime_init(&play->play_time);
+    Reltime_init(&play->play_time);
     play->play_frames = 0;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     Playdata_reset_stats(play);
     return play;
 }
@@ -110,9 +110,9 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->subsong = 0;
     play->order_index = 0;
     play->pattern = 0;
-    kqt_Reltime_init(&play->play_time);
+    Reltime_init(&play->play_time);
     play->play_frames = 0;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     Playdata_reset_stats(play);
     return play;
 }

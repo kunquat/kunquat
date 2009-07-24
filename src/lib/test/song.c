@@ -74,9 +74,9 @@ Playdata* init_play(Song* song)
     }
     play->mode = STOP;
     play->freq = 0;
-    kqt_Reltime_init(&play->play_time);
+    Reltime_init(&play->play_time);
     play->tempo = 0;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     play->order = song->order;
     play->subsong = 0;
     play->order_index = 0;
@@ -292,25 +292,25 @@ START_TEST (mix)
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -331,7 +331,7 @@ START_TEST (mix)
     play->mode = PLAY_SONG;
     play->freq = 8;
     play->tempo = 120;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
     int64_t octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
