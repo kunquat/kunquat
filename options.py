@@ -7,7 +7,7 @@ optimise = 2
 enable_debug = True
 
 # Build and run tests.
-enable_tests = False
+enable_tests = True
 
 # Enable kunquat-player.
 enable_player = True

@@ -261,19 +261,19 @@ uint32_t Pattern_mix(Pattern* pat,
                 Reltime_set(&play->pos, 0, 0);
                 break;
             }
-            ++play->order_index;
-            if (play->order_index >= KQT_SECTIONS_MAX)
+            ++play->section;
+            if (play->section >= KQT_SECTIONS_MAX)
             {
-                play->order_index = 0;
+                play->section = 0;
                 play->pattern = -1;
             }
             else
             {
-                play->pattern = ORDER_NONE;
-                Subsong* ss = Order_get_subsong(play->order, play->subsong);
+                play->pattern = KQT_SECTION_NONE;
+                Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
                 if (ss != NULL)
                 {
-                    play->pattern = Subsong_get(ss, play->order_index);
+                    play->pattern = Subsong_get(ss, play->section);
                 }
             }
             break;

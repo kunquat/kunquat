@@ -28,7 +28,7 @@
 
 #include <kunquat/limits.h>
 #include <kunquat/frame.h>
-#include <Order.h>
+#include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
 #include <Note_table.h>
@@ -44,10 +44,10 @@ typedef struct Song
     kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
-    Order* order;                       ///< The Order lists.
+    Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    Note_table* notes[KQT_SCALES_MAX]; ///< The Note tables.
+    Note_table* notes[KQT_SCALES_MAX];  ///< The Note tables.
     Note_table** active_notes;          ///< A reference to the currently active Note table.
     Event_queue* events;                ///< Global events.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -214,13 +214,13 @@ kqt_frame** Song_get_voice_bufs(Song* song);
 
 
 /**
- * Gets the Order lists from the Song.
+ * Gets the Subsong table from the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
- * \return   The Order list.
+ * \return   The Subsong table.
  */
-Order* Song_get_order(Song* song);
+Subsong_table* Song_get_subsongs(Song* song);
 
 
 /**

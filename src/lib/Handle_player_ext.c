@@ -169,8 +169,8 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
         handle->play_silent->mode = PLAY_SUBSONG;
         Playdata_set_subsong(handle->play_silent, subsong);
     }
-    handle->play->order_index = section;
-    handle->play_silent->order_index = section;
+    handle->play->section = section;
+    handle->play_silent->section = section;
     Reltime_set(&handle->play->pos, beats, remainder);
     Reltime_set(&handle->play_silent->pos, beats, remainder);
     handle->play->play_frames = 0;
@@ -190,7 +190,7 @@ char* kqt_Handle_get_position_desc(kqt_Handle* handle)
     check_handle(handle, "kqt_Handle_get_position_desc", NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
              handle->play->mode == PLAY_SONG ? -1 : (int)handle->play->subsong,
-             (int)handle->play->order_index,
+             (int)handle->play->section,
              (long long)Reltime_get_beats(&handle->play->pos),
              (long)Reltime_get_rem(&handle->play->pos));
     return handle->position;
@@ -281,7 +281,7 @@ void kqt_Handle_play_subsong(kqt_Handle* handle, uint16_t subsong)
     assert(subsong < KQT_SUBSONGS_MAX);
     kqt_Handle_stop(handle);
     handle->play->subsong = subsong;
-    Subsong* ss = Order_get_subsong(handle->play->order, handle->play->subsong);
+    Subsong* ss = Subsong_table_get(handle->play->subsongs, handle->play->subsong);
     if (ss == NULL)
     {
         handle->play->tempo = 120;

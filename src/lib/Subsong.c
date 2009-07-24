@@ -51,7 +51,7 @@ Subsong* new_Subsong(void)
     }
     for (int i = 0; i < ss->res; ++i)
     {
-        ss->pats[i] = ORDER_NONE;
+        ss->pats[i] = KQT_SECTION_NONE;
     }
     ss->tempo = 120;
     ss->global_vol = -4;
@@ -162,7 +162,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                     {
                         return false;
                     }
-                    if ((num < 0 || num >= KQT_PATTERNS_MAX) && num != ORDER_NONE)
+                    if ((num < 0 || num >= KQT_PATTERNS_MAX) && num != KQT_SECTION_NONE)
                     {
                         Read_state_set_error(state,
                                  "Pattern number (%" PRId64 ") is outside valid range", num);
@@ -209,7 +209,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat)
     assert(ss != NULL);
     assert(index >= 0);
     assert(index < KQT_SECTIONS_MAX);
-    assert(pat >= 0 || pat == ORDER_NONE);
+    assert(pat >= 0 || pat == KQT_SECTION_NONE);
     if (index >= ss->res)
     {
         int new_res = ss->res << 1;
@@ -225,7 +225,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat)
         ss->pats = new_pats;
         for (int i = ss->res; i < new_res; ++i)
         {
-            ss->pats[i] = ORDER_NONE;
+            ss->pats[i] = KQT_SECTION_NONE;
         }
         ss->res = new_res;
     }
@@ -241,7 +241,7 @@ int16_t Subsong_get(Subsong* ss, int index)
     assert(index < KQT_SECTIONS_MAX);
     if (index >= ss->res)
     {
-        return ORDER_NONE;
+        return KQT_SECTION_NONE;
     }
     return ss->pats[index];
 }
@@ -253,7 +253,7 @@ int16_t Subsong_get_length(Subsong* ss)
     int length = 0;
     for (length = 0; length < ss->res; ++length)
     {
-        if (ss->pats[length] == ORDER_NONE)
+        if (ss->pats[length] == KQT_SECTION_NONE)
         {
             break;
         }
@@ -318,7 +318,7 @@ void Subsong_clear(Subsong* ss)
     assert(ss != NULL);
     for (int i = 0; i < ss->res; ++i)
     {
-        ss->pats[i] = ORDER_NONE;
+        ss->pats[i] = KQT_SECTION_NONE;
     }
     return;
 }

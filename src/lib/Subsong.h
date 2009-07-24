@@ -30,16 +30,20 @@
 #include <File_tree.h>
 
 
-#define ORDER_NONE (-1)
+#define KQT_SECTION_NONE (-1)
 
 
+/**
+ * Subsong specifies some initial playback settings and the order in which
+ * Patterns are played.
+ */
 typedef struct Subsong
 {
     double tempo;      ///< Initial tempo.
     double global_vol; ///< Initial global volume.
     int notes;         ///< Index of the initial Note table.
-    int res;
-    int16_t* pats;     ///< Pattern numbers.
+    int res;           ///< Size reserved for the section list.
+    int16_t* pats;     ///< Section list that contains the Pattern numbers.
 } Subsong;
 
 
@@ -69,7 +73,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
  *
  * \param ss      The Subsong -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
- * \param pat     The pattern number -- must be >= \c 0 or ORDER_NONE.
+ * \param pat     The pattern number -- must be >= \c 0 or KQT_SECTION_NONE.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -82,7 +86,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat);
  * \param ss      The Subsong -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
  *
- * \return   The pattern number if one exists, otherwise ORDER_NONE.
+ * \return   The pattern number if one exists, otherwise KQT_SECTION_NONE.
  */
 int16_t Subsong_get(Subsong* ss, int index);
 

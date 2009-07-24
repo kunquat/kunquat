@@ -27,7 +27,7 @@
 #include <stdint.h>
 
 #include <Reltime.h>
-#include <Order.h>
+#include <Subsong_table.h>
 #include <Channel.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -54,19 +54,19 @@ typedef struct Playdata
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
-    Order* order;                     ///< The Order lists.
+    Subsong_table* subsongs;          ///< The Subsongs.
     Event_queue* events;              ///< The global event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     double tempo;                     ///< Current tempo.
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
-    uint16_t order_index;             ///< Current order -- used when \a play == \c PLAY_SONG.
+    uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
-    Channel* channels[KQT_COLUMNS_MAX];   ///< The channels used.
-    uint16_t active_voices;           ///< Number of Voices used simultaneously.
+    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
+    uint16_t active_voices;             ///< Number of Voices used simultaneously.
     double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
     double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.
     uint64_t clipped[KQT_BUFFERS_MAX];  ///< Number of clipped frames encountered.

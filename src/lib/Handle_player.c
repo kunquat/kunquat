@@ -146,7 +146,7 @@ void kqt_Handle_stop(kqt_Handle* handle)
     Reltime_init(&handle->play->play_time);
     handle->play->play_frames = 0;
     handle->play->subsong = Song_get_subsong(handle->song);
-    Subsong* ss = Order_get_subsong(handle->play->order, handle->play->subsong);
+    Subsong* ss = Subsong_table_get(handle->play->subsongs, handle->play->subsong);
     if (ss == NULL)
     {
         handle->play->tempo = 120;
@@ -155,7 +155,7 @@ void kqt_Handle_stop(kqt_Handle* handle)
     {
         handle->play->tempo = Subsong_get_tempo(ss);
     }
-    handle->play->order_index = 0;
+    handle->play->section = 0;
     handle->play->pattern = 0;
     Reltime_init(&handle->play->pos);
     return;

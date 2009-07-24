@@ -25,37 +25,37 @@
 
 #include <Subsong.h>
 #include <Etable.h>
-#include <Order.h>
+#include <Subsong_table.h>
 
 #include <xmemory.h>
 
 
-struct Order
+struct Subsong_table
 {
     Etable* subs;
 };
 
 
-Order* new_Order(void)
+Subsong_table* new_Subsong_table(void)
 {
-    Order* order = xalloc(Order);
-    if (order == NULL)
+    Subsong_table* table = xalloc(Subsong_table);
+    if (table == NULL)
     {
         return NULL;
     }
-    order->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
-    if (order->subs == NULL)
+    table->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
+    if (table->subs == NULL)
     {
-        xfree(order);
+        xfree(table);
         return NULL;
     }
-    return order;
+    return table;
 }
 
 
-bool Order_read(Order* order, File_tree* tree, Read_state* state)
+bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state)
 {
-    assert(order != NULL);
+    assert(table != NULL);
     assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
@@ -88,7 +88,7 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
             {
                 return false;
             }
-            if (Order_set_subsong(order, i, ss) < 0)
+            if (Subsong_table_set(table, i, ss) < 0)
             {
                 Read_state_set_error(state,
                          "Couldn't allocate memory for subsong %02x", i);
@@ -104,16 +104,16 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state)
 }
 
 
-int16_t Order_set_subsong(Order* order, uint16_t index, Subsong* subsong)
+int16_t Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
 {
-    assert(order != NULL);
+    assert(table != NULL);
     assert(index < KQT_SUBSONGS_MAX);
     assert(subsong != NULL);
-    while (index > 0 && Etable_get(order->subs, index - 1) == NULL)
+    while (index > 0 && Etable_get(table->subs, index - 1) == NULL)
     {
         --index;
     }
-    if (!Etable_set(order->subs, index, subsong))
+    if (!Etable_set(table->subs, index, subsong))
     {
         return -1;
     }
@@ -121,26 +121,26 @@ int16_t Order_set_subsong(Order* order, uint16_t index, Subsong* subsong)
 }
 
 
-Subsong* Order_get_subsong(Order* order, uint16_t index)
+Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 {
-    assert(order != NULL);
+    assert(table != NULL);
     assert(index < KQT_SUBSONGS_MAX);
-    return Etable_get(order->subs, index);
+    return Etable_get(table->subs, index);
 }
 
 
-bool Order_is_empty(Order* order, uint16_t subsong)
+bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong)
 {
-    assert(order != NULL);
+    assert(table != NULL);
     assert(subsong < KQT_SUBSONGS_MAX);
-    Subsong* ss = Etable_get(order->subs, subsong);
+    Subsong* ss = Etable_get(table->subs, subsong);
     if (ss == NULL)
     {
         return true;
     }
     for (int i = 0; i < ss->res; ++i)
     {
-        if (ss->pats[i] != ORDER_NONE)
+        if (ss->pats[i] != KQT_SECTION_NONE)
         {
             return false;
         }
@@ -149,11 +149,11 @@ bool Order_is_empty(Order* order, uint16_t subsong)
 }
 
 
-void del_Order(Order* order)
+void del_Subsong_table(Subsong_table* table)
 {
-    assert(order != NULL);
-    del_Etable(order->subs);
-    xfree(order);
+    assert(table != NULL);
+    del_Etable(table->subs);
+    xfree(table);
     return;
 }
 

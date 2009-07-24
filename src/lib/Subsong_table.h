@@ -20,8 +20,8 @@
  */
 
 
-#ifndef K_ORDER_H
-#define K_ORDER_H
+#ifndef K_SUBSONG_TABLE_H
+#define K_SUBSONG_TABLE_H
 
 
 #include <stdint.h>
@@ -34,36 +34,36 @@
 
 
 /**
- * Order specifies the order in which Patterns are played.
+ * Subsong table contains the Subsongs.
  */
-typedef struct Order Order;
+typedef struct Subsong_table Subsong_table;
 
 
 /**
- * Creates a new Order.
+ * Creates a new Subsong table.
  *
- * \return   The new Order if successful, or \c NULL if memory allocation
- *           failed.
+ * \return   The new Subsong table if successful, or \c NULL if memory
+ *           allocation failed.
  */
-Order* new_Order(void);
+Subsong_table* new_Subsong_table(void);
 
 
 /**
- * Reads an Order from a File tree.
+ * Reads a Subsong table from a File tree.
  *
- * \param order   The Order -- must not be \c NULL.
+ * \param table   The Subsong table -- must not be \c NULL.
  * \param tree    The File tree -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Order_read(Order* order, File_tree* tree, Read_state* state);
+bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state);
 
 
 /**
- * Sets a Subsong in the Order.
+ * Sets a Subsong in the Subsong table.
  *
- * \param order     The Order -- must not be \c NULL.
+ * \param table     The Subsong table -- must not be \c NULL.
  * \param index     The target index -- must be >= \c 0 and
  *                  < \c KQT_SUBSONGS_MAX.
  * \param subsong   The Subsong -- must not be \c NULL.
@@ -71,41 +71,41 @@ bool Order_read(Order* order, File_tree* tree, Read_state* state);
  * \return   The actual index where the Subsong was stored, or \c -1 if
  *           memory allocation failed.
  */
-int16_t Order_set_subsong(Order* order, uint16_t index, Subsong* subsong);
+int16_t Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
 
 
 /**
- * Gets a Subsong from the Order.
+ * Gets a Subsong from the Subsong table.
  *
- * \param order   The Order -- must not be \c NULL.
+ * \param table   The Subsong table -- must not be \c NULL.
  * \param index   The subsong number -- must be >= \c 0 and
  *                < \c KQT_SUBSONGS_MAX.
  *
  * \return   The Subsong if one exists, otherwise \c NULL.
  */
-Subsong* Order_get_subsong(Order* order, uint16_t subsong);
+Subsong* Subsong_table_get(Subsong_table* table, uint16_t subsong);
 
 
 /**
  * Tells whether a subsong is empty.
  *
- * \param order     The Order -- must not be \c NULL.
+ * \param table     The Subsong table -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
  *                  < \c KQT_SUBSONGS_MAX.
  *
  * \return   \c true if and only if \a subsong is empty.
  */
-bool Order_is_empty(Order* order, uint16_t subsong);
+bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong);
 
 
 /**
- * Destroys an existing Order.
+ * Destroys an existing Subsong table.
  *
- * \param order   The Order -- must not be \c NULL.
+ * \param table   The Subsong table -- must not be \c NULL.
  */
-void del_Order(Order* order);
+void del_Subsong_table(Subsong_table* table);
 
 
-#endif // K_ORDER_H
+#endif // K_SUBSONG_TABLE_H
 
 

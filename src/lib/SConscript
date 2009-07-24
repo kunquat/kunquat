@@ -65,7 +65,7 @@ files = [
     'AAtree.c',
     'Column.c',
     'Channel.c',
-    'Order.c',
+    'Subsong_table.c',
     'Subsong.c',
     'Pat_table.c',
     'Pattern.c',

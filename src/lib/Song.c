@@ -51,7 +51,7 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
     song->voice_bufs[0] = NULL;
-    song->order = NULL;
+    song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
@@ -83,8 +83,8 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
             return NULL;
         }
     }
-    song->order = new_Order();
-    if (song->order == NULL)
+    song->subsongs = new_Subsong_table();
+    if (song->subsongs == NULL)
     {
         del_Song(song);
         return NULL;
@@ -294,8 +294,8 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    Order* order = Song_get_order(song);
-    if (!Order_read(order, tree, state))
+    Subsong_table* subsongs = Song_get_subsongs(song);
+    if (!Subsong_table_read(subsongs, tree, state))
     {
         return false;
     }
@@ -348,11 +348,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = ORDER_NONE;
-            Subsong* ss = Order_get_subsong(song->order, play->subsong);
+            int16_t pat_index = KQT_SECTION_NONE;
+            Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
             if (ss != NULL)
             {
-                pat_index = Subsong_get(ss, play->order_index);
+                pat_index = Subsong_get(ss, play->section);
             }
             if (pat_index >= 0)
             {
@@ -606,10 +606,10 @@ kqt_frame** Song_get_voice_bufs(Song* song)
 }
 
 
-Order* Song_get_order(Song* song)
+Subsong_table* Song_get_subsongs(Song* song)
 {
     assert(song != NULL);
-    return song->order;
+    return song->subsongs;
 }
 
 
@@ -702,9 +702,9 @@ void del_Song(Song* song)
     {
         xfree(song->voice_bufs[i]);
     }
-    if (song->order != NULL)
+    if (song->subsongs != NULL)
     {
-        del_Order(song->order);
+        del_Subsong_table(song->subsongs);
     }
     if (song->pats != NULL)
     {
