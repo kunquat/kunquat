@@ -134,7 +134,7 @@ int kqt_unwrap_time(char* time,
 
 int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
 {
-    check_handle(handle, "kqt_Handle_set_position", 0);
+    check_handle(handle, "kqt_Handle_set_position_desc", 0);
     if (position == NULL)
     {
         position = "-1";
@@ -187,7 +187,7 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
 
 char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_position", NULL);
+    check_handle(handle, "kqt_Handle_get_position_desc", NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
              handle->play->mode == PLAY_SONG ? -1 : (int)handle->play->subsong,
              (int)handle->play->order_index,

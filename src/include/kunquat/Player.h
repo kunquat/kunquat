@@ -45,20 +45,22 @@ extern "C" {
  * be played in short sections. First the user mixes a short section of music
  * into internal buffers and then transfers the necessary information from the
  * internal buffers into its own output buffers. This process is repeated as
- * many times as needed. The basic playback cycle may look like this:
+ * many times as needed. The basic playback cycle might look like this:
  *
  * \code
  * int buffer_count = kqt_Handle_get_buffer_count(handle);
  * long buffer_size = kqt_Handle_get_buffer_size(handle);
  * long mixed = 0;
- * while ((mixed = kqt_Handle_mix(handle, buffer_size, 44100)) > 0)
+ * while ((mixed = kqt_Handle_mix(handle, buffer_size, 48000)) > 0)
  * {
+ *     kqt_frame* buffers[KQT_BUFFERS_MAX] = { NULL };
  *     for (int i = 0; i < buffer_count; ++i)
  *     {
- *         kqt_frame* buffer = kqt_Handle_get_buffer(handle, i);
- *         // convert (if necessary) and store the contents of
- *         // buffer i into the output buffer of the program...
+ *         buffers[i] = kqt_Handle_get_buffer(handle, i);
  *     }
+ *     // convert (if necessary) and store the contents of the
+ *     // buffers into the output buffers of the program,
+ *     // then play the contents of the output buffers
  * }
  * \endcode
  */

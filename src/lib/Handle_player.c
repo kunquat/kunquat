@@ -84,9 +84,11 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 
 kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
-    check_handle(handle, "kqt_Handle_get_buffers", NULL);
+    check_handle(handle, "kqt_Handle_get_buffer", NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
     {
+        kqt_Handle_set_error(handle,
+                "kqt_Handle_get_buffer: buffer #%d doesn't exist", index);
         return NULL;
     }
     return Song_get_bufs(handle->song)[index];
@@ -106,7 +108,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle)
 
 int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanoseconds)
 {
-    check_handle(handle, "kqt_Handle_seek", 0);
+    check_handle(handle, "kqt_Handle_set_position", 0);
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
         kqt_Handle_set_error(handle,
@@ -127,7 +129,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
 
 long long kqt_Handle_get_position(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_tell", 0);
+    check_handle(handle, "kqt_Handle_get_position", 0);
     return ((long long)handle->play->play_frames * 1000000000L) / handle->play->freq;
 }
 
