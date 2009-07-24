@@ -70,7 +70,9 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
 
 
 /**
- * Sets the length of the Pattern. No notes will be deleted.
+ * Sets the length of the Pattern.
+ *
+ * No Events will be deleted if the new length is shorter than the old length.
  *
  * \param pat      The Pattern -- must not be \c NULL.
  * \param length   The new length -- must not be \c NULL and must be

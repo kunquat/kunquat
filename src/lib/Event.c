@@ -26,7 +26,7 @@
 
 #include <Event.h>
 
-#include <Note_table.h>
+#include <Scale.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>

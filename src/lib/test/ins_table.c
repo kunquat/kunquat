@@ -31,7 +31,7 @@
 #include <kunquat/frame.h>
 #include <Instrument.h>
 #include <Ins_table.h>
-#include <Note_table.h>
+#include <Scale.h>
 
 
 Suite* Ins_table_suite(void);
@@ -77,7 +77,7 @@ START_TEST (set_get)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
@@ -232,7 +232,7 @@ START_TEST (set_break_table_null)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -249,7 +249,7 @@ START_TEST (set_break_index_inv1)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -273,7 +273,7 @@ START_TEST (set_break_index_inv2)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -310,7 +310,7 @@ START_TEST (set_break_ins_dup)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
@@ -369,7 +369,7 @@ START_TEST (ins_table_remove)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
@@ -532,7 +532,7 @@ START_TEST (clear)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {

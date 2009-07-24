@@ -30,7 +30,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
@@ -79,8 +79,8 @@ START_TEST (set_voices)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* note_tables[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, note_tables, note_tables, 16);
+    Scale* scales[KQT_SCALES_MAX] = { NULL };
+    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, scales, scales, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -93,15 +93,15 @@ START_TEST (set_voices)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Scale* notes = new_Scale(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
-        fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Scale() returned NULL -- out of memory?\n");
         abort();
     }
-    note_tables[0] = notes;
-    Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
-    Instrument_set_note_table(ins, 0);
+    scales[0] = notes;
+    Scale_set_note(notes, 0, Real_init(REAL_AUTO));
+    Instrument_set_scale(ins, 0);
     Ins_table* table = new_Ins_table(1);
     if (table == NULL)
     {
@@ -398,7 +398,7 @@ START_TEST (set_voices)
     del_Voice_pool(pool);
     del_Channel(ch);
     del_Ins_table(table);
-    del_Note_table(notes);
+    del_Scale(notes);
 }
 END_TEST
 

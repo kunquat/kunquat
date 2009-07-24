@@ -28,7 +28,7 @@ env_test.Append(LIBPATH = ['#/src/lib'])
 env_test.Append(LIBS = ['kunquat'])
 
 real          = env_test.Program('real', ['real.c'])
-note_table    = env_test.Program('note_table', ['note_table.c'])
+scale         = env_test.Program('scale', ['scale.c'])
 reltime       = env_test.Program('reltime', ['reltime.c'])
 event         = env_test.Program('event', ['event.c'])
 event_queue   = env_test.Program('event_queue', ['event_queue.c'])
@@ -46,7 +46,7 @@ song          = env_test.Program('song', ['song.c'])
 
 if not env.GetOption('clean'):
     env_test.AddPostAction(real, 'env ' + real[0].abspath)
-    env_test.AddPostAction(note_table, 'env ' + note_table[0].abspath)
+    env_test.AddPostAction(scale, 'env ' + scale[0].abspath)
     env_test.AddPostAction(reltime, 'env ' + reltime[0].abspath)
     env_test.AddPostAction(event, 'env ' + event[0].abspath)
     env_test.AddPostAction(event_queue, 'env ' + event_queue[0].abspath)

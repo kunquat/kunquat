@@ -41,7 +41,7 @@ typedef struct Subsong
 {
     double tempo;      ///< Initial tempo.
     double global_vol; ///< Initial global volume.
-    int notes;         ///< Index of the initial Note table.
+    int scale;         ///< Index of the initial Scale.
     int res;           ///< Size reserved for the section list.
     int16_t* pats;     ///< Section list that contains the Pattern numbers.
 } Subsong;
@@ -140,23 +140,23 @@ double Subsong_get_global_vol(Subsong* ss);
 
 
 /**
- * Sets the initial default Note table of the Subsong.
+ * Sets the initial default Scale of the Subsong.
  *
  * \param ss      The Subsong -- must not be \c NULL.
- * \param index   The Note table index -- must be >= \c 0 and
+ * \param index   The Scale index -- must be >= \c 0 and
  *                < \c KQT_SCALES_MAX.
  */
-void Subsong_set_notes(Subsong* ss, int index);
+void Subsong_set_scale(Subsong* ss, int index);
 
 
 /**
- * Gets the initial default Note table of the Subsong.
+ * Gets the initial default Scale of the Subsong.
  *
  * \param ss   The Subsong -- must not be \c NULL.
  *
- * \return   The Note table index.
+ * \return   The Scale index.
  */
-int Subsong_get_notes(Subsong* ss);
+int Subsong_get_scale(Subsong* ss);
 
 
 /**

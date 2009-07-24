@@ -30,7 +30,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_global_set_tempo.h>
@@ -125,7 +125,7 @@ START_TEST (mix)
     kqt_frame buf_l[256] = { 0 };
     kqt_frame buf_r[256] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -139,15 +139,15 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Scale* notes = new_Scale(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
-        fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Scale() returned NULL -- out of memory?\n");
         abort();
     }
     nts[0] = notes;
-    Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
-    Instrument_set_note_table(ins, 0);
+    Scale_set_note(notes, 0, Real_init(REAL_AUTO));
+    Instrument_set_scale(ins, 0);
     if (!Ins_table_set(play->channels[0]->insts, 1, ins))
     {
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
@@ -723,7 +723,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
 
-    del_Note_table(notes);
+    del_Scale(notes);
     del_Instrument(ins);
     del_Pattern(pat);
 }

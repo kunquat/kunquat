@@ -27,7 +27,7 @@
 #include <Event_voice_note_on.h>
 #include <Reltime.h>
 #include <Voice.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>

@@ -55,7 +55,7 @@ Subsong* new_Subsong(void)
     }
     ss->tempo = 120;
     ss->global_vol = -4;
-    ss->notes = 0;
+    ss->scale = 0;
     return ss;
 }
 
@@ -139,7 +139,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
                                      ") is outside valid range", num);
                 return false;
             }
-            ss->notes = num;
+            ss->scale = num;
         }
         else if (strcmp(key, "patterns") == 0)
         {
@@ -295,20 +295,20 @@ double Subsong_get_global_vol(Subsong* ss)
 }
 
 
-void Subsong_set_notes(Subsong* ss, int index)
+void Subsong_set_scale(Subsong* ss, int index)
 {
     assert(ss != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    ss->notes = index;
+    ss->scale = index;
     return;
 }
 
 
-int Subsong_get_notes(Subsong* ss)
+int Subsong_get_scale(Subsong* ss)
 {
     assert(ss != NULL);
-    return ss->notes;
+    return ss->scale;
 }
 
 

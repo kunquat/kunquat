@@ -30,7 +30,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
@@ -79,7 +79,7 @@ START_TEST (mix)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 2);
     if (ins == NULL)
     {
@@ -93,15 +93,15 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Scale* notes = new_Scale(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
-        fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Scale() returned NULL -- out of memory?\n");
         abort();
     }
     nts[0] = notes;
-    Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
-    Instrument_set_note_table(ins, 0);
+    Scale_set_note(notes, 0, Real_init(REAL_AUTO));
+    Instrument_set_scale(ins, 0);
     Voice* voice = new_Voice(2);
     if (voice == NULL)
     {
@@ -271,7 +271,7 @@ START_TEST (mix)
     del_Event(ev_off);
     del_Event(ev_on);
     del_Voice(voice);
-    del_Note_table(notes);
+    del_Scale(notes);
     del_Instrument(ins);
 }
 END_TEST
@@ -288,7 +288,7 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 2);
     if (ins == NULL)
     {
@@ -302,14 +302,14 @@ START_TEST (mix_break_freq_inv)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Scale* notes = new_Scale(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
-        fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Scale() returned NULL -- out of memory?\n");
         return;
     }
     nts[0] = notes;
-    Instrument_set_note_table(ins, 0);
+    Instrument_set_scale(ins, 0);
     Voice* voice = new_Voice(1);
     if (voice == NULL)
     {

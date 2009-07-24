@@ -31,7 +31,7 @@
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
 #include <File_tree.h>
@@ -47,8 +47,8 @@ typedef struct Song
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    Note_table* notes[KQT_SCALES_MAX];  ///< The Note tables.
-    Note_table** active_notes;          ///< A reference to the currently active Note table.
+    Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
+    Scale** active_scale;               ///< A reference to the currently active Scale.
     Event_queue* events;                ///< Global events.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
@@ -244,55 +244,55 @@ Ins_table* Song_get_insts(Song* song);
 
 
 /**
- * Gets the array of Note tables of the Song.
+ * Gets the array of Scales of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
- * \return   The Note tables.
+ * \return   The Scales.
  */
-Note_table** Song_get_note_tables(Song* song);
+Scale** Song_get_scales(Song* song);
 
 
 /**
- * Gets a Note table of the Song.
+ * Gets a Scale of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
  *
- * \return   The Note table.
+ * \return   The Scale.
  */
-Note_table* Song_get_notes(Song* song, int index);
+Scale* Song_get_scale(Song* song, int index);
 
 
 /**
- * Gets an indirect reference to the active Note table of the Song.
+ * Gets an indirect reference to the active Scale of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
  *
  * \return   The reference.
  */
-Note_table** Song_get_active_notes(Song* song);
+Scale** Song_get_active_scale(Song* song);
 
 
 /**
- * Creates a new Note table for the Song.
+ * Creates a new Scale for the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Song_create_notes(Song* song, int index);
+bool Song_create_scale(Song* song, int index);
 
 
 /**
- * Removes a Note table from the Song.
+ * Removes a Scale from the Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param index   The Note table index -- must be >= 0 and < KQT_SCALES_MAX.
- *                If the Note table doesn't exist, nothing will be done.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ *                If the Scale doesn't exist, nothing will be done.
  */
-void Song_remove_notes(Song* song, int index);
+void Song_remove_scale(Song* song, int index);
 
 
 /**

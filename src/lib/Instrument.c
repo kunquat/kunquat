@@ -39,8 +39,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
-                           Note_table** note_tables,
-                           Note_table** default_notes,
+                           Scale** scales,
+                           Scale** default_scale,
                            uint8_t events)
 {
     assert(bufs != NULL);
@@ -51,10 +51,10 @@ Instrument* new_Instrument(kqt_frame** bufs,
     assert(vbufs[1] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
-    assert(note_tables != NULL);
-    assert(default_notes != NULL);
-    assert(default_notes >= &note_tables[0]);
-    assert(default_notes <= &note_tables[KQT_SCALES_MAX - 1]);
+    assert(scales != NULL);
+    assert(default_scale != NULL);
+    assert(default_scale >= &scales[0]);
+    assert(default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
@@ -64,7 +64,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     if (Instrument_params_init(&ins->params,
                                bufs, vbufs,
                                buf_count, buf_len,
-                               default_notes) == NULL)
+                               default_scale) == NULL)
     {
         xfree(ins);
         return NULL;
@@ -80,9 +80,9 @@ Instrument* new_Instrument(kqt_frame** bufs,
     ins->default_force = 1;
     ins->force_variation = 0;
 
-    ins->note_tables = note_tables;
-    ins->default_notes = default_notes;
-    ins->notes_index = -1;
+    ins->scales = scales;
+    ins->default_scale = default_scale;
+    ins->scale_index = -1;
 
     ins->gen_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -177,7 +177,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                                  "Invalid scale index: %" PRId64, num);
                         return false;
                     }
-                    Instrument_set_note_table(ins, num);
+                    Instrument_set_scale(ins, num);
                 }
                 else
                 {
@@ -297,28 +297,28 @@ void Instrument_del_gen(Instrument* ins, int index)
 }
 
 
-void Instrument_set_note_table(Instrument* ins, int index)
+void Instrument_set_scale(Instrument* ins, int index)
 {
     assert(ins != NULL);
     assert(index >= -1);
     assert(index < KQT_SCALES_MAX);
     if (index == -1)
     {
-        ins->params.notes = ins->default_notes;
+        ins->params.scale = ins->default_scale;
     }
     else
     {
-        ins->params.notes = &ins->note_tables[index];
+        ins->params.scale = &ins->scales[index];
     }
     return;
 }
 
 
 void Instrument_mix(Instrument* ins,
-        Voice_state* states,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+                    Voice_state* states,
+                    uint32_t nframes,
+                    uint32_t offset,
+                    uint32_t freq)
 {
     assert(ins != NULL);
     assert(states != NULL);

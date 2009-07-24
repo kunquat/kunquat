@@ -31,7 +31,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
@@ -115,9 +115,9 @@ START_TEST (new)
     Ins_table* insts = Song_get_insts(song);
     fail_if(insts == NULL,
             "new_Song() created a Song without a Instrument table.");
-    Note_table* notes = Song_get_notes(song, 0);
+    Scale* notes = Song_get_scale(song, 0);
     fail_if(notes == NULL,
-            "new_Song() created a Song without a Note table.");
+            "new_Song() created a Song without a Scale.");
     Event_queue* events = Song_get_events(song);
     fail_if(events == NULL,
             "new_Song() created a Song without Event queue.");
@@ -269,8 +269,8 @@ START_TEST (mix)
         fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
         abort();
     }
-    Note_table* notes = Song_get_notes(song, 0);
-    Note_table_set_ref_pitch(notes, 2);
+    Scale* notes = Song_get_scale(song, 0);
+    Scale_set_ref_pitch(notes, 2);
     kqt_frame** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
@@ -285,7 +285,7 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Instrument_set_note_table(ins, 0);
+    Instrument_set_scale(ins, 0);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))
     {

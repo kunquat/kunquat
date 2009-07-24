@@ -31,7 +31,7 @@
 #include <kunquat/frame.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Envelope.h>
 #include <kunquat/limits.h>
 
@@ -43,9 +43,9 @@ typedef struct Instrument
     double default_force;       ///< Default force.
     double force_variation;     ///< Force variation.
 
-    Note_table** note_tables;   ///< The Note tables of the Song.
-    Note_table** default_notes; ///< The default Note table of the Song.
-    int notes_index;            ///< The index of the Note table used (-1 means the default).
+    Scale** scales;             ///< The Scales of the Song.
+    Scale** default_scale;      ///< The default Scale of the Song.
+    int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
@@ -63,9 +63,9 @@ typedef struct Instrument
  *                        Additionally, vbufs[0] and vbufs[1] must not be \c NULL.
  * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
- * \param note_tables     The Note tables of the Song -- must not be \c NULL.
- * \param default_notes   The default Note table -- must not be \c NULL. Also,
- *                        *default_notes must be an element of \a note_tables.
+ * \param scales          The Scales of the Song -- must not be \c NULL.
+ * \param default_scale   The default Scale -- must not be \c NULL. Also,
+ *                        *default_scales must be an element of \a scales.
  * \param events          The maximum number of events per tick -- must be > \c 0.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
@@ -75,8 +75,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
                            int buf_count,
                            uint32_t buf_len,
-                           Note_table** note_tables,
-                           Note_table** default_notes,
+                           Scale** scales,
+                           Scale** default_scale,
                            uint8_t events);
 
 
@@ -157,13 +157,13 @@ void Instrument_del_gen(Instrument* ins, int index);
 
 
 /**
- * Sets the active Note table of the Instrument.
+ * Sets the active Scale of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Note table -- must be >= \c 0 and
+ * \param index   The index of the Scale -- must be >= \c 0 and
  *                < \c KQT_SCALES_MAX or \c -1 (default).
  */
-void Instrument_set_note_table(Instrument* ins, int index);
+void Instrument_set_scale(Instrument* ins, int index);
 
 
 /**
