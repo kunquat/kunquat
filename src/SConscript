@@ -25,15 +25,15 @@ Export('env')
 
 SConscript('lib/SConscript')
 
+if not env.GetOption('clean') and 'check' in env['LIBS']:
+    env['LIBS'].remove('check')
+
 SConscript('audio/SConscript')
 
 if env['enable_player']:
     SConscript('player/SConscript')
 
 #SConscript('editor/SConscript')
-
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
 
 #print 'src: ' + env.Dump('LIBS')
 

@@ -19,6 +19,9 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import glob
+
+
 Import('env')
 
 env_p = env.Clone()
@@ -28,13 +31,6 @@ env_p.Append(CPPPATH = ['#/src/include', '#/src/audio', '#/src/player'])
 env_p.Append(LIBPATH = ['#/src/lib', '#/src/audio'])
 env_p.Append(LIBS = ['kunquat', 'audio'])
 
-files = [
-    'kunquat-player.c',
-    'keyboard.c',
-    'peak_meter.c',
-    'status_line.c',
-]
-
-env_p.Program('kunquat-player', files)
+env_p.Program('kunquat-player', glob.glob('*.c'))
 
 

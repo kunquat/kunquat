@@ -22,33 +22,9 @@
 import glob
 
 
-Import('env')
-
-Export('env')
-
-if env['enable_tests']:
-    SConscript('test/SConscript')
-
-env_lib = env.Clone()
-
-if not env_lib.GetOption('clean') and 'check' in env['LIBS']:
-    env_lib['LIBS'].remove('check')
-
-#print 'lib: ' + env_lib.Dump('LIBS')
-
-env_lib.Append(CPPPATH = ['#/src/lib',
-                          '#/src/lib/events',
-                          '#/src/lib/generators',
-                          '#/src/include'])
+Import('env_lib')
 
 
-env_lib.sources = glob.glob('*.c')
-
-Export('env_lib')
-
-SConscript('events/SConscript')
-SConscript('generators/SConscript')
-
-env_lib.StaticLibrary('kunquat', env_lib.sources)
+env_lib.sources += map(lambda path: 'generators/' + path, glob.glob('*.c'))
 
 

@@ -40,9 +40,6 @@ files = [
     'main.c',
 ]
 
-#env_gtk.Append(CCFLAGS = ('-DBUILD_TIME=\'"' +
-#        time.strftime('%Y-%m-%d') + '"\'').split(' '))
-
 env_gtk.Program('kunquat', files)
 
 
