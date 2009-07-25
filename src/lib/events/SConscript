@@ -25,6 +25,6 @@ import glob
 Import('env_lib')
 
 
-env_lib.sources += map(lambda path: 'events/' + path, glob.glob('*.c'))
+env_lib.sources += ['events/' + path for path in glob.glob('*.c')]
 
 

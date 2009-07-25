@@ -29,6 +29,7 @@ def valid_optimise(key, val, env):
 
 opts = Variables(['options.py'])
 opts.AddVariables(
+    PathVariable('prefix', 'Installation prefix.', '/usr/local'),
     ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_tests', 'Build and run tests.', True),
@@ -55,7 +56,11 @@ compile_flags = [
     '-Werror',
 ]
 
-env = Environment(options = opts, CCFLAGS = compile_flags)
+env = Environment(options = opts,
+                  CCFLAGS = compile_flags,
+                  HOME = os.environ['HOME'])
+
+env.Alias('install', env['prefix'])
 
 Help(opts.GenerateHelpText(env))
 

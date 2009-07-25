@@ -1,5 +1,8 @@
 
 
+# Installation directory prefix.
+prefix = '$HOME/opt'
+
 # Optimisation level (0..3).
 optimise = 2
 

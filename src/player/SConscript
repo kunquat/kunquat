@@ -31,6 +31,7 @@ env_p.Append(CPPPATH = ['#/src/include', '#/src/audio', '#/src/player'])
 env_p.Append(LIBPATH = ['#/src/lib', '#/src/audio'])
 env_p.Append(LIBS = ['kunquat', 'audio'])
 
-env_p.Program('kunquat-player', glob.glob('*.c'))
+player = env_p.Program('kunquat-player', glob.glob('*.c'))
+env_p.Install(env_p['prefix'] + '/bin', player)
 
 
