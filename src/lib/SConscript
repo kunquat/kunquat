@@ -50,6 +50,8 @@ SConscript('events/SConscript')
 SConscript('generators/SConscript')
 
 libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
+# For some reason, SCons sets the mode to 0755 by default
+env_lib.AddPostAction(libkunquat, Chmod(libkunquat[0].abspath, 0644))
 env_lib.Install(env_lib['prefix'] + '/lib', libkunquat)
 
 
