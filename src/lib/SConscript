@@ -49,6 +49,7 @@ Export('env_lib')
 SConscript('events/SConscript')
 SConscript('generators/SConscript')
 
-env_lib.StaticLibrary('kunquat', env_lib.sources)
+libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
+env_lib.Install(env_lib['prefix'] + '/lib', libkunquat)
 
 

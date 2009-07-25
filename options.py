@@ -1,22 +1,29 @@
 
 
 # Installation directory prefix.
-prefix = '$HOME/opt'
-
-# Optimisation level (0..3).
-optimise = 2
+prefix = '/usr/local'
 
 # Build in debug mode.
 enable_debug = True
 
-# Build and run tests.
-enable_tests = True
+# Enable libkunquat.
+enable_libkunquat = True
+
+# Install development files.
+enable_libkunquat_dev = True
+
+# Build and run libkunquat tests.
+enable_tests = False
 
 # Enable kunquat-player.
 enable_player = True
 
 # Build example Kunquat files.
 enable_examples = True
+
+
+# Optimisation level (0..3).
+optimise = 2
 
 # Build libao support.
 with_ao = True
