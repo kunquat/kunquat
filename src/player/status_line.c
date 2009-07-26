@@ -69,7 +69,6 @@ int get_status_line(char* line,
                     uint64_t* clipped,
                     long long ns_total,
                     uint16_t voices,
-                    uint32_t freq,
                     bool unicode)
 {
     assert(line != NULL);
@@ -78,7 +77,6 @@ int get_status_line(char* line,
     assert(min_len <= max_len);
     assert(mix_state != NULL);
     assert(clipped != NULL);
-    assert(freq > 0);
 
     const int peak_meter_chars = 10;
     char peak_meter[10 * 6] = { '\0' };
