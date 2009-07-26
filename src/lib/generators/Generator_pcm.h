@@ -36,7 +36,7 @@
 #define PCM_SAMPLES_MAX (512)
 
 #define PCM_SOURCES_MAX (16)
-#define PCM_STYLES_MAX (16)
+#define PCM_EXPRESSIONS_MAX (16)
 #define PCM_RANDOMS_MAX (8)
 
 
@@ -62,7 +62,7 @@ typedef struct Generator_pcm
 {
     Generator parent;
     AAiter* iter;
-    AAtree* maps[PCM_SOURCES_MAX * PCM_STYLES_MAX];
+    AAtree* maps[PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX];
     Sample* samples[PCM_SAMPLES_MAX];
 } Generator_pcm;
 
@@ -147,14 +147,14 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index);
  *
  * \param gen            The Generator -- must not be \c NULL and must be a
  *                       PCM Generator.
- * \param source         The (virtual) sound source of the Instrument -- must
+ * \param source         The (virtual) sound source of the Generator -- must
  *                       be < \c PCM_SOURCES_MAX. This is 0 in most cases
  *                       but may be used to distinguish between e.g. different
  *                       strings in a stringed instrument.
- * \param style          The (virtual) style of the Instrument -- must be
- *                       < \c PCM_STYLES_MAX. This is 0 in most cases but
+ * \param expr           The (virtual) expression of the Generator -- must be
+ *                       < \c PCM_EXPRESSIONS_MAX. This is 0 in most cases but
  *                       may be used to distinguish between e.g. different
- *                       playing styles.
+ *                       playing techniques.
  * \param force          The middle force -- must be finite.
  * \param freq           The middle frequency -- must be > \c 0.
  * \param index          The index of the entry -- must be
@@ -171,8 +171,14 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index);
  *           value if memory allocation failed.
  */
 int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
-        uint8_t source, uint8_t style, double force, double freq, uint8_t index,
-        uint16_t sample, double sample_freq, double vol_scale);
+                                        uint8_t source,
+                                        uint8_t expr,
+                                        double force,
+                                        double freq,
+                                        uint8_t index,
+                                        uint16_t sample,
+                                        double sample_freq,
+                                        double vol_scale);
 
 
 /**
@@ -180,14 +186,14 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
  *
  * \param gen      The Generator -- must not be \c NULL and must be a
  *                 PCM Generator.
- * \param source   The (virtual) sound source of the Instrument -- must
+ * \param source   The (virtual) sound source of the Generator -- must
  *                 be < \c PCM_SOURCES_MAX. This is 0 in most cases
  *                 but may be used to distinguish between e.g. different
  *                 strings in a stringed instrument.
- * \param style    The (virtual) style of the Instrument -- must be
- *                 < \c PCM_STYLES_MAX. This is 0 in most cases but
+ * \param expr     The (virtual) expression of the Generator -- must be
+ *                 < \c PCM_EXPRESSIONS_MAX. This is 0 in most cases but
  *                 may be used to distinguish between e.g. different
- *                 playing styles.
+ *                 playing techniques.
  * \param force    The middle force setting -- must be finite.
  * \param freq     The middle frequency -- must be > \c 0.
  * \param index    The index of the entry -- must be < \c PCM_RANDOMS_MAX.
@@ -196,7 +202,7 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
  */
 bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
                                       uint8_t source,
-                                      uint8_t style,
+                                      uint8_t expr,
                                       double force,
                                       double freq,
                                       uint8_t index);

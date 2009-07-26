@@ -34,7 +34,7 @@ typedef struct Voice_state_pcm
     double freq;
     double volume;
     uint8_t source;
-    uint8_t style;
+    uint8_t expr;
     double middle_tone;
 } Voice_state_pcm;
 
