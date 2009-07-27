@@ -36,11 +36,11 @@ opts.AddVariables(
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
     BoolVariable('enable_tests', 'Build and run libkunquat tests.', True),
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
+    BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', True),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_jack', 'Build JACK support.', True),
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
-    BoolVariable('with_sndfile', 'Build libsndfile support.', True),
 )
 
 
@@ -163,13 +163,13 @@ if not env.GetOption('clean'):
             print('Warning: OpenAL support was requested but OpenAL was not found.')
             env['with_openal'] = False
 
-    if env['with_sndfile']:
+    if env['enable_export']:
         if conf.CheckLibWithHeader('sndfile', 'sndfile.h', 'C'):
             env.ParseConfig('pkg-config --cflags --libs sndfile')
             conf.env.Append(CCFLAGS = '-DWITH_SNDFILE')
         else:
-            print('Warning: libsndfile support was requested but libsndfile was not found.')
-            env['with_sndfile'] = False
+            print('Warning: kunquat-export was requested but libsndfile was not found.')
+            env['enable_export'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
         print('Error: Building of unit tests was requested but Check was not found.')

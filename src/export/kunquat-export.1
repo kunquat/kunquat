@@ -1,0 +1,92 @@
+.TH kunquat\-export 1 "2009\-07\-15" "" "Kunquat"
+
+.SH NAME
+kunquat\-export \- converts Kunquat compositions into waveform audio
+
+.SH SYNOPSIS
+.B kunquat\-export
+[
+.B \-h
+|
+.B \-\-version
+]
+.br
+.B kunquat\-export
+[
+.B \-q
+]
+[
+.B \-o
+.I out
+]
+[
+.B \-f
+.I fmt
+]
+[
+.B \-b
+.I b
+]
+[
+.B \-\-float
+]
+[
+.B \-\-frequency
+.I n
+]
+[
+.B \-s
+.I sub
+]
+.I file
+[
+.I file
+.B ...
+]
+
+.SH DESCRIPTION
+.B kunquat\-export
+is a command\-line tool for converting Kunquat compositions into waveform
+audio. It supports both .kqt files (optionally compressed with \fBgzip\fR(1)
+or \fBbzip2\fR(1)) and unpacked Kunquat composition directories (these are
+named kunquatc\fIXX\fR where \fIXX\fR is the version number of the format).
+
+.SH OPTIONS
+
+.IP "\fB\-o\fR \fIout\fR, \fB\-\-output\fR \fIout\fR"
+Writes the output into the file \fIout\fR.
+
+.IP "\fB\-f\fR \fIfmt\fR, \fB\-\-format\fR \fIfmt\fR"
+Writes the output file in the format \fIfmt\fR. Run
+.B kunquat-export \-h
+to see which output formats are supported.
+
+.IP "\fB\-b\fR \fIb\fR, \fB\-\-bits\fR \fIb\fR"
+Uses \fIb\fR bits per output frame. \fIb\fR is 8, 16, 24 or 32 for fixed-point
+frames and 32 or 64 for floating-point frames. Default value is 16 for
+fixed-point frames and 32 for floating-point frames.
+
+.IP "\fB\-\-float\fR"
+Uses floating-point frames. Default is fixed-point.
+
+.IP "\fB\-\-frequency\fR \fIn\fR"
+Mixes \fIn\fR frames per second. As a result, the highest frequency in the
+sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
+
+.IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
+Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
+\fIall\fR which plays all the existing subsongs in order.
+
+.IP "\fB\-h\fR, \fB\-\-help\fR"
+Shows help and exits.
+
+.IP "\fB\-q\fR, \fB\-\-quiet\fR"
+Disables status information. Only error messages will be displayed.
+
+.IP "\fB\-\-version\fR"
+Shows version and copyright information and exits.
+
+.SH AUTHOR
+Written by Tomi Jylhä\-Ollila.
+
+

@@ -18,6 +18,9 @@ enable_tests = False
 # Enable kunquat-player.
 enable_player = True
 
+# Enable kunquat-export (requires libsndfile).
+enable_export = True
+
 # Build example Kunquat files.
 enable_examples = True
 
@@ -33,8 +36,5 @@ with_jack = True
 
 # Build OpenAL support.
 with_openal = True
-
-# Build libsndfile support (used for WAV exporting).
-with_sndfile = False
 
 

@@ -19,28 +19,20 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import glob
+
+
 Import('env')
 
-Export('env')
+env_p = env.Clone()
 
-if env['enable_libkunquat']:
-    SConscript('lib/SConscript')
+env_p.Append(CPPPATH = ['#/src/include', '#/src/export'])
 
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
+env_p.Append(LIBPATH = ['#/src/lib'])
+env_p.Append(LIBS = ['kunquat'])
 
-if env['enable_libkunquat_dev']:
-    SConscript('include/SConscript')
-
-if env['enable_player']:
-    SConscript('audio/SConscript')
-    SConscript('player/SConscript')
-
-if env['enable_export']:
-    SConscript('export/SConscript')
-
-#SConscript('editor/SConscript')
-
-#print 'src: ' + env.Dump('LIBS')
+player = env_p.Program('kunquat-export', glob.glob('*.c'))
+env_p.Install(env_p['prefix'] + '/bin', player)
+env_p.Install(env_p['prefix'] + '/man/man1', 'kunquat-export.1')
 
 
