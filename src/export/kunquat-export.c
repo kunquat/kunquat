@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <errno.h>
+#include <math.h>
 
 #include <getopt.h>
 
@@ -37,6 +38,7 @@
 
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>
+#include <kunquat/Player_ext.h>
 
 
 #define PROGRAM_NAME "kunquat-export"
@@ -397,8 +399,8 @@ int main(int argc, char** argv)
             exit(EXIT_FAILURE);
         }
         long long duration = kqt_Handle_get_duration(handle);
-        uint32_t mixed = 0;
-        uint64_t total = 0;
+        long mixed = 0;
+        long long total = 0;
         while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
         {
             kqt_frame* buf_l = kqt_Handle_get_buffer(handle, 0);
@@ -407,7 +409,7 @@ int main(int argc, char** argv)
             {
                 buf_r = buf_l;
             }
-            for (uint32_t i = 0; i < mixed; ++i)
+            for (long i = 0; i < mixed; ++i)
             {
                 out_buf[i * 2] = (float)buf_l[i];
                 out_buf[(i * 2) + 1] = (float)buf_r[i];
@@ -417,7 +419,14 @@ int main(int argc, char** argv)
             long long pos = kqt_Handle_get_position(handle);
             if (!quiet)
             {
-                fprintf(stderr, "%4.1f %%\r", ((double)pos / duration) * 100);
+                fprintf(stderr, "%4.1f %%", ((double)pos / duration) * 100);
+                long long clipped = kqt_Handle_get_clipped(handle, 0);
+                clipped += kqt_Handle_get_clipped(handle, 1);
+                if (clipped > 0)
+                {
+                    fprintf(stderr, ", clipped: %lld", clipped);
+                }
+                fprintf(stderr, "\r");
             }
         }
         int err = sf_close(out);
@@ -427,7 +436,30 @@ int main(int argc, char** argv)
         }
         else if (!quiet)
         {
-            fprintf(stderr, "Wrote %" PRIu64 " frames into %s\n", total, output);
+            double amps[4] = { 0 };
+            amps[0] = -kqt_Handle_get_min_amplitude(handle, 0);
+            amps[1] = -kqt_Handle_get_min_amplitude(handle, 1);
+            amps[2] = kqt_Handle_get_max_amplitude(handle, 0);
+            amps[3] = kqt_Handle_get_max_amplitude(handle, 1);
+            double max_amp = 0;
+            for (int i = 0; i < 4; ++i)
+            {
+                if (max_amp < amps[i])
+                {
+                    max_amp = amps[i];
+                }
+            }
+            max_amp = log2(max_amp) * 6;
+            fprintf(stderr, "Wrote %lld frames into %s, "
+                            "peak amplitude: %+.2f dBFS",
+                            total, output, max_amp);
+            long long clipped = kqt_Handle_get_clipped(handle, 0);
+            clipped += kqt_Handle_get_clipped(handle, 1);
+            if (clipped > 0)
+            {
+                fprintf(stderr, ", clipped: %lld items", clipped);
+            }
+            fprintf(stderr, "\n");
         }
 
         kqt_del_Handle(handle);

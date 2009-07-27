@@ -247,7 +247,7 @@ double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
 }
 
 
-long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer)
+long long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer)
 {
     check_handle(handle, "kqt_Handle_get_clipped", 0);
     if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)

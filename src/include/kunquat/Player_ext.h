@@ -167,7 +167,7 @@ double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer);
  *
  * \return   The number of clipped frames.
  */
-long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer);
+long long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer);
 
 
 /**
