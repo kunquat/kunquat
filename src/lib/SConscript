@@ -19,6 +19,9 @@
 # along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
 
 
+import glob
+
+
 Import('env')
 
 Export('env')
@@ -26,57 +29,29 @@ Export('env')
 if env['enable_tests']:
     SConscript('test/SConscript')
 
-#print 'lib: ' + env.Dump('LIBS')
+env_lib = env.Clone()
 
-env.Append(CPPPATH = ['#/src/lib', '#/src/include'])
+if not env_lib.GetOption('clean') and 'check' in env['LIBS']:
+    env_lib['LIBS'].remove('check')
 
-files = [
-    'Real.c',
-    'Note_table.c',
-    'Reltime.c',
-    'Event.c',
-    'Event_creator.c',
-    'Event_global.c',
-    'Event_global_set_tempo.c',
-    'Event_voice.c',
-    'Event_voice_note_on.c',
-    'Event_voice_note_off.c',
-    'Event_queue.c',
-    'Voice_state.c',
-    'Envelope.c',
-    'Generator.c',
-    'Generator_debug.c',
-    'Generator_sine.c',
-    'Generator_triangle.c',
-    'Generator_square.c',
-    'Generator_square303.c',
-    'Generator_sawtooth.c',
-    'Generator_pcm.c',
-    'Instrument.c',
-    'Instrument_params.c',
-    'File_base.c',
-    'File_tree.c',
-    'File_wavpack.c',
-    'Sample.c',
-    'Etable.c',
-    'Ins_table.c',
-    'Voice.c',
-    'Voice_pool.c',
-    'AAtree.c',
-    'Column.c',
-    'Channel.c',
-    'Order.c',
-    'Subsong.c',
-    'Pat_table.c',
-    'Pattern.c',
-    'Song.c',
-    'Playdata.c',
-    'Handle.c',
-    'Handle_player.c',
-    'Handle_player_ext.c',
-    'Handle_info.c',
-]
+#print 'lib: ' + env_lib.Dump('LIBS')
 
-env.StaticLibrary('kunquat', files)
+env_lib.Append(CPPPATH = ['#/src/lib',
+                          '#/src/lib/events',
+                          '#/src/lib/generators',
+                          '#/src/include'])
+
+
+env_lib.sources = glob.glob('*.c')
+
+Export('env_lib')
+
+SConscript('events/SConscript')
+SConscript('generators/SConscript')
+
+libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
+# For some reason, SCons sets the mode to 0755 by default
+env_lib.AddPostAction(libkunquat, Chmod(libkunquat[0].abspath, 0644))
+env_lib.Install(env_lib['prefix'] + '/lib', libkunquat)
 
 

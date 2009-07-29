@@ -30,16 +30,20 @@
 #include <File_tree.h>
 
 
-#define ORDER_NONE (-1)
+#define KQT_SECTION_NONE (-1)
 
 
+/**
+ * Subsong specifies some initial playback settings and the order in which
+ * Patterns are played.
+ */
 typedef struct Subsong
 {
     double tempo;      ///< Initial tempo.
     double global_vol; ///< Initial global volume.
-    int notes;         ///< Index of the initial Note table.
-    int res;
-    int16_t* pats;     ///< Pattern numbers.
+    int scale;         ///< Index of the initial Scale.
+    int res;           ///< Size reserved for the section list.
+    int16_t* pats;     ///< Section list that contains the Pattern numbers.
 } Subsong;
 
 
@@ -69,7 +73,7 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
  *
  * \param ss      The Subsong -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
- * \param pat     The pattern number -- must be >= \c 0 or ORDER_NONE.
+ * \param pat     The pattern number -- must be >= \c 0 or KQT_SECTION_NONE.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
@@ -82,7 +86,7 @@ bool Subsong_set(Subsong* ss, int index, int16_t pat);
  * \param ss      The Subsong -- must not be \c NULL.
  * \param index   The index -- must be >= \c 0 and < \c KQT_SECTIONS_MAX.
  *
- * \return   The pattern number if one exists, otherwise ORDER_NONE.
+ * \return   The pattern number if one exists, otherwise KQT_SECTION_NONE.
  */
 int16_t Subsong_get(Subsong* ss, int index);
 
@@ -136,23 +140,23 @@ double Subsong_get_global_vol(Subsong* ss);
 
 
 /**
- * Sets the initial default Note table of the Subsong.
+ * Sets the initial default Scale of the Subsong.
  *
  * \param ss      The Subsong -- must not be \c NULL.
- * \param index   The Note table index -- must be >= \c 0 and
+ * \param index   The Scale index -- must be >= \c 0 and
  *                < \c KQT_SCALES_MAX.
  */
-void Subsong_set_notes(Subsong* ss, int index);
+void Subsong_set_scale(Subsong* ss, int index);
 
 
 /**
- * Gets the initial default Note table of the Subsong.
+ * Gets the initial default Scale of the Subsong.
  *
  * \param ss   The Subsong -- must not be \c NULL.
  *
- * \return   The Note table index.
+ * \return   The Scale index.
  */
-int Subsong_get_notes(Subsong* ss);
+int Subsong_get_scale(Subsong* ss);
 
 
 /**

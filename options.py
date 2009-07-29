@@ -1,19 +1,32 @@
 
 
-# Optimisation level (0..3).
-optimise = 2
+# Installation directory prefix.
+prefix = '/usr/local'
 
 # Build in debug mode.
 enable_debug = True
 
-# Build and run tests.
+# Enable libkunquat.
+enable_libkunquat = True
+
+# Install development files.
+enable_libkunquat_dev = True
+
+# Build and run libkunquat tests.
 enable_tests = False
 
 # Enable kunquat-player.
 enable_player = True
 
+# Enable kunquat-export (requires libsndfile).
+enable_export = True
+
 # Build example Kunquat files.
 enable_examples = True
+
+
+# Optimisation level (0..3).
+optimise = 2
 
 # Build libao support.
 with_ao = True
@@ -23,8 +36,5 @@ with_jack = True
 
 # Build OpenAL support.
 with_openal = True
-
-# Build libsndfile support (used for WAV exporting).
-with_sndfile = False
 
 

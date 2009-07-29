@@ -47,7 +47,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
         kqt_frame** vbufs,
         int buf_count,
         uint32_t buf_len,
-        Note_table** notes)
+        Scale** scale)
 {
     assert(ip != NULL);
     assert(bufs != NULL);
@@ -58,7 +58,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     assert(vbufs[1] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
-    assert(notes != NULL);
+    assert(scale != NULL);
     ip->bufs = ip->gbufs = bufs;
     ip->buf_count = buf_count;
     ip->buf_len = buf_len;
@@ -72,7 +72,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->pitch_pan_env = NULL;
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
-    ip->notes = notes;
+    ip->scale = scale;
 
     ip->pedal = 0;
     ip->volume = 1;

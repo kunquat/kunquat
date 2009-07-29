@@ -47,7 +47,7 @@ START_TEST (new)
         abort();
     }
     del_Column(col);
-    col = new_Column(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    col = new_Column(Reltime_init(RELTIME_AUTO));
     if (col == NULL)
     {
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
@@ -61,7 +61,7 @@ START_TEST (new)
     }
     fail_unless(Column_iter_get_next(citer) == NULL,
             "new_Column() created a non-empty Column.");
-    fail_unless(Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO)) == NULL,
+    fail_unless(Column_iter_get(citer, Reltime_init(RELTIME_AUTO)) == NULL,
             "new_Column() created a non-empty Column.");
     del_Column_iter(citer);
     del_Column(col);
@@ -85,7 +85,7 @@ START_TEST (ins)
     }
     for (int64_t i = 4; i >= 0; --i)
     {
-        Event* event = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, i, 0));
+        Event* event = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (event == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -96,7 +96,7 @@ START_TEST (ins)
             fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
             abort();
         }
-        Event* ret = Column_iter_get(citer, kqt_Reltime_set(KQT_RELTIME_AUTO, i, 0));
+        Event* ret = Column_iter_get(citer, Reltime_set(RELTIME_AUTO, i, 0));
         fail_if(ret == NULL,
                 "Couldn't find the Event inserted at beat %lld.", (long long)i);
         int64_t beat = Event_get_pos(ret)->beats;
@@ -114,7 +114,7 @@ START_TEST (ins)
                     (long long)beat, (long long)k);
         }
     }
-    Event* event = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, 2, 0));
+    Event* event = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 2, 0));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -125,7 +125,7 @@ START_TEST (ins)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    Event* ret = Column_iter_get(citer, kqt_Reltime_set(KQT_RELTIME_AUTO, 2, 0));
+    Event* ret = Column_iter_get(citer, Reltime_set(RELTIME_AUTO, 2, 0));
     fail_if(ret == NULL,
             "Couldn't find the Event inserted at beat 2.");
     fail_if(ret == event,
@@ -149,7 +149,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (ins_break_col_null)
 {
-    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -190,7 +190,7 @@ START_TEST (col_remove)
         fprintf(stderr, "new_Column_iter() returned NULL -- out of memory?\n");
         abort();
     }
-    events[0] = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, 0, 0));
+    events[0] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 0, 0));
     if (events[0] == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -203,11 +203,11 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[0]),
             "Failed to remove a single Event.");
-    fail_unless(Column_iter_get(citer, kqt_Reltime_set(KQT_RELTIME_AUTO, 0, 0)) == NULL,
+    fail_unless(Column_iter_get(citer, Reltime_set(RELTIME_AUTO, 0, 0)) == NULL,
             "Column_get() returned an Event from an empty Column.");
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, i, 0));
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -218,7 +218,7 @@ START_TEST (col_remove)
             fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
             abort();
         }
-        Event* ret = Column_iter_get(citer, kqt_Reltime_set(KQT_RELTIME_AUTO, i, 0));
+        Event* ret = Column_iter_get(citer, Reltime_set(RELTIME_AUTO, i, 0));
         fail_if(ret == NULL,
                 "Couldn't find the Event inserted at beat %lld.", (long long)i);
         fail_unless(ret == events[i],
@@ -227,7 +227,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[0]),
             "Failed to remove Event 0.");
-    Event* ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[1],
             "Column_get() returned Event %p instead of %p.", ret, events[1]);
     for (int64_t i = 2; i < 7; ++i)
@@ -239,7 +239,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[3]),
             "Failed to remove Event 3.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[1],
             "Column_get() returned Event %p instead of %p.", ret, events[1]);
     for (int64_t i = 2; i < 7; ++i)
@@ -255,7 +255,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[1]),
             "Failed to remove Event 1.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[2],
             "Column_get() returned Event %p instead of %p.", ret, events[2]);
     for (int64_t i = 4; i < 7; ++i)
@@ -267,7 +267,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[2]),
             "Failed to remove Event 2.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[4],
             "Column_get() returned Event %p instead of %p.", ret, events[4]);
     for (int64_t i = 5; i < 7; ++i)
@@ -282,13 +282,13 @@ START_TEST (col_remove)
         fail_unless(Column_remove(col, events[i]),
                 "Failed to remove Event %d.", i);
     }
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == NULL,
             "Column_get() returned an Event from a supposedly empty Column.");
     
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, 1, 0));
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, 1, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -299,7 +299,7 @@ START_TEST (col_remove)
             fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
             abort();
         }
-        Event* ret = Column_iter_get(citer, kqt_Reltime_set(KQT_RELTIME_AUTO, 1, 0));
+        Event* ret = Column_iter_get(citer, Reltime_set(RELTIME_AUTO, 1, 0));
         fail_if(ret == NULL,
                 "Couldn't find the Event inserted at beat %lld.", (long long)i);
         fail_unless(ret == events[0],
@@ -308,7 +308,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[1]),
             "Failed to remove Event 1.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[0],
             "Column_get() returned Event %p instead of %p.", ret, events[0]);
     for (int64_t i = 2; i < 7; ++i)
@@ -320,7 +320,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[5]),
             "Failed to remove Event 5.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[0],
             "Column_get() returned Event %p instead of %p.", ret, events[0]);
     for (int64_t i = 2; i < 7; ++i)
@@ -338,7 +338,7 @@ START_TEST (col_remove)
             "Failed to remove Event 0.");
     fail_unless(Column_remove(col, events[6]),
             "Failed to remove Event 6.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[2],
             "Column_get() returned Event %p instead of %p.", ret, events[2]);
     for (int64_t i = 3; i < 5; ++i)
@@ -350,7 +350,7 @@ START_TEST (col_remove)
     }
     fail_unless(Column_remove(col, events[3]),
             "Failed to remove Event 3.");
-    ret = Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    ret = Column_iter_get(citer, Reltime_init(RELTIME_AUTO));
     fail_unless(ret == events[2],
             "Column_get() returned Event %p instead of %p.", ret, events[2]);
     ret = Column_iter_get_next(citer);
@@ -364,7 +364,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (remove_break_col_null)
 {
-    Event* event = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* event = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (event == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -407,7 +407,7 @@ START_TEST (clear)
     Event* events[7] = { NULL };
     for (int64_t i = 0; i < 7; ++i)
     {
-        events[i] = new_Event_voice_note_on(kqt_Reltime_set(KQT_RELTIME_AUTO, i, 0));
+        events[i] = new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, i, 0));
         if (events[i] == NULL)
         {
             fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -418,13 +418,13 @@ START_TEST (clear)
             fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
             abort();
         }
-        fail_if(Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO)) == NULL,
+        fail_if(Column_iter_get(citer, Reltime_init(RELTIME_AUTO)) == NULL,
                 "Column_get() returned NULL unexpectedly.");
     }
     Column_clear(col);
     fail_unless(Column_iter_get_next(citer) == NULL,
             "Column_get_next() returned an Event after Column_clear().");
-    fail_unless(Column_iter_get(citer, kqt_Reltime_init(KQT_RELTIME_AUTO)) == NULL,
+    fail_unless(Column_iter_get(citer, Reltime_init(RELTIME_AUTO)) == NULL,
             "Column_get() returned an Event after Column_clear().");
     del_Column_iter(citer);
     del_Column(col);
@@ -448,12 +448,12 @@ START_TEST (length)
         fprintf(stderr, "new_Column() returned NULL -- out of memory?\n");
         abort();
     }
-    kqt_Reltime* len = kqt_Reltime_set(KQT_RELTIME_AUTO, 1, 2);
+    Reltime* len = Reltime_set(RELTIME_AUTO, 1, 2);
     Column_set_length(col, len);
-    kqt_Reltime* ret = Column_length(col);
+    Reltime* ret = Column_length(col);
     fail_if(ret == len,
-            "Column_set_length() stored the passed kqt_Reltime instead of copying.");
-    fail_unless(kqt_Reltime_cmp(ret, len) == 0,
+            "Column_set_length() stored the passed Reltime instead of copying.");
+    fail_unless(Reltime_cmp(ret, len) == 0,
             "Column_length() returned a wrong time.");
     del_Column(col);
 }
@@ -462,7 +462,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (set_length_break_col_null)
 {
-    Column_set_length(NULL, kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Column_set_length(NULL, Reltime_init(RELTIME_AUTO));
 }
 END_TEST
 

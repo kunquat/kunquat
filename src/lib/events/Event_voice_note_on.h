@@ -20,24 +20,29 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_SET_TEMPO_H
-#define K_EVENT_GLOBAL_SET_TEMPO_H
+#ifndef K_EVENT_VOICE_NOTE_ON_H
+#define K_EVENT_VOICE_NOTE_ON_H
 
 
-#include <Event_global.h>
+#include <stdint.h>
+
+#include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_global_set_tempo
+typedef struct Event_voice_note_on
 {
-    Event_global parent;
-    double tempo;
-} Event_global_set_tempo;
+    Event_voice parent;
+    int64_t note;
+    int64_t mod;
+    int64_t octave;
+    int64_t instrument;
+} Event_voice_note_on;
 
 
-Event* new_Event_global_set_tempo(kqt_Reltime* pos);
+Event* new_Event_voice_note_on(Reltime* pos);
 
 
-#endif // K_EVENT_GLOBAL_SET_TEMPO_H
+#endif // K_EVENT_VOICE_NOTE_ON_H
 
 

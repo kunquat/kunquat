@@ -27,7 +27,7 @@
 #include <Event_voice_note_on.h>
 #include <Reltime.h>
 #include <Voice.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -69,7 +69,7 @@ static void del_Event_voice_note_on(Event* event);
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_note_on(kqt_Reltime* pos)
+Event* new_Event_voice_note_on(Reltime* pos)
 {
     assert(pos != NULL);
     Event_voice_note_on* event = xalloc(Event_voice_note_on);
@@ -77,7 +77,7 @@ Event* new_Event_voice_note_on(kqt_Reltime* pos)
     {
         return NULL;
     }
-    kqt_Reltime_copy(&event->parent.parent.pos, pos);
+    Reltime_copy(&event->parent.parent.pos, pos);
     event->parent.parent.type = EVENT_TYPE_NOTE_ON;
     event->parent.parent.field_types = note_on_desc;
     event->parent.parent.set = Event_voice_note_on_set;

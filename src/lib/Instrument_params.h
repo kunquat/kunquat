@@ -29,7 +29,7 @@
 
 #include <kunquat/frame.h>
 #include <Envelope.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <File_base.h>
 #include <File_tree.h>
 
@@ -43,7 +43,7 @@ typedef struct Instrument_params
     int buf_count;    ///< Number of mixing buffers.
     uint32_t buf_len; ///< Mixing buffer length.
     
-    Note_table** notes; ///< An indirect reference to the current Note table used.
+    Scale** scale;    ///< An indirect reference to the current Scale used.
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
@@ -99,7 +99,7 @@ typedef struct Instrument_params
  *                    contain at least two buffers.
  * \param buf_count   The number of buffers -- must be > \c 0.
  * \param buf_len     The length of the buffers -- must be > \c 0.
- * \param notes       An indirect reference to the Note table -- must not be
+ * \param scale       An indirect reference to the Scale -- must not be
  *                    \c NULL.
  *
  * \return   The parameter \a ip if successful, or \c NULL if memory
@@ -110,7 +110,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
         kqt_frame** vbufs,
         int buf_count,
         uint32_t buf_len,
-        Note_table** notes);
+        Scale** scale);
 
 
 /**

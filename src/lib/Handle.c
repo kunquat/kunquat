@@ -113,7 +113,7 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
         return NULL;
     }
-    handle->play->order = Song_get_order(handle->song);
+    handle->play->subsongs = Song_get_subsongs(handle->song);
     handle->play->events = Song_get_events(handle->song);
 
     handle->play_silent = new_Playdata_silent(44100);
@@ -123,7 +123,7 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
         return NULL;
     }
-    handle->play_silent->order = Song_get_order(handle->song);
+    handle->play_silent->subsongs = Song_get_subsongs(handle->song);
     handle->play_silent->events = Song_get_events(handle->song);
     
     kqt_Handle_stop(handle);

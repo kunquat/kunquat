@@ -46,7 +46,7 @@ static void del_Event_voice_note_off(Event* event);
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_note_off(kqt_Reltime* pos)
+Event* new_Event_voice_note_off(Reltime* pos)
 {
     assert(pos != NULL);
     Event_voice_note_off* event = xalloc(Event_voice_note_off);
@@ -59,7 +59,7 @@ Event* new_Event_voice_note_off(kqt_Reltime* pos)
     event->parent.parent.set = Event_voice_note_off_set;
     event->parent.parent.get = Event_voice_note_off_get;
     event->parent.parent.destroy = del_Event_voice_note_off;
-    kqt_Reltime_copy(&event->parent.parent.pos, pos);
+    Reltime_copy(&event->parent.parent.pos, pos);
     event->parent.process = Event_voice_note_off_process;
     return (Event*)event;
 }

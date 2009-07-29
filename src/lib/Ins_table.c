@@ -63,8 +63,8 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     kqt_frame** voice_bufs,
                     int buf_count,
                     uint32_t buf_len,
-                    Note_table** note_tables,
-                    Note_table** default_notes,
+                    Scale** scales,
+                    Scale** default_scale,
                     uint8_t events)
 {
     assert(table != NULL);
@@ -74,7 +74,10 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
     assert(voice_bufs != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
-    assert(note_tables != NULL);
+    assert(scales != NULL);
+    assert(default_scale != NULL);
+    assert(default_scale >= &scales[0]);
+    assert(default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     if (state->error)
     {
@@ -107,8 +110,8 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                                                  voice_bufs,
                                                  buf_count,
                                                  buf_len,
-                                                 note_tables,
-                                                 default_notes,
+                                                 scales,
+                                                 default_scale,
                                                  events);
                 if (ins == NULL)
                 {

@@ -98,9 +98,9 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 long long kqt_Handle_get_duration(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_duration", 0);
-    kqt_Reltime_init(&handle->play_silent->play_time);
+    Reltime_init(&handle->play_silent->play_time);
     handle->play_silent->play_frames = 0;
-    kqt_Reltime_init(&handle->play_silent->pos);
+    Reltime_init(&handle->play_silent->pos);
     handle->play_silent->freq = 1000000000;
     return Song_skip(handle->song, handle->play_silent, UINT64_MAX);
 }
@@ -143,10 +143,10 @@ void kqt_Handle_stop(kqt_Handle* handle)
     {
         Channel_reset(handle->play->channels[i]);
     }
-    kqt_Reltime_init(&handle->play->play_time);
+    Reltime_init(&handle->play->play_time);
     handle->play->play_frames = 0;
     handle->play->subsong = Song_get_subsong(handle->song);
-    Subsong* ss = Order_get_subsong(handle->play->order, handle->play->subsong);
+    Subsong* ss = Subsong_table_get(handle->play->subsongs, handle->play->subsong);
     if (ss == NULL)
     {
         handle->play->tempo = 120;
@@ -155,9 +155,9 @@ void kqt_Handle_stop(kqt_Handle* handle)
     {
         handle->play->tempo = Subsong_get_tempo(ss);
     }
-    handle->play->order_index = 0;
+    handle->play->section = 0;
     handle->play->pattern = 0;
-    kqt_Reltime_init(&handle->play->pos);
+    Reltime_init(&handle->play->pos);
     return;
 }
 

@@ -91,9 +91,9 @@ typedef struct Event_field_desc
         } Real_type;
         struct
         {
-            kqt_Reltime min;
-            kqt_Reltime max;
-        } kqt_Reltime_type;
+            Reltime min;
+            Reltime max;
+        } Reltime_type;
     } range;
 } Event_field_desc;
 
@@ -143,11 +143,11 @@ typedef struct Event_field_desc
 #define Event_check_reltime_range(num, field_desc)                        \
     do                                                                    \
     {                                                                     \
-        if (kqt_Reltime_cmp((num), &(field_desc).range.kqt_Reltime_type.min) < 0) \
+        if (Reltime_cmp((num), &(field_desc).range.Reltime_type.min) < 0) \
         {                                                                 \
             return false;                                                 \
         }                                                                 \
-        if (kqt_Reltime_cmp((num), &(field_desc).range.kqt_Reltime_type.max) > 0) \
+        if (Reltime_cmp((num), &(field_desc).range.Reltime_type.max) > 0) \
         {                                                                 \
             return false;                                                 \
         }                                                                 \

@@ -372,7 +372,6 @@ int main(int argc, char** argv)
 
         Audio_set_handle(audio, handle);
 
-        uint32_t freq = Audio_get_freq(audio);
         uint64_t length_ns = kqt_Handle_get_duration(handle);
         uint64_t clipped[2] = { 0 };
 
@@ -406,7 +405,6 @@ int main(int argc, char** argv)
                                                          clipped,
                                                          length_ns,
                                                          max_voices,
-                                                         freq,
                                                          unicode);
 
                 fprintf(stderr, "\r%s\r", status_line);

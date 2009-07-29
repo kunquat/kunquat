@@ -30,7 +30,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_global_set_tempo.h>
@@ -80,9 +80,9 @@ Playdata* init_play(void)
     }
     play->mode = STOP;
     play->freq = 0;
-    kqt_Reltime_init(&play->play_time);
+    Reltime_init(&play->play_time);
     play->tempo = 0;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     return play;
 }
 
@@ -125,7 +125,7 @@ START_TEST (mix)
     kqt_frame buf_l[256] = { 0 };
     kqt_frame buf_r[256] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Note_table* nts[KQT_SCALES_MAX] = { NULL };
+    Scale* nts[KQT_SCALES_MAX] = { NULL };
     Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
@@ -139,51 +139,51 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Note_table* notes = new_Note_table(2, Real_init_as_frac(REAL_AUTO, 2, 1));
+    Scale* notes = new_Scale(2, Real_init_as_frac(REAL_AUTO, 2, 1));
     if (notes == NULL)
     {
-        fprintf(stderr, "new_Note_table() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Scale() returned NULL -- out of memory?\n");
         abort();
     }
     nts[0] = notes;
-    Note_table_set_note(notes, 0, Real_init(REAL_AUTO));
-    Instrument_set_note_table(ins, 0);
+    Scale_set_note(notes, 0, Real_init(REAL_AUTO));
+    Instrument_set_scale(ins, 0);
     if (!Ins_table_set(play->channels[0]->insts, 1, ins))
     {
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev3_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev3_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev3_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* evg_tempo = new_Event_global_set_tempo(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* evg_tempo = new_Event_global_set_tempo(Reltime_init(RELTIME_AUTO));
     
     // Testing scenario 1:
     //
@@ -196,7 +196,7 @@ START_TEST (mix)
     play->mode = PLAY_PATTERN;
     play->freq = 8;
     play->tempo = 60;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
     int64_t octave = KQT_SCALE_MIDDLE_OCTAVE;
@@ -243,7 +243,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     for (int i = 0; i < 256; ++i)
     {
         if (Pattern_mix(pat, i + 1, i, play) < 1)
@@ -293,10 +293,10 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     double tempo = 120;
     Event_set_field(evg_tempo, 0, &tempo);
-    Event_set_pos(evg_tempo, kqt_Reltime_set(KQT_RELTIME_AUTO, 2, 0));
+    Event_set_pos(evg_tempo, Reltime_set(RELTIME_AUTO, 2, 0));
     col = Pattern_get_global(pat);
     if (!Column_ins(col, evg_tempo))
     {
@@ -335,7 +335,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     fail_unless(play->tempo - 120 < 0.01,
             "Pattern_mix() didn't adjust the tempo.");
     play->tempo = 60;
@@ -391,7 +391,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     play->tempo = 60;
     note = 0;
     mod = -1;
@@ -406,7 +406,7 @@ START_TEST (mix)
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
     Event_set_field(ev2_on, 3, &instrument);
-    Event_set_pos(ev2_on, kqt_Reltime_set(KQT_RELTIME_AUTO, 0, KQT_RELTIME_BEAT / 4));
+    Event_set_pos(ev2_on, Reltime_set(RELTIME_AUTO, 0, KQT_RELTIME_BEAT / 4));
     col = Pattern_get_col(pat, 0);
     if (!Column_ins(col, ev2_on))
     {
@@ -467,7 +467,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     play->tempo = 60;
     for (int i = 0; i < 256; ++i)
     {
@@ -546,7 +546,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     play->tempo = 60;
     note = 0;
     mod = -1;
@@ -556,7 +556,7 @@ START_TEST (mix)
     Event_set_field(ev3_on, 1, &mod);
     Event_set_field(ev3_on, 2, &octave);
     Event_set_field(ev3_on, 3, &instrument);
-    Event_set_pos(ev3_on, kqt_Reltime_set(KQT_RELTIME_AUTO, 3, 0));
+    Event_set_pos(ev3_on, Reltime_set(RELTIME_AUTO, 3, 0));
     col = Pattern_get_col(pat, 1);
     if (!Column_ins(col, ev3_on))
     {
@@ -643,7 +643,7 @@ START_TEST (mix)
     }
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     play->tempo = 60;
     for (int i = 0; i < 256; ++i)
     {
@@ -723,7 +723,7 @@ START_TEST (mix)
                 "Buffer contains %f at index %d (expected 0).", bufs[0][i], i);
     }
 
-    del_Note_table(notes);
+    del_Scale(notes);
     del_Instrument(ins);
     del_Pattern(pat);
 }

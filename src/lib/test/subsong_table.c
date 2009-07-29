@@ -28,48 +28,48 @@
 
 #include <check.h>
 
-#include <Order.h>
+#include <Subsong_table.h>
 
 
-Suite* Order_suite(void);
+Suite* Subsong_table_suite(void);
 
 
 START_TEST (new)
 {
-    Order* order = new_Order();
-    if (order == NULL)
+    Subsong_table* table = new_Subsong_table();
+    if (table == NULL)
     {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong_table() returned NULL -- out of memory?\n");
         abort();
     }
     for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
     {
         for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = ORDER_NONE;
-            Subsong* ss = Order_get_subsong(order, i);
+            int16_t ret = KQT_SECTION_NONE;
+            Subsong* ss = Subsong_table_get(table, i);
             if (ss != NULL)
             {
                 ret = Subsong_get(ss, k);
             }
-            fail_unless(ret == ORDER_NONE,
-                    "Newly created Order contained %hd at subsong %hu, index %hu.",
+            fail_unless(ret == KQT_SECTION_NONE,
+                    "Newly created Subsong table contained %hd at subsong %hu, index %hu.",
                     (short int)ret,
                     (unsigned short int)i,
                     (unsigned short int)k);
         }
     }
-    del_Order(order);
+    del_Subsong_table(table);
 }
 END_TEST
 
 
 START_TEST (set_get)
 {
-    Order* order = new_Order();
-    if (order == NULL)
+    Subsong_table* table = new_Subsong_table();
+    if (table == NULL)
     {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong_table() returned NULL -- out of memory?\n");
         abort();
     }
     Subsong* ss = new_Subsong();
@@ -84,14 +84,14 @@ START_TEST (set_get)
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (Order_set_subsong(order, 0, ss) < 0)
+    if (Subsong_table_set(table, 0, ss) < 0)
     {
-        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
         abort();
     }
-    if (Order_set_subsong(order, KQT_SUBSONGS_MAX - 1, ss_end) < 0)
+    if (Subsong_table_set(table, KQT_SUBSONGS_MAX - 1, ss_end) < 0)
     {
-        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
         abort();
     }
     if (!Subsong_set(ss, 0, 0))
@@ -128,8 +128,8 @@ START_TEST (set_get)
     {
         for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = ORDER_NONE;
-            Subsong* subsong = Order_get_subsong(order, i);
+            int16_t ret = KQT_SECTION_NONE;
+            Subsong* subsong = Subsong_table_get(table, i);
             if (subsong != NULL)
             {
                 ret = Subsong_get(subsong, k);
@@ -142,14 +142,14 @@ START_TEST (set_get)
                     || (i == 1 && k == KQT_SECTIONS_MAX - 1))
             {
                 fail_unless(ret == i + k,
-                        "Order contained %hd instead of %d at subsong %d, index %d.",
+                        "Subsong table contained %hd instead of %d at subsong %d, index %d.",
                         (short int)ret, i + k, i, k);
             }
             else
             {
-                fail_unless(ret == ORDER_NONE,
-                        "Order contained %hd instead of %d at subsong %d, index %d.",
-                        (short int)ret, ORDER_NONE, i, k);
+                fail_unless(ret == KQT_SECTION_NONE,
+                        "Subsong table contained %hd instead of %d at subsong %d, index %d.",
+                        (short int)ret, KQT_SECTION_NONE, i, k);
             }
         }
     }
@@ -161,9 +161,9 @@ START_TEST (set_get)
             fprintf(stderr, "new_Subsong() returned false -- out of memory?\n");
             abort();
         }
-        if (Order_set_subsong(order, i, subsong) < 0)
+        if (Subsong_table_set(table, i, subsong) < 0)
         {
-            fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+            fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
             abort();
         }
         for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
@@ -179,23 +179,23 @@ START_TEST (set_get)
     {
         for (int k = 0; k < KQT_SECTIONS_MAX; ++k)
         {
-            int16_t ret = ORDER_NONE;
-            Subsong* subsong = Order_get_subsong(order, i);
+            int16_t ret = KQT_SECTION_NONE;
+            Subsong* subsong = Subsong_table_get(table, i);
             if (subsong != NULL)
             {
                 ret = Subsong_get(subsong, k);
             }
             fail_unless(ret == i + k,
-                    "Order contained %hd instead of %d at subsong %d, index %d.",
+                    "Subsong table contained %hd instead of %d at subsong %d, index %d.",
                     (short int)ret, i + k, i, k);
         }
     }
-    del_Order(order);
+    del_Subsong_table(table);
 }
 END_TEST
 
 #ifndef NDEBUG
-START_TEST (set_break_order_null)
+START_TEST (set_break_table_null)
 {
     Subsong* ss = new_Subsong();
     if (ss == NULL)
@@ -203,7 +203,7 @@ START_TEST (set_break_order_null)
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    Order_set_subsong(NULL, 0, ss);
+    Subsong_table_set(NULL, 0, ss);
     del_Subsong(ss);
 }
 END_TEST
@@ -216,55 +216,55 @@ START_TEST (set_break_index_inv)
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    Order* order = new_Order();
-    if (order == NULL)
+    Subsong_table* table = new_Subsong_table();
+    if (table == NULL)
     {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong_table() returned NULL -- out of memory?\n");
         return;
     }
-    Order_set_subsong(order, KQT_SUBSONGS_MAX, ss);
-    del_Order(order);
+    Subsong_table_set(table, KQT_SUBSONGS_MAX, ss);
+    del_Subsong_table(table);
     del_Subsong(ss);
 }
 END_TEST
 
 START_TEST (set_break_subsong_inv)
 {
-    Order* order = new_Order();
-    if (order == NULL)
+    Subsong_table* table = new_Subsong_table();
+    if (table == NULL)
     {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong_table() returned NULL -- out of memory?\n");
         return;
     }
-    Order_set_subsong(order, 0, NULL);
-    del_Order(order);
+    Subsong_table_set(table, 0, NULL);
+    del_Subsong_table(table);
 }
 END_TEST
 
-START_TEST (get_break_order_null)
+START_TEST (get_break_table_null)
 {
-    Order_get_subsong(NULL, 0);
+    Subsong_table_get(NULL, 0);
 }
 END_TEST
 
 START_TEST (get_break_index_inv)
 {
-    Order* order = new_Order();
-    if (order == NULL)
+    Subsong_table* table = new_Subsong_table();
+    if (table == NULL)
     {
-        fprintf(stderr, "new_Order() returned NULL -- out of memory?\n");
+        fprintf(stderr, "new_Subsong_table() returned NULL -- out of memory?\n");
         return;
     }
-    Order_get_subsong(order, KQT_SUBSONGS_MAX);
-    del_Order(order);
+    Subsong_table_get(table, KQT_SUBSONGS_MAX);
+    del_Subsong_table(table);
 }
 END_TEST
 #endif
 
 
-Suite* Order_suite(void)
+Suite* Subsong_table_suite(void)
 {
-    Suite* s = suite_create("Order");
+    Suite* s = suite_create("Subsong_table");
     TCase* tc_new = tcase_create("new");
     TCase* tc_set_get = tcase_create("set_get");
     suite_add_tcase(s, tc_new);
@@ -278,11 +278,11 @@ Suite* Order_suite(void)
     tcase_add_test(tc_set_get, set_get);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_set_get, set_break_order_null, SIGABRT);
+    tcase_add_test_raise_signal(tc_set_get, set_break_table_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get, set_break_index_inv, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get, set_break_subsong_inv, SIGABRT);
 
-    tcase_add_test_raise_signal(tc_set_get, get_break_order_null, SIGABRT);
+    tcase_add_test_raise_signal(tc_set_get, get_break_table_null, SIGABRT);
     tcase_add_test_raise_signal(tc_set_get, get_break_index_inv, SIGABRT);
 #endif
 
@@ -293,7 +293,7 @@ Suite* Order_suite(void)
 int main(void)
 {
     int fail_count = 0;
-    Suite* s = Order_suite();
+    Suite* s = Subsong_table_suite();
     SRunner* sr = srunner_create(s);
     srunner_run_all(sr, CK_NORMAL);
     fail_count = srunner_ntests_failed(sr);

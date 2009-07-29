@@ -31,7 +31,7 @@
 #include <check.h>
 
 #include <Real.h>
-#include <Note_table.h>
+#include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
@@ -74,12 +74,12 @@ Playdata* init_play(Song* song)
     }
     play->mode = STOP;
     play->freq = 0;
-    kqt_Reltime_init(&play->play_time);
+    Reltime_init(&play->play_time);
     play->tempo = 0;
-    kqt_Reltime_init(&play->pos);
-    play->order = song->order;
+    Reltime_init(&play->pos);
+    play->subsongs = song->subsongs;
     play->subsong = 0;
-    play->order_index = 0;
+    play->section = 0;
     play->pattern = -1;
     return play;
 }
@@ -106,18 +106,18 @@ START_TEST (new)
             "new_Song() created a Song without buffers.");
     fail_if(bufs[1] == NULL,
             "new_Song() created a Song without a second buffer.");
-    Order* order = Song_get_order(song);
-    fail_if(order == NULL,
-            "new_Song() created a Song without Order list.");
+    Subsong_table* subsongs = Song_get_subsongs(song);
+    fail_if(subsongs == NULL,
+            "new_Song() created a Song without a Subsong table.");
     Pat_table* pats = Song_get_pats(song);
     fail_if(pats == NULL,
-            "new_Song() created a Song without Pattern table.");
+            "new_Song() created a Song without a Pattern table.");
     Ins_table* insts = Song_get_insts(song);
     fail_if(insts == NULL,
-            "new_Song() created a Song without Instrument table.");
-    Note_table* notes = Song_get_notes(song, 0);
+            "new_Song() created a Song without a Instrument table.");
+    Scale* notes = Song_get_scale(song, 0);
     fail_if(notes == NULL,
-            "new_Song() created a Song without Note table.");
+            "new_Song() created a Song without a Scale.");
     Event_queue* events = Song_get_events(song);
     fail_if(events == NULL,
             "new_Song() created a Song without Event queue.");
@@ -239,24 +239,24 @@ START_TEST (mix)
     Pat_table* pats = Song_get_pats(song);
     if (!Pat_table_set(pats, 0, pat1))
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "Pat_table_set() returned NULL -- out of memory?\n");
         abort();
     }
     if (!Pat_table_set(pats, 1, pat2))
     {
-        fprintf(stderr, "Order_set() returned NULL -- out of memory?\n");
+        fprintf(stderr, "Pat_table_set() returned NULL -- out of memory?\n");
         abort();
     }
-    Order* order = Song_get_order(song);
+    Subsong_table* subsongs = Song_get_subsongs(song);
     Subsong* ss = new_Subsong();
     if (ss == NULL)
     {
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (Order_set_subsong(order, 0, ss) < 0)
+    if (Subsong_table_set(subsongs, 0, ss) < 0)
     {
-        fprintf(stderr, "Order_set_subsong() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
         abort();
     }
     if (!Subsong_set(ss, 0, 0))
@@ -269,8 +269,8 @@ START_TEST (mix)
         fprintf(stderr, "Subsong_set() returned NULL -- out of memory?\n");
         abort();
     }
-    Note_table* notes = Song_get_notes(song, 0);
-    Note_table_set_ref_pitch(notes, 2);
+    Scale* notes = Song_get_scale(song, 0);
+    Scale_set_ref_pitch(notes, 2);
     kqt_frame** bufs = Song_get_bufs(song);
     Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
@@ -285,32 +285,32 @@ START_TEST (mix)
         abort();
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
-    Instrument_set_note_table(ins, 0);
+    Instrument_set_scale(ins, 0);
     Ins_table* insts = Song_get_insts(song);
     if (!Ins_table_set(insts, 1, ins))
     {
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Event* ev1_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev1_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev1_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev1_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev1_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_on = new_Event_voice_note_on(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_on = new_Event_voice_note_on(Reltime_init(RELTIME_AUTO));
     if (ev2_on == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Event* ev2_off = new_Event_voice_note_off(kqt_Reltime_init(KQT_RELTIME_AUTO));
+    Event* ev2_off = new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ev2_off == NULL)
     {
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
@@ -331,7 +331,7 @@ START_TEST (mix)
     play->mode = PLAY_SONG;
     play->freq = 8;
     play->tempo = 120;
-    kqt_Reltime_init(&play->pos);
+    Reltime_init(&play->pos);
     int64_t note = 0;
     int64_t mod = -1;
     int64_t octave = KQT_SCALE_MIDDLE_OCTAVE - 1;

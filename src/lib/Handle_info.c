@@ -27,7 +27,7 @@
 
 #include <Handle_private.h>
 #include <Subsong.h>
-#include <Order.h>
+#include <Subsong_table.h>
 #include <Song.h>
 
 
@@ -51,7 +51,7 @@ int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
         int total = 0;
         for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
         {
-            Subsong* ss = Order_get_subsong(Song_get_order(handle->song), i);
+            Subsong* ss = Subsong_table_get(Song_get_subsongs(handle->song), i);
             if (ss == NULL)
             {
                 break;
@@ -60,7 +60,7 @@ int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
         }
         return total;
     }
-    Subsong* ss = Order_get_subsong(Song_get_order(handle->song), subsong);
+    Subsong* ss = Subsong_table_get(Song_get_subsongs(handle->song), subsong);
     if (ss == NULL)
     {
         return 0;

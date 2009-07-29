@@ -20,24 +20,24 @@
  */
 
 
-#ifndef AUDIO_WAV_H
-#define AUDIO_WAV_H
+#ifndef K_EVENT_GLOBAL_SET_TEMPO_H
+#define K_EVENT_GLOBAL_SET_TEMPO_H
 
 
-#include <Audio.h>
+#include <Event_global.h>
+#include <Reltime.h>
 
 
-typedef struct Audio_wav Audio_wav;
+typedef struct Event_global_set_tempo
+{
+    Event_global parent;
+    double tempo;
+} Event_global_set_tempo;
 
 
-/**
- * Creates a new WAV client.
- *
- * \return   The new WAV client if successful, otherwise \c NULL.
- */
-Audio* new_Audio_wav(void);
+Event* new_Event_global_set_tempo(Reltime* pos);
 
 
-#endif // AUDIO_WAV_H
+#endif // K_EVENT_GLOBAL_SET_TEMPO_H
 
 

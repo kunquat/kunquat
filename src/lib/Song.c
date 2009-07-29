@@ -51,14 +51,14 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
     song->voice_bufs[0] = NULL;
-    song->order = NULL;
+    song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
-        song->notes[i] = NULL;
+        song->scales[i] = NULL;
     }
-    song->active_notes = &song->notes[0];
+    song->active_scale = &song->scales[0];
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         song->bufs[i] = NULL;
@@ -83,8 +83,8 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
             return NULL;
         }
     }
-    song->order = new_Order();
-    if (song->order == NULL)
+    song->subsongs = new_Subsong_table();
+    if (song->subsongs == NULL)
     {
         del_Song(song);
         return NULL;
@@ -101,9 +101,9 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->notes[0] = new_Note_table(523.25113060119725,
+    song->scales[0] = new_Scale(523.25113060119725,
             Real_init_as_frac(REAL_AUTO, 2, 1));
-    if (song->notes[0] == NULL)
+    if (song->scales[0] == NULL)
     {
         del_Song(song);
         return NULL;
@@ -114,14 +114,14 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    Note_table_set_note(song->notes[0],
-            0,
-            Real_init_as_frac(REAL_AUTO, 1, 1));
+    Scale_set_note(song->scales[0],
+                   0,
+                   Real_init_as_frac(REAL_AUTO, 1, 1));
     for (int i = 1; i < 12; ++i)
     {
-        Note_table_set_note_cents(song->notes[0],
-                i,
-                i * 100);
+        Scale_set_note_cents(song->scales[0],
+                             i,
+                             i * 100);
     }
     song->mix_vol_dB = -8;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
@@ -273,29 +273,29 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                          "Scale at index %01x is not a directory", i);
                 return false;
             }
-            File_tree* notes_tree = File_tree_get_child(index_tree, "kunquats00");
-            if (notes_tree != NULL)
+            File_tree* scale_tree = File_tree_get_child(index_tree, "kunquats00");
+            if (scale_tree != NULL)
             {
-                Read_state_init(state, File_tree_get_path(notes_tree));
-                if (!Song_create_notes(song, i))
+                Read_state_init(state, File_tree_get_path(scale_tree));
+                if (!Song_create_scale(song, i))
                 {
                     Read_state_set_error(state,
                              "Couldn't allocate memory for scale %01x", i);
                     return false;
                 }
-                Note_table* notes = Song_get_notes(song, i);
-                assert(notes != NULL);
-                Note_table_read(notes, notes_tree, state);
+                Scale* scale = Song_get_scale(song, i);
+                assert(scale != NULL);
+                Scale_read(scale, scale_tree, state);
                 if (state->error)
                 {
-                    Song_remove_notes(song, i);
+                    Song_remove_scale(song, i);
                     return false;
                 }
             }
         }
     }
-    Order* order = Song_get_order(song);
-    if (!Order_read(order, tree, state))
+    Subsong_table* subsongs = Song_get_subsongs(song);
+    if (!Subsong_table_read(subsongs, tree, state))
     {
         return false;
     }
@@ -310,8 +310,8 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                         Song_get_voice_bufs(song),
                         Song_get_buf_count(song),
                         Song_get_buf_size(song),
-                        Song_get_note_tables(song),
-                        Song_get_active_notes(song),
+                        Song_get_scales(song),
+                        Song_get_active_scale(song),
                         32)) // TODO: make configurable
     {
         return false;
@@ -348,11 +348,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = ORDER_NONE;
-            Subsong* ss = Order_get_subsong(song->order, play->subsong);
+            int16_t pat_index = KQT_SECTION_NONE;
+            Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
             if (ss != NULL)
             {
-                pat_index = Subsong_get(ss, play->order_index);
+                pat_index = Subsong_get(ss, play->section);
             }
             if (pat_index >= 0)
             {
@@ -606,10 +606,10 @@ kqt_frame** Song_get_voice_bufs(Song* song)
 }
 
 
-Order* Song_get_order(Song* song)
+Subsong_table* Song_get_subsongs(Song* song)
 {
     assert(song != NULL);
-    return song->order;
+    return song->subsongs;
 }
 
 
@@ -627,42 +627,42 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
-Note_table** Song_get_note_tables(Song* song)
+Scale** Song_get_scales(Song* song)
 {
     assert(song != NULL);
-    return song->notes;
+    return song->scales;
 }
 
 
-Note_table* Song_get_notes(Song* song, int index)
+Scale* Song_get_scale(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    return song->notes[index];
+    return song->scales[index];
 }
 
 
-Note_table** Song_get_active_notes(Song* song)
+Scale** Song_get_active_scale(Song* song)
 {
     assert(song != NULL);
-    return song->active_notes;
+    return song->active_scale;
 }
 
 
-bool Song_create_notes(Song* song, int index)
+bool Song_create_scale(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    if (song->notes[index] != NULL)
+    if (song->scales[index] != NULL)
     {
-        Note_table_clear(song->notes[index]);
+        Scale_clear(song->scales[index]);
         return true;
     }
-    song->notes[index] = new_Note_table(440,
+    song->scales[index] = new_Scale(440,
             Real_init_as_frac(REAL_AUTO, 2, 1));
-    if (song->notes[index] == NULL)
+    if (song->scales[index] == NULL)
     {
         return false;
     }
@@ -670,15 +670,15 @@ bool Song_create_notes(Song* song, int index)
 }
 
 
-void Song_remove_notes(Song* song, int index)
+void Song_remove_scale(Song* song, int index)
 {
     assert(song != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALES_MAX);
-    if (song->notes[index] != NULL)
+    if (song->scales[index] != NULL)
     {
-        del_Note_table(song->notes[index]);
-        song->notes[index] = NULL;
+        del_Scale(song->scales[index]);
+        song->scales[index] = NULL;
     }
     return;
 }
@@ -702,9 +702,9 @@ void del_Song(Song* song)
     {
         xfree(song->voice_bufs[i]);
     }
-    if (song->order != NULL)
+    if (song->subsongs != NULL)
     {
-        del_Order(song->order);
+        del_Subsong_table(song->subsongs);
     }
     if (song->pats != NULL)
     {
@@ -716,9 +716,9 @@ void del_Song(Song* song)
     }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
-        if (song->notes[i] != NULL)
+        if (song->scales[i] != NULL)
         {
-            del_Note_table(song->notes[i]);
+            del_Scale(song->scales[i]);
         }
     }
     if (song->events != NULL)

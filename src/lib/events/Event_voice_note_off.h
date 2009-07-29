@@ -20,25 +20,23 @@
  */
 
 
-#ifndef K_VOICE_STATE_PCM_H
-#define K_VOICE_STATE_PCM_H
+#ifndef K_EVENT_VOICE_NOTE_OFF_H
+#define K_EVENT_VOICE_NOTE_OFF_H
 
 
-#include <Voice_state.h>
+#include <Event_voice.h>
+#include <Reltime.h>
 
 
-typedef struct Voice_state_pcm
+typedef struct Event_voice_note_off
 {
-    Voice_state parent;
-    int sample;
-    double freq;
-    double volume;
-    uint8_t source;
-    uint8_t style;
-    double middle_tone;
-} Voice_state_pcm;
+    Event_voice parent;
+} Event_voice_note_off;
 
 
-#endif // K_VOICE_STATE_PCM_H
+Event* new_Event_voice_note_off(Reltime* pos);
+
+
+#endif // K_EVENT_VOICE_NOTE_OFF_H
 
 

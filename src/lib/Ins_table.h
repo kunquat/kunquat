@@ -49,10 +49,20 @@ Ins_table* new_Ins_table(int size);
 /**
  * Reads an Instrument table from a File tree.
  *
- * \param table   The Pattern table -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- * \param song    The Song -- must not be \c NULL.
+ * \param table           The Pattern table -- must not be \c NULL.
+ * \param tree            The File tree -- must not be \c NULL.
+ * \param state           The Read state -- must not be \c NULL.
+ * \param bufs            The mixing buffer of the Song -- must not be \c NULL.
+ * \param voice_bufs      The Voice buffers of the Song -- must not be \c NULL.
+ * \param buf_count       The number of buffers in the Song -- must be > \c 0 and
+ *                        < \c KQT_BUFFERS_MAX.
+ * \param buf_len         The length of the buffers in the Song -- must be
+ *                        > \c 0.
+ * \param scales          The Scales of the Song -- must not be \c NULL.
+ * \param default_scale   An indirect reference to the default scale -- must
+ *                        not be \c NULL. Also, *default_scale must be an
+ *                        element of \a scales.
+ * \param events          The Event queue size -- must be > \c 0.
  *
  * \return   \c true if successful, otherwise \c false.
  */
@@ -61,8 +71,8 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     kqt_frame** voice_bufs,
                     int buf_count,
                     uint32_t buf_len,
-                    Note_table** note_tables,
-                    Note_table** default_notes,
+                    Scale** scales,
+                    Scale** default_scale,
                     uint8_t events);
 
 

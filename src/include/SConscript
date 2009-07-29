@@ -23,24 +23,6 @@ Import('env')
 
 Export('env')
 
-if env['enable_libkunquat']:
-    SConscript('lib/SConscript')
-
-if not env.GetOption('clean') and 'check' in env['LIBS']:
-    env['LIBS'].remove('check')
-
-if env['enable_libkunquat_dev']:
-    SConscript('include/SConscript')
-
-if env['enable_player']:
-    SConscript('audio/SConscript')
-    SConscript('player/SConscript')
-
-if env['enable_export']:
-    SConscript('export/SConscript')
-
-#SConscript('editor/SConscript')
-
-#print 'src: ' + env.Dump('LIBS')
+SConscript('kunquat/SConscript')
 
 

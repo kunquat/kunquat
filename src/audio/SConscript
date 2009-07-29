@@ -23,7 +23,7 @@ Import('env')
 
 env_a = env.Clone()
 
-env_a.Append(CPPPATH = ['#/src/include', '#/src/audio'])
+env_a.Append(CPPPATH = ['#/src/lib', '#/src/include', '#/src/audio'])
 
 files = [
     'Audio.c',

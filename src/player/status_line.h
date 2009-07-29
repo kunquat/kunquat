@@ -41,7 +41,6 @@
  * \param clipped      An array of clip counts -- must not be \c NULL.
  * \param ns_total     The length of the playback in frames.
  * \param max_voices   The maximum number of Voices used.
- * \param freq         The mixing frequency -- must be > \c 0.
  * \param unicode      Use Unicode characters for display.
  *
  * \return   The new minimum line length. This is always >= \a min_len.
@@ -53,7 +52,6 @@ int get_status_line(char* line,
                     uint64_t* clipped,
                     long long ns_total,
                     uint16_t max_voices,
-                    uint32_t freq,
                     bool unicode);
 
 

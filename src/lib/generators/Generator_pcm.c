@@ -70,7 +70,7 @@ Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
         xfree(pcm);
         return NULL;
     }
-    for (int i = 0; i < PCM_SOURCES_MAX * PCM_STYLES_MAX; ++i)
+    for (int i = 0; i < PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX; ++i)
     {
         pcm->maps[i] = NULL;
     }
@@ -252,17 +252,17 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
     }
     Read_state_init(state, File_tree_get_path(tree));
     Generator_pcm* pcm = (Generator_pcm*)gen;
-    for (int i = 0; i < PCM_STYLES_MAX; ++i)
+    for (int i = 0; i < PCM_EXPRESSIONS_MAX; ++i)
     {
-        char st_name[] = "style_x";
-        snprintf(st_name, 8, "style_%01x", i);
-        File_tree* style_tree = File_tree_get_child(tree, st_name);
-        if (style_tree != NULL)
+        char expr_name[] = "expr_x";
+        snprintf(expr_name, 7, "expr_%01x", i);
+        File_tree* expr_tree = File_tree_get_child(tree, expr_name);
+        if (expr_tree != NULL)
         {
-            Read_state_init(state, File_tree_get_path(style_tree));
-            if (!File_tree_is_dir(style_tree))
+            Read_state_init(state, File_tree_get_path(expr_tree));
+            if (!File_tree_is_dir(expr_tree))
             {
-                Read_state_set_error(state, "PCM Generator style description %01x"
+                Read_state_set_error(state, "PCM Generator expression description %01x"
                                             " is not a directory", i);
                 return false;
             }
@@ -270,7 +270,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
             {
                 char src_name[] = "source_x";
                 snprintf(src_name, 9, "source_%01x", k);
-                File_tree* source_tree = File_tree_get_child(style_tree, src_name);
+                File_tree* source_tree = File_tree_get_child(expr_tree, src_name);
                 if (source_tree != NULL)
                 {
                     Read_state_init(state, File_tree_get_path(source_tree));
@@ -295,7 +295,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
                             assert(map == NULL);
                             return false;
                         }
-                        pcm->maps[(k * PCM_STYLES_MAX) + i] = map;
+                        pcm->maps[(k * PCM_EXPRESSIONS_MAX) + i] = map;
                     }
                 }
             }
@@ -334,15 +334,15 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
     pcm_state->freq = 0;
     pcm_state->volume = 0;
     pcm_state->source = 0;
-    pcm_state->style = 0;
+    pcm_state->expr = 0;
     pcm_state->middle_tone = 0;
     return;
 }
 
 
 void Generator_pcm_set_sample(Generator_pcm* pcm,
-        uint16_t index,
-        Sample* sample)
+                              uint16_t index,
+                              Sample* sample)
 {
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
@@ -469,7 +469,7 @@ void del_Generator_pcm(Generator* gen)
             del_Sample(pcm->samples[i]);
         }
     }
-    for (int i = 0; i < PCM_SOURCES_MAX * PCM_STYLES_MAX; ++i)
+    for (int i = 0; i < PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX; ++i)
     {
         if (pcm->maps[i] != NULL)
         {
@@ -516,20 +516,26 @@ static void del_Random_list(Random_list* list)
 
 
 int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
-        uint8_t source, uint8_t style, double force, double freq, uint8_t index,
-        uint16_t sample, double sample_freq, double vol_scale)
+                                        uint8_t source,
+                                        uint8_t expr,
+                                        double force,
+                                        double freq,
+                                        uint8_t index,
+                                        uint16_t sample,
+                                        double sample_freq,
+                                        double vol_scale)
 {
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(source < PCM_SOURCES_MAX);
-    assert(style < PCM_STYLES_MAX);
+    assert(expr < PCM_EXPRESSIONS_MAX);
     assert(isfinite(force));
     assert(freq > 0);
     assert(index < PCM_RANDOMS_MAX);
     assert(sample < PCM_SAMPLES_MAX);
     assert(sample_freq > 0);
     assert(vol_scale >= 0);
-    int map_pos = (source * PCM_STYLES_MAX) + style;
+    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
     AAtree* map = pcm->maps[map_pos];
     AAtree* new_map = NULL;
     if (map == NULL)
@@ -590,7 +596,7 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
 
 bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
                                       uint8_t source,
-                                      uint8_t style,
+                                      uint8_t expr,
                                       double force,
                                       double freq,
                                       uint8_t index)
@@ -598,11 +604,11 @@ bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(source < PCM_SOURCES_MAX);
-    assert(style < PCM_STYLES_MAX);
+    assert(expr < PCM_EXPRESSIONS_MAX);
     assert(isfinite(force));
     assert(isfinite(freq));
     assert(index < PCM_RANDOMS_MAX);
-    int map_pos = (source * PCM_STYLES_MAX) + style;
+    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
     AAtree* map = pcm->maps[map_pos];
     if (map == NULL)
     {
@@ -653,12 +659,12 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     double force = state->parent.force;
 //    fprintf(stderr, "searching list for %f Hz, %f dB... ", freq, force);
     uint8_t source = state->source;
-    uint8_t style = state->style;
+    uint8_t expr = state->expr;
     assert(freq > 0);
     assert(isfinite(force));
     assert(source < PCM_SOURCES_MAX);
-    assert(style < PCM_STYLES_MAX);
-    int map_pos = (source * PCM_STYLES_MAX) + style;
+    assert(expr < PCM_EXPRESSIONS_MAX);
+    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
     AAtree* map = pcm->maps[map_pos];
     if (map == NULL)
     {

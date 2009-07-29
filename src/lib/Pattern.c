@@ -61,7 +61,7 @@ Pattern* new_Pattern(void)
             return NULL;
         }
     }
-    kqt_Reltime_set(&pat->length, 16, 0);
+    Reltime_set(&pat->length, 16, 0);
     return pat;
 }
 
@@ -95,14 +95,14 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         str = read_const_char(str, '{', state);
         str = read_const_string(str, "length", state);
         str = read_const_char(str, ':', state);
-        kqt_Reltime* len = kqt_Reltime_init(KQT_RELTIME_AUTO);
+        Reltime* len = Reltime_init(RELTIME_AUTO);
         str = read_reltime(str, len, state);
         str = read_const_char(str, '}', state);
         if (state->error)
         {
             return false;
         }
-        if (kqt_Reltime_get_beats(len) < 0)
+        if (Reltime_get_beats(len) < 0)
         {
             Read_state_set_error(state, "Pattern length is negative");
             return false;
@@ -135,17 +135,17 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
 }
 
 
-void Pattern_set_length(Pattern* pat, kqt_Reltime* length)
+void Pattern_set_length(Pattern* pat, Reltime* length)
 {
     assert(pat != NULL);
     assert(length != NULL);
     assert(length->beats >= 0);
-    kqt_Reltime_copy(&pat->length, length);
+    Reltime_copy(&pat->length, length);
     return;
 }
 
 
-kqt_Reltime* Pattern_get_length(Pattern* pat)
+Reltime* Pattern_get_length(Pattern* pat)
 {
     assert(pat != NULL);
     return &pat->length;
@@ -180,7 +180,7 @@ uint32_t Pattern_mix(Pattern* pat,
     if (pat == NULL)
     {
         assert(!play->silent);
-        kqt_Reltime* limit = kqt_Reltime_fromframes(KQT_RELTIME_AUTO,
+        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                 nframes - mixed,
                 play->tempo,
                 play->freq);
@@ -211,18 +211,18 @@ uint32_t Pattern_mix(Pattern* pat,
     }
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
-            && kqt_Reltime_cmp(&play->pos, &pat->length) <= 0)
+            && Reltime_cmp(&play->pos, &pat->length) <= 0)
     {
         Column_iter_change_col(play->citer, pat->global);
         Event* next_global = Column_iter_get(play->citer, &play->pos);
-        kqt_Reltime* next_global_pos = NULL;
+        Reltime* next_global_pos = NULL;
         if (next_global != NULL)
         {
             next_global_pos = Event_get_pos(next_global);
         }
         // - Evaluate global events
         while (next_global != NULL
-                && kqt_Reltime_cmp(next_global_pos, &play->pos) == 0)
+                && Reltime_cmp(next_global_pos, &play->pos) == 0)
         {
             // FIXME: conditional event handling must be processed here
             //        instead of Song_mix.
@@ -237,8 +237,8 @@ uint32_t Pattern_mix(Pattern* pat,
                 {
                     // Queue is full, ignore remaining events... TODO: notify
                     next_global = Column_iter_get(play->citer,
-                            kqt_Reltime_add(KQT_RELTIME_AUTO, &play->pos,
-                                    kqt_Reltime_set(KQT_RELTIME_AUTO, 0, 1)));
+                            Reltime_add(RELTIME_AUTO, &play->pos,
+                                    Reltime_set(RELTIME_AUTO, 0, 1)));
                     if (next_global != NULL)
                     {
                         next_global_pos = Event_get_pos(next_global);
@@ -252,60 +252,60 @@ uint32_t Pattern_mix(Pattern* pat,
                 next_global_pos = Event_get_pos(next_global);
             }
         }
-        if (kqt_Reltime_cmp(&play->pos, &pat->length) >= 0)
+        if (Reltime_cmp(&play->pos, &pat->length) >= 0)
         {
-            assert(kqt_Reltime_cmp(&play->pos, &pat->length) == 0);
-            kqt_Reltime_init(&play->pos);
+            assert(Reltime_cmp(&play->pos, &pat->length) == 0);
+            Reltime_init(&play->pos);
             if (play->mode == PLAY_PATTERN)
             {
-                kqt_Reltime_set(&play->pos, 0, 0);
+                Reltime_set(&play->pos, 0, 0);
                 break;
             }
-            ++play->order_index;
-            if (play->order_index >= KQT_SECTIONS_MAX)
+            ++play->section;
+            if (play->section >= KQT_SECTIONS_MAX)
             {
-                play->order_index = 0;
+                play->section = 0;
                 play->pattern = -1;
             }
             else
             {
-                play->pattern = ORDER_NONE;
-                Subsong* ss = Order_get_subsong(play->order, play->subsong);
+                play->pattern = KQT_SECTION_NONE;
+                Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
                 if (ss != NULL)
                 {
-                    play->pattern = Subsong_get(ss, play->order_index);
+                    play->pattern = Subsong_get(ss, play->section);
                 }
             }
             break;
         }
         assert(next_global == NULL || next_global_pos != NULL);
         uint32_t to_be_mixed = nframes - mixed;
-        kqt_Reltime* limit = kqt_Reltime_fromframes(KQT_RELTIME_AUTO,
+        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                 to_be_mixed,
                 play->tempo,
                 play->freq);
-        kqt_Reltime_add(limit, limit, &play->pos);
+        Reltime_add(limit, limit, &play->pos);
         // - Check for the end of pattern
-        if (kqt_Reltime_cmp(&pat->length, limit) < 0)
+        if (Reltime_cmp(&pat->length, limit) < 0)
         {
-            kqt_Reltime_copy(limit, &pat->length);
-            to_be_mixed = kqt_Reltime_toframes(
-                    kqt_Reltime_sub(KQT_RELTIME_AUTO, limit, &play->pos),
+            Reltime_copy(limit, &pat->length);
+            to_be_mixed = Reltime_toframes(
+                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
                     play->tempo,
                     play->freq);
         }
         // - Check first upcoming global event position to figure out how much we can mix for now
-        if (next_global != NULL && kqt_Reltime_cmp(next_global_pos, limit) < 0)
+        if (next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
         {
             assert(next_global_pos != NULL);
-            kqt_Reltime_copy(limit, next_global_pos);
-            to_be_mixed = kqt_Reltime_toframes(
-                    kqt_Reltime_sub(KQT_RELTIME_AUTO, limit, &play->pos),
+            Reltime_copy(limit, next_global_pos);
+            to_be_mixed = Reltime_toframes(
+                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
                     play->tempo,
                     play->freq);
         }
         // - Calculate the number of frames to be mixed
-        assert(kqt_Reltime_cmp(&play->pos, limit) <= 0);
+        assert(Reltime_cmp(&play->pos, limit) <= 0);
         if (to_be_mixed > nframes - mixed)
         {
             to_be_mixed = nframes - mixed;
@@ -334,7 +334,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
         }
         // - Increment play->pos
-        kqt_Reltime_copy(&play->pos, limit);
+        Reltime_copy(&play->pos, limit);
         mixed += to_be_mixed;
     }
     return mixed - offset;

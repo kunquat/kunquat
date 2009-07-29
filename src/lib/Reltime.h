@@ -34,11 +34,11 @@
  * object is expected to be initialised either automatically or as part of
  * another object.
  */
-typedef struct kqt_Reltime
+typedef struct Reltime
 {
     int64_t beats; /// The number of beats.
     int32_t rem; /// Remainder of a beat -- always >= \c 0 and < \c KQT_RELTIME_BEAT.
-} kqt_Reltime;
+} Reltime;
 
 
 /**
@@ -46,7 +46,7 @@ typedef struct kqt_Reltime
  * allocation.
  * Useful for passing as a parameter to an initialiser.
  */
-#define KQT_RELTIME_AUTO (&(kqt_Reltime){ .beats = 0 })
+#define RELTIME_AUTO (&(Reltime){ .beats = 0 })
 
 
 /**
@@ -56,7 +56,7 @@ typedef struct kqt_Reltime
  *
  * \return   The parameter \a d.
  */
-kqt_Reltime* kqt_Reltime_init(kqt_Reltime* r);
+Reltime* Reltime_init(Reltime* r);
 
 
 /**
@@ -69,7 +69,7 @@ kqt_Reltime* kqt_Reltime_init(kqt_Reltime* r);
  *           found, respectively, to be less than, equal to or greater than
  *           \a r2.
  */
-int kqt_Reltime_cmp(const kqt_Reltime* r1, const kqt_Reltime* r2);
+int Reltime_cmp(const Reltime* r1, const Reltime* r2);
 
 
 /**
@@ -82,7 +82,7 @@ int kqt_Reltime_cmp(const kqt_Reltime* r1, const kqt_Reltime* r2);
  *
  * \return   The parameter \a r.
  */
-kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem);
+Reltime* Reltime_set(Reltime* r, int64_t beats, int32_t rem);
 
 
 /**
@@ -92,7 +92,7 @@ kqt_Reltime* kqt_Reltime_set(kqt_Reltime* r, int64_t beats, int32_t rem);
  *
  * \return   The beat count.
  */
-int64_t kqt_Reltime_get_beats(const kqt_Reltime* r);
+int64_t Reltime_get_beats(const Reltime* r);
 
 
 /**
@@ -102,7 +102,7 @@ int64_t kqt_Reltime_get_beats(const kqt_Reltime* r);
  *
  * \return   The remainder part.
  */
-int32_t kqt_Reltime_get_rem(const kqt_Reltime* r);
+int32_t Reltime_get_rem(const Reltime* r);
 
 
 /**
@@ -118,7 +118,7 @@ int32_t kqt_Reltime_get_rem(const kqt_Reltime* r);
  *
  * \return   The parameter \a result.
  */
-kqt_Reltime* kqt_Reltime_add(kqt_Reltime* result, const kqt_Reltime* r1, const kqt_Reltime* r2);
+Reltime* Reltime_add(Reltime* result, const Reltime* r1, const Reltime* r2);
 
 
 /**
@@ -134,7 +134,7 @@ kqt_Reltime* kqt_Reltime_add(kqt_Reltime* result, const kqt_Reltime* r1, const k
  *
  * \return   The parameter \a result.
  */
-kqt_Reltime* kqt_Reltime_sub(kqt_Reltime* result, const kqt_Reltime* r1, const kqt_Reltime* r2);
+Reltime* Reltime_sub(Reltime* result, const Reltime* r1, const Reltime* r2);
 
 
 /**
@@ -145,7 +145,7 @@ kqt_Reltime* kqt_Reltime_sub(kqt_Reltime* result, const kqt_Reltime* r1, const k
  *
  * \return   The parameter \a dest.
  */
-kqt_Reltime* kqt_Reltime_copy(kqt_Reltime* dest, const kqt_Reltime* src);
+Reltime* Reltime_copy(Reltime* dest, const Reltime* src);
 
 
 /**
@@ -158,9 +158,9 @@ kqt_Reltime* kqt_Reltime_copy(kqt_Reltime* dest, const kqt_Reltime* src);
  *
  * \return   The number of frames.
  */
-uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
-                              double tempo,
-                              uint32_t freq);
+uint32_t Reltime_toframes(const Reltime* r,
+                          double tempo,
+                          uint32_t freq);
 
 
 /**
@@ -173,10 +173,10 @@ uint32_t kqt_Reltime_toframes(const kqt_Reltime* r,
  *
  * \return   The parameter \a r.
  */
-kqt_Reltime* kqt_Reltime_fromframes(kqt_Reltime* r,
-                                    uint32_t frames,
-                                    double tempo,
-                                    uint32_t freq);
+Reltime* Reltime_fromframes(Reltime* r,
+                            uint32_t frames,
+                            double tempo,
+                            uint32_t freq);
 
 
 #endif // K_RELTIME_H
