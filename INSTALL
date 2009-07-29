@@ -21,7 +21,11 @@ In order to get sound you'll need one of the following:
   libao (http://www.xiph.org/ao/)
   OpenAL (http://www.openal.org/)
 
-Additionally, if you're building the test code, you'll need:
+If you want to build waveform audio export support, you'll need:
+
+  libsndfile (http://www.mega-nerd.com/libsndfile/)
+
+Additionally, if you want to build the test code, you'll need:
 
   Check (http://check.sourceforge.net/)
    
@@ -34,7 +38,7 @@ Ubuntu:
 On a relatively new Ubuntu you should be able to get all the required and
 optional dependencies by running the following command:
 
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
 
 
     Building instructions
