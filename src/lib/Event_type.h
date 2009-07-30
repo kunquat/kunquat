@@ -39,6 +39,7 @@ typedef enum
     EVENT_TYPE_GLOBAL_LAST       = 127, ///< Sentinel -- never used as a valid type.
     EVENT_TYPE_NOTE_ON           = 128, ///< Note On event. (note, modifier, octave, instrument)
     EVENT_TYPE_NOTE_OFF          = 129, ///< Note Off event.
+    EVENT_TYPE_VOICE_SET_FORCE   = 130, ///< Set Force.
     EVENT_TYPE_LAST                     ///< Sentinel -- never used as a valid type.
 } Event_type;
 

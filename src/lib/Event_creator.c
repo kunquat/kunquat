@@ -29,6 +29,7 @@
 #include <Event_global_set_tempo.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
+#include <Event_voice_set_force.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -45,6 +46,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_TYPE_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
         cons[EVENT_TYPE_NOTE_ON] = new_Event_voice_note_on;
         cons[EVENT_TYPE_NOTE_OFF] = new_Event_voice_note_off;
+        cons[EVENT_TYPE_VOICE_SET_FORCE] = new_Event_voice_set_force;
         cons_initialised = true;
     }
     if (cons[type] == NULL)

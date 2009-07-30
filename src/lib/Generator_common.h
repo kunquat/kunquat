@@ -103,3 +103,13 @@
     } while (false)
 
 
+#define Generator_common_handle_force(gen, state, frames, frame_count) \
+    do                                                                 \
+    {                                                                  \
+        for (int i = 0; i < (frame_count); ++i)                        \
+        {                                                              \
+            (frames)[i] *= (state)->force;                             \
+        }                                                              \
+    } while (false)
+
+

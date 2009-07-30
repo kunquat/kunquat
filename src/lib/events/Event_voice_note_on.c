@@ -59,12 +59,9 @@ static Event_field_desc note_on_desc[] =
 
 static bool Event_voice_note_on_set(Event* event, int index, void* data);
 
-
 static void* Event_voice_note_on_get(Event* event, int index);
 
-
 static void del_Event_voice_note_on(Event* event);
-
 
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice);
 
