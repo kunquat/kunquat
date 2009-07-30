@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <math.h>
 
+#include <Event_common.h>
 #include <Event_voice_set_force.h>
 #include <Reltime.h>
 #include <Voice.h>
@@ -45,8 +46,6 @@ static bool Event_voice_set_force_set(Event* event, int index, void* data);
 
 static void* Event_voice_set_force_get(Event* event, int index);
 
-static void del_Event_voice_set_force(Event* event);
-
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice);
 
 
@@ -58,12 +57,12 @@ Event* new_Event_voice_set_force(Reltime* pos)
     {
         return NULL;
     }
-    Reltime_copy(&event->parent.parent.pos, pos);
-    event->parent.parent.type = EVENT_VOICE_SET_FORCE;
-    event->parent.parent.field_types = set_force_desc;
-    event->parent.parent.set = Event_voice_set_force_set;
-    event->parent.parent.get = Event_voice_set_force_get;
-    event->parent.parent.destroy = del_Event_voice_set_force;
+    Event_init(&event->parent.parent,
+               pos,
+               EVENT_VOICE_SET_FORCE,
+               set_force_desc,
+               Event_voice_set_force_set,
+               Event_voice_set_force_get);
     event->parent.process = Event_voice_set_force_process;
     event->force = 0;
     return (Event*)event;
@@ -110,15 +109,6 @@ static void Event_voice_set_force_process(Event_voice* event, Voice* voice)
     assert(voice != NULL);
     Event_voice_set_force* set_force = (Event_voice_set_force*)event;
     voice->state.generic.force = exp2(set_force->force / 6);
-    return;
-}
-
-
-static void del_Event_voice_set_force(Event* event)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_FORCE);
-    xfree(event);
     return;
 }
 

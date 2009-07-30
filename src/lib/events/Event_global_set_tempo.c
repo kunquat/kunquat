@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include <Event_common.h>
 #include <Event_global_set_tempo.h>
 
 #include <xmemory.h>
@@ -43,12 +44,7 @@ static Event_field_desc set_tempo_desc[] =
 
 static bool Event_global_set_tempo_set(Event* event, int index, void* data);
 
-
 static void* Event_global_set_tempo_get(Event* event, int index);
-
-
-static void del_Event_global_set_tempo(Event* event);
-
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play);
 
@@ -61,12 +57,12 @@ Event* new_Event_global_set_tempo(Reltime* pos)
     {
         return NULL;
     }
-    event->parent.parent.type = EVENT_GLOBAL_SET_TEMPO;
-    event->parent.parent.field_types = set_tempo_desc;
-    event->parent.parent.set = Event_global_set_tempo_set;
-    event->parent.parent.get = Event_global_set_tempo_get;
-    event->parent.parent.destroy = del_Event_global_set_tempo;
-    Reltime_copy(&event->parent.parent.pos, pos);
+    Event_init(&event->parent.parent,
+               pos,
+               EVENT_GLOBAL_SET_TEMPO,
+               set_tempo_desc,
+               Event_global_set_tempo_set,
+               Event_global_set_tempo_get);
     event->parent.process = Event_global_set_tempo_process;
     return (Event*)event;
 }
@@ -110,15 +106,6 @@ static void* Event_global_set_tempo_get(Event* event, int index)
         return &set_tempo->tempo;
     }
     return NULL;
-}
-
-
-static void del_Event_global_set_tempo(Event* event)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SET_TEMPO);
-    xfree(event);
-    return;
 }
 
 

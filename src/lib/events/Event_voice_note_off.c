@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#include <Event_common.h>
 #include <Event_voice_note_off.h>
 
 #include <xmemory.h>
@@ -41,8 +42,6 @@ static bool Event_voice_note_off_set(Event* event, int index, void* data);
 
 static void* Event_voice_note_off_get(Event* event, int index);
 
-static void del_Event_voice_note_off(Event* event);
-
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice);
 
 
@@ -54,12 +53,12 @@ Event* new_Event_voice_note_off(Reltime* pos)
     {
         return NULL;
     }
-    event->parent.parent.type = EVENT_VOICE_NOTE_OFF;
-    event->parent.parent.field_types = note_off_desc;
-    event->parent.parent.set = Event_voice_note_off_set;
-    event->parent.parent.get = Event_voice_note_off_get;
-    event->parent.parent.destroy = del_Event_voice_note_off;
-    Reltime_copy(&event->parent.parent.pos, pos);
+    Event_init(&event->parent.parent,
+               pos,
+               EVENT_VOICE_NOTE_OFF,
+               note_off_desc,
+               Event_voice_note_off_set,
+               Event_voice_note_off_get);
     event->parent.process = Event_voice_note_off_process;
     return (Event*)event;
 }
@@ -95,15 +94,6 @@ static void* Event_voice_note_off_get(Event* event, int index)
     (void)event;
     (void)index;
     return NULL;
-}
-
-
-static void del_Event_voice_note_off(Event* event)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_NOTE_OFF);
-    xfree(event);
-    return;
 }
 
 
