@@ -226,12 +226,12 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             // FIXME: conditional event handling must be processed here
             //        instead of Song_mix.
-            if (Event_get_type(next_global) == EVENT_TYPE_GLOBAL_SET_TEMPO)
+            if (Event_get_type(next_global) == EVENT_GLOBAL_SET_TEMPO)
             {
                 Event_global_process((Event_global*)next_global, play);
             }
-            else if (EVENT_TYPE_IS_GENERAL(Event_get_type(next_global))
-                    || EVENT_TYPE_IS_GLOBAL(Event_get_type(next_global)))
+            else if (EVENT_IS_GENERAL(Event_get_type(next_global))
+                    || EVENT_IS_GLOBAL(Event_get_type(next_global)))
             {
                 if (!Event_queue_ins(play->events, next_global, mixed))
                 {

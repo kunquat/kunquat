@@ -36,23 +36,23 @@
 static Event_field_desc note_on_desc[] =
 {
     {
-        .type = EVENT_FIELD_TYPE_NOTE,
+        .type = EVENT_FIELD_NOTE,
         .range.integral_type = { 0, KQT_SCALE_NOTES - 1 }
     },
     {
-        .type = EVENT_FIELD_TYPE_NOTE_MOD,
+        .type = EVENT_FIELD_NOTE_MOD,
         .range.integral_type = { -1, KQT_SCALE_NOTE_MODS - 1 }
     },
     {
-        .type = EVENT_FIELD_TYPE_INT,
+        .type = EVENT_FIELD_INT,
         .range.integral_type = { KQT_SCALE_OCTAVE_FIRST, KQT_SCALE_OCTAVE_LAST }
     },
     {
-        .type = EVENT_FIELD_TYPE_INT,
+        .type = EVENT_FIELD_INT,
         .range.integral_type = { 0, KQT_INSTRUMENTS_MAX }
     },
     {
-        .type = EVENT_FIELD_TYPE_NONE
+        .type = EVENT_FIELD_NONE
     }
 };
 
@@ -75,7 +75,7 @@ Event* new_Event_voice_note_on(Reltime* pos)
         return NULL;
     }
     Reltime_copy(&event->parent.parent.pos, pos);
-    event->parent.parent.type = EVENT_TYPE_NOTE_ON;
+    event->parent.parent.type = EVENT_VOICE_NOTE_ON;
     event->parent.parent.field_types = note_on_desc;
     event->parent.parent.set = Event_voice_note_on_set;
     event->parent.parent.get = Event_voice_note_on_get;
@@ -92,7 +92,7 @@ Event* new_Event_voice_note_on(Reltime* pos)
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
 {
     assert(event != NULL);
-    assert(event->parent.type == EVENT_TYPE_NOTE_ON);
+    assert(event->parent.type == EVENT_VOICE_NOTE_ON);
     assert(voice != NULL);
     Event_voice_note_on* note_on = (Event_voice_note_on*)event;
     Generator_process_note(voice->gen,
@@ -107,7 +107,7 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
 static bool Event_voice_note_on_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_ON);
+    assert(event->type == EVENT_VOICE_NOTE_ON);
     assert(data != NULL);
     Event_voice_note_on* note_on = (Event_voice_note_on*)event;
     int64_t* num = (int64_t*)data;
@@ -151,7 +151,7 @@ static bool Event_voice_note_on_set(Event* event, int index, void* data)
 static void* Event_voice_note_on_get(Event* event, int index)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_ON);
+    assert(event->type == EVENT_VOICE_NOTE_ON);
     Event_voice_note_on* note_on = (Event_voice_note_on*)event;
     switch (index)
     {
@@ -185,7 +185,7 @@ static void* Event_voice_note_on_get(Event* event, int index)
 static void del_Event_voice_note_on(Event* event)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_ON);
+    assert(event->type == EVENT_VOICE_NOTE_ON);
     xfree(event);
     return;
 }

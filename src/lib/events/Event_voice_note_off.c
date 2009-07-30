@@ -32,7 +32,7 @@
 static Event_field_desc note_off_desc[] =
 {
     {
-        .type = EVENT_FIELD_TYPE_NONE
+        .type = EVENT_FIELD_NONE
     }
 };
 
@@ -54,7 +54,7 @@ Event* new_Event_voice_note_off(Reltime* pos)
     {
         return NULL;
     }
-    event->parent.parent.type = EVENT_TYPE_NOTE_OFF;
+    event->parent.parent.type = EVENT_VOICE_NOTE_OFF;
     event->parent.parent.field_types = note_off_desc;
     event->parent.parent.set = Event_voice_note_off_set;
     event->parent.parent.get = Event_voice_note_off_get;
@@ -68,7 +68,7 @@ Event* new_Event_voice_note_off(Reltime* pos)
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice)
 {
     assert(event != NULL);
-    assert(event->parent.type == EVENT_TYPE_NOTE_OFF);
+    assert(event->parent.type == EVENT_VOICE_NOTE_OFF);
     assert(voice != NULL);
     (void)event;
     voice->state.generic.note_on = false;
@@ -79,7 +79,7 @@ static void Event_voice_note_off_process(Event_voice* event, Voice* voice)
 static bool Event_voice_note_off_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_OFF);
+    assert(event->type == EVENT_VOICE_NOTE_OFF);
     assert(data != NULL);
     (void)event;
     (void)index;
@@ -91,7 +91,7 @@ static bool Event_voice_note_off_set(Event* event, int index, void* data)
 static void* Event_voice_note_off_get(Event* event, int index)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_OFF);
+    assert(event->type == EVENT_VOICE_NOTE_OFF);
     (void)event;
     (void)index;
     return NULL;
@@ -101,7 +101,7 @@ static void* Event_voice_note_off_get(Event* event, int index)
 static void del_Event_voice_note_off(Event* event)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_TYPE_NOTE_OFF);
+    assert(event->type == EVENT_VOICE_NOTE_OFF);
     xfree(event);
     return;
 }

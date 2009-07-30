@@ -30,36 +30,36 @@
 
 typedef enum
 {
-    EVENT_TYPE_NONE = 0,                ///< An uninitialised event.
-    EVENT_TYPE_GENERAL_COND,            ///< Evaluate a conditional expression.
-    EVENT_TYPE_GENERAL_LAST      =  63, ///< Sentinel -- never used as a valid type.
-    EVENT_TYPE_GLOBAL_SET_TEMPO  =  64, ///< Set tempo. (BPM (float))
-    EVENT_TYPE_GLOBAL_SET_VOLUME =  65, ///< Set global volume.
-    EVENT_TYPE_GLOBAL_SET_VAR,          ///< Set a variable.
-    EVENT_TYPE_GLOBAL_LAST       = 127, ///< Sentinel -- never used as a valid type.
-    EVENT_TYPE_NOTE_ON           = 128, ///< Note On event. (note, modifier, octave, instrument)
-    EVENT_TYPE_NOTE_OFF          = 129, ///< Note Off event.
-    EVENT_TYPE_VOICE_SET_FORCE   = 130, ///< Set Force.
-    EVENT_TYPE_LAST                     ///< Sentinel -- never used as a valid type.
+    EVENT_NONE = 0,                ///< An uninitialised event.
+    EVENT_GENERAL_COND,            ///< Evaluate a conditional expression.
+    EVENT_GENERAL_LAST      =  63, ///< Sentinel -- never used as a valid type.
+    EVENT_GLOBAL_SET_TEMPO  =  64, ///< Set tempo. (BPM (float))
+    EVENT_GLOBAL_SET_VOLUME =  65, ///< Set global volume.
+    EVENT_GLOBAL_SET_VAR,          ///< Set a variable.
+    EVENT_GLOBAL_LAST       = 127, ///< Sentinel -- never used as a valid type.
+    EVENT_VOICE_NOTE_ON     = 128, ///< Note On event. (note, modifier, octave, instrument)
+    EVENT_VOICE_NOTE_OFF    = 129, ///< Note Off event.
+    EVENT_VOICE_SET_FORCE   = 130, ///< Set Force.
+    EVENT_LAST                     ///< Sentinel -- never used as a valid type.
 } Event_type;
 
 
-#define EVENT_TYPE_IS_GENERAL(type) ((type) > EVENT_TYPE_NONE && (type) < EVENT_TYPE_GENERAL_LAST)
-#define EVENT_TYPE_IS_GLOBAL(type)  ((type) > EVENT_TYPE_GENERAL_LAST && (type) < EVENT_TYPE_GLOBAL_LAST)
-#define EVENT_TYPE_IS_VOICE(type)   ((type) > EVENT_TYPE_GLOBAL_LAST && (type) < EVENT_TYPE_LAST)
-#define EVENT_TYPE_IS_VALID(type)   (EVENT_TYPE_IS_GENERAL((type)) || EVENT_TYPE_IS_GLOBAL((type)) || EVENT_TYPE_IS_VOICE((type)))
+#define EVENT_IS_GENERAL(type) ((type) > EVENT_NONE && (type) < EVENT_GENERAL_LAST)
+#define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GENERAL_LAST && (type) < EVENT_GLOBAL_LAST)
+#define EVENT_IS_VOICE(type)   ((type) > EVENT_GLOBAL_LAST && (type) < EVENT_LAST)
+#define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || EVENT_IS_GLOBAL((type)) || EVENT_IS_VOICE((type)))
 
 
 typedef enum
 {
-    EVENT_FIELD_TYPE_NONE = 0,
-    EVENT_FIELD_TYPE_INT,
-    EVENT_FIELD_TYPE_NOTE,
-    EVENT_FIELD_TYPE_NOTE_MOD,
-    EVENT_FIELD_TYPE_DOUBLE,
-    EVENT_FIELD_TYPE_REAL,
-    EVENT_FIELD_TYPE_RELTIME,
-    EVENT_FIELD_TYPE_LAST
+    EVENT_FIELD_NONE = 0,
+    EVENT_FIELD_INT,
+    EVENT_FIELD_NOTE,
+    EVENT_FIELD_NOTE_MOD,
+    EVENT_FIELD_DOUBLE,
+    EVENT_FIELD_REAL,
+    EVENT_FIELD_RELTIME,
+    EVENT_FIELD_LAST
 } Event_field_type;
 
 

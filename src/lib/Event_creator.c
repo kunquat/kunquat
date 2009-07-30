@@ -37,16 +37,16 @@ typedef Event* (*Event_cons)(Reltime* pos);
 
 Event* new_Event(Event_type type, Reltime* pos)
 {
-    assert(EVENT_TYPE_IS_VALID(type));
+    assert(EVENT_IS_VALID(type));
     assert(pos != NULL);
     static bool cons_initialised = false;
-    static Event_cons cons[EVENT_TYPE_LAST] = { NULL };
+    static Event_cons cons[EVENT_LAST] = { NULL };
     if (!cons_initialised)
     {
-        cons[EVENT_TYPE_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
-        cons[EVENT_TYPE_NOTE_ON] = new_Event_voice_note_on;
-        cons[EVENT_TYPE_NOTE_OFF] = new_Event_voice_note_off;
-        cons[EVENT_TYPE_VOICE_SET_FORCE] = new_Event_voice_set_force;
+        cons[EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
+        cons[EVENT_VOICE_NOTE_ON] = new_Event_voice_note_on;
+        cons[EVENT_VOICE_NOTE_OFF] = new_Event_voice_note_off;
+        cons[EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force;
         cons_initialised = true;
     }
     if (cons[type] == NULL)

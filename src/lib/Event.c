@@ -45,7 +45,7 @@ int Event_get_field_count(Event* event)
     assert(event != NULL);
     assert(event->field_types != NULL);
     int count = 0;
-    while (event->field_types[count].type != EVENT_FIELD_TYPE_NONE)
+    while (event->field_types[count].type != EVENT_FIELD_NONE)
     {
         ++count;
     }
@@ -85,9 +85,9 @@ char* Event_read(Event* event, char* str, Read_state* state)
             void* data = NULL;
             switch (event->field_types[i].type)
             {
-                case EVENT_FIELD_TYPE_INT:
-                case EVENT_FIELD_TYPE_NOTE:
-                case EVENT_FIELD_TYPE_NOTE_MOD:
+                case EVENT_FIELD_INT:
+                case EVENT_FIELD_NOTE:
+                case EVENT_FIELD_NOTE_MOD:
                 {
                     str = read_int(str, &numi, state);
                     if (state->error)
@@ -97,7 +97,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
                     data = &numi;
                 }
                 break;
-                case EVENT_FIELD_TYPE_DOUBLE:
+                case EVENT_FIELD_DOUBLE:
                 {
                     str = read_double(str, &numd, state);
                     if (state->error)
@@ -107,7 +107,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
                     data = &numd;
                 }
                 break;
-                case EVENT_FIELD_TYPE_REAL:
+                case EVENT_FIELD_REAL:
                 {
                     str = read_tuning(str, real, &numd, state);
                     if (state->error)
@@ -117,7 +117,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
                     data = real;
                 }
                 break;
-                case EVENT_FIELD_TYPE_RELTIME:
+                case EVENT_FIELD_RELTIME:
                 {
                     str = read_reltime(str, rt, state);
                     if (state->error)

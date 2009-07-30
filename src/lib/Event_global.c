@@ -29,6 +29,7 @@
 void Event_global_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
+    assert(EVENT_IS_GLOBAL(event->parent.type));
     assert(event->process != NULL);
     assert(play != NULL);
     event->process(event, play);

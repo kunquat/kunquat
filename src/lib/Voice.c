@@ -120,7 +120,7 @@ void Voice_mix(Voice* voice,
     Event* next = NULL;
     uint32_t mix_until = nframes;
     bool event_found = Event_queue_get(voice->events, &next, &mix_until);
-    if (event_found && Event_get_type(next) == EVENT_TYPE_NOTE_ON)
+    if (event_found && Event_get_type(next) == EVENT_VOICE_NOTE_ON)
     {
         mixed = mix_until;
     }
@@ -140,13 +140,13 @@ void Voice_mix(Voice* voice,
         }
         if (event_found)
         {
-            if (EVENT_TYPE_IS_GENERAL(Event_get_type(next)))
+            if (EVENT_IS_GENERAL(Event_get_type(next)))
             {
                 // TODO: handle general events
             }
             else
             {
-                assert(EVENT_TYPE_IS_VOICE(Event_get_type(next)));
+                assert(EVENT_IS_VOICE(Event_get_type(next)));
                 Event_voice_process((Event_voice*)next, voice);
             }
         }

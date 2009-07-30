@@ -158,7 +158,7 @@ Event* Column_iter_get(Column_iter* iter, const Reltime* pos)
         return NULL;
     }
     iter->version = iter->col->version;
-    Event* event = &(Event){ .type = EVENT_TYPE_NONE };
+    Event* event = &(Event){ .type = EVENT_NONE };
     Reltime_copy(&event->pos, pos);
     Event_list* key = Event_list_init(&(Event_list){ .event = event });
     iter->elist = AAiter_get(iter->tree_iter, key);
@@ -321,13 +321,13 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
         int64_t type = 0;
         str = read_int(str, &type, state);
         break_if(state->error);
-        if (!EVENT_TYPE_IS_VALID(type))
+        if (!EVENT_IS_VALID(type))
         {
             Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
             return false;
         }
-        if ((is_global && EVENT_TYPE_IS_VOICE(type)) ||
-                (!is_global && EVENT_TYPE_IS_GLOBAL(type)))
+        if ((is_global && EVENT_IS_VOICE(type)) ||
+                (!is_global && EVENT_IS_GLOBAL(type)))
         {
             Read_state_set_error(state,
                      "Incorrect Event type for %s column", is_global ? "global" : "note");

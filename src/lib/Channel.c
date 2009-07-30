@@ -105,7 +105,7 @@ void Channel_set_voices(Channel* ch,
     while (Reltime_cmp(next_pos, end) < 0)
     {
         assert(Reltime_cmp(start, next_pos) <= 0);
-        if (Event_get_type(next) == EVENT_TYPE_NOTE_ON)
+        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
         {
             for (int i = 0; i < ch->fg_count; ++i)
             {
@@ -189,7 +189,7 @@ void Channel_set_voices(Channel* ch,
             }
         }
         else if (ch->fg_count > 0 &&
-                !EVENT_TYPE_IS_GLOBAL(Event_get_type(next)))
+                !EVENT_IS_GLOBAL(Event_get_type(next)))
         {
             bool voices_active = false;
             for (int i = 0; i < ch->fg_count; ++i)
