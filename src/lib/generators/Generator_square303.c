@@ -81,7 +81,6 @@ void Generator_square303_init_state(Generator* gen, Voice_state* state)
     assert(gen->type == GEN_TYPE_SQUARE303);
     (void)gen;
     assert(state != NULL);
-    Voice_state_init(state);
     Voice_state_square303* square303_state = (Voice_state_square303*)state;
     square303_state->phase = 0.5;
     return;

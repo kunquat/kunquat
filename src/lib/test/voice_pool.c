@@ -102,7 +102,7 @@ START_TEST (get_voice)
     fail_unless(v0->prio == VOICE_PRIO_INACTIVE,
             "Voice_pool_get_voice() returned a Voice with active status.");
     uint64_t id0 = Voice_id(v0);
-    Voice_init(v0, Instrument_get_gen(ins, 0));
+    Voice_init(v0, Instrument_get_gen(ins, 0), 64, 120);
     Voice* v1 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
@@ -113,7 +113,7 @@ START_TEST (get_voice)
     uint64_t id1 = Voice_id(v1);
     fail_if(id0 == id1,
             "Voice_pool_get_voice() returned a non-unique ID.");
-    Voice_init(v1, Instrument_get_gen(ins, 0));
+    Voice_init(v1, Instrument_get_gen(ins, 0), 64, 120);
     Voice* v2 = Voice_pool_get_voice(pool, v0, id0);
     fail_unless(v0 == v2,
             "Voice_pool_get_voice() didn't return the expected Voice with correct ID.");
@@ -223,7 +223,7 @@ START_TEST (mix)
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
 //  uint64_t id1 = Voice_id(v1);
-    Voice_init(v1, Instrument_get_gen(ins, 0));
+    Voice_init(v1, Instrument_get_gen(ins, 0), 64, 120);
     fail_unless(Voice_add_event(v1, ev1_on, 0),
             "Voice_add_event() failed.");
     Voice_pool_mix(pool, 128, 0, 8, 120);
@@ -267,7 +267,7 @@ START_TEST (mix)
     v1 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
-    Voice_init(v1, Instrument_get_gen(ins, 0));
+    Voice_init(v1, Instrument_get_gen(ins, 0), 64, 120);
     note = 0;
     mod = -1;
     octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
@@ -281,7 +281,7 @@ START_TEST (mix)
             "Voice_pool_get_voice() returned NULL unexpectedly.");
     fail_if(v1 == v2,
             "Voice_pool_get_voice() returned an active Voice when inactive Voice was available.");
-    Voice_init(v2, Instrument_get_gen(ins, 0));
+    Voice_init(v2, Instrument_get_gen(ins, 0), 64, 120);
     note = 0;
     mod = -1;
     octave = KQT_SCALE_MIDDLE_OCTAVE;
@@ -353,7 +353,7 @@ START_TEST (mix)
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
     uint64_t id1 = Voice_id(v1);
-    Voice_init(v1, Instrument_get_gen(ins, 0));
+    Voice_init(v1, Instrument_get_gen(ins, 0), 64, 120);
     note = 0;
     mod = -1;
     octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
@@ -367,7 +367,7 @@ START_TEST (mix)
             "Voice_pool_get_voice() returned NULL unexpectedly.");
     fail_if(v1 == v2,
             "Voice_pool_get_voice() returned an active Voice when inactive Voice was available.");
-    Voice_init(v2, Instrument_get_gen(ins, 0));
+    Voice_init(v2, Instrument_get_gen(ins, 0), 64, 120);
     note = 0;
     mod = -1;
     octave = KQT_SCALE_MIDDLE_OCTAVE;
@@ -382,7 +382,7 @@ START_TEST (mix)
     Voice* v3 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v3 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
-    Voice_init(v3, Instrument_get_gen(ins, 0));
+    Voice_init(v3, Instrument_get_gen(ins, 0), 64, 120);
     fail_if(v1 == v3,
             "A higher-priority Voice was killed.");
     fail_unless(Voice_add_event(v3, ev2_on, 22),

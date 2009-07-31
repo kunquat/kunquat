@@ -112,8 +112,10 @@ uint64_t Voice_id(Voice* voice);
  *
  * \param voice   The Voice -- must not be \c NULL.
  * \param gen     The Generator used -- must not be \c NULL.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ * \param tempo   The current tempo -- must be > \c 0.
  */
-void Voice_init(Voice* voice, Generator* gen);
+void Voice_init(Voice* voice, Generator* gen, uint32_t freq, double tempo);
 
 
 /**

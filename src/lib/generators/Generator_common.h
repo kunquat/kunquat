@@ -48,6 +48,28 @@
     } while (false)
 
 
+#define Generator_common_check_relative_lengths(gen, state, freq, tempo)          \
+    do                                                                            \
+    {                                                                             \
+        if ((state)->mix_freq != (freq) || (state)->tempo != (tempo))             \
+        {                                                                         \
+            if ((state)->force_slide != 0)                                        \
+            {                                                                     \
+                double update_dB = log2((state)->force_slide_update) * 6;         \
+                update_dB = update_dB * (state)->mix_freq / (freq);               \
+                update_dB = update_dB * (tempo) / (state)->tempo;                 \
+                (state)->force_slide_update = exp2(update_dB / 6);                \
+                (state)->force_slide_frames =                                     \
+                        (state)->force_slide_frames * (freq) / (state)->mix_freq; \
+                (state)->force_slide_frames =                                     \
+                        (state)->force_slide_frames * (state)->tempo / (tempo);   \
+            }                                                                     \
+            (state)->mix_freq = (freq);                                           \
+            (state)->tempo = (tempo);                                             \
+        }                                                                         \
+    } while (false)
+
+
 #define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
     do                                                                      \
     {                                                                       \
@@ -106,6 +128,33 @@
 #define Generator_common_handle_force(gen, state, frames, frame_count) \
     do                                                                 \
     {                                                                  \
+        if ((state)->force_slide != 0)                                 \
+        {                                                              \
+            (state)->force *= (state)->force_slide_update;             \
+            (state)->force_slide_frames -= 1;                          \
+            if ((state)->force_slide_frames <= 0)                      \
+            {                                                          \
+                (state)->force = (state)->force_slide_target;          \
+                (state)->force_slide = 0;                              \
+            }                                                          \
+            else if ((state)->force_slide == 1)                        \
+            {                                                          \
+                if ((state)->force > (state)->force_slide_target)      \
+                {                                                      \
+                    (state)->force = (state)->force_slide_target;      \
+                    (state)->force_slide = 0;                          \
+                }                                                      \
+            }                                                          \
+            else                                                       \
+            {                                                          \
+                assert((state)->force_slide == -1);                    \
+                if ((state)->force < (state)->force_slide_target)      \
+                {                                                      \
+                    (state)->force = (state)->force_slide_target;      \
+                    (state)->force_slide = 0;                          \
+                }                                                      \
+            }                                                          \
+        }                                                              \
         for (int i = 0; i < (frame_count); ++i)                        \
         {                                                              \
             (frames)[i] *= (state)->force;                             \

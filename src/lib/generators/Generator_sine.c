@@ -82,7 +82,6 @@ void Generator_sine_init_state(Generator* gen, Voice_state* state)
     assert(gen->type == GEN_TYPE_SINE);
     assert(state != NULL);
     (void)gen;
-    Voice_state_init(state);
     Voice_state_sine* sine_state = (Voice_state_sine*)state;
     sine_state->phase = 0;
     return;

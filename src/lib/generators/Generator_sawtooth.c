@@ -81,7 +81,6 @@ void Generator_sawtooth_init_state(Generator* gen, Voice_state* state)
     assert(gen->type == GEN_TYPE_SAWTOOTH);
     (void)gen;
     assert(state != NULL);
-    Voice_state_init(state);
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
     sawtooth_state->phase = 0.25;
     return;
@@ -114,6 +113,7 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
+    Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;

@@ -37,7 +37,10 @@ static Event_field_desc set_force_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -INFINITY, INFINITY }
+        .range.double_type = { -INFINITY, 18 }
+    },
+    {
+        .type = EVENT_FIELD_NONE
     }
 };
 
@@ -64,7 +67,7 @@ Event* new_Event_voice_set_force(Reltime* pos)
                Event_voice_set_force_set,
                Event_voice_set_force_get);
     event->parent.process = Event_voice_set_force_process;
-    event->force = 0;
+    event->force = 1;
     return (Event*)event;
 }
 
@@ -79,12 +82,12 @@ static bool Event_voice_set_force_set(Event* event, int index, void* data)
     {
         return false;
     }
-    double* num = (double*)data;
-    if (isnan(*num))
+    double num = *(double*)data;
+    if (isnan(num) || num > 18)
     {
         return false;
     }
-    set_force->force = *num;
+    set_force->force = num;
     return true;
 }
 
@@ -109,6 +112,7 @@ static void Event_voice_set_force_process(Event_voice* event, Voice* voice)
     assert(voice != NULL);
     Event_voice_set_force* set_force = (Event_voice_set_force*)event;
     voice->state.generic.force = exp2(set_force->force / 6);
+    voice->state.generic.force_slide = 0;
     return;
 }
 

@@ -69,13 +69,15 @@ uint64_t Voice_id(Voice* voice)
 }
 
 
-void Voice_init(Voice* voice, Generator* gen)
+void Voice_init(Voice* voice, Generator* gen, uint32_t freq, double tempo)
 {
     assert(voice != NULL);
     assert(gen != NULL);
+    assert(freq > 0);
+    assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic);
+    Voice_state_init(&voice->state.generic, freq, tempo);
     if (gen->init_state != NULL)
     {
         gen->init_state(gen, &voice->state.generic);

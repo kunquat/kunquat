@@ -328,7 +328,6 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
     assert(gen->type == GEN_TYPE_PCM);
     (void)gen;
     assert(state != NULL);
-    Voice_state_init(state);
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
     pcm_state->sample = -1;
     pcm_state->freq = 0;

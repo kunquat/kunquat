@@ -175,7 +175,7 @@ void Channel_set_voices(Channel* ch,
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
-                Voice_init(ch->fg[i], Instrument_get_gen(ins, i));
+                Voice_init(ch->fg[i], Instrument_get_gen(ins, i), freq, tempo);
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
                 uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
                         + offset;

@@ -22,16 +22,21 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdint.h>
 
 #include <Voice_state.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state)
+Voice_state* Voice_state_init(Voice_state* state, uint32_t freq, double tempo)
 {
     assert(state != NULL);
+    assert(freq > 0);
+    assert(tempo > 0);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
+    state->mix_freq = freq;
+    state->tempo = tempo;
     return state;
 }
 
@@ -40,10 +45,13 @@ Voice_state* Voice_state_clear(Voice_state* state)
 {
     assert(state != NULL);
     state->active = false;
-    state->freq = 0;
-    state->force = 1;
+    state->mix_freq = 0;
+    state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
+
+    state->freq = 0;
+
     state->pos = 0;
     state->pos_rem = 0;
     state->rel_pos = 0;
@@ -52,9 +60,16 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
+    
     state->pedal = false;
     state->on_ve_pos = 0;
     state->off_ve_pos = 0;
+
+    state->force = 1;
+    state->force_slide = 0;
+    state->force_slide_target = 1;
+    state->force_slide_frames = 0;
+    state->force_slide_update = 1;
     return state;
 }
 
