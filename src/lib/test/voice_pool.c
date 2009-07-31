@@ -226,7 +226,7 @@ START_TEST (mix)
     Voice_init(v1, Instrument_get_gen(ins, 0));
     fail_unless(Voice_add_event(v1, ev1_on, 0),
             "Voice_add_event() failed.");
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     for (int i = 0; i < 40; ++i)
     {
         if (i % 4 == 0)
@@ -290,7 +290,7 @@ START_TEST (mix)
     Event_set_field(ev2_on, 2, &octave);
     fail_unless(Voice_add_event(v2, ev2_on, 2),
             "Voice_add_event() failed.");
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
     fail_unless(bufs[0][1] > 0.49 && bufs[0][1] < 0.51,
@@ -378,7 +378,7 @@ START_TEST (mix)
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(v2, ev2_off, 20),
             "Voice_add_event() failed.");
-    Voice_pool_mix(pool, 22, 0, 8);
+    Voice_pool_mix(pool, 22, 0, 8, 120);
     Voice* v3 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v3 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
@@ -389,7 +389,7 @@ START_TEST (mix)
             "Voice_add_event() failed.");
     fail_unless(Voice_pool_get_voice(pool, v1, id1) == v1,
             "A higher-priority Voice was killed.");
-    Voice_pool_mix(pool, 128, 22, 8);
+    Voice_pool_mix(pool, 128, 22, 8, 120);
     for (int i = 0; i < 20; ++i)
     {
         if (i % 8 == 0)
@@ -457,7 +457,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (mix_break_pool_null)
 {
-    Voice_pool_mix(NULL, 0, 0, 1);
+    Voice_pool_mix(NULL, 0, 0, 1, 120);
 }
 END_TEST
 
@@ -469,7 +469,7 @@ START_TEST (mix_break_freq_inv)
         fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
         return;
     }
-    Voice_pool_mix(pool, 0, 0, 0);
+    Voice_pool_mix(pool, 0, 0, 0, 120);
     del_Voice_pool(pool);
 }
 END_TEST

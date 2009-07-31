@@ -171,8 +171,8 @@ uint16_t Voice_pool_get_size(Voice_pool* pool)
 
 
 Voice* Voice_pool_get_voice(Voice_pool* pool,
-        Voice* voice,
-        uint64_t id)
+                            Voice* voice,
+                            uint64_t id)
 {
     assert(pool != NULL);
     if (voice == NULL)
@@ -195,9 +195,10 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
 
 
 uint16_t Voice_pool_mix(Voice_pool* pool,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq)
+                        uint32_t amount,
+                        uint32_t offset,
+                        uint32_t freq,
+                        double tempo)
 {
     assert(pool != NULL);
     assert(freq > 0);
@@ -206,7 +207,7 @@ uint16_t Voice_pool_mix(Voice_pool* pool,
     {
         if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
         {
-            Voice_mix(pool->voices[i], amount, offset, freq);
+            Voice_mix(pool->voices[i], amount, offset, freq, tempo);
             ++active_voices;
         }
     }

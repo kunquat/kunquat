@@ -50,7 +50,7 @@ typedef struct Generator
     bool (*read)(struct Generator*, File_tree*, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
-    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t,
+    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
                 int, kqt_frame**);
     Instrument_params* ins_params;
 } Generator;
@@ -118,12 +118,14 @@ void Generator_process_note(Generator* ins,
  * \param offset    The starting frame offset (\a nframes - \a offset are
  *                  actually mixed).
  * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The current tempo -- must be > \c 0.
  */
 void Generator_mix(Generator* gen,
                    Voice_state* state,
                    uint32_t nframes,
                    uint32_t offset,
-                   uint32_t freq);
+                   uint32_t freq,
+                   double tempo);
 
 
 /**

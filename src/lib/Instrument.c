@@ -326,7 +326,7 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
-        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq);
+        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq, 120);
     }
     return;
 }

@@ -235,6 +235,7 @@ uint64_t Sample_get_loop_end(Sample* sample);
  * \param nframes       The number of frames to be mixed.
  * \param offset        The buffer offset.
  * \param freq          The mixing frequency -- must be > \c 0.
+ * \param tempo         The tempo -- must be > \c 0.
  * \param middle_tone   The frequency of the sound in the native speed of the
  *                      Sample -- must be > \c 0.
  * \param middle_freq   The mixing speed of the Sample used for playing
@@ -246,6 +247,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t nframes,
                     uint32_t offset,
                     uint32_t freq,
+                    double tempo,
                     int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,

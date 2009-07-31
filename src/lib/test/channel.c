@@ -192,7 +192,7 @@ START_TEST (set_voices)
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     for (int i = 0; i < 40; ++i)
     {
         if (i % 4 == 0)
@@ -228,7 +228,7 @@ START_TEST (set_voices)
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8);
+        Voice_pool_mix(pool, i + 1, i, 8, 120);
     }
     for (int i = 0; i < 40; ++i)
     {
@@ -292,7 +292,7 @@ START_TEST (set_voices)
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
     fail_unless(bufs[0][1] > 0.49 && bufs[0][1] < 0.51,
@@ -350,7 +350,7 @@ START_TEST (set_voices)
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8);
+        Voice_pool_mix(pool, i + 1, i, 8, 120);
     }
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);

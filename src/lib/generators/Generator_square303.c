@@ -109,6 +109,7 @@ uint32_t Generator_square303_mix(Generator* gen,
                                  uint32_t nframes,
                                  uint32_t offset,
                                  uint32_t freq,
+                                 double tempo,
                                  int buf_count,
                                  kqt_frame** bufs)
 {
@@ -117,6 +118,7 @@ uint32_t Generator_square303_mix(Generator* gen,
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     (void)buf_count;
     assert(bufs != NULL);

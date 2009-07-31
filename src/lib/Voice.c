@@ -105,9 +105,10 @@ bool Voice_add_event(Voice* voice, Event* event, uint32_t pos)
 
 
 void Voice_mix(Voice* voice,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq)
+               uint32_t nframes,
+               uint32_t offset,
+               uint32_t freq,
+               double tempo)
 {
     assert(voice != NULL);
     assert(voice->gen != NULL);
@@ -132,7 +133,7 @@ void Voice_mix(Voice* voice,
         }
         if (voice->prio < VOICE_PRIO_NEW)
         {
-            Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq);
+            Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq, tempo);
         }
         else
         {

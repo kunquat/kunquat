@@ -415,6 +415,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
                            uint32_t nframes,
                            uint32_t offset,
                            uint32_t freq,
+                           double tempo,
                            int buf_count,
                            kqt_frame** bufs)
 {
@@ -423,6 +424,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
@@ -452,7 +454,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         state->active = false;
         return offset;
     }
-    return Sample_mix(sample, gen, state, nframes, offset, freq, buf_count, bufs,
+    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, buf_count, bufs,
                       pcm_state->middle_tone, pcm_state->freq);
 }
 

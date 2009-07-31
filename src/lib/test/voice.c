@@ -131,7 +131,7 @@ START_TEST (mix)
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 8);
+    Voice_mix(voice, 128, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 40; ++i)
@@ -173,10 +173,10 @@ START_TEST (mix)
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(voice, ev_off, 20),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 20, 0, 8);
+    Voice_mix(voice, 20, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_BG,
             "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
-    Voice_mix(voice, 128, 20, 8);
+    Voice_mix(voice, 128, 20, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 20; ++i)
@@ -233,7 +233,7 @@ START_TEST (mix)
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(voice, ev_off, 70),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 16);
+    Voice_mix(voice, 128, 0, 16, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 70; ++i)
@@ -279,7 +279,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (mix_break_voice_null)
 {
-    Voice_mix(NULL, 1, 0, 1);
+    Voice_mix(NULL, 1, 0, 1, 120);
 }
 END_TEST
 
@@ -324,7 +324,7 @@ START_TEST (mix_break_freq_inv)
     }
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 1, 0, 0);
+    Voice_mix(voice, 1, 0, 0, 120);
     del_Voice(voice);
 }
 END_TEST

@@ -147,7 +147,7 @@ uint32_t Reltime_toframes(const Reltime* r,
     assert(r->beats >= 0);
     assert(tempo > 0);
     assert(freq > 0);
-    return (long)((r->beats
+    return (uint32_t)((r->beats
             + ((double)r->rem / KQT_RELTIME_BEAT)) * 60 * freq / tempo);
 }
 
@@ -161,8 +161,8 @@ Reltime* Reltime_fromframes(Reltime* r,
     assert(tempo > 0);
     assert(freq > 0);
     double val = (double)frames * tempo / freq / 60;
-    r->beats = (long long)val;
-    r->rem = (long)((val - r->beats) * KQT_RELTIME_BEAT);
+    r->beats = (int64_t)val;
+    r->rem = (int32_t)((val - r->beats) * KQT_RELTIME_BEAT);
     return r;
 }
 

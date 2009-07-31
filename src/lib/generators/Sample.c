@@ -305,6 +305,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t nframes,
                     uint32_t offset,
                     uint32_t freq,
+                    double tempo,
                     int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,
@@ -314,6 +315,7 @@ uint32_t Sample_mix(Sample* sample,
     assert(gen != NULL);
     assert(state != NULL);
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     (void)buf_count;
     assert(bufs != NULL);
