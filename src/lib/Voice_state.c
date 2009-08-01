@@ -66,10 +66,16 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->off_ve_pos = 0;
 
     state->force = 1;
+    state->actual_force = 1;
     state->force_slide = 0;
     state->force_slide_target = 1;
     state->force_slide_frames = 0;
     state->force_slide_update = 1;
+    state->tremolo = false;
+    state->tremolo_length = 0;
+    state->tremolo_depth = 0;
+    state->tremolo_phase = 0;
+    state->tremolo_update = 0;
     return state;
 }
 

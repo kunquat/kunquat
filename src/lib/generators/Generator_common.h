@@ -28,6 +28,7 @@
 #include <Voice_state.h>
 #include <Generator.h>
 #include <kunquat/frame.h>
+#include <math_common.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)
@@ -63,6 +64,23 @@
                         (state)->force_slide_frames * (freq) / (state)->mix_freq; \
                 (state)->force_slide_frames =                                     \
                         (state)->force_slide_frames * (state)->tempo / (tempo);   \
+            }                                                                     \
+            if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
+            {                                                                     \
+                fprintf(stderr, "%f %f %f", (state)->tremolo_length, (state)->tremolo_phase, (state)->tremolo_update); \
+                (state)->tremolo_length =                                         \
+                        (state)->tremolo_length * (freq) / (state)->mix_freq;     \
+                (state)->tremolo_length =                                         \
+                        (state)->tremolo_length * (state)->tempo / (tempo);       \
+                (state)->tremolo_phase =                                          \
+                        (state)->tremolo_phase * (freq) / (state)->mix_freq;      \
+                (state)->tremolo_phase =                                          \
+                        (state)->tremolo_phase * (state)->tempo / (tempo);        \
+                (state)->tremolo_update =                                         \
+                        (state)->tremolo_update * (state)->mix_freq / (freq);     \
+                (state)->tremolo_update =                                         \
+                        (state)->tremolo_update * (tempo) / (state)->tempo;       \
+                fprintf(stderr, " -> %f %f %f\n", (state)->tremolo_length, (state)->tremolo_phase, (state)->tremolo_update); \
             }                                                                     \
             (state)->mix_freq = (freq);                                           \
             (state)->tempo = (tempo);                                             \
@@ -125,40 +143,71 @@
     } while (false)
 
 
-#define Generator_common_handle_force(gen, state, frames, frame_count) \
-    do                                                                 \
-    {                                                                  \
-        if ((state)->force_slide != 0)                                 \
-        {                                                              \
-            (state)->force *= (state)->force_slide_update;             \
-            (state)->force_slide_frames -= 1;                          \
-            if ((state)->force_slide_frames <= 0)                      \
-            {                                                          \
-                (state)->force = (state)->force_slide_target;          \
-                (state)->force_slide = 0;                              \
-            }                                                          \
-            else if ((state)->force_slide == 1)                        \
-            {                                                          \
-                if ((state)->force > (state)->force_slide_target)      \
-                {                                                      \
-                    (state)->force = (state)->force_slide_target;      \
-                    (state)->force_slide = 0;                          \
-                }                                                      \
-            }                                                          \
-            else                                                       \
-            {                                                          \
-                assert((state)->force_slide == -1);                    \
-                if ((state)->force < (state)->force_slide_target)      \
-                {                                                      \
-                    (state)->force = (state)->force_slide_target;      \
-                    (state)->force_slide = 0;                          \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        for (int i = 0; i < (frame_count); ++i)                        \
-        {                                                              \
-            (frames)[i] *= (state)->force;                             \
-        }                                                              \
+#define Generator_common_handle_force(gen, state, frames, frame_count)        \
+    do                                                                        \
+    {                                                                         \
+        if ((state)->force_slide != 0)                                        \
+        {                                                                     \
+            (state)->force *= (state)->force_slide_update;                    \
+            (state)->force_slide_frames -= 1;                                 \
+            if ((state)->force_slide_frames <= 0)                             \
+            {                                                                 \
+                (state)->force = (state)->force_slide_target;                 \
+                (state)->force_slide = 0;                                     \
+            }                                                                 \
+            else if ((state)->force_slide == 1)                               \
+            {                                                                 \
+                if ((state)->force > (state)->force_slide_target)             \
+                {                                                             \
+                    (state)->force = (state)->force_slide_target;             \
+                    (state)->force_slide = 0;                                 \
+                }                                                             \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                assert((state)->force_slide == -1);                           \
+                if ((state)->force < (state)->force_slide_target)             \
+                {                                                             \
+                    (state)->force = (state)->force_slide_target;             \
+                    (state)->force_slide = 0;                                 \
+                }                                                             \
+            }                                                                 \
+        }                                                                     \
+        (state)->actual_force = (state)->force;                               \
+        if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
+        {                                                                     \
+            double fac_dB = sin((state)->tremolo_phase) *                     \
+                    (state)->tremolo_depth;                                   \
+            (state)->actual_force *= exp2(fac_dB / 6);                        \
+            if (!(state)->tremolo &&                                          \
+                    (state)->tremolo_length > (state)->mix_freq)              \
+            {                                                                 \
+                (state)->tremolo_length = (state)->mix_freq;                  \
+                (state)->tremolo_update = (2 * PI) * (state)->tremolo_length; \
+            }                                                                 \
+            double new_phase = (state)->tremolo_phase +                       \
+                    (state)->tremolo_update;                                  \
+            if (new_phase >= (2 * PI))                                        \
+            {                                                                 \
+                new_phase = fmod(new_phase, (2 * PI));                        \
+            }                                                                 \
+            if (!(state)->tremolo && (new_phase < (state)->tremolo_phase      \
+                        || (new_phase >= PI && (state)->tremolo_phase < PI))) \
+            {                                                                 \
+                (state)->tremolo_length = 0;                                  \
+                (state)->tremolo_depth = 0;                                   \
+                (state)->tremolo_phase = 0;                                   \
+                (state)->tremolo_update = 0;                                  \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                (state)->tremolo_phase = new_phase;                           \
+            }                                                                 \
+        }                                                                     \
+        for (int i = 0; i < (frame_count); ++i)                               \
+        {                                                                     \
+            (frames)[i] *= (state)->actual_force;                             \
+        }                                                                     \
     } while (false)
 
 

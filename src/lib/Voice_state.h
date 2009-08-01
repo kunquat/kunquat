@@ -54,10 +54,16 @@ typedef struct Voice_state
     double off_ve_pos;           ///< Note Off volume envelope position.
                                 
     double force;                ///< The current force (linear factor).
+    double actual_force;         ///< The current actual force (includes tremolo).
     int force_slide;             ///< Force slide state (0 = no slide, -1 = down, 1 = up).
     double force_slide_target;   ///< Target force of the slide.
     double force_slide_frames;   ///< Number of frames left to complete the slide.
     double force_slide_update;   ///< The update factor of the slide.
+    bool tremolo;                ///< Tremolo enabled.
+    double tremolo_length;       ///< Length of the tremolo phase.
+    double tremolo_depth;        ///< Depth of the tremolo.
+    double tremolo_phase;        ///< Phase of the tremolo.
+    double tremolo_update;       ///< Update of the tremolo.
 } Voice_state;
 
 

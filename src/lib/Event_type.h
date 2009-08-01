@@ -41,6 +41,7 @@ typedef enum
     EVENT_VOICE_NOTE_OFF    = 129, ///< Note Off event.
     EVENT_VOICE_SET_FORCE   = 130, ///< Set Force.
     EVENT_VOICE_SLIDE_FORCE = 131, ///< Slide Force.
+    EVENT_VOICE_TREMOLO     = 132, ///< Tremolo.
     EVENT_LAST                     ///< Sentinel -- never used as a valid type.
 } Event_type;
 
