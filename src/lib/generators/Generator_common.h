@@ -65,6 +65,21 @@
                 (state)->pitch_slide_frames =                                     \
                         (state)->pitch_slide_frames * (state)->tempo / (tempo);   \
             }                                                                     \
+            if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
+            {                                                                     \
+                (state)->vibrato_length =                                         \
+                        (state)->vibrato_length * (freq) / (state)->freq;         \
+                (state)->vibrato_length =                                         \
+                        (state)->vibrato_length * (state)->tempo / (tempo);       \
+                (state)->vibrato_phase =                                          \
+                        (state)->vibrato_phase * (freq) / (state)->freq;          \
+                (state)->vibrato_phase =                                          \
+                        (state)->vibrato_phase * (state)->tempo / (tempo);        \
+                (state)->vibrato_update =                                         \
+                        (state)->vibrato_update * (state)->freq / (freq);         \
+                (state)->vibrato_update =                                         \
+                        (state)->vibrato_update * (tempo) / (state)->tempo;       \
+            }                                                                     \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
                 double update_dB = log2((state)->force_slide_update) * 6;         \
@@ -152,37 +167,67 @@
     } while (false)
 
 
-#define Generator_common_handle_pitch(gen, state)                      \
-    do                                                                 \
-    {                                                                  \
-        if ((state)->pitch_slide != 0)                                 \
-        {                                                              \
-            (state)->pitch *= (state)->pitch_slide_update;             \
-            (state)->pitch_slide_frames -= 1;                          \
-            if ((state)->pitch_slide_frames <= 0)                      \
-            {                                                          \
-                (state)->pitch = (state)->pitch_slide_target;          \
-                (state)->pitch_slide = 0;                              \
-            }                                                          \
-            else if ((state)->pitch_slide == 1)                        \
-            {                                                          \
-                if ((state)->pitch > (state)->pitch_slide_target)      \
-                {                                                      \
-                    (state)->pitch = (state)->pitch_slide_target;      \
-                    (state)->pitch_slide = 0;                          \
-                }                                                      \
-            }                                                          \
-            else                                                       \
-            {                                                          \
-                assert((state)->pitch_slide == -1);                    \
-                if ((state)->pitch < (state)->pitch_slide_target)      \
-                {                                                      \
-                    (state)->pitch = (state)->pitch_slide_target;      \
-                    (state)->pitch_slide = 0;                          \
-                }                                                      \
-            }                                                          \
-        }                                                              \
-        (state)->actual_pitch = (state)->pitch;                        \
+#define Generator_common_handle_pitch(gen, state)                             \
+    do                                                                        \
+    {                                                                         \
+        if ((state)->pitch_slide != 0)                                        \
+        {                                                                     \
+            (state)->pitch *= (state)->pitch_slide_update;                    \
+            (state)->pitch_slide_frames -= 1;                                 \
+            if ((state)->pitch_slide_frames <= 0)                             \
+            {                                                                 \
+                (state)->pitch = (state)->pitch_slide_target;                 \
+                (state)->pitch_slide = 0;                                     \
+            }                                                                 \
+            else if ((state)->pitch_slide == 1)                               \
+            {                                                                 \
+                if ((state)->pitch > (state)->pitch_slide_target)             \
+                {                                                             \
+                    (state)->pitch = (state)->pitch_slide_target;             \
+                    (state)->pitch_slide = 0;                                 \
+                }                                                             \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                assert((state)->pitch_slide == -1);                           \
+                if ((state)->pitch < (state)->pitch_slide_target)             \
+                {                                                             \
+                    (state)->pitch = (state)->pitch_slide_target;             \
+                    (state)->pitch_slide = 0;                                 \
+                }                                                             \
+            }                                                                 \
+        }                                                                     \
+        (state)->actual_pitch = (state)->pitch;                               \
+        if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
+        {                                                                     \
+            double fac_log = sin((state)->vibrato_phase) *                    \
+                    (state)->vibrato_depth;                                   \
+            (state)->actual_pitch *= exp2(fac_log);                           \
+            if (!(state)->vibrato &&                                          \
+                    (state)->vibrato_length > (state)->freq)                  \
+            {                                                                 \
+                (state)->vibrato_length = (state)->freq;                      \
+                (state)->vibrato_update = (2 * PI) / (state)->vibrato_length; \
+            }                                                                 \
+            double new_phase = (state)->vibrato_phase +                       \
+                    (state)->vibrato_update;                                  \
+            if (new_phase >= (2 * PI))                                        \
+            {                                                                 \
+                new_phase = fmod(new_phase, (2 * PI));                        \
+            }                                                                 \
+            if (!(state)->vibrato && (new_phase < (state)->vibrato_phase      \
+                    || (new_phase >= PI && (state)->vibrato_phase < PI)))     \
+            {                                                                 \
+                (state)->vibrato_length = 0;                                  \
+                (state)->vibrato_depth = 0;                                   \
+                (state)->vibrato_phase = 0;                                   \
+                (state)->vibrato_update = 0;                                  \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                (state)->vibrato_phase = new_phase;                           \
+            }                                                                 \
+        }                                                                     \
     } while (false)
 
 
@@ -226,7 +271,7 @@
                     (state)->tremolo_length > (state)->freq)                  \
             {                                                                 \
                 (state)->tremolo_length = (state)->freq;                      \
-                (state)->tremolo_update = (2 * PI) * (state)->tremolo_length; \
+                (state)->tremolo_update = (2 * PI) / (state)->tremolo_length; \
             }                                                                 \
             double new_phase = (state)->tremolo_phase +                       \
                     (state)->tremolo_update;                                  \

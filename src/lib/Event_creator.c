@@ -33,6 +33,7 @@
 #include <Event_voice_slide_force.h>
 #include <Event_voice_tremolo.h>
 #include <Event_voice_slide_pitch.h>
+#include <Event_voice_vibrato.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -53,6 +54,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force;
         cons[EVENT_VOICE_TREMOLO] = new_Event_voice_tremolo;
         cons[EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch;
+        cons[EVENT_VOICE_VIBRATO] = new_Event_voice_vibrato;
         cons_initialised = true;
     }
     if (cons[type] == NULL)
