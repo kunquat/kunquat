@@ -656,12 +656,12 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(state != NULL);
-    pitch_t freq = state->parent.freq;
+    pitch_t pitch = state->parent.pitch;
     double force = state->parent.force;
-//    fprintf(stderr, "searching list for %f Hz, %f dB... ", freq, force);
+//    fprintf(stderr, "searching list for %f Hz, %f dB... ", pitch, force);
     uint8_t source = state->source;
     uint8_t expr = state->expr;
-    assert(freq > 0);
+    assert(pitch > 0);
     assert(isfinite(force));
     assert(source < PCM_SOURCES_MAX);
     assert(expr < PCM_EXPRESSIONS_MAX);
@@ -673,8 +673,8 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
         return NULL;
     }
     Random_list* key = &(Random_list){ .force = force,
-                                       .freq = freq,
-                                       .freq_tone = log(freq) };
+                                       .freq = pitch,
+                                       .freq_tone = log(pitch) };
     AAiter_change_tree(pcm->iter, map);
     Random_list* estimate_low = AAiter_get_at_most(pcm->iter, key);
     Random_list* choice = NULL;

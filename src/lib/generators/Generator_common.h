@@ -52,37 +52,35 @@
 #define Generator_common_check_relative_lengths(gen, state, freq, tempo)          \
     do                                                                            \
     {                                                                             \
-        if ((state)->mix_freq != (freq) || (state)->tempo != (tempo))             \
+        if ((state)->freq != (freq) || (state)->tempo != (tempo))                 \
         {                                                                         \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
                 double update_dB = log2((state)->force_slide_update) * 6;         \
-                update_dB = update_dB * (state)->mix_freq / (freq);               \
+                update_dB = update_dB * (state)->freq / (freq);                   \
                 update_dB = update_dB * (tempo) / (state)->tempo;                 \
                 (state)->force_slide_update = exp2(update_dB / 6);                \
                 (state)->force_slide_frames =                                     \
-                        (state)->force_slide_frames * (freq) / (state)->mix_freq; \
+                        (state)->force_slide_frames * (freq) / (state)->freq;     \
                 (state)->force_slide_frames =                                     \
                         (state)->force_slide_frames * (state)->tempo / (tempo);   \
             }                                                                     \
             if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
             {                                                                     \
-                fprintf(stderr, "%f %f %f", (state)->tremolo_length, (state)->tremolo_phase, (state)->tremolo_update); \
                 (state)->tremolo_length =                                         \
-                        (state)->tremolo_length * (freq) / (state)->mix_freq;     \
+                        (state)->tremolo_length * (freq) / (state)->freq;         \
                 (state)->tremolo_length =                                         \
                         (state)->tremolo_length * (state)->tempo / (tempo);       \
                 (state)->tremolo_phase =                                          \
-                        (state)->tremolo_phase * (freq) / (state)->mix_freq;      \
+                        (state)->tremolo_phase * (freq) / (state)->freq;          \
                 (state)->tremolo_phase =                                          \
                         (state)->tremolo_phase * (state)->tempo / (tempo);        \
                 (state)->tremolo_update =                                         \
-                        (state)->tremolo_update * (state)->mix_freq / (freq);     \
+                        (state)->tremolo_update * (state)->freq / (freq);         \
                 (state)->tremolo_update =                                         \
                         (state)->tremolo_update * (tempo) / (state)->tempo;       \
-                fprintf(stderr, " -> %f %f %f\n", (state)->tremolo_length, (state)->tremolo_phase, (state)->tremolo_update); \
             }                                                                     \
-            (state)->mix_freq = (freq);                                           \
+            (state)->freq = (freq);                                               \
             (state)->tempo = (tempo);                                             \
         }                                                                         \
     } while (false)
@@ -180,9 +178,9 @@
                     (state)->tremolo_depth;                                   \
             (state)->actual_force *= exp2(fac_dB / 6);                        \
             if (!(state)->tremolo &&                                          \
-                    (state)->tremolo_length > (state)->mix_freq)              \
+                    (state)->tremolo_length > (state)->freq)                  \
             {                                                                 \
-                (state)->tremolo_length = (state)->mix_freq;                  \
+                (state)->tremolo_length = (state)->freq;                      \
                 (state)->tremolo_update = (2 * PI) * (state)->tremolo_length; \
             }                                                                 \
             double new_phase = (state)->tremolo_phase +                       \

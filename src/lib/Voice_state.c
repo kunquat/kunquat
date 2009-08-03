@@ -35,7 +35,7 @@ Voice_state* Voice_state_init(Voice_state* state, uint32_t freq, double tempo)
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
-    state->mix_freq = freq;
+    state->freq = freq;
     state->tempo = tempo;
     return state;
 }
@@ -45,12 +45,12 @@ Voice_state* Voice_state_clear(Voice_state* state)
 {
     assert(state != NULL);
     state->active = false;
-    state->mix_freq = 0;
+    state->freq = 0;
     state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
 
-    state->freq = 0;
+    state->pitch = 0;
 
     state->pos = 0;
     state->pos_rem = 0;

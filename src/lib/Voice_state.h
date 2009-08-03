@@ -33,12 +33,12 @@
 typedef struct Voice_state
 {
     bool active;                 ///< Whether there is anything left to process.
-    uint32_t mix_freq;           ///< The last mixing frequency used.
+    uint32_t freq;               ///< The last mixing frequency used.
     double tempo;                ///< The last tempo setting used.
     double ramp_attack;          ///< The current state of volume ramp during attack.
     double ramp_release;         ///< The current state of volume ramp during release.
                                 
-    pitch_t freq;                ///< The frequency at which the note is played.
+    pitch_t pitch;               ///< The frequency at which the note is played.
                                 
     uint64_t pos;                ///< The current playback position.
     double pos_rem;              ///< The current playback position remainder.

@@ -143,7 +143,7 @@ static void Event_voice_tremolo_process(Event_voice* event, Voice* voice)
     {
         double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
                 voice->state.generic.tempo,
-                voice->state.generic.mix_freq);
+                voice->state.generic.freq);
         voice->state.generic.tremolo_length = unit_len / tremolo->speed;
         voice->state.generic.tremolo_update = (2 * PI) / voice->state.generic.tremolo_length;
     }

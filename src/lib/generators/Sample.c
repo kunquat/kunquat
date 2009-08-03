@@ -449,7 +449,7 @@ uint32_t Sample_mix(Sample* sample,
         Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
         bufs[0][i] += vals[0];
         bufs[1][i] += vals[1];
-        double advance = (state->freq / middle_tone) * middle_freq / freq;
+        double advance = (state->pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
         state->pos += adv;

@@ -108,7 +108,7 @@ START_TEST (mix)
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
     Voice_state_init(&state, 64, 120);
-    state.freq = 16;
+    state.pitch = 16;
     Instrument_mix(ins, &state, 128, 0, 64);
     fail_unless(!state.active,
             "Instrument didn't become inactive after finishing mixing.");
@@ -139,7 +139,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 16;
+    state.pitch = 16;
     for (int i = 0; i < 121; i += 7)
     {
         if (i < 40)
@@ -182,7 +182,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 16;
+    state.pitch = 16;
     for (int i = 0; i < 127; ++i)
     {
         if (i < 40)
@@ -226,7 +226,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 16;
+    state.pitch = 16;
     Instrument_mix(ins, &state, 20, 0, 64);
     state.note_on = false;
     Instrument_mix(ins, &state, 128, 20, 64);
@@ -270,7 +270,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 16;
+    state.pitch = 16;
     Instrument_mix(ins, &state, 36, 0, 64);
     state.note_on = false;
     Instrument_mix(ins, &state, 128, 36, 64);
@@ -314,7 +314,7 @@ START_TEST (mix)
         buf_l[i] = 1;
         buf_r[i] = 1;
     }
-    state.freq = 16;
+    state.pitch = 16;
     Instrument_mix(ins, &state, 36, 0, 64);
     state.note_on = false;
     Instrument_mix(ins, &state, 128, 36, 64);
@@ -358,7 +358,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 8;
+    state.pitch = 8;
     Instrument_mix(ins, &state, 128, 0, 64);
     fail_unless(!state.active,
             "Instrument didn't become inactive after finishing mixing.");
@@ -387,7 +387,7 @@ START_TEST (mix)
         buf_l[i] = 0;
         buf_r[i] = 0;
     }
-    state.freq = 8;
+    state.pitch = 8;
     Instrument_mix(ins, &state, 128, 0, 32);
     fail_unless(!state.active,
             "Instrument didn't become inactive after finishing mixing.");

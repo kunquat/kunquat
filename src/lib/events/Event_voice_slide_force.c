@@ -131,13 +131,13 @@ static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_SLIDE_FORCE);
     assert(voice != NULL);
     assert(voice->state.generic.tempo > 0);
-    assert(voice->state.generic.mix_freq > 0);
+    assert(voice->state.generic.freq > 0);
     Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
     voice->state.generic.force_slide_target = exp2(slide_force->target_force / 6);
     voice->state.generic.force_slide_frames =
             Reltime_toframes(&slide_force->length,
                     voice->state.generic.tempo,
-                    voice->state.generic.mix_freq);
+                    voice->state.generic.freq);
     double force_dB = log2(voice->state.generic.force) * 6;
     double dB_step = (slide_force->target_force - force_dB) /
             voice->state.generic.force_slide_frames;

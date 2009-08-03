@@ -116,7 +116,7 @@ uint32_t Generator_sine_mix(Generator* gen,
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = sin(sine_state->phase * PI * 2) / 6;
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        sine_state->phase += state->freq / freq;
+        sine_state->phase += state->pitch / freq;
         if (sine_state->phase >= 1)
         {
             sine_state->phase -= floor(sine_state->phase);

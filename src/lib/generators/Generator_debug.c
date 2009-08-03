@@ -94,10 +94,10 @@ uint32_t Generator_debug_mix(Generator* gen,
         }
         bufs[0][i] += val_l;
         bufs[1][i] += val_r;
-        state->rel_pos_rem += state->freq / freq;
+        state->rel_pos_rem += state->pitch / freq;
         if (!state->note_on)
         {
-            state->noff_pos_rem += state->freq / freq;
+            state->noff_pos_rem += state->pitch / freq;
             if (state->noff_pos_rem >= 2)
             {
                 state->active = false;

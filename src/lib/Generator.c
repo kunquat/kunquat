@@ -221,10 +221,10 @@ void Generator_process_note(Generator* gen,
     {
         return;
     }
-    pitch_t freq = Scale_get_pitch(*gen->ins_params->scale, note, mod, octave);
-    if (freq > 0)
+    pitch_t pitch = Scale_get_pitch(*gen->ins_params->scale, note, mod, octave);
+    if (pitch > 0)
     {
-        state->freq = freq;
+        state->pitch = pitch;
     }
     return;
 }

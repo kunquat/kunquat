@@ -127,7 +127,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
         vals[0] = vals[1] = triangle(triangle_state->phase) / 6;
         Generator_common_handle_force(gen, state, vals, 2);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        triangle_state->phase += state->freq / freq;
+        triangle_state->phase += state->pitch / freq;
         if (triangle_state->phase >= 1)
         {
             triangle_state->phase -= floor(triangle_state->phase);

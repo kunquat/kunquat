@@ -123,7 +123,7 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
         vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
         Generator_common_handle_force(gen, state, vals, 2);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        sawtooth_state->phase += state->freq / freq;
+        sawtooth_state->phase += state->pitch / freq;
         if (sawtooth_state->phase >= 1)
         {
             sawtooth_state->phase -= floor(sawtooth_state->phase);
