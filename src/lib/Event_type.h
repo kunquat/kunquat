@@ -30,19 +30,39 @@
 
 typedef enum
 {
-    EVENT_NONE = 0,                ///< An uninitialised event.
-    EVENT_GENERAL_COND,            ///< Evaluate a conditional expression.
-    EVENT_GENERAL_LAST      =  63, ///< Sentinel -- never used as a valid type.
-    EVENT_GLOBAL_SET_TEMPO  =  64, ///< Set tempo. (BPM (float))
-    EVENT_GLOBAL_SET_VOLUME =  65, ///< Set global volume.
-    EVENT_GLOBAL_SET_VAR,          ///< Set a variable.
-    EVENT_GLOBAL_LAST       = 127, ///< Sentinel -- never used as a valid type.
-    EVENT_VOICE_NOTE_ON     = 128, ///< Note On event. (note, modifier, octave, instrument)
-    EVENT_VOICE_NOTE_OFF    = 129, ///< Note Off event.
-    EVENT_VOICE_SET_FORCE   = 130, ///< Set Force.
-    EVENT_VOICE_SLIDE_FORCE = 131, ///< Slide Force.
-    EVENT_VOICE_TREMOLO     = 132, ///< Tremolo.
-    EVENT_LAST                     ///< Sentinel -- never used as a valid type.
+    EVENT_NONE = 0,                   ///< An uninitialised event.
+    EVENT_GENERAL_COND,               ///< Evaluate a conditional expression.
+    EVENT_GENERAL_LAST         =  63, ///< Sentinel -- never used as a valid type.
+                               
+    EVENT_GLOBAL_SET_TEMPO     =  64, ///< Set tempo. (BPM (float))
+    EVENT_GLOBAL_SLIDE_TEMPO   =  65, ///< Slide tempo.
+                               
+    EVENT_GLOBAL_SET_VOLUME    =  66, ///< Set global volume.
+    EVENT_GLOBAL_SLIDE_VOLUME  =  67, ///< Slide global volume.
+                               
+    EVENT_GLOBAL_SET_VAR,             ///< Set a variable.
+                               
+    EVENT_GLOBAL_LAST          = 127, ///< Sentinel -- never used as a valid type.
+                               
+    EVENT_VOICE_NOTE_ON        = 128, ///< Note On event. (note, modifier, octave, instrument)
+    EVENT_VOICE_NOTE_OFF       = 129, ///< Note Off event.
+                               
+    EVENT_VOICE_SET_FORCE      = 130, ///< Set Force.
+    EVENT_VOICE_SLIDE_FORCE    = 131, ///< Slide Force.
+    EVENT_VOICE_TREMOLO        = 132, ///< Tremolo.
+                               
+    EVENT_VOICE_SLIDE_PITCH    = 133, ///< Slide pitch.
+    EVENT_VOICE_VIBRATO        = 134, ///< Vibrato.
+    EVENT_VOICE_ARPEGGIO       = 135, ///< Arpeggio.
+                               
+    EVENT_VOICE_SET_FILTER     = 136, ///< Set filter.
+    EVENT_VOICE_SLIDE_FILTER   = 137, ///< Slide filter cut-off.
+    EVENT_VOICE_FILTER_LFO     = 138, ///< Oscillate filter cut-off.
+
+    EVENT_VOICE_SET_PAN        = 139, ///< Set panning position.
+    EVENT_VOICE_SLIDE_PAN      = 140, ///< Slide panning position.
+
+    EVENT_LAST                        ///< Sentinel -- never used as a valid type.
 } Event_type;
 
 
