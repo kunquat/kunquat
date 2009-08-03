@@ -42,7 +42,7 @@ static Event_field_desc slide_force_desc[] =
     },
     {
         .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT } }
+        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
     },
     {
         .type = EVENT_FIELD_NONE
@@ -138,6 +138,11 @@ static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)
             Reltime_toframes(&slide_force->length,
                     voice->state.generic.tempo,
                     voice->state.generic.freq);
+    if (voice->state.generic.force_slide_frames == 0)
+    {
+        voice->state.generic.force = voice->state.generic.force_slide_target;
+        return;
+    }
     double force_dB = log2(voice->state.generic.force) * 6;
     double dB_step = (slide_force->target_force - force_dB) /
             voice->state.generic.force_slide_frames;

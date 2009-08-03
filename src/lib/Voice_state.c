@@ -51,6 +51,16 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->ramp_release = 0;
 
     state->pitch = 0;
+    state->actual_pitch = 0;
+    state->pitch_slide = 0;
+    state->pitch_slide_target = 0;
+    state->pitch_slide_frames = 0;
+    state->pitch_slide_update = 1;
+    state->vibrato = false;
+    state->vibrato_length = 0;
+    state->vibrato_depth = 0;
+    state->vibrato_phase = 0;
+    state->vibrato_update = 0;
 
     state->pos = 0;
     state->pos_rem = 0;

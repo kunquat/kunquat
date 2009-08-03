@@ -122,8 +122,9 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
         Generator_common_handle_force(gen, state, vals, 2);
+        Generator_common_handle_pitch(gen, state);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        sawtooth_state->phase += state->pitch / freq;
+        sawtooth_state->phase += state->actual_pitch / freq;
         if (sawtooth_state->phase >= 1)
         {
             sawtooth_state->phase -= floor(sawtooth_state->phase);

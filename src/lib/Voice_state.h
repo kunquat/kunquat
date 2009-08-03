@@ -32,38 +32,48 @@
 
 typedef struct Voice_state
 {
-    bool active;                 ///< Whether there is anything left to process.
-    uint32_t freq;               ///< The last mixing frequency used.
-    double tempo;                ///< The last tempo setting used.
-    double ramp_attack;          ///< The current state of volume ramp during attack.
-    double ramp_release;         ///< The current state of volume ramp during release.
-                                
-    pitch_t pitch;               ///< The frequency at which the note is played.
-                                
-    uint64_t pos;                ///< The current playback position.
-    double pos_rem;              ///< The current playback position remainder.
-    uint64_t rel_pos;            ///< The current relative playback position.
-    double rel_pos_rem;          ///< The current relative playback position remainder.
-    double dir;                  ///< The current playback direction.
-    bool note_on;                ///< Whether the note is still on.
-    uint64_t noff_pos;           ///< Note Off position.
-    double noff_pos_rem;         ///< Note Off position remainder.
-
-    bool pedal;                  ///< Whether the pedal is active.
-    double on_ve_pos;            ///< Note On volume envelope position.
-    double off_ve_pos;           ///< Note Off volume envelope position.
-                                
-    double force;                ///< The current force (linear factor).
-    double actual_force;         ///< The current actual force (includes tremolo).
-    int force_slide;             ///< Force slide state (0 = no slide, -1 = down, 1 = up).
-    double force_slide_target;   ///< Target force of the slide.
-    double force_slide_frames;   ///< Number of frames left to complete the slide.
-    double force_slide_update;   ///< The update factor of the slide.
-    bool tremolo;                ///< Tremolo enabled.
-    double tremolo_length;       ///< Length of the tremolo phase.
-    double tremolo_depth;        ///< Depth of the tremolo.
-    double tremolo_phase;        ///< Phase of the tremolo.
-    double tremolo_update;       ///< Update of the tremolo.
+    bool active;                  ///< Whether there is anything left to process.
+    uint32_t freq;                ///< The last mixing frequency used.
+    double tempo;                 ///< The last tempo setting used.
+    double ramp_attack;           ///< The current state of volume ramp during attack.
+    double ramp_release;          ///< The current state of volume ramp during release.
+                                 
+    pitch_t pitch;                ///< The frequency at which the note is played.
+    pitch_t actual_pitch;         ///< The actual frequency (includes vibrato).
+    int pitch_slide;              ///< Pitch slide state (0 = no slide, -1 = down, 1 = up).
+    pitch_t pitch_slide_target;   ///< Target pitch of the slide.
+    double pitch_slide_frames;    ///< Number of frames left to complete the slide.
+    double pitch_slide_update;    ///< The update factor of the slide.
+    bool vibrato;                 ///< Vibrato enabled.
+    double vibrato_length;        ///< Length of the vibrato phase.
+    double vibrato_depth;         ///< Depth of the vibrato.
+    double vibrato_phase;         ///< Phase of the vibrato.
+    double vibrato_update;        ///< The update amount of the vibrato phase.
+                                 
+    uint64_t pos;                 ///< The current playback position.
+    double pos_rem;               ///< The current playback position remainder.
+    uint64_t rel_pos;             ///< The current relative playback position.
+    double rel_pos_rem;           ///< The current relative playback position remainder.
+    double dir;                   ///< The current playback direction.
+    bool note_on;                 ///< Whether the note is still on.
+    uint64_t noff_pos;            ///< Note Off position.
+    double noff_pos_rem;          ///< Note Off position remainder.
+                                 
+    bool pedal;                   ///< Whether the pedal is active.
+    double on_ve_pos;             ///< Note On volume envelope position.
+    double off_ve_pos;            ///< Note Off volume envelope position.
+                                 
+    double force;                 ///< The current force (linear factor).
+    double actual_force;          ///< The current actual force (includes tremolo).
+    int force_slide;              ///< Force slide state (0 = no slide, -1 = down, 1 = up).
+    double force_slide_target;    ///< Target force of the slide.
+    double force_slide_frames;    ///< Number of frames left to complete the slide.
+    double force_slide_update;    ///< The update factor of the slide.
+    bool tremolo;                 ///< Tremolo enabled.
+    double tremolo_length;        ///< Length of the tremolo phase.
+    double tremolo_depth;         ///< Depth of the tremolo.
+    double tremolo_phase;         ///< Phase of the tremolo.
+    double tremolo_update;        ///< The update amount of the tremolo phase.
 } Voice_state;
 
 

@@ -54,6 +54,17 @@
     {                                                                             \
         if ((state)->freq != (freq) || (state)->tempo != (tempo))                 \
         {                                                                         \
+            if ((state)->pitch_slide != 0)                                        \
+            {                                                                     \
+                double slide_step = log2((state)->pitch_slide_update);            \
+                slide_step = slide_step * (state)->freq / (freq);                 \
+                slide_step = slide_step * (tempo) / (state)->tempo;               \
+                (state)->pitch_slide_update = exp2(slide_step);                   \
+                (state)->pitch_slide_frames =                                     \
+                        (state)->pitch_slide_frames * (freq) / (state)->freq;     \
+                (state)->pitch_slide_frames =                                     \
+                        (state)->pitch_slide_frames * (state)->tempo / (tempo);   \
+            }                                                                     \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
                 double update_dB = log2((state)->force_slide_update) * 6;         \
@@ -138,6 +149,40 @@
                 (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
             }                                                                        \
         }                                                                            \
+    } while (false)
+
+
+#define Generator_common_handle_pitch(gen, state)                      \
+    do                                                                 \
+    {                                                                  \
+        if ((state)->pitch_slide != 0)                                 \
+        {                                                              \
+            (state)->pitch *= (state)->pitch_slide_update;             \
+            (state)->pitch_slide_frames -= 1;                          \
+            if ((state)->pitch_slide_frames <= 0)                      \
+            {                                                          \
+                (state)->pitch = (state)->pitch_slide_target;          \
+                (state)->pitch_slide = 0;                              \
+            }                                                          \
+            else if ((state)->pitch_slide == 1)                        \
+            {                                                          \
+                if ((state)->pitch > (state)->pitch_slide_target)      \
+                {                                                      \
+                    (state)->pitch = (state)->pitch_slide_target;      \
+                    (state)->pitch_slide = 0;                          \
+                }                                                      \
+            }                                                          \
+            else                                                       \
+            {                                                          \
+                assert((state)->pitch_slide == -1);                    \
+                if ((state)->pitch < (state)->pitch_slide_target)      \
+                {                                                      \
+                    (state)->pitch = (state)->pitch_slide_target;      \
+                    (state)->pitch_slide = 0;                          \
+                }                                                      \
+            }                                                          \
+        }                                                              \
+        (state)->actual_pitch = (state)->pitch;                        \
     } while (false)
 
 
