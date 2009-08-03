@@ -28,6 +28,7 @@
 #include <Voice_state.h>
 #include <Generator.h>
 #include <kunquat/frame.h>
+#include <kunquat/limits.h>
 #include <math_common.h>
 
 
@@ -79,6 +80,17 @@
                         (state)->vibrato_update * (state)->freq / (freq);         \
                 (state)->vibrato_update =                                         \
                         (state)->vibrato_update * (tempo) / (state)->tempo;       \
+            }                                                                     \
+            if ((state)->arpeggio)                                                \
+            {                                                                     \
+                (state)->arpeggio_length =                                        \
+                        (state)->arpeggio_length * (freq) / (state)->freq;        \
+                (state)->arpeggio_length =                                        \
+                        (state)->arpeggio_length * (state)->tempo / (tempo);      \
+                (state)->arpeggio_frames =                                        \
+                        (state)->arpeggio_frames * (freq) / (state)->freq;        \
+                (state)->arpeggio_frames =                                        \
+                        (state)->arpeggio_frames * (state)->tempo / (tempo);      \
             }                                                                     \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
@@ -226,6 +238,26 @@
             else                                                              \
             {                                                                 \
                 (state)->vibrato_phase = new_phase;                           \
+            }                                                                 \
+        }                                                                     \
+        if ((state)->arpeggio)                                                \
+        {                                                                     \
+            if ((state)->arpeggio_note > 0)                                   \
+            {                                                                 \
+                (state)->actual_pitch *= (state)->arpeggio_factors[           \
+                        (state)->arpeggio_note - 1];                          \
+            }                                                                 \
+            (state)->arpeggio_frames += 1;                                    \
+            if ((state)->arpeggio_frames >= (state)->arpeggio_length)         \
+            {                                                                 \
+                (state)->arpeggio_frames -= (state)->arpeggio_length;         \
+                ++(state)->arpeggio_note;                                     \
+                if ((state)->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX           \
+                        || (state)->arpeggio_factors[                         \
+                                (state)->arpeggio_note - 1] <= 0)             \
+                {                                                             \
+                    (state)->arpeggio_note = 0;                               \
+                }                                                             \
             }                                                                 \
         }                                                                     \
     } while (false)

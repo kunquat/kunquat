@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <kunquat/limits.h>
 #include <pitch_t.h>
 
 
@@ -37,6 +38,9 @@ typedef struct Voice_state
     double tempo;                 ///< The last tempo setting used.
     double ramp_attack;           ///< The current state of volume ramp during attack.
     double ramp_release;          ///< The current state of volume ramp during release.
+    int orig_note;                ///< The note used at the beginning.
+    int orig_note_mod;            ///< The note modifier used at the beginning.
+    int orig_octave;              ///< The octave used at the beginning.
                                  
     pitch_t pitch;                ///< The frequency at which the note is played.
     pitch_t actual_pitch;         ///< The actual frequency (includes vibrato).
@@ -49,6 +53,11 @@ typedef struct Voice_state
     double vibrato_depth;         ///< Depth of the vibrato.
     double vibrato_phase;         ///< Phase of the vibrato.
     double vibrato_update;        ///< The update amount of the vibrato phase.
+    bool arpeggio;                ///< Arpeggio enabled.
+    double arpeggio_length;       ///< Length of one note in the arpeggio.
+    double arpeggio_frames;       ///< Frames left of the current note in the arpeggio.
+    int arpeggio_note;            ///< Current note in the arpeggio.
+    double arpeggio_factors[KQT_ARPEGGIO_NOTES_MAX]; ///< Pitch factors in the arpeggio.
                                  
     uint64_t pos;                 ///< The current playback position.
     double pos_rem;               ///< The current playback position remainder.

@@ -99,6 +99,9 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
                            note_on->note,
                            note_on->mod,
                            note_on->octave);
+    voice->state.generic.orig_note = note_on->note;
+    voice->state.generic.orig_note_mod = note_on->mod;
+    voice->state.generic.orig_octave = note_on->octave;
     return;
 }
 

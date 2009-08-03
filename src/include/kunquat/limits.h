@@ -108,6 +108,12 @@ extern "C" {
 #define KQT_SCALE_OCTAVE_LAST (KQT_SCALE_OCTAVES - 1 + KQT_SCALE_OCTAVE_BIAS)
 
 
+/**
+ * Maximum number of notes in the arpeggio event.
+ */
+#define KQT_ARPEGGIO_NOTES_MAX (3)
+
+
 #ifdef __cplusplus
 }
 #endif

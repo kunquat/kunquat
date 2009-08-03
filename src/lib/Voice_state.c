@@ -25,6 +25,7 @@
 #include <stdint.h>
 
 #include <Voice_state.h>
+#include <kunquat/limits.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state, uint32_t freq, double tempo)
@@ -49,6 +50,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
+    state->orig_note = 0;
+    state->orig_note_mod = -1;
+    state->orig_octave = KQT_SCALE_MIDDLE_OCTAVE;
 
     state->pitch = 0;
     state->actual_pitch = 0;
@@ -61,6 +65,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->vibrato_depth = 0;
     state->vibrato_phase = 0;
     state->vibrato_update = 0;
+    state->arpeggio = false;
+    state->arpeggio_length = 0;
+    state->arpeggio_frames = 0;
+    state->arpeggio_note = 0;
+    for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
+    {
+        state->arpeggio_factors[i] = 0;
+    }
 
     state->pos = 0;
     state->pos_rem = 0;
