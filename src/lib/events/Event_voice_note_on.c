@@ -112,41 +112,41 @@ static bool Event_voice_note_on_set(Event* event, int index, void* data)
     assert(event->type == EVENT_VOICE_NOTE_ON);
     assert(data != NULL);
     Event_voice_note_on* note_on = (Event_voice_note_on*)event;
-    int64_t* num = (int64_t*)data;
+    int64_t num = *(int64_t*)data;
+    if (index < 0 || index >= 4)
+    {
+        return false;
+    }
+    Event_check_integral_range(num, event->field_types[index]);
     switch (index)
     {
         case 0:
         {
-            Event_check_integral_range(*num, event->field_types[0]);
-            note_on->note = *num;
-            return true;
+            note_on->note = num;
         }
         break;
         case 1:
         {
-            Event_check_integral_range(*num, event->field_types[1]);
-            note_on->mod = *num;
-            return true;
+            note_on->mod = num;
         }
         break;
         case 2:
         {
-            Event_check_integral_range(*num, event->field_types[2]);
-            note_on->octave = *num;
-            return true;
+            note_on->octave = num;
         }
         break;
         case 3:
         {
-            Event_check_integral_range(*num, event->field_types[3]);
-            note_on->instrument = *num;
-            return true;
+            note_on->instrument = num;
         }
         break;
         default:
+        {
+            assert(false);
+        }
         break;
     }
-    return false;
+    return true;
 }
 
 

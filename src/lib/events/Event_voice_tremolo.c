@@ -87,20 +87,14 @@ static bool Event_voice_tremolo_set(Event* event, int index, void* data)
     if (index == 0)
     {
         double speed = *(double*)data;
-        if (speed < 0)
-        {
-            return false;
-        }
+        Event_check_double_range(speed, event->field_types[0]);
         tremolo->speed = speed;
         return true;
     }
     else if (index == 1)
     {
         double depth = *(double*)data;
-        if (depth < 0 || depth > 24)
-        {
-            return false;
-        }
+        Event_check_double_range(depth, event->field_types[1]);
         tremolo->depth = depth;
         return true;
     }

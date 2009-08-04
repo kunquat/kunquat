@@ -86,21 +86,15 @@ static bool Event_voice_slide_force_set(Event* event, int index, void* data)
     Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
     if (index == 0)
     {
-        double num = *(double*)data;
-        if (isnan(num) || num > 18)
-        {
-            return false;
-        }
-        slide_force->target_force = num;
+        double force = *(double*)data;
+        Event_check_double_range(force, event->field_types[0]);
+        slide_force->target_force = force;
         return true;
     }
     else if (index == 1)
     {
         Reltime* len = (Reltime*)data;
-        if (Reltime_cmp(len, Reltime_set(RELTIME_AUTO, 0, 0)) < 0)
-        {
-            return false;
-        }
+        Event_check_reltime_range(len, event->field_types[1]);
         Reltime_copy(&slide_force->length, len);
         return true;
     }

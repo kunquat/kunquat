@@ -82,12 +82,9 @@ static bool Event_voice_set_force_set(Event* event, int index, void* data)
     {
         return false;
     }
-    double num = *(double*)data;
-    if (isnan(num) || num > 18)
-    {
-        return false;
-    }
-    set_force->force = num;
+    double force = *(double*)data;
+    Event_check_double_range(force, event->field_types[0]);
+    set_force->force = force;
     return true;
 }
 
