@@ -98,6 +98,13 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tremolo_depth = 0;
     state->tremolo_phase = 0;
     state->tremolo_update = 0;
+
+    state->panning = 0;
+    state->actual_panning = 0;
+    state->panning_slide = 0;
+    state->panning_slide_target = 0;
+    state->panning_slide_frames = 0;
+    state->panning_slide_update = 0;
     return state;
 }
 

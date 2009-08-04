@@ -28,6 +28,7 @@
 
 #include <Event_queue.h>
 #include <Generator.h>
+#include <Channel_state.h>
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
@@ -67,6 +68,7 @@ typedef struct Voice
         Voice_state_square303 square303;
         Voice_state_sawtooth sawtooth;
     } state;
+    Channel_state* channel_state;   ///< Channel state information.
 } Voice;
 
 
@@ -110,12 +112,17 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice   The Voice -- must not be \c NULL.
- * \param gen     The Generator used -- must not be \c NULL.
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param tempo   The current tempo -- must be > \c 0.
+ * \param voice      The Voice -- must not be \c NULL.
+ * \param gen        The Generator used -- must not be \c NULL.
+ * \param ch_state   The Channel state -- must not be \c NULL.
+ * \param freq       The mixing frequency -- must be > \c 0.
+ * \param tempo      The current tempo -- must be > \c 0.
  */
-void Voice_init(Voice* voice, Generator* gen, uint32_t freq, double tempo);
+void Voice_init(Voice* voice,
+                Generator* gen,
+                Channel_state* ch_state,
+                uint32_t freq,
+                double tempo);
 
 
 /**

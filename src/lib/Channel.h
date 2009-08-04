@@ -26,6 +26,7 @@
 
 #include <stdint.h>
 
+#include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
 #include <Voice_pool.h>
@@ -41,6 +42,8 @@
  */
 typedef struct Channel
 {
+    Channel_state state;
+    bool mute;
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
     Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
@@ -54,11 +57,13 @@ typedef struct Channel
  * Creates a new Channel.
  *
  * \param insts   The Instrument table of the Song -- must not be \c NULL.
+ * \param num     The Channel number -- must be >= \c 0 and
+ *                < \c KQT_COLUMNS_MAX.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
  */
-Channel* new_Channel(Ins_table* insts);
+Channel* new_Channel(Ins_table* insts, int num);
 
 
 /**
@@ -77,13 +82,13 @@ Channel* new_Channel(Ins_table* insts);
  * \param freq     The mixing frequency -- must be > \c 0.
  */
 void Channel_set_voices(Channel* ch,
-        Voice_pool* pool,
-        Column_iter* citer,
-        Reltime* start,
-        Reltime* end,
-        uint32_t offset,
-        double tempo,
-        uint32_t freq);
+                        Voice_pool* pool,
+                        Column_iter* citer,
+                        Reltime* start,
+                        Reltime* end,
+                        uint32_t offset,
+                        double tempo,
+                        uint32_t freq);
 
 
 /**

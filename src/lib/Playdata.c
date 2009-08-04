@@ -54,7 +54,7 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->voice_pool = pool;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        play->channels[i] = new_Channel(insts);
+        play->channels[i] = new_Channel(insts, i);
         if (play->channels[i] == NULL)
         {
             for (--i; i >= 0; --i)

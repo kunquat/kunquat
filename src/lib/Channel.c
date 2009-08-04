@@ -26,7 +26,9 @@
 #include <stdio.h>
 
 #include <Channel.h>
+#include <Channel_state.h>
 
+#include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_voice_note_on.h>
@@ -36,9 +38,11 @@
 #include <xmemory.h>
 
 
-Channel* new_Channel(Ins_table* insts)
+Channel* new_Channel(Ins_table* insts, int num)
 {
     assert(insts != NULL);
+    assert(num >= 0);
+    assert(num < KQT_COLUMNS_MAX);
     Channel* ch = xalloc(Channel);
     if (ch == NULL)
     {
@@ -57,6 +61,7 @@ Channel* new_Channel(Ins_table* insts)
         xfree(ch);
         return NULL;
     }
+    Channel_state_init(&ch->state, num, &ch->mute);
     ch->insts = insts;
     ch->fg_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -175,7 +180,7 @@ void Channel_set_voices(Channel* ch,
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
-                Voice_init(ch->fg[i], Instrument_get_gen(ins, i), freq, tempo);
+                Voice_init(ch->fg[i], Instrument_get_gen(ins, i), &ch->state, freq, tempo);
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
                 uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
                         + offset;

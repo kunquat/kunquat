@@ -240,8 +240,8 @@ int Instrument_get_gen_count(Instrument* ins)
 
 
 int Instrument_set_gen(Instrument* ins,
-        int index,
-        Generator* gen)
+                       int index,
+                       Generator* gen)
 {
     assert(ins != NULL);
     assert(index >= 0);
@@ -266,7 +266,7 @@ int Instrument_set_gen(Instrument* ins,
 
 
 Generator* Instrument_get_gen(Instrument* ins,
-        int index)
+                              int index)
 {
     assert(ins != NULL);
     assert(index >= 0);

@@ -59,8 +59,8 @@ typedef enum
     EVENT_VOICE_SLIDE_FILTER   = 137, ///< Slide filter cut-off.
     EVENT_VOICE_FILTER_LFO     = 138, ///< Oscillate filter cut-off.
 
-    EVENT_VOICE_SET_PAN        = 139, ///< Set panning position.
-    EVENT_VOICE_SLIDE_PAN      = 140, ///< Slide panning position.
+    EVENT_VOICE_SET_PANNING    = 139, ///< Set panning position.
+    EVENT_VOICE_SLIDE_PANNING  = 140, ///< Slide panning position.
 
     EVENT_LAST                        ///< Sentinel -- never used as a valid type.
 } Event_type;

@@ -37,6 +37,7 @@
 #include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
+#include <Channel_state.h>
 #include <Voice.h>
 
 
@@ -126,7 +127,8 @@ START_TEST (mix)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0), 64, 120);
+    Channel_state ch_state;
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -166,7 +168,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0), 64, 120);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -226,7 +228,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0), 64, 120);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),

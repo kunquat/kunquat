@@ -331,3 +331,15 @@
     } while (false)
 
 
+#define Generator_common_handle_panning(gen, state, frames, frame_count) \
+    do                                                                   \
+    {                                                                    \
+        if ((frame_count) >= 2)                                          \
+        {                                                                \
+            (state)->actual_panning = (state)->panning;                  \
+            (frames)[0] *= 1 - (state)->actual_panning;                  \
+            (frames)[1] *= 1 + (state)->actual_panning;                  \
+        }                                                                \
+    } while (false)
+
+
