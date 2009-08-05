@@ -3,9 +3,6 @@
 VERSION=0.2.2
 RELEASE=kunquat-$VERSION
 
-echo $VERSION
-echo $RELEASE
-
 
 mkdir -p release
 bzr export release/$RELEASE
@@ -15,4 +12,5 @@ cd ..
 tar cpzf $RELEASE.tar.gz $RELEASE
 
 exit 0
+
 
