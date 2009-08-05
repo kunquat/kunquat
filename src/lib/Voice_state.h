@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Channel_state.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
 
@@ -36,6 +37,9 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
+    const Channel_state* cur_ch_state;   ///< Current Channel state.
+    Channel_state* new_ch_state;   ///< New (upcoming) Channel state.
+
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
     int orig_note;                 ///< The note used at the beginning.
@@ -96,13 +100,19 @@ typedef struct Voice_state
 /**
  * Initialises a Voice state.
  *
- * \param state   The Voice state -- must not be \c NULL.
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param tempo   The current tempo -- must be > \c 0.
+ * \param state          The Voice state -- must not be \c NULL.
+ * \param cur_ch_state   The current Channel state -- must not be \c NULL.
+ * \param new_ch_state   The new (upcoming) Channel state -- must not be \c NULL.
+ * \param freq           The mixing frequency -- must be > \c 0.
+ * \param tempo          The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
-Voice_state* Voice_state_init(Voice_state* state, uint32_t freq, double tempo);
+Voice_state* Voice_state_init(Voice_state* state,
+                              const Channel_state* cur_ch_state,
+                              Channel_state* new_ch_state,
+                              uint32_t freq,
+                              double tempo);
 
 
 /**

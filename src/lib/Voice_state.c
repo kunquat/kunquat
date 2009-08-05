@@ -28,14 +28,22 @@
 #include <kunquat/limits.h>
 
 
-Voice_state* Voice_state_init(Voice_state* state, uint32_t freq, double tempo)
+Voice_state* Voice_state_init(Voice_state* state,
+                              const Channel_state* cur_ch_state,
+                              Channel_state* new_ch_state,
+                              uint32_t freq,
+                              double tempo)
 {
     assert(state != NULL);
+    assert(cur_ch_state != NULL);
+    assert(new_ch_state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
+    state->cur_ch_state = cur_ch_state;
+    state->new_ch_state = new_ch_state;
     state->freq = freq;
     state->tempo = tempo;
     return state;

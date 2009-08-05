@@ -61,7 +61,9 @@ Channel* new_Channel(Ins_table* insts, int num)
         xfree(ch);
         return NULL;
     }
-    Channel_state_init(&ch->state, num, &ch->mute);
+    Channel_state_init(&ch->init_state, num, &ch->mute);
+    Channel_state_copy(&ch->cur_state, &ch->init_state);
+    Channel_state_copy(&ch->new_state, &ch->init_state);
     ch->insts = insts;
     ch->fg_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -174,13 +176,19 @@ void Channel_set_voices(Channel* ch,
             }
             // allocate new Voices
             ch->fg_count = Instrument_get_gen_count(ins);
+            ch->new_state.panning_slide = 0;
             for (int i = 0; i < ch->fg_count; ++i)
             {
                 assert(Instrument_get_gen(ins, i) != NULL);
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
-                Voice_init(ch->fg[i], Instrument_get_gen(ins, i), &ch->state, freq, tempo);
+                Voice_init(ch->fg[i],
+                           Instrument_get_gen(ins, i),
+                           &ch->cur_state,
+                           &ch->new_state,
+                           freq,
+                           tempo);
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
                 uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
                         + offset;
@@ -222,6 +230,7 @@ void Channel_set_voices(Channel* ch,
             if (!voices_active)
             {
                 ch->fg_count = 0;
+                // TODO: Insert Channel effect processing here
             }
         }
         if (next == ch->single)
@@ -247,6 +256,48 @@ void Channel_set_voices(Channel* ch,
         }
         next_pos = Event_get_pos(next);
     }
+    return;
+}
+
+
+void Channel_update_state(Channel* ch, uint32_t mixed)
+{
+    assert(ch != NULL);
+    if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
+    {
+        uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
+        ch->new_state.panning += ch->new_state.panning_slide_update * frames_left;
+        ch->new_state.panning_slide_frames -= frames_left;
+        if (ch->new_state.panning_slide_frames <= 0)
+        {
+            if (ch->new_state.num == 1)
+            {
+                fprintf(stderr, "slide_frames: %f \n", ch->new_state.panning_slide_frames);
+                fprintf(stderr, "slide_target: %f \n", ch->new_state.panning_slide_target);
+            }
+            ch->new_state.panning = ch->new_state.panning_slide_target;
+            ch->new_state.panning_slide = 0;
+        }
+        else if (ch->new_state.panning_slide == 1)
+        {
+            if (ch->new_state.panning > ch->new_state.panning_slide_target)
+            {
+                ch->new_state.panning = ch->new_state.panning_slide_target;
+                ch->new_state.panning_slide = 0;
+            }
+        }
+        else
+        {
+            assert(ch->new_state.panning_slide == -1);
+            if (ch->new_state.panning < ch->new_state.panning_slide_target)
+            {
+                ch->new_state.panning = ch->new_state.panning_slide_target;
+                ch->new_state.panning_slide = 0;
+            }
+        }
+    }
+    Channel_state_copy(&ch->cur_state, &ch->new_state);
+    ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
     return;
 }
 

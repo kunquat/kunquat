@@ -72,24 +72,29 @@ uint64_t Voice_id(Voice* voice)
 
 void Voice_init(Voice* voice,
                 Generator* gen,
-                Channel_state* ch_state,
+                const Channel_state* cur_ch_state,
+                Channel_state* new_ch_state,
                 uint32_t freq,
                 double tempo)
 {
     assert(voice != NULL);
     assert(gen != NULL);
-    assert(ch_state != NULL);
+    assert(cur_ch_state != NULL);
+    assert(new_ch_state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic, freq, tempo);
+    Voice_state_init(&voice->state.generic,
+                     cur_ch_state,
+                     new_ch_state,
+                     freq,
+                     tempo);
     if (gen->init_state != NULL)
     {
         gen->init_state(gen, &voice->state.generic);
     }
     Event_queue_clear(voice->events);
-    voice->channel_state = ch_state;
     return;
 }
 

@@ -42,7 +42,9 @@
  */
 typedef struct Channel
 {
-    Channel_state state;
+    Channel_state init_state;
+    Channel_state cur_state;
+    Channel_state new_state;
     bool mute;
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
@@ -89,6 +91,15 @@ void Channel_set_voices(Channel* ch,
                         uint32_t offset,
                         double tempo,
                         uint32_t freq);
+
+
+/**
+ * Updates playback state of the Channel.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param mixed   Number of frames mixed.
+ */
+void Channel_update_state(Channel* ch, uint32_t mixed);
 
 
 /**

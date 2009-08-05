@@ -321,12 +321,13 @@ uint32_t Sample_mix(Sample* sample,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
-    for (uint32_t i = offset; i < nframes; ++i)
+    uint32_t mixed = offset;
+    for (; mixed < nframes; ++mixed)
     {
         if (state->rel_pos >= sample->len)
         {
             state->active = false;
-            return i;
+            break;
         }
         bool next_exists = false;
         uint64_t next_pos = 0;
@@ -446,9 +447,9 @@ uint32_t Sample_mix(Sample* sample,
             vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
                     + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
-        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        bufs[0][mixed] += vals[0];
+        bufs[1][mixed] += vals[1];
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
@@ -466,7 +467,7 @@ uint32_t Sample_mix(Sample* sample,
             if (state->rel_pos >= sample->len)
             {
                 state->active = false;
-                return i;
+                break;
             }
         }
         else
@@ -516,7 +517,7 @@ uint32_t Sample_mix(Sample* sample,
         }
         assert(state->rel_pos < sample->len);
     }
-    return nframes;
+    return mixed;
 }
 
 

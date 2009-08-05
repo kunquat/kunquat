@@ -37,6 +37,7 @@
 #include <Event_voice_arpeggio.h>
 
 #include <Event_voice_set_panning.h>
+#include <Event_voice_slide_panning.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -60,6 +61,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_VIBRATO] = new_Event_voice_vibrato;
         cons[EVENT_VOICE_ARPEGGIO] = new_Event_voice_arpeggio;
         cons[EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning;
+        cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;
         cons_initialised = true;
     }
     if (cons[type] == NULL)

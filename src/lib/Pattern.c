@@ -328,6 +328,10 @@ uint32_t Pattern_mix(Pattern* pat,
             // - Mix the Voice pool
             uint16_t active_voices = Voice_pool_mix(play->voice_pool,
                     to_be_mixed + mixed, mixed, play->freq, play->tempo);
+            for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+            {
+                Channel_update_state(play->channels[i], to_be_mixed + mixed);
+            }
             if (play->active_voices < active_voices)
             {
                 play->active_voices = active_voices;

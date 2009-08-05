@@ -68,7 +68,6 @@ typedef struct Voice
         Voice_state_square303 square303;
         Voice_state_sawtooth sawtooth;
     } state;
-    Channel_state* channel_state;   ///< Channel state information.
 } Voice;
 
 
@@ -112,15 +111,17 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice      The Voice -- must not be \c NULL.
- * \param gen        The Generator used -- must not be \c NULL.
- * \param ch_state   The Channel state -- must not be \c NULL.
- * \param freq       The mixing frequency -- must be > \c 0.
- * \param tempo      The current tempo -- must be > \c 0.
+ * \param voice          The Voice -- must not be \c NULL.
+ * \param gen            The Generator used -- must not be \c NULL.
+ * \param cur_ch_state   The current Channel state -- must not be \c NULL.
+ * \param new_ch_state   The new (upcoming) Channel state -- must not be \c NULL.
+ * \param freq           The mixing frequency -- must be > \c 0.
+ * \param tempo          The current tempo -- must be > \c 0.
  */
 void Voice_init(Voice* voice,
                 Generator* gen,
-                Channel_state* ch_state,
+                const Channel_state* cur_ch_state,
+                Channel_state* new_ch_state,
                 uint32_t freq,
                 double tempo);
 

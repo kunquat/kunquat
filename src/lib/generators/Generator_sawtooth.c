@@ -117,7 +117,8 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
-    for (uint32_t i = offset; i < nframes; ++i)
+    uint32_t mixed = offset;
+    for (; mixed < nframes; ++mixed)
     {
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
@@ -130,17 +131,18 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
             sawtooth_state->phase -= floor(sawtooth_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         Generator_common_handle_panning(gen, state, vals, 2);
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
+        bufs[0][mixed] += vals[0];
+        bufs[1][mixed] += vals[1];
 /*        if (fabs(val_l) > max_amp)
         {
             max_amp = fabs(val_l);
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return nframes;
+    Generator_common_persist(gen, state, mixed);
+    return mixed;
 }
 
 

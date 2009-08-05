@@ -25,6 +25,7 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 
 #include <kunquat/limits.h>
 
@@ -41,11 +42,11 @@ typedef struct Channel_state
     double volume;                 ///< Channel volume (linear factor).
 
     double panning;                ///< The current panning.
-    double actual_panning;         ///< The current actual panning.
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
     double panning_slide_target;   ///< Target panning position of the slide.
     double panning_slide_frames;   ///< Number of frames left to complete the slide.
     double panning_slide_update;   ///< The update amount of the slide.
+    uint32_t panning_slide_prog;   ///< The amount of frames slided in the Voice processing.
 } Channel_state;
 
 

@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <Channel_state.h>
 
@@ -39,11 +40,11 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
     state->volume = 1;
 
     state->panning = 0;
-    state->actual_panning = 0;
     state->panning_slide = 0;
     state->panning_slide_target = 0;
     state->panning_slide_frames = 0;
     state->panning_slide_update = 0;
+    state->panning_slide_prog = 0;
 
     return state;
 }
@@ -60,11 +61,11 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->volume = src->volume;
 
     dest->panning = src->panning;
-    dest->actual_panning = src->actual_panning;
     dest->panning_slide = src->panning_slide;
     dest->panning_slide_target = src->panning_slide_target;
     dest->panning_slide_frames = src->panning_slide_frames;
     dest->panning_slide_update = src->panning_slide_update;
+    dest->panning_slide_prog = src->panning_slide_prog;
 
     return dest;
 }

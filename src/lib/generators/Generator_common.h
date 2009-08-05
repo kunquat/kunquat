@@ -118,6 +118,13 @@
                 (state)->tremolo_update =                                         \
                         (state)->tremolo_update * (tempo) / (state)->tempo;       \
             }                                                                     \
+            if ((state)->panning_slide != 0)                                      \
+            {                                                                     \
+                (state)->panning_slide_update *= (state)->freq / (freq);          \
+                (state)->panning_slide_update *= (tempo) / (state)->tempo;        \
+                (state)->panning_slide_frames *= (freq) / (state)->freq;          \
+                (state)->panning_slide_frames *= (state)->tempo / (tempo);        \
+            }                                                                     \
             (state)->freq = (freq);                                               \
             (state)->tempo = (tempo);                                             \
         }                                                                         \
@@ -138,9 +145,8 @@
     } while (false)
 
 
-#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq,      \
-                                         mixed)                                      \
-    do                                                                               \
+#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)      \
+    if (true)                                                                        \
     {                                                                                \
         if (!(state)->note_on)                                                       \
         {                                                                            \
@@ -151,7 +157,7 @@
                 if (!isfinite(scale))                                                \
                 {                                                                    \
                     (state)->active = false;                                         \
-                    return (mixed);                                                  \
+                    break;                                                           \
                 }                                                                    \
                 (state)->off_ve_pos += (1.0 - (state)->pedal) / (freq);              \
                 for (int i = 0; i < (frame_count); ++i)                              \
@@ -171,12 +177,12 @@
                 else                                                                 \
                 {                                                                    \
                     (state)->active = false;                                         \
-                    return (mixed);                                                  \
+                    break;                                                           \
                 }                                                                    \
                 (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
             }                                                                        \
         }                                                                            \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_handle_pitch(gen, state)                             \
@@ -331,15 +337,58 @@
     } while (false)
 
 
-#define Generator_common_handle_panning(gen, state, frames, frame_count) \
-    do                                                                   \
-    {                                                                    \
-        if ((frame_count) >= 2)                                          \
-        {                                                                \
-            (state)->actual_panning = (state)->panning;                  \
-            (frames)[0] *= 1 - (state)->actual_panning;                  \
-            (frames)[1] *= 1 + (state)->actual_panning;                  \
-        }                                                                \
+#define Generator_common_handle_panning(gen, state, frames, frame_count)  \
+    do                                                                    \
+    {                                                                     \
+        if ((frame_count) >= 2)                                           \
+        {                                                                 \
+            if ((state)->panning_slide != 0)                              \
+            {                                                             \
+                (state)->panning += (state)->panning_slide_update;        \
+                (state)->panning_slide_frames -= 1;                       \
+                if ((state)->panning_slide_frames <= 0)                   \
+                {                                                         \
+                    (state)->panning = (state)->panning_slide_target;     \
+                    (state)->panning_slide = 0;                           \
+                }                                                         \
+                else if ((state)->panning_slide == 1)                     \
+                {                                                         \
+                    if ((state)->panning > (state)->panning_slide_target) \
+                    {                                                     \
+                        (state)->panning = (state)->panning_slide_target; \
+                        (state)->panning_slide = 0;                       \
+                    }                                                     \
+                }                                                         \
+                else                                                      \
+                {                                                         \
+                    assert((state)->panning_slide == -1);                 \
+                    if ((state)->panning < (state)->panning_slide_target) \
+                    {                                                     \
+                        (state)->panning = (state)->panning_slide_target; \
+                        (state)->panning_slide = 0;                       \
+                    }                                                     \
+                }                                                         \
+            }                                                             \
+            (state)->actual_panning = (state)->panning;                   \
+            (frames)[0] *= 1 - (state)->actual_panning;                   \
+            (frames)[1] *= 1 + (state)->actual_panning;                   \
+        }                                                                 \
     } while (false)
+
+
+#define Generator_common_persist(gen, state, mixed)                         \
+    if (true)                                                               \
+    {                                                                       \
+        Channel_state* ch_state = (state)->new_ch_state;                    \
+        if ((state)->note_on && (mixed) > ch_state->panning_slide_prog)     \
+        {                                                                   \
+            ch_state->panning_slide_prog = (mixed);                         \
+            ch_state->panning = (state)->panning;                           \
+            ch_state->panning_slide = (state)->panning_slide;               \
+            ch_state->panning_slide_target = (state)->panning_slide_target; \
+            ch_state->panning_slide_frames = (state)->panning_slide_frames; \
+            ch_state->panning_slide_update = (state)->panning_slide_update; \
+        }                                                                   \
+    } else (void)0
 
 

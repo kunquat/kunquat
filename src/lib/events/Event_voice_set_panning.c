@@ -110,8 +110,9 @@ static void Event_voice_set_panning_process(Event_voice* event, Voice* voice)
     Event_voice_set_panning* set_panning = (Event_voice_set_panning*)event;
     voice->state.generic.panning = set_panning->panning;
     voice->state.generic.panning_slide = 0;
-    voice->channel_state->panning = set_panning->panning;
-    voice->channel_state->panning_slide = 0;
+    Channel_state* ch_state = voice->state.generic.new_ch_state;
+    ch_state->panning = set_panning->panning;
+    ch_state->panning_slide = 0;
     return;
 }
 
