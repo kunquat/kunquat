@@ -34,7 +34,7 @@
 #include <xmemory.h>
 
 /*<test>*/
-#define ORDER 2
+#define ORDER 6
 #include <Filter.c>
 /*</test>*/
 
@@ -241,7 +241,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
     }
 /*<test>*/
 //    fir_filter(ORDER, coeffs, histbuffb, mixed, song->bufs[0], song->bufs[1]);
-    iir_filter_df1(ORDER, coeffsa, histbuffa, ORDER, coeffsb, histbuffb, mixed, song->bufs[0], song->bufs[1]);
+    iir_filter_df1(ORDER, ORDER, coeffsa, coeffsb histbuffa, histbuffb, mixed, song->bufs[0], song->bufs[1]);
     for (uint32_t k = 0; k < mixed; ++k)
     {
       song->bufs[0][k] = song->bufs[1][k];
