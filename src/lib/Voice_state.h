@@ -55,6 +55,9 @@ typedef struct Voice_state
     bool vibrato;                  ///< Vibrato enabled.
     double vibrato_length;         ///< Length of the vibrato phase.
     double vibrato_depth;          ///< Depth of the vibrato.
+    double vibrato_depth_target;   ///< Target vibrato depth.
+    double vibrato_delay_pos;      ///< Position of the vibrato delay.
+    double vibrato_delay_update;   ///< The update amount of the vibrato delay.
     double vibrato_phase;          ///< Phase of the vibrato.
     double vibrato_update;         ///< The update amount of the vibrato phase.
     bool arpeggio;                 ///< Arpeggio enabled.

@@ -110,7 +110,8 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
     
     voice->state.generic.vibrato_length = ch_state->vibrato_length;
     voice->state.generic.vibrato_update = ch_state->vibrato_update;
-    voice->state.generic.vibrato_depth = ch_state->vibrato_depth;
+    voice->state.generic.vibrato_depth_target = ch_state->vibrato_depth;
+    voice->state.generic.vibrato_delay_update = ch_state->vibrato_delay_update;
 
     voice->state.generic.panning = ch_state->panning;
     voice->state.generic.panning_slide = ch_state->panning_slide;

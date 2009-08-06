@@ -109,20 +109,14 @@ static void Event_voice_vibrato_depth_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_VIBRATO_DEPTH);
     assert(voice != NULL);
     Event_voice_vibrato_depth* vibrato_depth = (Event_voice_vibrato_depth*)event;
-    if (vibrato_depth->depth > 0)
+    if (vibrato_depth->depth > 0 && voice->state.generic.vibrato_length > 0)
     {
-        if (voice->state.generic.vibrato_length > 0)
-        {
-            voice->state.generic.vibrato = true;
-        }
-        voice->state.generic.vibrato_depth = vibrato_depth->depth / 240; // unit is 5 cents
-        Channel_state* ch_state = voice->state.generic.new_ch_state;
-        ch_state->vibrato_depth = voice->state.generic.vibrato_depth;
+        voice->state.generic.vibrato = true;
     }
-    else
-    {
-        voice->state.generic.vibrato = false;
-    }
+    voice->state.generic.vibrato_depth_target = vibrato_depth->depth / 240; // unit is 5 cents
+    voice->state.generic.vibrato_delay_pos = 0;
+    Channel_state* ch_state = voice->state.generic.new_ch_state;
+    ch_state->vibrato_depth = voice->state.generic.vibrato_depth;
     return;
 }
 

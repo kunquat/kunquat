@@ -36,6 +36,7 @@
 #include <Event_voice_slide_pitch.h>
 #include <Event_voice_vibrato_speed.h>
 #include <Event_voice_vibrato_depth.h>
+#include <Event_voice_vibrato_delay.h>
 #include <Event_voice_arpeggio.h>
 
 #include <Event_voice_set_panning.h>
@@ -63,6 +64,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch;
         cons[EVENT_VOICE_VIBRATO_SPEED] = new_Event_voice_vibrato_speed;
         cons[EVENT_VOICE_VIBRATO_DEPTH] = new_Event_voice_vibrato_depth;
+        cons[EVENT_VOICE_VIBRATO_DELAY] = new_Event_voice_vibrato_delay;
         cons[EVENT_VOICE_ARPEGGIO] = new_Event_voice_arpeggio;
         cons[EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning;
         cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;

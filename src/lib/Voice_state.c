@@ -71,6 +71,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->vibrato = false;
     state->vibrato_length = 0;
     state->vibrato_depth = 0;
+    state->vibrato_depth_target = 0;
+    state->vibrato_delay_pos = 0;
+    state->vibrato_delay_update = 1;
     state->vibrato_phase = 0;
     state->vibrato_update = 0;
     state->arpeggio = false;

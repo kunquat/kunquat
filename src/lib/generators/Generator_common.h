@@ -66,13 +66,15 @@
             }                                                                     \
             if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
             {                                                                     \
-                (state)->vibrato_length *= (freq) / (state)->freq;                \
-                (state)->vibrato_length *= (state)->tempo / (tempo);              \
                 (state)->vibrato_phase *= (freq) / (state)->freq;                 \
                 (state)->vibrato_phase *= (state)->tempo / (tempo);               \
-                (state)->vibrato_update *= (state)->freq / (freq);                \
-                (state)->vibrato_update *= (tempo) / (state)->tempo;              \
             }                                                                     \
+            (state)->vibrato_length *= (freq) / (state)->freq;                    \
+            (state)->vibrato_length *= (state)->tempo / (tempo);                  \
+            (state)->vibrato_update *= (state)->freq / (freq);                    \
+            (state)->vibrato_update *= (tempo) / (state)->tempo;                  \
+            (state)->vibrato_delay_update *= (state)->freq / (freq);              \
+            (state)->vibrato_delay_update *= (tempo) / (state)->tempo;            \
             if ((state)->arpeggio)                                                \
             {                                                                     \
                 (state)->arpeggio_length *= (freq) / (state)->freq;               \
@@ -198,8 +200,25 @@
         (state)->actual_pitch = (state)->pitch;                               \
         if ((state)->vibrato)                                                 \
         {                                                                     \
-            double fac_log = sin((state)->vibrato_phase) *                    \
-                    (state)->vibrato_depth;                                   \
+            double fac_log = sin((state)->vibrato_phase);                     \
+            if ((state)->vibrato_delay_pos < 1)                               \
+            {                                                                 \
+                double actual_depth = (1 - (state)->vibrato_delay_pos) *      \
+                        (state)->vibrato_depth +                              \
+                        (state)->vibrato_delay_pos *                          \
+                        (state)->vibrato_depth_target;                        \
+                fac_log *= actual_depth;                                      \
+                (state)->vibrato_delay_pos += (state)->vibrato_delay_update;  \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                (state)->vibrato_depth = (state)->vibrato_depth_target;       \
+                fac_log *= (state)->vibrato_depth;                            \
+                if ((state)->vibrato_depth == 0)                              \
+                {                                                             \
+                    (state)->vibrato = false;                                 \
+                }                                                             \
+            }                                                                 \
             (state)->actual_pitch *= exp2(fac_log);                           \
             if (!(state)->vibrato &&                                          \
                     (state)->vibrato_length > (state)->freq)                  \
