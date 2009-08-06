@@ -41,6 +41,10 @@ typedef struct Channel_state
 
     double volume;                 ///< Channel volume (linear factor).
 
+    double tremolo_length;         ///< Tremolo length.
+    double tremolo_update;         ///< Tremolo update.
+    double tremolo_depth;          ///< Tremolo depth.
+
     double vibrato_length;         ///< Vibrato length.
     double vibrato_update;         ///< Vibrato update.
     double vibrato_depth;          ///< Vibrato depth.

@@ -20,25 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_TREMOLO_H
-#define K_EVENT_VOICE_TREMOLO_H
+#ifndef K_EVENT_VOICE_TREMOLO_SPEED_H
+#define K_EVENT_VOICE_TREMOLO_SPEED_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_tremolo
+typedef struct Event_voice_tremolo_speed
 {
     Event_voice parent;
     double speed;
-    double depth;
-} Event_voice_tremolo;
+} Event_voice_tremolo_speed;
 
 
-Event* new_Event_voice_tremolo(Reltime* pos);
+Event* new_Event_voice_tremolo_speed(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_TREMOLO_H
+#endif // K_EVENT_VOICE_TREMOLO_SPEED_H
 
 

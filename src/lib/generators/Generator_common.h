@@ -280,7 +280,7 @@
             }                                                                 \
         }                                                                     \
         (state)->actual_force = (state)->force;                               \
-        if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
+        if ((state)->tremolo)                                                 \
         {                                                                     \
             double fac_dB = sin((state)->tremolo_phase) *                     \
                     (state)->tremolo_depth;                                   \

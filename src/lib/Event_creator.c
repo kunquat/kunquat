@@ -31,7 +31,8 @@
 #include <Event_voice_note_off.h>
 #include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
-#include <Event_voice_tremolo.h>
+#include <Event_voice_tremolo_speed.h>
+#include <Event_voice_tremolo_depth.h>
 #include <Event_voice_slide_pitch.h>
 #include <Event_voice_vibrato_speed.h>
 #include <Event_voice_vibrato_depth.h>
@@ -57,7 +58,8 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_NOTE_OFF] = new_Event_voice_note_off;
         cons[EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force;
         cons[EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force;
-        cons[EVENT_VOICE_TREMOLO] = new_Event_voice_tremolo;
+        cons[EVENT_VOICE_TREMOLO_SPEED] = new_Event_voice_tremolo_speed;
+        cons[EVENT_VOICE_TREMOLO_DEPTH] = new_Event_voice_tremolo_depth;
         cons[EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch;
         cons[EVENT_VOICE_VIBRATO_SPEED] = new_Event_voice_vibrato_speed;
         cons[EVENT_VOICE_VIBRATO_DEPTH] = new_Event_voice_vibrato_depth;
