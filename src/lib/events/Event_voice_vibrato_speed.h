@@ -20,25 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_VIBRATO_H
-#define K_EVENT_VOICE_VIBRATO_H
+#ifndef K_EVENT_VOICE_VIBRATO_SPEED_H
+#define K_EVENT_VOICE_VIBRATO_SPEED_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_vibrato
+typedef struct Event_voice_vibrato_speed
 {
     Event_voice parent;
     double speed;
-    double depth;
-} Event_voice_vibrato;
+} Event_voice_vibrato_speed;
 
 
-Event* new_Event_voice_vibrato(Reltime* pos);
+Event* new_Event_voice_vibrato_speed(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_VIBRATO_H
+#endif // K_EVENT_VOICE_VIBRATO_SPEED_H
 
 

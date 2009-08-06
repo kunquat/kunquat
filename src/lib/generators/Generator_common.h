@@ -196,7 +196,7 @@
             }                                                                 \
         }                                                                     \
         (state)->actual_pitch = (state)->pitch;                               \
-        if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
+        if ((state)->vibrato)                                                 \
         {                                                                     \
             double fac_log = sin((state)->vibrato_phase) *                    \
                     (state)->vibrato_depth;                                   \

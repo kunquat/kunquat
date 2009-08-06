@@ -103,6 +103,9 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
     voice->state.generic.orig_note_mod = note_on->mod;
     voice->state.generic.orig_octave = note_on->octave;
     const Channel_state* ch_state = voice->state.generic.cur_ch_state;
+    voice->state.generic.vibrato_length = ch_state->vibrato_length;
+    voice->state.generic.vibrato_update = ch_state->vibrato_update;
+    voice->state.generic.vibrato_depth = ch_state->vibrato_depth;
     voice->state.generic.panning = ch_state->panning;
     voice->state.generic.panning_slide = ch_state->panning_slide;
     voice->state.generic.panning_slide_target = ch_state->panning_slide_target;

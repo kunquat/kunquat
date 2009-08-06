@@ -39,6 +39,10 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
 
     state->volume = 1;
 
+    state->vibrato_length = 0;
+    state->vibrato_update = 0;
+    state->vibrato_depth = 0;
+
     state->panning = 0;
     state->panning_slide = 0;
     state->panning_slide_target = 0;
@@ -59,6 +63,10 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->mute = src->mute;
 
     dest->volume = src->volume;
+
+    dest->vibrato_length = src->vibrato_length;
+    dest->vibrato_update = src->vibrato_update;
+    dest->vibrato_depth = src->vibrato_depth;
 
     dest->panning = src->panning;
     dest->panning_slide = src->panning_slide;

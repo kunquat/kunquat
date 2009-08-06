@@ -41,6 +41,10 @@ typedef struct Channel_state
 
     double volume;                 ///< Channel volume (linear factor).
 
+    double vibrato_length;         ///< Vibrato length.
+    double vibrato_update;         ///< Vibrato update.
+    double vibrato_depth;          ///< Vibrato depth.
+
     double panning;                ///< The current panning.
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
     double panning_slide_target;   ///< Target panning position of the slide.
