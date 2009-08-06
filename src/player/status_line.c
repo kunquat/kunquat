@@ -43,7 +43,7 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
 
 
 #define print_status(line, pos, max, ...)      \
-    do                                         \
+    if (true)                                  \
     {                                          \
         int printed = snprintf((line) + (pos), \
                                (max) - (pos),  \
@@ -56,7 +56,7 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
                 (pos) = (max) - 1;             \
             }                                  \
         }                                      \
-    } while (false)
+    } else (void)0
 
 int get_status_line(char* line,
                     int max_len,

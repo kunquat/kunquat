@@ -125,7 +125,7 @@ long read_long(char* str, char* desc, long min, long max)
 
 
 #define cleanup(handle, buffer, output, explicit_output) \
-    do                                                   \
+    if (true)                                            \
     {                                                    \
         if ((handle) != NULL)                            \
         {                                                \
@@ -141,7 +141,7 @@ long read_long(char* str, char* desc, long min, long max)
             free((output));                              \
             (output) = NULL;                             \
         }                                                \
-    } while (false)
+    } else (void)0
 
 int main(int argc, char** argv)
 {

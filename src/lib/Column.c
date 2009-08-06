@@ -251,13 +251,13 @@ Column* new_Column(Reltime* len)
 
 
 #define break_if(error)   \
-    do                    \
+    if (true)             \
     {                     \
         if ((error))      \
         {                 \
             return false; \
         }                 \
-    } while (false)
+    } else (void)0
 
 bool Column_read(Column* col, File_tree* tree, Read_state* state)
 {

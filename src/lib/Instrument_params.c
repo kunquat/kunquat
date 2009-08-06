@@ -31,16 +31,16 @@
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \
-    do\
-    {\
-        (env) = new_Envelope((nodes), (xmin), (xmax), (xstep),\
-                (ymin), (ymax), (ystep));\
-        if ((env) == NULL)\
-        {\
-            Instrument_params_uninit(ip);\
-            return NULL;\
-        }\
-    } while (false)
+    if (true)                                                             \
+    {                                                                     \
+        (env) = new_Envelope((nodes), (xmin), (xmax), (xstep),            \
+                (ymin), (ymax), (ystep));                                 \
+        if ((env) == NULL)                                                \
+        {                                                                 \
+            Instrument_params_uninit(ip);                                 \
+            return NULL;                                                  \
+        }                                                                 \
+    } else (void)0
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
         kqt_frame** bufs,
@@ -257,15 +257,15 @@ bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* 
 }
 
 
-#define del_env_check(env)\
-    do\
-    {\
-        if ((env) != NULL)\
-        {\
-            del_Envelope((env));\
-            (env) = NULL;\
-        }\
-    } while (false)
+#define del_env_check(env)       \
+    if (true)                    \
+    {                            \
+        if ((env) != NULL)       \
+        {                        \
+            del_Envelope((env)); \
+            (env) = NULL;        \
+        }                        \
+    } else (void)0
 
 void Instrument_params_uninit(Instrument_params* ip)
 {

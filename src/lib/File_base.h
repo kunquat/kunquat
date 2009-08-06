@@ -65,7 +65,7 @@ typedef struct Write_state
 
 
 #define check_next(str, state, expect)                \
-    do                                                \
+    if (true)                                         \
     {                                                 \
         (str) = read_const_char((str), ',', (state)); \
         if ((state)->error)                           \
@@ -73,7 +73,7 @@ typedef struct Write_state
             Read_state_clear_error((state));          \
             (expect) = false;                         \
         }                                             \
-    } while (false)
+    } else (void)0
 
 
 /**

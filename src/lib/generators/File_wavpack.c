@@ -314,22 +314,23 @@ static WavpackStreamReader reader_tar =
 };
 
 
-#define read_wp_samples(count, offset, buf_l, buf_r, src, channels, lshift) do\
-    {\
-        assert(buf_l != NULL);\
-        for (uint32_t i = 0; i < count / channels; ++i)\
-        {\
-            buf_l[offset + i] = src[i * channels] << lshift;\
-        }\
-        if (channels == 2)\
-        {\
-            assert(buf_r != NULL);\
-            for (uint32_t i = 0; i < count / channels; ++i)\
-            {\
-                buf_r[offset + i] = src[i * channels + 1];\
-            }\
-        }\
-    } while (false)
+#define read_wp_samples(count, offset, buf_l, buf_r, src, channels, lshift) \
+    if (true)                                                               \
+    {                                                                       \
+        assert(buf_l != NULL);                                              \
+        for (uint32_t i = 0; i < count / channels; ++i)                     \
+        {                                                                   \
+            buf_l[offset + i] = src[i * channels] << lshift;                \
+        }                                                                   \
+        if (channels == 2)                                                  \
+        {                                                                   \
+            assert(buf_r != NULL);                                          \
+            for (uint32_t i = 0; i < count / channels; ++i)                 \
+            {                                                               \
+                buf_r[offset + i] = src[i * channels + 1];                  \
+            }                                                               \
+        }                                                                   \
+    } else (void)0
 
 
 bool File_wavpack_load_sample(Sample* sample, FILE* in,

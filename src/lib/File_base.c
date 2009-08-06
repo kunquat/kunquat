@@ -77,14 +77,14 @@ void Read_state_clear_error(Read_state* state)
 
 
 #define return_null_if(cond, state, msg)          \
-    do                                            \
+    if (true)                                     \
     {                                             \
         if ((cond))                               \
         {                                         \
             Read_state_set_error((state), (msg)); \
             return NULL;                          \
         }                                         \
-    } while (false)
+    } else (void)0
 
 char* read_file(FILE* in, Read_state* state)
 {

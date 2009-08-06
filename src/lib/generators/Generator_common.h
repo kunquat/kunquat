@@ -37,7 +37,7 @@
 
 
 #define Generator_common_check_active(gen, state, mixed)                      \
-    do                                                                        \
+    if (true)                                                                 \
     {                                                                         \
         if (!(state)->active || (!(state)->note_on &&                         \
                                  ((state)->pos == 0) &&                       \
@@ -47,11 +47,11 @@
             (state)->active = false;                                          \
             return (mixed);                                                   \
         }                                                                     \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_check_relative_lengths(gen, state, freq, tempo)          \
-    do                                                                            \
+    if (true)                                                                     \
     {                                                                             \
         if ((state)->freq != (freq) || (state)->tempo != (tempo))                 \
         {                                                                         \
@@ -61,62 +61,42 @@
                 slide_step = slide_step * (state)->freq / (freq);                 \
                 slide_step = slide_step * (tempo) / (state)->tempo;               \
                 (state)->pitch_slide_update = exp2(slide_step);                   \
-                (state)->pitch_slide_frames =                                     \
-                        (state)->pitch_slide_frames * (freq) / (state)->freq;     \
-                (state)->pitch_slide_frames =                                     \
-                        (state)->pitch_slide_frames * (state)->tempo / (tempo);   \
+                (state)->pitch_slide_frames *= (freq) / (state)->freq;            \
+                (state)->pitch_slide_frames *= (state)->tempo / (tempo);          \
             }                                                                     \
             if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
             {                                                                     \
-                (state)->vibrato_length =                                         \
-                        (state)->vibrato_length * (freq) / (state)->freq;         \
-                (state)->vibrato_length =                                         \
-                        (state)->vibrato_length * (state)->tempo / (tempo);       \
-                (state)->vibrato_phase =                                          \
-                        (state)->vibrato_phase * (freq) / (state)->freq;          \
-                (state)->vibrato_phase =                                          \
-                        (state)->vibrato_phase * (state)->tempo / (tempo);        \
-                (state)->vibrato_update =                                         \
-                        (state)->vibrato_update * (state)->freq / (freq);         \
-                (state)->vibrato_update =                                         \
-                        (state)->vibrato_update * (tempo) / (state)->tempo;       \
+                (state)->vibrato_length *= (freq) / (state)->freq;                \
+                (state)->vibrato_length *= (state)->tempo / (tempo);              \
+                (state)->vibrato_phase *= (freq) / (state)->freq;                 \
+                (state)->vibrato_phase *= (state)->tempo / (tempo);               \
+                (state)->vibrato_update *= (state)->freq / (freq);                \
+                (state)->vibrato_update *= (tempo) / (state)->tempo;              \
             }                                                                     \
             if ((state)->arpeggio)                                                \
             {                                                                     \
-                (state)->arpeggio_length =                                        \
-                        (state)->arpeggio_length * (freq) / (state)->freq;        \
-                (state)->arpeggio_length =                                        \
-                        (state)->arpeggio_length * (state)->tempo / (tempo);      \
-                (state)->arpeggio_frames =                                        \
-                        (state)->arpeggio_frames * (freq) / (state)->freq;        \
-                (state)->arpeggio_frames =                                        \
-                        (state)->arpeggio_frames * (state)->tempo / (tempo);      \
+                (state)->arpeggio_length *= (freq) / (state)->freq;               \
+                (state)->arpeggio_length *= (state)->tempo / (tempo);             \
+                (state)->arpeggio_frames *= (freq) / (state)->freq;               \
+                (state)->arpeggio_frames *= (state)->tempo / (tempo);             \
             }                                                                     \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
                 double update_dB = log2((state)->force_slide_update) * 6;         \
-                update_dB = update_dB * (state)->freq / (freq);                   \
-                update_dB = update_dB * (tempo) / (state)->tempo;                 \
+                update_dB *= (state)->freq / (freq);                              \
+                update_dB *= (tempo) / (state)->tempo;                            \
                 (state)->force_slide_update = exp2(update_dB / 6);                \
-                (state)->force_slide_frames =                                     \
-                        (state)->force_slide_frames * (freq) / (state)->freq;     \
-                (state)->force_slide_frames =                                     \
-                        (state)->force_slide_frames * (state)->tempo / (tempo);   \
+                (state)->force_slide_frames *= (freq) / (state)->freq;            \
+                (state)->force_slide_frames *= (state)->tempo / (tempo);          \
             }                                                                     \
             if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
             {                                                                     \
-                (state)->tremolo_length =                                         \
-                        (state)->tremolo_length * (freq) / (state)->freq;         \
-                (state)->tremolo_length =                                         \
-                        (state)->tremolo_length * (state)->tempo / (tempo);       \
-                (state)->tremolo_phase =                                          \
-                        (state)->tremolo_phase * (freq) / (state)->freq;          \
-                (state)->tremolo_phase =                                          \
-                        (state)->tremolo_phase * (state)->tempo / (tempo);        \
-                (state)->tremolo_update =                                         \
-                        (state)->tremolo_update * (state)->freq / (freq);         \
-                (state)->tremolo_update =                                         \
-                        (state)->tremolo_update * (tempo) / (state)->tempo;       \
+                (state)->tremolo_length *= (freq) / (state)->freq;                \
+                (state)->tremolo_length *= (state)->tempo / (tempo);              \
+                (state)->tremolo_phase *= (freq) / (state)->freq;                 \
+                (state)->tremolo_phase *= (state)->tempo / (tempo);               \
+                (state)->tremolo_update *= (state)->freq / (freq);                \
+                (state)->tremolo_update *= (tempo) / (state)->tempo;              \
             }                                                                     \
             if ((state)->panning_slide != 0)                                      \
             {                                                                     \
@@ -128,11 +108,11 @@
             (state)->freq = (freq);                                               \
             (state)->tempo = (tempo);                                             \
         }                                                                         \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
-    do                                                                      \
+    if (true)                                                               \
     {                                                                       \
         if ((state)->ramp_attack < 1)                                       \
         {                                                                   \
@@ -142,7 +122,7 @@
             }                                                               \
             (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);              \
         }                                                                   \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)      \
@@ -186,7 +166,7 @@
 
 
 #define Generator_common_handle_pitch(gen, state)                             \
-    do                                                                        \
+    if (true)                                                                 \
     {                                                                         \
         if ((state)->pitch_slide != 0)                                        \
         {                                                                     \
@@ -266,11 +246,11 @@
                 }                                                             \
             }                                                                 \
         }                                                                     \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_handle_force(gen, state, frames, frame_count)        \
-    do                                                                        \
+    if (true)                                                                 \
     {                                                                         \
         if ((state)->force_slide != 0)                                        \
         {                                                                     \
@@ -334,11 +314,11 @@
         {                                                                     \
             (frames)[i] *= (state)->actual_force;                             \
         }                                                                     \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_handle_panning(gen, state, frames, frame_count)  \
-    do                                                                    \
+    if (true)                                                             \
     {                                                                     \
         if ((frame_count) >= 2)                                           \
         {                                                                 \
@@ -373,7 +353,7 @@
             (frames)[0] *= 1 - (state)->actual_panning;                   \
             (frames)[1] *= 1 + (state)->actual_panning;                   \
         }                                                                 \
-    } while (false)
+    } else (void)0
 
 
 #define Generator_common_persist(gen, state, mixed)                         \

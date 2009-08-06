@@ -58,7 +58,7 @@ void kqt_Handle_stop(kqt_Handle* handle);
 bool handle_is_valid(kqt_Handle* handle);
 
 #define check_handle(handle, func, ret)                                  \
-    do                                                                   \
+    if (true)                                                            \
     {                                                                    \
         if (!handle_is_valid((handle)))                                  \
         {                                                                \
@@ -66,10 +66,10 @@ bool handle_is_valid(kqt_Handle* handle);
                     func ": Invalid Kunquat Handle: %p", (void*)handle); \
             return (ret);                                                \
         }                                                                \
-    } while (false)
+    } else (void)0
 
 #define check_handle_void(handle, func)                                  \
-    do                                                                   \
+    if (true)                                                            \
     {                                                                    \
         if (!handle_is_valid((handle)))                                  \
         {                                                                \
@@ -77,7 +77,7 @@ bool handle_is_valid(kqt_Handle* handle);
                     func ": Invalid Kunquat Handle: %p", (void*)handle); \
             return;                                                      \
         }                                                                \
-    } while (false)
+    } else (void)0
 
 
 #endif // KQT_HANDLE_PRIVATE_H

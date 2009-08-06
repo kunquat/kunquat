@@ -122,7 +122,7 @@ typedef struct Event_field_desc
 
 
 #define Event_check_integral_range(num, field_desc)       \
-    do                                                    \
+    if (true)                                             \
     {                                                     \
         if ((num) < (field_desc).range.integral_type.min) \
         {                                                 \
@@ -132,11 +132,11 @@ typedef struct Event_field_desc
         {                                                 \
             return false;                                 \
         }                                                 \
-    } while (false)
+    } else (void)0
 
 
 #define Event_check_double_range(num, field_desc)       \
-    do                                                  \
+    if (true)                                           \
     {                                                   \
         if ((num) < (field_desc).range.double_type.min) \
         {                                               \
@@ -146,11 +146,11 @@ typedef struct Event_field_desc
         {                                               \
             return false;                               \
         }                                               \
-    } while (false)
+    } else (void)0
 
 
 #define Event_check_real_range(num, field_desc)                     \
-    do                                                              \
+    if (true)                                                       \
     {                                                               \
         if (Real_cmp((num), &(field_desc).range.Real_type.min) < 0) \
         {                                                           \
@@ -160,11 +160,11 @@ typedef struct Event_field_desc
         {                                                           \
             return false;                                           \
         }                                                           \
-    } while (false)
+    } else (void)0
 
 
 #define Event_check_reltime_range(num, field_desc)                        \
-    do                                                                    \
+    if (true)                                                             \
     {                                                                     \
         if (Reltime_cmp((num), &(field_desc).range.Reltime_type.min) < 0) \
         {                                                                 \
@@ -174,7 +174,7 @@ typedef struct Event_field_desc
         {                                                                 \
             return false;                                                 \
         }                                                                 \
-    } while (false)
+    } else (void)0
 
 
 #endif // K_EVENT_TYPE_H

@@ -40,19 +40,19 @@
 #define NOTE_MOD_EXISTS(scale, index) (Real_get_numerator(&(scale)->note_mods[(index)].ratio) >= 0)
 
 #define NOTE_CLEAR(scale, index)                                          \
-    do                                                                    \
+    if (true)                                                             \
     {                                                                     \
         (scale)->notes[(index)].cents = NAN;                              \
         Real_init_as_frac(&(scale)->notes[(index)].ratio, -1, 1);         \
         Real_init_as_frac(&(scale)->notes[(index)].ratio_retuned, -1, 1); \
-    } while (false)
+    } else (void)0
 
 #define NOTE_MOD_CLEAR(scale, index)                                  \
-    do                                                                \
+    if (true)                                                         \
     {                                                                 \
         (scale)->note_mods[(index)].cents = NAN;                      \
         Real_init_as_frac(&(scale)->note_mods[(index)].ratio, -1, 1); \
-    } while (false)
+    } else (void)0
 
 
 Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
@@ -74,7 +74,7 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
 
 
 #define read_and_validate_tuning(str, ratio, cents, state)                        \
-    do                                                                            \
+    if (true)                                                                     \
     {                                                                             \
         (str) = read_tuning((str), (ratio), &(cents), (state));                   \
         if ((state)->error)                                                       \
@@ -90,7 +90,7 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
                 return false;                                                     \
             }                                                                     \
         }                                                                         \
-    } while (false)
+    } else (void)0
 
 bool Scale_read(Scale* scale, File_tree* tree, Read_state* state)
 {
