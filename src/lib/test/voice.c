@@ -128,7 +128,7 @@ START_TEST (mix)
         abort();
     }
     Channel_state ch_state;
-    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -168,7 +168,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
@@ -228,7 +228,7 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, 64, 120);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),

@@ -27,6 +27,7 @@
 #include <check.h>
 
 #include <Voice_state.h>
+#include <Channel_state.h>
 
 
 Suite* Voice_state_suite(void);
@@ -35,7 +36,8 @@ Suite* Voice_state_suite(void);
 START_TEST (init)
 {
     Voice_state state;
-    Voice_state* ret = Voice_state_init(&state, 64, 120);
+    Channel_state ch_state;
+    Voice_state* ret = Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     fail_unless(ret == &state,
             "Voice_state_init() returned %p instead of %p.", ret, &state);
     fail_unless(state.active,
@@ -54,7 +56,8 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (init_break_state_null)
 {
-    Voice_state_init(NULL, 64, 120);
+    Channel_state ch_state;
+    Voice_state_init(NULL, &ch_state, &ch_state, 64, 120);
 }
 END_TEST
 #endif
