@@ -93,13 +93,15 @@
             }                                                                     \
             if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
             {                                                                     \
-                (state)->tremolo_length *= (freq) / (state)->freq;                \
-                (state)->tremolo_length *= (state)->tempo / (tempo);              \
                 (state)->tremolo_phase *= (freq) / (state)->freq;                 \
                 (state)->tremolo_phase *= (state)->tempo / (tempo);               \
-                (state)->tremolo_update *= (state)->freq / (freq);                \
-                (state)->tremolo_update *= (tempo) / (state)->tempo;              \
             }                                                                     \
+            (state)->tremolo_length *= (freq) / (state)->freq;                    \
+            (state)->tremolo_length *= (state)->tempo / (tempo);                  \
+            (state)->tremolo_update *= (state)->freq / (freq);                    \
+            (state)->tremolo_update *= (tempo) / (state)->tempo;                  \
+            (state)->tremolo_delay_update *= (state)->freq / (freq);              \
+            (state)->tremolo_delay_update *= (tempo) / (state)->tempo;            \
             if ((state)->panning_slide != 0)                                      \
             {                                                                     \
                 (state)->panning_slide_update *= (state)->freq / (freq);          \
@@ -235,8 +237,6 @@
             if (!(state)->vibrato && (new_phase < (state)->vibrato_phase      \
                     || (new_phase >= PI && (state)->vibrato_phase < PI)))     \
             {                                                                 \
-                (state)->vibrato_length = 0;                                  \
-                (state)->vibrato_depth = 0;                                   \
                 (state)->vibrato_phase = 0;                                   \
                 (state)->vibrato_update = 0;                                  \
             }                                                                 \
@@ -301,8 +301,25 @@
         (state)->actual_force = (state)->force;                               \
         if ((state)->tremolo)                                                 \
         {                                                                     \
-            double fac_dB = sin((state)->tremolo_phase) *                     \
-                    (state)->tremolo_depth;                                   \
+            double fac_dB = sin((state)->tremolo_phase);                      \
+            if ((state)->tremolo_delay_pos < 1)                               \
+            {                                                                 \
+                double actual_depth = (1 - (state)->tremolo_delay_pos) *      \
+                        (state)->tremolo_depth +                              \
+                        (state)->tremolo_delay_pos *                          \
+                        (state)->tremolo_depth_target;                        \
+                fac_dB *= actual_depth;                                       \
+                (state)->tremolo_delay_pos += (state)->tremolo_delay_update;  \
+            }                                                                 \
+            else                                                              \
+            {                                                                 \
+                (state)->tremolo_depth = (state)->tremolo_depth_target;       \
+                fac_dB *= (state)->tremolo_depth;                             \
+                if ((state)->tremolo_depth == 0)                              \
+                {                                                             \
+                    (state)->tremolo = false;                                 \
+                }                                                             \
+            }                                                                 \
             (state)->actual_force *= exp2(fac_dB / 6);                        \
             if (!(state)->tremolo &&                                          \
                     (state)->tremolo_length > (state)->freq)                  \
@@ -319,8 +336,6 @@
             if (!(state)->tremolo && (new_phase < (state)->tremolo_phase      \
                         || (new_phase >= PI && (state)->tremolo_phase < PI))) \
             {                                                                 \
-                (state)->tremolo_length = 0;                                  \
-                (state)->tremolo_depth = 0;                                   \
                 (state)->tremolo_phase = 0;                                   \
                 (state)->tremolo_update = 0;                                  \
             }                                                                 \

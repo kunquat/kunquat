@@ -109,7 +109,7 @@ static void Event_voice_vibrato_speed_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_VIBRATO_SPEED);
     assert(voice != NULL);
     Event_voice_vibrato_speed* vibrato_speed = (Event_voice_vibrato_speed*)event;
-    if (vibrato_speed->speed > 0 && voice->state.generic.vibrato_depth > 0)
+    if (vibrato_speed->speed > 0 && voice->state.generic.vibrato_depth_target > 0)
     {
         voice->state.generic.vibrato = true;
     }
@@ -121,6 +121,10 @@ static void Event_voice_vibrato_speed_process(Event_voice* event, Voice* voice)
     Channel_state* ch_state = voice->state.generic.new_ch_state;
     ch_state->vibrato_length = voice->state.generic.vibrato_length;
     ch_state->vibrato_update = voice->state.generic.vibrato_update;
+    if (!voice->state.generic.vibrato)
+    {
+        voice->state.generic.vibrato_delay_pos = 0;
+    }
     return;
 }
 

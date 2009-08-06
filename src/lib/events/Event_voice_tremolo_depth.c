@@ -109,20 +109,14 @@ static void Event_voice_tremolo_depth_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_TREMOLO_DEPTH);
     assert(voice != NULL);
     Event_voice_tremolo_depth* tremolo_depth = (Event_voice_tremolo_depth*)event;
-    if (tremolo_depth->depth > 0)
+    if (tremolo_depth->depth > 0 && voice->state.generic.tremolo_length > 0)
     {
-        if (voice->state.generic.tremolo_length > 0)
-        {
-            voice->state.generic.tremolo = true;
-        }
-        voice->state.generic.tremolo_depth = tremolo_depth->depth;
-        Channel_state* ch_state = voice->state.generic.new_ch_state;
-        ch_state->tremolo_depth = voice->state.generic.tremolo_depth;
+        voice->state.generic.tremolo = true;
     }
-    else
-    {
-        voice->state.generic.tremolo = false;
-    }
+    voice->state.generic.tremolo_depth_target = tremolo_depth->depth;
+    voice->state.generic.tremolo_delay_pos = 0;
+    Channel_state* ch_state = voice->state.generic.new_ch_state;
+    ch_state->tremolo_depth = voice->state.generic.tremolo_depth_target;
     return;
 }
 

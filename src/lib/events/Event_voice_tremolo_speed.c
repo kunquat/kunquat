@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdio.h>
 
 #include <Event_common.h>
 #include <Event_voice_tremolo_speed.h>
@@ -109,24 +110,21 @@ static void Event_voice_tremolo_speed_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_TREMOLO_SPEED);
     assert(voice != NULL);
     Event_voice_tremolo_speed* tremolo_speed = (Event_voice_tremolo_speed*)event;
-    if (tremolo_speed->speed > 0)
+    if (tremolo_speed->speed > 0 && voice->state.generic.tremolo_depth_target > 0)
     {
-        if (voice->state.generic.tremolo_depth > 0)
-        {
-            voice->state.generic.tremolo = true;
-        }
-        double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                           voice->state.generic.tempo,
-                                           voice->state.generic.freq);
-        voice->state.generic.tremolo_length = unit_len / tremolo_speed->speed;
-        voice->state.generic.tremolo_update = (2 * PI) / voice->state.generic.tremolo_length;
-        Channel_state* ch_state = voice->state.generic.new_ch_state;
-        ch_state->tremolo_length = voice->state.generic.tremolo_length;
-        ch_state->tremolo_update = voice->state.generic.tremolo_update;
+        voice->state.generic.tremolo = true;
     }
-    else
+    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
+                                       voice->state.generic.tempo,
+                                       voice->state.generic.freq);
+    voice->state.generic.tremolo_length = unit_len / tremolo_speed->speed;
+    voice->state.generic.tremolo_update = (2 * PI) / voice->state.generic.tremolo_length;
+    Channel_state* ch_state = voice->state.generic.new_ch_state;
+    ch_state->tremolo_length = voice->state.generic.tremolo_length;
+    ch_state->tremolo_update = voice->state.generic.tremolo_update;
+    if (!voice->state.generic.tremolo)
     {
-        voice->state.generic.tremolo = false;
+        voice->state.generic.tremolo_delay_pos = 0;
     }
     return;
 }

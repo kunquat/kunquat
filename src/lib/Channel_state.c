@@ -42,6 +42,7 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
     state->tremolo_length = 0;
     state->tremolo_update = 0;
     state->tremolo_depth = 0;
+    state->tremolo_delay_update = 1;
 
     state->vibrato_length = 0;
     state->vibrato_update = 0;
@@ -72,6 +73,7 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->tremolo_length = src->tremolo_length;
     dest->tremolo_update = src->tremolo_update;
     dest->tremolo_depth = src->tremolo_depth;
+    dest->tremolo_delay_update = src->tremolo_delay_update;
 
     dest->vibrato_length = src->vibrato_length;
     dest->vibrato_update = src->vibrato_update;

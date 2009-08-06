@@ -44,6 +44,7 @@ typedef struct Channel_state
     double tremolo_length;         ///< Tremolo length.
     double tremolo_update;         ///< Tremolo update.
     double tremolo_depth;          ///< Tremolo depth.
+    double tremolo_delay_update;   ///< The update amount of the tremolo delay.
 
     double vibrato_length;         ///< Vibrato length.
     double vibrato_update;         ///< Vibrato update.

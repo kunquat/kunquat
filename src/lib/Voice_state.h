@@ -88,6 +88,9 @@ typedef struct Voice_state
     bool tremolo;                  ///< Tremolo enabled.
     double tremolo_length;         ///< Length of the tremolo phase.
     double tremolo_depth;          ///< Depth of the tremolo.
+    double tremolo_depth_target;   ///< Target tremolo depth.
+    double tremolo_delay_pos;      ///< Position of the tremolo delay.
+    double tremolo_delay_update;   ///< The update amount of the tremolo delay.
     double tremolo_phase;          ///< Phase of the tremolo.
     double tremolo_update;         ///< The update amount of the tremolo phase.
                                    

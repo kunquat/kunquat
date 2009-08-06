@@ -106,7 +106,8 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
 
     voice->state.generic.tremolo_length = ch_state->tremolo_length;
     voice->state.generic.tremolo_update = ch_state->tremolo_update;
-    voice->state.generic.tremolo_depth = ch_state->tremolo_depth;
+    voice->state.generic.tremolo_depth_target = ch_state->tremolo_depth;
+    voice->state.generic.tremolo_delay_update = ch_state->tremolo_delay_update;
     
     voice->state.generic.vibrato_length = ch_state->vibrato_length;
     voice->state.generic.vibrato_update = ch_state->vibrato_update;

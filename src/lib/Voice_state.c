@@ -107,6 +107,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tremolo = false;
     state->tremolo_length = 0;
     state->tremolo_depth = 0;
+    state->tremolo_depth_target = 0;
+    state->tremolo_delay_pos = 0;
+    state->tremolo_delay_update = 1;
     state->tremolo_phase = 0;
     state->tremolo_update = 0;
 

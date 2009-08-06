@@ -116,7 +116,7 @@ static void Event_voice_vibrato_depth_process(Event_voice* event, Voice* voice)
     voice->state.generic.vibrato_depth_target = vibrato_depth->depth / 240; // unit is 5 cents
     voice->state.generic.vibrato_delay_pos = 0;
     Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->vibrato_depth = voice->state.generic.vibrato_depth;
+    ch_state->vibrato_depth = voice->state.generic.vibrato_depth_target;
     return;
 }
 

@@ -51,6 +51,7 @@ typedef enum
     EVENT_VOICE_SLIDE_FORCE    = 137, ///< Slide Force.
     EVENT_VOICE_TREMOLO_SPEED  = 138, ///< Tremolo speed.
     EVENT_VOICE_TREMOLO_DEPTH  = 139, ///< Tremolo depth.
+    EVENT_VOICE_TREMOLO_DELAY  = 140, ///< Tremolo delay.
                                
     EVENT_VOICE_SLIDE_PITCH    = 144, ///< Slide pitch.
     EVENT_VOICE_VIBRATO_SPEED  = 145, ///< Vibrato speed.
