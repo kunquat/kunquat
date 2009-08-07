@@ -44,6 +44,7 @@ typedef struct Song
     kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
+    kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
@@ -211,6 +212,16 @@ kqt_frame** Song_get_bufs(Song* song);
  * \return   The Voice buffers.
  */
 kqt_frame** Song_get_voice_bufs(Song* song);
+
+
+/**
+ * Gets the auxiliary Voice buffers from the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The auxiliary Voice buffers.
+ */
+kqt_frame** Song_get_voice_bufs2(Song* song);
 
 
 /**

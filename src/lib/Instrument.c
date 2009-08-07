@@ -37,6 +37,7 @@
 
 Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
+                           kqt_frame** vbufs2,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
@@ -45,10 +46,10 @@ Instrument* new_Instrument(kqt_frame** bufs,
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
-    assert(bufs[1] != NULL);
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
-    assert(vbufs[1] != NULL);
+    assert(vbufs2 != NULL);
+    assert(vbufs2[0] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scales != NULL);
@@ -62,7 +63,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
     if (Instrument_params_init(&ins->params,
-                               bufs, vbufs,
+                               bufs, vbufs, vbufs2,
                                buf_count, buf_len,
                                default_scale) == NULL)
     {

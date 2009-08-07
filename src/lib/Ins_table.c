@@ -61,6 +61,7 @@ Ins_table* new_Ins_table(int size)
 bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     kqt_frame** bufs,
                     kqt_frame** voice_bufs,
+                    kqt_frame** voice_bufs2,
                     int buf_count,
                     uint32_t buf_len,
                     Scale** scales,
@@ -72,6 +73,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
     assert(state != NULL);
     assert(bufs != NULL);
     assert(voice_bufs != NULL);
+    assert(voice_bufs2 != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scales != NULL);
@@ -108,6 +110,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
             {
                 Instrument* ins = new_Instrument(bufs,
                                                  voice_bufs,
+                                                 voice_bufs2,
                                                  buf_count,
                                                  buf_len,
                                                  scales,

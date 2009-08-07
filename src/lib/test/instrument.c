@@ -45,7 +45,7 @@ START_TEST (new)
     kqt_frame buf_r[100] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 100, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 100, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -59,7 +59,7 @@ END_TEST
 START_TEST (new_break_bufs_null)
 {
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(NULL, NULL, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(NULL, NULL, NULL, 2, 1, nts, nts, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -70,7 +70,7 @@ START_TEST (new_break_buf_len_inv)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 0, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 0, nts, nts, 1);
     del_Instrument(ins);
 }
 END_TEST
@@ -81,7 +81,7 @@ START_TEST (new_break_events_inv)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 0);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 0);
     del_Instrument(ins);
 }
 END_TEST
@@ -94,7 +94,7 @@ START_TEST (mix)
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -432,7 +432,7 @@ START_TEST (mix_break_state_null)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -457,7 +457,7 @@ START_TEST (mix_break_nframes_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -485,7 +485,7 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

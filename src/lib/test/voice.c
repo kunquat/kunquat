@@ -81,7 +81,7 @@ START_TEST (mix)
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 2);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 128, nts, nts, 2);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -291,7 +291,7 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 2);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 2);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

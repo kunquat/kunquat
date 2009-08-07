@@ -78,25 +78,25 @@ START_TEST (set_get)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins1 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins4 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins4 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins4 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -233,7 +233,7 @@ START_TEST (set_break_table_null)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -250,7 +250,7 @@ START_TEST (set_break_index_inv1)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -274,7 +274,7 @@ START_TEST (set_break_index_inv2)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -311,7 +311,7 @@ START_TEST (set_break_ins_dup)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -370,19 +370,19 @@ START_TEST (ins_table_remove)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins1 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -533,19 +533,19 @@ START_TEST (clear)
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins1 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins1 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins1 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins2 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins2 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins2 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
         abort();
     }
-    Instrument* ins3 = new_Instrument(bufs, bufs, 2, 1, nts, nts, 1);
+    Instrument* ins3 = new_Instrument(bufs, bufs, bufs, 2, 1, nts, nts, 1);
     if (ins3 == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

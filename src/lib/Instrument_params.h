@@ -40,6 +40,7 @@ typedef struct Instrument_params
     kqt_frame** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
     kqt_frame** gbufs;  ///< Global mixing buffers.
     kqt_frame** vbufs;  ///< Voice buffers.
+    kqt_frame** vbufs2; ///< Auxiliary Voice buffers.
     int buf_count;    ///< Number of mixing buffers.
     uint32_t buf_len; ///< Mixing buffer length.
     
@@ -94,9 +95,11 @@ typedef struct Instrument_params
  *
  * \param ip          The Instrument parameters -- must not be \c NULL.
  * \param bufs        The global mixing buffers -- must not be \c NULL and must
- *                    contain at least two buffers.
+ *                    contain at least \a buf_count buffers.
  * \param vbufs       The Voice mixing buffers -- must not be \c NULL and must
- *                    contain at least two buffers.
+ *                    contain at least \a buf_count buffers.
+ * \param vbufs2      The auxiliary Voice mixing buffers -- must not be \c NULL and must
+ *                    contain at least \a buf_count buffers.
  * \param buf_count   The number of buffers -- must be > \c 0.
  * \param buf_len     The length of the buffers -- must be > \c 0.
  * \param scale       An indirect reference to the Scale -- must not be
@@ -106,11 +109,12 @@ typedef struct Instrument_params
  *           allocation failed.
  */
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-        kqt_frame** bufs,
-        kqt_frame** vbufs,
-        int buf_count,
-        uint32_t buf_len,
-        Scale** scale);
+                                          kqt_frame** bufs,
+                                          kqt_frame** vbufs,
+                                          kqt_frame** vbufs2,
+                                          int buf_count,
+                                          uint32_t buf_len,
+                                          Scale** scale);
 
 
 /**
