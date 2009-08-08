@@ -23,6 +23,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #include <Generator.h>
 #include <Generator_sine.h>
@@ -33,6 +35,7 @@
 #include <Generator_pcm.h>
 #include <File_base.h>
 #include <File_tree.h>
+#include <Filter.h>
 
 #include <xmemory.h>
 
@@ -244,9 +247,52 @@ void Generator_mix(Generator* gen,
     uint32_t mixed = offset;
     while (mixed < nframes)
     {
+        kqt_frame** bufs = gen->ins_params->bufs;
+        if (state->filter_update || freq != state->freq)
+        {
+            if (state->filter < freq / 2)
+            {
+                bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
+                        state->filter / freq,
+                        state->filter_coeffs1,
+                        state->filter_coeffs2);
+            }
+            state->actual_filter = state->filter;
+            state->filter_update = false;
+        }
+        if (state->actual_filter < freq / 2)
+        {
+            bufs = gen->ins_params->vbufs;
+        }
         mixed = gen->mix(gen, state, nframes, mixed, freq, tempo,
                          gen->ins_params->buf_count,
-                         gen->ins_params->bufs);
+                         bufs);
+        if (bufs == gen->ins_params->vbufs)
+        {
+            for (int i = 0; i < gen->ins_params->buf_count; ++i)
+            {
+                iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                               state->filter_coeffs1, state->filter_coeffs2,
+                               state->filter_history1[i], state->filter_history2[i],
+                               mixed - offset,
+                               gen->ins_params->vbufs[i] + offset,
+                               gen->ins_params->vbufs2[i] + offset);
+                for (uint32_t k = offset; k < mixed; ++k)
+                {
+                    gen->ins_params->bufs[i][k] +=
+                            gen->ins_params->vbufs2[i][k];
+                }
+            }
+        }
+        for (int i = 0; i < gen->ins_params->buf_count; ++i)
+        {
+            for (uint32_t k = 0; k < nframes; ++k)
+            {
+                gen->ins_params->vbufs[i][k] = 0;
+                gen->ins_params->vbufs2[i][k] = 0;
+            }
+        }
+        offset = mixed;
         if (!state->active)
         {
             break;

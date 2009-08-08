@@ -125,8 +125,9 @@ START_TEST (mix)
     kqt_frame buf_l[256] = { 0 };
     kqt_frame buf_r[256] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
+    kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 128, nts, nts, 16);
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, nts, nts, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

@@ -272,7 +272,9 @@ START_TEST (mix)
     Scale* notes = Song_get_scale(song, 0);
     Scale_set_ref_pitch(notes, 2);
     kqt_frame** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, bufs, bufs, 2, 256, &notes, &notes, 16);
+    kqt_frame** vbufs = Song_get_voice_bufs(song);
+    kqt_frame** vbufs2 = Song_get_voice_bufs2(song);
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs2, 2, 256, &notes, &notes, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

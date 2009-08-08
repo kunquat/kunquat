@@ -28,8 +28,12 @@
 #include <stdint.h>
 
 #include <Channel_state.h>
+#include <kunquat/frame.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
+
+
+#define FILTER_ORDER (6)
 
 
 typedef struct Voice_state
@@ -100,6 +104,14 @@ typedef struct Voice_state
     double panning_slide_target;   ///< Target panning position of the slide.
     double panning_slide_frames;   ///< Number of frames left to complete the slide.
     double panning_slide_update;   ///< The update amount of the slide.
+
+    double filter;                 ///< The current filter cut-off frequency.
+    double actual_filter;          ///< The current actual filter cut-off frequency.
+    bool filter_update;            ///< Whether filter needs to be updated.
+    double filter_coeffs1[FILTER_ORDER]; ///< First filter coefficient table.
+    double filter_coeffs2[FILTER_ORDER + 1]; ///< Second filter coefficient table.
+    kqt_frame filter_history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< First filter history buffer.
+    kqt_frame filter_history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< Second filter history buffer.
 } Voice_state;
 
 

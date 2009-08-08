@@ -26,19 +26,25 @@
 
 #include <Event.h>
 #include <Event_type.h>
+
 #include <Event_global_set_tempo.h>
+
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
+
 #include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
 #include <Event_voice_tremolo_speed.h>
 #include <Event_voice_tremolo_depth.h>
 #include <Event_voice_tremolo_delay.h>
+
 #include <Event_voice_slide_pitch.h>
 #include <Event_voice_vibrato_speed.h>
 #include <Event_voice_vibrato_depth.h>
 #include <Event_voice_vibrato_delay.h>
 #include <Event_voice_arpeggio.h>
+
+#include <Event_voice_set_filter.h>
 
 #include <Event_voice_set_panning.h>
 #include <Event_voice_slide_panning.h>
@@ -56,20 +62,27 @@ Event* new_Event(Event_type type, Reltime* pos)
     if (!cons_initialised)
     {
         cons[EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
+
         cons[EVENT_VOICE_NOTE_ON] = new_Event_voice_note_on;
         cons[EVENT_VOICE_NOTE_OFF] = new_Event_voice_note_off;
+
         cons[EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force;
         cons[EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force;
         cons[EVENT_VOICE_TREMOLO_SPEED] = new_Event_voice_tremolo_speed;
         cons[EVENT_VOICE_TREMOLO_DEPTH] = new_Event_voice_tremolo_depth;
         cons[EVENT_VOICE_TREMOLO_DELAY] = new_Event_voice_tremolo_delay;
+
         cons[EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch;
         cons[EVENT_VOICE_VIBRATO_SPEED] = new_Event_voice_vibrato_speed;
         cons[EVENT_VOICE_VIBRATO_DEPTH] = new_Event_voice_vibrato_depth;
         cons[EVENT_VOICE_VIBRATO_DELAY] = new_Event_voice_vibrato_delay;
         cons[EVENT_VOICE_ARPEGGIO] = new_Event_voice_arpeggio;
+
+        cons[EVENT_VOICE_SET_FILTER] = new_Event_voice_set_filter;
+
         cons[EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning;
         cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;
+
         cons_initialised = true;
     }
     if (cons[type] == NULL)

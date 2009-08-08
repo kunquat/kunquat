@@ -74,35 +74,6 @@ double poly(double x, int n, ...)
 }
 
 
-#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper) \
-    if (true)                                                      \
-    {                                                              \
-        for ((j) = 0, (k) = (i); (k) < (n); ++(j), ++(k))          \
-        {                                                          \
-            (acc) oper (histbuff)[(k)] * (coeffs)[(j)];            \
-        }                                                          \
-        for ((k) -= (n); (j) < (n); ++(j), ++(k))                  \
-        {                                                          \
-            (acc) oper (sourcebuff)[(k)] * (coeffs)[(j)];          \
-        }                                                          \
-    } else (void)0
-
-
-#define BUFFER(histbuff, sourcebuff, n, amount)                                               \
-    if (true)                                                                                 \
-    {                                                                                         \
-        if((amount)<(n))                                                                      \
-        {                                                                                     \
-            memmove((histbuff), (histbuff) + (amount), ((n) - (amount)) * sizeof(kqt_frame)); \
-            memcpy((histbuff) + (n) - (amount), (sourcebuff), (amount) * sizeof(kqt_frame));  \
-        }                                                                                     \
-        else                                                                                  \
-        {                                                                                     \
-            memcpy((histbuff), (sourcebuff) + (amount) - (n), (n) * sizeof(kqt_frame));       \
-        }                                                                                     \
-    } else (void)0
-
-
 void simple_lowpass_fir_create(int n, double f, double coeffs[])
 {
     for (int i = 0; i <= n; ++i)
@@ -267,6 +238,35 @@ void invert(int n, double* coeffs)
     coeffs[i] = -coeffs[i];
 }
 */
+
+
+#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper) \
+    if (true)                                                      \
+    {                                                              \
+        for ((j) = 0, (k) = (i); (k) < (n); ++(j), ++(k))          \
+        {                                                          \
+            (acc) oper (histbuff)[(k)] * (coeffs)[(j)];            \
+        }                                                          \
+        for ((k) -= (n); (j) < (n); ++(j), ++(k))                  \
+        {                                                          \
+            (acc) oper (sourcebuff)[(k)] * (coeffs)[(j)];          \
+        }                                                          \
+    } else (void)0
+
+
+#define BUFFER(histbuff, sourcebuff, n, amount)                                               \
+    if (true)                                                                                 \
+    {                                                                                         \
+        if((amount)<(n))                                                                      \
+        {                                                                                     \
+            memmove((histbuff), (histbuff) + (amount), ((n) - (amount)) * sizeof(kqt_frame)); \
+            memcpy((histbuff) + (n) - (amount), (sourcebuff), (amount) * sizeof(kqt_frame));  \
+        }                                                                                     \
+        else                                                                                  \
+        {                                                                                     \
+            memcpy((histbuff), (sourcebuff) + (amount) - (n), (n) * sizeof(kqt_frame));       \
+        }                                                                                     \
+    } else (void)0
 
 
 void fir_filter(int n,

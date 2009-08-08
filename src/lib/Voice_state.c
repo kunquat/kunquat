@@ -23,6 +23,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdint.h>
+#include <math.h>
 
 #include <Voice_state.h>
 #include <kunquat/limits.h>
@@ -119,6 +120,22 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->panning_slide_target = 0;
     state->panning_slide_frames = 0;
     state->panning_slide_update = 0;
+
+    state->filter = INFINITY;
+    state->actual_filter = INFINITY;
+    state->filter_update = false;
+    for (int i = 0; i < FILTER_ORDER; ++i)
+    {
+        state->filter_coeffs1[i] = 0;
+        state->filter_coeffs2[i] = 0;
+        for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
+        {
+            state->filter_history1[k][i] = 0;
+            state->filter_history2[k][i] = 0;
+        }
+    }
+    state->filter_coeffs2[FILTER_ORDER] = 0;
+
     return state;
 }
 

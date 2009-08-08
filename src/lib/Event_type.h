@@ -59,9 +59,12 @@ typedef enum
     EVENT_VOICE_VIBRATO_DELAY  = 147, ///< Vibrato delay.
     EVENT_VOICE_ARPEGGIO       = 148, ///< Arpeggio.
                                
-    EVENT_VOICE_SET_FILTER     = 152, ///< Set filter.
+    EVENT_VOICE_SET_FILTER     = 152, ///< Set filter cut-off.
     EVENT_VOICE_SLIDE_FILTER   = 153, ///< Slide filter cut-off.
-    EVENT_VOICE_FILTER_LFO     = 154, ///< Oscillate filter cut-off.
+    EVENT_VOICE_AUTO_WAH_SPEED = 154, ///< Auto-wah (filter cut-off oscillation) speed.
+    EVENT_VOICE_AUTO_WAH_DEPTH = 155, ///< Auto-wah depth.
+    EVENT_VOICE_AUTO_WAH_DELAY = 156, ///< Auto-wah delay.
+    EVENT_VOICE_SET_RESONANCE  = 157, ///< Set filter resonance (Q factor).
 
     EVENT_VOICE_SET_PANNING    = 160, ///< Set panning position.
     EVENT_VOICE_SLIDE_PANNING  = 161, ///< Slide panning position.

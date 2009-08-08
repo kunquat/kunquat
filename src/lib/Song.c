@@ -347,6 +347,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             for (uint32_t k = 0; k < nframes; ++k)
             {
                 song->bufs[i][k] = 0;
+                song->voice_bufs[i][k] = 0;
+                song->voice_bufs2[i][k] = 0;
             }
         }
     }
