@@ -124,17 +124,26 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
     state->filter_update = false;
+    state->filter_state_used = -1;
+    state->filter_xfade_state_used = -1;
+    state->filter_xfade_pos = 1;
+    state->filter_xfade_update = 0;
     for (int i = 0; i < FILTER_ORDER; ++i)
     {
-        state->filter_coeffs1[i] = 0;
-        state->filter_coeffs2[i] = 0;
+        state->filter_state[0].coeffs1[i] = 0;
+        state->filter_state[0].coeffs2[i] = 0;
+        state->filter_state[1].coeffs1[i] = 0;
+        state->filter_state[1].coeffs2[i] = 0;
         for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
         {
-            state->filter_history1[k][i] = 0;
-            state->filter_history2[k][i] = 0;
+            state->filter_state[0].history1[k][i] = 0;
+            state->filter_state[0].history2[k][i] = 0;
+            state->filter_state[1].history1[k][i] = 0;
+            state->filter_state[1].history2[k][i] = 0;
         }
     }
-    state->filter_coeffs2[FILTER_ORDER] = 0;
+    state->filter_state[0].coeffs2[FILTER_ORDER] = 0;
+    state->filter_state[1].coeffs2[FILTER_ORDER] = 0;
 
     return state;
 }

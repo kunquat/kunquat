@@ -33,7 +33,16 @@
 #include <pitch_t.h>
 
 
-#define FILTER_ORDER (6)
+#define FILTER_ORDER (4)
+
+
+typedef struct Filter_state
+{
+    double coeffs1[FILTER_ORDER]; ///< First coefficient table.
+    double coeffs2[FILTER_ORDER + 1]; ///< Second coefficient table.
+    kqt_frame history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
+    kqt_frame history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
+} Filter_state;
 
 
 typedef struct Voice_state
@@ -108,10 +117,11 @@ typedef struct Voice_state
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
     bool filter_update;            ///< Whether filter needs to be updated.
-    double filter_coeffs1[FILTER_ORDER]; ///< First filter coefficient table.
-    double filter_coeffs2[FILTER_ORDER + 1]; ///< Second filter coefficient table.
-    kqt_frame filter_history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< First filter history buffer.
-    kqt_frame filter_history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< Second filter history buffer.
+    double filter_xfade_pos;       ///< Filter crossfade position.
+    double filter_xfade_update;    ///< The update amount of the filter crossfade.
+    int filter_xfade_state_used;   ///< State fading out during the filter crossfade.
+    int filter_state_used;         ///< Primary filter state used.
+    Filter_state filter_state[2];  ///< States of the filters.
 } Voice_state;
 
 

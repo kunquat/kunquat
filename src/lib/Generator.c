@@ -248,49 +248,131 @@ void Generator_mix(Generator* gen,
     while (mixed < nframes)
     {
         kqt_frame** bufs = gen->ins_params->bufs;
-        if (state->filter_update || freq != state->freq)
+        if ((state->filter_update && state->filter_xfade_pos >= 1)
+                || freq != state->freq)
         {
+            state->filter_xfade_state_used = state->filter_state_used;
             if (state->filter < freq / 2)
             {
+                int new_state = (state->filter_state_used + 1) % 2;
                 bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
                         state->filter / freq,
-                        state->filter_coeffs1,
-                        state->filter_coeffs2);
+                        state->filter_state[new_state].coeffs1,
+                        state->filter_state[new_state].coeffs2);
+                for (int i = 0; i < gen->ins_params->buf_count; ++i)
+                {
+                    for (int k = 0; k < FILTER_ORDER; ++k)
+                    {
+                        state->filter_state[new_state].history1[i][k] = 0;
+                        state->filter_state[new_state].history2[i][k] = 0;
+                    }
+                }
+                state->filter_state_used = new_state;
             }
+            else
+            {
+                state->filter_state_used = -1;
+            }
+            state->filter_xfade_pos = 0;
+            state->filter_xfade_update = 200.0 / freq;
             state->actual_filter = state->filter;
             state->filter_update = false;
         }
-        if (state->actual_filter < freq / 2)
+        uint32_t mix_until = nframes;
+        if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
         {
             bufs = gen->ins_params->vbufs;
+            if (state->filter_xfade_pos < 1 && mix_until - offset >
+                    (1 - state->filter_xfade_pos) / state->filter_xfade_update)
+            {
+                mix_until = offset +
+                        ceil((1 - state->filter_xfade_pos) / state->filter_xfade_update);
+            }
         }
-        mixed = gen->mix(gen, state, nframes, mixed, freq, tempo,
+        mixed = gen->mix(gen, state, mix_until, mixed, freq, tempo,
                          gen->ins_params->buf_count,
                          bufs);
         if (bufs == gen->ins_params->vbufs)
         {
-            for (int i = 0; i < gen->ins_params->buf_count; ++i)
+            assert(state->filter_state_used != state->filter_xfade_state_used);
+            kqt_frame** in_buf = gen->ins_params->vbufs;
+            if (state->filter_state_used > -1)
             {
-                iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
-                               state->filter_coeffs1, state->filter_coeffs2,
-                               state->filter_history1[i], state->filter_history2[i],
-                               mixed - offset,
-                               gen->ins_params->vbufs[i] + offset,
-                               gen->ins_params->vbufs2[i] + offset);
-                for (uint32_t k = offset; k < mixed; ++k)
+                in_buf = gen->ins_params->vbufs2;
+                for (int i = 0; i < gen->ins_params->buf_count; ++i)
                 {
-                    gen->ins_params->bufs[i][k] +=
-                            gen->ins_params->vbufs2[i][k];
+                    iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                                   state->filter_state[state->filter_state_used].coeffs1,
+                                   state->filter_state[state->filter_state_used].coeffs2,
+                                   state->filter_state[state->filter_state_used].history1[i],
+                                   state->filter_state[state->filter_state_used].history2[i],
+                                   mixed - offset,
+                                   gen->ins_params->vbufs[i] + offset,
+                                   gen->ins_params->vbufs2[i] + offset);
                 }
             }
-        }
-        for (int i = 0; i < gen->ins_params->buf_count; ++i)
-        {
-            for (uint32_t k = 0; k < nframes; ++k)
+            double vol = state->filter_xfade_pos;
+            for (uint32_t k = offset; k < mixed; ++k)
             {
-                gen->ins_params->vbufs[i][k] = 0;
-                gen->ins_params->vbufs2[i][k] = 0;
+                if (vol > 1)
+                {
+                    vol = 1;
+                }
+                for (int i = 0; i < gen->ins_params->buf_count; ++i)
+                {
+                    gen->ins_params->bufs[i][k] += in_buf[i][k] * vol;
+                }
+                vol += state->filter_xfade_update;
             }
+            if (state->filter_xfade_pos < 1)
+            {
+                kqt_frame** fade_buf = gen->ins_params->vbufs;
+                if (state->filter_xfade_state_used > -1)
+                {
+                    fade_buf = gen->ins_params->vbufs2;
+                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
+                    {
+                        for (uint32_t k = 0; k < nframes; ++k)
+                        {
+                            gen->ins_params->vbufs2[i][k] = 0;
+                        }
+                    }
+                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
+                    {
+                        iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                                state->filter_state[state->filter_xfade_state_used].coeffs1,
+                                state->filter_state[state->filter_xfade_state_used].coeffs2,
+                                state->filter_state[state->filter_xfade_state_used].history1[i],
+                                state->filter_state[state->filter_xfade_state_used].history2[i],
+                                mixed - offset,
+                                gen->ins_params->vbufs[i] + offset,
+                                gen->ins_params->vbufs2[i] + offset);
+                    }
+                }
+                double vol = 1 - state->filter_xfade_pos;
+                for (uint32_t k = offset; k < mixed; ++k)
+                {
+                    if (vol <= 0)
+                    {
+                        fprintf(stderr, "Break at %" PRIu32 " \n", k - offset);
+                        break;
+                    }
+                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
+                    {
+                        gen->ins_params->bufs[i][k] += fade_buf[i][k] * vol;
+                    }
+                    vol -= state->filter_xfade_update;
+                }
+            }
+            for (int i = 0; i < gen->ins_params->buf_count; ++i)
+            {
+                for (uint32_t k = 0; k < nframes; ++k)
+                {
+                    gen->ins_params->vbufs[i][k] = 0;
+                    gen->ins_params->vbufs2[i][k] = 0;
+                }
+            }
+            state->filter_xfade_pos += state->filter_xfade_update * mixed;
         }
         offset = mixed;
         if (!state->active)

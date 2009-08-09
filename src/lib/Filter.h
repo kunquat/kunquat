@@ -44,6 +44,16 @@ void iir_filter_df1(int na,
                     kqt_frame* outbuff);
 
 
+void iir_filter_df2(int na,
+                    int nb,
+                    double* coeffsa,
+                    double* coeffsb,
+                    kqt_frame* histbuff,
+                    int amount,
+                    kqt_frame* inbuff,
+                    kqt_frame* outbuff);
+
+
 #endif // K_FILTER_H
 
 
