@@ -45,6 +45,7 @@
 #include <Event_voice_arpeggio.h>
 
 #include <Event_voice_set_filter.h>
+#include <Event_voice_slide_filter.h>
 
 #include <Event_voice_set_panning.h>
 #include <Event_voice_slide_panning.h>
@@ -79,6 +80,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_ARPEGGIO] = new_Event_voice_arpeggio;
 
         cons[EVENT_VOICE_SET_FILTER] = new_Event_voice_set_filter;
+        cons[EVENT_VOICE_SLIDE_FILTER] = new_Event_voice_slide_filter;
 
         cons[EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning;
         cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;

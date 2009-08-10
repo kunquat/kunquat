@@ -33,7 +33,7 @@
 #include <pitch_t.h>
 
 
-#define FILTER_ORDER (4)
+#define FILTER_ORDER (3)
 
 
 typedef struct Filter_state
@@ -117,6 +117,11 @@ typedef struct Voice_state
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
     bool filter_update;            ///< Whether filter needs to be updated.
+    int filter_slide;              ///< Filter slide state (0 = no slide, -1 = down, 1 = up).
+    double filter_slide_target;    ///< Target cut-off frequency of the slide.
+    double filter_slide_frames;    ///< Number of frames left to complete the slide.
+    double filter_slide_update;    ///< The update factor of the slide.
+
     double filter_xfade_pos;       ///< Filter crossfade position.
     double filter_xfade_update;    ///< The update amount of the filter crossfade.
     int filter_xfade_state_used;   ///< State fading out during the filter crossfade.

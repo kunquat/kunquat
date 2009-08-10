@@ -169,6 +169,46 @@
     } else (void)0
 
 
+#define Generator_common_handle_filter(gen, state)                                  \
+    if (true)                                                                       \
+    {                                                                               \
+        if (!(state)->filter_update &&                                              \
+                ((state)->filter < (state)->actual_filter * 0.98566319864018759     \
+                 || (state)->filter > (state)->actual_filter * 1.0145453349375237)) \
+        {                                                                           \
+            (state)->filter_update = true;                                          \
+            break;                                                                  \
+        }                                                                           \
+        if ((state)->filter_slide != 0)                                             \
+        {                                                                           \
+            (state)->filter *= (state)->filter_slide_update;                        \
+            (state)->filter_slide_frames -= 1;                                      \
+            if ((state)->filter_slide_frames <= 0)                                  \
+            {                                                                       \
+                (state)->filter = (state)->filter_slide_target;                     \
+                (state)->filter_slide = 0;                                          \
+            }                                                                       \
+            else if ((state)->filter_slide == 1)                                    \
+            {                                                                       \
+                if ((state)->filter > (state)->filter_slide_target)                 \
+                {                                                                   \
+                    (state)->filter = (state)->filter_slide_target;                 \
+                    (state)->filter_slide = 0;                                      \
+                }                                                                   \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                assert((state)->filter_slide == -1);                                \
+                if ((state)->filter < (state)->filter_slide_target)                 \
+                {                                                                   \
+                    (state)->filter = (state)->filter_slide_target;                 \
+                    (state)->filter_slide = 0;                                      \
+                }                                                                   \
+            }                                                                       \
+        }                                                                           \
+    } else (void)0
+
+
 #define Generator_common_handle_pitch(gen, state)                             \
     if (true)                                                                 \
     {                                                                         \
