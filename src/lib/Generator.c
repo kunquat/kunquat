@@ -354,7 +354,6 @@ void Generator_mix(Generator* gen,
                 {
                     if (vol <= 0)
                     {
-                        fprintf(stderr, "Break at %" PRIu32 " \n", k - offset);
                         break;
                     }
                     for (int i = 0; i < gen->ins_params->buf_count; ++i)
@@ -372,7 +371,7 @@ void Generator_mix(Generator* gen,
                     gen->ins_params->vbufs2[i][k] = 0;
                 }
             }
-            state->filter_xfade_pos += state->filter_xfade_update * mixed;
+            state->filter_xfade_pos += state->filter_xfade_update * (mixed - offset);
         }
         offset = mixed;
         if (!state->active)
