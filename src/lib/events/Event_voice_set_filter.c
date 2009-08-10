@@ -108,7 +108,7 @@ static void Event_voice_set_filter_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_SET_FILTER);
     assert(voice != NULL);
     Event_voice_set_filter* set_filter = (Event_voice_set_filter*)event;
-    if (isinf(set_filter->cutoff))
+    if (set_filter->cutoff > 86)
     {
         voice->state.generic.actual_filter = voice->state.generic.filter = INFINITY;
         voice->state.generic.filter_update = true;

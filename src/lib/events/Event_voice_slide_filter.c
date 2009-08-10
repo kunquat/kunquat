@@ -129,8 +129,12 @@ static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice)
     if (target_cutoff > 86)
     {
         target_cutoff = 86;
+        voice->state.generic.filter_slide_target = INFINITY;
     }
-    voice->state.generic.filter_slide_target = exp2((slide_filter->target_cutoff + 86) / 12);
+    else
+    {
+        voice->state.generic.filter_slide_target = exp2((slide_filter->target_cutoff + 86) / 12);
+    }
     voice->state.generic.filter_slide_frames =
             Reltime_toframes(&slide_filter->length,
                     voice->state.generic.tempo,
