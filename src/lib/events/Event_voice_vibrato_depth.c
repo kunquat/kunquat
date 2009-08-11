@@ -97,7 +97,7 @@ static void* Event_voice_vibrato_depth_get(Event* event, int index)
     Event_voice_vibrato_depth* vibrato_depth = (Event_voice_vibrato_depth*)event;
     if (index != 0)
     {
-        return false;
+        return NULL;
     }
     return &vibrato_depth->depth;
 }

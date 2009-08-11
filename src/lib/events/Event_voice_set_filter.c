@@ -110,15 +110,10 @@ static void Event_voice_set_filter_process(Event_voice* event, Voice* voice)
     Event_voice_set_filter* set_filter = (Event_voice_set_filter*)event;
     if (set_filter->cutoff > 86)
     {
-        voice->state.generic.actual_filter = voice->state.generic.filter = INFINITY;
-        voice->state.generic.filter_update = true;
+        voice->state.generic.filter = INFINITY;
         return;
     }
     voice->state.generic.filter = exp2((set_filter->cutoff + 86) / 12);
-    if (voice->state.generic.filter != voice->state.generic.actual_filter)
-    {
-        voice->state.generic.filter_update = true;
-    }
     return;
 }
 

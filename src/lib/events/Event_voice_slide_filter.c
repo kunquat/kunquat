@@ -142,7 +142,6 @@ static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice)
     if (voice->state.generic.filter_slide_frames == 0)
     {
         voice->state.generic.filter = voice->state.generic.filter_slide_target;
-        voice->state.generic.filter_update = true;
         return;
     }
     double inf_limit = exp2((86.0 + 86) / 12);

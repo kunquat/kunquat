@@ -46,6 +46,9 @@
 
 #include <Event_voice_set_filter.h>
 #include <Event_voice_slide_filter.h>
+#include <Event_voice_autowah_speed.h>
+#include <Event_voice_autowah_depth.h>
+#include <Event_voice_autowah_delay.h>
 
 #include <Event_voice_set_panning.h>
 #include <Event_voice_slide_panning.h>
@@ -81,6 +84,9 @@ Event* new_Event(Event_type type, Reltime* pos)
 
         cons[EVENT_VOICE_SET_FILTER] = new_Event_voice_set_filter;
         cons[EVENT_VOICE_SLIDE_FILTER] = new_Event_voice_slide_filter;
+        cons[EVENT_VOICE_AUTOWAH_SPEED] = new_Event_voice_autowah_speed;
+        cons[EVENT_VOICE_AUTOWAH_DEPTH] = new_Event_voice_autowah_depth;
+        cons[EVENT_VOICE_AUTOWAH_DELAY] = new_Event_voice_autowah_delay;
 
         cons[EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning;
         cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;

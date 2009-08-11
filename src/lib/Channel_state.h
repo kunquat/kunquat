@@ -51,6 +51,11 @@ typedef struct Channel_state
     double vibrato_depth;          ///< Vibrato depth.
     double vibrato_delay_update;   ///< The update amount of the vibrato delay.
 
+    double autowah_length;         ///< Auto-wah length.
+    double autowah_update;         ///< Auto-wah update.
+    double autowah_depth;          ///< Auto-wah depth.
+    double autowah_delay_update;   ///< The update amount of the auto-wah delay.
+
     double panning;                ///< The current panning.
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
     double panning_slide_target;   ///< Target panning position of the slide.

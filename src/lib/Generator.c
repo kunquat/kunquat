@@ -252,11 +252,13 @@ void Generator_mix(Generator* gen,
                 || freq != state->freq)
         {
             state->filter_xfade_state_used = state->filter_state_used;
-            if (state->filter < freq / 2)
+            state->filter_xfade_pos = 0;
+            state->filter_xfade_update = 200.0 / freq;
+            if (state->actual_filter < freq / 2)
             {
                 int new_state = (state->filter_state_used + 1) % 2;
                 bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
-                        state->filter / freq,
+                        state->actual_filter / freq,
                         state->filter_state[new_state].coeffs1,
                         state->filter_state[new_state].coeffs2);
                 for (int i = 0; i < gen->ins_params->buf_count; ++i)
@@ -271,11 +273,13 @@ void Generator_mix(Generator* gen,
             }
             else
             {
+                if (state->filter_state_used == -1)
+                {
+                    state->filter_xfade_pos = 1;
+                }
                 state->filter_state_used = -1;
             }
-            state->filter_xfade_pos = 0;
-            state->filter_xfade_update = 200.0 / freq;
-            state->actual_filter = state->filter;
+            state->effective_filter = state->actual_filter;
             state->filter_update = false;
         }
         uint32_t mix_until = nframes;

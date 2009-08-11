@@ -116,11 +116,20 @@ typedef struct Voice_state
 
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
+    double effective_filter;       ///< The current filter cut-off frequency _really_ used.
     bool filter_update;            ///< Whether filter needs to be updated.
     int filter_slide;              ///< Filter slide state (0 = no slide, -1 = down, 1 = up).
     double filter_slide_target;    ///< Target cut-off frequency of the slide.
     double filter_slide_frames;    ///< Number of frames left to complete the slide.
     double filter_slide_update;    ///< The update factor of the slide.
+    bool autowah;                  ///< Auto-wah enabled.
+    double autowah_length;         ///< Length of the auto-wah phase.
+    double autowah_depth;          ///< Depth of the auto-wah.
+    double autowah_depth_target;   ///< Target auto-wah depth.
+    double autowah_delay_pos;      ///< Position of the auto-wah delay.
+    double autowah_delay_update;   ///< The update amount of the auto-wah delay.
+    double autowah_phase;          ///< Phase of the auto-wah.
+    double autowah_update;         ///< The update amount of the auto-wah phase.
 
     double filter_xfade_pos;       ///< Filter crossfade position.
     double filter_xfade_update;    ///< The update amount of the filter crossfade.

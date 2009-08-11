@@ -86,6 +86,15 @@ Voice_state* Voice_state_clear(Voice_state* state)
         state->arpeggio_factors[i] = 0;
     }
 
+    state->autowah = false;
+    state->autowah_length = 0;
+    state->autowah_depth = 0;
+    state->autowah_depth_target = 0;
+    state->autowah_delay_pos = 0;
+    state->autowah_delay_update = 1;
+    state->autowah_phase = 0;
+    state->autowah_update = 0;
+
     state->pos = 0;
     state->pos_rem = 0;
     state->rel_pos = 0;
@@ -123,6 +132,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
+    state->effective_filter = INFINITY;
     state->filter_update = false;
     state->filter_state_used = -1;
     state->filter_xfade_state_used = -1;

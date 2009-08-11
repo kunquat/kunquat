@@ -49,6 +49,11 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
     state->vibrato_depth = 0;
     state->vibrato_delay_update = 1;
 
+    state->autowah_length = 0;
+    state->autowah_update = 0;
+    state->autowah_depth = 0;
+    state->autowah_delay_update = 1;
+
     state->panning = 0;
     state->panning_slide = 0;
     state->panning_slide_target = 0;
@@ -79,6 +84,11 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->vibrato_update = src->vibrato_update;
     dest->vibrato_depth = src->vibrato_depth;
     dest->vibrato_delay_update = src->vibrato_delay_update;
+
+    dest->autowah_length = src->autowah_length;
+    dest->autowah_update = src->autowah_update;
+    dest->autowah_depth = src->autowah_depth;
+    dest->autowah_delay_update = src->autowah_delay_update;
 
     dest->panning = src->panning;
     dest->panning_slide = src->panning_slide;
