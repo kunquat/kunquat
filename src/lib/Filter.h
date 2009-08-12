@@ -29,6 +29,7 @@
 
 void bilinear_butterworth_lowpass_filter_create(int n,
                                                 double f,
+                                                double q,
                                                 double coeffsa[],
                                                 double coeffsb[]);
 

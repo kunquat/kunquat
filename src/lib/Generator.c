@@ -259,6 +259,7 @@ void Generator_mix(Generator* gen,
                 int new_state = (state->filter_state_used + 1) % 2;
                 bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
                         state->actual_filter / freq,
+                        state->filter_resonance,
                         state->filter_state[new_state].coeffs1,
                         state->filter_state[new_state].coeffs2);
                 for (int i = 0; i < gen->ins_params->buf_count; ++i)
@@ -280,6 +281,7 @@ void Generator_mix(Generator* gen,
                 state->filter_state_used = -1;
             }
             state->effective_filter = state->actual_filter;
+            state->effective_resonance = state->filter_resonance;
             state->filter_update = false;
         }
         uint32_t mix_until = nframes;

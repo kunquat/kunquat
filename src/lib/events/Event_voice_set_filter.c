@@ -96,7 +96,7 @@ static void* Event_voice_set_filter_get(Event* event, int index)
     Event_voice_set_filter* set_filter = (Event_voice_set_filter*)event;
     if (index != 0)
     {
-        return false;
+        return NULL;
     }
     return &set_filter->cutoff;
 }

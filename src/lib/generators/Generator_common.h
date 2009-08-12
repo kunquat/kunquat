@@ -173,8 +173,9 @@
     if (true)                                                                          \
     {                                                                                  \
         if (!(state)->filter_update &&                                                 \
-                ((state)->actual_filter < (state)->effective_filter * 0.98566319864018759     \
-                 || (state)->actual_filter > (state)->effective_filter * 1.0145453349375237)) \
+                ((state)->actual_filter < (state)->effective_filter * 0.98566319864018759   \
+                 || (state)->actual_filter > (state)->effective_filter * 1.0145453349375237 \
+                 || (state)->filter_resonance != (state)->effective_resonance))        \
         {                                                                              \
             (state)->filter_update = true;                                             \
             break;                                                                     \

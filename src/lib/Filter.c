@@ -93,11 +93,15 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 
 void bilinear_butterworth_lowpass_filter_create(int n,
                                                 double f,
+                                                double q,
                                                 double coeffsa[],
                                                 double coeffsb[])
 {
     assert(n >= 1);
     assert(n <= 6);
+    assert(f < 0.5);
+    assert(q >= 1.0);
+    assert(q <= 1000);
     assert(coeffsa != NULL);
     assert(coeffsb != NULL);
 
@@ -114,9 +118,9 @@ void bilinear_butterworth_lowpass_filter_create(int n,
         break;
         case 2:
         {
-            coeffsa[0] = poly(f, 2, 1.0, -C1,  1.0);
+            coeffsa[0] = poly(f, 2, 1.0, -C1 / q,  1.0);
             coeffsa[1] = poly(f, 2, 2.0, 0.0, -2.0);
-            a0         = poly(f, 2, 1.0,  C1,  1.0);
+            a0         = poly(f, 2, 1.0,  C1 / q,  1.0);
         }
         break;
         case 3:
@@ -240,17 +244,19 @@ void invert(int n, double* coeffs)
 */
 
 
-#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, j, k, oper) \
-    if (true)                                                      \
-    {                                                              \
-        for ((j) = 0, (k) = (i); (k) < (n); ++(j), ++(k))          \
-        {                                                          \
-            (acc) oper (histbuff)[(k)] * (coeffs)[(j)];            \
-        }                                                          \
-        for ((k) -= (n); (j) < (n); ++(j), ++(k))                  \
-        {                                                          \
-            (acc) oper (sourcebuff)[(k)] * (coeffs)[(j)];          \
-        }                                                          \
+#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, oper) \
+    if (true)                                                \
+    {                                                        \
+        int j = 0;                                           \
+        int k = 0;                                           \
+        for (j = 0, k = (i); k < (n); ++j, ++k)              \
+        {                                                    \
+            (acc) oper (histbuff)[k] * (coeffs)[j];          \
+        }                                                    \
+        for (k -= (n); j < (n); ++j, ++k)                    \
+        {                                                    \
+            (acc) oper (sourcebuff)[k] * (coeffs)[j];        \
+        }                                                    \
     } else (void)0
 
 
@@ -276,13 +282,12 @@ void fir_filter(int n,
                 kqt_frame* inbuff,
                 kqt_frame* outbuff)
 {
-    int j,k;
     double temp;
  
     for(int i = 0; i < amount; ++i)
     {
         temp = inbuff[i] * coeffs[n];
-        DPROD(histbuff, inbuff, coeffs, n, i, temp, j, k, +=);
+        DPROD(histbuff, inbuff, coeffs, n, i, temp, +=);
         outbuff[i] = temp;
     }
  
@@ -302,13 +307,12 @@ void iir_filter_df1(int na,
                     kqt_frame* inbuff,
                     kqt_frame* outbuff)
 {
-    int j,k;
     double temp;
     for (int i = 0; i < amount; ++i)
     {
         temp = inbuff[i] * coeffsb[nb];
-        DPROD(histbuffa, outbuff, coeffsa, na, i, temp, j, k, -=);
-        DPROD(histbuffb,  inbuff, coeffsb, nb, i, temp, j, k, +=);
+        DPROD(histbuffa, outbuff, coeffsa, na, i, temp, -=);
+        DPROD(histbuffb,  inbuff, coeffsb, nb, i, temp, +=);
         outbuff[i] = temp;
     }
     BUFFER(histbuffa, outbuff, na, amount);
@@ -326,15 +330,14 @@ void iir_filter_df2(int na,
                     kqt_frame* inbuff,
                     kqt_frame* outbuff)
 {
-    int j,k;
     double temp;
     for (int i = 0; i < amount; ++i)
     {
         temp = inbuff[i];
-        DPROD(&histbuff[MAX(na, nb) - na], inbuff, coeffsa, na, i, temp, j, k, -=);
+        DPROD(&histbuff[MAX(na, nb) - na], inbuff, coeffsa, na, i, temp, -=);
         inbuff[i] = temp;
         temp *= coeffsb[nb];
-        DPROD(&histbuff[MAX(na, nb) - nb], inbuff, coeffsb, nb, i, temp, j, k, +=);
+        DPROD(&histbuff[MAX(na, nb) - nb], inbuff, coeffsb, nb, i, temp, +=);
         outbuff[i] = temp;
     }
     BUFFER(histbuff, inbuff, MAX(na,nb), amount);
@@ -349,12 +352,11 @@ void iir_filter_pure(int n,
                      kqt_frame* inbuff,
                      kqt_frame* outbuff)
 {
-    int j,k;
     double temp;
     for (int i = 0; i < amount; ++i)
     {
         temp = inbuff[i];
-        DPROD(histbuff, outbuff, coeffs, n, i, temp, j, k, -=);
+        DPROD(histbuff, outbuff, coeffs, n, i, temp, -=);
         outbuff[i] = temp;
     }
     BUFFER(histbuff, outbuff, n, amount);

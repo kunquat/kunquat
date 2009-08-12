@@ -133,6 +133,12 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
     state->effective_filter = INFINITY;
+    state->filter_slide = 0;
+    state->filter_slide_target = INFINITY;
+    state->filter_slide_frames = 0;
+    state->filter_slide_update = 0;
+    state->filter_resonance = 1;
+    state->effective_resonance = 1;
     state->filter_update = false;
     state->filter_state_used = -1;
     state->filter_xfade_state_used = -1;
