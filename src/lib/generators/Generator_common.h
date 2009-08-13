@@ -58,8 +58,8 @@
             if ((state)->pitch_slide != 0)                                        \
             {                                                                     \
                 double slide_step = log2((state)->pitch_slide_update);            \
-                slide_step = slide_step * (state)->freq / (freq);                 \
-                slide_step = slide_step * (tempo) / (state)->tempo;               \
+                slide_step *= (state)->freq / (freq);                             \
+                slide_step *= (tempo) / (state)->tempo;                           \
                 (state)->pitch_slide_update = exp2(slide_step);                   \
                 (state)->pitch_slide_frames *= (freq) / (state)->freq;            \
                 (state)->pitch_slide_frames *= (state)->tempo / (tempo);          \
@@ -109,6 +109,27 @@
                 (state)->panning_slide_frames *= (freq) / (state)->freq;          \
                 (state)->panning_slide_frames *= (state)->tempo / (tempo);        \
             }                                                                     \
+            if ((state)->filter_slide != 0)                                       \
+            {                                                                     \
+                double slide_step = log2((state)->filter_slide_update);           \
+                slide_step *= (state)->freq / (freq);                             \
+                slide_step *= (tempo) / (state)->tempo;                           \
+                (state)->filter_slide_update = exp2(slide_step);                  \
+                (state)->filter_slide_frames *= (freq) / (state)->freq;           \
+                (state)->filter_slide_frames *= (state)->tempo / (tempo);         \
+            }                                                                     \
+            if ((state)->autowah_length > 0 && (state)->autowah_depth > 0)        \
+            {                                                                     \
+                (state)->autowah_phase *= (freq) / (state)->freq;                 \
+                (state)->autowah_phase *= (state)->tempo / (tempo);               \
+            }                                                                     \
+            (state)->autowah_length *= (freq) / (state)->freq;                    \
+            (state)->autowah_length *= (state)->tempo / (tempo);                  \
+            (state)->autowah_update *= (state)->freq / (freq);                    \
+            (state)->autowah_update *= (tempo) / (state)->tempo;                  \
+            (state)->autowah_delay_update *= (state)->freq / (freq);              \
+            (state)->autowah_delay_update *= (tempo) / (state)->tempo;            \
+                                                                                  \
             (state)->freq = (freq);                                               \
             (state)->tempo = (tempo);                                             \
         }                                                                         \
