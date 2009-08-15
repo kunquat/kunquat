@@ -64,6 +64,7 @@ Channel* new_Channel(Ins_table* insts, int num)
     Channel_state_init(&ch->init_state, num, &ch->mute);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
     Channel_state_copy(&ch->new_state, &ch->init_state);
+    ch->cur_inst = 0;
     ch->insts = insts;
     ch->fg_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -145,21 +146,28 @@ void Channel_set_voices(Channel* ch,
             ch->fg_count = 0;
             int64_t* num = Event_get_field(next, 3);
             assert(num != NULL);
-            if (*num <= 0)
+            if (*num == 0)
             {
-                next = NULL;
-                if (citer != NULL)
+                if (ch->cur_inst == 0)
                 {
-                    next = Column_iter_get_next(citer);
+                    next = NULL;
+                    if (citer != NULL)
+                    {
+                        next = Column_iter_get_next(citer);
+                    }
+                    if (next == NULL)
+                    {
+                        break;
+                    }
+                    next_pos = Event_get_pos(next);
+                    continue;
                 }
-                if (next == NULL)
-                {
-                    break;
-                }
-                next_pos = Event_get_pos(next);
-                continue;
             }
-            Instrument* ins = Ins_table_get(ch->insts, *num);
+            else
+            {
+                ch->cur_inst = *num;
+            }
+            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
             if (ins == NULL)
             {
                 next = NULL;
@@ -305,6 +313,8 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
+    Channel_state_copy(&ch->cur_state, &ch->init_state);
+    Channel_state_copy(&ch->new_state, &ch->init_state);
     for (int i = 0; i < ch->fg_count; ++i)
     {
         ch->fg[i] = NULL;

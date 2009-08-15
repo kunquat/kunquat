@@ -42,10 +42,11 @@
  */
 typedef struct Channel
 {
-    Channel_state init_state;
-    Channel_state cur_state;
-    Channel_state new_state;
-    bool mute;
+    Channel_state init_state; ///< Channel state at the start of the playback.
+    Channel_state cur_state;  ///< Channel state as passed to Voices.
+    Channel_state new_state;  ///< Channel state as received from Voices.
+    bool mute;                ///< If \c true, output of the Voices will be ignored.
+    int cur_inst;             ///< Current instrument number.
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
     Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
