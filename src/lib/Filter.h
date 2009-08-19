@@ -33,6 +33,11 @@ void bilinear_butterworth_lowpass_filter_create(int n,
                                                 double coeffsa[],
                                                 double coeffsb[]);
 
+void bilinear_chebyshev_t1_lowpass_filter_create(int n,
+                                                 double f,
+                                                 double e,
+                                                 double* coeffsa,
+                                                 double* coeffsb);
 
 void iir_filter_df1(int na,
                     int nb,

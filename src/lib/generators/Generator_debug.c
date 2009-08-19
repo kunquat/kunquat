@@ -38,6 +38,11 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params)
     {
         return NULL;
     }
+    if (!Generator_init(&debug->parent))
+    {
+        xfree(debug);
+        return NULL;
+    }
     debug->parent.destroy = del_Generator_debug;
     debug->parent.type = GEN_TYPE_DEBUG;
     debug->parent.init_state = NULL;

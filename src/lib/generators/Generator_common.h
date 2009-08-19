@@ -164,13 +164,13 @@
                     (state)->active = false;                                         \
                     break;                                                           \
                 }                                                                    \
-                (state)->off_ve_pos += (1.0 - (state)->pedal) / (freq);              \
+                (state)->off_ve_pos += (1.0 - *(state)->pedal) / (freq);             \
                 for (int i = 0; i < (frame_count); ++i)                              \
                 {                                                                    \
                     (frames)[i] *= scale;                                            \
                 }                                                                    \
             }                                                                        \
-            else                                                                     \
+            else if (*(state)->pedal < 0.5)                                          \
             {                                                                        \
                 if ((state)->ramp_release < 1)                                       \
                 {                                                                    \

@@ -156,10 +156,10 @@ bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
  * \param tempo    The current tempo -- must be > \c 0.
  */
 void Voice_mix(Voice* voice,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq,
-        double tempo);
+               uint32_t amount,
+               uint32_t offset,
+               uint32_t freq,
+               double tempo);
 
 
 /**

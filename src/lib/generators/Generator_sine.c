@@ -49,7 +49,11 @@ Generator_sine* new_Generator_sine(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&sine->parent);
+    if (!Generator_init(&sine->parent))
+    {
+        xfree(sine);
+        return NULL;
+    }
     sine->parent.read = Generator_sine_read;
     sine->parent.destroy = del_Generator_sine;
     sine->parent.type = GEN_TYPE_SINE;

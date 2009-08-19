@@ -57,7 +57,11 @@ Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&pcm->parent);
+    if (!Generator_init(&pcm->parent))
+    {
+        xfree(pcm);
+        return NULL;
+    }
     pcm->parent.read = Generator_pcm_read;
     pcm->parent.destroy = del_Generator_pcm;
     pcm->parent.type = GEN_TYPE_PCM;

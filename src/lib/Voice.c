@@ -155,15 +155,8 @@ void Voice_mix(Voice* voice,
         }
         if (event_found)
         {
-            if (EVENT_IS_GENERAL(Event_get_type(next)))
-            {
-                // TODO: handle general events
-            }
-            else
-            {
-                assert(EVENT_IS_VOICE(Event_get_type(next)));
-                Event_voice_process((Event_voice*)next, voice);
-            }
+            assert(EVENT_IS_VOICE(Event_get_type(next)));
+            Event_voice_process((Event_voice*)next, voice);
         }
         mixed = mix_until;
         mix_until = nframes;

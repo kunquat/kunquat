@@ -69,14 +69,22 @@ typedef enum
     EVENT_VOICE_SET_PANNING    = 160, ///< Set panning position.
     EVENT_VOICE_SLIDE_PANNING  = 161, ///< Slide panning position.
 
+    EVENT_VOICE_LAST           = 255, ///< Sentinel -- never used as a valid type.
+
+    EVENT_INS_SET_PEDAL        = 256, ///< Set Instrument pedal.
+
     EVENT_LAST                        ///< Sentinel -- never used as a valid type.
 } Event_type;
 
 
 #define EVENT_IS_GENERAL(type) ((type) > EVENT_NONE && (type) < EVENT_GENERAL_LAST)
 #define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GENERAL_LAST && (type) < EVENT_GLOBAL_LAST)
-#define EVENT_IS_VOICE(type)   ((type) > EVENT_GLOBAL_LAST && (type) < EVENT_LAST)
-#define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || EVENT_IS_GLOBAL((type)) || EVENT_IS_VOICE((type)))
+#define EVENT_IS_VOICE(type)   ((type) > EVENT_GLOBAL_LAST && (type) < EVENT_VOICE_LAST)
+#define EVENT_IS_INS(type)     ((type) > EVENT_VOICE_LAST && (type) < EVENT_LAST)
+#define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \
+                                EVENT_IS_GLOBAL((type))  || \
+                                EVENT_IS_VOICE((type))   || \
+                                EVENT_IS_INS((type)))
 
 
 typedef enum

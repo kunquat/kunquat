@@ -48,7 +48,11 @@ Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&sawtooth->parent);
+    if (!Generator_init(&sawtooth->parent))
+    {
+        xfree(sawtooth);
+        return NULL;
+    }
     sawtooth->parent.read = Generator_sawtooth_read;
     sawtooth->parent.destroy = del_Generator_sawtooth;
     sawtooth->parent.type = GEN_TYPE_SAWTOOTH;

@@ -48,7 +48,11 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&square->parent);
+    if (!Generator_init(&square->parent))
+    {
+        xfree(square);
+        return NULL;
+    }
     square->parent.read = Generator_square_read;
     square->parent.destroy = del_Generator_square;
     square->parent.type = GEN_TYPE_SQUARE;

@@ -48,7 +48,11 @@ Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&triangle->parent);
+    if (!Generator_init(&triangle->parent))
+    {
+        xfree(triangle);
+        return NULL;
+    }
     triangle->parent.read = Generator_triangle_read;
     triangle->parent.destroy = del_Generator_triangle;
     triangle->parent.type = GEN_TYPE_TRIANGLE;

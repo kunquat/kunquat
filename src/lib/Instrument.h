@@ -38,8 +38,6 @@
 
 typedef struct Instrument
 {
-    Event_queue* events;        ///< Instrument event queue (esp. pedal events go here).
-
     double default_force;       ///< Default force.
     double force_variation;     ///< Force variation.
 
@@ -167,6 +165,18 @@ void Instrument_del_gen(Instrument* ins, int index);
  *                < \c KQT_SCALES_MAX or \c -1 (default).
  */
 void Instrument_set_scale(Instrument* ins, int index);
+
+
+/**
+ * Adds a new Event into the Instrument event queue.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param event   The Event -- must not be \c NULL.
+ * \param pos     The position of the Event.
+ *
+ * \return   \c true if successful, or \c false if the Event queue is full.
+ */
+bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos);
 
 
 /**

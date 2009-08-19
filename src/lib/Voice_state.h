@@ -88,7 +88,7 @@ typedef struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
                                   
-    bool pedal;                    ///< Whether the pedal is active.
+    double* pedal;                 ///< Instrument pedal state.
     double on_ve_pos;              ///< Note On volume envelope position.
     double off_ve_pos;             ///< Note Off volume envelope position.
                                   

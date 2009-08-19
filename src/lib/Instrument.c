@@ -70,13 +70,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
-    ins->events = NULL;
-    ins->events = new_Event_queue(events);
-    if (ins->events == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
 
     ins->default_force = 1;
     ins->force_variation = 0;
@@ -315,6 +308,22 @@ void Instrument_set_scale(Instrument* ins, int index)
 }
 
 
+bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
+{
+    assert(ins != NULL);
+    assert(event != NULL);
+    bool ok = true;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        if (ins->gens[i] != NULL && ins->gens[i]->enabled)
+        {
+            ok &= Generator_add_event(ins->gens[i], event, pos);
+        }
+    }
+    return ok;
+}
+
+
 void Instrument_mix(Instrument* ins,
                     Voice_state* states,
                     uint32_t nframes,
@@ -337,10 +346,6 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-    if (ins->events != NULL)
-    {
-        del_Event_queue(ins->events);
-    }
     for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
         del_Generator(ins->gens[i]);

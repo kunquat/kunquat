@@ -87,9 +87,9 @@ static bool Event_global_set_tempo_set(Event* event, int index, void* data)
     Event_global_set_tempo* set_tempo = (Event_global_set_tempo*)event;
     if (index == 0)
     {
-        double* tempo = (double*)data;
-        Event_check_double_range(*tempo, event->field_types[0]);
-        set_tempo->tempo = *tempo;
+        double tempo = *(double*)data;
+        Event_check_double_range(tempo, event->field_types[0]);
+        set_tempo->tempo = tempo;
         return true;
     }
     return false;

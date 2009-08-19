@@ -198,8 +198,7 @@ void Channel_set_voices(Channel* ch,
                            freq,
                            tempo);
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                        + offset;
+                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
                 if (!Voice_add_event(ch->fg[i], next, abs_pos))
                 {
                     // This really shouldn't occur here!
@@ -210,7 +209,8 @@ void Channel_set_voices(Channel* ch,
             }
         }
         else if (ch->fg_count > 0 &&
-                !EVENT_IS_GLOBAL(Event_get_type(next)))
+                 (EVENT_IS_GENERAL(Event_get_type(next)) ||
+                  EVENT_IS_VOICE(Event_get_type(next))))
         {
             bool voices_active = false;
             for (int i = 0; i < ch->fg_count; ++i)
@@ -239,6 +239,18 @@ void Channel_set_voices(Channel* ch,
             {
                 ch->fg_count = 0;
                 // TODO: Insert Channel effect processing here
+            }
+        }
+        else if (ch->fg_count > 0 &&
+                 EVENT_IS_INS(Event_get_type(next)))
+        {
+            Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+            uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
+            int64_t* ins_index = Event_get_field(next, 0);
+            Instrument* ins = Ins_table_get(ch->insts, *ins_index);
+            if (ins != NULL)
+            {
+                Instrument_add_event(ins, next, abs_pos);
             }
         }
         if (next == ch->single)

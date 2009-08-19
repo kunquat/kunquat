@@ -104,7 +104,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
     
-    state->pedal = false;
+    state->pedal = NULL;
     state->on_ve_pos = 0;
     state->off_ve_pos = 0;
 

@@ -36,17 +36,23 @@
 #include <File_base.h>
 #include <File_tree.h>
 #include <Filter.h>
+#include <Event_ins.h>
 
 #include <xmemory.h>
 
 
-void Generator_init(Generator* gen)
+bool Generator_init(Generator* gen)
 {
     assert(gen != NULL);
+    gen->events = new_Event_queue(32); // TODO: make event count configurable
+    if (gen->events == NULL)
+    {
+        return false;
+    }
     gen->enabled = true;
     gen->volume_dB = 0;
     gen->volume = 1;
-    return;
+    return true;
 }
 
 
@@ -233,6 +239,14 @@ void Generator_process_note(Generator* gen,
 }
 
 
+bool Generator_add_event(Generator* gen, Event* event, uint32_t pos)
+{
+    assert(gen != NULL);
+    assert(event != NULL);
+    return Event_queue_ins(gen->events, event, pos);
+}
+
+
 void Generator_mix(Generator* gen,
                    Voice_state* state,
                    uint32_t nframes,
@@ -284,7 +298,22 @@ void Generator_mix(Generator* gen,
             state->effective_resonance = state->filter_resonance;
             state->filter_update = false;
         }
+
         uint32_t mix_until = nframes;
+        Event* ins_event = NULL;
+        uint32_t ins_event_pos = 0;
+        if (Event_queue_peek(gen->events, 0, &ins_event, &ins_event_pos))
+        {
+            if (ins_event_pos < mix_until)
+            {
+                mix_until = ins_event_pos;
+            }
+            else
+            {
+                ins_event = NULL;
+            }
+        }
+
         if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
         {
             bufs = gen->ins_params->vbufs;
@@ -295,9 +324,20 @@ void Generator_mix(Generator* gen,
                         ceil((1 - state->filter_xfade_pos) / state->filter_xfade_update);
             }
         }
+
         mixed = gen->mix(gen, state, mix_until, mixed, freq, tempo,
                          gen->ins_params->buf_count,
                          bufs);
+
+        if (ins_event != NULL && mixed == mix_until)
+        {
+            Event_queue_get(gen->events, &ins_event, &ins_event_pos);
+            assert(ins_event_pos == mix_until);
+            assert(ins_event != NULL);
+            assert(EVENT_IS_INS(Event_get_type(ins_event)));
+            Event_ins_process((Event_ins*)ins_event, gen->ins_params);
+        }
+
         if (bufs == gen->ins_params->vbufs)
         {
             assert(state->filter_state_used != state->filter_xfade_state_used);
