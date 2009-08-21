@@ -38,11 +38,12 @@
 #include <xmemory.h>
 
 
-Channel* new_Channel(Ins_table* insts, int num)
+Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events)
 {
     assert(insts != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
+    assert(ins_events != NULL);
     Channel* ch = xalloc(Channel);
     if (ch == NULL)
     {
@@ -66,6 +67,7 @@ Channel* new_Channel(Ins_table* insts, int num)
     Channel_state_copy(&ch->new_state, &ch->init_state);
     ch->cur_inst = 0;
     ch->insts = insts;
+    ch->ins_events = ins_events;
     ch->fg_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
@@ -241,16 +243,16 @@ void Channel_set_voices(Channel* ch,
                 // TODO: Insert Channel effect processing here
             }
         }
-        else if (ch->fg_count > 0 &&
-                 EVENT_IS_INS(Event_get_type(next)))
+        else if (EVENT_IS_INS(Event_get_type(next)))
         {
             Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
             uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
             int64_t* ins_index = Event_get_field(next, 0);
+            assert(ins_index != NULL);
             Instrument* ins = Ins_table_get(ch->insts, *ins_index);
             if (ins != NULL)
             {
-                Instrument_add_event(ins, next, abs_pos);
+                Event_queue_ins(ch->ins_events, next, abs_pos);
             }
         }
         if (next == ch->single)

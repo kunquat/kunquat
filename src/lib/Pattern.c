@@ -30,6 +30,7 @@
 #include <Event_queue.h>
 #include <Event.h>
 #include <Event_global.h>
+#include <Event_ins.h>
 
 #include <xmemory.h>
 
@@ -169,9 +170,9 @@ Column* Pattern_get_global(Pattern* pat)
 
 
 uint32_t Pattern_mix(Pattern* pat,
-        uint32_t nframes,
-        uint32_t offset,
-        Playdata* play)
+                     uint32_t nframes,
+                     uint32_t offset,
+                     Playdata* play)
 {
 //  assert(pat != NULL);
     assert(offset < nframes);
@@ -317,24 +318,68 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 Column_iter_change_col(play->citer, pat->cols[i]);
                 Channel_set_voices(play->channels[i],
-                        play->voice_pool,
-                        play->citer,
-                        &play->pos,
-                        limit,
-                        mixed,
-                        play->tempo,
-                        play->freq);
+                                   play->voice_pool,
+                                   play->citer,
+                                   &play->pos,
+                                   limit,
+                                   mixed,
+                                   play->tempo,
+                                   play->freq);
             }
             // - Mix the Voice pool
-            uint16_t active_voices = Voice_pool_mix(play->voice_pool,
-                    to_be_mixed + mixed, mixed, play->freq, play->tempo);
+/*            uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+                    to_be_mixed + mixed, mixed, play->freq, play->tempo); */
+            Event* ins_event = NULL;
+            uint32_t ins_event_pos = UINT32_MAX;
+            uint32_t mix_until = to_be_mixed + mixed;
+            uint32_t pool_mixed = mixed;
+            bool event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
+            if (event_found && ins_event_pos < mix_until)
+            {
+                mix_until = ins_event_pos;
+            }
+            while (pool_mixed < to_be_mixed + mixed)
+            {
+                uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+                        mix_until, pool_mixed, play->freq, play->tempo);
+                if (play->active_voices < active_voices)
+                {
+                    play->active_voices = active_voices;
+                }
+                if (event_found)
+                {
+                    assert(ins_event != NULL);
+                    int64_t* ins_index = Event_get_field(ins_event, 0);
+                    assert(ins_index != NULL);
+                    Instrument* ins = Ins_table_get(play->channels[0]->insts, *ins_index);
+                    if (ins != NULL)
+                    {
+                        Event_ins_process((Event_ins*)ins_event, &ins->params);
+                    }
+                }
+                pool_mixed = mix_until;
+                mix_until = to_be_mixed + mixed;
+                event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
+                if (event_found && ins_event_pos < mix_until)
+                {
+                    mix_until = ins_event_pos;
+                }
+            }
+            while (event_found)
+            {
+                assert(ins_event != NULL);
+                int64_t* ins_index = Event_get_field(ins_event, 0);
+                assert(ins_index != NULL);
+                Instrument* ins = Ins_table_get(play->channels[0]->insts, *ins_index);
+                if (ins != NULL)
+                {
+                    Event_ins_process((Event_ins*)ins_event, &ins->params);
+                }
+                event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
+            }
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
                 Channel_update_state(play->channels[i], to_be_mixed + mixed);
-            }
-            if (play->active_voices < active_voices)
-            {
-                play->active_voices = active_voices;
             }
         }
         // - Increment play->pos

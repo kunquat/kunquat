@@ -308,6 +308,7 @@ void Instrument_set_scale(Instrument* ins, int index)
 }
 
 
+#if 0
 bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
 {
     assert(ins != NULL);
@@ -322,6 +323,7 @@ bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
     }
     return ok;
 }
+#endif
 
 
 void Instrument_mix(Instrument* ins,

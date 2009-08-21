@@ -133,7 +133,55 @@ void Voice_mix(Voice* voice,
     }
     uint32_t mixed = offset;
     Event* next = NULL;
-    uint32_t mix_until = nframes;
+    uint32_t next_pos = UINT32_MAX;
+    bool event_found = Event_queue_peek(voice->events, 0, &next, &next_pos);
+    if (event_found && Event_get_type(next) == EVENT_VOICE_NOTE_ON)
+    {
+        mixed = next_pos;
+    }
+    uint32_t mix_until = next_pos;
+    while (mixed < nframes)
+    {
+        if (mix_until > nframes)
+        {
+            mix_until = nframes;
+        }
+        if (voice->prio < VOICE_PRIO_NEW)
+        {
+            Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq, tempo);
+        }
+        else
+        {
+            assert(event_found);
+            assert(next != NULL);
+            assert(Event_get_type(next) == EVENT_VOICE_NOTE_ON);
+            if (next_pos <= mix_until)
+            {
+                voice->prio = VOICE_PRIO_NEW - 1;
+            }
+        }
+        if (event_found && next_pos <= mix_until)
+        {
+            Event_queue_get(voice->events, &next, &next_pos);
+            assert(next != NULL);
+            Event_voice_process((Event_voice*)next, voice);
+        }
+        mixed = mix_until;
+        next_pos = UINT32_MAX;
+        event_found = Event_queue_peek(voice->events, 0, &next, &next_pos);
+        mix_until = next_pos;
+    }
+    while (Event_queue_peek(voice->events, 0, &next, &next_pos) && next_pos <= nframes)
+    {
+        Event_queue_get(voice->events, &next, &next_pos);
+        assert(next != NULL);
+        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON && voice->prio == VOICE_PRIO_NEW)
+        {
+            voice->prio = VOICE_PRIO_NEW - 1;
+        }
+        Event_voice_process((Event_voice*)next, voice);
+    }
+#if 0
     bool event_found = Event_queue_get(voice->events, &next, &mix_until);
     if (event_found && Event_get_type(next) == EVENT_VOICE_NOTE_ON)
     {
@@ -162,6 +210,7 @@ void Voice_mix(Voice* voice,
         mix_until = nframes;
         event_found = Event_queue_get(voice->events, &next, &mix_until);
     }
+#endif
     if (!voice->state.generic.active)
     {
         voice->prio = VOICE_PRIO_INACTIVE;
@@ -170,7 +219,7 @@ void Voice_mix(Voice* voice,
     {
         voice->prio = VOICE_PRIO_BG;
     }
-    Event_queue_clear(voice->events);
+//    Event_queue_clear(voice->events);
     return;
 }
 

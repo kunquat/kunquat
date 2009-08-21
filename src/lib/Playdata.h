@@ -56,6 +56,7 @@ typedef struct Playdata
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
     Event_queue* events;              ///< The global event queue.
+    Event_queue* ins_events;          ///< The Instrument event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     double tempo;                     ///< Current tempo.

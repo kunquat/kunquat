@@ -29,6 +29,7 @@
 #include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
+#include <Event_queue.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <Column.h>
@@ -53,20 +54,22 @@ typedef struct Channel
     uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
     Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
     Event* single; ///< An Event used for single note playback control.
+    Event_queue* ins_events; ///< The Instrument event queue.
 } Channel;
 
 
 /**
  * Creates a new Channel.
  *
- * \param insts   The Instrument table of the Song -- must not be \c NULL.
- * \param num     The Channel number -- must be >= \c 0 and
- *                < \c KQT_COLUMNS_MAX.
+ * \param insts        The Instrument table of the Song -- must not be \c NULL.
+ * \param num          The Channel number -- must be >= \c 0 and
+ *                     < \c KQT_COLUMNS_MAX.
+ * \param ins_events   The Instrument event queue -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
  */
-Channel* new_Channel(Ins_table* insts, int num);
+Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events);
 
 
 /**
