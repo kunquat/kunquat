@@ -188,13 +188,13 @@ uint32_t Pattern_mix(Pattern* pat,
         for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         {
             Channel_set_voices(play->channels[i],
-                    play->voice_pool,
-                    NULL,
-                    &play->pos,
-                    limit,
-                    mixed,
-                    play->tempo,
-                    play->freq);
+                               play->voice_pool,
+                               NULL,
+                               &play->pos,
+                               limit,
+                               mixed,
+                               play->tempo,
+                               play->freq);
         }
         uint16_t active_voices = Voice_pool_mix(play->voice_pool,
                 nframes, mixed, play->freq, play->tempo);
@@ -227,26 +227,7 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             // FIXME: conditional event handling must be processed here
             //        instead of Song_mix.
-            if (Event_get_type(next_global) == EVENT_GLOBAL_SET_TEMPO)
-            {
-                Event_global_process((Event_global*)next_global, play);
-            }
-            else if (EVENT_IS_GENERAL(Event_get_type(next_global))
-                    || EVENT_IS_GLOBAL(Event_get_type(next_global)))
-            {
-                if (!Event_queue_ins(play->events, next_global, mixed))
-                {
-                    // Queue is full, ignore remaining events... TODO: notify
-                    next_global = Column_iter_get(play->citer,
-                            Reltime_add(RELTIME_AUTO, &play->pos,
-                                    Reltime_set(RELTIME_AUTO, 0, 1)));
-                    if (next_global != NULL)
-                    {
-                        next_global_pos = Event_get_pos(next_global);
-                    }
-                    break;
-                }
-            }
+            Event_global_process((Event_global*)next_global, play);
             next_global = Column_iter_get_next(play->citer);
             if (next_global != NULL)
             {
@@ -281,29 +262,59 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         assert(next_global == NULL || next_global_pos != NULL);
         uint32_t to_be_mixed = nframes - mixed;
+        if (play->tempo_slide != 0)
+        {
+            Reltime* zero = Reltime_set(RELTIME_AUTO, 0, 0);
+            if (Reltime_cmp(&play->tempo_slide_left, zero) <= 0)
+            {
+                play->tempo = play->tempo_slide_target;
+                play->tempo_slide = 0;
+            }
+            else if (Reltime_cmp(&play->tempo_slide_int_left, zero) <= 0)
+            {
+                play->tempo += play->tempo_slide_update;
+                if ((play->tempo_slide < 0 && play->tempo < play->tempo_slide_target)
+                        || (play->tempo_slide > 0 && play->tempo > play->tempo_slide_target))
+                {
+                    play->tempo = play->tempo_slide_target;
+                    play->tempo_slide = 0;
+                }
+                else
+                {
+                    Reltime_set(&play->tempo_slide_int_left, 0, 36756720);
+                    if (Reltime_cmp(&play->tempo_slide_int_left, &play->tempo_slide_left) > 0)
+                    {
+                        Reltime_copy(&play->tempo_slide_int_left, &play->tempo_slide_left);
+                    }
+                }
+            }
+        }
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
-                to_be_mixed,
-                play->tempo,
-                play->freq);
+                                            to_be_mixed,
+                                            play->tempo,
+                                            play->freq);
+        if (play->tempo_slide != 0 && Reltime_cmp(limit, &play->tempo_slide_int_left) > 0)
+        {
+            Reltime_copy(limit, &play->tempo_slide_int_left);
+            to_be_mixed = Reltime_toframes(limit, play->tempo, play->freq);
+        }
         Reltime_add(limit, limit, &play->pos);
         // - Check for the end of pattern
         if (Reltime_cmp(&pat->length, limit) < 0)
         {
             Reltime_copy(limit, &pat->length);
-            to_be_mixed = Reltime_toframes(
-                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
-                    play->tempo,
-                    play->freq);
+            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+                                           play->tempo,
+                                           play->freq);
         }
         // - Check first upcoming global event position to figure out how much we can mix for now
         if (next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
         {
             assert(next_global_pos != NULL);
             Reltime_copy(limit, next_global_pos);
-            to_be_mixed = Reltime_toframes(
-                    Reltime_sub(RELTIME_AUTO, limit, &play->pos),
-                    play->tempo,
-                    play->freq);
+            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+                                           play->tempo,
+                                           play->freq);
         }
         // - Calculate the number of frames to be mixed
         assert(Reltime_cmp(&play->pos, limit) <= 0);
@@ -383,6 +394,13 @@ uint32_t Pattern_mix(Pattern* pat,
             }
         }
         // - Increment play->pos
+        Reltime* adv = Reltime_sub(RELTIME_AUTO, limit, &play->pos);
+        if (play->tempo_slide != 0)
+        {
+            Reltime_sub(&play->tempo_slide_int_left, &play->tempo_slide_int_left, adv);
+            Reltime_sub(&play->tempo_slide_left, &play->tempo_slide_left, adv);
+        }
+        Reltime_add(&play->play_time, &play->play_time, adv);
         Reltime_copy(&play->pos, limit);
         mixed += to_be_mixed;
     }

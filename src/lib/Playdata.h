@@ -59,7 +59,15 @@ typedef struct Playdata
     Event_queue* ins_events;          ///< The Instrument event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+
     double tempo;                     ///< Current tempo.
+    int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).
+    double tempo_slide_target;        ///< Final target tempo of the tempo slide.
+    Reltime tempo_slide_left;         ///< The total time left to finish the tempo slide.
+    double tempo_slide_int_target;    ///< Intermediate target tempo of the tempo slide.
+    Reltime tempo_slide_int_left;     ///< Time left until shifting tempo.
+    double tempo_slide_update;        ///< The update amount of the tempo slide.
+
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.

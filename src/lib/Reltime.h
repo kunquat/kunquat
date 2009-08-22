@@ -46,7 +46,7 @@ typedef struct Reltime
  * allocation.
  * Useful for passing as a parameter to an initialiser.
  */
-#define RELTIME_AUTO (&(Reltime){ .beats = 0 })
+#define RELTIME_AUTO (&(Reltime){ .beats = 0, .rem = 0 })
 
 
 /**

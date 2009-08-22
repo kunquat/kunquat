@@ -13,7 +13,7 @@ enable_libkunquat = True
 enable_libkunquat_dev = True
 
 # Build and run libkunquat tests.
-enable_tests = True
+enable_tests = False
 
 # Enable kunquat-player.
 enable_player = True

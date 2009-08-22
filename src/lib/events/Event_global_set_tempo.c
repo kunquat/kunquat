@@ -75,6 +75,7 @@ static void Event_global_set_tempo_process(Event_global* event, Playdata* play)
     assert(play != NULL);
     Event_global_set_tempo* set_tempo = (Event_global_set_tempo*)event;
     play->tempo = set_tempo->tempo;
+    play->tempo_slide = 0;
     return;
 }
 
