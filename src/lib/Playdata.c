@@ -83,6 +83,7 @@ Playdata* new_Playdata(uint32_t freq,
     }
     play->mode = PLAY_SONG;
     play->freq = freq;
+    play->old_freq = freq;
     play->subsongs = NULL;
     play->events = NULL;
 
@@ -93,6 +94,7 @@ Playdata* new_Playdata(uint32_t freq,
     play->volume_slide_update = 0;
 
     play->tempo = 0;
+    play->old_tempo = 0;
     play->tempo_slide = 0;
     play->tempo_slide_target = 0;
     Reltime_init(&play->tempo_slide_left);

@@ -30,6 +30,7 @@
 #include <Event_global_set_tempo.h>
 #include <Event_global_slide_tempo.h>
 #include <Event_global_set_volume.h>
+#include <Event_global_slide_volume.h>
 
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
@@ -73,6 +74,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
         cons[EVENT_GLOBAL_SLIDE_TEMPO] = new_Event_global_slide_tempo;
         cons[EVENT_GLOBAL_SET_VOLUME] = new_Event_global_set_volume;
+        cons[EVENT_GLOBAL_SLIDE_VOLUME] = new_Event_global_slide_volume;
 
         cons[EVENT_VOICE_NOTE_ON] = new_Event_voice_note_on;
         cons[EVENT_VOICE_NOTE_OFF] = new_Event_voice_note_off;

@@ -58,76 +58,76 @@
             if ((state)->pitch_slide != 0)                                        \
             {                                                                     \
                 double slide_step = log2((state)->pitch_slide_update);            \
-                slide_step *= (state)->freq / (freq);                             \
+                slide_step *= (double)(state)->freq / (freq);                     \
                 slide_step *= (tempo) / (state)->tempo;                           \
                 (state)->pitch_slide_update = exp2(slide_step);                   \
-                (state)->pitch_slide_frames *= (freq) / (state)->freq;            \
+                (state)->pitch_slide_frames *= (double)(freq) / (state)->freq;    \
                 (state)->pitch_slide_frames *= (state)->tempo / (tempo);          \
             }                                                                     \
             if ((state)->vibrato_length > 0 && (state)->vibrato_depth > 0)        \
             {                                                                     \
-                (state)->vibrato_phase *= (freq) / (state)->freq;                 \
+                (state)->vibrato_phase *= (double)(freq) / (state)->freq;         \
                 (state)->vibrato_phase *= (state)->tempo / (tempo);               \
             }                                                                     \
-            (state)->vibrato_length *= (freq) / (state)->freq;                    \
+            (state)->vibrato_length *= (double)(freq) / (state)->freq;            \
             (state)->vibrato_length *= (state)->tempo / (tempo);                  \
-            (state)->vibrato_update *= (state)->freq / (freq);                    \
+            (state)->vibrato_update *= (double)(state)->freq / (freq);            \
             (state)->vibrato_update *= (tempo) / (state)->tempo;                  \
-            (state)->vibrato_delay_update *= (state)->freq / (freq);              \
+            (state)->vibrato_delay_update *= (double)(state)->freq / (freq);      \
             (state)->vibrato_delay_update *= (tempo) / (state)->tempo;            \
             if ((state)->arpeggio)                                                \
             {                                                                     \
-                (state)->arpeggio_length *= (freq) / (state)->freq;               \
+                (state)->arpeggio_length *= (double)(freq) / (state)->freq;       \
                 (state)->arpeggio_length *= (state)->tempo / (tempo);             \
-                (state)->arpeggio_frames *= (freq) / (state)->freq;               \
+                (state)->arpeggio_frames *= (double)(freq) / (state)->freq;       \
                 (state)->arpeggio_frames *= (state)->tempo / (tempo);             \
             }                                                                     \
             if ((state)->force_slide != 0)                                        \
             {                                                                     \
                 double update_dB = log2((state)->force_slide_update) * 6;         \
-                update_dB *= (state)->freq / (freq);                              \
+                update_dB *= (double)(state)->freq / (freq);                      \
                 update_dB *= (tempo) / (state)->tempo;                            \
                 (state)->force_slide_update = exp2(update_dB / 6);                \
-                (state)->force_slide_frames *= (freq) / (state)->freq;            \
+                (state)->force_slide_frames *= (double)(freq) / (state)->freq;    \
                 (state)->force_slide_frames *= (state)->tempo / (tempo);          \
             }                                                                     \
             if ((state)->tremolo_length > 0 && (state)->tremolo_depth > 0)        \
             {                                                                     \
-                (state)->tremolo_phase *= (freq) / (state)->freq;                 \
+                (state)->tremolo_phase *= (double)(freq) / (state)->freq;         \
                 (state)->tremolo_phase *= (state)->tempo / (tempo);               \
             }                                                                     \
-            (state)->tremolo_length *= (freq) / (state)->freq;                    \
+            (state)->tremolo_length *= (double)(freq) / (state)->freq;            \
             (state)->tremolo_length *= (state)->tempo / (tempo);                  \
-            (state)->tremolo_update *= (state)->freq / (freq);                    \
+            (state)->tremolo_update *= (double)(state)->freq / (freq);            \
             (state)->tremolo_update *= (tempo) / (state)->tempo;                  \
-            (state)->tremolo_delay_update *= (state)->freq / (freq);              \
+            (state)->tremolo_delay_update *= (double)(state)->freq / (freq);      \
             (state)->tremolo_delay_update *= (tempo) / (state)->tempo;            \
             if ((state)->panning_slide != 0)                                      \
             {                                                                     \
-                (state)->panning_slide_update *= (state)->freq / (freq);          \
+                (state)->panning_slide_update *= (double)(state)->freq / (freq);  \
                 (state)->panning_slide_update *= (tempo) / (state)->tempo;        \
-                (state)->panning_slide_frames *= (freq) / (state)->freq;          \
+                (state)->panning_slide_frames *= (double)(freq) / (state)->freq;  \
                 (state)->panning_slide_frames *= (state)->tempo / (tempo);        \
             }                                                                     \
             if ((state)->filter_slide != 0)                                       \
             {                                                                     \
                 double slide_step = log2((state)->filter_slide_update);           \
-                slide_step *= (state)->freq / (freq);                             \
+                slide_step *= (double)(state)->freq / (freq);                     \
                 slide_step *= (tempo) / (state)->tempo;                           \
                 (state)->filter_slide_update = exp2(slide_step);                  \
-                (state)->filter_slide_frames *= (freq) / (state)->freq;           \
+                (state)->filter_slide_frames *= (double)(freq) / (state)->freq;   \
                 (state)->filter_slide_frames *= (state)->tempo / (tempo);         \
             }                                                                     \
             if ((state)->autowah_length > 0 && (state)->autowah_depth > 0)        \
             {                                                                     \
-                (state)->autowah_phase *= (freq) / (state)->freq;                 \
+                (state)->autowah_phase *= (double)(freq) / (state)->freq;         \
                 (state)->autowah_phase *= (state)->tempo / (tempo);               \
             }                                                                     \
-            (state)->autowah_length *= (freq) / (state)->freq;                    \
+            (state)->autowah_length *= (double)(freq) / (state)->freq;            \
             (state)->autowah_length *= (state)->tempo / (tempo);                  \
-            (state)->autowah_update *= (state)->freq / (freq);                    \
+            (state)->autowah_update *= (double)(state)->freq / (freq);            \
             (state)->autowah_update *= (tempo) / (state)->tempo;                  \
-            (state)->autowah_delay_update *= (state)->freq / (freq);              \
+            (state)->autowah_delay_update *= (double)(state)->freq / (freq);      \
             (state)->autowah_delay_update *= (tempo) / (state)->tempo;            \
                                                                                   \
             (state)->freq = (freq);                                               \

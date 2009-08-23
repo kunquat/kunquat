@@ -24,6 +24,7 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include <Pattern.h>
 #include <Playdata.h>
@@ -234,6 +235,20 @@ uint32_t Pattern_mix(Pattern* pat,
                 next_global_pos = Event_get_pos(next_global);
             }
         }
+        if (play->old_tempo != play->tempo || play->old_freq != play->freq)
+        {
+            if (play->volume_slide != 0)
+            {
+                double update_dB = log2(play->volume_slide_update) * 6;
+                update_dB *= (double)play->old_freq / play->freq;
+                update_dB *= play->tempo / play->old_tempo;
+                play->volume_slide_update = exp2(update_dB / 6);
+                play->volume_slide_frames *= (double)play->freq / play->old_freq;
+                play->volume_slide_frames *= play->old_tempo / play->tempo;
+            }
+            play->old_freq = play->freq;
+            play->old_tempo = play->tempo;
+        }
         if (Reltime_cmp(&play->pos, &pat->length) >= 0)
         {
             assert(Reltime_cmp(&play->pos, &pat->length) == 0);
@@ -393,14 +408,53 @@ uint32_t Pattern_mix(Pattern* pat,
                 Channel_update_state(play->channels[i], to_be_mixed + mixed);
             }
         }
-        if (play->volume != 1 || play->volume_slide != 0)
+        if ((play->volume != 1 || play->volume_slide != 0))
         {
-            for (int i = 0; i < play->buf_count; ++i)
+            if (!play->silent)
             {
-                for (uint32_t k = mixed; k < mixed + to_be_mixed; ++k)
+                for (uint32_t i = mixed; i < mixed + to_be_mixed; ++i)
                 {
-                    assert(play->bufs[i] != NULL);
-                    play->bufs[i][k] *= play->volume;
+                    if (play->volume_slide != 0)
+                    {
+                        play->volume *= play->volume_slide_update;
+                        play->volume_slide_frames -= 1;
+                        if (play->volume_slide_frames <= 0)
+                        {
+                            play->volume = play->volume_slide_target;
+                            play->volume_slide = 0;
+                        }
+                        else if ((play->volume_slide == 1 &&
+                                  play->volume > play->volume_slide_target) ||
+                                 (play->volume_slide == -1 &&
+                                  play->volume < play->volume_slide_target))
+                        {
+                            play->volume = play->volume_slide_target;
+                            play->volume_slide = 0;
+                        }
+                    }
+                    for (int k = 0; k < play->buf_count; ++k)
+                    {
+                        assert(play->bufs[k] != NULL);
+                        play->bufs[k][i] *= play->volume;
+                    }
+                }
+            }
+            else if (play->volume_slide != 0)
+            {
+                play->volume *= pow(play->volume_slide_update, to_be_mixed);
+                play->volume_slide_frames -= to_be_mixed;
+                if (play->volume_slide_frames <= 0)
+                {
+                    play->volume = play->volume_slide_target;
+                    play->volume_slide = 0;
+                }
+                else if ((play->volume_slide == 1 &&
+                          play->volume > play->volume_slide_target) ||
+                         (play->volume_slide == -1 &&
+                          play->volume < play->volume_slide_target))
+                {
+                    play->volume = play->volume_slide_target;
+                    play->volume_slide = 0;
                 }
             }
         }

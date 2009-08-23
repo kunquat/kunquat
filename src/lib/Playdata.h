@@ -54,6 +54,7 @@ typedef struct Playdata
     bool silent;                      ///< \c true if this Playdata is used for statistics only.
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
+    uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
     Event_queue* events;              ///< The global event queue.
@@ -74,6 +75,7 @@ typedef struct Playdata
     double tempo_slide_int_target;    ///< Intermediate target tempo of the tempo slide.
     Reltime tempo_slide_int_left;     ///< Time left until shifting tempo.
     double tempo_slide_update;        ///< The update amount of the tempo slide.
+    double old_tempo;                 ///< Old tempo (used to detect tempo change).
 
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
