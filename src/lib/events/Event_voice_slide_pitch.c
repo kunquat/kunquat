@@ -174,11 +174,12 @@ static void Event_voice_slide_pitch_process(Event_voice* event, Voice* voice)
     assert(voice != NULL);
     Event_voice_slide_pitch* slide_pitch = (Event_voice_slide_pitch*)event;
     if (voice->gen->ins_params->scale == NULL ||
-            *voice->gen->ins_params->scale == NULL)
+            *voice->gen->ins_params->scale == NULL ||
+            **voice->gen->ins_params->scale == NULL)
     {
         return;
     }
-    pitch_t pitch = Scale_get_pitch(*voice->gen->ins_params->scale,
+    pitch_t pitch = Scale_get_pitch(**voice->gen->ins_params->scale,
                                     slide_pitch->note,
                                     slide_pitch->mod,
                                     slide_pitch->octave);

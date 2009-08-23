@@ -53,6 +53,7 @@ Suite* Song_suite(void);
 Playdata* init_play(Song* song);
 
 
+#if 0
 Playdata* init_play(Song* song)
 {
     if (song == NULL)
@@ -85,6 +86,7 @@ Playdata* init_play(Song* song)
     play->pattern = -1;
     return play;
 }
+#endif
 
 
 START_TEST (new)
@@ -224,7 +226,7 @@ START_TEST (mix)
         abort();
     }
     Song_set_mix_vol(song, 0);
-    Playdata* play = init_play(song);
+    Playdata* play = song->play_state;
     if (play == NULL) abort();
     Pattern* pat1 = new_Pattern();
     if (pat1 == NULL)
@@ -276,7 +278,8 @@ START_TEST (mix)
     kqt_frame** bufs = Song_get_bufs(song);
     kqt_frame** vbufs = Song_get_voice_bufs(song);
     kqt_frame** vbufs2 = Song_get_voice_bufs2(song);
-    Instrument* ins = new_Instrument(bufs, vbufs, vbufs2, 2, 256, &notes, &notes, 16);
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs2, 2, 256, Song_get_scales(song),
+                                     Song_get_active_scale(song), 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

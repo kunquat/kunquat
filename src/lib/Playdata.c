@@ -35,14 +35,10 @@
 #include <xmemory.h>
 
 
-Playdata* new_Playdata(uint32_t freq,
-                       Voice_pool* pool,
-                       Ins_table* insts,
+Playdata* new_Playdata(Ins_table* insts,
                        int buf_count,
                        kqt_frame** bufs)
 {
-    assert(freq > 0);
-    assert(pool != NULL);
     assert(insts != NULL);
     assert(buf_count > 0);
     assert(bufs != NULL);
@@ -65,7 +61,14 @@ Playdata* new_Playdata(uint32_t freq,
         xfree(play);
         return NULL;
     }
-    play->voice_pool = pool;
+    play->voice_pool = new_Voice_pool(256, 64);
+    if (play->voice_pool == NULL)
+    {
+        del_Event_queue(play->ins_events);
+        del_Column_iter(play->citer);
+        xfree(play);
+        return NULL;
+    }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         play->channels[i] = new_Channel(insts, i, play->ins_events);
@@ -75,6 +78,7 @@ Playdata* new_Playdata(uint32_t freq,
             {
                 del_Channel(play->channels[i]);
             }
+            del_Voice_pool(play->voice_pool);
             del_Event_queue(play->ins_events);
             del_Column_iter(play->citer);
             xfree(play);
@@ -82,10 +86,15 @@ Playdata* new_Playdata(uint32_t freq,
         }
     }
     play->mode = PLAY_SONG;
-    play->freq = freq;
-    play->old_freq = freq;
+    play->freq = 48000;
+    play->old_freq = play->freq;
     play->subsongs = NULL;
     play->events = NULL;
+
+    play->buf_count = buf_count;
+    play->bufs = bufs;
+    play->scales = NULL;
+    play->active_scale = NULL;
 
     play->volume = 1;
     play->volume_slide = 0;
@@ -109,9 +118,6 @@ Playdata* new_Playdata(uint32_t freq,
     play->play_frames = 0;
     Reltime_init(&play->pos);
     Playdata_reset_stats(play);
-
-    play->buf_count = buf_count;
-    play->bufs = bufs;
 
     return play;
 }

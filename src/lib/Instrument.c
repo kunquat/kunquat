@@ -41,7 +41,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale** default_scale,
+                           Scale*** default_scale,
                            uint8_t events)
 {
     assert(bufs != NULL);
@@ -54,8 +54,9 @@ Instrument* new_Instrument(kqt_frame** bufs,
     assert(buf_len > 0);
     assert(scales != NULL);
     assert(default_scale != NULL);
-    assert(default_scale >= &scales[0]);
-    assert(default_scale <= &scales[KQT_SCALES_MAX - 1]);
+    assert(*default_scale != NULL);
+    assert(*default_scale >= &scales[0]);
+    assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
@@ -296,13 +297,13 @@ void Instrument_set_scale(Instrument* ins, int index)
     assert(ins != NULL);
     assert(index >= -1);
     assert(index < KQT_SCALES_MAX);
-    if (index == -1)
+    if (index == -1 || true)
     {
         ins->params.scale = ins->default_scale;
     }
     else
     {
-        ins->params.scale = &ins->scales[index];
+//        ins->params.scale = &ins->scales[index];
     }
     return;
 }

@@ -49,11 +49,12 @@ typedef struct Song
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
-    Scale** active_scale;               ///< A reference to the currently active Scale.
     Event_queue* events;                ///< Global events.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
+    Playdata* play_state;               ///< Playback state.
+    Playdata* skip_state;               ///< Skip state (used for length calculation).
 } Song;
 
 
@@ -282,7 +283,7 @@ Scale* Song_get_scale(Song* song, int index);
  *
  * \return   The reference.
  */
-Scale** Song_get_active_scale(Song* song);
+Scale*** Song_get_active_scale(Song* song);
 
 
 /**

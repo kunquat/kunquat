@@ -37,7 +37,7 @@
 long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 {
     check_handle(handle, "kqt_Handle_mix", 0);
-    if (!handle->play || handle->song == NULL)
+    if (handle->song == NULL || !handle->song->play_state->mode)
     {
         return 0;
     }
@@ -45,8 +45,8 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
     {
         return 0;
     }
-    handle->play->freq = freq;
-    return Song_mix(handle->song, nframes, handle->play);
+    handle->song->play_state->freq = freq;
+    return Song_mix(handle->song, nframes, handle->song->play_state);
 }
 
 
@@ -98,11 +98,11 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 long long kqt_Handle_get_duration(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_duration", 0);
-    Reltime_init(&handle->play_silent->play_time);
-    handle->play_silent->play_frames = 0;
-    Reltime_init(&handle->play_silent->pos);
-    handle->play_silent->freq = 1000000000;
-    return Song_skip(handle->song, handle->play_silent, UINT64_MAX);
+    Reltime_init(&handle->song->skip_state->play_time);
+    handle->song->skip_state->play_frames = 0;
+    Reltime_init(&handle->song->skip_state->pos);
+    handle->song->skip_state->freq = 1000000000;
+    return Song_skip(handle->song, handle->song->skip_state, UINT64_MAX);
 }
 
 
@@ -130,34 +130,36 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
 long long kqt_Handle_get_position(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_position", 0);
-    return ((long long)handle->play->play_frames * 1000000000L) / handle->play->freq;
+    return ((long long)handle->song->play_state->play_frames * 1000000000L) /
+           handle->song->play_state->freq;
 }
 
 
 void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
-    handle->play->mode = STOP;
-    Voice_pool_reset(handle->voices);
+    handle->song->play_state->mode = STOP;
+    Voice_pool_reset(handle->song->play_state->voice_pool);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_reset(handle->play->channels[i]);
+        Channel_reset(handle->song->play_state->channels[i]);
     }
-    Reltime_init(&handle->play->play_time);
-    handle->play->play_frames = 0;
-    handle->play->subsong = Song_get_subsong(handle->song);
-    Subsong* ss = Subsong_table_get(handle->play->subsongs, handle->play->subsong);
+    Reltime_init(&handle->song->play_state->play_time);
+    handle->song->play_state->play_frames = 0;
+    handle->song->play_state->subsong = Song_get_subsong(handle->song);
+    Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
+                                    handle->song->play_state->subsong);
     if (ss == NULL)
     {
-        handle->play->tempo = 120;
+        handle->song->play_state->tempo = 120;
     }
     else
     {
-        handle->play->tempo = Subsong_get_tempo(ss);
+        handle->song->play_state->tempo = Subsong_get_tempo(ss);
     }
-    handle->play->section = 0;
-    handle->play->pattern = 0;
-    Reltime_init(&handle->play->pos);
+    handle->song->play_state->section = 0;
+    handle->song->play_state->pattern = 0;
+    Reltime_init(&handle->song->play_state->pos);
     return;
 }
 

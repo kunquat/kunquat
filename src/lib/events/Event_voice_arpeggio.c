@@ -138,12 +138,13 @@ static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice)
     assert(voice != NULL);
     Event_voice_arpeggio* arpeggio = (Event_voice_arpeggio*)event;
     if (voice->gen->ins_params->scale == NULL ||
-            *voice->gen->ins_params->scale == NULL)
+            *voice->gen->ins_params->scale == NULL ||
+            **voice->gen->ins_params->scale == NULL)
     {
         voice->state.generic.arpeggio = false;
         return;
     }
-    Scale* scale = *voice->gen->ins_params->scale;
+    Scale* scale = **voice->gen->ins_params->scale;
     int note_count = Scale_get_note_count(scale);
     int orig_note = voice->state.generic.orig_note;
     int orig_note_mod = voice->state.generic.orig_note_mod;

@@ -42,9 +42,6 @@
 struct kqt_Handle
 {
     Song* song;
-    Playdata* play;
-    Playdata* play_silent;
-    Voice_pool* voices;
     char error[KQT_CONTEXT_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };

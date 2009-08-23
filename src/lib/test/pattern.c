@@ -68,7 +68,7 @@ Playdata* init_play(void)
     }
     static kqt_frame buf_l[] = { 0 };
     static kqt_frame* bufs[] = { buf_l, buf_l };
-    Playdata* play = new_Playdata(1, voice_pool, insts, 2, bufs);
+    Playdata* play = new_Playdata(insts, 2, bufs);
     if (play == NULL)
     {
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
@@ -129,7 +129,8 @@ START_TEST (mix)
     kqt_frame* bufs[2] = { buf_l, buf_r };
     kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, nts, nts, 16);
+    Scale** default_scale = &nts[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, nts, &default_scale, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

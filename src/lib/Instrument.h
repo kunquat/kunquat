@@ -42,7 +42,7 @@ typedef struct Instrument
     double force_variation;     ///< Force variation.
 
     Scale** scales;             ///< The Scales of the Song.
-    Scale** default_scale;      ///< The default Scale of the Song.
+    Scale*** default_scale;     ///< The default Scale of the Song.
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
@@ -77,7 +77,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale** default_scale,
+                           Scale*** default_scale,
                            uint8_t events);
 
 

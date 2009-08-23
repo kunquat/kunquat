@@ -80,23 +80,12 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         return NULL;
     }
     handle->song = NULL;
-    handle->play = NULL;
-    handle->play_silent = NULL;
-    handle->voices = NULL;
     handle->error[0] = handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
     int buffer_count = 2;
-    int voice_count = 256;
+//    int voice_count = 256;
     int event_queue_size = 32;
-
-    handle->voices = new_Voice_pool(voice_count, event_queue_size);
-    if (handle->voices == NULL)
-    {
-        kqt_del_Handle(handle);
-        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
-        return NULL;
-    }
 
     handle->song = new_Song(buffer_count, buffer_size, event_queue_size);
     if (handle->song == NULL)
@@ -106,30 +95,6 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         return NULL;
     }
 
-    handle->play = new_Playdata(44100,
-                                handle->voices,
-                                Song_get_insts(handle->song),
-                                Song_get_buf_count(handle->song),
-                                Song_get_bufs(handle->song));
-    if (handle->play == NULL)
-    {
-        kqt_del_Handle(handle);
-        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
-        return NULL;
-    }
-    handle->play->subsongs = Song_get_subsongs(handle->song);
-    handle->play->events = Song_get_events(handle->song);
-
-    handle->play_silent = new_Playdata_silent(44100);
-    if (handle->play_silent == NULL)
-    {
-        kqt_del_Handle(handle);
-        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
-        return NULL;
-    }
-    handle->play_silent->subsongs = Song_get_subsongs(handle->song);
-    handle->play_silent->events = Song_get_events(handle->song);
-    
     kqt_Handle_stop(handle);
     kqt_Handle_set_position_desc(handle, NULL);
     return handle;
@@ -243,18 +208,6 @@ void kqt_del_Handle(kqt_Handle* handle)
         kqt_Handle_set_error(NULL,
                 "kqt_del_Handle: Invalid Kunquat Handle: %p", (void*)handle);
         return;
-    }
-    if (handle->play_silent != NULL)
-    {
-        del_Playdata(handle->play_silent);
-    }
-    if (handle->play != NULL)
-    {
-        del_Playdata(handle->play);
-    }
-    if (handle->voices != NULL)
-    {
-        del_Voice_pool(handle->voices);
     }
     if (handle->song != NULL)
     {

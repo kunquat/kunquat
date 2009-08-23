@@ -43,12 +43,12 @@
     } else (void)0
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-        kqt_frame** bufs,
-        kqt_frame** vbufs,
-        kqt_frame** vbufs2,
-        int buf_count,
-        uint32_t buf_len,
-        Scale** scale)
+                                          kqt_frame** bufs,
+                                          kqt_frame** vbufs,
+                                          kqt_frame** vbufs2,
+                                          int buf_count,
+                                          uint32_t buf_len,
+                                          Scale*** scale)
 {
     assert(ip != NULL);
     assert(bufs != NULL);
@@ -60,6 +60,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scale != NULL);
+    assert(*scale != NULL);
     ip->bufs = ip->gbufs = bufs;
     ip->buf_count = buf_count;
     ip->buf_len = buf_len;

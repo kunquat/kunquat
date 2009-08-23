@@ -55,11 +55,12 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
+    song->play_state = NULL;
+    song->skip_state = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
     }
-    song->active_scale = &song->scales[0];
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         song->bufs[i] = NULL;
@@ -115,6 +116,22 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
+    song->play_state = new_Playdata(song->insts, song->buf_count, song->bufs);
+    if (song->play_state == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+    song->play_state->subsongs = Song_get_subsongs(song);
+    song->play_state->scales = song->scales;
+    song->play_state->active_scale = &song->play_state->scales[0];
+    song->skip_state = new_Playdata_silent(1000000000);
+    if (song->skip_state == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+    song->skip_state->subsongs = Song_get_subsongs(song);
     song->events = new_Event_queue(events);
     if (song->events == NULL)
     {
@@ -666,7 +683,7 @@ Ins_table* Song_get_insts(Song* song)
 Scale** Song_get_scales(Song* song)
 {
     assert(song != NULL);
-    return song->scales;
+    return song->play_state->scales;
 }
 
 
@@ -679,10 +696,10 @@ Scale* Song_get_scale(Song* song, int index)
 }
 
 
-Scale** Song_get_active_scale(Song* song)
+Scale*** Song_get_active_scale(Song* song)
 {
     assert(song != NULL);
-    return song->active_scale;
+    return &song->play_state->active_scale;
 }
 
 
@@ -764,6 +781,14 @@ void del_Song(Song* song)
     if (song->events != NULL)
     {
         del_Event_queue(song->events);
+    }
+    if (song->play_state != NULL)
+    {
+        del_Playdata(song->play_state);
+    }
+    if (song->skip_state != NULL)
+    {
+        del_Playdata(song->skip_state);
     }
     xfree(song);
     return;

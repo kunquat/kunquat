@@ -74,7 +74,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     int buf_count,
                     uint32_t buf_len,
                     Scale** scales,
-                    Scale** default_scale,
+                    Scale*** default_scale,
                     uint8_t events);
 
 

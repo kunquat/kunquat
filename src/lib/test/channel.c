@@ -88,7 +88,8 @@ START_TEST (set_voices)
     kqt_frame* bufs[2] = { buf_l, buf_r };
     kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* scales[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, scales, scales, 16);
+    Scale** default_scale = &scales[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, scales, &default_scale, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");

@@ -44,7 +44,7 @@ typedef struct Instrument_params
     int buf_count;    ///< Number of mixing buffers.
     uint32_t buf_len; ///< Mixing buffer length.
     
-    Scale** scale;    ///< An indirect reference to the current Scale used.
+    Scale*** scale;    ///< An indirect reference to the current Scale used.
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
@@ -114,7 +114,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
                                           kqt_frame** vbufs2,
                                           int buf_count,
                                           uint32_t buf_len,
-                                          Scale** scale);
+                                          Scale*** scale);
 
 
 /**

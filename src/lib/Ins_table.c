@@ -65,7 +65,7 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     int buf_count,
                     uint32_t buf_len,
                     Scale** scales,
-                    Scale** default_scale,
+                    Scale*** default_scale,
                     uint8_t events)
 {
     assert(table != NULL);
@@ -78,8 +78,9 @@ bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
     assert(buf_len > 0);
     assert(scales != NULL);
     assert(default_scale != NULL);
-    assert(default_scale >= &scales[0]);
-    assert(default_scale <= &scales[KQT_SCALES_MAX - 1]);
+    assert(*default_scale != NULL);
+    assert(*default_scale >= &scales[0]);
+    assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     if (state->error)
     {

@@ -226,11 +226,13 @@ void Generator_process_note(Generator* gen,
     assert(mod < KQT_SCALE_NOTE_MODS);
     assert(octave >= KQT_SCALE_OCTAVE_FIRST);
     assert(octave <= KQT_SCALE_OCTAVE_LAST);
-    if (gen->ins_params->scale == NULL || *gen->ins_params->scale == NULL)
+    if (gen->ins_params->scale == NULL ||
+            *gen->ins_params->scale == NULL ||
+            **gen->ins_params->scale == NULL)
     {
         return;
     }
-    pitch_t pitch = Scale_get_pitch(*gen->ins_params->scale, note, mod, octave);
+    pitch_t pitch = Scale_get_pitch(**gen->ins_params->scale, note, mod, octave);
     if (pitch > 0)
     {
         state->pitch = pitch;
