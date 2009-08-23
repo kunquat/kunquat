@@ -66,7 +66,9 @@ Playdata* init_play(void)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return NULL;
     }
-    Playdata* play = new_Playdata(1, voice_pool, insts);
+    static kqt_frame buf_l[] = { 0 };
+    static kqt_frame* bufs[] = { buf_l, buf_l };
+    Playdata* play = new_Playdata(1, voice_pool, insts, 2, bufs);
     if (play == NULL)
     {
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");

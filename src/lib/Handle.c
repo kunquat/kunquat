@@ -106,7 +106,11 @@ kqt_Handle* kqt_new_Handle(long buffer_size)
         return NULL;
     }
 
-    handle->play = new_Playdata(44100, handle->voices, Song_get_insts(handle->song));
+    handle->play = new_Playdata(44100,
+                                handle->voices,
+                                Song_get_insts(handle->song),
+                                Song_get_buf_count(handle->song),
+                                Song_get_bufs(handle->song));
     if (handle->play == NULL)
     {
         kqt_del_Handle(handle);

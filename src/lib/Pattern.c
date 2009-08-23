@@ -393,6 +393,17 @@ uint32_t Pattern_mix(Pattern* pat,
                 Channel_update_state(play->channels[i], to_be_mixed + mixed);
             }
         }
+        if (play->volume != 1 || play->volume_slide != 0)
+        {
+            for (int i = 0; i < play->buf_count; ++i)
+            {
+                for (uint32_t k = mixed; k < mixed + to_be_mixed; ++k)
+                {
+                    assert(play->bufs[i] != NULL);
+                    play->bufs[i][k] *= play->volume;
+                }
+            }
+        }
         // - Increment play->pos
         Reltime* adv = Reltime_sub(RELTIME_AUTO, limit, &play->pos);
         if (play->tempo_slide != 0)

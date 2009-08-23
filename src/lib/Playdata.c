@@ -35,10 +35,17 @@
 #include <xmemory.h>
 
 
-Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
+Playdata* new_Playdata(uint32_t freq,
+                       Voice_pool* pool,
+                       Ins_table* insts,
+                       int buf_count,
+                       kqt_frame** bufs)
 {
     assert(freq > 0);
     assert(pool != NULL);
+    assert(insts != NULL);
+    assert(buf_count > 0);
+    assert(bufs != NULL);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
     {
@@ -79,6 +86,12 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->subsongs = NULL;
     play->events = NULL;
 
+    play->volume = 1;
+    play->volume_slide = 0;
+    play->volume_slide_target = 1;
+    play->volume_slide_frames = 0;
+    play->volume_slide_update = 0;
+
     play->tempo = 0;
     play->tempo_slide = 0;
     play->tempo_slide_target = 0;
@@ -94,6 +107,10 @@ Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts)
     play->play_frames = 0;
     Reltime_init(&play->pos);
     Playdata_reset_stats(play);
+
+    play->buf_count = buf_count;
+    play->bufs = bufs;
+
     return play;
 }
 
@@ -124,6 +141,12 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->subsongs = NULL;
     play->events = NULL;
 
+    play->volume = 1;
+    play->volume_slide = 0;
+    play->volume_slide_target = 1;
+    play->volume_slide_frames = 0;
+    play->volume_slide_update = 0;
+
     play->tempo = 0;
     play->tempo_slide = 0;
     play->tempo_slide_target = 0;
@@ -139,6 +162,10 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->play_frames = 0;
     Reltime_init(&play->pos);
     Playdata_reset_stats(play);
+
+    play->buf_count = 0;
+    play->bufs = NULL;
+
     return play;
 }
 

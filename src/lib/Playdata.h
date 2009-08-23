@@ -32,6 +32,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
+#include <kunquat/frame.h>
 
 
 /**
@@ -60,6 +61,12 @@ typedef struct Playdata
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
 
+    double volume;                    ///< Current global volume.
+    int volume_slide;                 ///< Global volume slide (0 = no slide, -1 = down, 1 = up).
+    double volume_slide_target;       ///< Target volume of the global volume slide.
+    double volume_slide_frames;       ///< Number of frames to complete the slide.
+    double volume_slide_update;       ///< The update factor of the slide.
+
     double tempo;                     ///< Current tempo.
     int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).
     double tempo_slide_target;        ///< Final target tempo of the tempo slide.
@@ -79,6 +86,9 @@ typedef struct Playdata
     double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
     double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.
     uint64_t clipped[KQT_BUFFERS_MAX];  ///< Number of clipped frames encountered.
+
+    int buf_count;                    ///< Number of buffers used for mixing.
+    kqt_frame** bufs;                 ///< The (top-level) buffers.
 } Playdata;
 
 
@@ -88,14 +98,20 @@ typedef struct Playdata
  * The caller shall eventually destroy the created object using
  * del_Playdata().
  *
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param pool    The Voice pool to be used -- must not be \c NULL.
- * \param insts   The Instrument table -- must not be \c NULL.
+ * \param freq        The mixing frequency -- must be > \c 0.
+ * \param pool        The Voice pool to be used -- must not be \c NULL.
+ * \param insts       The Instrument table -- must not be \c NULL.
+ * \param buf_count   Number of buffers used for mixing -- must be > \c 0.
+ * \param bufs        The mixing buffers -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
-Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
+Playdata* new_Playdata(uint32_t freq,
+                       Voice_pool* pool,
+                       Ins_table* insts,
+                       int buf_count,
+                       kqt_frame** bufs);
 
 
 /**
