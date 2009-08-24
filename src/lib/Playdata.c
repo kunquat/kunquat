@@ -111,6 +111,9 @@ Playdata* new_Playdata(Ins_table* insts,
     Reltime_init(&play->tempo_slide_int_left);
     play->tempo_slide_update = 0;
 
+    Reltime_init(&play->delay_left);
+    play->delay_event_index = -1;
+
     play->subsong = 0;
     play->section = 0;
     play->pattern = 0;
@@ -146,6 +149,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     }
     play->mode = PLAY_SONG;
     play->freq = freq;
+    play->old_freq = play->freq;
     play->subsongs = NULL;
     play->events = NULL;
 
@@ -156,12 +160,16 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->volume_slide_update = 0;
 
     play->tempo = 0;
+    play->old_tempo = 0;
     play->tempo_slide = 0;
     play->tempo_slide_target = 0;
     Reltime_init(&play->tempo_slide_left);
     play->tempo_slide_int_target = 0;
     Reltime_init(&play->tempo_slide_int_left);
     play->tempo_slide_update = 0;
+
+    Reltime_init(&play->delay_left);
+    play->delay_event_index = -1;
 
     play->subsong = 0;
     play->section = 0;

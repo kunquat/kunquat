@@ -145,6 +145,7 @@ void kqt_Handle_stop(kqt_Handle* handle)
         Channel_reset(handle->song->play_state->channels[i]);
     }
     Reltime_init(&handle->song->play_state->play_time);
+    Reltime_init(&handle->song->play_state->delay_left);
     handle->song->play_state->play_frames = 0;
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
     Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,

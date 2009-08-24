@@ -82,6 +82,9 @@ typedef struct Playdata
     double tempo_slide_update;        ///< The update amount of the tempo slide.
     double old_tempo;                 ///< Old tempo (used to detect tempo change).
 
+    Reltime delay_left;               ///< The amount of pattern delay left.
+    int delay_event_index;            ///< Position of the delay event.
+
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.

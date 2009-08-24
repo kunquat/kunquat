@@ -211,6 +211,7 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         return nframes;
     }
+    Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
             && Reltime_cmp(&play->pos, &pat->length) <= 0)
@@ -222,13 +223,38 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             next_global_pos = Event_get_pos(next_global);
         }
+        int event_index = 0;
         // - Evaluate global events
         while (next_global != NULL
-                && Reltime_cmp(next_global_pos, &play->pos) == 0)
+                && Reltime_cmp(next_global_pos, &play->pos) == 0
+                && Reltime_cmp(&play->delay_left, zero_time) <= 0)
         {
             // FIXME: conditional event handling must be processed here
             //        instead of Song_mix.
+            if (play->delay_event_index >= 0)
+            {
+                for (int i = 0; i <= play->delay_event_index; ++i)
+                {
+                    next_global = Column_iter_get_next(play->citer);
+                    ++event_index;
+                }
+                if (next_global != NULL)
+                {
+                    next_global_pos = Event_get_pos(next_global);
+                }
+                play->delay_event_index = -1;
+                if (next_global == NULL
+                        || Reltime_cmp(next_global_pos, &play->pos) != 0)
+                {
+                    break;
+                }
+            }
             Event_global_process((Event_global*)next_global, play);
+            if (next_global->type == EVENT_GLOBAL_PATTERN_DELAY)
+            {
+                play->delay_event_index = event_index;
+            }
+            ++event_index;
             next_global = Column_iter_get_next(play->citer);
             if (next_global != NULL)
             {
@@ -279,13 +305,12 @@ uint32_t Pattern_mix(Pattern* pat,
         uint32_t to_be_mixed = nframes - mixed;
         if (play->tempo_slide != 0)
         {
-            Reltime* zero = Reltime_set(RELTIME_AUTO, 0, 0);
-            if (Reltime_cmp(&play->tempo_slide_left, zero) <= 0)
+            if (Reltime_cmp(&play->tempo_slide_left, zero_time) <= 0)
             {
                 play->tempo = play->tempo_slide_target;
                 play->tempo_slide = 0;
             }
-            else if (Reltime_cmp(&play->tempo_slide_int_left, zero) <= 0)
+            else if (Reltime_cmp(&play->tempo_slide_int_left, zero_time) <= 0)
             {
                 play->tempo += play->tempo_slide_update;
                 if ((play->tempo_slide < 0 && play->tempo < play->tempo_slide_target)
@@ -308,6 +333,12 @@ uint32_t Pattern_mix(Pattern* pat,
                                             to_be_mixed,
                                             play->tempo,
                                             play->freq);
+        bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
+        if (delay && Reltime_cmp(limit, &play->delay_left) > 0)
+        {
+            Reltime_copy(limit, &play->delay_left);
+            to_be_mixed = Reltime_toframes(limit, play->tempo, play->freq);
+        }
         if (play->tempo_slide != 0 && Reltime_cmp(limit, &play->tempo_slide_int_left) > 0)
         {
             Reltime_copy(limit, &play->tempo_slide_int_left);
@@ -315,7 +346,7 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         Reltime_add(limit, limit, &play->pos);
         // - Check for the end of pattern
-        if (Reltime_cmp(&pat->length, limit) < 0)
+        if (!delay && Reltime_cmp(&pat->length, limit) < 0)
         {
             Reltime_copy(limit, &pat->length);
             to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
@@ -323,7 +354,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                            play->freq);
         }
         // - Check first upcoming global event position to figure out how much we can mix for now
-        if (next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
+        if (!delay && next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
         {
             assert(next_global_pos != NULL);
             Reltime_copy(limit, next_global_pos);
@@ -340,17 +371,20 @@ uint32_t Pattern_mix(Pattern* pat,
         if (!play->silent)
         {
             // - Tell each channel to set up Voices
-            for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+            if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) <= 0)
             {
-                Column_iter_change_col(play->citer, pat->cols[i]);
-                Channel_set_voices(play->channels[i],
-                                   play->voice_pool,
-                                   play->citer,
-                                   &play->pos,
-                                   limit,
-                                   mixed,
-                                   play->tempo,
-                                   play->freq);
+                for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+                {
+                    Column_iter_change_col(play->citer, pat->cols[i]);
+                    Channel_set_voices(play->channels[i],
+                                       play->voice_pool,
+                                       play->citer,
+                                       &play->pos,
+                                       limit,
+                                       mixed,
+                                       play->tempo,
+                                       play->freq);
+                }
             }
             // - Mix the Voice pool
 /*            uint16_t active_voices = Voice_pool_mix(play->voice_pool,
@@ -466,7 +500,14 @@ uint32_t Pattern_mix(Pattern* pat,
             Reltime_sub(&play->tempo_slide_left, &play->tempo_slide_left, adv);
         }
         Reltime_add(&play->play_time, &play->play_time, adv);
-        Reltime_copy(&play->pos, limit);
+        if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) > 0)
+        {
+            Reltime_sub(&play->delay_left, &play->delay_left, adv);
+        }
+        else
+        {
+            Reltime_copy(&play->pos, limit);
+        }
         mixed += to_be_mixed;
     }
     return mixed - offset;
