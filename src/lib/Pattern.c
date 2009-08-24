@@ -275,7 +275,8 @@ uint32_t Pattern_mix(Pattern* pat,
             play->old_freq = play->freq;
             play->old_tempo = play->tempo;
         }
-        if (Reltime_cmp(&play->pos, &pat->length) >= 0)
+        bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
+        if (!delay && Reltime_cmp(&play->pos, &pat->length) >= 0)
         {
             assert(Reltime_cmp(&play->pos, &pat->length) == 0);
             Reltime_init(&play->pos);
@@ -333,7 +334,6 @@ uint32_t Pattern_mix(Pattern* pat,
                                             to_be_mixed,
                                             play->tempo,
                                             play->freq);
-        bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
         if (delay && Reltime_cmp(limit, &play->delay_left) > 0)
         {
             Reltime_copy(limit, &play->delay_left);
