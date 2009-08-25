@@ -62,6 +62,8 @@
 
 #include <Event_ins_set_pedal.h>
 
+#include <Event_channel_set_instrument.h>
+
 
 typedef Event* (*Event_cons)(Reltime* pos);
 
@@ -108,6 +110,8 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning;
 
         cons[EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal;
+
+        cons[EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument;
 
         cons_initialised = true;
     }

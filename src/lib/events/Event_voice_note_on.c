@@ -49,10 +49,6 @@ static Event_field_desc note_on_desc[] =
         .range.integral_type = { KQT_SCALE_OCTAVE_FIRST, KQT_SCALE_OCTAVE_LAST }
     },
     {
-        .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, KQT_INSTRUMENTS_MAX }
-    },
-    {
         .type = EVENT_FIELD_NONE
     }
 };
@@ -83,7 +79,6 @@ Event* new_Event_voice_note_on(Reltime* pos)
     event->note = 0;
     event->mod = -1;
     event->octave = KQT_SCALE_MIDDLE_OCTAVE;
-    event->instrument = 1;
     return (Event*)event;
 }
 
@@ -133,7 +128,7 @@ static bool Event_voice_note_on_set(Event* event, int index, void* data)
     assert(data != NULL);
     Event_voice_note_on* note_on = (Event_voice_note_on*)event;
     int64_t num = *(int64_t*)data;
-    if (index < 0 || index >= 4)
+    if (index < 0 || index >= 3)
     {
         return false;
     }
@@ -153,11 +148,6 @@ static bool Event_voice_note_on_set(Event* event, int index, void* data)
         case 2:
         {
             note_on->octave = num;
-        }
-        break;
-        case 3:
-        {
-            note_on->instrument = num;
         }
         break;
         default:
@@ -190,11 +180,6 @@ static void* Event_voice_note_on_get(Event* event, int index)
         case 2:
         {
             return &note_on->octave;
-        }
-        break;
-        case 3:
-        {
-            return &note_on->instrument;
         }
         break;
         default:

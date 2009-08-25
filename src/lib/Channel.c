@@ -31,6 +31,7 @@
 #include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_channel.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
@@ -146,28 +147,19 @@ void Channel_set_voices(Channel* ch,
                 }
             }
             ch->fg_count = 0;
-            int64_t* num = Event_get_field(next, 3);
-            assert(num != NULL);
-            if (*num == 0)
+            if (ch->cur_inst == 0)
             {
-                if (ch->cur_inst == 0)
+                next = NULL;
+                if (citer != NULL)
                 {
-                    next = NULL;
-                    if (citer != NULL)
-                    {
-                        next = Column_iter_get_next(citer);
-                    }
-                    if (next == NULL)
-                    {
-                        break;
-                    }
-                    next_pos = Event_get_pos(next);
-                    continue;
+                    next = Column_iter_get_next(citer);
                 }
-            }
-            else
-            {
-                ch->cur_inst = *num;
+                if (next == NULL)
+                {
+                    break;
+                }
+                next_pos = Event_get_pos(next);
+                continue;
             }
             Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
             if (ins == NULL)
@@ -254,6 +246,10 @@ void Channel_set_voices(Channel* ch,
             {
                 Event_queue_ins(ch->ins_events, next, abs_pos);
             }
+        }
+        else if (EVENT_IS_CHANNEL(Event_get_type(next)))
+        {
+            Event_channel_process((Event_channel*)next, ch);
         }
         if (next == ch->single)
         {

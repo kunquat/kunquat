@@ -20,28 +20,20 @@
  */
 
 
-#ifndef K_EVENT_VOICE_NOTE_ON_H
-#define K_EVENT_VOICE_NOTE_ON_H
+#include <stdlib.h>
+#include <assert.h>
+
+#include <Event_channel.h>
 
 
-#include <stdint.h>
-
-#include <Event_voice.h>
-#include <Reltime.h>
-
-
-typedef struct Event_voice_note_on
+void Event_channel_process(Event_channel* event, Channel* ch)
 {
-    Event_voice parent;
-    int64_t note;
-    int64_t mod;
-    int64_t octave;
-} Event_voice_note_on;
-
-
-Event* new_Event_voice_note_on(Reltime* pos);
-
-
-#endif // K_EVENT_VOICE_NOTE_ON_H
+    assert(event != NULL);
+    assert(EVENT_IS_CHANNEL(event->parent.type));
+    assert(event->process != NULL);
+    assert(ch != NULL);
+    event->process(event, ch);
+    return;
+}
 
 

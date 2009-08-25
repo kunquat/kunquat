@@ -20,28 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_NOTE_ON_H
-#define K_EVENT_VOICE_NOTE_ON_H
+#ifndef K_EVENT_CHANNEL_SET_INSTRUMENT_H
+#define K_EVENT_CHANNEL_SET_INSTRUMENT_H
 
 
-#include <stdint.h>
-
-#include <Event_voice.h>
+#include <Event_channel.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_note_on
+typedef struct Event_channel_set_instrument
 {
-    Event_voice parent;
-    int64_t note;
-    int64_t mod;
-    int64_t octave;
-} Event_voice_note_on;
+    Event_channel parent;
+    int64_t instrument;
+} Event_channel_set_instrument;
 
 
-Event* new_Event_voice_note_on(Reltime* pos);
+Event* new_Event_channel_set_instrument(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_NOTE_ON_H
+#endif // K_EVENT_CHANNEL_SET_INSTRUMENT_H
 
 

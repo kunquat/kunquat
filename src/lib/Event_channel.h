@@ -20,28 +20,30 @@
  */
 
 
-#ifndef K_EVENT_VOICE_NOTE_ON_H
-#define K_EVENT_VOICE_NOTE_ON_H
+#ifndef K_EVENT_CHANNEL_H
+#define K_EVENT_CHANNEL_H
 
 
-#include <stdint.h>
-
-#include <Event_voice.h>
-#include <Reltime.h>
+#include <Event.h>
+#include <Channel.h>
 
 
-typedef struct Event_voice_note_on
+typedef struct Event_channel
 {
-    Event_voice parent;
-    int64_t note;
-    int64_t mod;
-    int64_t octave;
-} Event_voice_note_on;
+    Event parent;
+    void (*process)(struct Event_channel* event, Channel* ch);
+} Event_channel;
 
 
-Event* new_Event_voice_note_on(Reltime* pos);
+/**
+ * Processes the Channel event.
+ *
+ * \param event   The Channel event -- must not be \c NULL.
+ * \param ch      The Channel to be affected -- must not be \c NULL.
+ */
+void Event_channel_process(Event_channel* event, Channel* ch);
 
 
-#endif // K_EVENT_VOICE_NOTE_ON_H
+#endif // K_EVENT_CHANNEL_H
 
 
