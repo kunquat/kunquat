@@ -26,13 +26,23 @@
 #include <Event_ins.h>
 
 
-void Event_ins_process(Event_ins* event, Instrument_params* ins_params)
+void Event_ins_process(Event_ins* event)
 {
     assert(event != NULL);
     assert(EVENT_IS_INS(event->parent.type));
     assert(event->process != NULL);
+    assert(event->ins_params != NULL);
+    event->process(event);
+    return;
+}
+
+
+void Event_ins_set_params(Event_ins* event, Instrument_params* ins_params)
+{
+    assert(event != NULL);
+    assert(EVENT_IS_INS(event->parent.type));
     assert(ins_params != NULL);
-    event->process(event, ins_params);
+    event->ins_params = ins_params;
     return;
 }
 

@@ -32,6 +32,7 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_channel.h>
+#include <Event_ins.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
@@ -239,11 +240,10 @@ void Channel_set_voices(Channel* ch,
         {
             Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
             uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
-            int64_t* ins_index = Event_get_field(next, 0);
-            assert(ins_index != NULL);
-            Instrument* ins = Ins_table_get(ch->insts, *ins_index);
+            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
             if (ins != NULL)
             {
+                Event_ins_set_params((Event_ins*)next, Instrument_get_params(ins));
                 Event_queue_ins(ch->ins_events, next, abs_pos);
             }
         }

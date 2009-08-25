@@ -409,13 +409,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 if (event_found)
                 {
                     assert(ins_event != NULL);
-                    int64_t* ins_index = Event_get_field(ins_event, 0);
-                    assert(ins_index != NULL);
-                    Instrument* ins = Ins_table_get(play->channels[0]->insts, *ins_index);
-                    if (ins != NULL)
-                    {
-                        Event_ins_process((Event_ins*)ins_event, &ins->params);
-                    }
+                    Event_ins_process((Event_ins*)ins_event);
                 }
                 pool_mixed = mix_until;
                 mix_until = to_be_mixed + mixed;
@@ -428,13 +422,7 @@ uint32_t Pattern_mix(Pattern* pat,
             while (event_found)
             {
                 assert(ins_event != NULL);
-                int64_t* ins_index = Event_get_field(ins_event, 0);
-                assert(ins_index != NULL);
-                Instrument* ins = Ins_table_get(play->channels[0]->insts, *ins_index);
-                if (ins != NULL)
-                {
-                    Event_ins_process((Event_ins*)ins_event, &ins->params);
-                }
+                Event_ins_process((Event_ins*)ins_event);
                 event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
             }
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)

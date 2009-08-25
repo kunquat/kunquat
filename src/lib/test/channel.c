@@ -192,7 +192,7 @@ START_TEST (set_voices)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    ch->cur_inst = instrument;
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");

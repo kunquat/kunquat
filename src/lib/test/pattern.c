@@ -208,7 +208,7 @@ START_TEST (mix)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    play->channels[0]->cur_inst = instrument;
     Column* col = Pattern_get_col(pat, 0);
     if (!Column_ins(col, ev1_on))
     {
@@ -559,7 +559,7 @@ START_TEST (mix)
     Event_set_field(ev3_on, 0, &note);
     Event_set_field(ev3_on, 1, &mod);
     Event_set_field(ev3_on, 2, &octave);
-    Event_set_field(ev3_on, 3, &instrument);
+    play->channels[1]->cur_inst = instrument;
     Event_set_pos(ev3_on, Reltime_set(RELTIME_AUTO, 3, 0));
     col = Pattern_get_col(pat, 1);
     if (!Column_ins(col, ev3_on))

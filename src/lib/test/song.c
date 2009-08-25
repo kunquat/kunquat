@@ -346,12 +346,11 @@ START_TEST (mix)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    play->channels[0]->cur_inst = instrument;
     octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
-    Event_set_field(ev2_on, 3, &instrument);
     Column* col = Pattern_get_col(pat1, 0);
     if (!Column_ins(col, ev1_on))
     {
