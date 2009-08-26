@@ -67,6 +67,7 @@ typedef enum
                                     
     EVENT_VOICE_SET_FILTER          = 152, ///< Set filter cut-off.
     EVENT_VOICE_SLIDE_FILTER        = 153, ///< Slide filter cut-off.
+    EVENT_VOICE_SLIDE_FILTER_LENGTH = 154,
     EVENT_VOICE_AUTOWAH_SPEED       = 155, ///< Auto-wah (filter cut-off oscillation) speed.
     EVENT_VOICE_AUTOWAH_DEPTH       = 156, ///< Auto-wah depth.
     EVENT_VOICE_AUTOWAH_DELAY       = 157, ///< Auto-wah delay.

@@ -20,24 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_SLIDE_FILTER_H
-#define K_EVENT_VOICE_SLIDE_FILTER_H
+#ifndef K_EVENT_VOICE_SLIDE_FILTER_LENGTH_H
+#define K_EVENT_VOICE_SLIDE_FILTER_LENGTH_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_slide_filter
+typedef struct Event_voice_slide_filter_length
 {
     Event_voice parent;
-    double target_cutoff;
-} Event_voice_slide_filter;
+    Reltime length;
+} Event_voice_slide_filter_length;
 
 
-Event* new_Event_voice_slide_filter(Reltime* pos);
+Event* new_Event_voice_slide_filter_length(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_SLIDE_FILTER_H
+#endif // K_EVENT_VOICE_SLIDE_FILTER_LENGTH_H
 
 

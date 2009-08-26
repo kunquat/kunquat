@@ -41,10 +41,6 @@ static Event_field_desc slide_filter_desc[] =
         .range.double_type = { 0, INFINITY }
     },
     {
-        .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
-    },
-    {
         .type = EVENT_FIELD_NONE
     }
 };
@@ -73,7 +69,6 @@ Event* new_Event_voice_slide_filter(Reltime* pos)
                Event_voice_slide_filter_get);
     event->parent.process = Event_voice_slide_filter_process;
     event->target_cutoff = 90;
-    Reltime_set(&event->length, 0, 0);
     return (Event*)event;
 }
 
@@ -91,13 +86,6 @@ static bool Event_voice_slide_filter_set(Event* event, int index, void* data)
         slide_filter->target_cutoff = cutoff;
         return true;
     }
-    else if (index == 1)
-    {
-        Reltime* len = (Reltime*)data;
-        Event_check_reltime_range(len, event->field_types[1]);
-        Reltime_copy(&slide_filter->length, len);
-        return true;
-    }
     return false;
 }
 
@@ -110,10 +98,6 @@ static void* Event_voice_slide_filter_get(Event* event, int index)
     if (index == 0)
     {
         return &slide_filter->target_cutoff;
-    }
-    else if (index == 1)
-    {
-        return &slide_filter->length;
     }
     return NULL;
 }
@@ -136,14 +120,9 @@ static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice)
         voice->state.generic.filter_slide_target = exp2((slide_filter->target_cutoff + 86) / 12);
     }
     voice->state.generic.filter_slide_frames =
-            Reltime_toframes(&slide_filter->length,
+            Reltime_toframes(&voice->state.generic.filter_slide_length,
                     voice->state.generic.tempo,
                     voice->state.generic.freq);
-    if (voice->state.generic.filter_slide_frames == 0)
-    {
-        voice->state.generic.filter = voice->state.generic.filter_slide_target;
-        return;
-    }
     double inf_limit = exp2((86.0 + 86) / 12);
     if (voice->state.generic.filter > inf_limit)
     {
