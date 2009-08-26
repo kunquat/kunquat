@@ -20,24 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_SLIDE_PANNING_H
-#define K_EVENT_VOICE_SLIDE_PANNING_H
+#ifndef K_EVENT_VOICE_SLIDE_PANNING_LENGTH_H
+#define K_EVENT_VOICE_SLIDE_PANNING_LENGTH_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_slide_panning
+typedef struct Event_voice_slide_panning_length
 {
     Event_voice parent;
-    double target_panning;
-} Event_voice_slide_panning;
+    Reltime length;
+} Event_voice_slide_panning_length;
 
 
-Event* new_Event_voice_slide_panning(Reltime* pos);
+Event* new_Event_voice_slide_panning_length(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_SLIDE_PANNING_H
+#endif // K_EVENT_VOICE_SLIDE_PANNING_LENGTH_H
 
 
