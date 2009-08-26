@@ -98,6 +98,7 @@ Playdata* new_Playdata(Ins_table* insts,
 
     play->volume = 1;
     play->volume_slide = 0;
+    Reltime_init(&play->volume_slide_length);
     play->volume_slide_target = 1;
     play->volume_slide_frames = 0;
     play->volume_slide_update = 0;
@@ -161,6 +162,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
 
     play->volume = 1;
     play->volume_slide = 0;
+    Reltime_init(&play->volume_slide_length);
     play->volume_slide_target = 1;
     play->volume_slide_frames = 0;
     play->volume_slide_update = 0;

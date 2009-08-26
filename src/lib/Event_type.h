@@ -41,6 +41,7 @@ typedef enum
                                      
     EVENT_GLOBAL_SET_VOLUME          =  72, ///< Set global volume.
     EVENT_GLOBAL_SLIDE_VOLUME        =  73, ///< Slide global volume.
+    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH =  74,
                                      
     EVENT_GLOBAL_SET_SCALE           =  80, ///< Set default scale used by Instruments.
     EVENT_GLOBAL_RETUNE_SCALE        =  81, ///< Retune scale.

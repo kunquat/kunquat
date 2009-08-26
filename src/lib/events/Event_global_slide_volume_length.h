@@ -20,24 +20,24 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_SLIDE_VOLUME_H
-#define K_EVENT_GLOBAL_SLIDE_VOLUME_H
+#ifndef K_EVENT_GLOBAL_SLIDE_VOLUME_LENGTH_H
+#define K_EVENT_GLOBAL_SLIDE_VOLUME_LENGTH_H
 
 
 #include <Event_global.h>
 #include <Reltime.h>
 
 
-typedef struct Event_global_slide_volume
+typedef struct Event_global_slide_volume_length
 {
     Event_global parent;
-    double target_volume_dB;
-} Event_global_slide_volume;
+    Reltime length;
+} Event_global_slide_volume_length;
 
 
-Event* new_Event_global_slide_volume(Reltime* pos);
+Event* new_Event_global_slide_volume_length(Reltime* pos);
 
 
-#endif // K_EVENT_GLOBAL_SLIDE_VOLUME_H
+#endif // K_EVENT_GLOBAL_SLIDE_VOLUME_LENGTH_H
 
 
