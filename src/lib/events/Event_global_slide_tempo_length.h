@@ -20,24 +20,24 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_SLIDE_TEMPO_H
-#define K_EVENT_GLOBAL_SLIDE_TEMPO_H
+#ifndef K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H
+#define K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H
 
 
 #include <Event_global.h>
 #include <Reltime.h>
 
 
-typedef struct Event_global_slide_tempo
+typedef struct Event_global_slide_tempo_length
 {
     Event_global parent;
-    double target_tempo;
-} Event_global_slide_tempo;
+    Reltime length;
+} Event_global_slide_tempo_length;
 
 
-Event* new_Event_global_slide_tempo(Reltime* pos);
+Event* new_Event_global_slide_tempo_length(Reltime* pos);
 
 
-#endif // K_EVENT_GLOBAL_SLIDE_TEMPO_H
+#endif // K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H
 
 

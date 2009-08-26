@@ -75,6 +75,7 @@ typedef struct Playdata
 
     double tempo;                     ///< Current tempo.
     int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).
+    Reltime tempo_slide_length;
     double tempo_slide_target;        ///< Final target tempo of the tempo slide.
     Reltime tempo_slide_left;         ///< The total time left to finish the tempo slide.
     double tempo_slide_int_target;    ///< Intermediate target tempo of the tempo slide.

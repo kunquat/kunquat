@@ -36,6 +36,7 @@ typedef enum
                                      
     EVENT_GLOBAL_SET_TEMPO           =  64, ///< Set tempo. (BPM (float))
     EVENT_GLOBAL_SLIDE_TEMPO         =  65, ///< Slide tempo.
+    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH  =  66,
     EVENT_GLOBAL_PATTERN_DELAY       =  67, ///< Pattern delay.
                                      
     EVENT_GLOBAL_SET_VOLUME          =  72, ///< Set global volume.

@@ -105,6 +105,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->tempo = 0;
     play->old_tempo = 0;
     play->tempo_slide = 0;
+    Reltime_init(&play->tempo_slide_length);
     play->tempo_slide_target = 0;
     Reltime_init(&play->tempo_slide_left);
     play->tempo_slide_int_target = 0;
@@ -167,6 +168,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->tempo = 0;
     play->old_tempo = 0;
     play->tempo_slide = 0;
+    Reltime_init(&play->tempo_slide_length);
     play->tempo_slide_target = 0;
     Reltime_init(&play->tempo_slide_left);
     play->tempo_slide_int_target = 0;

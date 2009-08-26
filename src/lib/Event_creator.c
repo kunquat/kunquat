@@ -29,6 +29,7 @@
 
 #include <Event_global_set_tempo.h>
 #include <Event_global_slide_tempo.h>
+#include <Event_global_slide_tempo_length.h>
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_volume.h>
 #include <Event_global_slide_volume.h>
@@ -82,6 +83,7 @@ Event* new_Event(Event_type type, Reltime* pos)
     {
         cons[EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo;
         cons[EVENT_GLOBAL_SLIDE_TEMPO] = new_Event_global_slide_tempo;
+        cons[EVENT_GLOBAL_SLIDE_TEMPO_LENGTH] = new_Event_global_slide_tempo_length;
         cons[EVENT_GLOBAL_PATTERN_DELAY] = new_Event_global_pattern_delay;
         cons[EVENT_GLOBAL_SET_VOLUME] = new_Event_global_set_volume;
         cons[EVENT_GLOBAL_SLIDE_VOLUME] = new_Event_global_slide_volume;

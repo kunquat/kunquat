@@ -39,10 +39,6 @@ static Event_field_desc slide_tempo_desc[] =
         .range.double_type = { 1, 999 }
     },
     {
-        .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
-    },
-    {
         .type = EVENT_FIELD_NONE
     }
 };
@@ -70,6 +66,7 @@ Event* new_Event_global_slide_tempo(Reltime* pos)
                Event_global_slide_tempo_set,
                Event_global_slide_tempo_get);
     event->parent.process = Event_global_slide_tempo_process;
+    event->target_tempo = 120;
     return (Event*)event;
 }
 
@@ -87,13 +84,6 @@ static bool Event_global_slide_tempo_set(Event* event, int index, void* data)
         slide_tempo->target_tempo = tempo;
         return true;
     }
-    else if (index == 1)
-    {
-        Reltime* length = data;
-        Event_check_reltime_range(length, event->field_types[1]);
-        Reltime_copy(&slide_tempo->length, length);
-        return true;
-    }
     return false;
 }
 
@@ -106,10 +96,6 @@ static void* Event_global_slide_tempo_get(Event* event, int index)
     if (index == 0)
     {
         return &slide_tempo->target_tempo;
-    }
-    else if (index == 1)
-    {
-        return &slide_tempo->length;
     }
     return NULL;
 }
@@ -125,15 +111,10 @@ static void Event_global_slide_tempo_process(Event_global* event, Playdata* play
     {
         return;
     }
-    if (Reltime_cmp(&slide_tempo->length, Reltime_set(RELTIME_AUTO, 0, 36756720)) < 0)
-    {
-        play->tempo = slide_tempo->target_tempo;
-        return;
-    }
     Reltime_init(&play->tempo_slide_int_left);
-    Reltime_copy(&play->tempo_slide_left, &slide_tempo->length);
-    double rems_total = (double)Reltime_get_beats(&slide_tempo->length) * KQT_RELTIME_BEAT
-                         + Reltime_get_rem(&slide_tempo->length);
+    Reltime_copy(&play->tempo_slide_left, &play->tempo_slide_length);
+    double rems_total = (double)Reltime_get_beats(&play->tempo_slide_length) * KQT_RELTIME_BEAT
+                         + Reltime_get_rem(&play->tempo_slide_length);
     double slices = rems_total / 36756720; // slide updated 24 times per beat
     play->tempo_slide_update = (slide_tempo->target_tempo - play->tempo) / slices;
     play->tempo_slide_target = slide_tempo->target_tempo;
