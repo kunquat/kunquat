@@ -20,26 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_SLIDE_PITCH_H
-#define K_EVENT_VOICE_SLIDE_PITCH_H
+#ifndef K_EVENT_VOICE_SLIDE_PITCH_LENGTH_H
+#define K_EVENT_VOICE_SLIDE_PITCH_LENGTH_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_slide_pitch
+typedef struct Event_voice_slide_pitch_length
 {
     Event_voice parent;
-    int64_t note;
-    int64_t mod;
-    int64_t octave;
-} Event_voice_slide_pitch;
+    Reltime length;
+} Event_voice_slide_pitch_length;
 
 
-Event* new_Event_voice_slide_pitch(Reltime* pos);
+Event* new_Event_voice_slide_pitch_length(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_SLIDE_PITCH_H
+#endif // K_EVENT_VOICE_SLIDE_PITCH_LENGTH_H
 
 

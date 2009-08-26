@@ -46,6 +46,7 @@
 #include <Event_voice_tremolo_delay.h>
 
 #include <Event_voice_slide_pitch.h>
+#include <Event_voice_slide_pitch_length.h>
 #include <Event_voice_vibrato_speed.h>
 #include <Event_voice_vibrato_depth.h>
 #include <Event_voice_vibrato_delay.h>
@@ -96,6 +97,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_VOICE_TREMOLO_DELAY] = new_Event_voice_tremolo_delay;
 
         cons[EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch;
+        cons[EVENT_VOICE_SLIDE_PITCH_LENGTH] = new_Event_voice_slide_pitch_length;
         cons[EVENT_VOICE_VIBRATO_SPEED] = new_Event_voice_vibrato_speed;
         cons[EVENT_VOICE_VIBRATO_DEPTH] = new_Event_voice_vibrato_depth;
         cons[EVENT_VOICE_VIBRATO_DELAY] = new_Event_voice_vibrato_delay;

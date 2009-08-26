@@ -59,10 +59,11 @@ typedef enum
     EVENT_VOICE_TREMOLO_DELAY       = 141, ///< Tremolo delay.
                                     
     EVENT_VOICE_SLIDE_PITCH         = 144, ///< Slide pitch.
+    EVENT_VOICE_SLIDE_PITCH_LENGTH  = 145,
     EVENT_VOICE_VIBRATO_SPEED       = 146, ///< Vibrato speed.
     EVENT_VOICE_VIBRATO_DEPTH       = 147, ///< Vibrato depth.
     EVENT_VOICE_VIBRATO_DELAY       = 148, ///< Vibrato delay.
-    EVENT_VOICE_ARPEGGIO            = 149, ///< Arpeggio.
+    EVENT_VOICE_ARPEGGIO            = 149, ///< Arpeggio (the retro effect).
                                     
     EVENT_VOICE_SET_FILTER          = 152, ///< Set filter cut-off.
     EVENT_VOICE_SLIDE_FILTER        = 153, ///< Slide filter cut-off.
