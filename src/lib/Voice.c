@@ -72,7 +72,7 @@ uint64_t Voice_id(Voice* voice)
 
 void Voice_init(Voice* voice,
                 Generator* gen,
-                const Channel_state* cur_ch_state,
+                Channel_state* cur_ch_state,
                 Channel_state* new_ch_state,
                 uint32_t freq,
                 double tempo)

@@ -40,6 +40,7 @@
 
 #include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
+#include <Event_voice_slide_force_length.h>
 #include <Event_voice_tremolo_speed.h>
 #include <Event_voice_tremolo_depth.h>
 #include <Event_voice_tremolo_delay.h>
@@ -89,6 +90,7 @@ Event* new_Event(Event_type type, Reltime* pos)
 
         cons[EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force;
         cons[EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force;
+        cons[EVENT_VOICE_SLIDE_FORCE_LENGTH] = new_Event_voice_slide_force_length;
         cons[EVENT_VOICE_TREMOLO_SPEED] = new_Event_voice_tremolo_speed;
         cons[EVENT_VOICE_TREMOLO_DEPTH] = new_Event_voice_tremolo_depth;
         cons[EVENT_VOICE_TREMOLO_DELAY] = new_Event_voice_tremolo_delay;

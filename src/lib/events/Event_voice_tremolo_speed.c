@@ -24,7 +24,6 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <math.h>
-#include <stdio.h>
 
 #include <Event_common.h>
 #include <Event_voice_tremolo_speed.h>

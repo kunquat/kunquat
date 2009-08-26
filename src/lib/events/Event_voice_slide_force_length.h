@@ -20,24 +20,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_SLIDE_FORCE_H
-#define K_EVENT_VOICE_SLIDE_FORCE_H
+#ifndef K_EVENT_VOICE_SLIDE_FORCE_LENGTH_H
+#define K_EVENT_VOICE_SLIDE_FORCE_LENGTH_H
 
 
 #include <Event_voice.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_slide_force
+typedef struct Event_voice_slide_force_length
 {
     Event_voice parent;
-    double target_force;
-} Event_voice_slide_force;
+    Reltime length;
+} Event_voice_slide_force_length;
 
 
-Event* new_Event_voice_slide_force(Reltime* pos);
+Event* new_Event_voice_slide_force_length(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_SLIDE_FORCE_H
+#endif // K_EVENT_VOICE_SLIDE_FORCE_LENGTH_H
 
 

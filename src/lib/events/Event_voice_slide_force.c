@@ -41,10 +41,6 @@ static Event_field_desc slide_force_desc[] =
         .range.double_type = { -INFINITY, 18 }
     },
     {
-        .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
-    },
-    {
         .type = EVENT_FIELD_NONE
     }
 };
@@ -73,7 +69,6 @@ Event* new_Event_voice_slide_force(Reltime* pos)
                Event_voice_slide_force_get);
     event->parent.process = Event_voice_slide_force_process;
     event->target_force = 1;
-    Reltime_set(&event->length, 0, 0);
     return (Event*)event;
 }
 
@@ -91,13 +86,6 @@ static bool Event_voice_slide_force_set(Event* event, int index, void* data)
         slide_force->target_force = force;
         return true;
     }
-    else if (index == 1)
-    {
-        Reltime* len = (Reltime*)data;
-        Event_check_reltime_range(len, event->field_types[1]);
-        Reltime_copy(&slide_force->length, len);
-        return true;
-    }
     return false;
 }
 
@@ -110,10 +98,6 @@ static void* Event_voice_slide_force_get(Event* event, int index)
     if (index == 0)
     {
         return &slide_force->target_force;
-    }
-    else if (index == 1)
-    {
-        return &slide_force->length;
     }
     return NULL;
 }
@@ -129,14 +113,9 @@ static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)
     Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
     voice->state.generic.force_slide_target = exp2(slide_force->target_force / 6);
     voice->state.generic.force_slide_frames =
-            Reltime_toframes(&slide_force->length,
+            Reltime_toframes(&voice->state.generic.force_slide_length,
                     voice->state.generic.tempo,
                     voice->state.generic.freq);
-    if (voice->state.generic.force_slide_frames == 0)
-    {
-        voice->state.generic.force = voice->state.generic.force_slide_target;
-        return;
-    }
     double force_dB = log2(voice->state.generic.force) * 6;
     double dB_step = (slide_force->target_force - force_dB) /
             voice->state.generic.force_slide_frames;

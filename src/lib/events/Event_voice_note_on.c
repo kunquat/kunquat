@@ -100,13 +100,15 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
 
     voice->state.generic.pedal = &voice->gen->ins_params->pedal;
 
-    const Channel_state* ch_state = voice->state.generic.cur_ch_state;
+    Channel_state* ch_state = voice->state.generic.cur_ch_state;
 
+    Reltime_copy(&voice->state.generic.force_slide_length, &ch_state->force_slide_length);
     voice->state.generic.tremolo_length = ch_state->tremolo_length;
     voice->state.generic.tremolo_update = ch_state->tremolo_update;
     voice->state.generic.tremolo_depth_target = ch_state->tremolo_depth;
     voice->state.generic.tremolo_delay_update = ch_state->tremolo_delay_update;
-    
+
+    Reltime_copy(&voice->state.generic.pitch_slide_length, &ch_state->pitch_slide_length);    
     voice->state.generic.vibrato_length = ch_state->vibrato_length;
     voice->state.generic.vibrato_update = ch_state->vibrato_update;
     voice->state.generic.vibrato_depth_target = ch_state->vibrato_depth;
@@ -114,9 +116,13 @@ static void Event_voice_note_on_process(Event_voice* event, Voice* voice)
 
     voice->state.generic.panning = ch_state->panning;
     voice->state.generic.panning_slide = ch_state->panning_slide;
+    Reltime_copy(&voice->state.generic.panning_slide_length, &ch_state->panning_slide_length);
     voice->state.generic.panning_slide_target = ch_state->panning_slide_target;
     voice->state.generic.panning_slide_frames = ch_state->panning_slide_frames;
     voice->state.generic.panning_slide_update = ch_state->panning_slide_update;
+
+    Reltime_copy(&voice->state.generic.filter_slide_length, &ch_state->filter_slide_length);
+
     return;
 }
 

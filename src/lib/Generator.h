@@ -53,7 +53,6 @@ typedef struct Generator
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
                 int, kqt_frame**);
-    Event_queue* events;           ///< Instrument event queue.
     Instrument_params* ins_params;
 } Generator;
 

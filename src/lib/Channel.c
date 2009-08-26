@@ -288,11 +288,6 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
         ch->new_state.panning_slide_frames -= frames_left;
         if (ch->new_state.panning_slide_frames <= 0)
         {
-            if (ch->new_state.num == 1)
-            {
-                fprintf(stderr, "slide_frames: %f \n", ch->new_state.panning_slide_frames);
-                fprintf(stderr, "slide_target: %f \n", ch->new_state.panning_slide_target);
-            }
             ch->new_state.panning = ch->new_state.panning_slide_target;
             ch->new_state.panning_slide = 0;
         }

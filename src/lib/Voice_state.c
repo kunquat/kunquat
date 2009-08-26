@@ -26,11 +26,12 @@
 #include <math.h>
 
 #include <Voice_state.h>
+#include <Reltime.h>
 #include <kunquat/limits.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state,
-                              const Channel_state* cur_ch_state,
+                              Channel_state* cur_ch_state,
                               Channel_state* new_ch_state,
                               uint32_t freq,
                               double tempo)
@@ -66,6 +67,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->pitch = 0;
     state->actual_pitch = 0;
     state->pitch_slide = 0;
+    Reltime_init(&state->pitch_slide_length);
     state->pitch_slide_target = 0;
     state->pitch_slide_frames = 0;
     state->pitch_slide_update = 1;
@@ -111,6 +113,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->force = 1;
     state->actual_force = 1;
     state->force_slide = 0;
+    Reltime_init(&state->force_slide_length);
     state->force_slide_target = 1;
     state->force_slide_frames = 0;
     state->force_slide_update = 1;
@@ -126,6 +129,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->panning = 0;
     state->actual_panning = 0;
     state->panning_slide = 0;
+    Reltime_init(&state->panning_slide_length);
     state->panning_slide_target = 0;
     state->panning_slide_frames = 0;
     state->panning_slide_update = 0;
@@ -134,6 +138,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_filter = INFINITY;
     state->effective_filter = INFINITY;
     state->filter_slide = 0;
+    Reltime_init(&state->filter_slide_length);
     state->filter_slide_target = INFINITY;
     state->filter_slide_frames = 0;
     state->filter_slide_update = 0;

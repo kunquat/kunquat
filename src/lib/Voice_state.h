@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include <Channel_state.h>
+#include <Reltime.h>
 #include <kunquat/frame.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
@@ -50,7 +51,7 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-    const Channel_state* cur_ch_state;   ///< Current Channel state.
+    Channel_state* cur_ch_state;   ///< Current Channel state.
     Channel_state* new_ch_state;   ///< New (upcoming) Channel state.
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
@@ -62,6 +63,7 @@ typedef struct Voice_state
     pitch_t pitch;                 ///< The frequency at which the note is played.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     int pitch_slide;               ///< Pitch slide state (0 = no slide, -1 = down, 1 = up).
+    Reltime pitch_slide_length;
     pitch_t pitch_slide_target;    ///< Target pitch of the slide.
     double pitch_slide_frames;     ///< Number of frames left to complete the slide.
     double pitch_slide_update;     ///< The update factor of the slide.
@@ -95,6 +97,7 @@ typedef struct Voice_state
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo).
     int force_slide;               ///< Force slide state (0 = no slide, -1 = down, 1 = up).
+    Reltime force_slide_length;
     double force_slide_target;     ///< Target force of the slide.
     double force_slide_frames;     ///< Number of frames left to complete the slide.
     double force_slide_update;     ///< The update factor of the slide.
@@ -110,6 +113,7 @@ typedef struct Voice_state
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
+    Reltime panning_slide_length;
     double panning_slide_target;   ///< Target panning position of the slide.
     double panning_slide_frames;   ///< Number of frames left to complete the slide.
     double panning_slide_update;   ///< The update amount of the slide.
@@ -117,6 +121,7 @@ typedef struct Voice_state
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
     int filter_slide;              ///< Filter slide state (0 = no slide, -1 = down, 1 = up).
+    Reltime filter_slide_length;
     double filter_slide_target;    ///< Target cut-off frequency of the slide.
     double filter_slide_frames;    ///< Number of frames left to complete the slide.
     double filter_slide_update;    ///< The update factor of the slide.
@@ -153,7 +158,7 @@ typedef struct Voice_state
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_init(Voice_state* state,
-                              const Channel_state* cur_ch_state,
+                              Channel_state* cur_ch_state,
                               Channel_state* new_ch_state,
                               uint32_t freq,
                               double tempo);

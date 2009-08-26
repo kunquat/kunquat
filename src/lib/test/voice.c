@@ -129,7 +129,9 @@ START_TEST (mix)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);

@@ -114,7 +114,9 @@ START_TEST (mix)
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     state.pitch = 16;
     Instrument_mix(ins, &state, 128, 0, 64);
@@ -426,7 +428,9 @@ END_TEST
 START_TEST (mix_break_ins_null)
 {
     Voice_state state;
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     Instrument_mix(NULL, &state, 0, 0, 1);
 }
@@ -482,7 +486,9 @@ START_TEST (mix_break_nframes_inv)
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     Instrument_mix(ins, &state, 2, 0, 1);
     del_Instrument(ins);
@@ -512,7 +518,9 @@ START_TEST (mix_break_freq_inv)
     }
     Instrument_set_gen(ins, 0, (Generator*)gen_debug);
     Voice_state state;
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     Instrument_mix(ins, &state, 1, 0, 0);
     del_Instrument(ins);

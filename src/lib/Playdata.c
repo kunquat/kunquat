@@ -153,6 +153,11 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->subsongs = NULL;
     play->events = NULL;
 
+    play->buf_count = 0;
+    play->bufs = NULL;
+    play->scales = NULL;
+    play->active_scale = NULL;
+
     play->volume = 1;
     play->volume_slide = 0;
     play->volume_slide_target = 1;
@@ -238,7 +243,7 @@ void del_Playdata(Playdata* play)
     assert(play != NULL);
     if (play->voice_pool != NULL)
     {
-        Voice_pool_reset(play->voice_pool);
+        del_Voice_pool(play->voice_pool);
     }
     for (i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
@@ -246,6 +251,10 @@ void del_Playdata(Playdata* play)
         {
             del_Channel(play->channels[i]);
         }
+    }
+    if (play->ins_events != NULL)
+    {
+        del_Event_queue(play->ins_events);
     }
     if (play->citer != NULL)
     {

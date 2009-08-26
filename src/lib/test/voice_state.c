@@ -36,7 +36,9 @@ Suite* Voice_state_suite(void);
 START_TEST (init)
 {
     Voice_state state;
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state* ret = Voice_state_init(&state, &ch_state, &ch_state, 64, 120);
     fail_unless(ret == &state,
             "Voice_state_init() returned %p instead of %p.", ret, &state);
@@ -56,7 +58,9 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (init_break_state_null)
 {
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_state_init(NULL, &ch_state, &ch_state, 64, 120);
 }
 END_TEST

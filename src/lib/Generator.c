@@ -44,11 +44,6 @@
 bool Generator_init(Generator* gen)
 {
     assert(gen != NULL);
-    gen->events = new_Event_queue(32); // TODO: make event count configurable
-    if (gen->events == NULL)
-    {
-        return false;
-    }
     gen->enabled = true;
     gen->volume_dB = 0;
     gen->volume = 1;

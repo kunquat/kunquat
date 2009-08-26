@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Reltime.h>
 #include <kunquat/limits.h>
 
 
@@ -41,16 +42,19 @@ typedef struct Channel_state
 
     double volume;                 ///< Channel volume (linear factor).
 
+    Reltime force_slide_length;
     double tremolo_length;         ///< Tremolo length.
     double tremolo_update;         ///< Tremolo update.
     double tremolo_depth;          ///< Tremolo depth.
     double tremolo_delay_update;   ///< The update amount of the tremolo delay.
 
+    Reltime pitch_slide_length;
     double vibrato_length;         ///< Vibrato length.
     double vibrato_update;         ///< Vibrato update.
     double vibrato_depth;          ///< Vibrato depth.
     double vibrato_delay_update;   ///< The update amount of the vibrato delay.
 
+    Reltime filter_slide_length;
     double autowah_length;         ///< Auto-wah length.
     double autowah_update;         ///< Auto-wah update.
     double autowah_depth;          ///< Auto-wah depth.
@@ -58,6 +62,7 @@ typedef struct Channel_state
 
     double panning;                ///< The current panning.
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
+    Reltime panning_slide_length;
     double panning_slide_target;   ///< Target panning position of the slide.
     double panning_slide_frames;   ///< Number of frames left to complete the slide.
     double panning_slide_update;   ///< The update amount of the slide.

@@ -105,7 +105,9 @@ START_TEST (get_voice)
     fail_unless(v0->prio == VOICE_PRIO_INACTIVE,
             "Voice_pool_get_voice() returned a Voice with active status.");
     uint64_t id0 = Voice_id(v0);
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_init(v0, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     Voice* v1 = Voice_pool_get_voice(pool, NULL, 0);
     fail_if(v1 == NULL,
@@ -229,7 +231,9 @@ START_TEST (mix)
     fail_if(v1 == NULL,
             "Voice_pool_get_voice() returned NULL unexpectedly.");
 //  uint64_t id1 = Voice_id(v1);
+    bool mute = false;
     Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
     Voice_init(v1, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(Voice_add_event(v1, ev1_on, 0),
             "Voice_add_event() failed.");
