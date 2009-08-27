@@ -47,6 +47,7 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
+    play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
@@ -96,6 +97,15 @@ Playdata* new_Playdata(Ins_table* insts,
     play->scales = NULL;
     play->active_scale = NULL;
 
+    play->jump_set_counter = 0;
+    play->jump_set_subsong = -1;
+    play->jump_set_section = -1;
+    Reltime_init(&play->jump_set_position);
+    play->jump = false;
+    play->jump_subsong = -1;
+    play->jump_section = -1;
+    Reltime_init(&play->jump_position);
+
     play->volume = 1;
     play->volume_slide = 0;
     Reltime_init(&play->volume_slide_length);
@@ -136,6 +146,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    play->play_id = 1;
     play->silent = true;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
@@ -159,6 +170,15 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->bufs = NULL;
     play->scales = NULL;
     play->active_scale = NULL;
+
+    play->jump_set_counter = 0;
+    play->jump_set_subsong = -1;
+    play->jump_set_section = -1;
+    Reltime_init(&play->jump_set_position);
+    play->jump = false;
+    play->jump_subsong = -1;
+    play->jump_section = -1;
+    Reltime_init(&play->jump_position);
 
     play->volume = 1;
     play->volume_slide = 0;
@@ -223,6 +243,39 @@ void Playdata_set_subsong(Playdata* play, int subsong)
         return;
     }
     play->tempo = Subsong_get_tempo(ss);
+    return;
+}
+
+
+void Playdata_reset(Playdata* play)
+{
+    assert(play != NULL);
+    ++play->play_id;
+    if (!play->silent)
+    {
+        Voice_pool_reset(play->voice_pool);
+        for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+        {
+            Channel_reset(play->channels[i]);
+        }
+        for (int i = 0; i < KQT_SCALES_MAX; ++i)
+        {
+            if (play->scales[i] != NULL)
+            {
+                Scale_retune(play->scales[i], -1, 0);
+            }
+        }
+    }
+    play->volume_slide = 0;
+    Reltime_init(&play->volume_slide_length);
+    play->tempo_slide = 0;
+    Reltime_init(&play->tempo_slide_length);
+    Reltime_init(&play->delay_left);
+    play->play_frames = 0;
+    play->section = 0;
+    play->pattern = 0;
+    Reltime_init(&play->play_time);
+    Reltime_init(&play->pos);
     return;
 }
 

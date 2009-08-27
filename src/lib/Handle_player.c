@@ -139,14 +139,7 @@ void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
     handle->song->play_state->mode = STOP;
-    Voice_pool_reset(handle->song->play_state->voice_pool);
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        Channel_reset(handle->song->play_state->channels[i]);
-    }
-    Reltime_init(&handle->song->play_state->play_time);
-    Reltime_init(&handle->song->play_state->delay_left);
-    handle->song->play_state->play_frames = 0;
+    Playdata_reset(handle->song->play_state);
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
     Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
                                     handle->song->play_state->subsong);
@@ -158,9 +151,6 @@ void kqt_Handle_stop(kqt_Handle* handle)
     {
         handle->song->play_state->tempo = Subsong_get_tempo(ss);
     }
-    handle->song->play_state->section = 0;
-    handle->song->play_state->pattern = 0;
-    Reltime_init(&handle->song->play_state->pos);
     return;
 }
 

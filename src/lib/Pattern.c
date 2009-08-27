@@ -227,7 +227,8 @@ uint32_t Pattern_mix(Pattern* pat,
         // - Evaluate global events
         while (next_global != NULL
                 && Reltime_cmp(next_global_pos, &play->pos) == 0
-                && Reltime_cmp(&play->delay_left, zero_time) <= 0)
+                && Reltime_cmp(&play->delay_left, zero_time) <= 0
+                && !play->jump)
         {
             // FIXME: conditional event handling must be processed here
             //        instead of Song_mix.
@@ -276,6 +277,33 @@ uint32_t Pattern_mix(Pattern* pat,
             play->old_tempo = play->tempo;
         }
         bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
+        assert(!(delay && play->jump));
+        if (!delay && play->jump)
+        {
+            play->jump = false;
+            if (play->mode == PLAY_PATTERN)
+            {
+                if (play->jump_subsong < 0 && play->jump_section < 0)
+                {
+                    Reltime_copy(&play->pos, &play->jump_position);
+                }
+                else
+                {
+                    Reltime_set(&play->pos, 0, 0);
+                }
+                break;
+            }
+            if (play->jump_subsong >= 0)
+            {
+                play->subsong = play->jump_subsong;
+            }
+            if (play->jump_section >= 0)
+            {
+                play->section = play->jump_section;
+            }
+            Reltime_copy(&play->pos, &play->jump_position);
+            break;
+        }
         if (!delay && Reltime_cmp(&play->pos, &pat->length) >= 0)
         {
             assert(Reltime_cmp(&play->pos, &pat->length) == 0);

@@ -51,6 +51,7 @@ typedef enum Play_mode
 
 typedef struct Playdata
 {
+    uint64_t play_id;                 ///< A unique identifier for successive playbacks.
     bool silent;                      ///< \c true if this Playdata is used for statistics only.
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
@@ -66,6 +67,15 @@ typedef struct Playdata
     kqt_frame** bufs;                 ///< The (top-level) buffers.
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale.
+
+    int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
+    int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.
+    int16_t jump_set_section;         ///< Section number setting passed to a jump event.
+    Reltime jump_set_position;        ///< Pattern position passed to a jump event.
+    bool jump;                        ///< Jump trigger.
+    int16_t jump_subsong;             ///< Jump target subsong (-1 = no change).
+    int16_t jump_section;             ///< Jump target section (-1 = no change).
+    Reltime jump_position;            ///< Jump target pattern position.
 
     double volume;                    ///< Current global volume.
     int volume_slide;                 ///< Global volume slide (0 = no slide, -1 = down, 1 = up).
@@ -149,6 +159,14 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
  * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.
  */
 void Playdata_set_subsong(Playdata* play, int subsong);
+
+
+/**
+ * Resets playback state.
+ *
+ * \param play   The Playdata object -- must not be \c NULL.
+ */
+void Playdata_reset(Playdata* play);
 
 
 /**

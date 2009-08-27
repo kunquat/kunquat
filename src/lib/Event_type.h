@@ -45,6 +45,12 @@ typedef enum
                                      
     EVENT_GLOBAL_SET_SCALE           =  80, ///< Set default scale used by Instruments.
     EVENT_GLOBAL_RETUNE_SCALE        =  81, ///< Retune scale.
+
+    EVENT_GLOBAL_SET_JUMP_SUBSONG    =  88,
+    EVENT_GLOBAL_SET_JUMP_SECTION    =  89,
+    EVENT_GLOBAL_SET_JUMP_POSITION   =  90, ///< Position inside a Pattern.
+    EVENT_GLOBAL_SET_JUMP_COUNTER    =  91,
+    EVENT_GLOBAL_JUMP                =  92,
                                      
     EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
                                      
