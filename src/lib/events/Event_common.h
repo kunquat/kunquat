@@ -63,6 +63,72 @@ Event* Event_init(Event* event,
 void del_Event_default(Event* event);
 
 
+#define Event_check_int64_t_range Event_check_integral_range
+
+
+#define create_set_primitive(etype, etype_id, ftype, fname)              \
+    static bool etype ## _set(Event* event, int index, void* data);      \
+    static bool etype ## _set(Event* event, int index, void* data)       \
+    {                                                                    \
+        assert(event != NULL);                                           \
+        assert(event->type == etype_id);                                 \
+        assert(data != NULL);                                            \
+        etype* event_sub = (etype*)event;                                \
+        if (index == 0)                                                  \
+        {                                                                \
+            ftype num = *(ftype*)data;                                   \
+            Event_check_ ## ftype ## _range(num, event->field_types[0]); \
+            event_sub->fname = num;                                      \
+            return true;                                                 \
+        }                                                                \
+        return false;                                                    \
+    }
+
+
+#define create_set_reltime(etype, etype_id, fname)                  \
+    static bool etype ## _set(Event* event, int index, void* data); \
+    static bool etype ## _set(Event* event, int index, void* data)  \
+    {                                                               \
+        assert(event != NULL);                                      \
+        assert(event->type == etype_id);                            \
+        assert(data != NULL);                                       \
+        etype* event_sub = (etype*)event;                           \
+        if (index == 0)                                             \
+        {                                                           \
+            Reltime* rt = data;                                     \
+            Event_check_reltime_range(rt, event->field_types[0]);   \
+            Reltime_copy(&event_sub->fname, rt);                    \
+            return true;                                            \
+        }                                                           \
+        return false;                                               \
+    }
+
+
+#define create_get(etype, etype_id, fname)               \
+    static void* etype ## _get(Event* event, int index); \
+    static void* etype ## _get(Event* event, int index)  \
+    {                                                    \
+        assert(event != NULL);                           \
+        assert(event->type == etype_id);                 \
+        etype* event_sub = (etype*)event;                \
+        if (index == 0)                                  \
+        {                                                \
+            return &event_sub->fname;                    \
+        }                                                \
+        return NULL;                                     \
+    }
+
+
+#define create_set_primitive_and_get(type, type_id, field_type, field_name) \
+    create_set_primitive(type, type_id, field_type, field_name)             \
+    create_get(type, type_id, field_name)
+
+
+#define create_set_reltime_and_get(type, type_id, field_name) \
+    create_set_reltime(type, type_id, field_name)             \
+    create_get(type, type_id, field_name)
+
+
 #endif // K_EVENT_COMMON_H
 
 
