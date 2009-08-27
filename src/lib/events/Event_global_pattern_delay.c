@@ -52,24 +52,10 @@ create_set_reltime_and_get(Event_global_pattern_delay,
 static void Event_global_pattern_delay_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_pattern_delay(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_pattern_delay* event = xalloc(Event_global_pattern_delay);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_PATTERN_DELAY,
-               pattern_delay_desc,
-               Event_global_pattern_delay_set,
-               Event_global_pattern_delay_get);
-    event->parent.process = Event_global_pattern_delay_process;
-    Reltime_init(&event->length);
-    return (Event*)event;
-}
+create_constructor(Event_global_pattern_delay,
+                   EVENT_GLOBAL_PATTERN_DELAY,
+                   pattern_delay_desc,
+                   Reltime_init(&event->length))
 
 
 static void Event_global_pattern_delay_process(Event_global* event, Playdata* play)

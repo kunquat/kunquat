@@ -55,24 +55,10 @@ create_set_reltime_and_get(Event_voice_slide_filter_length,
 static void Event_voice_slide_filter_length_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_slide_filter_length(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_slide_filter_length* event = xalloc(Event_voice_slide_filter_length);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SLIDE_FILTER_LENGTH,
-               slide_filter_length_desc,
-               Event_voice_slide_filter_length_set,
-               Event_voice_slide_filter_length_get);
-    event->parent.process = Event_voice_slide_filter_length_process;
-    Reltime_set(&event->length, 0, 0);
-    return (Event*)event;
-}
+create_constructor(Event_voice_slide_filter_length,
+                   EVENT_VOICE_SLIDE_FILTER_LENGTH,
+                   slide_filter_length_desc,
+                   Reltime_set(&event->length, 0, 0))
 
 
 static void Event_voice_slide_filter_length_process(Event_voice* event, Voice* voice)

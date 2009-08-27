@@ -50,23 +50,10 @@ create_set_primitive_and_get(Event_global_set_tempo,
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_set_tempo(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_set_tempo* event = xalloc(Event_global_set_tempo);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SET_TEMPO,
-               set_tempo_desc,
-               Event_global_set_tempo_set,
-               Event_global_set_tempo_get);
-    event->parent.process = Event_global_set_tempo_process;
-    return (Event*)event;
-}
+create_constructor(Event_global_set_tempo,
+                   EVENT_GLOBAL_SET_TEMPO,
+                   set_tempo_desc,
+                   event->tempo = 120)
 
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play)

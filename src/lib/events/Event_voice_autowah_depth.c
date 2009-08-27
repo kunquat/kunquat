@@ -54,24 +54,10 @@ create_set_primitive_and_get(Event_voice_autowah_depth,
 static void Event_voice_autowah_depth_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_autowah_depth(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_autowah_depth* event = xalloc(Event_voice_autowah_depth);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_AUTOWAH_DEPTH,
-               autowah_depth_desc,
-               Event_voice_autowah_depth_set,
-               Event_voice_autowah_depth_get);
-    event->parent.process = Event_voice_autowah_depth_process;
-    event->depth = 0;
-    return (Event*)event;
-}
+create_constructor(Event_voice_autowah_depth,
+                   EVENT_VOICE_AUTOWAH_DEPTH,
+                   autowah_depth_desc,
+                   event->depth = 0)
 
 
 static void Event_voice_autowah_depth_process(Event_voice* event, Voice* voice)

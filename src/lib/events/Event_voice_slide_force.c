@@ -48,30 +48,16 @@ static Event_field_desc slide_force_desc[] =
 
 create_set_primitive_and_get(Event_voice_slide_force,
                              EVENT_VOICE_SLIDE_FORCE,
-                             double, target_force)
+                             double, target_force_dB)
 
 
 static void Event_voice_slide_force_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_slide_force(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_slide_force* event = xalloc(Event_voice_slide_force);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SLIDE_FORCE,
-               slide_force_desc,
-               Event_voice_slide_force_set,
-               Event_voice_slide_force_get);
-    event->parent.process = Event_voice_slide_force_process;
-    event->target_force = 1;
-    return (Event*)event;
-}
+create_constructor(Event_voice_slide_force,
+                   EVENT_VOICE_SLIDE_FORCE,
+                   slide_force_desc,
+                   event->target_force_dB = 0)
 
 
 static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)
@@ -82,13 +68,13 @@ static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)
     assert(voice->state.generic.tempo > 0);
     assert(voice->state.generic.freq > 0);
     Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
-    voice->state.generic.force_slide_target = exp2(slide_force->target_force / 6);
+    voice->state.generic.force_slide_target = exp2(slide_force->target_force_dB / 6);
     voice->state.generic.force_slide_frames =
             Reltime_toframes(&voice->state.generic.force_slide_length,
                     voice->state.generic.tempo,
                     voice->state.generic.freq);
     double force_dB = log2(voice->state.generic.force) * 6;
-    double dB_step = (slide_force->target_force - force_dB) /
+    double dB_step = (slide_force->target_force_dB - force_dB) /
             voice->state.generic.force_slide_frames;
     voice->state.generic.force_slide_update = exp2(dB_step / 6);
     if (dB_step > 0)

@@ -31,7 +31,7 @@
 typedef struct Event_voice_set_force
 {
     Event_voice parent;
-    double force;
+    double force_dB;
 } Event_voice_set_force;
 
 

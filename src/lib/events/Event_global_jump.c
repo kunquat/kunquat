@@ -47,50 +47,14 @@ static void* Event_global_jump_get(Event* event, int index);
 static void Event_global_jump_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_jump(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_jump* event = xalloc(Event_global_jump);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_JUMP,
-               jump_desc,
-               Event_global_jump_set,
-               Event_global_jump_get);
-    event->parent.process = Event_global_jump_process;
-    event->play_id = 0;
-    event->counter = 0;
-    event->subsong = -1;
-    event->section = -1;
-    Reltime_set(&event->position, 0, 0);
-    return (Event*)event;
-}
-
-
-static bool Event_global_jump_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    assert(data != NULL);
-    (void)event;
-    (void)index;
-    (void)data;
-    return false;
-}
-
-
-static void* Event_global_jump_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    (void)event;
-    (void)index;
-    return NULL;
-}
+create_constructor(Event_global_jump,
+                   EVENT_GLOBAL_JUMP,
+                   jump_desc,
+                   event->play_id = 0,
+                   event->counter = 0,
+                   event->subsong = -1,
+                   event->section = -1,
+                   Reltime_set(&event->position, 0, 0))
 
 
 static void Event_global_jump_process(Event_global* event, Playdata* play)
@@ -120,6 +84,28 @@ static void Event_global_jump_process(Event_global* event, Playdata* play)
         Reltime_copy(&play->jump_position, &jump->position);
     }
     return;
+}
+
+
+static bool Event_global_jump_set(Event* event, int index, void* data)
+{
+    assert(event != NULL);
+    assert(event->type == EVENT_GLOBAL_JUMP);
+    assert(data != NULL);
+    (void)event;
+    (void)index;
+    (void)data;
+    return false;
+}
+
+
+static void* Event_global_jump_get(Event* event, int index)
+{
+    assert(event != NULL);
+    assert(event->type == EVENT_GLOBAL_JUMP);
+    (void)event;
+    (void)index;
+    return NULL;
 }
 
 

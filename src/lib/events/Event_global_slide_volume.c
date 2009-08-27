@@ -53,24 +53,10 @@ create_set_primitive_and_get(Event_global_slide_volume,
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_slide_volume(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_slide_volume* event = xalloc(Event_global_slide_volume);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SLIDE_VOLUME,
-               slide_volume_desc,
-               Event_global_slide_volume_set,
-               Event_global_slide_volume_get);
-    event->parent.process = Event_global_slide_volume_process;
-    event->target_volume_dB = 0;
-    return (Event*)event;
-}
+create_constructor(Event_global_slide_volume,
+                   EVENT_GLOBAL_SLIDE_VOLUME,
+                   slide_volume_desc,
+                   event->target_volume_dB = 0)
 
 
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play)

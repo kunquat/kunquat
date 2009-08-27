@@ -54,24 +54,10 @@ create_set_primitive_and_get(Event_voice_slide_filter,
 static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_slide_filter(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_slide_filter* event = xalloc(Event_voice_slide_filter);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SLIDE_FILTER,
-               slide_filter_desc,
-               Event_voice_slide_filter_set,
-               Event_voice_slide_filter_get);
-    event->parent.process = Event_voice_slide_filter_process;
-    event->target_cutoff = 90;
-    return (Event*)event;
-}
+create_constructor(Event_voice_slide_filter,
+                   EVENT_VOICE_SLIDE_FILTER,
+                   slide_filter_desc,
+                   event->target_cutoff = 90)
 
 
 static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice)

@@ -51,23 +51,10 @@ create_set_primitive_and_get(Event_global_set_scale,
 static void Event_global_set_scale_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_set_scale(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_set_scale* event = xalloc(Event_global_set_scale);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SET_SCALE,
-               set_scale_desc,
-               Event_global_set_scale_set,
-               Event_global_set_scale_get);
-    event->parent.process = Event_global_set_scale_process;
-    return (Event*)event;
-}
+create_constructor(Event_global_set_scale,
+                   EVENT_GLOBAL_SET_SCALE,
+                   set_scale_desc,
+                   event->scale_index = 0)
 
 
 static void Event_global_set_scale_process(Event_global* event, Playdata* play)

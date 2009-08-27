@@ -47,30 +47,16 @@ static Event_field_desc set_force_desc[] =
 
 create_set_primitive_and_get(Event_voice_set_force,
                              EVENT_VOICE_SET_FORCE,
-                             double, force)
+                             double, force_dB)
 
 
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_set_force(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_set_force* event = xalloc(Event_voice_set_force);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SET_FORCE,
-               set_force_desc,
-               Event_voice_set_force_set,
-               Event_voice_set_force_get);
-    event->parent.process = Event_voice_set_force_process;
-    event->force = 1;
-    return (Event*)event;
-}
+create_constructor(Event_voice_set_force,
+                   EVENT_VOICE_SET_FORCE,
+                   set_force_desc,
+                   event->force_dB = 0)
 
 
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice)
@@ -79,7 +65,7 @@ static void Event_voice_set_force_process(Event_voice* event, Voice* voice)
     assert(event->parent.type == EVENT_VOICE_SET_FORCE);
     assert(voice != NULL);
     Event_voice_set_force* set_force = (Event_voice_set_force*)event;
-    voice->state.generic.force = exp2(set_force->force / 6);
+    voice->state.generic.force = exp2(set_force->force_dB / 6);
     voice->state.generic.force_slide = 0;
     return;
 }

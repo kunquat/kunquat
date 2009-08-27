@@ -51,23 +51,10 @@ create_set_primitive_and_get(Event_global_set_volume,
 static void Event_global_set_volume_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_set_volume(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_set_volume* event = xalloc(Event_global_set_volume);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SET_VOLUME,
-               set_volume_desc,
-               Event_global_set_volume_set,
-               Event_global_set_volume_get);
-    event->parent.process = Event_global_set_volume_process;
-    return (Event*)event;
-}
+create_constructor(Event_global_set_volume,
+                   EVENT_GLOBAL_SET_VOLUME,
+                   set_volume_desc,
+                   event->volume_dB = 0)
 
 
 static void Event_global_set_volume_process(Event_global* event, Playdata* play)

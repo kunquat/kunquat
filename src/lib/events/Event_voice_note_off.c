@@ -45,23 +45,10 @@ static void* Event_voice_note_off_get(Event* event, int index);
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_note_off(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_note_off* event = xalloc(Event_voice_note_off);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_NOTE_OFF,
-               note_off_desc,
-               Event_voice_note_off_set,
-               Event_voice_note_off_get);
-    event->parent.process = Event_voice_note_off_process;
-    return (Event*)event;
-}
+create_constructor(Event_voice_note_off,
+                   EVENT_VOICE_NOTE_OFF,
+                   note_off_desc,
+                   (void)0)
 
 
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice)

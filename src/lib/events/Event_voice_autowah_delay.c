@@ -56,24 +56,10 @@ create_set_reltime_and_get(Event_voice_autowah_delay,
 static void Event_voice_autowah_delay_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_autowah_delay(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_autowah_delay* event = xalloc(Event_voice_autowah_delay);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_AUTOWAH_DELAY,
-               autowah_delay_desc,
-               Event_voice_autowah_delay_set,
-               Event_voice_autowah_delay_get);
-    event->parent.process = Event_voice_autowah_delay_process;
-    Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4);
-    return (Event*)event;
-}
+create_constructor(Event_voice_autowah_delay,
+                   EVENT_VOICE_AUTOWAH_DELAY,
+                   autowah_delay_desc,
+                   Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4))
 
 
 static void Event_voice_autowah_delay_process(Event_voice* event, Voice* voice)

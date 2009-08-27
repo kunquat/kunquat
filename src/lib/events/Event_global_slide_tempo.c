@@ -52,24 +52,10 @@ create_set_primitive_and_get(Event_global_slide_tempo,
 static void Event_global_slide_tempo_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_slide_tempo(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_slide_tempo* event = xalloc(Event_global_slide_tempo);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SLIDE_TEMPO,
-               slide_tempo_desc,
-               Event_global_slide_tempo_set,
-               Event_global_slide_tempo_get);
-    event->parent.process = Event_global_slide_tempo_process;
-    event->target_tempo = 120;
-    return (Event*)event;
-}
+create_constructor(Event_global_slide_tempo,
+                   EVENT_GLOBAL_SLIDE_TEMPO,
+                   slide_tempo_desc,
+                   event->target_tempo = 120)
 
 
 static void Event_global_slide_tempo_process(Event_global* event, Playdata* play)

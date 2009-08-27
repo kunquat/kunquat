@@ -52,24 +52,10 @@ create_set_primitive_and_get(Event_channel_set_instrument,
 static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch);
 
 
-Event* new_Event_channel_set_instrument(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_channel_set_instrument* event = xalloc(Event_channel_set_instrument);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_CHANNEL_SET_INSTRUMENT,
-               set_instrument_desc,
-               Event_channel_set_instrument_set,
-               Event_channel_set_instrument_get);
-    event->parent.process = Event_channel_set_instrument_process;
-    event->instrument = 0;
-    return (Event*)event;
-}
+create_constructor(Event_channel_set_instrument,
+                   EVENT_CHANNEL_SET_INSTRUMENT,
+                   set_instrument_desc,
+                   event->instrument = 0)
 
 
 static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch)

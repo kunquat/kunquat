@@ -53,24 +53,10 @@ create_set_primitive_and_get(Event_voice_set_panning,
 static void Event_voice_set_panning_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_set_panning(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_set_panning* event = xalloc(Event_voice_set_panning);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SET_PANNING,
-               set_panning_desc,
-               Event_voice_set_panning_set,
-               Event_voice_set_panning_get);
-    event->parent.process = Event_voice_set_panning_process;
-    event->panning = 0;
-    return (Event*)event;
-}
+create_constructor(Event_voice_set_panning,
+                   EVENT_VOICE_SET_PANNING,
+                   set_panning_desc,
+                   event->panning = 0)
 
 
 static void Event_voice_set_panning_process(Event_voice* event, Voice* voice)

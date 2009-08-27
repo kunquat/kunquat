@@ -61,26 +61,12 @@ static void* Event_voice_note_on_get(Event* event, int index);
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_note_on(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_note_on* event = xalloc(Event_voice_note_on);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_NOTE_ON,
-               note_on_desc,
-               Event_voice_note_on_set,
-               Event_voice_note_on_get);
-    event->parent.process = Event_voice_note_on_process;
-    event->note = 0;
-    event->mod = -1;
-    event->octave = KQT_SCALE_MIDDLE_OCTAVE;
-    return (Event*)event;
-}
+create_constructor(Event_voice_note_on,
+                   EVENT_VOICE_NOTE_ON,
+                   note_on_desc,
+                   event->note = 0,
+                   event->mod = -1,
+                   event->octave = KQT_SCALE_MIDDLE_OCTAVE)
 
 
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice)

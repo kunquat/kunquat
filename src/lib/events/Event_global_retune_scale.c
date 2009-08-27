@@ -58,25 +58,33 @@ static void* Event_global_retune_scale_get(Event* event, int index);
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_retune_scale(Reltime* pos)
+create_constructor(Event_global_retune_scale,
+                   EVENT_GLOBAL_RETUNE_SCALE,
+                   retune_scale_desc,
+                   event->scale_index = 0,
+                   event->new_ref = -1,
+                   event->fixed_point = 0)
+
+
+static void Event_global_retune_scale_process(Event_global* event, Playdata* play)
 {
-    assert(pos != NULL);
-    Event_global_retune_scale* event = xalloc(Event_global_retune_scale);
-    if (event == NULL)
+    assert(event != NULL);
+    assert(event->parent.type == EVENT_GLOBAL_RETUNE_SCALE);
+    assert(play != NULL);
+    Event_global_retune_scale* retune_scale = (Event_global_retune_scale*)event;
+    if (play->scales == NULL)
     {
-        return NULL;
+        return;
     }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_RETUNE_SCALE,
-               retune_scale_desc,
-               Event_global_retune_scale_set,
-               Event_global_retune_scale_get);
-    event->parent.process = Event_global_retune_scale_process;
-    event->scale_index = 0;
-    event->new_ref = -1;
-    event->fixed_point = 0;
-    return (Event*)event;
+    Scale* scale = play->scales[retune_scale->scale_index];
+    if (scale == NULL ||
+            Scale_get_note_count(scale) <= retune_scale->new_ref ||
+            Scale_get_note_count(scale) <= retune_scale->fixed_point)
+    {
+        return;
+    }
+    Scale_retune(scale, retune_scale->new_ref, retune_scale->fixed_point);
+    return;
 }
 
 
@@ -129,28 +137,6 @@ static void* Event_global_retune_scale_get(Event* event, int index)
         return &retune_scale->fixed_point;
     }
     return NULL;
-}
-
-
-static void Event_global_retune_scale_process(Event_global* event, Playdata* play)
-{
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_RETUNE_SCALE);
-    assert(play != NULL);
-    Event_global_retune_scale* retune_scale = (Event_global_retune_scale*)event;
-    if (play->scales == NULL)
-    {
-        return;
-    }
-    Scale* scale = play->scales[retune_scale->scale_index];
-    if (scale == NULL ||
-            Scale_get_note_count(scale) <= retune_scale->new_ref ||
-            Scale_get_note_count(scale) <= retune_scale->fixed_point)
-    {
-        return;
-    }
-    Scale_retune(scale, retune_scale->new_ref, retune_scale->fixed_point);
-    return;
 }
 
 

@@ -53,24 +53,10 @@ create_set_primitive_and_get(Event_voice_set_resonance,
 static void Event_voice_set_resonance_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_set_resonance(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_set_resonance* event = xalloc(Event_voice_set_resonance);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SET_RESONANCE,
-               set_resonance_desc,
-               Event_voice_set_resonance_set,
-               Event_voice_set_resonance_get);
-    event->parent.process = Event_voice_set_resonance_process;
-    event->resonance = 1;
-    return (Event*)event;
-}
+create_constructor(Event_voice_set_resonance,
+                   EVENT_VOICE_SET_RESONANCE,
+                   set_resonance_desc,
+                   event->resonance = 1)
 
 
 static void Event_voice_set_resonance_process(Event_voice* event, Voice* voice)

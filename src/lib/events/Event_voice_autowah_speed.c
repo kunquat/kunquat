@@ -54,24 +54,10 @@ create_set_primitive_and_get(Event_voice_autowah_speed,
 static void Event_voice_autowah_speed_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_autowah_speed(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_autowah_speed* event = xalloc(Event_voice_autowah_speed);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_AUTOWAH_SPEED,
-               autowah_speed_desc,
-               Event_voice_autowah_speed_set,
-               Event_voice_autowah_speed_get);
-    event->parent.process = Event_voice_autowah_speed_process;
-    event->speed = 0;
-    return (Event*)event;
-}
+create_constructor(Event_voice_autowah_speed,
+                   EVENT_VOICE_AUTOWAH_SPEED,
+                   autowah_speed_desc,
+                   event->speed = 0)
 
 
 static void Event_voice_autowah_speed_process(Event_voice* event, Voice* voice)

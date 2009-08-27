@@ -129,6 +129,27 @@ void del_Event_default(Event* event);
     create_get(type, type_id, field_name)
 
 
+#define create_constructor(etype, etype_id, field_desc, ...) \
+    Event* new_ ## etype(Reltime* pos)                       \
+    {                                                        \
+        assert(pos != NULL);                                 \
+        etype* event = xalloc(etype);                        \
+        if (event == NULL)                                   \
+        {                                                    \
+            return NULL;                                     \
+        }                                                    \
+        Event_init(&event->parent.parent,                    \
+                   pos,                                      \
+                   etype_id,                                 \
+                   field_desc,                               \
+                   etype ## _set,                            \
+                   etype ## _get);                           \
+        event->parent.process = etype ## _process;           \
+        __VA_ARGS__;                                         \
+        return (Event*)event;                                \
+    }
+
+
 #endif // K_EVENT_COMMON_H
 
 

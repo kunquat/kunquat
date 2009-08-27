@@ -51,25 +51,11 @@ create_set_primitive_and_get(Event_ins_set_pedal,
 static void Event_ins_set_pedal_process(Event_ins* event);
 
 
-Event* new_Event_ins_set_pedal(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_ins_set_pedal* event = xalloc(Event_ins_set_pedal);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_INS_SET_PEDAL,
-               set_pedal_desc,
-               Event_ins_set_pedal_set,
-               Event_ins_set_pedal_get);
-    event->parent.process = Event_ins_set_pedal_process;
-    event->parent.ins_params = NULL;
-    event->pedal = 0;
-    return (Event*)event;
-}
+create_constructor(Event_ins_set_pedal,
+                   EVENT_INS_SET_PEDAL,
+                   set_pedal_desc,
+                   event->parent.ins_params = NULL,
+                   event->pedal = 0)
 
 
 static void Event_ins_set_pedal_process(Event_ins* event)

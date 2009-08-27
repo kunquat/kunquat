@@ -53,24 +53,10 @@ create_set_primitive_and_get(Event_voice_set_filter,
 static void Event_voice_set_filter_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_set_filter(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_set_filter* event = xalloc(Event_voice_set_filter);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SET_FILTER,
-               set_filter_desc,
-               Event_voice_set_filter_set,
-               Event_voice_set_filter_get);
-    event->parent.process = Event_voice_set_filter_process;
-    event->cutoff = INFINITY;
-    return (Event*)event;
-}
+create_constructor(Event_voice_set_filter,
+                   EVENT_VOICE_SET_FILTER,
+                   set_filter_desc,
+                   event->cutoff = INFINITY)
 
 
 static void Event_voice_set_filter_process(Event_voice* event, Voice* voice)

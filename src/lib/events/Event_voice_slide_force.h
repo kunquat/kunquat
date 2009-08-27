@@ -31,7 +31,7 @@
 typedef struct Event_voice_slide_force
 {
     Event_voice parent;
-    double target_force;
+    double target_force_dB;
 } Event_voice_slide_force;
 
 

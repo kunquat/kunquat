@@ -54,24 +54,10 @@ create_set_reltime_and_get(Event_global_slide_volume_length,
 static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_slide_volume_length(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_slide_volume_length* event = xalloc(Event_global_slide_volume_length);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-               slide_volume_length_desc,
-               Event_global_slide_volume_length_set,
-               Event_global_slide_volume_length_get);
-    event->parent.process = Event_global_slide_volume_length_process;
-    Reltime_set(&event->length, 0, 0);
-    return (Event*)event;
-}
+create_constructor(Event_global_slide_volume_length,
+                   EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+                   slide_volume_length_desc,
+                   Reltime_set(&event->length, 0, 0))
 
 
 static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play)

@@ -54,24 +54,10 @@ create_set_reltime_and_get(Event_voice_slide_panning_length,
 static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_slide_panning_length(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_slide_panning_length* event = xalloc(Event_voice_slide_panning_length);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_SLIDE_PANNING_LENGTH,
-               slide_panning_length_desc,
-               Event_voice_slide_panning_length_set,
-               Event_voice_slide_panning_length_get);
-    event->parent.process = Event_voice_slide_panning_length_process;
-    Reltime_set(&event->length, 0, 0);
-    return (Event*)event;
-}
+create_constructor(Event_voice_slide_panning_length,
+                   EVENT_VOICE_SLIDE_PANNING_LENGTH,
+                   slide_panning_length_desc,
+                   Reltime_set(&event->length, 0, 0))
 
 
 static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice)

@@ -66,28 +66,11 @@ static void* Event_voice_arpeggio_get(Event* event, int index);
 static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice);
 
 
-Event* new_Event_voice_arpeggio(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_voice_arpeggio* event = xalloc(Event_voice_arpeggio);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_VOICE_ARPEGGIO,
-               arpeggio_desc,
-               Event_voice_arpeggio_set,
-               Event_voice_arpeggio_get);
-    event->parent.process = Event_voice_arpeggio_process;
-    event->speed = 24;
-    for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
-    {
-        event->notes[i] = 0;
-    }
-    return (Event*)event;
-}
+create_constructor(Event_voice_arpeggio,
+                   EVENT_VOICE_ARPEGGIO,
+                   arpeggio_desc,
+                   for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
+                   event->speed = 24)
 
 
 static bool Event_voice_arpeggio_set(Event* event, int index, void* data)

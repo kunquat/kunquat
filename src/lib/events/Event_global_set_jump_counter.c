@@ -52,24 +52,10 @@ create_set_primitive_and_get(Event_global_set_jump_counter,
 static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play);
 
 
-Event* new_Event_global_set_jump_counter(Reltime* pos)
-{
-    assert(pos != NULL);
-    Event_global_set_jump_counter* event = xalloc(Event_global_set_jump_counter);
-    if (event == NULL)
-    {
-        return NULL;
-    }
-    Event_init(&event->parent.parent,
-               pos,
-               EVENT_GLOBAL_SET_JUMP_COUNTER,
-               set_jump_counter_desc,
-               Event_global_set_jump_counter_set,
-               Event_global_set_jump_counter_get);
-    event->parent.process = Event_global_set_jump_counter_process;
-    event->counter = 0;
-    return (Event*)event;
-}
+create_constructor(Event_global_set_jump_counter,
+                   EVENT_GLOBAL_SET_JUMP_COUNTER,
+                   set_jump_counter_desc,
+                   event->counter = 0)
 
 
 static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play)
