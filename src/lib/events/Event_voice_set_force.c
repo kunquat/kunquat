@@ -45,9 +45,10 @@ static Event_field_desc set_force_desc[] =
 };
 
 
-static bool Event_voice_set_force_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_set_force,
+                             EVENT_VOICE_SET_FORCE,
+                             double, force)
 
-static void* Event_voice_set_force_get(Event* event, int index);
 
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice);
 
@@ -69,36 +70,6 @@ Event* new_Event_voice_set_force(Reltime* pos)
     event->parent.process = Event_voice_set_force_process;
     event->force = 1;
     return (Event*)event;
-}
-
-
-static bool Event_voice_set_force_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_FORCE);
-    assert(data != NULL);
-    Event_voice_set_force* set_force = (Event_voice_set_force*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double force = *(double*)data;
-    Event_check_double_range(force, event->field_types[0]);
-    set_force->force = force;
-    return true;
-}
-
-
-static void* Event_voice_set_force_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_FORCE);
-    Event_voice_set_force* set_force = (Event_voice_set_force*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &set_force->force;
 }
 
 

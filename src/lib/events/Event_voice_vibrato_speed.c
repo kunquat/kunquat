@@ -46,9 +46,10 @@ static Event_field_desc vibrato_speed_desc[] =
 };
 
 
-static bool Event_voice_vibrato_speed_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_vibrato_speed,
+                             EVENT_VOICE_VIBRATO_SPEED,
+                             double, speed)
 
-static void* Event_voice_vibrato_speed_get(Event* event, int index);
 
 static void Event_voice_vibrato_speed_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_vibrato_speed(Reltime* pos)
     event->parent.process = Event_voice_vibrato_speed_process;
     event->speed = 0;
     return (Event*)event;
-}
-
-
-static bool Event_voice_vibrato_speed_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_VIBRATO_SPEED);
-    assert(data != NULL);
-    Event_voice_vibrato_speed* vibrato_speed = (Event_voice_vibrato_speed*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double speed = *(double*)data;
-    Event_check_double_range(speed, event->field_types[0]);
-    vibrato_speed->speed = speed;
-    return true;
-}
-
-
-static void* Event_voice_vibrato_speed_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_VIBRATO_SPEED);
-    Event_voice_vibrato_speed* vibrato_speed = (Event_voice_vibrato_speed*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &vibrato_speed->speed;
 }
 
 

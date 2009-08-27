@@ -45,9 +45,10 @@ static Event_field_desc slide_tempo_length_desc[] =
 };
 
 
-static bool Event_global_slide_tempo_length_set(Event* event, int index, void* data);
+create_set_reltime_and_get(Event_global_slide_tempo_length,
+                           EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
+                           length)
 
-static void* Event_global_slide_tempo_length_get(Event* event, int index);
 
 static void Event_global_slide_tempo_length_process(Event_global* event, Playdata* play);
 
@@ -69,36 +70,6 @@ Event* new_Event_global_slide_tempo_length(Reltime* pos)
     event->parent.process = Event_global_slide_tempo_length_process;
     Reltime_set(&event->length, 0, 0);
     return (Event*)event;
-}
-
-
-static bool Event_global_slide_tempo_length_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SLIDE_TEMPO_LENGTH);
-    assert(data != NULL);
-    Event_global_slide_tempo_length* slide_tempo_length = (Event_global_slide_tempo_length*)event;
-    if (index == 0)
-    {
-        Reltime* length = data;
-        Event_check_reltime_range(length, event->field_types[0]);
-        Reltime_copy(&slide_tempo_length->length, length);
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_global_slide_tempo_length_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SLIDE_TEMPO_LENGTH);
-    Event_global_slide_tempo_length* slide_tempo_length = (Event_global_slide_tempo_length*)event;
-    if (index == 0)
-    {
-        return &slide_tempo_length->length;
-    }
-    return NULL;
 }
 
 

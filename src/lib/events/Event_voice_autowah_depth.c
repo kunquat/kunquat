@@ -46,9 +46,10 @@ static Event_field_desc autowah_depth_desc[] =
 };
 
 
-static bool Event_voice_autowah_depth_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_autowah_depth,
+                             EVENT_VOICE_AUTOWAH_DEPTH,
+                             double, depth)
 
-static void* Event_voice_autowah_depth_get(Event* event, int index);
 
 static void Event_voice_autowah_depth_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_autowah_depth(Reltime* pos)
     event->parent.process = Event_voice_autowah_depth_process;
     event->depth = 0;
     return (Event*)event;
-}
-
-
-static bool Event_voice_autowah_depth_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_AUTOWAH_DEPTH);
-    assert(data != NULL);
-    Event_voice_autowah_depth* autowah_depth = (Event_voice_autowah_depth*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double depth = *(double*)data;
-    Event_check_double_range(depth, event->field_types[0]);
-    autowah_depth->depth = depth;
-    return true;
-}
-
-
-static void* Event_voice_autowah_depth_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_AUTOWAH_DEPTH);
-    Event_voice_autowah_depth* autowah_depth = (Event_voice_autowah_depth*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &autowah_depth->depth;
 }
 
 

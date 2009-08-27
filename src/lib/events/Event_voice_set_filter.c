@@ -45,9 +45,10 @@ static Event_field_desc set_filter_desc[] =
 };
 
 
-static bool Event_voice_set_filter_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_set_filter,
+                             EVENT_VOICE_SET_FILTER,
+                             double, cutoff)
 
-static void* Event_voice_set_filter_get(Event* event, int index);
 
 static void Event_voice_set_filter_process(Event_voice* event, Voice* voice);
 
@@ -69,36 +70,6 @@ Event* new_Event_voice_set_filter(Reltime* pos)
     event->parent.process = Event_voice_set_filter_process;
     event->cutoff = INFINITY;
     return (Event*)event;
-}
-
-
-static bool Event_voice_set_filter_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_FILTER);
-    assert(data != NULL);
-    Event_voice_set_filter* set_filter = (Event_voice_set_filter*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double cutoff = *(double*)data;
-    Event_check_double_range(cutoff, event->field_types[0]);
-    set_filter->cutoff = cutoff;
-    return true;
-}
-
-
-static void* Event_voice_set_filter_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_FILTER);
-    Event_voice_set_filter* set_filter = (Event_voice_set_filter*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &set_filter->cutoff;
 }
 
 

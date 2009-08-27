@@ -44,9 +44,10 @@ static Event_field_desc pattern_delay_desc[] =
 };
 
 
-static bool Event_global_pattern_delay_set(Event* event, int index, void* data);
+create_set_reltime_and_get(Event_global_pattern_delay,
+                           EVENT_GLOBAL_PATTERN_DELAY,
+                           length)
 
-static void* Event_global_pattern_delay_get(Event* event, int index);
 
 static void Event_global_pattern_delay_process(Event_global* event, Playdata* play);
 
@@ -68,36 +69,6 @@ Event* new_Event_global_pattern_delay(Reltime* pos)
     event->parent.process = Event_global_pattern_delay_process;
     Reltime_init(&event->length);
     return (Event*)event;
-}
-
-
-static bool Event_global_pattern_delay_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_PATTERN_DELAY);
-    assert(data != NULL);
-    Event_global_pattern_delay* pattern_delay = (Event_global_pattern_delay*)event;
-    if (index == 0)
-    {
-        Reltime* length = data;
-        Event_check_reltime_range(length, event->field_types[0]);
-        Reltime_copy(&pattern_delay->length, length);
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_global_pattern_delay_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_PATTERN_DELAY);
-    Event_global_pattern_delay* pattern_delay = (Event_global_pattern_delay*)event;
-    if (index == 0)
-    {
-        return &pattern_delay->length;
-    }
-    return NULL;
 }
 
 

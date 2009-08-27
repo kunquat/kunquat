@@ -46,9 +46,10 @@ static Event_field_desc slide_force_length_desc[] =
 };
 
 
-static bool Event_voice_slide_force_length_set(Event* event, int index, void* data);
+create_set_reltime_and_get(Event_voice_slide_force_length,
+                           EVENT_VOICE_SLIDE_FORCE_LENGTH,
+                           length)
 
-static void* Event_voice_slide_force_length_get(Event* event, int index);
 
 static void Event_voice_slide_force_length_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_slide_force_length(Reltime* pos)
     event->parent.process = Event_voice_slide_force_length_process;
     Reltime_set(&event->length, 0, 0);
     return (Event*)event;
-}
-
-
-static bool Event_voice_slide_force_length_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FORCE_LENGTH);
-    assert(data != NULL);
-    Event_voice_slide_force_length* slide_force_length = (Event_voice_slide_force_length*)event;
-    if (index == 0)
-    {
-        Reltime* length = (Reltime*)data;
-        Event_check_reltime_range(length, event->field_types[0]);
-        Reltime_copy(&slide_force_length->length, length);
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_voice_slide_force_length_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FORCE_LENGTH);
-    Event_voice_slide_force_length* slide_force_length = (Event_voice_slide_force_length*)event;
-    if (index == 0)
-    {
-        return &slide_force_length->length;
-    }
-    return NULL;
 }
 
 

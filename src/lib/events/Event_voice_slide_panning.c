@@ -46,9 +46,10 @@ static Event_field_desc slide_panning_desc[] =
 };
 
 
-static bool Event_voice_slide_panning_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_slide_panning,
+                             EVENT_VOICE_SLIDE_PANNING,
+                             double, target_panning)
 
-static void* Event_voice_slide_panning_get(Event* event, int index);
 
 static void Event_voice_slide_panning_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_slide_panning(Reltime* pos)
     event->parent.process = Event_voice_slide_panning_process;
     event->target_panning = 0;
     return (Event*)event;
-}
-
-
-static bool Event_voice_slide_panning_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_PANNING);
-    assert(data != NULL);
-    Event_voice_slide_panning* slide_panning = (Event_voice_slide_panning*)event;
-    if (index == 0)
-    {
-        double panning = *(double*)data;
-        Event_check_double_range(panning, event->field_types[0]);
-        slide_panning->target_panning = panning;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_voice_slide_panning_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_PANNING);
-    Event_voice_slide_panning* slide_panning = (Event_voice_slide_panning*)event;
-    if (index == 0)
-    {
-        return &slide_panning->target_panning;
-    }
-    return NULL;
 }
 
 

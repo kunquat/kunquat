@@ -42,9 +42,10 @@ static Event_field_desc set_tempo_desc[] =
 };
 
 
-static bool Event_global_set_tempo_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_global_set_tempo,
+                             EVENT_GLOBAL_SET_TEMPO,
+                             double, tempo)
 
-static void* Event_global_set_tempo_get(Event* event, int index);
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play);
 
@@ -77,36 +78,6 @@ static void Event_global_set_tempo_process(Event_global* event, Playdata* play)
     play->tempo = set_tempo->tempo;
     play->tempo_slide = 0;
     return;
-}
-
-
-static bool Event_global_set_tempo_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SET_TEMPO);
-    assert(data != NULL);
-    Event_global_set_tempo* set_tempo = (Event_global_set_tempo*)event;
-    if (index == 0)
-    {
-        double tempo = *(double*)data;
-        Event_check_double_range(tempo, event->field_types[0]);
-        set_tempo->tempo = tempo;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_global_set_tempo_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SET_TEMPO);
-    Event_global_set_tempo* set_tempo = (Event_global_set_tempo*)event;
-    if (index == 0)
-    {
-        return &set_tempo->tempo;
-    }
-    return NULL;
 }
 
 

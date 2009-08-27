@@ -46,9 +46,10 @@ static Event_field_desc slide_filter_desc[] =
 };
 
 
-static bool Event_voice_slide_filter_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_slide_filter,
+                             EVENT_VOICE_SLIDE_FILTER,
+                             double, target_cutoff)
 
-static void* Event_voice_slide_filter_get(Event* event, int index);
 
 static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_slide_filter(Reltime* pos)
     event->parent.process = Event_voice_slide_filter_process;
     event->target_cutoff = 90;
     return (Event*)event;
-}
-
-
-static bool Event_voice_slide_filter_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FILTER);
-    assert(data != NULL);
-    Event_voice_slide_filter* slide_filter = (Event_voice_slide_filter*)event;
-    if (index == 0)
-    {
-        double cutoff = *(double*)data;
-        Event_check_double_range(cutoff, event->field_types[0]);
-        slide_filter->target_cutoff = cutoff;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_voice_slide_filter_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FILTER);
-    Event_voice_slide_filter* slide_filter = (Event_voice_slide_filter*)event;
-    if (index == 0)
-    {
-        return &slide_filter->target_cutoff;
-    }
-    return NULL;
 }
 
 

@@ -48,9 +48,10 @@ static Event_field_desc vibrato_delay_desc[] =
 };
 
 
-static bool Event_voice_vibrato_delay_set(Event* event, int index, void* data);
+create_set_reltime_and_get(Event_voice_vibrato_delay,
+                           EVENT_VOICE_VIBRATO_DELAY,
+                           delay)
 
-static void* Event_voice_vibrato_delay_get(Event* event, int index);
 
 static void Event_voice_vibrato_delay_process(Event_voice* event, Voice* voice);
 
@@ -72,36 +73,6 @@ Event* new_Event_voice_vibrato_delay(Reltime* pos)
     event->parent.process = Event_voice_vibrato_delay_process;
     Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4);
     return (Event*)event;
-}
-
-
-static bool Event_voice_vibrato_delay_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_VIBRATO_DELAY);
-    assert(data != NULL);
-    Event_voice_vibrato_delay* vibrato_delay = (Event_voice_vibrato_delay*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    Reltime* delay = (Reltime*)data;
-    Event_check_reltime_range(delay, event->field_types[0]);
-    Reltime_copy(&vibrato_delay->delay, delay);
-    return true;
-}
-
-
-static void* Event_voice_vibrato_delay_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_VIBRATO_DELAY);
-    Event_voice_vibrato_delay* vibrato_delay = (Event_voice_vibrato_delay*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &vibrato_delay->delay;
 }
 
 

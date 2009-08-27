@@ -46,9 +46,10 @@ static Event_field_desc slide_force_desc[] =
 };
 
 
-static bool Event_voice_slide_force_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_slide_force,
+                             EVENT_VOICE_SLIDE_FORCE,
+                             double, target_force)
 
-static void* Event_voice_slide_force_get(Event* event, int index);
 
 static void Event_voice_slide_force_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_slide_force(Reltime* pos)
     event->parent.process = Event_voice_slide_force_process;
     event->target_force = 1;
     return (Event*)event;
-}
-
-
-static bool Event_voice_slide_force_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FORCE);
-    assert(data != NULL);
-    Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
-    if (index == 0)
-    {
-        double force = *(double*)data;
-        Event_check_double_range(force, event->field_types[0]);
-        slide_force->target_force = force;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_voice_slide_force_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_FORCE);
-    Event_voice_slide_force* slide_force = (Event_voice_slide_force*)event;
-    if (index == 0)
-    {
-        return &slide_force->target_force;
-    }
-    return NULL;
 }
 
 

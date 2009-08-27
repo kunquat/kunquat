@@ -43,9 +43,10 @@ static Event_field_desc set_pedal_desc[] =
 };
 
 
-static bool Event_ins_set_pedal_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_ins_set_pedal,
+                             EVENT_INS_SET_PEDAL,
+                             double, pedal)
 
-static void* Event_ins_set_pedal_get(Event* event, int index);
 
 static void Event_ins_set_pedal_process(Event_ins* event);
 
@@ -68,36 +69,6 @@ Event* new_Event_ins_set_pedal(Reltime* pos)
     event->parent.ins_params = NULL;
     event->pedal = 0;
     return (Event*)event;
-}
-
-
-static bool Event_ins_set_pedal_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_INS_SET_PEDAL);
-    assert(data != NULL);
-    Event_ins_set_pedal* set_pedal = (Event_ins_set_pedal*)event;
-    if (index == 0)
-    {
-        double pedal = *(double*)data;
-        Event_check_double_range(pedal, event->field_types[0]);
-        set_pedal->pedal = pedal;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_ins_set_pedal_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_INS_SET_PEDAL);
-    Event_ins_set_pedal* set_pedal = (Event_ins_set_pedal*)event;
-    if (index == 0)
-    {
-        return &set_pedal->pedal;
-    }
-    return NULL;
 }
 
 

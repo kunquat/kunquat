@@ -43,9 +43,10 @@ static Event_field_desc set_scale_desc[] =
 };
 
 
-static bool Event_global_set_scale_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_global_set_scale,
+                             EVENT_GLOBAL_SET_SCALE,
+                             int64_t, scale_index)
 
-static void* Event_global_set_scale_get(Event* event, int index);
 
 static void Event_global_set_scale_process(Event_global* event, Playdata* play);
 
@@ -66,36 +67,6 @@ Event* new_Event_global_set_scale(Reltime* pos)
                Event_global_set_scale_get);
     event->parent.process = Event_global_set_scale_process;
     return (Event*)event;
-}
-
-
-static bool Event_global_set_scale_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SET_SCALE);
-    assert(data != NULL);
-    Event_global_set_scale* set_scale = (Event_global_set_scale*)event;
-    if (index == 0)
-    {
-        int64_t index = *(int64_t*)data;
-        Event_check_integral_range(index, event->field_types[0]);
-        set_scale->scale_index = index;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_global_set_scale_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SET_SCALE);
-    Event_global_set_scale* set_scale = (Event_global_set_scale*)event;
-    if (index == 0)
-    {
-        return &set_scale->scale_index;
-    }
-    return NULL;
 }
 
 

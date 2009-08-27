@@ -46,9 +46,10 @@ static Event_field_desc tremolo_speed_desc[] =
 };
 
 
-static bool Event_voice_tremolo_speed_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_tremolo_speed,
+                             EVENT_VOICE_TREMOLO_SPEED,
+                             double, speed)
 
-static void* Event_voice_tremolo_speed_get(Event* event, int index);
 
 static void Event_voice_tremolo_speed_process(Event_voice* event, Voice* voice);
 
@@ -70,36 +71,6 @@ Event* new_Event_voice_tremolo_speed(Reltime* pos)
     event->parent.process = Event_voice_tremolo_speed_process;
     event->speed = 0;
     return (Event*)event;
-}
-
-
-static bool Event_voice_tremolo_speed_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_TREMOLO_SPEED);
-    assert(data != NULL);
-    Event_voice_tremolo_speed* tremolo_speed = (Event_voice_tremolo_speed*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double speed = *(double*)data;
-    Event_check_double_range(speed, event->field_types[0]);
-    tremolo_speed->speed = speed;
-    return true;
-}
-
-
-static void* Event_voice_tremolo_speed_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_TREMOLO_SPEED);
-    Event_voice_tremolo_speed* tremolo_speed = (Event_voice_tremolo_speed*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &tremolo_speed->speed;
 }
 
 

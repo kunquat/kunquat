@@ -45,9 +45,10 @@ static Event_field_desc set_panning_desc[] =
 };
 
 
-static bool Event_voice_set_panning_set(Event* event, int index, void* data);
+create_set_primitive_and_get(Event_voice_set_panning,
+                             EVENT_VOICE_SET_PANNING,
+                             double, panning)
 
-static void* Event_voice_set_panning_get(Event* event, int index);
 
 static void Event_voice_set_panning_process(Event_voice* event, Voice* voice);
 
@@ -69,36 +70,6 @@ Event* new_Event_voice_set_panning(Reltime* pos)
     event->parent.process = Event_voice_set_panning_process;
     event->panning = 0;
     return (Event*)event;
-}
-
-
-static bool Event_voice_set_panning_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_PANNING);
-    assert(data != NULL);
-    Event_voice_set_panning* set_panning = (Event_voice_set_panning*)event;
-    if (index != 0)
-    {
-        return false;
-    }
-    double panning = *(double*)data;
-    Event_check_double_range(panning, event->field_types[0]);
-    set_panning->panning = panning;
-    return true;
-}
-
-
-static void* Event_voice_set_panning_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SET_PANNING);
-    Event_voice_set_panning* set_panning = (Event_voice_set_panning*)event;
-    if (index != 0)
-    {
-        return NULL;
-    }
-    return &set_panning->panning;
 }
 
 
