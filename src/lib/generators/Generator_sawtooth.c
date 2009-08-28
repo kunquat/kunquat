@@ -124,19 +124,21 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes; ++mixed)
     {
-        double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = vals[1] = sawtooth(sawtooth_state->phase) / 6;
         Generator_common_handle_filter(gen, state);
-        Generator_common_handle_force(gen, state, vals, 2);
         Generator_common_handle_pitch(gen, state);
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
+
+        double vals[KQT_BUFFERS_MAX] = { 0 };
+        vals[0] = sawtooth(sawtooth_state->phase) / 6;
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
         sawtooth_state->phase += state->actual_pitch / freq;
         if (sawtooth_state->phase >= 1)
         {
             sawtooth_state->phase -= floor(sawtooth_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];

@@ -127,22 +127,29 @@ uint32_t Generator_square303_mix(Generator* gen,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
+    Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_square303* square303_state = (Voice_state_square303*)state;
     uint32_t mixed = offset;
     for (; mixed < nframes; ++mixed)
     {
+        Generator_common_handle_filter(gen, state);
+        Generator_common_handle_pitch(gen, state);
+        
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = vals[1] = square303(square303_state->phase) / 6;
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
+        vals[0] = square303(square303_state->phase) / 6;
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
         square303_state->phase += state->actual_pitch / freq;
         if (square303_state->phase >= 1)
         {
             square303_state->phase -= floor(square303_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        vals[1] = vals[0];
+        Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
 /*        if (fabs(val_l) > max_amp)
@@ -151,6 +158,7 @@ uint32_t Generator_square303_mix(Generator* gen,
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
+    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 

@@ -128,18 +128,21 @@ uint32_t Generator_triangle_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes; ++mixed)
     {
-        double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = vals[1] = triangle(triangle_state->phase) / 6;
-        Generator_common_handle_force(gen, state, vals, 2);
+        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
+
+        double vals[KQT_BUFFERS_MAX] = { 0 };
+        vals[0] = triangle(triangle_state->phase) / 6;
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
         triangle_state->phase += state->actual_pitch / freq;
         if (triangle_state->phase >= 1)
         {
             triangle_state->phase -= floor(triangle_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];

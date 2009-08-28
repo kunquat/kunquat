@@ -36,6 +36,11 @@
 #define RAMP_RELEASE_TIME (200.0)
 
 
+/**
+ * Checks whether there's anything left of the note to be mixed.
+ * This should be called at the beginning of the mixing function of the
+ * Generator.
+ */
 #define Generator_common_check_active(gen, state, mixed)                      \
     if (true)                                                                 \
     {                                                                         \
@@ -50,6 +55,10 @@
     } else (void)0
 
 
+/**
+ * Adjusts Voice state according to tempo and/or mixing frequency changes.
+ * This should be called before the mixing loop of the Generator.
+ */
 #define Generator_common_check_relative_lengths(gen, state, freq, tempo)          \
     if (true)                                                                     \
     {                                                                             \
@@ -136,60 +145,13 @@
     } else (void)0
 
 
-#define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
-    if (true)                                                               \
-    {                                                                       \
-        if ((state)->ramp_attack < 1)                                       \
-        {                                                                   \
-            for (int i = 0; i < (frame_count); ++i)                         \
-            {                                                               \
-                (frames)[i] *= (state)->ramp_attack;                        \
-            }                                                               \
-            (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);              \
-        }                                                                   \
-    } else (void)0
-
-
-#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)      \
-    if (true)                                                                        \
-    {                                                                                \
-        if (!(state)->note_on)                                                       \
-        {                                                                            \
-            if ((gen)->ins_params->volume_off_env_enabled)                           \
-            {                                                                        \
-                double scale = Envelope_get_value((gen)->ins_params->volume_off_env, \
-                                                  (state)->off_ve_pos);              \
-                if (!isfinite(scale))                                                \
-                {                                                                    \
-                    (state)->active = false;                                         \
-                    break;                                                           \
-                }                                                                    \
-                (state)->off_ve_pos += (1.0 - *(state)->pedal) / (freq);             \
-                for (int i = 0; i < (frame_count); ++i)                              \
-                {                                                                    \
-                    (frames)[i] *= scale;                                            \
-                }                                                                    \
-            }                                                                        \
-            else if (*(state)->pedal < 0.5)                                          \
-            {                                                                        \
-                if ((state)->ramp_release < 1)                                       \
-                {                                                                    \
-                    for (int i = 0; i < (frame_count); ++i)                          \
-                    {                                                                \
-                        (frames)[i] *= 1 - (state)->ramp_release;                    \
-                    }                                                                \
-                }                                                                    \
-                else                                                                 \
-                {                                                                    \
-                    (state)->active = false;                                         \
-                    break;                                                           \
-                }                                                                    \
-                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
-            }                                                                        \
-        }                                                                            \
-    } else (void)0
-
-
+/**
+ * Filter handling.
+ * This code doesn't actually modify the sound but merely controls
+ * higher-level parameters and breaks the mixing cycle in case filter
+ * coefficients need to be updated. It can therefore be called before any
+ * inital amplitude values are calculated.
+ */
 #define Generator_common_handle_filter(gen, state)                                     \
     if (true)                                                                          \
     {                                                                                  \
@@ -281,6 +243,9 @@
     } else (void)0
 
 
+/**
+ * Pitch handling.
+ */
 #define Generator_common_handle_pitch(gen, state)                             \
     if (true)                                                                 \
     {                                                                         \
@@ -380,6 +345,12 @@
     } else (void)0
 
 
+/**
+ * Force handling.
+ * This may affect the actual pitch and filter cutoff settings and therefore
+ * should be called after Generator_common_handle_pitch and
+ * Generator_common_handle_filter.
+ */
 #define Generator_common_handle_force(gen, state, frames, frame_count)        \
     if (true)                                                                 \
     {                                                                         \
@@ -463,6 +434,73 @@
     } else (void)0
 
 
+/**
+ * Automatic volume ramping for note start and end.
+ * This should be called after force handling if needed (not all Generators
+ * need this).
+ */
+#define Generator_common_ramp_attack(gen, state, frames, frame_count, freq) \
+    if (true)                                                               \
+    {                                                                       \
+        if ((state)->ramp_attack < 1)                                       \
+        {                                                                   \
+            for (int i = 0; i < (frame_count); ++i)                         \
+            {                                                               \
+                (frames)[i] *= (state)->ramp_attack;                        \
+            }                                                               \
+            (state)->ramp_attack += RAMP_ATTACK_TIME / (freq);              \
+        }                                                                   \
+    } else (void)0
+
+
+/**
+ * Note Off handling (includes handling Note Off envelopes and breaking if
+ * needed).
+ * This should be called after updating the Voice state position indicator.
+ */
+#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)      \
+    if (true)                                                                        \
+    {                                                                                \
+        if (!(state)->note_on)                                                       \
+        {                                                                            \
+            if ((gen)->ins_params->volume_off_env_enabled)                           \
+            {                                                                        \
+                double scale = Envelope_get_value((gen)->ins_params->volume_off_env, \
+                                                  (state)->off_ve_pos);              \
+                if (!isfinite(scale))                                                \
+                {                                                                    \
+                    (state)->active = false;                                         \
+                    break;                                                           \
+                }                                                                    \
+                (state)->off_ve_pos += (1.0 - *(state)->pedal) / (freq);             \
+                for (int i = 0; i < (frame_count); ++i)                              \
+                {                                                                    \
+                    (frames)[i] *= scale;                                            \
+                }                                                                    \
+            }                                                                        \
+            else if (*(state)->pedal < 0.5)                                          \
+            {                                                                        \
+                if ((state)->ramp_release < 1)                                       \
+                {                                                                    \
+                    for (int i = 0; i < (frame_count); ++i)                          \
+                    {                                                                \
+                        (frames)[i] *= 1 - (state)->ramp_release;                    \
+                    }                                                                \
+                }                                                                    \
+                else                                                                 \
+                {                                                                    \
+                    (state)->active = false;                                         \
+                    break;                                                           \
+                }                                                                    \
+                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
+            }                                                                        \
+        }                                                                            \
+    } else (void)0
+
+
+/**
+ * Panning handling.
+ */
 #define Generator_common_handle_panning(gen, state, frames, frame_count)  \
     if (true)                                                             \
     {                                                                     \
@@ -502,6 +540,11 @@
     } else (void)0
 
 
+/**
+ * Updates parameters that are persistent across mixing calls.
+ * This should be called before returning from the mixing function of the
+ * subclass.
+ */
 #define Generator_common_persist(gen, state, mixed)                         \
     if (true)                                                               \
     {                                                                       \

@@ -112,22 +112,29 @@ uint32_t Generator_sine_mix(Generator* gen,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
+    Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_sine* sine_state = (Voice_state_sine*)state;
     uint32_t mixed = offset;
     for (; mixed < nframes; ++mixed)
     {
+        Generator_common_handle_filter(gen, state);
+        Generator_common_handle_pitch(gen, state);
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = vals[1] = sin(sine_state->phase * PI * 2) / 6;
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
+        vals[0] = sin(sine_state->phase * PI * 2) / 6;
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
         sine_state->phase += state->actual_pitch / freq;
         if (sine_state->phase >= 1)
         {
             sine_state->phase -= floor(sine_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        vals[1] = vals[0];
+        Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
 /*        if (fabs(val_l) > max_amp)
@@ -136,6 +143,7 @@ uint32_t Generator_sine_mix(Generator* gen,
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
+    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 
