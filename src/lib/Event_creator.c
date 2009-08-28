@@ -39,6 +39,7 @@
 #include <Event_global_set_scale.h>
 #include <Event_global_retune_scale.h>
 
+#include <Event_global_set_jump_row.h>
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_jump.h>
 
@@ -99,6 +100,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         cons[EVENT_GLOBAL_SET_SCALE] = new_Event_global_set_scale;
         cons[EVENT_GLOBAL_RETUNE_SCALE] = new_Event_global_retune_scale;
 
+        cons[EVENT_GLOBAL_SET_JUMP_ROW] = new_Event_global_set_jump_row;
         cons[EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter;
         cons[EVENT_GLOBAL_JUMP] = new_Event_global_jump;
 

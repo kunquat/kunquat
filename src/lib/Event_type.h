@@ -48,7 +48,7 @@ typedef enum
 
     EVENT_GLOBAL_SET_JUMP_SUBSONG    =  88,
     EVENT_GLOBAL_SET_JUMP_SECTION    =  89,
-    EVENT_GLOBAL_SET_JUMP_POSITION   =  90, ///< Position inside a Pattern.
+    EVENT_GLOBAL_SET_JUMP_ROW        =  90,
     EVENT_GLOBAL_SET_JUMP_COUNTER    =  91,
     EVENT_GLOBAL_JUMP                =  92,
                                      

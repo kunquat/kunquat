@@ -54,7 +54,7 @@ Event_create_constructor(Event_global_jump,
                          event->counter = 0,
                          event->subsong = -1,
                          event->section = -1,
-                         Reltime_set(&event->position, 0, 0))
+                         Reltime_set(&event->row, 0, 0))
 
 
 static void Event_global_jump_process(Event_global* event, Playdata* play)
@@ -73,7 +73,7 @@ static void Event_global_jump_process(Event_global* event, Playdata* play)
         jump->counter = play->jump_set_counter;
         jump->subsong = play->jump_set_subsong;
         jump->section = play->jump_set_section;
-        Reltime_copy(&jump->position, &play->jump_set_position);
+        Reltime_copy(&jump->row, &play->jump_set_row);
     }
     if (jump->counter > 0)
     {
@@ -81,7 +81,7 @@ static void Event_global_jump_process(Event_global* event, Playdata* play)
         play->jump = true;
         play->jump_subsong = jump->subsong;
         play->jump_section = jump->section;
-        Reltime_copy(&play->jump_position, &jump->position);
+        Reltime_copy(&play->jump_row, &jump->row);
     }
     return;
 }

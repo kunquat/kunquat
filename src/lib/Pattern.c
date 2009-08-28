@@ -285,7 +285,7 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 if (play->jump_subsong < 0 && play->jump_section < 0)
                 {
-                    Reltime_copy(&play->pos, &play->jump_position);
+                    Reltime_copy(&play->pos, &play->jump_row);
                 }
                 else
                 {
@@ -301,7 +301,7 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 play->section = play->jump_section;
             }
-            Reltime_copy(&play->pos, &play->jump_position);
+            Reltime_copy(&play->pos, &play->jump_row);
             break;
         }
         if (!delay && Reltime_cmp(&play->pos, &pat->length) >= 0)

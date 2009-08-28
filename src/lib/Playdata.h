@@ -71,11 +71,11 @@ typedef struct Playdata
     int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
     int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.
     int16_t jump_set_section;         ///< Section number setting passed to a jump event.
-    Reltime jump_set_position;        ///< Pattern position passed to a jump event.
+    Reltime jump_set_row;             ///< Pattern position passed to a jump event.
     bool jump;                        ///< Jump trigger.
     int16_t jump_subsong;             ///< Jump target subsong (-1 = no change).
     int16_t jump_section;             ///< Jump target section (-1 = no change).
-    Reltime jump_position;            ///< Jump target pattern position.
+    Reltime jump_row;                 ///< Jump target pattern position.
 
     double volume;                    ///< Current global volume.
     int volume_slide;                 ///< Global volume slide (0 = no slide, -1 = down, 1 = up).

@@ -20,30 +20,24 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_JUMP_H
-#define K_EVENT_GLOBAL_JUMP_H
+#ifndef K_EVENT_GLOBAL_SET_JUMP_ROW_H
+#define K_EVENT_GLOBAL_SET_JUMP_ROW_H
 
-
-#include <stdint.h>
 
 #include <Event_global.h>
 #include <Reltime.h>
 
 
-typedef struct Event_global_jump
+typedef struct Event_global_set_jump_row
 {
     Event_global parent;
-    uint64_t play_id;
-    int64_t counter;
-    int16_t subsong;
-    int16_t section;
     Reltime row;
-} Event_global_jump;
+} Event_global_set_jump_row;
 
 
-Event* new_Event_global_jump(Reltime* pos);
+Event* new_Event_global_set_jump_row(Reltime* pos);
 
 
-#endif // K_EVENT_GLOBAL_JUMP_H
+#endif // K_EVENT_GLOBAL_SET_JUMP_ROW_H
 
 

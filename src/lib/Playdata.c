@@ -100,11 +100,11 @@ Playdata* new_Playdata(Ins_table* insts,
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
     play->jump_set_section = -1;
-    Reltime_init(&play->jump_set_position);
+    Reltime_init(&play->jump_set_row);
     play->jump = false;
     play->jump_subsong = -1;
     play->jump_section = -1;
-    Reltime_init(&play->jump_position);
+    Reltime_init(&play->jump_row);
 
     play->volume = 1;
     play->volume_slide = 0;
@@ -174,11 +174,11 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
     play->jump_set_section = -1;
-    Reltime_init(&play->jump_set_position);
+    Reltime_init(&play->jump_set_row);
     play->jump = false;
     play->jump_subsong = -1;
     play->jump_section = -1;
-    Reltime_init(&play->jump_position);
+    Reltime_init(&play->jump_row);
 
     play->volume = 1;
     play->volume_slide = 0;
