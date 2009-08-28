@@ -44,18 +44,18 @@ static Event_field_desc slide_tempo_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_slide_tempo,
-                             EVENT_GLOBAL_SLIDE_TEMPO,
-                             double, target_tempo)
+Event_create_set_primitive_and_get(Event_global_slide_tempo,
+                                   EVENT_GLOBAL_SLIDE_TEMPO,
+                                   double, target_tempo)
 
 
 static void Event_global_slide_tempo_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_slide_tempo,
-                   EVENT_GLOBAL_SLIDE_TEMPO,
-                   slide_tempo_desc,
-                   event->target_tempo = 120)
+Event_create_constructor(Event_global_slide_tempo,
+                         EVENT_GLOBAL_SLIDE_TEMPO,
+                         slide_tempo_desc,
+                         event->target_tempo = 120)
 
 
 static void Event_global_slide_tempo_process(Event_global* event, Playdata* play)

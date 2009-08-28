@@ -46,18 +46,18 @@ static Event_field_desc slide_filter_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_slide_filter,
-                             EVENT_VOICE_SLIDE_FILTER,
-                             double, target_cutoff)
+Event_create_set_primitive_and_get(Event_voice_slide_filter,
+                                   EVENT_VOICE_SLIDE_FILTER,
+                                   double, target_cutoff)
 
 
 static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_filter,
-                   EVENT_VOICE_SLIDE_FILTER,
-                   slide_filter_desc,
-                   event->target_cutoff = 90)
+Event_create_constructor(Event_voice_slide_filter,
+                         EVENT_VOICE_SLIDE_FILTER,
+                         slide_filter_desc,
+                         event->target_cutoff = 90)
 
 
 static void Event_voice_slide_filter_process(Event_voice* event, Voice* voice)

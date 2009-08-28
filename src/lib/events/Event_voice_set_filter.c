@@ -45,18 +45,18 @@ static Event_field_desc set_filter_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_set_filter,
-                             EVENT_VOICE_SET_FILTER,
-                             double, cutoff)
+Event_create_set_primitive_and_get(Event_voice_set_filter,
+                                   EVENT_VOICE_SET_FILTER,
+                                   double, cutoff)
 
 
 static void Event_voice_set_filter_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_set_filter,
-                   EVENT_VOICE_SET_FILTER,
-                   set_filter_desc,
-                   event->cutoff = INFINITY)
+Event_create_constructor(Event_voice_set_filter,
+                         EVENT_VOICE_SET_FILTER,
+                         set_filter_desc,
+                         event->cutoff = INFINITY)
 
 
 static void Event_voice_set_filter_process(Event_voice* event, Voice* voice)

@@ -46,18 +46,18 @@ static Event_field_desc slide_volume_length_desc[] =
 };
 
 
-create_set_reltime_and_get(Event_global_slide_volume_length,
-                           EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-                           length)
+Event_create_set_reltime_and_get(Event_global_slide_volume_length,
+                                 EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+                                 length)
 
 
 static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_slide_volume_length,
-                   EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-                   slide_volume_length_desc,
-                   Reltime_set(&event->length, 0, 0))
+Event_create_constructor(Event_global_slide_volume_length,
+                         EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+                         slide_volume_length_desc,
+                         Reltime_set(&event->length, 0, 0))
 
 
 static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play)

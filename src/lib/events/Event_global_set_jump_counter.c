@@ -44,18 +44,18 @@ static Event_field_desc set_jump_counter_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_set_jump_counter,
-                             EVENT_GLOBAL_SET_JUMP_COUNTER,
-                             int64_t, counter)
+Event_create_set_primitive_and_get(Event_global_set_jump_counter,
+                                   EVENT_GLOBAL_SET_JUMP_COUNTER,
+                                   int64_t, counter)
 
 
 static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_set_jump_counter,
-                   EVENT_GLOBAL_SET_JUMP_COUNTER,
-                   set_jump_counter_desc,
-                   event->counter = 0)
+Event_create_constructor(Event_global_set_jump_counter,
+                         EVENT_GLOBAL_SET_JUMP_COUNTER,
+                         set_jump_counter_desc,
+                         event->counter = 0)
 
 
 static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play)

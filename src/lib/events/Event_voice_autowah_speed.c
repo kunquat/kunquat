@@ -46,18 +46,18 @@ static Event_field_desc autowah_speed_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_autowah_speed,
-                             EVENT_VOICE_AUTOWAH_SPEED,
-                             double, speed)
+Event_create_set_primitive_and_get(Event_voice_autowah_speed,
+                                   EVENT_VOICE_AUTOWAH_SPEED,
+                                   double, speed)
 
 
 static void Event_voice_autowah_speed_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_autowah_speed,
-                   EVENT_VOICE_AUTOWAH_SPEED,
-                   autowah_speed_desc,
-                   event->speed = 0)
+Event_create_constructor(Event_voice_autowah_speed,
+                         EVENT_VOICE_AUTOWAH_SPEED,
+                         autowah_speed_desc,
+                         event->speed = 0)
 
 
 static void Event_voice_autowah_speed_process(Event_voice* event, Voice* voice)

@@ -58,12 +58,12 @@ static void* Event_global_retune_scale_get(Event* event, int index);
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_retune_scale,
-                   EVENT_GLOBAL_RETUNE_SCALE,
-                   retune_scale_desc,
-                   event->scale_index = 0,
-                   event->new_ref = -1,
-                   event->fixed_point = 0)
+Event_create_constructor(Event_global_retune_scale,
+                         EVENT_GLOBAL_RETUNE_SCALE,
+                         retune_scale_desc,
+                         event->scale_index = 0,
+                         event->new_ref = -1,
+                         event->fixed_point = 0)
 
 
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play)

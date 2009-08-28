@@ -45,10 +45,10 @@ static void* Event_voice_note_off_get(Event* event, int index);
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_note_off,
-                   EVENT_VOICE_NOTE_OFF,
-                   note_off_desc,
-                   (void)0)
+Event_create_constructor(Event_voice_note_off,
+                         EVENT_VOICE_NOTE_OFF,
+                         note_off_desc,
+                         (void)0)
 
 
 static void Event_voice_note_off_process(Event_voice* event, Voice* voice)

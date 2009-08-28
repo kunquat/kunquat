@@ -62,12 +62,12 @@ static void* Event_voice_slide_pitch_get(Event* event, int index);
 static void Event_voice_slide_pitch_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_pitch,
-                   EVENT_VOICE_SLIDE_PITCH,
-                   slide_pitch_desc,
-                   event->note = 0,
-                   event->mod = -1,
-                   event->octave = KQT_SCALE_MIDDLE_OCTAVE)
+Event_create_constructor(Event_voice_slide_pitch,
+                         EVENT_VOICE_SLIDE_PITCH,
+                         slide_pitch_desc,
+                         event->note = 0,
+                         event->mod = -1,
+                         event->octave = KQT_SCALE_MIDDLE_OCTAVE)
 
 
 static bool Event_voice_slide_pitch_set(Event* event, int index, void* data)

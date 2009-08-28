@@ -43,18 +43,18 @@ static Event_field_desc set_volume_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_set_volume,
-                             EVENT_GLOBAL_SET_VOLUME,
-                             double, volume_dB)
+Event_create_set_primitive_and_get(Event_global_set_volume,
+                                   EVENT_GLOBAL_SET_VOLUME,
+                                   double, volume_dB)
 
 
 static void Event_global_set_volume_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_set_volume,
-                   EVENT_GLOBAL_SET_VOLUME,
-                   set_volume_desc,
-                   event->volume_dB = 0)
+Event_create_constructor(Event_global_set_volume,
+                         EVENT_GLOBAL_SET_VOLUME,
+                         set_volume_desc,
+                         event->volume_dB = 0)
 
 
 static void Event_global_set_volume_process(Event_global* event, Playdata* play)

@@ -48,18 +48,18 @@ static Event_field_desc slide_pitch_length_desc[] =
 };
 
 
-create_set_reltime_and_get(Event_voice_slide_pitch_length,
-                           EVENT_VOICE_SLIDE_PITCH_LENGTH,
-                           length)
+Event_create_set_reltime_and_get(Event_voice_slide_pitch_length,
+                                 EVENT_VOICE_SLIDE_PITCH_LENGTH,
+                                 length)
 
 
 static void Event_voice_slide_pitch_length_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_pitch_length,
-                   EVENT_VOICE_SLIDE_PITCH_LENGTH,
-                   slide_pitch_length_desc,
-                   Reltime_set(&event->length, 0, 0))
+Event_create_constructor(Event_voice_slide_pitch_length,
+                         EVENT_VOICE_SLIDE_PITCH_LENGTH,
+                         slide_pitch_length_desc,
+                         Reltime_set(&event->length, 0, 0))
 
 
 static void Event_voice_slide_pitch_length_process(Event_voice* event, Voice* voice)

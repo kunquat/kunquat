@@ -47,14 +47,14 @@ static void* Event_global_jump_get(Event* event, int index);
 static void Event_global_jump_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_jump,
-                   EVENT_GLOBAL_JUMP,
-                   jump_desc,
-                   event->play_id = 0,
-                   event->counter = 0,
-                   event->subsong = -1,
-                   event->section = -1,
-                   Reltime_set(&event->position, 0, 0))
+Event_create_constructor(Event_global_jump,
+                         EVENT_GLOBAL_JUMP,
+                         jump_desc,
+                         event->play_id = 0,
+                         event->counter = 0,
+                         event->subsong = -1,
+                         event->section = -1,
+                         Reltime_set(&event->position, 0, 0))
 
 
 static void Event_global_jump_process(Event_global* event, Playdata* play)

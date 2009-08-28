@@ -61,12 +61,12 @@ static void* Event_voice_note_on_get(Event* event, int index);
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_note_on,
-                   EVENT_VOICE_NOTE_ON,
-                   note_on_desc,
-                   event->note = 0,
-                   event->mod = -1,
-                   event->octave = KQT_SCALE_MIDDLE_OCTAVE)
+Event_create_constructor(Event_voice_note_on,
+                         EVENT_VOICE_NOTE_ON,
+                         note_on_desc,
+                         event->note = 0,
+                         event->mod = -1,
+                         event->octave = KQT_SCALE_MIDDLE_OCTAVE)
 
 
 static void Event_voice_note_on_process(Event_voice* event, Voice* voice)

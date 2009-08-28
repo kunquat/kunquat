@@ -42,18 +42,18 @@ static Event_field_desc set_tempo_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_set_tempo,
-                             EVENT_GLOBAL_SET_TEMPO,
-                             double, tempo)
+Event_create_set_primitive_and_get(Event_global_set_tempo,
+                                   EVENT_GLOBAL_SET_TEMPO,
+                                   double, tempo)
 
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_set_tempo,
-                   EVENT_GLOBAL_SET_TEMPO,
-                   set_tempo_desc,
-                   event->tempo = 120)
+Event_create_constructor(Event_global_set_tempo,
+                         EVENT_GLOBAL_SET_TEMPO,
+                         set_tempo_desc,
+                         event->tempo = 120)
 
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play)

@@ -48,18 +48,18 @@ static Event_field_desc tremolo_delay_desc[] =
 };
 
 
-create_set_reltime_and_get(Event_voice_tremolo_delay,
-                           EVENT_VOICE_TREMOLO_DELAY,
-                           delay)
+Event_create_set_reltime_and_get(Event_voice_tremolo_delay,
+                                 EVENT_VOICE_TREMOLO_DELAY,
+                                 delay)
 
 
 static void Event_voice_tremolo_delay_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_tremolo_delay,
-                   EVENT_VOICE_TREMOLO_DELAY,
-                   tremolo_delay_desc,
-                   Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4))
+Event_create_constructor(Event_voice_tremolo_delay,
+                         EVENT_VOICE_TREMOLO_DELAY,
+                         tremolo_delay_desc,
+                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4))
 
 
 static void Event_voice_tremolo_delay_process(Event_voice* event, Voice* voice)

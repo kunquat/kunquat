@@ -46,18 +46,18 @@ static Event_field_desc autowah_depth_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_autowah_depth,
-                             EVENT_VOICE_AUTOWAH_DEPTH,
-                             double, depth)
+Event_create_set_primitive_and_get(Event_voice_autowah_depth,
+                                   EVENT_VOICE_AUTOWAH_DEPTH,
+                                   double, depth)
 
 
 static void Event_voice_autowah_depth_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_autowah_depth,
-                   EVENT_VOICE_AUTOWAH_DEPTH,
-                   autowah_depth_desc,
-                   event->depth = 0)
+Event_create_constructor(Event_voice_autowah_depth,
+                         EVENT_VOICE_AUTOWAH_DEPTH,
+                         autowah_depth_desc,
+                         event->depth = 0)
 
 
 static void Event_voice_autowah_depth_process(Event_voice* event, Voice* voice)

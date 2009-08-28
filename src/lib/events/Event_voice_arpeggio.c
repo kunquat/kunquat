@@ -66,11 +66,11 @@ static void* Event_voice_arpeggio_get(Event* event, int index);
 static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_arpeggio,
-                   EVENT_VOICE_ARPEGGIO,
-                   arpeggio_desc,
-                   for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
-                   event->speed = 24)
+Event_create_constructor(Event_voice_arpeggio,
+                         EVENT_VOICE_ARPEGGIO,
+                         arpeggio_desc,
+                         for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
+                         event->speed = 24)
 
 
 static bool Event_voice_arpeggio_set(Event* event, int index, void* data)

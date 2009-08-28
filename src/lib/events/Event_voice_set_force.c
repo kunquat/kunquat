@@ -45,18 +45,18 @@ static Event_field_desc set_force_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_set_force,
-                             EVENT_VOICE_SET_FORCE,
-                             double, force_dB)
+Event_create_set_primitive_and_get(Event_voice_set_force,
+                                   EVENT_VOICE_SET_FORCE,
+                                   double, force_dB)
 
 
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_set_force,
-                   EVENT_VOICE_SET_FORCE,
-                   set_force_desc,
-                   event->force_dB = 0)
+Event_create_constructor(Event_voice_set_force,
+                         EVENT_VOICE_SET_FORCE,
+                         set_force_desc,
+                         event->force_dB = 0)
 
 
 static void Event_voice_set_force_process(Event_voice* event, Voice* voice)

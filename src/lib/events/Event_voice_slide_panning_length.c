@@ -46,18 +46,18 @@ static Event_field_desc slide_panning_length_desc[] =
 };
 
 
-create_set_reltime_and_get(Event_voice_slide_panning_length,
-                           EVENT_VOICE_SLIDE_PANNING_LENGTH,
-                           length)
+Event_create_set_reltime_and_get(Event_voice_slide_panning_length,
+                                 EVENT_VOICE_SLIDE_PANNING_LENGTH,
+                                 length)
 
 
 static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_panning_length,
-                   EVENT_VOICE_SLIDE_PANNING_LENGTH,
-                   slide_panning_length_desc,
-                   Reltime_set(&event->length, 0, 0))
+Event_create_constructor(Event_voice_slide_panning_length,
+                         EVENT_VOICE_SLIDE_PANNING_LENGTH,
+                         slide_panning_length_desc,
+                         Reltime_set(&event->length, 0, 0))
 
 
 static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice)

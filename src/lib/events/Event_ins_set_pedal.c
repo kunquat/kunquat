@@ -43,19 +43,19 @@ static Event_field_desc set_pedal_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_ins_set_pedal,
-                             EVENT_INS_SET_PEDAL,
-                             double, pedal)
+Event_create_set_primitive_and_get(Event_ins_set_pedal,
+                                   EVENT_INS_SET_PEDAL,
+                                   double, pedal)
 
 
 static void Event_ins_set_pedal_process(Event_ins* event);
 
 
-create_constructor(Event_ins_set_pedal,
-                   EVENT_INS_SET_PEDAL,
-                   set_pedal_desc,
-                   event->parent.ins_params = NULL,
-                   event->pedal = 0)
+Event_create_constructor(Event_ins_set_pedal,
+                         EVENT_INS_SET_PEDAL,
+                         set_pedal_desc,
+                         event->parent.ins_params = NULL,
+                         event->pedal = 0)
 
 
 static void Event_ins_set_pedal_process(Event_ins* event)

@@ -66,7 +66,7 @@ void del_Event_default(Event* event);
 #define Event_check_int64_t_range Event_check_integral_range
 
 
-#define create_set_primitive(etype, etype_id, ftype, fname)              \
+#define Event_create_set_primitive(etype, etype_id, ftype, fname)        \
     static bool etype ## _set(Event* event, int index, void* data);      \
     static bool etype ## _set(Event* event, int index, void* data)       \
     {                                                                    \
@@ -85,7 +85,7 @@ void del_Event_default(Event* event);
     }
 
 
-#define create_set_reltime(etype, etype_id, fname)                  \
+#define Event_create_set_reltime(etype, etype_id, fname)            \
     static bool etype ## _set(Event* event, int index, void* data); \
     static bool etype ## _set(Event* event, int index, void* data)  \
     {                                                               \
@@ -104,7 +104,7 @@ void del_Event_default(Event* event);
     }
 
 
-#define create_get(etype, etype_id, fname)               \
+#define Event_create_get(etype, etype_id, fname)         \
     static void* etype ## _get(Event* event, int index); \
     static void* etype ## _get(Event* event, int index)  \
     {                                                    \
@@ -119,34 +119,34 @@ void del_Event_default(Event* event);
     }
 
 
-#define create_set_primitive_and_get(type, type_id, field_type, field_name) \
-    create_set_primitive(type, type_id, field_type, field_name)             \
-    create_get(type, type_id, field_name)
+#define Event_create_set_primitive_and_get(type, type_id, field_type, field_name) \
+    Event_create_set_primitive(type, type_id, field_type, field_name)             \
+    Event_create_get(type, type_id, field_name)
 
 
-#define create_set_reltime_and_get(type, type_id, field_name) \
-    create_set_reltime(type, type_id, field_name)             \
-    create_get(type, type_id, field_name)
+#define Event_create_set_reltime_and_get(type, type_id, field_name) \
+    Event_create_set_reltime(type, type_id, field_name)             \
+    Event_create_get(type, type_id, field_name)
 
 
-#define create_constructor(etype, etype_id, field_desc, ...) \
-    Event* new_ ## etype(Reltime* pos)                       \
-    {                                                        \
-        assert(pos != NULL);                                 \
-        etype* event = xalloc(etype);                        \
-        if (event == NULL)                                   \
-        {                                                    \
-            return NULL;                                     \
-        }                                                    \
-        Event_init(&event->parent.parent,                    \
-                   pos,                                      \
-                   etype_id,                                 \
-                   field_desc,                               \
-                   etype ## _set,                            \
-                   etype ## _get);                           \
-        event->parent.process = etype ## _process;           \
-        __VA_ARGS__;                                         \
-        return (Event*)event;                                \
+#define Event_create_constructor(etype, etype_id, field_desc, ...) \
+    Event* new_ ## etype(Reltime* pos)                             \
+    {                                                              \
+        assert(pos != NULL);                                       \
+        etype* event = xalloc(etype);                              \
+        if (event == NULL)                                         \
+        {                                                          \
+            return NULL;                                           \
+        }                                                          \
+        Event_init(&event->parent.parent,                          \
+                   pos,                                            \
+                   etype_id,                                       \
+                   field_desc,                                     \
+                   etype ## _set,                                  \
+                   etype ## _get);                                 \
+        event->parent.process = etype ## _process;                 \
+        __VA_ARGS__;                                               \
+        return (Event*)event;                                      \
     }
 
 

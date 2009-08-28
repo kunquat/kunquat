@@ -43,18 +43,18 @@ static Event_field_desc set_scale_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_set_scale,
-                             EVENT_GLOBAL_SET_SCALE,
-                             int64_t, scale_index)
+Event_create_set_primitive_and_get(Event_global_set_scale,
+                                   EVENT_GLOBAL_SET_SCALE,
+                                   int64_t, scale_index)
 
 
 static void Event_global_set_scale_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_set_scale,
-                   EVENT_GLOBAL_SET_SCALE,
-                   set_scale_desc,
-                   event->scale_index = 0)
+Event_create_constructor(Event_global_set_scale,
+                         EVENT_GLOBAL_SET_SCALE,
+                         set_scale_desc,
+                         event->scale_index = 0)
 
 
 static void Event_global_set_scale_process(Event_global* event, Playdata* play)

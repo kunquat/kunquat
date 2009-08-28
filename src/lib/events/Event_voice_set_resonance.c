@@ -45,18 +45,18 @@ static Event_field_desc set_resonance_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_set_resonance,
-                             EVENT_VOICE_SET_RESONANCE,
-                             double, resonance)
+Event_create_set_primitive_and_get(Event_voice_set_resonance,
+                                   EVENT_VOICE_SET_RESONANCE,
+                                   double, resonance)
 
 
 static void Event_voice_set_resonance_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_set_resonance,
-                   EVENT_VOICE_SET_RESONANCE,
-                   set_resonance_desc,
-                   event->resonance = 1)
+Event_create_constructor(Event_voice_set_resonance,
+                         EVENT_VOICE_SET_RESONANCE,
+                         set_resonance_desc,
+                         event->resonance = 1)
 
 
 static void Event_voice_set_resonance_process(Event_voice* event, Voice* voice)

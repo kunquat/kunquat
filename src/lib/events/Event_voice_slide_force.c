@@ -46,18 +46,18 @@ static Event_field_desc slide_force_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_slide_force,
-                             EVENT_VOICE_SLIDE_FORCE,
-                             double, target_force_dB)
+Event_create_set_primitive_and_get(Event_voice_slide_force,
+                                   EVENT_VOICE_SLIDE_FORCE,
+                                   double, target_force_dB)
 
 
 static void Event_voice_slide_force_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_force,
-                   EVENT_VOICE_SLIDE_FORCE,
-                   slide_force_desc,
-                   event->target_force_dB = 0)
+Event_create_constructor(Event_voice_slide_force,
+                         EVENT_VOICE_SLIDE_FORCE,
+                         slide_force_desc,
+                         event->target_force_dB = 0)
 
 
 static void Event_voice_slide_force_process(Event_voice* event, Voice* voice)

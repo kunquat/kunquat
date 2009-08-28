@@ -47,18 +47,18 @@ static Event_field_desc slide_filter_length_desc[] =
 };
 
 
-create_set_reltime_and_get(Event_voice_slide_filter_length,
-                           EVENT_VOICE_SLIDE_FILTER_LENGTH,
-                           length)
+Event_create_set_reltime_and_get(Event_voice_slide_filter_length,
+                                 EVENT_VOICE_SLIDE_FILTER_LENGTH,
+                                 length)
 
 
 static void Event_voice_slide_filter_length_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_slide_filter_length,
-                   EVENT_VOICE_SLIDE_FILTER_LENGTH,
-                   slide_filter_length_desc,
-                   Reltime_set(&event->length, 0, 0))
+Event_create_constructor(Event_voice_slide_filter_length,
+                         EVENT_VOICE_SLIDE_FILTER_LENGTH,
+                         slide_filter_length_desc,
+                         Reltime_set(&event->length, 0, 0))
 
 
 static void Event_voice_slide_filter_length_process(Event_voice* event, Voice* voice)

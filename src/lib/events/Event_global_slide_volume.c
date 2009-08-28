@@ -45,18 +45,18 @@ static Event_field_desc slide_volume_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_global_slide_volume,
-                             EVENT_GLOBAL_SLIDE_VOLUME,
-                             double, target_volume_dB)
+Event_create_set_primitive_and_get(Event_global_slide_volume,
+                                   EVENT_GLOBAL_SLIDE_VOLUME,
+                                   double, target_volume_dB)
 
 
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play);
 
 
-create_constructor(Event_global_slide_volume,
-                   EVENT_GLOBAL_SLIDE_VOLUME,
-                   slide_volume_desc,
-                   event->target_volume_dB = 0)
+Event_create_constructor(Event_global_slide_volume,
+                         EVENT_GLOBAL_SLIDE_VOLUME,
+                         slide_volume_desc,
+                         event->target_volume_dB = 0)
 
 
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play)

@@ -45,18 +45,18 @@ static Event_field_desc set_panning_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_voice_set_panning,
-                             EVENT_VOICE_SET_PANNING,
-                             double, panning)
+Event_create_set_primitive_and_get(Event_voice_set_panning,
+                                   EVENT_VOICE_SET_PANNING,
+                                   double, panning)
 
 
 static void Event_voice_set_panning_process(Event_voice* event, Voice* voice);
 
 
-create_constructor(Event_voice_set_panning,
-                   EVENT_VOICE_SET_PANNING,
-                   set_panning_desc,
-                   event->panning = 0)
+Event_create_constructor(Event_voice_set_panning,
+                         EVENT_VOICE_SET_PANNING,
+                         set_panning_desc,
+                         event->panning = 0)
 
 
 static void Event_voice_set_panning_process(Event_voice* event, Voice* voice)

@@ -44,18 +44,18 @@ static Event_field_desc set_instrument_desc[] =
 };
 
 
-create_set_primitive_and_get(Event_channel_set_instrument,
-                             EVENT_CHANNEL_SET_INSTRUMENT,
-                             int64_t, instrument)
+Event_create_set_primitive_and_get(Event_channel_set_instrument,
+                                   EVENT_CHANNEL_SET_INSTRUMENT,
+                                   int64_t, instrument)
 
 
 static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch);
 
 
-create_constructor(Event_channel_set_instrument,
-                   EVENT_CHANNEL_SET_INSTRUMENT,
-                   set_instrument_desc,
-                   event->instrument = 0)
+Event_create_constructor(Event_channel_set_instrument,
+                         EVENT_CHANNEL_SET_INSTRUMENT,
+                         set_instrument_desc,
+                         event->instrument = 0)
 
 
 static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch)
