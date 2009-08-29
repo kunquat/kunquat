@@ -305,6 +305,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t nframes,
                     uint32_t offset,
                     uint32_t freq,
+                    double tempo,
                     int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,
@@ -314,18 +315,25 @@ uint32_t Sample_mix(Sample* sample,
     assert(gen != NULL);
     assert(state != NULL);
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
-    for (uint32_t i = offset; i < nframes; ++i)
+    Generator_common_check_relative_lengths(gen, state, freq, tempo);
+    uint32_t mixed = offset;
+    for (; mixed < nframes; ++mixed)
     {
         if (state->rel_pos >= sample->len)
         {
             state->active = false;
-            return i;
+            break;
         }
+        
+        Generator_common_handle_filter(gen, state);
+        Generator_common_handle_pitch(gen, state);
+
         bool next_exists = false;
         uint64_t next_pos = 0;
         if (state->dir > 0 || sample->loop != SAMPLE_LOOP_BI)
@@ -444,14 +452,16 @@ uint32_t Sample_mix(Sample* sample,
             vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
                     + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
-        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
-        double advance = (state->freq / middle_tone) * middle_freq / freq;
+        Generator_common_handle_force(gen, state, vals, 2);
+        double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
         state->pos += adv;
         state->pos_rem += adv_rem;
+        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+        Generator_common_handle_panning(gen, state, vals, 2);
+        bufs[0][mixed] += vals[0];
+        bufs[1][mixed] += vals[1];
         if (state->pos_rem >= 1)
         {
             state->pos += floor(state->pos_rem);
@@ -464,7 +474,7 @@ uint32_t Sample_mix(Sample* sample,
             if (state->rel_pos >= sample->len)
             {
                 state->active = false;
-                return i;
+                break;
             }
         }
         else
@@ -514,7 +524,8 @@ uint32_t Sample_mix(Sample* sample,
         }
         assert(state->rel_pos < sample->len);
     }
-    return nframes;
+    Generator_common_persist(gen, state, mixed);
+    return mixed;
 }
 
 

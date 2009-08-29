@@ -36,7 +36,6 @@ typedef struct Event_voice_note_on
     int64_t note;
     int64_t mod;
     int64_t octave;
-    int64_t instrument;
 } Event_voice_note_on;
 
 

@@ -73,9 +73,8 @@ extern "C" {
 
 
 /**
- * This specifies how many parts one beat is. It is divisible by, among
- * others, powers of 2 up to 2^7, powers of 3 up to 3^4, and all positive
- * integers up to and including 18.
+ * This specifies how many parts one beat is. The prime factorisation of this
+ * number is (2^7)*(3^4)*5*7*11*13*17.
  */
 #define KQT_RELTIME_BEAT (882161280L)
 
@@ -106,6 +105,12 @@ extern "C" {
 #define KQT_SCALE_OCTAVE_FIRST (KQT_SCALE_OCTAVE_BIAS)
 #define KQT_SCALE_MIDDLE_OCTAVE (KQT_SCALE_MIDDLE_OCTAVE_UNBIASED + KQT_SCALE_OCTAVE_BIAS)
 #define KQT_SCALE_OCTAVE_LAST (KQT_SCALE_OCTAVES - 1 + KQT_SCALE_OCTAVE_BIAS)
+
+
+/**
+ * Maximum number of notes in the arpeggio event.
+ */
+#define KQT_ARPEGGIO_NOTES_MAX (3)
 
 
 #ifdef __cplusplus

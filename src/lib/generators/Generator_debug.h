@@ -46,12 +46,13 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params);
 
 
 uint32_t Generator_debug_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        int buf_count,
-        kqt_frame** bufs);
+                             Voice_state* state,
+                             uint32_t nframes,
+                             uint32_t offset,
+                             uint32_t freq,
+                             double tempo,
+                             int buf_count,
+                             kqt_frame** bufs);
 
 
 /**

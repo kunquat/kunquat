@@ -26,9 +26,13 @@
 #include <stdio.h>
 
 #include <Channel.h>
+#include <Channel_state.h>
 
+#include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_channel.h>
+#include <Event_ins.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
@@ -36,9 +40,12 @@
 #include <xmemory.h>
 
 
-Channel* new_Channel(Ins_table* insts)
+Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events)
 {
     assert(insts != NULL);
+    assert(num >= 0);
+    assert(num < KQT_COLUMNS_MAX);
+    assert(ins_events != NULL);
     Channel* ch = xalloc(Channel);
     if (ch == NULL)
     {
@@ -57,7 +64,12 @@ Channel* new_Channel(Ins_table* insts)
         xfree(ch);
         return NULL;
     }
+    Channel_state_init(&ch->init_state, num, &ch->mute);
+    Channel_state_copy(&ch->cur_state, &ch->init_state);
+    Channel_state_copy(&ch->new_state, &ch->init_state);
+    ch->cur_inst = 0;
     ch->insts = insts;
+    ch->ins_events = ins_events;
     ch->fg_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
@@ -105,7 +117,7 @@ void Channel_set_voices(Channel* ch,
     while (Reltime_cmp(next_pos, end) < 0)
     {
         assert(Reltime_cmp(start, next_pos) <= 0);
-        if (Event_get_type(next) == EVENT_TYPE_NOTE_ON)
+        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
         {
             for (int i = 0; i < ch->fg_count; ++i)
             {
@@ -136,9 +148,7 @@ void Channel_set_voices(Channel* ch,
                 }
             }
             ch->fg_count = 0;
-            int64_t* num = Event_get_field(next, 3);
-            assert(num != NULL);
-            if (*num <= 0)
+            if (ch->cur_inst == 0)
             {
                 next = NULL;
                 if (citer != NULL)
@@ -152,7 +162,7 @@ void Channel_set_voices(Channel* ch,
                 next_pos = Event_get_pos(next);
                 continue;
             }
-            Instrument* ins = Ins_table_get(ch->insts, *num);
+            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
             if (ins == NULL)
             {
                 next = NULL;
@@ -169,16 +179,21 @@ void Channel_set_voices(Channel* ch,
             }
             // allocate new Voices
             ch->fg_count = Instrument_get_gen_count(ins);
+            ch->new_state.panning_slide = 0;
             for (int i = 0; i < ch->fg_count; ++i)
             {
                 assert(Instrument_get_gen(ins, i) != NULL);
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
-                Voice_init(ch->fg[i], Instrument_get_gen(ins, i));
+                Voice_init(ch->fg[i],
+                           Instrument_get_gen(ins, i),
+                           &ch->cur_state,
+                           &ch->new_state,
+                           freq,
+                           tempo);
                 Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                        + offset;
+                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
                 if (!Voice_add_event(ch->fg[i], next, abs_pos))
                 {
                     // This really shouldn't occur here!
@@ -189,7 +204,8 @@ void Channel_set_voices(Channel* ch,
             }
         }
         else if (ch->fg_count > 0 &&
-                !EVENT_TYPE_IS_GLOBAL(Event_get_type(next)))
+                 (EVENT_IS_GENERAL(Event_get_type(next)) ||
+                  EVENT_IS_VOICE(Event_get_type(next))))
         {
             bool voices_active = false;
             for (int i = 0; i < ch->fg_count; ++i)
@@ -217,7 +233,23 @@ void Channel_set_voices(Channel* ch,
             if (!voices_active)
             {
                 ch->fg_count = 0;
+                // TODO: Insert Channel effect processing here
             }
+        }
+        else if (EVENT_IS_INS(Event_get_type(next)))
+        {
+            Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+            uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
+            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
+            if (ins != NULL)
+            {
+                Event_ins_set_params((Event_ins*)next, Instrument_get_params(ins));
+                Event_queue_ins(ch->ins_events, next, abs_pos);
+            }
+        }
+        else if (EVENT_IS_CHANNEL(Event_get_type(next)))
+        {
+            Event_channel_process((Event_channel*)next, ch);
         }
         if (next == ch->single)
         {
@@ -246,9 +278,48 @@ void Channel_set_voices(Channel* ch,
 }
 
 
+void Channel_update_state(Channel* ch, uint32_t mixed)
+{
+    assert(ch != NULL);
+    if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
+    {
+        uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
+        ch->new_state.panning += ch->new_state.panning_slide_update * frames_left;
+        ch->new_state.panning_slide_frames -= frames_left;
+        if (ch->new_state.panning_slide_frames <= 0)
+        {
+            ch->new_state.panning = ch->new_state.panning_slide_target;
+            ch->new_state.panning_slide = 0;
+        }
+        else if (ch->new_state.panning_slide == 1)
+        {
+            if (ch->new_state.panning > ch->new_state.panning_slide_target)
+            {
+                ch->new_state.panning = ch->new_state.panning_slide_target;
+                ch->new_state.panning_slide = 0;
+            }
+        }
+        else
+        {
+            assert(ch->new_state.panning_slide == -1);
+            if (ch->new_state.panning < ch->new_state.panning_slide_target)
+            {
+                ch->new_state.panning = ch->new_state.panning_slide_target;
+                ch->new_state.panning_slide = 0;
+            }
+        }
+    }
+    Channel_state_copy(&ch->cur_state, &ch->new_state);
+    ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
+    return;
+}
+
+
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
+    Channel_state_copy(&ch->cur_state, &ch->init_state);
+    Channel_state_copy(&ch->new_state, &ch->init_state);
     for (int i = 0; i < ch->fg_count; ++i)
     {
         ch->fg[i] = NULL;

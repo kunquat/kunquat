@@ -33,6 +33,7 @@
 #include <Scale.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_queue.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Generator_debug.h>
@@ -54,7 +55,13 @@ START_TEST (new)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         abort();
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -68,7 +75,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (new_break_insts_null)
 {
-    new_Channel(NULL);
+    new_Channel(NULL, 0, NULL);
 }
 END_TEST
 #endif
@@ -79,8 +86,10 @@ START_TEST (set_voices)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
+    kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* scales[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, scales, scales, 16);
+    Scale** default_scale = &scales[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, scales, &default_scale, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -113,7 +122,13 @@ START_TEST (set_voices)
         fprintf(stderr, "Ins_table_set() returned false -- out of memory?\n");
         abort();
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -177,7 +192,7 @@ START_TEST (set_voices)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    ch->cur_inst = instrument;
     if (!Column_ins(col, ev1_on))
     {
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
@@ -192,7 +207,7 @@ START_TEST (set_voices)
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     for (int i = 0; i < 40; ++i)
     {
         if (i % 4 == 0)
@@ -228,7 +243,7 @@ START_TEST (set_voices)
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8);
+        Voice_pool_mix(pool, i + 1, i, 8, 120);
     }
     for (int i = 0; i < 40; ++i)
     {
@@ -292,7 +307,7 @@ START_TEST (set_voices)
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8);
+    Voice_pool_mix(pool, 128, 0, 8, 120);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
     fail_unless(bufs[0][1] > 0.49 && bufs[0][1] < 0.51,
@@ -350,7 +365,7 @@ START_TEST (set_voices)
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8);
+        Voice_pool_mix(pool, i + 1, i, 8, 120);
     }
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
@@ -452,7 +467,13 @@ START_TEST (set_voices_break_pool_null)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return;
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -530,7 +551,13 @@ START_TEST (set_voices_break_start_null)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return;
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -578,7 +605,13 @@ START_TEST (set_voices_break_end_null)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return;
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -626,7 +659,13 @@ START_TEST (set_voices_break_tempo_inv)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return;
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");
@@ -674,7 +713,13 @@ START_TEST (set_voices_break_freq_inv)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return;
     }
-    Channel* ch = new_Channel(table);
+    Event_queue* ins_events = new_Event_queue(16);
+    if (ins_events == NULL)
+    {
+        fprintf(stderr, "new_Event_queue() returned NULL -- out of memory?\n");
+        abort();
+    }
+    Channel* ch = new_Channel(table, 0, ins_events);
     if (ch == NULL)
     {
         fprintf(stderr, "new_Channel() returned NULL -- out of memory?\n");

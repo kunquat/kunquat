@@ -76,17 +76,17 @@ static void del_Audio_openal(Audio_openal* audio_openal);
 
 
 #define close_if_false(EXPR,MSG)                                  \
-    do {                                                          \
+    if (true) {                                                   \
         if (!(EXPR))                                              \
         {                                                         \
             Audio_set_error(audio, "OpenAL driver: %s\n", (MSG)); \
             Audio_openal_close(audio_openal);                     \
             return false;                                         \
         }                                                         \
-    } while(false)
+    } else (void)0
 
 #define close_if_al_error(STMT,MSG)                               \
-    do {                                                          \
+    if (true) {                                                   \
         (STMT);                                                   \
         if (alGetError() != AL_NO_ERROR)                          \
         {                                                         \
@@ -94,10 +94,10 @@ static void del_Audio_openal(Audio_openal* audio_openal);
             Audio_openal_close(audio_openal);                     \
             return false;                                         \
         }                                                         \
-    } while(false)
+    } else (void)0
 
 #define end_if_al_error(STMT,MSG)                                         \
-    do {                                                                  \
+    if (true) {                                                           \
         (STMT);                                                           \
         if (alGetError() != AL_NO_ERROR)                                  \
         {                                                                 \
@@ -105,7 +105,7 @@ static void del_Audio_openal(Audio_openal* audio_openal);
             audio_openal->parent.active = false;                          \
             return NULL;                                                  \
         }                                                                 \
-    } while(false)
+    } else (void)0
 
 
 Audio* new_Audio_openal(void)

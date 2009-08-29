@@ -28,6 +28,7 @@
 #include <stdint.h>
 
 #include <Generator_type.h>
+#include <Event_queue.h>
 #include <Instrument_params.h>
 #include <Voice_state.h>
 #include <File_base.h>
@@ -50,7 +51,7 @@ typedef struct Generator
     bool (*read)(struct Generator*, File_tree*, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
-    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t,
+    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
                 int, kqt_frame**);
     Instrument_params* ins_params;
 } Generator;
@@ -75,8 +76,10 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
  * Initialises the general Generator parameters.
  *
  * \param gen   The Generator -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Generator_init(Generator* gen);
+bool Generator_init(Generator* gen);
 
 
 /**
@@ -101,11 +104,23 @@ Gen_type Generator_get_type(Generator* gen);
  * \param octave   The octave -- must be >= \c KQT_SCALE_OCTAVE_FIRST
  *                 and <= \c KQT_SCALE_OCTAVE_LAST.
  */
-void Generator_process_note(Generator* ins,
+void Generator_process_note(Generator* gen,
                             Voice_state* states,
                             int note,
                             int mod,
                             int octave);
+
+
+/**
+ * Adds a new Event into the Generator event queue.
+ *
+ * \param gen     The Generator -- must not be \c NULL.
+ * \param event   The Event -- must not be \c NULL.
+ * \param pos     The position of the Event.
+ *
+ * \return   \c true if successful, or \c false if the Event queue is full.
+ */
+bool Generator_add_event(Generator* gen, Event* event, uint32_t pos);
 
 
 /**
@@ -118,12 +133,14 @@ void Generator_process_note(Generator* ins,
  * \param offset    The starting frame offset (\a nframes - \a offset are
  *                  actually mixed).
  * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The current tempo -- must be > \c 0.
  */
 void Generator_mix(Generator* gen,
                    Voice_state* state,
                    uint32_t nframes,
                    uint32_t offset,
-                   uint32_t freq);
+                   uint32_t freq,
+                   double tempo);
 
 
 /**

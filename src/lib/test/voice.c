@@ -37,6 +37,7 @@
 #include <Event_voice_note_off.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
+#include <Channel_state.h>
 #include <Voice.h>
 
 
@@ -79,8 +80,10 @@ START_TEST (mix)
     kqt_frame buf_l[128] = { 0 };
     kqt_frame buf_r[128] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
+    kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 2);
+    Scale** default_scale = &nts[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, nts, &default_scale, 2);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -126,12 +129,15 @@ START_TEST (mix)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         abort();
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0));
+    bool mute = false;
+    Channel_state ch_state;
+    Channel_state_init(&ch_state, 0, &mute);
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 8);
+    Voice_mix(voice, 128, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 40; ++i)
@@ -166,17 +172,17 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0));
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(voice, ev_off, 20),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 20, 0, 8);
+    Voice_mix(voice, 20, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_BG,
             "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
-    Voice_mix(voice, 128, 20, 8);
+    Voice_mix(voice, 128, 20, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 20; ++i)
@@ -226,14 +232,14 @@ START_TEST (mix)
     {
         buf_l[i] = buf_r[i] = 0;
     }
-    Voice_init(voice, Instrument_get_gen(ins, 0));
+    Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
     fail_unless(Voice_add_event(voice, ev_off, 70),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 16);
+    Voice_mix(voice, 128, 0, 16, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 70; ++i)
@@ -279,7 +285,7 @@ END_TEST
 #ifndef NDEBUG
 START_TEST (mix_break_voice_null)
 {
-    Voice_mix(NULL, 1, 0, 1);
+    Voice_mix(NULL, 1, 0, 1, 120);
 }
 END_TEST
 
@@ -288,8 +294,10 @@ START_TEST (mix_break_freq_inv)
     kqt_frame buf_l[1] = { 0 };
     kqt_frame buf_r[1] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
+    kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 1, nts, nts, 2);
+    Scale** default_scale = &nts[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 1, nts, &default_scale, 2);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -324,7 +332,7 @@ START_TEST (mix_break_freq_inv)
     }
     fail_unless(Voice_add_event(voice, ev_on, 0),
             "Voice_add_event() failed.");
-    Voice_mix(voice, 1, 0, 0);
+    Voice_mix(voice, 1, 0, 0, 120);
     del_Voice(voice);
 }
 END_TEST

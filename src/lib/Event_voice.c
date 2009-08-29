@@ -29,7 +29,7 @@
 void Event_voice_process(Event_voice* event, Voice* voice)
 {
     assert(event != NULL);
-    assert(EVENT_TYPE_IS_VOICE(event->parent.type));
+    assert(EVENT_IS_VOICE(event->parent.type));
     assert(voice != NULL);
     event->process(event, voice);
     return;

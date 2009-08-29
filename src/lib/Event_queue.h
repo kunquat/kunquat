@@ -81,7 +81,7 @@ bool Event_queue_get(Event_queue* q, Event** dest, uint32_t* pos);
  *
  * \param q       The Event queue -- must not be \c NULL.
  * \param index   The index of the Event -- must be >= \c 0. Value \c 0 means
- *                the next Event to be removed from the queue.
+ *                the first Event to be removed from the queue.
  * \param dest    A pointer to the Event object reference -- must not be
  *                \c NULL.
  * \param pos     The location where the starting frame is stored -- must not

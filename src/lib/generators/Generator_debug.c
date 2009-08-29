@@ -38,6 +38,11 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params)
     {
         return NULL;
     }
+    if (!Generator_init(&debug->parent))
+    {
+        xfree(debug);
+        return NULL;
+    }
     debug->parent.destroy = del_Generator_debug;
     debug->parent.type = GEN_TYPE_DEBUG;
     debug->parent.init_state = NULL;
@@ -48,22 +53,25 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params)
 
 
 uint32_t Generator_debug_mix(Generator* gen,
-        Voice_state* state,
-        uint32_t nframes,
-        uint32_t offset,
-        uint32_t freq,
-        int buf_count,
-        kqt_frame** bufs)
+                             Voice_state* state,
+                             uint32_t nframes,
+                             uint32_t offset,
+                             uint32_t freq,
+                             double tempo,
+                             int buf_count,
+                             kqt_frame** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_DEBUG);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     (void)gen;
+    (void)tempo;
     (void)buf_count;
     if (!state->active)
     {
@@ -91,10 +99,10 @@ uint32_t Generator_debug_mix(Generator* gen,
         }
         bufs[0][i] += val_l;
         bufs[1][i] += val_r;
-        state->rel_pos_rem += state->freq / freq;
+        state->rel_pos_rem += state->pitch / freq;
         if (!state->note_on)
         {
-            state->noff_pos_rem += state->freq / freq;
+            state->noff_pos_rem += state->pitch / freq;
             if (state->noff_pos_rem >= 2)
             {
                 state->active = false;

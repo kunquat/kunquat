@@ -48,7 +48,11 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&square->parent);
+    if (!Generator_init(&square->parent))
+    {
+        xfree(square);
+        return NULL;
+    }
     square->parent.read = Generator_square_read;
     square->parent.destroy = del_Generator_square;
     square->parent.type = GEN_TYPE_SQUARE;
@@ -111,7 +115,6 @@ static void Generator_square_init_state(Generator* gen, Voice_state* state)
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE);
     assert(state != NULL);
-    Voice_state_init(state);
     Voice_state_square* square_state = (Voice_state_square*)state;
     Generator_square* square = (Generator_square*)gen;
     square_state->phase = 0;
@@ -135,6 +138,7 @@ uint32_t Generator_square_mix(Generator* gen,
                               uint32_t nframes,
                               uint32_t offset,
                               uint32_t freq,
+                              double tempo,
                               int buf_count,
                               kqt_frame** bufs)
 {
@@ -143,35 +147,45 @@ uint32_t Generator_square_mix(Generator* gen,
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
+    Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_square* square_state = (Voice_state_square*)state;
-    for (uint32_t i = offset; i < nframes; ++i)
+    uint32_t mixed = offset;
+    for (; mixed < nframes; ++mixed)
     {
+        Generator_common_handle_filter(gen, state);
+        Generator_common_handle_pitch(gen, state);
+
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = vals[1] = square(square_state->phase, square_state->pulse_width) / 6;
-        Generator_common_ramp_attack(gen, state, vals, 2, freq);
-        square_state->phase += state->freq / freq;
+        vals[0] = square(square_state->phase, square_state->pulse_width) / 6;
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
+        square_state->phase += state->actual_pitch / freq;
         if (square_state->phase >= 1)
         {
             square_state->phase -= floor(square_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 2, freq, i);
-        bufs[0][i] += vals[0];
-        bufs[1][i] += vals[1];
+        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        vals[1] = vals[0];
+        Generator_common_handle_panning(gen, state, vals, 2);
+        bufs[0][mixed] += vals[0];
+        bufs[1][mixed] += vals[1];
 /*        if (fabs(val_l) > max_amp)
         {
             max_amp = fabs(val_l);
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    return nframes;
+    Generator_common_persist(gen, state, mixed);
+    return mixed;
 }
 
 

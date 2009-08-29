@@ -153,33 +153,33 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
     }
     
     kqt_Handle_stop(handle);
-    Playdata_reset_stats(handle->play);
-    Playdata_reset_stats(handle->play_silent);
+    Playdata_reset_stats(handle->song->play_state);
+    Playdata_reset_stats(handle->song->skip_state);
     if (subsong == -1)
     {
-        handle->play->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->play, 0);
-        handle->play_silent->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->play_silent, 0);
+        handle->song->play_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->play_state, 0);
+        handle->song->skip_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->skip_state, 0);
     }
     else
     {
-        handle->play->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->play, subsong);
-        handle->play_silent->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->play_silent, subsong);
+        handle->song->play_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->play_state, subsong);
+        handle->song->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->skip_state, subsong);
     }
-    handle->play->section = section;
-    handle->play_silent->section = section;
-    Reltime_set(&handle->play->pos, beats, remainder);
-    Reltime_set(&handle->play_silent->pos, beats, remainder);
-    handle->play->play_frames = 0;
-    handle->play_silent->play_frames = 0;
+    handle->song->play_state->section = section;
+    handle->song->skip_state->section = section;
+    Reltime_set(&handle->song->play_state->pos, beats, remainder);
+    Reltime_set(&handle->song->skip_state->pos, beats, remainder);
+    handle->song->play_state->play_frames = 0;
+    handle->song->skip_state->play_frames = 0;
     if (nanoseconds > 0)
     {
-        uint64_t frame_skip = ((double)nanoseconds / 1000000000) * handle->play->freq;
-        Song_skip(handle->song, handle->play, frame_skip);
-        Reltime_copy(&handle->play_silent->pos, &handle->play->pos);
+        uint64_t frame_skip = ((double)nanoseconds / 1000000000) * handle->song->play_state->freq;
+        Song_skip(handle->song, handle->song->play_state, frame_skip);
+        Reltime_copy(&handle->song->skip_state->pos, &handle->song->play_state->pos);
     }
     return 1;
 }
@@ -189,10 +189,10 @@ char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_position_desc", NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
-             handle->play->mode == PLAY_SONG ? -1 : (int)handle->play->subsong,
-             (int)handle->play->section,
-             (long long)Reltime_get_beats(&handle->play->pos),
-             (long)Reltime_get_rem(&handle->play->pos));
+             handle->song->play_state->mode == PLAY_SONG ? -1 : (int)handle->song->play_state->subsong,
+             (int)handle->song->play_state->section,
+             (long long)Reltime_get_beats(&handle->song->play_state->pos),
+             (long)Reltime_get_rem(&handle->song->play_state->pos));
     return handle->position;
 }
 
@@ -200,28 +200,28 @@ char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 int kqt_Handle_end_reached(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_end_reached", 1);
-    return handle->play->mode == STOP;
+    return handle->song->play_state->mode == STOP;
 }
 
 
 long long kqt_Handle_get_frames_mixed(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_frames_mixed", 0);
-    return handle->play->play_frames;
+    return handle->song->play_state->play_frames;
 }
 
 
 double kqt_Handle_get_tempo(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_tempo", 0);
-    return handle->play->tempo;
+    return handle->song->play_state->tempo;
 }
 
 
 int kqt_Handle_get_voice_count(kqt_Handle* handle)
 {
     check_handle(handle, "kqt_Handle_get_voice_count", 0);
-    return handle->play->active_voices;
+    return handle->song->play_state->active_voices;
 }
 
 
@@ -232,7 +232,7 @@ double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer)
     {
         return INFINITY;
     }
-    return handle->play->min_amps[buffer];
+    return handle->song->play_state->min_amps[buffer];
 }
 
 
@@ -243,7 +243,7 @@ double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
     {
         return -INFINITY;
     }
-    return handle->play->max_amps[buffer];
+    return handle->song->play_state->max_amps[buffer];
 }
 
 
@@ -254,7 +254,7 @@ long long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer)
     {
         return 0;
     }
-    return handle->play->clipped[buffer];
+    return handle->song->play_state->clipped[buffer];
 }
 
 
@@ -267,10 +267,10 @@ void kqt_Handle_play_pattern(kqt_Handle* handle, int16_t num, double tempo)
     assert(isfinite(tempo));
     assert(tempo > 0);
     kqt_Handle_stop(handle);
-    handle->play->pattern = num;
-    handle->play->tempo = tempo;
-    Playdata_reset_stats(handle->play);
-    handle->play->mode = PLAY_PATTERN;
+    handle->song->play_state->pattern = num;
+    handle->song->play_state->tempo = tempo;
+    Playdata_reset_stats(handle->song->play_state);
+    handle->song->play_state->mode = PLAY_PATTERN;
     return;
 }
 
@@ -325,8 +325,8 @@ void kqt_Handle_play_event(kqt_Handle* handle)
 void kqt_Handle_reset_stats(kqt_Handle* handle)
 {
     check_handle_void(handle, "kqt_Handle_reset_stats");
-    Playdata_reset_stats(handle->play);
-    Playdata_reset_stats(handle->play_silent);
+    Playdata_reset_stats(handle->song->play_state);
+    Playdata_reset_stats(handle->song->skip_state);
     return;
 }
 

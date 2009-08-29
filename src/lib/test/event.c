@@ -50,8 +50,8 @@ START_TEST (new)
             "new_Event() didn't copy the position.");
     fail_unless(Reltime_cmp(r, Event_get_pos(event)) == 0,
             "new_Event() set the position incorrectly.");
-    fail_unless(Event_get_type(event) == EVENT_TYPE_NOTE_ON,
-            "new_Event() set the Event type to %d instead of EVENT_TYPE_NOTE_ON.", Event_get_type(event));
+    fail_unless(Event_get_type(event) == EVENT_VOICE_NOTE_ON,
+            "new_Event() set the Event type to %d instead of EVENT_VOICE_NOTE_ON.", Event_get_type(event));
     del_Event(event);
 }
 END_TEST

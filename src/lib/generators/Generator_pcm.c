@@ -57,7 +57,11 @@ Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
     {
         return NULL;
     }
-    Generator_init(&pcm->parent);
+    if (!Generator_init(&pcm->parent))
+    {
+        xfree(pcm);
+        return NULL;
+    }
     pcm->parent.read = Generator_pcm_read;
     pcm->parent.destroy = del_Generator_pcm;
     pcm->parent.type = GEN_TYPE_PCM;
@@ -328,7 +332,6 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
     assert(gen->type == GEN_TYPE_PCM);
     (void)gen;
     assert(state != NULL);
-    Voice_state_init(state);
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
     pcm_state->sample = -1;
     pcm_state->freq = 0;
@@ -415,6 +418,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
                            uint32_t nframes,
                            uint32_t offset,
                            uint32_t freq,
+                           double tempo,
                            int buf_count,
                            kqt_frame** bufs)
 {
@@ -423,6 +427,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
+    assert(tempo > 0);
     assert(buf_count > 0);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
@@ -452,7 +457,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         state->active = false;
         return offset;
     }
-    return Sample_mix(sample, gen, state, nframes, offset, freq, buf_count, bufs,
+    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, buf_count, bufs,
                       pcm_state->middle_tone, pcm_state->freq);
 }
 
@@ -655,12 +660,12 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(state != NULL);
-    pitch_t freq = state->parent.freq;
+    pitch_t pitch = state->parent.pitch;
     double force = state->parent.force;
-//    fprintf(stderr, "searching list for %f Hz, %f dB... ", freq, force);
+//    fprintf(stderr, "searching list for %f Hz, %f dB... ", pitch, force);
     uint8_t source = state->source;
     uint8_t expr = state->expr;
-    assert(freq > 0);
+    assert(pitch > 0);
     assert(isfinite(force));
     assert(source < PCM_SOURCES_MAX);
     assert(expr < PCM_EXPRESSIONS_MAX);
@@ -672,8 +677,8 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
         return NULL;
     }
     Random_list* key = &(Random_list){ .force = force,
-                                       .freq = freq,
-                                       .freq_tone = log(freq) };
+                                       .freq = pitch,
+                                       .freq_tone = log(pitch) };
     AAiter_change_tree(pcm->iter, map);
     Random_list* estimate_low = AAiter_get_at_most(pcm->iter, key);
     Random_list* choice = NULL;

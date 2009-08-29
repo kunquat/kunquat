@@ -32,6 +32,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
+#include <kunquat/frame.h>
 
 
 /**
@@ -50,15 +51,52 @@ typedef enum Play_mode
 
 typedef struct Playdata
 {
+    uint64_t play_id;                 ///< A unique identifier for successive playbacks.
     bool silent;                      ///< \c true if this Playdata is used for statistics only.
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
+    uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
     Event_queue* events;              ///< The global event queue.
+    Event_queue* ins_events;          ///< The Instrument event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+
+    int buf_count;                    ///< Number of buffers used for mixing.
+    kqt_frame** bufs;                 ///< The (top-level) buffers.
+    Scale** scales;                   ///< The Scales.
+    Scale** active_scale;             ///< A reference to the currently active Scale.
+
+    int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
+    int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.
+    int16_t jump_set_section;         ///< Section number setting passed to a jump event.
+    Reltime jump_set_row;             ///< Pattern position passed to a jump event.
+    bool jump;                        ///< Jump trigger.
+    int16_t jump_subsong;             ///< Jump target subsong (-1 = no change).
+    int16_t jump_section;             ///< Jump target section (-1 = no change).
+    Reltime jump_row;                 ///< Jump target pattern position.
+
+    double volume;                    ///< Current global volume.
+    int volume_slide;                 ///< Global volume slide (0 = no slide, -1 = down, 1 = up).
+    Reltime volume_slide_length;
+    double volume_slide_target;       ///< Target volume of the global volume slide.
+    double volume_slide_frames;       ///< Number of frames to complete the slide.
+    double volume_slide_update;       ///< The update factor of the slide.
+
     double tempo;                     ///< Current tempo.
+    int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).
+    Reltime tempo_slide_length;
+    double tempo_slide_target;        ///< Final target tempo of the tempo slide.
+    Reltime tempo_slide_left;         ///< The total time left to finish the tempo slide.
+    double tempo_slide_int_target;    ///< Intermediate target tempo of the tempo slide.
+    Reltime tempo_slide_int_left;     ///< Time left until shifting tempo.
+    double tempo_slide_update;        ///< The update amount of the tempo slide.
+    double old_tempo;                 ///< Old tempo (used to detect tempo change).
+
+    Reltime delay_left;               ///< The amount of pattern delay left.
+    int delay_event_index;            ///< Position of the delay event.
+
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.
@@ -79,14 +117,16 @@ typedef struct Playdata
  * The caller shall eventually destroy the created object using
  * del_Playdata().
  *
- * \param freq    The mixing frequency -- must be > \c 0.
- * \param pool    The Voice pool to be used -- must not be \c NULL.
- * \param insts   The Instrument table -- must not be \c NULL.
+ * \param insts       The Instrument table -- must not be \c NULL.
+ * \param buf_count   Number of buffers used for mixing -- must be > \c 0.
+ * \param bufs        The mixing buffers -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
-Playdata* new_Playdata(uint32_t freq, Voice_pool* pool, Ins_table* insts);
+Playdata* new_Playdata(Ins_table* insts,
+                       int buf_count,
+                       kqt_frame** bufs);
 
 
 /**
@@ -119,6 +159,14 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
  * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.
  */
 void Playdata_set_subsong(Playdata* play, int subsong);
+
+
+/**
+ * Resets playback state.
+ *
+ * \param play   The Playdata object -- must not be \c NULL.
+ */
+void Playdata_reset(Playdata* play);
 
 
 /**

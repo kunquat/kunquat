@@ -26,8 +26,10 @@
 
 #include <stdint.h>
 
+#include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
+#include <Event_queue.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <Column.h>
@@ -41,24 +43,33 @@
  */
 typedef struct Channel
 {
+    Channel_state init_state; ///< Channel state at the start of the playback.
+    Channel_state cur_state;  ///< Channel state as passed to Voices.
+    Channel_state new_state;  ///< Channel state as received from Voices.
+    bool mute;                ///< If \c true, output of the Voices will be ignored.
+    int cur_inst;             ///< Current instrument number.
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
     Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
     uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
     Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
     Event* single; ///< An Event used for single note playback control.
+    Event_queue* ins_events; ///< The Instrument event queue.
 } Channel;
 
 
 /**
  * Creates a new Channel.
  *
- * \param insts   The Instrument table of the Song -- must not be \c NULL.
+ * \param insts        The Instrument table of the Song -- must not be \c NULL.
+ * \param num          The Channel number -- must be >= \c 0 and
+ *                     < \c KQT_COLUMNS_MAX.
+ * \param ins_events   The Instrument event queue -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
  */
-Channel* new_Channel(Ins_table* insts);
+Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events);
 
 
 /**
@@ -77,13 +88,22 @@ Channel* new_Channel(Ins_table* insts);
  * \param freq     The mixing frequency -- must be > \c 0.
  */
 void Channel_set_voices(Channel* ch,
-        Voice_pool* pool,
-        Column_iter* citer,
-        Reltime* start,
-        Reltime* end,
-        uint32_t offset,
-        double tempo,
-        uint32_t freq);
+                        Voice_pool* pool,
+                        Column_iter* citer,
+                        Reltime* start,
+                        Reltime* end,
+                        uint32_t offset,
+                        double tempo,
+                        uint32_t freq);
+
+
+/**
+ * Updates playback state of the Channel.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param mixed   Number of frames mixed.
+ */
+void Channel_update_state(Channel* ch, uint32_t mixed);
 
 
 /**

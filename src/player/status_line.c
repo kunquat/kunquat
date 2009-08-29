@@ -37,17 +37,13 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
     assert(minutes != NULL);
     assert(seconds != NULL);
     *minutes = (ns / 1000000000) / 60;
-    *seconds = remainder((double)ns / 1000000000, 60);
-    if (*seconds < 0)
-    {
-        *seconds += 60;
-    }
+    *seconds = fmod((double)ns / 1000000000, 60);
     return;
 }
 
 
 #define print_status(line, pos, max, ...)      \
-    do                                         \
+    if (true)                                  \
     {                                          \
         int printed = snprintf((line) + (pos), \
                                (max) - (pos),  \
@@ -60,7 +56,7 @@ void get_minutes_seconds(long long ns, int* minutes, double* seconds)
                 (pos) = (max) - 1;             \
             }                                  \
         }                                      \
-    } while (false)
+    } else (void)0
 
 int get_status_line(char* line,
                     int max_len,

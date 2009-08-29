@@ -37,24 +37,26 @@
 
 Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
+                           kqt_frame** vbufs2,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale** default_scale,
+                           Scale*** default_scale,
                            uint8_t events)
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
-    assert(bufs[1] != NULL);
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
-    assert(vbufs[1] != NULL);
+    assert(vbufs2 != NULL);
+    assert(vbufs2[0] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scales != NULL);
     assert(default_scale != NULL);
-    assert(default_scale >= &scales[0]);
-    assert(default_scale <= &scales[KQT_SCALES_MAX - 1]);
+    assert(*default_scale != NULL);
+    assert(*default_scale >= &scales[0]);
+    assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
@@ -62,18 +64,11 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
     if (Instrument_params_init(&ins->params,
-                               bufs, vbufs,
+                               bufs, vbufs, vbufs2,
                                buf_count, buf_len,
                                default_scale) == NULL)
     {
         xfree(ins);
-        return NULL;
-    }
-    ins->events = NULL;
-    ins->events = new_Event_queue(events);
-    if (ins->events == NULL)
-    {
-        del_Instrument(ins);
         return NULL;
     }
 
@@ -240,8 +235,8 @@ int Instrument_get_gen_count(Instrument* ins)
 
 
 int Instrument_set_gen(Instrument* ins,
-        int index,
-        Generator* gen)
+                       int index,
+                       Generator* gen)
 {
     assert(ins != NULL);
     assert(index >= 0);
@@ -266,7 +261,7 @@ int Instrument_set_gen(Instrument* ins,
 
 
 Generator* Instrument_get_gen(Instrument* ins,
-        int index)
+                              int index)
 {
     assert(ins != NULL);
     assert(index >= 0);
@@ -302,16 +297,34 @@ void Instrument_set_scale(Instrument* ins, int index)
     assert(ins != NULL);
     assert(index >= -1);
     assert(index < KQT_SCALES_MAX);
-    if (index == -1)
+    if (index == -1 || true)
     {
         ins->params.scale = ins->default_scale;
     }
     else
     {
-        ins->params.scale = &ins->scales[index];
+//        ins->params.scale = &ins->scales[index];
     }
     return;
 }
+
+
+#if 0
+bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
+{
+    assert(ins != NULL);
+    assert(event != NULL);
+    bool ok = true;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        if (ins->gens[i] != NULL && ins->gens[i]->enabled)
+        {
+            ok &= Generator_add_event(ins->gens[i], event, pos);
+        }
+    }
+    return ok;
+}
+#endif
 
 
 void Instrument_mix(Instrument* ins,
@@ -326,7 +339,7 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
-        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq);
+        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq, 120);
     }
     return;
 }
@@ -336,10 +349,6 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-    if (ins->events != NULL)
-    {
-        del_Event_queue(ins->events);
-    }
     for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
     {
         del_Generator(ins->gens[i]);

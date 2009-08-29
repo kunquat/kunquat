@@ -66,7 +66,9 @@ Playdata* init_play(void)
         fprintf(stderr, "new_Ins_table() returned NULL -- out of memory?\n");
         return NULL;
     }
-    Playdata* play = new_Playdata(1, voice_pool, insts);
+    static kqt_frame buf_l[] = { 0 };
+    static kqt_frame* bufs[] = { buf_l, buf_l };
+    Playdata* play = new_Playdata(insts, 2, bufs);
     if (play == NULL)
     {
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
@@ -125,8 +127,10 @@ START_TEST (mix)
     kqt_frame buf_l[256] = { 0 };
     kqt_frame buf_r[256] = { 0 };
     kqt_frame* bufs[2] = { buf_l, buf_r };
+    kqt_frame* vbufs[2] = { buf_l, buf_r };
     Scale* nts[KQT_SCALES_MAX] = { NULL };
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 128, nts, nts, 16);
+    Scale** default_scale = &nts[0];
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs, 2, 128, nts, &default_scale, 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -204,7 +208,7 @@ START_TEST (mix)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    play->channels[0]->cur_inst = instrument;
     Column* col = Pattern_get_col(pat, 0);
     if (!Column_ins(col, ev1_on))
     {
@@ -555,7 +559,7 @@ START_TEST (mix)
     Event_set_field(ev3_on, 0, &note);
     Event_set_field(ev3_on, 1, &mod);
     Event_set_field(ev3_on, 2, &octave);
-    Event_set_field(ev3_on, 3, &instrument);
+    play->channels[1]->cur_inst = instrument;
     Event_set_pos(ev3_on, Reltime_set(RELTIME_AUTO, 3, 0));
     col = Pattern_get_col(pat, 1);
     if (!Column_ins(col, ev3_on))

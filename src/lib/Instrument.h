@@ -38,13 +38,11 @@
 
 typedef struct Instrument
 {
-    Event_queue* events;        ///< Instrument event queue (esp. pedal events go here).
-
     double default_force;       ///< Default force.
     double force_variation;     ///< Force variation.
 
     Scale** scales;             ///< The Scales of the Song.
-    Scale** default_scale;      ///< The default Scale of the Song.
+    Scale*** default_scale;     ///< The default Scale of the Song.
     int scale_index;            ///< The index of the Scale used (-1 means the default).
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
@@ -57,10 +55,12 @@ typedef struct Instrument
 /**
  * Creates a new Instrument.
  *
- * \param bufs            The global mixing buffers -- must not be \c NULL.
- *                        Additionally, bufs[0] and bufs[1] must not be \c NULL.
- * \param vbufs           The Voice mixing buffers -- must not be \c NULL.
- *                        Additionally, vbufs[0] and vbufs[1] must not be \c NULL.
+ * \param bufs            The global mixing buffers -- must not be \c NULL and
+ *                        must contain at least \a buf_count buffers.
+ * \param vbufs           The Voice mixing buffers -- must not be \c NULL and
+ *                        must contain at least \a buf_count buffers.
+ * \param vbufs2          The auxiliary Voice mixing buffers -- must not be \c NULL and
+ *                        must contain at least \a buf_count buffers.
  * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
  * \param scales          The Scales of the Song -- must not be \c NULL.
@@ -73,10 +73,11 @@ typedef struct Instrument
  */
 Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
+                           kqt_frame** vbufs2,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale** default_scale,
+                           Scale*** default_scale,
                            uint8_t events);
 
 
@@ -164,6 +165,18 @@ void Instrument_del_gen(Instrument* ins, int index);
  *                < \c KQT_SCALES_MAX or \c -1 (default).
  */
 void Instrument_set_scale(Instrument* ins, int index);
+
+
+/**
+ * Adds a new Event into the Instrument event queue.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param event   The Event -- must not be \c NULL.
+ * \param pos     The position of the Event.
+ *
+ * \return   \c true if successful, or \c false if the Event queue is full.
+ */
+bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos);
 
 
 /**

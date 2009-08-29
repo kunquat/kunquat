@@ -53,6 +53,7 @@ Suite* Song_suite(void);
 Playdata* init_play(Song* song);
 
 
+#if 0
 Playdata* init_play(Song* song)
 {
     if (song == NULL)
@@ -66,7 +67,9 @@ Playdata* init_play(Song* song)
         fprintf(stderr, "new_Voice_pool() returned NULL -- out of memory?\n");
         return NULL;
     }
-    Playdata* play = new_Playdata(1, voice_pool, Song_get_insts(song));
+    static kqt_frame buf_l[] = { 0 };
+    static kqt_frame* bufs[] = { buf_l, buf_l };
+    Playdata* play = new_Playdata(1, voice_pool, Song_get_insts(song), 2, bufs);
     if (play == NULL)
     {
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
@@ -83,6 +86,7 @@ Playdata* init_play(Song* song)
     play->pattern = -1;
     return play;
 }
+#endif
 
 
 START_TEST (new)
@@ -222,7 +226,7 @@ START_TEST (mix)
         abort();
     }
     Song_set_mix_vol(song, 0);
-    Playdata* play = init_play(song);
+    Playdata* play = song->play_state;
     if (play == NULL) abort();
     Pattern* pat1 = new_Pattern();
     if (pat1 == NULL)
@@ -272,7 +276,10 @@ START_TEST (mix)
     Scale* notes = Song_get_scale(song, 0);
     Scale_set_ref_pitch(notes, 2);
     kqt_frame** bufs = Song_get_bufs(song);
-    Instrument* ins = new_Instrument(bufs, bufs, 2, 256, &notes, &notes, 16);
+    kqt_frame** vbufs = Song_get_voice_bufs(song);
+    kqt_frame** vbufs2 = Song_get_voice_bufs2(song);
+    Instrument* ins = new_Instrument(bufs, vbufs, vbufs2, 2, 256, Song_get_scales(song),
+                                     Song_get_active_scale(song), 16);
     if (ins == NULL)
     {
         fprintf(stderr, "new_Instrument() returned NULL -- out of memory?\n");
@@ -339,12 +346,11 @@ START_TEST (mix)
     Event_set_field(ev1_on, 0, &note);
     Event_set_field(ev1_on, 1, &mod);
     Event_set_field(ev1_on, 2, &octave);
-    Event_set_field(ev1_on, 3, &instrument);
+    play->channels[0]->cur_inst = instrument;
     octave = KQT_SCALE_MIDDLE_OCTAVE;
     Event_set_field(ev2_on, 0, &note);
     Event_set_field(ev2_on, 1, &mod);
     Event_set_field(ev2_on, 2, &octave);
-    Event_set_field(ev2_on, 3, &instrument);
     Column* col = Pattern_get_col(pat1, 0);
     if (!Column_ins(col, ev1_on))
     {

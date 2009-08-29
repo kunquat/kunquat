@@ -28,6 +28,7 @@
 
 #include <Event_queue.h>
 #include <Generator.h>
+#include <Channel_state.h>
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
@@ -110,10 +111,19 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice   The Voice -- must not be \c NULL.
- * \param gen     The Generator used -- must not be \c NULL.
+ * \param voice          The Voice -- must not be \c NULL.
+ * \param gen            The Generator used -- must not be \c NULL.
+ * \param cur_ch_state   The current Channel state -- must not be \c NULL.
+ * \param new_ch_state   The new (upcoming) Channel state -- must not be \c NULL.
+ * \param freq           The mixing frequency -- must be > \c 0.
+ * \param tempo          The current tempo -- must be > \c 0.
  */
-void Voice_init(Voice* voice, Generator* gen);
+void Voice_init(Voice* voice,
+                Generator* gen,
+                Channel_state* cur_ch_state,
+                Channel_state* new_ch_state,
+                uint32_t freq,
+                double tempo);
 
 
 /**
@@ -143,11 +153,13 @@ bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
  * \param amount   The number of frames to be mixed.
  * \param offset   The buffer offset.
  * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The current tempo -- must be > \c 0.
  */
 void Voice_mix(Voice* voice,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq);
+               uint32_t amount,
+               uint32_t offset,
+               uint32_t freq,
+               double tempo);
 
 
 /**

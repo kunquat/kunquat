@@ -31,39 +31,42 @@
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \
-    do\
-    {\
-        (env) = new_Envelope((nodes), (xmin), (xmax), (xstep),\
-                (ymin), (ymax), (ystep));\
-        if ((env) == NULL)\
-        {\
-            Instrument_params_uninit(ip);\
-            return NULL;\
-        }\
-    } while (false)
+    if (true)                                                             \
+    {                                                                     \
+        (env) = new_Envelope((nodes), (xmin), (xmax), (xstep),            \
+                (ymin), (ymax), (ystep));                                 \
+        if ((env) == NULL)                                                \
+        {                                                                 \
+            Instrument_params_uninit(ip);                                 \
+            return NULL;                                                  \
+        }                                                                 \
+    } else (void)0
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-        kqt_frame** bufs,
-        kqt_frame** vbufs,
-        int buf_count,
-        uint32_t buf_len,
-        Scale** scale)
+                                          kqt_frame** bufs,
+                                          kqt_frame** vbufs,
+                                          kqt_frame** vbufs2,
+                                          int buf_count,
+                                          uint32_t buf_len,
+                                          Scale*** scale)
 {
     assert(ip != NULL);
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
-    assert(bufs[1] != NULL);
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
-    assert(vbufs[1] != NULL);
+    assert(vbufs2 != NULL);
+    assert(vbufs2[0] != NULL);
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scale != NULL);
+    assert(*scale != NULL);
     ip->bufs = ip->gbufs = bufs;
     ip->buf_count = buf_count;
     ip->buf_len = buf_len;
     ip->pbufs = NULL;
     ip->vbufs = vbufs;
+    ip->vbufs2 = vbufs2;
     ip->force_volume_env = NULL;
     ip->force_filter_env = NULL;
     ip->force_pitch_env = NULL;
@@ -257,15 +260,15 @@ bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* 
 }
 
 
-#define del_env_check(env)\
-    do\
-    {\
-        if ((env) != NULL)\
-        {\
-            del_Envelope((env));\
-            (env) = NULL;\
-        }\
-    } while (false)
+#define del_env_check(env)       \
+    if (true)                    \
+    {                            \
+        if ((env) != NULL)       \
+        {                        \
+            del_Envelope((env)); \
+            (env) = NULL;        \
+        }                        \
+    } else (void)0
 
 void Instrument_params_uninit(Instrument_params* ip)
 {

@@ -93,7 +93,7 @@ bool Event_write(Event* event, FILE* out, Write_state* state);
  *
  * \return   The type description -- must not be freed. The value is an array
  *           containing a field type description for each field. The array is
- *           terminated with a field type of \c EVENT_TYPE_NONE. See
+ *           terminated with a field type of \c EVENT_NONE. See
  *           Event_type.h for details.
  */
 Event_field_desc* Event_get_field_types(Event* event);

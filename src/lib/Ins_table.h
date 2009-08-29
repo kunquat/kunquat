@@ -54,6 +54,7 @@ Ins_table* new_Ins_table(int size);
  * \param state           The Read state -- must not be \c NULL.
  * \param bufs            The mixing buffer of the Song -- must not be \c NULL.
  * \param voice_bufs      The Voice buffers of the Song -- must not be \c NULL.
+ * \param voice_bufs2     The auxiliary Voice buffers of the Song -- must not be \c NULL.
  * \param buf_count       The number of buffers in the Song -- must be > \c 0 and
  *                        < \c KQT_BUFFERS_MAX.
  * \param buf_len         The length of the buffers in the Song -- must be
@@ -69,10 +70,11 @@ Ins_table* new_Ins_table(int size);
 bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
                     kqt_frame** bufs,
                     kqt_frame** voice_bufs,
+                    kqt_frame** voice_bufs2,
                     int buf_count,
                     uint32_t buf_len,
                     Scale** scales,
-                    Scale** default_scale,
+                    Scale*** default_scale,
                     uint8_t events);
 
 

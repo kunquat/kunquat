@@ -99,8 +99,8 @@ uint16_t Voice_pool_get_size(Voice_pool* pool);
  *           under the control of the caller.
  */
 Voice* Voice_pool_get_voice(Voice_pool* pool,
-        Voice* voice,
-        uint64_t id);
+                            Voice* voice,
+                            uint64_t id);
 
 
 /**
@@ -114,9 +114,10 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
  * \return   The number of active Voices.
  */
 uint16_t Voice_pool_mix(Voice_pool* pool,
-        uint32_t amount,
-        uint32_t offset,
-        uint32_t freq);
+                        uint32_t amount,
+                        uint32_t offset,
+                        uint32_t freq,
+                        double tempo);
 
 
 /**
