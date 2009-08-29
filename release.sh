@@ -1,9 +1,16 @@
 #!/bin/sh
 
 
-chmod a-x release.sh
-bzr export ../kunquat-0.2.3.tar.gz
-chmod a+x release.sh
+VERSION=0.2.3
+RELEASE=kunquat-$VERSION
+
+
+mkdir -p release
+bzr export release/$RELEASE
+cd release/$RELEASE
+rm release.sh
+cd ..
+tar cpzf $RELEASE.tar.gz $RELEASE
 
 exit 0
 
