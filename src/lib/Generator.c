@@ -33,6 +33,7 @@
 #include <Generator_square.h>
 #include <Generator_square303.h>
 #include <Generator_pcm.h>
+#include <Generator_noise.h>
 #include <File_base.h>
 #include <File_tree.h>
 #include <Filter.h>
@@ -110,6 +111,10 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
     else if (strcmp(type_str, "pcm") == 0)
     {
         gen = (Generator*)new_Generator_pcm(ins_params);
+    }
+    else if (strcmp(type_str, "noise") == 0)
+    {
+        gen = (Generator*)new_Generator_noise(ins_params);
     }
     else
     {
