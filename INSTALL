@@ -9,6 +9,12 @@ useful.
     Dependencies
     ------------
 
+On a relatively new Ubuntu you should be able to get all the required and
+optional dependencies by running the following command:
+
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
+
+
 Building of Kunquat depends on the following tools and libraries:
 
   scons (http://www.scons.org/)
@@ -17,8 +23,8 @@ Building of Kunquat depends on the following tools and libraries:
 
 In order to get sound you'll need one of the following:
 
-  JACK (http://jackaudio.org/)
   libao (http://www.xiph.org/ao/)
+  JACK (http://jackaudio.org/)
   OpenAL (http://www.openal.org/)
 
 If you want to build waveform audio export support, you'll need:
@@ -29,17 +35,6 @@ Additionally, if you want to build the test code, you'll need:
 
   Check (http://check.sourceforge.net/)
    
-
-    Installing the Dependencies
-    ---------------------------
-
-Ubuntu:
-
-On a relatively new Ubuntu you should be able to get all the required and
-optional dependencies by running the following command:
-
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
-
 
     Building instructions
     ---------------------
@@ -67,7 +62,8 @@ thorough clean, run:
     Installation instructions
     -------------------------
 
-To install Kunquat into the default directory, run:
+Make sure you have the required permissions for installing Kunquat into the
+directory of your choice. To install Kunquat into the default directory, run:
 
   scons install
 
@@ -80,8 +76,10 @@ To uninstall Kunquat, run:
 
   scons -c install
 
-Make sure you use the same prefix as during the installation. Otherwise the
-files will not be removed.
+Make sure you use the same prefix as during the installation. You can specify
+the uninstallation prefix like this:
+
+  scons prefix=/opt -c install
 
 
     Running instructions
