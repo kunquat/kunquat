@@ -84,6 +84,8 @@ if not env.GetOption('clean'):
 
     conf = Configure(env)
 
+    conf_errors = []
+
     if not conf.CheckType('int8_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Dint8_t=int_least8_t')
         conf.env.Append(CCFLAGS = '-DINT8_MIN=(-128)')
@@ -121,22 +123,18 @@ if not env.GetOption('clean'):
         conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
     if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
-        print('Error: Math library not found.')
-        Exit(1)
+        conf_errors.append('Math library not found.')
 
     conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
     conf.env.Append(CCFLAGS = '-Duint=uint32_t')
     if not conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
-        print('Error: WavPack not found.')
-        Exit(1)
+        conf_errors.append('WavPack not found.')
 
     if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
-        print('Error: libarchive not found.')
-        Exit(1)
+        conf_errors.append('libarchive not found.')
     
     if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
-        print('Error: POSIX threads not found.')
-        Exit(1)
+        conf_errors.append('POSIX threads not found.')
 
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
@@ -172,7 +170,12 @@ if not env.GetOption('clean'):
             env['enable_export'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
-        print('Error: Building of unit tests was requested but Check was not found.')
+        conf_errors.append('Building of unit tests was requested but Check was not found.')
+
+    if conf_errors:
+        print('The following errors occurred while configuring Kunquat:')
+        for err in conf_errors:
+            print(err)
         Exit(1)
         
     env = conf.Finish()
