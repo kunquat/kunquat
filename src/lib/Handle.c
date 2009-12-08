@@ -105,7 +105,7 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
-        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: buf_size must be positive");
+        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: buffer_size must be positive");
         return NULL;
     }
     if (path == NULL)
@@ -123,6 +123,7 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
     kqt_Handle* handle = kqt_new_Handle(buffer_size);
     if (handle == NULL)
     {
+        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
         return NULL;
     }
     File_tree* tree = NULL;

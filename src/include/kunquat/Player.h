@@ -67,6 +67,46 @@ extern "C" {
 
 
 /**
+ * Creates a read-only Kunquat Handle from a composition file.
+ *
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
+ *
+ * \param buffer_size   The size of the mixing buffers -- should be positive.
+ *                      See kqt_new_Handle for detailed explanation.
+ * \param path          The path to the Kunquat composition file -- should not
+ *                      be \c NULL.
+ *
+ * \return   The new read-only Kunquat Handle if successful, otherwise \c NULL
+ *           (check kqt_Handle_get_error(\c NULL) for error message).
+ */
+kqt_Handle* kqt_file_init(long buffer_size, char* path);
+
+
+/**
+ * Creates a read/write Kunquat Handle from a composition directory.
+ *
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
+ *
+ * \param buffer_size   The size of the mixing buffers -- should be positive.
+ *                      See kqt_new_Handle for detailed explanation.
+ * \param path          The path to the Kunquat composition directory -- should
+ *                      not be \c NULL.
+ *
+ * \return   The new read/write Kunquat Handle if successful, otherwise \c NULL
+ *           (check kqt_Handle_get_error(\c NULL) for error message).
+ */
+kqt_Handle* kqt_dir_init(long buffer_size, char* path);
+
+
+/**
+ * Opens 
+ */
+kqt_Entry* kqt_Handle_open_entry(kqt_Handle* handle, char* key);
+
+
+/**
  * Does mixing according to the state of the Kunquat Handle.
  *
  * \param handle    The Handle -- should not be \c NULL.

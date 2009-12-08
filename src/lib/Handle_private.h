@@ -42,6 +42,7 @@
 struct kqt_Handle
 {
     Song* song;
+    kqt_Access_mode mode;
     char error[KQT_CONTEXT_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };

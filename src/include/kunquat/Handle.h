@@ -31,6 +31,7 @@ extern "C" {
 
 #include <kunquat/limits.h>
 #include <kunquat/frame.h>
+#include <kunquat/Entry.h>
 
 
 /**
@@ -62,6 +63,25 @@ extern "C" {
  * Handles from different threads in parallel should be safe.
  */
 typedef struct kqt_Handle kqt_Handle;
+
+
+/**
+ * The access mode of Kunquat Handles.
+ *
+ * The read-only mode is used for composition files and is typically used by
+ * players.
+ *
+ * The read/write mode 
+ *
+ * The commit mode is similar to read/write mode but provides a safe
+ * transaction mechanism for storing changes to the data being modified.
+ */
+typedef enum
+{
+    KQT_READ_ONLY = 0,
+    KQT_READ_WRITE,
+    KQT_COMMIT
+} kqt_Access_mode;
 
 
 /**
