@@ -114,6 +114,7 @@ Path_type path_info(const char* path, kqt_Handle* handle)
     {
         if (errno == ENOENT)
         {
+            errno = 0;
             return PATH_NOT_EXIST;
         }
         kqt_Handle_set_error(handle, __func__ ": Couldn't retrieve information"
@@ -203,6 +204,38 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     del_Directory(dir);
     if (kqt_Handle_get_error(handle)[0] != '\0')
     {
+        return false;
+    }
+    return true;
+}
+
+
+bool move_dir(const char* dest, const char* src, kqt_Handle* handle)
+{
+    assert(dest != NULL);
+    assert(dest[0] != '\0');
+    assert(src != NULL);
+    assert(src[0] != '\0');
+    if (strcmp(dest, src) == 0)
+    {
+        return true;
+    }
+    Path_type info = path_info(src, handle);
+    if (info == PATH_ERROR)
+    {
+        return false;
+    }
+    else if (info != PATH_IS_DIR)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Source path %s is not"
+                " a directory", src);
+        return false;
+    }
+    errno = 0;
+    if (rename(src, dest) != 0)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't move the directory"
+                " %s into %s: %s", src, dest, strerror(errno));
         return false;
     }
     return true;

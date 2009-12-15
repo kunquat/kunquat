@@ -32,6 +32,9 @@
 
 /**
  * Directory is a wrapper for reading directories.
+ *
+ * This structure is intended to be used only in special cases where the
+ * helper functions below don't provide the required functionality.
  */
 typedef struct Directory Directory;
 
@@ -89,6 +92,20 @@ Path_type path_info(const char* path, kqt_Handle* handle);
  *           likely only partially created in case of an error.
  */
 bool copy_dir(const char* dest, const char* src, kqt_Handle* handle);
+
+
+/**
+ * Moves a directory tree.
+ *
+ * \param dest     The destination path -- must not be \c NULL or an empty
+ *                 string.
+ * \param src      The source path -- must not be \c NULL or an empty string.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool move_dir(const char* dest, const char* src, kqt_Handle* handle);
 
 
 /**
