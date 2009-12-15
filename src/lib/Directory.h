@@ -53,6 +53,19 @@ typedef enum
 
 
 /**
+ * Appends a new file name into a path.
+ *
+ * \param path   The path -- must not be \c NULL.
+ * \param name   The file name -- must not be \c NULL.
+ *
+ * \return   The new path if successful. or \c NULL if memory allocation
+ *           failed. The caller must eventually free the returned string
+ *           using xfree.
+ */
+char* append_to_path(const char* path, const char* name);
+
+
+/**
  * Creates a directory in the file system.
  *
  * If the new directory is inside a directory accessed via a Directory

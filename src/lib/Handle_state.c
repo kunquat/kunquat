@@ -20,18 +20,12 @@
  */
 
 
-#define _POSIX_SOURCE
-
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <dirent.h>
-#include <errno.h>
-
+#include <Directory.h>
 #include <Handle_private.h>
 
 #include <kunquat/limits.h>
@@ -109,17 +103,14 @@ kqt_Handle* kqt_state_init(long buffer_size, char* path)
         return NULL;
     }
 
-    struct stat* info = &(struct stat){ .st_mode = 0 };
-    errno = 0;
-    if (stat(path, info) < 0)
+    Path_type info = path_info(path, NULL);
+    if (info == PATH_ERROR)
     {
-        kqt_Handle_set_error(NULL,
-                __func__ ": Couldn't access %s: %s", path, strerror(errno));
         return NULL;
     }
-    if (!S_ISDIR(info->st_mode))
+    if (info != PATH_IS_DIR)
     {
-        kqt_Handle_set_error(NULL, __func__ ": path is not a directory");
+        kqt_Handle_set_error(NULL, __func__ ": path %s is not a directory", path);
         return NULL;
     }
 
@@ -159,10 +150,9 @@ kqt_Handle* kqt_state_init(long buffer_size, char* path)
             kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
             return NULL;
         }
-        errno = 0;
-        err = mkdir(committed_path, 0777); // TODO: mode?
+        bool created = create_dir(committed_path, NULL);
         xfree(committed_path);
-        if (err != 0)
+        if (!created)
         {
             kqt_Handle_set_error(NULL, __func__ ": Couldn't create the \"committed\""
                     " directory inside %s: %s", path, strerror(errno));
@@ -214,15 +204,30 @@ static bool partial_recovery(const char* path)
 
     if (has_committed && has_workspace && !has_oldcommit)
     {
-        // TODO: delete workspace
+        char* workspace_path = append_to_path(path, "workspace");
+        if (workspace_path == NULL)
+        {
+            kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
+            return false;
+        }
+        bool removed = remove_dir(workspace_path, NULL);
+        xfree(workspace_path);
+        return removed;
     }
     else if (has_committed && !has_workspace && has_oldcommit)
     {
-        // TODO: delete oldcommit
+        char* oldcommit_path = append_to_path(path, "oldcommit");
+        if (oldcommit_path == NULL)
+        {
+            kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
+            return false;
+        }
+        bool removed = remove_dir(oldcommit_path, NULL);
+        xfree(oldcommit_path);
+        return removed;
     }
     assert(!has_committed && has_workspace && has_oldcommit);
 
-    // rename workspace to committed
     char* workspace_path = append_to_path(path, "workspace");
     if (workspace_path == NULL)
     {
@@ -236,17 +241,10 @@ static bool partial_recovery(const char* path)
         xfree(workspace_path);
         return false;
     }
-    errno = 0;
-    int err = rename(workspace_path, committed_path);
+    bool moved = move_dir(committed_path, workspace_path, NULL);
     xfree(workspace_path);
     xfree(committed_path);
-    if (err != 0)
-    {
-        kqt_Handle_set_error(NULL, __func__ ": Couldn't change the \"workspace\""
-                " directory into the new \"committed\" directory in %s", path);
-        return false;
-    }
-    return true;
+    return moved;
 }
 
 
@@ -260,119 +258,67 @@ static bool inspect_dirs(const char* path,
     assert(has_workspace != NULL);
     assert(has_oldcommit != NULL);
 
-    errno = 0;
-    DIR* ds = opendir(path);
-    if (ds == NULL)
+    Directory* dir = new_Directory(path, NULL);
+    if (dir == NULL)
     {
-        kqt_Handle_set_error(NULL, __func__ ": %s", strerror(errno));
-        return false;
-    }
-    union
-    {
-        struct dirent d;
-        char buf[offsetof(struct dirent, d_name) + _PC_NAME_MAX + 1];
-    } entry_area;
-    struct dirent* de = &entry_area.d;
-    struct dirent* ret = NULL;
-    int err = readdir_r(ds, de, &ret);
-    if (err != 0)
-    {
-        kqt_Handle_set_error(NULL, __func__ ": %s", strerror(err));
-        closedir(ds);
         return false;
     }
     
     *has_committed = false;
     *has_workspace = false;
     *has_oldcommit = false;
-    while (ret != NULL)
+    char* entry = Directory_get_entry(dir);
+    while (entry != NULL)
     {
-        char* entry = NULL;
-        if (strcmp(de->d_name, "committed") == 0)
+        bool found = false;
+        if (strcmp(entry, "committed") == 0)
         {
-            entry = "committed";
+            found = true;
             *has_committed = true;
         }
-        else if (strcmp(de->d_name, "workspace") == 0)
+        else if (strcmp(entry, "workspace") == 0)
         {
-            entry = "workspace";
+            found = true;
             *has_workspace = true;
         }
-        else if (strcmp(de->d_name, "oldcommit") == 0)
+        else if (strcmp(entry, "oldcommit") == 0)
         {
-            entry = "oldcommit";
+            found = true;
             *has_oldcommit = true;
         }
-        if (entry != NULL)
+        if (found)
         {
-            char* entry_path = append_to_path(path, entry);
-            if (entry_path == NULL)
+            Path_type type = path_info(entry, NULL);
+            if (type == PATH_ERROR)
             {
-                kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
-                closedir(ds);
+                xfree(entry);
+                del_Directory(dir);
                 return false;
             }
-            struct stat* entry_info = &(struct stat){ .st_mode = 0 };
-            errno = 0;
-            err = stat(entry_path, entry_info);
-            xfree(entry_path);
-            if (err < 0)
-            {
-                kqt_Handle_set_error(NULL, __func__ ": %s", strerror(errno));
-                closedir(ds);
-                return false;
-            }
-            if (!S_ISDIR(entry_info->st_mode))
+            if (type != PATH_IS_DIR)
             {
                 kqt_Handle_set_error(NULL, __func__ ": File %s exists inside %s"
                         " but is not a directory", entry, path);
-                closedir(ds);
+                xfree(entry);
+                del_Directory(dir);
                 return false;
             }
         }
-        err = readdir_r(ds, de, &ret);
-        if (err != 0)
-        {
-            kqt_Handle_set_error(NULL, __func__ ": %s", strerror(err));
-            closedir(ds);
-            return false;
-        }
+        xfree(entry);
+        entry = Directory_get_entry(dir);
     }
-    closedir(ds);
+    del_Directory(dir);
+    if (kqt_Handle_get_error(NULL)[0] != '\0')
+    {
+        return false;
+    }
     return true;
-}
-
-
-static char* append_to_path(const char* path, const char* name)
-{
-    assert(path != NULL);
-    assert(name != NULL);
-    int path_len = strlen(path);
-    bool trailing_slash = path_len > 0 && path[path_len - 1] == '/';
-    char* new_path = xcalloc(char, path_len +
-            (trailing_slash ? 0 : 1) + strlen(name) + 1);
-    if (new_path == NULL)
-    {
-        return NULL;
-    }
-    strcpy(new_path, path);
-    if (!trailing_slash)
-    {
-        strcat(new_path, "/");
-    }
-    strcat(new_path, name);
-    return new_path;
-}
-
-
-static bool remove_tree(const char* path)
-{
-    assert(path != NULL);
 }
 
 
 int kqt_Handle_commit(kqt_Handle* handle)
 {
+    check_handle(handle, __func__, 0);
 }
 
 

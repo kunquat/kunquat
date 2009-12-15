@@ -52,19 +52,6 @@ struct Directory
 
 
 /**
- * Appends a new file name into a path.
- *
- * \param path   The path -- must not be \c NULL.
- * \param name   The file name -- must not be \c NULL.
- *
- * \return   The new path if successful. or \c NULL if memory allocation
- *           failed. The caller must eventually free the returned string
- *           using xfree.
- */
-static char* append_to_path(const char* path, const char* name);
-
-
-/**
  * Gets the last element of the path.
  *
  * \param path   The path -- must not be \c NULL.
@@ -419,7 +406,7 @@ void del_Directory(Directory* dir)
 }
 
 
-static char* append_to_path(const char* path, const char* name)
+char* append_to_path(const char* path, const char* name)
 {
     assert(path != NULL);
     assert(name != NULL);
