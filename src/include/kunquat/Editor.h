@@ -44,7 +44,7 @@ extern "C" {
 
 
 /**
- * Initialises a Kunquat Handle from a composition state directory.
+ * Initialises a read/write/commit Kunquat Handle from a composition state.
  *
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
@@ -54,10 +54,10 @@ extern "C" {
  * \param path          The path to the Kunquat composition state directory --
  *                      should not be \c NULL.
  *
- * \return   The new composition state Kunquat Handle if successful, otherwise
+ * \return   The new read/write/commit Kunquat Handle if successful, otherwise
  *           \c NULL  (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_state_init(long buffer_size, char* path);
+kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path);
 
 
 /**

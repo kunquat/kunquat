@@ -66,31 +66,7 @@ static bool inspect_dirs(const char* path,
 static bool partial_recovery(const char* path);
 
 
-/**
- * Appends a new file name into a path.
- *
- * \param path   The path -- must not be \c NULL.
- * \param name   The file name -- must not be \c NULL.
- *
- * \return   The new path if successful. or \c NULL if memory allocation
- *           failed. The caller must eventually free the returned string
- *           using xfree.
- */
-static char* append_to_path(const char* path, const char* name);
-
-
-/**
- * Removes an entire directory subtree.
- *
- * \param path   The path -- must not be \c NULL and must be a directory.
- *
- * \return   \c true if successful, or \c false if failed. The path is
- *           most likely partially destroyed in case of an error.
- */
-static bool remove_tree(const char* path);
-
-
-kqt_Handle* kqt_state_init(long buffer_size, char* path)
+kqt_Handle* kqt_new_rwc_Handle(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
@@ -136,8 +112,6 @@ kqt_Handle* kqt_state_init(long buffer_size, char* path)
     {
         if (!partial_recovery(path))
         {
-            kqt_Handle_set_error(NULL,
-                    __func__ ": Partial recovery of %s failed", path);
             return NULL;
         }
         return kqt_state_init(buffer_size, path);
