@@ -25,8 +25,11 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <File_tree.h>
 #include <Directory.h>
 #include <Handle_private.h>
+
+#include <xmemory.h>
 
 #include <kunquat/limits.h>
 
@@ -66,7 +69,16 @@ static bool inspect_dirs(const char* path,
 static bool partial_recovery(const char* path);
 
 
-kqt_Handle* kqt_new_rwc_Handle(long buffer_size, char* path)
+/**
+ * Destroys an existing read/write/commit Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL and must be a
+ *                 read/write/commit Handle.
+ */
+static void del_Handle_rwc(kqt_Handle* handle);
+
+
+kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
@@ -137,14 +149,124 @@ kqt_Handle* kqt_new_rwc_Handle(long buffer_size, char* path)
 
     assert(has_committed && !has_workspace && !has_oldcommit);
 
-    kqt_Handle* handle = kqt_new_Handle(buffer_size);
+    char* committed_path = append_to_path(path, "committed");
+    if (committed_path == NULL)
+    {
+        kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
+        return NULL;
+    }
+    char* workspace_path = append_to_path(path, "workspace");
+    if (workspace_path == NULL)
+    {
+        kqt_Handle_set_error(NULL, __func__ ": Couldn't allocate memory");
+        xfree(committed_path);
+        return NULL;
+    }
+    bool copied = copy_dir(workspace_path, committed_path, NULL);
+    xfree(committed_path);
+    if (!copied)
+    {
+        kqt_Handle_set_error(NULL, __func__ ": Couldn't copy the \"committed\""
+                " directory into the new \"workspace\" directory");
+        xfree(workspace_path);
+        return NULL;
+    }
+
+    Handle_rwc* handle_rwc = xalloc(Handle_rwc);
     if (handle == NULL)
     {
         kqt_Handle_set_error(NULL,
                 __func__ ": Couldn't allocate memory for a new Kunquat Handle");
+        xfree(workspace_path);
         return NULL;
     }
+    handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
+    handle_rwc->handle_rw.base_path = workspace_path;
+    handle_rwc->changed_files = new_AAtree(strcmp, free);
+    if (handle_rwc->changed_files == NULL)
+    {
+        kqt_Handle_set_error(NULL,
+                __func__ ": Couldn't allocate memory for a new Kunquat Handle");
+        del_Handle_rwc(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
+
+    Read_state* state = READ_STATE_AUTO;
+    File_tree* tree = new_File_tree_from_fs(handle_rwc->handle_rw.base_path, state);
+    if (tree == NULL)
+    {
+        kqt_Handle_set_error(NULL, __func__ ": Couldn't load the path %s"
+                " as a Kunquat composition directory: %s:%d: %s",
+                handle_rwc->handle_rw.base_path,
+                state->path, state->row, state->message);
+        del_Handle_rwc(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
+    if (!kqt_Handle_init(&handle_rwc->handle_rw.handle, buffer_size, tree))
+    {
+        del_File_tree(tree);
+        del_Handle_rwc(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
+    del_File_tree(tree);
+
+    handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
+    handle_rwc->handle_rw.handle.get_data = Handle_rw_get_data;
+    handle_rwc->handle_rw.handle.get_data_length = Handle_rw_get_data_length;
+    handle_rwc->handle_rw.handle.set_data = Handle_rwc_set_data;
+    handle_rwc->handle_rw.handle.destroy = del_Handle_rwc;
+    return &handle_rwc->handle_rw.handle;
 }
+
+
+int kqt_Handle_commit(kqt_Handle* handle)
+{
+    check_handle(handle, __func__, 0);
+    if (handle->mode != KQT_READ_WRITE_COMMIT)
+    {
+        kqt_Handle_set_error(handle, __func__
+                ": Cannot commit changes in a non-commit Kunquat Handle");
+        return 0;
+    }
+}
+
+
+static int Handle_rwc_set_data(kqt_Handle* handle,
+                               char* key,
+                               void* data,
+                               int length)
+{
+    assert(handle != NULL);
+    assert(handle->mode == KQT_READ_WRITE_COMMIT);
+    Handle_rwc* handle_rwc = (Handle_rwc*)handle;
+    bool new_file_changed = false;
+    if (AAtree_get_exact(handle_rwc->changed_files) == NULL)
+    {
+        new_file_changed = true;
+        char* key_copy = xnalloc(char, strlen(key) + 1);
+        if (key_copy == NULL)
+        {
+            kqt_Handle_set_error(handle, __func__
+                    ": Couldn't log changes to the key %s", key);
+            return 0;
+        }
+        if (!AAtree_ins(handle_rwc->changed_files, key_copy))
+        {
+            kqt_Handle_set_error(handle, __func__
+                    ": Couldn't log changes to the key %s", key);
+            xfree(key_copy);
+            return 1;
+        }
+    }
+    int set = Handle_rw_set_data(handle, key, data, length);
+    if (!set && new_file_changed)
+    {
+        char* key_copy = AAtree_remove(handle_rwc->changed_files, key);
+        xfree(key_copy);
+    }
+    return set;
+}
+
 
 /*
  * define recovery()
@@ -290,9 +412,21 @@ static bool inspect_dirs(const char* path,
 }
 
 
-int kqt_Handle_commit(kqt_Handle* handle)
+static void del_Handle_rwc(kqt_Handle* handle)
 {
-    check_handle(handle, __func__, 0);
+    assert(handle_is_valid(handle));
+    assert(handle->mode == KQT_READ_WRITE_COMMIT);
+    Handle_rwc* handle_rwc = (Handle_rwc*)handle;
+    if (handle_rwc->handle.base_path != NULL)
+    {
+        xfree(handle_rwc->handle.base_path);
+    }
+    if (handle_rwc->changed_files != NULL)
+    {
+        del_AAtree(handle_rwc->changed_files);
+    }
+    xfree(handle_rwc);
+    return;
 }
 
 

@@ -31,6 +31,10 @@ typedef struct Handle_rw
 {
     kqt_Handle handle;
     char* base_path;
+    int set_data(kqt_Handle* handle,
+                 char* key,
+                 void* data,
+                 int length);
 } Handle_rw;
 
 
@@ -46,10 +50,10 @@ typedef struct Handle_rw
  *
  * \return   \c 1 if successful, otherwise \c 0.
  */
-int kqt_Handle_rw_set_data(kqt_Handle* handle,
-                           char* key,
-                           void* data,
-                           int length);
+int Handle_rw_set_data(kqt_Handle* handle,
+                       char* key,
+                       void* data,
+                       int length);
 
 
 #endif // KQT_HANDLE_RW_H

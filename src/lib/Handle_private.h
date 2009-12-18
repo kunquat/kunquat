@@ -44,8 +44,8 @@ struct kqt_Handle
 {
     Song* song;
     kqt_Access_mode mode;
-    char* get_data(kqt_Handle* handle, char* key);
-    char* get_data_length(kqt_Handle* handle, char* key);
+    void* get_data(kqt_Handle* handle, const char* key);
+    long get_data_length(kqt_Handle* handle, const char* key);
     void destroy(struct kqt_Handle* handle);
     char error[KQT_CONTEXT_ERROR_LENGTH];
     char position[POSITION_LENGTH];
@@ -66,12 +66,35 @@ struct kqt_Handle
 bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree);
 
 
+/**
+ * Sets an error message for a Kunquat Handle.
+ *
+ * \param handle    The Kunquat Handle, or \c NULL if not applicable.
+ * \param message   The error message format -- must not be \c NULL. This and
+ *                  the extra arguments correspond to the arguments of the
+ *                  printf family of functions.
+ */
 void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...);
 
+
+/**
+ * Resets the playback pointer of the Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
+ */
 void kqt_Handle_stop(kqt_Handle* handle);
 
 
+/**
+ * Checks the validity of a Kunquat Handle.
+ *
+ * \param handle   The pointer of the supposed Kunquat Handle.
+ *
+ * \return   \c true if \a handle is a valid Kunquat Handle, otherwise
+ *           \c false.
+ */
 bool handle_is_valid(kqt_Handle* handle);
+
 
 #define check_handle(handle, ret)                                   \
     if (true)                                                       \

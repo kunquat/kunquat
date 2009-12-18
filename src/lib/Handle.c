@@ -185,7 +185,7 @@ void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...)
 }
 
 
-char* kqt_Handle_get_data(kqt_Handle* handle, char* key)
+void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle->get_data != NULL);
     check_handle(handle, NULL);
@@ -198,7 +198,7 @@ char* kqt_Handle_get_data(kqt_Handle* handle, char* key)
 }
 
 
-long kqt_Handle_get_data_length(kqt_Handle* handle, char* key)
+long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle->get_data_length != NULL);
     check_handle(handle, NULL);
@@ -231,7 +231,7 @@ void kqt_del_Handle(kqt_Handle* handle)
 }
 
 
-static char* Handle_r_get_data(kqt_Handle* handle, char* key)
+static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(key != NULL);
@@ -239,7 +239,7 @@ static char* Handle_r_get_data(kqt_Handle* handle, char* key)
 }
 
 
-static long Handle_r_get_data_length(kqt_Handle* handle, char* key)
+static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(key != NULL);
