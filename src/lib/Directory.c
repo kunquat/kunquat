@@ -120,6 +120,33 @@ Path_type path_info(const char* path, kqt_Handle* handle)
 }
 
 
+long path_size(const char* path, kqt_Handle* handle)
+{
+    assert(path != NULL);
+    assert(path[0] != '\0');
+    struct stat* info = &(struct stat){ .st_mode = 0, .st_size = 0 };
+    errno = 0;
+    if (stat(path, info) != 0)
+    {
+        if (errno == ENOENT)
+        {
+            errno = 0;
+            return 0;
+        }
+        kqt_Handle_set_error(handle, __func__ ": Couldn't retrieve information"
+                " about path %s: %s", path, strerror(errno));
+        return -1;
+    }
+    if (!S_ISREG(info->st_mode))
+    {
+        kqt_Handle_set_error(handle, __func__ ": Path %s is not a regular"
+                " file", path);
+        return -1;
+    }
+    return info->st_size;
+}
+
+
 bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
 {
     assert(dest != NULL);

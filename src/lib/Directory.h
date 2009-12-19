@@ -93,6 +93,19 @@ Path_type path_info(const char* path, kqt_Handle* handle);
 
 
 /**
+ * Tells the file size of the given path.
+ *
+ * \param path     The path -- must not be \c NULL or an empty string.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   The size of the file if one exists, 0 if it does not, or -1 if
+ *           an error occurred while inspecting the path.
+ */
+long path_size(const char* path, kqt_Handle* handle);
+
+
+/**
  * Copies a directory tree.
  *
  * \param dest     The destination path -- must not be \c NULL or an empty

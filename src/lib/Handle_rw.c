@@ -133,13 +133,202 @@ char* add_path_element(char* partial_path, const char* full_path)
 }
 
 
+static bool path_element_is_header(const char* element)
+{
+    assert(element != NULL);
+    return strncmp("kunquat", element, 7) == 0 &&
+           (element[7] == 'i' || element[7] == 's') &&
+           strcmp("XX", element + 8) == 0 &&
+           element[10] == '/';
+}
+
+
+static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
+{
+    assert(handle_rw->handle.mode != KQT_READ);
+    assert(key_path != NULL);
+    char* real_path = xcalloc(char, strlen(key_path) + 1);
+    if (real_path == NULL)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        return NULL;
+    }
+    strcpy(real_path, handle_rw->base_path);
+    Path_type info = path_info(real_path, &handle_rw->handle);
+    if (info == PATH_ERROR)
+    {
+        xfree(real_path);
+        return NULL;
+    }
+    if (info != PATH_IS_DIR)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Base path %s of the Kunquat"
+                " Handle is not a directory", handle_rw->base_path);
+        xfree(real_path);
+        return NULL;
+    }
+    char* cur_path = add_path_element(real_path, key_path);
+    while (cur_path != NULL)
+    {
+        if (path_element_is_header(cur_path))
+        {
+            char* dir_path = xcalloc(char, strlen(cur_path) + 1);
+            if (dir_path == NULL)
+            {
+                kqt_Handle_set_error(handle, __func__
+                        ": Couldn't allocate memory");
+                xfree(real_path);
+                return NULL;
+            }
+            bool non_solidus_found = false;
+            for (int i = strlen(dir_path) - 1; i >= 0; --i)
+            {
+                if (!non_solidus_found && dir_path[i] != '/')
+                {
+                    non_solidus_found = true;
+                }
+                else if (non_solidus_found && dir_path[i] == '/')
+                {
+                    break;
+                }
+                dir_path[i] = '\0';
+            }
+            Directory* dir = new_Directory(dir_path, &handle_rw->handle);
+            int last_pos = strlen(dir_path);
+            xfree(dir_path);
+            if (dir == NULL)
+            {
+                xfree(real_path);
+                return NULL;
+            }
+            char* entry = Directory_get_entry(dir);
+            int max_version = -1;
+            while (entry != NULL)
+            {
+                if (strncmp("kunquat", entry + last_pos, 7) == 0 &&
+                        ((entry + last_pos)[7] == 'i' || (entry + last_pos)[7] == 's') &&
+                        isdigit((entry + last_pos)[8]) && isdigit((entry + last_pos)[9]))
+                {
+                    int version = 10 * ((entry + last_pos)[8] - '0');
+                    version += ((entry + last_pos)[9] - '0');
+                    if (version > max_version)
+                    {
+                        max_version == version;
+                    }
+                }
+                xfree(entry);
+                entry = Directory_get_entry(dir);
+            }
+            del_Directory(dir);
+            if (kqt_Handle_get_error(&handle_rw->handle)[0] != '\0')
+            {
+                xfree(real_path);
+                return NULL;
+            }
+            if (max_version == -1)
+            {
+                return real_path;
+            }
+            snprintf(cur_path + 8, 2, "%02d", max_version);
+        }
+        cur_path = add_path_element(real_path, key_path);
+    }
+    return real_path;
+}
+
+
 static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
 {
+    assert(handle_is_valid(handle));
+    assert(handle->mode != KQT_READ);
+    assert(key != NULL);
+    Handle_rw* handle_rw = (Handle_rw*)handle;
+    char* key_path = append_to_path(handle_rw->base_path, key);
+    if (key_path == NULL)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        return NULL;
+    }
+    char* real_path = Handle_rw_get_real_path(handle, key_path);
+    xfree(key_path);
+    if (real_path == NULL)
+    {
+        return NULL;
+    }
+    Path_type info = path_info(real_path, handle);
+    if (info == PATH_NOT_EXIST)
+    {
+        xfree(real_path);
+        return NULL;
+    }
+    if (info != PATH_IS_REGULAR)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Key %s does not correspond"
+                " to a regular file", key);
+        xfree(real_path);
+        return NULL;
+    }
+    long size = path_size(real_path, handle);
+    if (size <= 0)
+    {
+        xfree(real_path);
+        return NULL;
+    }
+    char* data = xnalloc(char, size);
+    if (data == NULL)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        xfree(real_path);
+        return NULL;
+    }
+    errno = 0;
+    FILE* in = fopen(real_path, "rb");
+    xfree(real_path);
+    if (in == NULL)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't read the value of"
+                " key %s: %s", key, strerror(errno));
+        xfree(data);
+        return NULL;
+    }
+    for (long i = 0; i < size; ++i)
+    {
+        int ch = fgetc(in);
+        if (ch == EOF)
+        {
+            kqt_Handle_set_error(handle, __func__ ": Couldn't read all the"
+                    " data in %s", key);
+            xfree(data);
+            return NULL;
+        }
+        data[i] = ch;
+    }
+    fclose(in);
+    return data;
 }
 
 
 static long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
 {
+    assert(handle_is_valid(handle));
+    assert(handle->mode != KQT_READ);
+    assert(key != NULL);
+    Handle_rw* handle_rw = (Handle_rw*)handle;
+    char* key_path = append_to_path(handle_rw->base_path, key);
+    if (key_path == NULL)
+    {
+        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        return NULL;
+    }
+    char* real_path = Handle_rw_get_real_path(handle, key_path);
+    xfree(key_path);
+    if (real_path == NULL)
+    {
+        return NULL;
+    }
+    long size = path_size(real_path, handle);
+    xfree(real_path);
+    return size;
 }
 
 
@@ -187,10 +376,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
     char* cur_path = add_path_element(real_path, key_path);
     while (cur_path != NULL)
     {
-        if (strncmp("kunquat", cur_path, 7) == 0 &&
-                (cur_path[7] == 'i' || cur_path[7] == 's') &&
-                strcmp("XX", cur_path + 8) == 0 &&
-                cur_path[10] == '/')
+        if (path_element_is_header(cur_path))
         {
             strcpy(cur_path + 8, KQT_FORMAT_VERSION);
         }
@@ -255,7 +441,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
         }
         return 1;
     }
-    FILE* out = fopen(real_path, "w");
+    FILE* out = fopen(real_path, "wb");
     xfree(real_path);
     if (out == NULL)
     {
