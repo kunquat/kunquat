@@ -36,7 +36,7 @@
 #include <xmemory.h>
 
 
-static int Random_list_cmp(Random_list* list1, Random_list* list2);
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 
 static void del_Random_list(Random_list* list);
 
@@ -97,7 +97,7 @@ static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state)
     {
         return NULL;
     }
-    AAtree* map = new_AAtree((int (*)(void*, void*))Random_list_cmp,
+    AAtree* map = new_AAtree((int (*)(const void*, const void*))Random_list_cmp,
                              (void (*)(void*))del_Random_list);
     if (map == NULL)
     {
@@ -488,7 +488,7 @@ void del_Generator_pcm(Generator* gen)
 }
 
 
-static int Random_list_cmp(Random_list* list1, Random_list* list2)
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
@@ -545,7 +545,7 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
     AAtree* new_map = NULL;
     if (map == NULL)
     {
-        new_map = new_AAtree((int (*)(void*, void*))Random_list_cmp,
+        new_map = new_AAtree((int (*)(const void*, const void*))Random_list_cmp,
                          (void (*)(void*))del_Random_list);
         if (new_map == NULL)
         {

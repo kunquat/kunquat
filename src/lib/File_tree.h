@@ -106,7 +106,7 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state);
  * \return   -1, 0, or 1 if \a tree1 is found, respectively, to be smaller,
  *           equal to, or greater than \a tree2.
  */
-int File_tree_cmp(File_tree* tree1, File_tree* tree2);
+int File_tree_cmp(const File_tree* tree1, const File_tree* tree2);
 
 
 /**

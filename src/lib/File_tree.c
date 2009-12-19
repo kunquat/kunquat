@@ -58,7 +58,7 @@ File_tree* new_File_tree(File_tree_type type, char* name, char* path, void* data
     if (type == FILE_TREE_DIR)
     {
         assert(data == NULL);
-        AAtree* children = new_AAtree((int (*)(void*, void*))File_tree_cmp,
+        AAtree* children = new_AAtree((int (*)(const void*, const void*))File_tree_cmp,
                                       (void (*)(void*))del_File_tree);
         if (children == NULL)
         {
@@ -596,7 +596,7 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
 #undef fail_if
 
 
-int File_tree_cmp(File_tree* tree1, File_tree* tree2)
+int File_tree_cmp(const File_tree* tree1, const File_tree* tree2)
 {
     assert(tree1 != NULL);
     assert(tree2 != NULL);

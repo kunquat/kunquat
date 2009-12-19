@@ -23,7 +23,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdio.h>
+#include <ctype.h>
 #include <errno.h>
 
 #include <kunquat/limits.h>
@@ -34,30 +36,34 @@
 #include <xmemory.h>
 
 
+static void del_Handle_rw(kqt_Handle* handle);
+
+
 kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
-        kqt_Handle_set_error(NULL, __func__ ": buffer_size must be positive");
+        kqt_Handle_set_error(NULL, "%s: buffer_size must be positive",
+                __func__);
         return NULL;
     }
     if (path == NULL)
     {
-        kqt_Handle_set_error(NULL, __func__ ": path must not be NULL");
+        kqt_Handle_set_error(NULL, "%s: path must not be NULL", __func__);
         return NULL;
     }
     Handle_rw* handle_rw = xalloc(Handle_rw);
     if (handle_rw == NULL)
     {
-        kqt_Handle_set_error(NULL, __func__
-                ": Couldn't allocate memory for new Kunquat Handle");
+        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
+                " Kunquat Handle", __func__);
         return NULL;
     }
     handle_rw->base_path = xnalloc(char, strlen(path) + 1);
     if (handle_rw->base_path == NULL)
     {
-        kqt_Handle_set_error(NULL, __func__
-                ": Couldn't allocate memory for new Kunquat Handle");
+        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
+                " Kunquat Handle", __func__);
         xfree(handle_rw);
         return NULL;
     }
@@ -65,8 +71,8 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
     File_tree* tree = new_File_tree_from_fs(path, state);
     if (tree == NULL)
     {
-        kqt_Handle_set_error(NULL, __func__ ": Couldn't load the path %s"
-                " as a Kunquat composition directory: %s:%d: %s", path,
+        kqt_Handle_set_error(NULL, "%s: Couldn't load the path %s as a"
+                " Kunquat composition directory: %s:%d: %s", __func__, path,
                 state->path, state->row, state->message);
         xfree(handle_rw->base_path);
         xfree(handle_rw);
@@ -85,7 +91,7 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
     handle_rw->handle.get_data_length = Handle_rw_get_data_length;
     handle_rw->set_data = Handle_rw_set_data;
     handle_rw->handle.destroy = del_Handle_rw;
-    return &handle->handle;
+    return &handle_rw->handle;
 }
 
 
@@ -97,8 +103,8 @@ int kqt_Handle_rw_set_data(kqt_Handle* handle,
     check_handle(handle, 0);
     if (handle->mode == KQT_READ)
     {
-        kqt_Handle_set_error(handle, __func__
-                ": Cannot set data on a read-only Kunquat Handle.");
+        kqt_Handle_set_error(handle, "%s: Cannot set data on a read-only"
+                " Kunquat Handle.", __func__);
         return 0;
     }
     Handle_rw* handle_rw = (Handle_rw*)handle;
@@ -150,7 +156,8 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
     char* real_path = xcalloc(char, strlen(key_path) + 1);
     if (real_path == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        kqt_Handle_set_error(&handle_rw->handle, "%s: Couldn't allocate"
+                " memory", __func__);
         return NULL;
     }
     strcpy(real_path, handle_rw->base_path);
@@ -162,8 +169,8 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
     }
     if (info != PATH_IS_DIR)
     {
-        kqt_Handle_set_error(handle, __func__ ": Base path %s of the Kunquat"
-                " Handle is not a directory", handle_rw->base_path);
+        kqt_Handle_set_error(&handle_rw->handle, "%s: Base path %s of the Kunquat"
+                " Handle is not a directory", __func__, handle_rw->base_path);
         xfree(real_path);
         return NULL;
     }
@@ -175,8 +182,8 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
             char* dir_path = xcalloc(char, strlen(cur_path) + 1);
             if (dir_path == NULL)
             {
-                kqt_Handle_set_error(handle, __func__
-                        ": Couldn't allocate memory");
+                kqt_Handle_set_error(&handle_rw->handle, "%s: Couldn't"
+                        " allocate memory", __func__);
                 xfree(real_path);
                 return NULL;
             }
@@ -213,7 +220,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
                     version += ((entry + last_pos)[9] - '0');
                     if (version > max_version)
                     {
-                        max_version == version;
+                        max_version = version;
                     }
                 }
                 xfree(entry);
@@ -237,7 +244,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
 }
 
 
-static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
+void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
@@ -246,10 +253,11 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         return NULL;
     }
-    char* real_path = Handle_rw_get_real_path(handle, key_path);
+    char* real_path = Handle_rw_get_real_path(handle_rw, key_path);
     xfree(key_path);
     if (real_path == NULL)
     {
@@ -263,8 +271,8 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
     }
     if (info != PATH_IS_REGULAR)
     {
-        kqt_Handle_set_error(handle, __func__ ": Key %s does not correspond"
-                " to a regular file", key);
+        kqt_Handle_set_error(handle, "%s: Key %s does not correspond"
+                " to a regular file", __func__, key);
         xfree(real_path);
         return NULL;
     }
@@ -277,7 +285,8 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
     char* data = xnalloc(char, size);
     if (data == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         xfree(real_path);
         return NULL;
     }
@@ -286,8 +295,8 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
     xfree(real_path);
     if (in == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't read the value of"
-                " key %s: %s", key, strerror(errno));
+        kqt_Handle_set_error(handle, "%s: Couldn't read the value of"
+                " key %s: %s", __func__, key, strerror(errno));
         xfree(data);
         return NULL;
     }
@@ -296,8 +305,8 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
         int ch = fgetc(in);
         if (ch == EOF)
         {
-            kqt_Handle_set_error(handle, __func__ ": Couldn't read all the"
-                    " data in %s", key);
+            kqt_Handle_set_error(handle, "%s: Couldn't read all the"
+                    " data in %s", __func__, key);
             xfree(data);
             return NULL;
         }
@@ -308,7 +317,7 @@ static void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
 }
 
 
-static long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
+long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
@@ -317,14 +326,15 @@ static long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
-        return NULL;
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        return -1;
     }
-    char* real_path = Handle_rw_get_real_path(handle, key_path);
+    char* real_path = Handle_rw_get_real_path(handle_rw, key_path);
     xfree(key_path);
     if (real_path == NULL)
     {
-        return NULL;
+        return -1;
     }
     long size = path_size(real_path, handle);
     xfree(real_path);
@@ -347,13 +357,15 @@ int Handle_rw_set_data(kqt_Handle* handle,
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         return 0;
     }
     char* real_path = xcalloc(char, strlen(key_path) + 1);
     if (real_path == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't allocate memory");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         xfree(key_path);
         return 0;
     }
@@ -367,8 +379,8 @@ int Handle_rw_set_data(kqt_Handle* handle,
     }
     if (info != PATH_IS_DIR)
     {
-        kqt_Handle_set_error(handle, __func__ ": Base path %s of the Kunquat"
-                " Handle is not a directory", handle_rw->base_path);
+        kqt_Handle_set_error(handle, "%s: Base path %s of the Kunquat"
+                " Handle is not a directory", __func__, handle_rw->base_path);
         xfree(key_path);
         xfree(real_path);
         return 0;
@@ -395,8 +407,8 @@ int Handle_rw_set_data(kqt_Handle* handle,
         }
         if (info != PATH_NOT_EXIST && info != PATH_IS_DIR)
         {
-            kqt_Handle_set_error(handle, __func__ ": Path component %s of the"
-                    " key %s is not a directory", real_path, key);
+            kqt_Handle_set_error(handle, "%s: Path component %s of the"
+                    " key %s is not a directory", __func__, real_path, key);
             xfree(key_path);
             xfree(real_path);
             return 0;
@@ -421,8 +433,8 @@ int Handle_rw_set_data(kqt_Handle* handle,
     xfree(key_path);
     if (info != PATH_NOT_EXIST && info != PATH_IS_REGULAR)
     {
-        kqt_Handle_set_error(handle, __func__ ": Key %s exists"
-                " but is not a regular file", key);
+        kqt_Handle_set_error(handle, "%s: Key %s exists but is not a"
+                " regular file", __func__, key);
         xfree(real_path);
         return 0;
     }
@@ -433,8 +445,8 @@ int Handle_rw_set_data(kqt_Handle* handle,
         {
             if (remove(real_path) != 0)
             {
-                kqt_Handle_set_error(handle, __func__ ": Couldn't set the"
-                        " key %s: %s", key, strerror(errno));
+                kqt_Handle_set_error(handle, "%s: Couldn't set the key %s:"
+                        " %s", __func__, key, strerror(errno));
                 xfree(real_path);
                 return 0;
             }
@@ -445,25 +457,25 @@ int Handle_rw_set_data(kqt_Handle* handle,
     xfree(real_path);
     if (out == NULL)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't write"
-                " the key %s: %s", key, strerror(errno));
+        kqt_Handle_set_error(handle, "%s: Couldn't write the key %s: %s",
+                __func__, key, strerror(errno));
         return 0;
     }
     char* bytes = (char*)data;
     for (long i = 0; i < length; ++i)
     {
-        if (fputc(bytes, out) == EOF)
+        if (fputc(*bytes, out) == EOF)
         {
-            kqt_Handle_set_error(handle, __func__ ": Couldn't write"
-                    " the key %s", key);
+            kqt_Handle_set_error(handle, "%s: Couldn't write the key %s",
+                    __func__, key);
             return 0;
         }
         ++bytes;
     }
     if (fclose(out) == EOF)
     {
-        kqt_Handle_set_error(handle, __func__ ": Couldn't finalise"
-                " writing of the key %s -- data may be lost", key);
+        kqt_Handle_set_error(handle, "%s: Couldn't finalise writing of the"
+                " key %s -- data may be lost", __func__, key);
         return 0;
     }
     return 1;
@@ -472,7 +484,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
 
 static void del_Handle_rw(kqt_Handle* handle)
 {
-    assert(handle_is_valid(handle));
+    assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE);
     Handle_rw* handle_rw = (Handle_rw*)handle;
     xfree(handle_rw->base_path);

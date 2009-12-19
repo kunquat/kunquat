@@ -44,9 +44,9 @@ struct kqt_Handle
 {
     Song* song;
     kqt_Access_mode mode;
-    void* get_data(kqt_Handle* handle, const char* key);
-    long get_data_length(kqt_Handle* handle, const char* key);
-    void destroy(struct kqt_Handle* handle);
+    void* (*get_data)(kqt_Handle* handle, const char* key);
+    long (*get_data_length)(kqt_Handle* handle, const char* key);
+    void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_CONTEXT_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };
@@ -74,7 +74,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree);
  *                  the extra arguments correspond to the arguments of the
  *                  printf family of functions.
  */
-void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...);
+void kqt_Handle_set_error(kqt_Handle* handle, const char* message, ...);
 
 
 /**
@@ -96,26 +96,26 @@ void kqt_Handle_stop(kqt_Handle* handle);
 bool handle_is_valid(kqt_Handle* handle);
 
 
-#define check_handle(handle, ret)                                   \
-    if (true)                                                       \
-    {                                                               \
-        if (!handle_is_valid((handle)))                             \
-        {                                                           \
-            kqt_Handle_set_error(NULL, __func__                     \
-                    ": Invalid Kunquat Handle: %p", (void*)handle); \
-            return (ret);                                           \
-        }                                                           \
+#define check_handle(handle, ret)                                        \
+    if (true)                                                            \
+    {                                                                    \
+        if (!handle_is_valid((handle)))                                  \
+        {                                                                \
+            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
+                    __func__, (void*)handle);                            \
+            return (ret);                                                \
+        }                                                                \
     } else (void)0
 
-#define check_handle_void(handle)                                   \
-    if (true)                                                       \
-    {                                                               \
-        if (!handle_is_valid((handle)))                             \
-        {                                                           \
-            kqt_Handle_set_error(NULL, __func__                     \
-                    ": Invalid Kunquat Handle: %p", (void*)handle); \
-            return;                                                 \
-        }                                                           \
+#define check_handle_void(handle)                                        \
+    if (true)                                                            \
+    {                                                                    \
+        if (!handle_is_valid((handle)))                                  \
+        {                                                                \
+            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
+                    __func__, (void*)handle);                            \
+            return;                                                      \
+        }                                                                \
     } else (void)0
 
 

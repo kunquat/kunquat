@@ -31,7 +31,6 @@ extern "C" {
 
 #include <kunquat/limits.h>
 #include <kunquat/frame.h>
-#include <kunquat/Entry.h>
 
 
 /**
@@ -85,47 +84,11 @@ typedef enum
 
 
 /**
- * Creates a new Kunquat Handle that contains an empty composition.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * The buffer size determines the maximum amount of audio data that can
- * be mixed at one time. The buffer size is given as the number of amplitude
- * values (called \a frames) for one output channel. In a typical case, the
- * calling application should set this value based on the size of its own
- * output buffers: if the application uses buffers with \a n amplitude values
- * for one output channel (e.g. in 16-bit stereo, this takes \a n * \c 4 bytes
- * in total), it should call kqt_new_Handle with a buffer size of \a n.
- *
- * \param buffer_size   The size of the mixing buffers -- should be positive.
- *
- * \return   The new Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle(long buffer_size);
-
-
-/**
- * Creates a new Kunquat Handle from a composition file or directory.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * \param buffer_size   The size of the mixing buffers -- should be positive.
- *                      See kqt_new_Handle for detailed explanation.
- * \param path          The path to the Kunquat composition file or directory
- *                      -- should not be \c NULL.
- *
- * \return   The new Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(\c NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
-
-
-/**
  * Creates a read-only Kunquat Handle from a composition file.
  *
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
+ *
  * The buffer size determines the maximum amount of audio data that can
  * be mixed at one time. The buffer size is given as the number of amplitude
  * values (called \a frames) for one output channel. In a typical case, the
@@ -135,7 +98,6 @@ kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path);
  * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
  * \param buffer_size   The size of the mixing buffers -- should be positive.
- *                      See kqt_new_Handle for detailed explanation.
  * \param path          The path to the Kunquat composition file -- should not
  *                      be \c NULL.
  *
@@ -146,10 +108,13 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path);
 
 
 /**
- * Creates a new read/write Kunquat Handle from a composition directory.
+ * Creates a read/write Kunquat Handle from a composition directory.
+ *
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
  * \param buffer_size   The size of the mixing buffers -- should be positive.
- *                      See kqt_new_Handle for detailed explanation.
+ *                      See kqt_new_Handle_r for detailed explanation.
  * \param path          The path to the Kunquat composition directory --
  *                      should not be \c NULL.
  *
@@ -166,9 +131,9 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path);
  * \param key      The key of the data -- should not be \c NULL.
  *
  * \return   The data if existent and no error occurred, otherwise \c NULL.
- *           Check kqt_Handle_error(handle) if the return value is \c NULL.
+ *           Check kqt_Handle_error(handle) for errors.
  */
-char* kqt_Handle_get_data(kqt_Handle* handle, char* key);
+void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
 
 
 /**
@@ -180,7 +145,7 @@ char* kqt_Handle_get_data(kqt_Handle* handle, char* key);
  * \return   The length of the data if successful. Otherwise, \c -1 is
  *           returned and Kunquat Handle error is set accordingly.
  */
-long kqt_Handle_get_data_length(kqt_Handle* handle, char* key);
+long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
 
 
 /**

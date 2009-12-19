@@ -66,7 +66,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event);
 
 static Event_list* Event_list_init(Event_list* elist);
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2);
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2);
 
 static void del_Event_list(Event_list* elist);
 
@@ -104,7 +104,7 @@ static Event_list* Event_list_init(Event_list* elist)
 }
 
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2)
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
@@ -224,7 +224,7 @@ Column* new_Column(Reltime* len)
         return NULL;
     }
     col->version = 1;
-    col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
+    col->events = new_AAtree((int (*)(const void*, const void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {

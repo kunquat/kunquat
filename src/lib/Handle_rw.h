@@ -31,11 +31,36 @@ typedef struct Handle_rw
 {
     kqt_Handle handle;
     char* base_path;
-    int set_data(kqt_Handle* handle,
-                 char* key,
-                 void* data,
-                 int length);
+    int (*set_data)(kqt_Handle* handle,
+                    const char* key,
+                    void* data,
+                    long length);
 } Handle_rw;
+
+
+/**
+ * Gets data from the read/write Kunquat Handle associated with the given key.
+ *
+ * \param handle   The Kunquat Handle -- should be valid.
+ * \param key      The key of the data -- should not be \c NULL.
+ *
+ * \return   The data if existent and no error occurred, otherwise \c NULL.
+ *           Check kqt_Handle_error(handle) for errors.
+ */
+void* Handle_rw_get_data(kqt_Handle* handle, const char* key);
+
+
+/**
+ * Gets length of data from the read/write Kunquat Handle associated with the
+ * given key.
+ *
+ * \param handle   The Kunquat Handle -- should be valid.
+ * \param key      The key of the data -- should not be \c NULL.
+ *
+ * \return   The length of the data if successful. Otherwise, \c -1 is
+ *           returned and Kunquat Handle error is set accordingly.
+ */
+long Handle_rw_get_data_length(kqt_Handle* handle, const char* key);
 
 
 /**
@@ -51,9 +76,9 @@ typedef struct Handle_rw
  * \return   \c 1 if successful, otherwise \c 0.
  */
 int Handle_rw_set_data(kqt_Handle* handle,
-                       char* key,
+                       const char* key,
                        void* data,
-                       int length);
+                       long length);
 
 
 #endif // KQT_HANDLE_RW_H
