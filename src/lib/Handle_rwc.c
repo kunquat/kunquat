@@ -90,6 +90,18 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 static void del_Handle_rwc(kqt_Handle* handle);
 
 
+/*
+ * define init()
+ * committed  workspace  oldcommit
+ *  *          *          *          throw exception
+ *  *          *                     recovery() && return init()
+ *  *                     *          recovery() && return init()
+ *  *                                copy committed workspace && return handle
+ *             *          *          recovery() && return init()
+ *             *                     throw exception
+ *                        *          throw exception
+ *                                   mkdir committed && return init()
+ */
 kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
@@ -202,6 +214,21 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
+    info = path_info(handle_rwc->handle_rw.base_path,
+            &handle_rwc->handle_rw.handle);
+    if (info == PATH_ERROR)
+    {
+        del_Handle_rwc(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
+    if (info == PATH_NOT_EXIST)
+    {
+        if (!create_dir(handle_rwc->handle_rw.base_path, &handle_rwc->handle_rw.handle))
+        {
+            del_Handle_rwc(&handle_rwc->handle_rw.handle);
+            return NULL;
+        }
+    }
     handle_rwc->changed_files = new_AAtree((int (*)(const void*, const void*))strcmp, free);
     if (handle_rwc->changed_files == NULL)
     {
@@ -259,6 +286,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
+    assert(is_ascii7(key));
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     bool new_file_changed = false;
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)

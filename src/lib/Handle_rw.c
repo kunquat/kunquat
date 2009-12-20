@@ -26,6 +26,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <limits.h>
 #include <errno.h>
 
 #include <kunquat/limits.h>
@@ -101,6 +102,7 @@ int kqt_Handle_rw_set_data(kqt_Handle* handle,
                            int length)
 {
     check_handle(handle, 0);
+    check_key(handle, key);
     if (handle->mode == KQT_READ)
     {
         kqt_Handle_set_error(handle, "%s: Cannot set data on a read-only"
@@ -248,7 +250,7 @@ void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(key != NULL);
+    assert(is_ascii7(key));
     Handle_rw* handle_rw = (Handle_rw*)handle;
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
@@ -321,7 +323,7 @@ long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(key != NULL);
+    assert(is_ascii7(key));
     Handle_rw* handle_rw = (Handle_rw*)handle;
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
@@ -349,7 +351,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(key != NULL);
+    assert(is_ascii7(key));
     assert(data != NULL || length == 0);
     assert(length >= 0);
     bool remove_key = length == 0;

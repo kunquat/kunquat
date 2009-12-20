@@ -132,6 +132,7 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle->get_data != NULL);
     check_handle(handle, NULL);
+    check_key(handle, key);
     if (key == NULL)
     {
         kqt_Handle_set_error(handle, "%s: key must not be NULL", __func__);
@@ -145,12 +146,35 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle->get_data_length != NULL);
     check_handle(handle, -1);
+    check_key(handle, key);
     if (key == NULL)
     {
         kqt_Handle_set_error(handle, "%s: key must not be NULL", __func__);
         return -1;
     }
     return handle->get_data_length(handle, key);
+}
+
+
+bool is_ascii7(const char* key)
+{
+    assert(key != NULL);
+    while (*key != '\0')
+    {
+#if CHAR_MIN == 0
+        if (*key > 127)
+        {
+            return false;
+        }
+#else
+        if (*key < 0)
+        {
+            return false;
+        }
+#endif
+        ++key;
+    }
+    return true;
 }
 
 

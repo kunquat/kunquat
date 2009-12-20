@@ -119,6 +119,37 @@ bool handle_is_valid(kqt_Handle* handle);
     } else (void)0
 
 
+bool is_ascii7(const char* key);
+
+
+#define check_key(handle, key)                                                  \
+    if (true)                                                                   \
+    {                                                                           \
+        assert(handle != NULL);                                                 \
+        if (key == NULL)                                                        \
+        {                                                                       \
+            kqt_Handle_set_error(handle, "%s: key must not be NULL",            \
+                    __func__);                                                  \
+            return false;                                                       \
+        }                                                                       \
+        if (!is_ascii7(key))                                                    \
+        {                                                                       \
+            kqt_Handle_set_error(handle, "%s: key %s contains characters"       \
+                    " outside the 7-bit ASCII character set", __func__, key);   \
+            return false;                                                       \
+        }                                                                       \
+        if (strncmp("../", key, 3) == 0 ||                                      \
+                strstr(key, "/../") != NULL ||                                  \
+                (strlen(key) >= 2 && strcmp("..", key + strlen(key) - 2) == 0)) \
+        {                                                                       \
+            kqt_Handle_set_error(handle, "%s: key %s contains an illegal"       \
+                    " element \"..\"", __func__, key);                          \
+            return false;                                                       \
+        }                                                                       \
+    }                                                                           \
+    else (void)0
+
+
 #endif // KQT_HANDLE_PRIVATE_H
 
 
