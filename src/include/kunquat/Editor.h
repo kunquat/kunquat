@@ -32,6 +32,75 @@ extern "C" {
 #include <kunquat/Handle.h>
 
 
+typedef enum
+{
+    EVENT_NONE = 0,                         ///< An uninitialised event.
+    EVENT_GENERAL_COND,                     ///< Evaluate a conditional expression.
+    EVENT_GENERAL_LAST               =  63, ///< Sentinel -- never used as a valid type.
+                                     
+    EVENT_GLOBAL_SET_TEMPO           =  64, ///< Set tempo. (BPM (float))
+    EVENT_GLOBAL_SLIDE_TEMPO         =  65, ///< Slide tempo.
+    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH  =  66,
+    EVENT_GLOBAL_PATTERN_DELAY       =  67, ///< Pattern delay.
+                                     
+    EVENT_GLOBAL_SET_VOLUME          =  72, ///< Set global volume.
+    EVENT_GLOBAL_SLIDE_VOLUME        =  73, ///< Slide global volume.
+    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH =  74,
+                                     
+    EVENT_GLOBAL_SET_SCALE           =  80, ///< Set default scale used by Instruments.
+    EVENT_GLOBAL_RETUNE_SCALE        =  81, ///< Retune scale.
+
+    EVENT_GLOBAL_SET_JUMP_SUBSONG    =  88,
+    EVENT_GLOBAL_SET_JUMP_SECTION    =  89,
+    EVENT_GLOBAL_SET_JUMP_ROW        =  90,
+    EVENT_GLOBAL_SET_JUMP_COUNTER    =  91,
+    EVENT_GLOBAL_JUMP                =  92,
+                                     
+    EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
+                                     
+    EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
+                                     
+    EVENT_VOICE_NOTE_ON              = 128, ///< Note On event. (note, modifier, octave)
+    EVENT_VOICE_NOTE_OFF             = 129, ///< Note Off event.
+                                     
+    EVENT_VOICE_SET_FORCE            = 136, ///< Set Force.
+    EVENT_VOICE_SLIDE_FORCE          = 137, ///< Slide Force.
+    EVENT_VOICE_SLIDE_FORCE_LENGTH   = 138,
+    EVENT_VOICE_TREMOLO_SPEED        = 139, ///< Tremolo speed.
+    EVENT_VOICE_TREMOLO_DEPTH        = 140, ///< Tremolo depth.
+    EVENT_VOICE_TREMOLO_DELAY        = 141, ///< Tremolo delay.
+                                     
+    EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
+    EVENT_VOICE_SLIDE_PITCH_LENGTH   = 145,
+    EVENT_VOICE_VIBRATO_SPEED        = 146, ///< Vibrato speed.
+    EVENT_VOICE_VIBRATO_DEPTH        = 147, ///< Vibrato depth.
+    EVENT_VOICE_VIBRATO_DELAY        = 148, ///< Vibrato delay.
+    EVENT_VOICE_ARPEGGIO             = 149, ///< Arpeggio (the retro effect).
+                                     
+    EVENT_VOICE_SET_FILTER           = 152, ///< Set filter cut-off.
+    EVENT_VOICE_SLIDE_FILTER         = 153, ///< Slide filter cut-off.
+    EVENT_VOICE_SLIDE_FILTER_LENGTH  = 154,
+    EVENT_VOICE_AUTOWAH_SPEED        = 155, ///< Auto-wah (filter cut-off oscillation) speed.
+    EVENT_VOICE_AUTOWAH_DEPTH        = 156, ///< Auto-wah depth.
+    EVENT_VOICE_AUTOWAH_DELAY        = 157, ///< Auto-wah delay.
+    EVENT_VOICE_SET_RESONANCE        = 158, ///< Set filter resonance (Q factor).
+                                     
+    EVENT_VOICE_SET_PANNING          = 160, ///< Set panning position.
+    EVENT_VOICE_SLIDE_PANNING        = 161, ///< Slide panning position.
+    EVENT_VOICE_SLIDE_PANNING_LENGTH = 162,
+                                    
+    EVENT_VOICE_LAST                 = 255, ///< Sentinel -- never used as a valid type.
+                                    
+    EVENT_INS_SET_PEDAL              = 256, ///< Set Instrument pedal.
+                                    
+    EVENT_INS_LAST                   = 287, ///< Sentinel -- never used as a valid type.
+                                    
+    EVENT_CHANNEL_SET_INSTRUMENT     = 288, ///< Set Instrument.
+                                    
+    EVENT_LAST                           ///< Sentinel -- never used as a valid type.
+} Event_type;
+
+
 /**
  * \defgroup Editor Editing Kunquat compositions
  *

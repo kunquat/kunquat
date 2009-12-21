@@ -250,7 +250,7 @@ void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(is_ascii7(key));
+    assert(is_valid_key(key));
     Handle_rw* handle_rw = (Handle_rw*)handle;
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
@@ -323,7 +323,7 @@ long Handle_rw_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(is_ascii7(key));
+    assert(is_valid_key(key));
     Handle_rw* handle_rw = (Handle_rw*)handle;
     char* key_path = append_to_path(handle_rw->base_path, key);
     if (key_path == NULL)
@@ -351,7 +351,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
 {
     assert(handle_is_valid(handle));
     assert(handle->mode != KQT_READ);
-    assert(is_ascii7(key));
+    assert(is_valid_key(key));
     assert(data != NULL || length == 0);
     assert(length >= 0);
     bool remove_key = length == 0;

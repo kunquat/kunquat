@@ -87,14 +87,15 @@ struct Directory
     else (void)0
 
 
-/**
- * Gets the last element of the path.
- *
- * \param path   The path -- must not be \c NULL.
- *
- * \return   The last element.
- */
-static char* last_element(char* path);
+#define notify_move(dest, src)                                         \
+    if (true)                                                          \
+    {                                                                  \
+        fprintf(stderr, "!!! Now moving path %s to %s -- press Return" \
+                " to confirm or Ctl+C to abort.", dest, src);          \
+        while (getchar() != '\n')                                      \
+            ;                                                          \
+    }                                                                  \
+    else (void)0
 
 
 /**
@@ -284,8 +285,7 @@ bool move_dir(const char* dest, const char* src, kqt_Handle* handle)
                 " a directory", __func__, src);
         return false;
     }
-    notify_remove(src);
-    notify_create(dest);
+    notify_move(dest, src);
     errno = 0;
     if (rename(src, dest) != 0)
     {
@@ -502,7 +502,7 @@ char* append_to_path(const char* path, const char* name)
 }
 
 
-static char* last_element(char* path)
+char* last_element(char* path)
 {
     assert(path != NULL);
     bool non_solidus_found = false;
@@ -565,7 +565,7 @@ static bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
     size_t in_bytes = fread(buf, 1, 1024, in);
     while (in_bytes > 0)
     {
-        size_t out_bytes = fwrite(buf, 1, 1024, out);
+        size_t out_bytes = fwrite(buf, 1, in_bytes, out);
         if (out_bytes < in_bytes)
         {
             kqt_Handle_set_error(handle, "%s: Couldn't write into"

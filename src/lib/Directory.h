@@ -66,6 +66,16 @@ char* append_to_path(const char* path, const char* name);
 
 
 /**
+ * Gets the last element of a path.
+ *
+ * \param path   The path -- must not be \c NULL.
+ *
+ * \return   The last element.
+ */
+char* last_element(char* path);
+
+
+/**
  * Creates a directory in the file system.
  *
  * If the new directory is inside a directory accessed via a Directory

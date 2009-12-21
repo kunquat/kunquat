@@ -156,22 +156,32 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 }
 
 
-bool is_ascii7(const char* key)
+bool is_valid_key(const char* key)
 {
     assert(key != NULL);
+    bool valid_element = false;
     while (*key != '\0')
     {
-#if CHAR_MIN == 0
-        if (*key > 127)
+        // Assuming 7-bit ASCII character set because the locale
+        // settings may affect the ctype family of functions.
+        if (!(*key >= '0' && *key <= '9') &&
+                !(*key >= 'a' && *key <= 'z') &&
+                *key != '_' && *key != '.' && *key != '/')
         {
             return false;
         }
-#else
-        if (*key < 0)
+        if (*key != '.' && *key != '/')
         {
-            return false;
+            valid_element = true;
         }
-#endif
+        else if (*key == '/')
+        {
+            if (!valid_element)
+            {
+                return false;
+            }
+            valid_element = false;
+        }
         ++key;
     }
     return true;

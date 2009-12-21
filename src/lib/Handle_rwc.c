@@ -121,9 +121,15 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     {
         return NULL;
     }
-    if (info != PATH_IS_DIR)
+    else if (info == PATH_NOT_EXIST)
     {
-        kqt_Handle_set_error(NULL, "%s: path %s is not a directory",
+        kqt_Handle_set_error(NULL, "%s: Path %s doesn't exist",
+                __func__, path);
+        return NULL;
+    }
+    else if (info != PATH_IS_DIR)
+    {
+        kqt_Handle_set_error(NULL, "%s: Path %s is not a directory",
                 __func__, path);
         return NULL;
     }
@@ -163,8 +169,22 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
                     __func__);
             return NULL;
         }
-        bool created = create_dir(committed_path, NULL);
+        if (!create_dir(committed_path, NULL))
+        {
+            xfree(committed_path);
+            return NULL;
+        }
+        char* dir_root_path = append_to_path(committed_path,
+                "kunquatc" KQT_FORMAT_VERSION);
         xfree(committed_path);
+        if (dir_root_path == NULL)
+        {
+            kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory",
+                    __func__);
+            return NULL;
+        }
+        bool created = create_dir(dir_root_path, NULL);
+        xfree(dir_root_path);
         if (!created)
         {
             return NULL;
@@ -214,6 +234,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
+#if 0
     info = path_info(handle_rwc->handle_rw.base_path,
             &handle_rwc->handle_rw.handle);
     if (info == PATH_ERROR)
@@ -229,6 +250,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
             return NULL;
         }
     }
+#endif
     handle_rwc->changed_files = new_AAtree((int (*)(const void*, const void*))strcmp, free);
     if (handle_rwc->changed_files == NULL)
     {
@@ -286,7 +308,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
-    assert(is_ascii7(key));
+    assert(is_valid_key(key));
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     bool new_file_changed = false;
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)
@@ -418,17 +440,17 @@ static bool inspect_dirs(const char* path,
     while (entry != NULL)
     {
         bool found = false;
-        if (strcmp(entry, "committed") == 0)
+        if (strcmp(last_element(entry), "committed") == 0)
         {
             found = true;
             *has_committed = true;
         }
-        else if (strcmp(entry, "workspace") == 0)
+        else if (strcmp(last_element(entry), "workspace") == 0)
         {
             found = true;
             *has_workspace = true;
         }
-        else if (strcmp(entry, "oldcommit") == 0)
+        else if (strcmp(last_element(entry), "oldcommit") == 0)
         {
             found = true;
             *has_oldcommit = true;
