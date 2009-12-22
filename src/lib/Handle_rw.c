@@ -266,7 +266,7 @@ void* Handle_rw_get_data(kqt_Handle* handle, const char* key)
         return NULL;
     }
     Path_type info = path_info(real_path, handle);
-    if (info == PATH_NOT_EXIST)
+    if (info == PATH_NO_ENTRY)
     {
         xfree(real_path);
         return NULL;
@@ -407,7 +407,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
         {
             break;
         }
-        if (info != PATH_NOT_EXIST && info != PATH_IS_DIR)
+        if (info != PATH_NO_ENTRY && info != PATH_IS_DIR)
         {
             kqt_Handle_set_error(handle, "%s: Path component %s of the"
                     " key %s is not a directory", __func__, real_path, key);
@@ -415,7 +415,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
             xfree(real_path);
             return 0;
         }
-        if (info == PATH_NOT_EXIST)
+        if (info == PATH_NO_ENTRY)
         {
             if (remove_key)
             {
@@ -433,7 +433,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
         cur_path = add_path_element(real_path, key_path);
     }
     xfree(key_path);
-    if (info != PATH_NOT_EXIST && info != PATH_IS_REGULAR)
+    if (info != PATH_NO_ENTRY && info != PATH_IS_REGULAR)
     {
         kqt_Handle_set_error(handle, "%s: Key %s exists but is not a"
                 " regular file", __func__, key);
@@ -443,7 +443,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
     errno = 0;
     if (remove_key)
     {
-        if (info != PATH_NOT_EXIST)
+        if (info != PATH_NO_ENTRY)
         {
             if (remove(real_path) != 0)
             {

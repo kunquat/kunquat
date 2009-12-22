@@ -121,7 +121,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     {
         return NULL;
     }
-    else if (info == PATH_NOT_EXIST)
+    else if (info == PATH_NO_ENTRY)
     {
         kqt_Handle_set_error(NULL, "%s: Path %s doesn't exist",
                 __func__, path);
@@ -234,23 +234,6 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
-#if 0
-    info = path_info(handle_rwc->handle_rw.base_path,
-            &handle_rwc->handle_rw.handle);
-    if (info == PATH_ERROR)
-    {
-        del_Handle_rwc(&handle_rwc->handle_rw.handle);
-        return NULL;
-    }
-    if (info == PATH_NOT_EXIST)
-    {
-        if (!create_dir(handle_rwc->handle_rw.base_path, &handle_rwc->handle_rw.handle))
-        {
-            del_Handle_rwc(&handle_rwc->handle_rw.handle);
-            return NULL;
-        }
-    }
-#endif
     handle_rwc->changed_files = new_AAtree((int (*)(const void*, const void*))strcmp, free);
     if (handle_rwc->changed_files == NULL)
     {

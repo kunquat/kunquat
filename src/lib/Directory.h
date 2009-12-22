@@ -45,7 +45,7 @@ typedef struct Directory Directory;
 typedef enum
 {
     PATH_ERROR = -1,
-    PATH_NOT_EXIST,
+    PATH_NO_ENTRY,
     PATH_IS_REGULAR,
     PATH_IS_DIR,
     PATH_IS_OTHER

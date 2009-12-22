@@ -21,7 +21,7 @@
 
 
 #define _POSIX_SOURCE
-#define _BSD_SOURCE
+#define _BSD_SOURCE // dirfd, lstat
 
 #include <stdlib.h>
 #include <assert.h>
@@ -91,7 +91,7 @@ struct Directory
     if (true)                                                          \
     {                                                                  \
         fprintf(stderr, "!!! Now moving path %s to %s -- press Return" \
-                " to confirm or Ctl+C to abort.", dest, src);          \
+                " to confirm or Ctl+C to abort.", src, dest);          \
         while (getchar() != '\n')                                      \
             ;                                                          \
     }                                                                  \
@@ -135,12 +135,12 @@ Path_type path_info(const char* path, kqt_Handle* handle)
     assert(path[0] != '\0');
     struct stat* info = &(struct stat){ .st_mode = 0 };
     errno = 0;
-    if (stat(path, info) != 0)
+    if (lstat(path, info) != 0)
     {
         if (errno == ENOENT)
         {
             errno = 0;
-            return PATH_NOT_EXIST;
+            return PATH_NO_ENTRY;
         }
         kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
                 " about path %s: %s", __func__, path, strerror(errno));
@@ -164,7 +164,7 @@ long path_size(const char* path, kqt_Handle* handle)
     assert(path[0] != '\0');
     struct stat* info = &(struct stat){ .st_mode = 0, .st_size = 0 };
     errno = 0;
-    if (stat(path, info) != 0)
+    if (lstat(path, info) != 0)
     {
         if (errno == ENOENT)
         {
