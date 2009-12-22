@@ -26,8 +26,9 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 
-#include <kunquat/Handle.h>
+#include <Handle_private.h>
 
 
 /**
@@ -103,6 +104,18 @@ Path_type path_info(const char* path, kqt_Handle* handle);
 
 
 /**
+ * Tells information about the given file.
+ *
+ * \param file     The file -- must not be \c NULL.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   The path info.
+ */
+Path_type file_info(FILE* file, kqt_Handle* handle);
+
+
+/**
  * Tells the file size of the given path.
  *
  * \param path     The path -- must not be \c NULL or an empty string.
@@ -113,6 +126,19 @@ Path_type path_info(const char* path, kqt_Handle* handle);
  *           an error occurred while inspecting the path.
  */
 long path_size(const char* path, kqt_Handle* handle);
+
+
+/**
+ * Tells the size of the given file.
+ *
+ * \param file     The file -- must not be \c NULL.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   The size of the file if one exists, or -1 if an error occurred
+ *           while inspecting the path.
+ */
+long file_size(FILE* file, kqt_Handle* handle);
 
 
 /**

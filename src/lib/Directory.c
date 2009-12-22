@@ -39,7 +39,6 @@
 
 #include <math_common.h>
 #include <Directory.h>
-#include <kunquat/Handle.h>
 #include <Handle_private.h>
 
 #include <xmemory.h>
@@ -158,6 +157,29 @@ Path_type path_info(const char* path, kqt_Handle* handle)
 }
 
 
+Path_type file_info(FILE* file, kqt_Handle* handle)
+{
+    assert(file != NULL);
+    struct stat* info = &(struct stat){ .st_mode = 0 };
+    errno = 0;
+    if (fstat(fileno(file), info) != 0)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
+                " about file: %s", __func__, strerror(errno));
+        return PATH_ERROR;
+    }
+    if (S_ISREG(info->st_mode))
+    {
+        return PATH_IS_REGULAR;
+    }
+    else if (S_ISDIR(info->st_mode))
+    {
+        return PATH_IS_DIR;
+    }
+    return PATH_IS_OTHER;
+}
+
+
 long path_size(const char* path, kqt_Handle* handle)
 {
     assert(path != NULL);
@@ -179,6 +201,27 @@ long path_size(const char* path, kqt_Handle* handle)
     {
         kqt_Handle_set_error(handle, "%s: Path %s is not a regular file",
                 __func__, path);
+        return -1;
+    }
+    return info->st_size;
+}
+
+
+long file_size(FILE* file, kqt_Handle* handle)
+{
+    assert(file != NULL);
+    struct stat* info = &(struct stat){ .st_mode = 0, .st_size = 0 };
+    errno = 0;
+    if (fstat(fileno(file), info) != 0)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
+                " about file: %s", __func__, strerror(errno));
+        return PATH_ERROR;
+    }
+    if (!S_ISREG(info->st_mode))
+    {
+        kqt_Handle_set_error(handle, "%s: File is not a regular file",
+                __func__);
         return -1;
     }
     return info->st_size;

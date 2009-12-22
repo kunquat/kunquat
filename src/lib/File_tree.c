@@ -20,17 +20,10 @@
  */
 
 
-#define _POSIX_SOURCE
-
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
 #include <stddef.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <dirent.h>
 #include <errno.h>
 
 #include <archive.h>
@@ -41,6 +34,8 @@
 #include <File_base.h>
 #include <File_tree.h>
 #include <File_wavpack.h>
+#include <Directory.h>
+#include <Handle_private.h>
 
 #include <xmemory.h>
 
@@ -110,20 +105,16 @@ bool has_suffix(const char* str, const char* suffix)
 }
 
 
-File_tree* new_File_tree_from_fs(char* path, Read_state* state)
+File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
 {
     assert(path != NULL);
-    assert(state != NULL);
-    if (state->error)
+    if (kqt_Handle_get_error(handle)[0] != '\0')
     {
         return NULL;
     }
-    Read_state_init(state, path);
-    struct stat* info = &(struct stat){ .st_mode = 0 };
-    errno = 0;
-    if (stat(path, info) < 0)
+    Path_type info = path_info(path, handle);
+    if (info == PATH_ERROR)
     {
-        Read_state_set_error(state, strerror(errno));
         return NULL;
     }
     int name_start = 0;
@@ -131,7 +122,8 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
     char* path_name = xcalloc(char, len + 1);
     if (path_name == NULL)
     {
-        Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         return NULL;
     }
     strcpy(path_name, path);
@@ -145,7 +137,8 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
     char* name = xcalloc(char, (len + 1) - name_start);
     if (name == NULL)
     {
-        Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         xfree(path_name);
         return NULL;
     }
@@ -161,92 +154,59 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
         }
     }
     File_tree* tree = NULL;
-    if (S_ISDIR(info->st_mode))
+    if (info == PATH_IS_DIR)
     {
         tree = new_File_tree(FILE_TREE_DIR, name, path_name, NULL);
-        Read_state_init(state, path_name);
         if (tree == NULL)
         {
-            Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
             xfree(name);
             xfree(path_name);
             return NULL;
         }
-        errno = 0;
-        DIR* ds = opendir(path);
-        if (ds == NULL)
+        Directory* dir = new_Directory(path, handle);
+        if (dir == NULL)
         {
-            Read_state_set_error(state, strerror(errno));
             del_File_tree(tree);
             return NULL;
         }
-        union
+        char* dir_entry = Directory_get_entry(dir);
+        while (dir_entry != NULL)
         {
-            struct dirent d;
-            char buf[offsetof(struct dirent, d_name) + _PC_NAME_MAX + 1];
-        } entry_area;
-        struct dirent* de = &entry_area.d;
-        struct dirent* ret = NULL;
-        int err = readdir_r(ds, de, &ret);
-        if (err != 0)
-        {
-            Read_state_set_error(state, strerror(err));
-            del_File_tree(tree);
-            closedir(ds);
-            return NULL;
-        }
-        while (ret != NULL)
-        {
-            if (strcmp(de->d_name, ".") != 0 && strcmp(de->d_name, "..") != 0)
+            File_tree* child = new_File_tree_from_fs(dir_entry, handle);
+            xfree(dir_entry);
+            if (child == NULL)
             {
-                len = strlen(path) + strlen(de->d_name);
-                char* full_path = xcalloc(char, len + 2);
-                if (full_path == NULL)
-                {
-                    Read_state_set_error(state, "Couldn't allocate memory for a directory element");
-                    del_File_tree(tree);
-                    closedir(ds);
-                    return NULL;
-                }
-                strcpy(full_path, path);
-                strcat(full_path, "/");
-                strcat(full_path, de->d_name);
-                Read_state_init(state, full_path);
-                File_tree* child = new_File_tree_from_fs(full_path, state);
-                xfree(full_path);
-                if (child == NULL)
-                {
-                    Read_state_set_error(state, "Couldn't allocate memory for the File tree");
-                    del_File_tree(tree);
-                    closedir(ds);
-                    return NULL;
-                }
-                if (!File_tree_ins_child(tree, child))
-                {
-                    Read_state_set_error(state, "Couldn't allocate memory for the File tree");
-                    del_File_tree(child);
-                    del_File_tree(tree);
-                    closedir(ds);
-                    return NULL;
-                }
-            }
-            err = readdir_r(ds, de, &ret);
-            if (err != 0)
-            {
-                Read_state_set_error(state, strerror(err));
                 del_File_tree(tree);
-                closedir(ds);
+                del_Directory(dir);
                 return NULL;
             }
+            if (!File_tree_ins_child(tree, child))
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+                del_File_tree(child);
+                del_File_tree(tree);
+                del_Directory(dir);
+                return NULL;
+            }
+            dir_entry = Directory_get_entry(dir);
         }
-        closedir(ds);
+        del_Directory(dir);
+        if (kqt_Handle_get_error(handle)[0] != '\0')
+        {
+            del_File_tree(tree);
+            return NULL;
+        }
     }
     else
     {
         FILE* in = fopen(path, "rb");
         if (in == NULL)
         {
-            Read_state_set_error(state, "Couldn't open file for reading");
+            kqt_Handle_set_error(handle, "%s: Couldn't open file %s for"
+                    " reading", __func__, path);
             xfree(name);
             xfree(path_name);
             return NULL;
@@ -256,14 +216,16 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
             Sample* sample = new_Sample();
             if (sample == NULL)
             {
-                Read_state_set_error(state, "Couldn't allocate memory for Sample");
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory"
+                        " for sample %s", __func__, path);
                 xfree(name);
                 xfree(path_name);
                 return NULL;
             }
-            if (!File_wavpack_load_sample(sample, in, NULL, NULL))
+            if (!File_wavpack_load_sample(sample, in, NULL, NULL, handle))
             {
-                Read_state_set_error(state, "Couldn't load the WavPack file");
+                kqt_Handle_set_error(handle, "%s: Couldn't load the WavPack"
+                        " file %s", __func__, path);
                 del_Sample(sample);
                 xfree(name);
                 xfree(path_name);
@@ -272,7 +234,8 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
             tree = new_File_tree(FILE_TREE_SAMPLE, name, path_name, sample);
             if (tree == NULL)
             {
-                Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
                 del_Sample(sample);
                 xfree(name);
                 xfree(path_name);
@@ -281,9 +244,9 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
         }
         else
         {
-            char* data = read_file(in, state);
+            char* data = read_file(in, handle);
             fclose(in);
-            if (state->error)
+            if (data == NULL)
             {
                 xfree(name);
                 xfree(path_name);
@@ -293,7 +256,8 @@ File_tree* new_File_tree_from_fs(char* path, Read_state* state)
             tree = new_File_tree(FILE_TREE_REG, name, path_name, data);
             if (tree == NULL)
             {
-                Read_state_set_error(state, "Couldn't allocate memory for the File tree");
+                kqt_Handle_set_error(handle, "Couldn't allocate memory",
+                        __func__);
                 xfree(data);
                 xfree(name);
                 xfree(path_name);
@@ -399,71 +363,73 @@ bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type t
 }
 
 
-#define fail_if(cond, reader, state)                                       \
-    do                                                                     \
-    {                                                                      \
-        if ((cond))                                                        \
-        {                                                                  \
-            Read_state_set_error((state), archive_error_string((reader))); \
-            archive_read_finish((reader));                                 \
-            return false;                                                  \
-        }                                                                  \
+#define fail_if(cond, reader, handle)                          \
+    do                                                         \
+    {                                                          \
+        if ((cond))                                            \
+        {                                                      \
+            kqt_Handle_set_error((handle), "%s: %s", __func__, \
+                    archive_error_string((reader)));           \
+            archive_read_finish((reader));                     \
+            return false;                                      \
+        }                                                      \
     } while (false)
 
-File_tree* new_File_tree_from_tar(char* path, Read_state* state)
+File_tree* new_File_tree_from_tar(char* path, kqt_Handle* handle)
 {
     assert(path != NULL);
-    assert(state != NULL);
-    if (state->error)
+    if (kqt_Handle_get_error(handle)[0] != '\0')
     {
         return NULL;
     }
-    Read_state_init(state, path);
     struct archive* reader = archive_read_new();
     if (reader == NULL)
     {
-        Read_state_set_error(state, "Couldn't allocate memory for the archive reader");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory for the"
+                " archive reader", __func__);
         return NULL;
     }
     int err = ARCHIVE_FATAL;
     err = archive_read_support_compression_bzip2(reader);
-    fail_if(err != ARCHIVE_OK, reader, state);
+    fail_if(err != ARCHIVE_OK, reader, handle);
     err = archive_read_support_compression_gzip(reader);
-    fail_if(err != ARCHIVE_OK, reader, state);
+    fail_if(err != ARCHIVE_OK, reader, handle);
     err = archive_read_support_format_tar(reader);
-    fail_if(err != ARCHIVE_OK, reader, state);
+    fail_if(err != ARCHIVE_OK, reader, handle);
 
     err = archive_read_open_filename(reader, path, 1024);
-    fail_if(err != ARCHIVE_OK, reader, state);
+    fail_if(err != ARCHIVE_OK, reader, handle);
 
     File_tree* root = NULL;
     struct archive_entry* entry = NULL;
     err = archive_read_next_header(reader, &entry);
-    fail_if(err < ARCHIVE_OK, reader, state);
+    fail_if(err < ARCHIVE_OK, reader, handle);
     if (err == ARCHIVE_OK)
     {
         if (archive_entry_filetype(entry) != AE_IFDIR)
         {
             archive_read_finish(reader);
-            Read_state_set_error(state, "The archive contains non-directories in the root");
+            kqt_Handle_set_error(handle, "%s: The archive %s contains"
+                    " non-directories in the root", __func__, path);
             return NULL;
         }
-        const char* path = archive_entry_pathname(entry);
-        const char* solidus = strchr(path, '/');
+        const char* entry_path = archive_entry_pathname(entry);
+        const char* solidus = strchr(entry_path, '/');
         int len = 0;
         if (solidus == NULL)
         {
-            len = strlen(path);
+            len = strlen(entry_path);
         }
         else
         {
-            len = solidus - path;
+            len = solidus - entry_path;
         }
         char* rname = xcalloc(char, len + 1);
         if (rname == NULL)
         {
             archive_read_finish(reader);
-            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
             return NULL;
         }
         char* rpath = xcalloc(char, len + 1);
@@ -471,18 +437,20 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
         {
             xfree(rname);
             archive_read_finish(reader);
-            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
             return NULL;
         }
-        strncpy(rname, path, len);
-        strncpy(rpath, path, len);
+        strncpy(rname, entry_path, len);
+        strncpy(rpath, entry_path, len);
         root = new_File_tree(FILE_TREE_DIR, rname, rpath, NULL);
         if (root == NULL)
         {
             xfree(rpath);
             xfree(rname);
             archive_read_finish(reader);
-            Read_state_set_error(state, "Couldn't allocate memory for the tree");
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
             return NULL;
         }
     }
@@ -492,14 +460,15 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
     {
         assert(err == ARCHIVE_OK);
         assert(entry != NULL);
-        const char* path = archive_entry_pathname(entry);
-        const char* solidus = strchr(path, '/');
-        if (strncmp(path, root_path, root_len) != 0
-                || (path[root_len] != '/' && path[root_len] != '\0'))
+        const char* entry_path = archive_entry_pathname(entry);
+        const char* solidus = strchr(entry_path, '/');
+        if (strncmp(entry_path, root_path, root_len) != 0
+                || (entry_path[root_len] != '/' && entry_path[root_len] != '\0'))
         {
             del_File_tree(root);
             archive_read_finish(reader);
-            Read_state_set_error(state, "Root of the archive contains several files");
+            kqt_Handle_set_error(handle, "%s: Root of the archive %s"
+                    " contains several files", __func__, path);
             return NULL;
         }
         if (solidus != NULL)
@@ -515,7 +484,8 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                 {
                     del_File_tree(root);
                     archive_read_finish(reader);
-                    Read_state_set_error(state, "Couldn't create path %s", path);
+                    kqt_Handle_set_error(handle, "%s: Couldn't create path %s",
+                            __func__, entry_path);
                     return NULL;
                 }
             }
@@ -528,15 +498,17 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                     {
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't allocate memory for sample");
+                        kqt_Handle_set_error(handle, "%s: Couldn't allocate"
+                                " memory for sample %s", __func__, entry_path);
                         return NULL;
                     }
-                    if (!File_wavpack_load_sample(sample, NULL, reader, entry))
+                    if (!File_wavpack_load_sample(sample, NULL, reader, entry, handle))
                     {
                         del_Sample(sample);
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't load the WavPack file");
+                        kqt_Handle_set_error(handle, "%s: Couldn't load the"
+                                " WavPack file %s", __func__, entry_path);
                         return NULL;
                     }
                     if (!File_tree_create_branch(root, solidus, FILE_TREE_SAMPLE, sample))
@@ -544,7 +516,8 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                         del_Sample(sample);
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't load the path %s", path);
+                        kqt_Handle_set_error(handle, "%s: Couldn't load the"
+                                " path %s", __func__, entry_path);
                         return NULL;
                     }
                 }
@@ -556,7 +529,8 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                     {
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't allocate memory for %s", path);
+                        kqt_Handle_set_error(handle, "%s: Couldn't allocate"
+                                " memory for %s", __func__, entry_path);
                         return NULL;
                     }
                     long pos = 0;
@@ -571,7 +545,8 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                             xfree(data);
                             del_File_tree(root);
                             archive_read_finish(reader);
-                            Read_state_set_error(state, "Couldn't read data from %s", path);
+                            kqt_Handle_set_error(handle, "%s: Couldn't read"
+                                    " data from %s", __func__, entry_path);
                             return NULL;
                         }
                     }
@@ -580,14 +555,15 @@ File_tree* new_File_tree_from_tar(char* path, Read_state* state)
                         xfree(data);
                         del_File_tree(root);
                         archive_read_finish(reader);
-                        Read_state_set_error(state, "Couldn't load the path %s", path);
+                        kqt_Handle_set_error(handle, "%s: Couldn't load the"
+                                " path %s", __func__, entry_path);
                         return NULL;
                     }
                 }
             }
         }
         err = archive_read_next_header(reader, &entry);
-        fail_if(err < ARCHIVE_OK, reader, state);
+        fail_if(err < ARCHIVE_OK, reader, handle);
     }
     archive_read_finish(reader);
     return root;

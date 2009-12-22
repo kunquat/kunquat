@@ -30,6 +30,7 @@
 
 #include <Real.h>
 #include <Reltime.h>
+#include <kunquat/Handle.h>
 
 
 #define STATE_PATH_LENGTH (512)
@@ -108,12 +109,12 @@ void Read_state_clear_error(Read_state* state);
 /**
  * Reads a file into a byte array.
  *
- * \param in      The input file -- must not be \c NULL and must be seekable.
- * \param state   The Read state -- must not be \c NULL.
+ * \param in       The input file -- must not be \c NULL and must be seekable.
+ * \param handle   The Kunquat Handle, or \c NULL if not applicable.
  *
  * \return   The contents of the file if successful, otherwise \c NULL.
  */
-char* read_file(FILE* in, Read_state* state);
+char* read_file(FILE* in, kqt_Handle* handle);
 
 
 /**

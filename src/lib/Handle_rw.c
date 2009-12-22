@@ -68,13 +68,9 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
         xfree(handle_rw);
         return NULL;
     }
-    Read_state* state = READ_STATE_AUTO;
-    File_tree* tree = new_File_tree_from_fs(path, state);
+    File_tree* tree = new_File_tree_from_fs(path, NULL);
     if (tree == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't load the path %s as a"
-                " Kunquat composition directory: %s:%d: %s", __func__, path,
-                state->path, state->row, state->message);
         xfree(handle_rw->base_path);
         xfree(handle_rw);
         return NULL;

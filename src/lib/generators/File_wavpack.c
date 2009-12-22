@@ -20,21 +20,18 @@
  */
 
 
-#define _POSIX_C_SOURCE 1
-
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
 
 #include <archive.h>
 #include <archive_entry.h>
 
 #include <Sample.h>
 #include <File_wavpack.h>
+#include <Directory.h>
+#include <Handle_private.h>
 
 #include <wavpack/wavpack.h>
 
@@ -45,6 +42,7 @@ typedef struct File_context
 {
     FILE* file;
     uint64_t offset;
+    kqt_Handle* handle;
 } File_context;
 
 
@@ -54,6 +52,7 @@ typedef struct Tar_context
     struct archive_entry* entry;
     uint64_t pos;
     int push_back;
+    kqt_Handle* handle;
 } Tar_context;
 
 
@@ -220,16 +219,7 @@ static uint32_t get_length(void* id)
     assert(id != NULL);
     File_context* fc = id;
     assert(fc->file != NULL);
-    struct stat buf;
-    if (fstat(fileno(fc->file), &buf) != 0)
-    {
-        return 0;
-    }
-    if (S_ISREG(buf.st_mode) == 0)
-    {
-        return 0;
-    }
-    return buf.st_size;
+    return (uint32_t)file_size(fc->file, fc->handle);
 }
 
 static uint32_t get_length_tar(void* id)
@@ -247,16 +237,7 @@ static int can_seek(void* id)
     assert(id != NULL);
     File_context* fc = id;
     assert(fc->file != NULL);
-    struct stat buf;
-    if (fstat(fileno(fc->file), &buf) != 0)
-    {
-        return 0;
-    }
-    if (S_ISREG(buf.st_mode) == 0)
-    {
-        return 0;
-    }
-    return 1;
+    return file_info(fc->file, fc->handle) == PATH_IS_REGULAR;
 }
 
 static int can_seek_tar(void* id)
@@ -335,14 +316,15 @@ static WavpackStreamReader reader_tar =
 
 bool File_wavpack_load_sample(Sample* sample, FILE* in,
                               struct archive* reader,
-                              struct archive_entry* entry)
+                              struct archive_entry* entry,
+                              kqt_Handle* handle)
 {
     assert(sample != NULL);
     assert((in != NULL) != (reader != NULL && entry != NULL));
     WavpackContext* context = NULL;
     char err_str[80] = { '\0' };
-    File_context fc = { .file = in };
-    Tar_context tc = { .reader = reader };
+    File_context fc = { .file = in, .handle = handle };
+    Tar_context tc = { .reader = reader, .handle = handle };
     if (in != NULL)
     {
         fc.offset = ftell(in);
@@ -370,7 +352,7 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     }
     if (context == NULL)
     {
-        fprintf(stderr, "%s\n", err_str);
+        kqt_Handle_set_error(handle, "%s: %s\n", __func__, err_str);
         return false;
     }
     int mode = WavpackGetMode(context);
@@ -383,6 +365,8 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     if (len == (uint32_t)-1)
     {
         WavpackCloseFile(context);
+        kqt_Handle_set_error(handle, "%s: Couldn't determine WavPack"
+                " file length", __func__);
         return false;
     }
     sample->format = SAMPLE_FORMAT_WAVPACK;
@@ -417,6 +401,8 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     void* nbuf_l = xnalloc(char, sample->len * req_bytes);
     if (nbuf_l == NULL)
     {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
         WavpackCloseFile(context);
         return false;
     }
@@ -425,6 +411,8 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
         void* nbuf_r = xnalloc(char, sample->len * req_bytes);
         if (nbuf_r == NULL)
         {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
             xfree(nbuf_l);
             WavpackCloseFile(context);
             return false;
@@ -496,6 +484,8 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     WavpackCloseFile(context);
     if (written < sample->len)
     {
+        kqt_Handle_set_error(handle, "%s: Couldn't read all sample data",
+                __func__);
         xfree(sample->data[0]);
         xfree(sample->data[1]);
         sample->data[0] = sample->data[1] = NULL;

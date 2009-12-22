@@ -55,13 +55,9 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
                 " Kunquat Handle", __func__);
         return NULL;
     }
-    Read_state* state = READ_STATE_AUTO;
-    File_tree* tree = new_File_tree_from_tar(path, state);
+    File_tree* tree = new_File_tree_from_tar(path, NULL);
     if (tree == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't load the path %s as a"
-                " Kunquat composition file: %s:%d: %s", __func__, path,
-                state->path, state->row, state->message);
         xfree(handle);
         return NULL;
     }

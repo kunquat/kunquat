@@ -36,6 +36,7 @@
 #include <Real.h>
 #include <Reltime.h>
 #include <File_base.h>
+#include <Handle_private.h>
 
 #include <xmemory.h>
 
@@ -76,35 +77,34 @@ void Read_state_clear_error(Read_state* state)
 }
 
 
-#define return_null_if(cond, state, msg)          \
-    if (true)                                     \
-    {                                             \
-        if ((cond))                               \
-        {                                         \
-            Read_state_set_error((state), (msg)); \
-            return NULL;                          \
-        }                                         \
+#define return_null_if(cond, handle, msg)                              \
+    if (true)                                                          \
+    {                                                                  \
+        if ((cond))                                                    \
+        {                                                              \
+            kqt_Handle_set_error((handle), "%s: %s", __func__, (msg)); \
+            return NULL;                                               \
+        }                                                              \
     } else (void)0
 
-char* read_file(FILE* in, Read_state* state)
+char* read_file(FILE* in, kqt_Handle* handle)
 {
     assert(in != NULL);
-    assert(state != NULL);
     
     errno = 0;
     int err = fseek(in, 0, SEEK_END);
-    return_null_if(err < 0, state, strerror(errno));
+    return_null_if(err < 0, handle, strerror(errno));
     
     errno = 0;
     long length = ftell(in);
-    return_null_if(length < 0, state, strerror(errno));
+    return_null_if(length < 0, handle, strerror(errno));
     
     errno = 0;
     err = fseek(in, 0, SEEK_SET);
-    return_null_if(err < 0, state, strerror(errno));
+    return_null_if(err < 0, handle, strerror(errno));
     
     char* data = xcalloc(char, length + 1);
-    return_null_if(data == NULL, state, "Couldn't allocate memory for input file.");
+    return_null_if(data == NULL, handle, "Couldn't allocate memory");
     long pos = 0;
     char* location = data;
     while (pos < length)
@@ -114,7 +114,8 @@ char* read_file(FILE* in, Read_state* state)
         location += 1024;
         if (read < 1024 && pos < length)
         {
-            Read_state_set_error(state, "Couldn't read data from the input file");
+            kqt_Handle_set_error(handle, "%s: Couldn't read data from the"
+                    " input file", __func__);
             xfree(data);
             return NULL;
         }
