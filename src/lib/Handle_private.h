@@ -119,7 +119,7 @@ bool handle_is_valid(kqt_Handle* handle);
     } else (void)0
 
 
-bool is_valid_key(const char* key);
+bool key_is_valid(const char* key);
 
 
 #define check_key(handle, key)                                          \
@@ -132,7 +132,7 @@ bool is_valid_key(const char* key);
                     __func__);                                          \
             return false;                                               \
         }                                                               \
-        if (!is_valid_key(key))                                         \
+        if (!key_is_valid(key))                                         \
         {                                                               \
             kqt_Handle_set_error(handle, "%s: key \"%s\" is not valid", \
                     __func__, key);                                     \

@@ -168,14 +168,14 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 }
 
 
-bool is_valid_key(const char* key)
+bool key_is_valid(const char* key)
 {
     assert(key != NULL);
     bool valid_element = false;
     while (*key != '\0')
     {
         if (!(*key >= '0' && *key <= '9') &&
-                strchr("abcdefghijklmnopqrstuvwxyz_./", *key) == NULL)
+                strchr("abcdefghijklmnopqrstuvwxyz_./X", *key) == NULL)
         {
             return false;
         }

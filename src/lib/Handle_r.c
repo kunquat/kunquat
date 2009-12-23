@@ -81,7 +81,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(is_valid_key(key));
+    assert(key_is_valid(key));
     Handle_r* handle_r = (Handle_r*)handle;
     bool error = false;
     File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);
@@ -133,7 +133,7 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(is_valid_key(key));
+    assert(key_is_valid(key));
     Handle_r* handle_r = (Handle_r*)handle;
     bool error = false;
     File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);

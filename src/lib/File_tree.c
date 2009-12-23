@@ -721,11 +721,10 @@ File_tree* File_tree_get_node(File_tree* tree, const char* path, bool* error)
             File_tree* child = AAiter_get(iter, &(File_tree){ .name = "" });
             File_tree* best = NULL;
             int best_version = -1;
-            while (child == NULL)
+            while (child != NULL)
             {
-                char* child_name = File_tree_get_name(tree);
-                if (strncmp(child_name, "kunquat", 7) == 0 &&
-                        (child_name[7] == 'i' || child_name[7] == 's') &&
+                char* child_name = File_tree_get_name(child);
+                if (strncmp(child_name, name, 8) == 0 &&
                         isdigit(child_name[8]) && isdigit(child_name[9]) &&
                         child_name[10] == '\0')
                 {

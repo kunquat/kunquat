@@ -275,6 +275,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
                 " non-commit Kunquat Handle", __func__);
         return 0;
     }
+    Handle_rwc* handle_rwc = (Handle_rwc*)handle;
+    assert(handle_rwc->changed_files != NULL);
     return 0; // TODO: implement
 }
 
@@ -286,7 +288,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
-    assert(is_valid_key(key));
+    assert(key_is_valid(key));
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     bool new_file_changed = false;
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)
