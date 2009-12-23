@@ -108,6 +108,18 @@ char* kqt_Handle_get_error(kqt_Handle* handle)
 }
 
 
+void kqt_Handle_clear_error(kqt_Handle* handle)
+{
+    if (!handle_is_valid(handle))
+    {
+        null_error[0] = '\0';
+        return;
+    }
+    handle->error[0] = '\0';
+    return;
+}
+
+
 void kqt_Handle_set_error(kqt_Handle* handle, const char* message, ...)
 {
     assert(message != NULL);

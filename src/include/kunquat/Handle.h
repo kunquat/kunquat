@@ -131,7 +131,8 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path);
  * \param key      The key of the data -- should not be \c NULL.
  *
  * \return   The data if existent and no error occurred, otherwise \c NULL.
- *           Check kqt_Handle_error(handle) for errors.
+ *           Check kqt_Handle_error(handle) for errors. The caller should
+ *           eventually free the returned buffer.
  */
 void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
 
@@ -166,6 +167,15 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
  *           occurred.
  */
 char* kqt_Handle_get_error(kqt_Handle* handle);
+
+
+/**
+ * Clears error information from the Kunquat Handle.
+ *
+ * \param handle   The Handle, or \c NULL if the generic error message should
+ *                 be cleared.
+ */
+void kqt_Handle_clear_error(kqt_Handle* handle);
 
 
 /**
