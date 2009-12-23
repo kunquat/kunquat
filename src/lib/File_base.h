@@ -110,11 +110,13 @@ void Read_state_clear_error(Read_state* state);
  * Reads a file into a byte array.
  *
  * \param in       The input file -- must not be \c NULL and must be seekable.
+ * \param size     Pointer to a variable where file size is stored -- must not
+ *                 be \c NULL.
  * \param handle   The Kunquat Handle, or \c NULL if not applicable.
  *
  * \return   The contents of the file if successful, otherwise \c NULL.
  */
-char* read_file(FILE* in, kqt_Handle* handle);
+char* read_file(FILE* in, long* size, kqt_Handle* handle);
 
 
 /**

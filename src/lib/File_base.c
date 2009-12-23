@@ -87,9 +87,10 @@ void Read_state_clear_error(Read_state* state)
         }                                                              \
     } else (void)0
 
-char* read_file(FILE* in, kqt_Handle* handle)
+char* read_file(FILE* in, long* size, kqt_Handle* handle)
 {
     assert(in != NULL);
+    assert(size != NULL);
     
     errno = 0;
     int err = fseek(in, 0, SEEK_END);
@@ -107,9 +108,11 @@ char* read_file(FILE* in, kqt_Handle* handle)
     return_null_if(data == NULL, handle, "Couldn't allocate memory");
     long pos = 0;
     char* location = data;
+    *size = 0;
     while (pos < length)
     {
         size_t read = fread(location, 1, 1024, in);
+        *size += read;
         pos += 1024;
         location += 1024;
         if (read < 1024 && pos < length)

@@ -166,6 +166,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
             xfree(path_name);
             return NULL;
         }
+        tree->size = -1;
         Directory* dir = new_Directory(path, handle);
         if (dir == NULL)
         {
@@ -242,10 +243,12 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
                 xfree(path_name);
                 return NULL;
             }
+            tree->size = -1;
         }
         else
         {
-            char* data = read_file(in, handle);
+            long size = -1;
+            char* data = read_file(in, &size, handle);
             fclose(in);
             if (data == NULL)
             {
@@ -254,6 +257,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
                 return NULL;
             }
             assert(data != NULL);
+            assert(size >= 0);
             tree = new_File_tree(FILE_TREE_REG, name, path_name, data);
             if (tree == NULL)
             {
@@ -264,6 +268,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
                 xfree(path_name);
                 return NULL;
             }
+            tree->size = size;
         }
     }
     assert(tree != NULL);
@@ -271,11 +276,16 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
 }
 
 
-bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type type, void* data)
+bool File_tree_create_branch(File_tree* tree,
+                             const char* path,
+                             File_tree_type type,
+                             void* data,
+                             long size)
 {
     assert(tree != NULL);
     assert(File_tree_is_dir(tree));
     assert(path != NULL);
+    assert((type == FILE_TREE_REG) == (size >= 0));
     if (!File_tree_is_dir(tree))
     {
         return false;
@@ -305,6 +315,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type t
             xfree(cname);
             return false;
         }
+        child->size = size;
         if (!File_tree_ins_child(tree, child))
         {
             child->content.data = NULL;
@@ -333,7 +344,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type t
         {
             return true;
         }
-        return File_tree_create_branch(child, next_element, type, data);
+        return File_tree_create_branch(child, next_element, type, data, size);
     }
     int cpath_len = strlen(File_tree_get_path(tree)) + cname_len;
     char* cpath = xcalloc(char, cpath_len + 1);
@@ -360,7 +371,7 @@ bool File_tree_create_branch(File_tree* tree, const char* path, File_tree_type t
     {
         return true;
     }
-    return File_tree_create_branch(child, next_element, type, data);
+    return File_tree_create_branch(child, next_element, type, data, size);
 }
 
 
@@ -481,7 +492,7 @@ File_tree* new_File_tree_from_tar(char* path, kqt_Handle* handle)
             mode_t type = archive_entry_filetype(entry);
             if (type == AE_IFDIR)
             {
-                if (!File_tree_create_branch(root, solidus, FILE_TREE_DIR, NULL))
+                if (!File_tree_create_branch(root, solidus, FILE_TREE_DIR, NULL, -1))
                 {
                     del_File_tree(root);
                     archive_read_finish(reader);
@@ -512,7 +523,7 @@ File_tree* new_File_tree_from_tar(char* path, kqt_Handle* handle)
                                 " WavPack file %s", __func__, entry_path);
                         return NULL;
                     }
-                    if (!File_tree_create_branch(root, solidus, FILE_TREE_SAMPLE, sample))
+                    if (!File_tree_create_branch(root, solidus, FILE_TREE_SAMPLE, sample, -1))
                     {
                         del_Sample(sample);
                         del_File_tree(root);
@@ -551,7 +562,7 @@ File_tree* new_File_tree_from_tar(char* path, kqt_Handle* handle)
                             return NULL;
                         }
                     }
-                    if (!File_tree_create_branch(root, solidus, FILE_TREE_REG, data))
+                    if (!File_tree_create_branch(root, solidus, FILE_TREE_REG, data, length))
                     {
                         xfree(data);
                         del_File_tree(root);
@@ -642,6 +653,13 @@ char* File_tree_get_data(File_tree* tree)
     assert(tree != NULL);
     assert(tree->type == FILE_TREE_REG);
     return tree->content.data;
+}
+
+
+long File_tree_get_size(File_tree* tree)
+{
+    assert(tree != NULL);
+    return tree->size;
 }
 
 

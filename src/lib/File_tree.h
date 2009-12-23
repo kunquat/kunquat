@@ -46,6 +46,7 @@ typedef struct File_tree
     File_tree_type type;  ///< Whether the File tree is a directory.
     char* name;           ///< File name.
     char* path;           ///< Path of the file.
+    long size;            ///< File size.
     union
     {
         char* data;       ///< Contents of a regular file.
@@ -182,6 +183,16 @@ File_tree* File_tree_get_child(File_tree* tree, char* name);
  * \return   The data.
  */
 char* File_tree_get_data(File_tree* tree);
+
+
+/**
+ * Gets the file size of the File tree.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ *
+ * \return   The file size if the File tree is a regular file, otherwise \c -1.
+ */
+long File_tree_get_size(File_tree* tree);
 
 
 /**

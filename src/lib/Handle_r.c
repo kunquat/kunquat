@@ -108,8 +108,13 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
         return NULL;
     }
     char* data = File_tree_get_data(tree);
-    // FIXME XXX: This breaks with binary data due to data size calculation!
-    char* new_data = xcalloc(char, data == NULL ? 1 : (strlen(data) + 1));
+    long size = File_tree_get_size(tree);
+    if (size <= 0)
+    {
+        return NULL;
+    }
+    assert(data != NULL);
+    char* new_data = xcalloc(char, size);
     if (new_data == NULL)
     {
         kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
@@ -118,7 +123,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
     }
     if (data != NULL)
     {
-        strcpy(new_data, data);
+        memcpy(new_data, data, size);
     }
     return new_data;
 }
@@ -154,9 +159,8 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
                 __func__, key);
         return -1;
     }
-    char* data = File_tree_get_data(tree);
-    // FIXME XXX: This breaks with binary data due to data size calculation!
-    return data == NULL ? 0 : strlen(data);
+    assert(File_tree_get_size(tree) >= 0);
+    return File_tree_get_size(tree);
 }
 
 
