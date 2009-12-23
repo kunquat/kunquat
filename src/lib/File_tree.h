@@ -120,6 +120,16 @@ bool File_tree_is_dir(File_tree* tree);
 
 
 /**
+ * Tells whether the File tree is a regular file.
+ *
+ * \param tree   The File tree -- must not be \c NULL.
+ *
+ * \return   \c true if \a tree is a regular file, otherwise \c false.
+ */
+bool File_tree_is_regular(File_tree* tree);
+
+
+/**
  * Gets the name of the File tree.
  *
  * \param tree   The File tree -- must not be \c NULL.
@@ -194,6 +204,19 @@ struct Sample* File_tree_get_sample(File_tree* tree);
  * \return   The Sample.
  */
 struct Sample* File_tree_remove_sample(File_tree* tree);
+
+
+/**
+ * Gets a File tree node based on the given path.
+ *
+ * \param tree    The File tree -- must not be \c NULL.
+ * \param path    The path -- must not be \c NULL.
+ * \param error   A reference to an error variable -- must not be \c NULL.
+ *
+ * \return   The File tree node if found, or \c NULL if one doesn't exist or
+ *           memory allocation failed. Check \a error for an error condition.
+ */
+File_tree* File_tree_get_node(File_tree* tree, const char* path, bool* error);
 
 
 /**

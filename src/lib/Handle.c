@@ -162,11 +162,8 @@ bool is_valid_key(const char* key)
     bool valid_element = false;
     while (*key != '\0')
     {
-        // Assuming 7-bit ASCII character set because the locale
-        // settings may affect the ctype family of functions.
         if (!(*key >= '0' && *key <= '9') &&
-                !(*key >= 'a' && *key <= 'z') &&
-                *key != '_' && *key != '.' && *key != '/')
+                strchr("abcdefghijklmnopqrstuvwxyz_./", *key) == NULL)
         {
             return false;
         }

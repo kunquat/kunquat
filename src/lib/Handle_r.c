@@ -24,6 +24,7 @@
 #include <assert.h>
 
 #include <Handle_private.h>
+#include <Handle_r.h>
 
 #include <xmemory.h>
 
@@ -48,30 +49,29 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
         kqt_Handle_set_error(NULL, "%s: path must not be NULL", __func__);
         return NULL;
     }
-    kqt_Handle* handle = xalloc(kqt_Handle);
-    if (handle == NULL)
+    Handle_r* handle_r = xalloc(Handle_r);
+    if (handle_r == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for new"
+        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
                 " Kunquat Handle", __func__);
         return NULL;
     }
-    File_tree* tree = new_File_tree_from_tar(path, NULL);
-    if (tree == NULL)
+    handle_r->tree = new_File_tree_from_tar(path, NULL);
+    if (handle_r->tree == NULL)
     {
-        xfree(handle);
+        del_Handle_r(handle_r);
         return NULL;
     }
-    if (!kqt_Handle_init(handle, buffer_size, tree))
+    if (!kqt_Handle_init(&handle_r->handle, buffer_size, handle_r->tree))
     {
-        del_File_tree(tree);
-        xfree(handle);
+        del_Handle_r(handle_r);
         return NULL;
     }
-    del_File_tree(tree);
-    handle->mode = KQT_READ;
-    handle->get_data = Handle_r_get_data;
-    handle->get_data_length = Handle_r_get_data_length;
-    handle->destroy = del_Handle_r;
+    handle_r->tree = tree;
+    handle_r->handle.mode = KQT_READ;
+    handle_r->handle.get_data = Handle_r_get_data;
+    handle_r->handle.get_data_length = Handle_r_get_data_length;
+    handle_r->handle.destroy = del_Handle_r;
     return handle;
 }
 
@@ -79,16 +79,83 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
 static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
-    assert(key != NULL);
-    return NULL; // TODO: implement
+    assert(handle->mode == KQT_READ);
+    assert(is_valid_key(key));
+    Handle_r* handle_r = (Handle_r*)handle;
+    bool error = false;
+    File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);
+    if (tree == NULL)
+    {
+        if (error)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+        }
+        return NULL;
+    }
+    if (File_tree_is_dir(tree))
+    {
+        kqt_Handle_set_error(handle, "%s: Key %s does not correspond"
+                " to a regular file", __func__, key);
+        return NULL;
+    }
+    if (!File_tree_is_regular(tree))
+    {
+        kqt_Handle_set_error(handle, "%s: Key %s is a sample -- reading raw"
+                " sample data from a read-only Handle is not supported yet",
+                __func__, key);
+        return NULL;
+    }
+    char* data = File_tree_get_data(tree);
+    // FIXME XXX: This breaks with binary data due to data size calculation!
+    char* new_data = xcalloc(char, data == NULL ? 1 : (strlen(data) + 1));
+    if (new_data == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        return NULL;
+    }
+    if (data != NULL)
+    {
+        strcpy(new_data, data);
+    }
+    return new_data;
 }
 
 
 static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
-    assert(key != NULL);
-    return -1; // TODO: implement
+    assert(handle->mode == KQT_READ);
+    assert(is_valid_key(key));
+    Handle_r* handle_r = (Handle_r*)handle;
+    bool error = false;
+    File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);
+    if (tree == NULL)
+    {
+        if (error)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+        }
+        return -1;
+    }
+    if (File_tree_is_dir(tree))
+    {
+        kqt_Handle_set_error(handle, "%s: Key %s does not correspond"
+                " to a regular file", __func__, key);
+        return -1;
+    }
+    if (!File_tree_is_regular(tree))
+    {
+        kqt_Handle_set_error(handle, "%s: Key %s is a sample -- reading raw"
+                " sample data from a read-only Handle is not supported yet",
+                __func__, key);
+        return -1;
+    }
+    char* data = File_tree_get_data(tree);
+    // FIXME XXX: This breaks with binary data due to data size calculation!
+    return data == NULL ? 0 : strlen(data);
 }
 
 
@@ -96,7 +163,12 @@ static void del_Handle_r(kqt_Handle* handle)
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ);
-    xfree(handle);
+    Handle_r* handle_r = (Handle_r*)handle;
+    if (handle_r->tree != NULL)
+    {
+        del_File_tree(handle_r->tree);
+    }
+    xfree(handle_r);
     return;
 }
 

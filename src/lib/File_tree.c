@@ -610,6 +610,13 @@ bool File_tree_is_dir(File_tree* tree)
 }
 
 
+bool File_tree_is_regular(File_tree* tree)
+{
+    assert(tree != NULL);
+    return tree->type == FILE_TREE_REG;
+}
+
+
 bool File_tree_ins_child(File_tree* tree, File_tree* child)
 {
     assert(tree != NULL);
@@ -652,6 +659,90 @@ struct Sample* File_tree_remove_sample(File_tree* tree)
     Sample* sample = tree->content.sample;
     tree->content.sample = NULL;
     return sample;
+}
+
+
+File_tree* File_tree_get_node(File_tree* tree, const char* path, bool* error)
+{
+    assert(tree != NULL);
+    assert(path != NULL);
+    assert(error != NULL);
+    *error = false;
+    char* element = xcalloc(char, strlen(path) + 1);
+    if (element == NULL)
+    {
+        *error = true;
+        return NULL;
+    }
+    char* path_pos = path + strspn(path, "/");
+    while (*path_pos != '\0')
+    {
+        if (!File_tree_is_dir(tree))
+        {
+            xfree(element);
+            return NULL;
+        }
+        size_t element_len = strcspn(path_pos, "/");
+        strncpy(element, path_pos, element_len);
+        element[element_len] = '\0';
+        if (strncmp(element, "kunquat", 7) == 0 &&
+                (element[7] == 'i' || element[7] == 's') &&
+                strcmp(element + 8, "XX") == 0)
+        {
+            char name[] = "kunquatDXX";
+            name[7] = element[7];
+            AAtree* children = tree->content.children;
+            AAiter* iter = new_AAiter(children);
+            if (iter == NULL)
+            {
+                *error = true;
+                xfree(element);
+                return NULL;
+            }
+            File_tree* child = AAiter_get(iter, &(File_tree){ .name = "" });
+            File_tree* best = NULL;
+            int best_version = -1;
+            while (child == NULL)
+            {
+                char* child_name = File_tree_get_name(tree);
+                if (strncmp(child_name, "kunquat", 7) == 0 &&
+                        (child_name[7] == 'i' || child_name[7] == 's') &&
+                        isdigit(child_name[8]) && isdigit(child_name[9]) &&
+                        child_name[10] == '\0')
+                {
+                    int version = 10 * (child_name[8] - '0');
+                    version += child_name[9] - '0';
+                    if (version > best_version)
+                    {
+                        best_version = version;
+                        best = child;
+                    }
+                }
+                child = AAiter_get_next(iter);
+            }
+            del_AAiter(iter);
+            if (best == NULL)
+            {
+                xfree(element);
+                return NULL;
+            }
+            tree = best;
+        }
+        else
+        {
+            tree = File_tree_get_child(tree, element);
+            if (tree == NULL)
+            {
+                xfree(element);
+                return NULL;
+            }
+        }
+        path_pos += element_len;
+        path_pos += strspn(path_pos, "/");
+        assert(path_pos <= path + strlen(path));
+    }
+    xfree(element);
+    return tree;
 }
 
 
