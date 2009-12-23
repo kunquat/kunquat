@@ -24,6 +24,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stddef.h>
+#include <ctype.h>
 #include <errno.h>
 
 #include <archive.h>
@@ -674,7 +675,7 @@ File_tree* File_tree_get_node(File_tree* tree, const char* path, bool* error)
         *error = true;
         return NULL;
     }
-    char* path_pos = path + strspn(path, "/");
+    const char* path_pos = path + strspn(path, "/");
     while (*path_pos != '\0')
     {
         if (!File_tree_is_dir(tree))
