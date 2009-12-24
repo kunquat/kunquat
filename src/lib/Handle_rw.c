@@ -68,6 +68,7 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
         xfree(handle_rw);
         return NULL;
     }
+    strcpy(handle_rw->base_path, path);
     File_tree* tree = new_File_tree_from_fs(path, NULL);
     if (tree == NULL)
     {
@@ -142,7 +143,7 @@ static bool path_element_is_header(const char* element)
     assert(element != NULL);
     return strncmp("kunquat", element, 7) == 0 &&
            (element[7] == 'i' || element[7] == 's') &&
-           strcmp("XX", element + 8) == 0 &&
+           strncmp("XX", element + 8, 2) == 0 &&
            element[10] == '/';
 }
 
@@ -177,7 +178,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
     {
         if (path_element_is_header(cur_path))
         {
-            char* dir_path = xcalloc(char, strlen(cur_path) + 1);
+            char* dir_path = xcalloc(char, strlen(real_path) + 1);
             if (dir_path == NULL)
             {
                 kqt_Handle_set_error(&handle_rw->handle, "%s: Couldn't"
@@ -185,6 +186,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
                 xfree(real_path);
                 return NULL;
             }
+            strcpy(dir_path, real_path);
             bool non_solidus_found = false;
             for (int i = strlen(dir_path) - 1; i >= 0; --i)
             {
@@ -210,15 +212,17 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
             int max_version = -1;
             while (entry != NULL)
             {
-                if (strncmp("kunquat", entry + last_pos, 7) == 0 &&
-                        ((entry + last_pos)[7] == 'i' || (entry + last_pos)[7] == 's') &&
-                        isdigit((entry + last_pos)[8]) && isdigit((entry + last_pos)[9]))
+                if (strncmp(cur_path, entry + last_pos, 8) == 0 &&
+                        isdigit((entry + last_pos)[8]) && isdigit((entry + last_pos)[9]) &&
+                        (entry + last_pos)[10] == '\0')
                 {
                     int version = 10 * ((entry + last_pos)[8] - '0');
                     version += ((entry + last_pos)[9] - '0');
                     if (version > max_version)
                     {
                         max_version = version;
+                        strcpy(cur_path, entry + last_pos);
+                        strcat(cur_path, "/");
                     }
                 }
                 xfree(entry);
@@ -234,7 +238,6 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
             {
                 return real_path;
             }
-            snprintf(cur_path + 8, 2, "%02d", max_version);
         }
         cur_path = add_path_element(real_path, key_path);
     }
