@@ -53,6 +53,11 @@ struct Directory
 };
 
 
+#define K_CONFIRM_FS_MOD 1
+
+
+#if K_CONFIRM_FS_MOD == 0
+
 #define notify_create(path)                                        \
     if (true)                                                      \
     {                                                              \
@@ -95,6 +100,15 @@ struct Directory
             ;                                                          \
     }                                                                  \
     else (void)0
+
+#else
+
+#define notify_create(path)    ((void)0)
+#define notify_remove(path)    ((void)0)
+#define notify_modify(path)    ((void)0)
+#define notify_move(dest, src) ((void)0)
+
+#endif
 
 
 /**
