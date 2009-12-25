@@ -56,7 +56,7 @@ struct Directory
 #define K_CONFIRM_FS_MOD 1
 
 
-#if K_CONFIRM_FS_MOD == 0
+#if K_CONFIRM_FS_MOD == 1
 
 #define notify_create(path)                                        \
     if (true)                                                      \
@@ -109,21 +109,6 @@ struct Directory
 #define notify_move(dest, src) ((void)0)
 
 #endif
-
-
-/**
- * Copies a regular file.
- *
- * \param dest     The destination path -- must not be \c NULL or an empty
- *                 string.
- * \param src      The source path -- must not be \c NULL, an empty string or
- *                 the same as \a dest.
- * \param handle   The Kunquat Handle associated with the path, or \c NULL if
- *                 one does not exist. This is used for error reporting.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-static bool copy_file(const char* dest, const char* src, kqt_Handle* handle);
 
 
 bool create_dir(const char* path, kqt_Handle* handle)
@@ -249,12 +234,30 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     assert(src != NULL);
     assert(src[0] != '\0');
     assert(strcmp(dest, src) != 0);
+    
+    Path_type info = path_info(dest, handle);
+    if (info == PATH_ERROR)
+    {
+        return false;
+    }
+    else if (info == PATH_IS_OTHER)
+    {
+        kqt_Handle_set_error(handle, "%s: Copy destination %s is a foreign"
+                " type of file", __func__, dest);
+        return false;
+    }
+    else if (info == PATH_IS_REGULAR)
+    {
+        kqt_Handle_set_error(handle, "%s: Copy destination %s is a"
+                " regular file", __func__, dest);
+        return false;
+    }
     Directory* src_dir = new_Directory(src, handle);
     if (src_dir == NULL)
     {
         return false;
     }
-    if (!create_dir(dest, handle))
+    if (info == PATH_NO_ENTRY && !create_dir(dest, handle))
     {
         del_Directory(src_dir);
         return false;
@@ -582,7 +585,7 @@ char* last_element(char* path)
 }
 
 
-static bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
+bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
 {
     assert(dest != NULL);
     assert(dest[0] != '\0');
@@ -598,6 +601,7 @@ static bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
                 " source %s: %s", __func__, src, strerror(errno));
         return false;
     }
+#if 0
     FILE* out = fopen(dest, "rb");
     if (out != NULL)
     {
@@ -607,9 +611,10 @@ static bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
                 " already exists", __func__, dest);
         return false;
     }
+#endif
     notify_modify(dest);
     errno = 0;
-    out = fopen(dest, "wb");
+    FILE* out = fopen(dest, "wb");
     if (out == NULL)
     {
         fclose(in);

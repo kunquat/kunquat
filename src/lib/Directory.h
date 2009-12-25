@@ -157,6 +157,21 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle);
 
 
 /**
+ * Copies a regular file.
+ *
+ * \param dest     The destination path -- must not be \c NULL or an empty
+ *                 string.
+ * \param src      The source path -- must not be \c NULL, an empty string or
+ *                 the same as \a dest.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool copy_file(const char* dest, const char* src, kqt_Handle* handle);
+
+
+/**
  * Moves a directory tree.
  *
  * \param dest     The destination path -- must not be \c NULL or an empty

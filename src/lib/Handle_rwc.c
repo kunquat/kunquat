@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <File_tree.h>
 #include <Directory.h>
@@ -277,7 +278,178 @@ int kqt_Handle_commit(kqt_Handle* handle)
     }
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     assert(handle_rwc->changed_files != NULL);
-    return 0; // TODO: implement
+    int path_len = strlen(handle_rwc->handle_rw.base_path);
+
+    // switch committed and workspace
+    char* const committed_path = xcalloc(char, path_len + 1);
+    if (committed_path == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        return 0;
+    }
+    char* const oldcommit_path = xcalloc(char, path_len + 1);
+    if (oldcommit_path == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        xfree(committed_path);
+        return 0;
+    }
+    strcpy(committed_path, handle_rwc->handle_rw.base_path);
+    strcpy(oldcommit_path, handle_rwc->handle_rw.base_path);
+    char* workspace_pos = strstr(committed_path, "workspace");
+    char* prev_workspace_pos = NULL;
+    while (workspace_pos != NULL)
+    {
+        prev_workspace_pos = workspace_pos;
+        workspace_pos = strstr(workspace_pos + 1, "workspace");
+    }
+    assert(prev_workspace_pos != NULL);
+    int workspace_index = prev_workspace_pos - committed_path;
+    strcpy(committed_path + workspace_index, "committed");
+    strcpy(oldcommit_path + workspace_index, "oldcommit");
+    bool moved = move_dir(oldcommit_path, committed_path, handle);
+    char* workspace_path = oldcommit_path;
+    strcpy(workspace_path + workspace_index, "workspace");
+    if (moved) moved = move_dir(committed_path, workspace_path, handle);
+    workspace_path = committed_path;
+    strcpy(workspace_path + workspace_index, "workspace");
+    strcpy(oldcommit_path + workspace_index, "oldcommit");
+    if (moved) moved = move_dir(workspace_path, oldcommit_path, handle);
+    xfree(committed_path);
+    xfree(oldcommit_path);
+    if (!moved)
+    {
+        return 0;
+    }
+
+    // update workspace
+    AAtree* pending_removal = NULL;
+    char* target_key = AAtree_get(handle_rwc->changed_files, "");
+    while (target_key != NULL)
+    {
+        char* target_in_committed = append_to_path(handle_rwc->handle_rw.base_path,
+                target_key);
+        char* target_in_workspace = append_to_path(handle_rwc->handle_rw.base_path,
+                target_key);
+        if (target_in_committed == NULL || target_in_workspace == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            if (pending_removal != NULL) del_AAtree(pending_removal);
+            xfree(target_in_committed);
+            xfree(target_in_workspace);
+            return 0;
+        }
+        strncpy(target_in_committed + workspace_index, "committed", 9);
+        char* xx = strstr(target_in_committed, "XX");
+        while (xx != NULL)
+        {
+            strncpy(xx, KQT_FORMAT_VERSION, 2);
+            xx = strstr(xx + 1, "XX");
+        }
+        xx = strstr(target_in_workspace, "XX");
+        while (xx != NULL)
+        {
+            strncpy(xx, KQT_FORMAT_VERSION, 2);
+            xx = strstr(xx + 1, "XX");
+        }
+        Path_type committed_info = path_info(target_in_committed, handle);
+        if (committed_info == PATH_ERROR)
+        {
+            if (pending_removal != NULL) del_AAtree(pending_removal);
+            xfree(target_in_committed);
+            xfree(target_in_workspace);
+            return 0;
+        }
+        if (committed_info == PATH_NO_ENTRY)
+        {
+            if (pending_removal == NULL)
+            {
+                pending_removal = new_AAtree(
+                        (int (*)(const void*, const void*))strcmp, free);
+                if (pending_removal == NULL)
+                {
+                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                            __func__);
+                    xfree(target_in_committed);
+                    xfree(target_in_workspace);
+                    return 0;
+                }
+            }
+            if (!AAtree_ins(pending_removal, target_in_workspace))
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+                del_AAtree(pending_removal);
+                xfree(target_in_committed);
+                xfree(target_in_workspace);
+                return 0;
+            }
+            xfree(target_in_committed);
+        }
+        else if (committed_info != PATH_IS_OTHER)
+        {
+            bool copied = false;
+            if (committed_info == PATH_IS_REGULAR)
+            {
+                copied = copy_file(target_in_workspace, target_in_committed,
+                                   handle);
+            }
+            else
+            {
+                assert(committed_info == PATH_IS_DIR);
+                copied = copy_dir(target_in_workspace, target_in_committed,
+                                  handle);
+            }
+            xfree(target_in_committed);
+            xfree(target_in_workspace);
+            if (!copied)
+            {
+                if (pending_removal != NULL) del_AAtree(pending_removal);
+                return 0;
+            }
+        }
+        else
+        {
+            kqt_Handle_set_error(handle, "%s: File %s has a foreign type",
+                    __func__, target_in_committed);
+            if (pending_removal != NULL) del_AAtree(pending_removal);
+            xfree(target_in_committed);
+            xfree(target_in_workspace);
+            return 0;
+        }
+
+        char* entry_to_remove = AAtree_remove(handle_rwc->changed_files, target_key);
+        assert(entry_to_remove == target_key);
+        (void)entry_to_remove;
+        xfree(target_key);
+        target_key = AAtree_get(handle_rwc->changed_files, "");
+    }
+    if (pending_removal != NULL)
+    {
+        // remove files in reverse alphabetical order
+        char* target_file = AAtree_get_at_most(pending_removal, "~~~~");
+        while (target_file != NULL)
+        {
+            errno = 0;
+            if (remove(target_file) != 0)
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't remove %s: %s",
+                        __func__, target_file, strerror(errno));
+                del_AAtree(pending_removal);
+                return 0;
+            }
+            char* file_to_remove = AAtree_remove(pending_removal, target_file);
+            assert(file_to_remove == target_file);
+            (void)file_to_remove;
+            xfree(target_file);
+            target_file = AAtree_get(pending_removal, "~~~~");
+        }
+        del_AAtree(pending_removal);
+    }
+    return 1;
 }
 
 
@@ -294,13 +466,14 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)
     {
         new_file_changed = true;
-        char* key_copy = xnalloc(char, strlen(key) + 1);
+        char* key_copy = xcalloc(char, strlen(key) + 1);
         if (key_copy == NULL)
         {
             kqt_Handle_set_error(handle, "%s: Couldn't log changes"
                     " to the key %s", __func__, key);
             return 0;
         }
+        strcpy(key_copy, key);
         if (!AAtree_ins(handle_rwc->changed_files, key_copy))
         {
             kqt_Handle_set_error(handle, "%s: Couldn't log changes"

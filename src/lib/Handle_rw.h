@@ -81,6 +81,21 @@ int Handle_rw_set_data(kqt_Handle* handle,
                        long length);
 
 
+/**
+ * Converts a virtual path into a real one.
+ *
+ * This function searches the given path for "kunquatiXX" or "kunquatsXX"
+ * and replaces the "XX" with an existent version number if found.
+ *
+ * \param handle_rw   The read/write Kunquat Handle -- must not be \c NULL.
+ * \param path        The virtual path -- must not be \c NULL. The path may
+ *                    be modified in-place.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+// bool Handle_rw_resolve_path(Handle_rw* handle_rw, char* path);
+
+
 #endif // KQT_HANDLE_RW_H
 
 

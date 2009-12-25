@@ -150,6 +150,25 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
 
 
 /**
+ * Sets data of the Kunquat Handle associated with the given key.
+ *
+ * \param handle   The Kunquat Handle -- should be valid and should support
+ *                 writing.
+ * \param key      The key of the data -- should not be \c NULL.
+ * \param data     The data to be set -- should not be \c NULL unless
+ *                 \a length is \c 0.
+ * \param length   The length of \ə data -- must not exceed the real length.
+ *
+ * \return   \c 1 if successful. Otherwise, \c 0 is returned and the Kunquat
+ *           Handle error is set accordingly.
+ */
+int kqt_Handle_set_data(kqt_Handle* handle,
+                        char* key,
+                        void* data,
+                        int length);
+
+
+/**
  * Gets error information from the Kunquat Handle.
  *
  * kqt_Handle_get_error(\a handle) returns a message describing the last
