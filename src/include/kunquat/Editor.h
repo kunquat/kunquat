@@ -155,10 +155,11 @@ int kqt_Handle_commit(kqt_Handle* handle);
  * \param beat        The index of the beat -- should be >= \c 0.
  * \param remainder   The remainder of the beat -- should be >= \c 0 and
  *                    < \c KQT_RELTIME_BEAT.
- * \param index       The 0-based index of the Event in the row.
+ * \param index       The 0-based index of the Event in the row -- should be
+ *                    >= \c 0.
  * \param type        The type of the Event.
- * \param fields      The fields of the Event -- should correspond to the
- *                    type description of the Event.
+ * \param fields      The fields of the Event as a JSON table -- should
+ *                    correspond to the type description of the Event.
  *
  * \return   \c 1 if successful, or \c 0 if failed.
  */
@@ -169,7 +170,7 @@ int kqt_Handle_insert_event(kqt_Handle* handle,
                             long remainder,
                             int index,
                             Event_type type,
-                            char* fields);
+                            const char* fields);
 
 
 /**

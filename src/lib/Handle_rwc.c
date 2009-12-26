@@ -453,6 +453,239 @@ int kqt_Handle_commit(kqt_Handle* handle)
 }
 
 
+int kqt_Handle_insert_event(kqt_Handle* handle,
+                            int pattern,
+                            int column,
+                            long long beat,
+                            long remainder,
+                            int index,
+                            Event_type type,
+                            const char* fields)
+{
+    check_handle(handle, 0);
+    if (handle->mode != KQT_READ_WRITE_COMMIT)
+    {
+        kqt_Handle_set_error(handle, "%s: Cannot insert Event using a"
+                " non-commit Kunquat Handle", __func__);
+        return 0;
+    }
+    if (pattern < 0 || pattern >= KQT_PATTERNS_MAX)
+    {
+        kqt_Handle_set_error(handle, "%s: Pattern number %d is outside valid"
+                " range [0, %d)", __func__, pattern, KQT_PATTERNS_MAX);
+        return 0;
+    }
+    if (column < -1 || column >= KQT_COLUMNS_MAX)
+    {
+        kqt_Handle_set_error(handle, "%s: Column number %d is outside valid"
+                " range [0, %d)", __func__, column, KQT_COLUMNS_MAX);
+        return 0;
+    }
+    if (beat < 0)
+    {
+        kqt_Handle_set_error(handle, "%s: Beat number %lld is less than 0",
+                __func__, beat);
+        return 0;
+    }
+    if (remainder < 0 || remainder >= KQT_RELTIME_BEAT)
+    {
+        kqt_Handle_set_error(handle, "%s: Beat remainder %ld is outside valid"
+                " range [0, %d)", __func__, remainder, KQT_RELTIME_BEAT);
+        return 0;
+    }
+    if (index < 0)
+    {
+        kqt_Handle_set_error(handle, "%s: The Event index %d is less than 0",
+                __func__, index);
+        return 0;
+    }
+    if (!EVENT_IS_VALID(type))
+    {
+        kqt_Handle_set_error(handle, "%s: The Event type %d is not valid",
+                __func__, type);
+        return 0;
+    }
+    if (column == -1 && (EVENT_IS_VOICE(type) ||
+                         EVENT_IS_INS(type) ||
+                         EVENT_IS_CHANNEL(type)))
+    {
+        kqt_Handle_set_error(handle, "%s: Event of type %d cannot be inserted"
+                " into a global Column", __func__, type);
+        return 0;
+    }
+    if (column >= 0 && EVENT_IS_GLOBAL(type))
+    {
+        kqt_Handle_set_error(handle, "%s: Event of type %d cannot be inserted"
+                " into a voice Column", __func__, type);
+        return 0;
+    }
+    Event* event = new_Event(type, Reltime_set(RELTIME_AUTO, beat, remainder));
+    if (event == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Event creation failed",
+                __func__);
+        return 0;
+    }
+    int field_count = Event_get_field_count(event);
+    if (field_count > 0)
+    {
+        if (fields == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: fields must not be NULL for"
+                    " event types that require fields");
+            del_Event(event);
+            return 0;
+        }
+        char* mod_fields = xcalloc(char, strlen(fields) + 2);
+        if (mod_fields == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            del_Event(event);
+            return 0;
+        }
+        strcpy(mod_fields, ",");
+        strcat(mod_fields, fields);
+        Read_state* state = READ_STATE_AUTO;
+        Event_read(event, mod_fields, state);
+        xfree(mod_fields);
+        if (state->error)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't parse the fields"
+                    "(%s): %s", __func__, fields, state->message);
+            del_Event(event);
+            return 0;
+        }
+    }
+    Pat_table* patterns = Song_get_pats(handle->song);
+    Pattern* pat = Pat_table_get(patterns, pattern);
+    if (pat == NULL)
+    {
+        pat = new_Pattern();
+        if (pat == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            del_Event(event);
+            return 0;
+        }
+    }
+    Column* col = NULL;
+    if (column == -1)
+    {
+        col = Pattern_get_global(pat);
+    }
+    else
+    {
+        col = Pattern_get_col(pat, column);
+    }
+    if (!Column_ins(col, event))
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        del_Event(event);
+        return 0;
+    }
+    Column_move(col, event, index);
+    return 1;
+}
+
+
+int kqt_Handle_write_column(kqt_Handle* handle,
+                            int pattern,
+                            int column)
+{
+    check_handle(handle, 0);
+    if (handle->mode != KQT_READ_WRITE_COMMIT)
+    {
+        kqt_Handle_set_error(handle, "%s: This function is not supported with"
+                " non-commit Kunquat Handles", __func__);
+        return 0;
+    }
+    if (pattern < 0 || pattern >= KQT_PATTERNS_MAX)
+    {
+        kqt_Handle_set_error(handle, "%s: Pattern number %d is outside valid"
+                " range [0, %d)", __func__, pattern, KQT_PATTERNS_MAX);
+        return 0;
+    }
+    if (column < -1 || column >= KQT_COLUMNS_MAX)
+    {
+        kqt_Handle_set_error(handle, "%s: Column number %d is outside valid"
+                " range [0, %d)", __func__, column, KQT_COLUMNS_MAX);
+        return 0;
+    }
+    Pat_table* patterns = Song_get_pats(handle->song);
+    Pattern* pat = Pat_table_get(patterns, pattern);
+    String_buffer* key_sb = new_String_buffer();
+    if (key_sb == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        return 0;
+    }
+    Handle_rw* handle_rw = (Handle_rw*)handle;
+    String_buffer_append_string(key_sb, handle_rw->base_path);
+    String_buffer_append_string(key_sb, "pattern_");
+    char pat_num[] = "000";
+    snprintf(pat_num, 4, "%03x", pattern);
+    String_buffer_append_string(key_sb, pat_num);
+    if (column == -1)
+    {
+        String_buffer_append_string(key_sb, "/global_column/global_events.json");
+    }
+    else
+    {
+        String_buffer_append_string(key_sb, "/voice_column_");
+        char col_num[] = "00";
+        snprintf(col_num, 3, "%02x", column);
+        String_buffer_append_string(key_sb, col_num);
+        String_buffer_append_string(key_sb, "/voice_events.json");
+    }
+    if (String_buffer_error(key_sb))
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        xfree(del_String_buffer(key_sb));
+        return 0;
+    }
+    char* key = del_String_buffer(key_sb);
+    if (pat == NULL)
+    {
+        bool set = Handle_rwc_set_data(handle, key, NULL, 0);
+        xfree(key);
+        return set;
+    }
+    Column* col = NULL;
+    if (column == -1)
+    {
+        col = Pattern_get_global(pat);
+    }
+    else
+    {
+        col = Pattern_get_col(pat, column);
+    }
+    char* col_data = Column_serialise(col);
+    if (col_data == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        xfree(key);
+        return 0;
+    }
+    if (col_data[0] == '\0')
+    {
+        xfree(col_data);
+        bool set = Handle_rwc_set_data(handle, key, NULL, 0);
+        xfree(key);
+        return set;
+    }
+    bool set = Handle_rwc_set_data(handle, key, col_data, strlen(col_data));
+    xfree(col_data);
+    xfree(key);
+    return set;
+}
+
+
 static int Handle_rwc_set_data(kqt_Handle* handle,
                                const char* key,
                                void* data,
@@ -504,7 +737,6 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
  *                        *          assert false                   # beyond repair
  *                                   assert false                   # already correct
  */
-
 static bool partial_recovery(const char* path)
 {
     assert(path != NULL);
