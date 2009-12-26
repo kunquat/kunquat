@@ -27,6 +27,7 @@
 #include <Event.h>
 
 #include <Scale.h>
+#include <String_buffer.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -159,18 +160,67 @@ char* Event_read(Event* event, char* str, Read_state* state)
 }
 
 
-bool Event_write(Event* event, FILE* out, Write_state* state)
+bool Event_serialise(Event* event, String_buffer* sb)
 {
     assert(event != NULL);
-    assert(out != NULL);
-    assert(state != NULL);
-    (void)event;
-    (void)out;
-    if (state->error)
+    assert(sb != NULL);
+    if (String_buffer_error(sb))
     {
         return false;
     }
-    return false;
+    String_buffer_append_string(sb, "[");
+    Reltime_serialise(Event_get_pos(event), sb);
+    String_buffer_append_string(sb, ", ");
+    String_buffer_append_int(sb, Event_get_type(event));
+    int field_count = Event_get_field_count(event);
+    if (field_count > 0)
+    {
+        String_buffer_append_string(sb, ", [");
+        for (int i = 0; i < field_count; ++i)
+        {
+            if (i != 0)
+            {
+                String_buffer_append_string(sb, ", ");
+            }
+            switch (Event_get_field_types(event)[i].type)
+            {
+                case EVENT_FIELD_INT:
+                case EVENT_FIELD_NOTE:
+                case EVENT_FIELD_NOTE_MOD:
+                {
+                    int64_t num = *(int64_t*)Event_get_field(event, i);
+                    String_buffer_append_int(sb, num);
+                }
+                break;
+                case EVENT_FIELD_DOUBLE:
+                {
+                    double num = *(double*)Event_get_field(event, i);
+                    String_buffer_append_float(sb, num);
+                }
+                break;
+                case EVENT_FIELD_REAL:
+                {
+                    Real* real = Event_get_field(event, i);
+                    Real_serialise(real, sb);
+                }
+                break;
+                case EVENT_FIELD_RELTIME:
+                {
+                    Reltime* rt = Event_get_field(event, i);
+                    Reltime_serialise(rt, sb);
+                }
+                break;
+                default:
+                {
+                    // Erroneous internal structures
+                    assert(false);
+                }
+                break;
+            }
+        }
+        String_buffer_append_string(sb, "]");
+    }
+    return String_buffer_append_string(sb, "]");
 }
 
 

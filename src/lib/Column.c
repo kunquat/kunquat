@@ -32,6 +32,7 @@
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
+#include <String_buffer.h>
 
 #include <xmemory.h>
 
@@ -370,18 +371,45 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
 #undef break_if
 
 
-bool Column_write(Column* col, FILE* out, Write_state* state)
+char* Column_serialise(Column* col)
 {
     assert(col != NULL);
-    assert(out != NULL);
-    assert(state != NULL);
-    (void)col;
-    (void)out;
-    if (state->error)
+    Column_iter* iter = new_Column_iter(col);
+    if (iter == NULL)
     {
-        return false;
+        return NULL;
     }
-    return false;
+    String_buffer* sb = new_String_buffer();
+    if (iter == NULL || sb == NULL)
+    {
+        del_Column_iter(iter);
+        return NULL;
+    }
+    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
+    while (event != NULL)
+    {
+        if (String_buffer_get_length(sb) == 0)
+        {
+            String_buffer_append_string(sb, "\n\n[\n    ");
+        }
+        else
+        {
+            String_buffer_append_string(sb, ",\n    ");
+        }
+        Event_serialise(event, sb);
+        event = Column_iter_get_next(iter);
+    }
+    del_Column_iter(iter);
+    if (String_buffer_get_length(sb) > 0)
+    {
+        String_buffer_append_string(sb, "\n]\n\n\n");
+    }
+    if (String_buffer_error(sb))
+    {
+        xfree(del_String_buffer(sb));
+        return NULL;
+    }
+    return del_String_buffer(sb);
 }
 
 

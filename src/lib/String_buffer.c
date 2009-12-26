@@ -23,6 +23,9 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <inttypes.h>
 
 #include <String_buffer.h>
 
@@ -58,7 +61,7 @@ String_buffer* new_String_buffer(void)
 }
 
 
-bool String_buffer_get_error(String_buffer* sb)
+bool String_buffer_error(String_buffer* sb)
 {
     assert(sb != NULL);
     return sb->error;
@@ -72,7 +75,7 @@ long String_buffer_get_length(String_buffer* sb)
 }
 
 
-bool String_buffer_append(String_buffer* sb, char ch)
+bool String_buffer_append_ch(String_buffer* sb, char ch)
 {
     assert(sb != NULL);
     if (sb->error)
@@ -94,6 +97,49 @@ bool String_buffer_append(String_buffer* sb, char ch)
     sb->buffer[sb->length] = ch;
     sb->buffer[sb->length + 1] = '\0';
     return true;
+}
+
+
+bool String_buffer_append_string(String_buffer* sb, const char* str)
+{
+    assert(sb != NULL);
+    assert(str != NULL);
+    if (sb->error)
+    {
+        return false;
+    }
+    while (*str != '\0')
+    {
+        String_buffer_append_ch(sb, *str);
+        ++str;
+    }
+    return !sb->error;
+}
+
+
+bool String_buffer_append_int(String_buffer* sb, int32_t num)
+{
+    assert(sb != NULL);
+    if (sb->error)
+    {
+        return false;
+    }
+    char num_buf[12] = { '\0' };
+    snprintf(num_buf, 12, "%" PRId32, num);
+    return String_buffer_append_string(sb, num_buf);
+}
+
+
+bool String_buffer_append_float(String_buffer* sb, double num)
+{
+    assert(sb != NULL);
+    if (sb->error)
+    {
+        return false;
+    }
+    char num_buf[256] = { '\0' }; // FIXME: buffer size?
+    snprintf(num_buf, 256, "%.17g", num);
+    return String_buffer_append_string(sb, num_buf);
 }
 
 

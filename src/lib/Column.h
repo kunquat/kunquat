@@ -123,15 +123,14 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state);
 
 
 /**
- * Writes the Column into a file.
+ * Serialises the Column.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param out     The output file -- must not be \c NULL.
- * \param state   The Write state -- must not be \c NULL.
+ * \param col   The Column -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   A string representation of the Column, or \c NULL if memory
+ *           allocation failed.
  */
-bool Column_write(Column* col, FILE* out, Write_state* state);
+char* Column_serialise(Column* col);
 
 
 /**

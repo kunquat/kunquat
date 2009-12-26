@@ -24,6 +24,10 @@
 #define K_STRING_BUFFER_H
 
 
+#include <stdbool.h>
+#include <stdint.h>
+
+
 /**
  * String buffer is a dynamically expanding buffer.
  */
@@ -47,7 +51,7 @@ String_buffer* new_String_buffer(void);
  * \return   \c true if an error has occurred, otherwise \c false. \c true
  *           always indicates a memory allocation error.
  */
-bool String_buffer_get_error(String_buffer* sb);
+bool String_buffer_error(String_buffer* sb);
 
 
 /**
@@ -64,8 +68,8 @@ long String_buffer_get_length(String_buffer* sb);
  * Appends a character into the String buffer.
  *
  * If an error has previously occurred while processing the given String
- * buffer, this function will fail gracefully. This is to reduce the need
- * of checking each append for errors.
+ * buffer, this function will do nothing. This is to reduce the need of
+ * checking each append for errors.
  *
  * \param sb   The String buffer -- must not be \c NULL.
  * \param ch   The character to be inserted.
@@ -73,7 +77,55 @@ long String_buffer_get_length(String_buffer* sb);
  * \return   \c true if successful. Otherwise \c false is returned and the
  *           internal error flag of \a sb is set.
  */
-bool String_buffer_append(String_buffer* sb, char ch);
+bool String_buffer_append_ch(String_buffer* sb, char ch);
+
+
+/**
+ * Appends a string into the String buffer.
+ *
+ * If an error has previously occurred while processing the given String
+ * buffer, this function will do nothing. This is to reduce the need of
+ * checking each append for errors.
+ *
+ * \param sb       The String buffer -- must not be \c NULL.
+ * \param string   The string to be inserted -- must not be \c NULL.
+ *
+ * \return   \c true if successful. Otherwise \c false is returned and the
+ *           internal error flag of \a sb is set.
+ */
+bool String_buffer_append_string(String_buffer* sb, const char* str);
+
+
+/**
+ * Appends an integer into the String buffer.
+ *
+ * If an error has previously occurred while processing the given String
+ * buffer, this function will do nothing. This is to reduce the need of
+ * checking each append for errors.
+ *
+ * \param sb    The String buffer -- must not be \c NULL.
+ * \param num   The number to be inserted.
+ *
+ * \return   \c true if successful. Otherwise \c false is returned and the
+ *           internal error flag of \a sb is set.
+ */
+bool String_buffer_append_int(String_buffer* sb, int32_t num);
+
+
+/**
+ * Appends a floating point number into the String buffer.
+ *
+ * If an error has previously occurred while processing the given String
+ * buffer, this function will do nothing. This is to reduce the need of
+ * checking each append for errors.
+ *
+ * \param sb    The String buffer -- must not be \c NULL.
+ * \param num   The number to be inserted.
+ *
+ * \return   \c true if successful. Otherwise \c false is returned and the
+ *           internal error flag of \a sb is set.
+ */
+bool String_buffer_append_float(String_buffer* sb, double num);
 
 
 /**
