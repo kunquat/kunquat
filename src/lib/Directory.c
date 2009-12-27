@@ -53,7 +53,7 @@ struct Directory
 };
 
 
-#define K_CONFIRM_FS_MOD 1
+#define K_CONFIRM_FS_MOD 0
 
 
 #if K_CONFIRM_FS_MOD == 1

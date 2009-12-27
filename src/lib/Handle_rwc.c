@@ -623,8 +623,6 @@ int kqt_Handle_write_column(kqt_Handle* handle,
                 __func__);
         return 0;
     }
-    Handle_rw* handle_rw = (Handle_rw*)handle;
-    String_buffer_append_string(key_sb, handle_rw->base_path);
     String_buffer_append_string(key_sb, "pattern_");
     char pat_num[] = "000";
     snprintf(pat_num, 4, "%03x", pattern);

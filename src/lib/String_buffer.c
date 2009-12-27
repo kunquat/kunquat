@@ -96,6 +96,7 @@ bool String_buffer_append_ch(String_buffer* sb, char ch)
     }
     sb->buffer[sb->length] = ch;
     sb->buffer[sb->length + 1] = '\0';
+    ++sb->length;
     return true;
 }
 
