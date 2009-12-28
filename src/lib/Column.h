@@ -123,6 +123,19 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state);
 
 
 /**
+ * Parses a Column.
+ *
+ * \param col         The Column -- must not be \c NULL.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true if and only if \a col is a global Column.
+ * \param state       The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
+
+
+/**
  * Serialises the Column.
  *
  * \param col   The Column -- must not be \c NULL.

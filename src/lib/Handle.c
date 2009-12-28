@@ -70,7 +70,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree)
     handle->error[0] = handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
-    int buffer_count = 2;
+    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
     int event_queue_size = 32;
 

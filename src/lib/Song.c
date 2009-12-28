@@ -147,10 +147,112 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
                              i,
                              i * 100);
     }
-    song->mix_vol_dB = -8;
+    song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    song->init_subsong = 0;
+    song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     return song;
+}
+
+
+bool Song_parse_composition(Song* song, char* str, Read_state* state)
+{
+    assert(song != NULL);
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    str = read_const_char(str, '{', state);
+    if (state->error)
+    {
+        return false;
+    }
+    str = read_const_char(str, '}', state);
+    if (!state->error)
+    {
+        return true;
+    }
+    Read_state_clear_error(state);
+    int64_t buf_count = SONG_DEFAULT_BUF_COUNT;
+    double mix_vol = SONG_DEFAULT_MIX_VOL;
+    int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+    bool expect_key = true;
+    while (expect_key)
+    {
+        char key[128] = { '\0' };
+        str = read_string(str, key, 128, state);
+        str = read_const_char(str, ':', state);
+        if (strcmp(key, "buf_count") == 0)
+        {
+            int64_t buf_count = 0;
+            str = read_int(str, &buf_count, state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (buf_count < 1 || buf_count > KQT_BUFFERS_MAX)
+            {
+                Read_state_set_error(state,
+                         "Unsupported number of mixing buffers: %" PRId64, buf_count);
+                return false;
+            }
+        }
+        else if (strcmp(key, "mix_vol") == 0)
+        {
+            str = read_double(str, &mix_vol, state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (!isfinite(mix_vol) && mix_vol != -INFINITY)
+            {
+                Read_state_set_error(state,
+                         "Invalid mixing volume: %f", song->mix_vol_dB);
+                return false;
+            }
+        }
+        else if (strcmp(key, "init_subsong") == 0)
+        {
+            str = read_int(str, &init_subsong, state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (init_subsong < 0 || init_subsong >= KQT_SUBSONGS_MAX)
+            {
+                Read_state_set_error(state,
+                         "Invalid initial Subsong number: %" PRId64, init_subsong);
+                return false;
+            }
+        }
+        else
+        {
+            Read_state_set_error(state,
+                     "Unrecognised key in composition info: %s", key);
+            return false;
+        }
+        if (state->error)
+        {
+            return false;
+        }
+        check_next(str, state, expect_key);
+    }
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!Song_set_buf_count(song, buf_count))
+    {
+        Read_state_set_error(state,
+                "Couldn't allocate memory for mixing buffers");
+        return false;
+    }
+    song->mix_vol_dB = mix_vol;
+    song->mix_vol = exp2(song->mix_vol_dB / 6);
+    Song_set_subsong(song, init_subsong);
+    return true;
 }
 
 
@@ -186,7 +288,7 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported composition version");
         return false;
     }
-    File_tree* info_tree = File_tree_get_child(tree, "composition.json");
+    File_tree* info_tree = File_tree_get_child(tree, "p_composition.json");
     if (info_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(info_tree));
@@ -196,91 +298,9 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             return false;
         }
         char* str = File_tree_get_data(info_tree);
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Song_parse_composition(song, str, state))
         {
             return false;
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (strcmp(key, "buf_count") == 0)
-                {
-                    int64_t num = 0;
-                    str = read_int(str, &num, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (num < 1 || num > KQT_BUFFERS_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Unsupported number of mixing buffers: %" PRId64, num);
-                        return false;
-                    }
-                    if (!Song_set_buf_count(song, num))
-                    {
-                        Read_state_set_error(state,
-                                 "Couldn't allocate memory for mixing buffers");
-                        return false;
-                    }
-                }
-                else if (strcmp(key, "mix_vol") == 0)
-                {
-                    str = read_double(str, &song->mix_vol_dB, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (!isfinite(song->mix_vol_dB) && song->mix_vol_dB != -INFINITY)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid mixing volume: %f", song->mix_vol_dB);
-                        song->mix_vol_dB = 0;
-                        return false;
-                    }
-                    song->mix_vol = exp2(song->mix_vol_dB / 6);
-                }
-                else if (strcmp(key, "init_subsong") == 0)
-                {
-                    int64_t num = 0;
-                    str = read_int(str, &num, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (num < 0 || num >= KQT_SUBSONGS_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid initial Subsong number: %" PRId64, num);
-                        return false;
-                    }
-                    Song_set_subsong(song, num);
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unrecognised key in composition info: %s", key);
-                    return false;
-                }
-                if (state->error)
-                {
-                    return false;
-                }
-                check_next(str, state, expect_key);
-            }
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                return false;
-            }
         }
     }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
