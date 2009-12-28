@@ -70,6 +70,18 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
 
 
 /**
+ * Parses the header of a Pattern.
+ *
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
+
+
+/**
  * Sets the length of the Pattern.
  *
  * No Events will be deleted if the new length is shorter than the old length.

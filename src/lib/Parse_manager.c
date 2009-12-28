@@ -228,6 +228,32 @@ static bool Parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
+    if (strcmp(subkey, "p_pattern.json") == 0)
+    {
+        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
+        bool new_pattern = pat == NULL;
+        if (new_pattern)
+        {
+            pat = new_Pattern();
+            if (pat == NULL)
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+                return false;
+            }
+        }
+        Read_state* state = READ_STATE_AUTO;
+        if (!Pattern_parse_header(pat, data, state))
+        {
+            kqt_Handle_set_error(handle, "%s: Error in parsing"
+                    "%s: %s", __func__, key, state->message);
+            if (new_pattern)
+            {
+                del_Pattern(pat);
+            }
+            return false;
+        }
+    }
     return true;
 }
 

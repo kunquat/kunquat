@@ -68,6 +68,35 @@ Pattern* new_Pattern(void)
 }
 
 
+bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
+{
+    assert(pat != NULL);
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    str = read_const_char(str, '{', state);
+    str = read_const_string(str, "length", state);
+    str = read_const_char(str, ':', state);
+    Reltime* len = Reltime_init(RELTIME_AUTO);
+    str = read_reltime(str, len, state);
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (Reltime_get_beats(len) < 0)
+    {
+        Read_state_set_error(state, "Pattern length is negative");
+        return false;
+    }
+    Pattern_set_length(pat, len);
+    return true;
+}
+
+
 bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
 {
     assert(pat != NULL);
@@ -83,7 +112,7 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Pattern is not a directory");
         return false;
     }
-    File_tree* info = File_tree_get_child(tree, "pattern.json");
+    File_tree* info = File_tree_get_child(tree, "p_pattern.json");
     if (info != NULL)
     {
         Read_state_init(state, File_tree_get_path(info));
@@ -94,22 +123,10 @@ bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
         }
         char* str = File_tree_get_data(info);
         assert(str != NULL);
-        str = read_const_char(str, '{', state);
-        str = read_const_string(str, "length", state);
-        str = read_const_char(str, ':', state);
-        Reltime* len = Reltime_init(RELTIME_AUTO);
-        str = read_reltime(str, len, state);
-        str = read_const_char(str, '}', state);
-        if (state->error)
+        if (!Pattern_parse_header(pat, str, state))
         {
             return false;
         }
-        if (Reltime_get_beats(len) < 0)
-        {
-            Read_state_set_error(state, "Pattern length is negative");
-            return false;
-        }
-        Pattern_set_length(pat, len);
     }
     char dir_name[16] = "global_column";
     for (int i = -1; i < KQT_COLUMNS_MAX; ++i)
