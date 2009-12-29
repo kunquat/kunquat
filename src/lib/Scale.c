@@ -125,7 +125,7 @@ bool Scale_read(Scale* scale, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported scale version");
         return false;
     }
-    File_tree* scale_tree = File_tree_get_child(tree, "scale.json");
+    File_tree* scale_tree = File_tree_get_child(tree, "p_scale.json");
     if (scale_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(scale_tree));

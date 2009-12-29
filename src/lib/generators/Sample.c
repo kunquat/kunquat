@@ -75,7 +75,7 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Sample description is not a directory");
         return NULL;
     }
-    File_tree* info_tree = File_tree_get_child(tree, "sample.json");
+    File_tree* info_tree = File_tree_get_child(tree, "p_sample.json");
     if (info_tree == NULL)
     {
         return NULL;
@@ -122,11 +122,11 @@ Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
             {
                 if (strcmp(format, "WavPack") == 0)
                 {
-                    File_tree* sample_tree = File_tree_get_child(tree, "sample.wv");
+                    File_tree* sample_tree = File_tree_get_child(tree, "p_sample.wv");
                     if (sample_tree == NULL)
                     {
                         Read_state_set_error(state, "Sample format is set to WavPack"
-                                                    " but sample.wv couldn't be found");
+                                                    " but p_sample.wv couldn't be found");
                     }
                     sample = File_tree_remove_sample(sample_tree);
                     assert(sample != NULL);

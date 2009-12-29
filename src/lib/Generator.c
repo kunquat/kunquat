@@ -67,7 +67,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
         Read_state_set_error(state, "Generator is not a directory");
         return NULL;
     }
-    File_tree* type_tree = File_tree_get_child(tree, "gen_type.json");
+    File_tree* type_tree = File_tree_get_child(tree, "p_gen_type.json");
     if (type_tree == NULL)
     {
         Read_state_set_error(state, "Generator does not contain a type description");
@@ -122,7 +122,7 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
         return NULL;
     }
 
-    File_tree* info_tree = File_tree_get_child(tree, "generator.json");
+    File_tree* info_tree = File_tree_get_child(tree, "p_generator.json");
     if (info_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(info_tree));

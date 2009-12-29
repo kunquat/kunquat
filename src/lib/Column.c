@@ -387,11 +387,11 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
     File_tree* event_tree = NULL;
     if (!is_global)
     {
-        event_tree = File_tree_get_child(tree, "voice_events.json");
+        event_tree = File_tree_get_child(tree, "p_voice_events.json");
     }
     else
     {
-        event_tree = File_tree_get_child(tree, "global_events.json");
+        event_tree = File_tree_get_child(tree, "p_global_events.json");
     }
     if (event_tree == NULL)
     {

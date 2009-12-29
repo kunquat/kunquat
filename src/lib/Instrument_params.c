@@ -234,7 +234,7 @@ bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* 
         bool (*read)(Instrument_params*, File_tree*, Read_state*);
     } files[] =
     {
-        { "envelope_volume_release.json", read_volume_off_env },
+        { "p_envelope_volume_release.json", read_volume_off_env },
         { NULL, NULL }
     };
     for (int i = 0; files[i].name != NULL; ++i)

@@ -281,11 +281,11 @@ static bool Parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    bool global_column = strcmp(subkey, "global_column/global_events.json") == 0;
+    bool global_column = strcmp(subkey, "global_column/p_global_events.json") == 0;
     int col_index = 0;
     ++second_element;
     if (((col_index = parse_index_dir(subkey, "voice_column_", 2)) >= 0
-                    && strcmp(second_element, "voice_events.json") == 0)
+                    && strcmp(second_element, "p_voice_events.json") == 0)
                 || global_column)
     {
         if (global_column)

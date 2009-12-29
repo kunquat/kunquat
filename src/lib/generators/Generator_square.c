@@ -85,7 +85,7 @@ static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* s
         Read_state_set_error(state, "Square Generator is not a directory");
         return false;
     }
-    File_tree* square_tree = File_tree_get_child(dir_tree, "square.json");
+    File_tree* square_tree = File_tree_get_child(dir_tree, "p_square.json");
     if (square_tree == NULL)
     {
         return true;

@@ -284,7 +284,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
                                                     " is not a directory", i, k);
                         return false;
                     }
-                    File_tree* map_tree = File_tree_get_child(source_tree, "sample_map.json");
+                    File_tree* map_tree = File_tree_get_child(source_tree, "p_sample_map.json");
                     if (map_tree != NULL)
                     {
                         if (File_tree_is_dir(map_tree))

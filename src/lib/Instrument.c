@@ -120,7 +120,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Unsupported instrument version");
         return false;
     }
-    File_tree* ins_tree = File_tree_get_child(tree, "instrument.json");
+    File_tree* ins_tree = File_tree_get_child(tree, "p_instrument.json");
     if (ins_tree != NULL)
     {
         Read_state_init(state, File_tree_get_path(ins_tree));
