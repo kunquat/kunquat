@@ -104,6 +104,16 @@ Reltime* Pattern_get_length(Pattern* pat);
 
 
 /**
+ * Replaces a Column of the Pattern.
+ *
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
+ * \param col     The Column -- must not be \c NULL.
+ */
+void Pattern_set_col(Pattern* pat, int index, Column* col);
+
+
+/**
  * Returns a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
@@ -112,6 +122,15 @@ Reltime* Pattern_get_length(Pattern* pat);
  * \return   The Column.
  */
 Column* Pattern_get_col(Pattern* pat, int index);
+
+
+/**
+ * Replaces the global Column of the Pattern.
+ *
+ * \param pat   The Pattern -- must not be \c NULL.
+ * \param col   The Column -- must not be \c NULL.
+ */
+void Pattern_set_global(Pattern* pat, Column* col);
 
 
 /**

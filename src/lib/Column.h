@@ -111,6 +111,24 @@ Column* new_Column(Reltime* len);
 
 
 /**
+ * Creates a new Column from a textual description.
+ *
+ * \param len         The length of the column. If this is \c NULL, the length is
+ *                    set to INT64_MAX beats.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true iff the Column is to be global.
+ * \param state       The Read state -- must not be \c NULL.
+ *
+ * \return   The new Column if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
+ */
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state);
+
+
+/**
  * Reads a Column from a File tree.
  *
  * \param col     The Column -- must not be \c NULL.

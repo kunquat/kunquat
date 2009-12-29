@@ -171,12 +171,36 @@ Reltime* Pattern_get_length(Pattern* pat)
 }
 
 
+void Pattern_set_col(Pattern* pat, int index, Column* col)
+{
+    assert(pat != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(col != NULL);
+    Column* old_col = pat->cols[index];
+    pat->cols[index] = col;
+    del_Column(old_col);
+    return;
+}
+
+
 Column* Pattern_get_col(Pattern* pat, int index)
 {
     assert(pat != NULL);
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     return pat->cols[index];
+}
+
+
+void Pattern_set_global(Pattern* pat, Column* col)
+{
+    assert(pat != NULL);
+    assert(col != NULL);
+    Column* old_col = pat->global;
+    pat->global = col;
+    del_Column(old_col);
+    return;
 }
 
 

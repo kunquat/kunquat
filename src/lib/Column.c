@@ -251,6 +251,31 @@ Column* new_Column(Reltime* len)
 }
 
 
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state)
+{
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Column* col = new_Column(len);
+    if (col == NULL)
+    {
+        return NULL;
+    }
+    if (!Column_parse(col, str, is_global, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    return col;
+}
+
+
 #define break_if(error)   \
     if (true)             \
     {                     \
