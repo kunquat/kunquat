@@ -32,7 +32,9 @@
 /**
  * Parses data based on the given key.
  *
- * This function only checks data that affects the player.
+ * If the key does not affect the player, this function always succeeds.
+ * Otherwise it will parse the data and, if the data is valid, it will update
+ * the player state.
  *
  * \param handle   The Kunquat Handle -- must be valid and must support
  *                 writing.

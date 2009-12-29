@@ -136,9 +136,9 @@ bool Parse_data(kqt_Handle* handle,
     assert(key_is_valid(key));
     assert(data != NULL || length == 0);
     assert(length >= 0);
-    if (data == NULL)
+    if (length == 0)
     {
-        return true;
+        data = NULL;
     }
     int last_index = 0;
     const char* last_element = strrchr(key, '/');
@@ -197,7 +197,7 @@ static bool Parse_song_level(kqt_Handle* handle,
 {
     assert(handle_is_valid(handle));
     assert(key != NULL);
-    assert(data != NULL);
+    assert(data != NULL || length == 0);
     assert(length >= 0);
     if (strcmp(key, "p_composition.json") == 0)
     {
@@ -223,7 +223,7 @@ static bool Parse_instrument_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL);
+    assert(data != NULL || length == 0);
     assert(length >= 0);
     if (index < 1 || index > KQT_INSTRUMENTS_MAX)
     {
@@ -243,7 +243,7 @@ static bool Parse_pattern_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL);
+    assert(data != NULL || length == 0);
     assert(length >= 0);
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
@@ -364,7 +364,7 @@ static bool Parse_scale_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL);
+    assert(data != NULL || length == 0);
     assert(length >= 0);
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
@@ -384,7 +384,7 @@ static bool Parse_subsong_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL);
+    assert(data != NULL || length == 0);
     assert(length >= 0);
     if (index < 0 || index >= KQT_SUBSONGS_MAX)
     {

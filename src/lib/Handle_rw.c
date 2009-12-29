@@ -33,6 +33,7 @@
 
 #include <Directory.h>
 #include <Handle_rw.h>
+#include <Parse_manager.h>
 
 #include <xmemory.h>
 
@@ -436,6 +437,11 @@ int Handle_rw_set_data(kqt_Handle* handle,
     {
         kqt_Handle_set_error(handle, "%s: Key %s exists but is not a"
                 " regular file", __func__, key);
+        xfree(real_path);
+        return 0;
+    }
+    if (!Parse_data(handle, key, data, length))
+    {
         xfree(real_path);
         return 0;
     }

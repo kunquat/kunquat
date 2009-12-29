@@ -44,6 +44,9 @@ typedef struct Pattern
 } Pattern;
 
 
+#define PATTERN_DEFAULT_LENGTH (Reltime_set(RELTIME_AUTO, 16, 0))
+
+
 /**
  * Creates a new Pattern object.
  * The caller shall eventually call del_Pattern() to destroy the Pattern

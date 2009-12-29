@@ -288,11 +288,15 @@ Column* new_Column_from_string(Reltime* len,
 bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 {
     assert(col != NULL);
-    assert(str != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
+    }
+    if (str == NULL)
+    {
+        // An empty Column has no properties, so we're done.
+        return true;
     }
     str = read_const_char(str, '[', state); // start of Column
     break_if(state->error);

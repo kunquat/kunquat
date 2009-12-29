@@ -71,21 +71,23 @@ Pattern* new_Pattern(void)
 bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
 {
     assert(pat != NULL);
-    assert(str != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    str = read_const_char(str, '{', state);
-    str = read_const_string(str, "length", state);
-    str = read_const_char(str, ':', state);
-    Reltime* len = Reltime_init(RELTIME_AUTO);
-    str = read_reltime(str, len, state);
-    str = read_const_char(str, '}', state);
-    if (state->error)
+    Reltime* len = PATTERN_DEFAULT_LENGTH;
+    if (str != NULL)
     {
-        return false;
+        str = read_const_char(str, '{', state);
+        str = read_const_string(str, "length", state);
+        str = read_const_char(str, ':', state);
+        str = read_reltime(str, len, state);
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            return false;
+        }
     }
     if (Reltime_get_beats(len) < 0)
     {
