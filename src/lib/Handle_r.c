@@ -58,6 +58,7 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
                 " Kunquat Handle", __func__);
         return NULL;
     }
+    handle_r->handle.mode = KQT_READ;
     handle_r->tree = new_File_tree_from_tar(path, NULL);
     if (handle_r->tree == NULL)
     {
@@ -69,7 +70,6 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
-    handle_r->handle.mode = KQT_READ;
     handle_r->handle.get_data = Handle_r_get_data;
     handle_r->handle.get_data_length = Handle_r_get_data_length;
     handle_r->handle.destroy = del_Handle_r;

@@ -256,7 +256,6 @@ Column* new_Column_from_string(Reltime* len,
                                bool is_global,
                                Read_state* state)
 {
-    assert(str != NULL);
     assert(state != NULL);
     if (state->error)
     {

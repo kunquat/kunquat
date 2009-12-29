@@ -261,7 +261,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
             tree = new_File_tree(FILE_TREE_REG, name, path_name, data);
             if (tree == NULL)
             {
-                kqt_Handle_set_error(handle, "Couldn't allocate memory",
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
                         __func__);
                 xfree(data);
                 xfree(name);

@@ -205,7 +205,7 @@ static bool Parse_song_level(kqt_Handle* handle,
         if (!Song_parse_composition(handle->song, data, state))
         {
             kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    "%s: %s", __func__, key, state->message);
+                    " %s: %s", __func__, key, state->message);
             return false;
         }
     }
@@ -267,7 +267,7 @@ static bool Parse_pattern_level(kqt_Handle* handle,
         if (!Pattern_parse_header(pat, data, state))
         {
             kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    "%s: %s", __func__, key, state->message);
+                    " %s: %s", __func__, key, state->message);
             if (new_pattern)
             {
                 del_Pattern(pat);
@@ -323,7 +323,7 @@ static bool Parse_pattern_level(kqt_Handle* handle,
             else
             {
                 kqt_Handle_set_error(handle, "%s: Error in parsing"
-                        "%s: %s", __func__, key, state->message);
+                        " %s: %s", __func__, key, state->message);
             }
             if (new_pattern)
             {

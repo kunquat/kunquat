@@ -182,6 +182,10 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                 char key[128] = { '\0' };
                 str = read_string(str, key, 128, state);
                 str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
                 if (strcmp(key, "buf_count") == 0)
                 {
                     int64_t buf_count = 0;
