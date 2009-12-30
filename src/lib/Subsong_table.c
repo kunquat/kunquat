@@ -117,7 +117,8 @@ bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
     }
     if (index == table->effective_size)
     {
-        while (Etable_get(table->subs, index) != NULL)
+        while (index < KQT_SUBSONGS_MAX &&
+                Etable_get(table->subs, index) != NULL)
         {
             table->effective_size = index + 1;
             ++index;
