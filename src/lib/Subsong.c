@@ -35,6 +35,9 @@
 #include <xmemory.h>
 
 
+static bool Subsong_parse(Subsong* ss, char* str, Read_state* state);
+
+
 Subsong* new_Subsong(void)
 {
     Subsong* ss = xalloc(Subsong);
@@ -53,40 +56,38 @@ Subsong* new_Subsong(void)
     {
         ss->pats[i] = KQT_SECTION_NONE;
     }
-    ss->tempo = 120;
-    ss->global_vol = -4;
-    ss->scale = 0;
+    ss->tempo = SUBSONG_DEFAULT_TEMPO;
+    ss->global_vol = SUBSONG_DEFAULT_GLOBAL_VOL;
+    ss->scale = SUBSONG_DEFAULT_SCALE;
     return ss;
 }
 
 
-bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
+Subsong* new_Subsong_from_string(char* str, Read_state* state)
+{
+    assert(state != NULL);
+    Subsong* ss = new_Subsong();
+    if (ss == NULL)
+    {
+        return NULL;
+    }
+    if (!Subsong_parse(ss, str, state))
+    {
+        del_Subsong(ss);
+        return NULL;
+    }
+    return ss;
+}
+
+
+static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
 {
     assert(ss != NULL);
-    assert(tree != NULL);
     assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Subsong is not a directory");
-        return false;
-    }
-    File_tree* info = File_tree_get_child(tree, "p_subsong.json");
-    if (info == NULL)
+    if (str == NULL)
     {
         return true;
     }
-    Read_state_init(state, File_tree_get_path(info));
-    if (File_tree_is_dir(info))
-    {
-        Read_state_set_error(state, "Subsong description is a directory");
-        return false;
-    }
-    char* str = File_tree_get_data(info);
     str = read_const_char(str, '{', state);
     if (state->error)
     {
@@ -201,6 +202,37 @@ bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
         return false;
     }
     return true;
+}
+
+
+bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
+{
+    assert(ss != NULL);
+    assert(tree != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_init(state, File_tree_get_path(tree));
+    if (!File_tree_is_dir(tree))
+    {
+        Read_state_set_error(state, "Subsong is not a directory");
+        return false;
+    }
+    File_tree* info = File_tree_get_child(tree, "p_subsong.json");
+    if (info == NULL)
+    {
+        return true;
+    }
+    Read_state_init(state, File_tree_get_path(info));
+    if (File_tree_is_dir(info))
+    {
+        Read_state_set_error(state, "Subsong description is a directory");
+        return false;
+    }
+    char* str = File_tree_get_data(info);
+    return Subsong_parse(ss, str, state);
 }
 
 

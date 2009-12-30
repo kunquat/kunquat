@@ -116,7 +116,7 @@ Column* new_Column(Reltime* len);
  * \param len         The length of the column. If this is \c NULL, the length is
  *                    set to INT64_MAX beats.
  * \param str         The textual description -- must not be \c NULL.
- * \param is_global   \c true iff the Column is to be global.
+ * \param is_global   \c true if and only if the Column is to be global.
  * \param state       The Read state -- must not be \c NULL.
  *
  * \return   The new Column if successful, otherwise \c NULL. \a state

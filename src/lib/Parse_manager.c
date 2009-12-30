@@ -412,6 +412,33 @@ static bool Parse_subsong_level(kqt_Handle* handle,
     {
         return true;
     }
+    if (strcmp(subkey, "p_subsong.json") == 0)
+    {
+        Read_state* state = READ_STATE_AUTO;
+        Subsong* ss = new_Subsong_from_string(data, state);
+        if (ss == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+            }
+            else
+            {
+                kqt_Handle_set_error(handle, "%s: Error in parsing"
+                        " %s: %s", __func__, key, state->message);
+            }
+            return false;
+        }
+        Subsong_table* st = Song_get_subsongs(handle->song);
+        if (!Subsong_table_set(st, index, ss))
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            del_Subsong(ss);
+            return false;
+        }
+    }
     return true;
 }
 

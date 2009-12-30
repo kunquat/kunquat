@@ -47,6 +47,11 @@ typedef struct Subsong
 } Subsong;
 
 
+#define SUBSONG_DEFAULT_TEMPO (120)
+#define SUBSONG_DEFAULT_GLOBAL_VOL (-4)
+#define SUBSONG_DEFAULT_SCALE (0)
+
+
 /**
  * Creates a new Subsong.
  *
@@ -54,6 +59,18 @@ typedef struct Subsong
  *           failed.
  */
 Subsong* new_Subsong(void);
+
+
+/**
+ * Creates a new Subsong from a textual description.
+ *
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The new Subsong if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
+ */
+Subsong* new_Subsong_from_string(char* str, Read_state* state);
 
 
 /**
