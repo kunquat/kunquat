@@ -370,6 +370,28 @@ static bool Parse_scale_level(kqt_Handle* handle,
     {
         return true;
     }
+    if (strcmp(subkey, "kunquatsXX/p_scale.json") == 0 ||
+            strcmp(subkey, "kunquats" KQT_FORMAT_VERSION "/p_scale.json") == 0)
+    {
+        Scale* scale = new_Scale(SCALE_DEFAULT_REF_PITCH,
+                                 SCALE_DEFAULT_OCTAVE_RATIO);
+        if (scale == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            return false;
+        }
+        Read_state* state = READ_STATE_AUTO;
+        if (!Scale_parse(scale, data, state))
+        {
+            kqt_Handle_set_error(handle, "%s: Error in parsing"
+                    " %s: %s", __func__, key, state->message);
+            del_Scale(scale);
+            return false;
+        }
+        Song_set_scale(handle->song, index, scale);
+        return true;
+    }
     return true;
 }
 

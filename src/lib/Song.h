@@ -283,6 +283,16 @@ Scale** Song_get_scales(Song* song);
 
 
 /**
+ * Sets a Scale in the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param scale   The Scale -- must not be \c NULL.
+ */
+void Song_set_scale(Song* song, int index, Scale* scale);
+
+
+/**
  * Gets a Scale of the Song.
  *
  * \param song    The Song -- must not be \c NULL.

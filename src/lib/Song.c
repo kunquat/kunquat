@@ -109,8 +109,8 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->scales[0] = new_Scale(523.25113060119725,
-            Real_init_as_frac(REAL_AUTO, 2, 1));
+    song->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+            SCALE_DEFAULT_OCTAVE_RATIO);
     if (song->scales[0] == NULL)
     {
         del_Song(song);
@@ -723,6 +723,22 @@ Scale* Song_get_scale(Song* song, int index)
 }
 
 
+void Song_set_scale(Song* song, int index, Scale* scale)
+{
+    assert(song != NULL);
+    assert(index >= 0);
+    assert(index < KQT_SCALES_MAX);
+    assert(scale != NULL);
+    if (song->scales[index] != NULL &&
+            song->scales[index] != scale)
+    {
+        del_Scale(song->scales[index]);
+    }
+    song->scales[index] = scale;
+    return;
+}
+
+
 Scale*** Song_get_active_scale(Song* song)
 {
     assert(song != NULL);
@@ -740,8 +756,8 @@ bool Song_create_scale(Song* song, int index)
         Scale_clear(song->scales[index]);
         return true;
     }
-    song->scales[index] = new_Scale(440,
-            Real_init_as_frac(REAL_AUTO, 2, 1));
+    song->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+            SCALE_DEFAULT_OCTAVE_RATIO);
     if (song->scales[index] == NULL)
     {
         return false;

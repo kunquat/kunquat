@@ -59,6 +59,10 @@ typedef struct Scale
 } Scale;
 
 
+#define SCALE_DEFAULT_REF_PITCH (523.25113060119725)
+#define SCALE_DEFAULT_OCTAVE_RATIO (Real_init_as_frac(REAL_AUTO, 2, 1))
+
+
 /**
  * Creates a new Scale.
  *
@@ -72,6 +76,18 @@ typedef struct Scale
  *           fails.
  */
 Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
+
+
+/**
+ * Parses a Scale from a textual description.
+ *
+ * \param scale   The Scale -- must not be \c NULL.
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Scale_parse(Scale* scale, char* str, Read_state* state);
 
 
 /**

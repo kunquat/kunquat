@@ -54,6 +54,10 @@
         Real_init_as_frac(&(scale)->note_mods[(index)].ratio, -1, 1); \
     } else (void)0
 
+static Scale* Scale_init(Scale* scale, pitch_t ref_pitch, Real* octave_ratio);
+
+static Scale* Scale_copy(Scale* dest, const Scale* src);
+
 
 Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
 {
@@ -65,11 +69,27 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
     {
         return NULL;
     }
+    return Scale_init(scale, ref_pitch, octave_ratio);
+}
+
+
+static Scale* Scale_init(Scale* scale, pitch_t ref_pitch, Real* octave_ratio)
+{
+    assert(scale != NULL);
+    assert(octave_ratio != NULL);
+    assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
     Scale_clear(scale);
     scale->ref_pitch = ref_pitch;
     Scale_set_octave_ratio(scale, octave_ratio);
     scale->oct_ratio_cents = NAN;
     return scale;
+}
+
+static Scale* Scale_copy(Scale* dest, const Scale* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    return memcpy(dest, src, sizeof(Scale));
 }
 
 
@@ -91,6 +111,186 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
             }                                                                     \
         }                                                                         \
     } else (void)0
+
+bool Scale_parse(Scale* scale, char* str, Read_state* state)
+{
+    assert(scale != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Scale* new_scale = Scale_init(&(Scale){ .note_count = 0 },
+                                  SCALE_DEFAULT_REF_PITCH,
+                                  SCALE_DEFAULT_OCTAVE_RATIO);
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (!state->error)
+        {
+            Scale_copy(scale, new_scale);
+            return true;
+        }
+        Read_state_clear_error(state);
+        
+        bool expect_key = true;
+        while (expect_key)
+        {
+            char key[256] = { '\0' };
+            str = read_string(str, key, 256, state);
+            str = read_const_char(str, ':', state);
+            if (state->error)
+            {
+                return false;
+            }
+            if (strcmp(key, "ref_note") == 0)
+            {
+                int64_t num = 0;
+                str = read_int(str, &num, state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (num < 0 || num >= KQT_SCALE_NOTES)
+                {
+                    Read_state_set_error(state,
+                             "Invalid reference note number: %" PRId64, num);
+                    return false;
+                }
+                new_scale->ref_note = num;
+            }
+            else if (strcmp(key, "ref_pitch") == 0)
+            {
+                double num = 0;
+                str = read_double(str, &num, state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (num <= 0 || !isfinite(num))
+                {
+                    Read_state_set_error(state,
+                             "Invalid reference pitch: %f", num);
+                    return false;
+                }
+                new_scale->ref_pitch = num;
+            }
+            else if (strcmp(key, "octave_ratio") == 0)
+            {
+                Real* ratio = Real_init(REAL_AUTO);
+                double cents = NAN;
+                read_and_validate_tuning(str, ratio, cents, state);
+                if (!isnan(cents))
+                {
+                    Scale_set_octave_ratio_cents(new_scale, cents);
+                }
+                else
+                {
+                    Scale_set_octave_ratio(new_scale, ratio);
+                }
+            }
+            else if (strcmp(key, "note_mods") == 0
+                     || strcmp(key, "notes") == 0)
+            {
+                int count = 0;
+                str = read_const_char(str, '[', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                str = read_const_char(str, ']', state);
+                if (state->error)
+                {
+                    bool notes = strcmp(key, "notes") == 0;
+                    Read_state_clear_error(state);
+                    bool expect_val = true;
+                    while (expect_val)
+                    {
+                        Real* ratio = Real_init(REAL_AUTO);
+                        double cents = NAN;
+                        read_and_validate_tuning(str, ratio, cents, state);
+                        if (!isnan(cents))
+                        {
+                            if (notes)
+                            {
+                                Scale_set_note_cents(new_scale, count, cents);
+                            }
+                            else
+                            {
+                                Scale_set_note_mod_cents(new_scale, count, cents);
+                            }
+                        }
+                        else
+                        {
+                            if (notes)
+                            {
+                                Scale_set_note(new_scale, count, ratio);
+                            }
+                            else
+                            {
+                                Scale_set_note_mod(new_scale, count, ratio);
+                            }
+                        }
+                        ++count;
+                        if (notes && count >= KQT_SCALE_NOTES)
+                        {
+                            break;
+                        }
+                        else if (!notes && count >= KQT_SCALE_NOTE_MODS)
+                        {
+                            break;
+                        }
+                        check_next(str, state, expect_val);
+                    }
+                    str = read_const_char(str, ']', state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (notes)
+                    {
+                        for (int i = count; i < KQT_SCALE_NOTES; ++i)
+                        {
+                            if (!NOTE_EXISTS(new_scale, i))
+                            {
+                                break;
+                            }
+                            NOTE_CLEAR(new_scale, i);
+                        }
+                    }
+                }
+            }
+            else
+            {
+                Read_state_set_error(state,
+                         "Unrecognised key in scale: %s", key);
+                return false;
+            }
+            check_next(str, state, expect_key);
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (new_scale->ref_note >= new_scale->note_count)
+        {
+            Read_state_set_error(state,
+                     "Reference note doesn't exist: %d\n", new_scale->ref_note);
+            return false;
+        }
+    }
+    Scale_copy(scale, new_scale);
+    return true;
+}
+
+#undef read_and_validate_tuning
+
 
 bool Scale_read(Scale* scale, File_tree* tree, Read_state* state)
 {
@@ -136,169 +336,13 @@ bool Scale_read(Scale* scale, File_tree* tree, Read_state* state)
             return false;
         }
         char* str = File_tree_get_data(scale_tree);
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Scale_parse(scale, str, state))
         {
-            return false;
-        }
-        str = read_const_char(str, '}', state);
-        if (!state->error)
-        {
-            return true;
-        }
-        Read_state_clear_error(state);
-        
-        bool expect_key = true;
-        while (expect_key)
-        {
-            char key[256] = { '\0' };
-            str = read_string(str, key, 256, state);
-            str = read_const_char(str, ':', state);
-            if (state->error)
-            {
-                return false;
-            }
-            if (strcmp(key, "ref_note") == 0)
-            {
-                int64_t num = 0;
-                str = read_int(str, &num, state);
-                if (state->error)
-                {
-                    return false;
-                }
-                if (num < 0 || num >= KQT_SCALE_NOTES)
-                {
-                    Read_state_set_error(state,
-                             "Invalid reference note number: %" PRId64, num);
-                    return false;
-                }
-                scale->ref_note = num;
-            }
-            else if (strcmp(key, "ref_pitch") == 0)
-            {
-                double num = 0;
-                str = read_double(str, &num, state);
-                if (state->error)
-                {
-                    return false;
-                }
-                if (num <= 0 || !isfinite(num))
-                {
-                    Read_state_set_error(state,
-                             "Invalid reference pitch: %f", num);
-                    return false;
-                }
-                scale->ref_pitch = num;
-            }
-            else if (strcmp(key, "octave_ratio") == 0)
-            {
-                Real* ratio = Real_init(REAL_AUTO);
-                double cents = NAN;
-                read_and_validate_tuning(str, ratio, cents, state);
-                if (!isnan(cents))
-                {
-                    Scale_set_octave_ratio_cents(scale, cents);
-                }
-                else
-                {
-                    Scale_set_octave_ratio(scale, ratio);
-                }
-            }
-            else if (strcmp(key, "note_mods") == 0
-                     || strcmp(key, "notes") == 0)
-            {
-                int count = 0;
-                str = read_const_char(str, '[', state);
-                if (state->error)
-                {
-                    return false;
-                }
-                str = read_const_char(str, ']', state);
-                if (state->error)
-                {
-                    bool notes = strcmp(key, "notes") == 0;
-                    Read_state_clear_error(state);
-                    bool expect_val = true;
-                    while (expect_val)
-                    {
-                        Real* ratio = Real_init(REAL_AUTO);
-                        double cents = NAN;
-                        read_and_validate_tuning(str, ratio, cents, state);
-                        if (!isnan(cents))
-                        {
-                            if (notes)
-                            {
-                                Scale_set_note_cents(scale, count, cents);
-                            }
-                            else
-                            {
-                                Scale_set_note_mod_cents(scale, count, cents);
-                            }
-                        }
-                        else
-                        {
-                            if (notes)
-                            {
-                                Scale_set_note(scale, count, ratio);
-                            }
-                            else
-                            {
-                                Scale_set_note_mod(scale, count, ratio);
-                            }
-                        }
-                        ++count;
-                        if (notes && count >= KQT_SCALE_NOTES)
-                        {
-                            break;
-                        }
-                        else if (!notes && count >= KQT_SCALE_NOTE_MODS)
-                        {
-                            break;
-                        }
-                        check_next(str, state, expect_val);
-                    }
-                    str = read_const_char(str, ']', state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (notes)
-                    {
-                        for (int i = count; i < KQT_SCALE_NOTES; ++i)
-                        {
-                            if (!NOTE_EXISTS(scale, i))
-                            {
-                                break;
-                            }
-                            NOTE_CLEAR(scale, i);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                Read_state_set_error(state,
-                         "Unrecognised key in scale: %s", key);
-                return false;
-            }
-            check_next(str, state, expect_key);
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            return false;
-        }
-        if (scale->ref_note >= scale->note_count)
-        {
-            Read_state_set_error(state,
-                     "Reference note doesn't exist: %d\n", scale->ref_note);
             return false;
         }
     }
     return true;
 }
-
-#undef read_and_validate_tuning
 
 
 void Scale_clear(Scale* scale)
