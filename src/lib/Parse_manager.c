@@ -44,6 +44,15 @@ static bool Parse_instrument_level(kqt_Handle* handle,
                                    int index);
 
 
+static bool Parse_generator_level(kqt_Handle* handle,
+                                  const char* key,
+                                  const char* subkey,
+                                  void* data,
+                                  long length,
+                                  int ins_index,
+                                  int gen_index);
+
+
 static bool Parse_pattern_level(kqt_Handle* handle,
                                 const char* key,
                                 const char* subkey,
@@ -237,6 +246,16 @@ static bool Parse_instrument_level(kqt_Handle* handle,
     subkey = strchr(subkey, '/');
     assert(subkey != NULL);
     ++subkey;
+    int gen_index = 0;
+    if ((gen_index = parse_index_dir(subkey, "generator_", 2)) >= 0)
+    {
+        subkey = strchr(subkey, '/');
+        assert(subkey != NULL);
+        ++subkey;
+        return Parse_generator_level(handle, key, subkey,
+                                     data, length, 
+                                     index, gen_index);
+    }
     if (strcmp(subkey, "p_instrument.json") == 0)
     {
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
@@ -276,6 +295,90 @@ static bool Parse_instrument_level(kqt_Handle* handle,
             del_Instrument(ins);
             return false;
         }
+    }
+    struct
+    {
+        char* name;
+        bool (*read)(Instrument_params*, char* str, Read_state*);
+    } parse[] =
+    {
+        { "p_envelope_volume_release.json", Instrument_params_parse_env_vol_rel },
+        { NULL, NULL }
+    };
+    for (int i = 0; parse[i].name != NULL; ++i)
+    {
+        assert(parse[i].read != NULL);
+        if (strcmp(subkey, parse[i].name) == 0)
+        {
+            Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+            bool new_ins = ins == NULL;
+            if (new_ins)
+            {
+                ins = new_Instrument(Song_get_bufs(handle->song),
+                                     Song_get_voice_bufs(handle->song),
+                                     Song_get_voice_bufs2(handle->song),
+                                     Song_get_buf_count(handle->song),
+                                     Song_get_buf_size(handle->song),
+                                     Song_get_scales(handle->song),
+                                     Song_get_active_scale(handle->song),
+                                     32); // TODO: make configurable
+                if (ins == NULL)
+                {
+                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                            __func__);
+                    return false;
+                }
+            }
+            Read_state* state = READ_STATE_AUTO;
+            if (!parse[i].read(Instrument_get_params(ins), data, state))
+            {
+                if (!state->error)
+                {
+                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                            __func__);
+                }
+                else
+                {
+                    kqt_Handle_set_error(handle, "%s: Error in parsing"
+                            " %s: %s", __func__, key, state->message);
+                }
+                if (new_ins)
+                {
+                    del_Instrument(ins);
+                }
+                return false;
+            }
+            if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+                del_Instrument(ins);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+
+static bool Parse_generator_level(kqt_Handle* handle,
+                                  const char* key,
+                                  const char* subkey,
+                                  void* data,
+                                  long length,
+                                  int ins_index,
+                                  int gen_index)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(ins_index >= 1);
+    assert(ins_index <= KQT_INSTRUMENTS_MAX);
+    if (gen_index < 0 || gen_index >= KQT_GENERATORS_MAX)
+    {
+        return true;
     }
     return true;
 }

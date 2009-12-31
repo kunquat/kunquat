@@ -149,6 +149,95 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 #undef new_env_or_fail
 
 
+bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
+                                         char* str,
+                                         Read_state* state)
+{
+    assert(ip != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    double scale_factor = 1;
+    double scale_center = 0;
+    Envelope* env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
+    if (env == NULL)
+    {
+        return false;
+    }
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            del_Envelope(env);
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                if (strcmp(key, "enabled") == 0)
+                {
+                    str = read_bool(str, &enabled, state);
+                }
+                else if (strcmp(key, "scale_factor") == 0)
+                {
+                    str = read_double(str, &scale_factor, state);
+                }
+                else if (strcmp(key, "scale_center") == 0)
+                {
+                    str = read_double(str, &scale_center, state);
+                }
+                else if (strcmp(key, "nodes") == 0)
+                {
+                    str = Envelope_read(env, str, state);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unrecognised key in Note Off volume envelope: %s", key);
+                    del_Envelope(env);
+                    return false;
+                }
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                del_Envelope(env);
+                return false;
+            }
+        }
+    }
+    ip->volume_off_env_enabled = enabled;
+    ip->volume_off_env_factor = scale_factor;
+    ip->volume_off_env_center = scale_center;
+    Envelope* old_env = ip->volume_off_env;
+    ip->volume_off_env = env;
+    del_Envelope(old_env);
+    return true;
+}
+
+
 bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* state)
 {
     assert(ip != NULL);
@@ -160,61 +249,7 @@ bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* sta
         return false;
     }
     char* str = File_tree_get_data(tree);
-    str = read_const_char(str, '{', state);
-    if (state->error)
-    {
-        return false;
-    }
-    str = read_const_char(str, '}', state);
-    if (!state->error)
-    {
-        return true;
-    }
-    Read_state_clear_error(state);
-    bool expect_key = true;
-    while (expect_key)
-    {
-        char key[128] = { '\0' };
-        str = read_string(str, key, 128, state);
-        str = read_const_char(str, ':', state);
-        if (state->error)
-        {
-            return false;
-        }
-        if (strcmp(key, "enabled") == 0)
-        {
-            str = read_bool(str, &ip->volume_off_env_enabled, state);
-        }
-        else if (strcmp(key, "scale_factor") == 0)
-        {
-            str = read_double(str, &ip->volume_off_env_factor, state);
-        }
-        else if (strcmp(key, "scale_center") == 0)
-        {
-            str = read_double(str, &ip->volume_off_env_center, state);
-        }
-        else if (strcmp(key, "nodes") == 0)
-        {
-            str = Envelope_read(ip->volume_off_env, str, state);
-        }
-        else
-        {
-            Read_state_set_error(state,
-                     "Unrecognised key in Note Off volume envelope: %s", key);
-            return false;
-        }
-        if (state->error)
-        {
-            return false;
-        }
-        check_next(str, state, expect_key);
-    }
-    str = read_const_char(str, '}', state);
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
+    return Instrument_params_parse_env_vol_rel(ip, str, state);
 }
 
 
