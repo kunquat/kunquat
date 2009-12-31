@@ -52,6 +52,11 @@ typedef struct Instrument
 } Instrument;
 
 
+#define INS_DEFAULT_FORCE (0)
+#define INS_DEFAULT_FORCE_VAR (0)
+#define INS_DEFAULT_SCALE_INDEX (-1)
+
+
 /**
  * Creates a new Instrument.
  *
@@ -79,6 +84,18 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            Scale** scales,
                            Scale*** default_scale,
                            uint8_t events);
+
+
+/**
+ * Parses an Instrument header from a textual description.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state);
 
 
 /**

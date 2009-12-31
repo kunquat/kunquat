@@ -72,12 +72,12 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
 
-    ins->default_force = 1;
-    ins->force_variation = 0;
+    ins->default_force = INS_DEFAULT_FORCE;
+    ins->force_variation = INS_DEFAULT_FORCE_VAR;
 
     ins->scales = scales;
     ins->default_scale = default_scale;
-    ins->scale_index = -1;
+    ins->scale_index = INS_DEFAULT_SCALE_INDEX;
 
     ins->gen_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -85,6 +85,86 @@ Instrument* new_Instrument(kqt_frame** bufs,
         ins->gens[i] = NULL;
     }
     return ins;
+}
+
+
+bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
+{
+    assert(ins != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    double default_force = INS_DEFAULT_FORCE;
+    double force_variation = INS_DEFAULT_FORCE_VAR;
+    int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (strcmp(key, "force") == 0)
+                {
+                    str = read_double(str, &default_force, state);
+                }
+                else if (strcmp(key, "force_variation") == 0)
+                {
+                    str = read_double(str, &force_variation, state);
+                }
+                else if (strcmp(key, "scale") == 0)
+                {
+                    str = read_int(str, &scale_index, state);
+                    if (state->error)
+                    {
+                        return false;
+                    }
+                    if (scale_index < -1 || scale_index >= KQT_SCALES_MAX)
+                    {
+                        Read_state_set_error(state,
+                                 "Invalid scale index: %" PRId64, scale_index);
+                        return false;
+                    }
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unsupported field in instrument information: %s", key);
+                    return false;
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    ins->default_force = default_force;
+    ins->force_variation = force_variation;
+    Instrument_set_scale(ins, scale_index);
+    return true;
 }
 
 
@@ -114,8 +194,7 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
         Read_state_set_error(state, "Directory is not an instrument file");
         return false;
     }
-    const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
+    if (strcmp(name + strlen(MAGIC_ID) + 1, KQT_FORMAT_VERSION) != 0)
     {
         Read_state_set_error(state, "Unsupported instrument version");
         return false;
@@ -131,66 +210,9 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
             return false;
         }
         char* str = File_tree_get_data(ins_tree);
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Instrument_parse_header(ins, str, state))
         {
             return false;
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            bool expect_key = true;
-            while (expect_key)
-            {
-                char key[128] = { '\0' };
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    return false;
-                }
-                if (strcmp(key, "force") == 0)
-                {
-                    str = read_double(str, &ins->default_force, state);
-                }
-                else if (strcmp(key, "force_variation") == 0)
-                {
-                    str = read_double(str, &ins->force_variation, state);
-                }
-                else if (strcmp(key, "scale") == 0)
-                {
-                    int64_t num = -1;
-                    str = read_int(str, &num, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (num < -1 || num >= KQT_SCALES_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Invalid scale index: %" PRId64, num);
-                        return false;
-                    }
-                    Instrument_set_scale(ins, num);
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unsupported field in instrument information: %s", key);
-                    return false;
-                }
-                if (state->error)
-                {
-                    return false;
-                }
-                check_next(str, state, expect_key);
-            }
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                return false;
-            }
         }
     }
     Instrument_params_read(&ins->params, tree, state);
