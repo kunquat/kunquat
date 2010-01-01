@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 
 
 #define _POSIX_SOURCE
-#define _BSD_SOURCE // dirfd, lstat
+#define _BSD_SOURCE // dirfd, lstat, realpath
 
 #include <stdlib.h>
 #include <assert.h>
@@ -109,6 +109,29 @@ struct Directory
 #define notify_move(dest, src) ((void)0)
 
 #endif
+
+
+char* absolute_path(const char* path, kqt_Handle* handle)
+{
+    assert(path != NULL);
+    char abs_path[PATH_MAX + 1] = { 0 };
+    errno = 0;
+    if (realpath(path, abs_path) == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't resolve the absolute path"
+                " of %s: %s", __func__, path, strerror(errno));
+        return NULL;
+    }
+    char* ret = xnalloc(char, strlen(abs_path) + 1);
+    if (ret == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        return NULL;
+    }
+    strcpy(ret, abs_path);
+    return ret;
+}
 
 
 bool create_dir(const char* path, kqt_Handle* handle)

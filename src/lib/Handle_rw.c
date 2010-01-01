@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -61,16 +61,13 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
                 " Kunquat Handle", __func__);
         return NULL;
     }
-    handle_rw->base_path = xnalloc(char, strlen(path) + 1);
+    handle_rw->base_path = absolute_path(path, NULL);
     if (handle_rw->base_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
         xfree(handle_rw);
         return NULL;
     }
-    strcpy(handle_rw->base_path, path);
-    File_tree* tree = new_File_tree_from_fs(path, NULL);
+    File_tree* tree = new_File_tree_from_fs(handle_rw->base_path, NULL);
     if (tree == NULL)
     {
         xfree(handle_rw->base_path);

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -215,19 +215,25 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         xfree(workspace_path);
         return NULL;
     }
+    char* abs_workspace = absolute_path(workspace_path, NULL);
+    xfree(workspace_path);
+    if (abs_workspace == NULL)
+    {
+        return NULL;
+    }
 
     Handle_rwc* handle_rwc = xalloc(Handle_rwc);
     if (handle_rwc == NULL)
     {
         kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
                 " Kunquat Handle", __func__);
-        xfree(workspace_path);
+        xfree(abs_workspace);
         return NULL;
     }
     handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
-    handle_rwc->handle_rw.base_path = append_to_path(workspace_path,
+    handle_rwc->handle_rw.base_path = append_to_path(abs_workspace,
             "kunquatc" KQT_FORMAT_VERSION);
-    xfree(workspace_path);
+    xfree(abs_workspace);
     if (handle_rwc->handle_rw.base_path == NULL)
     {
         kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -51,6 +51,19 @@ typedef enum
     PATH_IS_DIR,
     PATH_IS_OTHER
 } Path_type;
+
+
+/**
+ * Resolves the absolute path of the given path.
+ *
+ * \param path     The path -- must not be \c NULL.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   The new path if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+char* absolute_path(const char* path, kqt_Handle* handle);
 
 
 /**
