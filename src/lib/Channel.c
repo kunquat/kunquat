@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -119,7 +119,7 @@ void Channel_set_voices(Channel* ch,
         assert(Reltime_cmp(start, next_pos) <= 0);
         if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
         {
-            for (int i = 0; i < ch->fg_count; ++i)
+            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
                 if (ch->fg[i] != NULL)
                 {
@@ -178,11 +178,15 @@ void Channel_set_voices(Channel* ch,
                 continue;
             }
             // allocate new Voices
-            ch->fg_count = Instrument_get_gen_count(ins);
+            ch->fg_count = 0;
             ch->new_state.panning_slide = 0;
-            for (int i = 0; i < ch->fg_count; ++i)
+            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
-                assert(Instrument_get_gen(ins, i) != NULL);
+                if (Instrument_get_gen(ins, i) == NULL)
+                {
+                    continue;
+                }
+                ++ch->fg_count;
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
@@ -208,7 +212,8 @@ void Channel_set_voices(Channel* ch,
                   EVENT_IS_VOICE(Event_get_type(next))))
         {
             bool voices_active = false;
-            for (int i = 0; i < ch->fg_count; ++i)
+            ch->fg_count = 0;
+            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
                 if (ch->fg[i] != NULL)
                 {
@@ -218,6 +223,7 @@ void Channel_set_voices(Channel* ch,
                         // The Voice has been given to another channel -- giving up
                         continue;
                     }
+                    ++ch->fg_count;
                     voices_active = true;
                     Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
                     uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
@@ -320,7 +326,7 @@ void Channel_reset(Channel* ch)
     assert(ch != NULL);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
     Channel_state_copy(&ch->new_state, &ch->init_state);
-    for (int i = 0; i < ch->fg_count; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->fg[i] = NULL;
         ch->fg_id[i] = 0;
