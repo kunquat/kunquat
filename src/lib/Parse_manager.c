@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,6 +28,8 @@
 
 #include <File_base.h>
 #include <Handle_private.h>
+
+#include <xmemory.h>
 
 
 static bool Parse_song_level(kqt_Handle* handle,
@@ -164,38 +166,58 @@ bool Parse_data(kqt_Handle* handle,
     {
         return true;
     }
+    char* json = NULL;
+    char* json_key = strstr(key, ".json");
+    // This comparison doesn't work correctly if we specify a key to be parsed
+    // that contains ".json" in the middle. That isn't very likely.
+    if (json_key != NULL && strlen(json_key) == 5)
+    {
+        json = xcalloc(char, length + 1);
+        if (json == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            return false;
+        }
+        strncpy(json, data, length);
+        data = json;
+    }
     if (last_index == 0)
     {
-        return Parse_song_level(handle, key, data, length);
+        bool success = Parse_song_level(handle, key, data, length);
+        xfree(json);
+        return success;
     }
     int first_len = strcspn(key, "/");
     int index = 0;
     const char* second_element = &key[first_len + 1];
+    bool success = true;
     if (strncmp(key, "instrument_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
-        return Parse_instrument_level(handle, key, second_element,
-                                      data, length, index);
+        success = Parse_instrument_level(handle, key, second_element,
+                                         data, length, index);
     }
     else if (strncmp(key, "pattern_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
     {
-        return Parse_pattern_level(handle, key, second_element,
-                                   data, length, index);
+        success = Parse_pattern_level(handle, key, second_element,
+                                      data, length, index);
     }
     else if (strncmp(key, "scale_", first_len - 1) == 0 &&
             (index = parse_index(&key[first_len - 1])) >= 0)
     {
-        return Parse_scale_level(handle, key, second_element,
-                                 data, length, index);
+        success = Parse_scale_level(handle, key, second_element,
+                                    data, length, index);
     }
     else if (strncmp(key, "subsong_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
-        return Parse_subsong_level(handle, key, second_element,
-                                   data, length, index);
+        success = Parse_subsong_level(handle, key, second_element,
+                                      data, length, index);
     }
-    return true;
+    xfree(json);
+    return success;
 }
 
 
