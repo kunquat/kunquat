@@ -38,6 +38,7 @@
 typedef struct Gen_group
 {
     Gen_type active_type;
+    Generator common_params;
     Generator* types[GEN_TYPE_LAST];
 } Gen_group;
 
@@ -104,6 +105,15 @@ Instrument* new_Instrument(kqt_frame** bufs,
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ins->gens[i].active_type = GEN_TYPE_NONE;
+        if (!Generator_init(&ins->gens[i].common_params))
+        {
+            for (int k = i - 1; k >= 0; --k)
+            {
+                Generator_uninit(&ins->gens[k].common_params);
+            }
+            xfree(ins);
+            return NULL;
+        }
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
             ins->gens[i].types[k] = NULL;
@@ -274,6 +284,15 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
+Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < KQT_GENERATORS_MAX);
+    return &ins->gens[index].common_params;
+}
+
+
 #if 0
 int Instrument_get_gen_count(Instrument* ins)
 {
@@ -420,6 +439,7 @@ void del_Instrument(Instrument* ins)
     Instrument_params_uninit(&ins->params);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
+        Generator_uninit(&ins->gens[i].common_params);
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
             if (ins->gens[i].types[k] != NULL)

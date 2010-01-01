@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -49,7 +49,7 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state);
 
 
-Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
+Generator* new_Generator_pcm(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_pcm* pcm = xalloc(Generator_pcm);
@@ -82,7 +82,7 @@ Generator_pcm* new_Generator_pcm(Instrument_params* ins_params)
     {
         pcm->samples[i] = NULL;
     }
-    return pcm;
+    return &pcm->parent;
 }
 
 

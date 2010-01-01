@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,9 @@
 
 #ifndef K_GENERATOR_TYPE_H
 #define K_GENERATOR_TYPE_H
+
+
+#include <File_base.h>
 
 
 typedef enum
@@ -52,6 +55,18 @@ typedef enum
     /// Sentinel -- never used as a valid type.
     GEN_TYPE_LAST
 } Gen_type;
+
+
+/**
+ * Parses a Generator type description.
+ *
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The Generator type if successful, \c GEN_TYPE_NONE if \a str is
+ *           \c NULL, or \c GEN_TYPE_LAST if an error occurred.
+ */
+Gen_type Generator_type_parse(char* str, Read_state* state);
 
 
 #endif // K_GENERATOR_TYPE_H

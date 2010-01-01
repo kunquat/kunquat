@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -75,7 +75,7 @@ typedef struct Generator_pcm
  * \return   The new PCM Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_pcm* new_Generator_pcm(Instrument_params* ins_params);
+Generator* new_Generator_pcm(Instrument_params* ins_params);
 
 
 uint32_t Generator_pcm_mix(Generator* gen,

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -41,13 +41,154 @@
 #include <xmemory.h>
 
 
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
+{
+    assert(type > GEN_TYPE_NONE);
+    assert(type < GEN_TYPE_LAST);
+    assert(ins_params != NULL);
+    Generator* (*cons[])(Instrument_params*) =
+    {
+        [GEN_TYPE_SINE] = new_Generator_sine,
+        [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
+        [GEN_TYPE_TRIANGLE] = new_Generator_triangle,
+        [GEN_TYPE_SQUARE] = new_Generator_square,
+        [GEN_TYPE_SQUARE303] = new_Generator_square303,
+        [GEN_TYPE_PCM] = new_Generator_pcm,
+    };
+    assert(cons[type] != NULL);
+    return cons[type](ins_params);
+}
+
+
 bool Generator_init(Generator* gen)
 {
     assert(gen != NULL);
-    gen->enabled = true;
-    gen->volume_dB = 0;
-    gen->volume = 1;
+    gen->enabled = GENERATOR_DEFAULT_ENABLED;
+    gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
+    gen->volume = exp2(gen->volume_dB / 6);
     return true;
+}
+
+
+void Generator_uninit(Generator* gen)
+{
+    assert(gen != NULL);
+    (void)gen;
+    return;
+}
+
+
+void Generator_copy_general(Generator* dest, Generator* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    dest->enabled = src->enabled;
+    dest->volume_dB = src->volume_dB;
+    dest->volume = src->volume;
+    return;
+}
+
+
+bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
+{
+    assert(gen != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    double volume = 0;
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            char key[128] = { '\0' };
+            bool expect_key = true;
+            while (expect_key)
+            {
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (strcmp(key, "enabled") == 0)
+                {
+                    str = read_bool(str, &enabled, state);
+                }
+                else if (strcmp(key, "volume") == 0)
+                {
+                    str = read_double(str, &volume, state);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unsupported key in Generator info: %s", key);
+                    return false;
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    gen->enabled = enabled;
+    gen->volume_dB = volume;
+    gen->volume = exp2(gen->volume_dB / 6);
+    return true;
+}
+
+
+Gen_type Generator_type_parse(char* str, Read_state* state)
+{
+    assert(state != NULL);
+    if (state->error)
+    {
+        return GEN_TYPE_LAST;
+    }
+    if (str == NULL)
+    {
+        return GEN_TYPE_NONE;
+    }
+    static const char* map[] =
+    {
+        [GEN_TYPE_SINE] = "sine",
+        [GEN_TYPE_TRIANGLE] = "triangle",
+        [GEN_TYPE_SQUARE] = "square",
+        [GEN_TYPE_SQUARE303] = "square303",
+        [GEN_TYPE_SAWTOOTH] = "sawtooth",
+        [GEN_TYPE_PCM] = "pcm",
+    };
+    char desc[128] = { '\0' };
+    str = read_string(str, desc, 128, state);
+    if (state->error)
+    {
+        return GEN_TYPE_LAST;
+    }
+    for (Gen_type i = GEN_TYPE_NONE; i < GEN_TYPE_LAST; ++i)
+    {
+        if (map[i] != NULL && strcmp(map[i], desc) == 0)
+        {
+            return i;
+        }
+    }
+    Read_state_set_error(state, "Unsupported Generator type: %s", desc);
+    return GEN_TYPE_LAST;
 }
 
 
@@ -80,42 +221,17 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
         return NULL;
     }
     char* str = File_tree_get_data(type_tree);
-    char type_str[128] = { '\0' };
-    str = read_string(str, type_str, 128, state);
+    Gen_type type = Generator_type_parse(str, state);
     if (state->error)
     {
         return NULL;
     }
-    Generator* gen = NULL;
-    if (strcmp(type_str, "sine") == 0)
+    if (type == GEN_TYPE_NONE)
     {
-        gen = (Generator*)new_Generator_sine(ins_params);
-    }
-    else if (strcmp(type_str, "sawtooth") == 0)
-    {
-        gen = (Generator*)new_Generator_sawtooth(ins_params);
-    }
-    else if (strcmp(type_str, "triangle") == 0)
-    {
-        gen = (Generator*)new_Generator_triangle(ins_params);
-    }
-    else if (strcmp(type_str, "square") == 0)
-    {
-        gen = (Generator*)new_Generator_square(ins_params);
-    }
-    else if (strcmp(type_str, "square303") == 0)
-    {
-        gen = (Generator*)new_Generator_square303(ins_params);
-    }
-    else if (strcmp(type_str, "pcm") == 0)
-    {
-        gen = (Generator*)new_Generator_pcm(ins_params);
-    }
-    else
-    {
-        Read_state_set_error(state, "Unsupported Generator type: %s", type_str);
+        Read_state_set_error(state, "Generator does not contain a type description");
         return NULL;
     }
+    Generator* gen = new_Generator(type, ins_params);
     if (gen == NULL)
     {
         Read_state_set_error(state, "Couldn't allocate memory for the new Generator");
@@ -134,59 +250,10 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
             return NULL;
         }
         str = File_tree_get_data(info_tree);
-        str = read_const_char(str, '{', state);
-        if (state->error)
+        if (!Generator_parse_general(gen, str, state))
         {
             del_Generator(gen);
             return NULL;
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            char key[128] = { '\0' };
-            bool expect_key = true;
-            while (expect_key)
-            {
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    del_Generator(gen);
-                    return NULL;
-                }
-                if (strcmp(key, "enabled") == 0)
-                {
-                    str = read_bool(str, &gen->enabled, state);
-                }
-                else if (strcmp(key, "volume") == 0)
-                {
-                    str = read_double(str, &gen->volume_dB, state);
-                    if (!state->error)
-                    {
-                        gen->volume = exp2(gen->volume_dB / 6);
-                    }
-                }
-                else
-                {
-                    del_Generator(gen);
-                    Read_state_set_error(state,
-                             "Unsupported key in Generator info: %s", key);
-                    return NULL;
-                }
-                if (state->error)
-                {
-                    del_Generator(gen);
-                    return NULL;
-                }
-                check_next(str, state, expect_key);
-            }
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                del_Generator(gen);
-                return NULL;
-            }
         }
     }
 

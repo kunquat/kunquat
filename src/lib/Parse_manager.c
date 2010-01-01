@@ -402,6 +402,90 @@ static bool Parse_generator_level(kqt_Handle* handle,
     {
         return true;
     }
+    Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
+    bool new_ins = ins == NULL;
+    if (new_ins)
+    {
+        ins = new_Instrument(Song_get_bufs(handle->song),
+                             Song_get_voice_bufs(handle->song),
+                             Song_get_voice_bufs2(handle->song),
+                             Song_get_buf_count(handle->song),
+                             Song_get_buf_size(handle->song),
+                             Song_get_scales(handle->song),
+                             Song_get_active_scale(handle->song),
+                             32); // TODO: make configurable
+        if (ins == NULL)
+        {
+            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                    __func__);
+            return false;
+        }
+    }
+    if (strcmp(subkey, "p_generator.json") == 0)
+    {
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = READ_STATE_AUTO;
+        if (!Generator_parse_general(common_params, data, state))
+        {
+            kqt_Handle_set_error(handle, "%s: Error in parsing"
+                    " %s: %s", __func__, key, state->message);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+    }
+    else if (strcmp(subkey, "p_gen_type.json") == 0)
+    {
+        Read_state* state = READ_STATE_AUTO;
+        Gen_type type = Generator_type_parse(data, state);
+        if (state->error)
+        {
+            kqt_Handle_set_error(handle, "%s: Error in parsing"
+                    " %s: %s", __func__, key, state->message);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen == NULL || Generator_get_type(gen) != type)
+        {
+            gen = new_Generator(type, Instrument_get_params(ins));
+            if (gen == NULL)
+            {
+                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                        __func__);
+                if (new_ins)
+                {
+                    del_Instrument(ins);
+                }
+                return false;
+            }
+            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+            assert(common_params != NULL);
+            Generator_copy_general(gen, common_params);
+            Instrument_set_gen(ins, gen_index, gen);
+        }
+    }
+    if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
+    {
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                __func__);
+        del_Instrument(ins);
+        return false;
+    }
     return true;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,7 @@ typedef struct Generator_square
  * \return   The new Square Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_square* new_Generator_square(Instrument_params* ins_params);
+Generator* new_Generator_square(Instrument_params* ins_params);
 
 
 uint32_t Generator_square_mix(Generator* gen,

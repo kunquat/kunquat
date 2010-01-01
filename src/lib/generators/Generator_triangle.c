@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state)
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
+Generator* new_Generator_triangle(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_triangle* triangle = xalloc(Generator_triangle);
@@ -59,7 +59,7 @@ Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
     triangle->parent.init_state = Generator_triangle_init_state;
     triangle->parent.mix = Generator_triangle_mix;
     triangle->parent.ins_params = ins_params;
-    return triangle;
+    return &triangle->parent;
 }
 
 

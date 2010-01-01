@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* s
 static void Generator_square_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_square* new_Generator_square(Instrument_params* ins_params)
+Generator* new_Generator_square(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_square* square = xalloc(Generator_square);
@@ -60,7 +60,7 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
     square->parent.mix = Generator_square_mix;
     square->parent.ins_params = ins_params;
     square->pulse_width = 0.5;
-    return square;
+    return &square->parent;
 }
 
 

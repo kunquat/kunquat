@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -57,6 +57,23 @@ typedef struct Generator
 } Generator;
 
 
+#define GENERATOR_DEFAULT_ENABLED (false)
+#define GENERATOR_DEFAULT_VOLUME (0)
+
+
+/**
+ * Creates a new Generator of the specified type.
+ *
+ * \param type         The Generator type -- must be a valid and supported
+ *                     type.
+ * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ *
+ * \return   The new Generator if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params);
+
+
 /**
  * Creates a Generator from a File tree.
  *
@@ -80,6 +97,36 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Generator_init(Generator* gen);
+
+
+/**
+ * Uninitialises the general Generator parameters.
+ *
+ * \param gen   The Generator -- must not be \c NULL.
+ */
+void Generator_uninit(Generator* gen);
+
+
+/**
+ * Copies the general Generator parameters.
+ *
+ * \param dest   The destination Generator -- must not be \c NULL.
+ * \param src    The source Generator -- must not be \c NULL.
+ */
+void Generator_copy_general(Generator* dest, Generator* src);
+
+
+/**
+ * Parses general Generator header (p_generator.json).
+ *
+ * \param gen     The Generator -- must not be \c NULL.
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The state error will
+ *           _not_ be set in case memory allocation failed.
+ */
+bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
 
 
 /**

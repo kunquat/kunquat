@@ -108,6 +108,18 @@ Instrument_params* Instrument_get_params(Instrument* ins);
 
 
 /**
+ * Gets common Generator parameters of a Generator in the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the Generator -- must be >= \c 0 and
+ *                < \c KQT_GENERATORS_MAX.
+ *
+ * \return   The parameters. Note that this is not a valid Generator.
+ */
+Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
+
+
+/**
  * Gets the number of Generators used by the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
