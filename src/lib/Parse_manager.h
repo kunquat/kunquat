@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -30,6 +30,11 @@
 
 
 /**
+ */
+int parse_index_dir(const char* key, const char* prefix, int digits);
+
+
+/**
  * Parses data based on the given key.
  *
  * If the key does not affect the player, this function always succeeds.
@@ -46,7 +51,7 @@
  * \return   \c true if the key is valid or not player-specific, otherwise
  *           \c false.
  */
-bool Parse_data(kqt_Handle* handle,
+bool parse_data(kqt_Handle* handle,
                 const char* key,
                 void* data,
                 long length);

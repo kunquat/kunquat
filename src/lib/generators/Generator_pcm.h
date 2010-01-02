@@ -78,6 +78,35 @@ typedef struct Generator_pcm
 Generator* new_Generator_pcm(Instrument_params* ins_params);
 
 
+/**
+ * Tells whether the given subkey is part of the PCM Generator specification.
+ *
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *
+ * \return   \c true if and only if \a subkey is part of the specification.
+ */
+bool Generator_pcm_has_subkey(const char* subkey);
+
+
+/**
+ * Parses data associated with a PCM Generator.
+ *
+ * \param gen      The Generator -- must be a valid PCM Generator.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ * \param data     The data -- must not be \c NULL unless \a length is 0.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The Read state error
+ *           will _not_ be set if memory allocation failed.
+ */
+bool Generator_pcm_parse(Generator* gen,
+                         const char* subkey,
+                         void* data,
+                         long length,
+                         Read_state* state);
+
+
 uint32_t Generator_pcm_mix(Generator* gen,
                            Voice_state* state,
                            uint32_t nframes,

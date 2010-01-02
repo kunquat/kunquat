@@ -130,6 +130,27 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
 
 
 /**
+ * Parses data associated with the Generator.
+ *
+ * \param gen      The Generator -- must not be \c NULL.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *                 \a subkey must be part of the type specification of
+ *                 \a gen.
+ * \param data     The data -- must not be \c NULL unless \a length is 0.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The Read state error
+ *           will _not_ be set if memory allocation failed.
+ */
+bool Generator_parse(Generator* gen,
+                     const char* subkey,
+                     void* data,
+                     long length,
+                     Read_state* state);
+
+
+/**
  * Returns the type of the Generator.
  *
  * \param gen   The Generator -- must not be \c NULL.

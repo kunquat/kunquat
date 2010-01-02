@@ -22,6 +22,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <math.h>
 #include <stdio.h>
 
@@ -32,6 +33,7 @@
 #include <Voice_state_pcm.h>
 #include <Sample.h>
 #include <pitch_t.h>
+#include <Parse_manager.h>
 
 #include <xmemory.h>
 
@@ -86,13 +88,205 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
 }
 
 
-static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state);
-
-
-static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state)
+bool Generator_pcm_has_subkey(const char* subkey)
 {
-    assert(tree != NULL);
-    assert(!File_tree_is_dir(tree));
+    assert(subkey != NULL);
+    int sub_index = -1;
+    if (parse_index_dir(subkey, "expr_", 1) >= 0)
+    {
+        const char* element = strchr(subkey, '/');
+        assert(element != NULL);
+        ++element;
+        if (parse_index_dir(element, "source_", 1) >= 0)
+        {
+            element = strchr(element, '/');
+            assert(element != NULL);
+            ++element;
+            if (strcmp(element, "p_sample_map.json") == 0)
+            {
+                return true;
+            }
+        }
+    }
+    else if ((sub_index = parse_index_dir(subkey, "sample_", 3)) >= 0 &&
+            sub_index >= 0 && sub_index < PCM_SAMPLES_MAX)
+    {
+        const char* element = strchr(subkey, '/');
+        assert(element != NULL);
+        ++element;
+        if (strcmp(element, "p_sample.json") == 0 ||
+                strcmp(element, "p_sample.wv") == 0)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+
+static bool Generator_pcm_parse_sample_map(Generator* gen,
+                                           char* data,
+                                           Read_state* state,
+                                           int expr,
+                                           int source);
+
+
+static bool Generator_pcm_parse_sample(Generator* gen,
+                                       char* data,
+                                       Read_state* state,
+                                       int index);
+
+
+static bool Generator_pcm_parse_wv(Generator* gen,
+                                   void* data,
+                                   long length,
+                                   Read_state* state,
+                                   int index);
+
+
+bool Generator_pcm_parse(Generator* gen,
+                         const char* subkey,
+                         void* data,
+                         long length,
+                         Read_state* state)
+{
+    assert(gen != NULL);
+    assert(Generator_get_type(gen) == GEN_TYPE_PCM);
+    assert(subkey != NULL);
+    assert(Generator_pcm_has_subkey(subkey));
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    int sub_index = -1;
+    if ((sub_index = parse_index_dir(subkey, "expr_", 1)) >= 0)
+    {
+        const char* element = strchr(subkey, '/');
+        assert(element != NULL);
+        ++element;
+        int source_index = -1;
+        if ((source_index = parse_index_dir(element, "source_", 1)) >= 0)
+        {
+            element = strchr(element, '/');
+            assert(element != NULL);
+            ++element;
+            if (strcmp(element, "p_sample_map.json") == 0)
+            {
+                if (Generator_pcm_parse_sample_map(gen, data, state,
+                                                   sub_index, source_index))
+                {
+                    return true;
+                }
+            }
+        }
+    }
+    else if ((sub_index = parse_index_dir(subkey, "sample_", 3)) >= 0 &&
+            sub_index >= 0 && sub_index < PCM_SAMPLES_MAX)
+    {
+        const char* element = strchr(subkey, '/');
+        assert(element != NULL);
+        ++element;
+        if (strcmp(element, "p_sample.json") == 0)
+        {
+            if (Generator_pcm_parse_sample(gen, data, state, sub_index))
+            {
+                return true;
+            }
+        }
+        else if (strcmp(element, "p_sample.wv") == 0)
+        {
+            if (Generator_pcm_parse_wv(gen, data, length, state, sub_index))
+            {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+static AAtree* new_map_from_string(char* str, Read_state* state);
+
+
+static bool Generator_pcm_parse_sample_map(Generator* gen,
+                                           char* data,
+                                           Read_state* state,
+                                           int expr,
+                                           int source)
+{
+    assert(gen != NULL);
+    assert(Generator_get_type(gen) == GEN_TYPE_PCM);
+    assert(state != NULL);
+    assert(expr >= 0);
+    assert(expr < PCM_EXPRESSIONS_MAX);
+    assert(source >= 0);
+    assert(source < PCM_SOURCES_MAX);
+    if (state->error)
+    {
+        return false;
+    }
+    AAtree* map = new_map_from_string(data, state);
+    if (map == NULL)
+    {
+        return false;
+    }
+    Generator_pcm* gen_pcm = (Generator_pcm*)gen;
+    int map_pos = (source * PCM_EXPRESSIONS_MAX) + expr;
+    if (gen_pcm->maps[map_pos] != NULL)
+    {
+        del_AAtree(gen_pcm->maps[map_pos]);
+    }
+    gen_pcm->maps[map_pos] = map;
+    return true;
+}
+
+
+static bool Generator_pcm_parse_sample(Generator* gen,
+                                       char* data,
+                                       Read_state* state,
+                                       int index)
+{
+    assert(gen != NULL);
+    assert(Generator_get_type(gen) == GEN_TYPE_PCM);
+    assert(state != NULL);
+    assert(index >= 0);
+    assert(index < PCM_SAMPLES_MAX);
+    if (state->error)
+    {
+        return false;
+    }
+    (void)data;
+    return true; // TODO: implement
+}
+
+
+static bool Generator_pcm_parse_wv(Generator* gen,
+                                   void* data,
+                                   long length,
+                                   Read_state* state,
+                                   int index)
+{
+    assert(gen != NULL);
+    assert(Generator_get_type(gen) == GEN_TYPE_PCM);
+    assert(length >= 0);
+    assert(state != NULL);
+    assert(index >= 0);
+    assert(index < PCM_SAMPLES_MAX);
+    if (state->error)
+    {
+        return false;
+    }
+    (void)data;
+    return true; // TODO: implement
+}
+
+
+static AAtree* new_map_from_string(char* str, Read_state* state)
+{
+    assert(state != NULL);
     if (state->error)
     {
         return NULL;
@@ -103,19 +297,20 @@ static AAtree* new_map_from_file_tree(File_tree* tree, Read_state* state)
     {
         return NULL;
     }
-    char* str = File_tree_get_data(tree);
+    if (str == NULL)
+    {
+        return map;
+    }
     str = read_const_char(str, '[', state);
     if (state->error)
     {
         del_AAtree(map);
-        Read_state_set_error(state, "Couldn't allocate memory for sample mapping");
         return NULL;
     }
     str = read_const_char(str, ']', state);
     if (!state->error)
     {
-        del_AAtree(map);
-        return NULL;
+        return map;
     }
     Read_state_clear_error(state);
     bool expect_list = true;
@@ -293,10 +488,10 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
                                                        " is a directory", i, k);
                             return false;
                         }
-                        AAtree* map = new_map_from_file_tree(map_tree, state);
-                        if (state->error)
+                        char* str = File_tree_get_data(map_tree);
+                        AAtree* map = new_map_from_string(str, state);
+                        if (map == NULL)
                         {
-                            assert(map == NULL);
                             return false;
                         }
                         pcm->maps[(k * PCM_EXPRESSIONS_MAX) + i] = map;

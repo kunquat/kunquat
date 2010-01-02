@@ -83,7 +83,6 @@ static bool is_index_digit(char ch);
 
 static int parse_index(const char* str);
 
-static int parse_index_dir(const char* key, const char* prefix, int digits);
 
 
 static bool is_index_digit(char ch)
@@ -118,7 +117,7 @@ static int parse_index(const char* str)
 }
 
 
-static int parse_index_dir(const char* key, const char* prefix, int digits)
+int parse_index_dir(const char* key, const char* prefix, int digits)
 {
     assert(key != NULL);
     assert(prefix != NULL);
@@ -137,7 +136,7 @@ static int parse_index_dir(const char* key, const char* prefix, int digits)
 }
 
 
-bool Parse_data(kqt_Handle* handle,
+bool parse_data(kqt_Handle* handle,
                 const char* key,
                 void* data,
                 long length)
@@ -477,6 +476,49 @@ static bool Parse_generator_level(kqt_Handle* handle,
             assert(common_params != NULL);
             Generator_copy_general(gen, common_params);
             Instrument_set_gen(ins, gen_index, gen);
+        }
+    }
+    else
+    {
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            if (Generator_type_has_subkey(i, subkey))
+            {
+                Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+                bool new_gen = gen == NULL;
+                if (new_gen)
+                {
+                    gen = new_Generator(i, Instrument_get_params(ins));
+                    if (gen == NULL)
+                    {
+                        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
+                                __func__);
+                        if (new_ins)
+                        {
+                            del_Instrument(ins);
+                        }
+                        return false;
+                    }
+                    Generator_copy_general(gen,
+                            Instrument_get_common_gen_params(ins, gen_index));
+                }
+                Read_state* state = READ_STATE_AUTO;
+                if (!Generator_parse(gen, subkey, data, length, state))
+                {
+                    kqt_Handle_set_error(handle, "%s: Error in parsing"
+                            " %s: %s", __func__, key, state->message);
+                    if (new_gen)
+                    {
+                        del_Generator(gen);
+                    }
+                    if (new_ins)
+                    {
+                        del_Instrument(ins);
+                    }
+                    return false;
+                }
+                break;
+            }
         }
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))

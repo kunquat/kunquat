@@ -437,7 +437,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
         xfree(real_path);
         return 0;
     }
-    if (!Parse_data(handle, key, data, length))
+    if (!parse_data(handle, key, data, length))
     {
         xfree(real_path);
         return 0;

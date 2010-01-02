@@ -165,7 +165,7 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
     {
         return GEN_TYPE_NONE;
     }
-    static const char* map[] =
+    static const char* map[GEN_TYPE_LAST] =
     {
         [GEN_TYPE_SINE] = "sine",
         [GEN_TYPE_TRIANGLE] = "triangle",
@@ -189,6 +189,53 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
     }
     Read_state_set_error(state, "Unsupported Generator type: %s", desc);
     return GEN_TYPE_LAST;
+}
+
+
+bool Generator_type_has_subkey(Gen_type type, const char* subkey)
+{
+    assert(type > GEN_TYPE_NONE);
+    assert(type < GEN_TYPE_LAST);
+    if (subkey == NULL)
+    {
+        return false;
+    }
+    static bool (*map[GEN_TYPE_LAST])(const char*) =
+    {
+        [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
+    };
+    if (map[type] == NULL)
+    {
+        return false;
+    }
+    return map[type](subkey);
+}
+
+
+bool Generator_parse(Generator* gen,
+                     const char* subkey,
+                     void* data,
+                     long length,
+                     Read_state* state)
+{
+    assert(gen != NULL);
+    assert(subkey != NULL);
+    assert(Generator_type_has_subkey(Generator_get_type(gen), subkey));
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    static bool (*map[GEN_TYPE_LAST])(Generator*,
+                                      const char*, void*, long,
+                                      Read_state*) =
+    {
+        [GEN_TYPE_PCM] = Generator_pcm_parse,
+    };
+    assert(map[Generator_get_type(gen)] != NULL);
+    return map[Generator_get_type(gen)](gen, subkey, data, length, state);
 }
 
 
