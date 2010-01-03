@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -369,10 +369,10 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
                 " file length", __func__);
         return false;
     }
-    sample->format = SAMPLE_FORMAT_WAVPACK;
+    sample->params.format = SAMPLE_FORMAT_WAVPACK;
     sample->len = len;
     sample->channels = channels;
-    sample->mid_freq = freq;
+    sample->params.mid_freq = freq;
     Sample_set_loop(sample, SAMPLE_LOOP_OFF);
     Sample_set_loop_start(sample, 0);
     Sample_set_loop_end(sample, 0);

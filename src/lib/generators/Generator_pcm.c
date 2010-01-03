@@ -82,7 +82,11 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
     }
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
-        pcm->samples[i] = NULL;
+        Sample_params_init(&pcm->samples[i].params);
+        for (Sample_format k = SAMPLE_FORMAT_NONE; k < SAMPLE_FORMAT_LAST; ++k)
+        {
+            pcm->samples[i].formats[k] = NULL;
+        }
     }
     return &pcm->parent;
 }
@@ -125,14 +129,14 @@ bool Generator_pcm_has_subkey(const char* subkey)
 
 
 static bool Generator_pcm_parse_sample_map(Generator* gen,
-                                           char* data,
+                                           char* str,
                                            Read_state* state,
                                            int expr,
                                            int source);
 
 
 static bool Generator_pcm_parse_sample(Generator* gen,
-                                       char* data,
+                                       char* str,
                                        Read_state* state,
                                        int index);
 
@@ -212,7 +216,7 @@ static AAtree* new_map_from_string(char* str, Read_state* state);
 
 
 static bool Generator_pcm_parse_sample_map(Generator* gen,
-                                           char* data,
+                                           char* str,
                                            Read_state* state,
                                            int expr,
                                            int source)
@@ -228,7 +232,7 @@ static bool Generator_pcm_parse_sample_map(Generator* gen,
     {
         return false;
     }
-    AAtree* map = new_map_from_string(data, state);
+    AAtree* map = new_map_from_string(str, state);
     if (map == NULL)
     {
         return false;
@@ -245,7 +249,7 @@ static bool Generator_pcm_parse_sample_map(Generator* gen,
 
 
 static bool Generator_pcm_parse_sample(Generator* gen,
-                                       char* data,
+                                       char* str,
                                        Read_state* state,
                                        int index)
 {
@@ -258,8 +262,121 @@ static bool Generator_pcm_parse_sample(Generator* gen,
     {
         return false;
     }
-    (void)data;
-    return true; // TODO: implement
+    Sample_params* params = Sample_params_init(
+            &(Sample_params){ .format = SAMPLE_FORMAT_NONE });
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
+                if (strcmp(key, "format") == 0)
+                {
+                    char format[32] = { '\0' };
+                    str = read_string(str, format, 32, state);
+                    if (!state->error)
+                    {
+                        if (strcmp(format, "WavPack") == 0)
+                        {
+                            params->format = SAMPLE_FORMAT_WAVPACK;
+                        }
+/*                        else if (strcmp(format, "Ogg Vorbis") == 0)
+                        {
+                            params->format = SAMPLE_FORMAT_VORBIS;
+                        } */
+                        else
+                        {
+                            Read_state_set_error(state,
+                                    "Unrecognised Sample format: %s", format);
+                        }
+                    }
+                }
+                else if (strcmp(key, "mid_freq") == 0)
+                {
+                    str = read_double(str, &params->mid_freq, state);
+                    if (!(params->mid_freq > 0))
+                    {
+                        Read_state_set_error(state,
+                                "Sample frequency is not positive");
+                    }
+                }
+                else if (strcmp(key, "loop_mode") == 0)
+                {
+                    char mode[] = "off!";
+                    str = read_string(str, mode, 5, state);
+                    if (strcmp(mode, "off") == 0)
+                    {
+                        params->loop = SAMPLE_LOOP_OFF;
+                    }
+                    else if (strcmp(mode, "uni") == 0)
+                    {
+                        params->loop = SAMPLE_LOOP_UNI;
+                    }
+                    else if (strcmp(mode, "bi") == 0)
+                    {
+                        params->loop = SAMPLE_LOOP_BI;
+                    }
+                    else
+                    {
+                        Read_state_set_error(state,
+                                "Invalid Sample loop mode (must be"
+                                " \"off\", \"uni\" or \"bi\")");
+                    }
+                }
+                else if (strcmp(key, "loop_start") == 0)
+                {
+                    int64_t loop_start = 0;
+                    str = read_int(str, &loop_start, state);
+                    params->loop_start = loop_start;
+                }
+                else if (strcmp(key, "loop_end") == 0)
+                {
+                    int64_t loop_end = 0;
+                    str = read_int(str, &loop_end, state);
+                    params->loop_end = loop_end;
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                            "Unsupported key in Sample header: %s", key);
+                }
+                if (state->error)
+                {
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+    }
+    Generator_pcm* gen_pcm = (Generator_pcm*)gen;
+    for (Sample_format i = SAMPLE_FORMAT_NONE + 1; i < SAMPLE_FORMAT_LAST; ++i)
+    {
+        if (gen_pcm->samples[index].formats[i] != NULL)
+        {
+            Sample_set_params(gen_pcm->samples[index].formats[i], params);
+        }
+    }
+    return true;
 }
 
 
@@ -514,7 +631,7 @@ static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* stat
                 assert(sample == NULL);
                 return false;
             }
-            pcm->samples[i] = sample;
+            pcm->samples[i].formats[Sample_get_format(sample)] = sample;
         }
     }
     return true;
@@ -538,30 +655,58 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
 }
 
 
-void Generator_pcm_set_sample(Generator_pcm* pcm,
+void Generator_pcm_set_sample(Generator_pcm* gen_pcm,
                               uint16_t index,
                               Sample* sample)
 {
-    assert(pcm != NULL);
-    assert(pcm->parent.type == GEN_TYPE_PCM);
+    assert(gen_pcm != NULL);
+    assert(Generator_get_type((Generator*)gen_pcm) == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
     assert(sample != NULL);
-    if (pcm->samples[index] != NULL)
-    {
-        del_Sample(pcm->samples[index]);
-        pcm->samples[index] = NULL;
-    }
-    pcm->samples[index] = sample;
+    Generator_pcm_set_sample_of_type(gen_pcm, index, sample);
+    gen_pcm->samples[index].params.format = Sample_get_format(sample);
     return;
 }
 
 
-Sample* Generator_pcm_get_sample(Generator_pcm* pcm, uint16_t index)
+Sample* Generator_pcm_get_sample(Generator_pcm* gen_pcm, uint16_t index)
 {
-    assert(pcm != NULL);
-    assert(pcm->parent.type == GEN_TYPE_PCM);
+    assert(gen_pcm != NULL);
+    assert(Generator_get_type((Generator*)gen_pcm) == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    return pcm->samples[index];
+    Sample_format active_format = gen_pcm->samples[index].params.format;
+    return gen_pcm->samples[index].formats[active_format];
+}
+
+
+void Generator_pcm_set_sample_of_type(Generator_pcm* gen_pcm,
+                                      uint16_t index,
+                                      Sample* sample)
+{
+    assert(gen_pcm != NULL);
+    assert(Generator_get_type((Generator*)gen_pcm) == GEN_TYPE_PCM);
+    assert(index < PCM_SAMPLES_MAX);
+    assert(sample != NULL);
+    Sample_format format = Sample_get_format(sample);
+    if (gen_pcm->samples[index].formats[format] != NULL)
+    {
+        del_Sample(gen_pcm->samples[index].formats[format]);
+    }
+    gen_pcm->samples[index].formats[format] = sample;
+    return;
+}
+
+
+Sample* Generator_pcm_get_sample_of_format(Generator_pcm* gen_pcm,
+                                           uint16_t index,
+                                           Sample_format format)
+{
+    assert(gen_pcm != NULL);
+    assert(Generator_get_type((Generator*)gen_pcm) == GEN_TYPE_PCM);
+    assert(index < PCM_SAMPLES_MAX);
+    assert(format > SAMPLE_FORMAT_NONE);
+    assert(format < SAMPLE_FORMAT_LAST);
+    return gen_pcm->samples[index].formats[format];
 }
 
 
@@ -570,11 +715,12 @@ char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index)
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    if (pcm->samples[index] == NULL)
+    Sample_format active_format = pcm->samples[index].params.format;
+    if (pcm->samples[index].formats[active_format] == NULL)
     {
         return NULL;
     }
-    return Sample_get_path(pcm->samples[index]);
+    return Sample_get_path(pcm->samples[index].formats[active_format]);
 }
 
 
@@ -586,11 +732,12 @@ void Generator_pcm_set_sample_freq(Generator_pcm* pcm,
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
     assert(freq > 0);
-    if (pcm->samples[index] == NULL)
+    Sample_format active_format = pcm->samples[index].params.format;
+    if (pcm->samples[index].formats[active_format] == NULL)
     {
         return;
     }
-    Sample_set_freq(pcm->samples[index], freq);
+    Sample_set_freq(pcm->samples[index].formats[active_format], freq);
     return;
 }
 
@@ -600,11 +747,12 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index)
     assert(pcm != NULL);
     assert(pcm->parent.type == GEN_TYPE_PCM);
     assert(index < PCM_SAMPLES_MAX);
-    if (pcm->samples[index] == NULL)
+    Sample_format active_format = pcm->samples[index].params.format;
+    if (pcm->samples[index].formats[active_format] == NULL)
     {
         return 0;
     }
-    return Sample_get_freq(pcm->samples[index]);
+    return Sample_get_freq(pcm->samples[index].formats[active_format]);
 }
 
 
@@ -646,7 +794,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
         pcm_state->volume = entry->vol_scale;
     }
     assert(pcm_state->sample < PCM_SAMPLES_MAX);
-    Sample* sample = pcm->samples[pcm_state->sample];
+    Sample_format active_format = pcm->samples[pcm_state->sample].params.format;
+    Sample* sample = pcm->samples[pcm_state->sample].formats[active_format];
     if (sample == NULL)
     {
         state->active = false;
@@ -664,9 +813,12 @@ void del_Generator_pcm(Generator* gen)
     Generator_pcm* pcm = (Generator_pcm*)gen;
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
-        if (pcm->samples[i] != NULL)
+        for (Sample_format k = SAMPLE_FORMAT_NONE + 1; k < SAMPLE_FORMAT_LAST; ++k)
         {
-            del_Sample(pcm->samples[i]);
+            if (pcm->samples[i].formats[k] != NULL)
+            {
+                del_Sample(pcm->samples[i].formats[k]);
+            }
         }
     }
     for (int i = 0; i < PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX; ++i)

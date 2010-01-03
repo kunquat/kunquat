@@ -58,12 +58,19 @@ typedef struct Random_list
 } Random_list;
 
 
+typedef struct Sample_group
+{
+    Sample_params params;
+    Sample* formats[SAMPLE_FORMAT_LAST];
+} Sample_group;
+
+
 typedef struct Generator_pcm
 {
     Generator parent;
     AAiter* iter;
     AAtree* maps[PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX];
-    Sample* samples[PCM_SAMPLES_MAX];
+    Sample_group samples[PCM_SAMPLES_MAX];
 } Generator_pcm;
 
 
@@ -127,7 +134,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
  *                 index will be removed.
  * \param sample   The Sample -- must not be \c NULL.
  */
-void Generator_pcm_set_sample(Generator_pcm* pcm,
+void Generator_pcm_set_sample(Generator_pcm* gen_pcm,
                               uint16_t index,
                               Sample* sample);
 
@@ -142,7 +149,36 @@ void Generator_pcm_set_sample(Generator_pcm* pcm,
  *
  * \return   The Sample if one exists, otherwise \c NULL.
  */
-Sample* Generator_pcm_get_sample(Generator_pcm* pcm, uint16_t index);
+Sample* Generator_pcm_get_sample(Generator_pcm* gen_pcm, uint16_t index);
+
+
+/**
+ * Sets a Sample of the PCM Generator based on the Sample type.
+ *
+ * \param gen_pcm   The PCM Generator -- must not be \c NULL.
+ * \param index     The Sample index -- must be >= \c 0 and
+ *                  < \c PCM_SAMPLES_MAX. Any previously loaded Sample of the
+ *                  same type in the index will be removed.
+ * \param sample    The Sample -- must not be \c NULL.
+ */
+void Generator_pcm_set_sample_of_type(Generator_pcm* gen_pcm,
+                                      uint16_t index,
+                                      Sample* sample);
+
+
+/**
+ * Gets a Sample of the PCM Generator based on a Sample format.
+ *
+ * \param gen_pcm   The PCM Generator -- must not be \c NULL.
+ * \param index     The Sample index -- must be >= \c 0 and
+ *                  < \c PCM_SAMPLES_MAX.
+ * \param format    The Sample format -- must be a valid type.
+ *
+ * \return   The Sample if one exists, otherwise \c NULL.
+ */
+Sample* Generator_pcm_get_sample_of_format(Generator_pcm* gen_pcm,
+                                           uint16_t index,
+                                           Sample_format format);
 
 
 /**
