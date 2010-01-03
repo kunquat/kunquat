@@ -30,6 +30,7 @@
 #include <File_tree.h>
 #include <Directory.h>
 #include <Handle_rwc.h>
+#include <File_dir.h>
 
 #include <xmemory.h>
 
@@ -250,25 +251,32 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         return NULL;
     }
 
+#if 0
     File_tree* tree = new_File_tree_from_fs(handle_rwc->handle_rw.base_path, NULL);
     if (tree == NULL)
     {
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
-    if (!kqt_Handle_init(&handle_rwc->handle_rw.handle, buffer_size, tree))
+#endif
+    if (!kqt_Handle_init(&handle_rwc->handle_rw.handle, buffer_size))
     {
-        del_File_tree(tree);
+//        del_File_tree(tree);
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
-    del_File_tree(tree);
+//    del_File_tree(tree);
 
     handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
     handle_rwc->handle_rw.handle.get_data = Handle_rw_get_data;
     handle_rwc->handle_rw.handle.get_data_length = Handle_rw_get_data_length;
     handle_rwc->handle_rw.handle.destroy = del_Handle_rwc;
     handle_rwc->handle_rw.set_data = Handle_rwc_set_data;
+    if (!File_dir_open(&handle_rwc->handle_rw, path))
+    {
+        kqt_del_Handle(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
     return &handle_rwc->handle_rw.handle;
 }
 

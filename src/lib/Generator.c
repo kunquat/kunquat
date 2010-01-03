@@ -56,7 +56,9 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
     assert(cons[type] != NULL);
-    return cons[type](ins_params);
+    Generator* gen = cons[type](ins_params);
+//    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
+    return gen;
 }
 
 

@@ -48,14 +48,23 @@ Sample_params* Sample_params_init(Sample_params* params)
 }
 
 
+Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    dest->mid_freq = src->mid_freq;
+    dest->loop = src->loop;
+    dest->loop_start = src->loop_start;
+    dest->loop_end = src->loop_end;
+    return dest;
+}
+
+
 void Sample_set_params(Sample* sample, Sample_params* params)
 {
     assert(sample != NULL);
     assert(params != NULL);
-    sample->params.mid_freq = params->mid_freq;
-    sample->params.loop = params->loop;
-    sample->params.loop_start = params->loop_start;
-    sample->params.loop_end = params->loop_end;
+    Sample_params_copy(&sample->params, params);
     return;
 }
 

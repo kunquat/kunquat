@@ -30,6 +30,14 @@
 
 
 /**
+ * Checks for a key component with an index.
+ *
+ * \param key      The key -- must not be \c NULL.
+ * \param prefix   The prefix of the component -- must not be \c NULL.
+ * \param digits   The number of digits after the component -- must be
+ *                 > \c 0.
+ *
+ * \return   The number after prefix if successful, otherwise \c -1.
  */
 int parse_index_dir(const char* key, const char* prefix, int digits);
 

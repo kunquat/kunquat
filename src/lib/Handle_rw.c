@@ -34,6 +34,7 @@
 #include <Directory.h>
 #include <Handle_rw.h>
 #include <Parse_manager.h>
+#include <File_dir.h>
 
 #include <xmemory.h>
 
@@ -67,6 +68,7 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
         xfree(handle_rw);
         return NULL;
     }
+#if 0
     File_tree* tree = new_File_tree_from_fs(handle_rw->base_path, NULL);
     if (tree == NULL)
     {
@@ -74,19 +76,25 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
         xfree(handle_rw);
         return NULL;
     }
-    if (!kqt_Handle_init(&handle_rw->handle, buffer_size, tree))
+#endif
+    if (!kqt_Handle_init(&handle_rw->handle, buffer_size))
     {
-        del_File_tree(tree);
+//        del_File_tree(tree);
         xfree(handle_rw->base_path);
         xfree(handle_rw);
         return NULL;
     }
-    del_File_tree(tree);
+//    del_File_tree(tree);
     handle_rw->handle.mode = KQT_READ_WRITE;
     handle_rw->handle.get_data = Handle_rw_get_data;
     handle_rw->handle.get_data_length = Handle_rw_get_data_length;
     handle_rw->set_data = Handle_rw_set_data;
     handle_rw->handle.destroy = del_Handle_rw;
+    if (!File_dir_open(handle_rw, path))
+    {
+        kqt_del_Handle(&handle_rw->handle);
+        return NULL;
+    }
     return &handle_rw->handle;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,8 @@
 
 #include <Handle_private.h>
 #include <Handle_r.h>
-#include <File_tree.h>
+#include <File_kqt.h>
+#include <Entries.h>
 
 #include <xmemory.h>
 
@@ -59,20 +60,26 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
         return NULL;
     }
     handle_r->handle.mode = KQT_READ;
-    handle_r->tree = new_File_tree_from_tar(path, NULL);
-    if (handle_r->tree == NULL)
+    handle_r->entries = new_Entries();
+    if (handle_r->entries == NULL)
     {
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
-    if (!kqt_Handle_init(&handle_r->handle, buffer_size, handle_r->tree))
+    if (!kqt_Handle_init(&handle_r->handle, buffer_size))
     {
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
+    handle_r->handle.mode = KQT_READ;
     handle_r->handle.get_data = Handle_r_get_data;
     handle_r->handle.get_data_length = Handle_r_get_data_length;
     handle_r->handle.destroy = del_Handle_r;
+    if (!File_kqt_open(handle_r, path))
+    {
+        kqt_del_Handle(&handle_r->handle);
+        return NULL;
+    }
     return &handle_r->handle;
 }
 
@@ -83,38 +90,14 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
     assert(handle->mode == KQT_READ);
     assert(key_is_valid(key));
     Handle_r* handle_r = (Handle_r*)handle;
-    bool error = false;
-    File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);
-    if (tree == NULL)
-    {
-        if (error)
-        {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
-        }
-        return NULL;
-    }
-    if (File_tree_is_dir(tree))
-    {
-        kqt_Handle_set_error(handle, "%s: Key %s does not correspond"
-                " to a regular file", __func__, key);
-        return NULL;
-    }
-    if (!File_tree_is_regular(tree))
-    {
-        kqt_Handle_set_error(handle, "%s: Key %s is a sample -- reading raw"
-                " sample data from a read-only Handle is not supported yet",
-                __func__, key);
-        return NULL;
-    }
-    char* data = File_tree_get_data(tree);
-    long size = File_tree_get_size(tree);
-    if (size <= 0)
+    int32_t length = Entries_get_length(handle_r->entries, key);
+    if (length == 0)
     {
         return NULL;
     }
+    void* data = Entries_get_data(handle_r->entries, key);
     assert(data != NULL);
-    char* new_data = xcalloc(char, size);
+    char* new_data = xcalloc(char, length);
     if (new_data == NULL)
     {
         kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
@@ -123,7 +106,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
     }
     if (data != NULL)
     {
-        memcpy(new_data, data, size);
+        memcpy(new_data, data, length);
     }
     return new_data;
 }
@@ -135,32 +118,7 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
     assert(handle->mode == KQT_READ);
     assert(key_is_valid(key));
     Handle_r* handle_r = (Handle_r*)handle;
-    bool error = false;
-    File_tree* tree = File_tree_get_node(handle_r->tree, key, &error);
-    if (tree == NULL)
-    {
-        if (error)
-        {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
-        }
-        return -1;
-    }
-    if (File_tree_is_dir(tree))
-    {
-        kqt_Handle_set_error(handle, "%s: Key %s does not correspond"
-                " to a regular file", __func__, key);
-        return -1;
-    }
-    if (!File_tree_is_regular(tree))
-    {
-        kqt_Handle_set_error(handle, "%s: Key %s is a sample -- reading raw"
-                " sample data from a read-only Handle is not supported yet",
-                __func__, key);
-        return -1;
-    }
-    assert(File_tree_get_size(tree) >= 0);
-    return File_tree_get_size(tree);
+    return Entries_get_length(handle_r->entries, key);
 }
 
 
@@ -169,9 +127,9 @@ static void del_Handle_r(kqt_Handle* handle)
     assert(handle != NULL);
     assert(handle->mode == KQT_READ);
     Handle_r* handle_r = (Handle_r*)handle;
-    if (handle_r->tree != NULL)
+    if (handle_r->entries != NULL)
     {
-        del_File_tree(handle_r->tree);
+        del_Entries(handle_r->entries);
     }
     xfree(handle_r);
     return;

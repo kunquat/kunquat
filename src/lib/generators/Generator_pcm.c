@@ -384,6 +384,8 @@ static bool Generator_pcm_parse_sample(Generator* gen,
         }
     }
     Generator_pcm* gen_pcm = (Generator_pcm*)gen;
+    Sample_params_copy(&gen_pcm->samples[index].params, params);
+    gen_pcm->samples[index].params.format = params->format;
     for (Sample_format i = SAMPLE_FORMAT_NONE + 1; i < SAMPLE_FORMAT_LAST; ++i)
     {
         if (gen_pcm->samples[index].formats[i] != NULL)
@@ -1038,8 +1040,8 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     pitch_t pitch = state->parent.pitch;
     double force = state->parent.force;
 //    fprintf(stderr, "searching list for %f Hz, %f dB... ", pitch, force);
-    uint8_t source = state->source;
-    uint8_t expr = state->expr;
+    uint16_t source = state->source;
+    uint16_t expr = state->expr;
     assert(pitch > 0);
     assert(isfinite(force));
     assert(source < PCM_SOURCES_MAX);

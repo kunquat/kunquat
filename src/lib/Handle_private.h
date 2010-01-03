@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -57,13 +57,11 @@ struct kqt_Handle
  *
  * \param handle        The Kunquat Handle -- must not be \c NULL.
  * \param buffer_size   The size of the mixing buffers -- must be positive.
- * \param tree          The File tree of the Kunquat composition -- must not
- *                      be \c NULL.
  *
  * \return   \c true if successful. Otherwise, \c false is returned and Handle
  *           error is set to indicate the error.
  */
-bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree);
+bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
 
 
 /**

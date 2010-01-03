@@ -32,13 +32,13 @@
 #include <xmemory.h>
 
 
-static bool Parse_song_level(kqt_Handle* handle,
+static bool parse_song_level(kqt_Handle* handle,
                              const char* key,
                              void* data,
                              long length);
 
 
-static bool Parse_instrument_level(kqt_Handle* handle,
+static bool parse_instrument_level(kqt_Handle* handle,
                                    const char* key,
                                    const char* subkey,
                                    void* data,
@@ -46,7 +46,7 @@ static bool Parse_instrument_level(kqt_Handle* handle,
                                    int index);
 
 
-static bool Parse_generator_level(kqt_Handle* handle,
+static bool parse_generator_level(kqt_Handle* handle,
                                   const char* key,
                                   const char* subkey,
                                   void* data,
@@ -55,7 +55,7 @@ static bool Parse_generator_level(kqt_Handle* handle,
                                   int gen_index);
 
 
-static bool Parse_pattern_level(kqt_Handle* handle,
+static bool parse_pattern_level(kqt_Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
@@ -63,7 +63,7 @@ static bool Parse_pattern_level(kqt_Handle* handle,
                                 int index);
 
 
-static bool Parse_scale_level(kqt_Handle* handle,
+static bool parse_scale_level(kqt_Handle* handle,
                               const char* key,
                               const char* subkey,
                               void* data,
@@ -71,7 +71,7 @@ static bool Parse_scale_level(kqt_Handle* handle,
                               int index);
 
 
-static bool Parse_subsong_level(kqt_Handle* handle,
+static bool parse_subsong_level(kqt_Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
@@ -141,8 +141,8 @@ bool parse_data(kqt_Handle* handle,
                 void* data,
                 long length)
 {
+//    fprintf(stderr, "parsing %s\n", key);
     assert(handle != NULL);
-    assert(handle->mode != KQT_READ);
     assert(key_is_valid(key));
     assert(data != NULL || length == 0);
     assert(length >= 0);
@@ -183,7 +183,7 @@ bool parse_data(kqt_Handle* handle,
     }
     if (last_index == 0)
     {
-        bool success = Parse_song_level(handle, key, data, length);
+        bool success = parse_song_level(handle, key, data, length);
         xfree(json);
         return success;
     }
@@ -194,25 +194,25 @@ bool parse_data(kqt_Handle* handle,
     if (strncmp(key, "instrument_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
-        success = Parse_instrument_level(handle, key, second_element,
+        success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
     }
     else if (strncmp(key, "pattern_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
     {
-        success = Parse_pattern_level(handle, key, second_element,
+        success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
     }
     else if (strncmp(key, "scale_", first_len - 1) == 0 &&
             (index = parse_index(&key[first_len - 1])) >= 0)
     {
-        success = Parse_scale_level(handle, key, second_element,
+        success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
     else if (strncmp(key, "subsong_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
-        success = Parse_subsong_level(handle, key, second_element,
+        success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
     }
     xfree(json);
@@ -220,11 +220,12 @@ bool parse_data(kqt_Handle* handle,
 }
 
 
-static bool Parse_song_level(kqt_Handle* handle,
+static bool parse_song_level(kqt_Handle* handle,
                              const char* key,
                              void* data,
                              long length)
 {
+//    fprintf(stderr, "song level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(data != NULL || length == 0);
@@ -243,13 +244,14 @@ static bool Parse_song_level(kqt_Handle* handle,
 }
 
 
-static bool Parse_instrument_level(kqt_Handle* handle,
+static bool parse_instrument_level(kqt_Handle* handle,
                                    const char* key,
                                    const char* subkey,
                                    void* data,
                                    long length,
                                    int index)
 {
+ //   fprintf(stderr, "instrument level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
@@ -273,7 +275,7 @@ static bool Parse_instrument_level(kqt_Handle* handle,
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        return Parse_generator_level(handle, key, subkey,
+        return parse_generator_level(handle, key, subkey,
                                      data, length, 
                                      index, gen_index);
     }
@@ -382,7 +384,7 @@ static bool Parse_instrument_level(kqt_Handle* handle,
 }
 
 
-static bool Parse_generator_level(kqt_Handle* handle,
+static bool parse_generator_level(kqt_Handle* handle,
                                   const char* key,
                                   const char* subkey,
                                   void* data,
@@ -390,6 +392,7 @@ static bool Parse_generator_level(kqt_Handle* handle,
                                   int ins_index,
                                   int gen_index)
 {
+//    fprintf(stderr, "generator level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
@@ -458,10 +461,12 @@ static bool Parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen == NULL || Generator_get_type(gen) != type)
+        Generator* gen = Instrument_get_gen_of_type(ins, gen_index, type);
+        if (gen == NULL)
         {
+//            fprintf(stderr, "1\n");
             gen = new_Generator(type, Instrument_get_params(ins));
+//            fprintf(stderr, "2 -- gen %p for ins %p\n", (void*)gen, (void*)ins);
             if (gen == NULL)
             {
                 kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
@@ -477,6 +482,10 @@ static bool Parse_generator_level(kqt_Handle* handle,
             Generator_copy_general(gen, common_params);
             Instrument_set_gen(ins, gen_index, gen);
         }
+        else
+        {
+            Instrument_set_gen(ins, gen_index, gen);
+        }
     }
     else
     {
@@ -489,6 +498,10 @@ static bool Parse_generator_level(kqt_Handle* handle,
                 if (new_gen)
                 {
                     gen = new_Generator(i, Instrument_get_params(ins));
+/*                    if (i == GEN_TYPE_PCM)
+                    {
+                        fprintf(stderr, "Creating pcm %p for inst %p\n", (void*)gen, (void*)ins);
+                    } */
                     if (gen == NULL)
                     {
                         kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
@@ -536,13 +549,14 @@ static bool Parse_generator_level(kqt_Handle* handle,
 }
 
 
-static bool Parse_pattern_level(kqt_Handle* handle,
+static bool parse_pattern_level(kqt_Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
                                 long length,
                                 int index)
 {
+//    fprintf(stderr, "pattern level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
@@ -664,13 +678,14 @@ static bool Parse_pattern_level(kqt_Handle* handle,
 }
 
 
-static bool Parse_scale_level(kqt_Handle* handle,
+static bool parse_scale_level(kqt_Handle* handle,
                               const char* key,
                               const char* subkey,
                               void* data,
                               long length,
                               int index)
 {
+//    fprintf(stderr, "scale level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
@@ -706,13 +721,14 @@ static bool Parse_scale_level(kqt_Handle* handle,
 }
 
 
-static bool Parse_subsong_level(kqt_Handle* handle,
+static bool parse_subsong_level(kqt_Handle* handle,
                                 const char* key,
                                 const char* subkey,
                                 void* data,
                                 long length,
                                 int index)
 {
+//    fprintf(stderr, "subsong level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);

@@ -20,21 +20,27 @@
  */
 
 
-#ifndef KQT_HANDLE_R_H
-#define KQT_HANDLE_R_H
+#ifndef K_FILE_DIR_H
+#define K_FILE_DIR_H
 
 
-#include <Handle_private.h>
-#include <Entries.h>
+#include <stdbool.h>
+
+#include <Handle_rw.h>
 
 
-typedef struct Handle_r
-{
-    kqt_Handle handle;
-    Entries* entries;
-} Handle_r;
+/**
+ * Opens a directory inside the Kunquat Handle.
+ *
+ * \param handle_rw   The read/write Kunquat Handle -- must not be \c NULL.
+ * \param path        The path of the directory -- must not be \c NULL.
+ *
+ * \return   \c true if successful. Otherwise \c false is returned and the
+ *           handle error is set to describe the error.
+ */
+bool File_dir_open(Handle_rw* handle_rw, const char* path);
 
 
-#endif // KQT_HANDLE_R_H
+#endif // K_FILE_DIR_H
 
 

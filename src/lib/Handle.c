@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -53,11 +53,11 @@ static bool add_handle(kqt_Handle* handle);
 static bool remove_handle(kqt_Handle* handle);
 
 
-bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree)
+bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
     assert(buffer_size > 0);
-    assert(tree != NULL);
+//    assert(tree != NULL);
     if (!add_handle(handle))
     {
         kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
@@ -67,6 +67,8 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree)
     handle->mode = KQT_READ;
     handle->song = NULL;
     handle->destroy = NULL;
+    handle->get_data = NULL;
+    handle->get_data_length = NULL;
     handle->error[0] = handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
@@ -82,6 +84,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree)
         return false;
     }
 
+#if 0
     Read_state* state = READ_STATE_AUTO;
     if (!Song_read(handle->song, tree, state))
     {
@@ -92,6 +95,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size, File_tree* tree)
         handle->song = NULL;
         return false;
     }
+#endif
     kqt_Handle_stop(handle);
     kqt_Handle_set_position_desc(handle, NULL);
     return true;

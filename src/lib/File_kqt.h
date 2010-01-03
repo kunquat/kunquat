@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,21 +20,27 @@
  */
 
 
-#ifndef KQT_ENTRY_PRIVATE_H
-#define KQT_ENTRY_PRIVATE_H
+#ifndef K_FILE_KQT_H
+#define K_FILE_KQT_H
 
 
-#include <kunquat/Entry.h>
-#include <kunquat/Handle.h>
+#include <stdbool.h>
+
+#include <Handle_r.h>
 
 
-struct kqt_Entry
-{
-    char* data;
-    kqt_Access_mode mode;
-};
+/**
+ * Opens a .kqt file inside the Kunquat Handle.
+ *
+ * \param handle_r   The read-only Kunquat Handle -- must not be \c NULL.
+ * \param path       The path of the .kqt file -- must not be \c NULL.
+ *
+ * \return   \c true if successful. Otherwise \c false is returned and the
+ *           handle error is set to describe the error.
+ */
+bool File_kqt_open(Handle_r* handle_r, const char* path);
 
 
-#endif // KQT_ENTRY_PRIVATE_H
+#endif // K_FILE_KQT_H
 
 

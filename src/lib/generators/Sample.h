@@ -96,6 +96,17 @@ Sample_params* Sample_params_init(Sample_params* params);
 
 
 /**
+ * Copies Sample parameters.
+ *
+ * \param dest   The copy destination -- must not be \c NULL.
+ * \param src    The copy source -- must not be \c NULL.
+ *
+ * \return   The parameter \a dest.
+ */
+Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src);
+
+
+/**
  * Copies Sample parameters into a Sample.
  *
  * This function copies all the fields except the format field.
