@@ -96,6 +96,13 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
 bool Generator_pcm_has_subkey(const char* subkey)
 {
     assert(subkey != NULL);
+    if (strncmp(subkey, "gen_pcm/", 8) != 0)
+    {
+        return false;
+    }
+    subkey = strchr(subkey, '/');
+    assert(subkey != NULL);
+    ++subkey;
     int sub_index = -1;
     if (parse_index_dir(subkey, "expr_", 1) >= 0)
     {
@@ -166,6 +173,13 @@ bool Generator_pcm_parse(Generator* gen,
     {
         return false;
     }
+    if (strncmp(subkey, "gen_pcm/", 8) != 0)
+    {
+        return false;
+    }
+    subkey = strchr(subkey, '/');
+    assert(subkey != NULL);
+    ++subkey;
     int sub_index = -1;
     if ((sub_index = parse_index_dir(subkey, "expr_", 1)) >= 0)
     {

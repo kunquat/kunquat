@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -220,6 +220,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
             {
                 kqt_Handle_set_error(handle, "%s: Couldn't allocate memory"
                         " for sample %s", __func__, path);
+                fclose(in);
                 xfree(name);
                 xfree(path_name);
                 return NULL;
@@ -228,6 +229,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
             {
                 kqt_Handle_set_error(handle, "%s: Couldn't load the WavPack"
                         " file %s", __func__, path);
+                fclose(in);
                 del_Sample(sample);
                 xfree(name);
                 xfree(path_name);
@@ -238,6 +240,7 @@ File_tree* new_File_tree_from_fs(char* path, kqt_Handle* handle)
             {
                 kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
                         __func__);
+                fclose(in);
                 del_Sample(sample);
                 xfree(name);
                 xfree(path_name);

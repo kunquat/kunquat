@@ -68,7 +68,7 @@ Generator* new_Generator_square(Instrument_params* ins_params)
 bool Generator_square_has_subkey(const char* subkey)
 {
     assert(subkey != NULL);
-    return strcmp(subkey, "p_square.json") == 0;
+    return strcmp(subkey, "gen_square/p_square.json") == 0;
 }
 
 
@@ -90,7 +90,7 @@ bool Generator_square_parse(Generator* gen,
         return false;
     }
     Generator_square* gen_square = (Generator_square*)gen;
-    if (strcmp(subkey, "p_square.json") == 0)
+    if (strcmp(subkey, "gen_square/p_square.json") == 0)
     {
         double pulse_width = 0.5;
         char* str = data;
@@ -107,6 +107,7 @@ bool Generator_square_parse(Generator* gen,
             }
         }
         gen_square->pulse_width = pulse_width;
+        return true;
     }
     return false;
 }
