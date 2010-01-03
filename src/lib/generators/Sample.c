@@ -52,7 +52,10 @@ void Sample_set_params(Sample* sample, Sample_params* params)
 {
     assert(sample != NULL);
     assert(params != NULL);
-    memcpy(&sample->params, params, sizeof(Sample_params));
+    sample->params.mid_freq = params->mid_freq;
+    sample->params.loop = params->loop;
+    sample->params.loop_start = params->loop_start;
+    sample->params.loop_end = params->loop_end;
     return;
 }
 

@@ -98,6 +98,8 @@ Sample_params* Sample_params_init(Sample_params* params);
 /**
  * Copies Sample parameters into a Sample.
  *
+ * This function copies all the fields except the format field.
+ *
  * \param sample   The destination Sample -- must not be \c NULL.
  * \param params   The Sample parameters -- must not be \c NULL.
  */

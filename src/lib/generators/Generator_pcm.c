@@ -34,6 +34,7 @@
 #include <Sample.h>
 #include <pitch_t.h>
 #include <Parse_manager.h>
+#include <File_wavpack.h>
 
 #include <xmemory.h>
 
@@ -396,8 +397,20 @@ static bool Generator_pcm_parse_wv(Generator* gen,
     {
         return false;
     }
-    (void)data;
-    return true; // TODO: implement
+    Sample* sample = new_Sample();
+    if (sample == NULL)
+    {
+        return false;
+    }
+    if (!Sample_parse_wavpack(sample, data, length, state))
+    {
+        del_Sample(sample);
+        return false;
+    }
+    Generator_pcm* gen_pcm = (Generator_pcm*)gen;
+    Sample_set_params(sample, &gen_pcm->samples[index].params);
+    Generator_pcm_set_sample_of_type(gen_pcm, index, sample);
+    return true;
 }
 
 
