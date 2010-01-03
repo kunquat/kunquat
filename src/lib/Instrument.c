@@ -335,10 +335,10 @@ void Instrument_set_gen_of_type(Instrument* ins,
     assert(index < KQT_GENERATORS_MAX);
     assert(gen != NULL);
     Gen_type type = Generator_get_type(gen);
-    if (ins->gens[index].types[type] != NULL)
+    if (ins->gens[index].types[type] != NULL &&
+            ins->gens[index].types[type] != gen)
     {
         del_Generator(ins->gens[index].types[type]);
-        ins->gens[index].types[type] = NULL;
     }
     ins->gens[index].types[type] = gen;
     return;

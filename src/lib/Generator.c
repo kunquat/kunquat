@@ -203,6 +203,7 @@ bool Generator_type_has_subkey(Gen_type type, const char* subkey)
     static bool (*map[GEN_TYPE_LAST])(const char*) =
     {
         [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
+        [GEN_TYPE_SQUARE] = Generator_square_has_subkey,
     };
     if (map[type] == NULL)
     {
@@ -233,6 +234,7 @@ bool Generator_parse(Generator* gen,
                                       Read_state*) =
     {
         [GEN_TYPE_PCM] = Generator_pcm_parse,
+        [GEN_TYPE_SQUARE] = Generator_square_parse,
     };
     assert(map[Generator_get_type(gen)] != NULL);
     return map[Generator_get_type(gen)](gen, subkey, data, length, state);

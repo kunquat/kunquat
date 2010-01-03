@@ -517,6 +517,10 @@ static bool Parse_generator_level(kqt_Handle* handle,
                     }
                     return false;
                 }
+                if (new_gen)
+                {
+                    Instrument_set_gen_of_type(ins, gen_index, gen);
+                }
                 break;
             }
         }

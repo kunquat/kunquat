@@ -688,7 +688,8 @@ void Generator_pcm_set_sample_of_type(Generator_pcm* gen_pcm,
     assert(index < PCM_SAMPLES_MAX);
     assert(sample != NULL);
     Sample_format format = Sample_get_format(sample);
-    if (gen_pcm->samples[index].formats[format] != NULL)
+    if (gen_pcm->samples[index].formats[format] != NULL &&
+            gen_pcm->samples[index].formats[format] != sample)
     {
         del_Sample(gen_pcm->samples[index].formats[format]);
     }

@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 #include <Generator.h>
 #include <Generator_common.h>
@@ -61,6 +62,53 @@ Generator* new_Generator_square(Instrument_params* ins_params)
     square->parent.ins_params = ins_params;
     square->pulse_width = 0.5;
     return &square->parent;
+}
+
+
+bool Generator_square_has_subkey(const char* subkey)
+{
+    assert(subkey != NULL);
+    return strcmp(subkey, "p_square.json") == 0;
+}
+
+
+bool Generator_square_parse(Generator* gen,
+                            const char* subkey,
+                            void* data,
+                            long length,
+                            Read_state* state)
+{
+    assert(gen != NULL);
+    assert(Generator_get_type(gen) == GEN_TYPE_SQUARE);
+    assert(subkey != NULL);
+    assert(Generator_square_has_subkey(subkey));
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Generator_square* gen_square = (Generator_square*)gen;
+    if (strcmp(subkey, "p_square.json") == 0)
+    {
+        double pulse_width = 0.5;
+        char* str = data;
+        if (str != NULL)
+        {
+            str = read_const_char(str, '{', state);
+            str = read_const_string(str, "pulse_width", state);
+            str = read_const_char(str, ':', state);
+            str = read_double(str, &pulse_width, state);
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+        gen_square->pulse_width = pulse_width;
+    }
+    return false;
 }
 
 
