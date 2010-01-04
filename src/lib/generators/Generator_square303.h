@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -42,7 +42,7 @@ typedef struct Generator_square303
  * \return   The new Square303 Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_square303* new_Generator_square303(Instrument_params* ins_params);
+Generator* new_Generator_square303(Instrument_params* ins_params);
 
 
 uint32_t Generator_square303_mix(Generator* gen,

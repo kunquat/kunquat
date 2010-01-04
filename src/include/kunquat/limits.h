@@ -30,6 +30,12 @@ extern "C" {
 
 
 /**
+ * The current file format version used by Kunquat.
+ */
+#define KQT_FORMAT_VERSION "00"
+
+
+/**
  * Maximum number of Kunquat Handles that can be open simultaneously.
  */
 #define KQT_HANDLES_MAX (256)

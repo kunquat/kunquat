@@ -31,6 +31,7 @@
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
+#include <String_buffer.h>
 
 #include <Event_type.h>
 
@@ -75,15 +76,15 @@ char* Event_read(Event* event, char* str, Read_state* state);
 
 
 /**
- * Writes an Event into a file.
+ * Serialises the Event.
  *
  * \param event   The Event -- must not be \c NULL.
- * \param out     The output file -- must not be \c NULL.
- * \param state   The Write state object -- must not be \c NULL.
+ * \param sb      The String buffer where the Event shall be written -- must
+ *                not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Event_write(Event* event, FILE* out, Write_state* state);
+bool Event_serialise(Event* event, String_buffer* sb);
 
 
 /**

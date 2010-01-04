@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -35,12 +35,10 @@
 #include <xmemory.h>
 
 
-static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state* state);
-
 void Generator_sawtooth_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
+Generator* new_Generator_sawtooth(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_sawtooth* sawtooth = xalloc(Generator_sawtooth);
@@ -53,29 +51,12 @@ Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params)
         xfree(sawtooth);
         return NULL;
     }
-    sawtooth->parent.read = Generator_sawtooth_read;
     sawtooth->parent.destroy = del_Generator_sawtooth;
     sawtooth->parent.type = GEN_TYPE_SAWTOOTH;
     sawtooth->parent.init_state = Generator_sawtooth_init_state;
     sawtooth->parent.mix = Generator_sawtooth_mix;
     sawtooth->parent.ins_params = ins_params;
-    return sawtooth;
-}
-
-
-static bool Generator_sawtooth_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SAWTOOTH);
-    assert(tree != NULL);
-    assert(state != NULL);
-    (void)gen;
-    (void)tree;
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
+    return &sawtooth->parent;
 }
 
 

@@ -20,6 +20,7 @@
  */
 
 
+#define _POSIX_SOURCE
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -31,6 +32,10 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <getopt.h>
 
@@ -367,7 +372,23 @@ int main(int argc, char** argv)
 
     for (int file_arg = optind; file_arg < argc; ++file_arg)
     {
-        kqt_Handle* handle = kqt_new_Handle_from_path(OUT_BUFFER_SIZE, argv[file_arg]);
+        struct stat* info = &(struct stat){ .st_mode = 0 };
+        errno = 0;
+        if (stat(argv[file_arg], info) != 0)
+        {
+            fprintf(stderr, "Coudn't access information about path %s: %s",
+                    argv[file_arg], strerror(errno));
+            continue;
+        }
+        kqt_Handle* handle = NULL;
+        if (S_ISDIR(info->st_mode))
+        {
+            handle = kqt_new_Handle_rw(OUT_BUFFER_SIZE, argv[file_arg]);
+        }
+        else
+        {
+            handle = kqt_new_Handle_r(OUT_BUFFER_SIZE, argv[file_arg]);
+        }
         if (handle == NULL)
         {
             fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,6 @@
 #include <Real.h>
 #include <Song.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <math_common.h>
 
 #include <xmemory.h>
@@ -109,8 +108,8 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         del_Song(song);
         return NULL;
     }
-    song->scales[0] = new_Scale(523.25113060119725,
-            Real_init_as_frac(REAL_AUTO, 2, 1));
+    song->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+            SCALE_DEFAULT_OCTAVE_RATIO);
     if (song->scales[0] == NULL)
     {
         del_Song(song);
@@ -147,55 +146,26 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
                              i,
                              i * 100);
     }
-    song->mix_vol_dB = -8;
+    song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
-    song->init_subsong = 0;
+    song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     return song;
 }
 
 
-bool Song_read(Song* song, File_tree* tree, Read_state* state)
+bool Song_parse_composition(Song* song, char* str, Read_state* state)
 {
     assert(song != NULL);
-    assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
+    int64_t buf_count = SONG_DEFAULT_BUF_COUNT;
+    double mix_vol = SONG_DEFAULT_MIX_VOL;
+    int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+    if (str != NULL)
     {
-        Read_state_set_error(state, "Song is not a directory");
-        return false;
-    }
-    char* name = File_tree_get_name(tree);
-    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
-    {
-        Read_state_set_error(state, "Directory is not a Kunquat file");
-        return false;
-    }
-    if (name[strlen(MAGIC_ID)] != 'c')
-    {
-        Read_state_set_error(state, "Directory is not a composition file");
-        return false;
-    }
-    const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
-    {
-        Read_state_set_error(state, "Unsupported composition version");
-        return false;
-    }
-    File_tree* info_tree = File_tree_get_child(tree, "composition.json");
-    if (info_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(info_tree));
-        if (File_tree_is_dir(info_tree))
-        {
-            Read_state_set_error(state, "Composition info is a directory");
-            return false;
-        }
-        char* str = File_tree_get_data(info_tree);
         str = read_const_char(str, '{', state);
         if (state->error)
         {
@@ -211,58 +181,54 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
                 char key[128] = { '\0' };
                 str = read_string(str, key, 128, state);
                 str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    return false;
+                }
                 if (strcmp(key, "buf_count") == 0)
                 {
-                    int64_t num = 0;
-                    str = read_int(str, &num, state);
+                    int64_t buf_count = 0;
+                    str = read_int(str, &buf_count, state);
                     if (state->error)
                     {
                         return false;
                     }
-                    if (num < 1 || num > KQT_BUFFERS_MAX)
+                    if (buf_count < 1 || buf_count > KQT_BUFFERS_MAX)
                     {
                         Read_state_set_error(state,
-                                 "Unsupported number of mixing buffers: %" PRId64, num);
-                        return false;
-                    }
-                    if (!Song_set_buf_count(song, num))
-                    {
-                        Read_state_set_error(state,
-                                 "Couldn't allocate memory for mixing buffers");
+                                 "Unsupported number of mixing buffers: %" PRId64,
+                                 buf_count);
                         return false;
                     }
                 }
                 else if (strcmp(key, "mix_vol") == 0)
                 {
-                    str = read_double(str, &song->mix_vol_dB, state);
+                    str = read_double(str, &mix_vol, state);
                     if (state->error)
                     {
                         return false;
                     }
-                    if (!isfinite(song->mix_vol_dB) && song->mix_vol_dB != -INFINITY)
+                    if (!isfinite(mix_vol) && mix_vol != -INFINITY)
                     {
                         Read_state_set_error(state,
                                  "Invalid mixing volume: %f", song->mix_vol_dB);
-                        song->mix_vol_dB = 0;
                         return false;
                     }
-                    song->mix_vol = exp2(song->mix_vol_dB / 6);
                 }
                 else if (strcmp(key, "init_subsong") == 0)
                 {
-                    int64_t num = 0;
-                    str = read_int(str, &num, state);
+                    str = read_int(str, &init_subsong, state);
                     if (state->error)
                     {
                         return false;
                     }
-                    if (num < 0 || num >= KQT_SUBSONGS_MAX)
+                    if (init_subsong < 0 || init_subsong >= KQT_SUBSONGS_MAX)
                     {
                         Read_state_set_error(state,
-                                 "Invalid initial Subsong number: %" PRId64, num);
+                                 "Invalid initial Subsong number: %" PRId64,
+                                 init_subsong);
                         return false;
                     }
-                    Song_set_subsong(song, num);
                 }
                 else
                 {
@@ -283,64 +249,15 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state)
             }
         }
     }
-    for (int i = 0; i < KQT_SCALES_MAX; ++i)
+    if (!Song_set_buf_count(song, buf_count))
     {
-        char dir_name[] = "scale_0";
-        snprintf(dir_name, 8, "scale_%01x", i);
-        File_tree* index_tree = File_tree_get_child(tree, dir_name);
-        if (index_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(index_tree));
-            if (!File_tree_is_dir(index_tree))
-            {
-                Read_state_set_error(state,
-                         "Scale at index %01x is not a directory", i);
-                return false;
-            }
-            File_tree* scale_tree = File_tree_get_child(index_tree, "kunquats00");
-            if (scale_tree != NULL)
-            {
-                Read_state_init(state, File_tree_get_path(scale_tree));
-                if (!Song_create_scale(song, i))
-                {
-                    Read_state_set_error(state,
-                             "Couldn't allocate memory for scale %01x", i);
-                    return false;
-                }
-                Scale* scale = Song_get_scale(song, i);
-                assert(scale != NULL);
-                Scale_read(scale, scale_tree, state);
-                if (state->error)
-                {
-                    Song_remove_scale(song, i);
-                    return false;
-                }
-            }
-        }
-    }
-    Subsong_table* subsongs = Song_get_subsongs(song);
-    if (!Subsong_table_read(subsongs, tree, state))
-    {
+        Read_state_set_error(state,
+                "Couldn't allocate memory for mixing buffers");
         return false;
     }
-    Pat_table* pats = Song_get_pats(song);
-    if (!Pat_table_read(pats, tree, state))
-    {
-        return false;
-    }
-    Ins_table* insts = Song_get_insts(song);
-    if (!Ins_table_read(insts, tree, state,
-                        Song_get_bufs(song),
-                        Song_get_voice_bufs(song),
-                        Song_get_voice_bufs2(song),
-                        Song_get_buf_count(song),
-                        Song_get_buf_size(song),
-                        Song_get_scales(song),
-                        Song_get_active_scale(song),
-                        32)) // TODO: make configurable
-    {
-        return false;
-    }
+    song->mix_vol_dB = mix_vol;
+    song->mix_vol = exp2(song->mix_vol_dB / 6);
+    Song_set_subsong(song, init_subsong);
     return true;
 }
 
@@ -696,6 +613,22 @@ Scale* Song_get_scale(Song* song, int index)
 }
 
 
+void Song_set_scale(Song* song, int index, Scale* scale)
+{
+    assert(song != NULL);
+    assert(index >= 0);
+    assert(index < KQT_SCALES_MAX);
+    assert(scale != NULL);
+    if (song->scales[index] != NULL &&
+            song->scales[index] != scale)
+    {
+        del_Scale(song->scales[index]);
+    }
+    song->scales[index] = scale;
+    return;
+}
+
+
 Scale*** Song_get_active_scale(Song* song)
 {
     assert(song != NULL);
@@ -713,8 +646,8 @@ bool Song_create_scale(Song* song, int index)
         Scale_clear(song->scales[index]);
         return true;
     }
-    song->scales[index] = new_Scale(440,
-            Real_init_as_frac(REAL_AUTO, 2, 1));
+    song->scales[index] = new_Scale(SCALE_DEFAULT_REF_PITCH,
+            SCALE_DEFAULT_OCTAVE_RATIO);
     if (song->scales[index] == NULL)
     {
         return false;

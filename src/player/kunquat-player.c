@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
  */
 
 
+#define _POSIX_SOURCE
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -31,6 +32,10 @@
 #include <inttypes.h>
 #include <math.h>
 #include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <getopt.h>
 
@@ -353,7 +358,23 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Handle* handle = kqt_new_Handle_from_path(audio->nframes, argv[file_arg]);
+        struct stat* info = &(struct stat){ .st_mode = 0 };
+        errno = 0;
+        if (stat(argv[file_arg], info) != 0)
+        {
+            fprintf(stderr, "Couldn't access information about path %s: %s\n",
+                    argv[file_arg], strerror(errno));
+            continue;
+        }
+        kqt_Handle* handle = NULL;
+        if (S_ISDIR(info->st_mode))
+        {
+            handle = kqt_new_Handle_rw(audio->nframes, argv[file_arg]);
+        }
+        else
+        {
+            handle = kqt_new_Handle_r(audio->nframes, argv[file_arg]);
+        }
         if (handle == NULL)
         {
             fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));

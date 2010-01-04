@@ -84,14 +84,14 @@ START_TEST (set_get)
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (Subsong_table_set(table, 0, ss) < 0)
+    if (!Subsong_table_set(table, 0, ss))
     {
-        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned false -- out of memory?\n");
         abort();
     }
-    if (Subsong_table_set(table, KQT_SUBSONGS_MAX - 1, ss_end) < 0)
+    if (!Subsong_table_set(table, KQT_SUBSONGS_MAX - 1, ss_end))
     {
-        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned false -- out of memory?\n");
         abort();
     }
     if (!Subsong_set(ss, 0, 0))
@@ -139,7 +139,8 @@ START_TEST (set_get)
                     || (i == 0 && k == 8)
                     || (i == 0 && k == 33)
                     || (i == 0 && k == KQT_SECTIONS_MAX - 1)
-                    || (i == 1 && k == KQT_SECTIONS_MAX - 1))
+//                    || (i == 1 && k == KQT_SECTIONS_MAX - 1)
+                    )
             {
                 fail_unless(ret == i + k,
                         "Subsong table contained %hd instead of %d at subsong %d, index %d.",

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -30,9 +30,31 @@
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 #include <xmemory.h>
+
+
+typedef struct Gen_group
+{
+    Gen_type active_type;
+    Generator common_params;
+    Generator* types[GEN_TYPE_LAST];
+} Gen_group;
+
+
+struct Instrument
+{
+    double default_force;       ///< Default force.
+    double force_variation;     ///< Force variation.
+
+    Scale** scales;             ///< The Scales of the Song.
+    Scale*** default_scale;     ///< The default Scale of the Song.
+    int scale_index;            ///< The index of the Scale used (-1 means the default).
+
+    Instrument_params params;   ///< All the Instrument parameters that Generators need.
+
+    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
+};
 
 
 Instrument* new_Instrument(kqt_frame** bufs,
@@ -72,65 +94,47 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
 
-    ins->default_force = 1;
-    ins->force_variation = 0;
+    ins->default_force = INS_DEFAULT_FORCE;
+    ins->force_variation = INS_DEFAULT_FORCE_VAR;
 
     ins->scales = scales;
     ins->default_scale = default_scale;
-    ins->scale_index = -1;
+    ins->scale_index = INS_DEFAULT_SCALE_INDEX;
 
-    ins->gen_count = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        ins->gens[i] = NULL;
+        ins->gens[i].active_type = GEN_TYPE_NONE;
+        if (!Generator_init(&ins->gens[i].common_params))
+        {
+            for (int k = i - 1; k >= 0; --k)
+            {
+                Generator_uninit(&ins->gens[k].common_params);
+            }
+            xfree(ins);
+            return NULL;
+        }
+        for (int k = 0; k < GEN_TYPE_LAST; ++k)
+        {
+            ins->gens[i].types[k] = NULL;
+        }
     }
     return ins;
 }
 
 
-bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
+bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
 {
     assert(ins != NULL);
-    assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
+    double default_force = INS_DEFAULT_FORCE;
+    double force_variation = INS_DEFAULT_FORCE_VAR;
+    int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
+    if (str != NULL)
     {
-        Read_state_set_error(state, "Instrument is not a directory");
-        return false;
-    }
-    char* name = File_tree_get_name(tree);
-    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
-    {
-        Read_state_set_error(state, "Directory is not a Kunquat file");
-        return false;
-    }
-    if (name[strlen(MAGIC_ID)] != 'i')
-    {
-        Read_state_set_error(state, "Directory is not an instrument file");
-        return false;
-    }
-    const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
-    {
-        Read_state_set_error(state, "Unsupported instrument version");
-        return false;
-    }
-    File_tree* ins_tree = File_tree_get_child(tree, "instrument.json");
-    if (ins_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(ins_tree));
-        if (File_tree_is_dir(ins_tree))
-        {
-            Read_state_set_error(state,
-                     "Instrument information file is a directory");
-            return false;
-        }
-        char* str = File_tree_get_data(ins_tree);
         str = read_const_char(str, '{', state);
         if (state->error)
         {
@@ -152,27 +156,25 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
                 }
                 if (strcmp(key, "force") == 0)
                 {
-                    str = read_double(str, &ins->default_force, state);
+                    str = read_double(str, &default_force, state);
                 }
                 else if (strcmp(key, "force_variation") == 0)
                 {
-                    str = read_double(str, &ins->force_variation, state);
+                    str = read_double(str, &force_variation, state);
                 }
                 else if (strcmp(key, "scale") == 0)
                 {
-                    int64_t num = -1;
-                    str = read_int(str, &num, state);
+                    str = read_int(str, &scale_index, state);
                     if (state->error)
                     {
                         return false;
                     }
-                    if (num < -1 || num >= KQT_SCALES_MAX)
+                    if (scale_index < -1 || scale_index >= KQT_SCALES_MAX)
                     {
                         Read_state_set_error(state,
-                                 "Invalid scale index: %" PRId64, num);
+                                 "Invalid scale index: %" PRId64, scale_index);
                         return false;
                     }
-                    Instrument_set_scale(ins, num);
                 }
                 else
                 {
@@ -193,29 +195,9 @@ bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state)
             }
         }
     }
-    Instrument_params_read(&ins->params, tree, state);
-    if (state->error)
-    {
-        return false;
-    }
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        char dir_name[] = "generator_xx";
-        snprintf(dir_name, 13, "generator_%02x", i);
-        File_tree* gen_tree = File_tree_get_child(tree, dir_name);
-        if (gen_tree != NULL)
-        {
-            Generator* gen = new_Generator_from_file_tree(gen_tree, state,
-                             Instrument_get_params(ins));
-            if (state->error)
-            {
-                assert(gen == NULL);
-                return false;
-            }
-            assert(gen != NULL);
-            Instrument_set_gen(ins, i, gen);
-        }
-    }
+    ins->default_force = default_force;
+    ins->force_variation = force_variation;
+    Instrument_set_scale(ins, scale_index);
     return true;
 }
 
@@ -227,36 +209,35 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
+Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < KQT_GENERATORS_MAX);
+    return &ins->gens[index].common_params;
+}
+
+
+#if 0
 int Instrument_get_gen_count(Instrument* ins)
 {
     assert(ins != NULL);
     return ins->gen_count;
 }
+#endif
 
 
-int Instrument_set_gen(Instrument* ins,
-                       int index,
-                       Generator* gen)
+void Instrument_set_gen(Instrument* ins,
+                        int index,
+                        Generator* gen)
 {
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
     assert(gen != NULL);
-    if (ins->gens[index] != NULL)
-    {
-        del_Generator(ins->gens[index]);
-        ins->gens[index] = NULL;
-    }
-    else
-    {
-        ++ins->gen_count;
-    }
-    while (index > 0 && ins->gens[index - 1] == NULL)
-    {
-        --index;
-    }
-    ins->gens[index] = gen;
-    return index;
+    Instrument_set_gen_of_type(ins, index, gen);
+    ins->gens[index].active_type = Generator_get_type(gen);
+    return;
 }
 
 
@@ -266,7 +247,39 @@ Generator* Instrument_get_gen(Instrument* ins,
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    return ins->gens[index];
+    return ins->gens[index].types[ins->gens[index].active_type];
+}
+
+
+void Instrument_set_gen_of_type(Instrument* ins,
+                                int index,
+                                Generator* gen)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < KQT_GENERATORS_MAX);
+    assert(gen != NULL);
+    Gen_type type = Generator_get_type(gen);
+    if (ins->gens[index].types[type] != NULL &&
+            ins->gens[index].types[type] != gen)
+    {
+        del_Generator(ins->gens[index].types[type]);
+    }
+    ins->gens[index].types[type] = gen;
+    return;
+}
+
+
+Generator* Instrument_get_gen_of_type(Instrument* ins,
+                                      int index,
+                                      Gen_type type)
+{
+    assert(ins != NULL);
+    assert(index >= 0);
+    assert(index < KQT_GENERATORS_MAX);
+    assert(type > GEN_TYPE_NONE);
+    assert(type < GEN_TYPE_LAST);
+    return ins->gens[index].types[type];
 }
 
 
@@ -275,19 +288,14 @@ void Instrument_del_gen(Instrument* ins, int index)
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    if (ins->gens[index] == NULL)
+    Gen_type active_type = ins->gens[index].active_type;
+    if (ins->gens[index].types[active_type] == NULL)
     {
         return;
     }
-    --ins->gen_count;
-    del_Generator(ins->gens[index]);
-    ins->gens[index] = NULL;
-    while (index < KQT_GENERATORS_MAX - 1 && ins->gens[index + 1] != NULL)
-    {
-        ins->gens[index] = ins->gens[index + 1];
-        ins->gens[index + 1] = NULL;
-        ++index;
-    }
+    del_Generator(ins->gens[index].types[active_type]);
+    ins->gens[index].types[active_type] = NULL;
+    ins->gens[index].active_type = GEN_TYPE_NONE;
     return;
 }
 
@@ -337,9 +345,14 @@ void Instrument_mix(Instrument* ins,
     assert(states != NULL);
 //  assert(nframes <= ins->buf_len);
     assert(freq > 0);
-    for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator_mix(ins->gens[i], &states[i], nframes, offset, freq, 120);
+        Gen_type active_type = ins->gens[i].active_type;
+        if (ins->gens[i].types[active_type] != NULL)
+        {
+            Generator_mix(ins->gens[i].types[active_type],
+                          &states[i], nframes, offset, freq, 120);
+        }
     }
     return;
 }
@@ -349,11 +362,19 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-    for (int i = 0; i < KQT_GENERATORS_MAX && ins->gens[i] != NULL; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        del_Generator(ins->gens[i]);
+        Generator_uninit(&ins->gens[i].common_params);
+        for (int k = 0; k < GEN_TYPE_LAST; ++k)
+        {
+            if (ins->gens[i].types[k] != NULL)
+            {
+                del_Generator(ins->gens[i].types[k]);
+            }
+        }
     }
     xfree(ins);
+    return;
 }
 
 

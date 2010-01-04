@@ -67,7 +67,7 @@ extern "C" {
 
 
 /**
- * Does mixing according to the state of the Kunquat Handle.
+ * Mixes audio according to the state of the Kunquat Handle.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed.

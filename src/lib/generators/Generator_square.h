@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -43,7 +43,36 @@ typedef struct Generator_square
  * \return   The new Square Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_square* new_Generator_square(Instrument_params* ins_params);
+Generator* new_Generator_square(Instrument_params* ins_params);
+
+
+/**
+ * Tells whether the given subkey is part of the Square Generator specification.
+ *
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *
+ * \return   \c true if and only if \a subkey is part of the specification.
+ */
+bool Generator_square_has_subkey(const char* subkey);
+
+
+/**
+ * Parses data associated with a Square Generator.
+ *
+ * \param gen      The Generator -- must be a valid Square Generator.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ * \param data     The data -- must not be \c NULL unless \a length is 0.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The Read state error
+ *           will _not_ be set if memory allocation failed.
+ */
+bool Generator_square_parse(Generator* gen,
+                            const char* subkey,
+                            void* data,
+                            long length,
+                            Read_state* state);
 
 
 uint32_t Generator_square_mix(Generator* gen,
