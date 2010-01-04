@@ -61,7 +61,8 @@ typedef enum
  *                 one does not exist. This is used for error reporting.
  *
  * \return   The new path if successful, or \c NULL if memory allocation
- *           failed.
+ *           failed. The absolute path contains a trailing slash if it is
+ *           a directory.
  */
 char* absolute_path(const char* path, kqt_Handle* handle);
 

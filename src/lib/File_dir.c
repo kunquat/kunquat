@@ -50,13 +50,26 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
         return false;
     }
     const char* header = "kunquatc" KQT_FORMAT_VERSION;
-    const char* header_with_solidus = "kunquatc" KQT_FORMAT_VERSION "/";
-    if (!string_has_suffix(abs_path, header) &&
-            !string_has_suffix(abs_path, header_with_solidus))
+    if (!string_has_suffix(abs_path, header))
     {
-        kqt_Handle_set_error(&handle_rw->handle, "%s: Base path %s does not contain the"
-                " header \"kunquatc" KQT_FORMAT_VERSION "\" as a final component",
-                __func__, abs_path);
+        const char* other_header = "kunquati" KQT_FORMAT_VERSION;
+        if (string_has_suffix(abs_path, other_header))
+        {
+            kqt_Handle_set_error(&handle_rw->handle, "%s: Cannot open Kunquat"
+                    " instruments as compositions", __func__);
+        }
+        else if (other_header = "kunquats" KQT_FORMAT_VERSION,
+                string_has_suffix(abs_path, other_header))
+        {
+            kqt_Handle_set_error(&handle_rw->handle, "%s: Cannot open Kunquat"
+                    " scales as compositions", __func__);
+        }
+        else
+        {
+            kqt_Handle_set_error(&handle_rw->handle, "%s: Base path %s does not contain"
+                    " the header \"kunquatc" KQT_FORMAT_VERSION "\" as a final component",
+                    __func__, abs_path);
+        }
         xfree(abs_path);
         return false;
     }

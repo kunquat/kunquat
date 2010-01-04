@@ -92,8 +92,23 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
                 (entry_path[strlen(header)] != '/' &&
                 entry_path[strlen(header)] != '\0'))
         {
-            kqt_Handle_set_error(&handle_r->handle, "%s: The .kqt file %s contains"
-                    " an invalid data entry: %s", __func__, path, entry_path);
+            const char* other_header = "kunquati";
+            if (parse_index_dir(entry_path, other_header, 2) >= 0)
+            {
+                kqt_Handle_set_error(&handle_r->handle, "%s: Cannot open"
+                        " Kunquat instruments as compositions", __func__);
+            }
+            else if (other_header = "kunquats",
+                    parse_index_dir(entry_path, other_header, 2) >= 0)
+            {
+                kqt_Handle_set_error(&handle_r->handle, "%s: Cannot open"
+                        " Kunquat scales as compositions", __func__);
+            }
+            else
+            {
+                kqt_Handle_set_error(&handle_r->handle, "%s: The .kqt file %s contains"
+                        " an invalid data entry: %s", __func__, path, entry_path);
+            }
             archive_read_finish(reader);
             return false;
         }
@@ -143,7 +158,14 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
         }
         err = archive_read_next_header(reader, &entry);
     }
-    fail_if(err < ARCHIVE_OK, reader, &handle_r->handle);
+    if (err < ARCHIVE_OK)
+    {
+        kqt_Handle_set_error(&handle_r->handle, "%s: Couldn't open the file %s"
+                " as a Kunquat file: %s", __func__, path,
+                archive_error_string(reader));
+        archive_read_finish(reader);
+        return false;
+    }
     archive_read_finish(reader);
     return true;
 }
