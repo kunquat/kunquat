@@ -260,7 +260,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     handle_rwc->handle_rw.handle.get_data_length = Handle_rw_get_data_length;
     handle_rwc->handle_rw.handle.destroy = del_Handle_rwc;
     handle_rwc->handle_rw.set_data = Handle_rwc_set_data;
-    if (!File_dir_open(&handle_rwc->handle_rw, path))
+    if (!File_dir_open(&handle_rwc->handle_rw, handle_rwc->handle_rw.base_path))
     {
         kqt_del_Handle(&handle_rwc->handle_rw.handle);
         return NULL;

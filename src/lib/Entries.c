@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <AAtree.h>
 #include <Entries.h>
@@ -51,6 +52,9 @@ static Entry* new_Entry(const char* key, void* data, int32_t length);
 static int Entry_cmp(const Entry* e1, const Entry* e2);
 
 static void del_Entry(Entry* entry);
+
+
+static void resolve_wildcard(Entries* entries, Entry* key_entry);
 
 
 static Entry* new_Entry(const char* key, void* data, int32_t length)
@@ -140,6 +144,7 @@ void* Entries_get_data(Entries* entries, const char* key)
     Entry* key_entry = &(Entry){ .key[0] = '\0' };
     memset(key_entry->key, '\0', 256);
     strncpy(key_entry->key, key, 255);
+    resolve_wildcard(entries, key_entry);
     Entry* entry = AAtree_get_exact(entries->tree, key_entry);
     if (entry == NULL)
     {
@@ -156,12 +161,50 @@ int32_t Entries_get_length(Entries* entries, const char* key)
     Entry* key_entry = &(Entry){ .key[0] = '\0' };
     memset(key_entry->key, '\0', 256);
     strncpy(key_entry->key, key, 255);
+    resolve_wildcard(entries, key_entry);
     Entry* entry = AAtree_get_exact(entries->tree, key_entry);
     if (entry == NULL)
     {
         return 0;
     }
     return entry->length;
+}
+
+
+static void resolve_wildcard(Entries* entries, Entry* key_entry)
+{
+    char* header_location = strstr(key_entry->key, "kunquatiXX");
+    if (header_location == NULL)
+    {
+        header_location = strstr(key_entry->key, "kunquatsXX");
+        if (header_location == NULL)
+        {
+            return;
+        }
+    }
+    char* num_location = strstr(header_location, "XX");
+    assert(num_location != NULL);
+    char num_str[3] = "00";
+    int last_found = -1;
+    for (int i = 0; i < 256; ++i)
+    {
+        snprintf(num_str, 3, "%02x", i);
+        strncpy(num_location, num_str, 2);
+        if (AAtree_get_exact(entries->tree, key_entry) != NULL)
+        {
+            last_found = i;
+        }
+    }
+    if (last_found == -1)
+    {
+        strncpy(num_location, "XX", 2);
+    }
+    else
+    {
+        snprintf(num_str, 3, "%02x", last_found);
+        strncpy(num_location, num_str, 2);
+    }
+    return;
 }
 
 
