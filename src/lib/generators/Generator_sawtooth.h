@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -42,7 +42,7 @@ typedef struct Generator_sawtooth
  * \return   The new Sawtooth Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_sawtooth* new_Generator_sawtooth(Instrument_params* ins_params);
+Generator* new_Generator_sawtooth(Instrument_params* ins_params);
 
 
 uint32_t Generator_sawtooth_mix(Generator* gen,

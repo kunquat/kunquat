@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,6 @@
 #include <Envelope.h>
 #include <Scale.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 
 typedef struct Instrument_params
@@ -118,15 +117,18 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
 
 /**
- * Reads Instrument parameters from a File tree.
+ * Parses an Instrument parameter file.
  *
  * \param ip      The Instrument parameters -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description.
  * \param state   The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   \c true if successful, otherwise \c false. If memory allocation
+ *           fails, state error will _not_ be set.
  */
-bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* state);
+bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
+                                         char* str,
+                                         Read_state* state);
 
 
 /**

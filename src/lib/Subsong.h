@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include <File_base.h>
-#include <File_tree.h>
 
 
 #define KQT_SECTION_NONE (-1)
@@ -47,6 +46,11 @@ typedef struct Subsong
 } Subsong;
 
 
+#define SUBSONG_DEFAULT_TEMPO (120)
+#define SUBSONG_DEFAULT_GLOBAL_VOL (-4)
+#define SUBSONG_DEFAULT_SCALE (0)
+
+
 /**
  * Creates a new Subsong.
  *
@@ -57,15 +61,15 @@ Subsong* new_Subsong(void);
 
 
 /**
- * Reads a Subsong from a File tree.
+ * Creates a new Subsong from a textual description.
  *
- * \param ss      The Subsong -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description.
  * \param state   The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new Subsong if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
  */
-bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
+Subsong* new_Subsong_from_string(char* str, Read_state* state);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
+#include <string.h>
 
 #include <Generator.h>
 #include <Generator_common.h>
@@ -35,12 +36,10 @@
 #include <xmemory.h>
 
 
-static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* state);
-
 static void Generator_square_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_square* new_Generator_square(Instrument_params* ins_params)
+Generator* new_Generator_square(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_square* square = xalloc(Generator_square);
@@ -53,60 +52,62 @@ Generator_square* new_Generator_square(Instrument_params* ins_params)
         xfree(square);
         return NULL;
     }
-    square->parent.read = Generator_square_read;
+    square->parent.parse = Generator_square_parse;
     square->parent.destroy = del_Generator_square;
     square->parent.type = GEN_TYPE_SQUARE;
     square->parent.init_state = Generator_square_init_state;
     square->parent.mix = Generator_square_mix;
     square->parent.ins_params = ins_params;
     square->pulse_width = 0.5;
-    return square;
+    return &square->parent;
 }
 
 
-static bool Generator_square_read(Generator* gen, File_tree* tree, Read_state* state)
+bool Generator_square_has_subkey(const char* subkey)
+{
+    assert(subkey != NULL);
+    return strcmp(subkey, "gen_square/p_square.json") == 0;
+}
+
+
+bool Generator_square_parse(Generator* gen,
+                            const char* subkey,
+                            void* data,
+                            long length,
+                            Read_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE);
-    assert(tree != NULL);
-    assert(File_tree_is_dir(tree));
+    assert(Generator_get_type(gen) == GEN_TYPE_SQUARE);
+    assert(subkey != NULL);
+    assert(Generator_square_has_subkey(subkey));
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    File_tree* dir_tree = File_tree_get_child(tree, "gen_square");
-    if (dir_tree == NULL)
+    Generator_square* gen_square = (Generator_square*)gen;
+    if (strcmp(subkey, "gen_square/p_square.json") == 0)
     {
+        double pulse_width = 0.5;
+        char* str = data;
+        if (str != NULL)
+        {
+            str = read_const_char(str, '{', state);
+            str = read_const_string(str, "pulse_width", state);
+            str = read_const_char(str, ':', state);
+            str = read_double(str, &pulse_width, state);
+            str = read_const_char(str, '}', state);
+            if (state->error)
+            {
+                return false;
+            }
+        }
+        gen_square->pulse_width = pulse_width;
         return true;
     }
-    if (!File_tree_is_dir(dir_tree))
-    {
-        Read_state_set_error(state, "Square Generator is not a directory");
-        return false;
-    }
-    File_tree* square_tree = File_tree_get_child(dir_tree, "square.json");
-    if (square_tree == NULL)
-    {
-        return true;
-    }
-    if (File_tree_is_dir(square_tree))
-    {
-        Read_state_set_error(state, "Square Generator description is a directory");
-        return false;
-    }
-    Generator_square* square = (Generator_square*)gen;
-    char* str = File_tree_get_data(square_tree);
-    str = read_const_char(str, '{', state);
-    str = read_const_string(str, "pulse_width", state);
-    str = read_const_char(str, ':', state);
-    str = read_double(str, &square->pulse_width, state);
-    str = read_const_char(str, '}', state);
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
+    return false;
 }
 
 

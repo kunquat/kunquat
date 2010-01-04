@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,6 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
-#include <File_tree.h>
 
 
 /**
@@ -111,27 +110,45 @@ Column* new_Column(Reltime* len);
 
 
 /**
- * Reads a Column from a File tree.
+ * Creates a new Column from a textual description.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param len         The length of the column. If this is \c NULL, the length is
+ *                    set to INT64_MAX beats.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true if and only if the Column is to be global.
+ * \param state       The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new Column if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
  */
-bool Column_read(Column* col, File_tree* tree, Read_state* state);
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state);
 
 
 /**
- * Writes the Column into a file.
+ * Parses a Column.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param out     The output file -- must not be \c NULL.
- * \param state   The Write state -- must not be \c NULL.
+ * \param col         The Column -- must not be \c NULL.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true if and only if \a col is a global Column.
+ * \param state       The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Column_write(Column* col, FILE* out, Write_state* state);
+bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
+
+
+/**
+ * Serialises the Column.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ *
+ * \return   A string representation of the Column, or \c NULL if memory
+ *           allocation failed.
+ */
+char* Column_serialise(Column* col);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -42,39 +42,101 @@
 struct kqt_Handle
 {
     Song* song;
+    kqt_Access_mode mode;
+    void* (*get_data)(kqt_Handle* handle, const char* key);
+    long (*get_data_length)(kqt_Handle* handle, const char* key);
+    void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_CONTEXT_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };
 
 
-void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...);
+/**
+ * Initialises a Kunquat Handle.
+ *
+ * \param handle        The Kunquat Handle -- must not be \c NULL.
+ * \param buffer_size   The size of the mixing buffers -- must be positive.
+ *
+ * \return   \c true if successful. Otherwise, \c false is returned and Handle
+ *           error is set to indicate the error.
+ */
+bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
 
+
+/**
+ * Sets an error message for a Kunquat Handle.
+ *
+ * \param handle    The Kunquat Handle, or \c NULL if not applicable.
+ * \param message   The error message format -- must not be \c NULL. This and
+ *                  the extra arguments correspond to the arguments of the
+ *                  printf family of functions.
+ */
+void kqt_Handle_set_error(kqt_Handle* handle, const char* message, ...);
+
+
+/**
+ * Resets the playback pointer of the Kunquat Handle.
+ *
+ * \param handle   The Kunquat Handle -- must not be \c NULL.
+ */
 void kqt_Handle_stop(kqt_Handle* handle);
 
 
+/**
+ * Checks the validity of a Kunquat Handle.
+ *
+ * \param handle   The pointer of the supposed Kunquat Handle.
+ *
+ * \return   \c true if \a handle is a valid Kunquat Handle, otherwise
+ *           \c false.
+ */
 bool handle_is_valid(kqt_Handle* handle);
 
-#define check_handle(handle, func, ret)                                  \
+
+#define check_handle(handle, ret)                                        \
     if (true)                                                            \
     {                                                                    \
         if (!handle_is_valid((handle)))                                  \
         {                                                                \
-            kqt_Handle_set_error(NULL,                                   \
-                    func ": Invalid Kunquat Handle: %p", (void*)handle); \
+            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
+                    __func__, (void*)handle);                            \
             return (ret);                                                \
         }                                                                \
     } else (void)0
 
-#define check_handle_void(handle, func)                                  \
+#define check_handle_void(handle)                                        \
     if (true)                                                            \
     {                                                                    \
         if (!handle_is_valid((handle)))                                  \
         {                                                                \
-            kqt_Handle_set_error(NULL,                                   \
-                    func ": Invalid Kunquat Handle: %p", (void*)handle); \
+            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
+                    __func__, (void*)handle);                            \
             return;                                                      \
         }                                                                \
     } else (void)0
+
+
+bool key_is_valid(const char* key);
+
+
+#define check_key(handle, key)                                          \
+    if (true)                                                           \
+    {                                                                   \
+        assert(handle != NULL);                                         \
+        if (key == NULL)                                                \
+        {                                                               \
+            kqt_Handle_set_error(handle, "%s: key must not be NULL",    \
+                    __func__);                                          \
+            return false;                                               \
+        }                                                               \
+        if (!key_is_valid(key))                                         \
+        {                                                               \
+            kqt_Handle_set_error(handle, "%s: key \"%s\" is not valid", \
+                    __func__, key);                                     \
+            return false;                                               \
+        }                                                               \
+    }                                                                   \
+    else (void)0
 
 
 #endif // KQT_HANDLE_PRIVATE_H

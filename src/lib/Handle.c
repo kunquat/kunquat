@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,8 +20,6 @@
  */
 
 
-#define _POSIX_SOURCE
-
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
@@ -32,11 +30,6 @@
 #include <math.h>
 #include <string.h>
 #include <stdarg.h>
-
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-#include <errno.h>
 
 #include <Handle_private.h>
 
@@ -60,108 +53,52 @@ static bool add_handle(kqt_Handle* handle);
 static bool remove_handle(kqt_Handle* handle);
 
 
-kqt_Handle* kqt_new_Handle(long buffer_size)
+bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
-    if (buffer_size <= 0)
-    {
-        kqt_Handle_set_error(NULL, "kqt_new_Handle: buf_size must be positive");
-        return NULL;
-    }
-    kqt_Handle* handle = xalloc(kqt_Handle);
-    if (handle == NULL)
-    {
-        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
-        return NULL;
-    }
+    assert(handle != NULL);
+    assert(buffer_size > 0);
+//    assert(tree != NULL);
     if (!add_handle(handle))
     {
-        kqt_Handle_set_error(NULL, "Maximum amount of simultaneous Kunquat Handles reached");
-        xfree(handle);
-        return NULL;
+        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
+                " Kunquat Handle", __func__);
+        return false;
     }
+    handle->mode = KQT_READ;
     handle->song = NULL;
+    handle->destroy = NULL;
+    handle->get_data = NULL;
+    handle->get_data_length = NULL;
     handle->error[0] = handle->error[KQT_CONTEXT_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
-    int buffer_count = 2;
+    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
     int event_queue_size = 32;
 
     handle->song = new_Song(buffer_count, buffer_size, event_queue_size);
     if (handle->song == NULL)
     {
-        kqt_del_Handle(handle);
-        kqt_Handle_set_error(NULL, "Couldn't allocate memory for a new Kunquat Handle");
-        return NULL;
+        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
+                " Kunquat Handle", __func__);
+        return false;
     }
 
-    kqt_Handle_stop(handle);
-    kqt_Handle_set_position_desc(handle, NULL);
-    return handle;
-}
-
-
-kqt_Handle* kqt_new_Handle_from_path(long buffer_size, char* path)
-{
-    if (buffer_size <= 0)
-    {
-        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: buf_size must be positive");
-        return NULL;
-    }
-    if (path == NULL)
-    {
-        kqt_Handle_set_error(NULL, "kqt_new_Handle_from_path: path must not be NULL");
-        return NULL;
-    }
-    struct stat* info = &(struct stat){ .st_mode = 0 };
-    errno = 0;
-    if (stat(path, info) < 0)
-    {
-        kqt_Handle_set_error(NULL, "Couldn't access %s: %s", path, strerror(errno));
-        return NULL;
-    }
-    kqt_Handle* handle = kqt_new_Handle(buffer_size);
-    if (handle == NULL)
-    {
-        return NULL;
-    }
-    File_tree* tree = NULL;
+#if 0
     Read_state* state = READ_STATE_AUTO;
-    if (S_ISDIR(info->st_mode))
-    {
-        tree = new_File_tree_from_fs(path, state);
-        if (tree == NULL)
-        {
-            kqt_Handle_set_error(NULL, "%s:%d: %s",
-                                  state->path, state->row, state->message);
-            kqt_del_Handle(handle);
-            return NULL;
-        }
-    }
-    else
-    {
-        tree = new_File_tree_from_tar(path, state);
-        if (tree == NULL)
-        {
-            kqt_Handle_set_error(NULL, "%s:%d: %s",
-                                  state->path, state->row, state->message);
-            kqt_del_Handle(handle);
-            return NULL;
-        }
-    }
-    assert(tree != NULL);
     if (!Song_read(handle->song, tree, state))
     {
-        kqt_Handle_set_error(NULL, "%s:%d: %s",
-                              state->path, state->row, state->message);
-        del_File_tree(tree);
-        kqt_del_Handle(handle);
-        return NULL;
+        kqt_Handle_set_error(NULL, "%s: Couldn't initialise the"
+                             " Kunquat Handle: %s:%d: %s", __func__,
+                             state->path, state->row, state->message);
+        del_Song(handle->song);
+        handle->song = NULL;
+        return false;
     }
-    del_File_tree(tree);
+#endif
     kqt_Handle_stop(handle);
     kqt_Handle_set_position_desc(handle, NULL);
-    return handle;
+    return true;
 }
 
 
@@ -175,7 +112,19 @@ char* kqt_Handle_get_error(kqt_Handle* handle)
 }
 
 
-void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...)
+void kqt_Handle_clear_error(kqt_Handle* handle)
+{
+    if (!handle_is_valid(handle))
+    {
+        null_error[0] = '\0';
+        return;
+    }
+    handle->error[0] = '\0';
+    return;
+}
+
+
+void kqt_Handle_set_error(kqt_Handle* handle, const char* message, ...)
 {
     assert(message != NULL);
     va_list args;
@@ -195,25 +144,79 @@ void kqt_Handle_set_error(kqt_Handle* handle, char* message, ...)
 }
 
 
+void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
+{
+    assert(handle->get_data != NULL);
+    check_handle(handle, NULL);
+    check_key(handle, key);
+    if (key == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: key must not be NULL", __func__);
+        return NULL;
+    }
+    return handle->get_data(handle, key);
+}
+
+
+long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
+{
+    assert(handle->get_data_length != NULL);
+    check_handle(handle, -1);
+    check_key(handle, key);
+    if (key == NULL)
+    {
+        kqt_Handle_set_error(handle, "%s: key must not be NULL", __func__);
+        return -1;
+    }
+    return handle->get_data_length(handle, key);
+}
+
+
+bool key_is_valid(const char* key)
+{
+    assert(key != NULL);
+    bool valid_element = false;
+    while (*key != '\0')
+    {
+        if (!(*key >= '0' && *key <= '9') &&
+                strchr("abcdefghijklmnopqrstuvwxyz_./X", *key) == NULL)
+        {
+            return false;
+        }
+        if (*key != '.' && *key != '/')
+        {
+            valid_element = true;
+        }
+        else if (*key == '/')
+        {
+            if (!valid_element)
+            {
+                return false;
+            }
+            valid_element = false;
+        }
+        ++key;
+    }
+    return true;
+}
+
+
 void kqt_del_Handle(kqt_Handle* handle)
 {
-    if (!handle_is_valid(handle))
-    {
-        kqt_Handle_set_error(NULL,
-                "kqt_del_Handle: Invalid Kunquat Handle: %p", (void*)handle);
-        return;
-    }
+    check_handle_void(handle);
     if (!remove_handle(handle))
     {
-        kqt_Handle_set_error(NULL,
-                "kqt_del_Handle: Invalid Kunquat Handle: %p", (void*)handle);
+        kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", __func__,
+                (void*)handle);
         return;
     }
     if (handle->song != NULL)
     {
         del_Song(handle->song);
+        handle->song = NULL;
     }
-    xfree(handle);
+    assert(handle->destroy != NULL);
+    handle->destroy(handle);
     return;
 }
 

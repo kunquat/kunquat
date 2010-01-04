@@ -134,7 +134,7 @@ int kqt_unwrap_time(char* time,
 
 int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
 {
-    check_handle(handle, "kqt_Handle_set_position_desc", 0);
+    check_handle(handle, 0);
     if (position == NULL)
     {
         position = "-1";
@@ -148,7 +148,8 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
     long long nanoseconds = 0;
     if (!kqt_unwrap_time(str, &subsong, &section, &beats, &remainder, &nanoseconds))
     {
-        kqt_Handle_set_error(handle, "Invalid position indication: %s", position);
+        kqt_Handle_set_error(handle, "%s: Invalid position indication: %s",
+                __func__, position);
         return false;
     }
     
@@ -187,7 +188,7 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
 
 char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_position_desc", NULL);
+    check_handle(handle, NULL);
     snprintf(handle->position, POSITION_LENGTH, "%d/%d/%lld:%ld",
              handle->song->play_state->mode == PLAY_SONG ? -1 : (int)handle->song->play_state->subsong,
              (int)handle->song->play_state->section,
@@ -199,35 +200,35 @@ char* kqt_Handle_get_position_desc(kqt_Handle* handle)
 
 int kqt_Handle_end_reached(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_end_reached", 1);
+    check_handle(handle, 1);
     return handle->song->play_state->mode == STOP;
 }
 
 
 long long kqt_Handle_get_frames_mixed(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_frames_mixed", 0);
+    check_handle(handle, 0);
     return handle->song->play_state->play_frames;
 }
 
 
 double kqt_Handle_get_tempo(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_tempo", 0);
+    check_handle(handle, 0);
     return handle->song->play_state->tempo;
 }
 
 
 int kqt_Handle_get_voice_count(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_voice_count", 0);
+    check_handle(handle, 0);
     return handle->song->play_state->active_voices;
 }
 
 
 double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer)
 {
-    check_handle(handle, "kqt_Handle_get_min_amplitude", INFINITY);
+    check_handle(handle, INFINITY);
     if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return INFINITY;
@@ -238,7 +239,7 @@ double kqt_Handle_get_min_amplitude(kqt_Handle* handle, int buffer)
 
 double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
 {
-    check_handle(handle, "kqt_Handle_get_max_amplitude", -INFINITY);
+    check_handle(handle, -INFINITY);
     if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return -INFINITY;
@@ -249,7 +250,7 @@ double kqt_Handle_get_max_amplitude(kqt_Handle* handle, int buffer)
 
 long long kqt_Handle_get_clipped(kqt_Handle* handle, int buffer)
 {
-    check_handle(handle, "kqt_Handle_get_clipped", 0);
+    check_handle(handle, 0);
     if (buffer < 0 || buffer >= KQT_BUFFERS_MAX)
     {
         return 0;
@@ -324,7 +325,7 @@ void kqt_Handle_play_event(kqt_Handle* handle)
 
 void kqt_Handle_reset_stats(kqt_Handle* handle)
 {
-    check_handle_void(handle, "kqt_Handle_reset_stats");
+    check_handle_void(handle);
     Playdata_reset_stats(handle->song->play_state);
     Playdata_reset_stats(handle->song->skip_state);
     return;

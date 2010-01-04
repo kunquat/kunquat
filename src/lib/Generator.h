@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,6 @@
 #include <Instrument_params.h>
 #include <Voice_state.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 
 /**
@@ -48,7 +47,7 @@ typedef struct Generator
     bool enabled;
     double volume_dB;
     double volume;
-    bool (*read)(struct Generator*, File_tree*, Read_state*);
+    bool (*parse)(struct Generator*, const char*, void*, long, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
@@ -57,19 +56,21 @@ typedef struct Generator
 } Generator;
 
 
+#define GENERATOR_DEFAULT_ENABLED (false)
+#define GENERATOR_DEFAULT_VOLUME (0)
+
+
 /**
- * Creates a Generator from a File tree.
+ * Creates a new Generator of the specified type.
  *
- * \param tree         The File tree -- must not be \c NULL.
- * \param state        The Read state -- must not be \c NULL.
+ * \param type         The Generator type -- must be a valid and supported
+ *                     type.
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
  *
- * \return   The read Generator if successful, or \c NULL if failed. An error
- *           message is stored in \a state.
+ * \return   The new Generator if successful, or \c NULL if memory allocation
+ *           failed.
  */
-Generator* new_Generator_from_file_tree(File_tree* tree,
-                                        Read_state* state,
-                                        Instrument_params* ins_params);
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params);
 
 
 /**
@@ -80,6 +81,57 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Generator_init(Generator* gen);
+
+
+/**
+ * Uninitialises the general Generator parameters.
+ *
+ * \param gen   The Generator -- must not be \c NULL.
+ */
+void Generator_uninit(Generator* gen);
+
+
+/**
+ * Copies the general Generator parameters.
+ *
+ * \param dest   The destination Generator -- must not be \c NULL.
+ * \param src    The source Generator -- must not be \c NULL.
+ */
+void Generator_copy_general(Generator* dest, Generator* src);
+
+
+/**
+ * Parses general Generator header (p_generator.json).
+ *
+ * \param gen     The Generator -- must not be \c NULL.
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The state error will
+ *           _not_ be set in case memory allocation failed.
+ */
+bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
+
+
+/**
+ * Parses data associated with the Generator.
+ *
+ * \param gen      The Generator -- must not be \c NULL.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *                 \a subkey must be part of the type specification of
+ *                 \a gen.
+ * \param data     The data -- must not be \c NULL unless \a length is 0.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. The Read state error
+ *           will _not_ be set if memory allocation failed.
+ */
+bool Generator_parse(Generator* gen,
+                     const char* subkey,
+                     void* data,
+                     long length,
+                     Read_state* state);
 
 
 /**

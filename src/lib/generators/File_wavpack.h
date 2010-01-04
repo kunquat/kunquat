@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2008 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,13 +28,13 @@
 #include <stdio.h>
 
 #include <Sample.h>
-#include <archive.h>
-#include <archive_entry.h>
+#include <File_base.h>
 
 
-bool File_wavpack_load_sample(Sample* sample, FILE* in,
-                              struct archive* reader,
-                              struct archive_entry* entry);
+bool Sample_parse_wavpack(Sample* sample,
+                          void* data,
+                          long length,
+                          Read_state* state);
 
 
 #endif // K_FILE_WAVPACK_H

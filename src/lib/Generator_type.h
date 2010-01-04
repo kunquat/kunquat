@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,9 @@
 
 #ifndef K_GENERATOR_TYPE_H
 #define K_GENERATOR_TYPE_H
+
+
+#include <File_base.h>
 
 
 typedef enum
@@ -52,6 +55,30 @@ typedef enum
     /// Sentinel -- never used as a valid type.
     GEN_TYPE_LAST
 } Gen_type;
+
+
+/**
+ * Parses a Generator type description.
+ *
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The Generator type if successful, \c GEN_TYPE_NONE if \a str is
+ *           \c NULL, or \c GEN_TYPE_LAST if an error occurred.
+ */
+Gen_type Generator_type_parse(char* str, Read_state* state);
+
+
+/**
+ * Tells whether the given subkey is part of the specification of given type.
+ *
+ * \param type     The type -- must be a valid type.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *
+ * \return   \c true if and only if \a subkey is part of the specification of
+ *           \a type.
+ */
+bool Generator_type_has_subkey(Gen_type type, const char* subkey);
 
 
 #endif // K_GENERATOR_TYPE_H

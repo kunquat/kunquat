@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,7 @@
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
+#include <String_buffer.h>
 
 #include <xmemory.h>
 
@@ -66,7 +67,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event);
 
 static Event_list* Event_list_init(Event_list* elist);
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2);
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2);
 
 static void del_Event_list(Event_list* elist);
 
@@ -104,7 +105,7 @@ static Event_list* Event_list_init(Event_list* elist)
 }
 
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2)
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
@@ -224,7 +225,7 @@ Column* new_Column(Reltime* len)
         return NULL;
     }
     col->version = 1;
-    col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
+    col->events = new_AAtree((int (*)(const void*, const void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {
@@ -250,6 +251,30 @@ Column* new_Column(Reltime* len)
 }
 
 
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state)
+{
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Column* col = new_Column(len);
+    if (col == NULL)
+    {
+        return NULL;
+    }
+    if (!Column_parse(col, str, is_global, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    return col;
+}
+
+
 #define break_if(error)   \
     if (true)             \
     {                     \
@@ -259,45 +284,21 @@ Column* new_Column(Reltime* len)
         }                 \
     } else (void)0
 
-bool Column_read(Column* col, File_tree* tree, Read_state* state)
+bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 {
     assert(col != NULL);
-    assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
+    if (str == NULL)
     {
-        Read_state_set_error(state, "Column is not a directory");
-        return false;
-    }
-    bool is_global = strcmp(File_tree_get_name(tree), "global_column") == 0;
-    File_tree* event_tree = NULL;
-    if (!is_global)
-    {
-        event_tree = File_tree_get_child(tree, "voice_events.json");
-    }
-    else
-    {
-        event_tree = File_tree_get_child(tree, "global_events.json");
-    }
-    if (event_tree == NULL)
-    {
+        // An empty Column has no properties, so we're done.
         return true;
     }
-    if (File_tree_is_dir(event_tree))
-    {
-        Read_state_init(state, "Event list is a directory");
-        return false;
-    }
-    char* str = File_tree_get_data(event_tree);
-
     str = read_const_char(str, '[', state); // start of Column
     break_if(state->error);
-
     str = read_const_char(str, ']', state); // check of empty Column
     if (!state->error)
     {
@@ -370,18 +371,45 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
 #undef break_if
 
 
-bool Column_write(Column* col, FILE* out, Write_state* state)
+char* Column_serialise(Column* col)
 {
     assert(col != NULL);
-    assert(out != NULL);
-    assert(state != NULL);
-    (void)col;
-    (void)out;
-    if (state->error)
+    Column_iter* iter = new_Column_iter(col);
+    if (iter == NULL)
     {
-        return false;
+        return NULL;
     }
-    return false;
+    String_buffer* sb = new_String_buffer();
+    if (iter == NULL || sb == NULL)
+    {
+        del_Column_iter(iter);
+        return NULL;
+    }
+    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
+    while (event != NULL)
+    {
+        if (String_buffer_get_length(sb) == 0)
+        {
+            String_buffer_append_string(sb, "\n\n[\n    ");
+        }
+        else
+        {
+            String_buffer_append_string(sb, ",\n    ");
+        }
+        Event_serialise(event, sb);
+        event = Column_iter_get_next(iter);
+    }
+    del_Column_iter(iter);
+    if (String_buffer_get_length(sb) > 0)
+    {
+        String_buffer_append_string(sb, "\n]\n\n\n");
+    }
+    if (String_buffer_error(sb))
+    {
+        xfree(del_String_buffer(sb));
+        return NULL;
+    }
+    return del_String_buffer(sb);
 }
 
 

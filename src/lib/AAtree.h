@@ -73,7 +73,7 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAiter_get(AAiter* iter, void* key);
+void* AAiter_get(AAiter* iter, const void* key);
 
 
 /**
@@ -84,7 +84,7 @@ void* AAiter_get(AAiter* iter, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAiter_get_at_most(AAiter* iter, void* key);
+void* AAiter_get_at_most(AAiter* iter, const void* key);
 
 
 /**
@@ -131,7 +131,7 @@ void del_AAiter(AAiter* iter);
  * \return   The new AAtree if successful, or \c NULL if memory allocation
  *           failed.
  */
-AAtree* new_AAtree(int (*cmp)(void*, void*), void (*destroy)(void*));
+AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*));
 
 
 /**
@@ -154,7 +154,7 @@ bool AAtree_ins(AAtree* tree, void* data);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get(AAtree* tree, void* key);
+void* AAtree_get(AAtree* tree, const void* key);
 
 
 /**
@@ -165,7 +165,7 @@ void* AAtree_get(AAtree* tree, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_exact(AAtree* tree, void* key);
+void* AAtree_get_exact(AAtree* tree, const void* key);
 
 
 /**
@@ -176,7 +176,7 @@ void* AAtree_get_exact(AAtree* tree, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_at_most(AAtree* tree, void* key);
+void* AAtree_get_at_most(AAtree* tree, const void* key);
 
 
 /**
@@ -187,7 +187,7 @@ void* AAtree_get_at_most(AAtree* tree, void* key);
  *
  * \return   The element if one was found, otherwise \c NULL.
  */
-void* AAtree_remove(AAtree* tree, void* key);
+void* AAtree_remove(AAtree* tree, const void* key);
 
 
 /**

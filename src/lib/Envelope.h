@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,7 +28,6 @@
 #include <math.h>
 
 #include <File_base.h>
-#include <File_tree.h>
 
 
 #define ENVELOPE_MARKS_MAX (4)

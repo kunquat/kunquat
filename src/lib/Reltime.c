@@ -22,7 +22,10 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <inttypes.h>
+#include <stdio.h>
 
+#include <String_buffer.h>
 #include <Reltime.h>
 
 
@@ -39,6 +42,20 @@ Reltime* Reltime_init(Reltime* r)
     r->beats = 0;
     r->rem = 0;
     return r;
+}
+
+
+bool Reltime_serialise(Reltime* r, String_buffer* sb)
+{
+    Reltime_validate(r);
+    assert(sb != NULL);
+    if (String_buffer_error(sb))
+    {
+        return false;
+    }
+    char r_buf[48] = { '\0' };
+    snprintf(r_buf, 48, "[%" PRId64 ", %9" PRId32 "]", r->beats, r->rem);
+    return String_buffer_append_string(sb, r_buf);
 }
 
 

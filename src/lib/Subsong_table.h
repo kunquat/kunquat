@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,6 @@
 
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Subsong.h>
 
 
@@ -49,18 +48,6 @@ Subsong_table* new_Subsong_table(void);
 
 
 /**
- * Reads a Subsong table from a File tree.
- *
- * \param table   The Subsong table -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state);
-
-
-/**
  * Sets a Subsong in the Subsong table.
  *
  * \param table     The Subsong table -- must not be \c NULL.
@@ -68,14 +55,16 @@ bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state
  *                  < \c KQT_SUBSONGS_MAX.
  * \param subsong   The Subsong -- must not be \c NULL.
  *
- * \return   The actual index where the Subsong was stored, or \c -1 if
- *           memory allocation failed.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-int16_t Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
+bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
 
 
 /**
  * Gets a Subsong from the Subsong table.
+ *
+ * Note: Subsongs after an empty index are considered hidden and are not
+ * returned.
  *
  * \param table   The Subsong table -- must not be \c NULL.
  * \param index   The subsong number -- must be >= \c 0 and

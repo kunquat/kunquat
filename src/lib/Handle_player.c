@@ -36,7 +36,7 @@
 
 long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 {
-    check_handle(handle, "kqt_Handle_mix", 0);
+    check_handle(handle, 0);
     if (handle->song == NULL || !handle->song->play_state->mode)
     {
         return 0;
@@ -52,16 +52,17 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 
 int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 {
-    check_handle(handle, "kqt_Handle_set_buffer_size", 0);
+    check_handle(handle, 0);
     if (size <= 0)
     {
-        kqt_Handle_set_error(handle, "kqt_Handle_set_buffer_size: size must be positive");
+        kqt_Handle_set_error(handle, "%s: size must be positive", __func__);
         return 0;
     }
     bool success = Song_set_buf_size(handle->song, size);
     if (!success)
     {
-        kqt_Handle_set_error(handle, "Couldn't allocate memory for the new buffers");
+        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory for the"
+                " new buffers", __func__);
         return 0;
     }
     return 1;
@@ -70,25 +71,25 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_buffer_size", 0);
+    check_handle(handle, 0);
     return Song_get_buf_size(handle->song);
 }
 
 
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_buffer_count", 0);
+    check_handle(handle, 0);
     return Song_get_buf_count(handle->song);
 }
 
 
 kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
-    check_handle(handle, "kqt_Handle_get_buffer", NULL);
+    check_handle(handle, NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_get_buffer: buffer #%d doesn't exist", index);
+        kqt_Handle_set_error(handle, "%s: buffer #%d doesn't exist",
+                __func__, index);
         return NULL;
     }
     return Song_get_bufs(handle->song)[index];
@@ -97,7 +98,7 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 
 long long kqt_Handle_get_duration(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_duration", 0);
+    check_handle(handle, 0);
     Reltime_init(&handle->song->skip_state->play_time);
     handle->song->skip_state->play_frames = 0;
     Reltime_init(&handle->song->skip_state->pos);
@@ -108,17 +109,17 @@ long long kqt_Handle_get_duration(kqt_Handle* handle)
 
 int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanoseconds)
 {
-    check_handle(handle, "kqt_Handle_set_position", 0);
+    check_handle(handle, 0);
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_seek: Invalid Subsong number: %d", subsong);
+        kqt_Handle_set_error(handle, "%s: Invalid Subsong number: %d",
+                __func__, subsong);
         return 0;
     }
     if (nanoseconds < 0)
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_seek: nanoseconds must not be negative");
+        kqt_Handle_set_error(handle, "%s: nanoseconds must not be negative",
+                __func__);
         return 0;
     }
     char pos[32] = { '\0' };
@@ -129,7 +130,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
 
 long long kqt_Handle_get_position(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_position", 0);
+    check_handle(handle, 0);
     return ((long long)handle->song->play_state->play_frames * 1000000000L) /
            handle->song->play_state->freq;
 }

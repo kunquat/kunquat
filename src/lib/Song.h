@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,6 @@
 #include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 
 typedef struct Song
@@ -58,6 +57,11 @@ typedef struct Song
 } Song;
 
 
+#define SONG_DEFAULT_BUF_COUNT (2)
+#define SONG_DEFAULT_MIX_VOL (-8)
+#define SONG_DEFAULT_INIT_SUBSONG (0)
+
+
 /**
  * Creates a new Song.
  * The caller shall eventually call del_Song() to destroy the Song returned.
@@ -77,15 +81,15 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
 
 
 /**
- * Reads a Song from a File tree.
+ * Parses the composition header of a Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Song_read(Song* song, File_tree* tree, Read_state* state);
+bool Song_parse_composition(Song* song, char* str, Read_state* state);
 
 
 /**
@@ -263,6 +267,16 @@ Ins_table* Song_get_insts(Song* song);
  * \return   The Scales.
  */
 Scale** Song_get_scales(Song* song);
+
+
+/**
+ * Sets a Scale in the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param scale   The Scale -- must not be \c NULL.
+ */
+void Song_set_scale(Song* song, int index, Scale* scale);
 
 
 /**

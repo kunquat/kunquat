@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -20,266 +20,160 @@
  */
 
 
-#define _POSIX_C_SOURCE 1
-
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
-
-#include <archive.h>
-#include <archive_entry.h>
+#include <string.h>
 
 #include <Sample.h>
 #include <File_wavpack.h>
+#include <Directory.h>
+#include <Handle_private.h>
+#include <math_common.h>
 
 #include <wavpack/wavpack.h>
 
 #include <xmemory.h>
 
 
-typedef struct File_context
+typedef struct String_context
 {
-    FILE* file;
-    uint64_t offset;
-} File_context;
-
-
-typedef struct Tar_context
-{
-    struct archive* reader;
-    struct archive_entry* entry;
-    uint64_t pos;
+    char* data;
+    uint32_t length;
+    uint32_t pos;
     int push_back;
-} Tar_context;
+} String_context;
 
 
-static int32_t read_bytes(void* id, void* data, int32_t bcount);
-static uint32_t get_pos(void* id);
-static int set_pos_abs(void* id, uint32_t pos);
-static int set_pos_rel(void* id, int32_t delta, int mode);
-static int push_back_byte(void* id, int c);
-static uint32_t get_length(void* id);
-static int can_seek(void* id);
-static int32_t write_bytes(void* id, void* data, int32_t bcount);
+static int32_t read_bytes_str(void* id, void* data, int32_t bcount);
+static uint32_t get_pos_str(void* id);
+static int set_pos_abs_str(void* id, uint32_t pos);
+static int set_pos_rel_str(void* id, int32_t delta, int mode);
+static int push_back_byte_str(void* id, int c);
+static uint32_t get_length_str(void* id);
+static int can_seek_str(void* id);
+static int32_t write_bytes_str(void* id, void* data, int32_t bcount);
 
 
-static int32_t read_bytes_tar(void* id, void* data, int32_t bcount);
-static uint32_t get_pos_tar(void* id);
-static int set_pos_abs_tar(void* id, uint32_t pos);
-static int set_pos_rel_tar(void* id, int32_t delta, int mode);
-static int push_back_byte_tar(void* id, int c);
-static uint32_t get_length_tar(void* id);
-static int can_seek_tar(void* id);
-static int32_t write_bytes_tar(void* id, void* data, int32_t bcount);
-
-
-static int32_t read_bytes(void* id, void* data, int32_t bcount)
-{
-    assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    return (int32_t)fread(data, 1, bcount, fc->file);
-}
-
-static int32_t read_bytes_tar(void* id, void* data, int32_t bcount)
+static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
 {
     assert(id != NULL);
     assert(data != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    char* datac = data;
-    if (bcount <= 0)
+    String_context* sc = id;
+    if (sc->pos >= sc->length)
     {
         return 0;
     }
-    int32_t bytes_from_reader = bcount;
-    int32_t ret = 0;
-    if (tc->push_back != EOF)
+    int32_t left = sc->length - sc->pos;
+    int32_t bytes_read = MIN(left, bcount);
+    char* data_ptr = sc->data;
+    if (sc->push_back != EOF)
     {
-        *datac = tc->push_back;
-        tc->push_back = EOF;
-        ++ret;
-        ++datac;
-        --bytes_from_reader;
-        if (bytes_from_reader == 0)
-        {
-            return 1;
-        }
+        *data_ptr = sc->push_back;
+        ++data_ptr;
+        --bcount;
     }
-    ret += archive_read_data(tc->reader, datac, bytes_from_reader);
-    tc->pos += ret;
-    return ret;
+    memcpy(data, data_ptr + sc->pos, bytes_read);
+    sc->pos += bytes_read;
+    return bytes_read;
 }
 
 
-static uint32_t get_pos(void* id)
+static uint32_t get_pos_str(void* id)
 {
     assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    assert(ftell(fc->file) >= (int64_t)fc->offset);
-    return ftell(fc->file) - fc->offset;
-}
-
-static uint32_t get_pos_tar(void* id)
-{
-    assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    return tc->pos;
+    String_context* sc = id;
+    return sc->pos;
 }
 
 
-static int set_pos_abs(void* id, uint32_t pos)
+static int set_pos_abs_str(void* id, uint32_t pos)
 {
     assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    return fseek(fc->file, pos + fc->offset, SEEK_SET);
-}
-
-static int set_pos_abs_tar(void* id, uint32_t pos)
-{
-    (void)pos;
-    assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    (void)tc;
-    return -1;
-}
-
-
-static int set_pos_rel(void* id, int32_t delta, int mode)
-{
-    assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    int ret = fseek(fc->file, delta, mode);
-    if (ret != 0)
+    String_context* sc = id;
+    if (pos > sc->length)
     {
-        return ret;
+        sc->pos = sc->length;
     }
-    if (ftell(fc->file) < (int64_t)fc->offset)
+    else
     {
-        return fseek(fc->file, fc->offset, SEEK_SET);
+        sc->pos = pos;
     }
-    return ret;
-}
-
-static int set_pos_rel_tar(void* id, int32_t delta, int mode)
-{
-    (void)delta;
-    (void)mode;
-    assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    (void)tc;
-    return -1;
+    return 0;
 }
 
 
-static int push_back_byte(void* id, int c)
+static int set_pos_rel_str(void* id, int32_t delta, int mode)
 {
     assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    return ungetc(c, fc->file);
+    String_context* sc = id;
+    int32_t ref = 0;
+    if (mode == SEEK_SET)
+    {
+        ref = 0;
+    }
+    else if (mode == SEEK_CUR)
+    {
+        ref = sc->pos;
+    }
+    else if (mode == SEEK_END)
+    {
+        ref = sc->length;
+    }
+    else
+    {
+        return -1;
+    }
+    ref += delta;
+    if (ref < 0)
+    {
+        ref = 0;
+    }
+    else if (ref > (int32_t)sc->length)
+    {
+        ref = sc->length;
+    }
+    sc->pos = ref;
+    return 0;
 }
 
-static int push_back_byte_tar(void* id, int c)
+
+static int push_back_byte_str(void* id, int c)
 {
-    (void)c;
     assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    if (tc->push_back != EOF)
+    String_context* sc = id;
+    if (sc->push_back != EOF)
     {
         return EOF;
     }
-    if (tc->pos == 0)
+    if (sc->pos == 0)
     {
         return EOF;
     }
-    --tc->pos;
-    tc->push_back = c;
+    --sc->pos;
+    sc->push_back = c;
     return c;
 }
 
 
-static uint32_t get_length(void* id)
+static uint32_t get_length_str(void* id)
 {
     assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    struct stat buf;
-    if (fstat(fileno(fc->file), &buf) != 0)
-    {
-        return 0;
-    }
-    if (S_ISREG(buf.st_mode) == 0)
-    {
-        return 0;
-    }
-    return buf.st_size;
-}
-
-static uint32_t get_length_tar(void* id)
-{
-    assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    return archive_entry_size(tc->entry);
+    String_context* sc = id;
+    return sc->length;
 }
 
 
-static int can_seek(void* id)
+static int can_seek_str(void* id)
 {
     assert(id != NULL);
-    File_context* fc = id;
-    assert(fc->file != NULL);
-    struct stat buf;
-    if (fstat(fileno(fc->file), &buf) != 0)
-    {
-        return 0;
-    }
-    if (S_ISREG(buf.st_mode) == 0)
-    {
-        return 0;
-    }
+    (void)id;
     return 1;
 }
 
-static int can_seek_tar(void* id)
-{
-    assert(id != NULL);
-    Tar_context* tc = id;
-    assert(tc->reader != NULL);
-    assert(tc->entry != NULL);
-    (void)tc;
-    return 0;
-}
 
-
-static int32_t write_bytes(void* id, void* data, int32_t bcount)
-{
-    (void)id;
-    (void)data;
-    (void)bcount;
-    assert(false);
-    return 0;
-}
-
-static int32_t write_bytes_tar(void* id, void* data, int32_t bcount)
+static int32_t write_bytes_str(void* id, void* data, int32_t bcount)
 {
     (void)id;
     (void)data;
@@ -289,28 +183,16 @@ static int32_t write_bytes_tar(void* id, void* data, int32_t bcount)
 }
 
 
-static WavpackStreamReader reader_file =
+static WavpackStreamReader reader_str =
 {
-    read_bytes,
-    get_pos,
-    set_pos_abs,
-    set_pos_rel,
-    push_back_byte,
-    get_length,
-    can_seek,
-    write_bytes
-};
-
-static WavpackStreamReader reader_tar =
-{
-    read_bytes_tar,
-    get_pos_tar,
-    set_pos_abs_tar,
-    set_pos_rel_tar,
-    push_back_byte_tar,
-    get_length_tar,
-    can_seek_tar,
-    write_bytes_tar
+    read_bytes_str,
+    get_pos_str,
+    set_pos_abs_str,
+    set_pos_rel_str,
+    push_back_byte_str,
+    get_length_str,
+    can_seek_str,
+    write_bytes_str
 };
 
 
@@ -327,71 +209,62 @@ static WavpackStreamReader reader_tar =
             assert(buf_r != NULL);                                          \
             for (uint32_t i = 0; i < count / channels; ++i)                 \
             {                                                               \
-                buf_r[offset + i] = src[i * channels + 1];                  \
+                buf_r[offset + i] = src[i * channels + 1] << lshift;        \
             }                                                               \
         }                                                                   \
     } else (void)0
 
-
-bool File_wavpack_load_sample(Sample* sample, FILE* in,
-                              struct archive* reader,
-                              struct archive_entry* entry)
+bool Sample_parse_wavpack(Sample* sample,
+                          void* data,
+                          long length,
+                          Read_state* state)
 {
     assert(sample != NULL);
-    assert((in != NULL) != (reader != NULL && entry != NULL));
-    WavpackContext* context = NULL;
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    String_context* sc = &(String_context) {
+                             .data = data,
+                             .length = length,
+                             .pos = 0,
+                             .push_back = EOF
+                         };
     char err_str[80] = { '\0' };
-    File_context fc = { .file = in };
-    Tar_context tc = { .reader = reader };
-    if (in != NULL)
-    {
-        fc.offset = ftell(in);
-        context = WavpackOpenFileInputEx(&reader_file,
-                &fc,
-                NULL,
-                err_str,
-                OPEN_2CH_MAX | OPEN_NORMALIZE,
-                0);
-    }
-    else
-    {
-        assert(reader != NULL);
-        assert(entry != NULL);
-        tc.reader = reader;
-        tc.entry = entry;
-        tc.pos = 0;
-        tc.push_back = EOF;
-        context = WavpackOpenFileInputEx(&reader_tar,
-                &tc,
-                NULL,
-                err_str,
-                OPEN_2CH_MAX | OPEN_NORMALIZE,
-                0);
-    }
+    WavpackContext* context = WavpackOpenFileInputEx(&reader_str,
+                                                     sc,
+                                                     NULL,
+                                                     err_str,
+                                                     OPEN_2CH_MAX | OPEN_NORMALIZE,
+                                                     0);
     if (context == NULL)
     {
-        fprintf(stderr, "%s\n", err_str);
         return false;
     }
     int mode = WavpackGetMode(context);
     int channels = WavpackGetReducedChannels(context);
-    uint32_t freq = WavpackGetSampleRate(context);
+//    uint32_t freq = WavpackGetSampleRate(context);
     int bits = WavpackGetBitsPerSample(context);
     int bytes = WavpackGetBytesPerSample(context);
     uint32_t len = WavpackGetNumSamples(context);
-//  uint32_t file_size = WavpackGetFileSize(context);
+//    uint32_t file_size = WavpackGetFileSize(context);
     if (len == (uint32_t)-1)
     {
         WavpackCloseFile(context);
+        Read_state_set_error(state, "Couldn't determine WavPack"
+                " file length");
         return false;
     }
-    sample->format = SAMPLE_FORMAT_WAVPACK;
+    sample->params.format = SAMPLE_FORMAT_WAVPACK;
     sample->len = len;
     sample->channels = channels;
-    sample->mid_freq = freq;
-    Sample_set_loop(sample, SAMPLE_LOOP_OFF);
-    Sample_set_loop_start(sample, 0);
-    Sample_set_loop_end(sample, 0);
+//    sample->params.mid_freq = freq;
+//    Sample_set_loop(sample, SAMPLE_LOOP_OFF);
+//    Sample_set_loop_start(sample, 0);
+//    Sample_set_loop_end(sample, 0);
     if (bits <= 8)
     {
         sample->bits = 8;
@@ -414,6 +287,7 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
         sample->bits = 32;
     }
     int req_bytes = sample->bits / 8;
+    sample->data[0] = sample->data[1] = NULL;
     void* nbuf_l = xnalloc(char, sample->len * req_bytes);
     if (nbuf_l == NULL)
     {
@@ -496,12 +370,16 @@ bool File_wavpack_load_sample(Sample* sample, FILE* in,
     WavpackCloseFile(context);
     if (written < sample->len)
     {
+        Read_state_set_error(state, "Couldn't read all sample data");
         xfree(sample->data[0]);
         xfree(sample->data[1]);
         sample->data[0] = sample->data[1] = NULL;
+        sample->len = 0;
         return false;
     }
     return true;
 }
+
+#undef read_wp_samples
 
 

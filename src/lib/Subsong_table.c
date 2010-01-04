@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -32,6 +32,7 @@
 
 struct Subsong_table
 {
+    int effective_size;
     Etable* subs;
 };
 
@@ -43,6 +44,7 @@ Subsong_table* new_Subsong_table(void)
     {
         return NULL;
     }
+    table->effective_size = 0;
     table->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
     if (table->subs == NULL)
     {
@@ -53,71 +55,25 @@ Subsong_table* new_Subsong_table(void)
 }
 
 
-bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state)
-{
-    assert(table != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Subsong collection is not a directory");
-        return false;
-    }
-    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
-    {
-        char dir_name[] = "subsong_xx";
-        snprintf(dir_name, 11, "subsong_%02x", i);
-        File_tree* subsong_tree = File_tree_get_child(tree, dir_name);
-        if (subsong_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(tree));
-            Subsong* ss = new_Subsong();
-            if (ss == NULL)
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for subsong %02x", i);
-                return false;
-            }
-            Subsong_read(ss, subsong_tree, state);
-            if (state->error)
-            {
-                return false;
-            }
-            if (Subsong_table_set(table, i, ss) < 0)
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for subsong %02x", i);
-                return false;
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-    return true;
-}
-
-
-int16_t Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
+bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
 {
     assert(table != NULL);
     assert(index < KQT_SUBSONGS_MAX);
     assert(subsong != NULL);
-    while (index > 0 && Etable_get(table->subs, index - 1) == NULL)
-    {
-        --index;
-    }
     if (!Etable_set(table->subs, index, subsong))
     {
-        return -1;
+        return false;
     }
-    return index;
+    if (index == table->effective_size)
+    {
+        while (index < KQT_SUBSONGS_MAX &&
+                Etable_get(table->subs, index) != NULL)
+        {
+            table->effective_size = index + 1;
+            ++index;
+        }
+    }
+    return true;
 }
 
 
@@ -125,6 +81,10 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 {
     assert(table != NULL);
     assert(index < KQT_SUBSONGS_MAX);
+    if (index >= table->effective_size)
+    {
+        return NULL;
+    }
     return Etable_get(table->subs, index);
 }
 

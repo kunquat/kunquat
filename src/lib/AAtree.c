@@ -50,7 +50,7 @@ struct AAtree
 {
     AAnode* nil;
     AAnode* root;
-    int (*cmp)(void*, void*);
+    int (*cmp)(const void*, const void*);
     void (*destroy)(void*);
 };
 
@@ -135,7 +135,7 @@ static AAnode* new_AAnode(AAnode* nil, void* data)
 }
 
 
-AAtree* new_AAtree(int (*cmp)(void*, void*), void (*destroy)(void*))
+AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 {
     assert(cmp != NULL);
     assert(destroy != NULL);
@@ -250,7 +250,7 @@ bool AAtree_ins(AAtree* tree, void* data)
 }
 
 
-void* AAiter_get(AAiter* iter, void* key)
+void* AAiter_get(AAiter* iter, const void* key)
 {
     assert(iter != NULL);
     assert(key != NULL);
@@ -285,7 +285,7 @@ void* AAiter_get(AAiter* iter, void* key)
 }
 
 
-void* AAtree_get(AAtree* tree, void* key)
+void* AAtree_get(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
@@ -294,7 +294,7 @@ void* AAtree_get(AAtree* tree, void* key)
 }
 
 
-void* AAtree_get_exact(AAtree* tree, void* key)
+void* AAtree_get_exact(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
@@ -308,7 +308,7 @@ void* AAtree_get_exact(AAtree* tree, void* key)
 }
 
 
-void* AAiter_get_at_most(AAiter* iter, void* key)
+void* AAiter_get_at_most(AAiter* iter, const void* key)
 {
     assert(iter != NULL);
     assert(key != NULL);
@@ -343,7 +343,7 @@ void* AAiter_get_at_most(AAiter* iter, void* key)
 }
 
 
-void* AAtree_get_at_most(AAtree* tree, void* key)
+void* AAtree_get_at_most(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
@@ -388,7 +388,7 @@ void* AAiter_get_prev(AAiter* iter)
 }
 
 
-void* AAtree_remove(AAtree* tree, void* key)
+void* AAtree_remove(AAtree* tree, const void* key)
 {
     assert(tree != NULL);
     assert(key != NULL);
