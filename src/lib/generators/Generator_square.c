@@ -80,7 +80,7 @@ bool Generator_square_parse(Generator* gen,
     assert(Generator_get_type(gen) == GEN_TYPE_SQUARE);
     assert(subkey != NULL);
     assert(Generator_square_has_subkey(subkey));
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
     if (state->error)

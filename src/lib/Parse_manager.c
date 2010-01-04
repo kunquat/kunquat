@@ -28,6 +28,7 @@
 
 #include <File_base.h>
 #include <Handle_private.h>
+#include <string_common.h>
 
 #include <xmemory.h>
 
@@ -166,10 +167,7 @@ bool parse_data(kqt_Handle* handle,
         return true;
     }
     char* json = NULL;
-    char* json_key = strstr(key, ".json");
-    // This comparison doesn't work correctly if we specify a key to be parsed
-    // that contains ".json" in the middle. That isn't very likely.
-    if (json_key != NULL && strlen(json_key) == 5)
+    if (data != NULL && string_has_suffix(key, ".json"))
     {
         json = xcalloc(char, length + 1);
         if (json == NULL)
@@ -255,7 +253,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     if (index < 1 || index > KQT_INSTRUMENTS_MAX)
     {
@@ -396,7 +394,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(ins_index >= 1);
     assert(ins_index <= KQT_INSTRUMENTS_MAX);
@@ -560,7 +558,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
@@ -689,7 +687,7 @@ static bool parse_scale_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
@@ -732,7 +730,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     if (index < 0 || index >= KQT_SUBSONGS_MAX)
     {

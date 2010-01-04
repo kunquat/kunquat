@@ -164,7 +164,7 @@ bool Generator_pcm_parse(Generator* gen,
     assert(Generator_get_type(gen) == GEN_TYPE_PCM);
     assert(subkey != NULL);
     assert(Generator_pcm_has_subkey(subkey));
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
     if (state->error)
@@ -403,6 +403,7 @@ static bool Generator_pcm_parse_wv(Generator* gen,
 {
     assert(gen != NULL);
     assert(Generator_get_type(gen) == GEN_TYPE_PCM);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
     assert(index >= 0);

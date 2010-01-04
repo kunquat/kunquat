@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -362,7 +362,7 @@ int main(int argc, char** argv)
         errno = 0;
         if (stat(argv[file_arg], info) != 0)
         {
-            fprintf(stderr, "Couldn't access information about path %s: %s",
+            fprintf(stderr, "Couldn't access information about path %s: %s\n",
                     argv[file_arg], strerror(errno));
             continue;
         }

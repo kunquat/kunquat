@@ -220,7 +220,7 @@ bool Sample_parse_wavpack(Sample* sample,
                           Read_state* state)
 {
     assert(sample != NULL);
-    assert(data != NULL || length == 0);
+    assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
     if (state->error)
