@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -27,7 +27,6 @@
 
 #include <Instrument_params.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \
@@ -234,63 +233,6 @@ bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
     Envelope* old_env = ip->volume_off_env;
     ip->volume_off_env = env;
     del_Envelope(old_env);
-    return true;
-}
-
-
-bool read_volume_off_env(Instrument_params* ip, File_tree* tree, Read_state* state)
-{
-    assert(ip != NULL);
-    assert(tree != NULL);
-    assert(!File_tree_is_dir(tree));
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    char* str = File_tree_get_data(tree);
-    return Instrument_params_parse_env_vol_rel(ip, str, state);
-}
-
-
-bool Instrument_params_read(Instrument_params* ip, File_tree* tree, Read_state* state)
-{
-    assert(ip != NULL);
-    assert(tree != NULL);
-    assert(File_tree_is_dir(tree));
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    struct
-    {
-        char* name;
-        bool (*read)(Instrument_params*, File_tree*, Read_state*);
-    } files[] =
-    {
-        { "p_envelope_volume_release.json", read_volume_off_env },
-        { NULL, NULL }
-    };
-    for (int i = 0; files[i].name != NULL; ++i)
-    {
-        assert(files[i].read != NULL);
-        File_tree* obj_tree = File_tree_get_child(tree, files[i].name);
-        if (obj_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(obj_tree));
-            if (File_tree_is_dir(obj_tree))
-            {
-                Read_state_set_error(state, "File %s is a directory", files[i].name);
-                return false;
-            }
-            files[i].read(ip, obj_tree, state);
-            if (state->error)
-            {
-                return false;
-            }
-        }
-    }
     return true;
 }
 

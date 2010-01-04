@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,6 @@
 #include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
-#include <File_tree.h>
 
 
 typedef struct Song
@@ -79,18 +78,6 @@ typedef struct Song
  *           failed.
  */
 Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
-
-
-/**
- * Reads a Song from a File tree.
- *
- * \param song    The Song -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Song_read(Song* song, File_tree* tree, Read_state* state);
 
 
 /**

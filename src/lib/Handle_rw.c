@@ -68,23 +68,12 @@ kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path)
         xfree(handle_rw);
         return NULL;
     }
-#if 0
-    File_tree* tree = new_File_tree_from_fs(handle_rw->base_path, NULL);
-    if (tree == NULL)
-    {
-        xfree(handle_rw->base_path);
-        xfree(handle_rw);
-        return NULL;
-    }
-#endif
     if (!kqt_Handle_init(&handle_rw->handle, buffer_size))
     {
-//        del_File_tree(tree);
         xfree(handle_rw->base_path);
         xfree(handle_rw);
         return NULL;
     }
-//    del_File_tree(tree);
     handle_rw->handle.mode = KQT_READ_WRITE;
     handle_rw->handle.get_data = Handle_rw_get_data;
     handle_rw->handle.get_data_length = Handle_rw_get_data_length;

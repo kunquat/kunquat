@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -28,9 +28,6 @@
 #include <pitch_t.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <File_tree.h>
-
-#include <wchar.h>
 
 
 /**
@@ -88,18 +85,6 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Scale_parse(Scale* scale, char* str, Read_state* state);
-
-
-/**
- * Reads a Scale from a File tree.
- *
- * \param scale   The Scale -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Scale_read(Scale* scale, File_tree* tree, Read_state* state);
 
 
 /**

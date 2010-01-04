@@ -86,18 +86,6 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state);
 
 
 /**
- * Reads an Instrument from a File tree.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Instrument_read(Instrument* ins, File_tree* tree, Read_state* state);
-
-
-/**
  * Gets the Instrument parameters of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.

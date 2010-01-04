@@ -127,18 +127,6 @@ Sample* new_Sample(void);
 
 
 /**
- * Creates a Sample from a File tree.
- *
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   The Sample if found and read successfully, otherwise \c NULL.
- *           The caller must check for errors in \a state.
- */
-Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state);
-
-
-/**
  * Gets the file format of the Sample.
  *
  * \param sample   The Sample -- must not be \c NULL.

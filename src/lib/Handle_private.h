@@ -32,7 +32,6 @@
 #include <Song.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
-#include <File_tree.h>
 
 
 #define KQT_CONTEXT_ERROR_LENGTH (256)

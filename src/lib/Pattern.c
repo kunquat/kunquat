@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -95,63 +95,6 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
         return false;
     }
     Pattern_set_length(pat, len);
-    return true;
-}
-
-
-bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state)
-{
-    assert(pat != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Pattern is not a directory");
-        return false;
-    }
-    File_tree* info = File_tree_get_child(tree, "p_pattern.json");
-    if (info != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(info));
-        if (File_tree_is_dir(info))
-        {
-            Read_state_set_error(state, "Pattern info is a directory");
-            return false;
-        }
-        char* str = File_tree_get_data(info);
-        assert(str != NULL);
-        if (!Pattern_parse_header(pat, str, state))
-        {
-            return false;
-        }
-    }
-    char dir_name[16] = "global_column";
-    for (int i = -1; i < KQT_COLUMNS_MAX; ++i)
-    {
-        File_tree* col_tree = File_tree_get_child(tree, dir_name);
-        if (col_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(col_tree));
-            if (i == -1)
-            {
-                Column_read(Pattern_get_global(pat), col_tree, state);
-            }
-            else
-            {
-                Column_read(Pattern_get_col(pat, i), col_tree, state);
-            }
-            if (state->error)
-            {
-                return false;
-            }
-        }
-        snprintf(dir_name, 16, "voice_column_%02x", i + 1);
-    }
     return true;
 }
 

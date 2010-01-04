@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,6 @@
 #include <Playdata.h>
 #include <Column.h>
 #include <Reltime.h>
-#include <File_tree.h>
 #include <kunquat/limits.h>
 
 
@@ -58,18 +57,6 @@ typedef struct Pattern
  *           allocation failed.
  */
 Pattern* new_Pattern(void);
-
-
-/**
- * Reads a Pattern from a File tree.
- *
- * \param pat     The Pattern -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
 
 
 /**

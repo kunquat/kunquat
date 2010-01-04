@@ -44,8 +44,6 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 static void del_Random_list(Random_list* list);
 
 
-static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* state);
-
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
@@ -65,7 +63,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
         xfree(pcm);
         return NULL;
     }
-    pcm->parent.read = Generator_pcm_read;
+    pcm->parent.parse = Generator_pcm_parse;
     pcm->parent.destroy = del_Generator_pcm;
     pcm->parent.type = GEN_TYPE_PCM;
     pcm->parent.init_state = Generator_pcm_init_state;
@@ -571,99 +569,6 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
         return NULL;
     }
     return map;
-}
-
-
-static bool Generator_pcm_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PCM);
-    assert(tree != NULL);
-    assert(File_tree_is_dir(tree));
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    tree = File_tree_get_child(tree, "gen_pcm");
-    if (tree == NULL)
-    {
-        return true;
-    }
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "PCM Generator is not a directory");
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    Generator_pcm* pcm = (Generator_pcm*)gen;
-    for (int i = 0; i < PCM_EXPRESSIONS_MAX; ++i)
-    {
-        char expr_name[] = "expr_x";
-        snprintf(expr_name, 7, "expr_%01x", i);
-        File_tree* expr_tree = File_tree_get_child(tree, expr_name);
-        if (expr_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(expr_tree));
-            if (!File_tree_is_dir(expr_tree))
-            {
-                Read_state_set_error(state, "PCM Generator expression description %01x"
-                                            " is not a directory", i);
-                return false;
-            }
-            for (int k = 0; k < PCM_SOURCES_MAX; ++k)
-            {
-                char src_name[] = "source_x";
-                snprintf(src_name, 9, "source_%01x", k);
-                File_tree* source_tree = File_tree_get_child(expr_tree, src_name);
-                if (source_tree != NULL)
-                {
-                    Read_state_init(state, File_tree_get_path(source_tree));
-                    if (!File_tree_is_dir(source_tree))
-                    {
-                        Read_state_set_error(state, "PCM Generator source description %01x:%01x"
-                                                    " is not a directory", i, k);
-                        return false;
-                    }
-                    File_tree* map_tree = File_tree_get_child(source_tree, "p_sample_map.json");
-                    if (map_tree != NULL)
-                    {
-                        if (File_tree_is_dir(map_tree))
-                        {
-                            Read_state_set_error(state, "PCM Generator sample mapping %01x:%01x"
-                                                       " is a directory", i, k);
-                            return false;
-                        }
-                        char* str = File_tree_get_data(map_tree);
-                        AAtree* map = new_map_from_string(str, state);
-                        if (map == NULL)
-                        {
-                            return false;
-                        }
-                        pcm->maps[(k * PCM_EXPRESSIONS_MAX) + i] = map;
-                    }
-                }
-            }
-        }
-    }
-    for (int i = 0; i < PCM_SAMPLES_MAX; ++i)
-    {
-        char dir_name[] = "sample_xxx";
-        snprintf(dir_name, 11, "sample_%03x", i);
-        File_tree* sample_tree = File_tree_get_child(tree, dir_name);
-        if (sample_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(sample_tree));
-            Sample* sample = new_Sample_from_file_tree(sample_tree, state);
-            if (state->error)
-            {
-                assert(sample == NULL);
-                return false;
-            }
-            pcm->samples[i].formats[Sample_get_format(sample)] = sample;
-        }
-    }
-    return true;
 }
 
 

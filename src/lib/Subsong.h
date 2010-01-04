@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -27,7 +27,6 @@
 #include <stdint.h>
 
 #include <File_base.h>
-#include <File_tree.h>
 
 
 #define KQT_SECTION_NONE (-1)
@@ -71,18 +70,6 @@ Subsong* new_Subsong(void);
  *           will _not_ be updated if memory allocation failed.
  */
 Subsong* new_Subsong_from_string(char* str, Read_state* state);
-
-
-/**
- * Reads a Subsong from a File tree.
- *
- * \param ss      The Subsong -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
 
 
 /**

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,6 @@
 
 #include <Scale.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <math_common.h>
 
 #include <xmemory.h>
@@ -290,59 +289,6 @@ bool Scale_parse(Scale* scale, char* str, Read_state* state)
 }
 
 #undef read_and_validate_tuning
-
-
-bool Scale_read(Scale* scale, File_tree* tree, Read_state* state)
-{
-    assert(scale != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    Scale_clear(scale);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Scale is not a directory");
-        return false;
-    }
-    char* name = File_tree_get_name(tree);
-    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
-    {
-        Read_state_set_error(state, "Directory is not a Kunquat file");
-        return false;
-    }
-    if (name[strlen(MAGIC_ID)] != 's')
-    {
-        Read_state_set_error(state, "Directory is not a scale file");
-        return false;
-    }
-    const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
-    {
-        Read_state_set_error(state, "Unsupported scale version");
-        return false;
-    }
-    File_tree* scale_tree = File_tree_get_child(tree, "p_scale.json");
-    if (scale_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(scale_tree));
-        if (File_tree_is_dir(scale_tree))
-        {
-            Read_state_set_error(state,
-                     "Scale specification is a directory");
-            return false;
-        }
-        char* str = File_tree_get_data(scale_tree);
-        if (!Scale_parse(scale, str, state))
-        {
-            return false;
-        }
-    }
-    return true;
-}
 
 
 void Scale_clear(Scale* scale)

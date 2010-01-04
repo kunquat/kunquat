@@ -35,8 +35,6 @@
 #include <xmemory.h>
 
 
-bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state);
-
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
 
 
@@ -53,29 +51,12 @@ Generator* new_Generator_triangle(Instrument_params* ins_params)
         xfree(triangle);
         return NULL;
     }
-    triangle->parent.read = Generator_triangle_read;
     triangle->parent.destroy = del_Generator_triangle;
     triangle->parent.type = GEN_TYPE_TRIANGLE;
     triangle->parent.init_state = Generator_triangle_init_state;
     triangle->parent.mix = Generator_triangle_mix;
     triangle->parent.ins_params = ins_params;
     return &triangle->parent;
-}
-
-
-bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_TRIANGLE);
-    assert(tree != NULL);
-    assert(state != NULL);
-    (void)gen;
-    (void)tree;
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
 }
 
 

@@ -34,7 +34,6 @@
 #include <Generator_square303.h>
 #include <Generator_pcm.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Filter.h>
 #include <Event_ins.h>
 
@@ -68,6 +67,7 @@ bool Generator_init(Generator* gen)
     gen->enabled = GENERATOR_DEFAULT_ENABLED;
     gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
     gen->volume = exp2(gen->volume_dB / 6);
+    gen->parse = NULL;
     return true;
 }
 
@@ -231,91 +231,8 @@ bool Generator_parse(Generator* gen,
     {
         return false;
     }
-    static bool (*map[GEN_TYPE_LAST])(Generator*,
-                                      const char*, void*, long,
-                                      Read_state*) =
-    {
-        [GEN_TYPE_PCM] = Generator_pcm_parse,
-        [GEN_TYPE_SQUARE] = Generator_square_parse,
-    };
-    assert(map[Generator_get_type(gen)] != NULL);
-    return map[Generator_get_type(gen)](gen, subkey, data, length, state);
-}
-
-
-Generator* new_Generator_from_file_tree(File_tree* tree,
-                                        Read_state* state,
-                                        Instrument_params* ins_params)
-{
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return NULL;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Generator is not a directory");
-        return NULL;
-    }
-    File_tree* type_tree = File_tree_get_child(tree, "p_gen_type.json");
-    if (type_tree == NULL)
-    {
-        Read_state_set_error(state, "Generator does not contain a type description");
-        return NULL;
-    }
-    Read_state_init(state, File_tree_get_path(type_tree));
-    if (File_tree_is_dir(type_tree))
-    {
-        Read_state_set_error(state, "Type description of the Generator is a directory");
-        return NULL;
-    }
-    char* str = File_tree_get_data(type_tree);
-    Gen_type type = Generator_type_parse(str, state);
-    if (state->error)
-    {
-        return NULL;
-    }
-    if (type == GEN_TYPE_NONE)
-    {
-        Read_state_set_error(state, "Generator does not contain a type description");
-        return NULL;
-    }
-    Generator* gen = new_Generator(type, ins_params);
-    if (gen == NULL)
-    {
-        Read_state_set_error(state, "Couldn't allocate memory for the new Generator");
-        return NULL;
-    }
-
-    File_tree* info_tree = File_tree_get_child(tree, "p_generator.json");
-    if (info_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(info_tree));
-        if (File_tree_is_dir(info_tree))
-        {
-            del_Generator(gen);
-            Read_state_set_error(state,
-                     "Field description of the Generator is a directory");
-            return NULL;
-        }
-        str = File_tree_get_data(info_tree);
-        if (!Generator_parse_general(gen, str, state))
-        {
-            del_Generator(gen);
-            return NULL;
-        }
-    }
-
-    assert(gen->read != NULL);
-    gen->read(gen, tree, state);
-    if (state->error)
-    {
-        del_Generator(gen);
-        return NULL;
-    }
-    return gen;
+    assert(gen->parse != NULL);
+    return gen->parse(gen, subkey, data, length, state);
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,6 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
-#include <File_tree.h>
 
 
 /**
@@ -126,18 +125,6 @@ Column* new_Column_from_string(Reltime* len,
                                char* str,
                                bool is_global,
                                Read_state* state);
-
-
-/**
- * Reads a Column from a File tree.
- *
- * \param col     The Column -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Column_read(Column* col, File_tree* tree, Read_state* state);
 
 
 /**

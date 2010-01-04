@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -52,57 +52,6 @@ Subsong_table* new_Subsong_table(void)
         return NULL;
     }
     return table;
-}
-
-
-bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state)
-{
-    assert(table != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Subsong collection is not a directory");
-        return false;
-    }
-    for (int i = 0; i < KQT_SUBSONGS_MAX; ++i)
-    {
-        char dir_name[] = "subsong_xx";
-        snprintf(dir_name, 11, "subsong_%02x", i);
-        File_tree* subsong_tree = File_tree_get_child(tree, dir_name);
-        if (subsong_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(tree));
-            Subsong* ss = new_Subsong();
-            if (ss == NULL)
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for subsong %02x", i);
-                return false;
-            }
-            Subsong_read(ss, subsong_tree, state);
-            if (state->error)
-            {
-                return false;
-            }
-            if (!Subsong_table_set(table, i, ss))
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for subsong %02x", i);
-                return false;
-            }
-        }
-        else
-        {
-            break;
-        }
-    }
-    return true;
 }
 
 

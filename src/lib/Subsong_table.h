@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,6 @@
 
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Subsong.h>
 
 
@@ -46,18 +45,6 @@ typedef struct Subsong_table Subsong_table;
  *           allocation failed.
  */
 Subsong_table* new_Subsong_table(void);
-
-
-/**
- * Reads a Subsong table from a File tree.
- *
- * \param table   The Subsong table -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state);
 
 
 /**

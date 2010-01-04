@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -29,7 +29,6 @@
 
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Subsong.h>
 
 #include <xmemory.h>
@@ -202,37 +201,6 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
         return false;
     }
     return true;
-}
-
-
-bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state)
-{
-    assert(ss != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Subsong is not a directory");
-        return false;
-    }
-    File_tree* info = File_tree_get_child(tree, "p_subsong.json");
-    if (info == NULL)
-    {
-        return true;
-    }
-    Read_state_init(state, File_tree_get_path(info));
-    if (File_tree_is_dir(info))
-    {
-        Read_state_set_error(state, "Subsong description is a directory");
-        return false;
-    }
-    char* str = File_tree_get_data(info);
-    return Subsong_parse(ss, str, state);
 }
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -369,45 +369,6 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 }
 
 #undef break_if
-
-
-bool Column_read(Column* col, File_tree* tree, Read_state* state)
-{
-    assert(col != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Column is not a directory");
-        return false;
-    }
-    bool is_global = strcmp(File_tree_get_name(tree), "global_column") == 0;
-    File_tree* event_tree = NULL;
-    if (!is_global)
-    {
-        event_tree = File_tree_get_child(tree, "p_voice_events.json");
-    }
-    else
-    {
-        event_tree = File_tree_get_child(tree, "p_global_events.json");
-    }
-    if (event_tree == NULL)
-    {
-        return true;
-    }
-    if (File_tree_is_dir(event_tree))
-    {
-        Read_state_init(state, "Event list is a directory");
-        return false;
-    }
-    char* str = File_tree_get_data(event_tree);
-    return Column_parse(col, str, is_global, state);
-}
 
 
 char* Column_serialise(Column* col)

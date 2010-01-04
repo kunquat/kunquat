@@ -35,8 +35,6 @@
 #include <xmemory.h>
 
 
-bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state);
-
 void Generator_square303_init_state(Generator* gen, Voice_state* state);
 
 
@@ -53,29 +51,12 @@ Generator* new_Generator_square303(Instrument_params* ins_params)
         xfree(square303);
         return NULL;
     }
-    square303->parent.read = Generator_square303_read;
     square303->parent.destroy = del_Generator_square303;
     square303->parent.type = GEN_TYPE_SQUARE303;
     square303->parent.init_state = Generator_square303_init_state;
     square303->parent.mix = Generator_square303_mix;
     square303->parent.ins_params = ins_params;
     return &square303->parent;
-}
-
-
-bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE303);
-    assert(tree != NULL);
-    assert(state != NULL);
-    (void)gen;
-    (void)tree;
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
 }
 
 

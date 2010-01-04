@@ -29,16 +29,6 @@
 
 #include <Sample.h>
 #include <File_base.h>
-#include <archive.h>
-#include <archive_entry.h>
-
-#include <kunquat/Handle.h>
-
-
-bool File_wavpack_load_sample(Sample* sample, FILE* in,
-                              struct archive* reader,
-                              struct archive_entry* entry,
-                              kqt_Handle* handle);
 
 
 bool Sample_parse_wavpack(Sample* sample,

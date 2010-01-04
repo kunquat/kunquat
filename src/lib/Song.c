@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,6 @@
 #include <Real.h>
 #include <Song.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <math_common.h>
 
 #include <xmemory.h>
@@ -259,115 +258,6 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     Song_set_subsong(song, init_subsong);
-    return true;
-}
-
-
-bool Song_read(Song* song, File_tree* tree, Read_state* state)
-{
-    assert(song != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Song is not a directory");
-        return false;
-    }
-    char* name = File_tree_get_name(tree);
-    if (strncmp(name, MAGIC_ID, strlen(MAGIC_ID)) != 0)
-    {
-        Read_state_set_error(state, "Directory is not a Kunquat file");
-        return false;
-    }
-    if (name[strlen(MAGIC_ID)] != 'c')
-    {
-        Read_state_set_error(state, "Directory is not a composition file");
-        return false;
-    }
-    const char* version = "00";
-    if (strcmp(name + strlen(MAGIC_ID) + 1, version) != 0)
-    {
-        Read_state_set_error(state, "Unsupported composition version");
-        return false;
-    }
-    File_tree* info_tree = File_tree_get_child(tree, "p_composition.json");
-    if (info_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(info_tree));
-        if (File_tree_is_dir(info_tree))
-        {
-            Read_state_set_error(state, "Composition info is a directory");
-            return false;
-        }
-        char* str = File_tree_get_data(info_tree);
-        if (!Song_parse_composition(song, str, state))
-        {
-            return false;
-        }
-    }
-    for (int i = 0; i < KQT_SCALES_MAX; ++i)
-    {
-        char dir_name[] = "scale_0";
-        snprintf(dir_name, 8, "scale_%01x", i);
-        File_tree* index_tree = File_tree_get_child(tree, dir_name);
-        if (index_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(index_tree));
-            if (!File_tree_is_dir(index_tree))
-            {
-                Read_state_set_error(state,
-                         "Scale at index %01x is not a directory", i);
-                return false;
-            }
-            File_tree* scale_tree = File_tree_get_child(index_tree, "kunquats00");
-            if (scale_tree != NULL)
-            {
-                Read_state_init(state, File_tree_get_path(scale_tree));
-                if (!Song_create_scale(song, i))
-                {
-                    Read_state_set_error(state,
-                             "Couldn't allocate memory for scale %01x", i);
-                    return false;
-                }
-                Scale* scale = Song_get_scale(song, i);
-                assert(scale != NULL);
-                Scale_read(scale, scale_tree, state);
-                if (state->error)
-                {
-                    Song_remove_scale(song, i);
-                    return false;
-                }
-            }
-        }
-    }
-    Subsong_table* subsongs = Song_get_subsongs(song);
-    if (!Subsong_table_read(subsongs, tree, state))
-    {
-        return false;
-    }
-    Pat_table* pats = Song_get_pats(song);
-    if (!Pat_table_read(pats, tree, state))
-    {
-        return false;
-    }
-    Ins_table* insts = Song_get_insts(song);
-    if (!Ins_table_read(insts, tree, state,
-                        Song_get_bufs(song),
-                        Song_get_voice_bufs(song),
-                        Song_get_voice_bufs2(song),
-                        Song_get_buf_count(song),
-                        Song_get_buf_size(song),
-                        Song_get_scales(song),
-                        Song_get_active_scale(song),
-                        32)) // TODO: make configurable
-    {
-        return false;
-    }
     return true;
 }
 
