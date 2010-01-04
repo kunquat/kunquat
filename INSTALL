@@ -94,3 +94,13 @@ To get more details on how to use kunquat-player, run:
   kunquat-player -h
 
 
+You can convert the example composition into a .wav file by running:
+
+  kunquat-export examples/example.kqt.bz2
+
+This will create a file called examples/example.wav. To get more information,
+run:
+
+  kunquat-export -h
+
+
