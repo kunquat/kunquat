@@ -76,6 +76,7 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
         del_Directory(dir);
         return false;
     }
+    del_Directory(dir);
     return true;
 }
 
