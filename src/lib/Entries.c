@@ -29,12 +29,14 @@
 
 #include <AAtree.h>
 #include <Entries.h>
+#include <Parse_manager.h>
 
 #include <xmemory.h>
 
 
 struct Entries
 {
+    int biggest_version;
     AAtree* tree;
 };
 
@@ -53,6 +55,8 @@ static int Entry_cmp(const Entry* e1, const Entry* e2);
 
 static void del_Entry(Entry* entry);
 
+
+static char* find_wildcard(char* key);
 
 static void resolve_wildcard(Entries* entries, Entry* key_entry);
 
@@ -100,6 +104,7 @@ Entries* new_Entries(void)
     {
         return NULL;
     }
+    entries->biggest_version = 0;
     entries->tree = new_AAtree((int (*)(const void*, const void*))Entry_cmp,
                                (void (*)(void*))del_Entry);
     if (entries->tree == NULL)
@@ -132,6 +137,21 @@ bool Entries_set(Entries* entries,
     {
         del_Entry(entry);
         return false;
+    }
+    const char* prefix = "kunquatc";
+    char* num_str = strstr(entry->key, prefix);
+    if (num_str == NULL)
+    {
+        prefix = "kunquats";
+        num_str = strstr(entry->key, prefix);
+    }
+    if (num_str != NULL)
+    {
+        int version = parse_index_dir(entry->key, prefix, 2);
+        if (version > entries->biggest_version)
+        {
+            entries->biggest_version = version;
+        }
     }
     return true;
 }
@@ -171,22 +191,35 @@ int32_t Entries_get_length(Entries* entries, const char* key)
 }
 
 
-static void resolve_wildcard(Entries* entries, Entry* key_entry)
+static char* find_wildcard(char* key)
 {
-    char* header_location = strstr(key_entry->key, "kunquatiXX");
+    char* header_location = strstr(key, "kunquatiXX");
     if (header_location == NULL)
     {
-        header_location = strstr(key_entry->key, "kunquatsXX");
+        header_location = strstr(key, "kunquatsXX");
         if (header_location == NULL)
         {
-            return;
+            return NULL;
         }
     }
     char* num_location = strstr(header_location, "XX");
     assert(num_location != NULL);
+    return num_location;
+}
+
+
+static void resolve_wildcard(Entries* entries, Entry* key_entry)
+{
+    assert(entries != NULL);
+    assert(key_entry != NULL);
+    char* num_location = find_wildcard(key_entry->key);
+    if (num_location == NULL)
+    {
+        return;
+    }
     char num_str[3] = "00";
     int last_found = -1;
-    for (int i = 0; i < 256; ++i)
+    for (int i = 0; i <= entries->biggest_version; ++i)
     {
         snprintf(num_str, 3, "%02x", i);
         strncpy(num_location, num_str, 2);
