@@ -33,6 +33,6 @@ env_p.Append(LIBS = ['kunquat'])
 
 player = env_p.Program('kunquat-export', glob.glob('*.c'))
 env_p.Install(env_p['prefix'] + '/bin', player)
-env_p.Install(env_p['prefix'] + '/man/man1', 'kunquat-export.1')
+env_p.Install(env_p['prefix'] + '/share/man/man1', 'kunquat-export.1')
 
 
