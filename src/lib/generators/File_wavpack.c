@@ -32,9 +32,33 @@
 #include <Handle_private.h>
 #include <math_common.h>
 
-#include <wavpack/wavpack.h>
-
 #include <xmemory.h>
+
+
+#ifndef WITH_WAVPACK
+
+bool Sample_parse_wavpack(Sample* sample,
+                          void* data,
+                          long length,
+                          Read_state* state)
+{
+    assert(sample != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Read_state_set_error(state, "This build of libkunquat does not"
+                                " support WavPack");
+    return false;
+}
+
+#else // WITH_WAVPACK
+
+
+#include <wavpack/wavpack.h>
 
 
 typedef struct String_context
@@ -381,5 +405,8 @@ bool Sample_parse_wavpack(Sample* sample,
 }
 
 #undef read_wp_samples
+
+
+#endif // WITH_WAVPACK
 
 

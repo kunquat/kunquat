@@ -30,7 +30,7 @@ def valid_optimise(key, val, env):
 opts = Variables(['options.py'])
 opts.AddVariables(
     PathVariable('prefix', 'Installation prefix.', '/usr/local', PathVariable.PathIsDirCreate),
-    ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
+    ('optimise', 'Optimisation level (0..3).', 2, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_libkunquat', 'Enable libkunquat.', True),
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
@@ -38,6 +38,7 @@ opts.AddVariables(
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', True),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
+    BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
     BoolVariable('with_jack', 'Build JACK support.', True),
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
@@ -90,7 +91,7 @@ if env['optimise'] > 0 and env['optimise'] <= 3:
 audio_found = False
 
 
-if not env.GetOption('clean'):
+if not env.GetOption('clean') and not env.GetOption('help'):
 
     conf = Configure(env)
 
@@ -133,25 +134,35 @@ if not env.GetOption('clean'):
         conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
     if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
-        conf_errors.append('Math library not found.')
+        conf_errors.append('Math library was not found.')
 
-    conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
-    conf.env.Append(CCFLAGS = '-Duint=uint32_t')
-    if not conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
-        conf_errors.append('WavPack not found.')
+    if env['with_wavpack']:
+        conf.env.Append(CCFLAGS = '-Dushort=uint16_t')
+        conf.env.Append(CCFLAGS = '-Duint=uint32_t')
+        if conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
+            conf.env.Append(CCFLAGS = '-DWITH_WAVPACK')
+        else:
+            conf_errors.append('WavPack support was requested' +
+                               ' but WavPack was not found.')
+    else:
+        print('Warning: WavPack support is disabled!' +
+              ' Sample support will be very minimal.')
 
     if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
-        conf_errors.append('libarchive not found.')
-    
-    if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
-        conf_errors.append('POSIX threads not found.')
+        conf_errors.append('libarchive was not found.')
+
+    if env['enable_player']:
+        if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
+            conf_errors.append('kunquat-player was requested' +
+                               ' but libpthread was not found.')
 
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_JACK')
         else:
-            print('Warning: JACK support was requested but JACK was not found.')
+            print('Warning: JACK support was requested' +
+                  ' but JACK was not found.')
             env['with_jack'] = False
 
     if env['with_ao']:
@@ -159,7 +170,8 @@ if not env.GetOption('clean'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_AO')
         else:
-            print('Warning: libao support was requested but libao was not found.')
+            print('Warning: libao support was requested' +
+                  ' but libao was not found.')
             env['with_ao'] = False
 
     if env['with_openal']:
@@ -168,7 +180,8 @@ if not env.GetOption('clean'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_OPENAL')
         else:
-            print('Warning: OpenAL support was requested but OpenAL was not found.')
+            print('Warning: OpenAL support was requested' +
+                  ' but OpenAL was not found.')
             env['with_openal'] = False
 
     if env['enable_export']:
@@ -176,16 +189,18 @@ if not env.GetOption('clean'):
             env.ParseConfig('pkg-config --cflags --libs sndfile')
             conf.env.Append(CCFLAGS = '-DWITH_SNDFILE')
         else:
-            print('Warning: kunquat-export was requested but libsndfile was not found.')
+            print('Warning: kunquat-export was requested' +
+                  ' but libsndfile was not found.')
             env['enable_export'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
-        conf_errors.append('Building of unit tests was requested but Check was not found.')
+        conf_errors.append('Building of unit tests was requested' +
+                           ' but Check was not found.')
 
     if conf_errors:
-        print('The following errors occurred while configuring Kunquat:')
-        for err in conf_errors:
-            print(err)
+        print('\nCouldn\'t configure Kunquat due to the following error%s:\n' %
+              's'[:len(conf_errors[1:])])
+        print('\n'.join(conf_errors) + '\n')
         Exit(1)
         
     env = conf.Finish()
@@ -201,14 +216,15 @@ elif GetOption('full-clean') != None:
         os.remove('config.log')
 
 
-#print 'Root: ' + env.Dump('LIBS')
+#print('Root: ' + env.Dump('LIBS'))
 
 
-Export('env')
+if not env.GetOption('help'):
+    Export('env')
 
-if env['enable_examples']:
-    SConscript('examples/SConscript')
+    if env['enable_examples']:
+        SConscript('examples/SConscript')
 
-SConscript('src/SConscript')
+    SConscript('src/SConscript')
 
 
