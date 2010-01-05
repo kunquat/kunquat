@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2009 Tomi Jylhä-Ollila
+# Copyright 2010 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -29,7 +29,7 @@ def valid_optimise(key, val, env):
 
 opts = Variables(['options.py'])
 opts.AddVariables(
-    PathVariable('prefix', 'Installation prefix.', '/usr/local'),
+    PathVariable('prefix', 'Installation prefix.', '/usr/local', PathVariable.PathIsDirCreate),
     ('optimise', 'Optimisation level (0..3).', 0, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_libkunquat', 'Enable libkunquat.', True),
@@ -65,6 +65,16 @@ env = Environment(options = opts,
 env.Alias('install', env['prefix'])
 
 Help(opts.GenerateHelpText(env))
+
+
+env['prefix'] = os.path.abspath(env['prefix'])
+
+def InstallCreatePath(env, path, source):
+    if 'install' in COMMAND_LINE_TARGETS and not os.path.exists(path):
+        os.makedirs(path)
+    return env.Install(path, source)
+
+env.AddMethod(InstallCreatePath, "InstallCreatePath")
 
 
 if env['enable_debug']:

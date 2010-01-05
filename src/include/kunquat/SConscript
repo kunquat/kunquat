@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2009 Tomi Jylhä-Ollila
+# Copyright 2010 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -30,7 +30,7 @@ include_path = env_head['prefix'] + '/include/kunquat'
 
 files = glob.glob('*.h')
 
-ih = env_head.Install(include_path, files)
+ih = env_head.InstallCreatePath(include_path, files)
 env_head.Clean(ih, include_path)
 
 
