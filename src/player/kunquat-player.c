@@ -161,7 +161,7 @@ char* get_iso_today(void)
 
 void print_licence(void)
 {
-    fprintf(stdout, "Copyright 2009 Tomi Jylhä-Ollila\n");
+    fprintf(stdout, "Copyright 2010 Tomi Jylhä-Ollila\n");
     fprintf(stdout, "License GPLv3+: GNU GPL version 3 or later"
                     " <http://gnu.org/licenses/gpl.html>\n");
     fprintf(stdout, "This is free software: you are free to change and redistribute it.\n");
@@ -289,7 +289,7 @@ int main(int argc, char** argv)
             break;
             case ':':
             {
-                fprintf(stderr, "Option %s requires an argument\n", argv[opt_index]);
+                fprintf(stderr, "Option %s requires an argument.\n", argv[opt_index]);
                 fprintf(stderr, "Use -h for help.\n");
                 exit(EXIT_FAILURE);
             }
@@ -362,7 +362,7 @@ int main(int argc, char** argv)
         errno = 0;
         if (stat(argv[file_arg], info) != 0)
         {
-            fprintf(stderr, "Couldn't access information about path %s: %s\n",
+            fprintf(stderr, "Couldn't access information about path %s: %s.\n",
                     argv[file_arg], strerror(errno));
             continue;
         }
@@ -377,7 +377,7 @@ int main(int argc, char** argv)
         }
         if (handle == NULL)
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
             continue;
         }
         int subsong = start_subsong;
@@ -385,7 +385,7 @@ int main(int argc, char** argv)
         {
             if (!kqt_Handle_set_position(handle, subsong, 0))
             {
-                fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+                fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
                 kqt_del_Handle(handle);
                 continue;
             }

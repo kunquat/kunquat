@@ -81,8 +81,8 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
         assert(entry != NULL);
         if (archive_format(reader) != ARCHIVE_FORMAT_TAR_USTAR)
         {
-            kqt_Handle_set_error(&handle_r->handle, "%s: The .kqt file %s has"
-                    " an incorrect archive format (should be ustar)", __func__, path);
+            kqt_Handle_set_error(&handle_r->handle, "%s: The file %s has an"
+                    " incorrect archive format (should be ustar)", __func__, path);
             archive_read_finish(reader);
             return false;
         }

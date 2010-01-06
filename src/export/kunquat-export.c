@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -86,7 +86,7 @@ void usage(void)
 
 void print_licence(void)
 {
-    fprintf(stdout, "Copyright 2009 Tomi Jylhä-Ollila\n");
+    fprintf(stdout, "Copyright 2010 Tomi Jylhä-Ollila\n");
     fprintf(stdout, "License GPLv3+: GNU GPL version 3 or later"
                     " <http://gnu.org/licenses/gpl.html>\n");
     fprintf(stdout, "This is free software: you are free to change and redistribute it.\n");
@@ -159,7 +159,7 @@ int main(int argc, char** argv)
     bool quiet = false;
     char* output = NULL;
     long subsong = -1;
-    char* format = "wav";
+    char* format = NULL;
     long frequency = 48000;
     long bits = 0;
     bool float_frames = false;
@@ -266,6 +266,33 @@ int main(int argc, char** argv)
                 fprintf(stderr, "Use -h for help.\n");
                 exit(EXIT_FAILURE);
             }
+        }
+    }
+    if (format == NULL)
+    {
+        char* extension = NULL;
+        if (explicit_output && (extension = strrchr(output, '.')) != NULL)
+        {
+            if (strcmp(extension, ".wav") == 0)
+            {
+                format = "wav";
+            }
+            else if (strcmp(extension, ".au") == 0)
+            {
+                format = "au";
+            }
+            else if (strcmp(extension, ".flac") == 0)
+            {
+                format = "flac";
+            }
+            else
+            {
+                format = "wav";
+            }
+        }
+        else
+        {
+            format = "wav";
         }
     }
     if (bits == 0)
@@ -376,7 +403,7 @@ int main(int argc, char** argv)
         errno = 0;
         if (stat(argv[file_arg], info) != 0)
         {
-            fprintf(stderr, "Coudn't access information about path %s: %s",
+            fprintf(stderr, "Coudn't access information about path %s: %s.",
                     argv[file_arg], strerror(errno));
             continue;
         }
@@ -391,12 +418,12 @@ int main(int argc, char** argv)
         }
         if (handle == NULL)
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
             continue;
         }
         if (!kqt_Handle_set_position(handle, subsong, 0))
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
             kqt_del_Handle(handle);
             continue;
         }

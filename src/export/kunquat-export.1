@@ -1,4 +1,4 @@
-.TH kunquat\-export 1 "2009\-07\-15" "" "Kunquat"
+.TH kunquat\-export 1 "2010\-01\-06" "" "Kunquat"
 
 .SH NAME
 kunquat\-export \- converts Kunquat compositions into waveform audio
@@ -54,7 +54,10 @@ named kunquatc\fIXX\fR where \fIXX\fR is the version number of the format).
 .SH OPTIONS
 
 .IP "\fB\-o\fR \fIout\fR, \fB\-\-output\fR \fIout\fR"
-Writes the output into the file \fIout\fR.
+Writes the output into the file \fIout\fR. By default,
+.B kunquat\-export
+selects the output file format based on the file extension if it is supported.
+The default file format is wav.
 
 .IP "\fB\-f\fR \fIfmt\fR, \fB\-\-format\fR \fIfmt\fR"
 Writes the output file in the format \fIfmt\fR. Run
@@ -72,6 +75,7 @@ Uses floating-point frames. Default is fixed-point.
 .IP "\fB\-\-frequency\fR \fIn\fR"
 Mixes \fIn\fR frames per second. As a result, the highest frequency in the
 sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
+Default value is 48000.
 
 .IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
 Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
