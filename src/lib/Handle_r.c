@@ -88,7 +88,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_r* handle_r = (Handle_r*)handle;
     int32_t length = Entries_get_length(handle_r->entries, key);
     if (length == 0)
@@ -116,7 +116,7 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_r* handle_r = (Handle_r*)handle;
     return Entries_get_length(handle_r->entries, key);
 }

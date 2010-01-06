@@ -102,12 +102,12 @@ bool Generator_pcm_has_subkey(const char* subkey)
     assert(subkey != NULL);
     ++subkey;
     int sub_index = -1;
-    if (parse_index_dir(subkey, "expr_", 1) >= 0)
+    if (parse_index_dir(subkey, "exp_", 1) >= 0)
     {
         const char* element = strchr(subkey, '/');
         assert(element != NULL);
         ++element;
-        if (parse_index_dir(element, "source_", 1) >= 0)
+        if (parse_index_dir(element, "src_", 1) >= 0)
         {
             element = strchr(element, '/');
             assert(element != NULL);
@@ -118,7 +118,7 @@ bool Generator_pcm_has_subkey(const char* subkey)
             }
         }
     }
-    else if ((sub_index = parse_index_dir(subkey, "sample_", 3)) >= 0 &&
+    else if ((sub_index = parse_index_dir(subkey, "smp_", 3)) >= 0 &&
             sub_index >= 0 && sub_index < PCM_SAMPLES_MAX)
     {
         const char* element = strchr(subkey, '/');
@@ -179,13 +179,13 @@ bool Generator_pcm_parse(Generator* gen,
     assert(subkey != NULL);
     ++subkey;
     int sub_index = -1;
-    if ((sub_index = parse_index_dir(subkey, "expr_", 1)) >= 0)
+    if ((sub_index = parse_index_dir(subkey, "exp_", 1)) >= 0)
     {
         const char* element = strchr(subkey, '/');
         assert(element != NULL);
         ++element;
         int source_index = -1;
-        if ((source_index = parse_index_dir(element, "source_", 1)) >= 0)
+        if ((source_index = parse_index_dir(element, "src_", 1)) >= 0)
         {
             element = strchr(element, '/');
             assert(element != NULL);
@@ -200,7 +200,7 @@ bool Generator_pcm_parse(Generator* gen,
             }
         }
     }
-    else if ((sub_index = parse_index_dir(subkey, "sample_", 3)) >= 0 &&
+    else if ((sub_index = parse_index_dir(subkey, "smp_", 3)) >= 0 &&
             sub_index >= 0 && sub_index < PCM_SAMPLES_MAX)
     {
         const char* element = strchr(subkey, '/');

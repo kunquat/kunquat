@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -39,6 +39,12 @@ extern "C" {
  * Maximum number of Kunquat Handles that can be open simultaneously.
  */
 #define KQT_HANDLES_MAX (256)
+
+
+/**
+ * Maximum length of a key inside a Kunquat composition.
+ */
+#define KQT_KEY_LENGTH_MAX (69)
 
 
 /**

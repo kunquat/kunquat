@@ -144,7 +144,7 @@ bool parse_data(kqt_Handle* handle,
 {
 //    fprintf(stderr, "parsing %s\n", key);
     assert(handle != NULL);
-    assert(key_is_valid(key));
+    check_key(handle, key);
     assert(data != NULL || length == 0);
     assert(length >= 0);
     if (length == 0)
@@ -189,13 +189,13 @@ bool parse_data(kqt_Handle* handle,
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
-    if (strncmp(key, "instrument_", first_len - 2) == 0 &&
+    if (strncmp(key, "ins_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
     }
-    else if (strncmp(key, "pattern_", first_len - 3) == 0 &&
+    else if (strncmp(key, "pat_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
     {
         success = parse_pattern_level(handle, key, second_element,
@@ -207,7 +207,7 @@ bool parse_data(kqt_Handle* handle,
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-    else if (strncmp(key, "subsong_", first_len - 2) == 0 &&
+    else if (strncmp(key, "subs_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
@@ -268,7 +268,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     assert(subkey != NULL);
     ++subkey;
     int gen_index = 0;
-    if ((gen_index = parse_index_dir(subkey, "generator_", 2)) >= 0)
+    if ((gen_index = parse_index_dir(subkey, "gen_", 2)) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
@@ -603,10 +603,10 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    bool global_column = strcmp(subkey, "global_column/p_global_events.json") == 0;
+    bool global_column = strcmp(subkey, "gcol/p_global_events.json") == 0;
     int col_index = 0;
     ++second_element;
-    if (((col_index = parse_index_dir(subkey, "voice_column_", 2)) >= 0
+    if (((col_index = parse_index_dir(subkey, "vcol_", 2)) >= 0
                     && strcmp(second_element, "p_voice_events.json") == 0)
                 || global_column)
     {

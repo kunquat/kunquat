@@ -462,7 +462,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     bool new_file_changed = false;
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)

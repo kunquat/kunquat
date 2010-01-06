@@ -172,30 +172,58 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 }
 
 
-bool key_is_valid(const char* key)
+bool key_is_valid(kqt_Handle* handle, const char* key)
 {
     assert(key != NULL);
+    if (strlen(key) > KQT_KEY_LENGTH_MAX)
+    {
+        kqt_Handle_set_error(handle, "%s: Key \"%s\" is too long"
+                " (over %d characters)", __func__, key, KQT_KEY_LENGTH_MAX);
+        return false;
+    }
     bool valid_element = false;
+    bool element_has_period = false;
     while (*key != '\0')
     {
         if (!(*key >= '0' && *key <= '9') &&
                 strchr("abcdefghijklmnopqrstuvwxyz_./X", *key) == NULL)
         {
+            kqt_Handle_set_error(handle, "%s: Key \"%s\" contains an"
+                    " illegal character \'%c\'", __func__, key, *key);
             return false;
         }
         if (*key != '.' && *key != '/')
         {
             valid_element = true;
         }
+        else if (*key == '.')
+        {
+            element_has_period = true;
+        }
         else if (*key == '/')
         {
             if (!valid_element)
             {
+                kqt_Handle_set_error(handle, "%s: Key \"%s\" contains an"
+                        " invalid component", __func__, key);
+                return false;
+            }
+            else if (element_has_period)
+            {
+                kqt_Handle_set_error(handle, "%s: Key \"%s\" has an intermediate"
+                        " component with a period", __func__, key);
                 return false;
             }
             valid_element = false;
+            element_has_period = false;
         }
         ++key;
+    }
+    if (!element_has_period)
+    {
+        kqt_Handle_set_error(handle, "%s: The final element of key \"%s\""
+                " does not have a period", __func__, key);
+        return false;
     }
     return true;
 }
