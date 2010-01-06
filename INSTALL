@@ -15,25 +15,29 @@ optional dependencies by running the following command:
 sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
 
 
-Building of Kunquat depends on the following tools and libraries:
+Building of Kunquat depends on the following tools and libraries (version
+numbers indicate tested versions -- older versions may or may not work):
 
-  scons (http://www.scons.org/)
-  libarchive (http://code.google.com/p/libarchive/)
-  libwavpack (http://www.wavpack.com/)
+  scons 1.2.0 (http://www.scons.org/)
+  libarchive 2.4.17 (http://code.google.com/p/libarchive/)
 
-In order to get sound you'll need one of the following:
+Normally, you also want Kunquat to support samples. For that, you'll need:
 
-  libao (http://www.xiph.org/ao/)
-  JACK (http://jackaudio.org/)
-  OpenAL (http://www.openal.org/)
+  libwavpack 4.50.1 (http://www.wavpack.com/)
+
+In order to get sound you'll need at least one of the following:
+
+  libao 0.8.8 (http://www.xiph.org/ao/)
+  JACK 0.116.1 (http://jackaudio.org/)
+  OpenAL 1.4.272 (http://www.openal.org/)
 
 If you want to build waveform audio export support, you'll need:
 
-  libsndfile (http://www.mega-nerd.com/libsndfile/)
+  libsndfile 1.0.20 (http://www.mega-nerd.com/libsndfile/)
 
 Additionally, if you want to build the test code, you'll need:
 
-  Check (http://check.sourceforge.net/)
+  Check 0.9.5 (http://check.sourceforge.net/)
    
 
     Building instructions
@@ -85,7 +89,8 @@ the uninstallation prefix like this:
     Running instructions
     --------------------
 
-To hear the example composition, run:
+To hear the example composition, run (in the same directory as this INSTALL
+file):
 
   kunquat-player examples/example.kqt.bz2
 
