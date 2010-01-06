@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2009 Tomi Jylhä-Ollila
+# Copyright 2010 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -28,13 +28,26 @@ env_demo = env.Clone()
 
 tar_cmd = 'tar cj --format=ustar -f ${TARGET.file} ${SOURCE.file}'
 
-env_demo.Command('example.kqt.bz2', 'kunquatc00', tar_cmd,
+files = [
+    'example.kqt.bz2',
+    'example_ins.kqti.bz2',
+    'example_scale.kqts.bz2',
+]
+
+env_demo.Command(files[0], 'kunquatc00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
-env_demo.Command('example_ins.kqti.bz2', 'kunquati00', tar_cmd,
+env_demo.Command(files[1], 'kunquati00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
-env_demo.Command('example_scale.kqts.bz2', 'kunquats00', tar_cmd,
+env_demo.Command(files[2], 'kunquats00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
+
+
+doc_kunquat_path = env_demo['prefix'] + '/share/doc/kunquat'
+examples_path = doc_kunquat_path + '/examples'
+
+installed = env_demo.InstallCreatePath(examples_path, files)
+env_demo.Clean(installed, [examples_path, doc_kunquat_path])
 
 
