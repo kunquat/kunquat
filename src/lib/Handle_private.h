@@ -113,6 +113,17 @@ void kqt_Handle_stop(kqt_Handle* handle);
 bool handle_is_valid(kqt_Handle* handle);
 
 
+/**
+ * Gets the number of mixing buffers in the Kunquat Handle.
+ *
+ * \param handle   The Handle -- must not be \c NULL.
+ *
+ * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
+ *           \c 1 indicates monophonic audio and \c 2 indicates stereo audio.
+ */
+int kqt_Handle_get_buffer_count(kqt_Handle* handle);
+
+
 #define check_handle(handle, ret)                                   \
     if (true)                                                       \
     {                                                               \

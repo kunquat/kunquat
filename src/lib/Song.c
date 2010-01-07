@@ -185,23 +185,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                 {
                     return false;
                 }
-                if (strcmp(key, "buf_count") == 0)
-                {
-                    int64_t buf_count = 0;
-                    str = read_int(str, &buf_count, state);
-                    if (state->error)
-                    {
-                        return false;
-                    }
-                    if (buf_count < 1 || buf_count > KQT_BUFFERS_MAX)
-                    {
-                        Read_state_set_error(state,
-                                 "Unsupported number of mixing buffers: %" PRId64,
-                                 buf_count);
-                        return false;
-                    }
-                }
-                else if (strcmp(key, "mix_vol") == 0)
+                if (strcmp(key, "mix_vol") == 0)
                 {
                     str = read_double(str, &mix_vol, state);
                     if (state->error)

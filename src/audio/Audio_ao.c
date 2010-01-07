@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -278,7 +278,6 @@ static int Audio_ao_process(Audio_ao* audio_ao)
     if (handle != NULL && !audio->pause)
     {
         mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
-        int buf_count = kqt_Handle_get_buffer_count(handle);
         kqt_frame* bufs[KQT_BUFFERS_MAX] = { 
             kqt_Handle_get_buffer(handle, 0),
             kqt_Handle_get_buffer(handle, 1)
@@ -286,14 +285,7 @@ static int Audio_ao_process(Audio_ao* audio_ao)
         for (uint32_t i = 0; i < mixed; ++i)
         {
             audio_ao->out_buf[i * 2] = (short)(bufs[0][i] * INT16_MAX);
-            if (buf_count > 1)
-            {
-                audio_ao->out_buf[(i * 2) + 1] = (short)(bufs[1][i] * INT16_MAX);
-            }
-            else
-            {
-                audio_ao->out_buf[(i * 2) + 1] = audio_ao->out_buf[i * 2];
-            }
+            audio_ao->out_buf[(i * 2) + 1] = (short)(bufs[1][i] * INT16_MAX);
         }
     }
     if (mixed < audio->nframes)

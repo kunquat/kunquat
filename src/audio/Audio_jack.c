@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -83,12 +83,11 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     if (handle != NULL && !audio->pause)
     {
         mixed = kqt_Handle_mix(handle, nframes, audio->freq);
-        int buf_count = kqt_Handle_get_buffer_count(handle);
         kqt_frame* bufs[KQT_BUFFERS_MAX] = {
             kqt_Handle_get_buffer(handle, 0),
             kqt_Handle_get_buffer(handle, 1)
         };
-        for (int i = 0; i < buf_count; ++i)
+        for (int i = 0; i < 2; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {

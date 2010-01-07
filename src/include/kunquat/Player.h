@@ -89,8 +89,7 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
  * \a index determines the channel.
  *
  * \param handle   The Handle -- should not be \c NULL.
- * \param index    The output channel number. In mono mode, this should
- *                 always be \c 0. In stereo mode, \c 0 is the left
+ * \param index    The output channel number. \c 0 is the left
  *                 mixing buffer and \c 1 is the right one.
  *
  * \return   The buffer, or \c NULL if \a handle == \c NULL or \a index
@@ -103,17 +102,6 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
  *           of buffers is changed.
  */
 kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
-
-
-/**
- * Gets the number of mixing buffers in the Kunquat Handle.
- *
- * \param handle   The Handle -- should not be \c NULL.
- *
- * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
- *           \c 1 indicates monophonic audio and \c 2 indicates stereo audio.
- */
-int kqt_Handle_get_buffer_count(kqt_Handle* handle);
 
 
 /**

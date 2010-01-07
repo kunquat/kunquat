@@ -2,6 +2,7 @@
 
 /*
  * Copyright 2009 Heikki Aitakangas, Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -270,24 +271,15 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     if (handle != NULL && !audio->pause)
     {
         mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
-        int buf_count = kqt_Handle_get_buffer_count(handle);
         kqt_frame* bufs[KQT_BUFFERS_MAX] = {
             kqt_Handle_get_buffer(handle, 0),
             kqt_Handle_get_buffer(handle, 1)
         };
-        
         // Convert to interleaved 16-bit stereo
         for (uint32_t i = 0; i < audio->nframes; ++i)
         {
             audio_openal->out_buf[i * 2] = (int16_t)(bufs[0][i] * INT16_MAX);
-            if (buf_count > 1)
-            {
-                audio_openal->out_buf[(i * 2) + 1] = (int16_t)(bufs[1][i] * INT16_MAX);
-            }
-            else
-            {
-                audio_openal->out_buf[(i * 2) + 1] = audio_openal->out_buf[i * 2];
-            }
+            audio_openal->out_buf[(i * 2) + 1] = (int16_t)(bufs[1][i] * INT16_MAX);
         }
     }
     for (uint32_t i = mixed * 2; i < audio->nframes * 2; ++i)
