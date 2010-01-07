@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Copyright 2009 Tomi Jylhä-Ollila
+# Copyright 2010 Tomi Jylhä-Ollila
 #
 # This file is part of Kunquat.
 #
@@ -38,8 +38,6 @@ if env['enable_player']:
 
 if env['enable_export']:
     SConscript('export/SConscript')
-
-#SConscript('editor/SConscript')
 
 #print 'src: ' + env.Dump('LIBS')
 
