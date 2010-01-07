@@ -34,9 +34,20 @@
 #include <Voice_pool.h>
 
 
-#define KQT_CONTEXT_ERROR_LENGTH (256)
+#define KQT_HANDLE_ERROR_LENGTH (256)
 
 #define POSITION_LENGTH (64)
+
+
+typedef enum
+{
+    ERROR_NONE = 0,
+    ERROR_ARGUMENT, // libkunquat function called with an invalid argument
+    ERROR_FORMAT,   // input file structure error
+    ERROR_MEMORY,   // out of memory
+    ERROR_RESOURCE, // resource (external lib or fs) failure
+    ERROR_LAST      // sentinel value
+} Error_type;
 
 
 struct kqt_Handle
@@ -46,7 +57,7 @@ struct kqt_Handle
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
     void (*destroy)(struct kqt_Handle* handle);
-    char error[KQT_CONTEXT_ERROR_LENGTH];
+    char error[KQT_HANDLE_ERROR_LENGTH];
     char position[POSITION_LENGTH];
 };
 
@@ -66,12 +77,21 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
 /**
  * Sets an error message for a Kunquat Handle.
  *
+ * The caller should always use the macro version.
+ *
  * \param handle    The Kunquat Handle, or \c NULL if not applicable.
+ * \param type      The error type -- must be > \c ERROR_NONE and
+ *                  < \c ERROR_LAST.
  * \param message   The error message format -- must not be \c NULL. This and
  *                  the extra arguments correspond to the arguments of the
  *                  printf family of functions.
  */
-void kqt_Handle_set_error(kqt_Handle* handle, const char* message, ...);
+#define kqt_Handle_set_error(handle, type, ...) \
+    (kqt_Handle_set_error_((handle), (type), __func__, __VA_ARGS__))
+void kqt_Handle_set_error_(kqt_Handle* handle,
+                           Error_type type,
+                           const char* func,
+                           const char* message, ...);
 
 
 /**
@@ -93,47 +113,41 @@ void kqt_Handle_stop(kqt_Handle* handle);
 bool handle_is_valid(kqt_Handle* handle);
 
 
-#define check_handle(handle, ret)                                        \
-    if (true)                                                            \
-    {                                                                    \
-        if (!handle_is_valid((handle)))                                  \
-        {                                                                \
-            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
-                    __func__, (void*)handle);                            \
-            return (ret);                                                \
-        }                                                                \
+#define check_handle(handle, ret)                                   \
+    if (true)                                                       \
+    {                                                               \
+        if (!handle_is_valid((handle)))                             \
+        {                                                           \
+            kqt_Handle_set_error(NULL, ERROR_ARGUMENT,              \
+                    "Invalid Kunquat Handle: %p", (void*)(handle)); \
+            return (ret);                                           \
+        }                                                           \
     } else (void)0
 
-#define check_handle_void(handle)                                        \
-    if (true)                                                            \
-    {                                                                    \
-        if (!handle_is_valid((handle)))                                  \
-        {                                                                \
-            kqt_Handle_set_error(NULL, "%s: Invalid Kunquat Handle: %p", \
-                    __func__, (void*)handle);                            \
-            return;                                                      \
-        }                                                                \
+#define check_handle_void(handle)                                   \
+    if (true)                                                       \
+    {                                                               \
+        if (!handle_is_valid((handle)))                             \
+        {                                                           \
+            kqt_Handle_set_error(NULL, ERROR_ARGUMENT,              \
+                    "Invalid Kunquat Handle: %p", (void*)(handle)); \
+            return;                                                 \
+        }                                                           \
     } else (void)0
 
 
 bool key_is_valid(kqt_Handle* handle, const char* key);
 
 
-#define check_key(handle, key)                                          \
-    if (true)                                                           \
-    {                                                                   \
-        assert(handle != NULL);                                         \
-        if (key == NULL)                                                \
-        {                                                               \
-            kqt_Handle_set_error(handle, "%s: key must not be NULL",    \
-                    __func__);                                          \
-            return false;                                               \
-        }                                                               \
-        if (!key_is_valid(handle, key))                                 \
-        {                                                               \
-            return false;                                               \
-        }                                                               \
-    }                                                                   \
+#define check_key(handle, key, ret)         \
+    if (true)                               \
+    {                                       \
+        assert((handle) != NULL);           \
+        if (!key_is_valid((handle), (key))) \
+        {                                   \
+            return (ret);                   \
+        }                                   \
+    }                                       \
     else (void)0
 
 

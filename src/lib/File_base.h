@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -85,7 +85,7 @@ typedef struct Write_state
  *
  * \return   The parameter \a state.
  */
-Read_state* Read_state_init(Read_state* state, char* path);
+Read_state* Read_state_init(Read_state* state, const char* path);
 
 
 /**

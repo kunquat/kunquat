@@ -25,6 +25,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <Directory.h>
 #include <Handle_rw.h>
@@ -55,20 +56,22 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
         const char* other_header = "kunquati" KQT_FORMAT_VERSION;
         if (string_has_suffix(abs_path, other_header))
         {
-            kqt_Handle_set_error(&handle_rw->handle, "%s: Cannot open Kunquat"
-                    " instruments as compositions", __func__);
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "The path %s appears to be a Kunquat instrument,"
+                    " not composition", path);
         }
         else if (other_header = "kunquats" KQT_FORMAT_VERSION,
                 string_has_suffix(abs_path, other_header))
         {
-            kqt_Handle_set_error(&handle_rw->handle, "%s: Cannot open Kunquat"
-                    " scales as compositions", __func__);
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "The path %s appears to be a Kunquat scale,"
+                    " not composition", path);
         }
         else
         {
-            kqt_Handle_set_error(&handle_rw->handle, "%s: Base path %s does not contain"
-                    " the header \"kunquatc" KQT_FORMAT_VERSION "\" as a final component",
-                    __func__, abs_path);
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT, "The base"
+                    " path %s does not contain the header \"kunquatc"
+                    KQT_FORMAT_VERSION "\" as a final component", abs_path);
         }
         xfree(abs_path);
         return false;
@@ -110,8 +113,8 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
         }
         else if (info == PATH_IS_OTHER)
         {
-            kqt_Handle_set_error(&handle_rw->handle, "%s: Path %s is"
-                    " a foreign type of file", __func__, entry);
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "Path %s is a foreign type of file", entry);
             xfree(entry);
             return false;
         }
@@ -144,16 +147,18 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
             char* data = xnalloc(char, length);
             if (data == NULL)
             {
-                kqt_Handle_set_error(&handle_rw->handle,
-                        "%s: Couldn't allocate memory", __func__);
+                kqt_Handle_set_error(&handle_rw->handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 xfree(entry);
                 return false;
             }
+            errno = 0;
             FILE* in = fopen(entry, "rb");
             if (in == NULL)
             {
-                kqt_Handle_set_error(&handle_rw->handle,
-                        "%s: Couldnt' open file %s for reading", __func__, entry);
+                kqt_Handle_set_error(&handle_rw->handle, ERROR_RESOURCE,
+                        "Couldn't open file %s for reading: %s",
+                        entry, strerror(errno));
                 xfree(entry);
                 xfree(data);
                 return false;
@@ -167,8 +172,8 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
                 location += read;
                 if (read < 1024 && pos < length)
                 {
-                    kqt_Handle_set_error(&handle_rw->handle, "%s: Couldn't read"
-                            " data from %s", __func__, entry);
+                    kqt_Handle_set_error(&handle_rw->handle, ERROR_RESOURCE,
+                            "Couldn't read data from %s", entry);
                     fclose(in);
                     xfree(entry);
                     xfree(data);

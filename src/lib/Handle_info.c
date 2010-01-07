@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -33,16 +33,11 @@
 
 int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)
 {
-    if (!handle_is_valid(handle))
-    {
-        kqt_Handle_set_error(NULL,
-                "kqt_Handle_get_subsong_length: Invalid Kunquat Handle: %p", (void*)handle);
-        return -1;
-    }
+    check_handle(handle, -1);
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_get_subsong_length: Invalid subsong number: %d", subsong);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid subsong number: %d", subsong);
         return -1;
     }
     assert(handle->song != NULL);

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -41,7 +41,7 @@
 #include <xmemory.h>
 
 
-Read_state* Read_state_init(Read_state* state, char* path)
+Read_state* Read_state_init(Read_state* state, const char* path)
 {
     assert(state != NULL);
     assert(path != NULL);
@@ -77,6 +77,7 @@ void Read_state_clear_error(Read_state* state)
 }
 
 
+#if 0
 #define return_null_if(cond, handle, msg)                              \
     if (true)                                                          \
     {                                                                  \
@@ -127,6 +128,7 @@ char* read_file(FILE* in, long* size, kqt_Handle* handle)
 }
 
 #undef return_null_if
+#endif
 
 
 char* skip_line(char* str, Read_state* state)

@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -148,8 +148,8 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
     long long nanoseconds = 0;
     if (!kqt_unwrap_time(str, &subsong, &section, &beats, &remainder, &nanoseconds))
     {
-        kqt_Handle_set_error(handle, "%s: Invalid position indication: %s",
-                __func__, position);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid position indication: %s", position);
         return false;
     }
     

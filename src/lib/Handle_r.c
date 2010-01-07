@@ -43,26 +43,26 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
-        kqt_Handle_set_error(NULL, "%s: buffer_size must be positive",
-                __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
+                "Buffer size must be positive");
         return NULL;
     }
     if (path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: path must not be NULL", __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT, "No input path given");
         return NULL;
     }
     Handle_r* handle_r = xalloc(Handle_r);
     if (handle_r == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         return NULL;
     }
     handle_r->handle.mode = KQT_READ;
     handle_r->entries = new_Entries();
     if (handle_r->entries == NULL)
     {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
@@ -100,8 +100,8 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
     char* new_data = xcalloc(char, length);
     if (new_data == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return NULL;
     }
     if (data != NULL)

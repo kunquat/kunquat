@@ -1,7 +1,7 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Copyright 2010 Tomi Jylhä-Ollila
  *
  * This file is part of Kunquat.
  *
@@ -46,7 +46,7 @@ extern "C" {
  * operate the Handle in order to play and/or modify the composition, and
  * finally release the allocated resources by destroying the Handle.
  *
- * An API for simple playback functionality is located in \c Player.h.
+ * The header \c Player.h contains an API for simple playback functionality.
  */
 
 
@@ -169,7 +169,17 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 
 
 /**
- * Gets error information from the Kunquat Handle.
+ * Gets an error message from the Kunquat Handle.
+ *
+ * An error message consists of an error code followed by a colon and an
+ * error description. Possible error codes are:
+ *
+ * \li ArgumentError -- a Kunquat function was called with an inappropriate
+ *                      argument value.
+ * \li FormatError   -- an input file or value to be stored was invalid.
+ * \li MemoryError   -- memory allocation failed.
+ * \li ResourceError -- libkunquat couldn't get service from an external
+ *                      resource.
  *
  * kqt_Handle_get_error(\a handle) returns a message describing the last
  * error occurred when processing \a handle.
