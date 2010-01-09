@@ -1,7 +1,7 @@
 #!/bin/sh
 
 
-VERSION=0.2.3
+VERSION=0.2.4
 RELEASE=kunquat-$VERSION
 
 
