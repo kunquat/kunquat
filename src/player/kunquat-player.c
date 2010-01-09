@@ -56,6 +56,9 @@
 
 static char* driver_names[] =
 {
+#if defined(WITH_PULSE)
+    "pulse",
+#endif
 #if defined(WITH_AO)
     "ao",
 #endif
@@ -348,6 +351,10 @@ int main(int argc, char** argv)
         fprintf(stderr, "%s: %s.\n", Audio_get_name(audio), Audio_get_error(audio));
         del_Audio(audio);
         exit(EXIT_FAILURE);
+    }
+    if (interactive)
+    {
+        fprintf(stderr, "Audio driver: %s\n", driver_selection);
     }
     
     if (interactive && !set_terminal(true, true))

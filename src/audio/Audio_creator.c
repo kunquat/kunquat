@@ -27,6 +27,9 @@
 #include <Audio.h>
 #include <Audio_null.h>
 
+#ifdef WITH_PULSE
+#include <Audio_pulse.h>
+#endif
 #ifdef WITH_AO
 #include <Audio_ao.h>
 #endif
@@ -47,6 +50,9 @@ typedef struct Driver_info
 
 static Driver_info drivers[] =
 {
+#ifdef WITH_PULSE
+    { "pulse", new_Audio_pulse },
+#endif
 #ifdef WITH_AO
     { "ao", new_Audio_ao },
 #endif

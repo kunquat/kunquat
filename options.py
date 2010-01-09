@@ -31,6 +31,9 @@ optimise = 2
 # Build WavPack support (recommended).
 with_wavpack = True
 
+# Build PulseAudio support.
+with_pulse = True
+
 # Build libao support.
 with_ao = True
 

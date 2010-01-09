@@ -39,6 +39,7 @@ opts.AddVariables(
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', True),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
+    BoolVariable('with_pulse', 'Build PulseAudio support.', True),
     BoolVariable('with_jack', 'Build JACK support.', True),
     BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
@@ -155,6 +156,15 @@ if not env.GetOption('clean') and not env.GetOption('help'):
         if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
             conf_errors.append('kunquat-player was requested' +
                                ' but libpthread was not found.')
+
+    if env['with_pulse']:
+        if conf.CheckLibWithHeader('pulse-simple', 'pulse/simple.h', 'C'):
+            audio_found = True
+            conf.env.Append(CCFLAGS = '-DWITH_PULSE')
+        else:
+            print('Warning: PulseAudio support was requested' +
+                  ' but PulseAudio was not found.')
+            env['with_pulse'] = False
 
     if env['with_jack']:
         if conf.CheckLibWithHeader('jack', 'jack/jack.h', 'C'):

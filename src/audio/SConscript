@@ -32,6 +32,8 @@ files = [
     'Mix_state.c',
 ]
 
+if env_a['with_pulse']:
+    files += ['Audio_pulse.c']
 if env_a['with_jack']:
     files += ['Audio_jack.c']
 if env_a['with_ao']:
