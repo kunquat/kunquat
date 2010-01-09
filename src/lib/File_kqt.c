@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -39,16 +32,16 @@
 #include <xmemory.h>
 
 
-#define fail_if(cond, reader, handle)                          \
-    if (true)                                                  \
-    {                                                          \
-        if ((cond))                                            \
-        {                                                      \
-            kqt_Handle_set_error((handle), "%s: %s", __func__, \
-                    archive_error_string((reader)));           \
-            archive_read_finish((reader));                     \
-            return false;                                      \
-        }                                                      \
+#define fail_if(cond, reader, handle)                            \
+    if (true)                                                    \
+    {                                                            \
+        if ((cond))                                              \
+        {                                                        \
+            kqt_Handle_set_error((handle), ERROR_RESOURCE, "%s", \
+                    archive_error_string((reader)));             \
+            archive_read_finish((reader));                       \
+            return false;                                        \
+        }                                                        \
     } else (void)0
 
 bool File_kqt_open(Handle_r* handle_r, const char* path)
@@ -59,8 +52,8 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
     struct archive* reader = archive_read_new();
     if (reader == NULL)
     {
-        kqt_Handle_set_error(&handle_r->handle,
-                "%s: Couldn't allocate memory", __func__);
+        kqt_Handle_set_error(&handle_r->handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return false;
     }
     int err = ARCHIVE_FATAL;
@@ -81,8 +74,8 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
         assert(entry != NULL);
         if (archive_format(reader) != ARCHIVE_FORMAT_TAR_USTAR)
         {
-            kqt_Handle_set_error(&handle_r->handle, "%s: The .kqt file %s has"
-                    " an incorrect archive format (should be ustar)", __func__, path);
+            kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT, "The file %s"
+                    " has an incorrect archive format (should be ustar)", path);
             archive_read_finish(reader);
             return false;
         }
@@ -92,8 +85,26 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
                 (entry_path[strlen(header)] != '/' &&
                 entry_path[strlen(header)] != '\0'))
         {
-            kqt_Handle_set_error(&handle_r->handle, "%s: The .kqt file %s contains"
-                    " an invalid data entry: %s", __func__, path, entry_path);
+            const char* other_header = "kunquati";
+            if (parse_index_dir(entry_path, other_header, 2) >= 0)
+            {
+                kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT,
+                        "The file %s appears to be a Kunquat instrument,"
+                        " not composition", path);
+            }
+            else if (other_header = "kunquats",
+                    parse_index_dir(entry_path, other_header, 2) >= 0)
+            {
+                kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT,
+                        "The file %s appears to be a Kunquat scale,"
+                        " not composition", path);
+            }
+            else
+            {
+                kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT,
+                        "The file %s contains an invalid data entry: %s",
+                        path, entry_path);
+            }
             archive_read_finish(reader);
             return false;
         }
@@ -105,8 +116,8 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
             char* data = xnalloc(char, length);
             if (data == NULL)
             {
-                kqt_Handle_set_error(&handle_r->handle,
-                        "%s: Couldn't allocate memory", __func__);
+                kqt_Handle_set_error(&handle_r->handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 archive_read_finish(reader);
                 return false;
             }
@@ -120,8 +131,9 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
                 location += read;
                 if (read < 1024 && pos < length)
                 {
-                    kqt_Handle_set_error(&handle_r->handle, ":%s: Couldn't read"
-                            " data from %s:%s", __func__, path, entry_path);
+                    kqt_Handle_set_error(&handle_r->handle, ERROR_RESOURCE,
+                            "Couldn't read data from file %s, entry %s",
+                            path, entry_path);
                     xfree(data);
                     return false;
                 }
@@ -134,8 +146,8 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
             }
             if (!Entries_set(handle_r->entries, key, data, length))
             {
-                kqt_Handle_set_error(&handle_r->handle,
-                        "%s: Couldn't allocate memory", __func__);
+                kqt_Handle_set_error(&handle_r->handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 archive_read_finish(reader);
                 xfree(data);
                 return false;
@@ -143,7 +155,14 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
         }
         err = archive_read_next_header(reader, &entry);
     }
-    fail_if(err < ARCHIVE_OK, reader, &handle_r->handle);
+    if (err < ARCHIVE_OK)
+    {
+        kqt_Handle_set_error(&handle_r->handle, ERROR_RESOURCE,
+                "Couldn't open the file %s as a Kunquat file: %s",
+                path, archive_error_string(reader));
+        archive_read_finish(reader);
+        return false;
+    }
     archive_read_finish(reader);
     return true;
 }

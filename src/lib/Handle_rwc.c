@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -107,13 +100,13 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
-        kqt_Handle_set_error(NULL, "%s: buffer_size must be positive",
-                __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
+                "Buffer size must be positive");
         return NULL;
     }
     if (path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: path must not be NULL", __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT, "No input path given");
         return NULL;
     }
 
@@ -124,14 +117,13 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     }
     else if (info == PATH_NO_ENTRY)
     {
-        kqt_Handle_set_error(NULL, "%s: Path %s doesn't exist",
-                __func__, path);
+        kqt_Handle_set_error(NULL, ERROR_FORMAT, "Path %s does not exist", path);
         return NULL;
     }
     else if (info != PATH_IS_DIR)
     {
-        kqt_Handle_set_error(NULL, "%s: Path %s is not a directory",
-                __func__, path);
+        kqt_Handle_set_error(NULL, ERROR_FORMAT,
+                "Path %s is not a directory", path);
         return NULL;
     }
 
@@ -147,8 +139,8 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
             || (!has_committed && has_workspace && !has_oldcommit)
             || (!has_committed && !has_workspace && has_oldcommit))
     {
-        kqt_Handle_set_error(NULL, "%s: %s is in an inconsistent state",
-                __func__, path);
+        kqt_Handle_set_error(NULL, ERROR_FORMAT, "Project directory %s is"
+                " in an inconsistent state", path);
         return NULL;
     }
     else if ((has_committed && has_workspace && !has_oldcommit)
@@ -166,8 +158,8 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         char* committed_path = append_to_path(path, "committed");
         if (committed_path == NULL)
         {
-            kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return NULL;
         }
         if (!create_dir(committed_path, NULL))
@@ -176,12 +168,12 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
             return NULL;
         }
         char* dir_root_path = append_to_path(committed_path,
-                "kunquatc" KQT_FORMAT_VERSION);
+                MAGIC_ID "c" KQT_FORMAT_VERSION);
         xfree(committed_path);
         if (dir_root_path == NULL)
         {
-            kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return NULL;
         }
         bool created = create_dir(dir_root_path, NULL);
@@ -198,13 +190,13 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     char* committed_path = append_to_path(path, "committed");
     if (committed_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         return NULL;
     }
     char* workspace_path = append_to_path(path, "workspace");
     if (workspace_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         xfree(committed_path);
         return NULL;
     }
@@ -225,8 +217,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     Handle_rwc* handle_rwc = xalloc(Handle_rwc);
     if (handle_rwc == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         xfree(abs_workspace);
         return NULL;
     }
@@ -236,16 +227,14 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
     xfree(abs_workspace);
     if (handle_rwc->handle_rw.base_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
     handle_rwc->changed_files = new_AAtree((int (*)(const void*, const void*))strcmp, free);
     if (handle_rwc->changed_files == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
     }
@@ -274,8 +263,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
     check_handle(handle, 0);
     if (handle->mode != KQT_READ_WRITE_COMMIT)
     {
-        kqt_Handle_set_error(handle, "%s: Cannot commit changes in a"
-                " non-commit Kunquat Handle", __func__);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Cannot commit changes"
+                " in a non-commit Kunquat Handle");
         return 0;
     }
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
@@ -286,15 +275,13 @@ int kqt_Handle_commit(kqt_Handle* handle)
     char* const committed_path = xcalloc(char, path_len + 1);
     if (committed_path == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY, "Couldn't allocate memory");
         return 0;
     }
     char* const oldcommit_path = xcalloc(char, path_len + 1);
     if (oldcommit_path == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY, "Couldn't allocate memory");
         xfree(committed_path);
         return 0;
     }
@@ -337,8 +324,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
                 target_key);
         if (target_in_committed == NULL || target_in_workspace == NULL)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             if (pending_removal != NULL) del_AAtree(pending_removal);
             xfree(target_in_committed);
             xfree(target_in_workspace);
@@ -373,8 +360,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
                         (int (*)(const void*, const void*))strcmp, free);
                 if (pending_removal == NULL)
                 {
-                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                            __func__);
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
                     xfree(target_in_committed);
                     xfree(target_in_workspace);
                     return 0;
@@ -382,8 +369,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
             }
             if (!AAtree_ins(pending_removal, target_in_workspace))
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 del_AAtree(pending_removal);
                 xfree(target_in_committed);
                 xfree(target_in_workspace);
@@ -415,8 +402,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
         }
         else
         {
-            kqt_Handle_set_error(handle, "%s: File %s has a foreign type",
-                    __func__, target_in_committed);
+            kqt_Handle_set_error(handle, ERROR_FORMAT,
+                    "File %s has a foreign type", target_in_committed);
             if (pending_removal != NULL) del_AAtree(pending_removal);
             xfree(target_in_committed);
             xfree(target_in_workspace);
@@ -438,8 +425,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
             errno = 0;
             if (remove(target_file) != 0)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't remove %s: %s",
-                        __func__, target_file, strerror(errno));
+                kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't remove"
+                        " %s: %s", target_file, strerror(errno));
                 del_AAtree(pending_removal);
                 return 0;
             }
@@ -462,7 +449,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
 {
     assert(handle != NULL);
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
     bool new_file_changed = false;
     if (AAtree_get_exact(handle_rwc->changed_files, key) == NULL)
@@ -471,15 +458,15 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
         char* key_copy = xcalloc(char, strlen(key) + 1);
         if (key_copy == NULL)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't log changes"
-                    " to the key %s", __func__, key);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't log changes to the key %s", key);
             return 0;
         }
         strcpy(key_copy, key);
         if (!AAtree_ins(handle_rwc->changed_files, key_copy))
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't log changes"
-                    " to the key %s", __func__, key);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't log changes to the key %s", key);
             xfree(key_copy);
             return 1;
         }
@@ -528,8 +515,8 @@ static bool partial_recovery(const char* path)
         char* workspace_path = append_to_path(path, "workspace");
         if (workspace_path == NULL)
         {
-            kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
         bool removed = remove_dir(workspace_path, NULL);
@@ -541,8 +528,8 @@ static bool partial_recovery(const char* path)
         char* oldcommit_path = append_to_path(path, "oldcommit");
         if (oldcommit_path == NULL)
         {
-            kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
         bool removed = remove_dir(oldcommit_path, NULL);
@@ -554,13 +541,15 @@ static bool partial_recovery(const char* path)
     char* workspace_path = append_to_path(path, "workspace");
     if (workspace_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return false;
     }
     char* committed_path = append_to_path(path, "committed");
     if (committed_path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY,
+                "Couldn't allocate memory");
         xfree(workspace_path);
         return false;
     }
@@ -620,8 +609,8 @@ static bool inspect_dirs(const char* path,
             }
             if (type != PATH_IS_DIR)
             {
-                kqt_Handle_set_error(NULL, "%s: File %s exists inside %s"
-                        " but is not a directory", __func__, entry, path);
+                kqt_Handle_set_error(NULL, ERROR_FORMAT, "File %s exists"
+                        " inside %s but is not a directory", entry, path);
                 xfree(entry);
                 del_Directory(dir);
                 return false;

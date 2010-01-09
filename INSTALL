@@ -9,37 +9,36 @@ useful.
     Dependencies
     ------------
 
-Building of Kunquat depends on the following tools and libraries:
-
-  scons (http://www.scons.org/)
-  libarchive (http://code.google.com/p/libarchive/)
-  libwavpack (http://www.wavpack.com/)
-
-In order to get sound you'll need one of the following:
-
-  JACK (http://jackaudio.org/)
-  libao (http://www.xiph.org/ao/)
-  OpenAL (http://www.openal.org/)
-
-If you want to build waveform audio export support, you'll need:
-
-  libsndfile (http://www.mega-nerd.com/libsndfile/)
-
-Additionally, if you want to build the test code, you'll need:
-
-  Check (http://check.sourceforge.net/)
-   
-
-    Installing the Dependencies
-    ---------------------------
-
-Ubuntu:
-
 On a relatively new Ubuntu you should be able to get all the required and
 optional dependencies by running the following command:
 
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpulse-dev libjack-dev jackd libasound2-dev check libopenal-dev libalut-dev libsndfile1-dev
 
+
+Building of Kunquat depends on the following tools and libraries (version
+numbers indicate tested versions -- older versions may or may not work):
+
+  scons 1.2.0 (http://www.scons.org/)
+  libarchive 2.4.17 (http://code.google.com/p/libarchive/)
+
+Normally, you also want Kunquat to support samples. For that, you'll need:
+
+  libwavpack 4.50.1 (http://www.wavpack.com/)
+
+In order to get sound you'll need at least one of the following:
+
+  PulseAudio 0.9.19 (http://pulseaudio.org/)
+  JACK 0.116.1 (http://jackaudio.org/)
+  OpenAL 1.4.272 (http://www.openal.org/)
+
+If you want to build waveform audio export support, you'll need:
+
+  libsndfile 1.0.20 (http://www.mega-nerd.com/libsndfile/)
+
+Additionally, if you want to build the test code, you'll need:
+
+  Check 0.9.5 (http://check.sourceforge.net/)
+   
 
     Building instructions
     ---------------------
@@ -67,7 +66,8 @@ thorough clean, run:
     Installation instructions
     -------------------------
 
-To install Kunquat into the default directory, run:
+Make sure you have the required permissions for installing Kunquat into the
+directory of your choice. To install Kunquat into the default directory, run:
 
   scons install
 
@@ -80,19 +80,32 @@ To uninstall Kunquat, run:
 
   scons -c install
 
-Make sure you use the same prefix as during the installation. Otherwise the
-files will not be removed.
+Make sure you use the same prefix as during the installation. You can specify
+the uninstallation prefix like this:
+
+  scons prefix=/opt -c install
 
 
     Running instructions
     --------------------
 
-To hear the example composition, run:
+To hear the example composition, run (in the same directory as this INSTALL
+file):
 
   kunquat-player examples/example.kqt.bz2
 
 To get more details on how to use kunquat-player, run:
 
   kunquat-player -h
+
+
+You can convert the example composition into a .wav file by running:
+
+  kunquat-export examples/example.kqt.bz2
+
+This will create a file called examples/example.wav. To get more information,
+run:
+
+  kunquat-export -h
 
 

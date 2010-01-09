@@ -13,9 +13,9 @@ enable_libkunquat = True
 enable_libkunquat_dev = True
 
 # Build and run libkunquat tests.
-enable_tests = True
+enable_tests = False
 
-# Enable kunquat-player.
+# Enable kunquat-player (requires libpthread).
 enable_player = True
 
 # Enable kunquat-export (requires libsndfile).
@@ -28,8 +28,11 @@ enable_examples = True
 # Optimisation level (0..3).
 optimise = 2
 
-# Build libao support.
-with_ao = True
+# Build WavPack support (recommended).
+with_wavpack = True
+
+# Build PulseAudio support.
+with_pulse = True
 
 # Build JACK support.
 with_jack = True

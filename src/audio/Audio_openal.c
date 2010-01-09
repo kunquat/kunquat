@@ -1,22 +1,16 @@
 
 
 /*
- * Copyright 2009 Heikki Aitakangas, Tomi Jylhä-Ollila
+ * Authors: Heikki Aitakangas, Finland, 2009
+ *          Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -270,24 +264,15 @@ static void Audio_openal_mix_buffer(Audio_openal* audio_openal, ALuint buffer)
     if (handle != NULL && !audio->pause)
     {
         mixed = kqt_Handle_mix(handle, audio->nframes, audio->freq);
-        int buf_count = kqt_Handle_get_buffer_count(handle);
         kqt_frame* bufs[KQT_BUFFERS_MAX] = {
             kqt_Handle_get_buffer(handle, 0),
             kqt_Handle_get_buffer(handle, 1)
         };
-        
         // Convert to interleaved 16-bit stereo
         for (uint32_t i = 0; i < audio->nframes; ++i)
         {
             audio_openal->out_buf[i * 2] = (int16_t)(bufs[0][i] * INT16_MAX);
-            if (buf_count > 1)
-            {
-                audio_openal->out_buf[(i * 2) + 1] = (int16_t)(bufs[1][i] * INT16_MAX);
-            }
-            else
-            {
-                audio_openal->out_buf[(i * 2) + 1] = audio_openal->out_buf[i * 2];
-            }
+            audio_openal->out_buf[(i * 2) + 1] = (int16_t)(bufs[1][i] * INT16_MAX);
         }
     }
     for (uint32_t i = mixed * 2; i < audio->nframes * 2; ++i)

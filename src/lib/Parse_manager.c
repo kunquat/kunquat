@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -85,6 +78,10 @@ static bool is_index_digit(char ch);
 static int parse_index(const char* str);
 
 
+#define set_parse_error(handle, state) \
+    (kqt_Handle_set_error((handle), ERROR_FORMAT, "Parse error in" \
+            " %s:%d: %s", (state)->path, (state)->row, (state)->message))
+
 
 static bool is_index_digit(char ch)
 {
@@ -144,7 +141,7 @@ bool parse_data(kqt_Handle* handle,
 {
 //    fprintf(stderr, "parsing %s\n", key);
     assert(handle != NULL);
-    assert(key_is_valid(key));
+    check_key(handle, key, false);
     assert(data != NULL || length == 0);
     assert(length >= 0);
     if (length == 0)
@@ -172,8 +169,8 @@ bool parse_data(kqt_Handle* handle,
         json = xcalloc(char, length + 1);
         if (json == NULL)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
         strncpy(json, data, length);
@@ -189,13 +186,13 @@ bool parse_data(kqt_Handle* handle,
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
-    if (strncmp(key, "instrument_", first_len - 2) == 0 &&
+    if (strncmp(key, "ins_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
     }
-    else if (strncmp(key, "pattern_", first_len - 3) == 0 &&
+    else if (strncmp(key, "pat_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
     {
         success = parse_pattern_level(handle, key, second_element,
@@ -207,7 +204,7 @@ bool parse_data(kqt_Handle* handle,
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-    else if (strncmp(key, "subsong_", first_len - 2) == 0 &&
+    else if (strncmp(key, "subs_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
@@ -230,11 +227,10 @@ static bool parse_song_level(kqt_Handle* handle,
     assert(length >= 0);
     if (strcmp(key, "p_composition.json") == 0)
     {
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Song_parse_composition(handle->song, data, state))
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             return false;
         }
     }
@@ -249,7 +245,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                    long length,
                                    int index)
 {
- //   fprintf(stderr, "instrument level: %s\n", key);
+//    fprintf(stderr, "instrument level: %s\n", key);
     assert(handle_is_valid(handle));
     assert(key != NULL);
     assert(subkey != NULL);
@@ -259,8 +255,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strncmp(subkey, "kunquatiXX/", 11) != 0 &&
-            strncmp(subkey, "kunquati" KQT_FORMAT_VERSION "/", 11) != 0)
+    if (strncmp(subkey, MAGIC_ID "iXX/", 11) != 0 &&
+            strncmp(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/", 11) != 0)
     {
         return true;
     }
@@ -268,7 +264,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     assert(subkey != NULL);
     ++subkey;
     int gen_index = 0;
-    if ((gen_index = parse_index_dir(subkey, "generator_", 2)) >= 0)
+    if ((gen_index = parse_index_dir(subkey, "gen_", 2)) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
@@ -293,16 +289,15 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                  32); // TODO: make configurable
             if (ins == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 return false;
             }
         }
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Instrument_parse_header(ins, data, state))
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             if (new_ins)
             {
                 del_Instrument(ins);
@@ -311,8 +306,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             del_Instrument(ins);
             return false;
         }
@@ -345,23 +340,22 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                      32); // TODO: make configurable
                 if (ins == NULL)
                 {
-                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                            __func__);
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
                     return false;
                 }
             }
-            Read_state* state = READ_STATE_AUTO;
+            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             if (!parse[i].read(Instrument_get_params(ins), data, state))
             {
                 if (!state->error)
                 {
-                    kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                            __func__);
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
                 }
                 else
                 {
-                    kqt_Handle_set_error(handle, "%s: Error in parsing"
-                            " %s: %s", __func__, key, state->message);
+                    set_parse_error(handle, state);
                 }
                 if (new_ins)
                 {
@@ -371,8 +365,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
             }
             if (new_ins && !Ins_table_set(Song_get_insts(handle->song), index, ins))
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 del_Instrument(ins);
                 return false;
             }
@@ -416,8 +410,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                              32); // TODO: make configurable
         if (ins == NULL)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
     }
@@ -425,11 +419,10 @@ static bool parse_generator_level(kqt_Handle* handle,
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Generator_parse_general(common_params, data, state))
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             if (new_ins)
             {
                 del_Instrument(ins);
@@ -447,12 +440,11 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     else if (strcmp(subkey, "p_gen_type.json") == 0)
     {
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Gen_type type = Generator_type_parse(data, state);
         if (state->error)
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             if (new_ins)
             {
                 del_Instrument(ins);
@@ -467,8 +459,8 @@ static bool parse_generator_level(kqt_Handle* handle,
 //            fprintf(stderr, "2 -- gen %p for ins %p\n", (void*)gen, (void*)ins);
             if (gen == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 if (new_ins)
                 {
                     del_Instrument(ins);
@@ -502,8 +494,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                     } */
                     if (gen == NULL)
                     {
-                        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                                __func__);
+                        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                "Couldn't allocate memory");
                         if (new_ins)
                         {
                             del_Instrument(ins);
@@ -513,11 +505,10 @@ static bool parse_generator_level(kqt_Handle* handle,
                     Generator_copy_general(gen,
                             Instrument_get_common_gen_params(ins, gen_index));
                 }
-                Read_state* state = READ_STATE_AUTO;
+                Read_state* state = Read_state_init(READ_STATE_AUTO, key);
                 if (!Generator_parse(gen, subkey, data, length, state))
                 {
-                    kqt_Handle_set_error(handle, "%s: Error in parsing"
-                            " %s: %s", __func__, key, state->message);
+                    set_parse_error(handle, state);
                     if (new_gen)
                     {
                         del_Generator(gen);
@@ -538,8 +529,8 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         del_Instrument(ins);
         return false;
     }
@@ -573,16 +564,15 @@ static bool parse_pattern_level(kqt_Handle* handle,
             pat = new_Pattern();
             if (pat == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 return false;
             }
         }
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Pattern_parse_header(pat, data, state))
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             if (new_pattern)
             {
                 del_Pattern(pat);
@@ -591,8 +581,8 @@ static bool parse_pattern_level(kqt_Handle* handle,
         }
         if (new_pattern && !Pat_table_set(Song_get_pats(handle->song), index, pat))
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             del_Pattern(pat);
             return false;
         }
@@ -603,10 +593,10 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    bool global_column = strcmp(subkey, "global_column/p_global_events.json") == 0;
+    bool global_column = strcmp(subkey, "gcol/p_global_events.json") == 0;
     int col_index = 0;
     ++second_element;
-    if (((col_index = parse_index_dir(subkey, "voice_column_", 2)) >= 0
+    if (((col_index = parse_index_dir(subkey, "vcol_", 2)) >= 0
                     && strcmp(second_element, "p_voice_events.json") == 0)
                 || global_column)
     {
@@ -625,12 +615,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
             pat = new_Pattern();
             if (pat == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 return false;
             }
         }
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
                                              global_column,
@@ -639,13 +629,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
             }
             else
             {
-                kqt_Handle_set_error(handle, "%s: Error in parsing"
-                        " %s: %s", __func__, key, state->message);
+                set_parse_error(handle, state);
             }
             if (new_pattern)
             {
@@ -665,8 +654,8 @@ static bool parse_pattern_level(kqt_Handle* handle,
         {
             if (!Pat_table_set(Song_get_pats(handle->song), index, pat))
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 del_Pattern(pat);
                 return false;
             }
@@ -693,22 +682,21 @@ static bool parse_scale_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strcmp(subkey, "kunquatsXX/p_scale.json") == 0 ||
-            strcmp(subkey, "kunquats" KQT_FORMAT_VERSION "/p_scale.json") == 0)
+    if (strcmp(subkey, MAGIC_ID "sXX/p_scale.json") == 0 ||
+            strcmp(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json") == 0)
     {
         Scale* scale = new_Scale(SCALE_DEFAULT_REF_PITCH,
                                  SCALE_DEFAULT_OCTAVE_RATIO);
         if (scale == NULL)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             return false;
         }
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Scale_parse(scale, data, state))
         {
-            kqt_Handle_set_error(handle, "%s: Error in parsing"
-                    " %s: %s", __func__, key, state->message);
+            set_parse_error(handle, state);
             del_Scale(scale);
             return false;
         }
@@ -738,27 +726,26 @@ static bool parse_subsong_level(kqt_Handle* handle,
     }
     if (strcmp(subkey, "p_subsong.json") == 0)
     {
-        Read_state* state = READ_STATE_AUTO;
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Subsong* ss = new_Subsong_from_string(data, state);
         if (ss == NULL)
         {
             if (!state->error)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
             }
             else
             {
-                kqt_Handle_set_error(handle, "%s: Error in parsing"
-                        " %s: %s", __func__, key, state->message);
+                set_parse_error(handle, state);
             }
             return false;
         }
         Subsong_table* st = Song_get_subsongs(handle->song);
         if (!Subsong_table_set(st, index, ss))
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                    __func__);
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
             del_Subsong(ss);
             return false;
         }

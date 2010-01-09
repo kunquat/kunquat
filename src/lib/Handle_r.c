@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -43,26 +36,26 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
 {
     if (buffer_size <= 0)
     {
-        kqt_Handle_set_error(NULL, "%s: buffer_size must be positive",
-                __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
+                "Buffer size must be positive");
         return NULL;
     }
     if (path == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: path must not be NULL", __func__);
+        kqt_Handle_set_error(NULL, ERROR_ARGUMENT, "No input path given");
         return NULL;
     }
     Handle_r* handle_r = xalloc(Handle_r);
     if (handle_r == NULL)
     {
-        kqt_Handle_set_error(NULL, "%s: Couldn't allocate memory for a new"
-                " Kunquat Handle", __func__);
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         return NULL;
     }
     handle_r->handle.mode = KQT_READ;
     handle_r->entries = new_Entries();
     if (handle_r->entries == NULL)
     {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
@@ -88,7 +81,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_r* handle_r = (Handle_r*)handle;
     int32_t length = Entries_get_length(handle_r->entries, key);
     if (length == 0)
@@ -100,8 +93,8 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
     char* new_data = xcalloc(char, length);
     if (new_data == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return NULL;
     }
     if (data != NULL)
@@ -116,7 +109,7 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 {
     assert(handle_is_valid(handle));
     assert(handle->mode == KQT_READ);
-    assert(key_is_valid(key));
+    assert(key_is_valid(handle, key));
     Handle_r* handle_r = (Handle_r*)handle;
     return Entries_get_length(handle_r->entries, key);
 }

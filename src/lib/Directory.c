@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -114,19 +107,20 @@ struct Directory
 char* absolute_path(const char* path, kqt_Handle* handle)
 {
     assert(path != NULL);
+    // FIXME: maybe this should be done the POSIX.1-2008 way?
     char abs_path[PATH_MAX + 1] = { 0 };
     errno = 0;
     if (realpath(path, abs_path) == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't resolve the absolute path"
-                " of %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't resolve"
+                " the absolute path of %s: %s", path, strerror(errno));
         return NULL;
     }
     char* ret = xnalloc(char, strlen(abs_path) + 1);
     if (ret == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return NULL;
     }
     strcpy(ret, abs_path);
@@ -142,8 +136,8 @@ bool create_dir(const char* path, kqt_Handle* handle)
     int err = mkdir(path, 0777); // TODO: mode
     if (err != 0)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't create the directory"
-                " %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't create"
+                " the directory %s: %s", path, strerror(errno));
         return false;
     }
     return true;
@@ -163,8 +157,8 @@ Path_type path_info(const char* path, kqt_Handle* handle)
             errno = 0;
             return PATH_NO_ENTRY;
         }
-        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
-                " about path %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't retrieve"
+                " information about path %s: %s", path, strerror(errno));
         return PATH_ERROR;
     }
     if (S_ISREG(info->st_mode))
@@ -186,8 +180,8 @@ Path_type file_info(FILE* file, kqt_Handle* handle)
     errno = 0;
     if (fstat(fileno(file), info) != 0)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
-                " about file: %s", __func__, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't retrieve"
+                " information about file: %s", strerror(errno));
         return PATH_ERROR;
     }
     if (S_ISREG(info->st_mode))
@@ -215,14 +209,14 @@ long path_size(const char* path, kqt_Handle* handle)
             errno = 0;
             return 0;
         }
-        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
-                " about path %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't retrieve"
+                " information about path %s: %s", path, strerror(errno));
         return -1;
     }
     if (!S_ISREG(info->st_mode))
     {
-        kqt_Handle_set_error(handle, "%s: Path %s is not a regular file",
-                __func__, path);
+        kqt_Handle_set_error(handle, ERROR_FORMAT, "Path %s is not"
+                " a regular file", path);
         return -1;
     }
     return info->st_size;
@@ -236,14 +230,14 @@ long file_size(FILE* file, kqt_Handle* handle)
     errno = 0;
     if (fstat(fileno(file), info) != 0)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't retrieve information"
-                " about file: %s", __func__, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't retrieve"
+                " information about file: %s", strerror(errno));
         return PATH_ERROR;
     }
     if (!S_ISREG(info->st_mode))
     {
-        kqt_Handle_set_error(handle, "%s: File is not a regular file",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_FORMAT,
+                "File is not a regular file");
         return -1;
     }
     return info->st_size;
@@ -265,14 +259,14 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     }
     else if (info == PATH_IS_OTHER)
     {
-        kqt_Handle_set_error(handle, "%s: Copy destination %s is a foreign"
-                " type of file", __func__, dest);
+        kqt_Handle_set_error(handle, ERROR_FORMAT, "Copy destination %s"
+                " is a foreign type of file", dest);
         return false;
     }
     else if (info == PATH_IS_REGULAR)
     {
-        kqt_Handle_set_error(handle, "%s: Copy destination %s is a"
-                " regular file", __func__, dest);
+        kqt_Handle_set_error(handle, ERROR_FORMAT, "Copy destination %s"
+                " is a regular file", dest);
         return false;
     }
     Directory* src_dir = new_Directory(src, handle);
@@ -299,8 +293,8 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
             char* dest_subpath = append_to_path(dest, last_element(subpath));
             if (dest_subpath == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 failed = true;
             }
             else if (!copy_file(dest_subpath, subpath, handle))
@@ -314,8 +308,8 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
             char* dest_subpath = append_to_path(dest, last_element(subpath));
             if (dest_subpath == NULL)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                        __func__);
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 failed = true;
             }
             else if (!copy_dir(dest_subpath, subpath, handle))
@@ -326,8 +320,8 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
         }
         else if (info == PATH_IS_OTHER)
         {
-            kqt_Handle_set_error(handle, "%s: Path %s is a foreign"
-                    " type of file", __func__, subpath);
+            kqt_Handle_set_error(handle, ERROR_FORMAT, "Path %s is"
+                    " a foreign type of file", subpath);
             failed = true;
         }
         xfree(subpath);
@@ -364,16 +358,16 @@ bool move_dir(const char* dest, const char* src, kqt_Handle* handle)
     }
     else if (info != PATH_IS_DIR)
     {
-        kqt_Handle_set_error(handle, "%s: Source path %s is not"
-                " a directory", __func__, src);
+        kqt_Handle_set_error(handle, ERROR_FORMAT, "Source path %s"
+                " is not a directory", src);
         return false;
     }
     notify_move(dest, src);
     errno = 0;
     if (rename(src, dest) != 0)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't move the directory %s"
-                " into %s: %s", __func__, src, dest, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't move the"
+                " directory %s into %s: %s", src, dest, strerror(errno));
         return false;
     }
     return true;
@@ -404,8 +398,8 @@ bool remove_dir(const char* path, kqt_Handle* handle)
             errno = 0;
             if (remove(subpath) != 0)
             {
-                kqt_Handle_set_error(handle, "%s: Couldn't remove file"
-                        " %s: %s", __func__, subpath, strerror(errno));
+                kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't remove"
+                        " the file %s: %s", subpath, strerror(errno));
                 failed = true;
             }
         }
@@ -418,8 +412,8 @@ bool remove_dir(const char* path, kqt_Handle* handle)
         }
         else if (info == PATH_IS_OTHER)
         {
-            kqt_Handle_set_error(handle, "%s: Path %s contains an"
-                    " unexpected type of file %s", __func__, path, subpath);
+            kqt_Handle_set_error(handle, ERROR_FORMAT, "Path %s contains an"
+                    " unexpected type of file %s", path, subpath);
             failed = true;
         }
         xfree(subpath);
@@ -439,8 +433,8 @@ bool remove_dir(const char* path, kqt_Handle* handle)
     errno = 0;
     if (remove(path) != 0)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't remove directory"
-                " %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't remove"
+                " directory %s: %s", path, strerror(errno));
         return false;
     }
     return true;
@@ -454,8 +448,8 @@ Directory* new_Directory(const char* path, kqt_Handle* handle)
     Directory* dir = xalloc(Directory);
     if (dir == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return NULL;
     }
     dir->handle = handle;
@@ -468,8 +462,8 @@ Directory* new_Directory(const char* path, kqt_Handle* handle)
     dir->path = xcalloc(char, path_len + (trailing_slash ? 0 : 1) + 1);
     if (dir->path == NULL)
     {
-        kqt_Handle_set_error(dir->handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(dir->handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         del_Directory(dir);
         return NULL;
     }
@@ -483,8 +477,8 @@ Directory* new_Directory(const char* path, kqt_Handle* handle)
     dir->dir = opendir(path);
     if (dir->dir == NULL)
     {
-        kqt_Handle_set_error(dir->handle, "%s: Couldn't open path %s: %s",
-                __func__, path, strerror(errno));
+        kqt_Handle_set_error(dir->handle, ERROR_RESOURCE, "Couldn't open"
+                " path %s: %s", path, strerror(errno));
         del_Directory(dir);
         return NULL;
     }
@@ -492,8 +486,8 @@ Directory* new_Directory(const char* path, kqt_Handle* handle)
     int fd = dirfd(dir->dir);
     if (fd == -1)
     {
-        kqt_Handle_set_error(dir->handle, "%s: Couldn't get the file"
-                " descriptor of path %s: %s", __func__, path, strerror(errno));
+        kqt_Handle_set_error(dir->handle, ERROR_RESOURCE, "Couldn't get"
+                " the file descriptor of path %s: %s", path, strerror(errno));
         del_Directory(dir);
         return NULL;
     }
@@ -504,8 +498,8 @@ Directory* new_Directory(const char* path, kqt_Handle* handle)
     dir->entry = xcalloc(char, offsetof(struct dirent, d_name) + path_len_max + 1);
     if (dir->entry == NULL)
     {
-        kqt_Handle_set_error(dir->handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(dir->handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         del_Directory(dir);
         return NULL;
     }
@@ -523,20 +517,22 @@ char* Directory_get_entry(Directory* dir)
         int err = readdir_r(dir->dir, dir->entry, &ret);
         if (err != 0)
         {
-            kqt_Handle_set_error(dir->handle, "%s: Couldn't retrieve a directory"
-                    " entry in %s: %s", __func__, dir->path, strerror(err));
+            kqt_Handle_set_error(dir->handle, ERROR_RESOURCE, "Couldn't"
+                    " retrieve a directory entry in %s: %s", dir->path,
+                    strerror(err));
             return NULL;
         }
         if (ret == NULL)
         {
             return NULL;
         }
-    } while (strcmp(dir->entry->d_name, ".") == 0 || strcmp(dir->entry->d_name, "..") == 0);
+    } while (strcmp(dir->entry->d_name, ".") == 0 ||
+             strcmp(dir->entry->d_name, "..") == 0);
     char* sub_path = append_to_path(dir->path, dir->entry->d_name);
     if (sub_path == NULL)
     {
-        kqt_Handle_set_error(dir->handle, "%s: Couldn't allocate memory",
-                __func__);
+        kqt_Handle_set_error(dir->handle, ERROR_MEMORY,
+                "Couldn't allocate memory");
         return NULL;
     }
     return sub_path;
@@ -620,29 +616,18 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
     FILE* in = fopen(src, "rb");
     if (in == NULL)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't open the copy"
-                " source %s: %s", __func__, src, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't open"
+                " the copy source %s: %s", src, strerror(errno));
         return false;
     }
-#if 0
-    FILE* out = fopen(dest, "rb");
-    if (out != NULL)
-    {
-        fclose(in);
-        fclose(out);
-        kqt_Handle_set_error(handle, "%s: The copy destination %s"
-                " already exists", __func__, dest);
-        return false;
-    }
-#endif
     notify_modify(dest);
     errno = 0;
     FILE* out = fopen(dest, "wb");
     if (out == NULL)
     {
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't open"
+                " the copy destination %s: %s", dest, strerror(errno));
         fclose(in);
-        kqt_Handle_set_error(handle, "%s: Couldn't open the copy"
-                " destination %s: %s", __func__, dest, strerror(errno));
         return false;
     }
 
@@ -653,8 +638,8 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
         size_t out_bytes = fwrite(buf, 1, in_bytes, out);
         if (out_bytes < in_bytes)
         {
-            kqt_Handle_set_error(handle, "%s: Couldn't write into"
-                    " the destination file %s", __func__, dest);
+            kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't write"
+                    " into the destination file %s", dest);
             fclose(in);
             fclose(out);
             return false;
@@ -663,8 +648,8 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
     }
     if (ferror(in))
     {
-        kqt_Handle_set_error(handle, "%s: An error occurred while"
-                " reading the input file %s", __func__, src);
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "An error occurred"
+                " while reading the input file %s", src);
         fclose(in);
         fclose(out);
         return false;
@@ -674,8 +659,8 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
     fclose(in);
     if (fclose(out) == EOF)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't close the copy"
-                " destination %s: %s", __func__, dest, strerror(errno));
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't close"
+                " the copy destination %s: %s", dest, strerror(errno));
         return false;
     }
     return true;

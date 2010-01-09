@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2010 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -25,6 +18,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
+#include <errno.h>
 
 #include <Directory.h>
 #include <Handle_rw.h>
@@ -50,13 +44,28 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
         return false;
     }
     const char* header = "kunquatc" KQT_FORMAT_VERSION;
-    const char* header_with_solidus = "kunquatc" KQT_FORMAT_VERSION "/";
-    if (!string_has_suffix(abs_path, header) &&
-            !string_has_suffix(abs_path, header_with_solidus))
+    if (!string_has_suffix(abs_path, header))
     {
-        kqt_Handle_set_error(&handle_rw->handle, "%s: Base path %s does not contain the"
-                " header \"kunquatc" KQT_FORMAT_VERSION "\" as a final component",
-                __func__, abs_path);
+        const char* other_header = "kunquati" KQT_FORMAT_VERSION;
+        if (string_has_suffix(abs_path, other_header))
+        {
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "The path %s appears to be a Kunquat instrument,"
+                    " not composition", path);
+        }
+        else if (other_header = "kunquats" KQT_FORMAT_VERSION,
+                string_has_suffix(abs_path, other_header))
+        {
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "The path %s appears to be a Kunquat scale,"
+                    " not composition", path);
+        }
+        else
+        {
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT, "The base"
+                    " path %s does not contain the header \"kunquatc"
+                    KQT_FORMAT_VERSION "\" as a final component", abs_path);
+        }
         xfree(abs_path);
         return false;
     }
@@ -97,8 +106,8 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
         }
         else if (info == PATH_IS_OTHER)
         {
-            kqt_Handle_set_error(&handle_rw->handle, "%s: Path %s is"
-                    " a foreign type of file", __func__, entry);
+            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
+                    "Path %s is a foreign type of file", entry);
             xfree(entry);
             return false;
         }
@@ -131,16 +140,18 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
             char* data = xnalloc(char, length);
             if (data == NULL)
             {
-                kqt_Handle_set_error(&handle_rw->handle,
-                        "%s: Couldn't allocate memory", __func__);
+                kqt_Handle_set_error(&handle_rw->handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
                 xfree(entry);
                 return false;
             }
+            errno = 0;
             FILE* in = fopen(entry, "rb");
             if (in == NULL)
             {
-                kqt_Handle_set_error(&handle_rw->handle,
-                        "%s: Couldnt' open file %s for reading", __func__, entry);
+                kqt_Handle_set_error(&handle_rw->handle, ERROR_RESOURCE,
+                        "Couldn't open file %s for reading: %s",
+                        entry, strerror(errno));
                 xfree(entry);
                 xfree(data);
                 return false;
@@ -154,8 +165,8 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
                 location += read;
                 if (read < 1024 && pos < length)
                 {
-                    kqt_Handle_set_error(&handle_rw->handle, "%s: Couldn't read"
-                            " data from %s", __func__, entry);
+                    kqt_Handle_set_error(&handle_rw->handle, ERROR_RESOURCE,
+                            "Couldn't read data from %s", entry);
                     fclose(in);
                     xfree(entry);
                     xfree(data);

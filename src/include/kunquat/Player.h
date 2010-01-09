@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -71,7 +64,9 @@ extern "C" {
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed.
- * \param freq      The mixing frequency -- should be > \c 0.
+ * \param freq      The mixing frequency in frames per second
+ *                  -- should be > \c 0. Typical values are
+ *                  44100 ("CD quality") and 48000.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes.
@@ -82,12 +77,19 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
 /**
  * Gets a mixing buffer from the Kunquat Handle.
  *
+ * When called after a successful call of kqt_Handle_mix, this function
+ * returns a portion of mixed audio of one output channel. The parameter
+ * \a index determines the channel.
+ *
  * \param handle   The Handle -- should not be \c NULL.
- * \param index    The buffer number. In stereo mode, \c 0 is the left
+ * \param index    The output channel number. \c 0 is the left
  *                 mixing buffer and \c 1 is the right one.
  *
- * \return   The buffers, or \c NULL if \a handle == \c NULL or \a index
+ * \return   The buffer, or \c NULL if \a handle == \c NULL or \a index
  *           is out of range.
+ *           The buffer contains sample values normalised to the range
+ *           [-1.0, 1.0]. However, values beyond this range are possible
+ *           and they indicate clipping.
  *           Note: Do not cache the returned value! The location of the buffer
  *           may change in memory, especially if the buffer size or the number
  *           of buffers is changed.
@@ -96,21 +98,11 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
 
 
 /**
- * Gets the number of mixing buffers in the Kunquat Handle.
- *
- * \param handle   The Handle -- should not be \c NULL.
- *
- * \return   The number of buffers, or \c 0 if \a handle == \c NULL.
- */
-int kqt_Handle_get_buffer_count(kqt_Handle* handle);
-
-
-/**
  * Sets the buffer size of the Kunquat Handle.
  *
  * This function is useful if the output buffer size changes in the calling
- * application. See kqt_new_Handle for detailed explanation of how the buffer
- * size is interpreted.
+ * application. See kqt_new_Handle_r for detailed explanation of how the
+ * buffer size is interpreted.
  *
  * \param handle   The Handle -- should not be \c NULL.
  * \param size     The new buffer size -- should be > \c 0.

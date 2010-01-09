@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland, 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat waivers have waived all
+ * copyright and related or neighboring rights to Kunquat. This work
+ * is published from Finland.
  */
 
 
@@ -55,14 +48,14 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
     check_handle(handle, 0);
     if (size <= 0)
     {
-        kqt_Handle_set_error(handle, "%s: size must be positive", __func__);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "size must be positive");
         return 0;
     }
     bool success = Song_set_buf_size(handle->song, size);
     if (!success)
     {
-        kqt_Handle_set_error(handle, "%s: Couldn't allocate memory for the"
-                " new buffers", __func__);
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for new buffers");
         return 0;
     }
     return 1;
@@ -88,8 +81,8 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
     check_handle(handle, NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
     {
-        kqt_Handle_set_error(handle, "%s: buffer #%d doesn't exist",
-                __func__, index);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Buffer #%d does not exist", index);
         return NULL;
     }
     return Song_get_bufs(handle->song)[index];
@@ -112,14 +105,14 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
     check_handle(handle, 0);
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
-        kqt_Handle_set_error(handle, "%s: Invalid Subsong number: %d",
-                __func__, subsong);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid Subsong number: %d", subsong);
         return 0;
     }
     if (nanoseconds < 0)
     {
-        kqt_Handle_set_error(handle, "%s: nanoseconds must not be negative",
-                __func__);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "nanoseconds must be non-negative");
         return 0;
     }
     char pos[32] = { '\0' };
