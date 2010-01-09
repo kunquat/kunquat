@@ -40,6 +40,7 @@
 typedef struct Audio
 {
     char* name;
+    const char* full_name;
     bool active;
     char error[AUDIO_ERROR_LENGTH];
     bool pause;
@@ -78,6 +79,16 @@ Audio* new_Audio(char* name);
  * \return   The name.
  */
 char* Audio_get_name(Audio* audio);
+
+
+/**
+ * Gets the full name of the Audio (suitable for printing).
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   The full name.
+ */
+const char* Audio_get_full_name(Audio* audio);
 
 
 /**

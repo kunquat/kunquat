@@ -41,7 +41,6 @@ opts.AddVariables(
     BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
     BoolVariable('with_pulse', 'Build PulseAudio support.', True),
     BoolVariable('with_jack', 'Build JACK support.', True),
-    BoolVariable('with_ao', 'Build libao support.', True),
     BoolVariable('with_openal', 'Build OpenAL support.', True),
 )
 
@@ -174,15 +173,6 @@ if not env.GetOption('clean') and not env.GetOption('help'):
             print('Warning: JACK support was requested' +
                   ' but JACK was not found.')
             env['with_jack'] = False
-
-    if env['with_ao']:
-        if conf.CheckLibWithHeader('ao', 'ao/ao.h', 'C'):
-            audio_found = True
-            conf.env.Append(CCFLAGS = '-DWITH_AO')
-        else:
-            print('Warning: libao support was requested' +
-                  ' but libao was not found.')
-            env['with_ao'] = False
 
     if env['with_openal']:
         if conf.CheckLibWithHeader('openal', ['AL/al.h', 'AL/alc.h'], 'C') and\

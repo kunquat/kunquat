@@ -30,9 +30,6 @@
 #ifdef WITH_PULSE
 #include <Audio_pulse.h>
 #endif
-#ifdef WITH_AO
-#include <Audio_ao.h>
-#endif
 #ifdef WITH_JACK
 #include <Audio_jack.h>
 #endif
@@ -44,6 +41,7 @@
 typedef struct Driver_info
 {
     char* name;
+    char* full_name;
     Audio* (*create)(void);
 } Driver_info;
 
@@ -51,19 +49,16 @@ typedef struct Driver_info
 static Driver_info drivers[] =
 {
 #ifdef WITH_PULSE
-    { "pulse", new_Audio_pulse },
-#endif
-#ifdef WITH_AO
-    { "ao", new_Audio_ao },
+    { "pulse", "PulseAudio output", new_Audio_pulse },
 #endif
 #ifdef WITH_JACK
-    { "jack", new_Audio_jack },
+    { "jack", "JACK output", new_Audio_jack },
 #endif
 #ifdef WITH_OPENAL
-    { "openal", new_Audio_openal },
+    { "openal", "OpenAL output", new_Audio_openal },
 #endif
-    { "null", new_Audio_null },
-    { NULL, NULL }
+    { "null", "Null output", new_Audio_null },
+    { NULL, NULL, NULL }
 };
 
 
@@ -91,7 +86,13 @@ Audio* new_Audio(char* name)
         return NULL;
     }
     assert(driver->create != NULL);
-    return driver->create();
+    Audio* audio = driver->create();
+    if (audio == NULL)
+    {
+        return NULL;
+    }
+    audio->full_name = driver->full_name;
+    return audio;
 }
 
 

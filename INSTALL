@@ -12,7 +12,7 @@ useful.
 On a relatively new Ubuntu you should be able to get all the required and
 optional dependencies by running the following command:
 
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpulse-dev libjack-dev jackd libasound2-dev check libopenal-dev libalut-dev libsndfile1-dev
 
 
 Building of Kunquat depends on the following tools and libraries (version
@@ -27,7 +27,7 @@ Normally, you also want Kunquat to support samples. For that, you'll need:
 
 In order to get sound you'll need at least one of the following:
 
-  libao 0.8.8 (http://www.xiph.org/ao/)
+  PulseAudio 0.9.19 (http://pulseaudio.org/)
   JACK 0.116.1 (http://jackaudio.org/)
   OpenAL 1.4.272 (http://www.openal.org/)
 

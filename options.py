@@ -34,9 +34,6 @@ with_wavpack = True
 # Build PulseAudio support.
 with_pulse = True
 
-# Build libao support.
-with_ao = True
-
 # Build JACK support.
 with_jack = True
 

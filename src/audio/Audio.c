@@ -88,6 +88,13 @@ char* Audio_get_name(Audio* audio)
 }
 
 
+const char* Audio_get_full_name(Audio* audio)
+{
+    assert(audio != NULL);
+    return audio->full_name;
+}
+
+
 char* Audio_get_error(Audio* audio)
 {
     assert(audio != NULL);

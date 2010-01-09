@@ -354,7 +354,7 @@ int main(int argc, char** argv)
     }
     if (interactive)
     {
-        fprintf(stderr, "Audio driver: %s\n", driver_selection);
+        fprintf(stderr, "Audio device: %s\n", Audio_get_full_name(audio));
     }
     
     if (interactive && !set_terminal(true, true))
