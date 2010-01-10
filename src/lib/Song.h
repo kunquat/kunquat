@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include <kunquat/limits.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>

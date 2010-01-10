@@ -22,7 +22,6 @@ extern "C" {
 
 
 #include <kunquat/limits.h>
-#include <kunquat/frame.h>
 
 
 /**

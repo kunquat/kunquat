@@ -75,7 +75,7 @@ static int Audio_jack_process(jack_nframes_t nframes, void* arg)
     if (handle != NULL && !audio->pause)
     {
         mixed = kqt_Handle_mix(handle, nframes, audio->freq);
-        kqt_frame* bufs[KQT_BUFFERS_MAX] = {
+        float* bufs[KQT_BUFFERS_MAX] = {
             kqt_Handle_get_buffer(handle, 0),
             kqt_Handle_get_buffer(handle, 1)
         };

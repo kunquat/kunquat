@@ -20,7 +20,7 @@
 
 #include <Instrument_params.h>
 #include <Generator.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Event_queue.h>
 #include <Voice_state.h>
 #include <Scale.h>

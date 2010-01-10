@@ -19,7 +19,7 @@
 
 #include <Voice_state.h>
 #include <Generator.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 

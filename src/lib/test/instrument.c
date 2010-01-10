@@ -21,7 +21,7 @@
 
 #include <check.h>
 
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Voice_state.h>
 #include <Generator_debug.h>
 #include <Instrument.h>

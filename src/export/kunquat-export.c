@@ -448,16 +448,16 @@ int main(int argc, char** argv)
         long long total = 0;
         while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
         {
-            kqt_frame* buf_l = kqt_Handle_get_buffer(handle, 0);
-            kqt_frame* buf_r = kqt_Handle_get_buffer(handle, 1);
+            float* buf_l = kqt_Handle_get_buffer(handle, 0);
+            float* buf_r = kqt_Handle_get_buffer(handle, 1);
             if (buf_r == NULL)
             {
                 buf_r = buf_l;
             }
             for (long i = 0; i < mixed; ++i)
             {
-                out_buf[i * 2] = (float)buf_l[i];
-                out_buf[(i * 2) + 1] = (float)buf_r[i];
+                out_buf[i * 2] = buf_l[i];
+                out_buf[(i * 2) + 1] = buf_r[i];
             }
             sf_writef_float(out, out_buf, mixed);
             total += mixed;

@@ -90,7 +90,7 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
  *           Note: Do not cache the returned value! The location of the buffer
  *           may change in memory, especially if the buffer size is changed.
  */
-kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
+float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
 
 
 /**

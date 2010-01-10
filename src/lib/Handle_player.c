@@ -82,7 +82,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 }
 
 
-kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
+float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
     check_handle(handle, NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
@@ -91,7 +91,7 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
                 "Buffer #%d does not exist", index);
         return NULL;
     }
-    return Song_get_bufs(handle->song)[index];
+    return (float*)Song_get_bufs(handle->song)[index];
 }
 
 

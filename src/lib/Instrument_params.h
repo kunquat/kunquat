@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Envelope.h>
 #include <Scale.h>
 #include <File_base.h>
