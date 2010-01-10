@@ -81,22 +81,13 @@ typedef enum
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * The buffer size determines the maximum amount of audio data that can
- * be mixed at one time. The buffer size is given as the number of amplitude
- * values (called \a frames) for one output channel. In a typical case, the
- * calling application should set this value based on the size of its own
- * output buffers: if the application uses buffers with \a n amplitude values
- * for one output channel (e.g. in 16-bit stereo, this takes \a n * \c 4 bytes
- * in total), it should call kqt_new_Handle with a buffer size of \a n.
- *
- * \param buffer_size   The size of the mixing buffers -- should be positive.
- * \param path          The path to the Kunquat composition file -- should not
- *                      be \c NULL.
+ * \param path   The path to the Kunquat composition file -- should not
+ *               be \c NULL.
  *
  * \return   The new read-only Kunquat Handle if successful, otherwise \c NULL
  *           (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path);
+kqt_Handle* kqt_new_Handle_r(char* path);
 
 
 /**
@@ -105,15 +96,13 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path);
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \param buffer_size   The size of the mixing buffers -- should be positive.
- *                      See kqt_new_Handle_r for detailed explanation.
- * \param path          The path to the Kunquat composition directory --
- *                      should not be \c NULL.
+ * \param path   The path to the Kunquat composition directory --
+ *               should not be \c NULL.
  *
  * \return   The new read/write Kunquat Handle if successful, otherwise \c NULL
  *           (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_new_Handle_rw(long buffer_size, char* path);
+kqt_Handle* kqt_new_Handle_rw(char* path);
 
 
 /**

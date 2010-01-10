@@ -30,6 +30,8 @@
 
 #define POSITION_LENGTH (64)
 
+#define DEFAULT_BUFFER_SIZE (2048)
+
 
 typedef enum
 {

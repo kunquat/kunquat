@@ -401,15 +401,21 @@ int main(int argc, char** argv)
         kqt_Handle* handle = NULL;
         if (S_ISDIR(info->st_mode))
         {
-            handle = kqt_new_Handle_rw(OUT_BUFFER_SIZE, argv[file_arg]);
+            handle = kqt_new_Handle_rw(argv[file_arg]);
         }
         else
         {
-            handle = kqt_new_Handle_r(OUT_BUFFER_SIZE, argv[file_arg]);
+            handle = kqt_new_Handle_r(argv[file_arg]);
         }
         if (handle == NULL)
         {
             fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
+            continue;
+        }
+        if (!kqt_Handle_set_buffer_size(handle, OUT_BUFFER_SIZE))
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
             continue;
         }
         if (!kqt_Handle_set_position(handle, subsong, 0))

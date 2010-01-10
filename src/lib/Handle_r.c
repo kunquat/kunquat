@@ -31,14 +31,8 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key);
 static void del_Handle_r(kqt_Handle* handle);
 
 
-kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
+kqt_Handle* kqt_new_Handle_r(char* path)
 {
-    if (buffer_size <= 0)
-    {
-        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
-                "Buffer size must be positive");
-        return NULL;
-    }
     if (path == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_ARGUMENT, "No input path given");
@@ -58,7 +52,7 @@ kqt_Handle* kqt_new_Handle_r(long buffer_size, char* path)
         del_Handle_r(&handle_r->handle);
         return NULL;
     }
-    if (!kqt_Handle_init(&handle_r->handle, buffer_size))
+    if (!kqt_Handle_init(&handle_r->handle, DEFAULT_BUFFER_SIZE))
     {
         del_Handle_r(&handle_r->handle);
         return NULL;
