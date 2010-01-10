@@ -183,6 +183,25 @@ int32_t Entries_get_length(Entries* entries, const char* key)
 }
 
 
+#if 0
+bool Entries_remove(Entries* entries, const char* key)
+{
+    assert(entries != NULL);
+    assert(key != NULL);
+    Entry* key_entry = &(Entry){ .key[0] = '\0' };
+    memset(key_entry->key, '\0', 256);
+    strncpy(key_entry->key, key, 255);
+    Entry* target = AAtree_remove(entries->tree, key_entry);
+    if (target == NULL)
+    {
+        return false;
+    }
+    del_Entry(target);
+    return true;
+}
+#endif
+
+
 static char* find_wildcard(char* key)
 {
     char* header_location = strstr(key, "kunquatiXX");

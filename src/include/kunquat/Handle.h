@@ -112,7 +112,7 @@ kqt_Handle* kqt_new_Handle_rw(char* path);
  *
  * \return   The data if existent and no error occurred, otherwise \c NULL.
  *           Check kqt_Handle_error(handle) for errors. The caller should
- *           eventually free the returned buffer.
+ *           eventually free the returned buffer with kqt_Handle_free_data.
  */
 void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
 
@@ -127,6 +127,18 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
  *           returned and Kunquat Handle error is set accordingly.
  */
 long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
+
+
+/**
+ * Frees data returned by kqt_Handle_get_data.
+ *
+ * \param handle   The Kunquat Handle -- should be a valid Handle.
+ * \param data     The data to be freed. If this is \c NULL, the function
+ *                 succeeds without doing anything.
+ *
+ * \return   \c 1 if successful, otherwise \c 0.
+ */
+int kqt_Handle_free_data(kqt_Handle* handle, void* data);
 
 
 /**
@@ -151,8 +163,8 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 /**
  * Gets an error message from the Kunquat Handle.
  *
- * An error message consists of an error code followed by a colon and an
- * error description. Possible error codes are:
+ * An error message consists of an error code followed by a colon, a space and
+ * an error description. Possible error codes are:
  *
  * \li ArgumentError -- a Kunquat function was called with an inappropriate
  *                      argument value.

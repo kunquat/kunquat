@@ -90,10 +90,7 @@ static void* Handle_r_get_data(kqt_Handle* handle, const char* key)
                 "Couldn't allocate memory");
         return NULL;
     }
-    if (data != NULL)
-    {
-        memcpy(new_data, data, length);
-    }
+    memcpy(new_data, data, length);
     return new_data;
 }
 
