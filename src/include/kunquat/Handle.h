@@ -157,7 +157,7 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data);
 int kqt_Handle_set_data(kqt_Handle* handle,
                         char* key,
                         void* data,
-                        int length);
+                        long length);
 
 
 /**

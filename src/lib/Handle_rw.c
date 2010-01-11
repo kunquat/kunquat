@@ -76,7 +76,7 @@ kqt_Handle* kqt_new_Handle_rw(char* path)
 int kqt_Handle_set_data(kqt_Handle* handle,
                         char* key,
                         void* data,
-                        int length)
+                        long length)
 {
     check_handle(handle, 0);
     check_key(handle, key, 0);
