@@ -391,10 +391,16 @@ int main(int argc, char** argv)
                 continue;
             }
         }
+        long long length_ns = kqt_Handle_get_duration(handle, subsong);
+        if (length_ns == -1)
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
 
         Audio_set_handle(audio, handle);
 
-        uint64_t length_ns = kqt_Handle_get_duration(handle);
         uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
@@ -506,7 +512,12 @@ int main(int argc, char** argv)
                         }
                         else
                         {
-                            length_ns = kqt_Handle_get_duration(handle);
+                            length_ns = kqt_Handle_get_duration(handle, subsong);
+                            if (length_ns == -1)
+                            {
+                                fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
+                                length_ns = 0;
+                            }
                         }
                         Audio_pause(audio, false);
                     }

@@ -129,14 +129,15 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Gets the duration of the current Subsong in the Kunquat Handle in
- * nanoseconds.
+ * Gets the duration of a Subsong of the Kunquat Handle in nanoseconds.
  *
- * \param handle   The Handle -- should not be \c NULL.
+ * \param handle    The Handle -- should not be \c NULL.
+ * \param subsong   The Subsong number -- should be >= \c -1 and
+ *                  < \c KQT_SUBSONGS_MAX (\c -1 indicates all Subsongs).
  *
- * \return   The length in nanoseconds.
+ * \return   The length in nanoseconds, or \c -1 if failed.
  */
-long long kqt_Handle_get_duration(kqt_Handle* handle);
+long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong);
 
 
 /**

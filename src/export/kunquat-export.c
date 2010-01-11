@@ -424,6 +424,13 @@ int main(int argc, char** argv)
             kqt_del_Handle(handle);
             continue;
         }
+        long long duration = kqt_Handle_get_duration(handle, subsong);
+        if (duration == -1)
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
 
         if (output == NULL)
         {
@@ -443,7 +450,6 @@ int main(int argc, char** argv)
             cleanup(handle, out_buf, output, explicit_output);
             exit(EXIT_FAILURE);
         }
-        long long duration = kqt_Handle_get_duration(handle);
         long mixed = 0;
         long long total = 0;
         while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
