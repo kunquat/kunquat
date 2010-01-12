@@ -41,8 +41,8 @@ extern "C" {
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \param path          The path to the Kunquat composition state directory --
- *                      should not be \c NULL.
+ * \param path   The path to the Kunquat composition state directory --
+ *               should not be \c NULL.
  *
  * \return   The new read/write/commit Kunquat Handle if successful, otherwise
  *           \c NULL  (check kqt_Handle_get_error(\c NULL) for error message).

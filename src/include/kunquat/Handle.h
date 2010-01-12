@@ -202,6 +202,9 @@ void kqt_Handle_clear_error(kqt_Handle* handle);
 /**
  * Frees all the resources allocated for an existing Kunquat Handle.
  *
+ * NOTE: This function also frees the memory reserved for data returned by
+ * calls of kqt_Handle_get_data with this Handle!
+ *
  * \param handle   The Handle -- should not be \c NULL.
  */
 void kqt_del_Handle(kqt_Handle* handle);
