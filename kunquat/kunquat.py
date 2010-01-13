@@ -34,11 +34,12 @@ class RHandle(object):
                 indicating a compression format.
 
         """
-        self._handle = _kunquat.kqt_new_Handle_r(path)
-        if not self._handle:
-            _raise_error(_kunquat.kqt_Handle_get_error(None))
-        self._subsong = -1
-        self.position = 0
+        if '_handle' not in self.__dict__:
+            self._handle = _kunquat.kqt_new_Handle_r(path)
+            if not self._handle:
+                _raise_error(_kunquat.kqt_Handle_get_error(None))
+        self.subsong = None
+        self.nanoseconds = 0
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
@@ -67,20 +68,49 @@ class RHandle(object):
         _kunquat.kqt_Handle_free_data(self._handle, cdata)
         return ''.join([chr(ch) for ch in data])
 
-    def set_position(self, position, subsong=None):
-        if subsong is None:
-            subsong = -1
-        success = _kunquat.kqt_Handle_set_position(self._handle,
-                                                   subsong, position)
-        self._subsong = subsong
+    def __setattr__(self, name, value):
+        if name == 'subsong':
+            subsong = value
+            if subsong is None:
+                subsong = -1
+            _kunquat.kqt_Handle_set_position(self._handle, subsong, 0)
+        elif name == 'nanoseconds':
+            subsong = self.subsong
+            if subsong is None:
+                subsong = -1
+            _kunquat.kqt_Handle_set_position(self._handle,
+                                             subsong,
+                                             value)
+        object.__setattr__(self, name, value)
 
     def get_duration(self, subsong=None):
+        """Count the duration of the composition in nanoseconds.
+
+        Arguments:
+        subsong -- The subsong of which length is to be calculated.
+                   If this parameter is omitted, the function returns
+                   the total length of all subsongs.
+
+        """
         if subsong is None:
             subsong = -1
-        length = _kunquat.kqt_Handle_get_duration(self._handle, subsong)
-        return length
+        return _kunquat.kqt_Handle_get_duration(self._handle, subsong)
 
     def mix(self, frame_count, freq):
+        """Mix audio according to the state of the handle.
+
+        Arguments:
+        frame_count -- The number of frames to be mixed.
+        freq        -- The mixing frequency in frames per second.
+                       Typical values are 44100 ("CD quality") and
+                       48000.
+
+        Returns:
+        A pair containing audio data for, respectively, the left and
+        the right output channel. Buffers shorter than frame_count
+        frames indicate that the end has been reached.
+
+        """
         mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, freq)
         cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
@@ -117,11 +147,11 @@ class RWHandle(RHandle):
                 substitute the format version with XX.
 
         """
-        self._handle = _kunquat.kqt_new_Handle_rw(path)
-        if not self._handle:
-            _raise_error(_kunquat.kqt_Handle_get_error(None))
-        self._subsong = -1
-        self.position = 0
+        if '_handle' not in self.__dict__:
+            self._handle = _kunquat.kqt_new_Handle_rw(path)
+            if not self._handle:
+                _raise_error(_kunquat.kqt_Handle_get_error(None))
+        RHandle.__init__(self, path)
 
     def __setitem__(self, key, value):
         """Set data in the handle.
@@ -164,14 +194,14 @@ class RWCHandle(RWHandle):
                 directories can be empty.
 
         """
-        self._handle = _kunquat.kqt_new_Handle_rwc(path)
-        if not self._handle:
-            _raise_error(_kunquat.kqt_Handle_get_error(None))
-        self._subsong = -1
-        self.position = 0
+        if '_handle' not in self.__dict__:
+            self._handle = _kunquat.kqt_new_Handle_rwc(path)
+            if not self._handle:
+                _raise_error(_kunquat.kqt_Handle_get_error(None))
+        RWHandle.__init__(self, path)
 
     def commit():
-        """Commits to changes made in the handle."""
+        """Commits the changes made in the handle."""
         _kunquat.kqt_Handle_commit(self._handle)
 
 

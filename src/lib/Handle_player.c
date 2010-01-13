@@ -106,6 +106,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     }
     Reltime_init(&handle->song->skip_state->play_time);
     handle->song->skip_state->play_frames = 0;
+    Playdata_reset(handle->song->skip_state);
     if (subsong == -1)
     {
         handle->song->skip_state->mode = PLAY_SONG;
