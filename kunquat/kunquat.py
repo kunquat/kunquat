@@ -30,21 +30,36 @@ class KunquatError(Exception):
     pass
 
 class KunquatArgumentError(KunquatError):
-    """An error indicating that a given method argument was invalid."""
+    """Error indicating that a given method argument is invalid."""
     pass
 
 class KunquatFormatError(KunquatError):
-    """An error indicating that composition data was invalid."""
+    """Error indicating that composition data is invalid."""
     pass
 
 class KunquatResourceError(KunquatError):
-    """An error indicating that an external service request failed."""
+    """Error indicating that an external service request has failed."""
     pass
 
 
 class Rhandle(object):
 
+    """Handle for accessing composition (kqt) files in read-only mode.
+
+    Every Kunquat composition is accessed through a handle that is an
+    Rhandle -- possibly an instance of a subclass of Rhandle. The
+    Rhandle is used for mixing the composition and/or retrieving data
+    from the composition.
+    """
+
     def __init__(self, path):
+        """Create a new Rhandle.
+
+        Arguments:
+        path -- The path to a kqt file. A kqt file name typically has
+                the extension .kqt, possibly succeeded by an extension
+                indicating a compression format.
+        """
         self._handle = _kunquat.kqt_new_Handle_r(path)
         if not self._handle:
             _raise_error(_kunquat.kqt_Handle_get_error(None))
@@ -52,6 +67,23 @@ class Rhandle(object):
         self.position = 0
 
     def __getitem__(self, key):
+        """Get data from the handle based on a key.
+
+        Arguments:
+        key -- The key of the data in the composition. A key consists
+               of one or more textual elements separated by forward
+               slashes ('/'). The last element is the only one that
+               is allowed and required to contain a period. Examples:
+               'p_composition.json'
+               'pat_000/vcol_00/p_voice_events.json'
+               'ins_01/kunquatiXX/p_instrument.json'
+               The 'XX' in the last example should be written exactly
+               like this. It is expanded to the file format version
+               number behind the scenes.
+
+        Return value:
+        The data associated with the key if found, otherwise None.
+        """
         length = _kunquat.kqt_Handle_get_data_length(self._handle, key)
         if length == 0:
             return None
@@ -87,7 +119,25 @@ class Rhandle(object):
 
 class RWhandle(Rhandle):
 
+    """Handle for accessing composition directories in read/write mode.
+
+    The RWhandle is used for accessing extracted Kunquat composition
+    directories. It does not support loading kqt files. As an extension
+    to Rhandle, it is capable of modifying composition data.
+
+    The RWhandle is mainly designed for applications that modify
+    composition metadata. It is not recommended for editor
+    applications. These applications should use RWChandle instead.
+    """
+
     def __init__(self, path):
+        """Create a new RWhandle.
+
+        Arguments:
+        path -- The path to the extracted Kunquat composition
+                directory. This directory is called kunquatcXX where
+                XX is the version number of the format.
+        """
         self._handle = _kunquat.kqt_new_Handle_rw(path)
         if not self._handle:
             _raise_error(_kunquat.kqt_Handle_get_error(None))
@@ -95,6 +145,13 @@ class RWhandle(Rhandle):
         self.position = 0
 
     def __setitem__(self, key, value):
+        """Set data in the handle.
+
+        Arguments:
+        key   -- The key of the data in the composition. This refers
+                 to the same data as the key argument of __getitem__.
+        value -- The data to be set.
+        """
         data = buffer(value)
         cdata = (ctypes.c_byte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
@@ -107,7 +164,23 @@ class RWhandle(Rhandle):
 
 class RWChandle(RWhandle):
 
+    """Handle for accessing composition projects with a state store.
+
+    The RWChandle extends the RWhandle with a journaling mechanism. It
+    enables the user to commit to changes made in the composition
+    state. A committed version of a composition can always be restored
+    in case the program execution is abruptly terminated.
+    """
+
     def __init__(self, path):
+        """Create a new RWChandle.
+
+        Arguments:
+        path -- The path to the Kunquat composition project directory.
+                Normally, this directory contains the subdirectories
+                "committed" and "workspace", although new project
+                directories can be empty.
+        """
         self._handle = _kunquat.kqt_new_Handle_rwc(path)
         if not self._handle:
             _raise_error(_kunquat.kqt_Handle_get_error(None))
@@ -115,6 +188,7 @@ class RWChandle(RWhandle):
         self.position = 0
 
     def commit():
+        """Commits to changes made in the handle."""
         _kunquat.kqt_Handle_commit(self._handle)
 
 
