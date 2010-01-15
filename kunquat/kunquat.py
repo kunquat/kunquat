@@ -40,6 +40,7 @@ class RHandle(object):
                 _raise_error(_kunquat.kqt_Handle_get_error(None))
         self.subsong = None
         self.nanoseconds = 0
+        self.buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
@@ -81,6 +82,8 @@ class RHandle(object):
             _kunquat.kqt_Handle_set_position(self._handle,
                                              subsong,
                                              value)
+        elif name == 'buffer_size':
+            _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
         object.__setattr__(self, name, value)
 
     def get_duration(self, subsong=None):
