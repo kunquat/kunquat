@@ -25,13 +25,24 @@ class RHandle(object):
 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, freq=48000):
         """Create a new RHandle.
 
         Arguments:
         path -- The path of a kqt file.  A kqt file name typically has
                 the extension .kqt, possibly succeeded by an extension
                 indicating a compression format.
+
+        Optional arguments:
+        freq -- Mixing frequency in frames per second. Typical values
+                are 44100 ("CD quality") and 48000 (the default).
+
+        Exceptions:
+        KunquatArgumentError -- path is None or freq is not positive.
+        KunquatFormatError   -- The file in path is not a valid Kunquat
+                                composition.
+        KunquatResourceError -- Reading the input failed for a reason
+                                other than the data being invalid.
 
         """
         if '_handle' not in self.__dict__:
@@ -41,6 +52,9 @@ class RHandle(object):
         self.subsong = None
         self.nanoseconds = 0
         self.buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
+        if freq <= 0:
+            raise KunquatArgumentError('Mixing frequency must be positive')
+        self.freq = freq
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
@@ -59,6 +73,12 @@ class RHandle(object):
 
         Return value:
         The data associated with the key if found, otherwise None.
+
+        Exceptions:
+        KunquatArgumentError -- The key is not valid.
+        KunquatResourceError -- Retrieving the data failed. This can
+                                usually occur only with subclasses of
+                                RHandle.
 
         """
         length = _kunquat.kqt_Handle_get_data_length(self._handle, key)
@@ -94,19 +114,23 @@ class RHandle(object):
                    If this parameter is omitted, the function returns
                    the total length of all subsongs.
 
+        Return value:
+        The duration in nanoseconds.
+
+        Exceptions:
+        KunquatArgumentError -- The subsong number is not valid.
+
         """
         if subsong is None:
             subsong = -1
         return _kunquat.kqt_Handle_get_duration(self._handle, subsong)
 
-    def mix(self, frame_count, freq):
+    def mix(self, frame_count=None):
         """Mix audio according to the state of the handle.
 
-        Arguments:
-        frame_count -- The number of frames to be mixed.
-        freq        -- The mixing frequency in frames per second.
-                       Typical values are 44100 ("CD quality") and
-                       48000.
+        Optional arguments:
+        frame_count -- The number of frames to be mixed. The default
+                       value is self.buffer_size.
 
         Returns:
         A pair containing audio data for, respectively, the left and
@@ -114,7 +138,9 @@ class RHandle(object):
         frames indicate that the end has been reached.
 
         """
-        mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, freq)
+        if not frame_count:
+            frame_count = self.buffer_size
+        mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, self.freq)
         cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
         return (cbuf_left[:mixed], cbuf_right[:mixed])
@@ -139,7 +165,7 @@ class RWHandle(RHandle):
 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, freq=48000):
         """Create a new RWHandle.
 
         Arguments:
@@ -149,12 +175,16 @@ class RWHandle(RHandle):
                 the real path name should be used, i.e. don't
                 substitute the format version with XX.
 
+        Optional arguments:
+        freq -- Mixing frequency in frames per second. Typical values
+                are 44100 ("CD quality") and 48000 (the default).
+
         """
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rw(path)
             if not self._handle:
                 _raise_error(_kunquat.kqt_Handle_get_error(None))
-        RHandle.__init__(self, path)
+        RHandle.__init__(self, path, freq)
 
     def __setitem__(self, key, value):
         """Set data in the handle.
@@ -164,6 +194,12 @@ class RWHandle(RHandle):
                  to the same data as the key argument of __getitem__
                  and the same formatting rules apply.
         value -- The data to be set.
+
+        Exceptions:
+        KunquatArgumentError -- The key is not valid.
+        KunquatFormatError   -- The data is not valid. Only the data
+                                that audibly affects mixing is
+                                validated.
 
         """
         data = buffer(value)
@@ -187,7 +223,7 @@ class RWCHandle(RWHandle):
 
     """
 
-    def __init__(self, path):
+    def __init__(self, path, freq=48000):
         """Create a new RWCHandle.
 
         Arguments:
@@ -195,6 +231,10 @@ class RWCHandle(RWHandle):
                 Normally, this directory contains the subdirectories
                 "committed" and "workspace", although new project
                 directories can be empty.
+
+        Optional arguments:
+        freq -- Mixing frequency in frames per second. Typical values
+                are 44100 ("CD quality") and 48000 (the default).
 
         """
         if '_handle' not in self.__dict__:
@@ -232,19 +272,15 @@ def _error_check(result, func, arguments):
 
 class KunquatError(Exception):
     """Base class for errors in Kunquat."""
-    pass
 
 class KunquatArgumentError(KunquatError):
     """Error indicating that a given method argument is invalid."""
-    pass
 
 class KunquatFormatError(KunquatError):
     """Error indicating that composition data is invalid."""
-    pass
 
 class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
-    pass
 
 
 _kunquat = ctypes.CDLL('libkunquat.so')
