@@ -11,7 +11,29 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+"""A library for accessing Kunquat music data.
+
+This module provides interfaces for inspecting, modifying and editing
+Kunquat compositions.
+
+Classes:
+RHandle   -- A read-only interface for kqt files.
+RWHandle  -- A read/write interface for composition directories.
+RWCHandle -- An interface for composition projects.
+
+Exceptions:
+KunquatError         -- The base class for Kunquat errors.
+KunquatArgumentError -- An error for most invalid argument errors.
+KunquatFormatError   -- An error indicating invalid music data.
+KunquatResourceError -- An error for resource-specific errors.
+
+"""
+
 import ctypes
+
+__all__ = ['RHandle', 'RWHandle', 'RWCHandle',
+           'KunquatError', 'KunquatArgumentError',
+           'KunquatFormatError', 'KunquatResourceError']
 
 
 class RHandle(object):
@@ -22,6 +44,17 @@ class RHandle(object):
     RHandle -- possibly an instance of a subclass of RHandle.  The
     RHandle is used for mixing the composition and/or retrieving data
     from the composition.
+
+    Public methods:
+    __getitem__  -- Dictionary-like composition data retrieval.
+    get_duration -- Calculate the length of a subsong.
+    mix          -- Mix audio data.
+
+    Public instance variables:
+    buffer_size -- Mixing buffer size.
+    freq        -- Mixing frequency.
+    nanoseconds -- The current position in nanoseconds.
+    subsong     -- The current subsong (None or [0,255]).
 
     """
 
@@ -90,6 +123,16 @@ class RHandle(object):
         return ''.join([chr(ch) for ch in data])
 
     def __setattr__(self, name, value):
+        """Set Kunquat handle variables.
+
+        Modifying the values of subsong, nanoseconds, buffer_size and
+        freq affect subsequent calls of the mix method.  Note that
+        setting a new value for nanoseconds seeks inside the
+        composition, which may take a while for very large values.
+        Also, keep in mind that setting the subsong will reset
+        nanoseconds to 0.
+
+        """
         if name == 'subsong':
             subsong = value
             if subsong is None:
@@ -143,6 +186,8 @@ class RHandle(object):
         mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, self.freq)
         cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
+        object.__setattr__(self, 'nanoseconds',
+                           _kunquat.kqt_Handle_get_position(self._handle))
         return (cbuf_left[:mixed], cbuf_right[:mixed])
 
     def __del__(self):
@@ -162,6 +207,9 @@ class RWHandle(RHandle):
     The RWHandle is mainly designed for applications that modify
     composition metadata.  It is not recommended for editor
     applications.  These applications should use RWCHandle instead.
+
+    Public methods:
+    __setitem__ -- Dictionary-like composition data modification.
 
     """
 
@@ -221,6 +269,9 @@ class RWCHandle(RWHandle):
     state.  A committed version of a composition can always be restored
     in case the program execution is abruptly terminated.
 
+    Public methods:
+    commit -- Commit the changes made in the handle.
+
     """
 
     def __init__(self, path, freq=48000):
@@ -244,7 +295,22 @@ class RWCHandle(RWHandle):
         RWHandle.__init__(self, path)
 
     def commit():
-        """Commits the changes made in the handle."""
+        """Commit the changes made in the handle.
+
+        Exceptions:
+        KunquatFormatError   -- The project contains invalid data.
+                                This usually means that the worspace
+                                was modified manually or there's a bug
+                                in Kunquat.
+        KunquatResourceError -- File system access failed.
+
+        If any exception is raised during the commit, it is usually a
+        good idea to discard the handle and create a new one for the
+        project.  This will initiate a recovery procedure that will
+        restore a valid composition state.  Changes made after the last
+        successful commit are possibly lost in this case, though.
+        
+        """
         _kunquat.kqt_Handle_commit(self._handle)
 
 
