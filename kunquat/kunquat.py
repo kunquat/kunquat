@@ -13,7 +13,7 @@
 
 """A library for accessing Kunquat music data.
 
-This module provides interfaces for inspecting, modifying and editing
+This module provides interfaces for inspecting, mixing and modifying
 Kunquat compositions.
 
 Classes:
@@ -24,8 +24,8 @@ RWCHandle -- An interface for composition projects.
 Exceptions:
 KunquatError         -- The base class for Kunquat errors.
 KunquatArgumentError -- An error for most invalid argument errors.
-KunquatFormatError   -- An error indicating invalid music data.
-KunquatResourceError -- An error for resource-specific errors.
+KunquatFormatError   -- An error for indicating invalid music data.
+KunquatResourceError -- An error for resource access errors.
 
 """
 
@@ -188,7 +188,7 @@ class RHandle(object):
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
         object.__setattr__(self, 'nanoseconds',
                            _kunquat.kqt_Handle_get_position(self._handle))
-        return (cbuf_left[:mixed], cbuf_right[:mixed])
+        return cbuf_left[:mixed], cbuf_right[:mixed]
 
     def __del__(self):
         if self._handle:
