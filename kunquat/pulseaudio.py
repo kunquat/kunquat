@@ -116,7 +116,7 @@ class Simple(object):
             raise ValueError('Wrong number of output channel buffers')
         frame_count = len(data[0])
         cdata = (ctypes.c_float * (frame_count * self.channels))()
-        for channel in range(self.channels):
+        for channel in xrange(self.channels):
             if len(data[channel]) != frame_count:
                 raise ValueError('Output channel buffer lengths do not match')
             cdata[channel::self.channels] = data[channel]

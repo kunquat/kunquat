@@ -82,9 +82,9 @@ class RHandle(object):
             self._handle = _kunquat.kqt_new_Handle_r(path)
             if not self._handle:
                 _raise_error(_kunquat.kqt_Handle_get_error(None))
-        self.subsong = None
-        self.nanoseconds = 0
-        self.buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
+        self._subsong = None
+        self._nanoseconds = 0
+        self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
         if freq <= 0:
             raise KunquatArgumentError('Mixing frequency must be positive')
         self.freq = freq
@@ -120,34 +120,62 @@ class RHandle(object):
         cdata = _kunquat.kqt_Handle_get_data(self._handle, key)
         data = cdata[:length]
         _kunquat.kqt_Handle_free_data(self._handle, cdata)
-        return ''.join([chr(ch) for ch in data])
+        return ''.join(chr(ch) for ch in data)
 
-    def __setattr__(self, name, value):
-        """Set Kunquat handle variables.
+    @property
+    def subsong(self):
+        """The current subsong ([0,255], or None for all subsongs)"""
+        return self._subsong
 
-        Modifying the values of subsong, nanoseconds, buffer_size and
-        freq affect subsequent calls of the mix method.  Note that
-        setting a new value for nanoseconds seeks inside the
-        composition, which may take a while for very large values.
-        Also, keep in mind that setting the subsong will reset
-        nanoseconds to 0.
+    @subsong.setter
+    def subsong(self, value):
+        """Set the subsong number.
+
+        Note that setting the subsong number also resets nanoseconds to
+        zero.
 
         """
-        if name == 'subsong':
-            subsong = value
-            if subsong is None:
-                subsong = -1
-            _kunquat.kqt_Handle_set_position(self._handle, subsong, 0)
-        elif name == 'nanoseconds':
-            subsong = self.subsong
-            if subsong is None:
-                subsong = -1
-            _kunquat.kqt_Handle_set_position(self._handle,
-                                             subsong,
-                                             value)
-        elif name == 'buffer_size':
-            _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
-        object.__setattr__(self, name, value)
+        subsong = value
+        if subsong is None:
+            subsong = -1
+        _kunquat.kqt_Handle_set_position(self._handle, subsong, 0)
+        self._subsong = value
+        self._nanoseconds = 0
+
+    @property
+    def nanoseconds(self):
+        """The current position in nanoseconds."""
+        return self._nanoseconds
+
+    @nanoseconds.setter
+    def nanoseconds(self, value):
+        """Set the subsong position in nanoseconds.
+
+        Note that setting a new nanoseconds value may take a while for
+        very large values.
+
+        """
+        subsong = self.subsong
+        if subsong is None:
+            subsong = -1
+        _kunquat.kqt_Handle_set_position(self._handle, subsong, value)
+        self._nanoseconds = value
+
+    @property
+    def buffer_size(self):
+        """Mixing buffer size in frames."""
+        return self._buffer_size
+
+    @buffer_size.setter
+    def buffer_size(self, value):
+        """Set the mixing buffer size.
+
+        This value sets the maximum (and default) length for buffers
+        returned by the mix method.
+
+        """
+        _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
+        self._buffer_size
 
     def get_duration(self, subsong=None):
         """Count the duration of the composition in nanoseconds.
@@ -182,12 +210,11 @@ class RHandle(object):
 
         """
         if not frame_count:
-            frame_count = self.buffer_size
+            frame_count = self._buffer_size
         mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, self.freq)
         cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
-        object.__setattr__(self, 'nanoseconds',
-                           _kunquat.kqt_Handle_get_position(self._handle))
+        self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
         return cbuf_left[:mixed], cbuf_right[:mixed]
 
     def __del__(self):
@@ -314,17 +341,17 @@ class RWCHandle(RWHandle):
         _kunquat.kqt_Handle_commit(self._handle)
 
 
-def _raise_error(error_str):
+def _get_error(error_str):
     description = error_str[error_str.index(' ') + 1:]
     if error_str.startswith('ArgumentError:'):
-        raise KunquatArgumentError(description)
+        return KunquatArgumentError(description)
     elif error_str.startswith('FormatError:'):
-        raise KunquatFormatError(description)
+        return KunquatFormatError(description)
     elif error_str.startswith('MemoryError:'):
-        raise MemoryError(description)
+        return MemoryError(description)
     elif error_str.startswith('ResourceError:'):
-        raise KunquatResourceError(description)
-    raise KunquatError(error_str)
+        return KunquatResourceError(description)
+    return KunquatError(error_str)
 
 
 def _error_check(result, func, arguments):
@@ -333,7 +360,7 @@ def _error_check(result, func, arguments):
     if not error_str:
         return result
     _kunquat.kqt_Handle_clear_error(chandle)
-    _raise_error(error_str)
+    raise _get_error(error_str)
 
 
 class KunquatError(Exception):

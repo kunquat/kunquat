@@ -31,12 +31,10 @@ AUTHORS = [ u'Tomi Jylhä-Ollila' ]
 def print_version():
     print(PROGRAM_NAME + ' ' + PROGRAM_VERSION)
     if len(AUTHORS) == 1:
-        auth = 'Author: '
+        auth = 'Author:'
     else:
-        auth = 'Authors: '
-    print(auth + AUTHORS[0])
-    for author in AUTHORS[1:]:
-        print(''.join([' '] * len(auth)) + author)
+        auth = 'Authors:'
+    print('%s %s' % (auth, ('\n' + ' ' * (len(auth) + 1)).join(AUTHORS)))
     print('No rights reserved')
     print('CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/')
 
@@ -56,17 +54,17 @@ def print_interactive_help():
     print('\n'.join(help))
 
 
-def play(options, file, pa_handle, key_handler, list_pos):
-    if os.path.basename(os.path.realpath(file)) == 'kunquatc00':
-        handle = kunquat.RWHandle(file, options.frequency)
+def play(options, file_name, pa_handle, key_handler, list_pos):
+    if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
+        handle = kunquat.RWHandle(file_name, options.frequency)
     else:
-        handle = kunquat.RHandle(file, options.frequency)
+        handle = kunquat.RHandle(file_name, options.frequency)
     handle.buffer_size = options.buffer_size
     handle.subsong = options.subsong
     status = Status(options.frequency)
     duration = handle.get_duration(options.subsong)
     if options.interactive:
-        print('Playing ' + file)
+        print('Playing', file_name)
     return_key = KeyHandler.RETURN
     status_len_max = 0
     bufs = handle.mix()
@@ -77,7 +75,7 @@ def play(options, file, pa_handle, key_handler, list_pos):
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
-                print(''.join([' '] * (status_len_max - status_len)), end='')
+                print((' ' * (status_len_max - status_len)), end='')
             else:
                 status_len_max = status_len
             print(end='\r')
@@ -141,7 +139,7 @@ def play_all(options, files):
     key_handler = KeyHandler()
     file_index = 0
     while file_index < len(files):
-        file = files[file_index]
+        file_name = files[file_index]
         list_pos = []
         if file_index == 0:
             list_pos.append('first')
@@ -150,19 +148,19 @@ def play_all(options, files):
         try:
             if options.interactive:
                 key_handler.disable_blocking()
-            action = play(options, file, pa_handle, key_handler, list_pos)
-            if options.interactive:
-                print()
-            if action == 'q':
-                break
-            elif action == KeyHandler.BACKSPACE:
-                if file_index > 0:
-                    file_index = file_index - 1
-            elif action == KeyHandler.RETURN:
-                file_index = file_index + 1
+            action = play(options, file_name, pa_handle, key_handler, list_pos)
         finally:
             if options.interactive:
                 key_handler.restore()
+        if options.interactive:
+            print()
+        if action == 'q':
+            break
+        elif action == KeyHandler.BACKSPACE:
+            if file_index > 0:
+                file_index = file_index - 1
+        elif action == KeyHandler.RETURN:
+            file_index = file_index + 1
     if options.interactive:
         print('Done.')
 
@@ -316,12 +314,12 @@ class Status(object):
         if handle.subsong is None:
             components.append('All subsongs')
         else:
-            components.append('Subsong: ' + str(handle.subsong))
-        elapsed = 'Time: ' + self.dur_to_str(handle.nanoseconds)
+            components.append('Subsong: %d' % handle.subsong)
+        elapsed = 'Time: %s' % self.dur_to_str(handle.nanoseconds)
         if handle.nanoseconds <= duration:
-            elapsed = (elapsed + ' [' +
-                       self.dur_to_str(duration - handle.nanoseconds) + ']')
-            elapsed = elapsed + ' of ' + self.dur_to_str(duration)
+            elapsed += ' [%s] of %s' % (
+                       self.dur_to_str(duration - handle.nanoseconds),
+                       self.dur_to_str(duration))
         components.append(elapsed)
         return self.get_peak_meter(14, -40, -4, bufs) + ', '.join(components)
 
@@ -331,16 +329,16 @@ class Status(object):
         left_vol_linear = max(bufs[0]) - min(bufs[0]) / 2
         right_vol_linear = max(bufs[1]) - min(bufs[1]) / 2
         self.left_clipped = (self.left_clipped or
-                             len([a for a in bufs[0] if abs(a) > 1.0]) > 0)
+                             sum(1 for a in bufs[0] if abs(a) > 1.0) > 0)
         self.right_clipped = (self.right_clipped or
-                              len([a for a in bufs[1] if abs(a) > 1.0]) > 0)
+                              sum(1 for a in bufs[1] if abs(a) > 1.0) > 0)
         left_bar = self.get_single_meter(length - 3, lower, upper,
                                          left_vol_linear, self.left_hold)
         right_bar = self.get_single_meter(length - 3, lower, upper,
                                           right_vol_linear, self.right_hold)
-        self.left_hold[1] = self.left_hold[1] + len(bufs[0])
-        self.right_hold[1] = self.right_hold[1] + len(bufs[0])
-        return ('[' + self.combine_meters(left_bar, right_bar) + ']' +
+        self.left_hold[1] += len(bufs[0])
+        self.right_hold[1] += len(bufs[0])
+        return '[%s]%s' % (self.combine_meters(left_bar, right_bar),
                 Status.clip_map[self.left_clipped, self.right_clipped])
 
     def get_single_meter(self, length, lower, upper, vol_linear, hold):
@@ -366,11 +364,11 @@ class Status(object):
             if hold_pos >= scale:
                 hold_pos = scale - 1
             bar[hold_pos] = 1
-        return [a + 2 * b for a, b in zip(bar[0::2], bar[1::2])]
+        return (a + 2 * b for a, b in zip(bar[0::2], bar[1::2]))
 
     def combine_meters(self, left_bar, right_bar):
         bar = zip(left_bar, right_bar)
-        return ''.join([Status.block_map[pair] for pair in bar])
+        return ''.join(Status.block_map[pair] for pair in bar)
 
 
 if __name__ == '__main__':
