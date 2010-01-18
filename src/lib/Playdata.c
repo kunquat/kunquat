@@ -258,6 +258,16 @@ void Playdata_reset(Playdata* play)
             }
         }
     }
+
+    play->jump_set_counter = 0;
+    play->jump_set_subsong = -1;
+    play->jump_set_section = -1;
+    Reltime_init(&play->jump_set_row);
+    play->jump = false;
+    play->jump_subsong = -1;
+    play->jump_section = -1;
+    Reltime_init(&play->jump_row);
+
     play->volume_slide = 0;
     Reltime_init(&play->volume_slide_length);
     play->tempo_slide = 0;
