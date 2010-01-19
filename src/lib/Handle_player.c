@@ -33,8 +33,16 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
     {
         return 0;
     }
-    if (freq == 0)
+    if (nframes <= 0)
     {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Number of frames must"
+                " be positive.");
+        return 0;
+    }
+    if (freq <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing frequency must"
+                " be positive.");
         return 0;
     }
     handle->song->play_state->freq = freq;

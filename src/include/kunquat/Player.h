@@ -60,7 +60,7 @@ extern "C" {
  * Mixes audio according to the state of the Kunquat Handle.
  *
  * \param handle    The Handle -- should not be \c NULL.
- * \param nframes   The number of frames to be mixed.
+ * \param nframes   The number of frames to be mixed -- should be > \c 0.
  * \param freq      The mixing frequency in frames per second
  *                  -- should be > \c 0. Typical values are
  *                  44100 ("CD quality") and 48000.

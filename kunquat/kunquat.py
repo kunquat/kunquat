@@ -203,6 +203,10 @@ class RHandle(object):
         frame_count -- The number of frames to be mixed. The default
                        value is self.buffer_size.
 
+        Exceptions:
+        KunquatArgumentError -- self.freq or frame_count is not
+                                positive.
+
         Returns:
         A pair containing audio data for, respectively, the left and
         the right output channel. Buffers shorter than frame_count
@@ -308,7 +312,7 @@ class RWCHandle(RWHandle):
         path -- The path to the Kunquat composition project directory.
                 Normally, this directory contains the subdirectories
                 "committed" and "workspace", although new project
-                directories can be empty.
+                directories may be empty.
 
         Optional arguments:
         freq -- Mixing frequency in frames per second. Typical values
