@@ -100,8 +100,8 @@ class RHandle(object):
                'p_composition.json'
                'pat_000/vcol_00/p_voice_events.json'
                'ins_01/kunquatiXX/p_instrument.json'
-               The 'XX' in the last example should be written exactly
-               like this.  It is expanded to the file format version
+               The 'XX' in the last example should be written
+               literally.  It is expanded to the file format version
                number behind the scenes.
 
         Return value:
@@ -115,7 +115,7 @@ class RHandle(object):
 
         """
         length = _kunquat.kqt_Handle_get_data_length(self._handle, key)
-        if length == 0:
+        if length <= 0:
             return None
         cdata = _kunquat.kqt_Handle_get_data(self._handle, key)
         data = cdata[:length]
@@ -249,10 +249,11 @@ class RWHandle(RHandle):
 
         Arguments:
         path -- The path to the extracted Kunquat composition
-                directory.  This directory is called kunquatcXX where
-                XX is the version number of the format.  In this case,
-                the real path name should be used, i.e. don't
-                substitute the format version with XX.
+                directory.  This directory is called 'kunquatcXX'
+                where 'XX' is the version number of the format.  In
+                this case, the real path name should be used, i.e.
+                the format version number should not be substituted
+                with 'XX'.
 
         Optional arguments:
         freq -- Mixing frequency in frames per second. Typical values

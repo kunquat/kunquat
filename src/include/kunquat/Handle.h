@@ -132,7 +132,8 @@ long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
 /**
  * Frees data returned by kqt_Handle_get_data.
  *
- * \param handle   The Kunquat Handle -- should be a valid Handle.
+ * \param handle   The Kunquat Handle -- should be the same Handle from which
+ *                 the data was originally retrieved.
  * \param data     The data to be freed. If this is \c NULL, the function
  *                 succeeds without doing anything.
  *

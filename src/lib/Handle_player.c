@@ -59,7 +59,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
                 " positive");
         return 0;
     }
-    if (size >= 4194304)
+    if (size > 4194304)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must not be"
                 " greater than 4194304 frames");

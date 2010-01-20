@@ -105,7 +105,7 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
  * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
  * \param handle   The Handle -- should not be \c NULL.
- * \param size     The new buffer size -- should be > \c 0 and < \c 4194304.
+ * \param size     The new buffer size -- should be > \c 0 and <= \c 4194304.
  *                 The upper limit is a safety measure -- typically,
  *                 implementations use a buffer size of no more than a couple
  *                 of thousand frames.
@@ -123,7 +123,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size);
  *
  * \param handle   The Handle -- should not be \c NULL.
  *
- * \return   The size of a buffer in frames.
+ * \return   The size of a buffer in frames, or \c 0 if \a handle is invalid.
  */
 long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
