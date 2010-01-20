@@ -12,6 +12,7 @@
 
 
 import glob
+import os.path
 
 
 Import('env')
@@ -50,9 +51,9 @@ def InstallLibCreatePath(env, path, source):
     target = env.InstallCreatePath(path, source)
     if 'install' in COMMAND_LINE_TARGETS:
         for file in source:
-            env.Command(path + '/' + str(file) + '.' +
-                                str(env['lib_version_major']),
-                        path + '/' + str(file), ln_cmd, chdir=1)
+            env.Command(os.path.join(path, '%s.%s' % (str(file),
+                                           str(env['lib_version_major']))),
+                        os.path.join(path, str(file)), ln_cmd, chdir=1)
 #            env.fs.Entry(
     return target
 
