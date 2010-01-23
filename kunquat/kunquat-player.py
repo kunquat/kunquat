@@ -29,12 +29,12 @@ AUTHORS = [ u'Tomi Jylhä-Ollila' ]
 
 
 def print_version():
-    print(PROGRAM_NAME + ' ' + PROGRAM_VERSION)
+    print(PROGRAM_NAME, PROGRAM_VERSION)
     if len(AUTHORS) == 1:
         auth = 'Author:'
     else:
         auth = 'Authors:'
-    print('%s %s' % (auth, ('\n' + ' ' * (len(auth) + 1)).join(AUTHORS)))
+    print(auth, ('\n' + ' ' * (len(auth) + 1)).join(AUTHORS))
     print('No rights reserved')
     print('CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/')
 
