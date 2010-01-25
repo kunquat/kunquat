@@ -12,6 +12,9 @@
 
 
 import os
+import os.path
+import shutil
+import subprocess
 
 
 def valid_optimise(key, val, env):
@@ -26,6 +29,7 @@ opts.AddVariables(
     BoolVariable('enable_debug', 'Build in debug mode.', True),
     BoolVariable('enable_libkunquat', 'Enable libkunquat.', True),
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
+    BoolVariable('enable_python_bindings', 'Install Python bindings.', True),
     BoolVariable('enable_tests', 'Build and run libkunquat tests.', True),
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', True),
@@ -213,10 +217,43 @@ elif GetOption('full-clean') != None:
 
 if not env.GetOption('help'):
     Export('env')
-
     if env['enable_examples']:
         SConscript('examples/SConscript')
-
     SConscript('src/SConscript')
+    if env['enable_python_bindings'] and 'install' in COMMAND_LINE_TARGETS:
+        if 'install' in COMMAND_LINE_TARGETS:
+            if not env.GetOption('clean'):
+                ret = subprocess.call(['python',
+                                       'py-setup.py',
+                                       'install',
+                                       '--record=py-installed',
+                                       '--prefix=%s' % env['prefix']])
+                if ret:
+                    Exit(ret)
+            elif os.path.exists('py-installed'):
+                f = open('py-installed')
+                kunquat_dirs = []
+                for path in f:
+                    path = path.strip()
+                    dir = os.path.dirname(path)
+                    if os.path.basename(dir) == 'kunquat' or\
+                       os.path.basename(os.path.dirname(dir)) == 'kunquat':
+                        kunquat_dirs.append(dir)
+                    os.remove(path)
+                f.close()
+                os.remove('py-installed')
+                dir_set = set(kunquat_dirs)
+                kunquat_dirs = list(dir_set)
+                kunquat_dirs.sort()
+                kunquat_dirs.reverse()
+                for dir in kunquat_dirs:
+                    try:
+                        os.rmdir(dir)
+                    except OSError:
+                        print('Note: Directory %s is not empty,'
+                              ' so it is not removed' % dir)
+        if env.GetOption('clean'):
+            if os.path.exists('build'):
+                shutil.rmtree('build')
 
 

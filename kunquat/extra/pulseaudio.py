@@ -14,7 +14,9 @@
 """A wrapper for the PulseAudio library.
 
 This module provides limited support for the simple PulseAudio
-interface. It is mainly designed for Kunquat music tools.
+interface. Designed for Kunquat music tools, the module only exists
+because there is no widespread Python wrapper yet. As soon as one
+becomes available in major distributions, this module will be removed.
 
 """
 
