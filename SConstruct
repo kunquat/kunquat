@@ -255,5 +255,7 @@ if not env.GetOption('help'):
     if env.GetOption('clean'):
         if os.path.exists('build'):
             shutil.rmtree('build')
+        if GetOption('full-clean') != None and os.path.exists('py-installed'):
+            os.remove('py-installed')
 
 

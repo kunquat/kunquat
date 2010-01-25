@@ -81,7 +81,7 @@ class RHandle(object):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_r(path)
             if not self._handle:
-                _raise_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(_kunquat.kqt_Handle_get_error(None))
         self._subsong = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
@@ -263,7 +263,7 @@ class RWHandle(RHandle):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rw(path)
             if not self._handle:
-                _raise_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(_kunquat.kqt_Handle_get_error(None))
         RHandle.__init__(self, path, freq)
 
     def __setitem__(self, key, value):
@@ -323,7 +323,7 @@ class RWCHandle(RWHandle):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rwc(path)
             if not self._handle:
-                _raise_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(_kunquat.kqt_Handle_get_error(None))
         RWHandle.__init__(self, path)
 
     def commit():
