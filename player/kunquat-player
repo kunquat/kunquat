@@ -56,10 +56,14 @@ def print_interactive_help():
 
 
 def play(options, file_name, pa_handle, key_handler, list_pos):
-    if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
-        handle = kunquat.RWHandle(file_name, options.frequency)
-    else:
-        handle = kunquat.RHandle(file_name, options.frequency)
+    try:
+        if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
+            handle = kunquat.RWHandle(file_name, options.frequency)
+        else:
+            handle = kunquat.RHandle(file_name, options.frequency)
+    except kunquat.KunquatError as e:
+        print('Couldn\'t load \'%s\': %s' % (file_name, e), end='')
+        return KeyHandler.RETURN
     handle.buffer_size = options.buffer_size
     handle.subsong = options.subsong
     status = Status(options.frequency)
