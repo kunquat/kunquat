@@ -22,7 +22,7 @@ enable_tests = False
 enable_player = True
 
 # Enable kunquat-export (requires libsndfile).
-enable_export = True
+enable_export = False
 
 # Build example Kunquat files.
 enable_examples = True
