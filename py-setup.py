@@ -11,7 +11,7 @@ inc_scripts = []
 inc_data = []
 if options.enable_player:
     inc_scripts.append('player/kunquat-player')
-    inc_data.append(('share/man/man1', 'player/kunquat-player.1'))
+    inc_data.append(('share/man/man1', ['player/kunquat-player.1']))
 
 setup(name='kunquat',
       version='0.3.1',

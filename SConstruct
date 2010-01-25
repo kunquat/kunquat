@@ -252,8 +252,8 @@ if not env.GetOption('help'):
                     except OSError:
                         print('Note: Directory %s is not empty,'
                               ' so it is not removed' % dir)
-        if env.GetOption('clean'):
-            if os.path.exists('build'):
-                shutil.rmtree('build')
+    if env.GetOption('clean'):
+        if os.path.exists('build'):
+            shutil.rmtree('build')
 
 
