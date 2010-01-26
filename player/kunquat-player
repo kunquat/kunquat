@@ -20,8 +20,8 @@ import string
 import sys
 import termios
 
-from kunquat import kunquat
-from kunquat.extra import pulseaudio
+import kunquat
+from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'

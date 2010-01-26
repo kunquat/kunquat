@@ -20,7 +20,7 @@ setup(name='kunquat',
       url='http://launchpad.net/kunquat/',
       description='A music sequencer.',
       license='CC0',
-      packages=['kunquat', 'kunquat.extra'],
+      packages=['kunquat', 'kunquat.extras'],
       scripts=inc_scripts,
       data_files=inc_data,
      )
