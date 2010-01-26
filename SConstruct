@@ -138,26 +138,27 @@ if not env.GetOption('clean') and not env.GetOption('help'):
         if conf.CheckLibWithHeader('wavpack', 'wavpack/wavpack.h', 'C'):
             conf.env.Append(CCFLAGS = '-DWITH_WAVPACK')
         else:
-            conf_errors.append('WavPack support was requested' +
+            conf_errors.append('WavPack support was requested'
                                ' but WavPack was not found.')
     else:
-        print('Warning: WavPack support is disabled!' +
+        print('Warning: WavPack support is disabled!'
               ' Sample support will be very minimal.')
 
     if not conf.CheckLibWithHeader('archive', 'archive.h', 'C'):
         conf_errors.append('libarchive was not found.')
 
     if env['enable_player']:
-        if not conf.CheckLibWithHeader('pthread', 'pthread.h', 'C'):
-            conf_errors.append('kunquat-player was requested' +
-                               ' but libpthread was not found.')
+        if not env['enable_python_bindings']:
+            print('Warning: kunquat-player was requested'
+                  ' without Python bindings -- disabling kunquat-player.')
+            env['enable_player'] = False
 
     if env['with_pulse']:
         if conf.CheckLibWithHeader('pulse-simple', 'pulse/simple.h', 'C'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_PULSE')
         else:
-            print('Warning: PulseAudio support was requested' +
+            print('Warning: PulseAudio support was requested'
                   ' but PulseAudio was not found.')
             env['with_pulse'] = False
 
@@ -166,7 +167,7 @@ if not env.GetOption('clean') and not env.GetOption('help'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_JACK')
         else:
-            print('Warning: JACK support was requested' +
+            print('Warning: JACK support was requested'
                   ' but JACK was not found.')
             env['with_jack'] = False
 
@@ -176,7 +177,7 @@ if not env.GetOption('clean') and not env.GetOption('help'):
             audio_found = True
             conf.env.Append(CCFLAGS = '-DWITH_OPENAL')
         else:
-            print('Warning: OpenAL support was requested' +
+            print('Warning: OpenAL support was requested'
                   ' but OpenAL was not found.')
             env['with_openal'] = False
 
@@ -185,17 +186,17 @@ if not env.GetOption('clean') and not env.GetOption('help'):
             env.ParseConfig('pkg-config --cflags --libs sndfile')
             conf.env.Append(CCFLAGS = '-DWITH_SNDFILE')
         else:
-            print('Warning: kunquat-export was requested' +
+            print('Warning: kunquat-export was requested'
                   ' but libsndfile was not found.')
             env['enable_export'] = False
 
     if env['enable_tests'] and not conf.CheckLibWithHeader('check', 'check.h', 'C'):
-        conf_errors.append('Building of unit tests was requested' +
+        conf_errors.append('Building of unit tests was requested'
                            ' but Check was not found.')
 
     if conf_errors:
         print('\nCouldn\'t configure Kunquat due to the following error%s:\n' %
-              's'[:len(conf_errors[1:])])
+              ('s' if len(conf_errors) != 1 else ''))
         print('\n'.join(conf_errors) + '\n')
         Exit(1)
         
