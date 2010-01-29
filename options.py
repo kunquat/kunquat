@@ -38,9 +38,9 @@ with_wavpack = True
 with_pulse = True
 
 # Build JACK support.
-with_jack = True
+with_jack = False
 
 # Build OpenAL support.
-with_openal = True
+with_openal = False
 
 

@@ -1,6 +1,6 @@
 On a relatively recent Ubuntu system you should be able to install and try out Kunquat by doing the following:
 
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpulse-dev libjack-dev jackd check libopenal-dev libalut-dev libsndfile1-dev
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpulse-dev check libsndfile1-dev
 scons
 scons prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib
