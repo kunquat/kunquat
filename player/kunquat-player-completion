@@ -11,9 +11,9 @@ _kunquat_player()
              --buffer-size --frequency -s --subsong'
     cur=${COMP_WORDS[COMP_CWORD]}
     prev=${COMP_WORDS[COMP_CWORD - 1]}
-    if [[ $prev = -* ]] && [ $foo != '-q' ] && [ $foo != '--quiet' ]; then
-        return 0
-    fi
+#    if [[ $prev = -* ]] && [ $foo != '-q' ] && [ $foo != '--quiet' ]; then
+#        return 0
+#    fi
     case $cur in
         -*)
             COMPREPLY=( $( compgen -W "$options" -- $cur ) )
