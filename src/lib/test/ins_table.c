@@ -20,7 +20,7 @@
 
 #include <check.h>
 
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 #include <Scale.h>

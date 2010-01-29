@@ -30,6 +30,8 @@
 
 #define POSITION_LENGTH (64)
 
+#define DEFAULT_BUFFER_SIZE (2048)
+
 
 typedef enum
 {
@@ -46,6 +48,7 @@ struct kqt_Handle
 {
     Song* song;
     kqt_Access_mode mode;
+    AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
     void (*destroy)(struct kqt_Handle* handle);

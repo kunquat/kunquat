@@ -16,7 +16,7 @@
 #define K_FILTER_H
 
 
-#include <kunquat/frame.h>
+#include <frame.h>
 
 
 void bilinear_butterworth_lowpass_filter_create(int n,

@@ -1,0 +1,109 @@
+.TH kunquat\-player 1 "2010\-01\-25" "" "Kunquat"
+
+.SH NAME
+kunquat\-player \- plays Kunquat compositions
+
+.SH SYNOPSIS
+.B kunquat\-player
+[
+.B \-h
+|
+.B \-\-version
+]
+.br
+.B kunquat\-player
+[
+.B \-q
+]
+[
+.B \-\-buffer\-size
+.I n
+]
+[
+.B \-\-frequency
+.I n
+]
+[
+.B \-s
+.I sub
+]
+.I file
+[
+.I file
+.B ...
+]
+
+.SH DESCRIPTION
+.B kunquat\-player
+is a command\-line player for playing Kunquat compositions. It supports
+both .kqt files (optionally compressed with \fBgzip\fR(1) or \fBbzip2\fR(1))
+and unpacked Kunquat composition directories (these are named kunquatc\fIXX\fR
+where \fIXX\fR is the version number of the format).
+
+.SH OPTIONS
+
+.IP "\fB\-\-buffer\-size\fR \fIn\fR"
+Uses audio buffer size of \fIn\fR frames. \fIn\fR is a value between 64 and
+262144.
+
+.IP "\fB\-\-frequency\fR \fIn\fR"
+Mixes \fIn\fR frames per second. As a result, the highest frequency in the
+sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 192000.
+
+.IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
+Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
+\fIall\fR which plays all the existing subsongs in order.
+
+.IP "\fB\-h\fR, \fB\-\-help\fR"
+Shows help and exits.
+
+.IP "\fB\-q\fR, \fB\-\-quiet\fR"
+Disables status information and interactive keys. Only error messages will be
+displayed. The only way for the user to stop the playback is via a signal
+(e.g. by pressing Ctl+C).
+
+.IP "\fB\-\-version\fR"
+Shows version and copyright information and exits.
+
+.SH INTERACTIVE KEYS
+
+If run without the
+.B \-q
+option,
+.B kunquat\-player
+supports interactive playback control. The following keys are supported:
+
+.IP "\fBh\fR"
+Shows the list of interactive keys.
+
+.IP "\fBSpace\fR"
+Pauses or resumes playback.
+
+.IP "\fBLeft\fR"
+Seeks backwards 10 seconds.
+
+.IP "\fBRight\fR"
+Seeks forwards 10 seconds.
+
+.IP "\fB[0-9]\fR, \fBa\fR"
+Selects a subsong to be played (\fBa\fR plays all subsongs).
+
+.IP "\fBp\fR"
+Selects previous subsong.
+
+.IP "\fBn\fR"
+Selects next subsong.
+
+.IP "\fBBackspace\fR"
+Selects previous file.
+
+.IP "\fBReturn\fR"
+Selects next file.
+
+.IP "\fBq\fR"
+Quits the player.
+
+.SH AUTHOR
+Written by Tomi Jylhä\-Ollila.
+
+

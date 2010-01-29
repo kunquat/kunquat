@@ -44,6 +44,9 @@ static bool add_handle(kqt_Handle* handle);
 static bool remove_handle(kqt_Handle* handle);
 
 
+static int ptrcmp(const void* ptr1, const void* ptr2);
+
+
 bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 {
     assert(handle != NULL);
@@ -64,10 +67,23 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 //    int voice_count = 256;
     int event_queue_size = 32;
 
+    handle->returned_values = new_AAtree(ptrcmp, free);
+    if (handle->returned_values == NULL)
+    {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        bool removed = remove_handle(handle);
+        assert(removed);
+        (void)removed;
+        return false;
+    }
     handle->song = new_Song(buffer_count, buffer_size, event_queue_size);
     if (handle->song == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        bool removed = remove_handle(handle);
+        assert(removed);
+        (void)removed;
+        del_AAtree(handle->returned_values);
         return false;
     }
 
@@ -146,18 +162,49 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
 
 void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
-    assert(handle->get_data != NULL);
     check_handle(handle, NULL);
     check_key(handle, key, NULL);
-    return handle->get_data(handle, key);
+    assert(handle->get_data != NULL);
+    void* data = handle->get_data(handle, key);
+    if (data != NULL)
+    {
+        assert(AAtree_get_exact(handle->returned_values, data) == NULL);
+        if (!AAtree_ins(handle->returned_values, data))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            xfree(data);
+            return NULL;
+        }
+    }
+    return data;
+}
+
+
+int kqt_Handle_free_data(kqt_Handle* handle, void* data)
+{
+    check_handle(handle, 0);
+    if (data == NULL)
+    {
+        return 1;
+    }
+    void* target = NULL;
+    if ((target = AAtree_remove(handle->returned_values, data)) == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Data %p does not originate from this Handle", data);
+        return 0;
+    }
+    xfree(target);
+    return 1;
 }
 
 
 long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
 {
-    assert(handle->get_data_length != NULL);
     check_handle(handle, -1);
     check_key(handle, key, -1);
+    assert(handle->get_data_length != NULL);
     return handle->get_data_length(handle, key);
 }
 
@@ -242,9 +289,28 @@ void kqt_del_Handle(kqt_Handle* handle)
         del_Song(handle->song);
         handle->song = NULL;
     }
+    if (handle->returned_values != NULL)
+    {
+        del_AAtree(handle->returned_values);
+        handle->returned_values = NULL;
+    }
     assert(handle->destroy != NULL);
     handle->destroy(handle);
     return;
+}
+
+
+static int ptrcmp(const void* ptr1, const void* ptr2)
+{
+    if (ptr1 < ptr2)
+    {
+        return -1;
+    }
+    else if (ptr1 > ptr2)
+    {
+        return 1;
+    }
+    return 0;
 }
 
 

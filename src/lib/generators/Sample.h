@@ -21,7 +21,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Voice_state.h>
 #include <Generator.h>
 

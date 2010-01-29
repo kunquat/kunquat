@@ -1,0 +1,30 @@
+
+
+# bash completion script for kunquat-player
+
+
+_kunquat_player()
+{
+    local options cur prev
+    COMPREPLY=()
+    options='-h --help -q --quiet --version \
+             --buffer-size --frequency -s --subsong'
+    cur=${COMP_WORDS[COMP_CWORD]}
+    prev=${COMP_WORDS[COMP_CWORD - 1]}
+#    if [[ $prev = -* ]] && [ $foo != '-q' ] && [ $foo != '--quiet' ]; then
+#        return 0
+#    fi
+    case $cur in
+        -*)
+            COMPREPLY=( $( compgen -W "$options" -- $cur ) )
+            ;;
+        *)
+            _filedir '@(kqt|kqt.gz|kqt.bz2)'
+            ;;
+    esac
+    return 0
+}
+
+complete -F _kunquat_player $filenames kunquat-player
+
+

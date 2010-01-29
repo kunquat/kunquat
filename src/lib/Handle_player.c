@@ -33,8 +33,16 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
     {
         return 0;
     }
-    if (freq == 0)
+    if (nframes <= 0)
     {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Number of frames must"
+                " be positive.");
+        return 0;
+    }
+    if (freq <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing frequency must"
+                " be positive.");
         return 0;
     }
     handle->song->play_state->freq = freq;
@@ -47,7 +55,14 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
     check_handle(handle, 0);
     if (size <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "size must be positive");
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must be"
+                " positive");
+        return 0;
+    }
+    if (size > 4194304)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must not be"
+                " greater than 4194304 frames");
         return 0;
     }
     bool success = Song_set_buf_size(handle->song, size);
@@ -75,7 +90,7 @@ int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 }
 
 
-kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
+float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
     check_handle(handle, NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
@@ -84,15 +99,32 @@ kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
                 "Buffer #%d does not exist", index);
         return NULL;
     }
-    return Song_get_bufs(handle->song)[index];
+    return (float*)Song_get_bufs(handle->song)[index];
 }
 
 
-long long kqt_Handle_get_duration(kqt_Handle* handle)
+long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
 {
-    check_handle(handle, 0);
+    check_handle(handle, -1);
+    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid Subsong number: %d", subsong);
+        return -1;
+    }
     Reltime_init(&handle->song->skip_state->play_time);
     handle->song->skip_state->play_frames = 0;
+    Playdata_reset(handle->song->skip_state);
+    if (subsong == -1)
+    {
+        handle->song->skip_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->skip_state, 0);
+    }
+    else
+    {
+        handle->song->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->skip_state, subsong);
+    }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
     return Song_skip(handle->song, handle->song->skip_state, UINT64_MAX);

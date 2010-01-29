@@ -12,6 +12,7 @@
 
 
 import glob
+import os.path
 
 
 Import('env')
@@ -41,9 +42,28 @@ Export('env_lib')
 SConscript('events/SConscript')
 SConscript('generators/SConscript')
 
+
+env_lib['lib_version_major'] = 0
+
+ln_cmd = 'ln -s ${SOURCE.file} ${TARGET.file}' # TARGET is the link
+
+def InstallLibCreatePath(env, path, source):
+    target = env.InstallCreatePath(path, source)
+    if 'install' in COMMAND_LINE_TARGETS:
+        for file in source:
+            env.Command(os.path.join(path, '%s.%s' % (str(file),
+                                           str(env['lib_version_major']))),
+                        os.path.join(path, str(file)), ln_cmd, chdir=1)
+#            env.fs.Entry(
+    return target
+
+env_lib.AddMethod(InstallLibCreatePath, 'InstallLibCreatePath')
+
+env_lib.Append(SHLINKFLAGS = ['-Wl,-soname,libkunquat.so.' +
+                              str(env_lib['lib_version_major'])])
 libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
 # For some reason, SCons sets the mode to 0755 by default
 env_lib.AddPostAction(libkunquat, Chmod(libkunquat[0].abspath, 0644))
-env_lib.InstallCreatePath(env_lib['prefix'] + '/lib', libkunquat)
+env_lib.InstallLibCreatePath(env_lib['prefix'] + '/lib', libkunquat)
 
 

@@ -21,7 +21,7 @@
 
 #include <Channel_state.h>
 #include <Reltime.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
 

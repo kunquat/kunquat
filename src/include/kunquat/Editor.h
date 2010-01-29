@@ -41,15 +41,13 @@ extern "C" {
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \param buffer_size   The size of the mixing buffers -- should be positive.
- *                      See kqt_new_Handle for detailed explanation.
- * \param path          The path to the Kunquat composition state directory --
- *                      should not be \c NULL.
+ * \param path   The path to the Kunquat composition state directory --
+ *               should not be \c NULL.
  *
  * \return   The new read/write/commit Kunquat Handle if successful, otherwise
  *           \c NULL  (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path);
+kqt_Handle* kqt_new_Handle_rwc(char* path);
 
 
 /**

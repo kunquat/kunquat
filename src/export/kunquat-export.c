@@ -401,18 +401,31 @@ int main(int argc, char** argv)
         kqt_Handle* handle = NULL;
         if (S_ISDIR(info->st_mode))
         {
-            handle = kqt_new_Handle_rw(OUT_BUFFER_SIZE, argv[file_arg]);
+            handle = kqt_new_Handle_rw(argv[file_arg]);
         }
         else
         {
-            handle = kqt_new_Handle_r(OUT_BUFFER_SIZE, argv[file_arg]);
+            handle = kqt_new_Handle_r(argv[file_arg]);
         }
         if (handle == NULL)
         {
             fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
             continue;
         }
+        if (!kqt_Handle_set_buffer_size(handle, OUT_BUFFER_SIZE))
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
         if (!kqt_Handle_set_position(handle, subsong, 0))
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
+        long long duration = kqt_Handle_get_duration(handle, subsong);
+        if (duration == -1)
         {
             fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
             kqt_del_Handle(handle);
@@ -437,21 +450,20 @@ int main(int argc, char** argv)
             cleanup(handle, out_buf, output, explicit_output);
             exit(EXIT_FAILURE);
         }
-        long long duration = kqt_Handle_get_duration(handle);
         long mixed = 0;
         long long total = 0;
         while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
         {
-            kqt_frame* buf_l = kqt_Handle_get_buffer(handle, 0);
-            kqt_frame* buf_r = kqt_Handle_get_buffer(handle, 1);
+            float* buf_l = kqt_Handle_get_buffer(handle, 0);
+            float* buf_r = kqt_Handle_get_buffer(handle, 1);
             if (buf_r == NULL)
             {
                 buf_r = buf_l;
             }
             for (long i = 0; i < mixed; ++i)
             {
-                out_buf[i * 2] = (float)buf_l[i];
-                out_buf[(i * 2) + 1] = (float)buf_r[i];
+                out_buf[i * 2] = buf_l[i];
+                out_buf[(i * 2) + 1] = buf_r[i];
             }
             sf_writef_float(out, out_buf, mixed);
             total += mixed;

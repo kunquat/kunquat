@@ -12,14 +12,17 @@ enable_libkunquat = True
 # Install development files.
 enable_libkunquat_dev = True
 
+# Install Python bindings.
+enable_python_bindings = True
+
 # Build and run libkunquat tests.
 enable_tests = False
 
-# Enable kunquat-player (requires libpthread).
+# Enable kunquat-player (requires enable_python_bindings).
 enable_player = True
 
 # Enable kunquat-export (requires libsndfile).
-enable_export = True
+enable_export = False
 
 # Build example Kunquat files.
 enable_examples = True

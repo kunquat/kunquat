@@ -24,7 +24,7 @@
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 
 
 /**

@@ -75,6 +75,19 @@ int32_t Entries_get_length(Entries* entries, const char* key);
 
 
 /**
+ * Removes an entry from the Entries.
+ *
+ * This function does not support wildcards.
+ *
+ * \param entries   The Entries -- must not be \c NULL.
+ * \param key       The key of the entry -- must not be \c NULL.
+ *
+ * \return   \c true if an entry was found and removed, otherwise \c false.
+ */
+// bool Entries_remove(Entries* entries, const char* key);
+
+
+/**
  * Destroys Entries.
  *
  * \param entries   The Entries -- must not be \c NULL.

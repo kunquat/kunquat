@@ -95,14 +95,8 @@ static void del_Handle_rwc(kqt_Handle* handle);
  *                        *          throw exception
  *                                   mkdir committed && return init()
  */
-kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
+kqt_Handle* kqt_new_Handle_rwc(char* path)
 {
-    if (buffer_size <= 0)
-    {
-        kqt_Handle_set_error(NULL, ERROR_ARGUMENT,
-                "Buffer size must be positive");
-        return NULL;
-    }
     if (path == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_ARGUMENT, "No input path given");
@@ -150,7 +144,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         {
             return NULL;
         }
-        return kqt_new_Handle_rwc(buffer_size, path);
+        return kqt_new_Handle_rwc(path);
     }
     else if (!has_committed && !has_workspace && !has_oldcommit)
     {
@@ -181,7 +175,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         {
             return NULL;
         }
-        return kqt_new_Handle_rwc(buffer_size, path);
+        return kqt_new_Handle_rwc(path);
     }
 
     assert(has_committed && !has_workspace && !has_oldcommit);
@@ -238,7 +232,7 @@ kqt_Handle* kqt_new_Handle_rwc(long buffer_size, char* path)
         return NULL;
     }
 
-    if (!kqt_Handle_init(&handle_rwc->handle_rw.handle, buffer_size))
+    if (!kqt_Handle_init(&handle_rwc->handle_rw.handle, DEFAULT_BUFFER_SIZE))
     {
         del_Handle_rwc(&handle_rwc->handle_rw.handle);
         return NULL;
