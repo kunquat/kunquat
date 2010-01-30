@@ -56,6 +56,15 @@ Event* new_Event(Event_type type, Reltime* pos);
 
 
 /**
+ * Parses and retrieves all fields from a string.
+ */
+char* Event_type_get_fields(char* str,
+                            Event_field_desc field_descs[],
+                            Event_field fields[],
+                            Read_state* state);
+
+
+/**
  * Parses an Event from a string.
  *
  * \param event   The Event -- must not be \c NULL.

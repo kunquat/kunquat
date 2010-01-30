@@ -18,6 +18,7 @@
 
 #include <Event_common.h>
 #include <Event_global_retune_scale.h>
+#include <File_base.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -61,7 +62,6 @@ Event_create_constructor(Event_global_retune_scale,
                          event->fixed_point = 0)
 
 
-#if 0
 bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
@@ -69,8 +69,28 @@ bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
     {
         return false;
     }
+    Event_field retune[3];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, retune_scale_desc, retune, state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (global_state->scales == NULL)
+    {
+        return true;
+    }
+    Scale* scale = global_state->scales[retune[0].field.integral_type];
+    if (scale == NULL ||
+            Scale_get_note_count(scale) <= retune[1].field.integral_type ||
+            Scale_get_note_count(scale) <= retune[2].field.integral_type)
+    {
+        return true;
+    }
+    Scale_retune(scale, retune[1].field.integral_type,
+                 retune[2].field.integral_type);
+    return true;
 }
-#endif
 
 
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play)

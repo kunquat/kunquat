@@ -22,6 +22,7 @@
 #include <kunquat/limits.h>
 
 #include <events/Event_global_pattern_delay.h>
+#include <events/Event_global_retune_scale.h>
 
 #include <xmemory.h>
 
@@ -56,6 +57,8 @@ Event_handler* new_Event_handler(Playdata* global_state)
 
     eh->global_process[EVENT_GLOBAL_PATTERN_DELAY] =
             Event_global_pattern_delay_handle;
+    eh->global_process[EVENT_GLOBAL_RETUNE_SCALE] =
+            Event_global_retune_scale_handle;
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {

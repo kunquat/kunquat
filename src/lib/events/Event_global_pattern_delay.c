@@ -59,17 +59,14 @@ bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
     {
         return false;
     }
-    Reltime* delay = RELTIME_AUTO;
+    Event_field delay[1];
     Read_state* state = READ_STATE_AUTO;
-    char* str = read_const_char(fields, '[', state);
-    str = read_reltime(str, delay, state);
-    str = read_const_char(str, ']', state);
+    Event_type_get_fields(fields, pattern_delay_desc, delay, state);
     if (state->error)
     {
         return false;
     }
-    Event_check_reltime_range(delay, pattern_delay_desc[0]);
-    Reltime_copy(&global_state->delay_left, delay);
+    Reltime_copy(&global_state->delay_left, &delay[0].field.Reltime_type);
     return true;
 }
 

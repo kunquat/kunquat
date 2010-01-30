@@ -47,6 +47,105 @@ int Event_get_field_count(Event* event)
 }
 
 
+char* Event_type_get_fields(char* str,
+                            Event_field_desc field_descs[],
+                            Event_field fields[],
+                            Read_state* state)
+{
+    assert(str != NULL);
+    assert(field_descs != NULL);
+    assert(fields != NULL);
+    assert(state != NULL);
+    str = read_const_char(str, '[', state);
+    if (state->error)
+    {
+        return str;
+    }
+    for (int i = 0; field_descs[i].type != EVENT_FIELD_NONE; ++i)
+    {
+        if (i > 0)
+        {
+            str = read_const_char(str, ',', state);
+        }
+        const char* error_message = "Event field %d is not inside valid range";
+        switch (field_descs[i].type)
+        {
+            case EVENT_FIELD_INT:
+            case EVENT_FIELD_NOTE:
+            case EVENT_FIELD_NOTE_MOD:
+            {
+                int64_t num = 0;
+                str = read_int(str, &num, state);
+                if (state->error)
+                {
+                    return str;
+                }
+                if (num < field_descs[i].min.field.integral_type ||
+                        num > field_descs[i].max.field.integral_type)
+                {
+                    Read_state_set_error(state, error_message, i);
+                    return str;
+                }
+                fields[i].field.integral_type = num;
+            }
+            break;
+            case EVENT_FIELD_DOUBLE:
+            {
+                double num = NAN;
+                str = read_double(str, &num, state);
+                if (state->error)
+                {
+                    return str;
+                }
+                if (num < field_descs[i].min.field.double_type ||
+                        num > field_descs[i].max.field.double_type)
+                {
+                    Read_state_set_error(state, error_message, i);
+                    return str;
+                }
+                fields[i].field.double_type = num;
+            }
+            break;
+            case EVENT_FIELD_REAL:
+            {
+                double numd = NAN;
+                str = read_tuning(str, &fields[i].field.Real_type,
+                                  &numd, state);
+                if (state->error)
+                {
+                    return str;
+                }
+            }
+            break;
+            case EVENT_FIELD_RELTIME:
+            {
+                Reltime* rt = RELTIME_AUTO;
+                str = read_reltime(str, rt, state);
+                if (state->error)
+                {
+                    return str;
+                }
+                if (Reltime_cmp(rt, &field_descs[i].min.field.Reltime_type) < 0 ||
+                        Reltime_cmp(rt, &field_descs[i].max.field.Reltime_type) > 0)
+                {
+                    Read_state_set_error(state, error_message, i);
+                    return str;
+                }
+                Reltime_copy(&fields[i].field.Reltime_type, rt);
+            }
+            break;
+            default:
+            {
+                assert(false);
+            }
+            break;
+        }
+    }
+    str = read_const_char(str, ']', state);
+    return str;
+}
+
+
 char* Event_read(Event* event, char* str, Read_state* state)
 {
     assert(event != NULL);

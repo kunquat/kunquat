@@ -236,7 +236,8 @@ uint32_t Pattern_mix(Pattern* pat,
                 // they need to be handled as a special case here.
                 Event_global_process((Event_global*)next_global, play);
             }
-            else if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_PATTERN_DELAY)
+            else if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_PATTERN_DELAY
+                    || next_global->type == EVENT_GLOBAL_RETUNE_SCALE)
             {
                 Event_handler_handle(eh, -1,
                                      Event_get_type((Event*)next_global),
