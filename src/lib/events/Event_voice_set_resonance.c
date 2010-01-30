@@ -29,7 +29,8 @@ static Event_field_desc set_resonance_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 0, 99 }
+        .min.field.double_type = 0,
+        .max.field.double_type = 99
     },
     {
         .type = EVENT_FIELD_NONE

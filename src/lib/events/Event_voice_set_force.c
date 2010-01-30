@@ -29,7 +29,8 @@ static Event_field_desc set_force_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -INFINITY, 18 }
+        .min.field.double_type = -INFINITY,
+        .max.field.double_type = 18
     },
     {
         .type = EVENT_FIELD_NONE

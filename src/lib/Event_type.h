@@ -115,13 +115,27 @@ typedef enum
 } Event_field_type;
 
 
+typedef struct Event_field
+{
+    Event_field_type type;
+    union
+    {
+        int64_t integral_type; ///< Used for int and note(_mod) types.
+        double double_type;
+        Real Real_type;
+        Reltime Reltime_type;
+    } field;
+} Event_field;
+
+
 /**
- * This is a convenience structure designed to facilitate user interface
- * programming (editing of all Events with the same code).
+ * This convenience structure unifies Event field validation among different
+ * Event types.
  *
  * An Event_field_desc contains the format and valid range of a field in an
  * Event.
  */
+#if 0
 typedef struct Event_field_desc
 {
     Event_field_type type;
@@ -149,44 +163,57 @@ typedef struct Event_field_desc
         } Reltime_type;
     } range;
 } Event_field_desc;
+#endif
+
+
+typedef struct Event_field_desc
+{
+    Event_field_type type;
+    Event_field min;
+    Event_field max;
+} Event_field_desc;
 
 
 #define Event_check_integral_range(num, field_desc)       \
     if (true)                                             \
     {                                                     \
-        if ((num) < (field_desc).range.integral_type.min) \
+        assert((field_desc).type >= EVENT_FIELD_INT);     \
+        assert((field_desc).type < EVENT_FIELD_DOUBLE);   \
+        if ((num) < (field_desc).min.field.integral_type) \
         {                                                 \
             return false;                                 \
         }                                                 \
-        if ((num) > (field_desc).range.integral_type.max) \
+        if ((num) > (field_desc).max.field.integral_type) \
         {                                                 \
             return false;                                 \
         }                                                 \
     } else (void)0
 
 
-#define Event_check_double_range(num, field_desc)       \
-    if (true)                                           \
-    {                                                   \
-        if ((num) < (field_desc).range.double_type.min) \
-        {                                               \
-            return false;                               \
-        }                                               \
-        if ((num) > (field_desc).range.double_type.max) \
-        {                                               \
-            return false;                               \
-        }                                               \
+#define Event_check_double_range(num, field_desc)        \
+    if (true)                                            \
+    {                                                    \
+        assert((field_desc).type == EVENT_FIELD_DOUBLE); \
+        if ((num) < (field_desc).min.field.double_type)  \
+        {                                                \
+            return false;                                \
+        }                                                \
+        if ((num) > (field_desc).max.field.double_type)  \
+        {                                                \
+            return false;                                \
+        }                                                \
     } else (void)0
 
 
 #define Event_check_real_range(num, field_desc)                     \
     if (true)                                                       \
     {                                                               \
-        if (Real_cmp((num), &(field_desc).range.Real_type.min) < 0) \
+        assert((field_desc).type == EVENT_FIELD_REAL);              \
+        if (Real_cmp((num), &(field_desc).min.field.Real_type) < 0) \
         {                                                           \
             return false;                                           \
         }                                                           \
-        if (Real_cmp((num), &(field_desc).range.Real_type.max) > 0) \
+        if (Real_cmp((num), &(field_desc).max.field.Real_type) > 0) \
         {                                                           \
             return false;                                           \
         }                                                           \
@@ -196,11 +223,12 @@ typedef struct Event_field_desc
 #define Event_check_reltime_range(num, field_desc)                        \
     if (true)                                                             \
     {                                                                     \
-        if (Reltime_cmp((num), &(field_desc).range.Reltime_type.min) < 0) \
+        assert((field_desc).type == EVENT_FIELD_RELTIME);                 \
+        if (Reltime_cmp((num), &(field_desc).min.field.Reltime_type) < 0) \
         {                                                                 \
             return false;                                                 \
         }                                                                 \
-        if (Reltime_cmp((num), &(field_desc).range.Reltime_type.max) > 0) \
+        if (Reltime_cmp((num), &(field_desc).max.field.Reltime_type) > 0) \
         {                                                                 \
             return false;                                                 \
         }                                                                 \

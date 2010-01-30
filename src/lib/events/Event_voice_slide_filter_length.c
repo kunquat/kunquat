@@ -31,7 +31,8 @@ static Event_field_desc slide_filter_length_desc[] =
 {
     {
         .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
+        .min.field.Reltime_type = { 0, 0 },
+        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
     },
     {
         .type = EVENT_FIELD_NONE

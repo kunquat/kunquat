@@ -28,7 +28,8 @@ static Event_field_desc set_jump_section_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { -1, KQT_SECTIONS_MAX - 1 }
+        .min.field.integral_type = -1,
+        .max.field.integral_type = KQT_SECTIONS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE

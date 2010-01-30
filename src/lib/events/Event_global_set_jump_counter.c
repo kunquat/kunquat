@@ -28,7 +28,8 @@ static Event_field_desc set_jump_counter_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, 65535 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = 65535
     },
     {
         .type = EVENT_FIELD_NONE

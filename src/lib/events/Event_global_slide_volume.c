@@ -29,7 +29,8 @@ static Event_field_desc slide_volume_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -INFINITY, 0 }
+        .min.field.double_type = -INFINITY,
+        .max.field.double_type = 0
     },
     {
         .type = EVENT_FIELD_NONE

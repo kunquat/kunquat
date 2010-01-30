@@ -26,7 +26,8 @@ static Event_field_desc set_tempo_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 1, 999 }
+        .min.field.double_type = 1,
+        .max.field.double_type = 999
     },
     {
         .type = EVENT_FIELD_NONE

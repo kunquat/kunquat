@@ -30,15 +30,18 @@ static Event_field_desc note_on_desc[] =
 {
     {
         .type = EVENT_FIELD_NOTE,
-        .range.integral_type = { 0, KQT_SCALE_NOTES - 1 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_SCALE_NOTES - 1
     },
     {
         .type = EVENT_FIELD_NOTE_MOD,
-        .range.integral_type = { -1, KQT_SCALE_NOTE_MODS - 1 }
+        .min.field.integral_type = -1,
+        .max.field.integral_type = KQT_SCALE_NOTE_MODS - 1
     },
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { KQT_SCALE_OCTAVE_FIRST, KQT_SCALE_OCTAVE_LAST }
+        .min.field.integral_type = KQT_SCALE_OCTAVE_FIRST,
+        .max.field.integral_type = KQT_SCALE_OCTAVE_LAST
     },
     {
         .type = EVENT_FIELD_NONE

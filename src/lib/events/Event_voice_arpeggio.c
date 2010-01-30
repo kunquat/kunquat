@@ -31,19 +31,23 @@ static Event_field_desc arpeggio_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { DBL_MIN, DBL_MAX }
+        .min.field.double_type = DBL_MIN,
+        .max.field.double_type = DBL_MAX
     },
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { -255, 255 }
+        .min.field.integral_type = -255,
+        .max.field.integral_type = 255
     },
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { -255, 255 }
+        .min.field.integral_type = -255,
+        .max.field.integral_type = 255
     },
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { -255, 255 }
+        .min.field.integral_type = -255,
+        .max.field.integral_type = 255
     },
     {
         .type = EVENT_FIELD_NONE

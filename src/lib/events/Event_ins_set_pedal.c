@@ -27,7 +27,8 @@ static Event_field_desc set_pedal_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 0, 1 }
+        .min.field.double_type = 0,
+        .max.field.double_type = 1
     },
     {
         .type = EVENT_FIELD_NONE

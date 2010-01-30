@@ -30,7 +30,8 @@ static Event_field_desc tremolo_depth_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 0, 24 }
+        .min.field.double_type = 0,
+        .max.field.double_type = 24
     },
     {
         .type = EVENT_FIELD_NONE

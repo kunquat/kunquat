@@ -29,7 +29,8 @@ static Event_field_desc pattern_delay_desc[] =
 {
     {
         .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
+        .min.field.Reltime_type = { 0, 0 },
+        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
     },
     {
         .type = EVENT_FIELD_NONE
@@ -67,6 +68,7 @@ bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
     {
         return false;
     }
+    Event_check_reltime_range(delay, pattern_delay_desc[0]);
     Reltime_copy(&global_state->delay_left, delay);
     return true;
 }

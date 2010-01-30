@@ -29,7 +29,8 @@ static Event_field_desc set_panning_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -1, 1 }
+        .min.field.double_type = -1,
+        .max.field.double_type = 1
     },
     {
         .type = EVENT_FIELD_NONE

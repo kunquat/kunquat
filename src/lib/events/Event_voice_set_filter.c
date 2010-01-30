@@ -29,7 +29,8 @@ static Event_field_desc set_filter_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -INFINITY, INFINITY }
+        .min.field.double_type = -INFINITY,
+        .max.field.double_type = INFINITY
     },
     {
         .type = EVENT_FIELD_NONE

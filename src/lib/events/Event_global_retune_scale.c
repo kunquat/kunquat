@@ -27,15 +27,18 @@ static Event_field_desc retune_scale_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, KQT_SCALES_MAX - 1 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_SCALES_MAX - 1
     },
     {
         .type = EVENT_FIELD_NOTE,
-        .range.integral_type = { -1, KQT_SCALE_NOTES - 1 }
+        .min.field.integral_type = -1,
+        .max.field.integral_type = KQT_SCALE_NOTES - 1
     },
     {
         .type = EVENT_FIELD_NOTE,
-        .range.integral_type = { 0, KQT_SCALE_NOTES - 1 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_SCALE_NOTES - 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -56,6 +59,18 @@ Event_create_constructor(Event_global_retune_scale,
                          event->scale_index = 0,
                          event->new_ref = -1,
                          event->fixed_point = 0)
+
+
+#if 0
+bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+}
+#endif
 
 
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play)
