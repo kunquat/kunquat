@@ -21,6 +21,7 @@
 #include <Playdata.h>
 #include <Column.h>
 #include <Reltime.h>
+#include <Event_handler.h>
 #include <kunquat/limits.h>
 
 
@@ -141,7 +142,7 @@ Column* Pattern_get_global(Pattern* pat);
 uint32_t Pattern_mix(Pattern* pat,
         uint32_t nframes,
         uint32_t offset,
-        Playdata* play);
+        Event_handler* eh);
 
 
 /**

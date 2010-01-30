@@ -24,6 +24,7 @@
 #include <Event.h>
 #include <Event_global.h>
 #include <Event_ins.h>
+#include <Event_handler.h>
 
 #include <xmemory.h>
 
@@ -151,11 +152,12 @@ Column* Pattern_get_global(Pattern* pat)
 uint32_t Pattern_mix(Pattern* pat,
                      uint32_t nframes,
                      uint32_t offset,
-                     Playdata* play)
+                     Event_handler* eh)
 {
 //  assert(pat != NULL);
     assert(offset < nframes);
-    assert(play != NULL);
+    assert(eh != NULL);
+    Playdata* play = Event_handler_get_global_state(eh);
     uint32_t mixed = offset;
     if (pat == NULL)
     {
@@ -228,7 +230,23 @@ uint32_t Pattern_mix(Pattern* pat,
                     break;
                 }
             }
-            Event_global_process((Event_global*)next_global, play);
+            if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_JUMP)
+            {
+                // Jump events inside Patterns contain mutable state data, so
+                // they need to be handled as a special case here.
+                Event_global_process((Event_global*)next_global, play);
+            }
+            else if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_PATTERN_DELAY)
+            {
+                Event_handler_handle(eh, -1,
+                                     Event_get_type((Event*)next_global),
+                                     Event_get_fields((Event*)next_global));
+            }
+            else
+            {
+                // TODO: use Event handler
+                Event_global_process((Event_global*)next_global, play);
+            }
             if (next_global->type == EVENT_GLOBAL_PATTERN_DELAY)
             {
                 play->delay_event_index = event_index;

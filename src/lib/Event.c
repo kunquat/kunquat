@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 #include <math.h>
 
 #include <Event.h>
@@ -55,6 +56,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
     {
         return str;
     }
+    char* fields_start = NULL;
     int event_count = Event_get_field_count(event);
     if (event_count > 0)
     {
@@ -68,6 +70,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
         {
             return str;
         }
+        fields_start = str - 1;
         int field_count = Event_get_field_count(event);
         for (int i = 0; i < field_count; ++i)
         {
@@ -147,6 +150,16 @@ char* Event_read(Event* event, char* str, Read_state* state)
         {
             return str;
         }
+    }
+    if (fields_start != NULL)
+    {
+        event->fields = xnalloc(char, strlen(fields_start) + 1);
+        if (event->fields == NULL)
+        {
+            Read_state_set_error(state, "Couldn't allocate memory.");
+            return str;
+        }
+        strcpy(event->fields, fields_start);
     }
     return str;
 }
@@ -253,6 +266,13 @@ bool Event_set_field(Event* event, int index, void* data)
     assert(event->set != NULL);
     assert(data != NULL);
     return event->set(event, index, data);
+}
+
+
+char* Event_get_fields(Event* event)
+{
+    assert(event != NULL);
+    return event->fields;
 }
 
 

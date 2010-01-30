@@ -19,6 +19,7 @@
 
 #include <Event_common.h>
 #include <Event_global_pattern_delay.h>
+#include <File_base.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -48,6 +49,27 @@ Event_create_constructor(Event_global_pattern_delay,
                          EVENT_GLOBAL_PATTERN_DELAY,
                          pattern_delay_desc,
                          Reltime_init(&event->length))
+
+
+bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Reltime* delay = RELTIME_AUTO;
+    Read_state* state = READ_STATE_AUTO;
+    char* str = read_const_char(fields, '[', state);
+    str = read_reltime(str, delay, state);
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_copy(&global_state->delay_left, delay);
+    return true;
+}
 
 
 static void Event_global_pattern_delay_process(Event_global* event, Playdata* play)

@@ -21,6 +21,7 @@
 #include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
+#include <Event_handler.h>
 #include <Voice_pool.h>
 
 #include <xmemory.h>
@@ -46,7 +47,7 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
         return 0;
     }
     handle->song->play_state->freq = freq;
-    return Song_mix(handle->song, nframes, handle->song->play_state);
+    return Song_mix(handle->song, nframes, handle->song->event_handler);
 }
 
 
@@ -127,7 +128,7 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_state, UINT64_MAX);
+    return Song_skip(handle->song, handle->song->skip_handler, UINT64_MAX);
 }
 
 

@@ -84,6 +84,7 @@ typedef enum
     EVENT_INS_LAST                   = 287, ///< Sentinel -- never used as a valid type.
                                     
     EVENT_CHANNEL_SET_INSTRUMENT     = 288, ///< Set Instrument.
+    EVENT_CHANNEL_LAST                    ,
                                     
     EVENT_LAST                           ///< Sentinel -- never used as a valid type.
 } Event_type;

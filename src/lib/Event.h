@@ -38,6 +38,7 @@ typedef struct Event
     Event_field_desc* field_types; ///< The field type description.
     bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
     void* (*get)(struct Event* event, int index);            ///< Field getter.
+    char* fields;
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 
@@ -156,6 +157,14 @@ bool Event_set_field(Event* event, int index, void* data);
  * \return   A pointer to the field if one exists, otherwise \c NULL.
  */
 void* Event_get_field(Event* event, int index);
+
+
+/**
+ * Gets a textual description of all the fields of the Event.
+ * 
+ * \param event   The Event -- must not be \c NULL.
+ */
+char* Event_get_fields(Event* event);
 
 
 /**

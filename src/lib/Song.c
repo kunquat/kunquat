@@ -47,7 +47,9 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->pats = NULL;
     song->insts = NULL;
     song->play_state = NULL;
+    song->event_handler = NULL;
     song->skip_state = NULL;
+    song->skip_handler = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -123,6 +125,20 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
+
+    song->event_handler = new_Event_handler(song->play_state);
+    if (song->event_handler == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+    song->skip_handler = new_Event_handler(song->skip_state);
+    if (song->skip_handler == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+
     song->events = new_Event_queue(events);
     if (song->events == NULL)
     {
@@ -238,10 +254,11 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
 }
 
 
-uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
+uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
 {
     assert(song != NULL);
-    assert(play != NULL);
+    assert(eh != NULL);
+    Playdata* play = Event_handler_get_global_state(eh);
     if (play->mode == STOP)
     {
         return 0;
@@ -301,7 +318,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             continue;
         }
         uint32_t proc_start = mixed;
-        mixed += Pattern_mix(pat, nframes, mixed, play);
+        mixed += Pattern_mix(pat, nframes, mixed, eh);
         if (play->mode == PLAY_EVENT)
         {
             continue;
@@ -357,10 +374,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 }
 
 
-uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
+uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
 {
     assert(song != NULL);
-    assert(play != NULL);
+    assert(eh != NULL);
+    Playdata* play = Event_handler_get_global_state(eh);
     bool orig_silent = play->silent;
     play->silent = true;
     uint64_t mixed = 0;
@@ -368,7 +386,7 @@ uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
     {
         uint64_t max_mix = amount - mixed;
         uint64_t nframes = MIN(max_mix, play->freq);
-        uint32_t inc = Song_mix(song, nframes, play);
+        uint32_t inc = Song_mix(song, nframes, eh);
         mixed += inc;
         if (inc < Song_get_buf_size(song))
         {
@@ -698,6 +716,14 @@ void del_Song(Song* song)
     if (song->skip_state != NULL)
     {
         del_Playdata(song->skip_state);
+    }
+    if (song->event_handler != NULL)
+    {
+        del_Event_handler(song->event_handler);
+    }
+    if (song->skip_handler != NULL)
+    {
+        del_Event_handler(song->skip_handler);
     }
     xfree(song);
     return;

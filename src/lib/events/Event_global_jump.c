@@ -19,6 +19,7 @@
 
 #include <Event_common.h>
 #include <Event_global_jump.h>
+#include <File_base.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -49,6 +50,15 @@ Event_create_constructor(Event_global_jump,
                          Reltime_set(&event->row, 0, 0))
 
 
+bool Event_global_jump_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    (void)fields;
+    global_state->jump = true;
+    return true;
+}
+
+
 static void Event_global_jump_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
@@ -59,6 +69,7 @@ static void Event_global_jump_process(Event_global* event, Playdata* play)
     {
         if (play->jump_set_counter == 0)
         {
+            jump->play_id = 0;
             return;
         }
         jump->play_id = play->play_id;

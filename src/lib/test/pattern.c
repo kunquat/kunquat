@@ -28,6 +28,7 @@
 #include <Event_global_set_tempo.h>
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
+#include <Event_handler.h>
 #include <Generator_debug.h>
 #include <Instrument.h>
 #include <Voice.h>
@@ -110,6 +111,8 @@ START_TEST (mix)
 {
     Playdata* play = init_play();
     if (play == NULL) abort();
+    Event_handler* eh = new_Event_handler(play);
+    if (eh == NULL) abort();
     Pattern* pat = new_Pattern();
     if (pat == NULL)
     {
@@ -207,7 +210,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    uint32_t ret = Pattern_mix(pat, 256, 0, play);
+    uint32_t ret = Pattern_mix(pat, 256, 0, eh);
     fail_unless(ret == 128,
             "Pattern_mix() mixed %lu frames instead of 128.", (unsigned long)ret);
     for (int i = 0; i < 40; ++i)
@@ -242,7 +245,7 @@ START_TEST (mix)
     Reltime_init(&play->pos);
     for (int i = 0; i < 256; ++i)
     {
-        if (Pattern_mix(pat, i + 1, i, play) < 1)
+        if (Pattern_mix(pat, i + 1, i, eh) < 1)
         {
             fail_unless(i == 128,
                     "Pattern_mix() reached the end in %d samples instead of 128.", i);
@@ -299,7 +302,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    ret = Pattern_mix(pat, 256, 0, play);
+    ret = Pattern_mix(pat, 256, 0, eh);
     fail_unless(ret == 72,
             "Pattern_mix() mixed %lu frames instead of 72.", (unsigned long)ret);
     for (int i = 0; i < 40; ++i)
@@ -337,7 +340,7 @@ START_TEST (mix)
     play->tempo = 60;
     for (int i = 0; i < 256; ++i)
     {
-        if (Pattern_mix(pat, i + 1, i, play) < 1)
+        if (Pattern_mix(pat, i + 1, i, eh) < 1)
         {
             fail_unless(i == 72,
                     "Pattern_mix() reached the end in %d samples instead of 72.", i);
@@ -409,7 +412,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    ret = Pattern_mix(pat, 128, 0, play);
+    ret = Pattern_mix(pat, 128, 0, eh);
     fail_unless(ret == 72,
             "Pattern_mix() mixed %lu frames instead of 72.", (unsigned long)ret);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
@@ -467,7 +470,7 @@ START_TEST (mix)
     play->tempo = 60;
     for (int i = 0; i < 256; ++i)
     {
-        if (Pattern_mix(pat, i + 1, i, play) < 1)
+        if (Pattern_mix(pat, i + 1, i, eh) < 1)
         {
             fail_unless(i == 72,
                     "Pattern_mix() reached the end in %d samples instead of 72.", i);
@@ -559,7 +562,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    ret = Pattern_mix(pat, 128, 0, play);
+    ret = Pattern_mix(pat, 128, 0, eh);
     fail_unless(ret == 72,
             "Pattern_mix() mixed %lu frames instead of 72.", (unsigned long)ret);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
@@ -643,7 +646,7 @@ START_TEST (mix)
     play->tempo = 60;
     for (int i = 0; i < 256; ++i)
     {
-        if (Pattern_mix(pat, i + 1, i, play) < 1)
+        if (Pattern_mix(pat, i + 1, i, eh) < 1)
         {
             fail_unless(i == 72,
                     "Pattern_mix() reached the end in %d samples instead of 72.", i);
@@ -730,7 +733,9 @@ START_TEST (mix_break_pat_null)
 {
     Playdata* play = init_play();
     if (play == NULL) return;
-    Pattern_mix(NULL, 1, 0, play);
+    Event_handler* eh = new_Event_handler(play);
+    if (eh == NULL) return;
+    Pattern_mix(NULL, 1, 0, eh);
 }
 END_TEST
 
@@ -738,13 +743,15 @@ START_TEST (mix_break_offset_inv)
 {
     Playdata* play = init_play();
     if (play == NULL) return;
+    Event_handler* eh = new_Event_handler(play);
+    if (eh == NULL) return;
     Pattern* pat = new_Pattern();
     if (pat == NULL)
     {
         fprintf(stderr, "new_Pattern() returned NULL -- out of memory?\n");
         return;
     }
-    Pattern_mix(pat, 0, 0, play);
+    Pattern_mix(pat, 0, 0, eh);
     del_Pattern(pat);
 }
 END_TEST

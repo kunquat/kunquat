@@ -26,6 +26,7 @@
 #include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
+#include <Event_handler.h>
 
 
 typedef struct Song
@@ -45,7 +46,9 @@ typedef struct Song
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
     Playdata* play_state;               ///< Playback state.
+    Event_handler* event_handler;       ///< The Event handler.
     Playdata* skip_state;               ///< Skip state (used for length calculation).
+    Event_handler* skip_handler;        ///< Skip state Event handler.
 } Song;
 
 
@@ -89,25 +92,24 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state);
  *
  * \param song      The Song -- must not be \c NULL.
  * \param nframes   The amount of frames to be mixed.
- * \param play      The Playdata containing the playback state -- must not be
- *                  \c NULL.
+ * \param eh        The Event handler -- must not be \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes.
  */
-uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
+uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh);
 
 
 /**
  * Skips part of the Song.
  *
  * \param song     The Song -- must not be \c NULL.
- * \param play     The Playdata -- must not be \c NULL.
+ * \param eh       The Event handler -- must not be \c NULL.
  * \param amount   The amount of frames to be skipped.
  *
  * \return   The amount of frames actually skipped. This is <= \a amount.
  */
-uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount);
+uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount);
 
 
 /**

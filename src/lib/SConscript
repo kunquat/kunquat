@@ -66,4 +66,8 @@ libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
 env_lib.AddPostAction(libkunquat, Chmod(libkunquat[0].abspath, 0644))
 env_lib.InstallLibCreatePath(env_lib['prefix'] + '/lib', libkunquat)
 
+# This hack fixes the test builds.
+env_lib.Command('libkunquat.so.%d' % env_lib['lib_version_major'],
+                'libkunquat.so', ln_cmd, chdir=1)
+
 

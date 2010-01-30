@@ -36,6 +36,7 @@ Event* Event_init(Event* event,
     event->type = type;
     Reltime_copy(&event->pos, pos);
     event->field_types = field_types;
+    event->fields = NULL;
     event->set = set;
     event->get = get;
     event->destroy = del_Event_default;
@@ -47,6 +48,10 @@ void del_Event_default(Event* event)
 {
     assert(event != NULL);
     assert(EVENT_IS_VALID(event->type));
+    if (event->fields != NULL)
+    {
+        xfree(event->fields);
+    }
     xfree(event);
     return;
 }
