@@ -237,7 +237,18 @@ uint32_t Pattern_mix(Pattern* pat,
                 Event_global_process((Event_global*)next_global, play);
             }
             else if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_PATTERN_DELAY
-                    || next_global->type == EVENT_GLOBAL_RETUNE_SCALE)
+                    || next_global->type == EVENT_GLOBAL_RETUNE_SCALE
+                    || next_global->type == EVENT_GLOBAL_SET_JUMP_COUNTER
+                    || next_global->type == EVENT_GLOBAL_SET_JUMP_ROW
+                    || next_global->type == EVENT_GLOBAL_SET_JUMP_SECTION
+                    || next_global->type == EVENT_GLOBAL_SET_JUMP_SUBSONG
+                    || next_global->type == EVENT_GLOBAL_SET_SCALE
+                    || next_global->type == EVENT_GLOBAL_SET_TEMPO
+                    || next_global->type == EVENT_GLOBAL_SET_VOLUME
+                    || next_global->type == EVENT_GLOBAL_SLIDE_TEMPO
+                    || next_global->type == EVENT_GLOBAL_SLIDE_TEMPO_LENGTH
+                    || next_global->type == EVENT_GLOBAL_SLIDE_VOLUME
+                    || next_global->type == EVENT_GLOBAL_SLIDE_VOLUME_LENGTH)
             {
                 Event_handler_handle(eh, -1,
                                      Event_get_type((Event*)next_global),

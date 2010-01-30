@@ -51,6 +51,26 @@ Event_create_constructor(Event_global_set_jump_section,
                          event->section = -1)
 
 
+bool Event_global_set_jump_section_handle(Playdata* global_state,
+                                          char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_jump_section_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->jump_set_section = data[0].field.integral_type;
+    return true;
+}
+
+
 static void Event_global_set_jump_section_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

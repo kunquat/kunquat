@@ -30,6 +30,9 @@ typedef struct Event_global_slide_volume
 Event* new_Event_global_slide_volume(Reltime* pos);
 
 
+bool Event_global_slide_volume_handle(Playdata* global_state, char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SLIDE_VOLUME_H
 
 

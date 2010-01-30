@@ -52,6 +52,40 @@ Event_create_constructor(Event_global_slide_tempo_length,
                          Reltime_set(&event->length, 0, 0))
 
 
+bool Event_global_slide_tempo_length_handle(Playdata* global_state,
+                                            char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_tempo_length_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (global_state->tempo_slide != 0)
+    {
+        Reltime_init(&global_state->tempo_slide_int_left);
+        Reltime_copy(&global_state->tempo_slide_left,
+                     &data[0].field.Reltime_type);
+        double rems_total =
+                (double)Reltime_get_beats(&data[0].field.Reltime_type) *
+                            KQT_RELTIME_BEAT +
+                            Reltime_get_rem(&data[0].field.Reltime_type);
+        double slices = rems_total / 36756720; // slide updated 24 times per beat
+        global_state->tempo_slide_update = (global_state->tempo_slide_target -
+                                            global_state->tempo) / slices;
+    }
+    Reltime_copy(&global_state->tempo_slide_length,
+                 &data[0].field.Reltime_type);
+    return true;
+}
+
+
 static void Event_global_slide_tempo_length_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

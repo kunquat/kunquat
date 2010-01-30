@@ -49,6 +49,26 @@ Event_create_constructor(Event_global_set_tempo,
                          event->tempo = 120)
 
 
+bool Event_global_set_tempo_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_tempo_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->tempo = data[0].field.double_type;
+    global_state->tempo_slide = 0;
+    return true;
+}
+
+
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

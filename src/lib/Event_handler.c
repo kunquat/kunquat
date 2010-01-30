@@ -23,6 +23,17 @@
 
 #include <events/Event_global_pattern_delay.h>
 #include <events/Event_global_retune_scale.h>
+#include <events/Event_global_set_jump_counter.h>
+#include <events/Event_global_set_jump_row.h>
+#include <events/Event_global_set_jump_section.h>
+#include <events/Event_global_set_jump_subsong.h>
+#include <events/Event_global_set_scale.h>
+#include <events/Event_global_set_tempo.h>
+#include <events/Event_global_set_volume.h>
+#include <events/Event_global_slide_tempo.h>
+#include <events/Event_global_slide_tempo_length.h>
+#include <events/Event_global_slide_volume.h>
+#include <events/Event_global_slide_volume_length.h>
 
 #include <xmemory.h>
 
@@ -59,6 +70,28 @@ Event_handler* new_Event_handler(Playdata* global_state)
             Event_global_pattern_delay_handle;
     eh->global_process[EVENT_GLOBAL_RETUNE_SCALE] =
             Event_global_retune_scale_handle;
+    eh->global_process[EVENT_GLOBAL_SET_JUMP_COUNTER] =
+            Event_global_set_jump_counter_handle;
+    eh->global_process[EVENT_GLOBAL_SET_JUMP_ROW] =
+            Event_global_set_jump_row_handle;
+    eh->global_process[EVENT_GLOBAL_SET_JUMP_SECTION] =
+            Event_global_set_jump_section_handle;
+    eh->global_process[EVENT_GLOBAL_SET_JUMP_SUBSONG] =
+            Event_global_set_jump_subsong_handle;
+    eh->global_process[EVENT_GLOBAL_SET_SCALE] =
+            Event_global_set_scale_handle;
+    eh->global_process[EVENT_GLOBAL_SET_TEMPO] =
+            Event_global_set_tempo_handle;
+    eh->global_process[EVENT_GLOBAL_SET_VOLUME] =
+            Event_global_set_volume_handle;
+    eh->global_process[EVENT_GLOBAL_SLIDE_TEMPO] =
+            Event_global_slide_tempo_handle;
+    eh->global_process[EVENT_GLOBAL_SLIDE_TEMPO_LENGTH] =
+            Event_global_slide_tempo_length_handle;
+    eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME] =
+            Event_global_slide_volume_handle;
+    eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] =
+            Event_global_slide_volume_length_handle;
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {

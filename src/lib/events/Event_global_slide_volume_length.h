@@ -30,6 +30,10 @@ typedef struct Event_global_slide_volume_length
 Event* new_Event_global_slide_volume_length(Reltime* pos);
 
 
+bool Event_global_slide_volume_length_handle(Playdata* global_state,
+                                             char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SLIDE_VOLUME_LENGTH_H
 
 

@@ -30,6 +30,9 @@ typedef struct Event_global_set_scale
 Event* new_Event_global_set_scale(Reltime* pos);
 
 
+bool Event_global_set_scale_handle(Playdata* global_state, char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SET_SCALE_H
 
 

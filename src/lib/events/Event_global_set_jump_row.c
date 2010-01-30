@@ -51,6 +51,25 @@ Event_create_constructor(Event_global_set_jump_row,
                          Reltime_set(&event->row, 0, 0))
 
 
+bool Event_global_set_jump_row_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_jump_row_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_copy(&global_state->jump_set_row, &data[0].field.Reltime_type);
+    return true;
+}
+
+
 static void Event_global_set_jump_row_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

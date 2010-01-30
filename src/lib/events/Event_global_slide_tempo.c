@@ -51,6 +51,48 @@ Event_create_constructor(Event_global_slide_tempo,
                          event->target_tempo = 120)
 
 
+bool Event_global_slide_tempo_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_tempo_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_init(&global_state->tempo_slide_int_left);
+    Reltime_copy(&global_state->tempo_slide_left,
+                 &global_state->tempo_slide_length);
+    double rems_total =
+            (double)Reltime_get_beats(&global_state->tempo_slide_length) *
+                    KQT_RELTIME_BEAT +
+                    Reltime_get_rem(&global_state->tempo_slide_length);
+    double slices = rems_total / 36756720; // slide updated 24 times per beat
+    global_state->tempo_slide_update = (data[0].field.double_type -
+                                        global_state->tempo) / slices;
+    global_state->tempo_slide_target = data[0].field.double_type;
+    if (global_state->tempo_slide_update < 0)
+    {
+        global_state->tempo_slide = -1;
+    }
+    else if (global_state->tempo_slide_update > 0)
+    {
+        global_state->tempo_slide = 1;
+    }
+    else
+    {
+        global_state->tempo_slide = 0;
+        global_state->tempo = data[0].field.double_type;
+    }
+    return true;
+}
+
+
 static void Event_global_slide_tempo_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

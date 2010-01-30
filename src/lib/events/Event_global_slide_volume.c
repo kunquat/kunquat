@@ -52,6 +52,45 @@ Event_create_constructor(Event_global_slide_volume,
                          event->target_volume_dB = 0)
 
 
+bool Event_global_slide_volume_handle(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_volume_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->volume_slide_target = exp2(data[0].field.double_type / 6);
+    global_state->volume_slide_frames =
+            Reltime_toframes(&global_state->volume_slide_length,
+                             global_state->tempo,
+                             global_state->freq);
+    double volume_dB = log2(global_state->volume) * 6;
+    double dB_step = (data[0].field.double_type - volume_dB) /
+                     global_state->volume_slide_frames;
+    global_state->volume_slide_update = exp2(dB_step / 6);
+    if (dB_step > 0)
+    {
+        global_state->volume_slide = 1;
+    }
+    else if (dB_step < 0)
+    {
+        global_state->volume_slide = -1;
+    }
+    else
+    {
+        global_state->volume = global_state->volume_slide_target;
+    }
+    return true;
+}
+
+
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
