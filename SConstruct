@@ -32,12 +32,12 @@ opts.AddVariables(
     BoolVariable('enable_python_bindings', 'Install Python bindings.', True),
     BoolVariable('enable_tests', 'Build and run libkunquat tests.', True),
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
-    BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', True),
+    BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', False),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
     BoolVariable('with_pulse', 'Build PulseAudio support.', True),
-    BoolVariable('with_jack', 'Build JACK support.', True),
-    BoolVariable('with_openal', 'Build OpenAL support.', True),
+    BoolVariable('with_jack', 'Build JACK support.', False),
+    BoolVariable('with_openal', 'Build OpenAL support.', False),
 )
 
 
