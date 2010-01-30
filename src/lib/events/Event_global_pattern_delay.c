@@ -73,11 +73,9 @@ bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
 
 static void Event_global_pattern_delay_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_PATTERN_DELAY);
-    assert(play != NULL);
-    Event_global_pattern_delay* pattern_delay = (Event_global_pattern_delay*)event;
-    Reltime_copy(&play->delay_left, &pattern_delay->length);
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

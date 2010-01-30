@@ -72,12 +72,9 @@ bool Event_global_set_volume_handle(Playdata* global_state, char* fields)
 
 static void Event_global_set_volume_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_VOLUME);
-    assert(play != NULL);
-    Event_global_set_volume* set_volume = (Event_global_set_volume*)event;
-    play->volume = exp2(set_volume->volume_dB / 6);
-    play->volume_slide = 0;
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

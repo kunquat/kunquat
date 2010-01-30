@@ -73,11 +73,9 @@ bool Event_global_set_jump_subsong_handle(Playdata* global_state,
 
 static void Event_global_set_jump_subsong_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_JUMP_SUBSONG);
-    assert(play != NULL);
-    Event_global_set_jump_subsong* set_jump_subsong = (Event_global_set_jump_subsong*)event;
-    play->jump_set_subsong = set_jump_subsong->subsong;
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

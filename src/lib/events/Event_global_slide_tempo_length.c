@@ -88,21 +88,9 @@ bool Event_global_slide_tempo_length_handle(Playdata* global_state,
 
 static void Event_global_slide_tempo_length_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SLIDE_TEMPO_LENGTH);
-    assert(play != NULL);
-    Event_global_slide_tempo_length* slide_tempo_length = (Event_global_slide_tempo_length*)event;
-    if (play->tempo_slide != 0)
-    {
-        Reltime_init(&play->tempo_slide_int_left);
-        Reltime_copy(&play->tempo_slide_left, &slide_tempo_length->length);
-        double rems_total = (double)Reltime_get_beats(&slide_tempo_length->length) *
-                            KQT_RELTIME_BEAT +
-                            Reltime_get_rem(&slide_tempo_length->length);
-        double slices = rems_total / 36756720; // slide updated 24 times per beat
-        play->tempo_slide_update = (play->tempo_slide_target - play->tempo) / slices;
-    }
-    Reltime_copy(&play->tempo_slide_length, &slide_tempo_length->length);
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

@@ -293,8 +293,13 @@ START_TEST (mix)
     play->mode = PLAY_PATTERN;
     Voice_pool_reset(play->voice_pool);
     Reltime_init(&play->pos);
-    double tempo = 120;
-    Event_set_field(evg_tempo, 0, &tempo);
+    Read_state* state = READ_STATE_AUTO;
+    Event_read((Event*)evg_tempo, ", [120]]", state);
+    if (state->error)
+    {
+        fprintf(stderr, "Event initialisation failed: %s.\n", state->message);
+        abort();
+    }
     Event_set_pos(evg_tempo, Reltime_set(RELTIME_AUTO, 2, 0));
     col = Pattern_get_global(pat);
     if (!Column_ins(col, evg_tempo))

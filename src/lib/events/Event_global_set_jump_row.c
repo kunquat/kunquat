@@ -72,11 +72,9 @@ bool Event_global_set_jump_row_handle(Playdata* global_state, char* fields)
 
 static void Event_global_set_jump_row_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_JUMP_ROW);
-    assert(play != NULL);
-    Event_global_set_jump_row* set_jump_row = (Event_global_set_jump_row*)event;
-    Reltime_copy(&play->jump_set_row, &set_jump_row->row);
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

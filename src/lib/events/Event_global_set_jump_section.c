@@ -73,11 +73,9 @@ bool Event_global_set_jump_section_handle(Playdata* global_state,
 
 static void Event_global_set_jump_section_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_JUMP_SECTION);
-    assert(play != NULL);
-    Event_global_set_jump_section* set_jump_section = (Event_global_set_jump_section*)event;
-    play->jump_set_section = set_jump_section->section;
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

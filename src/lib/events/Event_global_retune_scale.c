@@ -95,22 +95,9 @@ bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
 
 static void Event_global_retune_scale_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_RETUNE_SCALE);
-    assert(play != NULL);
-    Event_global_retune_scale* retune_scale = (Event_global_retune_scale*)event;
-    if (play->scales == NULL)
-    {
-        return;
-    }
-    Scale* scale = play->scales[retune_scale->scale_index];
-    if (scale == NULL ||
-            Scale_get_note_count(scale) <= retune_scale->new_ref ||
-            Scale_get_note_count(scale) <= retune_scale->fixed_point)
-    {
-        return;
-    }
-    Scale_retune(scale, retune_scale->new_ref, retune_scale->fixed_point);
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

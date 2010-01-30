@@ -76,15 +76,9 @@ bool Event_global_set_scale_handle(Playdata* global_state, char* fields)
 
 static void Event_global_set_scale_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_SCALE);
-    assert(play != NULL);
-    Event_global_set_scale* set_scale = (Event_global_set_scale*)event;
-    if (play->scales == NULL)
-    {
-        return;
-    }
-    play->active_scale = &play->scales[set_scale->scale_index];
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

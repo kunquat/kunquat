@@ -71,12 +71,9 @@ bool Event_global_set_tempo_handle(Playdata* global_state, char* fields)
 
 static void Event_global_set_tempo_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_TEMPO);
-    assert(play != NULL);
-    Event_global_set_tempo* set_tempo = (Event_global_set_tempo*)event;
-    play->tempo = set_tempo->tempo;
-    play->tempo_slide = 0;
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

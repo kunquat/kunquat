@@ -93,29 +93,9 @@ bool Event_global_slide_volume_handle(Playdata* global_state, char* fields)
 
 static void Event_global_slide_volume_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SLIDE_VOLUME);
-    assert(play != NULL);
-    Event_global_slide_volume* slide_volume = (Event_global_slide_volume*)event;
-    play->volume_slide_target = exp2(slide_volume->target_volume_dB / 6);
-    play->volume_slide_frames = Reltime_toframes(&play->volume_slide_length,
-                                                 play->tempo,
-                                                 play->freq);
-    double volume_dB = log2(play->volume) * 6;
-    double dB_step = (slide_volume->target_volume_dB - volume_dB) / play->volume_slide_frames;
-    play->volume_slide_update = exp2(dB_step / 6);
-    if (dB_step > 0)
-    {
-        play->volume_slide = 1;
-    }
-    else if (dB_step < 0)
-    {
-        play->volume_slide = -1;
-    }
-    else
-    {
-        play->volume = play->volume_slide_target;
-    }
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 

@@ -156,6 +156,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
         return str;
     }
     char* fields_start = NULL;
+    char* fields_end = NULL;
     int event_count = Event_get_field_count(event);
     if (event_count > 0)
     {
@@ -249,16 +250,19 @@ char* Event_read(Event* event, char* str, Read_state* state)
         {
             return str;
         }
+        fields_end = str;
     }
     if (fields_start != NULL)
     {
-        event->fields = xnalloc(char, strlen(fields_start) + 1);
+        assert(fields_end != NULL);
+        assert(fields_end >= fields_start);
+        event->fields = xcalloc(char, fields_end - fields_start + 1);
         if (event->fields == NULL)
         {
             Read_state_set_error(state, "Couldn't allocate memory.");
             return str;
         }
-        strcpy(event->fields, fields_start);
+        strncpy(event->fields, fields_start, fields_end - fields_start);
     }
     return str;
 }

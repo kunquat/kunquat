@@ -88,21 +88,9 @@ bool Event_global_slide_volume_length_handle(Playdata* global_state,
 
 static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SLIDE_VOLUME_LENGTH);
-    assert(play != NULL);
-    Event_global_slide_volume_length* slide_volume_length = (Event_global_slide_volume_length*)event;
-    if (play->volume_slide != 0)
-    {
-        play->volume_slide_frames = Reltime_toframes(&slide_volume_length->length,
-                                                     play->tempo,
-                                                     play->freq);
-        double volume_dB = log2(play->volume) * 6;
-        double target_dB = log2(play->volume_slide_target) * 6;
-        double dB_step = (target_dB - volume_dB) / play->volume_slide_frames;
-        play->volume_slide_update = exp2(dB_step / 6);
-    }
-    Reltime_copy(&play->volume_slide_length, &slide_volume_length->length);
+    (void)event;
+    (void)play;
+    assert(false);
     return;
 }
 
