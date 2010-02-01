@@ -47,6 +47,7 @@ typedef struct Voice
     uint16_t pool_index;   ///< Storage position in the Voice pool.
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
+    uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Event_queue* events;   ///< Upcoming events.
     Generator* gen;        ///< The Generator.
     /// The current playback state.

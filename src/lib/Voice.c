@@ -41,6 +41,7 @@ Voice* new_Voice(uint8_t events)
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->fg_mixed = 0;
     voice->gen = NULL;
     Voice_state_clear(&voice->state.generic);
     return voice;
@@ -124,6 +125,13 @@ void Voice_mix(Voice* voice,
         return;
     }
     uint32_t mixed = offset;
+    if (voice->prio <= VOICE_PRIO_BG)
+    {
+        if (mixed < voice->fg_mixed)
+        {
+            mixed = voice->fg_mixed;
+        }
+    }
     Event* next = NULL;
     uint32_t next_pos = UINT32_MAX;
     bool event_found = Event_queue_peek(voice->events, 0, &next, &next_pos);
@@ -211,6 +219,16 @@ void Voice_mix(Voice* voice,
     {
         voice->prio = VOICE_PRIO_BG;
     }
+    if (voice->prio >= VOICE_PRIO_FG)
+    {
+        voice->fg_mixed = mixed;
+    }
+#if 0
+    else
+    {
+        voice->fg_mixed = 0;
+    }
+#endif
 //    Event_queue_clear(voice->events);
     return;
 }

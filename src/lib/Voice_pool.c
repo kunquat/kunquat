@@ -186,6 +186,31 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
 }
 
 
+uint16_t Voice_pool_mix_bg(Voice_pool* pool,
+                           uint32_t amount,
+                           uint32_t offset,
+                           uint32_t freq,
+                           double tempo)
+{
+    assert(pool != NULL);
+    assert(freq > 0);
+    uint16_t active_voices = 0;
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
+        {
+            if (pool->voices[i]->prio <= VOICE_PRIO_BG)
+            {
+                Voice_mix(pool->voices[i], amount, offset, freq, tempo);
+            }
+            ++active_voices;
+        }
+    }
+    heap_build(pool);
+    return active_voices;
+}
+
+
 uint16_t Voice_pool_mix(Voice_pool* pool,
                         uint32_t amount,
                         uint32_t offset,
