@@ -93,7 +93,7 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
     }
     for (int i = 0; i < size; ++i)
     {
-        pool->voices[i] = new_Voice(events);
+        pool->voices[i] = new_Voice();
         if (pool->voices[i] == NULL)
         {
             for (--i; i >= 0; --i)
@@ -139,7 +139,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     }
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
-        pool->voices[i] = new_Voice(pool->events);
+        pool->voices[i] = new_Voice();
         if (pool->voices[i] == NULL)
         {
             for (--i; i >= pool->size; --i)
@@ -174,7 +174,7 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
         Voice* new_voice = pool->voices[0];
         new_voice->id = running_id;
         new_voice->prio = VOICE_PRIO_INACTIVE;
-        Event_queue_clear(new_voice->events);
+//        Event_queue_clear(new_voice->events);
         ++running_id;
         return new_voice;
     }

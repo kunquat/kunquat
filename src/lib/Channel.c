@@ -134,29 +134,12 @@ void Channel_set_voices(Channel* ch,
         {
             if (ch->fg[i] != NULL)
             {
-#if 0
-                if (to_be_mixed == mixed)
-                {
-                    fprintf(stderr, "to_be_mixed = mixed = %" PRIu32, mixed);
-                    fprintf(stderr, ", next event is %p\n", (void*)next);
-                }
-#endif
                 Voice_mix(ch->fg[i], to_be_mixed, mixed, freq, tempo);
             }
         }
         mixed = to_be_mixed;
         if (Reltime_cmp(next_pos, end) >= 0)
         {
-#if 0
-            if (next && Event_get_type(next) == EVENT_VOICE_NOTE_ON)
-            {
-                fprintf(stderr, "missed note on event %p at ", (void*)next);
-                fprintf(stderr, "[%" PRId64 ", %" PRId32 "]", next_pos->beats, next_pos->rem);
-                fprintf(stderr, ", end is ");
-                fprintf(stderr, "[%" PRId64 ", %" PRId32 "]", end->beats, end->rem);
-                fprintf(stderr, "\n");
-            }
-#endif
             break;
         }
         assert(next != NULL);
@@ -179,18 +162,6 @@ void Channel_set_voices(Channel* ch,
                     Event_voice_process((Event_voice*)ch->note_off, ch->fg[i]);
                     ch->fg[i]->prio = VOICE_PRIO_BG;
                     Voice_pool_fix_priority(pool, ch->fg[i]);
-//                    ch->fg[i]->prio = VOICE_PRIO_INACTIVE;
-#if 0
-                    if (!Voice_add_event(ch->fg[i], ch->note_off, abs_pos))
-                    {
-                        // Kill the Voice so that it doesn't
-                        // stay active indefinitely
-                        Voice_reset(ch->fg[i]);
-                        ch->fg[i] = NULL;
-                        ch->fg_id[i] = 0;
-                        // TODO: notify in case of failure
-                    }
-#endif
                     ch->fg[i] = NULL;
                 }
             }
@@ -209,11 +180,9 @@ void Channel_set_voices(Channel* ch,
                 if (next == NULL)
                 {
                     Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-//                    fprintf(stderr, "continue %d\n", __LINE__);
                     continue;
                 }
                 Reltime_copy(next_pos, Event_get_pos(next));
-//                fprintf(stderr, "continue %d\n", __LINE__);
                 continue;
             }
             Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
@@ -227,11 +196,9 @@ void Channel_set_voices(Channel* ch,
                 if (next == NULL)
                 {
                     Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-//                    fprintf(stderr, "continue %d\n", __LINE__);
                     continue;
                 }
                 Reltime_copy(next_pos, Event_get_pos(next));
-//                fprintf(stderr, "continue %d\n", __LINE__);
                 continue;
             }
             // allocate new Voices
@@ -256,15 +223,6 @@ void Channel_set_voices(Channel* ch,
                            tempo);
                 Event_voice_process((Event_voice*)next, ch->fg[i]);
                 Voice_pool_fix_priority(pool, ch->fg[i]);
-#if 0
-                if (!Voice_add_event(ch->fg[i], next, abs_pos))
-                {
-                    // This really shouldn't occur here!
-                    //  - implies that the Voice is uninitialised
-                    //    or cannot contain any events
-                    assert(false);
-                }
-#endif
             }
         }
         else if (ch->fg_count > 0 &&
@@ -287,15 +245,6 @@ void Channel_set_voices(Channel* ch,
                     ++ch->fg_count;
                     voices_active = true;
                     Event_voice_process((Event_voice*)next, ch->fg[i]);
-#if 0
-                    if (!Voice_add_event(ch->fg[i], next, abs_pos))
-                    {
-                        Voice_reset(ch->fg[i]);
-                        ch->fg[i] = NULL;
-                        ch->fg_id[i] = 0;
-                        // TODO: notify in case of failure
-                    }
-#endif
                 }
             }
             if (!voices_active)
@@ -337,11 +286,9 @@ void Channel_set_voices(Channel* ch,
         if (next == NULL)
         {
             Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-//            fprintf(stderr, "continue %d\n", __LINE__);
             continue;
         }
         Reltime_copy(next_pos, Event_get_pos(next));
-//        fprintf(stderr, "continue %d\n", __LINE__);
     }
     return;
 }

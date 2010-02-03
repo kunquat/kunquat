@@ -50,7 +50,7 @@ typedef struct Voice
     Voice_prio prio;       ///< Current priority of the Voice.
     bool was_fg;
     uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
-    Event_queue* events;   ///< Upcoming events.
+//    Event_queue* events;   ///< Upcoming events.
     Generator* gen;        ///< The Generator.
     /// The current playback state.
     union
@@ -74,7 +74,7 @@ typedef struct Voice
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
-Voice* new_Voice(uint8_t events);
+Voice* new_Voice(void);
 
 
 /**
@@ -138,7 +138,7 @@ void Voice_reset(Voice* voice);
  *
  * \return   \c true if successful, or \c false if the Event queue is full.
  */
-bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
+//bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
 
 
 /**

@@ -38,7 +38,7 @@ Suite* Voice_suite(void);
 
 START_TEST (new)
 {
-    Voice* voice = new_Voice(1);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -49,14 +49,6 @@ START_TEST (new)
     del_Voice(voice);
 }
 END_TEST
-
-#ifndef NDEBUG
-START_TEST (new_break_events_inv)
-{
-    new_Voice(0);
-}
-END_TEST
-#endif
 
 
 START_TEST (mix)
@@ -97,7 +89,7 @@ START_TEST (mix)
     nts[0] = notes;
     Scale_set_note(notes, 0, Real_init(REAL_AUTO));
     Instrument_set_scale(ins, 0);
-    Voice* voice = new_Voice(2);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -317,7 +309,7 @@ START_TEST (mix_break_freq_inv)
     }
     nts[0] = notes;
     Instrument_set_scale(ins, 0);
-    Voice* voice = new_Voice(1);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -329,8 +321,8 @@ START_TEST (mix_break_freq_inv)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         return;
     }
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
     Voice_mix(voice, 1, 0, 0, 120);
     del_Voice(voice);
 }
@@ -354,8 +346,6 @@ Suite* Voice_suite(void)
     tcase_add_test(tc_mix, mix);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_new, new_break_events_inv, SIGABRT);
-
     tcase_add_test_raise_signal(tc_mix, mix_break_voice_null, SIGABRT);
     tcase_add_test_raise_signal(tc_mix, mix_break_freq_inv, SIGABRT);
 #endif
