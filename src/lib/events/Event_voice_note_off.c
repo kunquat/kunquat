@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <Event_common.h>
 #include <Event_voice_note_off.h>

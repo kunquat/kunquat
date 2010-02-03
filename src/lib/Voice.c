@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
+#include <inttypes.h>
 
 #include <Voice.h>
 #include <Event_voice.h>
@@ -41,6 +42,7 @@ Voice* new_Voice(uint8_t events)
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->was_fg = true;
     voice->fg_mixed = 0;
     voice->gen = NULL;
     Voice_state_clear(&voice->state.generic);
@@ -77,6 +79,8 @@ void Voice_init(Voice* voice,
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
+    voice->was_fg = true;
+    voice->fg_mixed = 0;
     voice->gen = gen;
     Voice_state_init(&voice->state.generic,
                      cur_ch_state,
@@ -96,6 +100,8 @@ void Voice_reset(Voice* voice)
 {
     assert(voice != NULL);
     voice->prio = VOICE_PRIO_INACTIVE;
+    voice->was_fg = true;
+    voice->fg_mixed = 0;
     Event_queue_clear(voice->events);
     Voice_state_clear(&voice->state.generic);
     voice->gen = NULL;
@@ -124,14 +130,23 @@ void Voice_mix(Voice* voice,
     {
         return;
     }
+    bool initially_fg = voice->prio >= VOICE_PRIO_FG;
     uint32_t mixed = offset;
     if (voice->prio <= VOICE_PRIO_BG)
     {
-        if (mixed < voice->fg_mixed)
+        if (voice->was_fg)
         {
+//            fprintf(stderr, "mixed: %" PRIu32 ", fg_mixed: %" PRIu32 "\n", mixed, voice->fg_mixed);
+            assert(mixed <= voice->fg_mixed);
+//            fprintf(stderr, "setting voice->fg_mixed: %" PRIu32 "\n", voice->fg_mixed);
             mixed = voice->fg_mixed;
+            voice->was_fg = false;
+            voice->fg_mixed = 0;
         }
     }
+//    fprintf(stderr, "mix %p from %" PRIu32 " to %" PRIu32 "\n", (void*)voice, mixed, nframes);
+    Generator_mix(voice->gen, &voice->state.generic, nframes, mixed, freq, tempo);
+#if 0
     Event* next = NULL;
     uint32_t next_pos = UINT32_MAX;
     bool event_found = Event_queue_peek(voice->events, 0, &next, &next_pos);
@@ -146,12 +161,11 @@ void Voice_mix(Voice* voice,
         {
             mix_until = nframes;
         }
-        if (voice->prio < VOICE_PRIO_NEW)
+        Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq, tempo);
+        if (voice->prio >= VOICE_PRIO_NEW)
         {
-            Generator_mix(voice->gen, &voice->state.generic, mix_until, mixed, freq, tempo);
-        }
-        else
-        {
+            voice->prio = VOICE_PRIO_NEW - 1;
+#if 0
             assert(event_found);
             assert(next != NULL);
             assert(Event_get_type(next) == EVENT_VOICE_NOTE_ON);
@@ -159,6 +173,7 @@ void Voice_mix(Voice* voice,
             {
                 voice->prio = VOICE_PRIO_NEW - 1;
             }
+#endif
         }
         if (event_found && next_pos <= mix_until)
         {
@@ -211,6 +226,7 @@ void Voice_mix(Voice* voice,
         event_found = Event_queue_get(voice->events, &next, &mix_until);
     }
 #endif
+#endif
     if (!voice->state.generic.active)
     {
         voice->prio = VOICE_PRIO_INACTIVE;
@@ -219,10 +235,11 @@ void Voice_mix(Voice* voice,
     {
         voice->prio = VOICE_PRIO_BG;
     }
-    if (voice->prio >= VOICE_PRIO_FG)
+    if (initially_fg)
     {
-        voice->fg_mixed = mixed;
+        voice->fg_mixed = nframes;
     }
+//    fprintf(stderr, "%p return with voice->fg_mixed: %" PRIu32 "\n", (void*)voice, voice->fg_mixed);
 #if 0
     else
     {

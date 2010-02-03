@@ -15,6 +15,8 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <stdio.h>
 
 #include <Channel.h>
@@ -28,6 +30,7 @@
 #include <Event_voice_note_on.h>
 #include <Event_voice_note_off.h>
 #include <Column.h>
+#include <math_common.h>
 
 #include <xmemory.h>
 
@@ -77,6 +80,7 @@ void Channel_set_voices(Channel* ch,
                         Column_iter* citer,
                         Reltime* start,
                         Reltime* end,
+                        uint32_t nframes,
                         uint32_t offset,
                         double tempo,
                         uint32_t freq)
@@ -86,6 +90,7 @@ void Channel_set_voices(Channel* ch,
 //  assert(citer != NULL);
     assert(start != NULL);
     assert(end != NULL);
+    assert(offset < nframes);
     assert(tempo > 0);
     assert(freq > 0);
     Event* next = ch->single;
@@ -96,20 +101,67 @@ void Channel_set_voices(Channel* ch,
         {
             next = Column_iter_get(citer, start);
         }
-        if (next == NULL)
-        {
-            return;
-        }
     }
     else
     {
         Event_set_pos(ch->single, start);
     }
-    Reltime* next_pos = Event_get_pos(next);
-    while (Reltime_cmp(next_pos, end) < 0)
+    Reltime* next_pos = Reltime_set(RELTIME_AUTO, INT64_MAX, KQT_RELTIME_BEAT - 1);
+    if (next != NULL)
+    {
+        Reltime_copy(next_pos, Event_get_pos(next));
+    }
+    assert(!(Reltime_get_beats(next_pos) == INT64_MAX) || (next == NULL));
+    assert(!(next == NULL) || (Reltime_get_beats(next_pos) == INT64_MAX));
+    uint32_t mixed = offset;
+//    fprintf(stderr, "Entering Channel mixing, mixed: %" PRIu32 ", nframes: %" PRIu32 "\n",
+//            mixed, nframes);
+    while (Reltime_cmp(next_pos, end) < 0 || mixed < nframes)
     {
         assert(Reltime_cmp(start, next_pos) <= 0);
-        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
+        assert(!(Reltime_get_beats(next_pos) == INT64_MAX) || (next == NULL));
+        assert(!(next == NULL) || (Reltime_get_beats(next_pos) == INT64_MAX));
+        Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
+        uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq);
+//        fprintf(stderr, "mixed: %u, abs_pos: %u, nframes: %u\n",
+//                (unsigned int)mixed, (unsigned int)abs_pos, (unsigned int)nframes);
+        if (abs_pos < UINT32_MAX - offset)
+        {
+            abs_pos += offset;
+        }
+        uint32_t to_be_mixed = MIN(abs_pos, nframes);
+        for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+        {
+            if (ch->fg[i] != NULL)
+            {
+#if 0
+                if (to_be_mixed == mixed)
+                {
+                    fprintf(stderr, "to_be_mixed = mixed = %" PRIu32, mixed);
+                    fprintf(stderr, ", next event is %p\n", (void*)next);
+                }
+#endif
+                Voice_mix(ch->fg[i], to_be_mixed, mixed, freq, tempo);
+            }
+        }
+        mixed = to_be_mixed;
+        if (Reltime_cmp(next_pos, end) >= 0)
+        {
+#if 0
+            if (next && Event_get_type(next) == EVENT_VOICE_NOTE_ON)
+            {
+                fprintf(stderr, "missed note on event %p at ", (void*)next);
+                fprintf(stderr, "[%" PRId64 ", %" PRId32 "]", next_pos->beats, next_pos->rem);
+                fprintf(stderr, ", end is ");
+                fprintf(stderr, "[%" PRId64 ", %" PRId32 "]", end->beats, end->rem);
+                fprintf(stderr, "\n");
+            }
+#endif
+            break;
+        }
+        assert(next != NULL);
+        if (Event_get_type(next) == EVENT_VOICE_NOTE_OFF ||
+                Event_get_type(next) == EVENT_VOICE_NOTE_ON)
         {
             for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
@@ -122,11 +174,13 @@ void Channel_set_voices(Channel* ch,
                         // The Voice has been given to another channel -- giving up
                         continue;
                     }
-                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq)
-                            + offset;
                     // FIXME: it seems that we may use ch->note_off for several Voices
                     //        -- this leads to slightly incorrect Note Off positions
+                    Event_voice_process((Event_voice*)ch->note_off, ch->fg[i]);
+                    ch->fg[i]->prio = VOICE_PRIO_BG;
+                    Voice_pool_fix_priority(pool, ch->fg[i]);
+//                    ch->fg[i]->prio = VOICE_PRIO_INACTIVE;
+#if 0
                     if (!Voice_add_event(ch->fg[i], ch->note_off, abs_pos))
                     {
                         // Kill the Voice so that it doesn't
@@ -136,9 +190,14 @@ void Channel_set_voices(Channel* ch,
                         ch->fg_id[i] = 0;
                         // TODO: notify in case of failure
                     }
+#endif
                     ch->fg[i] = NULL;
                 }
             }
+        }
+        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
+        {
+//            fprintf(stderr, "handling note on event %p\n", (void*)next);
             ch->fg_count = 0;
             if (ch->cur_inst == 0)
             {
@@ -149,9 +208,12 @@ void Channel_set_voices(Channel* ch,
                 }
                 if (next == NULL)
                 {
-                    break;
+                    Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
+//                    fprintf(stderr, "continue %d\n", __LINE__);
+                    continue;
                 }
-                next_pos = Event_get_pos(next);
+                Reltime_copy(next_pos, Event_get_pos(next));
+//                fprintf(stderr, "continue %d\n", __LINE__);
                 continue;
             }
             Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
@@ -164,9 +226,12 @@ void Channel_set_voices(Channel* ch,
                 }
                 if (next == NULL)
                 {
-                    break;
+                    Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
+//                    fprintf(stderr, "continue %d\n", __LINE__);
+                    continue;
                 }
-                next_pos = Event_get_pos(next);
+                Reltime_copy(next_pos, Event_get_pos(next));
+//                fprintf(stderr, "continue %d\n", __LINE__);
                 continue;
             }
             // allocate new Voices
@@ -181,6 +246,7 @@ void Channel_set_voices(Channel* ch,
                 ++ch->fg_count;
                 ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
                 assert(ch->fg[i] != NULL);
+//                fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[i]);
                 ch->fg_id[i] = Voice_id(ch->fg[i]);
                 Voice_init(ch->fg[i],
                            Instrument_get_gen(ins, i),
@@ -188,8 +254,9 @@ void Channel_set_voices(Channel* ch,
                            &ch->new_state,
                            freq,
                            tempo);
-                Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
+                Event_voice_process((Event_voice*)next, ch->fg[i]);
+                Voice_pool_fix_priority(pool, ch->fg[i]);
+#if 0
                 if (!Voice_add_event(ch->fg[i], next, abs_pos))
                 {
                     // This really shouldn't occur here!
@@ -197,9 +264,11 @@ void Channel_set_voices(Channel* ch,
                     //    or cannot contain any events
                     assert(false);
                 }
+#endif
             }
         }
         else if (ch->fg_count > 0 &&
+                 Event_get_type(next) != EVENT_VOICE_NOTE_OFF &&
                  (EVENT_IS_GENERAL(Event_get_type(next)) ||
                   EVENT_IS_VOICE(Event_get_type(next))))
         {
@@ -217,8 +286,8 @@ void Channel_set_voices(Channel* ch,
                     }
                     ++ch->fg_count;
                     voices_active = true;
-                    Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-                    uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
+                    Event_voice_process((Event_voice*)next, ch->fg[i]);
+#if 0
                     if (!Voice_add_event(ch->fg[i], next, abs_pos))
                     {
                         Voice_reset(ch->fg[i]);
@@ -226,6 +295,7 @@ void Channel_set_voices(Channel* ch,
                         ch->fg_id[i] = 0;
                         // TODO: notify in case of failure
                     }
+#endif
                 }
             }
             if (!voices_active)
@@ -236,8 +306,6 @@ void Channel_set_voices(Channel* ch,
         }
         else if (EVENT_IS_INS(Event_get_type(next)))
         {
-            Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-            uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq) + offset;
             Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
             if (ins != NULL)
             {
@@ -268,9 +336,12 @@ void Channel_set_voices(Channel* ch,
         }
         if (next == NULL)
         {
-            break;
+            Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
+//            fprintf(stderr, "continue %d\n", __LINE__);
+            continue;
         }
-        next_pos = Event_get_pos(next);
+        Reltime_copy(next_pos, Event_get_pos(next));
+//        fprintf(stderr, "continue %d\n", __LINE__);
     }
     return;
 }

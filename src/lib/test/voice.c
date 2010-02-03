@@ -127,8 +127,9 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
     Voice_mix(voice, 128, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);

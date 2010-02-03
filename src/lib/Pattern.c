@@ -16,6 +16,8 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <stdint.h>
+#include <inttypes.h>
 #include <math.h>
 
 #include <Pattern.h>
@@ -159,6 +161,7 @@ uint32_t Pattern_mix(Pattern* pat,
     assert(eh != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     uint32_t mixed = offset;
+//    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
     if (pat == NULL)
     {
         assert(!play->silent);
@@ -173,11 +176,12 @@ uint32_t Pattern_mix(Pattern* pat,
                                NULL,
                                &play->pos,
                                limit,
+                               nframes,
                                mixed,
                                play->tempo,
                                play->freq);
         }
-        uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+        uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                 nframes, mixed, play->freq, play->tempo);
         if (active_voices == 0)
         {
@@ -393,38 +397,38 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         if (!play->silent)
         {
-            // - Tell each channel to set up Voices
-            if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) <= 0)
-            {
-                for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-                {
-                    Column_iter_change_col(play->citer, pat->cols[i]);
-                    Channel_set_voices(play->channels[i],
-                                       play->voice_pool,
-                                       play->citer,
-                                       &play->pos,
-                                       limit,
-                                       mixed,
-                                       play->tempo,
-                                       play->freq);
-                }
-            }
-            // - Mix the Voice pool
-/*            uint16_t active_voices = Voice_pool_mix(play->voice_pool,
+            // - Mix the Voices
+/*            uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                     to_be_mixed + mixed, mixed, play->freq, play->tempo); */
             Event* ins_event = NULL;
             uint32_t ins_event_pos = UINT32_MAX;
             uint32_t mix_until = to_be_mixed + mixed;
-            uint32_t pool_mixed = mixed;
+            uint32_t voices_mixed = mixed;
             bool event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
             if (event_found && ins_event_pos < mix_until)
             {
                 mix_until = ins_event_pos;
             }
-            while (pool_mixed < to_be_mixed + mixed)
+            while (voices_mixed < to_be_mixed + mixed)
             {
-                uint16_t active_voices = Voice_pool_mix(play->voice_pool,
-                        mix_until, pool_mixed, play->freq, play->tempo);
+                if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) <= 0)
+                {
+                    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+                    {
+                        Column_iter_change_col(play->citer, pat->cols[i]);
+                        Channel_set_voices(play->channels[i],
+                                           play->voice_pool,
+                                           play->citer,
+                                           &play->pos,
+                                           limit,
+                                           mix_until,
+                                           mixed,
+                                           play->tempo,
+                                           play->freq);
+                    }
+                }
+                uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
+                        mix_until, voices_mixed, play->freq, play->tempo);
                 if (play->active_voices < active_voices)
                 {
                     play->active_voices = active_voices;
@@ -434,7 +438,7 @@ uint32_t Pattern_mix(Pattern* pat,
                     assert(ins_event != NULL);
                     Event_ins_process((Event_ins*)ins_event);
                 }
-                pool_mixed = mix_until;
+                voices_mixed = mix_until;
                 mix_until = to_be_mixed + mixed;
                 event_found = Event_queue_get(play->ins_events, &ins_event, &ins_event_pos);
                 if (event_found && ins_event_pos < mix_until)

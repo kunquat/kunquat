@@ -84,6 +84,7 @@ void Channel_set_voices(Channel* ch,
                         Column_iter* citer,
                         Reltime* start,
                         Reltime* end,
+                        uint32_t nframes,
                         uint32_t offset,
                         double tempo,
                         uint32_t freq);

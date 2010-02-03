@@ -16,6 +16,9 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
+#include <stdint.h>
+#include <inttypes.h>
+#include <stdio.h>
 
 #include <Event.h>
 

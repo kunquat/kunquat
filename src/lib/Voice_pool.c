@@ -37,7 +37,7 @@
  *
  * \return   The target index of the modified key.
  */
-// static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index);
+static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index);
 
 
 /**
@@ -71,7 +71,7 @@ static uint16_t downheap(Voice_pool* pool, uint16_t index);
  *
  * \return   The target index of the modified key.
  */
-// static uint16_t upheap(Voice_pool* pool, uint16_t index);
+static uint16_t upheap(Voice_pool* pool, uint16_t index);
 
 
 Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
@@ -201,7 +201,9 @@ uint16_t Voice_pool_mix_bg(Voice_pool* pool,
         {
             if (pool->voices[i]->prio <= VOICE_PRIO_BG)
             {
+//                fprintf(stderr, "Background mix start\n");
                 Voice_mix(pool->voices[i], amount, offset, freq, tempo);
+//                fprintf(stderr, "Background mix end\n");
             }
             ++active_voices;
         }
@@ -233,6 +235,16 @@ uint16_t Voice_pool_mix(Voice_pool* pool,
 }
 
 
+void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice)
+{
+    assert(pool != NULL);
+    assert(voice != NULL);
+    assert(pool->voices[voice->pool_index] == voice);
+    heap_mod_key(pool, voice->pool_index);
+    return;
+}
+
+
 void Voice_pool_reset(Voice_pool* pool)
 {
     for (uint16_t i = 0; i < pool->size; ++i)
@@ -257,7 +269,6 @@ void del_Voice_pool(Voice_pool* pool)
 }
 
 
-#if 0
 static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index)
 {
     assert(pool != NULL);
@@ -265,7 +276,6 @@ static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index)
     index = upheap(pool, index);
     return downheap(pool, index);
 }
-#endif
 
 
 static void heap_build(Voice_pool* pool)
@@ -313,7 +323,6 @@ static uint16_t downheap(Voice_pool* pool, uint16_t index)
 }
 
 
-#if 0
 static uint16_t upheap(Voice_pool* pool, uint16_t index)
 {
     assert(pool != NULL);
@@ -332,6 +341,5 @@ static uint16_t upheap(Voice_pool* pool, uint16_t index)
     }
     return index;
 }
-#endif
 
 

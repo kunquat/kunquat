@@ -568,6 +568,12 @@ START_TEST (mix)
         abort();
     }
     ret = Pattern_mix(pat, 128, 0, eh);
+    fprintf(stderr, "\nValues:\n");
+    for (int i = 0; i < 128; ++i)
+    {
+        fprintf(stderr, "%3d: %f\n", i, bufs[0][i]);
+    }
+    fprintf(stderr, "\n");
     fail_unless(ret == 72,
             "Pattern_mix() mixed %lu frames instead of 72.", (unsigned long)ret);
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,

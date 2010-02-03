@@ -16,7 +16,7 @@ enable_libkunquat_dev = True
 enable_python_bindings = True
 
 # Build and run libkunquat tests.
-enable_tests = True
+enable_tests = False
 
 # Enable kunquat-player (requires enable_python_bindings).
 enable_player = True

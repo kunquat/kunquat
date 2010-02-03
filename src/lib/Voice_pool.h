@@ -113,6 +113,19 @@ uint16_t Voice_pool_mix_bg(Voice_pool* pool,
 
 
 /**
+ * Repositions a Voice with changed priority inside the Voice pool.
+ *
+ * This function must be called if Voice_mix is called outside
+ * Voice_pool_mix_bg.
+ *
+ * \param pool    The Voice pool -- must not be \c NULL.
+ * \param voice   The Voice -- must not be \c NULL and must be an element of
+ *                \a pool.
+ */
+void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice);
+
+
+/**
  * Mixes the Voice pool.
  *
  * \param pool     The Voice pool -- must not be \c NULL.
