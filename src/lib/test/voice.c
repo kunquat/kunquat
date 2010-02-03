@@ -168,13 +168,16 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
-    fail_unless(Voice_add_event(voice, ev_off, 20),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_off, 20),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
     Voice_mix(voice, 20, 0, 8, 120);
-    fail_unless(voice->prio == VOICE_PRIO_BG,
-            "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
+//    fail_unless(voice->prio == VOICE_PRIO_BG,
+//            "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
+    Event_voice_process((Event_voice*)ev_off, voice);
+    voice->prio = VOICE_PRIO_BG;
     Voice_mix(voice, 128, 20, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
@@ -228,11 +231,14 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
-    fail_unless(Voice_add_event(voice, ev_off, 70),
-            "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 16, 120);
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_off, 70),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
+    Voice_mix(voice, 70, 0, 16, 120);
+    Event_voice_process((Event_voice*)ev_off, voice);
+    Voice_mix(voice, 128, 70, 16, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 70; ++i)
