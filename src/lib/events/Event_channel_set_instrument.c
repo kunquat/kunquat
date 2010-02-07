@@ -18,7 +18,9 @@
 
 #include <Event_common.h>
 #include <Event_channel_set_instrument.h>
+#include <File_base.h>
 #include <Channel.h>
+#include <Channel_state.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -51,13 +53,33 @@ Event_create_constructor(Event_channel_set_instrument,
                          event->instrument = 0)
 
 
+bool Event_channel_set_instrument_handle(Channel_state* ch_state, char* fields)
+{
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_instrument_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    ch_state->instrument = data[0].field.integral_type;
+    return true;
+}
+
+
 static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch)
 {
+    assert(false);
     assert(event != NULL);
     assert(event->parent.type == EVENT_CHANNEL_SET_INSTRUMENT);
     assert(ch != NULL);
-    Event_channel_set_instrument* set_instrument = (Event_channel_set_instrument*)event;
-    ch->cur_inst = set_instrument->instrument;
+//    Event_channel_set_instrument* set_instrument = (Event_channel_set_instrument*)event;
+//    ch->cur_inst = set_instrument->instrument;
     return;
 }
 

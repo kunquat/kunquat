@@ -28,6 +28,7 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
     assert(mute != NULL);
 
     state->num = num;
+    state->instrument = 0;
     state->mute = mute;
 
     state->volume = 1;

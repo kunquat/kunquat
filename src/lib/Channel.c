@@ -25,6 +25,7 @@
 #include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_handler.h>
 #include <Event_channel.h>
 #include <Event_ins.h>
 #include <Event_voice_note_on.h>
@@ -62,7 +63,6 @@ Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events)
     Channel_state_init(&ch->init_state, num, &ch->mute);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
     Channel_state_copy(&ch->new_state, &ch->init_state);
-    ch->cur_inst = 0;
     ch->insts = insts;
     ch->ins_events = ins_events;
     ch->fg_count = 0;
@@ -83,7 +83,8 @@ void Channel_set_voices(Channel* ch,
                         uint32_t nframes,
                         uint32_t offset,
                         double tempo,
-                        uint32_t freq)
+                        uint32_t freq,
+                        Event_handler* eh)
 {
     assert(ch != NULL);
     assert(pool != NULL);
@@ -93,6 +94,7 @@ void Channel_set_voices(Channel* ch,
     assert(offset < nframes);
     assert(tempo > 0);
     assert(freq > 0);
+    assert(eh != NULL);
     Event* next = ch->single;
     if (Reltime_cmp(Event_get_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
     {
@@ -143,8 +145,15 @@ void Channel_set_voices(Channel* ch,
             break;
         }
         assert(next != NULL);
-        if (Event_get_type(next) == EVENT_VOICE_NOTE_OFF ||
-                Event_get_type(next) == EVENT_VOICE_NOTE_ON)
+        if (EVENT_IS_CHANNEL(Event_get_type(next)))
+        {
+            Event_handler_handle(eh, ch->init_state.num,
+                                 Event_get_type((Event*)next),
+                                 Event_get_fields((Event*)next));
+//            Event_channel_process((Event_channel*)next, ch);
+        }
+        else if (Event_get_type(next) == EVENT_VOICE_NOTE_OFF ||
+                 Event_get_type(next) == EVENT_VOICE_NOTE_ON)
         {
             for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
@@ -170,7 +179,7 @@ void Channel_set_voices(Channel* ch,
         {
 //            fprintf(stderr, "handling note on event %p\n", (void*)next);
             ch->fg_count = 0;
-            if (ch->cur_inst == 0)
+            if (ch->cur_state.instrument == 0)
             {
                 next = NULL;
                 if (citer != NULL)
@@ -185,7 +194,8 @@ void Channel_set_voices(Channel* ch,
                 Reltime_copy(next_pos, Event_get_pos(next));
                 continue;
             }
-            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
+            Instrument* ins = Ins_table_get(ch->insts,
+                                            ch->cur_state.instrument);
             if (ins == NULL)
             {
                 next = NULL;
@@ -255,16 +265,13 @@ void Channel_set_voices(Channel* ch,
         }
         else if (EVENT_IS_INS(Event_get_type(next)))
         {
-            Instrument* ins = Ins_table_get(ch->insts, ch->cur_inst);
+            Instrument* ins = Ins_table_get(ch->insts,
+                                            ch->cur_state.instrument);
             if (ins != NULL)
             {
                 Event_ins_set_params((Event_ins*)next, Instrument_get_params(ins));
                 Event_queue_ins(ch->ins_events, next, abs_pos);
             }
-        }
-        else if (EVENT_IS_CHANNEL(Event_get_type(next)))
-        {
-            Event_channel_process((Event_channel*)next, ch);
         }
         if (next == ch->single)
         {

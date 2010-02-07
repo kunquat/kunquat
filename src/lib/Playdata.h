@@ -20,7 +20,8 @@
 
 #include <Reltime.h>
 #include <Subsong_table.h>
-#include <Channel.h>
+//#include <Channel.h>
+#include <Column.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
@@ -95,7 +96,6 @@ typedef struct Playdata
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
-    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     uint16_t active_voices;             ///< Number of Voices used simultaneously.
     double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
     double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.

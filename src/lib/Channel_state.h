@@ -21,6 +21,7 @@
 
 #include <Reltime.h>
 #include <kunquat/limits.h>
+#include <Voice_params.h>
 
 
 /**
@@ -30,7 +31,10 @@
 typedef struct Channel_state
 {
     int num;                       ///< Channel number.
+    Voice_params vp;               ///< Voice parameters.
     bool* mute;                    ///< Channel mute.
+
+    int instrument;                ///< Currently active Instrument.
 
     double volume;                 ///< Channel volume (linear factor).
 

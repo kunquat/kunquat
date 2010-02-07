@@ -22,6 +22,8 @@
 #include <Event_queue.h>
 #include <Generator.h>
 #include <Channel_state.h>
+#include <Voice_params.h>
+
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
@@ -52,6 +54,7 @@ typedef struct Voice
     uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
 //    Event_queue* events;   ///< Upcoming events.
     Generator* gen;        ///< The Generator.
+    Voice_params* params;  ///< Voice parameters retrieved from the Channel.
     /// The current playback state.
     union
     {

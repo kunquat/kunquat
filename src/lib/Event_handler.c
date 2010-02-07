@@ -35,13 +35,15 @@
 #include <events/Event_global_slide_volume.h>
 #include <events/Event_global_slide_volume_length.h>
 
+#include <events/Event_channel_set_instrument.h>
+
 #include <xmemory.h>
 
 
 struct Event_handler
 {
     bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
-    Channel_state ch_states[KQT_COLUMNS_MAX];
+    Channel_state* ch_states[KQT_COLUMNS_MAX];
     Playdata* global_state;
     bool (*ch_process[EVENT_CHANNEL_LAST])(Channel_state* state,
                                            char* fields);
@@ -52,7 +54,8 @@ struct Event_handler
 };
 
 
-Event_handler* new_Event_handler(Playdata* global_state)
+Event_handler* new_Event_handler(Playdata* global_state,
+                                 Channel_state** ch_states)
 {
     Event_handler* eh = xalloc(Event_handler);
     if (eh == NULL)
@@ -93,9 +96,13 @@ Event_handler* new_Event_handler(Playdata* global_state)
     eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] =
             Event_global_slide_volume_length_handle;
 
+    eh->ch_process[EVENT_CHANNEL_SET_INSTRUMENT] =
+            Event_channel_set_instrument_handle;
+
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
+        eh->ch_states[i] = ch_states[i];
+//        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
     }
     return eh;
 }
@@ -156,7 +163,7 @@ bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->ch_process[type](&eh->ch_states[ch], fields);
+        return eh->ch_process[type](eh->ch_states[ch], fields);
     }
     else if (EVENT_IS_GLOBAL(type))
     {

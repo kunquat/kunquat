@@ -18,8 +18,8 @@
 
 #include <stdint.h>
 
-#include <Playdata.h>
 #include <Column.h>
+#include <Channel.h>
 #include <Reltime.h>
 #include <Event_handler.h>
 #include <kunquat/limits.h>
@@ -133,16 +133,17 @@ Column* Pattern_get_global(Pattern* pat);
  * \param nframes   The amount of frames to be mixed.
  * \param offset    The mixing buffer offset to be used -- must be
  *                  < \a nframes.
- * \param play      The Playdata object -- must not be \c NULL.
+ * \param eh        The Event handler -- must not be \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes. A value that is < \a nframes indicates that the
  *           mixing of the Pattern is complete.
  */
 uint32_t Pattern_mix(Pattern* pat,
-        uint32_t nframes,
-        uint32_t offset,
-        Event_handler* eh);
+                     uint32_t nframes,
+                     uint32_t offset,
+                     Event_handler* eh,
+                     Channel** channels);
 
 
 /**

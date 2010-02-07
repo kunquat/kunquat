@@ -21,6 +21,7 @@
 #include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
+#include <Event_handler.h>
 #include <Event_queue.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -39,7 +40,7 @@ typedef struct Channel
     Channel_state cur_state;  ///< Channel state as passed to Voices.
     Channel_state new_state;  ///< Channel state as received from Voices.
     bool mute;                ///< If \c true, output of the Voices will be ignored.
-    int cur_inst;             ///< Current instrument number.
+//    int cur_inst;             ///< Current instrument number.
     Ins_table* insts; ///< The Instrument table.
     int fg_count; ///< Number of Voices in the foreground.
     Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
@@ -78,6 +79,7 @@ Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events);
  * \param offset   The mixing buffer offset.
  * \param tempo    The tempo -- must be > \c 0.
  * \param freq     The mixing frequency -- must be > \c 0.
+ * \param eh       The Event handler -- must not be \c NULL.
  */
 void Channel_set_voices(Channel* ch,
                         Voice_pool* pool,
@@ -87,7 +89,8 @@ void Channel_set_voices(Channel* ch,
                         uint32_t nframes,
                         uint32_t offset,
                         double tempo,
-                        uint32_t freq);
+                        uint32_t freq,
+                        Event_handler* eh);
 
 
 /**

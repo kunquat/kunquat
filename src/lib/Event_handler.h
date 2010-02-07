@@ -32,7 +32,8 @@ typedef struct Event_handler Event_handler;
  * \return   The new Event handler if successful, or \c NULL if memory
  *           allocation failed.
  */
-Event_handler* new_Event_handler(Playdata* global_state);
+Event_handler* new_Event_handler(Playdata* global_state,
+                                 Channel_state** ch_states);
 
 
 /**

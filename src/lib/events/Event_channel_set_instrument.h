@@ -30,6 +30,9 @@ typedef struct Event_channel_set_instrument
 Event* new_Event_channel_set_instrument(Reltime* pos);
 
 
+bool Event_channel_set_instrument_handle(Channel_state* ch_state, char* fields);
+
+
 #endif // K_EVENT_CHANNEL_SET_INSTRUMENT_H
 
 

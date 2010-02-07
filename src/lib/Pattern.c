@@ -154,7 +154,8 @@ Column* Pattern_get_global(Pattern* pat)
 uint32_t Pattern_mix(Pattern* pat,
                      uint32_t nframes,
                      uint32_t offset,
-                     Event_handler* eh)
+                     Event_handler* eh,
+                     Channel** channels)
 {
 //  assert(pat != NULL);
     assert(offset < nframes);
@@ -171,7 +172,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 play->freq);
         for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         {
-            Channel_set_voices(play->channels[i],
+            Channel_set_voices(channels[i],
                                play->voice_pool,
                                NULL,
                                &play->pos,
@@ -179,7 +180,8 @@ uint32_t Pattern_mix(Pattern* pat,
                                nframes,
                                mixed,
                                play->tempo,
-                               play->freq);
+                               play->freq,
+                               eh);
         }
         uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                 nframes, mixed, play->freq, play->tempo);
@@ -416,7 +418,7 @@ uint32_t Pattern_mix(Pattern* pat,
                     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
                     {
                         Column_iter_change_col(play->citer, pat->cols[i]);
-                        Channel_set_voices(play->channels[i],
+                        Channel_set_voices(channels[i],
                                            play->voice_pool,
                                            play->citer,
                                            &play->pos,
@@ -424,7 +426,8 @@ uint32_t Pattern_mix(Pattern* pat,
                                            mix_until,
                                            mixed,
                                            play->tempo,
-                                           play->freq);
+                                           play->freq,
+                                           eh);
                     }
                 }
                 uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
@@ -454,7 +457,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
-                Channel_update_state(play->channels[i], to_be_mixed + mixed);
+                Channel_update_state(channels[i], to_be_mixed + mixed);
             }
         }
         if ((play->volume != 1 || play->volume_slide != 0))

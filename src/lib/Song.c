@@ -126,13 +126,29 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
 
-    song->event_handler = new_Event_handler(song->play_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        song->channels[i] = new_Channel(song->insts, i,
+                                        song->play_state->ins_events);
+        if (song->channels[i] == NULL)
+        {
+            del_Song(song);
+            return NULL;
+        }
+    }
+    Channel_state* ch_states[KQT_COLUMNS_MAX] = { NULL };
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        ch_states[i] = &song->channels[i]->cur_state;
+    }
+
+    song->event_handler = new_Event_handler(song->play_state, ch_states);
     if (song->event_handler == NULL)
     {
         del_Song(song);
         return NULL;
     }
-    song->skip_handler = new_Event_handler(song->skip_state);
+    song->skip_handler = new_Event_handler(song->skip_state, ch_states);
     if (song->skip_handler == NULL)
     {
         del_Song(song);
@@ -318,7 +334,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             continue;
         }
         uint32_t proc_start = mixed;
-        mixed += Pattern_mix(pat, nframes, mixed, eh);
+        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels);
         if (play->mode == PLAY_EVENT)
         {
             continue;
@@ -716,6 +732,10 @@ void del_Song(Song* song)
     if (song->skip_state != NULL)
     {
         del_Playdata(song->skip_state);
+    }
+    for (int i = 0; i < KQT_COLUMNS_MAX && song->channels[i] != NULL; ++i)
+    {
+        del_Channel(song->channels[i]);
     }
     if (song->event_handler != NULL)
     {
