@@ -12,23 +12,24 @@
  */
 
 
-#ifndef K_EVENT_VOICE_NOTE_OFF_H
-#define K_EVENT_VOICE_NOTE_OFF_H
+#ifndef K_EVENT_CHANNEL_AUTOWAH_DELAY_H
+#define K_EVENT_CHANNEL_AUTOWAH_DELAY_H
 
 
-#include <Event_voice.h>
+#include <Event_channel.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_note_off
+typedef struct Event_channel_autowah_delay
 {
-    Event_voice parent;
-} Event_voice_note_off;
+    Event_channel parent;
+    Reltime delay;
+} Event_channel_autowah_delay;
 
 
-Event* new_Event_voice_note_off(Reltime* pos);
+Event* new_Event_channel_autowah_delay(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_NOTE_OFF_H
+#endif // K_EVENT_CHANNEL_AUTOWAH_DELAY_H
 
 

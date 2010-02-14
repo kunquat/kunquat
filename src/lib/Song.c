@@ -129,7 +129,10 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         song->channels[i] = new_Channel(song->insts, i,
-                                        song->play_state->ins_events);
+                                        song->play_state->ins_events,
+                                        song->play_state->voice_pool,
+                                        &song->play_state->tempo,
+                                        &song->play_state->freq);
         if (song->channels[i] == NULL)
         {
             del_Song(song);

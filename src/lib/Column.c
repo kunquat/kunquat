@@ -21,8 +21,6 @@
 
 #include <Reltime.h>
 #include <Event_global_set_tempo.h>
-#include <Event_voice_note_on.h>
-#include <Event_voice_note_off.h>
 #include <Column.h>
 #include <String_buffer.h>
 

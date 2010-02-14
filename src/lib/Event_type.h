@@ -70,21 +70,32 @@ typedef enum
     EVENT_VOICE_SLIDE_FILTER_LENGTH  = 154,
     EVENT_VOICE_AUTOWAH_SPEED        = 155, ///< Auto-wah (filter cut-off oscillation) speed.
     EVENT_VOICE_AUTOWAH_DEPTH        = 156, ///< Auto-wah depth.
-    EVENT_VOICE_AUTOWAH_DELAY        = 157, ///< Auto-wah delay.
     EVENT_VOICE_SET_RESONANCE        = 158, ///< Set filter resonance (Q factor).
                                      
     EVENT_VOICE_SET_PANNING          = 160, ///< Set panning position.
     EVENT_VOICE_SLIDE_PANNING        = 161, ///< Slide panning position.
     EVENT_VOICE_SLIDE_PANNING_LENGTH = 162,
                                     
-    EVENT_VOICE_LAST                 = 255, ///< Sentinel -- never used as a valid type.
+    EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
+
+    EVENT_CHANNEL_LOWER              = 400,
+
+    EVENT_CHANNEL_SET_INSTRUMENT     = 401,
+    EVENT_CHANNEL_SET_GENERATOR      = 402, // TODO
+    EVENT_CHANNEL_SET_EFFECT         = 403, // TODO
+
+    EVENT_CHANNEL_NOTE_ON            = 421,
+    EVENT_CHANNEL_NOTE_OFF           = 422,
+
+    EVENT_CHANNEL_AUTOWAH_DELAY      = 486,
+
+    EVENT_CHANNEL_UPPER              = 800,
+
+    EVENT_INS_LOWER                  = 800,
                                     
-    EVENT_INS_SET_PEDAL              = 256, ///< Set Instrument pedal.
+    EVENT_INS_SET_PEDAL              = 801, ///< Set Instrument pedal.
                                     
-    EVENT_INS_LAST                   = 287, ///< Sentinel -- never used as a valid type.
-                                    
-    EVENT_CHANNEL_SET_INSTRUMENT     = 288, ///< Set Instrument.
-    EVENT_CHANNEL_LAST                    ,
+    EVENT_INS_UPPER                  = 900, ///< Sentinel.
                                     
     EVENT_LAST                           ///< Sentinel -- never used as a valid type.
 } Event_type;
@@ -93,8 +104,8 @@ typedef enum
 #define EVENT_IS_GENERAL(type) ((type) > EVENT_NONE && (type) < EVENT_GENERAL_LAST)
 #define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GENERAL_LAST && (type) < EVENT_GLOBAL_LAST)
 #define EVENT_IS_VOICE(type)   ((type) > EVENT_GLOBAL_LAST && (type) < EVENT_VOICE_LAST)
-#define EVENT_IS_INS(type)     ((type) > EVENT_VOICE_LAST && (type) < EVENT_INS_LAST)
-#define EVENT_IS_CHANNEL(type) ((type) > EVENT_INS_LAST && (type) < EVENT_LAST)
+#define EVENT_IS_CHANNEL(type) ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
+#define EVENT_IS_INS(type)     ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
 #define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \
                                 EVENT_IS_GLOBAL((type))  || \
                                 EVENT_IS_VOICE((type))   || \

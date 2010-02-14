@@ -38,13 +38,13 @@ typedef struct Channel
 {
     Channel_state init_state; ///< Channel state at the start of the playback.
     Channel_state cur_state;  ///< Channel state as passed to Voices.
-    Channel_state new_state;  ///< Channel state as received from Voices.
+//    Channel_state new_state;  ///< Channel state as received from Voices.
     bool mute;                ///< If \c true, output of the Voices will be ignored.
 //    int cur_inst;             ///< Current instrument number.
-    Ins_table* insts; ///< The Instrument table.
-    int fg_count; ///< Number of Voices in the foreground.
-    Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
-    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
+//    Ins_table* insts; ///< The Instrument table.
+//    int fg_count; ///< Number of Voices in the foreground.
+//    Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
+//    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
     Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
     Event* single; ///< An Event used for single note playback control.
     Event_queue* ins_events; ///< The Instrument event queue.
@@ -58,11 +58,17 @@ typedef struct Channel
  * \param num          The Channel number -- must be >= \c 0 and
  *                     < \c KQT_COLUMNS_MAX.
  * \param ins_events   The Instrument event queue -- must not be \c NULL.
+ * \param pool         The Voice pool -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
  */
-Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events);
+Channel* new_Channel(Ins_table* insts,
+                     int num,
+                     Event_queue* ins_events,
+                     Voice_pool* pool,
+                     double* tempo,
+                     uint32_t* freq);
 
 
 /**

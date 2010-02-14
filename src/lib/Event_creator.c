@@ -37,9 +37,6 @@
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_jump.h>
 
-#include <Event_voice_note_on.h>
-#include <Event_voice_note_off.h>
-
 #include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
 #include <Event_voice_slide_force_length.h>
@@ -59,7 +56,6 @@
 #include <Event_voice_slide_filter_length.h>
 #include <Event_voice_autowah_speed.h>
 #include <Event_voice_autowah_depth.h>
-#include <Event_voice_autowah_delay.h>
 #include <Event_voice_set_resonance.h>
 
 #include <Event_voice_set_panning.h>
@@ -69,6 +65,11 @@
 #include <Event_ins_set_pedal.h>
 
 #include <Event_channel_set_instrument.h>
+
+#include <Event_channel_note_on.h>
+#include <Event_channel_note_off.h>
+
+#include <Event_channel_autowah_delay.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -98,9 +99,6 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter,
         [EVENT_GLOBAL_JUMP] = new_Event_global_jump,
 
-        [EVENT_VOICE_NOTE_ON] = new_Event_voice_note_on,
-        [EVENT_VOICE_NOTE_OFF] = new_Event_voice_note_off,
-
         [EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force,
         [EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force,
         [EVENT_VOICE_SLIDE_FORCE_LENGTH] = new_Event_voice_slide_force_length,
@@ -120,7 +118,6 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_VOICE_SLIDE_FILTER_LENGTH] = new_Event_voice_slide_filter_length,
         [EVENT_VOICE_AUTOWAH_SPEED] = new_Event_voice_autowah_speed,
         [EVENT_VOICE_AUTOWAH_DEPTH] = new_Event_voice_autowah_depth,
-        [EVENT_VOICE_AUTOWAH_DELAY] = new_Event_voice_autowah_delay,
         [EVENT_VOICE_SET_RESONANCE] = new_Event_voice_set_resonance,
 
         [EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning,
@@ -130,6 +127,11 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
         [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
+
+        [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
+        [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
+        
+        [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
     };
     if (cons[type] == NULL)
     {

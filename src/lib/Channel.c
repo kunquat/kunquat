@@ -28,49 +28,62 @@
 #include <Event_handler.h>
 #include <Event_channel.h>
 #include <Event_ins.h>
-#include <Event_voice_note_on.h>
-#include <Event_voice_note_off.h>
+#include <Event_channel_note_off.h>
 #include <Column.h>
 #include <math_common.h>
 
 #include <xmemory.h>
 
+#include <Event_voice.h>
 
-Channel* new_Channel(Ins_table* insts, int num, Event_queue* ins_events)
+
+Channel* new_Channel(Ins_table* insts,
+                     int num,
+                     Event_queue* ins_events,
+                     Voice_pool* pool,
+                     double* tempo,
+                     uint32_t* freq)
 {
     assert(insts != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(ins_events != NULL);
+    assert(pool != NULL);
+    assert(tempo != NULL);
+    assert(freq != NULL);
     Channel* ch = xalloc(Channel);
     if (ch == NULL)
     {
         return NULL;
     }
-    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
+/*    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
     if (ch->note_off == NULL)
     {
         xfree(ch);
         return NULL;
-    }
-    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
+    } */
+    ch->note_off = NULL;
+/*    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
     if (ch->single == NULL)
     {
         del_Event(ch->note_off);
         xfree(ch);
         return NULL;
-    }
+    } */
+    ch->single = NULL;
     Channel_state_init(&ch->init_state, num, &ch->mute);
-    Channel_state_copy(&ch->cur_state, &ch->init_state);
-    Channel_state_copy(&ch->new_state, &ch->init_state);
-    ch->insts = insts;
+    ch->init_state.insts = insts;
     ch->ins_events = ins_events;
-    ch->fg_count = 0;
+    ch->init_state.fg_count = 0;
+    ch->init_state.pool = pool;
+    ch->init_state.tempo = tempo;
+    ch->init_state.freq = freq;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        ch->fg[i] = NULL;
-        ch->fg_id[i] = 0;
+        ch->init_state.fg[i] = NULL;
+        ch->init_state.fg_id[i] = 0;
     }
+    Channel_state_copy(&ch->cur_state, &ch->init_state);
     return ch;
 }
 
@@ -134,9 +147,9 @@ void Channel_set_voices(Channel* ch,
         uint32_t to_be_mixed = MIN(abs_pos, nframes);
         for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
         {
-            if (ch->fg[i] != NULL)
+            if (ch->cur_state.fg[i] != NULL)
             {
-                Voice_mix(ch->fg[i], to_be_mixed, mixed, freq, tempo);
+                Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
             }
         }
         mixed = to_be_mixed;
@@ -152,120 +165,39 @@ void Channel_set_voices(Channel* ch,
                                  Event_get_fields((Event*)next));
 //            Event_channel_process((Event_channel*)next, ch);
         }
-        else if (Event_get_type(next) == EVENT_VOICE_NOTE_OFF ||
-                 Event_get_type(next) == EVENT_VOICE_NOTE_ON)
-        {
-            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-            {
-                if (ch->fg[i] != NULL)
-                {
-                    // move the old Voice to the background
-                    ch->fg[i] = Voice_pool_get_voice(pool, ch->fg[i], ch->fg_id[i]);
-                    if (ch->fg[i] == NULL)
-                    {
-                        // The Voice has been given to another channel -- giving up
-                        continue;
-                    }
-                    // FIXME: it seems that we may use ch->note_off for several Voices
-                    //        -- this leads to slightly incorrect Note Off positions
-                    Event_voice_process((Event_voice*)ch->note_off, ch->fg[i]);
-                    ch->fg[i]->prio = VOICE_PRIO_BG;
-                    Voice_pool_fix_priority(pool, ch->fg[i]);
-                    ch->fg[i] = NULL;
-                }
-            }
-        }
-        if (Event_get_type(next) == EVENT_VOICE_NOTE_ON)
-        {
-//            fprintf(stderr, "handling note on event %p\n", (void*)next);
-            ch->fg_count = 0;
-            if (ch->cur_state.instrument == 0)
-            {
-                next = NULL;
-                if (citer != NULL)
-                {
-                    next = Column_iter_get_next(citer);
-                }
-                if (next == NULL)
-                {
-                    Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-                    continue;
-                }
-                Reltime_copy(next_pos, Event_get_pos(next));
-                continue;
-            }
-            Instrument* ins = Ins_table_get(ch->insts,
-                                            ch->cur_state.instrument);
-            if (ins == NULL)
-            {
-                next = NULL;
-                if (citer != NULL)
-                {
-                    next = Column_iter_get_next(citer);
-                }
-                if (next == NULL)
-                {
-                    Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-                    continue;
-                }
-                Reltime_copy(next_pos, Event_get_pos(next));
-                continue;
-            }
-            // allocate new Voices
-            ch->fg_count = 0;
-            ch->new_state.panning_slide = 0;
-            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-            {
-                if (Instrument_get_gen(ins, i) == NULL)
-                {
-                    continue;
-                }
-                ++ch->fg_count;
-                ch->fg[i] = Voice_pool_get_voice(pool, NULL, 0);
-                assert(ch->fg[i] != NULL);
-//                fprintf(stderr, "allocated Voice %p\n", (void*)ch->fg[i]);
-                ch->fg_id[i] = Voice_id(ch->fg[i]);
-                Voice_init(ch->fg[i],
-                           Instrument_get_gen(ins, i),
-                           &ch->cur_state,
-                           &ch->new_state,
-                           freq,
-                           tempo);
-                Event_voice_process((Event_voice*)next, ch->fg[i]);
-                Voice_pool_fix_priority(pool, ch->fg[i]);
-            }
-        }
-        else if (ch->fg_count > 0 &&
-                 Event_get_type(next) != EVENT_VOICE_NOTE_OFF &&
+        else if (ch->cur_state.fg_count > 0 &&
                  (EVENT_IS_GENERAL(Event_get_type(next)) ||
                   EVENT_IS_VOICE(Event_get_type(next))))
         {
             bool voices_active = false;
-            ch->fg_count = 0;
+            ch->cur_state.fg_count = 0;
             for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
             {
-                if (ch->fg[i] != NULL)
+                if (ch->cur_state.fg[i] != NULL)
                 {
-                    ch->fg[i] = Voice_pool_get_voice(pool, ch->fg[i], ch->fg_id[i]);
-                    if (ch->fg[i] == NULL)
+                    ch->cur_state.fg[i] =
+                            Voice_pool_get_voice(pool,
+                                                 ch->cur_state.fg[i],
+                                                 ch->cur_state.fg_id[i]);
+                    if (ch->cur_state.fg[i] == NULL)
                     {
                         // The Voice has been given to another channel -- giving up
                         continue;
                     }
-                    ++ch->fg_count;
+                    ++ch->cur_state.fg_count;
                     voices_active = true;
-                    Event_voice_process((Event_voice*)next, ch->fg[i]);
+                    Event_voice_process((Event_voice*)next, ch->cur_state.fg[i]);
                 }
             }
             if (!voices_active)
             {
-                ch->fg_count = 0;
+                ch->cur_state.fg_count = 0;
                 // TODO: Insert Channel effect processing here
             }
         }
         else if (EVENT_IS_INS(Event_get_type(next)))
         {
-            Instrument* ins = Ins_table_get(ch->insts,
+            Instrument* ins = Ins_table_get(ch->cur_state.insts,
                                             ch->cur_state.instrument);
             if (ins != NULL)
             {
@@ -304,6 +236,9 @@ void Channel_set_voices(Channel* ch,
 void Channel_update_state(Channel* ch, uint32_t mixed)
 {
     assert(ch != NULL);
+    (void)ch;
+    (void)mixed;
+#if 0
     if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
     {
         uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
@@ -334,6 +269,7 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
     }
     Channel_state_copy(&ch->cur_state, &ch->new_state);
     ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
+#endif
     return;
 }
 
@@ -342,13 +278,13 @@ void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
-    Channel_state_copy(&ch->new_state, &ch->init_state);
+//    Channel_state_copy(&ch->new_state, &ch->init_state);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        ch->fg[i] = NULL;
-        ch->fg_id[i] = 0;
+        ch->cur_state.fg[i] = NULL;
+        ch->cur_state.fg_id[i] = 0;
     }
-    ch->fg_count = 0;
+    ch->cur_state.fg_count = 0;
     return;
 }
 

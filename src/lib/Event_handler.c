@@ -45,11 +45,11 @@ struct Event_handler
     bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Playdata* global_state;
-    bool (*ch_process[EVENT_CHANNEL_LAST])(Channel_state* state,
+    bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state* state,
                                            char* fields);
     bool (*global_process[EVENT_GLOBAL_LAST])(Playdata* state,
                                               char* fields);
-//    bool (*ins_process[EVENT_INS_LAST])(Ins_state* state, char* fields);
+//    bool (*ins_process[EVENT_INS_UPPER])(Ins_state* state, char* fields);
     // TODO: generator and effect process collections
 };
 

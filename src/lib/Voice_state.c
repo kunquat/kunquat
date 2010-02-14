@@ -18,28 +18,32 @@
 #include <math.h>
 
 #include <Voice_state.h>
+#include <Voice_params.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state,
-                              Channel_state* cur_ch_state,
-                              Channel_state* new_ch_state,
+//                              Channel_state* cur_ch_state,
+//                              Channel_state* new_ch_state,
+                              Voice_params* params,
                               uint32_t freq,
                               double tempo)
 {
     assert(state != NULL);
-    assert(cur_ch_state != NULL);
-    assert(new_ch_state != NULL);
+//    assert(cur_ch_state != NULL);
+//    assert(new_ch_state != NULL);
+    assert(params != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
-    state->cur_ch_state = cur_ch_state;
-    state->new_ch_state = new_ch_state;
+//    state->cur_ch_state = cur_ch_state;
+//    state->new_ch_state = new_ch_state;
     state->freq = freq;
     state->tempo = tempo;
+    Voice_params_copy(&state->params, params);
     return state;
 }
 

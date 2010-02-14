@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdio.h>
+#include <string.h>
 
 #include <Channel_state.h>
 #include <Reltime.h>
@@ -67,7 +68,8 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
 {
     assert(dest != NULL);
     assert(src != NULL);
-
+    memcpy(dest, src, sizeof(Channel_state));
+#if 0
     dest->num = src->num;
     dest->mute = src->mute;
 
@@ -98,7 +100,7 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->panning_slide_frames = src->panning_slide_frames;
     dest->panning_slide_update = src->panning_slide_update;
     dest->panning_slide_prog = src->panning_slide_prog;
-
+#endif
     return dest;
 }
 

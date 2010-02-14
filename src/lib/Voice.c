@@ -20,7 +20,7 @@
 
 #include <Voice.h>
 #include <Event_voice.h>
-#include <Channel_state.h>
+#include <Voice_params.h>
 
 #include <xmemory.h>
 
@@ -69,15 +69,13 @@ uint64_t Voice_id(Voice* voice)
 
 void Voice_init(Voice* voice,
                 Generator* gen,
-                Channel_state* cur_ch_state,
-                Channel_state* new_ch_state,
+                Voice_params* params,
                 uint32_t freq,
                 double tempo)
 {
     assert(voice != NULL);
     assert(gen != NULL);
-    assert(cur_ch_state != NULL);
-    assert(new_ch_state != NULL);
+    assert(params != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
@@ -85,8 +83,7 @@ void Voice_init(Voice* voice,
     voice->fg_mixed = 0;
     voice->gen = gen;
     Voice_state_init(&voice->state.generic,
-                     cur_ch_state,
-                     new_ch_state,
+                     params,
                      freq,
                      tempo);
     if (gen->init_state != NULL)
