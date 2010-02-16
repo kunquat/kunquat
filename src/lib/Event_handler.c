@@ -40,6 +40,7 @@
 #include <events/Event_channel_note_on.h>
 #include <events/Event_channel_note_off.h>
 
+#include <events/Event_channel_set_force.h>
 #include <events/Event_channel_slide_force_length.h>
 #include <events/Event_channel_tremolo_speed.h>
 #include <events/Event_channel_tremolo_depth.h>
@@ -128,6 +129,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_OFF,
                                  Event_channel_note_off_handle);
 
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FORCE,
+                                 Event_channel_set_force_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
                                  Event_channel_slide_force_length_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_SPEED,

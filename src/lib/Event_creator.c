@@ -37,7 +37,6 @@
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_jump.h>
 
-#include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
 
 #include <Event_voice_slide_pitch.h>
@@ -52,6 +51,7 @@
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
 
+#include <Event_channel_set_force.h>
 #include <Event_channel_slide_force_length.h>
 #include <Event_channel_tremolo_speed.h>
 #include <Event_channel_tremolo_depth.h>
@@ -101,7 +101,6 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter,
         [EVENT_GLOBAL_JUMP] = new_Event_global_jump,
 
-        [EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force,
         [EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force,
 
         [EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch,
@@ -116,6 +115,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
         [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
 
+        [EVENT_CHANNEL_SET_FORCE] = new_Event_channel_set_force,
         [EVENT_CHANNEL_SLIDE_FORCE_LENGTH] = new_Event_channel_slide_force_length,
         [EVENT_CHANNEL_TREMOLO_SPEED] = new_Event_channel_tremolo_speed,
         [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
