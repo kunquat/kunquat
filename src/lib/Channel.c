@@ -109,7 +109,7 @@ void Channel_set_voices(Channel* ch,
     assert(freq > 0);
     assert(eh != NULL);
     Event* next = ch->single;
-    if (Reltime_cmp(Event_get_pos(ch->single), Reltime_init(RELTIME_AUTO)) < 0)
+    if (true || Reltime_cmp(Event_get_pos(next), Reltime_init(RELTIME_AUTO)) < 0) // FIXME: true
     {
         next = NULL;
         if (citer != NULL)
@@ -292,10 +292,10 @@ void Channel_reset(Channel* ch)
 void del_Channel(Channel* ch)
 {
     assert(ch != NULL);
-    assert(ch->note_off != NULL);
-    assert(ch->single != NULL);
-    del_Event(ch->note_off);
-    del_Event(ch->single);
+//    assert(ch->note_off != NULL);
+//    assert(ch->single != NULL);
+//    del_Event(ch->note_off);
+//    del_Event(ch->single);
     xfree(ch);
     return;
 }

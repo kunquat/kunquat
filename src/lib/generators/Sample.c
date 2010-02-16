@@ -408,7 +408,7 @@ uint32_t Sample_mix(Sample* sample,
         }
         assert(state->rel_pos < sample->len);
     }
-    Generator_common_persist(gen, state, mixed);
+//    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 
