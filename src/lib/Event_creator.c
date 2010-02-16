@@ -39,28 +39,13 @@
 
 #include <Event_voice_set_force.h>
 #include <Event_voice_slide_force.h>
-#include <Event_voice_slide_force_length.h>
-#include <Event_voice_tremolo_speed.h>
-#include <Event_voice_tremolo_depth.h>
-#include <Event_voice_tremolo_delay.h>
 
 #include <Event_voice_slide_pitch.h>
-#include <Event_voice_slide_pitch_length.h>
-#include <Event_voice_vibrato_speed.h>
-#include <Event_voice_vibrato_depth.h>
-#include <Event_voice_vibrato_delay.h>
 #include <Event_voice_arpeggio.h>
 
 #include <Event_voice_set_filter.h>
 #include <Event_voice_slide_filter.h>
-#include <Event_voice_slide_filter_length.h>
-#include <Event_voice_autowah_speed.h>
-#include <Event_voice_autowah_depth.h>
 #include <Event_voice_set_resonance.h>
-
-#include <Event_voice_set_panning.h>
-#include <Event_voice_slide_panning.h>
-#include <Event_voice_slide_panning_length.h>
 
 #include <Event_ins_set_pedal.h>
 
@@ -69,7 +54,24 @@
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
 
+#include <Event_channel_slide_force_length.h>
+#include <Event_channel_tremolo_speed.h>
+#include <Event_channel_tremolo_depth.h>
+#include <Event_channel_tremolo_delay.h>
+
+#include <Event_channel_slide_pitch_length.h>
+#include <Event_channel_vibrato_speed.h>
+#include <Event_channel_vibrato_depth.h>
+#include <Event_channel_vibrato_delay.h>
+
+#include <Event_channel_slide_filter_length.h>
+#include <Event_channel_autowah_speed.h>
+#include <Event_channel_autowah_depth.h>
 #include <Event_channel_autowah_delay.h>
+
+#include <Event_channel_set_panning.h>
+#include <Event_channel_slide_panning.h>
+#include <Event_channel_slide_panning_length.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -101,28 +103,13 @@ Event* new_Event(Event_type type, Reltime* pos)
 
         [EVENT_VOICE_SET_FORCE] = new_Event_voice_set_force,
         [EVENT_VOICE_SLIDE_FORCE] = new_Event_voice_slide_force,
-        [EVENT_VOICE_SLIDE_FORCE_LENGTH] = new_Event_voice_slide_force_length,
-        [EVENT_VOICE_TREMOLO_SPEED] = new_Event_voice_tremolo_speed,
-        [EVENT_VOICE_TREMOLO_DEPTH] = new_Event_voice_tremolo_depth,
-        [EVENT_VOICE_TREMOLO_DELAY] = new_Event_voice_tremolo_delay,
 
         [EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch,
-        [EVENT_VOICE_SLIDE_PITCH_LENGTH] = new_Event_voice_slide_pitch_length,
-        [EVENT_VOICE_VIBRATO_SPEED] = new_Event_voice_vibrato_speed,
-        [EVENT_VOICE_VIBRATO_DEPTH] = new_Event_voice_vibrato_depth,
-        [EVENT_VOICE_VIBRATO_DELAY] = new_Event_voice_vibrato_delay,
         [EVENT_VOICE_ARPEGGIO] = new_Event_voice_arpeggio,
 
         [EVENT_VOICE_SET_FILTER] = new_Event_voice_set_filter,
         [EVENT_VOICE_SLIDE_FILTER] = new_Event_voice_slide_filter,
-        [EVENT_VOICE_SLIDE_FILTER_LENGTH] = new_Event_voice_slide_filter_length,
-        [EVENT_VOICE_AUTOWAH_SPEED] = new_Event_voice_autowah_speed,
-        [EVENT_VOICE_AUTOWAH_DEPTH] = new_Event_voice_autowah_depth,
         [EVENT_VOICE_SET_RESONANCE] = new_Event_voice_set_resonance,
-
-        [EVENT_VOICE_SET_PANNING] = new_Event_voice_set_panning,
-        [EVENT_VOICE_SLIDE_PANNING] = new_Event_voice_slide_panning,
-        [EVENT_VOICE_SLIDE_PANNING_LENGTH] = new_Event_voice_slide_panning_length,
 
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
@@ -130,8 +117,25 @@ Event* new_Event(Event_type type, Reltime* pos)
 
         [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
         [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
+
+        [EVENT_CHANNEL_SLIDE_FORCE_LENGTH] = new_Event_channel_slide_force_length,
+        [EVENT_CHANNEL_TREMOLO_SPEED] = new_Event_channel_tremolo_speed,
+        [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
+        [EVENT_CHANNEL_TREMOLO_DELAY] = new_Event_channel_tremolo_delay,
         
+        [EVENT_CHANNEL_SLIDE_PITCH_LENGTH] = new_Event_channel_slide_pitch_length,
+        [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
+        [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,
+        [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
+       
+        [EVENT_CHANNEL_SLIDE_FILTER_LENGTH] = new_Event_channel_slide_filter_length,
+        [EVENT_CHANNEL_AUTOWAH_SPEED] = new_Event_channel_autowah_speed,
+        [EVENT_CHANNEL_AUTOWAH_DEPTH] = new_Event_channel_autowah_depth,
         [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
+
+        [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
+        [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
+        [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
     };
     if (cons[type] == NULL)
     {

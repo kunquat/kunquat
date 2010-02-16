@@ -19,7 +19,7 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_voice_slide_panning_length.h>
+#include <Event_channel_slide_panning_length.h>
 #include <Reltime.h>
 #include <Voice.h>
 
@@ -39,26 +39,64 @@ static Event_field_desc slide_panning_length_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_voice_slide_panning_length,
-                                 EVENT_VOICE_SLIDE_PANNING_LENGTH,
+Event_create_set_reltime_and_get(Event_channel_slide_panning_length,
+                                 EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  length)
 
 
-static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice);
+static void Event_channel_slide_panning_length_process(Event_channel* event, Channel* ch);
 
 
-Event_create_constructor(Event_voice_slide_panning_length,
-                         EVENT_VOICE_SLIDE_PANNING_LENGTH,
+Event_create_constructor(Event_channel_slide_panning_length,
+                         EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                          slide_panning_length_desc,
                          Reltime_set(&event->length, 0, 0))
 
 
-static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* voice)
+bool Event_channel_slide_panning_length_handle(Channel_state* ch_state, char* fields)
 {
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_panning_length_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_copy(&ch_state->panning_slide_length, &data[0].field.Reltime_type);
+    uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
+                                             *ch_state->tempo,
+                                             *ch_state->freq);
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        vs->panning_slide_frames = slide_frames;
+        Reltime_copy(&vs->panning_slide_length, &data[0].field.Reltime_type);
+        if (vs->panning_slide != 0)
+        {
+            double diff = vs->panning_slide_target - vs->panning;
+            vs->panning_slide_update = diff / vs->panning_slide_frames;
+        }
+    }
+    return true;
+}
+
+
+static void Event_channel_slide_panning_length_process(Event_channel* event, Channel* ch)
+{
+    (void)event;
+    (void)ch;
+    assert(false);
+#if 0
     assert(event != NULL);
     assert(event->parent.type == EVENT_VOICE_SLIDE_PANNING_LENGTH);
     assert(voice != NULL);
-    Event_voice_slide_panning_length* slide_panning_length = (Event_voice_slide_panning_length*)event;
+    Event_channel_slide_panning_length* slide_panning_length = (Event_channel_slide_panning_length*)event;
     voice->state.generic.panning_slide_frames =
             Reltime_toframes(&slide_panning_length->length,
                     voice->state.generic.tempo,
@@ -76,6 +114,7 @@ static void Event_voice_slide_panning_length_process(Event_voice* event, Voice* 
     ch_state = voice->state.generic.new_ch_state;
     Reltime_copy(&ch_state->panning_slide_length, &slide_panning_length->length);
     return;
+#endif
 }
 
 

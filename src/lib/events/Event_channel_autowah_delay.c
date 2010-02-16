@@ -75,22 +75,13 @@ bool Event_channel_autowah_delay_handle(Channel_state* ch_state, char* fields)
     double delay_update = 1 / delay_frames;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (ch_state->fg[i] != NULL)
+        Event_check_voice(ch_state, i);
+        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        vs->autowah_delay_pos = 0;
+        vs->autowah_delay_update = delay_update;
+        if (vs->autowah_delay_update == 0)
         {
-            ch_state->fg[i] = Voice_pool_get_voice(ch_state->pool,
-                                                   ch_state->fg[i],
-                                                   ch_state->fg_id[i]);
-            if (ch_state->fg[i] == NULL)
-            {
-                continue;
-            }
-            Voice_state* vs = &ch_state->fg[i]->state.generic;
-            vs->autowah_delay_pos = 0;
-            vs->autowah_delay_update = delay_update;
-            if (vs->autowah_delay_update == 0)
-            {
-                vs->autowah_delay_pos = 1;
-            }
+            vs->autowah_delay_pos = 1;
         }
     }
     ch_state->autowah_delay_update = delay_update;

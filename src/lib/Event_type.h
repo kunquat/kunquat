@@ -53,28 +53,13 @@ typedef enum
                                      
     EVENT_VOICE_SET_FORCE            = 136, ///< Set Force.
     EVENT_VOICE_SLIDE_FORCE          = 137, ///< Slide Force.
-    EVENT_VOICE_SLIDE_FORCE_LENGTH   = 138,
-    EVENT_VOICE_TREMOLO_SPEED        = 139, ///< Tremolo speed.
-    EVENT_VOICE_TREMOLO_DEPTH        = 140, ///< Tremolo depth.
-    EVENT_VOICE_TREMOLO_DELAY        = 141, ///< Tremolo delay.
                                      
     EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
-    EVENT_VOICE_SLIDE_PITCH_LENGTH   = 145,
-    EVENT_VOICE_VIBRATO_SPEED        = 146, ///< Vibrato speed.
-    EVENT_VOICE_VIBRATO_DEPTH        = 147, ///< Vibrato depth.
-    EVENT_VOICE_VIBRATO_DELAY        = 148, ///< Vibrato delay.
     EVENT_VOICE_ARPEGGIO             = 149, ///< Arpeggio (the retro effect).
                                      
     EVENT_VOICE_SET_FILTER           = 152, ///< Set filter cut-off.
     EVENT_VOICE_SLIDE_FILTER         = 153, ///< Slide filter cut-off.
-    EVENT_VOICE_SLIDE_FILTER_LENGTH  = 154,
-    EVENT_VOICE_AUTOWAH_SPEED        = 155, ///< Auto-wah (filter cut-off oscillation) speed.
-    EVENT_VOICE_AUTOWAH_DEPTH        = 156, ///< Auto-wah depth.
     EVENT_VOICE_SET_RESONANCE        = 158, ///< Set filter resonance (Q factor).
-                                     
-    EVENT_VOICE_SET_PANNING          = 160, ///< Set panning position.
-    EVENT_VOICE_SLIDE_PANNING        = 161, ///< Slide panning position.
-    EVENT_VOICE_SLIDE_PANNING_LENGTH = 162,
                                     
     EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
 
@@ -87,7 +72,24 @@ typedef enum
     EVENT_CHANNEL_NOTE_ON            = 421,
     EVENT_CHANNEL_NOTE_OFF           = 422,
 
+    EVENT_CHANNEL_SLIDE_FORCE_LENGTH = 443,
+    EVENT_CHANNEL_TREMOLO_SPEED      = 444,
+    EVENT_CHANNEL_TREMOLO_DEPTH      = 445,
+    EVENT_CHANNEL_TREMOLO_DELAY      = 446,
+
+    EVENT_CHANNEL_SLIDE_PITCH_LENGTH = 463,
+    EVENT_CHANNEL_VIBRATO_SPEED      = 464,
+    EVENT_CHANNEL_VIBRATO_DEPTH      = 465,
+    EVENT_CHANNEL_VIBRATO_DELAY      = 466,
+
+    EVENT_CHANNEL_SLIDE_FILTER_LENGTH = 483,
+    EVENT_CHANNEL_AUTOWAH_SPEED      = 484,
+    EVENT_CHANNEL_AUTOWAH_DEPTH      = 485,
     EVENT_CHANNEL_AUTOWAH_DELAY      = 486,
+
+    EVENT_CHANNEL_SET_PANNING        = 521,
+    EVENT_CHANNEL_SLIDE_PANNING      = 522,
+    EVENT_CHANNEL_SLIDE_PANNING_LENGTH = 523,
 
     EVENT_CHANNEL_UPPER              = 800,
 

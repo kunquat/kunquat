@@ -19,7 +19,7 @@
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_voice_tremolo_delay.h>
+#include <Event_channel_tremolo_delay.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <math_common.h>
@@ -41,26 +41,63 @@ static Event_field_desc tremolo_delay_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_voice_tremolo_delay,
-                                 EVENT_VOICE_TREMOLO_DELAY,
+Event_create_set_reltime_and_get(Event_channel_tremolo_delay,
+                                 EVENT_CHANNEL_TREMOLO_DELAY,
                                  delay)
 
 
-static void Event_voice_tremolo_delay_process(Event_voice* event, Voice* voice);
+static void Event_channel_tremolo_delay_process(Event_channel* event, Channel* ch);
 
 
-Event_create_constructor(Event_voice_tremolo_delay,
-                         EVENT_VOICE_TREMOLO_DELAY,
+Event_create_constructor(Event_channel_tremolo_delay,
+                         EVENT_CHANNEL_TREMOLO_DELAY,
                          tremolo_delay_desc,
                          Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4))
 
 
-static void Event_voice_tremolo_delay_process(Event_voice* event, Voice* voice)
+bool Event_channel_tremolo_delay_handle(Channel_state* ch_state, char* fields)
 {
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, tremolo_delay_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    double delay_frames = Reltime_toframes(&data[0].field.Reltime_type,
+                                           *ch_state->tempo,
+                                           *ch_state->freq);
+    ch_state->tremolo_delay_update = 1 / delay_frames;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        vs->tremolo_delay_pos = 0;
+        vs->tremolo_delay_update = ch_state->tremolo_delay_update;
+        if (vs->tremolo_delay_update == 0)
+        {
+            vs->tremolo_delay_pos = 1;
+        }
+    }
+    return true;
+}
+
+
+static void Event_channel_tremolo_delay_process(Event_channel* event, Channel* ch)
+{
+    (void)event;
+    (void)ch;
+    assert(false);
+#if 0
     assert(event != NULL);
     assert(event->parent.type == EVENT_VOICE_TREMOLO_DELAY);
     assert(voice != NULL);
-    Event_voice_tremolo_delay* tremolo_delay = (Event_voice_tremolo_delay*)event;
+    Event_channel_tremolo_delay* tremolo_delay = (Event_channel_tremolo_delay*)event;
     double delay_frames = Reltime_toframes(&tremolo_delay->delay,
                                            voice->state.generic.tempo,
                                            voice->state.generic.freq);
@@ -73,6 +110,7 @@ static void Event_voice_tremolo_delay_process(Event_voice* event, Voice* voice)
     Channel_state* ch_state = voice->state.generic.new_ch_state;
     ch_state->tremolo_delay_update = voice->state.generic.tremolo_delay_update;
     return;
+#endif
 }
 
 

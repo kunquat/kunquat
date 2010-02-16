@@ -12,27 +12,27 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_AUTOWAH_DELAY_H
-#define K_EVENT_CHANNEL_AUTOWAH_DELAY_H
+#ifndef K_EVENT_CHANNEL_SLIDE_PITCH_LENGTH_H
+#define K_EVENT_CHANNEL_SLIDE_PITCH_LENGTH_H
 
 
 #include <Event_channel.h>
 #include <Reltime.h>
 
 
-typedef struct Event_channel_autowah_delay
+typedef struct Event_channel_slide_pitch_length
 {
     Event_channel parent;
-    Reltime delay;
-} Event_channel_autowah_delay;
+    Reltime length;
+} Event_channel_slide_pitch_length;
 
 
-Event* new_Event_channel_autowah_delay(Reltime* pos);
+Event* new_Event_channel_slide_pitch_length(Reltime* pos);
 
 
-bool Event_channel_autowah_delay_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_slide_pitch_length_handle(Channel_state* ch_state, char* fields);
 
 
-#endif // K_EVENT_CHANNEL_AUTOWAH_DELAY_H
+#endif // K_EVENT_CHANNEL_SLIDE_PITCH_LENGTH_H
 
 

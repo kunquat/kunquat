@@ -37,6 +37,28 @@
 
 #include <events/Event_channel_set_instrument.h>
 
+#include <events/Event_channel_note_on.h>
+#include <events/Event_channel_note_off.h>
+
+#include <events/Event_channel_slide_force_length.h>
+#include <events/Event_channel_tremolo_speed.h>
+#include <events/Event_channel_tremolo_depth.h>
+#include <events/Event_channel_tremolo_delay.h>
+
+#include <events/Event_channel_slide_pitch_length.h>
+#include <events/Event_channel_vibrato_speed.h>
+#include <events/Event_channel_vibrato_depth.h>
+#include <events/Event_channel_vibrato_delay.h>
+
+#include <events/Event_channel_slide_filter_length.h>
+#include <events/Event_channel_autowah_speed.h>
+#include <events/Event_channel_autowah_depth.h>
+#include <events/Event_channel_autowah_delay.h>
+
+#include <events/Event_channel_set_panning.h>
+#include <events/Event_channel_slide_panning.h>
+#include <events/Event_channel_slide_panning_length.h>
+
 #include <xmemory.h>
 
 
@@ -96,8 +118,47 @@ Event_handler* new_Event_handler(Playdata* global_state,
     eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] =
             Event_global_slide_volume_length_handle;
 
-    eh->ch_process[EVENT_CHANNEL_SET_INSTRUMENT] =
-            Event_channel_set_instrument_handle;
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INSTRUMENT,
+                                 Event_channel_set_instrument_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
+                                 Event_channel_note_on_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_OFF,
+                                 Event_channel_note_off_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
+                                 Event_channel_slide_force_length_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_SPEED,
+                                 Event_channel_tremolo_speed_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DEPTH,
+                                 Event_channel_tremolo_depth_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DELAY,
+                                 Event_channel_tremolo_delay_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
+                                 Event_channel_slide_pitch_length_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_SPEED,
+                                 Event_channel_vibrato_speed_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DEPTH,
+                                 Event_channel_vibrato_depth_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DELAY,
+                                 Event_channel_vibrato_delay_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
+                                 Event_channel_slide_filter_length_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_SPEED,
+                                 Event_channel_autowah_speed_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DEPTH,
+                                 Event_channel_autowah_depth_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DELAY,
+                                 Event_channel_autowah_delay_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_PANNING,
+                                 Event_channel_set_panning_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING,
+                                 Event_channel_slide_panning_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
+                                 Event_channel_slide_panning_length_handle);
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
