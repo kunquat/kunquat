@@ -53,7 +53,6 @@ typedef enum
     EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
                                      
     EVENT_VOICE_SLIDE_FILTER         = 153, ///< Slide filter cut-off.
-    EVENT_VOICE_SET_RESONANCE        = 158, ///< Set filter resonance (Q factor).
                                     
     EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
 
@@ -83,6 +82,8 @@ typedef enum
     EVENT_CHANNEL_AUTOWAH_SPEED      = 484,
     EVENT_CHANNEL_AUTOWAH_DEPTH      = 485,
     EVENT_CHANNEL_AUTOWAH_DELAY      = 486,
+
+    EVENT_CHANNEL_SET_RESONANCE      = 501,
 
     EVENT_CHANNEL_SET_PANNING        = 521,
     EVENT_CHANNEL_SLIDE_PANNING      = 522,

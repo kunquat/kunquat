@@ -42,7 +42,6 @@
 #include <Event_voice_slide_pitch.h>
 
 #include <Event_voice_slide_filter.h>
-#include <Event_voice_set_resonance.h>
 
 #include <Event_ins_set_pedal.h>
 
@@ -68,6 +67,8 @@
 #include <Event_channel_autowah_speed.h>
 #include <Event_channel_autowah_depth.h>
 #include <Event_channel_autowah_delay.h>
+
+#include <Event_channel_set_resonance.h>
 
 #include <Event_channel_set_panning.h>
 #include <Event_channel_slide_panning.h>
@@ -106,7 +107,6 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch,
 
         [EVENT_VOICE_SLIDE_FILTER] = new_Event_voice_slide_filter,
-        [EVENT_VOICE_SET_RESONANCE] = new_Event_voice_set_resonance,
 
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
@@ -133,6 +133,8 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_AUTOWAH_DEPTH] = new_Event_channel_autowah_depth,
         [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
 
+        [EVENT_CHANNEL_SET_RESONANCE] = new_Event_channel_set_resonance,
+        
         [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
         [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
         [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,

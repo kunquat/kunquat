@@ -58,6 +58,8 @@
 #include <events/Event_channel_autowah_depth.h>
 #include <events/Event_channel_autowah_delay.h>
 
+#include <events/Event_channel_set_resonance.h>
+
 #include <events/Event_channel_set_panning.h>
 #include <events/Event_channel_slide_panning.h>
 #include <events/Event_channel_slide_panning_length.h>
@@ -161,6 +163,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_autowah_depth_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DELAY,
                                  Event_channel_autowah_delay_handle);
+
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_RESONANCE,
+                                 Event_channel_set_resonance_handle);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_PANNING,
                                  Event_channel_set_panning_handle);
