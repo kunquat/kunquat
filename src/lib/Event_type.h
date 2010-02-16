@@ -48,16 +48,11 @@ typedef enum
                                      
     EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
                                      
-    EVENT_VOICE_NOTE_ON              = 128, ///< Note On event. (note, modifier, octave)
-    EVENT_VOICE_NOTE_OFF             = 129, ///< Note Off event.
-                                     
     EVENT_VOICE_SET_FORCE            = 136, ///< Set Force.
     EVENT_VOICE_SLIDE_FORCE          = 137, ///< Slide Force.
                                      
     EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
-    EVENT_VOICE_ARPEGGIO             = 149, ///< Arpeggio (the retro effect).
                                      
-    EVENT_VOICE_SET_FILTER           = 152, ///< Set filter cut-off.
     EVENT_VOICE_SLIDE_FILTER         = 153, ///< Slide filter cut-off.
     EVENT_VOICE_SET_RESONANCE        = 158, ///< Set filter resonance (Q factor).
                                     
@@ -83,6 +78,7 @@ typedef enum
     EVENT_CHANNEL_VIBRATO_DELAY      = 466,
     EVENT_CHANNEL_ARPEGGIO           = 467,
 
+    EVENT_CHANNEL_SET_FILTER         = 481,
     EVENT_CHANNEL_SLIDE_FILTER_LENGTH = 483,
     EVENT_CHANNEL_AUTOWAH_SPEED      = 484,
     EVENT_CHANNEL_AUTOWAH_DEPTH      = 485,

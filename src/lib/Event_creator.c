@@ -42,7 +42,6 @@
 
 #include <Event_voice_slide_pitch.h>
 
-#include <Event_voice_set_filter.h>
 #include <Event_voice_slide_filter.h>
 #include <Event_voice_set_resonance.h>
 
@@ -64,6 +63,7 @@
 #include <Event_channel_vibrato_delay.h>
 #include <Event_channel_arpeggio.h>
 
+#include <Event_channel_set_filter.h>
 #include <Event_channel_slide_filter_length.h>
 #include <Event_channel_autowah_speed.h>
 #include <Event_channel_autowah_depth.h>
@@ -106,7 +106,6 @@ Event* new_Event(Event_type type, Reltime* pos)
 
         [EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch,
 
-        [EVENT_VOICE_SET_FILTER] = new_Event_voice_set_filter,
         [EVENT_VOICE_SLIDE_FILTER] = new_Event_voice_slide_filter,
         [EVENT_VOICE_SET_RESONANCE] = new_Event_voice_set_resonance,
 
@@ -128,6 +127,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
         [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
        
+        [EVENT_CHANNEL_SET_FILTER] = new_Event_channel_set_filter,
         [EVENT_CHANNEL_SLIDE_FILTER_LENGTH] = new_Event_channel_slide_filter_length,
         [EVENT_CHANNEL_AUTOWAH_SPEED] = new_Event_channel_autowah_speed,
         [EVENT_CHANNEL_AUTOWAH_DEPTH] = new_Event_channel_autowah_depth,
