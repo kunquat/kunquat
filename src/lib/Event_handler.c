@@ -49,6 +49,7 @@
 #include <events/Event_channel_vibrato_speed.h>
 #include <events/Event_channel_vibrato_depth.h>
 #include <events/Event_channel_vibrato_delay.h>
+#include <events/Event_channel_arpeggio.h>
 
 #include <events/Event_channel_slide_filter_length.h>
 #include <events/Event_channel_autowah_speed.h>
@@ -143,6 +144,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_vibrato_depth_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DELAY,
                                  Event_channel_vibrato_delay_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_ARPEGGIO,
+                                 Event_channel_arpeggio_handle);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
                                  Event_channel_slide_filter_length_handle);

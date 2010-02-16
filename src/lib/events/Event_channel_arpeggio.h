@@ -12,26 +12,29 @@
  */
 
 
-#ifndef K_EVENT_VOICE_ARPEGGIO_H
-#define K_EVENT_VOICE_ARPEGGIO_H
+#ifndef K_EVENT_CHANNEL_ARPEGGIO_H
+#define K_EVENT_CHANNEL_ARPEGGIO_H
 
 
-#include <Event_voice.h>
+#include <Event_channel.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 
 
-typedef struct Event_voice_arpeggio
+typedef struct Event_channel_arpeggio
 {
-    Event_voice parent;
+    Event_channel parent;
     double speed;
     int64_t notes[KQT_ARPEGGIO_NOTES_MAX];
-} Event_voice_arpeggio;
+} Event_channel_arpeggio;
 
 
-Event* new_Event_voice_arpeggio(Reltime* pos);
+Event* new_Event_channel_arpeggio(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_ARPEGGIO_H
+bool Event_channel_arpeggio_handle(Channel_state* ch_state, char* fields);
+
+
+#endif // K_EVENT_CHANNEL_ARPEGGIO_H
 
 

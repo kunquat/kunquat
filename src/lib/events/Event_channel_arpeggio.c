@@ -18,7 +18,7 @@
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_voice_arpeggio.h>
+#include <Event_channel_arpeggio.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <Scale.h>
@@ -55,26 +55,26 @@ static Event_field_desc arpeggio_desc[] =
 };
 
 
-static bool Event_voice_arpeggio_set(Event* event, int index, void* data);
+static bool Event_channel_arpeggio_set(Event* event, int index, void* data);
 
-static void* Event_voice_arpeggio_get(Event* event, int index);
+static void* Event_channel_arpeggio_get(Event* event, int index);
 
-static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice);
+static void Event_channel_arpeggio_process(Event_channel* event, Channel* ch);
 
 
-Event_create_constructor(Event_voice_arpeggio,
-                         EVENT_VOICE_ARPEGGIO,
+Event_create_constructor(Event_channel_arpeggio,
+                         EVENT_CHANNEL_ARPEGGIO,
                          arpeggio_desc,
                          for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
                          event->speed = 24)
 
 
-static bool Event_voice_arpeggio_set(Event* event, int index, void* data)
+static bool Event_channel_arpeggio_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_VOICE_ARPEGGIO);
+    assert(event->type == EVENT_CHANNEL_ARPEGGIO);
     assert(data != NULL);
-    Event_voice_arpeggio* arpeggio = (Event_voice_arpeggio*)event;
+    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
     if (index == 0)
     {
         double speed = *(double*)data;
@@ -93,11 +93,11 @@ static bool Event_voice_arpeggio_set(Event* event, int index, void* data)
 }
 
 
-static void* Event_voice_arpeggio_get(Event* event, int index)
+static void* Event_channel_arpeggio_get(Event* event, int index)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_VOICE_ARPEGGIO);
-    Event_voice_arpeggio* arpeggio = (Event_voice_arpeggio*)event;
+    assert(event->type == EVENT_CHANNEL_ARPEGGIO);
+    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
     if (index == 0)
     {
         return &arpeggio->speed;
@@ -110,12 +110,98 @@ static void* Event_voice_arpeggio_get(Event* event, int index)
 }
 
 
-static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice)
+bool Event_channel_arpeggio_handle(Channel_state* ch_state, char* fields)
 {
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[4];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, arpeggio_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice* voice = ch_state->fg[i];
+        Voice_state* vs = &voice->state.generic;
+        if (voice->gen->ins_params->scale == NULL ||
+                *voice->gen->ins_params->scale == NULL ||
+                **voice->gen->ins_params->scale == NULL)
+        {
+            vs->arpeggio = false;
+            continue;
+        }
+        Scale* scale = **voice->gen->ins_params->scale;
+        int note_count = Scale_get_note_count(scale);
+        pitch_t orig_pitch = Scale_get_pitch(scale,
+                                             vs->orig_note,
+                                             vs->orig_note_mod,
+                                             vs->orig_octave);
+        if (orig_pitch <= 0)
+        {
+            vs->arpeggio = false;
+            continue;
+        }
+        int last_nonzero = -1;
+        for (int k = 0; k < KQT_ARPEGGIO_NOTES_MAX; ++k)
+        {
+            if (data[k + 1].field.integral_type != 0)
+            {
+                last_nonzero = k;
+            }
+            int new_note = vs->orig_note + data[k + 1].field.integral_type;
+            int new_octave = vs->orig_octave + (new_note / note_count);
+            new_note %= note_count;
+            pitch_t new_pitch = Scale_get_pitch(scale,
+                                                new_note,
+                                                vs->orig_note_mod,
+                                                new_octave);
+            if (new_pitch <= 0)
+            {
+                last_nonzero = -1;
+                break;
+            }
+            else
+            {
+                vs->arpeggio_factors[k] = new_pitch / orig_pitch;
+            }
+        }
+        if (last_nonzero == -1)
+        {
+            vs->arpeggio = false;
+            continue;
+        }
+        else if (last_nonzero < KQT_ARPEGGIO_NOTES_MAX - 1)
+        {
+            vs->arpeggio_factors[last_nonzero + 1] = -1;
+        }
+        double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
+                                           *ch_state->tempo,
+                                           *ch_state->freq);
+        vs->arpeggio_length = unit_len / data[0].field.double_type;
+        vs->arpeggio_frames = 0;
+        vs->arpeggio_note = 0;
+        vs->arpeggio = true;
+    }
+    return true;
+}
+
+
+static void Event_channel_arpeggio_process(Event_channel* event, Channel* ch)
+{
+    (void)event;
+    (void)ch;
+    assert(false);
+#if 0
     assert(event != NULL);
     assert(event->parent.type == EVENT_VOICE_ARPEGGIO);
     assert(voice != NULL);
-    Event_voice_arpeggio* arpeggio = (Event_voice_arpeggio*)event;
+    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
     if (voice->gen->ins_params->scale == NULL ||
             *voice->gen->ins_params->scale == NULL ||
             **voice->gen->ins_params->scale == NULL)
@@ -169,6 +255,7 @@ static void Event_voice_arpeggio_process(Event_voice* event, Voice* voice)
     voice->state.generic.arpeggio_note = 0;
     voice->state.generic.arpeggio = true;
     return;
+#endif
 }
 
 
