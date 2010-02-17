@@ -47,8 +47,6 @@ typedef enum
     EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
                                      
     EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
-                                    
-    EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
 
     EVENT_CHANNEL_LOWER              = 400,
 
@@ -100,12 +98,10 @@ typedef enum
 
 #define EVENT_IS_GENERAL(type) ((type) > EVENT_NONE && (type) < EVENT_GENERAL_LAST)
 #define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GENERAL_LAST && (type) < EVENT_GLOBAL_LAST)
-#define EVENT_IS_VOICE(type)   ((type) > EVENT_GLOBAL_LAST && (type) < EVENT_VOICE_LAST)
 #define EVENT_IS_CHANNEL(type) ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
 #define EVENT_IS_INS(type)     ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
 #define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \
                                 EVENT_IS_GLOBAL((type))  || \
-                                EVENT_IS_VOICE((type))   || \
                                 EVENT_IS_INS((type))     || \
                                 EVENT_IS_CHANNEL((type)))
 
@@ -134,44 +130,6 @@ typedef struct Event_field
         Reltime Reltime_type;
     } field;
 } Event_field;
-
-
-/**
- * This convenience structure unifies Event field validation among different
- * Event types.
- *
- * An Event_field_desc contains the format and valid range of a field in an
- * Event.
- */
-#if 0
-typedef struct Event_field_desc
-{
-    Event_field_type type;
-    union
-    {
-        struct
-        {
-            int64_t min;
-            int64_t max;
-        } integral_type; ///< Used for int and note(_mod) types.
-        struct
-        {
-            double min;
-            double max;
-        } double_type;
-        struct
-        {
-            Real min;
-            Real max;
-        } Real_type;
-        struct
-        {
-            Reltime min;
-            Reltime max;
-        } Reltime_type;
-    } range;
-} Event_field_desc;
-#endif
 
 
 typedef struct Event_field_desc

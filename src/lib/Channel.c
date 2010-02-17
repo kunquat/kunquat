@@ -34,8 +34,6 @@
 
 #include <xmemory.h>
 
-#include <Event_voice.h>
-
 
 Channel* new_Channel(Ins_table* insts,
                      int num,
@@ -164,36 +162,6 @@ void Channel_set_voices(Channel* ch,
                                  Event_get_type((Event*)next),
                                  Event_get_fields((Event*)next));
 //            Event_channel_process((Event_channel*)next, ch);
-        }
-        else if (ch->cur_state.fg_count > 0 &&
-                 (EVENT_IS_GENERAL(Event_get_type(next)) ||
-                  EVENT_IS_VOICE(Event_get_type(next))))
-        {
-            bool voices_active = false;
-            ch->cur_state.fg_count = 0;
-            for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-            {
-                if (ch->cur_state.fg[i] != NULL)
-                {
-                    ch->cur_state.fg[i] =
-                            Voice_pool_get_voice(pool,
-                                                 ch->cur_state.fg[i],
-                                                 ch->cur_state.fg_id[i]);
-                    if (ch->cur_state.fg[i] == NULL)
-                    {
-                        // The Voice has been given to another channel -- giving up
-                        continue;
-                    }
-                    ++ch->cur_state.fg_count;
-                    voices_active = true;
-                    Event_voice_process((Event_voice*)next, ch->cur_state.fg[i]);
-                }
-            }
-            if (!voices_active)
-            {
-                ch->cur_state.fg_count = 0;
-                // TODO: Insert Channel effect processing here
-            }
         }
         else if (EVENT_IS_INS(Event_get_type(next)))
         {

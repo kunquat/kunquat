@@ -19,7 +19,6 @@
 #include <inttypes.h>
 
 #include <Voice.h>
-#include <Event_voice.h>
 #include <Voice_params.h>
 
 #include <xmemory.h>
