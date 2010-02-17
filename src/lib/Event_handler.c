@@ -53,6 +53,7 @@
 #include <events/Event_channel_arpeggio.h>
 
 #include <events/Event_channel_set_filter.h>
+#include <events/Event_channel_slide_filter.h>
 #include <events/Event_channel_slide_filter_length.h>
 #include <events/Event_channel_autowah_speed.h>
 #include <events/Event_channel_autowah_depth.h>
@@ -155,6 +156,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FILTER,
                                  Event_channel_set_filter_handle);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER,
+                                 Event_channel_slide_filter_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
                                  Event_channel_slide_filter_length_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_SPEED,

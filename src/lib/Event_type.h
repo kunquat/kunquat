@@ -51,8 +51,6 @@ typedef enum
     EVENT_VOICE_SLIDE_FORCE          = 137, ///< Slide Force.
                                      
     EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
-                                     
-    EVENT_VOICE_SLIDE_FILTER         = 153, ///< Slide filter cut-off.
                                     
     EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
 
@@ -78,6 +76,7 @@ typedef enum
     EVENT_CHANNEL_ARPEGGIO           = 467,
 
     EVENT_CHANNEL_SET_FILTER         = 481,
+    EVENT_CHANNEL_SLIDE_FILTER       = 482,
     EVENT_CHANNEL_SLIDE_FILTER_LENGTH = 483,
     EVENT_CHANNEL_AUTOWAH_SPEED      = 484,
     EVENT_CHANNEL_AUTOWAH_DEPTH      = 485,
