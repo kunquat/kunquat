@@ -37,7 +37,6 @@
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_jump.h>
 
-#include <Event_voice_slide_pitch.h>
 
 #include <Event_ins_set_pedal.h>
 
@@ -53,6 +52,7 @@
 #include <Event_channel_tremolo_depth.h>
 #include <Event_channel_tremolo_delay.h>
 
+#include <Event_channel_slide_pitch.h>
 #include <Event_channel_slide_pitch_length.h>
 #include <Event_channel_vibrato_speed.h>
 #include <Event_channel_vibrato_depth.h>
@@ -100,9 +100,6 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter,
         [EVENT_GLOBAL_JUMP] = new_Event_global_jump,
 
-
-        [EVENT_VOICE_SLIDE_PITCH] = new_Event_voice_slide_pitch,
-
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
         [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
@@ -117,6 +114,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
         [EVENT_CHANNEL_TREMOLO_DELAY] = new_Event_channel_tremolo_delay,
         
+        [EVENT_CHANNEL_SLIDE_PITCH] = new_Event_channel_slide_pitch,
         [EVENT_CHANNEL_SLIDE_PITCH_LENGTH] = new_Event_channel_slide_pitch_length,
         [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
         [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,

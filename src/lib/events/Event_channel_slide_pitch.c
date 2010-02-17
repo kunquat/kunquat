@@ -18,7 +18,7 @@
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_voice_slide_pitch.h>
+#include <Event_channel_slide_pitch.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <Scale.h>
@@ -50,27 +50,27 @@ static Event_field_desc slide_pitch_desc[] =
 };
 
 
-static bool Event_voice_slide_pitch_set(Event* event, int index, void* data);
+static bool Event_channel_slide_pitch_set(Event* event, int index, void* data);
 
-static void* Event_voice_slide_pitch_get(Event* event, int index);
+static void* Event_channel_slide_pitch_get(Event* event, int index);
 
-static void Event_voice_slide_pitch_process(Event_voice* event, Voice* voice);
+static void Event_channel_slide_pitch_process(Event_channel* event, Channel* ch);
 
 
-Event_create_constructor(Event_voice_slide_pitch,
-                         EVENT_VOICE_SLIDE_PITCH,
+Event_create_constructor(Event_channel_slide_pitch,
+                         EVENT_CHANNEL_SLIDE_PITCH,
                          slide_pitch_desc,
                          event->note = 0,
                          event->mod = -1,
                          event->octave = KQT_SCALE_MIDDLE_OCTAVE)
 
 
-static bool Event_voice_slide_pitch_set(Event* event, int index, void* data)
+static bool Event_channel_slide_pitch_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_PITCH);
+    assert(event->type == EVENT_CHANNEL_SLIDE_PITCH);
     assert(data != NULL);
-    Event_voice_slide_pitch* slide_pitch = (Event_voice_slide_pitch*)event;
+    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
     switch (index)
     {
         case 0:
@@ -104,11 +104,11 @@ static bool Event_voice_slide_pitch_set(Event* event, int index, void* data)
 }
 
 
-static void* Event_voice_slide_pitch_get(Event* event, int index)
+static void* Event_channel_slide_pitch_get(Event* event, int index)
 {
     assert(event != NULL);
-    assert(event->type == EVENT_VOICE_SLIDE_PITCH);
-    Event_voice_slide_pitch* slide_pitch = (Event_voice_slide_pitch*)event;
+    assert(event->type == EVENT_CHANNEL_SLIDE_PITCH);
+    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
     switch (index)
     {
         case 0:
@@ -130,12 +130,74 @@ static void* Event_voice_slide_pitch_get(Event* event, int index)
 }
 
 
-static void Event_voice_slide_pitch_process(Event_voice* event, Voice* voice)
+bool Event_channel_slide_pitch_handle(Channel_state* ch_state, char* fields)
 {
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[3];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_pitch_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Event_check_voice(ch_state, i);
+        Voice* voice = ch_state->fg[i];
+        Voice_state* vs = &voice->state.generic;
+        if (voice->gen->ins_params->scale == NULL ||
+                *voice->gen->ins_params->scale == NULL ||
+                **voice->gen->ins_params->scale == NULL)
+        {
+            continue;
+        }
+        pitch_t pitch = Scale_get_pitch(**voice->gen->ins_params->scale,
+                                        data[0].field.integral_type,
+                                        data[1].field.integral_type,
+                                        data[2].field.integral_type);
+        if (pitch <= 0)
+        {
+            continue;
+        }
+        vs->pitch_slide_frames = Reltime_toframes(&vs->pitch_slide_length,
+                                                  *ch_state->tempo,
+                                                  *ch_state->freq);
+        vs->pitch_slide_target = pitch;
+        double diff_log = log2(pitch) - log2(vs->pitch);
+        double slide_step = diff_log / vs->pitch_slide_frames;
+        vs->pitch_slide_update = exp2(slide_step);
+        if (slide_step > 0)
+        {
+            vs->pitch_slide = 1;
+        }
+        else if (slide_step < 0)
+        {
+            vs->pitch_slide = -1;
+        }
+        else
+        {
+            vs->pitch = vs->pitch_slide_target;
+            vs->pitch_slide = 0;
+        }
+    }
+    return true;
+}
+
+
+static void Event_channel_slide_pitch_process(Event_channel* event, Channel* ch)
+{
+    (void)event;
+    (void)ch;
+    assert(false);
+#if 0
     assert(event != NULL);
     assert(event->parent.type == EVENT_VOICE_SLIDE_PITCH);
     assert(voice != NULL);
-    Event_voice_slide_pitch* slide_pitch = (Event_voice_slide_pitch*)event;
+    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
     if (voice->gen->ins_params->scale == NULL ||
             *voice->gen->ins_params->scale == NULL ||
             **voice->gen->ins_params->scale == NULL)
@@ -171,6 +233,7 @@ static void Event_voice_slide_pitch_process(Event_voice* event, Voice* voice)
         voice->state.generic.pitch = voice->state.generic.pitch_slide_target;
     }
     return;
+#endif
 }
 
 

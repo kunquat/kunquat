@@ -12,26 +12,29 @@
  */
 
 
-#ifndef K_EVENT_VOICE_SLIDE_PITCH_H
-#define K_EVENT_VOICE_SLIDE_PITCH_H
+#ifndef K_EVENT_CHANNEL_SLIDE_PITCH_H
+#define K_EVENT_CHANNEL_SLIDE_PITCH_H
 
 
-#include <Event_voice.h>
+#include <Event_channel.h>
 #include <Reltime.h>
 
 
-typedef struct Event_voice_slide_pitch
+typedef struct Event_channel_slide_pitch
 {
-    Event_voice parent;
+    Event_channel parent;
     int64_t note;
     int64_t mod;
     int64_t octave;
-} Event_voice_slide_pitch;
+} Event_channel_slide_pitch;
 
 
-Event* new_Event_voice_slide_pitch(Reltime* pos);
+Event* new_Event_channel_slide_pitch(Reltime* pos);
 
 
-#endif // K_EVENT_VOICE_SLIDE_PITCH_H
+bool Event_channel_slide_pitch_handle(Channel_state* ch_state, char* fields);
+
+
+#endif // K_EVENT_CHANNEL_SLIDE_PITCH_H
 
 

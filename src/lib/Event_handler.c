@@ -47,6 +47,7 @@
 #include <events/Event_channel_tremolo_depth.h>
 #include <events/Event_channel_tremolo_delay.h>
 
+#include <events/Event_channel_slide_pitch.h>
 #include <events/Event_channel_slide_pitch_length.h>
 #include <events/Event_channel_vibrato_speed.h>
 #include <events/Event_channel_vibrato_depth.h>
@@ -146,6 +147,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DELAY,
                                  Event_channel_tremolo_delay_handle);
 
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH,
+                                 Event_channel_slide_pitch_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
                                  Event_channel_slide_pitch_length_handle);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_SPEED,

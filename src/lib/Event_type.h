@@ -47,8 +47,6 @@ typedef enum
     EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
                                      
     EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
-                                     
-    EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
                                     
     EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
 
@@ -68,6 +66,7 @@ typedef enum
     EVENT_CHANNEL_TREMOLO_DEPTH      = 445,
     EVENT_CHANNEL_TREMOLO_DELAY      = 446,
 
+    EVENT_CHANNEL_SLIDE_PITCH        = 462,
     EVENT_CHANNEL_SLIDE_PITCH_LENGTH = 463,
     EVENT_CHANNEL_VIBRATO_SPEED      = 464,
     EVENT_CHANNEL_VIBRATO_DEPTH      = 465,
