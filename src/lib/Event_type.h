@@ -48,8 +48,6 @@ typedef enum
                                      
     EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
                                      
-    EVENT_VOICE_SLIDE_FORCE          = 137, ///< Slide Force.
-                                     
     EVENT_VOICE_SLIDE_PITCH          = 144, ///< Slide pitch.
                                     
     EVENT_VOICE_LAST                 = 200, ///< Sentinel -- never used as a valid type.
@@ -64,6 +62,7 @@ typedef enum
     EVENT_CHANNEL_NOTE_OFF           = 422,
 
     EVENT_CHANNEL_SET_FORCE          = 441,
+    EVENT_CHANNEL_SLIDE_FORCE        = 442,
     EVENT_CHANNEL_SLIDE_FORCE_LENGTH = 443,
     EVENT_CHANNEL_TREMOLO_SPEED      = 444,
     EVENT_CHANNEL_TREMOLO_DEPTH      = 445,
