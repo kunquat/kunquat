@@ -23,32 +23,41 @@
 typedef enum
 {
     EVENT_NONE = 0,                         ///< An uninitialised event.
-    EVENT_GENERAL_COND,                     ///< Evaluate a conditional expression.
-    EVENT_GENERAL_LAST               =  63, ///< Sentinel -- never used as a valid type.
-                                     
-    EVENT_GLOBAL_SET_TEMPO           =  64, ///< Set tempo. (BPM (float))
-    EVENT_GLOBAL_SLIDE_TEMPO         =  65, ///< Slide tempo.
-    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH  =  66,
-    EVENT_GLOBAL_PATTERN_DELAY       =  67, ///< Pattern delay.
-                                     
-    EVENT_GLOBAL_SET_VOLUME          =  72, ///< Set global volume.
-    EVENT_GLOBAL_SLIDE_VOLUME        =  73, ///< Slide global volume.
-    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH =  74,
-                                     
-    EVENT_GLOBAL_SET_SCALE           =  80, ///< Set default scale used by Instruments.
-    EVENT_GLOBAL_RETUNE_SCALE        =  81, ///< Retune scale.
 
-    EVENT_GLOBAL_SET_JUMP_SUBSONG    =  88,
-    EVENT_GLOBAL_SET_JUMP_SECTION    =  89,
-    EVENT_GLOBAL_SET_JUMP_ROW        =  90,
-    EVENT_GLOBAL_SET_JUMP_COUNTER    =  91,
-    EVENT_GLOBAL_JUMP                =  92,
+    EVENT_GENERAL_LOWER              =   0, ///< General Events.
+    
+    EVENT_GENERAL_COMMENT            =   1, ///< A comment.
+
+    EVENT_GENERAL_IF                 =  11,
+    EVENT_GENERAL_END_IF             =  12,
+
+    EVENT_GENERAL_UPPER              = 200,
+
+    EVENT_GLOBAL_LOWER               = 200, ///< Global Events.
+                                     
+    EVENT_GLOBAL_SET_TEMPO           = 201,
+    EVENT_GLOBAL_SLIDE_TEMPO         = 202,
+    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH  = 203,
+    EVENT_GLOBAL_PATTERN_DELAY       = 204,
+                                     
+    EVENT_GLOBAL_SET_VOLUME          = 221,
+    EVENT_GLOBAL_SLIDE_VOLUME        = 222,
+    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH = 223,
+                                     
+    EVENT_GLOBAL_SET_SCALE           = 241, ///< Set default scale used by Instruments.
+    EVENT_GLOBAL_RETUNE_SCALE        = 242, ///< Retune scale.
+
+    EVENT_GLOBAL_SET_JUMP_SUBSONG    = 261,
+    EVENT_GLOBAL_SET_JUMP_SECTION    = 262,
+    EVENT_GLOBAL_SET_JUMP_ROW        = 263,
+    EVENT_GLOBAL_SET_JUMP_COUNTER    = 264,
+    EVENT_GLOBAL_JUMP                = 265,
                                      
     EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
                                      
-    EVENT_GLOBAL_LAST                = 127, ///< Sentinel -- never used as a valid type.
+    EVENT_GLOBAL_UPPER               = 400,
 
-    EVENT_CHANNEL_LOWER              = 400,
+    EVENT_CHANNEL_LOWER              = 400, ///< Channel Events.
 
     EVENT_CHANNEL_SET_INSTRUMENT     = 401,
     EVENT_CHANNEL_SET_GENERATOR      = 402, // TODO
@@ -86,18 +95,18 @@ typedef enum
 
     EVENT_CHANNEL_UPPER              = 800,
 
-    EVENT_INS_LOWER                  = 800,
+    EVENT_INS_LOWER                  = 800, ///< Instrument Events
                                     
     EVENT_INS_SET_PEDAL              = 801, ///< Set Instrument pedal.
                                     
-    EVENT_INS_UPPER                  = 900, ///< Sentinel.
+    EVENT_INS_UPPER                  = 900,
                                     
-    EVENT_LAST                           ///< Sentinel -- never used as a valid type.
+    EVENT_LAST
 } Event_type;
 
 
-#define EVENT_IS_GENERAL(type) ((type) > EVENT_NONE && (type) < EVENT_GENERAL_LAST)
-#define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GENERAL_LAST && (type) < EVENT_GLOBAL_LAST)
+#define EVENT_IS_GENERAL(type) ((type) > EVENT_GENERAL_LOWER && (type) < EVENT_GENERAL_UPPER)
+#define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GLOBAL_LOWER && (type) < EVENT_GLOBAL_UPPER)
 #define EVENT_IS_CHANNEL(type) ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
 #define EVENT_IS_INS(type)     ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
 #define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \

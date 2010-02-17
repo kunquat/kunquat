@@ -77,8 +77,8 @@ struct Event_handler
     Playdata* global_state;
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state* state,
                                            char* fields);
-    bool (*global_process[EVENT_GLOBAL_LAST])(Playdata* state,
-                                              char* fields);
+    bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata* state,
+                                               char* fields);
 //    bool (*ins_process[EVENT_INS_UPPER])(Ins_state* state, char* fields);
     // TODO: generator and effect process collections
 };
