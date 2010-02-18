@@ -97,7 +97,7 @@ typedef enum
 
     EVENT_INS_LOWER                  = 800, ///< Instrument Events
                                     
-    EVENT_INS_SET_PEDAL              = 801, ///< Set Instrument pedal.
+    EVENT_INS_SET_PEDAL              = 801,
                                     
     EVENT_INS_UPPER                  = 900,
                                     
@@ -109,6 +109,7 @@ typedef enum
 #define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GLOBAL_LOWER && (type) < EVENT_GLOBAL_UPPER)
 #define EVENT_IS_CHANNEL(type) ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
 #define EVENT_IS_INS(type)     ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
+#define EVENT_IS_PG(type)      (EVENT_IS_INS(type)) // TODO: generator and effect
 #define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \
                                 EVENT_IS_GLOBAL((type))  || \
                                 EVENT_IS_INS((type))     || \

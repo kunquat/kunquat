@@ -130,7 +130,7 @@ void del_Event_default(Event* event);
         {                                                          \
             return NULL;                                           \
         }                                                          \
-        Event_init(&event->parent.parent,                          \
+        Event_init((Event*)event,                                  \
                    pos,                                            \
                    etype_id,                                       \
                    field_desc,                                     \

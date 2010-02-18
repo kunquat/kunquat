@@ -31,6 +31,7 @@
 typedef struct Pattern
 {
     Column* global;
+    Column* aux;
     Column* cols[KQT_COLUMNS_MAX];
     Reltime length;
 } Pattern;
@@ -92,8 +93,10 @@ Reltime* Pattern_get_length(Pattern* pat);
  * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
  * \param col     The Column -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Pattern_set_col(Pattern* pat, int index, Column* col);
+bool Pattern_set_col(Pattern* pat, int index, Column* col);
 
 
 /**

@@ -163,6 +163,7 @@ void Channel_set_voices(Channel* ch,
                                  Event_get_fields((Event*)next));
 //            Event_channel_process((Event_channel*)next, ch);
         }
+#if 0
         else if (EVENT_IS_INS(Event_get_type(next)))
         {
             Instrument* ins = Ins_table_get(ch->cur_state.insts,
@@ -173,6 +174,7 @@ void Channel_set_voices(Channel* ch,
                 Event_queue_ins(ch->ins_events, next, abs_pos);
             }
         }
+#endif
         if (next == ch->single)
         {
             Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));

@@ -38,6 +38,7 @@ Pattern* new_Pattern(void)
     {
         return NULL;
     }
+    pat->aux = NULL;
     pat->global = new_Column(NULL);
     if (pat->global == NULL)
     {
@@ -57,6 +58,12 @@ Pattern* new_Pattern(void)
             xfree(pat);
             return NULL;
         }
+    }
+    pat->aux = new_Column_aux(NULL, pat->cols[0], 0);
+    if (pat->aux == NULL)
+    {
+        del_Pattern(pat);
+        return NULL;
     }
     Reltime_set(&pat->length, 16, 0);
     return pat;
@@ -111,16 +118,24 @@ Reltime* Pattern_get_length(Pattern* pat)
 }
 
 
-void Pattern_set_col(Pattern* pat, int index, Column* col)
+bool Pattern_set_col(Pattern* pat, int index, Column* col)
 {
     assert(pat != NULL);
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(col != NULL);
+    Column* new_aux = new_Column_aux(pat->aux, col, index);
+    if (new_aux == NULL)
+    {
+        return false;
+    }
+    Column* old_aux = pat->aux;
+    pat->aux = new_aux;
+    del_Column(old_aux);
     Column* old_col = pat->cols[index];
     pat->cols[index] = col;
     del_Column(old_col);
-    return;
+    return true;
 }
 
 
@@ -359,6 +374,41 @@ uint32_t Pattern_mix(Pattern* pat,
                 }
             }
         }
+
+        // - Handle aux events
+        Column_iter_change_col(play->citer, pat->aux);
+        Event* next_aux = Column_iter_get(play->citer, &play->pos);
+        Reltime* next_aux_pos = NULL;
+        if (next_aux != NULL)
+        {
+            next_aux_pos = Event_get_pos(next_aux);
+        }
+        while (next_aux != NULL && Reltime_cmp(next_aux_pos, &play->pos) == 0)
+        {
+            assert(EVENT_IS_PG(Event_get_type(next_aux)));
+            int ch_index = ((Event_pg*)next_aux)->ch_index;
+            if (EVENT_IS_INS(Event_get_type(next_aux)))
+            {
+                Channel_state* ch_state = &channels[ch_index]->cur_state;
+                if (ch_state->instrument > 0)
+                {
+                    Instrument* ins = Ins_table_get(ch_state->insts,
+                                                    ch_state->instrument);
+                    if (ins != NULL)
+                    {
+                        Event_ins_set_params((Event_ins*)next_aux,
+                                             Instrument_get_params(ins));
+                        Event_ins_process((Event_ins*)next_aux);
+                    }
+                }
+            }
+            next_aux = Column_iter_get_next(play->citer);
+            if (next_aux != NULL)
+            {
+                next_aux_pos = Event_get_pos(next_aux);
+            }
+        }
+
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,
                                             play->tempo,
@@ -382,12 +432,22 @@ uint32_t Pattern_mix(Pattern* pat,
                                            play->tempo,
                                            play->freq);
         }
-        // - Check first upcoming global event position to figure out how much we can mix for now
+        // - Check first upcoming (pseudo)global event position to figure out
+        //   how much we can mix for now
         if (!delay && next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
         {
             assert(next_global_pos != NULL);
             Reltime_copy(limit, next_global_pos);
-            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
+            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
+                                                       limit, &play->pos),
+                                           play->tempo,
+                                           play->freq);
+        }
+        if (next_aux != NULL && Reltime_cmp(next_aux_pos, limit) < 0)
+        {
+            Reltime_copy(limit, next_aux_pos);
+            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
+                                                       limit, &play->pos),
                                            play->tempo,
                                            play->freq);
         }
@@ -540,6 +600,10 @@ void del_Pattern(Pattern* pat)
         del_Column(pat->cols[i]);
     }
     del_Column(pat->global);
+    if (pat->aux != NULL)
+    {
+        del_Column(pat->aux);
+    }
     xfree(pat);
     return;
 }

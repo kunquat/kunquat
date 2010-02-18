@@ -54,7 +54,7 @@ Event_create_constructor(Event_ins_set_pedal,
 static void Event_ins_set_pedal_process(Event_ins* event)
 {
     assert(event != NULL);
-    assert(event->parent.type == EVENT_INS_SET_PEDAL);
+    assert(event->parent.parent.type == EVENT_INS_SET_PEDAL);
     assert(event->ins_params != NULL);
     Event_ins_set_pedal* set_pedal = (Event_ins_set_pedal*)event;
     event->ins_params->pedal = set_pedal->pedal;

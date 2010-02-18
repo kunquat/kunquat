@@ -16,13 +16,13 @@
 #define K_EVENT_INS_H
 
 
-#include <Event.h>
+#include <Event_pg.h>
 #include <Instrument_params.h>
 
 
 typedef struct Event_ins
 {
-    Event parent;
+    Event_pg parent;
     Instrument_params* ins_params;
     void (*process)(struct Event_ins* event);
 } Event_ins;
