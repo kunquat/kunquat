@@ -263,19 +263,20 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         return NULL;
     }
     aux->is_aux = true;
+    Column_iter* iter = new_Column_iter(mod_col);
+    if (iter == NULL)
+    {
+        del_Column(aux);
+        return NULL;
+    }
     if (old_aux != NULL)
     {
-        Column_iter* iter = new_Column_iter(old_aux);
-        if (iter == NULL)
-        {
-            del_Column(aux);
-            return NULL;
-        }
+        Column_iter_change_col(iter, old_aux);
         Event* event = Column_iter_get(iter, RELTIME_AUTO);
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
-            if (((Event_pg*)event)->ch_index != index)
+            if (((Event_pg*)event)->ch_index < index)
             {
                 if (!Column_ins(aux, event))
                 {
@@ -286,14 +287,8 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
             }
             event = Column_iter_get_next(iter);
         }
-        del_Column_iter(iter);
     }
-    Column_iter* iter = new_Column_iter(mod_col);
-    if (iter == NULL)
-    {
-        del_Column(aux);
-        return NULL;
-    }
+    Column_iter_change_col(iter, mod_col);
     Event* event = Column_iter_get(iter, RELTIME_AUTO);
     while (event != NULL)
     {
@@ -308,6 +303,25 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
             }
         }
         event = Column_iter_get_next(iter);
+    }
+    if (old_aux != NULL)
+    {
+        Column_iter_change_col(iter, old_aux);
+        Event* event = Column_iter_get(iter, RELTIME_AUTO);
+        while (event != NULL)
+        {
+            assert(EVENT_IS_PG(Event_get_type(event)));
+            if (((Event_pg*)event)->ch_index > index)
+            {
+                if (!Column_ins(aux, event))
+                {
+                    del_Column(aux);
+                    del_Column_iter(iter);
+                    return NULL;
+                }
+            }
+            event = Column_iter_get_next(iter);
+        }
     }
     del_Column_iter(iter);
     return aux;
