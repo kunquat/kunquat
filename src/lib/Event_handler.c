@@ -249,6 +249,10 @@ bool Event_handler_handle(Event_handler* eh,
         }
         return eh->ch_process[type](eh->ch_states[ch], fields);
     }
+    else if (EVENT_IS_INS(type))
+    {
+        assert(ch >= 0);
+    }
     else if (EVENT_IS_GLOBAL(type))
     {
         assert(ch == -1);
