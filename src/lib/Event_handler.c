@@ -18,6 +18,7 @@
 #include <Event_handler.h>
 #include <Event_type.h>
 #include <Channel_state.h>
+#include <Ins_table.h>
 #include <Playdata.h>
 #include <kunquat/limits.h>
 
@@ -67,6 +68,8 @@
 #include <events/Event_channel_slide_panning.h>
 #include <events/Event_channel_slide_panning_length.h>
 
+#include <events/Event_ins_set_pedal.h>
+
 #include <xmemory.h>
 
 
@@ -74,18 +77,20 @@ struct Event_handler
 {
     bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
     Channel_state* ch_states[KQT_COLUMNS_MAX];
+    Ins_table* insts;
     Playdata* global_state;
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state* state,
                                            char* fields);
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata* state,
                                                char* fields);
-//    bool (*ins_process[EVENT_INS_UPPER])(Ins_state* state, char* fields);
+    bool (*ins_process[EVENT_INS_UPPER])(Instrument_params* state, char* fields);
     // TODO: generator and effect process collections
 };
 
 
 Event_handler* new_Event_handler(Playdata* global_state,
-                                 Channel_state** ch_states)
+                                 Channel_state** ch_states,
+                                 Ins_table* insts)
 {
     Event_handler* eh = xalloc(Event_handler);
     if (eh == NULL)
@@ -98,6 +103,12 @@ Event_handler* new_Event_handler(Playdata* global_state,
         del_Event_handler(eh);
         return NULL;
     } */
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        eh->ch_states[i] = ch_states[i];
+//        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
+    }
+    eh->insts = insts;
 
     eh->global_process[EVENT_GLOBAL_PATTERN_DELAY] =
             Event_global_pattern_delay_handle;
@@ -183,11 +194,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_handle);
 
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        eh->ch_states[i] = ch_states[i];
-//        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
-    }
+    Event_handler_set_ins_process(eh, EVENT_INS_SET_PEDAL,
+                                  Event_ins_set_pedal_handle);
+
     return eh;
 }
 
@@ -217,10 +226,9 @@ void Event_handler_set_global_process(Event_handler* eh,
 }
 
 
-#if 0
 void Event_handler_set_ins_process(Event_handler* eh,
                                    Event_type type,
-                                   bool (*ins_process)(Ins_state*, char*))
+                                   bool (*ins_process)(Instrument_params*, char*))
 {
     assert(eh != NULL);
     assert(EVENT_IS_INS(type));
@@ -228,34 +236,40 @@ void Event_handler_set_ins_process(Event_handler* eh,
     eh->ins_process[type] = ins_process;
     return;
 }
-#endif
 
 
 bool Event_handler_handle(Event_handler* eh,
-                          int ch,
+                          int index,
                           Event_type type,
                           char* fields)
 {
     assert(eh != NULL);
-    assert(ch >= -1);
-    assert(ch < KQT_COLUMNS_MAX);
     assert(EVENT_IS_VALID(type));
     if (EVENT_IS_CHANNEL(type))
     {
-        assert(ch >= 0);
+        assert(index >= 0);
+        assert(index < KQT_COLUMNS_MAX);
         if (eh->ch_process[type] == NULL)
         {
             return false;
         }
-        return eh->ch_process[type](eh->ch_states[ch], fields);
+        return eh->ch_process[type](eh->ch_states[index], fields);
     }
     else if (EVENT_IS_INS(type))
     {
-        assert(ch >= 0);
+        assert(index >= 0);
+        assert(index < KQT_INSTRUMENTS_MAX);
+        Instrument* ins = Ins_table_get(eh->insts, index);
+        if (ins != NULL)
+        {
+            Instrument_params* ins_params = Instrument_get_params(ins);
+            assert(ins_params != NULL);
+            return eh->ins_process[type](ins_params, fields);
+        }
     }
     else if (EVENT_IS_GLOBAL(type))
     {
-        assert(ch == -1);
+        assert(index == -1);
         if (eh->global_process[type] == NULL)
         {
             return false;

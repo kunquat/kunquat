@@ -145,13 +145,17 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         ch_states[i] = &song->channels[i]->cur_state;
     }
 
-    song->event_handler = new_Event_handler(song->play_state, ch_states);
+    song->event_handler = new_Event_handler(song->play_state,
+                                            ch_states,
+                                            song->insts);
     if (song->event_handler == NULL)
     {
         del_Song(song);
         return NULL;
     }
-    song->skip_handler = new_Event_handler(song->skip_state, ch_states);
+    song->skip_handler = new_Event_handler(song->skip_state,
+                                           ch_states,
+                                           song->insts);
     if (song->skip_handler == NULL)
     {
         del_Song(song);

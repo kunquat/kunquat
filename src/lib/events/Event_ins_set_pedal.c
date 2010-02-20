@@ -51,13 +51,35 @@ Event_create_constructor(Event_ins_set_pedal,
                          event->pedal = 0)
 
 
+bool Event_ins_set_pedal_handle(Instrument_params* ins_state, char* fields)
+{
+    assert(ins_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_pedal_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    ins_state->pedal = data[0].field.double_type;
+    return true;
+}
+
+
 static void Event_ins_set_pedal_process(Event_ins* event)
 {
     assert(event != NULL);
     assert(event->parent.parent.type == EVENT_INS_SET_PEDAL);
     assert(event->ins_params != NULL);
+    assert(false);
+#if 0
     Event_ins_set_pedal* set_pedal = (Event_ins_set_pedal*)event;
     event->ins_params->pedal = set_pedal->pedal;
+#endif
     return;
 }
 

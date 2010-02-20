@@ -392,6 +392,10 @@ uint32_t Pattern_mix(Pattern* pat,
                 Channel_state* ch_state = &channels[ch_index]->cur_state;
                 if (ch_state->instrument > 0)
                 {
+                    Event_handler_handle(eh, ch_state->instrument,
+                                         Event_get_type(next_aux),
+                                         Event_get_fields(next_aux));
+#if 0
                     Instrument* ins = Ins_table_get(ch_state->insts,
                                                     ch_state->instrument);
                     if (ins != NULL)
@@ -400,6 +404,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                              Instrument_get_params(ins));
                         Event_ins_process((Event_ins*)next_aux);
                     }
+#endif
                 }
             }
             next_aux = Column_iter_get_next(play->citer);

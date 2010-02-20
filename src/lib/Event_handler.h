@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Channel_state.h>
+#include <Ins_table.h>
 #include <Playdata.h>
 #include <Event_type.h>
 
@@ -33,7 +34,8 @@ typedef struct Event_handler Event_handler;
  *           allocation failed.
  */
 Event_handler* new_Event_handler(Playdata* global_state,
-                                 Channel_state** ch_states);
+                                 Channel_state** ch_states,
+                                 Ins_table* insts);
 
 
 /**
@@ -68,19 +70,19 @@ void Event_handler_set_global_process(Event_handler* eh,
  * \param type      The type of the Event -- must be an Instrument Event.
  * \param process   The process function -- must not be \c NULL.
  */
-#if 0
 void Event_handler_set_ins_process(Event_handler* eh,
                                    Event_type type,
-                                   bool (*ins_process)(Ins_state*, char*));
-#endif
+                                   bool (*ins_process)(Instrument_params*, char*));
 
 
 /**
  * Handles an Event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
- * \param ch       The channel number -- must be >= \c -1 and
- *                 < \c KQT_COLUMNS_MAX. \c -1 indicates global state.
+ * \param index    The index number. This must be \c -1 for global Events,
+ *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Channel Events,
+ *                 or >= \c 0 and < \c KQT_INSTRUMENTS_MAX for Instrument
+ *                 Events.
  * \param type     The type of the Event -- must be a valid type and
  *                 compatible with the channel number.
  * \param fields   Event fields, or \c NULL if not applicable.
@@ -89,7 +91,7 @@ void Event_handler_set_ins_process(Event_handler* eh,
  *           invalid.
  */
 bool Event_handler_handle(Event_handler* eh,
-                          int ch,
+                          int index,
                           Event_type type,
                           char* fields);
 
