@@ -37,7 +37,6 @@
 
 Channel* new_Channel(Ins_table* insts,
                      int num,
-                     Event_queue* ins_events,
                      Voice_pool* pool,
                      double* tempo,
                      uint32_t* freq)
@@ -45,7 +44,6 @@ Channel* new_Channel(Ins_table* insts,
     assert(insts != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
-    assert(ins_events != NULL);
     assert(pool != NULL);
     assert(tempo != NULL);
     assert(freq != NULL);
@@ -71,7 +69,6 @@ Channel* new_Channel(Ins_table* insts,
     ch->single = NULL;
     Channel_state_init(&ch->init_state, num, &ch->mute);
     ch->init_state.insts = insts;
-    ch->ins_events = ins_events;
     ch->init_state.fg_count = 0;
     ch->init_state.pool = pool;
     ch->init_state.tempo = tempo;
@@ -161,20 +158,7 @@ void Channel_set_voices(Channel* ch,
             Event_handler_handle(eh, ch->init_state.num,
                                  Event_get_type((Event*)next),
                                  Event_get_fields((Event*)next));
-//            Event_channel_process((Event_channel*)next, ch);
         }
-#if 0
-        else if (EVENT_IS_INS(Event_get_type(next)))
-        {
-            Instrument* ins = Ins_table_get(ch->cur_state.insts,
-                                            ch->cur_state.instrument);
-            if (ins != NULL)
-            {
-                Event_ins_set_params((Event_ins*)next, Instrument_get_params(ins));
-                Event_queue_ins(ch->ins_events, next, abs_pos);
-            }
-        }
-#endif
         if (next == ch->single)
         {
             Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));

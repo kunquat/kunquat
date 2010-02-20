@@ -21,7 +21,6 @@
 #include <Instrument_params.h>
 #include <Generator.h>
 #include <frame.h>
-#include <Event_queue.h>
 #include <Voice_state.h>
 #include <Scale.h>
 #include <Envelope.h>
@@ -50,7 +49,6 @@ typedef struct Instrument Instrument;
  * \param scales          The Scales of the Song -- must not be \c NULL.
  * \param default_scale   The default Scale -- must not be \c NULL. Also,
  *                        *default_scales must be an element of \a scales.
- * \param events          The maximum number of events per tick -- must be > \c 0.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
@@ -61,8 +59,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale*** default_scale,
-                           uint8_t events);
+                           Scale*** default_scale);
 
 
 /**
@@ -203,7 +200,7 @@ void Instrument_set_scale(Instrument* ins, int index);
  *
  * \return   \c true if successful, or \c false if the Event queue is full.
  */
-bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos);
+//bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos);
 
 
 /**

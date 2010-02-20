@@ -47,17 +47,9 @@ Playdata* new_Playdata(Ins_table* insts,
         xfree(play);
         return NULL;
     }
-    play->ins_events = new_Event_queue(64);
-    if (play->ins_events == NULL)
-    {
-        del_Column_iter(play->citer);
-        xfree(play);
-        return NULL;
-    }
     play->voice_pool = new_Voice_pool(256, 64);
     if (play->voice_pool == NULL)
     {
-        del_Event_queue(play->ins_events);
         del_Column_iter(play->citer);
         xfree(play);
         return NULL;
@@ -66,7 +58,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->freq = 48000;
     play->old_freq = play->freq;
     play->subsongs = NULL;
-    play->events = NULL;
+//    play->events = NULL;
 
     play->buf_count = buf_count;
     play->bufs = bufs;
@@ -130,13 +122,13 @@ Playdata* new_Playdata_silent(uint32_t freq)
         xfree(play);
         return NULL;
     }
-    play->ins_events = NULL;
+//    play->ins_events = NULL;
     play->voice_pool = NULL;
     play->mode = PLAY_SONG;
     play->freq = freq;
     play->old_freq = play->freq;
     play->subsongs = NULL;
-    play->events = NULL;
+//    play->events = NULL;
 
     play->buf_count = 0;
     play->bufs = NULL;
@@ -278,10 +270,6 @@ void del_Playdata(Playdata* play)
     if (play->voice_pool != NULL)
     {
         del_Voice_pool(play->voice_pool);
-    }
-    if (play->ins_events != NULL)
-    {
-        del_Event_queue(play->ins_events);
     }
     if (play->citer != NULL)
     {

@@ -26,20 +26,11 @@
 
 Voice* new_Voice(void)
 {
-//    assert(events > 0);
     Voice* voice = xalloc(Voice);
     if (voice == NULL)
     {
         return NULL;
     }
-#if 0
-    voice->events = new_Event_queue(events);
-    if (voice->events == NULL)
-    {
-        xfree(voice);
-        return NULL;
-    }
-#endif
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
@@ -89,7 +80,6 @@ void Voice_init(Voice* voice,
     {
         gen->init_state(gen, &voice->state.generic);
     }
-//    Event_queue_clear(voice->events);
     return;
 }
 
@@ -100,21 +90,10 @@ void Voice_reset(Voice* voice)
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->was_fg = true;
     voice->fg_mixed = 0;
-//    Event_queue_clear(voice->events);
     Voice_state_clear(&voice->state.generic);
     voice->gen = NULL;
     return;
 }
-
-
-#if 0
-bool Voice_add_event(Voice* voice, Event* event, uint32_t pos)
-{
-    assert(voice != NULL);
-    assert(event != NULL);
-    return Event_queue_ins(voice->events, event, pos);
-}
-#endif
 
 
 void Voice_mix(Voice* voice,
@@ -165,7 +144,6 @@ void Voice_mix(Voice* voice,
 void del_Voice(Voice* voice)
 {
     assert(voice != NULL);
-//    del_Event_queue(voice->events);
     xfree(voice);
     return;
 }

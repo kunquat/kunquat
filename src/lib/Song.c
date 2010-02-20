@@ -28,7 +28,7 @@
 #include <xmemory.h>
 
 
-Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
+Song* new_Song(int buf_count, uint32_t buf_size)
 {
     assert(buf_count >= 1);
     assert(buf_count <= KQT_BUFFERS_MAX);
@@ -129,7 +129,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         song->channels[i] = new_Channel(song->insts, i,
-                                        song->play_state->ins_events,
                                         song->play_state->voice_pool,
                                         &song->play_state->tempo,
                                         &song->play_state->freq);
@@ -162,12 +161,6 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         return NULL;
     }
 
-    song->events = new_Event_queue(events);
-    if (song->events == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
     Scale_set_note(song->scales[0],
                    0,
                    Real_init_as_frac(REAL_AUTO, 1, 1));
@@ -340,35 +333,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             Playdata_set_subsong(play, play->subsong + 1);
             continue;
         }
-        uint32_t proc_start = mixed;
         mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels);
-        if (play->mode == PLAY_EVENT)
-        {
-            continue;
-        }
-        Event* event = NULL;
-        uint32_t proc_until = mixed;
-        Event_queue_get(song->events, &event, &proc_until);
-        // TODO: mix private instrument buffers
-        while (proc_start < mixed)
-        {
-            assert(proc_until <= mixed);
-            for (uint32_t i = proc_start; i < proc_until; ++i)
-            {
-                // TODO: modify buffer according to state
-            }
-            proc_start = proc_until;
-            proc_until = mixed;
-            while (Event_queue_get(song->events, &event, &proc_until))
-            {
-                // TODO: process events
-                if (proc_start < mixed)
-                {
-                    break;
-                }
-            }
-        }
-        assert(!Event_queue_get(song->events, &event, &proc_until));
+        // TODO: Mix effect graph
     }
     if (!play->silent)
     {
@@ -687,13 +653,6 @@ void Song_remove_scale(Song* song, int index)
 }
 
 
-Event_queue* Song_get_events(Song* song)
-{
-    assert(song != NULL);
-    return song->events;
-}
-
-
 void del_Song(Song* song)
 {
     assert(song != NULL);
@@ -727,10 +686,6 @@ void del_Song(Song* song)
         {
             del_Scale(song->scales[i]);
         }
-    }
-    if (song->events != NULL)
-    {
-        del_Event_queue(song->events);
     }
     if (song->play_state != NULL)
     {

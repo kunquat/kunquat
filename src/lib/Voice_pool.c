@@ -174,7 +174,6 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
         Voice* new_voice = pool->voices[0];
         new_voice->id = running_id;
         new_voice->prio = VOICE_PRIO_INACTIVE;
-//        Event_queue_clear(new_voice->events);
         ++running_id;
         return new_voice;
     }

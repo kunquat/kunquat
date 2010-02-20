@@ -19,7 +19,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Event_queue.h>
 #include <Generator.h>
 #include <Voice_params.h>
 
@@ -41,8 +40,8 @@ typedef enum
 
 
 /**
- * This contains all the playback state information of a single note being
- * played.
+ * This contains all the playback state information of a single note of a
+ * Generator being played.
  */
 typedef struct Voice
 {
@@ -51,7 +50,6 @@ typedef struct Voice
     Voice_prio prio;       ///< Current priority of the Voice.
     bool was_fg;
     uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
-//    Event_queue* events;   ///< Upcoming events.
     Generator* gen;        ///< The Generator.
     /// The current playback state.
     union
@@ -69,8 +67,6 @@ typedef struct Voice
 
 /**
  * Creates a new Voice.
- *
- * \param events   The maximum number of events per tick -- must be > \c 0.
  *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.

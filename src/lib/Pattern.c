@@ -22,7 +22,6 @@
 
 #include <Pattern.h>
 #include <Playdata.h>
-#include <Event_queue.h>
 #include <Event.h>
 #include <Event_global.h>
 #include <Event_ins.h>
