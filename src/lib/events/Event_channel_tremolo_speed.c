@@ -41,16 +41,13 @@ static Event_field_desc tremolo_speed_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_tremolo_speed,
                                    EVENT_CHANNEL_TREMOLO_SPEED,
-                                   double, speed)
-
-
-static void Event_channel_tremolo_speed_process(Event_channel* event, Channel* ch);
+                                   double, speed);
 
 
 Event_create_constructor(Event_channel_tremolo_speed,
                          EVENT_CHANNEL_TREMOLO_SPEED,
                          tremolo_speed_desc,
-                         event->speed = 0)
+                         event->speed = 0);
 
 
 bool Event_channel_tremolo_speed_handle(Channel_state* ch_state, char* fields)
@@ -88,37 +85,6 @@ bool Event_channel_tremolo_speed_handle(Channel_state* ch_state, char* fields)
         }
     }
     return true;
-}
-
-
-static void Event_channel_tremolo_speed_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_TREMOLO_SPEED);
-    assert(voice != NULL);
-    Event_channel_tremolo_speed* tremolo_speed = (Event_channel_tremolo_speed*)event;
-    if (tremolo_speed->speed > 0 && voice->state.generic.tremolo_depth_target > 0)
-    {
-        voice->state.generic.tremolo = true;
-    }
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       voice->state.generic.tempo,
-                                       voice->state.generic.freq);
-    voice->state.generic.tremolo_length = unit_len / tremolo_speed->speed;
-    voice->state.generic.tremolo_update = (2 * PI) / voice->state.generic.tremolo_length;
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->tremolo_length = voice->state.generic.tremolo_length;
-    ch_state->tremolo_update = voice->state.generic.tremolo_update;
-    if (!voice->state.generic.tremolo)
-    {
-        voice->state.generic.tremolo_delay_pos = 0;
-    }
-    return;
-#endif
 }
 
 

@@ -41,16 +41,13 @@ static Event_field_desc slide_panning_length_desc[] =
 
 Event_create_set_reltime_and_get(Event_channel_slide_panning_length,
                                  EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                                 length)
-
-
-static void Event_channel_slide_panning_length_process(Event_channel* event, Channel* ch);
+                                 length);
 
 
 Event_create_constructor(Event_channel_slide_panning_length,
                          EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                          slide_panning_length_desc,
-                         Reltime_set(&event->length, 0, 0))
+                         Reltime_set(&event->length, 0, 0));
 
 
 bool Event_channel_slide_panning_length_handle(Channel_state* ch_state, char* fields)
@@ -84,37 +81,6 @@ bool Event_channel_slide_panning_length_handle(Channel_state* ch_state, char* fi
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_panning_length_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_PANNING_LENGTH);
-    assert(voice != NULL);
-    Event_channel_slide_panning_length* slide_panning_length = (Event_channel_slide_panning_length*)event;
-    voice->state.generic.panning_slide_frames =
-            Reltime_toframes(&slide_panning_length->length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    Reltime_copy(&voice->state.generic.panning_slide_length, &slide_panning_length->length);
-    if (voice->state.generic.panning_slide != 0)
-    {
-        double diff = voice->state.generic.panning_slide_target -
-                      voice->state.generic.panning;
-        voice->state.generic.panning_slide_update = diff /
-                voice->state.generic.panning_slide_frames;
-    }
-    Channel_state* ch_state = voice->state.generic.cur_ch_state;
-    Reltime_copy(&ch_state->panning_slide_length, &slide_panning_length->length);
-    ch_state = voice->state.generic.new_ch_state;
-    Reltime_copy(&ch_state->panning_slide_length, &slide_panning_length->length);
-    return;
-#endif
 }
 
 

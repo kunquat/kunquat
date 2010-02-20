@@ -23,7 +23,7 @@
 typedef struct Event_channel
 {
     Event parent;
-    void (*process)(struct Event_channel* event, Channel* ch);
+//    void (*process)(struct Event_channel* event, Channel* ch);
 } Event_channel;
 
 
@@ -33,7 +33,7 @@ typedef struct Event_channel
  * \param event   The Channel event -- must not be \c NULL.
  * \param ch      The Channel to be affected -- must not be \c NULL.
  */
-void Event_channel_process(Event_channel* event, Channel* ch);
+//void Event_channel_process(Event_channel* event, Channel* ch);
 
 
 #endif // K_EVENT_CHANNEL_H

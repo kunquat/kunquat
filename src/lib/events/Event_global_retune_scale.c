@@ -51,15 +51,13 @@ static bool Event_global_retune_scale_set(Event* event, int index, void* data);
 
 static void* Event_global_retune_scale_get(Event* event, int index);
 
-static void Event_global_retune_scale_process(Event_global* event, Playdata* play);
-
 
 Event_create_constructor(Event_global_retune_scale,
                          EVENT_GLOBAL_RETUNE_SCALE,
                          retune_scale_desc,
                          event->scale_index = 0,
                          event->new_ref = -1,
-                         event->fixed_point = 0)
+                         event->fixed_point = 0);
 
 
 bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
@@ -90,15 +88,6 @@ bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
     Scale_retune(scale, retune[1].field.integral_type,
                  retune[2].field.integral_type);
     return true;
-}
-
-
-static void Event_global_retune_scale_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

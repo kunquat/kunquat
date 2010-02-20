@@ -40,16 +40,13 @@ static Event_field_desc slide_volume_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_slide_volume,
                                    EVENT_GLOBAL_SLIDE_VOLUME,
-                                   double, target_volume_dB)
-
-
-static void Event_global_slide_volume_process(Event_global* event, Playdata* play);
+                                   double, target_volume_dB);
 
 
 Event_create_constructor(Event_global_slide_volume,
                          EVENT_GLOBAL_SLIDE_VOLUME,
                          slide_volume_desc,
-                         event->target_volume_dB = 0)
+                         event->target_volume_dB = 0);
 
 
 bool Event_global_slide_volume_handle(Playdata* global_state, char* fields)
@@ -88,15 +85,6 @@ bool Event_global_slide_volume_handle(Playdata* global_state, char* fields)
         global_state->volume = global_state->volume_slide_target;
     }
     return true;
-}
-
-
-static void Event_global_slide_volume_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

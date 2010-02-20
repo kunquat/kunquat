@@ -41,16 +41,13 @@ static Event_field_desc tremolo_depth_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_tremolo_depth,
                                    EVENT_CHANNEL_TREMOLO_DEPTH,
-                                   double, depth)
-
-
-static void Event_channel_tremolo_depth_process(Event_channel* event, Channel* ch);
+                                   double, depth);
 
 
 Event_create_constructor(Event_channel_tremolo_depth,
                          EVENT_CHANNEL_TREMOLO_DEPTH,
                          tremolo_depth_desc,
-                         event->depth = 0)
+                         event->depth = 0);
 
 
 bool Event_channel_tremolo_depth_handle(Channel_state* ch_state, char* fields)
@@ -80,29 +77,6 @@ bool Event_channel_tremolo_depth_handle(Channel_state* ch_state, char* fields)
         vs->tremolo_delay_pos = 0;
     }
     return true;
-}
-
-
-static void Event_channel_tremolo_depth_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_TREMOLO_DEPTH);
-    assert(voice != NULL);
-    Event_channel_tremolo_depth* tremolo_depth = (Event_channel_tremolo_depth*)event;
-    if (tremolo_depth->depth > 0 && voice->state.generic.tremolo_length > 0)
-    {
-        voice->state.generic.tremolo = true;
-    }
-    voice->state.generic.tremolo_depth_target = tremolo_depth->depth;
-    voice->state.generic.tremolo_delay_pos = 0;
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->tremolo_depth = voice->state.generic.tremolo_depth_target;
-    return;
-#endif
 }
 
 

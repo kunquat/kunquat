@@ -39,16 +39,13 @@ static Event_field_desc set_jump_row_desc[] =
 
 Event_create_set_reltime_and_get(Event_global_set_jump_row,
                                  EVENT_GLOBAL_SET_JUMP_ROW,
-                                 row)
-
-
-static void Event_global_set_jump_row_process(Event_global* event, Playdata* play);
+                                 row);
 
 
 Event_create_constructor(Event_global_set_jump_row,
                          EVENT_GLOBAL_SET_JUMP_ROW,
                          set_jump_row_desc,
-                         Reltime_set(&event->row, 0, 0))
+                         Reltime_set(&event->row, 0, 0));
 
 
 bool Event_global_set_jump_row_handle(Playdata* global_state, char* fields)
@@ -67,15 +64,6 @@ bool Event_global_set_jump_row_handle(Playdata* global_state, char* fields)
     }
     Reltime_copy(&global_state->jump_set_row, &data[0].field.Reltime_type);
     return true;
-}
-
-
-static void Event_global_set_jump_row_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

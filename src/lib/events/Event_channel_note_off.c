@@ -35,13 +35,11 @@ static bool Event_channel_note_off_set(Event* event, int index, void* data);
 
 static void* Event_channel_note_off_get(Event* event, int index);
 
-static void Event_channel_note_off_process(Event_channel* event, Channel* ch);
-
 
 Event_create_constructor(Event_channel_note_off,
                          EVENT_CHANNEL_NOTE_OFF,
                          note_off_desc,
-                         (void)0)
+                         (void)0);
 
 
 bool Event_channel_note_off_handle(Channel_state* ch_state, char* fields)
@@ -68,18 +66,6 @@ bool Event_channel_note_off_handle(Channel_state* ch_state, char* fields)
     }
     ch_state->fg_count = 0;
     return true;
-}
-
-
-static void Event_channel_note_off_process(Event_channel* event, Channel* ch)
-{
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_NOTE_OFF);
-    assert(ch != NULL);
-    assert(false);
-//    (void)event;
-//    voice->state.generic.note_on = false;
-    return;
 }
 
 

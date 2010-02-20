@@ -40,16 +40,13 @@ static Event_field_desc set_force_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_force,
                                    EVENT_CHANNEL_SET_FORCE,
-                                   double, force_dB)
-
-
-static void Event_channel_set_force_process(Event_channel* event, Channel* ch);
+                                   double, force_dB);
 
 
 Event_create_constructor(Event_channel_set_force,
                          EVENT_CHANNEL_SET_FORCE,
                          set_force_desc,
-                         event->force_dB = 0)
+                         event->force_dB = 0);
 
 
 bool Event_channel_set_force_handle(Channel_state* ch_state, char* fields)
@@ -75,23 +72,6 @@ bool Event_channel_set_force_handle(Channel_state* ch_state, char* fields)
         vs->force_slide = 0;
     }
     return true;
-}
-
-
-static void Event_channel_set_force_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SET_FORCE);
-    assert(voice != NULL);
-    Event_channel_set_force* set_force = (Event_channel_set_force*)event;
-    voice->state.generic.force = exp2(set_force->force_dB / 6);
-    voice->state.generic.force_slide = 0;
-    return;
-#endif
 }
 
 

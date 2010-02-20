@@ -40,16 +40,13 @@ static Event_field_desc set_panning_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_panning,
                                    EVENT_CHANNEL_SET_PANNING,
-                                   double, panning)
-
-
-static void Event_channel_set_panning_process(Event_channel* event, Channel* ch);
+                                   double, panning);
 
 
 Event_create_constructor(Event_channel_set_panning,
                          EVENT_CHANNEL_SET_PANNING,
                          set_panning_desc,
-                         event->panning = 0)
+                         event->panning = 0);
 
 
 bool Event_channel_set_panning_handle(Channel_state* ch_state, char* fields)
@@ -76,26 +73,6 @@ bool Event_channel_set_panning_handle(Channel_state* ch_state, char* fields)
         vs->panning_slide = 0;
     }
     return true;
-}
-
-
-static void Event_channel_set_panning_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SET_PANNING);
-    assert(voice != NULL);
-    Event_channel_set_panning* set_panning = (Event_channel_set_panning*)event;
-    voice->state.generic.panning = set_panning->panning;
-    voice->state.generic.panning_slide = 0;
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->panning = set_panning->panning;
-    ch_state->panning_slide = 0;
-    return;
-#endif
 }
 
 

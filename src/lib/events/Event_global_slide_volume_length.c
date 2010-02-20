@@ -41,16 +41,13 @@ static Event_field_desc slide_volume_length_desc[] =
 
 Event_create_set_reltime_and_get(Event_global_slide_volume_length,
                                  EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-                                 length)
-
-
-static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play);
+                                 length);
 
 
 Event_create_constructor(Event_global_slide_volume_length,
                          EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
                          slide_volume_length_desc,
-                         Reltime_set(&event->length, 0, 0))
+                         Reltime_set(&event->length, 0, 0));
 
 
 bool Event_global_slide_volume_length_handle(Playdata* global_state,
@@ -83,15 +80,6 @@ bool Event_global_slide_volume_length_handle(Playdata* global_state,
     Reltime_copy(&global_state->volume_slide_length,
                  &data[0].field.Reltime_type);
     return true;
-}
-
-
-static void Event_global_slide_volume_length_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

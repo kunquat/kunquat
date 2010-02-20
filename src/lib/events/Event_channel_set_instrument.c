@@ -41,16 +41,13 @@ static Event_field_desc set_instrument_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_instrument,
                                    EVENT_CHANNEL_SET_INSTRUMENT,
-                                   int64_t, instrument)
-
-
-static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch);
+                                   int64_t, instrument);
 
 
 Event_create_constructor(Event_channel_set_instrument,
                          EVENT_CHANNEL_SET_INSTRUMENT,
                          set_instrument_desc,
-                         event->instrument = 0)
+                         event->instrument = 0);
 
 
 bool Event_channel_set_instrument_handle(Channel_state* ch_state, char* fields)
@@ -69,18 +66,6 @@ bool Event_channel_set_instrument_handle(Channel_state* ch_state, char* fields)
     }
     ch_state->instrument = data[0].field.integral_type;
     return true;
-}
-
-
-static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch)
-{
-    assert(false);
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_SET_INSTRUMENT);
-    assert(ch != NULL);
-//    Event_channel_set_instrument* set_instrument = (Event_channel_set_instrument*)event;
-//    ch->cur_inst = set_instrument->instrument;
-    return;
 }
 
 

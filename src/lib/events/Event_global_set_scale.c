@@ -38,16 +38,13 @@ static Event_field_desc set_scale_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_scale,
                                    EVENT_GLOBAL_SET_SCALE,
-                                   int64_t, scale_index)
-
-
-static void Event_global_set_scale_process(Event_global* event, Playdata* play);
+                                   int64_t, scale_index);
 
 
 Event_create_constructor(Event_global_set_scale,
                          EVENT_GLOBAL_SET_SCALE,
                          set_scale_desc,
-                         event->scale_index = 0)
+                         event->scale_index = 0);
 
 
 bool Event_global_set_scale_handle(Playdata* global_state, char* fields)
@@ -71,15 +68,6 @@ bool Event_global_set_scale_handle(Playdata* global_state, char* fields)
     global_state->active_scale =
             &global_state->scales[data[0].field.integral_type];
     return true;
-}
-
-
-static void Event_global_set_scale_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

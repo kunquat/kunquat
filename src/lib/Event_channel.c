@@ -18,6 +18,7 @@
 #include <Event_channel.h>
 
 
+#if 0
 void Event_channel_process(Event_channel* event, Channel* ch)
 {
     assert(event != NULL);
@@ -27,5 +28,6 @@ void Event_channel_process(Event_channel* event, Channel* ch)
     event->process(event, ch);
     return;
 }
+#endif
 
 

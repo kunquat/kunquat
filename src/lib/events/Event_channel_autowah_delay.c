@@ -43,16 +43,13 @@ static Event_field_desc autowah_delay_desc[] =
 
 Event_create_set_reltime_and_get(Event_channel_autowah_delay,
                                  EVENT_CHANNEL_AUTOWAH_DELAY,
-                                 delay)
-
-
-static void Event_channel_autowah_delay_process(Event_channel* event, Channel* ch);
+                                 delay);
 
 
 Event_create_constructor(Event_channel_autowah_delay,
                          EVENT_CHANNEL_AUTOWAH_DELAY,
                          autowah_delay_desc,
-                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4))
+                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4));
 
 
 bool Event_channel_autowah_delay_handle(Channel_state* ch_state, char* fields)
@@ -86,30 +83,6 @@ bool Event_channel_autowah_delay_handle(Channel_state* ch_state, char* fields)
     }
     ch_state->autowah_delay_update = delay_update;
     return true;
-}
-
-
-static void Event_channel_autowah_delay_process(Event_channel* event, Channel* ch)
-{
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_AUTOWAH_DELAY);
-    (void)ch;
-    assert(false);
-#if 0
-    Event_voice_autowah_delay* autowah_delay = (Event_voice_autowah_delay*)event;
-    double delay_frames = Reltime_toframes(&autowah_delay->delay,
-                                           voice->state.generic.tempo,
-                                           voice->state.generic.freq);
-    voice->state.generic.autowah_delay_pos = 0;
-    voice->state.generic.autowah_delay_update = 1 / delay_frames;
-    if (voice->state.generic.autowah_delay_update == 0)
-    {
-        voice->state.generic.autowah_delay_pos = 1;
-    }
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->autowah_delay_update = voice->state.generic.autowah_delay_update;
-#endif
-    return;
 }
 
 

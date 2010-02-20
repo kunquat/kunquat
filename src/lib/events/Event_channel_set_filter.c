@@ -40,16 +40,13 @@ static Event_field_desc set_filter_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_filter,
                                    EVENT_CHANNEL_SET_FILTER,
-                                   double, cutoff)
-
-
-static void Event_channel_set_filter_process(Event_channel* event, Channel* ch);
+                                   double, cutoff);
 
 
 Event_create_constructor(Event_channel_set_filter,
                          EVENT_CHANNEL_SET_FILTER,
                          set_filter_desc,
-                         event->cutoff = INFINITY)
+                         event->cutoff = INFINITY);
 
 
 bool Event_channel_set_filter_handle(Channel_state* ch_state, char* fields)
@@ -82,27 +79,6 @@ bool Event_channel_set_filter_handle(Channel_state* ch_state, char* fields)
         vs->filter = cutoff;
     }
     return true;
-}
-
-
-static void Event_channel_set_filter_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SET_FILTER);
-    assert(voice != NULL);
-    Event_channel_set_filter* set_filter = (Event_channel_set_filter*)event;
-    if (set_filter->cutoff > 86)
-    {
-        voice->state.generic.filter = INFINITY;
-        return;
-    }
-    voice->state.generic.filter = exp2((set_filter->cutoff + 86) / 12);
-    return;
-#endif
 }
 
 

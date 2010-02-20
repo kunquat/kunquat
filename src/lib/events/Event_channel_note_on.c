@@ -54,15 +54,13 @@ static bool Event_channel_note_on_set(Event* event, int index, void* data);
 
 static void* Event_channel_note_on_get(Event* event, int index);
 
-static void Event_channel_note_on_process(Event_channel* event, Channel* ch);
-
 
 Event_create_constructor(Event_channel_note_on,
                          EVENT_CHANNEL_NOTE_ON,
                          note_on_desc,
                          event->note = 0,
                          event->mod = -1,
-                         event->octave = KQT_SCALE_MIDDLE_OCTAVE)
+                         event->octave = KQT_SCALE_MIDDLE_OCTAVE);
 
 
 bool Event_channel_note_on_handle(Channel_state* ch_state, char* fields)
@@ -145,54 +143,6 @@ bool Event_channel_note_on_handle(Channel_state* ch_state, char* fields)
         Reltime_copy(&vs->filter_slide_length, &ch_state->filter_slide_length);
     }
     return true;
-}
-
-
-static void Event_channel_note_on_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_NOTE_ON);
-    assert(voice != NULL);
-    Event_channel_note_on* note_on = (Event_channel_note_on*)event;
-    Generator_process_note(voice->gen,
-                           &voice->state.generic,
-                           note_on->note,
-                           note_on->mod,
-                           note_on->octave);
-    voice->state.generic.orig_note = note_on->note;
-    voice->state.generic.orig_note_mod = note_on->mod;
-    voice->state.generic.orig_octave = note_on->octave;
-
-    voice->state.generic.pedal = &voice->gen->ins_params->pedal;
-
-    Channel_state* ch_state = voice->state.generic.cur_ch_state;
-
-    Reltime_copy(&voice->state.generic.force_slide_length, &ch_state->force_slide_length);
-    voice->state.generic.tremolo_length = ch_state->tremolo_length;
-    voice->state.generic.tremolo_update = ch_state->tremolo_update;
-    voice->state.generic.tremolo_depth_target = ch_state->tremolo_depth;
-    voice->state.generic.tremolo_delay_update = ch_state->tremolo_delay_update;
-
-    Reltime_copy(&voice->state.generic.pitch_slide_length, &ch_state->pitch_slide_length);    
-    voice->state.generic.vibrato_length = ch_state->vibrato_length;
-    voice->state.generic.vibrato_update = ch_state->vibrato_update;
-    voice->state.generic.vibrato_depth_target = ch_state->vibrato_depth;
-    voice->state.generic.vibrato_delay_update = ch_state->vibrato_delay_update;
-
-    voice->state.generic.panning = ch_state->panning;
-    voice->state.generic.panning_slide = ch_state->panning_slide;
-    Reltime_copy(&voice->state.generic.panning_slide_length, &ch_state->panning_slide_length);
-    voice->state.generic.panning_slide_target = ch_state->panning_slide_target;
-    voice->state.generic.panning_slide_frames = ch_state->panning_slide_frames;
-    voice->state.generic.panning_slide_update = ch_state->panning_slide_update;
-
-    Reltime_copy(&voice->state.generic.filter_slide_length, &ch_state->filter_slide_length);
-#endif
-    return;
 }
 
 

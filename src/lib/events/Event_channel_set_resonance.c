@@ -40,16 +40,13 @@ static Event_field_desc set_resonance_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_resonance,
                                    EVENT_CHANNEL_SET_RESONANCE,
-                                   double, resonance)
-
-
-static void Event_channel_set_resonance_process(Event_channel* event, Channel* ch);
+                                   double, resonance);
 
 
 Event_create_constructor(Event_channel_set_resonance,
                          EVENT_CHANNEL_SET_RESONANCE,
                          set_resonance_desc,
-                         event->resonance = 1)
+                         event->resonance = 1);
 
 
 bool Event_channel_set_resonance_handle(Channel_state* ch_state, char* fields)
@@ -74,22 +71,6 @@ bool Event_channel_set_resonance_handle(Channel_state* ch_state, char* fields)
         vs->filter_resonance = resonance;
     }
     return true;
-}
-
-
-static void Event_channel_set_resonance_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SET_RESONANCE);
-    assert(voice != NULL);
-    Event_channel_set_resonance* set_resonance = (Event_channel_set_resonance*)event;
-    voice->state.generic.filter_resonance = pow(1.055, set_resonance->resonance);
-    return;
-#endif
 }
 
 

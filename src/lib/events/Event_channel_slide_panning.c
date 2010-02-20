@@ -41,16 +41,13 @@ static Event_field_desc slide_panning_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_slide_panning,
                                    EVENT_CHANNEL_SLIDE_PANNING,
-                                   double, target_panning)
-
-
-static void Event_channel_slide_panning_process(Event_channel* event, Channel* ch);
+                                   double, target_panning);
 
 
 Event_create_constructor(Event_channel_slide_panning,
                          EVENT_CHANNEL_SLIDE_PANNING,
                          slide_panning_desc,
-                         event->target_panning = 0)
+                         event->target_panning = 0);
 
 
 bool Event_channel_slide_panning_handle(Channel_state* ch_state, char* fields)
@@ -112,48 +109,6 @@ bool Event_channel_slide_panning_handle(Channel_state* ch_state, char* fields)
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_panning_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_PANNING);
-    assert(voice != NULL);
-    Event_channel_slide_panning* slide_panning = (Event_channel_slide_panning*)event;
-    voice->state.generic.panning_slide_target = slide_panning->target_panning;
-    voice->state.generic.panning_slide_frames =
-            Reltime_toframes(&voice->state.generic.panning_slide_length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    double diff = voice->state.generic.panning_slide_target -
-            voice->state.generic.panning;
-    voice->state.generic.panning_slide_update = diff /
-            voice->state.generic.panning_slide_frames;
-    if (diff > 0)
-    {
-        voice->state.generic.panning_slide = 1;
-        ch_state->panning_slide = 1;
-    }
-    else if (diff < 0)
-    {
-        voice->state.generic.panning_slide = -1;
-        ch_state->panning_slide = -1;
-    }
-    else
-    {
-        voice->state.generic.panning = voice->state.generic.panning_slide_target;
-        voice->state.generic.panning_slide = 0;
-        ch_state->panning = slide_panning->target_panning;
-        ch_state->panning_slide = 0;
-    }
-    return;
-#endif
 }
 
 

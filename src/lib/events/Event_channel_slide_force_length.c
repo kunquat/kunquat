@@ -41,16 +41,13 @@ static Event_field_desc slide_force_length_desc[] =
 
 Event_create_set_reltime_and_get(Event_channel_slide_force_length,
                                  EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
-                                 length)
-
-
-static void Event_channel_slide_force_length_process(Event_channel* event, Channel* ch);
+                                 length);
 
 
 Event_create_constructor(Event_channel_slide_force_length,
                          EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
                          slide_force_length_desc,
-                         Reltime_set(&event->length, 0, 0))
+                         Reltime_set(&event->length, 0, 0));
 
 
 bool Event_channel_slide_force_length_handle(Channel_state* ch_state, char* fields)
@@ -86,37 +83,6 @@ bool Event_channel_slide_force_length_handle(Channel_state* ch_state, char* fiel
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_force_length_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_FORCE_LENGTH);
-    assert(voice != NULL);
-    Event_channel_slide_force_length* slide_force_length = (Event_channel_slide_force_length*)event;
-    voice->state.generic.force_slide_frames =
-            Reltime_toframes(&slide_force_length->length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    Reltime_copy(&voice->state.generic.force_slide_length, &slide_force_length->length);
-    if (voice->state.generic.force_slide != 0)
-    {
-        double force_dB = log2(voice->state.generic.force) * 6;
-        double target_dB = log2(voice->state.generic.force_slide_target) * 6;
-        double dB_step = (target_dB - force_dB) / voice->state.generic.force_slide_frames;
-        voice->state.generic.force_slide_update = exp2(dB_step / 6);
-    }
-    Channel_state* ch_state = voice->state.generic.cur_ch_state;
-    Reltime_copy(&ch_state->force_slide_length, &slide_force_length->length);
-    ch_state = voice->state.generic.new_ch_state;
-    Reltime_copy(&ch_state->force_slide_length, &slide_force_length->length);
-    return;
-#endif
 }
 
 

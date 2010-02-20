@@ -23,7 +23,7 @@
 typedef struct Event_global
 {
     Event parent;
-    void (*process)(struct Event_global* event, Playdata* play);
+//    void (*process)(struct Event_global* event, Playdata* play);
 } Event_global;
 
 
@@ -33,7 +33,7 @@ typedef struct Event_global
  * \param event   The Global event -- must not be \c NULL.
  * \param play    The Playdata -- must not be \c NULL.
  */
-void Event_global_process(Event_global* event, Playdata* play);
+//void Event_global_process(Event_global* event, Playdata* play);
 
 
 #endif // K_EVENT_GLOBAL_H

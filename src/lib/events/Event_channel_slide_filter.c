@@ -41,16 +41,13 @@ static Event_field_desc slide_filter_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_slide_filter,
                                    EVENT_CHANNEL_SLIDE_FILTER,
-                                   double, target_cutoff)
-
-
-static void Event_channel_slide_filter_process(Event_channel* event, Channel* ch);
+                                   double, target_cutoff);
 
 
 Event_create_constructor(Event_channel_slide_filter,
                          EVENT_CHANNEL_SLIDE_FILTER,
                          slide_filter_desc,
-                         event->target_cutoff = 90)
+                         event->target_cutoff = 90);
 
 
 bool Event_channel_slide_filter_handle(Channel_state* ch_state, char* fields)
@@ -109,55 +106,6 @@ bool Event_channel_slide_filter_handle(Channel_state* ch_state, char* fields)
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_filter_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_FILTER);
-    assert(voice != NULL);
-    Event_channel_slide_filter* slide_filter = (Event_channel_slide_filter*)event;
-    double target_cutoff = slide_filter->target_cutoff;
-    if (target_cutoff > 86)
-    {
-        target_cutoff = 86;
-        voice->state.generic.filter_slide_target = INFINITY;
-    }
-    else
-    {
-        voice->state.generic.filter_slide_target = exp2((slide_filter->target_cutoff + 86) / 12);
-    }
-    voice->state.generic.filter_slide_frames =
-            Reltime_toframes(&voice->state.generic.filter_slide_length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    double inf_limit = exp2((86.0 + 86) / 12);
-    if (voice->state.generic.filter > inf_limit)
-    {
-        voice->state.generic.filter = inf_limit;
-    }
-    double diff_log = target_cutoff -
-            (log2(voice->state.generic.filter) * 12 - 86);
-    double slide_step = diff_log / voice->state.generic.filter_slide_frames;
-    voice->state.generic.filter_slide_update = exp2(slide_step / 12);
-    if (slide_step > 0)
-    {
-        voice->state.generic.filter_slide = 1;
-    }
-    else if (slide_step < 0)
-    {
-        voice->state.generic.filter_slide = -1;
-    }
-    else
-    {
-        voice->state.generic.filter = voice->state.generic.filter_slide_target;
-    }
-    return;
-#endif
 }
 
 

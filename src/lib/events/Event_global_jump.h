@@ -41,6 +41,9 @@ Event* new_Event_global_jump(Reltime* pos);
 bool Event_global_jump_handle(Playdata* global_state, char* fields);
 
 
+void Trigger_global_jump_process(Event_global* event, Playdata* play);
+
+
 #endif // K_EVENT_GLOBAL_JUMP_H
 
 

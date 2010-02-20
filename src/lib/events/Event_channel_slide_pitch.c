@@ -54,15 +54,13 @@ static bool Event_channel_slide_pitch_set(Event* event, int index, void* data);
 
 static void* Event_channel_slide_pitch_get(Event* event, int index);
 
-static void Event_channel_slide_pitch_process(Event_channel* event, Channel* ch);
-
 
 Event_create_constructor(Event_channel_slide_pitch,
                          EVENT_CHANNEL_SLIDE_PITCH,
                          slide_pitch_desc,
                          event->note = 0,
                          event->mod = -1,
-                         event->octave = KQT_SCALE_MIDDLE_OCTAVE)
+                         event->octave = KQT_SCALE_MIDDLE_OCTAVE);
 
 
 static bool Event_channel_slide_pitch_set(Event* event, int index, void* data)
@@ -185,55 +183,6 @@ bool Event_channel_slide_pitch_handle(Channel_state* ch_state, char* fields)
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_pitch_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_PITCH);
-    assert(voice != NULL);
-    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
-    if (voice->gen->ins_params->scale == NULL ||
-            *voice->gen->ins_params->scale == NULL ||
-            **voice->gen->ins_params->scale == NULL)
-    {
-        return;
-    }
-    pitch_t pitch = Scale_get_pitch(**voice->gen->ins_params->scale,
-                                    slide_pitch->note,
-                                    slide_pitch->mod,
-                                    slide_pitch->octave);
-    if (pitch <= 0)
-    {
-        return;
-    }
-    voice->state.generic.pitch_slide_frames =
-            Reltime_toframes(&voice->state.generic.pitch_slide_length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    voice->state.generic.pitch_slide_target = pitch;
-    double diff_log = log2(pitch) - log2(voice->state.generic.pitch);
-    double slide_step = diff_log / voice->state.generic.pitch_slide_frames;
-    voice->state.generic.pitch_slide_update = exp2(slide_step);
-    if (slide_step > 0)
-    {
-        voice->state.generic.pitch_slide = 1;
-    }
-    else if (slide_step < 0)
-    {
-        voice->state.generic.pitch_slide = -1;
-    }
-    else
-    {
-        voice->state.generic.pitch = voice->state.generic.pitch_slide_target;
-    }
-    return;
-#endif
 }
 
 

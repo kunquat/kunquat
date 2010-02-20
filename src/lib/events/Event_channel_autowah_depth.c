@@ -41,16 +41,13 @@ static Event_field_desc autowah_depth_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_autowah_depth,
                                    EVENT_CHANNEL_AUTOWAH_DEPTH,
-                                   double, depth)
-
-
-static void Event_channel_autowah_depth_process(Event_channel* event, Channel* ch);
+                                   double, depth);
 
 
 Event_create_constructor(Event_channel_autowah_depth,
                          EVENT_CHANNEL_AUTOWAH_DEPTH,
                          autowah_depth_desc,
-                         event->depth = 0)
+                         event->depth = 0);
 
 
 bool Event_channel_autowah_depth_handle(Channel_state* ch_state, char* fields)
@@ -81,28 +78,6 @@ bool Event_channel_autowah_depth_handle(Channel_state* ch_state, char* fields)
     }
     ch_state->autowah_depth = depth_target;
     return true;
-}
-
-
-static void Event_channel_autowah_depth_process(Event_channel* event, Channel* ch)
-{
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_AUTOWAH_DEPTH);
-    (void)ch;
-    assert(false);
-#if 0
-    assert(voice != NULL);
-    Event_channel_autowah_depth* autowah_depth = (Event_channel_autowah_depth*)event;
-    if (autowah_depth->depth > 0 && voice->state.generic.autowah_length > 0)
-    {
-        voice->state.generic.autowah = true;
-    }
-    voice->state.generic.autowah_depth_target = autowah_depth->depth / 8;
-    voice->state.generic.autowah_delay_pos = 0;
-    Channel_state* ch_state = voice->state.generic.new_ch_state;
-    ch_state->autowah_depth = voice->state.generic.autowah_depth_target;
-#endif
-    return;
 }
 
 

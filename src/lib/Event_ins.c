@@ -18,6 +18,7 @@
 #include <Event_ins.h>
 
 
+#if 0
 void Event_ins_process(Event_ins* event)
 {
     assert(event != NULL);
@@ -37,5 +38,6 @@ void Event_ins_set_params(Event_ins* event, Instrument_params* ins_params)
     event->ins_params = ins_params;
     return;
 }
+#endif
 
 

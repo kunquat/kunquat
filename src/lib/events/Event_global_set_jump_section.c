@@ -39,16 +39,13 @@ static Event_field_desc set_jump_section_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_jump_section,
                                    EVENT_GLOBAL_SET_JUMP_SECTION,
-                                   int64_t, section)
-
-
-static void Event_global_set_jump_section_process(Event_global* event, Playdata* play);
+                                   int64_t, section);
 
 
 Event_create_constructor(Event_global_set_jump_section,
                          EVENT_GLOBAL_SET_JUMP_SECTION,
                          set_jump_section_desc,
-                         event->section = -1)
+                         event->section = -1);
 
 
 bool Event_global_set_jump_section_handle(Playdata* global_state,
@@ -68,15 +65,6 @@ bool Event_global_set_jump_section_handle(Playdata* global_state,
     }
     global_state->jump_set_section = data[0].field.integral_type;
     return true;
-}
-
-
-static void Event_global_set_jump_section_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

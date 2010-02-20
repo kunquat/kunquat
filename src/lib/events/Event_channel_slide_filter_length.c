@@ -42,16 +42,13 @@ static Event_field_desc slide_filter_length_desc[] =
 
 Event_create_set_reltime_and_get(Event_channel_slide_filter_length,
                                  EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                                 length)
-
-
-static void Event_channel_slide_filter_length_process(Event_channel* event, Channel* ch);
+                                 length);
 
 
 Event_create_constructor(Event_channel_slide_filter_length,
                          EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
                          slide_filter_length_desc,
-                         Reltime_set(&event->length, 0, 0))
+                         Reltime_set(&event->length, 0, 0));
 
 
 bool Event_channel_slide_filter_length_handle(Channel_state* ch_state, char* fields)
@@ -87,37 +84,6 @@ bool Event_channel_slide_filter_length_handle(Channel_state* ch_state, char* fie
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_filter_length_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_FILTER_LENGTH);
-    assert(voice != NULL);
-    Event_channel_slide_filter_length* slide_filter_length = (Event_channel_slide_filter_length*)event;
-    voice->state.generic.filter_slide_frames =
-            Reltime_toframes(&slide_filter_length->length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    Reltime_copy(&voice->state.generic.filter_slide_length, &slide_filter_length->length);
-    if (voice->state.generic.filter_slide != 0)
-    {
-        double diff_log = (log2(voice->state.generic.filter_slide_target) * 12 - 86) -
-                          (log2(voice->state.generic.filter) * 12 - 86);
-        double slide_step = diff_log / voice->state.generic.filter_slide_frames;
-        voice->state.generic.filter_slide_update = exp2(slide_step / 12);
-    }
-    Channel_state* ch_state = voice->state.generic.cur_ch_state;
-    Reltime_copy(&ch_state->filter_slide_length, &slide_filter_length->length);
-    ch_state = voice->state.generic.new_ch_state;
-    Reltime_copy(&ch_state->filter_slide_length, &slide_filter_length->length);
-    return;
-#endif
 }
 
 

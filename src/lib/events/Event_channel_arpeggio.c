@@ -59,14 +59,12 @@ static bool Event_channel_arpeggio_set(Event* event, int index, void* data);
 
 static void* Event_channel_arpeggio_get(Event* event, int index);
 
-static void Event_channel_arpeggio_process(Event_channel* event, Channel* ch);
-
 
 Event_create_constructor(Event_channel_arpeggio,
                          EVENT_CHANNEL_ARPEGGIO,
                          arpeggio_desc,
                          for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
-                         event->speed = 24)
+                         event->speed = 24);
 
 
 static bool Event_channel_arpeggio_set(Event* event, int index, void* data)
@@ -189,73 +187,6 @@ bool Event_channel_arpeggio_handle(Channel_state* ch_state, char* fields)
         vs->arpeggio = true;
     }
     return true;
-}
-
-
-static void Event_channel_arpeggio_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_ARPEGGIO);
-    assert(voice != NULL);
-    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
-    if (voice->gen->ins_params->scale == NULL ||
-            *voice->gen->ins_params->scale == NULL ||
-            **voice->gen->ins_params->scale == NULL)
-    {
-        voice->state.generic.arpeggio = false;
-        return;
-    }
-    Scale* scale = **voice->gen->ins_params->scale;
-    int note_count = Scale_get_note_count(scale);
-    int orig_note = voice->state.generic.orig_note;
-    int orig_note_mod = voice->state.generic.orig_note_mod;
-    int orig_octave = voice->state.generic.orig_octave;
-    pitch_t orig_pitch = Scale_get_pitch(scale, orig_note, orig_note_mod, orig_octave);
-    if (orig_pitch <= 0)
-    {
-        voice->state.generic.arpeggio = false;
-        return;
-    }
-    int last_nonzero = -1;
-    for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
-    {
-        if (arpeggio->notes[i] != 0)
-        {
-            last_nonzero = i;
-        }
-        int new_note = orig_note + arpeggio->notes[i];
-        int new_octave = orig_octave + (new_note / note_count);
-        new_note %= note_count;
-        pitch_t new_pitch = Scale_get_pitch(scale, new_note, orig_note_mod, new_octave);
-        if (new_pitch <= 0)
-        {
-            voice->state.generic.arpeggio = false;
-            return;
-        }
-        voice->state.generic.arpeggio_factors[i] = new_pitch / orig_pitch;
-    }
-    if (last_nonzero == -1)
-    {
-        voice->state.generic.arpeggio = false;
-        return;
-    }
-    else if (last_nonzero < KQT_ARPEGGIO_NOTES_MAX - 1)
-    {
-        voice->state.generic.arpeggio_factors[last_nonzero + 1] = -1;
-    }
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-            voice->state.generic.tempo,
-            voice->state.generic.freq);
-    voice->state.generic.arpeggio_length = unit_len / arpeggio->speed;
-    voice->state.generic.arpeggio_frames = 0;
-    voice->state.generic.arpeggio_note = 0;
-    voice->state.generic.arpeggio = true;
-    return;
-#endif
 }
 
 

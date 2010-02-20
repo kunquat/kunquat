@@ -39,16 +39,13 @@ static Event_field_desc set_jump_subsong_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_jump_subsong,
                                    EVENT_GLOBAL_SET_JUMP_SUBSONG,
-                                   int64_t, subsong)
-
-
-static void Event_global_set_jump_subsong_process(Event_global* event, Playdata* play);
+                                   int64_t, subsong);
 
 
 Event_create_constructor(Event_global_set_jump_subsong,
                          EVENT_GLOBAL_SET_JUMP_SUBSONG,
                          set_jump_subsong_desc,
-                         event->subsong = -1)
+                         event->subsong = -1);
 
 
 bool Event_global_set_jump_subsong_handle(Playdata* global_state,
@@ -68,15 +65,6 @@ bool Event_global_set_jump_subsong_handle(Playdata* global_state,
     }
     global_state->jump_set_subsong = data[0].field.integral_type;
     return true;
-}
-
-
-static void Event_global_set_jump_subsong_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

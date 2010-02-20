@@ -18,6 +18,7 @@
 #include <Event_global.h>
 
 
+#if 0
 void Event_global_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
@@ -27,5 +28,6 @@ void Event_global_process(Event_global* event, Playdata* play)
     event->process(event, play);
     return;
 }
+#endif
 
 

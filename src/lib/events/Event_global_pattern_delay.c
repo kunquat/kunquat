@@ -40,16 +40,13 @@ static Event_field_desc pattern_delay_desc[] =
 
 Event_create_set_reltime_and_get(Event_global_pattern_delay,
                                  EVENT_GLOBAL_PATTERN_DELAY,
-                                 length)
-
-
-static void Event_global_pattern_delay_process(Event_global* event, Playdata* play);
+                                 length);
 
 
 Event_create_constructor(Event_global_pattern_delay,
                          EVENT_GLOBAL_PATTERN_DELAY,
                          pattern_delay_desc,
-                         Reltime_init(&event->length))
+                         Reltime_init(&event->length));
 
 
 bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
@@ -68,15 +65,6 @@ bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
     }
     Reltime_copy(&global_state->delay_left, &delay[0].field.Reltime_type);
     return true;
-}
-
-
-static void Event_global_pattern_delay_process(Event_global* event, Playdata* play)
-{
-    (void)event;
-    (void)play;
-    assert(false);
-    return;
 }
 
 

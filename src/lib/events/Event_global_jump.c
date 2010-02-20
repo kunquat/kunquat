@@ -37,8 +37,6 @@ static bool Event_global_jump_set(Event* event, int index, void* data);
 
 static void* Event_global_jump_get(Event* event, int index);
 
-static void Event_global_jump_process(Event_global* event, Playdata* play);
-
 
 Event_create_constructor(Event_global_jump,
                          EVENT_GLOBAL_JUMP,
@@ -47,7 +45,7 @@ Event_create_constructor(Event_global_jump,
                          event->counter = 0,
                          event->subsong = -1,
                          event->section = -1,
-                         Reltime_set(&event->row, 0, 0))
+                         Reltime_set(&event->row, 0, 0));
 
 
 bool Event_global_jump_handle(Playdata* global_state, char* fields)
@@ -59,7 +57,7 @@ bool Event_global_jump_handle(Playdata* global_state, char* fields)
 }
 
 
-static void Event_global_jump_process(Event_global* event, Playdata* play)
+void Trigger_global_jump_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
     assert(event->parent.type == EVENT_GLOBAL_JUMP);

@@ -41,16 +41,13 @@ static Event_field_desc slide_force_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_slide_force,
                                    EVENT_CHANNEL_SLIDE_FORCE,
-                                   double, target_force_dB)
-
-
-static void Event_channel_slide_force_process(Event_channel* event, Channel* ch);
+                                   double, target_force_dB);
 
 
 Event_create_constructor(Event_channel_slide_force,
                          EVENT_CHANNEL_SLIDE_FORCE,
                          slide_force_desc,
-                         event->target_force_dB = 0)
+                         event->target_force_dB = 0);
 
 
 bool Event_channel_slide_force_handle(Channel_state* ch_state, char* fields)
@@ -95,44 +92,6 @@ bool Event_channel_slide_force_handle(Channel_state* ch_state, char* fields)
         }
     }
     return true;
-}
-
-
-static void Event_channel_slide_force_process(Event_channel* event, Channel* ch)
-{
-    (void)event;
-    (void)ch;
-    assert(false);
-#if 0
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_VOICE_SLIDE_FORCE);
-    assert(voice != NULL);
-    assert(voice->state.generic.tempo > 0);
-    assert(voice->state.generic.freq > 0);
-    Event_channel_slide_force* slide_force = (Event_channel_slide_force*)event;
-    voice->state.generic.force_slide_target = exp2(slide_force->target_force_dB / 6);
-    voice->state.generic.force_slide_frames =
-            Reltime_toframes(&voice->state.generic.force_slide_length,
-                    voice->state.generic.tempo,
-                    voice->state.generic.freq);
-    double force_dB = log2(voice->state.generic.force) * 6;
-    double dB_step = (slide_force->target_force_dB - force_dB) /
-            voice->state.generic.force_slide_frames;
-    voice->state.generic.force_slide_update = exp2(dB_step / 6);
-    if (dB_step > 0)
-    {
-        voice->state.generic.force_slide = 1;
-    }
-    else if (dB_step < 0)
-    {
-        voice->state.generic.force_slide = -1;
-    }
-    else
-    {
-        voice->state.generic.force = voice->state.generic.force_slide_target;
-    }
-    return;
-#endif
 }
 
 
