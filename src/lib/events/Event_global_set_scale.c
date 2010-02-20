@@ -47,7 +47,7 @@ Event_create_constructor(Event_global_set_scale,
                          event->scale_index = 0);
 
 
-bool Event_global_set_scale_handle(Playdata* global_state, char* fields)
+bool Event_global_set_scale_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

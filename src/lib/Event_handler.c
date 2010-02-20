@@ -110,92 +110,92 @@ Event_handler* new_Event_handler(Playdata* global_state,
     }
     eh->insts = insts;
 
-    eh->global_process[EVENT_GLOBAL_PATTERN_DELAY] =
-            Event_global_pattern_delay_handle;
-    eh->global_process[EVENT_GLOBAL_RETUNE_SCALE] =
-            Event_global_retune_scale_handle;
-    eh->global_process[EVENT_GLOBAL_SET_JUMP_COUNTER] =
-            Event_global_set_jump_counter_handle;
-    eh->global_process[EVENT_GLOBAL_SET_JUMP_ROW] =
-            Event_global_set_jump_row_handle;
-    eh->global_process[EVENT_GLOBAL_SET_JUMP_SECTION] =
-            Event_global_set_jump_section_handle;
-    eh->global_process[EVENT_GLOBAL_SET_JUMP_SUBSONG] =
-            Event_global_set_jump_subsong_handle;
-    eh->global_process[EVENT_GLOBAL_SET_SCALE] =
-            Event_global_set_scale_handle;
-    eh->global_process[EVENT_GLOBAL_SET_TEMPO] =
-            Event_global_set_tempo_handle;
-    eh->global_process[EVENT_GLOBAL_SET_VOLUME] =
-            Event_global_set_volume_handle;
-    eh->global_process[EVENT_GLOBAL_SLIDE_TEMPO] =
-            Event_global_slide_tempo_handle;
-    eh->global_process[EVENT_GLOBAL_SLIDE_TEMPO_LENGTH] =
-            Event_global_slide_tempo_length_handle;
-    eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME] =
-            Event_global_slide_volume_handle;
-    eh->global_process[EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] =
-            Event_global_slide_volume_length_handle;
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_PATTERN_DELAY,
+                                     Event_global_pattern_delay_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_RETUNE_SCALE,
+                                     Event_global_retune_scale_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_COUNTER,
+                                     Event_global_set_jump_counter_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_ROW,
+                                     Event_global_set_jump_row_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SECTION,
+                                     Event_global_set_jump_section_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SUBSONG,
+                                     Event_global_set_jump_subsong_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE,
+                                     Event_global_set_scale_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_TEMPO,
+                                     Event_global_set_tempo_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_VOLUME,
+                                     Event_global_set_volume_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_TEMPO,
+                                     Event_global_slide_tempo_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
+                                     Event_global_slide_tempo_length_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_VOLUME,
+                                     Event_global_slide_volume_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+                                     Event_global_slide_volume_length_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INSTRUMENT,
-                                 Event_channel_set_instrument_handle);
+                                 Event_channel_set_instrument_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
-                                 Event_channel_note_on_handle);
+                                 Event_channel_note_on_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_OFF,
-                                 Event_channel_note_off_handle);
+                                 Event_channel_note_off_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FORCE,
-                                 Event_channel_set_force_handle);
+                                 Event_channel_set_force_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE,
-                                 Event_channel_slide_force_handle);
+                                 Event_channel_slide_force_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
-                                 Event_channel_slide_force_length_handle);
+                                 Event_channel_slide_force_length_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_SPEED,
-                                 Event_channel_tremolo_speed_handle);
+                                 Event_channel_tremolo_speed_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DEPTH,
-                                 Event_channel_tremolo_depth_handle);
+                                 Event_channel_tremolo_depth_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DELAY,
-                                 Event_channel_tremolo_delay_handle);
+                                 Event_channel_tremolo_delay_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH,
-                                 Event_channel_slide_pitch_handle);
+                                 Event_channel_slide_pitch_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
-                                 Event_channel_slide_pitch_length_handle);
+                                 Event_channel_slide_pitch_length_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_SPEED,
-                                 Event_channel_vibrato_speed_handle);
+                                 Event_channel_vibrato_speed_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DEPTH,
-                                 Event_channel_vibrato_depth_handle);
+                                 Event_channel_vibrato_depth_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DELAY,
-                                 Event_channel_vibrato_delay_handle);
+                                 Event_channel_vibrato_delay_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_ARPEGGIO,
-                                 Event_channel_arpeggio_handle);
+                                 Event_channel_arpeggio_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FILTER,
-                                 Event_channel_set_filter_handle);
+                                 Event_channel_set_filter_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER,
-                                 Event_channel_slide_filter_handle);
+                                 Event_channel_slide_filter_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                                 Event_channel_slide_filter_length_handle);
+                                 Event_channel_slide_filter_length_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_SPEED,
-                                 Event_channel_autowah_speed_handle);
+                                 Event_channel_autowah_speed_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DEPTH,
-                                 Event_channel_autowah_depth_handle);
+                                 Event_channel_autowah_depth_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DELAY,
-                                 Event_channel_autowah_delay_handle);
+                                 Event_channel_autowah_delay_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_RESONANCE,
-                                 Event_channel_set_resonance_handle);
+                                 Event_channel_set_resonance_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_PANNING,
-                                 Event_channel_set_panning_handle);
+                                 Event_channel_set_panning_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING,
-                                 Event_channel_slide_panning_handle);
+                                 Event_channel_slide_panning_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                                 Event_channel_slide_panning_length_handle);
+                                 Event_channel_slide_panning_length_process);
 
     Event_handler_set_ins_process(eh, EVENT_INS_SET_PEDAL,
-                                  Event_ins_set_pedal_handle);
+                                  Event_ins_set_pedal_process);
 
     return eh;
 }

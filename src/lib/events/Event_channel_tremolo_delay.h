@@ -30,7 +30,7 @@ typedef struct Event_channel_tremolo_delay
 Event* new_Event_channel_tremolo_delay(Reltime* pos);
 
 
-bool Event_channel_tremolo_delay_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_tremolo_delay_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_TREMOLO_DELAY_H

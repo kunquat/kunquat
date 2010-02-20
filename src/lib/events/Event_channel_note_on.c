@@ -63,7 +63,7 @@ Event_create_constructor(Event_channel_note_on,
                          event->octave = KQT_SCALE_MIDDLE_OCTAVE);
 
 
-bool Event_channel_note_on_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)
@@ -78,7 +78,7 @@ bool Event_channel_note_on_handle(Channel_state* ch_state, char* fields)
         return false;
     }
     // move the old Voices to the background
-    Event_channel_note_off_handle(ch_state, NULL);
+    Event_channel_note_off_process(ch_state, NULL);
     ch_state->fg_count = 0;
     assert(ch_state->instrument >= 0);
     assert(ch_state->instrument < KQT_INSTRUMENTS_MAX);

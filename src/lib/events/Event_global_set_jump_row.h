@@ -31,7 +31,7 @@ typedef struct Event_global_set_jump_row
 Event* new_Event_global_set_jump_row(Reltime* pos);
 
 
-bool Event_global_set_jump_row_handle(Playdata* global_state, char* fields);
+bool Event_global_set_jump_row_process(Playdata* global_state, char* fields);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_ROW_H

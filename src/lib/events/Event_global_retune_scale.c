@@ -60,7 +60,7 @@ Event_create_constructor(Event_global_retune_scale,
                          event->fixed_point = 0);
 
 
-bool Event_global_retune_scale_handle(Playdata* global_state, char* fields)
+bool Event_global_retune_scale_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

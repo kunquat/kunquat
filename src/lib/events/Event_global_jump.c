@@ -48,7 +48,7 @@ Event_create_constructor(Event_global_jump,
                          Reltime_set(&event->row, 0, 0));
 
 
-bool Event_global_jump_handle(Playdata* global_state, char* fields)
+bool Event_global_jump_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     (void)fields;

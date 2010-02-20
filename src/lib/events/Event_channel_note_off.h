@@ -29,7 +29,7 @@ typedef struct Event_channel_note_off
 Event* new_Event_channel_note_off(Reltime* pos);
 
 
-bool Event_channel_note_off_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_note_off_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_NOTE_OFF_H

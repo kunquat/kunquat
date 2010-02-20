@@ -30,7 +30,7 @@ typedef struct Event_channel_set_resonance
 Event* new_Event_channel_set_resonance(Reltime* pos);
 
 
-bool Event_channel_set_resonance_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_set_resonance_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_SET_RESONANCE_H

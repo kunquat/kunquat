@@ -30,7 +30,7 @@ typedef struct Event_channel_set_panning
 Event* new_Event_channel_set_panning(Reltime* pos);
 
 
-bool Event_channel_set_panning_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_SET_PANNING_H

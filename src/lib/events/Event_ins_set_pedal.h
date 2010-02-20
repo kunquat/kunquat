@@ -30,7 +30,7 @@ typedef struct Event_ins_set_pedal
 Event* new_Event_ins_set_pedal(Reltime* pos);
 
 
-bool Event_ins_set_pedal_handle(Instrument_params* state, char* fields);
+bool Event_ins_set_pedal_process(Instrument_params* state, char* fields);
 
 
 #endif // K_EVENT_INS_SET_PEDAL_H

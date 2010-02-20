@@ -51,7 +51,7 @@ Event_create_constructor(Event_channel_slide_filter_length,
                          Reltime_set(&event->length, 0, 0));
 
 
-bool Event_channel_slide_filter_length_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

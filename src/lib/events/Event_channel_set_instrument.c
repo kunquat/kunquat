@@ -50,7 +50,7 @@ Event_create_constructor(Event_channel_set_instrument,
                          event->instrument = 0);
 
 
-bool Event_channel_set_instrument_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_set_instrument_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

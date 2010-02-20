@@ -52,7 +52,7 @@ Event_create_constructor(Event_channel_vibrato_delay,
                          Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4));
 
 
-bool Event_channel_vibrato_delay_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_vibrato_delay_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

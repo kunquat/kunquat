@@ -49,7 +49,7 @@ Event_create_constructor(Event_global_pattern_delay,
                          Reltime_init(&event->length));
 
 
-bool Event_global_pattern_delay_handle(Playdata* global_state, char* fields)
+bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

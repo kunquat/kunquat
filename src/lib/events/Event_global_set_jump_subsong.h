@@ -31,8 +31,8 @@ typedef struct Event_global_set_jump_subsong
 Event* new_Event_global_set_jump_subsong(Reltime* pos);
 
 
-bool Event_global_set_jump_subsong_handle(Playdata* global_state,
-                                          char* fields);
+bool Event_global_set_jump_subsong_process(Playdata* global_state,
+                                           char* fields);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_SUBSONG_H

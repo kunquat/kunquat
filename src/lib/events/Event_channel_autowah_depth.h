@@ -30,7 +30,7 @@ typedef struct Event_channel_autowah_depth
 Event* new_Event_channel_autowah_depth(Reltime* pos);
 
 
-bool Event_channel_autowah_depth_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_autowah_depth_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_AUTOWAH_DEPTH_H

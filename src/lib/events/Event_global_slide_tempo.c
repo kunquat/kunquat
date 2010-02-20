@@ -48,7 +48,7 @@ Event_create_constructor(Event_global_slide_tempo,
                          event->target_tempo = 120);
 
 
-bool Event_global_slide_tempo_handle(Playdata* global_state, char* fields)
+bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

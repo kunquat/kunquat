@@ -50,7 +50,7 @@ Event_create_constructor(Event_channel_tremolo_speed,
                          event->speed = 0);
 
 
-bool Event_channel_tremolo_speed_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

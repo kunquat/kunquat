@@ -49,7 +49,7 @@ Event_create_constructor(Event_channel_set_filter,
                          event->cutoff = INFINITY);
 
 
-bool Event_channel_set_filter_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

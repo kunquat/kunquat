@@ -47,7 +47,7 @@ Event_create_constructor(Event_global_set_volume,
                          event->volume_dB = 0);
 
 
-bool Event_global_set_volume_handle(Playdata* global_state, char* fields)
+bool Event_global_set_volume_process(Playdata* global_state, char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

@@ -48,8 +48,8 @@ Event_create_constructor(Event_global_set_jump_subsong,
                          event->subsong = -1);
 
 
-bool Event_global_set_jump_subsong_handle(Playdata* global_state,
-                                          char* fields)
+bool Event_global_set_jump_subsong_process(Playdata* global_state,
+                                           char* fields)
 {
     assert(global_state != NULL);
     if (fields == NULL)

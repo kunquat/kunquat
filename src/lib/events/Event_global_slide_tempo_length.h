@@ -30,8 +30,8 @@ typedef struct Event_global_slide_tempo_length
 Event* new_Event_global_slide_tempo_length(Reltime* pos);
 
 
-bool Event_global_slide_tempo_length_handle(Playdata* global_state,
-                                            char* fields);
+bool Event_global_slide_tempo_length_process(Playdata* global_state,
+                                             char* fields);
 
 
 #endif // K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H

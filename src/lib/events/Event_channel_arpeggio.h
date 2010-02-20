@@ -32,7 +32,7 @@ typedef struct Event_channel_arpeggio
 Event* new_Event_channel_arpeggio(Reltime* pos);
 
 
-bool Event_channel_arpeggio_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_ARPEGGIO_H

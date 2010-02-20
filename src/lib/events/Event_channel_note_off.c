@@ -42,7 +42,7 @@ Event_create_constructor(Event_channel_note_off,
                          (void)0);
 
 
-bool Event_channel_note_off_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_note_off_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     (void)fields;

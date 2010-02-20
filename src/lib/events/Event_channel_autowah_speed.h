@@ -30,7 +30,7 @@ typedef struct Event_channel_autowah_speed
 Event* new_Event_channel_autowah_speed(Reltime* pos);
 
 
-bool Event_channel_autowah_speed_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_AUTOWAH_SPEED_H

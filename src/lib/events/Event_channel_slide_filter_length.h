@@ -30,7 +30,7 @@ typedef struct Event_channel_slide_filter_length
 Event* new_Event_channel_slide_filter_length(Reltime* pos);
 
 
-bool Event_channel_slide_filter_length_handle(Channel_state* ch_state, char* fields);
+bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fields);
 
 
 #endif // K_EVENT_CHANNEL_SLIDE_FILTER_LENGTH_H

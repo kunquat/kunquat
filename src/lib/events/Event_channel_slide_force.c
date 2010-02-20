@@ -50,7 +50,7 @@ Event_create_constructor(Event_channel_slide_force,
                          event->target_force_dB = 0);
 
 
-bool Event_channel_slide_force_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

@@ -128,7 +128,7 @@ static void* Event_channel_slide_pitch_get(Event* event, int index)
 }
 
 
-bool Event_channel_slide_pitch_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

@@ -49,7 +49,7 @@ Event_create_constructor(Event_channel_set_resonance,
                          event->resonance = 1);
 
 
-bool Event_channel_set_resonance_handle(Channel_state* ch_state, char* fields)
+bool Event_channel_set_resonance_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)

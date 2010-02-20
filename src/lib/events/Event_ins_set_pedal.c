@@ -47,7 +47,7 @@ Event_create_constructor(Event_ins_set_pedal,
                          event->pedal = 0);
 
 
-bool Event_ins_set_pedal_handle(Instrument_params* ins_state, char* fields)
+bool Event_ins_set_pedal_process(Instrument_params* ins_state, char* fields)
 {
     assert(ins_state != NULL);
     if (fields == NULL)
