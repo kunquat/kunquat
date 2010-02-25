@@ -21,6 +21,9 @@
 
 #include <Reltime.h>
 #include <kunquat/limits.h>
+#include <Voice_params.h>
+#include <Voice_pool.h>
+#include <Ins_table.h>
 
 
 /**
@@ -30,7 +33,18 @@
 typedef struct Channel_state
 {
     int num;                       ///< Channel number.
+    Voice_params vp;               ///< Voice parameters.
     bool* mute;                    ///< Channel mute.
+
+    Voice_pool* pool;              ///< All Voices.
+    Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
+    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< Voice reservation IDs.
+    int fg_count;
+
+    int instrument;                ///< Currently active Instrument.
+    Ins_table* insts;
+    uint32_t* freq;
+    double* tempo;
 
     double volume;                 ///< Channel volume (linear factor).
 

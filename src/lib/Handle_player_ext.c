@@ -171,7 +171,7 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
     if (nanoseconds > 0)
     {
         uint64_t frame_skip = ((double)nanoseconds / 1000000000) * handle->song->play_state->freq;
-        Song_skip(handle->song, handle->song->play_state, frame_skip);
+        Song_skip(handle->song, handle->song->event_handler, frame_skip);
         Reltime_copy(&handle->song->skip_state->pos, &handle->song->play_state->pos);
     }
     return 1;

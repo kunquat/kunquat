@@ -16,10 +16,12 @@
 #define K_EVENT_GLOBAL_JUMP_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <Event_global.h>
 #include <Reltime.h>
+#include <Playdata.h>
 
 
 typedef struct Event_global_jump
@@ -34,6 +36,12 @@ typedef struct Event_global_jump
 
 
 Event* new_Event_global_jump(Reltime* pos);
+
+
+bool Event_global_jump_process(Playdata* global_state, char* fields);
+
+
+void Trigger_global_jump_process(Event_global* event, Playdata* play);
 
 
 #endif // K_EVENT_GLOBAL_JUMP_H

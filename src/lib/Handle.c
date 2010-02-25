@@ -65,7 +65,6 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
 
     int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
-    int event_queue_size = 32;
 
     handle->returned_values = new_AAtree(ptrcmp, free);
     if (handle->returned_values == NULL)
@@ -76,7 +75,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
         (void)removed;
         return false;
     }
-    handle->song = new_Song(buffer_count, buffer_size, event_queue_size);
+    handle->song = new_Song(buffer_count, buffer_size);
     if (handle->song == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");

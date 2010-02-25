@@ -123,9 +123,11 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     handle.nanoseconds = handle.nanoseconds + 10000000000
                 elif key == 'a':
                     handle.subsong = None
+                    duration = handle.get_duration(handle.subsong)
                 elif key in string.digits:
                     if handle['subs_%02x/p_subsong.json' % int(key)]:
                         handle.subsong = int(key)
+                        duration = handle.get_duration(handle.subsong)
                 elif key == 'p':
                     if handle.subsong == 0:
                         handle.subsong = None

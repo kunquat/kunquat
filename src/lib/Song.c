@@ -28,7 +28,7 @@
 #include <xmemory.h>
 
 
-Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
+Song* new_Song(int buf_count, uint32_t buf_size)
 {
     assert(buf_count >= 1);
     assert(buf_count <= KQT_BUFFERS_MAX);
@@ -47,7 +47,9 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
     song->pats = NULL;
     song->insts = NULL;
     song->play_state = NULL;
+    song->event_handler = NULL;
     song->skip_state = NULL;
+    song->skip_handler = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -123,12 +125,42 @@ Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
-    song->events = new_Event_queue(events);
-    if (song->events == NULL)
+
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        song->channels[i] = new_Channel(song->insts, i,
+                                        song->play_state->voice_pool,
+                                        &song->play_state->tempo,
+                                        &song->play_state->freq);
+        if (song->channels[i] == NULL)
+        {
+            del_Song(song);
+            return NULL;
+        }
+    }
+    Channel_state* ch_states[KQT_COLUMNS_MAX] = { NULL };
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        ch_states[i] = &song->channels[i]->cur_state;
+    }
+
+    song->event_handler = new_Event_handler(song->play_state,
+                                            ch_states,
+                                            song->insts);
+    if (song->event_handler == NULL)
     {
         del_Song(song);
         return NULL;
     }
+    song->skip_handler = new_Event_handler(song->skip_state,
+                                           ch_states,
+                                           song->insts);
+    if (song->skip_handler == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+
     Scale_set_note(song->scales[0],
                    0,
                    Real_init_as_frac(REAL_AUTO, 1, 1));
@@ -238,10 +270,11 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
 }
 
 
-uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
+uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
 {
     assert(song != NULL);
-    assert(play != NULL);
+    assert(eh != NULL);
+    Playdata* play = Event_handler_get_global_state(eh);
     if (play->mode == STOP)
     {
         return 0;
@@ -300,35 +333,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
             Playdata_set_subsong(play, play->subsong + 1);
             continue;
         }
-        uint32_t proc_start = mixed;
-        mixed += Pattern_mix(pat, nframes, mixed, play);
-        if (play->mode == PLAY_EVENT)
-        {
-            continue;
-        }
-        Event* event = NULL;
-        uint32_t proc_until = mixed;
-        Event_queue_get(song->events, &event, &proc_until);
-        // TODO: mix private instrument buffers
-        while (proc_start < mixed)
-        {
-            assert(proc_until <= mixed);
-            for (uint32_t i = proc_start; i < proc_until; ++i)
-            {
-                // TODO: modify buffer according to state
-            }
-            proc_start = proc_until;
-            proc_until = mixed;
-            while (Event_queue_get(song->events, &event, &proc_until))
-            {
-                // TODO: process events
-                if (proc_start < mixed)
-                {
-                    break;
-                }
-            }
-        }
-        assert(!Event_queue_get(song->events, &event, &proc_until));
+        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels);
+        // TODO: Mix effect graph
     }
     if (!play->silent)
     {
@@ -357,10 +363,11 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play)
 }
 
 
-uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
+uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
 {
     assert(song != NULL);
-    assert(play != NULL);
+    assert(eh != NULL);
+    Playdata* play = Event_handler_get_global_state(eh);
     bool orig_silent = play->silent;
     play->silent = true;
     uint64_t mixed = 0;
@@ -368,7 +375,7 @@ uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount)
     {
         uint64_t max_mix = amount - mixed;
         uint64_t nframes = MIN(max_mix, play->freq);
-        uint32_t inc = Song_mix(song, nframes, play);
+        uint32_t inc = Song_mix(song, nframes, eh);
         mixed += inc;
         if (inc < Song_get_buf_size(song))
         {
@@ -646,13 +653,6 @@ void Song_remove_scale(Song* song, int index)
 }
 
 
-Event_queue* Song_get_events(Song* song)
-{
-    assert(song != NULL);
-    return song->events;
-}
-
-
 void del_Song(Song* song)
 {
     assert(song != NULL);
@@ -687,10 +687,6 @@ void del_Song(Song* song)
             del_Scale(song->scales[i]);
         }
     }
-    if (song->events != NULL)
-    {
-        del_Event_queue(song->events);
-    }
     if (song->play_state != NULL)
     {
         del_Playdata(song->play_state);
@@ -698,6 +694,18 @@ void del_Song(Song* song)
     if (song->skip_state != NULL)
     {
         del_Playdata(song->skip_state);
+    }
+    for (int i = 0; i < KQT_COLUMNS_MAX && song->channels[i] != NULL; ++i)
+    {
+        del_Channel(song->channels[i]);
+    }
+    if (song->event_handler != NULL)
+    {
+        del_Event_handler(song->event_handler);
+    }
+    if (song->skip_handler != NULL)
+    {
+        del_Event_handler(song->skip_handler);
     }
     xfree(song);
     return;

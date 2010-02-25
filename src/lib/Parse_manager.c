@@ -284,8 +284,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                  Song_get_buf_count(handle->song),
                                  Song_get_buf_size(handle->song),
                                  Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song),
-                                 32); // TODO: make configurable
+                                 Song_get_active_scale(handle->song));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -335,8 +334,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                      Song_get_buf_count(handle->song),
                                      Song_get_buf_size(handle->song),
                                      Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song),
-                                     32); // TODO: make configurable
+                                     Song_get_active_scale(handle->song));
                 if (ins == NULL)
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -405,8 +403,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                              Song_get_buf_count(handle->song),
                              Song_get_buf_size(handle->song),
                              Song_get_scales(handle->song),
-                             Song_get_active_scale(handle->song),
-                             32); // TODO: make configurable
+                             Song_get_active_scale(handle->song));
         if (ins == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -647,7 +644,16 @@ static bool parse_pattern_level(kqt_Handle* handle,
         }
         else
         {
-            Pattern_set_col(pat, col_index, col);
+            if (!Pattern_set_col(pat, col_index, col))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                if (new_pattern)
+                {
+                    del_Pattern(pat);
+                }
+                return false;
+            }
         }
         if (new_pattern)
         {

@@ -27,7 +27,8 @@ static Event_field_desc set_scale_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, KQT_SCALES_MAX - 1 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_SCALES_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -37,30 +38,36 @@ static Event_field_desc set_scale_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_scale,
                                    EVENT_GLOBAL_SET_SCALE,
-                                   int64_t, scale_index)
-
-
-static void Event_global_set_scale_process(Event_global* event, Playdata* play);
+                                   int64_t, scale_index);
 
 
 Event_create_constructor(Event_global_set_scale,
                          EVENT_GLOBAL_SET_SCALE,
                          set_scale_desc,
-                         event->scale_index = 0)
+                         event->scale_index = 0);
 
 
-static void Event_global_set_scale_process(Event_global* event, Playdata* play)
+bool Event_global_set_scale_process(Playdata* global_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_SCALE);
-    assert(play != NULL);
-    Event_global_set_scale* set_scale = (Event_global_set_scale*)event;
-    if (play->scales == NULL)
+    assert(global_state != NULL);
+    if (fields == NULL)
     {
-        return;
+        return false;
     }
-    play->active_scale = &play->scales[set_scale->scale_index];
-    return;
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_scale_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (global_state->scales == NULL)
+    {
+        return true;
+    }
+    global_state->active_scale =
+            &global_state->scales[data[0].field.integral_type];
+    return true;
 }
 
 

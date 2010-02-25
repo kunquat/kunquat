@@ -27,7 +27,8 @@ static Event_field_desc set_pedal_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 0, 1 }
+        .min.field.double_type = 0,
+        .max.field.double_type = 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -37,27 +38,31 @@ static Event_field_desc set_pedal_desc[] =
 
 Event_create_set_primitive_and_get(Event_ins_set_pedal,
                                    EVENT_INS_SET_PEDAL,
-                                   double, pedal)
-
-
-static void Event_ins_set_pedal_process(Event_ins* event);
+                                   double, pedal);
 
 
 Event_create_constructor(Event_ins_set_pedal,
                          EVENT_INS_SET_PEDAL,
                          set_pedal_desc,
-                         event->parent.ins_params = NULL,
-                         event->pedal = 0)
+                         event->pedal = 0);
 
 
-static void Event_ins_set_pedal_process(Event_ins* event)
+bool Event_ins_set_pedal_process(Instrument_params* ins_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_INS_SET_PEDAL);
-    assert(event->ins_params != NULL);
-    Event_ins_set_pedal* set_pedal = (Event_ins_set_pedal*)event;
-    event->ins_params->pedal = set_pedal->pedal;
-    return;
+    assert(ins_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_pedal_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    ins_state->pedal = data[0].field.double_type;
+    return true;
 }
 
 

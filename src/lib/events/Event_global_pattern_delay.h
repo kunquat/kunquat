@@ -18,6 +18,7 @@
 
 #include <Event_global.h>
 #include <Reltime.h>
+#include <Playdata.h>
 
 
 typedef struct Event_global_pattern_delay
@@ -28,6 +29,9 @@ typedef struct Event_global_pattern_delay
 
 
 Event* new_Event_global_pattern_delay(Reltime* pos);
+
+
+bool Event_global_pattern_delay_process(Playdata* global_state, char* fields);
 
 
 #endif // K_EVENT_GLOBAL_PATTERN_DELAY_H

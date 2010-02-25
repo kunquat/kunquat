@@ -30,6 +30,9 @@ typedef struct Event_global_slide_tempo
 Event* new_Event_global_slide_tempo(Reltime* pos);
 
 
+bool Event_global_slide_tempo_process(Playdata* global_state, char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SLIDE_TEMPO_H
 
 

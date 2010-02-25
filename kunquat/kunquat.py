@@ -175,7 +175,7 @@ class RHandle(object):
 
         """
         _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
-        self._buffer_size
+        self._buffer_size = value
 
     def get_duration(self, subsong=None):
         """Count the duration of the composition in nanoseconds.

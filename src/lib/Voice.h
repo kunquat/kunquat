@@ -16,11 +16,12 @@
 #define K_VOICE_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
-#include <Event_queue.h>
 #include <Generator.h>
-#include <Channel_state.h>
+#include <Voice_params.h>
+
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
@@ -39,15 +40,16 @@ typedef enum
 
 
 /**
- * This contains all the playback state information of a single note being
- * played.
+ * This contains all the playback state information of a single note of a
+ * Generator being played.
  */
 typedef struct Voice
 {
     uint16_t pool_index;   ///< Storage position in the Voice pool.
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
-    Event_queue* events;   ///< Upcoming events.
+    bool was_fg;
+    uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Generator* gen;        ///< The Generator.
     /// The current playback state.
     union
@@ -66,12 +68,10 @@ typedef struct Voice
 /**
  * Creates a new Voice.
  *
- * \param events   The maximum number of events per tick -- must be > \c 0.
- *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
-Voice* new_Voice(uint8_t events);
+Voice* new_Voice(void);
 
 
 /**
@@ -103,17 +103,15 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice          The Voice -- must not be \c NULL.
- * \param gen            The Generator used -- must not be \c NULL.
- * \param cur_ch_state   The current Channel state -- must not be \c NULL.
- * \param new_ch_state   The new (upcoming) Channel state -- must not be \c NULL.
- * \param freq           The mixing frequency -- must be > \c 0.
- * \param tempo          The current tempo -- must be > \c 0.
+ * \param voice    The Voice -- must not be \c NULL.
+ * \param gen      The Generator used -- must not be \c NULL.
+ * \param params   The Voice parameters -- must not be \c NULL.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The current tempo -- must be > \c 0.
  */
 void Voice_init(Voice* voice,
                 Generator* gen,
-                Channel_state* cur_ch_state,
-                Channel_state* new_ch_state,
+                Voice_params* params,
                 uint32_t freq,
                 double tempo);
 
@@ -135,7 +133,7 @@ void Voice_reset(Voice* voice);
  *
  * \return   \c true if successful, or \c false if the Event queue is full.
  */
-bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
+//bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
 
 
 /**

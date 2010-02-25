@@ -20,7 +20,6 @@
 #include <stdint.h>
 
 #include <Generator_type.h>
-#include <Event_queue.h>
 #include <Instrument_params.h>
 #include <Voice_state.h>
 #include <File_base.h>
@@ -29,9 +28,6 @@
 /**
  * Generator is an object used for creating sound based on a specific sound
  * synthesising method.
- *
- * The Generator class does not contain a constructor -- only Generators of
- * a specific type can be created.
  */
 typedef struct Generator
 {
@@ -153,18 +149,6 @@ void Generator_process_note(Generator* gen,
                             int note,
                             int mod,
                             int octave);
-
-
-/**
- * Adds a new Event into the Generator event queue.
- *
- * \param gen     The Generator -- must not be \c NULL.
- * \param event   The Event -- must not be \c NULL.
- * \param pos     The position of the Event.
- *
- * \return   \c true if successful, or \c false if the Event queue is full.
- */
-bool Generator_add_event(Generator* gen, Event* event, uint32_t pos);
 
 
 /**

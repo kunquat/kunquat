@@ -38,6 +38,9 @@ bool Sample_parse_wavpack(Sample* sample,
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+    (void)sample;
+    (void)data;
+    (void)length;
     if (state->error)
     {
         return false;
@@ -83,14 +86,26 @@ static int32_t read_bytes_str(void* id, void* data, int32_t bcount)
     }
     int32_t left = sc->length - sc->pos;
     int32_t bytes_read = MIN(left, bcount);
-    char* data_ptr = sc->data;
     if (sc->push_back != EOF)
     {
-        *data_ptr = sc->push_back;
-        ++data_ptr;
-        --bcount;
+        *((char*)data) = sc->push_back;
+        memcpy((char*)data + 1, sc->data + sc->pos + 1, bytes_read - 1);
+        sc->push_back = EOF;
     }
-    memcpy(data, data_ptr + sc->pos, bytes_read);
+    else
+    {
+        memcpy(data, sc->data + sc->pos, bytes_read);
+    }
+#if 0
+    if (true || sc->pos < 20)
+    {
+//        fprintf(stderr, "foo\n");
+        for (int i = 0; i < bytes_read; ++i)
+        {
+//            fprintf(stderr, "%d: %c\n", sc->pos + i, ((char*)data)[i]);
+        }
+    }
+#endif
     sc->pos += bytes_read;
     return bytes_read;
 }
@@ -116,6 +131,7 @@ static int set_pos_abs_str(void* id, uint32_t pos)
     {
         sc->pos = pos;
     }
+    sc->push_back = EOF;
     return 0;
 }
 
@@ -141,6 +157,7 @@ static int set_pos_rel_str(void* id, int32_t delta, int mode)
     {
         return -1;
     }
+    sc->push_back = EOF;
     ref += delta;
     if (ref < 0)
     {
@@ -157,6 +174,7 @@ static int set_pos_rel_str(void* id, int32_t delta, int mode)
 
 static int push_back_byte_str(void* id, int c)
 {
+//    fprintf(stderr, "push back %c\n", (char)c);
     assert(id != NULL);
     String_context* sc = id;
     if (sc->push_back != EOF)
@@ -258,6 +276,7 @@ bool Sample_parse_wavpack(Sample* sample,
                                                      0);
     if (context == NULL)
     {
+        Read_state_set_error(state, err_str);
         return false;
     }
     int mode = WavpackGetMode(context);

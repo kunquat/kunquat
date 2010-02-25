@@ -102,6 +102,18 @@ Column* new_Column(Reltime* len);
 
 
 /**
+ * Creates a new auxiliary global Column.
+ *
+ * \param old_aux   The old auxiliary global Column, or \c NULL if not
+ *                  applicable.
+ * \param mod_col   The Column with the new Events -- must not be \c NULL.
+ * \param index     The Column index -- must be >= \c 0 and
+ *                  < \c KQT_COLUMNS_MAX.
+ */
+Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
+
+
+/**
  * Creates a new Column from a textual description.
  *
  * \param len         The length of the column. If this is \c NULL, the length is

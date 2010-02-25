@@ -20,7 +20,8 @@
 
 #include <Reltime.h>
 #include <Subsong_table.h>
-#include <Channel.h>
+//#include <Channel.h>
+#include <Column.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
@@ -50,8 +51,6 @@ typedef struct Playdata
     uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
 //  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
-    Event_queue* events;              ///< The global event queue.
-    Event_queue* ins_events;          ///< The Instrument event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
 
@@ -95,7 +94,6 @@ typedef struct Playdata
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
-    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     uint16_t active_voices;             ///< Number of Voices used simultaneously.
     double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
     double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.

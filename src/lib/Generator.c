@@ -263,16 +263,6 @@ void Generator_process_note(Generator* gen,
 }
 
 
-#if 0
-bool Generator_add_event(Generator* gen, Event* event, uint32_t pos)
-{
-    assert(gen != NULL);
-    assert(event != NULL);
-    return Event_queue_ins(gen->events, event, pos);
-}
-#endif
-
-
 void Generator_mix(Generator* gen,
                    Voice_state* state,
                    uint32_t nframes,
@@ -326,21 +316,6 @@ void Generator_mix(Generator* gen,
         }
 
         uint32_t mix_until = nframes;
-#if 0
-        Event* ins_event = NULL;
-        uint32_t ins_event_pos = 0;
-        if (Event_queue_peek(gen->events, 0, &ins_event, &ins_event_pos))
-        {
-            if (ins_event_pos < mix_until)
-            {
-                mix_until = ins_event_pos;
-            }
-            else
-            {
-                ins_event = NULL;
-            }
-        }
-#endif
 
         if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
         {
@@ -356,18 +331,6 @@ void Generator_mix(Generator* gen,
         mixed = gen->mix(gen, state, mix_until, mixed, freq, tempo,
                          gen->ins_params->buf_count,
                          bufs);
-
-#if 0
-        if (ins_event != NULL && mixed == mix_until)
-        {
-            fprintf(stderr, "Instrument event at %d! \n", (int)ins_event_pos);
-            Event_queue_get(gen->events, &ins_event, &ins_event_pos);
-            assert(ins_event_pos == mix_until);
-            assert(ins_event != NULL);
-            assert(EVENT_IS_INS(Event_get_type(ins_event)));
-            Event_ins_process((Event_ins*)ins_event, gen->ins_params);
-        }
-#endif
 
         if (bufs == gen->ins_params->vbufs)
         {

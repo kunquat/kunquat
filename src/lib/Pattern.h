@@ -18,9 +18,10 @@
 
 #include <stdint.h>
 
-#include <Playdata.h>
 #include <Column.h>
+#include <Channel.h>
 #include <Reltime.h>
+#include <Event_handler.h>
 #include <kunquat/limits.h>
 
 
@@ -30,6 +31,7 @@
 typedef struct Pattern
 {
     Column* global;
+    Column* aux;
     Column* cols[KQT_COLUMNS_MAX];
     Reltime length;
 } Pattern;
@@ -91,8 +93,10 @@ Reltime* Pattern_get_length(Pattern* pat);
  * \param pat     The Pattern -- must not be \c NULL.
  * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
  * \param col     The Column -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Pattern_set_col(Pattern* pat, int index, Column* col);
+bool Pattern_set_col(Pattern* pat, int index, Column* col);
 
 
 /**
@@ -132,16 +136,17 @@ Column* Pattern_get_global(Pattern* pat);
  * \param nframes   The amount of frames to be mixed.
  * \param offset    The mixing buffer offset to be used -- must be
  *                  < \a nframes.
- * \param play      The Playdata object -- must not be \c NULL.
+ * \param eh        The Event handler -- must not be \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes. A value that is < \a nframes indicates that the
  *           mixing of the Pattern is complete.
  */
 uint32_t Pattern_mix(Pattern* pat,
-        uint32_t nframes,
-        uint32_t offset,
-        Playdata* play);
+                     uint32_t nframes,
+                     uint32_t offset,
+                     Event_handler* eh,
+                     Channel** channels);
 
 
 /**

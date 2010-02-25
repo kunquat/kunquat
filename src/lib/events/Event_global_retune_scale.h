@@ -18,6 +18,7 @@
 
 #include <Event_global.h>
 #include <Reltime.h>
+#include <Playdata.h>
 
 
 typedef struct Event_global_retune_scale
@@ -30,6 +31,9 @@ typedef struct Event_global_retune_scale
 
 
 Event* new_Event_global_retune_scale(Reltime* pos);
+
+
+bool Event_global_retune_scale_process(Playdata* global_state, char* fields);
 
 
 #endif // K_EVENT_GLOBAL_RETUNE_SCALE_H

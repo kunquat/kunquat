@@ -74,7 +74,7 @@ void del_Event_default(Event* event);
             return true;                                                 \
         }                                                                \
         return false;                                                    \
-    }
+    } static bool etype ## _set(Event* event, int index, void* data)
 
 
 #define Event_create_set_reltime(etype, etype_id, fname)            \
@@ -93,7 +93,7 @@ void del_Event_default(Event* event);
             return true;                                            \
         }                                                           \
         return false;                                               \
-    }
+    } static bool etype ## _set(Event* event, int index, void* data)
 
 
 #define Event_create_get(etype, etype_id, fname)         \
@@ -108,16 +108,16 @@ void del_Event_default(Event* event);
             return &event_sub->fname;                    \
         }                                                \
         return NULL;                                     \
-    }
+    } static void* etype ## _get(Event* event, int index)
 
 
 #define Event_create_set_primitive_and_get(type, type_id, field_type, field_name) \
-    Event_create_set_primitive(type, type_id, field_type, field_name)             \
+    Event_create_set_primitive(type, type_id, field_type, field_name);            \
     Event_create_get(type, type_id, field_name)
 
 
 #define Event_create_set_reltime_and_get(type, type_id, field_name) \
-    Event_create_set_reltime(type, type_id, field_name)             \
+    Event_create_set_reltime(type, type_id, field_name);            \
     Event_create_get(type, type_id, field_name)
 
 
@@ -130,16 +130,34 @@ void del_Event_default(Event* event);
         {                                                          \
             return NULL;                                           \
         }                                                          \
-        Event_init(&event->parent.parent,                          \
+        Event_init((Event*)event,                                  \
                    pos,                                            \
                    etype_id,                                       \
                    field_desc,                                     \
                    etype ## _set,                                  \
                    etype ## _get);                                 \
-        event->parent.process = etype ## _process;                 \
         __VA_ARGS__;                                               \
         return (Event*)event;                                      \
-    }
+    } Event* new_ ## etype(Reltime* pos)
+
+
+#define Event_check_voice(ch_state, gen)                        \
+    if (true)                                                   \
+    {                                                           \
+        if ((ch_state)->fg[(gen)] == NULL)                      \
+        {                                                       \
+            continue;                                           \
+        }                                                       \
+        (ch_state)->fg[(gen)] =                                 \
+                Voice_pool_get_voice((ch_state)->pool,          \
+                                     (ch_state)->fg[(gen)],     \
+                                     (ch_state)->fg_id[(gen)]); \
+        if ((ch_state)->fg[(gen)] == NULL)                      \
+        {                                                       \
+            continue;                                           \
+        }                                                       \
+    }                                                           \
+    else (void)0
 
 
 #endif // K_EVENT_COMMON_H

@@ -19,6 +19,7 @@
 
 #include <Event_common.h>
 #include <Event_global_pattern_delay.h>
+#include <File_base.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -28,7 +29,8 @@ static Event_field_desc pattern_delay_desc[] =
 {
     {
         .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
+        .min.field.Reltime_type = { 0, 0 },
+        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
     },
     {
         .type = EVENT_FIELD_NONE
@@ -38,26 +40,31 @@ static Event_field_desc pattern_delay_desc[] =
 
 Event_create_set_reltime_and_get(Event_global_pattern_delay,
                                  EVENT_GLOBAL_PATTERN_DELAY,
-                                 length)
-
-
-static void Event_global_pattern_delay_process(Event_global* event, Playdata* play);
+                                 length);
 
 
 Event_create_constructor(Event_global_pattern_delay,
                          EVENT_GLOBAL_PATTERN_DELAY,
                          pattern_delay_desc,
-                         Reltime_init(&event->length))
+                         Reltime_init(&event->length));
 
 
-static void Event_global_pattern_delay_process(Event_global* event, Playdata* play)
+bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_PATTERN_DELAY);
-    assert(play != NULL);
-    Event_global_pattern_delay* pattern_delay = (Event_global_pattern_delay*)event;
-    Reltime_copy(&play->delay_left, &pattern_delay->length);
-    return;
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field delay[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, pattern_delay_desc, delay, state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_copy(&global_state->delay_left, &delay[0].field.Reltime_type);
+    return true;
 }
 
 

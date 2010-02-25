@@ -30,6 +30,9 @@ typedef struct Event_global_set_volume
 Event* new_Event_global_set_volume(Reltime* pos);
 
 
+bool Event_global_set_volume_process(Playdata* global_state, char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SET_VOLUME_H
 
 

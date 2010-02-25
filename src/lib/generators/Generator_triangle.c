@@ -125,7 +125,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    Generator_common_persist(gen, state, mixed);
+//    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 

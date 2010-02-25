@@ -156,8 +156,13 @@ uint32_t Reltime_toframes(const Reltime* r,
     assert(r->beats >= 0);
     assert(tempo > 0);
     assert(freq > 0);
-    return (uint32_t)((r->beats
+    double frame_count = ((r->beats
             + ((double)r->rem / KQT_RELTIME_BEAT)) * 60 * freq / tempo);
+    if (frame_count > UINT32_MAX)
+    {
+        return UINT32_MAX;
+    }
+    return (uint32_t)frame_count;
 }
 
 

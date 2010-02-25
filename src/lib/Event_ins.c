@@ -18,10 +18,11 @@
 #include <Event_ins.h>
 
 
+#if 0
 void Event_ins_process(Event_ins* event)
 {
     assert(event != NULL);
-    assert(EVENT_IS_INS(event->parent.type));
+    assert(EVENT_IS_INS(event->parent.parent.type));
     assert(event->process != NULL);
     assert(event->ins_params != NULL);
     event->process(event);
@@ -32,10 +33,11 @@ void Event_ins_process(Event_ins* event)
 void Event_ins_set_params(Event_ins* event, Instrument_params* ins_params)
 {
     assert(event != NULL);
-    assert(EVENT_IS_INS(event->parent.type));
+    assert(EVENT_IS_INS(event->parent.parent.type));
     assert(ins_params != NULL);
     event->ins_params = ins_params;
     return;
 }
+#endif
 
 

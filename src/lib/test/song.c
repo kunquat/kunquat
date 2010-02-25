@@ -220,6 +220,7 @@ START_TEST (mix)
     Song_set_mix_vol(song, 0);
     Playdata* play = song->play_state;
     if (play == NULL) abort();
+    Event_handler* eh = song->event_handler;
     Pattern* pat1 = new_Pattern();
     if (pat1 == NULL)
     {
@@ -355,7 +356,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    uint32_t ret = Song_mix(song, 256, play);
+    uint32_t ret = Song_mix(song, 256, eh);
     fail_unless(ret == 128,
             "Song_mix() mixed %lu frames instead of 128.", (unsigned long)ret);
     for (int i = 0; i < 64; ++i)
@@ -416,7 +417,13 @@ START_TEST (mix_break_song_null)
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
         return;
     }
-    Song_mix(NULL, 1, play);
+    Event_handler* eh = new_Event_handler(play);
+    if (eh == NULL)
+    {
+        fprintf(stderr, "new_Event_handler() returned NULL -- out of memory?\n");
+        return;
+    }
+    Song_mix(NULL, 1, eh);
     xfree(play);
 }
 END_TEST

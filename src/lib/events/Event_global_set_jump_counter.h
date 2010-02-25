@@ -18,6 +18,7 @@
 
 #include <Event_global.h>
 #include <Reltime.h>
+#include <Playdata.h>
 
 
 typedef struct Event_global_set_jump_counter
@@ -28,6 +29,10 @@ typedef struct Event_global_set_jump_counter
 
 
 Event* new_Event_global_set_jump_counter(Reltime* pos);
+
+
+bool Event_global_set_jump_counter_process(Playdata* global_state,
+                                           char* fields);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_COUNTER_H

@@ -55,8 +55,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale*** default_scale,
-                           uint8_t events)
+                           Scale*** default_scale)
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
@@ -71,7 +70,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
     assert(*default_scale != NULL);
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
-    assert(events > 0);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {
@@ -307,24 +305,6 @@ void Instrument_set_scale(Instrument* ins, int index)
     }
     return;
 }
-
-
-#if 0
-bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
-{
-    assert(ins != NULL);
-    assert(event != NULL);
-    bool ok = true;
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        if (ins->gens[i] != NULL && ins->gens[i]->enabled)
-        {
-            ok &= Generator_add_event(ins->gens[i], event, pos);
-        }
-    }
-    return ok;
-}
-#endif
 
 
 void Instrument_mix(Instrument* ins,

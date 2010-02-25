@@ -43,7 +43,7 @@ typedef struct Sample_entry
 typedef struct Random_list
 {
     pitch_t freq;
-    double freq_tone;
+    double cents;
     double force;
     int entry_count;
     Sample_entry entries[PCM_RANDOMS_MAX];

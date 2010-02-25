@@ -30,6 +30,10 @@ typedef struct Event_global_set_jump_section
 Event* new_Event_global_set_jump_section(Reltime* pos);
 
 
+bool Event_global_set_jump_section_process(Playdata* global_state,
+                                           char* fields);
+
+
 #endif // K_EVENT_GLOBAL_SET_JUMP_SECTION_H
 
 

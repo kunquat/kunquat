@@ -28,7 +28,8 @@ static Event_field_desc set_jump_counter_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, 65535 }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = 65535
     },
     {
         .type = EVENT_FIELD_NONE
@@ -38,26 +39,32 @@ static Event_field_desc set_jump_counter_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_jump_counter,
                                    EVENT_GLOBAL_SET_JUMP_COUNTER,
-                                   int64_t, counter)
-
-
-static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play);
+                                   int64_t, counter);
 
 
 Event_create_constructor(Event_global_set_jump_counter,
                          EVENT_GLOBAL_SET_JUMP_COUNTER,
                          set_jump_counter_desc,
-                         event->counter = 0)
+                         event->counter = 0);
 
 
-static void Event_global_set_jump_counter_process(Event_global* event, Playdata* play)
+bool Event_global_set_jump_counter_process(Playdata* global_state,
+                                           char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_JUMP_COUNTER);
-    assert(play != NULL);
-    Event_global_set_jump_counter* set_jump_counter = (Event_global_set_jump_counter*)event;
-    play->jump_set_counter = set_jump_counter->counter;
-    return;
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_jump_counter_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->jump_set_counter = data[0].field.integral_type;
+    return true;
 }
 
 

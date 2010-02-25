@@ -18,6 +18,7 @@
 
 #include <Event_global.h>
 #include <Reltime.h>
+#include <Playdata.h>
 
 
 typedef struct Event_global_set_tempo
@@ -28,6 +29,9 @@ typedef struct Event_global_set_tempo
 
 
 Event* new_Event_global_set_tempo(Reltime* pos);
+
+
+bool Event_global_set_tempo_process(Playdata* global_state, char* fields);
 
 
 #endif // K_EVENT_GLOBAL_SET_TEMPO_H

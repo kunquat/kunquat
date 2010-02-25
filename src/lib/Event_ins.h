@@ -16,15 +16,15 @@
 #define K_EVENT_INS_H
 
 
-#include <Event.h>
+#include <Event_pg.h>
 #include <Instrument_params.h>
 
 
 typedef struct Event_ins
 {
-    Event parent;
-    Instrument_params* ins_params;
-    void (*process)(struct Event_ins* event);
+    Event_pg parent;
+//    Instrument_params* ins_params;
+//    void (*process)(struct Event_ins* event);
 } Event_ins;
 
 
@@ -33,7 +33,7 @@ typedef struct Event_ins
  *
  * \param event        The Instrument event -- must not be \c NULL.
  */
-void Event_ins_process(Event_ins* event);
+//void Event_ins_process(Event_ins* event);
 
 
 /**
@@ -42,7 +42,7 @@ void Event_ins_process(Event_ins* event);
  * \param event        The Instrument event -- must not be \c NULL.
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
  */
-void Event_ins_set_params(Event_ins* event, Instrument_params* ins_params);
+//void Event_ins_set_params(Event_ins* event, Instrument_params* ins_params);
 
 
 #endif // K_EVENT_INS_H

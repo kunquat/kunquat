@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 
 
+import os.path
+
 import SCons.Node.FS
 
 
@@ -36,8 +38,8 @@ env_demo.Command(files[2], 'kunquats00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
 
-doc_kunquat_path = env_demo['prefix'] + '/share/doc/kunquat'
-examples_path = doc_kunquat_path + '/examples'
+doc_kunquat_path = os.path.join(env_demo['prefix'], 'share', 'doc', 'kunquat')
+examples_path = os.path.join(doc_kunquat_path, 'examples')
 
 installed = env_demo.InstallCreatePath(examples_path, files)
 env_demo.Clean(installed, [examples_path, doc_kunquat_path])
