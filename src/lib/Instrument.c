@@ -307,24 +307,6 @@ void Instrument_set_scale(Instrument* ins, int index)
 }
 
 
-#if 0
-bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos)
-{
-    assert(ins != NULL);
-    assert(event != NULL);
-    bool ok = true;
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        if (ins->gens[i] != NULL && ins->gens[i]->enabled)
-        {
-            ok &= Generator_add_event(ins->gens[i], event, pos);
-        }
-    }
-    return ok;
-}
-#endif
-
-
 void Instrument_mix(Instrument* ins,
                     Voice_state* states,
                     uint32_t nframes,

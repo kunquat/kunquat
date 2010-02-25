@@ -463,8 +463,8 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
         str = read_const_char(str, '[', state);
 
         str = read_const_char(str, '[', state);
-        double freq = NAN;
-        str = read_double(str, &freq, state);
+        double cents = NAN;
+        str = read_double(str, &cents, state);
         str = read_const_char(str, ',', state);
         double force = NAN;
         str = read_double(str, &force, state);
@@ -477,9 +477,9 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
             del_AAtree(map);
             return NULL;
         }
-        if (!(freq > 0))
+        if (!isfinite(cents))
         {
-            Read_state_set_error(state, "Mapping frequency is not positive");
+            Read_state_set_error(state, "Mapping cents is not finite");
             xfree(list);
             del_AAtree(map);
             return NULL;
@@ -498,8 +498,8 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
             del_AAtree(map);
             return NULL;
         }
-        list->freq = freq;
-        list->freq_tone = log(freq);
+        list->freq = exp2(cents / 1200) * 440;
+        list->cents = cents;
         list->force = force;
         list->entry_count = 0;
         bool expect_entry = true;
@@ -638,6 +638,7 @@ Sample* Generator_pcm_get_sample_of_format(Generator_pcm* gen_pcm,
 }
 
 
+#if 0
 char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index)
 {
     assert(pcm != NULL);
@@ -650,8 +651,10 @@ char* Generator_pcm_get_path(Generator_pcm* pcm, uint16_t index)
     }
     return Sample_get_path(pcm->samples[index].formats[active_format]);
 }
+#endif
 
 
+#if 0
 void Generator_pcm_set_sample_freq(Generator_pcm* pcm,
                                    uint16_t index,
                                    double freq)
@@ -682,6 +685,7 @@ double Generator_pcm_get_sample_freq(Generator_pcm* pcm, uint16_t index)
     }
     return Sample_get_freq(pcm->samples[index].formats[active_format]);
 }
+#endif
 
 
 uint32_t Generator_pcm_mix(Generator* gen,
@@ -767,11 +771,11 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
-    if (list1->freq < list2->freq)
+    if (list1->cents < list2->cents)
     {
         return -1;
     }
-    else if (list1->freq > list2->freq)
+    else if (list1->cents > list2->cents)
     {
         return 1;
     }
@@ -779,7 +783,7 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
     {
         return -1;
     }
-    if (list1->force < list2->force)
+    if (list1->force > list2->force)
     {
         return 1;
     }
@@ -795,6 +799,7 @@ static void del_Random_list(Random_list* list)
 }
 
 
+#if 0
 int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
                                         uint8_t source,
                                         uint8_t expr,
@@ -872,8 +877,10 @@ int8_t Generator_pcm_set_sample_mapping(Generator_pcm* pcm,
     list->entries[index].sample = sample;
     return index;
 }
+#endif
 
 
+#if 0
 bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
                                       uint8_t source,
                                       uint8_t expr,
@@ -915,6 +922,7 @@ bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
     --list->entry_count;
     return true;
 }
+#endif
 
 
 static double distance(Random_list* list, Random_list* key);
@@ -924,7 +932,7 @@ static double distance(Random_list* list, Random_list* key)
 {
     assert(list != NULL);
     assert(key != NULL);
-    double tone_d = (list->freq_tone - key->freq_tone) * 64;
+    double tone_d = (list->cents - key->cents) * 64;
     double force_d = list->force - key->force;
     return sqrt(tone_d * tone_d + force_d * force_d);
 }
@@ -953,7 +961,7 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     }
     Random_list* key = &(Random_list){ .force = force,
                                        .freq = pitch,
-                                       .freq_tone = log(pitch) };
+                                       .cents = log2(pitch / 440) * 1200 };
     AAiter_change_tree(pcm->iter, map);
     Random_list* estimate_low = AAiter_get_at_most(pcm->iter, key);
     Random_list* choice = NULL;
@@ -962,16 +970,16 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     {
         choice = estimate_low;
         choice_d = distance(choice, key);
-        double min_tone = key->freq_tone - choice_d;
+        double min_tone = key->cents - choice_d;
         Random_list* candidate = AAiter_get_prev(pcm->iter);
-        while (candidate != NULL && candidate->freq_tone >= min_tone)
+        while (candidate != NULL && candidate->cents >= min_tone)
         {
             double d = distance(candidate, key);
             if (d < choice_d)
             {
                 choice = candidate;
                 choice_d = d;
-                min_tone = key->freq_tone - choice_d;
+                min_tone = key->cents - choice_d;
             }
             candidate = AAiter_get_prev(pcm->iter);
         }
@@ -985,16 +993,16 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
             choice = estimate_high;
             choice_d = d;
         }
-        double max_tone = key->freq_tone + choice_d;
+        double max_tone = key->cents + choice_d;
         Random_list* candidate = AAiter_get_next(pcm->iter);
-        while (candidate != NULL && candidate->freq_tone <= max_tone)
+        while (candidate != NULL && candidate->cents <= max_tone)
         {
             d = distance(candidate, key);
             if (d < choice_d)
             {
                 choice = candidate;
                 choice_d = d;
-                max_tone = key->freq_tone + choice_d;
+                max_tone = key->cents + choice_d;
             }
             candidate = AAiter_get_next(pcm->iter);
         }

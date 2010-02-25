@@ -192,18 +192,6 @@ void Instrument_set_scale(Instrument* ins, int index);
 
 
 /**
- * Adds a new Event into the Instrument event queue.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param event   The Event -- must not be \c NULL.
- * \param pos     The position of the Event.
- *
- * \return   \c true if successful, or \c false if the Event queue is full.
- */
-//bool Instrument_add_event(Instrument* ins, Event* event, uint32_t pos);
-
-
-/**
  * Mixes the Instrument.
  *
  * \param ins       The Instrument -- must not be \c NULL.
