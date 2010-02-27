@@ -37,7 +37,6 @@ typedef struct pitch_index
 
 static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2);
 
-
 static int pitch_index_cmp(const pitch_index* pi1, const pitch_index* pi2)
 {
     assert(pi1 != NULL);
@@ -98,8 +97,45 @@ static bool Scale_build_pitch_map(Scale* scale)
 }
 
 
+/**
+ * Sets a new note at the Scale.
+ * Any existing note at the target index will be replaced.
+ * The note will be set at no further than the first unoccupied index.
+ *
+ * \param scale   The Scale -- must not be \c NULL.
+ * \param index   The index of the note to be set -- must be >= \c 0 and
+ *                < \c KQT_SCALE_NOTES.
+ * \param ratio   The pitch ratio between the new note and reference pitch
+ *                -- must not be \c NULL and must be > \c 0.
+ *
+ * \return   The index that was actually set. This is never larger than
+ *           \a index.
+ */
+static int Scale_set_note(Scale* scale,
+                          int index,
+                          Real* ratio);
+
+
+/**
+ * Sets a new note at the Scale using cents.
+ * Any existing note at the target index will be replaced.
+ * The note will be set at no further than the first unoccupied index.
+ *
+ * \param scale   The Scale -- must not be \c NULL.
+ * \param index   The index of the note to be set -- must be >= \c 0 and
+ *                < \c KQT_SCALE_NOTES.
+ * \param cents   The pitch ratio between the new note and reference pitch
+ *                in cents -- must be a finite value.
+ *
+ * \return   The index that was actually set. This is never larger than
+ *           \a index.
+ */
+static int Scale_set_note_cents(Scale* scale,
+                                int index,
+                                double cents);
+
+
 #define NOTE_EXISTS(scale, index) (Real_get_numerator(&(scale)->notes[(index)].ratio) >= 0)
-#define NOTE_MOD_EXISTS(scale, index) (Real_get_numerator(&(scale)->note_mods[(index)].ratio) >= 0)
 
 #define NOTE_CLEAR(scale, index)                                          \
     if (true)                                                             \
@@ -108,17 +144,6 @@ static bool Scale_build_pitch_map(Scale* scale)
         Real_init_as_frac(&(scale)->notes[(index)].ratio, -1, 1);         \
         Real_init_as_frac(&(scale)->notes[(index)].ratio_retuned, -1, 1); \
     } else (void)0
-
-#define NOTE_MOD_CLEAR(scale, index)                                  \
-    if (true)                                                         \
-    {                                                                 \
-        (scale)->note_mods[(index)].cents = NAN;                      \
-        Real_init_as_frac(&(scale)->note_mods[(index)].ratio, -1, 1); \
-    } else (void)0
-
-//static Scale* Scale_init(Scale* scale, pitch_t ref_pitch, Real* octave_ratio);
-
-//static Scale* Scale_copy(Scale* dest, const Scale* src);
 
 
 Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
@@ -145,28 +170,6 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
     Scale_clear(scale);
     return scale;
 }
-
-
-#if 0
-static Scale* Scale_init(Scale* scale, pitch_t ref_pitch, Real* octave_ratio)
-{
-    assert(scale != NULL);
-    assert(octave_ratio != NULL);
-    assert( Real_cmp(octave_ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
-    Scale_clear(scale);
-    scale->ref_pitch = ref_pitch;
-    Scale_set_octave_ratio(scale, octave_ratio);
-    scale->oct_ratio_cents = NAN;
-    return scale;
-}
-
-static Scale* Scale_copy(Scale* dest, const Scale* src)
-{
-    assert(dest != NULL);
-    assert(src != NULL);
-    return memcpy(dest, src, sizeof(Scale));
-}
-#endif
 
 
 #define read_and_validate_tuning(str, ratio, cents, state)                        \
@@ -368,10 +371,6 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
 void Scale_clear(Scale* scale)
 {
     assert(scale != NULL);
-    for (int i = 0; i < KQT_SCALE_NOTE_MODS; ++i)
-    {
-        NOTE_MOD_CLEAR(scale, i);
-    }
     for (int i = 0; i < KQT_SCALE_NOTES; ++i)
     {
         NOTE_CLEAR(scale, i);
@@ -387,18 +386,6 @@ int Scale_get_note_count(Scale* scale)
 {
     assert(scale != NULL);
     return scale->note_count;
-}
-
-
-int Scale_get_note_mod_count(Scale* scale)
-{
-    assert(scale != NULL);
-    int count = 0;
-    while (count < KQT_SCALE_NOTE_MODS && NOTE_MOD_EXISTS(scale, count))
-    {
-        ++count;
-    }
-    return count;
 }
 
 
@@ -494,9 +481,9 @@ double Scale_get_octave_ratio_cents(Scale* scale)
 }
 
 
-int Scale_set_note(Scale* scale,
-                   int index,
-                   Real* ratio)
+static int Scale_set_note(Scale* scale,
+                          int index,
+                          Real* ratio)
 {
     assert(scale != NULL);
     assert(index >= 0);
@@ -522,9 +509,9 @@ int Scale_set_note(Scale* scale,
 }
 
 
-int Scale_set_note_cents(Scale* scale,
-                         int index,
-                         double cents)
+static int Scale_set_note_cents(Scale* scale,
+                                int index,
+                                double cents)
 {
     assert(scale != NULL);
     assert(index >= 0);
@@ -576,7 +563,6 @@ int Scale_ins_note(Scale* scale,
         Real_copy(&(scale->notes[index].ratio), ratio);
         Real_copy(&(scale->notes[index].ratio_retuned), ratio);
     }
-    // TODO: update tree
     for (int octave = 0; octave < KQT_SCALE_OCTAVES; ++octave)
     {
         pitch_index* pi = xalloc(pitch_index);
@@ -619,87 +605,6 @@ int Scale_ins_note_cents(Scale* scale,
     scale->notes[actual_index].cents = cents;
     return actual_index;
 }
-
-
-#if 0
-void Scale_del_note(Scale* scale, int index)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTES);
-    if (!NOTE_EXISTS(scale, index))
-    {
-        return;
-    }
-    if (scale->note_count > 0)
-    {
-        --(scale->note_count);
-        if ((scale->ref_note >= scale->note_count)
-                && (scale->ref_note > 0))
-        {
-            --(scale->ref_note);
-        }
-        if ((scale->ref_note_retuned >= scale->note_count)
-                && (scale->ref_note_retuned > 0))
-        {
-            --(scale->ref_note_retuned);
-        }
-    }
-    int i = 0;
-    for (i = index; (i < KQT_SCALE_NOTES - 1) && NOTE_EXISTS(scale, i + 1); ++i)
-    {
-        scale->notes[i].cents = scale->notes[i + 1].cents;
-        Real_copy(&(scale->notes[i].ratio), &(scale->notes[i + 1].ratio));
-        Real_copy(&(scale->notes[i].ratio_retuned),
-                  &(scale->notes[i + 1].ratio_retuned));
-    }
-    NOTE_CLEAR(scale, i);
-    return;
-}
-#endif
-
-
-#if 0
-int Scale_move_note(Scale* scale, int index, int new_index)
-{
-    // TODO: optimise?
-    int actual_index = -1;
-    double tmpcents;
-    Real tmpratio;
-    Real tmpratio_retuned;
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTES);
-    assert(new_index >= 0);
-    assert(new_index < KQT_SCALE_NOTES);
-    if (index == new_index)
-    {
-        return index;
-    }
-    if (!NOTE_EXISTS(scale, index))
-    {
-        return index;
-    }
-    tmpcents = scale->notes[index].cents;
-    Real_copy(&(tmpratio), &(scale->notes[index].ratio));
-    Real_copy(&(tmpratio_retuned), &(scale->notes[index].ratio_retuned));
-    Scale_del_note(scale, index);
-    actual_index = Scale_ins_note(scale, new_index, &tmpratio);
-    if (NOTE_EXISTS(scale, new_index))
-    {
-        Real_copy(&(scale->notes[new_index].ratio_retuned), &tmpratio_retuned);
-    }
-    else
-    {
-        assert(scale->note_count > 0);
-        Real_copy(&(scale->notes[scale->note_count - 1].ratio_retuned),
-                  &tmpratio_retuned);
-    }
-    assert(actual_index >= 0);
-    scale->notes[actual_index].cents = tmpcents;
-    return actual_index;
-}
-#endif
 
 
 Real* Scale_get_note_ratio(Scale* scale, int index)
@@ -755,167 +660,6 @@ double Scale_get_cur_note_cents(Scale* scale, int index)
 }
 
 
-#if 0
-int Scale_set_note_mod(Scale* scale,
-        int index,
-        Real* ratio)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    assert(ratio != NULL);
-    assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
-    while (index > 0 && !NOTE_MOD_EXISTS(scale, index - 1))
-    {
-        assert(!NOTE_MOD_EXISTS(scale, index));
-        --index;
-    }
-    NOTE_MOD_CLEAR(scale, index);
-    Real_copy(&(scale->note_mods[index].ratio), ratio);
-    return index;
-}
-
-
-int Scale_set_note_mod_cents(Scale* scale,
-        int index,
-        double cents)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    assert(isfinite(cents));
-    Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
-    int actual_index = Scale_set_note_mod(scale, index, ratio);
-    assert(actual_index >= 0);
-    assert(actual_index < KQT_SCALE_NOTE_MODS);
-    scale->note_mods[actual_index].cents = cents;
-    return actual_index;
-}
-
-
-int Scale_ins_note_mod(Scale* scale,
-        int index,
-        Real* ratio)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    assert(ratio != NULL);
-    assert( Real_cmp(ratio, Real_init_as_frac(REAL_AUTO, 0, 1)) > 0 );
-    if (!NOTE_MOD_EXISTS(scale, index))
-    {
-        return Scale_set_note_mod(scale, index, ratio);
-    }
-    int i = 0;
-    for (i = index; (i < KQT_SCALE_NOTE_MODS - 1)
-            && NOTE_MOD_EXISTS(scale, i); ++i)
-        ;
-    for (; i > index; --i)
-    {
-        scale->note_mods[i].cents = scale->note_mods[i - 1].cents;
-        Real_copy(&(scale->note_mods[i].ratio),
-                  &(scale->note_mods[i - 1].ratio));
-    }
-    scale->note_mods[index].cents = NAN;
-    Real_copy(&(scale->note_mods[index].ratio), ratio);
-    return index;
-}
-
-
-int Scale_ins_note_mod_cents(Scale* scale,
-        int index,
-        double cents)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    assert(isfinite(cents));
-    Real* ratio = Real_init_as_double(REAL_AUTO, exp2(cents / 1200));
-    int actual_index = Scale_ins_note_mod(scale, index, ratio);
-    assert(actual_index >= 0);
-    assert(actual_index < KQT_SCALE_NOTE_MODS);
-    scale->note_mods[actual_index].cents = cents;
-    return actual_index;
-}
-
-
-void Scale_del_note_mod(Scale* scale, int index)
-{
-    int i = 0;
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    if (!NOTE_MOD_EXISTS(scale, index))
-    {
-        return;
-    }
-    for (i = index; (i < KQT_SCALE_NOTE_MODS - 1)
-            && NOTE_MOD_EXISTS(scale, i + 1); ++i)
-    {
-        scale->note_mods[i].cents = scale->note_mods[i + 1].cents;
-        Real_copy(&(scale->note_mods[i].ratio),
-                  &(scale->note_mods[i + 1].ratio));
-    }
-    NOTE_MOD_CLEAR(scale, i);
-    return;
-}
-
-
-int Scale_move_note_mod(Scale* scale, int index, int new_index)
-{
-    //* TODO: optimise?
-    double tmpcents;
-    Real tmpratio;
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    assert(new_index >= 0);
-    assert(new_index < KQT_SCALE_NOTE_MODS);
-    if (index == new_index)
-    {
-        return index;
-    }
-    if (!NOTE_MOD_EXISTS(scale, index))
-    {
-        return index;
-    }
-    tmpcents = scale->note_mods[index].cents;
-    Real_copy(&(tmpratio), &(scale->note_mods[index].ratio));
-    Scale_del_note_mod(scale, index);
-    int ret = Scale_ins_note_mod(scale, new_index, &tmpratio);
-    assert(ret >= 0);
-    scale->note_mods[ret].cents = tmpcents;
-    return ret;
-}
-
-
-Real* Scale_get_note_mod_ratio(Scale* scale, int index)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    if (!NOTE_MOD_EXISTS(scale, index))
-    {
-        return NULL;
-    }
-    return &(scale->note_mods[index].ratio);
-}
-
-
-double Scale_get_note_mod_cents(Scale* scale, int index)
-{
-    assert(scale != NULL);
-    assert(index >= 0);
-    assert(index < KQT_SCALE_NOTE_MODS);
-    if (!NOTE_MOD_EXISTS(scale, index))
-    {
-        return NAN;
-    }
-    return scale->note_mods[index].cents;
-}
-#endif
-
-
 pitch_t Scale_get_pitch(Scale* scale,
                         int index,
                         int mod,
@@ -935,12 +679,6 @@ pitch_t Scale_get_pitch(Scale* scale,
     }
     Real_copy(&final_ratio,
               &(scale->notes[index].ratio_retuned));
-    if (mod >= 0 && NOTE_MOD_EXISTS(scale, mod))
-    {
-        Real_mul(&final_ratio,
-                 &(scale->notes[index].ratio_retuned),
-                 &(scale->note_mods[mod].ratio));
-    }
     Real_mul(&final_ratio,
              &final_ratio,
              &(scale->oct_factors[octave]));
