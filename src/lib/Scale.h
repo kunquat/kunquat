@@ -19,6 +19,7 @@
 #include <Real.h>
 #include <pitch_t.h>
 #include <kunquat/limits.h>
+#include <AAtree.h>
 #include <File_base.h>
 
 
@@ -45,6 +46,7 @@ typedef struct Scale
         Real ratio;
         Real ratio_retuned;
     } notes[KQT_SCALE_NOTES];
+    AAtree* pitch_map;
 } Scale;
 
 
@@ -68,15 +70,14 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio);
 
 
 /**
- * Parses a Scale from a textual description.
+ * Creates a Scale from a textual description.
  *
- * \param scale   The Scale -- must not be \c NULL.
  * \param str     The textual description.
  * \param state   The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new Scale if successful, otherwise \c NULL.
  */
-bool Scale_parse(Scale* scale, char* str, Read_state* state);
+Scale* new_Scale_from_string(char* str, Read_state* state);
 
 
 /**
@@ -239,8 +240,8 @@ int Scale_set_note_cents(Scale* scale,
  * \param ratio   The pitch ratio between the new note and reference pitch
  *                -- must not be \c NULL and must be > \c 0.
  *
- * \return   The index that was actually set. This is never larger than
- *           \a index.
+ * \return   The index that was actually set, or \c -1 if memory allocation
+ *           failed. The index is never larger than \a index.
  */
 int Scale_ins_note(Scale* scale,
                    int index,
@@ -257,8 +258,8 @@ int Scale_ins_note(Scale* scale,
  * \param cents   The pitch ratio between the new note and reference pitch
  *                in cents -- must be a finite value.
  *
- * \return   The index that was actually set. This is never larger than
- *           \a index.
+ * \return   The index that was actually set, or \c -1 if memory allocation
+ *           failed. The index is never larger than \a index.
  */
 int Scale_ins_note_cents(Scale* scale,
                          int index,
