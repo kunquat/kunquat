@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <stdbool.h>
+#include <float.h>
 
 #include <Event_common.h>
 #include <Event_channel_note_on.h>
@@ -30,19 +31,9 @@
 static Event_field_desc note_on_desc[] =
 {
     {
-        .type = EVENT_FIELD_NOTE,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_SCALE_NOTES - 1
-    },
-    {
-        .type = EVENT_FIELD_NOTE_MOD,
-        .min.field.integral_type = -1,
-        .max.field.integral_type = KQT_SCALE_NOTE_MODS - 1
-    },
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = KQT_SCALE_OCTAVE_FIRST,
-        .max.field.integral_type = KQT_SCALE_OCTAVE_LAST
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -DBL_MAX,
+        .max.field.double_type = DBL_MAX
     },
     {
         .type = EVENT_FIELD_NONE
@@ -50,17 +41,20 @@ static Event_field_desc note_on_desc[] =
 };
 
 
-static bool Event_channel_note_on_set(Event* event, int index, void* data);
+//static bool Event_channel_note_on_set(Event* event, int index, void* data);
 
-static void* Event_channel_note_on_get(Event* event, int index);
+//static void* Event_channel_note_on_get(Event* event, int index);
+
+
+Event_create_set_primitive_and_get(Event_channel_note_on,
+                                   EVENT_CHANNEL_NOTE_ON,
+                                   double, cents);
 
 
 Event_create_constructor(Event_channel_note_on,
                          EVENT_CHANNEL_NOTE_ON,
                          note_on_desc,
-                         event->note = 0,
-                         event->mod = -1,
-                         event->octave = KQT_SCALE_MIDDLE_OCTAVE);
+                         event->cents = 0);
 
 
 bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
@@ -70,7 +64,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    Event_field data[3];
+    Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
     Event_type_get_fields(fields, note_on_desc, data, state);
     if (state->error)
@@ -112,12 +106,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         Voice_state* vs = &voice->state.generic;
         Generator_process_note(voice->gen,
                                vs,
-                               data[0].field.integral_type,
-                               data[1].field.integral_type,
-                               data[2].field.integral_type);
-        vs->orig_note = data[0].field.integral_type;
-        vs->orig_note_mod = data[1].field.integral_type;
-        vs->orig_octave = data[2].field.integral_type;
+                               data[0].field.double_type);
+        vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;
 
@@ -146,6 +136,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 }
 
 
+#if 0
 static bool Event_channel_note_on_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -212,5 +203,6 @@ static void* Event_channel_note_on_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 

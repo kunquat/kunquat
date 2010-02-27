@@ -25,9 +25,7 @@
 typedef struct Event_channel_note_on
 {
     Event_channel parent;
-    int64_t note;
-    int64_t mod;
-    int64_t octave;
+    double cents;
 } Event_channel_note_on;
 
 

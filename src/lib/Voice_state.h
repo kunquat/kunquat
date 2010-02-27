@@ -43,15 +43,11 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-//    Channel_state* cur_ch_state;   ///< Current Channel state.
-//    Channel_state* new_ch_state;   ///< New (upcoming) Channel state.
     Voice_params params;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
-    int orig_note;                 ///< The note used at the beginning.
-    int orig_note_mod;             ///< The note modifier used at the beginning.
-    int orig_octave;               ///< The octave used at the beginning.
+    double orig_cents;             ///< The pitch in cents used at the beginning.
                                   
     pitch_t pitch;                 ///< The frequency at which the note is played.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).

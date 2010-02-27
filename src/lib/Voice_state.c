@@ -24,23 +24,17 @@
 
 
 Voice_state* Voice_state_init(Voice_state* state,
-//                              Channel_state* cur_ch_state,
-//                              Channel_state* new_ch_state,
                               Voice_params* params,
                               uint32_t freq,
                               double tempo)
 {
     assert(state != NULL);
-//    assert(cur_ch_state != NULL);
-//    assert(new_ch_state != NULL);
     assert(params != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
-//    state->cur_ch_state = cur_ch_state;
-//    state->new_ch_state = new_ch_state;
     state->freq = freq;
     state->tempo = tempo;
     Voice_params_copy(&state->params, params);
@@ -56,9 +50,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
-    state->orig_note = 0;
-    state->orig_note_mod = -1;
-    state->orig_octave = KQT_SCALE_MIDDLE_OCTAVE;
+    state->orig_cents = 0;
 
     state->pitch = 0;
     state->actual_pitch = 0;

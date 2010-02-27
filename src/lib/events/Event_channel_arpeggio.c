@@ -35,19 +35,19 @@ static Event_field_desc arpeggio_desc[] =
         .max.field.double_type = DBL_MAX
     },
     {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = -255,
-        .max.field.integral_type = 255
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -DBL_MAX,
+        .max.field.double_type = DBL_MAX
     },
     {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = -255,
-        .max.field.integral_type = 255
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -DBL_MAX,
+        .max.field.double_type = DBL_MAX
     },
     {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = -255,
-        .max.field.integral_type = 255
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -DBL_MAX,
+        .max.field.double_type = DBL_MAX
     },
     {
         .type = EVENT_FIELD_NONE
@@ -82,8 +82,8 @@ static bool Event_channel_arpeggio_set(Event* event, int index, void* data)
     }
     else if (index >= 1 && index < KQT_ARPEGGIO_NOTES_MAX + 1)
     {
-        int64_t note = *(int64_t*)data;
-        Event_check_integral_range(note, event->field_types[index]);
+        double note = *(double*)data;
+        Event_check_double_range(note, event->field_types[index]);
         arpeggio->notes[index - 1] = note;
         return true;
     }
@@ -135,11 +135,7 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
             continue;
         }
         Scale* scale = **voice->gen->ins_params->scale;
-        int note_count = Scale_get_note_count(scale);
-        pitch_t orig_pitch = Scale_get_pitch(scale,
-                                             vs->orig_note,
-                                             vs->orig_note_mod,
-                                             vs->orig_octave);
+        pitch_t orig_pitch = Scale_get_pitch_from_cents(scale, vs->orig_cents);
         if (orig_pitch <= 0)
         {
             vs->arpeggio = false;
@@ -148,17 +144,12 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
         int last_nonzero = -1;
         for (int k = 0; k < KQT_ARPEGGIO_NOTES_MAX; ++k)
         {
-            if (data[k + 1].field.integral_type != 0)
+            if (data[k + 1].field.double_type != 0)
             {
                 last_nonzero = k;
             }
-            int new_note = vs->orig_note + data[k + 1].field.integral_type;
-            int new_octave = vs->orig_octave + (new_note / note_count);
-            new_note %= note_count;
-            pitch_t new_pitch = Scale_get_pitch(scale,
-                                                new_note,
-                                                vs->orig_note_mod,
-                                                new_octave);
+            pitch_t new_pitch = Scale_get_pitch_from_cents(scale,
+                                vs->orig_cents + data[k + 1].field.double_type);
             if (new_pitch <= 0)
             {
                 last_nonzero = -1;
