@@ -488,6 +488,17 @@ pitch_t Scale_get_pitch(Scale* scale,
 
 
 /**
+ * Gets the pitch of a note in the Scale based on cents.
+ *
+ * \param scale   The Scale -- must not be \c NULL.
+ * \param cents   Number of cents centered to 440 Hz -- must be finite.
+ *
+ * \return   The pitch, or a negative value if \a scale doesn't contain notes.
+ */
+pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents);
+
+
+/**
  * Retunes the Scale.
  *
  * \param scale         The Scale -- must not be \c NULL.

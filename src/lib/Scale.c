@@ -948,6 +948,45 @@ pitch_t Scale_get_pitch(Scale* scale,
 }
 
 
+pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents)
+{
+    assert(scale != NULL);
+    assert(isfinite(cents));
+    if (scale->pitch_map == NULL)
+    {
+        return -1;
+    }
+    pitch_index* key = &(pitch_index){ .cents = cents };
+    pitch_index* pi_upper = AAtree_get(scale->pitch_map, key);
+    pitch_index* pi_lower = AAtree_get_at_most(scale->pitch_map, key);
+    pitch_index* pi = NULL;
+    if (pi_upper == NULL && pi_lower == NULL)
+    {
+        return -1;
+    }
+    else if (pi_lower == NULL)
+    {
+        pi = pi_upper;
+    }
+    else if (pi_upper == NULL)
+    {
+        pi = pi_lower;
+    }
+    else if (fabs(pi_upper->cents - cents) < fabs(pi_lower->cents - cents))
+    {
+        pi = pi_upper;
+    }
+    else
+    {
+        pi = pi_lower;
+    }
+    double hertz = exp2(cents / 1200) * 440;
+    Real* retune = Real_div(REAL_AUTO, &scale->notes[pi->note].ratio_retuned,
+                            &scale->notes[pi->note].ratio);
+    return Real_mul_float(retune, hertz);
+}
+
+
 void Scale_retune(Scale* scale, int new_ref, int fixed_point)
 {
     assert(scale != NULL);
