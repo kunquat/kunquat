@@ -160,6 +160,9 @@ Scale* new_Scale(pitch_t ref_pitch, Real* octave_ratio)
     scale->note_count = 0;
     scale->ref_note = scale->ref_note_retuned = 0;
     scale->ref_pitch = ref_pitch;
+    scale->init_pitch_offset_cents = 0;
+    scale->pitch_offset = 1;
+    scale->pitch_offset_cents = 0;
     Scale_set_octave_ratio(scale, octave_ratio);
     scale->oct_ratio_cents = NAN;
     if (!Scale_build_pitch_map(scale))
@@ -268,6 +271,26 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                     return NULL;
                 }
                 scale->ref_pitch = num;
+            }
+            else if (strcmp(key, "pitch_offset") == 0)
+            {
+                double cents = NAN;
+                str = read_double(str, &cents, state);
+                if (state->error)
+                {
+                    del_Scale(scale);
+                    return NULL;
+                }
+                if (!isfinite(cents))
+                {
+                    del_Scale(scale);
+                    Read_state_set_error(state,
+                            "Pitch offset is not finite");
+                    return NULL;
+                }
+                scale->init_pitch_offset_cents = cents;
+                scale->pitch_offset_cents = cents;
+                scale->pitch_offset = exp2(cents / 1200);
             }
             else if (strcmp(key, "octave_ratio") == 0)
             {
@@ -429,6 +452,16 @@ pitch_t Scale_get_ref_pitch(Scale* scale)
 {
     assert(scale != NULL);
     return scale->ref_pitch;
+}
+
+
+void Scale_set_pitch_offset(Scale* scale, double offset)
+{
+    assert(scale != NULL);
+    assert(isfinite(offset));
+    scale->pitch_offset_cents = offset;
+    scale->pitch_offset = exp2(offset / 1200);
+    return;
 }
 
 
@@ -682,7 +715,8 @@ pitch_t Scale_get_pitch(Scale* scale,
     Real_mul(&final_ratio,
              &final_ratio,
              &(scale->oct_factors[octave]));
-    return (pitch_t)Real_mul_float(&final_ratio, (double)(scale->ref_pitch));
+    return scale->pitch_offset *
+           Real_mul_float(&final_ratio, (double)(scale->ref_pitch));
 }
 
 
@@ -721,7 +755,7 @@ pitch_t Scale_get_pitch_from_cents(Scale* scale, double cents)
     double hertz = exp2(cents / 1200) * 440;
     Real* retune = Real_div(REAL_AUTO, &scale->notes[pi->note].ratio_retuned,
                             &scale->notes[pi->note].ratio);
-    return Real_mul_float(retune, hertz);
+    return scale->pitch_offset * Real_mul_float(retune, hertz);
 }
 
 
@@ -826,12 +860,39 @@ void Scale_retune(Scale* scale, int new_ref, int fixed_point)
 }
 
 
+bool Scale_retune_with_source(Scale* scale, Scale* source)
+{
+    assert(scale != NULL);
+    assert(source != NULL);
+    if (scale->note_count != source->note_count)
+    {
+        return false;
+    }
+    for (int i = 0; i < scale->note_count; ++i)
+    {
+        Real_copy(&scale->notes[i].ratio_retuned,
+                  &source->notes[i].ratio);
+    }
+    return true;
+}
+
+
 Real* Scale_drift(Scale* scale, Real* drift)
 {
     assert(scale != NULL);
     assert(drift != NULL);
     return Real_div(drift, &scale->notes[scale->ref_note].ratio_retuned,
                     &scale->notes[scale->ref_note].ratio);
+}
+
+
+void Scale_reset(Scale* scale)
+{
+    assert(scale != NULL);
+    scale->pitch_offset_cents = scale->init_pitch_offset_cents;
+    scale->pitch_offset = exp2(scale->pitch_offset_cents);
+    Scale_retune_with_source(scale, scale);
+    return;
 }
 
 

@@ -32,6 +32,9 @@ typedef struct Scale
     int ref_note;
     int ref_note_retuned;
     pitch_t ref_pitch;
+    double init_pitch_offset_cents;
+    double pitch_offset;
+    double pitch_offset_cents;
     Real octave_ratio;
     double oct_ratio_cents;
     Real oct_factors[KQT_SCALE_OCTAVES];
@@ -145,6 +148,15 @@ void Scale_set_ref_pitch(Scale* scale, pitch_t ref_pitch);
  * \return   The reference pitch.
  */
 pitch_t Scale_get_ref_pitch(Scale* scale);
+
+
+/**
+ * Sets the pitch offset of the Scale in cents.
+ *
+ * \param scale    The Scale -- must not be \c NULL.
+ * \param offset   The pitch offset in cents -- must be finite.
+ */
+void Scale_set_pitch_offset(Scale* scale, double offset);
 
 
 /**
@@ -317,6 +329,20 @@ void Scale_retune(Scale* scale, int new_ref, int fixed_point);
 
 
 /**
+ * Retunes the Scale with the initial parameters of another Scale.
+ *
+ * \param scale    The Scale to be retuned -- must not be \c NULL.
+ * \param source   The source Scale used as the basis of the retuning -- must
+ *                 not be \c NULL. The source Scale should have the same
+ *                 number of notes as the Scale to be modified.
+ *
+ * \return   \c true if successful, or \c false if the Scales contain
+ *           different amounts of notes.
+ */
+bool Scale_retune_with_source(Scale* scale, Scale* source);
+
+
+/**
  * Estimates the current pitch drift in the Scale.
  * The estimate is most useful if the current tuning uses the same reference
  * note as the original tuning.
@@ -336,6 +362,14 @@ Real* Scale_drift(Scale* scale, Real* drift);
  * \param scale   The Scale -- must not be \c NULL.
  */
 void Scale_clear(Scale* scale);
+
+
+/**
+ * Resets all transient parameters of the Scale.
+ *
+ * \param scale   The Scale -- must not be \c NULL.
+ */
+void Scale_reset(Scale* scale);
 
 
 /**
