@@ -237,24 +237,18 @@ Gen_type Generator_get_type(Generator* gen)
 
 void Generator_process_note(Generator* gen,
                             Voice_state* state,
-                            int note,
-                            int mod,
-                            int octave)
+                            double cents)
 {
     assert(gen != NULL);
     assert(state != NULL);
-    assert(note >= 0);
-    assert(note < KQT_SCALE_NOTES);
-    assert(mod < KQT_SCALE_NOTE_MODS);
-    assert(octave >= KQT_SCALE_OCTAVE_FIRST);
-    assert(octave <= KQT_SCALE_OCTAVE_LAST);
+    assert(isfinite(cents));
     if (gen->ins_params->scale == NULL ||
             *gen->ins_params->scale == NULL ||
             **gen->ins_params->scale == NULL)
     {
         return;
     }
-    pitch_t pitch = Scale_get_pitch(**gen->ins_params->scale, note, mod, octave);
+    pitch_t pitch = Scale_get_pitch_from_cents(**gen->ins_params->scale, cents);
     if (pitch > 0)
     {
         state->pitch = pitch;

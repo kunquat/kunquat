@@ -16,6 +16,7 @@
 #include <assert.h>
 #include <stdbool.h>
 #include <math.h>
+#include <float.h>
 
 #include <Event_common.h>
 #include <Event_channel_slide_pitch.h>
@@ -30,19 +31,9 @@
 static Event_field_desc slide_pitch_desc[] =
 {
     {
-        .type = EVENT_FIELD_NOTE,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_SCALE_NOTES - 1
-    },
-    {
-        .type = EVENT_FIELD_NOTE_MOD,
-        .min.field.integral_type = -1,
-        .max.field.integral_type = KQT_SCALE_NOTE_MODS - 1
-    },
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = KQT_SCALE_OCTAVE_FIRST,
-        .max.field.integral_type = KQT_SCALE_OCTAVE_LAST
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -DBL_MAX,
+        .max.field.double_type = DBL_MAX
     },
     {
         .type = EVENT_FIELD_NONE
@@ -50,19 +41,23 @@ static Event_field_desc slide_pitch_desc[] =
 };
 
 
-static bool Event_channel_slide_pitch_set(Event* event, int index, void* data);
+//static bool Event_channel_slide_pitch_set(Event* event, int index, void* data);
 
-static void* Event_channel_slide_pitch_get(Event* event, int index);
+//static void* Event_channel_slide_pitch_get(Event* event, int index);
+
+
+Event_create_set_primitive_and_get(Event_channel_slide_pitch,
+                                   EVENT_CHANNEL_SLIDE_PITCH,
+                                   double, cents);
 
 
 Event_create_constructor(Event_channel_slide_pitch,
                          EVENT_CHANNEL_SLIDE_PITCH,
                          slide_pitch_desc,
-                         event->note = 0,
-                         event->mod = -1,
-                         event->octave = KQT_SCALE_MIDDLE_OCTAVE);
+                         event->cents = 0);
 
 
+#if 0
 static bool Event_channel_slide_pitch_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -126,6 +121,7 @@ static void* Event_channel_slide_pitch_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
@@ -135,7 +131,7 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    Event_field data[3];
+    Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
     Event_type_get_fields(fields, slide_pitch_desc, data, state);
     if (state->error)
@@ -153,10 +149,9 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
         {
             continue;
         }
-        pitch_t pitch = Scale_get_pitch(**voice->gen->ins_params->scale,
-                                        data[0].field.integral_type,
-                                        data[1].field.integral_type,
-                                        data[2].field.integral_type);
+        pitch_t pitch =
+                Scale_get_pitch_from_cents(**voice->gen->ins_params->scale,
+                                           data[0].field.double_type);
         if (pitch <= 0)
         {
             continue;

@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_RETUNE_SCALE_H
-#define K_EVENT_GLOBAL_RETUNE_SCALE_H
+#ifndef K_EVENT_GLOBAL_SHIFT_SCALE_INTERVALS_H
+#define K_EVENT_GLOBAL_SHIFT_SCALE_INTERVALS_H
 
 
 #include <Event_global.h>
@@ -21,21 +21,20 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_retune_scale
+typedef struct Event_global_shift_scale_intervals
 {
     Event_global parent;
-    int64_t scale_index;
     int64_t new_ref;
     int64_t fixed_point;
-} Event_global_retune_scale;
+} Event_global_shift_scale_intervals;
 
 
-Event* new_Event_global_retune_scale(Reltime* pos);
+Event* new_Event_global_shift_scale_intervals(Reltime* pos);
 
 
-bool Event_global_retune_scale_process(Playdata* global_state, char* fields);
+bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fields);
 
 
-#endif // K_EVENT_GLOBAL_RETUNE_SCALE_H
+#endif // K_EVENT_GLOBAL_SHIFT_SCALE_INTERVALS_H
 
 

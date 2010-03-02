@@ -3,13 +3,8 @@
 {
     "ref_note" : 0,
     "ref_pitch" : 528,
+    "pitch_offset" : 0,
     "octave_ratio" : ["/", [2, 1]],
-
-    "note_mods" :
-    [
-        ["/", [15, 16]],
-        ["/", [16, 15]]
-    ],
 
     "notes" :
     [

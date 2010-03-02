@@ -61,12 +61,7 @@ bool Event_global_set_scale_process(Playdata* global_state, char* fields)
     {
         return false;
     }
-    if (global_state->scales == NULL)
-    {
-        return true;
-    }
-    global_state->active_scale =
-            &global_state->scales[data[0].field.integral_type];
+    global_state->scale = data[0].field.integral_type;
     return true;
 }
 

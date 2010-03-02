@@ -49,7 +49,6 @@ typedef struct Playdata
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
     uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
-//  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
@@ -57,7 +56,8 @@ typedef struct Playdata
     int buf_count;                    ///< Number of buffers used for mixing.
     kqt_frame** bufs;                 ///< The (top-level) buffers.
     Scale** scales;                   ///< The Scales.
-    Scale** active_scale;             ///< A reference to the currently active Scale.
+    Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
+    int scale;                        ///< Currently active Scale index.
 
     int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
     int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.

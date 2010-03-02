@@ -690,6 +690,7 @@ static bool parse_scale_level(kqt_Handle* handle,
     if (strcmp(subkey, MAGIC_ID "sXX/p_scale.json") == 0 ||
             strcmp(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json") == 0)
     {
+#if 0
         Scale* scale = new_Scale(SCALE_DEFAULT_REF_PITCH,
                                  SCALE_DEFAULT_OCTAVE_RATIO);
         if (scale == NULL)
@@ -703,6 +704,14 @@ static bool parse_scale_level(kqt_Handle* handle,
         {
             set_parse_error(handle, state);
             del_Scale(scale);
+            return false;
+        }
+#endif
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Scale* scale = new_Scale_from_string(data, state);
+        if (scale == NULL)
+        {
+            set_parse_error(handle, state);
             return false;
         }
         Song_set_scale(handle->song, index, scale);

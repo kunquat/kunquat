@@ -161,14 +161,19 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         return NULL;
     }
 
-    Scale_set_note(song->scales[0],
-                   0,
-                   Real_init_as_frac(REAL_AUTO, 1, 1));
+    if (Scale_ins_note(song->scales[0], 0,
+                       Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
+    {
+        del_Song(song);
+        return NULL;
+    }
     for (int i = 1; i < 12; ++i)
     {
-        Scale_set_note_cents(song->scales[0],
-                             i,
-                             i * 100);
+        if (Scale_ins_note_cents(song->scales[0], i, i * 100) < 0)
+        {
+            del_Song(song);
+            return NULL;
+        }
     }
     song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);

@@ -25,7 +25,7 @@ typedef struct Event_channel_arpeggio
 {
     Event_channel parent;
     double speed;
-    int64_t notes[KQT_ARPEGGIO_NOTES_MAX];
+    double notes[KQT_ARPEGGIO_NOTES_MAX];
 } Event_channel_arpeggio;
 
 

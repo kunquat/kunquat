@@ -137,18 +137,11 @@ Gen_type Generator_get_type(Generator* gen);
  *
  * \param gen      The Generator -- must not be \c NULL.
  * \param states   The array of Voice states -- must not be \c NULL.
- * \param note     The note number -- must be >= \c 0 and
- *                 < \c KQT_SCALE_NOTES.
- * \param mod      The note modifier -- must be < \c KQT_SCALE_NOTE_MODS.
- *                 Negative value means that no modifier will be applied.
- * \param octave   The octave -- must be >= \c KQT_SCALE_OCTAVE_FIRST
- *                 and <= \c KQT_SCALE_OCTAVE_LAST.
+ * \param cents    The pitch in cents -- must be finite.
  */
 void Generator_process_note(Generator* gen,
                             Voice_state* states,
-                            int note,
-                            int mod,
-                            int octave);
+                            double cents);
 
 
 /**
