@@ -24,7 +24,6 @@
 typedef struct Event_global_shift_scale_intervals
 {
     Event_global parent;
-    int64_t scale_index;
     int64_t new_ref;
     int64_t fixed_point;
 } Event_global_shift_scale_intervals;

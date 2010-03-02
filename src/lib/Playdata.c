@@ -64,6 +64,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->bufs = bufs;
     play->scales = NULL;
     play->active_scale = NULL;
+    play->scale = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -134,6 +135,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->bufs = NULL;
     play->scales = NULL;
     play->active_scale = NULL;
+    play->scale = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -226,6 +228,7 @@ void Playdata_reset(Playdata* play)
             }
         }
     }
+    play->scale = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;

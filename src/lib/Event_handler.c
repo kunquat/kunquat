@@ -27,8 +27,11 @@
 #include <events/Event_global_set_jump_row.h>
 #include <events/Event_global_set_jump_section.h>
 #include <events/Event_global_set_jump_subsong.h>
+
+#include <events/Event_global_set_scale.h>
 #include <events/Event_global_mimic_scale.h>
 #include <events/Event_global_shift_scale_intervals.h>
+
 #include <events/Event_global_set_tempo.h>
 #include <events/Event_global_set_volume.h>
 #include <events/Event_global_slide_tempo.h>
@@ -120,10 +123,14 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_jump_section_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SUBSONG,
                                      Event_global_set_jump_subsong_process);
+
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE,
+                                     Event_global_set_scale_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
                                      Event_global_shift_scale_intervals_process);
+
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_TEMPO,
                                      Event_global_set_tempo_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_VOLUME,

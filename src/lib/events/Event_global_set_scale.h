@@ -12,27 +12,27 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_MIMIC_SCALE_H
-#define K_EVENT_GLOBAL_MIMIC_SCALE_H
+#ifndef K_EVENT_GLOBAL_SET_SCALE_H
+#define K_EVENT_GLOBAL_SET_SCALE_H
 
 
 #include <Event_global.h>
 #include <Reltime.h>
 
 
-typedef struct Event_global_mimic_scale
+typedef struct Event_global_set_scale
 {
     Event_global parent;
-    int64_t modifier_index;
-} Event_global_mimic_scale;
+    int64_t scale_index;
+} Event_global_set_scale;
 
 
-Event* new_Event_global_mimic_scale(Reltime* pos);
+Event* new_Event_global_set_scale(Reltime* pos);
 
 
-bool Event_global_mimic_scale_process(Playdata* global_state, char* fields);
+bool Event_global_set_scale_process(Playdata* global_state, char* fields);
 
 
-#endif // K_EVENT_GLOBAL_MIMIC_SCALE_H
+#endif // K_EVENT_GLOBAL_SET_SCALE_H
 
 

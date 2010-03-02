@@ -28,6 +28,7 @@
 #include <Event_global_slide_volume.h>
 #include <Event_global_slide_volume_length.h>
 
+#include <Event_global_set_scale.h>
 #include <Event_global_mimic_scale.h>
 #include <Event_global_shift_scale_intervals.h>
 
@@ -91,6 +92,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_GLOBAL_SLIDE_VOLUME] = new_Event_global_slide_volume,
         [EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] = new_Event_global_slide_volume_length,
 
+        [EVENT_GLOBAL_SET_SCALE] = new_Event_global_set_scale,
         [EVENT_GLOBAL_MIMIC_SCALE] = new_Event_global_mimic_scale,
         [EVENT_GLOBAL_SHIFT_SCALE_INTERVALS] = new_Event_global_shift_scale_intervals,
 
