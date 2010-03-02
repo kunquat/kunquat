@@ -23,12 +23,12 @@
 #include <kunquat/limits.h>
 
 #include <events/Event_global_pattern_delay.h>
-#include <events/Event_global_retune_scale.h>
 #include <events/Event_global_set_jump_counter.h>
 #include <events/Event_global_set_jump_row.h>
 #include <events/Event_global_set_jump_section.h>
 #include <events/Event_global_set_jump_subsong.h>
-#include <events/Event_global_set_scale.h>
+#include <events/Event_global_mimic_scale.h>
+#include <events/Event_global_shift_scale_intervals.h>
 #include <events/Event_global_set_tempo.h>
 #include <events/Event_global_set_volume.h>
 #include <events/Event_global_slide_tempo.h>
@@ -112,8 +112,6 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_global_process(eh, EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
-    Event_handler_set_global_process(eh, EVENT_GLOBAL_RETUNE_SCALE,
-                                     Event_global_retune_scale_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_COUNTER,
                                      Event_global_set_jump_counter_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_ROW,
@@ -122,8 +120,10 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_jump_section_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SUBSONG,
                                      Event_global_set_jump_subsong_process);
-    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE,
-                                     Event_global_set_scale_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_MIMIC_SCALE,
+                                     Event_global_mimic_scale_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
+                                     Event_global_shift_scale_intervals_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_TEMPO,
                                      Event_global_set_tempo_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_VOLUME,

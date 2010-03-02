@@ -44,8 +44,9 @@ typedef enum
     EVENT_GLOBAL_SLIDE_VOLUME        = 222,
     EVENT_GLOBAL_SLIDE_VOLUME_LENGTH = 223,
                                      
-    EVENT_GLOBAL_SET_SCALE           = 241, ///< Set default scale used by Instruments.
-    EVENT_GLOBAL_RETUNE_SCALE        = 242, ///< Retune scale.
+    EVENT_GLOBAL_MIMIC_SCALE         = 241,
+    EVENT_GLOBAL_SET_SCALE_OFFSET    = 242,
+    EVENT_GLOBAL_SHIFT_SCALE_INTERVALS = 243,
 
     EVENT_GLOBAL_SET_JUMP_SUBSONG    = 261,
     EVENT_GLOBAL_SET_JUMP_SECTION    = 262,
