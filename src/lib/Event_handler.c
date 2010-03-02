@@ -29,6 +29,7 @@
 #include <events/Event_global_set_jump_subsong.h>
 
 #include <events/Event_global_set_scale.h>
+#include <events/Event_global_set_scale_offset.h>
 #include <events/Event_global_mimic_scale.h>
 #include <events/Event_global_shift_scale_intervals.h>
 
@@ -126,6 +127,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE,
                                      Event_global_set_scale_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE_OFFSET,
+                                     Event_global_set_scale_offset_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
