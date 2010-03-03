@@ -81,10 +81,10 @@ typedef struct Voice_state
                                   
     double* pedal;                 ///< Instrument pedal state.
     double on_ve_pos;              ///< Note On volume envelope position.
-    double off_ve_pos;             ///< Note Off volume envelope position.
+    double rel_fe_pos;             ///< Release force envelope position.
                                   
     double force;                  ///< The current force (linear factor).
-    double actual_force;           ///< The current actual force (includes tremolo).
+    double actual_force;           ///< The current actual force (includes tremolo & envs).
     int force_slide;               ///< Force slide state (0 = no slide, -1 = down, 1 = up).
     Reltime force_slide_length;
     double force_slide_target;     ///< Target force of the slide.

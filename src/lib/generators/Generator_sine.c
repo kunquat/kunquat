@@ -97,15 +97,15 @@ uint32_t Generator_sine_mix(Generator* gen,
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = sin(sine_state->phase * PI * 2) / 6;
-        Generator_common_handle_force(gen, state, vals, 1);
-        Generator_common_ramp_attack(gen, state, vals, 1, freq);
         sine_state->phase += state->actual_pitch / freq;
         if (sine_state->phase >= 1)
         {
             sine_state->phase -= floor(sine_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
+//        Generator_common_handle_note_off(gen, state, vals, 1, freq);
         vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];

@@ -59,10 +59,10 @@ typedef struct Instrument_params
     double volume_env_scale;  ///< Volume envelope scale factor (frequency -> speed).
     double volume_env_center; ///< Volume envelope scale center frequency.
 
-    bool volume_off_env_enabled;  ///< Note Off volume envelope toggle.
-    Envelope* volume_off_env;     ///< Note Off volume envelope.
-    double volume_off_env_factor; ///< Note Off volume envelope scale factor (frequency -> speed).
-    double volume_off_env_center; ///< Note Off volume envelope scale center frequency.
+    bool env_force_rel_enabled;  ///< Release force envelope toggle.
+    Envelope* env_force_rel;     ///< Release force envelope.
+    double env_force_rel_factor; ///< Release force envelope scale factor (frequency -> speed).
+    double env_force_rel_center; ///< Release force envelope scale center frequency.
 
     bool panning_enabled;       ///< Default panning toggle.
     double panning;             ///< Default panning.
@@ -118,9 +118,9 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
  * \return   \c true if successful, otherwise \c false. If memory allocation
  *           fails, state error will _not_ be set.
  */
-bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
-                                         char* str,
-                                         Read_state* state);
+bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
+                                           char* str,
+                                           Read_state* state);
 
 
 /**

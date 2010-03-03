@@ -316,7 +316,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool (*read)(Instrument_params*, char* str, Read_state*);
     } parse[] =
     {
-        { "p_envelope_volume_release.json", Instrument_params_parse_env_vol_rel },
+        { "p_envelope_force_release.json", Instrument_params_parse_env_force_rel },
         { NULL, NULL }
     };
     for (int i = 0; parse[i].name != NULL; ++i)

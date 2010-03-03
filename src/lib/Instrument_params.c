@@ -62,7 +62,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->force_filter_env = NULL;
     ip->force_pitch_env = NULL;
     ip->volume_env = NULL;
-    ip->volume_off_env = NULL;
+    ip->env_force_rel = NULL;
     ip->pitch_pan_env = NULL;
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
@@ -101,14 +101,14 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     Envelope_set_node(ip->volume_env, 1, 1);
     Envelope_set_first_lock(ip->volume_env, true, false);
 
-    new_env_or_fail(ip->volume_off_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->volume_off_env_enabled = false;
-    ip->volume_off_env_factor = 1;
-    ip->volume_off_env_center = 440;
-    Envelope_set_node(ip->volume_off_env, 0, 1);
-    Envelope_set_node(ip->volume_off_env, 1, 0);
-    Envelope_set_first_lock(ip->volume_off_env, true, false);
-    Envelope_set_last_lock(ip->volume_off_env, false, true);
+    new_env_or_fail(ip->env_force_rel, 32,  0, INFINITY, 0,  0, 1, 0);
+    ip->env_force_rel_enabled = false;
+    ip->env_force_rel_factor = 1;
+    ip->env_force_rel_center = 440;
+    Envelope_set_node(ip->env_force_rel, 0, 1);
+    Envelope_set_node(ip->env_force_rel, 1, 0);
+    Envelope_set_first_lock(ip->env_force_rel, true, false);
+    Envelope_set_last_lock(ip->env_force_rel, false, true);
 
     new_env_or_fail(ip->pitch_pan_env, 8,  -1, 1, 0,  -1, 1, 0);
     ip->pitch_pan_env_enabled = false;
@@ -140,9 +140,9 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 #undef new_env_or_fail
 
 
-bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
-                                         char* str,
-                                         Read_state* state)
+bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
+                                           char* str,
+                                           Read_state* state)
 {
     assert(ip != NULL);
     assert(state != NULL);
@@ -219,11 +219,11 @@ bool Instrument_params_parse_env_vol_rel(Instrument_params* ip,
             }
         }
     }
-    ip->volume_off_env_enabled = enabled;
-    ip->volume_off_env_factor = scale_factor;
-    ip->volume_off_env_center = scale_center;
-    Envelope* old_env = ip->volume_off_env;
-    ip->volume_off_env = env;
+    ip->env_force_rel_enabled = enabled;
+    ip->env_force_rel_factor = scale_factor;
+    ip->env_force_rel_center = scale_center;
+    Envelope* old_env = ip->env_force_rel;
+    ip->env_force_rel = env;
     del_Envelope(old_env);
     return true;
 }
@@ -246,7 +246,7 @@ void Instrument_params_uninit(Instrument_params* ip)
     del_env_check(ip->force_filter_env);
     del_env_check(ip->force_pitch_env);
     del_env_check(ip->volume_env);
-    del_env_check(ip->volume_off_env);
+    del_env_check(ip->env_force_rel);
     del_env_check(ip->pitch_pan_env);
     del_env_check(ip->filter_env);
     del_env_check(ip->filter_off_env);
