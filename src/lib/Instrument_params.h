@@ -44,8 +44,8 @@ typedef struct Instrument_params
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.
 
-    bool force_filter_env_enabled; ///< Force-filter envelope toggle.
-    Envelope* force_filter_env;    ///< Force-filter envelope.
+    bool env_force_filter_enabled; ///< Force-filter envelope toggle.
+    Envelope* env_force_filter;    ///< Force-filter envelope.
 
     bool force_pitch_env_enabled;  ///< Force-pitch envelope toggle.
     Envelope* force_pitch_env;     ///< Force-pitch envelope.
@@ -121,6 +121,11 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
                                            char* str,
                                            Read_state* state);
+
+
+bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
+                                              char* str,
+                                              Read_state* state);
 
 
 /**

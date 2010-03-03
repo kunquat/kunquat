@@ -450,6 +450,18 @@
                 (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                \
             }                                                                       \
         }                                                                           \
+        if ((gen)->ins_params->env_force_filter_enabled)                            \
+        {                                                                           \
+            double force = (state)->actual_force;                                   \
+            if (force > 1)                                                          \
+            {                                                                       \
+                force = 1;                                                          \
+            }                                                                       \
+            double factor = Envelope_get_value((gen)->ins_params->env_force_filter, \
+                                               force);                              \
+            assert(isfinite(factor));                                               \
+            (state)->actual_filter = MIN((state)->actual_filter, 16384) * factor;   \
+        }                                                                           \
         for (int i = 0; i < (frame_count); ++i)                                     \
         {                                                                           \
             (frames)[i] *= (state)->actual_force;                                   \

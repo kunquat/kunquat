@@ -59,7 +59,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->vbufs = vbufs;
     ip->vbufs2 = vbufs2;
     ip->force_volume_env = NULL;
-    ip->force_filter_env = NULL;
+    ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;
     ip->volume_env = NULL;
     ip->env_force_rel = NULL;
@@ -78,12 +78,12 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     Envelope_set_first_lock(ip->force_volume_env, true, true);
     Envelope_set_last_lock(ip->force_volume_env, true, false);
 
-    new_env_or_fail(ip->force_filter_env, 8,  0, 1, 0,  0, 1, 0);
-    ip->force_filter_env_enabled = false;
-    Envelope_set_node(ip->force_filter_env, 0, 1);
-    Envelope_set_node(ip->force_filter_env, 1, 1);
-    Envelope_set_first_lock(ip->force_filter_env, true, false);
-    Envelope_set_last_lock(ip->force_filter_env, true, false);
+    new_env_or_fail(ip->env_force_filter, 8,  0, 1, 0,  0, 1, 0);
+    ip->env_force_filter_enabled = false;
+    Envelope_set_node(ip->env_force_filter, 0, 1);
+    Envelope_set_node(ip->env_force_filter, 1, 1);
+    Envelope_set_first_lock(ip->env_force_filter, true, false);
+    Envelope_set_last_lock(ip->env_force_filter, true, false);
 
     new_env_or_fail(ip->force_pitch_env, 8,  0, 1, 0,  -1, 1, 0);
     ip->force_pitch_env_enabled = false;
@@ -138,6 +138,77 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 }
 
 #undef new_env_or_fail
+
+
+bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
+                                              char* str,
+                                              Read_state* state)
+{
+    assert(ip != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    Envelope* env = new_Envelope(8, 0, 1, 0, 0, 1, 0);
+    if (env == NULL)
+    {
+        return false;
+    }
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            del_Envelope(env);
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                if (strcmp(key, "enabled") == 0)
+                {
+                    str = read_bool(str, &enabled, state);
+                }
+                else if (strcmp(key, "nodes") == 0)
+                {
+                    str = Envelope_read(env, str, state);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unrecognised key in force-filter envelope: %s", key);
+                    del_Envelope(env);
+                    return false;
+                }
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+        }
+    }
+    ip->env_force_filter_enabled = enabled;
+    Envelope* old_env = ip->env_force_filter;
+    ip->env_force_filter = env;
+    del_Envelope(old_env);
+    return true;
+}
 
 
 bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
@@ -200,7 +271,7 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
                 else
                 {
                     Read_state_set_error(state,
-                             "Unrecognised key in Note Off volume envelope: %s", key);
+                             "Unrecognised key in release force envelope: %s", key);
                     del_Envelope(env);
                     return false;
                 }
@@ -243,7 +314,7 @@ void Instrument_params_uninit(Instrument_params* ip)
 {
     assert(ip != NULL);
     del_env_check(ip->force_volume_env);
-    del_env_check(ip->force_filter_env);
+    del_env_check(ip->env_force_filter);
     del_env_check(ip->force_pitch_env);
     del_env_check(ip->volume_env);
     del_env_check(ip->env_force_rel);

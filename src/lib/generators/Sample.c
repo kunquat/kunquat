@@ -332,12 +332,12 @@ uint32_t Sample_mix(Sample* sample,
             vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
                     + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
+        Generator_common_handle_force(gen, state, vals, 2);
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
         state->pos += adv;
         state->pos_rem += adv_rem;
-        Generator_common_handle_force(gen, state, vals, 2);
 //        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
