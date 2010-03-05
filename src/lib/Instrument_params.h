@@ -53,15 +53,15 @@ typedef struct Instrument_params
 
     double volume; ///< Instrument volume.
 
-    bool volume_env_enabled;  ///< Volume envelope toggle.
-    bool volume_env_carry;    ///< Volume envelope carry.
-    Envelope* volume_env;     ///< Volume envelope.
-    double volume_env_scale;  ///< Volume envelope scale factor (frequency -> speed).
-    double volume_env_center; ///< Volume envelope scale center frequency.
+    bool env_force_enabled;  ///< Force envelope toggle.
+    bool env_force_carry;    ///< Force envelope carry.
+    Envelope* env_force;     ///< Force envelope.
+    double env_force_scale_amount; ///< Force envelope scale amount (frequency -> speed).
+    double env_force_center; ///< Force envelope scale center frequency.
 
     bool env_force_rel_enabled;  ///< Release force envelope toggle.
     Envelope* env_force_rel;     ///< Release force envelope.
-    double env_force_rel_factor; ///< Release force envelope scale factor (frequency -> speed).
+    double env_force_rel_scale_amount; ///< Release force envelope scale amount (frequency -> speed).
     double env_force_rel_center; ///< Release force envelope scale center frequency.
 
     bool panning_enabled;       ///< Default panning toggle.
@@ -121,6 +121,11 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
                                            char* str,
                                            Read_state* state);
+
+
+bool Instrument_params_parse_env_force(Instrument_params* ip,
+                                       char* str,
+                                       Read_state* state);
 
 
 bool Instrument_params_parse_env_force_filter(Instrument_params* ip,

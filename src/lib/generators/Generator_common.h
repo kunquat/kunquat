@@ -419,6 +419,62 @@
                 (state)->tremolo_phase = new_phase;                                 \
             }                                                                       \
         }                                                                           \
+        if ((gen)->ins_params->env_force_enabled)                                   \
+        {                                                                           \
+            Envelope* env = (gen)->ins_params->env_force;                           \
+            double scale = Envelope_get_value(env, (state)->fe_pos);                \
+            assert(isfinite(scale));                                                \
+            (state)->actual_force *= scale;                                         \
+            int loop_start_index = Envelope_get_mark(env, 0);                       \
+            int loop_end_index = Envelope_get_mark(env, 1);                         \
+            double* loop_start = loop_start_index == -1 ? NULL :                    \
+                                 Envelope_get_node(env, loop_start_index);          \
+            double* loop_end = loop_end_index == -1 ? NULL :                        \
+                               Envelope_get_node(env, loop_end_index);              \
+            double stretch = 1;                                                     \
+            if ((gen)->ins_params->env_force_scale_amount != 0)                     \
+            {                                                                       \
+                stretch = pow((state)->actual_pitch /                               \
+                                  (gen)->ins_params->env_force_center,              \
+                              (gen)->ins_params->env_force_scale_amount);           \
+            }                                                                       \
+            double new_pos = (state)->fe_pos + (stretch) / (freq);                  \
+            if (loop_start != NULL && loop_end != NULL)                             \
+            {                                                                       \
+                if (new_pos > loop_end[0])                                          \
+                {                                                                   \
+                    double loop_len = loop_end[0] - loop_start[0];                  \
+                    assert(loop_len >= 0);                                          \
+                    if (loop_len == 0)                                              \
+                    {                                                               \
+                        new_pos = loop_end[0];                                      \
+                    }                                                               \
+                    else                                                            \
+                    {                                                               \
+                        double exceed = new_pos - loop_end[0];                      \
+                        double offset = fmod(exceed, loop_len);                     \
+                        new_pos = loop_start[0] + offset;                           \
+                        assert(new_pos >= loop_start[0]);                           \
+                        assert(new_pos <= loop_end[0]);                             \
+                    }                                                               \
+                }                                                                   \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                double* last = Envelope_get_node(env,                               \
+                                                 Envelope_node_count(env) - 1);     \
+                if (new_pos > last[0])                                              \
+                {                                                                   \
+                    new_pos = last[0];                                              \
+                    if ((state)->fe_pos > last[0] && last[1] == 0)                  \
+                    {                                                               \
+                        (state)->active = false;                                    \
+                        break;                                                      \
+                    }                                                               \
+                }                                                                   \
+            }                                                                       \
+            (state)->fe_pos = new_pos;                                              \
+        }                                                                           \
         if (!(state)->note_on)                                                      \
         {                                                                           \
             if ((gen)->ins_params->env_force_rel_enabled)                           \
@@ -430,7 +486,14 @@
                     (state)->active = false;                                        \
                     break;                                                          \
                 }                                                                   \
-                (state)->rel_fe_pos += (1.0 - *(state)->pedal) / (freq);            \
+                double stretch = 1;                                                 \
+                if ((gen)->ins_params->env_force_rel_scale_amount != 0)             \
+                {                                                                   \
+                    stretch = pow((state)->actual_pitch /                           \
+                                      (gen)->ins_params->env_force_rel_center,      \
+                                  (gen)->ins_params->env_force_rel_scale_amount);   \
+                }                                                                   \
+                (state)->rel_fe_pos += stretch * (1.0 - *(state)->pedal) / (freq);  \
                 (state)->actual_force *= scale;                                     \
             }                                                                       \
             else if (*(state)->pedal < 0.5)                                         \

@@ -95,7 +95,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos_rem = 0;
     
     state->pedal = NULL;
-    state->on_ve_pos = 0;
+    state->fe_pos = 0;
     state->rel_fe_pos = 0;
 
     state->force = 1;

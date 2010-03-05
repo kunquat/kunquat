@@ -150,8 +150,8 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
                          env->max_x, env->max_y);
                 return str;
             }
-    }
-    ++node_count;
+        }
+        ++node_count;
     }
     str = read_const_char(str, ']', state);
     return str;

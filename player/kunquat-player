@@ -239,8 +239,8 @@ class KeyHandler(object):
     RETURN = 260
     BACKSPACE = 261
 
-    key_map = { '\033[A' : UP,
-                '\033[B' : DOWN,
+    key_map = { #'\033[A' : UP,
+                #'\033[B' : DOWN,
                 '\033[C' : RIGHT,
                 '\033[D' : LEFT,
                 '\x0a' : RETURN,

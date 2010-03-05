@@ -61,7 +61,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->force_volume_env = NULL;
     ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;
-    ip->volume_env = NULL;
+    ip->env_force = NULL;
     ip->env_force_rel = NULL;
     ip->pitch_pan_env = NULL;
     ip->filter_env = NULL;
@@ -92,19 +92,19 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     Envelope_set_first_lock(ip->force_pitch_env, true, false);
     Envelope_set_last_lock(ip->force_pitch_env, true, false);
 
-    new_env_or_fail(ip->volume_env, 32,  0, INFINITY, 0,  0, 1, 0);
-    ip->volume_env_enabled = false;
-    ip->volume_env_carry = false;
-    ip->volume_env_scale = 1;
-    ip->volume_env_center = 440;
-    Envelope_set_node(ip->volume_env, 0, 1);
-    Envelope_set_node(ip->volume_env, 1, 1);
-    Envelope_set_first_lock(ip->volume_env, true, false);
+    new_env_or_fail(ip->env_force, 32,  0, INFINITY, 0,  0, 1, 0);
+    ip->env_force_enabled = false;
+    ip->env_force_carry = false;
+    ip->env_force_scale_amount = 0;
+    ip->env_force_center = 0;
+    Envelope_set_node(ip->env_force, 0, 1);
+    Envelope_set_node(ip->env_force, 1, 1);
+    Envelope_set_first_lock(ip->env_force, true, false);
 
     new_env_or_fail(ip->env_force_rel, 32,  0, INFINITY, 0,  0, 1, 0);
     ip->env_force_rel_enabled = false;
-    ip->env_force_rel_factor = 1;
-    ip->env_force_rel_center = 440;
+    ip->env_force_rel_scale_amount = 0;
+    ip->env_force_rel_center = 0;
     Envelope_set_node(ip->env_force_rel, 0, 1);
     Envelope_set_node(ip->env_force_rel, 1, 0);
     Envelope_set_first_lock(ip->env_force_rel, true, false);
@@ -211,31 +211,37 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
 }
 
 
-bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
-                                           char* str,
-                                           Read_state* state)
+Envelope* parse_env_time(char* str,
+                         Read_state* state,
+                         bool* enabled,
+                         double* scale_amount,
+                         double* scale_center,
+                         bool* carry,
+                         bool release)
 {
-    assert(ip != NULL);
     assert(state != NULL);
+    assert(enabled != NULL);
+    assert(scale_amount != NULL);
+    assert(scale_center != NULL);
     if (state->error)
     {
-        return false;
+        return NULL;
     }
-    bool enabled = false;
-    double scale_factor = 1;
-    double scale_center = 0;
     Envelope* env = new_Envelope(32, 0, INFINITY, 0, 0, 1, 0);
     if (env == NULL)
     {
-        return false;
+        return NULL;
     }
+    bool loop = false;
+    int64_t loop_start = -1;
+    int64_t loop_end = -1;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
         if (state->error)
         {
             del_Envelope(env);
-            return false;
+            return NULL;
         }
         str = read_const_char(str, '}', state);
         if (state->error)
@@ -250,35 +256,51 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
                 if (state->error)
                 {
                     del_Envelope(env);
-                    return false;
+                    return NULL;
                 }
                 if (strcmp(key, "enabled") == 0)
                 {
-                    str = read_bool(str, &enabled, state);
+                    str = read_bool(str, enabled, state);
                 }
-                else if (strcmp(key, "scale_factor") == 0)
+                else if (strcmp(key, "scale_amount") == 0)
                 {
-                    str = read_double(str, &scale_factor, state);
+                    str = read_double(str, scale_amount, state);
                 }
                 else if (strcmp(key, "scale_center") == 0)
                 {
-                    str = read_double(str, &scale_center, state);
+                    str = read_double(str, scale_center, state);
                 }
                 else if (strcmp(key, "nodes") == 0)
                 {
                     str = Envelope_read(env, str, state);
                 }
+                else if (carry != NULL && strcmp(key, "carry") == 0)
+                {
+                    str = read_bool(str, carry, state);
+                }
+                else if (!release && strcmp(key, "loop") == 0)
+                {
+                    str = read_bool(str, &loop, state);
+                }
+                else if (!release && strcmp(key, "loop_start") == 0)
+                {
+                    str = read_int(str, &loop_start, state);
+                }
+                else if (!release && strcmp(key, "loop_end") == 0)
+                {
+                    str = read_int(str, &loop_end, state);
+                }
                 else
                 {
                     Read_state_set_error(state,
-                             "Unrecognised key in release force envelope: %s", key);
+                             "Unrecognised key in the envelope: %s", key);
                     del_Envelope(env);
-                    return false;
+                    return NULL;
                 }
                 if (state->error)
                 {
                     del_Envelope(env);
-                    return false;
+                    return NULL;
                 }
                 check_next(str, state, expect_key);
             }
@@ -286,13 +308,88 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
             if (state->error)
             {
                 del_Envelope(env);
-                return false;
+                return NULL;
             }
         }
     }
+    if (Envelope_node_count(env) == 0)
+    {
+        Read_state_set_error(state, "The envelope doesn't contain nodes");
+        del_Envelope(env);
+        return NULL;
+    }
+    if (!release && loop)
+    {
+        if (loop_start == -1)
+        {
+            loop_start = 0;
+        }
+        if (loop_end < loop_start)
+        {
+            loop_end = loop_start;
+        }
+        Envelope_set_mark(env, 0, loop_start);
+        Envelope_set_mark(env, 1, loop_end);
+    }
+    return env;
+}
+
+
+bool Instrument_params_parse_env_force(Instrument_params* ip,
+                                       char* str,
+                                       Read_state* state)
+{
+    assert(ip != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    double scale_amount = 0;
+    double scale_center = 0;
+    bool carry = false;
+    Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
+                                   &scale_center, &carry, false);
+    if (env == NULL)
+    {
+        return false;
+    }
+    assert(!state->error);
+    ip->env_force_enabled = enabled;
+    ip->env_force_scale_amount = scale_amount;
+    ip->env_force_center = exp2(scale_center / 1200) * 440;
+    ip->env_force_carry = carry;
+    Envelope* old_env = ip->env_force;
+    ip->env_force = env;
+    del_Envelope(old_env);
+    return true;
+}
+
+
+bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
+                                           char* str,
+                                           Read_state* state)
+{
+    assert(ip != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    double scale_amount = 0;
+    double scale_center = 0;
+    Envelope* env = parse_env_time(str, state, &enabled, &scale_amount,
+                                   &scale_center, NULL, true);
+    if (env == NULL)
+    {
+        return false;
+    }
+    assert(!state->error);
     ip->env_force_rel_enabled = enabled;
-    ip->env_force_rel_factor = scale_factor;
-    ip->env_force_rel_center = scale_center;
+    ip->env_force_rel_scale_amount = scale_amount;
+    ip->env_force_rel_center = exp2(scale_center / 1200) * 440;
     Envelope* old_env = ip->env_force_rel;
     ip->env_force_rel = env;
     del_Envelope(old_env);
@@ -316,7 +413,7 @@ void Instrument_params_uninit(Instrument_params* ip)
     del_env_check(ip->force_volume_env);
     del_env_check(ip->env_force_filter);
     del_env_check(ip->force_pitch_env);
-    del_env_check(ip->volume_env);
+    del_env_check(ip->env_force);
     del_env_check(ip->env_force_rel);
     del_env_check(ip->pitch_pan_env);
     del_env_check(ip->filter_env);

@@ -80,7 +80,7 @@ typedef struct Voice_state
     double noff_pos_rem;           ///< Note Off position remainder.
                                   
     double* pedal;                 ///< Instrument pedal state.
-    double on_ve_pos;              ///< Note On volume envelope position.
+    double fe_pos;                 ///< Force envelope position.
     double rel_fe_pos;             ///< Release force envelope position.
                                   
     double force;                  ///< The current force (linear factor).
