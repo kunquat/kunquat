@@ -21,6 +21,7 @@
 
 #include <Generator_type.h>
 #include <Instrument_params.h>
+#include <Random.h>
 #include <Voice_state.h>
 #include <File_base.h>
 
@@ -35,6 +36,7 @@ typedef struct Generator
     bool enabled;
     double volume_dB;
     double volume;
+    Random* random;
     bool (*parse)(struct Generator*, const char*, void*, long, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
@@ -64,7 +66,7 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params);
 /**
  * Initialises the general Generator parameters.
  *
- * \param gen   The Generator -- must not be \c NULL.
+ * \param gen      The Generator -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */

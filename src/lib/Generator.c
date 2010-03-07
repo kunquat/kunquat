@@ -28,6 +28,7 @@
 #include <File_base.h>
 #include <Filter.h>
 #include <Event_ins.h>
+#include <Random.h>
 
 #include <xmemory.h>
 
@@ -79,6 +80,7 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->enabled = src->enabled;
     dest->volume_dB = src->volume_dB;
     dest->volume = src->volume;
+    dest->random = src->random;
     return;
 }
 

@@ -48,6 +48,14 @@ void Random_set_seed(Random* random, uint32_t seed)
 }
 
 
+void Random_reset(Random* random)
+{
+    assert(random != NULL);
+    random->state = random->seed;
+    return;
+}
+
+
 uint32_t Random_get(Random* random)
 {
     assert(random != NULL);

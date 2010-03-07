@@ -1015,7 +1015,7 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
     assert(choice->entry_count > 0);
     assert(choice->entry_count < PCM_RANDOMS_MAX);
     state->middle_tone = choice->freq;
-    int index = (rand() >> 8) % choice->entry_count;
+    int index = (Random_get(pcm->parent.random) >> 8) % choice->entry_count;
     assert(index >= 0);
 //    fprintf(stderr, "%d\n", index);
     return &choice->entries[index];

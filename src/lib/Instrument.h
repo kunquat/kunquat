@@ -24,6 +24,7 @@
 #include <Voice_state.h>
 #include <Scale.h>
 #include <Envelope.h>
+#include <Random.h>
 #include <kunquat/limits.h>
 
 
@@ -49,6 +50,7 @@ typedef struct Instrument Instrument;
  * \param scales          The Scales of the Song -- must not be \c NULL.
  * \param default_scale   The default Scale -- must not be \c NULL. Also,
  *                        *default_scales must be an element of \a scales.
+ * \param random          The Random source -- must not be \c NULL.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
@@ -59,7 +61,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale*** default_scale);
+                           Scale*** default_scale,
+                           Random* random);
 
 
 /**

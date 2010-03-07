@@ -41,11 +41,6 @@ static Event_field_desc note_on_desc[] =
 };
 
 
-//static bool Event_channel_note_on_set(Event* event, int index, void* data);
-
-//static void* Event_channel_note_on_get(Event* event, int index);
-
-
 Event_create_set_primitive_and_get(Event_channel_note_on,
                                    EVENT_CHANNEL_NOTE_ON,
                                    double, cents);
@@ -134,75 +129,5 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     }
     return true;
 }
-
-
-#if 0
-static bool Event_channel_note_on_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_ON);
-    assert(data != NULL);
-    Event_channel_note_on* note_on = (Event_channel_note_on*)event;
-    int64_t num = *(int64_t*)data;
-    if (index < 0 || index >= 3)
-    {
-        return false;
-    }
-    Event_check_integral_range(num, event->field_types[index]);
-    switch (index)
-    {
-        case 0:
-        {
-            note_on->note = num;
-        }
-        break;
-        case 1:
-        {
-            note_on->mod = num;
-        }
-        break;
-        case 2:
-        {
-            note_on->octave = num;
-        }
-        break;
-        default:
-        {
-            assert(false);
-        }
-        break;
-    }
-    return true;
-}
-
-
-static void* Event_channel_note_on_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_ON);
-    Event_channel_note_on* note_on = (Event_channel_note_on*)event;
-    switch (index)
-    {
-        case 0:
-        {
-            return &note_on->note;
-        }
-        break;
-        case 1:
-        {
-            return &note_on->mod;
-        }
-        break;
-        case 2:
-        {
-            return &note_on->octave;
-        }
-        break;
-        default:
-        break;
-    }
-    return NULL;
-}
-#endif
 
 

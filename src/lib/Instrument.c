@@ -55,7 +55,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale*** default_scale)
+                           Scale*** default_scale,
+                           Random* random)
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
@@ -70,6 +71,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     assert(*default_scale != NULL);
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
+    assert(random != NULL);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {
@@ -103,6 +105,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
             xfree(ins);
             return NULL;
         }
+        ins->gens[i].common_params.random = random;
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
             ins->gens[i].types[k] = NULL;

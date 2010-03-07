@@ -45,6 +45,14 @@ void Random_set_seed(Random* random, uint32_t seed);
 
 
 /**
+ * Restarts the random sequence in the Random.
+ *
+ * \param random   The Random generator -- must not be \c NULL.
+ */
+void Random_reset(Random* random);
+
+
+/**
  * Gets a pseudo-random number from the Random generator
  *
  * \param random   The Random generator -- must not be \c NULL.
