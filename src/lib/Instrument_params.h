@@ -39,7 +39,8 @@ typedef struct Instrument_params
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
-    double force; ///< Force.
+//    double force;                  ///< Force.
+    double force_variation;        ///< Force variation.
 
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.

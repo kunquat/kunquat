@@ -70,6 +70,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
     ip->pedal = 0;
     ip->volume = 1;
+    ip->force_variation = 0;
 
     new_env_or_fail(ip->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
     ip->force_volume_env_enabled = false;

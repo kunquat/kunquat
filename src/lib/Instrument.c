@@ -37,7 +37,6 @@ typedef struct Gen_group
 struct Instrument
 {
     double default_force;       ///< Default force.
-    double force_variation;     ///< Force variation.
 
     Scale** scales;             ///< The Scales of the Song.
     Scale*** default_scale;     ///< The default Scale of the Song.
@@ -87,7 +86,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     }
 
     ins->default_force = INS_DEFAULT_FORCE;
-    ins->force_variation = INS_DEFAULT_FORCE_VAR;
+    ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
 
     ins->scales = scales;
     ins->default_scale = default_scale;
@@ -189,7 +188,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
         }
     }
     ins->default_force = default_force;
-    ins->force_variation = force_variation;
+    ins->params.force_variation = force_variation;
     Instrument_set_scale(ins, scale_index);
     return true;
 }

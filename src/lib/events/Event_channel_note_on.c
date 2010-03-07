@@ -20,6 +20,7 @@
 #include <Event_common.h>
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
+#include <Random.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <Scale.h>
@@ -79,6 +80,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     }
     // allocate new Voices
     ch_state->panning_slide = 0;
+    double force_var = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         if (Instrument_get_gen(ins, i) == NULL)
@@ -105,6 +107,18 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;
+        if (voice->gen->ins_params->force_variation != 0)
+        {
+            if (isnan(force_var))
+            {
+                double var_dB = ((double)Random_get(voice->gen->random) /
+                                 KQT_RANDOM_MAX) *
+                                voice->gen->ins_params->force_variation;
+                var_dB -= voice->gen->ins_params->force_variation / 2;
+                force_var = exp2(var_dB / 6);
+            }
+            vs->force *= force_var;
+        }
 
         Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
         vs->tremolo_length = ch_state->tremolo_length;
