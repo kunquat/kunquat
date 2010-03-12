@@ -279,59 +279,70 @@ uint32_t Sample_mix(Sample* sample,
             mix_factor = 1 - state->rel_pos_rem;
         }
         kqt_frame vals[KQT_BUFFERS_MAX] = { 0 };
+
+#define get_items(type)                                            \
+        if (true)                                                  \
+        {                                                          \
+            type* buf_l = sample->data[0];                         \
+            type cur[2] = { buf_l[state->rel_pos] };               \
+            type next[2] = { 0 };                                  \
+            if (next_exists)                                       \
+            {                                                      \
+                next[0] = buf_l[next_pos];                         \
+            }                                                      \
+            vals[0] = ((kqt_frame)cur[0]) * (1 - mix_factor) +     \
+                      ((kqt_frame)next[0]) * mix_factor;           \
+            if (sample->channels > 1)                              \
+            {                                                      \
+                type* buf_r = sample->data[1];                     \
+                cur[1] = buf_r[state->rel_pos];                    \
+                if (next_exists)                                   \
+                {                                                  \
+                    next[1] = buf_r[next_pos];                     \
+                }                                                  \
+                vals[1] = ((kqt_frame)cur[1]) * (1 - mix_factor) + \
+                          ((kqt_frame)next[1]) * mix_factor;       \
+            }                                                      \
+            else                                                   \
+            {                                                      \
+                vals[1] = vals[0];                                 \
+            }                                                      \
+        } else (void)0
+
         if (sample->is_float)
         {
-            float* buf_l = sample->data[0];
-//          float* buf_r = sample->data[1];
-            float cur = buf_l[state->rel_pos];
-            float next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = cur * (1 - mix_factor)
-                    + next * mix_factor;
-        }
-        else if (sample->bits == 8)
-        {
-            int8_t* buf_l = sample->data[0];
-//          int8_t* buf_r = sample->data[1];
-            int8_t cur = buf_l[state->rel_pos];
-            int8_t next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x80) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x80) * mix_factor;
-        }
-        else if (sample->bits == 16)
-        {
-            int16_t* buf_l = sample->data[0];
-//          int16_t* buf_r = sample->data[1];
-            int16_t cur = buf_l[state->rel_pos];
-            int16_t next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x8000) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x8000) * mix_factor;
+            get_items(float);
         }
         else
         {
-            assert(sample->bits == 32);
-            int16_t* buf_l = sample->data[0];
-//          int16_t* buf_r = sample->data[1];
-            int16_t cur = buf_l[state->rel_pos];
-            int16_t next = 0;
-            if (next_exists)
+            switch (sample->bits)
             {
-                next = buf_l[next_pos];
+                case 8:
+                {
+                    get_items(int8_t);
+                    vals[0] /= 0x80;
+                    vals[1] /= 0x80;
+                }
+                break;
+                case 16:
+                {
+                    get_items(int16_t);
+                    vals[0] /= 0x8000UL;
+                    vals[1] /= 0x8000UL;
+                }
+                break;
+                case 32:
+                {
+                    get_items(int32_t);
+                    vals[0] /= 0x80000000UL;
+                    vals[1] /= 0x80000000UL;
+                }
+                default:
+                    assert(false);
             }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
+#undef get_items
+
         Generator_common_handle_force(gen, state, vals, 2);
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
