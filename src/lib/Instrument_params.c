@@ -63,7 +63,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->force_pitch_env = NULL;
     ip->env_force = NULL;
     ip->env_force_rel = NULL;
-    ip->pitch_pan_env = NULL;
+    ip->env_pitch_pan = NULL;
     ip->filter_env = NULL;
     ip->filter_off_env = NULL;
     ip->scale = scale;
@@ -111,13 +111,13 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     Envelope_set_first_lock(ip->env_force_rel, true, false);
     Envelope_set_last_lock(ip->env_force_rel, false, true);
 
-    new_env_or_fail(ip->pitch_pan_env, 8,  -1, 1, 0,  -1, 1, 0);
-    ip->pitch_pan_env_enabled = false;
-    Envelope_set_node(ip->pitch_pan_env, -1, 0);
-    Envelope_set_node(ip->pitch_pan_env, 0, 0);
-    Envelope_set_node(ip->pitch_pan_env, 1, 0);
-    Envelope_set_first_lock(ip->pitch_pan_env, true, false);
-    Envelope_set_last_lock(ip->pitch_pan_env, true, false);
+    new_env_or_fail(ip->env_pitch_pan, 8,  -6000, 6000, 0,  -1, 1, 0);
+    ip->env_pitch_pan_enabled = false;
+    Envelope_set_node(ip->env_pitch_pan, -1, 0);
+    Envelope_set_node(ip->env_pitch_pan, 0, 0);
+    Envelope_set_node(ip->env_pitch_pan, 1, 0);
+    Envelope_set_first_lock(ip->env_pitch_pan, true, false);
+    Envelope_set_last_lock(ip->env_pitch_pan, true, false);
 
     new_env_or_fail(ip->filter_env, 32,  0, INFINITY, 0,  0, 1, 0);
     ip->filter_env_enabled = false;
@@ -207,6 +207,77 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
     ip->env_force_filter_enabled = enabled;
     Envelope* old_env = ip->env_force_filter;
     ip->env_force_filter = env;
+    del_Envelope(old_env);
+    return true;
+}
+
+
+bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
+                                           char* str,
+                                           Read_state* state)
+{
+    assert(ip != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    bool enabled = false;
+    Envelope* env = new_Envelope(32, -6000, 6000, 0, -1, 1, 0);
+    if (env == NULL)
+    {
+        return false;
+    }
+    if (str != NULL)
+    {
+        str = read_const_char(str, '{', state);
+        if (state->error)
+        {
+            del_Envelope(env);
+            return false;
+        }
+        str = read_const_char(str, '}', state);
+        if (state->error)
+        {
+            Read_state_clear_error(state);
+            bool expect_key = true;
+            while (expect_key)
+            {
+                char key[128] = { '\0' };
+                str = read_string(str, key, 128, state);
+                str = read_const_char(str, ':', state);
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                if (strcmp(key, "enabled") == 0)
+                {
+                    str = read_bool(str, &enabled, state);
+                }
+                else if (strcmp(key, "nodes") == 0)
+                {
+                    str = Envelope_read(env, str, state);
+                }
+                else
+                {
+                    Read_state_set_error(state,
+                             "Unrecognised key in pitch-pan envelope: %s", key);
+                    del_Envelope(env);
+                    return false;
+                }
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+                check_next(str, state, expect_key);
+            }
+        }
+    }
+    ip->env_pitch_pan_enabled = enabled;
+    Envelope* old_env = ip->env_pitch_pan;
+    ip->env_pitch_pan = env;
     del_Envelope(old_env);
     return true;
 }
@@ -416,7 +487,7 @@ void Instrument_params_uninit(Instrument_params* ip)
     del_env_check(ip->force_pitch_env);
     del_env_check(ip->env_force);
     del_env_check(ip->env_force_rel);
-    del_env_check(ip->pitch_pan_env);
+    del_env_check(ip->env_pitch_pan);
     del_env_check(ip->filter_env);
     del_env_check(ip->filter_off_env);
     return;

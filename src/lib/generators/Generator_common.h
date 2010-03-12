@@ -634,6 +634,31 @@
                 }                                                         \
             }                                                             \
             (state)->actual_panning = (state)->panning;                   \
+            if ((gen)->ins_params->env_pitch_pan_enabled)                 \
+            {                                                             \
+                Envelope* env = (gen)->ins_params->env_pitch_pan;         \
+                double cents = log2((state)->pitch / 440) * 1200;         \
+                if (cents < -6000)                                        \
+                {                                                         \
+                    cents = -6000;                                        \
+                }                                                         \
+                else if (cents > 6000)                                    \
+                {                                                         \
+                    cents = 6000;                                         \
+                }                                                         \
+                double pan = Envelope_get_value(env, cents);              \
+                assert(isfinite(pan));                                    \
+                double separation = 1 - fabs((state)->actual_panning);    \
+                (state)->actual_panning += pan * separation;              \
+                if ((state)->actual_panning < -1)                         \
+                {                                                         \
+                    (state)->actual_panning = -1;                         \
+                }                                                         \
+                else if ((state)->actual_panning > 1)                     \
+                {                                                         \
+                    (state)->actual_panning = 1;                          \
+                }                                                         \
+            }                                                             \
             (frames)[0] *= 1 - (state)->actual_panning;                   \
             (frames)[1] *= 1 + (state)->actual_panning;                   \
         }                                                                 \

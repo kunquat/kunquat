@@ -67,8 +67,8 @@ typedef struct Instrument_params
 
     bool panning_enabled;       ///< Default panning toggle.
     double panning;             ///< Default panning.
-    bool pitch_pan_env_enabled; ///< Pitch-panning envelope toggle.
-    Envelope* pitch_pan_env;    ///< Pitch-panning envelope.
+    bool env_pitch_pan_enabled; ///< Pitch-panning envelope toggle.
+    Envelope* env_pitch_pan;    ///< Pitch-panning envelope.
 
     bool filter_env_enabled;    ///< Filter envelope toggle.
     Envelope* filter_env;       ///< Filter envelope.
@@ -132,6 +132,11 @@ bool Instrument_params_parse_env_force(Instrument_params* ip,
 bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                                               char* str,
                                               Read_state* state);
+
+
+bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
+                                           char* str,
+                                           Read_state* state);
 
 
 /**

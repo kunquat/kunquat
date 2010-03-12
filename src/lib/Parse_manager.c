@@ -320,6 +320,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         { "p_envelope_force.json", Instrument_params_parse_env_force },
         { "p_envelope_force_release.json", Instrument_params_parse_env_force_rel },
         { "p_envelope_force_filter.json", Instrument_params_parse_env_force_filter },
+        { "p_envelope_pitch_pan.json", Instrument_params_parse_env_pitch_pan },
         { NULL, NULL }
     };
     for (int i = 0; parse[i].name != NULL; ++i)
