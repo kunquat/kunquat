@@ -99,7 +99,7 @@ void Channel_set_voices(Channel* ch,
 //  assert(citer != NULL);
     assert(start != NULL);
     assert(end != NULL);
-    assert(offset < nframes);
+    assert(offset <= nframes);
     assert(tempo > 0);
     assert(freq > 0);
     assert(eh != NULL);
