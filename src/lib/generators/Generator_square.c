@@ -74,6 +74,7 @@ bool Generator_square_parse(Generator* gen,
     assert(Generator_square_has_subkey(subkey));
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     assert(state != NULL);
     if (state->error)
     {

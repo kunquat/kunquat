@@ -96,6 +96,7 @@ void Channel_set_voices(Channel* ch,
 {
     assert(ch != NULL);
     assert(pool != NULL);
+    (void)pool; // FIXME: remove?
 //  assert(citer != NULL);
     assert(start != NULL);
     assert(end != NULL);

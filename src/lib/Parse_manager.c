@@ -224,6 +224,7 @@ static bool parse_song_level(kqt_Handle* handle,
     assert(key != NULL);
     assert(data != NULL || length == 0);
     assert(length >= 0);
+    (void)length;
     if (strcmp(key, "p_composition.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -553,6 +554,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
@@ -689,6 +691,7 @@ static bool parse_scale_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
         return true;
@@ -740,6 +743,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_SUBSONGS_MAX)
     {
         return true;

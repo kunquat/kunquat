@@ -19,6 +19,7 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <math_common.h>
 #include <Filter.h>
@@ -97,6 +98,8 @@ void bilinear_butterworth_lowpass_filter_create(int n,
     assert(q <= 1000);
     assert(coeffsa != NULL);
     assert(coeffsb != NULL);
+//    static int created = 0;
+//    fprintf(stderr, "  %d \n", ++created);
 
     double a0   = 1.0;
     double fna0 = 1.0;

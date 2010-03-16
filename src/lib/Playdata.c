@@ -34,6 +34,7 @@ Playdata* new_Playdata(Ins_table* insts,
                        Random* random)
 {
     assert(insts != NULL);
+    (void)insts; // FIXME: remove?
     assert(buf_count > 0);
     assert(bufs != NULL);
     assert(random != NULL);
