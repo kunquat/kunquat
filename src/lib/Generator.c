@@ -356,7 +356,7 @@ void Generator_mix(Generator* gen,
                 in_buf = gen->ins_params->vbufs2;
                 for (int i = 0; i < gen->ins_params->buf_count; ++i)
                 {
-                    iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                    iir_filter_df1_old(FILTER_ORDER, FILTER_ORDER,
                                    state->filter_state[state->filter_state_used].coeffs1,
                                    state->filter_state[state->filter_state_used].coeffs2,
                                    state->filter_state[state->filter_state_used].history1[i],
@@ -394,7 +394,7 @@ void Generator_mix(Generator* gen,
                     }
                     for (int i = 0; i < gen->ins_params->buf_count; ++i)
                     {
-                        iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                        iir_filter_df1_old(FILTER_ORDER, FILTER_ORDER,
                                 state->filter_state[state->filter_xfade_state_used].coeffs1,
                                 state->filter_state[state->filter_xfade_state_used].coeffs2,
                                 state->filter_state[state->filter_xfade_state_used].history1[i],

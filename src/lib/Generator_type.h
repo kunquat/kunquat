@@ -45,7 +45,7 @@ typedef enum
     GEN_TYPE_SAWTOOTH,
     /// A sample-based type common in tracker programs.
     GEN_TYPE_PCM,
-    /// Noise generator.
+    /// A noise generator.
     GEN_TYPE_NOISE,
     /// A type for reading audio data from disk -- used for large audio files.
     GEN_TYPE_PCM_DISK,
