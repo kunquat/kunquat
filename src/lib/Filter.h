@@ -134,7 +134,7 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
         }                                                       \
         else                                                    \
         {                                                       \
-            for (int filter_i = 0; filter_i < (n); ++filter_i)  \
+            for (int filter_i = 0; filter_i < -(n); ++filter_i) \
             {                                                   \
                 (out) = (in) - (buf)[filter_i];                 \
                 (buf)[filter_i] = (in);                         \
@@ -156,3 +156,5 @@ void iir_filter_df1_old(int na,
 
 
 #endif // K_FILTER_H
+
+

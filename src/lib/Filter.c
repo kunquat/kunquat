@@ -24,48 +24,51 @@
 #include <math_common.h>
 #include <Filter.h>
 
-const double  bt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
-                                                      1.0,  1.0,
-                                                      1.0,  2.0,   1.0,
-                                                      1.0,  3.0,   3.0,   1.0,
-                                                      1.0,  4.0,   6.0,   4.0,   1.0,
-                                                      1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
-                                                      1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
-                                                      1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
-                                                      1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0, 1.0};
+
+const double  bt[BINOM_MAX * (BINOM_MAX + 1) / 2] =
+                  { 1.0,
+                    1.0,  1.0,
+                    1.0,  2.0,   1.0,
+                    1.0,  3.0,   3.0,   1.0,
+                    1.0,  4.0,   6.0,   4.0,   1.0,
+                    1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
+                    1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
+                    1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
+                    1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0,  1.0 };
 
 
-const double nbt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
-                                                     -1.0,  1.0,
-                                                      1.0, -2.0,   1.0,
-                                                     -1.0,  3.0, - 3.0,   1.0,
-                                                      1.0, -4.0,   6.0, - 4.0,   1.0,
-                                                     -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
-                                                      1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
-                                                     -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
-                                                      1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0, 1.0};
+const double nbt[BINOM_MAX * (BINOM_MAX + 1) / 2] =
+                  {  1.0,
+                    -1.0,  1.0,
+                     1.0, -2.0,   1.0,
+                    -1.0,  3.0, - 3.0,   1.0,
+                     1.0, -4.0,   6.0, - 4.0,   1.0,
+                    -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
+                     1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
+                    -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
+                     1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0,  1.0 };
 
 
-const double*    binom[BINOM_MAX] = { bt     ,
-                                      bt + 1 ,
-                                      bt + 3 ,
-                                      bt + 6 ,
-                                      bt + 10,
-                                      bt + 15,
-                                      bt + 21,
-                                      bt + 28,
-                                      bt + 36};
+const double* binom[BINOM_MAX] = { bt     ,
+                                   bt + 1 ,
+                                   bt + 3 ,
+                                   bt + 6 ,
+                                   bt + 10,
+                                   bt + 15,
+                                   bt + 21,
+                                   bt + 28,
+                                   bt + 36 };
 
 
-const double* negbinom[BINOM_MAX] = {nbt     ,
-                                     nbt + 1 ,
-                                     nbt + 3 ,
-                                     nbt + 6 ,
-                                     nbt + 10,
-                                     nbt + 15,
-                                     nbt + 21,
-                                     nbt + 28,
-                                     nbt + 36};
+const double* negbinom[BINOM_MAX] = { nbt     ,
+                                      nbt + 1 ,
+                                      nbt + 3 ,
+                                      nbt + 6 ,
+                                      nbt + 10,
+                                      nbt + 15,
+                                      nbt + 21,
+                                      nbt + 28,
+                                      nbt + 36 };
 
 
 double sinc(double x)
@@ -320,14 +323,14 @@ void fir_filter(int n,
 
 
 void iir_filter_df1_old(int na,
-                    int nb,
-                    double* coeffsa,
-                    double* coeffsb,
-                    kqt_frame* histbufa,
-                    kqt_frame* histbufb,
-                    int nframes,
-                    kqt_frame* inbuf,
-                    kqt_frame* outbuf)
+                        int nb,
+                        double* coeffsa,
+                        double* coeffsb,
+                        kqt_frame* histbufa,
+                        kqt_frame* histbufb,
+                        int nframes,
+                        kqt_frame* inbuf,
+                        kqt_frame* outbuf)
 {
     double temp;
     for (int i = 0; i < nframes; ++i)
