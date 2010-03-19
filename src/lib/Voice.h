@@ -28,6 +28,7 @@
 #include <Voice_state_square.h>
 #include <Voice_state_square303.h>
 #include <Voice_state_sawtooth.h>
+#include <Voice_state_noise.h>
 
 
 typedef enum
@@ -61,6 +62,7 @@ typedef struct Voice
         Voice_state_square square;
         Voice_state_square303 square303;
         Voice_state_sawtooth sawtooth;
+        Voice_state_noise noise;
     } state;
 } Voice;
 

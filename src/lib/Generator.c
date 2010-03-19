@@ -25,6 +25,7 @@
 #include <Generator_square.h>
 #include <Generator_square303.h>
 #include <Generator_pcm.h>
+#include <Generator_noise.h>
 #include <File_base.h>
 #include <Filter.h>
 #include <Event_ins.h>
@@ -45,6 +46,7 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
         [GEN_TYPE_TRIANGLE] = new_Generator_triangle,
         [GEN_TYPE_SQUARE] = new_Generator_square,
         [GEN_TYPE_SQUARE303] = new_Generator_square303,
+        [GEN_TYPE_NOISE] = new_Generator_noise,
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
     assert(cons[type] != NULL);
@@ -168,6 +170,7 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
         [GEN_TYPE_SQUARE] = "square",
         [GEN_TYPE_SQUARE303] = "square303",
         [GEN_TYPE_SAWTOOTH] = "sawtooth",
+        [GEN_TYPE_NOISE] = "noise",
         [GEN_TYPE_PCM] = "pcm",
     };
     char desc[128] = { '\0' };
@@ -337,7 +340,7 @@ void Generator_mix(Generator* gen,
                 in_buf = gen->ins_params->vbufs2;
                 for (int i = 0; i < gen->ins_params->buf_count; ++i)
                 {
-                    iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                    iir_filter_df1_old(FILTER_ORDER, FILTER_ORDER,
                                    state->filter_state[state->filter_state_used].coeffs1,
                                    state->filter_state[state->filter_state_used].coeffs2,
                                    state->filter_state[state->filter_state_used].history1[i],
@@ -375,7 +378,7 @@ void Generator_mix(Generator* gen,
                     }
                     for (int i = 0; i < gen->ins_params->buf_count; ++i)
                     {
-                        iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
+                        iir_filter_df1_old(FILTER_ORDER, FILTER_ORDER,
                                 state->filter_state[state->filter_xfade_state_used].coeffs1,
                                 state->filter_state[state->filter_xfade_state_used].coeffs2,
                                 state->filter_state[state->filter_xfade_state_used].history1[i],

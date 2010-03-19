@@ -24,6 +24,49 @@
 #include <math_common.h>
 #include <Filter.h>
 
+const double  bt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
+                                                      1.0,  1.0,
+                                                      1.0,  2.0,   1.0,
+                                                      1.0,  3.0,   3.0,   1.0,
+                                                      1.0,  4.0,   6.0,   4.0,   1.0,
+                                                      1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
+                                                      1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
+                                                      1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
+                                                      1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0, 1.0};
+
+
+const double nbt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
+                                                     -1.0,  1.0,
+                                                      1.0, -2.0,   1.0,
+                                                     -1.0,  3.0, - 3.0,   1.0,
+                                                      1.0, -4.0,   6.0, - 4.0,   1.0,
+                                                     -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
+                                                      1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
+                                                     -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
+                                                      1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0, 1.0};
+
+
+const double*    binom[BINOM_MAX] = { bt     ,
+                                      bt + 1 ,
+                                      bt + 3 ,
+                                      bt + 6 ,
+                                      bt + 10,
+                                      bt + 15,
+                                      bt + 21,
+                                      bt + 28,
+                                      bt + 36};
+
+
+const double* negbinom[BINOM_MAX] = {nbt     ,
+                                     nbt + 1 ,
+                                     nbt + 3 ,
+                                     nbt + 6 ,
+                                     nbt + 10,
+                                     nbt + 15,
+                                     nbt + 21,
+                                     nbt + 28,
+                                     nbt + 36};
+
 
 double sinc(double x)
 {
@@ -44,12 +87,6 @@ double powi(double x, int n)
         x *= x;
     }
     return ret;
-}
-
-
-int binom(int n, int k)
-{
-    return (k == 0 || k == n) ? 1 : binom(n - 1, k - 1) + binom(n - 1, k);
 }
 
 
@@ -103,7 +140,7 @@ void bilinear_butterworth_lowpass_filter_create(int n,
 
     double a0   = 1.0;
     double fna0 = 1.0;
-    f = tan(PI * f);
+    f = tan(PI * f); //Prewarp
     switch(n)
     {
         case 1:
@@ -169,7 +206,7 @@ void bilinear_butterworth_lowpass_filter_create(int n,
     fna0 = powi(f, n) / a0;
     for (int i = 0; i <= n; ++i)
     {
-        coeffsb[i] = binom(n, i) * fna0;
+        coeffsb[i] = binom[n][i] * fna0;
     }
     return;
 }
@@ -214,149 +251,116 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
         break;
     }
  
-    for(i = 0; i < n; ++i)
+    for (i = 0; i < n; ++i)
     {
         coeffsa[i] /= a0;
     }
  
     fna0 = powi(f, n) * e * (1 << (n - 1)) / a0;
  
-    for(i = 0; i <= n; ++i)
+    for (i = 0; i <= n; ++i)
     {
-        coeffsb[i] = binom(n, i) * fna0;
+        coeffsb[i] = binom[n][i] * fna0;
     }
     return;
 }
 
 
-/*
-void invert(int n, double* coeffs)
+#define dprod2(histbuf, sourcebuf, coeffs, n, i, acc, oper)       \
+    if (true)                                                     \
+    {                                                             \
+        int j = (i);                                              \
+        int k = 0;                                                \
+        dprod(histbuf, coeffs, j, k, n, n, acc, oper);            \
+        j -= (n);                                                 \
+        dprod(sourcebuf, coeffs, j, k, nframes, n, acc, oper);    \
+    } else (void)0
+
+
+void buffer(kqt_frame* histbuf,
+            kqt_frame* sourcebuf,
+            int n,
+            int nframes)
 {
-  int i;
-  
-  for(i=!(n % 2);i<n;i+=2)
-    coeffs[i] = -coeffs[i];
+    if (nframes < n)
+    {
+        memmove(histbuf, histbuf + nframes, (n - nframes) * sizeof(kqt_frame));
+        memcpy(histbuf + n - nframes, sourcebuf, nframes * sizeof(kqt_frame));
+    }
+    else
+    {
+        memcpy(histbuf, sourcebuf + nframes - n, n * sizeof(kqt_frame));
+    }
+    return;
 }
-*/
 
 
-#define DPROD(histbuff, sourcebuff, coeffs, n, i, acc, oper) \
-    if (true)                                                \
-    {                                                        \
-        int j = 0;                                           \
-        int k = 0;                                           \
-        for (j = 0, k = (i); k < (n); ++j, ++k)              \
-        {                                                    \
-            (acc) oper (histbuff)[k] * (coeffs)[j];          \
-        }                                                    \
-        for (k -= (n); j < (n); ++j, ++k)                    \
-        {                                                    \
-            (acc) oper (sourcebuff)[k] * (coeffs)[j];        \
-        }                                                    \
-    } else (void)0
-
-
-#define BUFFER(histbuff, sourcebuff, n, amount)                                               \
-    if (true)                                                                                 \
-    {                                                                                         \
-        if((amount)<(n))                                                                      \
-        {                                                                                     \
-            memmove((histbuff), (histbuff) + (amount), ((n) - (amount)) * sizeof(kqt_frame)); \
-            memcpy((histbuff) + (n) - (amount), (sourcebuff), (amount) * sizeof(kqt_frame));  \
-        }                                                                                     \
-        else                                                                                  \
-        {                                                                                     \
-            memcpy((histbuff), (sourcebuff) + (amount) - (n), (n) * sizeof(kqt_frame));       \
-        }                                                                                     \
-    } else (void)0
-
-
+#if 0
 void fir_filter(int n,
                 double* coeffs,
-                kqt_frame* histbuff,
-                int amount,
-                kqt_frame* inbuff,
-                kqt_frame* outbuff)
+                kqt_frame* histbuf,
+                int nframes,
+                kqt_frame* inbuf,
+                kqt_frame* outbuf)
 {
     double temp;
  
-    for(int i = 0; i < amount; ++i)
+    for (int i = 0; i < nframes; ++i)
     {
-        temp = inbuff[i] * coeffs[n];
-        DPROD(histbuff, inbuff, coeffs, n, i, temp, +=);
-        outbuff[i] = temp;
+        temp = inbuf[i] * coeffs[n];
+        dprod2(histbuf, inbuf, coeffs, n, i, temp, +=);
+        outbuf[i] = temp;
     }
  
-    BUFFER(histbuff, inbuff, n, amount);
+    buffer(histbuf, inbuf, n, nframes);
  
     return;
 }
+#endif
 
 
-void iir_filter_df1(int na,
+void iir_filter_df1_old(int na,
                     int nb,
                     double* coeffsa,
                     double* coeffsb,
-                    kqt_frame* histbuffa,
-                    kqt_frame* histbuffb,
-                    int amount,
-                    kqt_frame* inbuff,
-                    kqt_frame* outbuff)
+                    kqt_frame* histbufa,
+                    kqt_frame* histbufb,
+                    int nframes,
+                    kqt_frame* inbuf,
+                    kqt_frame* outbuf)
 {
     double temp;
-    for (int i = 0; i < amount; ++i)
+    for (int i = 0; i < nframes; ++i)
     {
-        temp = inbuff[i] * coeffsb[nb];
-        DPROD(histbuffa, outbuff, coeffsa, na, i, temp, -=);
-        DPROD(histbuffb,  inbuff, coeffsb, nb, i, temp, +=);
-        outbuff[i] = temp;
+        temp = inbuf[i] * coeffsb[nb];
+        dprod2(histbufa, outbuf, coeffsa, na, i, temp, -=);
+        dprod2(histbufb,  inbuf, coeffsb, nb, i, temp, +=);
+        outbuf[i] = temp;
     }
-    BUFFER(histbuffa, outbuff, na, amount);
-    BUFFER(histbuffb,  inbuff, nb, amount);
+    buffer(histbufa, outbuf, na, nframes);
+    buffer(histbufb,  inbuf, nb, nframes);
     return;
 }
 
 
-void iir_filter_df2(int na,
-                    int nb,
-                    double* coeffsa,
-                    double* coeffsb,
-                    kqt_frame* histbuff,
-                    int amount,
-                    kqt_frame* inbuff,
-                    kqt_frame* outbuff)
-{
-    double temp;
-    for (int i = 0; i < amount; ++i)
-    {
-        temp = inbuff[i];
-        DPROD(&histbuff[MAX(na, nb) - na], inbuff, coeffsa, na, i, temp, -=);
-        inbuff[i] = temp;
-        temp *= coeffsb[nb];
-        DPROD(&histbuff[MAX(na, nb) - nb], inbuff, coeffsb, nb, i, temp, +=);
-        outbuff[i] = temp;
-    }
-    BUFFER(histbuff, inbuff, MAX(na,nb), amount);
-    return;
-}
-
-
+#if 0
 void iir_filter_pure(int n,
                      double* coeffs,
-                     kqt_frame* histbuff,
-                     int amount,
-                     kqt_frame* inbuff,
-                     kqt_frame* outbuff)
+                     kqt_frame* histbuf,
+                     int nframes,
+                     kqt_frame* inbuf,
+                     kqt_frame* outbuf)
 {
     double temp;
-    for (int i = 0; i < amount; ++i)
+    for (int i = 0; i < nframes; ++i)
     {
-        temp = inbuff[i];
-        DPROD(histbuff, outbuff, coeffs, n, i, temp, -=);
-        outbuff[i] = temp;
+        temp = inbuf[i];
+        dprod2(histbuf, outbuf, coeffs, n, i, temp, -=);
+        outbuf[i] = temp;
     }
-    BUFFER(histbuff, outbuff, n, amount);
+    buffer(histbuf, outbuf, n, nframes);
     return;
 }
+#endif
 
 
