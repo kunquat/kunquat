@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -35,115 +27,82 @@
 #include <Generator_pcm.h>
 #include <Generator_noise.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Filter.h>
 #include <Event_ins.h>
+#include <Random.h>
 
 #include <xmemory.h>
+
+
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
+{
+    assert(type > GEN_TYPE_NONE);
+    assert(type < GEN_TYPE_LAST);
+    assert(ins_params != NULL);
+    Generator* (*cons[])(Instrument_params*) =
+    {
+        [GEN_TYPE_SINE] = new_Generator_sine,
+        [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
+        [GEN_TYPE_TRIANGLE] = new_Generator_triangle,
+        [GEN_TYPE_SQUARE] = new_Generator_square,
+        [GEN_TYPE_SQUARE303] = new_Generator_square303,
+        [GEN_TYPE_NOISE] = new_Generator_noise,
+        [GEN_TYPE_PCM] = new_Generator_pcm,
+    };
+    assert(cons[type] != NULL);
+    Generator* gen = cons[type](ins_params);
+//    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
+    return gen;
+}
 
 
 bool Generator_init(Generator* gen)
 {
     assert(gen != NULL);
-    gen->enabled = true;
-    gen->volume_dB = 0;
-    gen->volume = 1;
+    gen->enabled = GENERATOR_DEFAULT_ENABLED;
+    gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
+    gen->volume = exp2(gen->volume_dB / 6);
+    gen->parse = NULL;
     return true;
 }
 
 
-Generator* new_Generator_from_file_tree(File_tree* tree,
-                                        Read_state* state,
-                                        Instrument_params* ins_params)
+void Generator_uninit(Generator* gen)
 {
-    assert(tree != NULL);
+    assert(gen != NULL);
+    (void)gen;
+    return;
+}
+
+
+void Generator_copy_general(Generator* dest, Generator* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    dest->enabled = src->enabled;
+    dest->volume_dB = src->volume_dB;
+    dest->volume = src->volume;
+    dest->random = src->random;
+    return;
+}
+
+
+bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
+{
+    assert(gen != NULL);
     assert(state != NULL);
     if (state->error)
     {
-        return NULL;
+        return false;
     }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
+    bool enabled = false;
+    double volume = 0;
+    if (str != NULL)
     {
-        Read_state_set_error(state, "Generator is not a directory");
-        return NULL;
-    }
-    File_tree* type_tree = File_tree_get_child(tree, "gen_type.json");
-    if (type_tree == NULL)
-    {
-        Read_state_set_error(state, "Generator does not contain a type description");
-        return NULL;
-    }
-    Read_state_init(state, File_tree_get_path(type_tree));
-    if (File_tree_is_dir(type_tree))
-    {
-        Read_state_set_error(state, "Type description of the Generator is a directory");
-        return NULL;
-    }
-    char* str = File_tree_get_data(type_tree);
-    char type_str[128] = { '\0' };
-    str = read_string(str, type_str, 128, state);
-    if (state->error)
-    {
-        return NULL;
-    }
-    Generator* gen = NULL;
-    if (strcmp(type_str, "sine") == 0)
-    {
-        gen = (Generator*)new_Generator_sine(ins_params);
-    }
-    else if (strcmp(type_str, "sawtooth") == 0)
-    {
-        gen = (Generator*)new_Generator_sawtooth(ins_params);
-    }
-    else if (strcmp(type_str, "triangle") == 0)
-    {
-        gen = (Generator*)new_Generator_triangle(ins_params);
-    }
-    else if (strcmp(type_str, "square") == 0)
-    {
-        gen = (Generator*)new_Generator_square(ins_params);
-    }
-    else if (strcmp(type_str, "square303") == 0)
-    {
-        gen = (Generator*)new_Generator_square303(ins_params);
-    }
-    else if (strcmp(type_str, "pcm") == 0)
-    {
-        gen = (Generator*)new_Generator_pcm(ins_params);
-    }
-    else if (strcmp(type_str, "noise") == 0)
-    {
-        gen = (Generator*)new_Generator_noise(ins_params);
-    }
-    else
-    {
-        Read_state_set_error(state, "Unsupported Generator type: %s", type_str);
-        return NULL;
-    }
-    if (gen == NULL)
-    {
-        Read_state_set_error(state, "Couldn't allocate memory for the new Generator");
-        return NULL;
-    }
-
-    File_tree* info_tree = File_tree_get_child(tree, "generator.json");
-    if (info_tree != NULL)
-    {
-        Read_state_init(state, File_tree_get_path(info_tree));
-        if (File_tree_is_dir(info_tree))
-        {
-            del_Generator(gen);
-            Read_state_set_error(state,
-                     "Field description of the Generator is a directory");
-            return NULL;
-        }
-        str = File_tree_get_data(info_tree);
         str = read_const_char(str, '{', state);
         if (state->error)
         {
-            del_Generator(gen);
-            return NULL;
+            return false;
         }
         str = read_const_char(str, '}', state);
         if (state->error)
@@ -157,52 +116,120 @@ Generator* new_Generator_from_file_tree(File_tree* tree,
                 str = read_const_char(str, ':', state);
                 if (state->error)
                 {
-                    del_Generator(gen);
-                    return NULL;
+                    return false;
                 }
                 if (strcmp(key, "enabled") == 0)
                 {
-                    str = read_bool(str, &gen->enabled, state);
+                    str = read_bool(str, &enabled, state);
                 }
                 else if (strcmp(key, "volume") == 0)
                 {
-                    str = read_double(str, &gen->volume_dB, state);
-                    if (!state->error)
-                    {
-                        gen->volume = exp2(gen->volume_dB / 6);
-                    }
+                    str = read_double(str, &volume, state);
                 }
                 else
                 {
-                    del_Generator(gen);
                     Read_state_set_error(state,
                              "Unsupported key in Generator info: %s", key);
-                    return NULL;
+                    return false;
                 }
                 if (state->error)
                 {
-                    del_Generator(gen);
-                    return NULL;
+                    return false;
                 }
                 check_next(str, state, expect_key);
             }
             str = read_const_char(str, '}', state);
             if (state->error)
             {
-                del_Generator(gen);
-                return NULL;
+                return false;
             }
         }
     }
+    gen->enabled = enabled;
+    gen->volume_dB = volume;
+    gen->volume = exp2(gen->volume_dB / 6);
+    return true;
+}
 
-    assert(gen->read != NULL);
-    gen->read(gen, tree, state);
+
+Gen_type Generator_type_parse(char* str, Read_state* state)
+{
+    assert(state != NULL);
     if (state->error)
     {
-        del_Generator(gen);
-        return NULL;
+        return GEN_TYPE_LAST;
     }
-    return gen;
+    if (str == NULL)
+    {
+        return GEN_TYPE_NONE;
+    }
+    static const char* map[GEN_TYPE_LAST] =
+    {
+        [GEN_TYPE_SINE] = "sine",
+        [GEN_TYPE_TRIANGLE] = "triangle",
+        [GEN_TYPE_SQUARE] = "square",
+        [GEN_TYPE_SQUARE303] = "square303",
+        [GEN_TYPE_SAWTOOTH] = "sawtooth",
+        [GEN_TYPE_NOISE] = "noise",
+        [GEN_TYPE_PCM] = "pcm",
+    };
+    char desc[128] = { '\0' };
+    str = read_string(str, desc, 128, state);
+    if (state->error)
+    {
+        return GEN_TYPE_LAST;
+    }
+    for (Gen_type i = GEN_TYPE_NONE; i < GEN_TYPE_LAST; ++i)
+    {
+        if (map[i] != NULL && strcmp(map[i], desc) == 0)
+        {
+            return i;
+        }
+    }
+    Read_state_set_error(state, "Unsupported Generator type: %s", desc);
+    return GEN_TYPE_LAST;
+}
+
+
+bool Generator_type_has_subkey(Gen_type type, const char* subkey)
+{
+    assert(type > GEN_TYPE_NONE);
+    assert(type < GEN_TYPE_LAST);
+    if (subkey == NULL)
+    {
+        return false;
+    }
+    static bool (*map[GEN_TYPE_LAST])(const char*) =
+    {
+        [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
+        [GEN_TYPE_SQUARE] = Generator_square_has_subkey,
+    };
+    if (map[type] == NULL)
+    {
+        return false;
+    }
+    return map[type](subkey);
+}
+
+
+bool Generator_parse(Generator* gen,
+                     const char* subkey,
+                     void* data,
+                     long length,
+                     Read_state* state)
+{
+    assert(gen != NULL);
+    assert(subkey != NULL);
+    assert(Generator_type_has_subkey(Generator_get_type(gen), subkey));
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    assert(gen->parse != NULL);
+    return gen->parse(gen, subkey, data, length, state);
 }
 
 
@@ -215,40 +242,24 @@ Gen_type Generator_get_type(Generator* gen)
 
 void Generator_process_note(Generator* gen,
                             Voice_state* state,
-                            int note,
-                            int mod,
-                            int octave)
+                            double cents)
 {
     assert(gen != NULL);
     assert(state != NULL);
-    assert(note >= 0);
-    assert(note < KQT_SCALE_NOTES);
-    assert(mod < KQT_SCALE_NOTE_MODS);
-    assert(octave >= KQT_SCALE_OCTAVE_FIRST);
-    assert(octave <= KQT_SCALE_OCTAVE_LAST);
+    assert(isfinite(cents));
     if (gen->ins_params->scale == NULL ||
             *gen->ins_params->scale == NULL ||
             **gen->ins_params->scale == NULL)
     {
         return;
     }
-    pitch_t pitch = Scale_get_pitch(**gen->ins_params->scale, note, mod, octave);
+    pitch_t pitch = Scale_get_pitch_from_cents(**gen->ins_params->scale, cents);
     if (pitch > 0)
     {
         state->pitch = pitch;
     }
     return;
 }
-
-
-#if 0
-bool Generator_add_event(Generator* gen, Event* event, uint32_t pos)
-{
-    assert(gen != NULL);
-    assert(event != NULL);
-    return Event_queue_ins(gen->events, event, pos);
-}
-#endif
 
 
 void Generator_mix(Generator* gen,
@@ -304,21 +315,6 @@ void Generator_mix(Generator* gen,
         }
 
         uint32_t mix_until = nframes;
-#if 0
-        Event* ins_event = NULL;
-        uint32_t ins_event_pos = 0;
-        if (Event_queue_peek(gen->events, 0, &ins_event, &ins_event_pos))
-        {
-            if (ins_event_pos < mix_until)
-            {
-                mix_until = ins_event_pos;
-            }
-            else
-            {
-                ins_event = NULL;
-            }
-        }
-#endif
 
         if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
         {
@@ -334,18 +330,6 @@ void Generator_mix(Generator* gen,
         mixed = gen->mix(gen, state, mix_until, mixed, freq, tempo,
                          gen->ins_params->buf_count,
                          bufs);
-
-#if 0
-        if (ins_event != NULL && mixed == mix_until)
-        {
-            fprintf(stderr, "Instrument event at %d! \n", (int)ins_event_pos);
-            Event_queue_get(gen->events, &ins_event, &ins_event_pos);
-            assert(ins_event_pos == mix_until);
-            assert(ins_event != NULL);
-            assert(EVENT_IS_INS(Event_get_type(ins_event)));
-            Event_ins_process((Event_ins*)ins_event, gen->ins_params);
-        }
-#endif
 
         if (bufs == gen->ins_params->vbufs)
         {

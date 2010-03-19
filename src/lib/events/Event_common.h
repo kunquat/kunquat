@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -82,7 +74,7 @@ void del_Event_default(Event* event);
             return true;                                                 \
         }                                                                \
         return false;                                                    \
-    }
+    } static bool etype ## _set(Event* event, int index, void* data)
 
 
 #define Event_create_set_reltime(etype, etype_id, fname)            \
@@ -101,7 +93,7 @@ void del_Event_default(Event* event);
             return true;                                            \
         }                                                           \
         return false;                                               \
-    }
+    } static bool etype ## _set(Event* event, int index, void* data)
 
 
 #define Event_create_get(etype, etype_id, fname)         \
@@ -116,16 +108,16 @@ void del_Event_default(Event* event);
             return &event_sub->fname;                    \
         }                                                \
         return NULL;                                     \
-    }
+    } static void* etype ## _get(Event* event, int index)
 
 
 #define Event_create_set_primitive_and_get(type, type_id, field_type, field_name) \
-    Event_create_set_primitive(type, type_id, field_type, field_name)             \
+    Event_create_set_primitive(type, type_id, field_type, field_name);            \
     Event_create_get(type, type_id, field_name)
 
 
 #define Event_create_set_reltime_and_get(type, type_id, field_name) \
-    Event_create_set_reltime(type, type_id, field_name)             \
+    Event_create_set_reltime(type, type_id, field_name);            \
     Event_create_get(type, type_id, field_name)
 
 
@@ -138,16 +130,34 @@ void del_Event_default(Event* event);
         {                                                          \
             return NULL;                                           \
         }                                                          \
-        Event_init(&event->parent.parent,                          \
+        Event_init((Event*)event,                                  \
                    pos,                                            \
                    etype_id,                                       \
                    field_desc,                                     \
                    etype ## _set,                                  \
                    etype ## _get);                                 \
-        event->parent.process = etype ## _process;                 \
         __VA_ARGS__;                                               \
         return (Event*)event;                                      \
-    }
+    } Event* new_ ## etype(Reltime* pos)
+
+
+#define Event_check_voice(ch_state, gen)                        \
+    if (true)                                                   \
+    {                                                           \
+        if ((ch_state)->fg[(gen)] == NULL)                      \
+        {                                                       \
+            continue;                                           \
+        }                                                       \
+        (ch_state)->fg[(gen)] =                                 \
+                Voice_pool_get_voice((ch_state)->pool,          \
+                                     (ch_state)->fg[(gen)],     \
+                                     (ch_state)->fg_id[(gen)]); \
+        if ((ch_state)->fg[(gen)] == NULL)                      \
+        {                                                       \
+            continue;                                           \
+        }                                                       \
+    }                                                           \
+    else (void)0
 
 
 #endif // K_EVENT_COMMON_H

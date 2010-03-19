@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -31,7 +23,7 @@
 typedef struct Event_global
 {
     Event parent;
-    void (*process)(struct Event_global* event, Playdata* play);
+//    void (*process)(struct Event_global* event, Playdata* play);
 } Event_global;
 
 
@@ -41,7 +33,7 @@ typedef struct Event_global
  * \param event   The Global event -- must not be \c NULL.
  * \param play    The Playdata -- must not be \c NULL.
  */
-void Event_global_process(Event_global* event, Playdata* play);
+//void Event_global_process(Event_global* event, Playdata* play);
 
 
 #endif // K_EVENT_GLOBAL_H

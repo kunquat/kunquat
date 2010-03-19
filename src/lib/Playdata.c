@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -28,6 +20,7 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
+#include <Random.h>
 #include <Reltime.h>
 
 #include <Playdata.h>
@@ -37,16 +30,20 @@
 
 Playdata* new_Playdata(Ins_table* insts,
                        int buf_count,
-                       kqt_frame** bufs)
+                       kqt_frame** bufs,
+                       Random* random)
 {
     assert(insts != NULL);
+    (void)insts; // FIXME: remove?
     assert(buf_count > 0);
     assert(bufs != NULL);
+    assert(random != NULL);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
     {
         return NULL;
     }
+    play->random = random;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -55,47 +52,24 @@ Playdata* new_Playdata(Ins_table* insts,
         xfree(play);
         return NULL;
     }
-    play->ins_events = new_Event_queue(64);
-    if (play->ins_events == NULL)
-    {
-        del_Column_iter(play->citer);
-        xfree(play);
-        return NULL;
-    }
     play->voice_pool = new_Voice_pool(256, 64);
     if (play->voice_pool == NULL)
     {
-        del_Event_queue(play->ins_events);
         del_Column_iter(play->citer);
         xfree(play);
         return NULL;
-    }
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        play->channels[i] = new_Channel(insts, i, play->ins_events);
-        if (play->channels[i] == NULL)
-        {
-            for (--i; i >= 0; --i)
-            {
-                del_Channel(play->channels[i]);
-            }
-            del_Voice_pool(play->voice_pool);
-            del_Event_queue(play->ins_events);
-            del_Column_iter(play->citer);
-            xfree(play);
-            return NULL;
-        }
     }
     play->mode = PLAY_SONG;
     play->freq = 48000;
     play->old_freq = play->freq;
     play->subsongs = NULL;
-    play->events = NULL;
+//    play->events = NULL;
 
     play->buf_count = buf_count;
     play->bufs = bufs;
     play->scales = NULL;
     play->active_scale = NULL;
+    play->scale = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -146,6 +120,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    play->random = NULL;
     play->play_id = 1;
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -154,22 +129,19 @@ Playdata* new_Playdata_silent(uint32_t freq)
         xfree(play);
         return NULL;
     }
-    play->ins_events = NULL;
+//    play->ins_events = NULL;
     play->voice_pool = NULL;
-    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        play->channels[i] = NULL;
-    }
     play->mode = PLAY_SONG;
     play->freq = freq;
     play->old_freq = play->freq;
     play->subsongs = NULL;
-    play->events = NULL;
+//    play->events = NULL;
 
     play->buf_count = 0;
     play->bufs = NULL;
     play->scales = NULL;
     play->active_scale = NULL;
+    play->scale = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -254,10 +226,6 @@ void Playdata_reset(Playdata* play)
     if (!play->silent)
     {
         Voice_pool_reset(play->voice_pool);
-        for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-        {
-            Channel_reset(play->channels[i]);
-        }
         for (int i = 0; i < KQT_SCALES_MAX; ++i)
         {
             if (play->scales[i] != NULL)
@@ -266,6 +234,21 @@ void Playdata_reset(Playdata* play)
             }
         }
     }
+    if (play->random != NULL)
+    {
+        Random_reset(play->random);
+    }
+    play->scale = 0;
+
+    play->jump_set_counter = 0;
+    play->jump_set_subsong = -1;
+    play->jump_set_section = -1;
+    Reltime_init(&play->jump_set_row);
+    play->jump = false;
+    play->jump_subsong = -1;
+    play->jump_section = -1;
+    Reltime_init(&play->jump_row);
+
     play->volume_slide = 0;
     Reltime_init(&play->volume_slide_length);
     play->tempo_slide = 0;
@@ -296,22 +279,10 @@ void Playdata_reset_stats(Playdata* play)
 
 void del_Playdata(Playdata* play)
 {
-    int i = 0;
     assert(play != NULL);
     if (play->voice_pool != NULL)
     {
         del_Voice_pool(play->voice_pool);
-    }
-    for (i = 0; i < KQT_COLUMNS_MAX; ++i)
-    {
-        if (play->channels[i] != NULL)
-        {
-            del_Channel(play->channels[i]);
-        }
-    }
-    if (play->ins_events != NULL)
-    {
-        del_Event_queue(play->ins_events);
     }
     if (play->citer != NULL)
     {

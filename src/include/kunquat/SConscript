@@ -1,25 +1,18 @@
 # coding=utf-8
 
 
-# Copyright 2009 Tomi Jylhä-Ollila
+# Author: Tomi Jylhä-Ollila, Finland 2010
 #
 # This file is part of Kunquat.
 #
-# Kunquat is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
 #
-# Kunquat is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+# To the extent possible under law, Kunquat Affirmers have waived all
+# copyright and related or neighboring rights to Kunquat.
 
 
 import glob
+import os.path
 
 
 Import('env')
@@ -27,10 +20,49 @@ Import('env')
 env_head = env.Clone()
 
 include_path = env_head['prefix'] + '/include/kunquat'
-
 files = glob.glob('*.h')
-
-ih = env_head.Install(include_path, files)
+ih = env_head.InstallCreatePath(include_path, files)
 env_head.Clean(ih, include_path)
+
+
+ln_cmd = 'ln -s ${SOURCE.file} ${TARGET.file}' # TARGET is the link
+
+def InstallManCreatePath(env, path, source):
+    target = env.InstallCreatePath(path, source)
+    if 'install' in COMMAND_LINE_TARGETS:
+        links = { 'kunquat-handle.3' : [
+                        'kqt_new_Handle_r.3',
+                        'kqt_new_Handle_rw.3',
+                        'kqt_Handle_get_data.3',
+                        'kqt_Handle_get_data_length.3',
+                        'kqt_Handle_free_data.3',
+                        'kqt_Handle_set_data.3',
+                        'kqt_Handle_get_error.3',
+                        'kqt_Handle_clear_error.3',
+                        'kqt_del_Handle.3'],
+
+                  'kunquat-player-interface.3' : [
+                        'kqt_Handle_mix.3',
+                        'kqt_Handle_get_buffer.3',
+                        'kqt_Handle_set_buffer_size.3',
+                        'kqt_Handle_get_buffer_size.3',
+                        'kqt_Handle_get_duration.3',
+                        'kqt_Handle_set_position.3',
+                        'kqt_Handle_get_position.3'],
+
+                  'kunquat-editor-interface.3' : [
+                        'kqt_new_Handle_rwc.3',
+                        'kqt_Handle_commit.3']
+                }
+        for fname in (f for f in source if f in links):
+            for link in links[fname]:
+                env.Command(os.path.join(path, link),
+                            os.path.join(path, fname), ln_cmd, chdir=1)
+
+env_head.AddMethod(InstallManCreatePath)
+
+man_path = env_head['prefix'] + '/share/man/man3'
+man_pages = glob.glob('kunquat-*.3')
+env_head.InstallManCreatePath(man_path, man_pages)
 
 

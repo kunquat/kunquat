@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -204,10 +196,11 @@ START_TEST (set_voices)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_set(RELTIME_AUTO, 10, 0),
+            128,
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8, 120);
+    Voice_pool_mix_bg(pool, 128, 0, 8, 120);
     for (int i = 0; i < 40; ++i)
     {
         if (i % 4 == 0)
@@ -233,6 +226,7 @@ START_TEST (set_voices)
     }
     Channel_reset(ch);
     Voice_pool_reset(pool);
+    Column_iter_change_col(citer, col);
     for (int i = 0; i < 128; ++i)
     {
         Channel_set_voices(ch,
@@ -240,10 +234,11 @@ START_TEST (set_voices)
                 citer,
                 Reltime_set(RELTIME_AUTO, i / 8, (KQT_RELTIME_BEAT / 8) * (i % 8)),
                 Reltime_set(RELTIME_AUTO, (i + i) / 8, (KQT_RELTIME_BEAT / 8) * ((i + 1) % 8)),
+                i + 1,
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8, 120);
+        Voice_pool_mix_bg(pool, i + 1, i, 8, 120);
     }
     for (int i = 0; i < 40; ++i)
     {
@@ -278,8 +273,10 @@ START_TEST (set_voices)
     {
         buf_l[i] = buf_r[i] = 0;
     }
+//    fprintf(stderr, "\n######## Test 2\n");
     Channel_reset(ch);
     Voice_pool_reset(pool);
+    Column_iter_change_col(citer, col);
     note = 0;
     mod = -1;
     octave = KQT_SCALE_MIDDLE_OCTAVE - 1;
@@ -304,10 +301,19 @@ START_TEST (set_voices)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_set(RELTIME_AUTO, 10, 0),
+            128,
             0,
             60,
             8);
-    Voice_pool_mix(pool, 128, 0, 8, 120);
+    Voice_pool_mix_bg(pool, 128, 0, 8, 120);
+#if 0
+    fprintf(stderr, "\nValues:\n");
+    for (int i = 0; i < 42; ++i)
+    {
+        fprintf(stderr, "%f\n", bufs[0][i]);
+    }
+    fprintf(stderr, "\n");
+#endif
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
     fail_unless(bufs[0][1] > 0.49 && bufs[0][1] < 0.51,
@@ -353,8 +359,10 @@ START_TEST (set_voices)
     {
         buf_l[i] = buf_r[i] = 0;
     }
+//    fprintf(stderr, "\n######## Test 2 in small parts\n\n");
     Channel_reset(ch);
     Voice_pool_reset(pool);
+    Column_iter_change_col(citer, col);
     for (int i = 0; i < 128; ++i)
     {
         Channel_set_voices(ch,
@@ -362,11 +370,20 @@ START_TEST (set_voices)
                 citer,
                 Reltime_set(RELTIME_AUTO, i / 8, (KQT_RELTIME_BEAT / 8) * (i % 8)),
                 Reltime_set(RELTIME_AUTO, (i + i) / 8, (KQT_RELTIME_BEAT / 8) * ((i + 1) % 8)),
+                i + 1,
                 i,
                 60,
                 8);
-        Voice_pool_mix(pool, i + 1, i, 8, 120);
+        Voice_pool_mix_bg(pool, i + 1, i, 8, 120);
     }
+#if 0
+    fprintf(stderr, "\nValues:\n");
+    for (int i = 0; i < 42; ++i)
+    {
+        fprintf(stderr, "%f\n", bufs[0][i]);
+    }
+    fprintf(stderr, "\n");
+#endif
     fail_unless(bufs[0][0] > 0.99 && bufs[0][0] < 1.01,
             "Buffer contains %f at index %d (expected 1).", bufs[0][0], 0);
     fail_unless(bufs[0][1] > 0.49 && bufs[0][1] < 0.51,
@@ -449,6 +466,7 @@ START_TEST (set_voices_break_ch_null)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             1,
             1);
@@ -496,6 +514,7 @@ START_TEST (set_voices_break_pool_null)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             1,
             1);
@@ -533,6 +552,7 @@ START_TEST (set_voices_break_col_null)
             NULL,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             1,
             1);
@@ -586,6 +606,7 @@ START_TEST (set_voices_break_start_null)
             citer,
             NULL,
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             1,
             1);
@@ -640,6 +661,7 @@ START_TEST (set_voices_break_end_null)
             citer,
             Reltime_init(RELTIME_AUTO),
             NULL,
+            1,
             0,
             1,
             1);
@@ -694,6 +716,7 @@ START_TEST (set_voices_break_tempo_inv)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             0,
             1);
@@ -748,6 +771,7 @@ START_TEST (set_voices_break_freq_inv)
             citer,
             Reltime_init(RELTIME_AUTO),
             Reltime_init(RELTIME_AUTO),
+            1,
             0,
             1,
             0);

@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -29,7 +21,6 @@
 
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <File_tree.h>
 #include <Subsong.h>
 
 
@@ -49,18 +40,6 @@ Subsong_table* new_Subsong_table(void);
 
 
 /**
- * Reads a Subsong table from a File tree.
- *
- * \param table   The Subsong table -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state);
-
-
-/**
  * Sets a Subsong in the Subsong table.
  *
  * \param table     The Subsong table -- must not be \c NULL.
@@ -68,14 +47,16 @@ bool Subsong_table_read(Subsong_table* table, File_tree* tree, Read_state* state
  *                  < \c KQT_SUBSONGS_MAX.
  * \param subsong   The Subsong -- must not be \c NULL.
  *
- * \return   The actual index where the Subsong was stored, or \c -1 if
- *           memory allocation failed.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-int16_t Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
+bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
 
 
 /**
  * Gets a Subsong from the Subsong table.
+ *
+ * Note: Subsongs after an empty index are considered hidden and are not
+ * returned.
  *
  * \param table   The Subsong table -- must not be \c NULL.
  * \param index   The subsong number -- must be >= \c 0 and

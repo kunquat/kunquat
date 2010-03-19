@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -29,6 +21,7 @@
 #include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
+#include <Event_handler.h>
 #include <Voice_pool.h>
 
 #include <xmemory.h>
@@ -36,32 +29,48 @@
 
 long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
 {
-    check_handle(handle, "kqt_Handle_mix", 0);
+    check_handle(handle, 0);
     if (handle->song == NULL || !handle->song->play_state->mode)
     {
         return 0;
     }
-    if (freq == 0)
+    if (nframes <= 0)
     {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Number of frames must"
+                " be positive.");
+        return 0;
+    }
+    if (freq <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing frequency must"
+                " be positive.");
         return 0;
     }
     handle->song->play_state->freq = freq;
-    return Song_mix(handle->song, nframes, handle->song->play_state);
+    return Song_mix(handle->song, nframes, handle->song->event_handler);
 }
 
 
 int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 {
-    check_handle(handle, "kqt_Handle_set_buffer_size", 0);
+    check_handle(handle, 0);
     if (size <= 0)
     {
-        kqt_Handle_set_error(handle, "kqt_Handle_set_buffer_size: size must be positive");
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must be"
+                " positive");
+        return 0;
+    }
+    if (size > 4194304)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must not be"
+                " greater than 4194304 frames");
         return 0;
     }
     bool success = Song_set_buf_size(handle->song, size);
     if (!success)
     {
-        kqt_Handle_set_error(handle, "Couldn't allocate memory for the new buffers");
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory for new buffers");
         return 0;
     }
     return 1;
@@ -70,55 +79,76 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_buffer_size", 0);
+    check_handle(handle, 0);
     return Song_get_buf_size(handle->song);
 }
 
 
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_buffer_count", 0);
+    check_handle(handle, 0);
     return Song_get_buf_count(handle->song);
 }
 
 
-kqt_frame* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
+float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
-    check_handle(handle, "kqt_Handle_get_buffer", NULL);
+    check_handle(handle, NULL);
     if (index < 0 || index >= Song_get_buf_count(handle->song))
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_get_buffer: buffer #%d doesn't exist", index);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Buffer #%d does not exist", index);
         return NULL;
     }
-    return Song_get_bufs(handle->song)[index];
+    return (float*)Song_get_bufs(handle->song)[index];
 }
 
 
-long long kqt_Handle_get_duration(kqt_Handle* handle)
+long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
 {
-    check_handle(handle, "kqt_Handle_get_duration", 0);
+    check_handle(handle, -1);
+    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid Subsong number: %d", subsong);
+        return -1;
+    }
     Reltime_init(&handle->song->skip_state->play_time);
     handle->song->skip_state->play_frames = 0;
+    Playdata_reset(handle->song->skip_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_reset(handle->song->channels[i]);
+    }
+    if (subsong == -1)
+    {
+        handle->song->skip_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->skip_state, 0);
+    }
+    else
+    {
+        handle->song->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->skip_state, subsong);
+    }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_state, UINT64_MAX);
+    return Song_skip(handle->song, handle->song->skip_handler, UINT64_MAX);
 }
 
 
 int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanoseconds)
 {
-    check_handle(handle, "kqt_Handle_set_position", 0);
+    check_handle(handle, 0);
     if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_seek: Invalid Subsong number: %d", subsong);
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid Subsong number: %d", subsong);
         return 0;
     }
     if (nanoseconds < 0)
     {
-        kqt_Handle_set_error(handle,
-                "kqt_Handle_seek: nanoseconds must not be negative");
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "nanoseconds must be non-negative");
         return 0;
     }
     char pos[32] = { '\0' };
@@ -129,7 +159,7 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
 
 long long kqt_Handle_get_position(kqt_Handle* handle)
 {
-    check_handle(handle, "kqt_Handle_get_position", 0);
+    check_handle(handle, 0);
     return ((long long)handle->song->play_state->play_frames * 1000000000L) /
            handle->song->play_state->freq;
 }
@@ -140,6 +170,10 @@ void kqt_Handle_stop(kqt_Handle* handle)
     assert(handle_is_valid(handle));
     handle->song->play_state->mode = STOP;
     Playdata_reset(handle->song->play_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_reset(handle->song->channels[i]);
+    }
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
     Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
                                     handle->song->play_state->subsong);

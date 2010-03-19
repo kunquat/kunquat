@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -36,7 +28,8 @@ static Event_field_desc slide_tempo_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { 1, 999 }
+        .min.field.double_type = 1,
+        .max.field.double_type = 999
     },
     {
         .type = EVENT_FIELD_NONE
@@ -46,49 +39,54 @@ static Event_field_desc slide_tempo_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_slide_tempo,
                                    EVENT_GLOBAL_SLIDE_TEMPO,
-                                   double, target_tempo)
-
-
-static void Event_global_slide_tempo_process(Event_global* event, Playdata* play);
+                                   double, target_tempo);
 
 
 Event_create_constructor(Event_global_slide_tempo,
                          EVENT_GLOBAL_SLIDE_TEMPO,
                          slide_tempo_desc,
-                         event->target_tempo = 120)
+                         event->target_tempo = 120);
 
 
-static void Event_global_slide_tempo_process(Event_global* event, Playdata* play)
+bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SLIDE_TEMPO);
-    assert(play != NULL);
-    Event_global_slide_tempo* slide_tempo = (Event_global_slide_tempo*)event;
-    if (play->tempo == slide_tempo->target_tempo)
+    assert(global_state != NULL);
+    if (fields == NULL)
     {
-        return;
+        return false;
     }
-    Reltime_init(&play->tempo_slide_int_left);
-    Reltime_copy(&play->tempo_slide_left, &play->tempo_slide_length);
-    double rems_total = (double)Reltime_get_beats(&play->tempo_slide_length) * KQT_RELTIME_BEAT
-                         + Reltime_get_rem(&play->tempo_slide_length);
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_tempo_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    Reltime_init(&global_state->tempo_slide_int_left);
+    Reltime_copy(&global_state->tempo_slide_left,
+                 &global_state->tempo_slide_length);
+    double rems_total =
+            (double)Reltime_get_beats(&global_state->tempo_slide_length) *
+                    KQT_RELTIME_BEAT +
+                    Reltime_get_rem(&global_state->tempo_slide_length);
     double slices = rems_total / 36756720; // slide updated 24 times per beat
-    play->tempo_slide_update = (slide_tempo->target_tempo - play->tempo) / slices;
-    play->tempo_slide_target = slide_tempo->target_tempo;
-    if (play->tempo_slide_update < 0)
+    global_state->tempo_slide_update = (data[0].field.double_type -
+                                        global_state->tempo) / slices;
+    global_state->tempo_slide_target = data[0].field.double_type;
+    if (global_state->tempo_slide_update < 0)
     {
-        play->tempo_slide = -1;
+        global_state->tempo_slide = -1;
     }
-    else if (play->tempo_slide_update > 0)
+    else if (global_state->tempo_slide_update > 0)
     {
-        play->tempo_slide = 1;
+        global_state->tempo_slide = 1;
     }
     else
     {
-        play->tempo_slide = 0;
-        play->tempo = slide_tempo->target_tempo;
+        global_state->tempo_slide = 0;
+        global_state->tempo = data[0].field.double_type;
     }
-    return;
+    return true;
 }
 
 

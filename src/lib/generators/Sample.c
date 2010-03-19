@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -36,6 +28,39 @@
 #include <xmemory.h>
 
 
+Sample_params* Sample_params_init(Sample_params* params)
+{
+    assert(params != NULL);
+    params->format = SAMPLE_FORMAT_NONE;
+    params->mid_freq = 48000;
+    params->loop = SAMPLE_LOOP_OFF;
+    params->loop_start = 0;
+    params->loop_end = 0;
+    return params;
+}
+
+
+Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    dest->mid_freq = src->mid_freq;
+    dest->loop = src->loop;
+    dest->loop_start = src->loop_start;
+    dest->loop_end = src->loop_end;
+    return dest;
+}
+
+
+void Sample_set_params(Sample* sample, Sample_params* params)
+{
+    assert(sample != NULL);
+    assert(params != NULL);
+    Sample_params_copy(&sample->params, params);
+    return;
+}
+
+
 Sample* new_Sample(void)
 {
     Sample* sample = xalloc(Sample);
@@ -43,170 +68,24 @@ Sample* new_Sample(void)
     {
         return NULL;
     }
+    Sample_params_init(&sample->params);
     sample->path = NULL;
-    sample->format = SAMPLE_FORMAT_NONE;
     sample->changed = false;
     sample->is_lossy = false;
     sample->channels = 1;
     sample->bits = 16;
     sample->is_float = false;
-    sample->loop = SAMPLE_LOOP_OFF;
-    sample->loop_start = 0;
-    sample->loop_end = 0;
     sample->len = 0;
-    sample->mid_freq = 48000;
     sample->data[0] = NULL;
     sample->data[1] = NULL;
     return sample;
 }
 
 
-Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state)
+Sample_format Sample_get_format(Sample* sample)
 {
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return NULL;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Sample description is not a directory");
-        return NULL;
-    }
-    File_tree* info_tree = File_tree_get_child(tree, "sample.json");
-    if (info_tree == NULL)
-    {
-        return NULL;
-    }
-    Read_state_init(state, File_tree_get_path(info_tree));
-    if (File_tree_is_dir(info_tree))
-    {
-        Read_state_set_error(state, "Sample description is a directory");
-        return NULL;
-    }
-    char* str = File_tree_get_data(info_tree);
-    str = read_const_char(str, '{', state);
-    if (state->error)
-    {
-        return NULL;
-    }
-    str = read_const_char(str, '}', state);
-    if (!state->error)
-    {
-        return NULL;
-    }
-    Read_state_clear_error(state);
-    Sample_loop loop = SAMPLE_LOOP_OFF;
-    int64_t loop_start = 0;
-    int64_t loop_end = 0;
-    double mid_freq = 440;
-    Sample* sample = NULL;
-    bool expect_key = true;
-    while (expect_key)
-    {
-        char key[128] = { '\0' };
-        str = read_string(str, key, 128, state);
-        str = read_const_char(str, ':', state);
-        if (state->error)
-        {
-            del_Sample(sample);
-            return NULL;
-        }
-        if (strcmp(key, "format") == 0)
-        {
-            char format[32] = { '\0' };
-            str = read_string(str, format, 32, state);
-            if (!state->error)
-            {
-                if (strcmp(format, "WavPack") == 0)
-                {
-                    File_tree* sample_tree = File_tree_get_child(tree, "sample.wv");
-                    if (sample_tree == NULL)
-                    {
-                        Read_state_set_error(state, "Sample format is set to WavPack"
-                                                    " but sample.wv couldn't be found");
-                    }
-                    sample = File_tree_remove_sample(sample_tree);
-                    assert(sample != NULL);
-                }
-/*                else if (strcmp(format, "Ogg Vorbis") == 0)
-                {
-                } */
-                else
-                {
-                    Read_state_set_error(state, "Unrecognised Sample format: %s", format);
-                }
-            }
-        }
-        else if (strcmp(key, "mid_freq") == 0)
-        {
-            str = read_double(str, &mid_freq, state);
-            if (!(sample->mid_freq > 0))
-            {
-                Read_state_set_error(state, "Sample frequency is not positive");
-            }
-        }
-        else if (strcmp(key, "loop_mode") == 0)
-        {
-            char mode[] = "off!";
-            str = read_string(str, mode, 5, state);
-            if (strcmp(mode, "off") == 0)
-            {
-                loop = SAMPLE_LOOP_OFF;
-            }
-            else if (strcmp(mode, "uni") == 0)
-            {
-                loop = SAMPLE_LOOP_UNI;
-            }
-            else if (strcmp(mode, "bi") == 0)
-            {
-                loop = SAMPLE_LOOP_BI;
-            }
-            else
-            {
-                Read_state_set_error(state, "Invalid Sample loop mode (must be"
-                                            " \"off\", \"uni\" or \"bi\")");
-            }
-        }
-        else if (strcmp(key, "loop_start") == 0)
-        {
-            str = read_int(str, &loop_start, state);
-        }
-        else if (strcmp(key, "loop_end") == 0)
-        {
-            str = read_int(str, &loop_end, state);
-        }
-        else
-        {
-            Read_state_set_error(state, "Unsupported key in Sample header: %s", key);
-        }
-        if (state->error)
-        {
-            if (sample != NULL)
-            {
-                del_Sample(sample);
-            }
-            return NULL;
-        }
-        check_next(str, state, expect_key);
-    }
-    str = read_const_char(str, '}', state);
-    if (sample == NULL)
-    {
-        return NULL;
-    }
-    if (state->error)
-    {
-        del_Sample(sample);
-        return NULL;
-    }
-    sample->mid_freq = mid_freq;
-    Sample_set_loop(sample, loop);
-    Sample_set_loop_end(sample, loop_end);
-    Sample_set_loop_start(sample, loop_start);
-    return sample;
+    assert(sample != NULL);
+    return sample->params.format;
 }
 
 
@@ -220,36 +99,37 @@ char* Sample_get_path(Sample* sample)
 void Sample_set_loop(Sample* sample, Sample_loop loop)
 {
     assert(sample != NULL);
-    assert(   loop == SAMPLE_LOOP_OFF
-           || loop == SAMPLE_LOOP_UNI
-           || loop == SAMPLE_LOOP_BI);
+    assert(loop == SAMPLE_LOOP_OFF ||
+           loop == SAMPLE_LOOP_UNI ||
+           loop == SAMPLE_LOOP_BI);
     if (sample->len == 0)
     {
-        sample->loop = SAMPLE_LOOP_OFF;
+        sample->params.loop = SAMPLE_LOOP_OFF;
         return;
     }
-    if (sample->loop_start > 0 && sample->loop_start >= sample->loop_end)
+    if (sample->params.loop_start > 0 &&
+            sample->params.loop_start >= sample->params.loop_end)
     {
-        sample->loop_start = sample->loop_end - 1;
+        sample->params.loop_start = sample->params.loop_end - 1;
     }
-    if (sample->loop_start >= sample->len)
+    if (sample->params.loop_start >= sample->len)
     {
-        sample->loop_start = sample->len - 1;
+        sample->params.loop_start = sample->len - 1;
     }
-    if (sample->loop_end <= sample->loop_start)
+    if (sample->params.loop_end <= sample->params.loop_start)
     {
-        if (sample->loop_start == 0)
+        if (sample->params.loop_start == 0)
         {
-            sample->loop_end = sample->len;
+            sample->params.loop_end = sample->len;
         }
         else
         {
-            sample->loop_end = sample->loop_start + 1;
+            sample->params.loop_end = sample->params.loop_start + 1;
         }
     }
-    assert(sample->loop_start < sample->loop_end);
-    assert(sample->loop_end <= sample->len);
-    sample->loop = loop;
+    assert(sample->params.loop_start < sample->params.loop_end);
+    assert(sample->params.loop_end <= sample->len);
+    sample->params.loop = loop;
     return;
 }
 
@@ -257,18 +137,18 @@ void Sample_set_loop(Sample* sample, Sample_loop loop)
 Sample_loop Sample_get_loop(Sample* sample)
 {
     assert(sample != NULL);
-    return sample->loop;
+    return sample->params.loop;
 }
 
 
 void Sample_set_loop_start(Sample* sample, uint64_t start)
 {
     assert(sample != NULL);
-    if (start >= sample->len || start >= sample->loop_end)
+    if (start >= sample->len || start >= sample->params.loop_end)
     {
-        sample->loop = SAMPLE_LOOP_OFF;
+        sample->params.loop = SAMPLE_LOOP_OFF;
     }
-    sample->loop_start = start;
+    sample->params.loop_start = start;
     return;
 }
 
@@ -276,18 +156,18 @@ void Sample_set_loop_start(Sample* sample, uint64_t start)
 uint64_t Sample_get_loop_start(Sample* sample)
 {
     assert(sample != NULL);
-    return sample->loop_start;
+    return sample->params.loop_start;
 }
 
 
 void Sample_set_loop_end(Sample* sample, uint64_t end)
 {
     assert(sample != NULL);
-    if (end <= sample->loop_start || end > sample->loop_end)
+    if (end <= sample->params.loop_start || end > sample->params.loop_end)
     {
-        sample->loop = SAMPLE_LOOP_OFF;
+        sample->params.loop = SAMPLE_LOOP_OFF;
     }
-    sample->loop_end = end;
+    sample->params.loop_end = end;
     return;
 }
 
@@ -295,7 +175,7 @@ void Sample_set_loop_end(Sample* sample, uint64_t end)
 uint64_t Sample_get_loop_end(Sample* sample)
 {
     assert(sample != NULL);
-    return sample->loop_end;
+    return sample->params.loop_end;
 }
 
 
@@ -336,12 +216,12 @@ uint32_t Sample_mix(Sample* sample,
 
         bool next_exists = false;
         uint64_t next_pos = 0;
-        if (state->dir > 0 || sample->loop != SAMPLE_LOOP_BI)
+        if (state->dir > 0 || sample->params.loop != SAMPLE_LOOP_BI)
         {
             uint64_t limit = sample->len;
-            if (sample->loop)
+            if (sample->params.loop)
             {
-                limit = sample->loop_end;
+                limit = sample->params.loop_end;
             }
             if (state->rel_pos + 1 < limit)
             {
@@ -350,48 +230,48 @@ uint32_t Sample_mix(Sample* sample,
             }
             else
             {
-                if (sample->loop == SAMPLE_LOOP_UNI)
+                if (sample->params.loop == SAMPLE_LOOP_UNI)
                 {
                     next_exists = true;
-                    next_pos = sample->loop_start;
+                    next_pos = sample->params.loop_start;
                 }
-                else if (sample->loop == SAMPLE_LOOP_BI)
+                else if (sample->params.loop == SAMPLE_LOOP_BI)
                 {
                     next_exists = true;
-                    if (state->rel_pos > sample->loop_start)
+                    if (state->rel_pos > sample->params.loop_start)
                     {
                         next_pos = state->rel_pos - 1;
                     }
                     else
                     {
-                        next_pos = sample->loop_start;
+                        next_pos = sample->params.loop_start;
                     }
                 }
             }
         }
-        else if (sample->loop_start + 1 == sample->loop_end)
+        else if (sample->params.loop_start + 1 == sample->params.loop_end)
         {
             next_exists = true;
-            next_pos = sample->loop_start;
+            next_pos = sample->params.loop_start;
         }
         else
         {
-            assert(sample->loop == SAMPLE_LOOP_BI);
+            assert(sample->params.loop == SAMPLE_LOOP_BI);
             next_exists = true;
-            if (state->rel_pos > sample->loop_start)
+            if (state->rel_pos > sample->params.loop_start)
             {
                 next_pos = state->rel_pos - 1;
             }
             else
             {
-                next_pos = sample->loop_start + 1;
+                next_pos = sample->params.loop_start + 1;
             }
-            if (next_pos >= sample->loop_end)
+            if (next_pos >= sample->params.loop_end)
             {
-                next_pos = sample->loop_end - 1;
+                next_pos = sample->params.loop_end - 1;
             }
         }
-        assert(!sample->loop || next_pos < sample->loop_end);
+        assert(!sample->params.loop || next_pos < sample->params.loop_end);
         assert(next_pos < sample->len);
         double mix_factor = state->rel_pos_rem;
         if (next_pos < state->rel_pos)
@@ -399,66 +279,77 @@ uint32_t Sample_mix(Sample* sample,
             mix_factor = 1 - state->rel_pos_rem;
         }
         kqt_frame vals[KQT_BUFFERS_MAX] = { 0 };
+
+#define get_items(type)                                            \
+        if (true)                                                  \
+        {                                                          \
+            type* buf_l = sample->data[0];                         \
+            type cur[2] = { buf_l[state->rel_pos] };               \
+            type next[2] = { 0 };                                  \
+            if (next_exists)                                       \
+            {                                                      \
+                next[0] = buf_l[next_pos];                         \
+            }                                                      \
+            vals[0] = ((kqt_frame)cur[0]) * (1 - mix_factor) +     \
+                      ((kqt_frame)next[0]) * mix_factor;           \
+            if (sample->channels > 1)                              \
+            {                                                      \
+                type* buf_r = sample->data[1];                     \
+                cur[1] = buf_r[state->rel_pos];                    \
+                if (next_exists)                                   \
+                {                                                  \
+                    next[1] = buf_r[next_pos];                     \
+                }                                                  \
+                vals[1] = ((kqt_frame)cur[1]) * (1 - mix_factor) + \
+                          ((kqt_frame)next[1]) * mix_factor;       \
+            }                                                      \
+            else                                                   \
+            {                                                      \
+                vals[1] = vals[0];                                 \
+            }                                                      \
+        } else (void)0
+
         if (sample->is_float)
         {
-            float* buf_l = sample->data[0];
-//          float* buf_r = sample->data[1];
-            float cur = buf_l[state->rel_pos];
-            float next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = cur * (1 - mix_factor)
-                    + next * mix_factor;
-        }
-        else if (sample->bits == 8)
-        {
-            int8_t* buf_l = sample->data[0];
-//          int8_t* buf_r = sample->data[1];
-            int8_t cur = buf_l[state->rel_pos];
-            int8_t next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x80) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x80) * mix_factor;
-        }
-        else if (sample->bits == 16)
-        {
-            int16_t* buf_l = sample->data[0];
-//          int16_t* buf_r = sample->data[1];
-            int16_t cur = buf_l[state->rel_pos];
-            int16_t next = 0;
-            if (next_exists)
-            {
-                next = buf_l[next_pos];
-            }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x8000) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x8000) * mix_factor;
+            get_items(float);
         }
         else
         {
-            assert(sample->bits == 32);
-            int16_t* buf_l = sample->data[0];
-//          int16_t* buf_r = sample->data[1];
-            int16_t cur = buf_l[state->rel_pos];
-            int16_t next = 0;
-            if (next_exists)
+            switch (sample->bits)
             {
-                next = buf_l[next_pos];
+                case 8:
+                {
+                    get_items(int8_t);
+                    vals[0] /= 0x80;
+                    vals[1] /= 0x80;
+                }
+                break;
+                case 16:
+                {
+                    get_items(int16_t);
+                    vals[0] /= 0x8000UL;
+                    vals[1] /= 0x8000UL;
+                }
+                break;
+                case 32:
+                {
+                    get_items(int32_t);
+                    vals[0] /= 0x80000000UL;
+                    vals[1] /= 0x80000000UL;
+                }
+                default:
+                    assert(false);
             }
-            vals[0] = vals[1] = ((kqt_frame)cur / 0x80000000UL) * (1 - mix_factor)
-                    + ((kqt_frame)next / 0x80000000UL) * mix_factor;
         }
+#undef get_items
+
         Generator_common_handle_force(gen, state, vals, 2);
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;
         state->pos += adv;
         state->pos_rem += adv_rem;
-        Generator_common_handle_note_off(gen, state, vals, 2, freq);
+//        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
@@ -467,7 +358,7 @@ uint32_t Sample_mix(Sample* sample,
             state->pos += floor(state->pos_rem);
             state->pos_rem -= floor(state->pos_rem);
         }
-        if (sample->loop == SAMPLE_LOOP_OFF)
+        if (sample->params.loop == SAMPLE_LOOP_OFF)
         {
             state->rel_pos = state->pos;
             state->rel_pos_rem = state->pos_rem;
@@ -479,42 +370,46 @@ uint32_t Sample_mix(Sample* sample,
         }
         else
         {
-            uint64_t loop_len = sample->loop_end - sample->loop_start;
-            uint64_t limit = sample->loop == SAMPLE_LOOP_UNI
-                                           ? loop_len
-                                           : 2 * loop_len - 2;
+            uint64_t loop_len = sample->params.loop_end - sample->params.loop_start;
+            uint64_t limit = sample->params.loop == SAMPLE_LOOP_UNI
+                                                  ? loop_len
+                                                  : 2 * loop_len - 2;
             uint64_t virt_pos = state->pos;
-            if (virt_pos < sample->loop_end)
+            if (virt_pos < sample->params.loop_end)
             {
                 state->dir = 1;
                 state->rel_pos = state->pos;
                 state->rel_pos_rem = state->pos_rem;
             }
-            else if (sample->loop_start + 1 == sample->loop_end)
+            else if (sample->params.loop_start + 1 == sample->params.loop_end)
             {
                 state->dir = 1;
-                state->rel_pos = sample->loop_start;
+                state->rel_pos = sample->params.loop_start;
                 state->rel_pos_rem = 0;
             }
             else
             {
-                virt_pos = ((virt_pos - sample->loop_start) % limit) + sample->loop_start;
-                if (sample->loop == SAMPLE_LOOP_UNI || virt_pos < sample->loop_end - 1)
+                virt_pos = ((virt_pos - sample->params.loop_start) % limit) +
+                        sample->params.loop_start;
+                if (sample->params.loop == SAMPLE_LOOP_UNI ||
+                        virt_pos < sample->params.loop_end - 1)
                 {
-                    assert(sample->loop != SAMPLE_LOOP_UNI || virt_pos < sample->loop_end);
+                    assert(sample->params.loop != SAMPLE_LOOP_UNI ||
+                            virt_pos < sample->params.loop_end);
                     state->dir = 1;
                     state->rel_pos = virt_pos;
                     state->rel_pos_rem = state->pos_rem;
                 }
                 else
                 {
-                    assert(sample->loop == SAMPLE_LOOP_BI);
-                    assert(virt_pos >= sample->loop_end - 1);
+                    assert(sample->params.loop == SAMPLE_LOOP_BI);
+                    assert(virt_pos >= sample->params.loop_end - 1);
                     state->dir = -1;
-                    uint64_t back = virt_pos - (sample->loop_end - 1);
-                    state->rel_pos = sample->loop_end - 1 - back;
+                    uint64_t back = virt_pos - (sample->params.loop_end - 1);
+                    state->rel_pos = sample->params.loop_end - 1 - back;
                     state->rel_pos_rem = state->pos_rem;
-                    if (state->rel_pos > sample->loop_start && state->rel_pos_rem > 0)
+                    if (state->rel_pos > sample->params.loop_start &&
+                            state->rel_pos_rem > 0)
                     {
                         --state->rel_pos;
                         state->rel_pos_rem = 1 - state->rel_pos_rem;
@@ -524,7 +419,6 @@ uint32_t Sample_mix(Sample* sample,
         }
         assert(state->rel_pos < sample->len);
     }
-    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 
@@ -532,7 +426,7 @@ uint32_t Sample_mix(Sample* sample,
 void Sample_set_freq(Sample* sample, double freq)
 {
     assert(sample != NULL);
-    sample->mid_freq = freq;
+    sample->params.mid_freq = freq;
     return;
 }
 
@@ -540,7 +434,7 @@ void Sample_set_freq(Sample* sample, double freq)
 double Sample_get_freq(Sample* sample)
 {
     assert(sample != NULL);
-    return sample->mid_freq;
+    return sample->params.mid_freq;
 }
 
 

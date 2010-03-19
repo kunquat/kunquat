@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -26,7 +18,9 @@
 
 #include <Event_common.h>
 #include <Event_channel_set_instrument.h>
+#include <File_base.h>
 #include <Channel.h>
+#include <Channel_state.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -36,7 +30,8 @@ static Event_field_desc set_instrument_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { 0, KQT_INSTRUMENTS_MAX }
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_INSTRUMENTS_MAX
     },
     {
         .type = EVENT_FIELD_NONE
@@ -46,26 +41,31 @@ static Event_field_desc set_instrument_desc[] =
 
 Event_create_set_primitive_and_get(Event_channel_set_instrument,
                                    EVENT_CHANNEL_SET_INSTRUMENT,
-                                   int64_t, instrument)
-
-
-static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch);
+                                   int64_t, instrument);
 
 
 Event_create_constructor(Event_channel_set_instrument,
                          EVENT_CHANNEL_SET_INSTRUMENT,
                          set_instrument_desc,
-                         event->instrument = 0)
+                         event->instrument = 0);
 
 
-static void Event_channel_set_instrument_process(Event_channel* event, Channel* ch)
+bool Event_channel_set_instrument_process(Channel_state* ch_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_CHANNEL_SET_INSTRUMENT);
-    assert(ch != NULL);
-    Event_channel_set_instrument* set_instrument = (Event_channel_set_instrument*)event;
-    ch->cur_inst = set_instrument->instrument;
-    return;
+    assert(ch_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_instrument_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    ch_state->instrument = data[0].field.integral_type;
+    return true;
 }
 
 

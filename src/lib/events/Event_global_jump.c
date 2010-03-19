@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,6 +19,7 @@
 
 #include <Event_common.h>
 #include <Event_global_jump.h>
+#include <File_base.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
@@ -44,8 +37,6 @@ static bool Event_global_jump_set(Event* event, int index, void* data);
 
 static void* Event_global_jump_get(Event* event, int index);
 
-static void Event_global_jump_process(Event_global* event, Playdata* play);
-
 
 Event_create_constructor(Event_global_jump,
                          EVENT_GLOBAL_JUMP,
@@ -54,10 +45,19 @@ Event_create_constructor(Event_global_jump,
                          event->counter = 0,
                          event->subsong = -1,
                          event->section = -1,
-                         Reltime_set(&event->row, 0, 0))
+                         Reltime_set(&event->row, 0, 0));
 
 
-static void Event_global_jump_process(Event_global* event, Playdata* play)
+bool Event_global_jump_process(Playdata* global_state, char* fields)
+{
+    assert(global_state != NULL);
+    (void)fields;
+    global_state->jump = true;
+    return true;
+}
+
+
+void Trigger_global_jump_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
     assert(event->parent.type == EVENT_GLOBAL_JUMP);
@@ -67,6 +67,7 @@ static void Event_global_jump_process(Event_global* event, Playdata* play)
     {
         if (play->jump_set_counter == 0)
         {
+            jump->play_id = 0;
             return;
         }
         jump->play_id = play->play_id;

@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -46,7 +38,7 @@ Suite* Voice_suite(void);
 
 START_TEST (new)
 {
-    Voice* voice = new_Voice(1);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -57,14 +49,6 @@ START_TEST (new)
     del_Voice(voice);
 }
 END_TEST
-
-#ifndef NDEBUG
-START_TEST (new_break_events_inv)
-{
-    new_Voice(0);
-}
-END_TEST
-#endif
 
 
 START_TEST (mix)
@@ -105,7 +89,7 @@ START_TEST (mix)
     nts[0] = notes;
     Scale_set_note(notes, 0, Real_init(REAL_AUTO));
     Instrument_set_scale(ins, 0);
-    Voice* voice = new_Voice(2);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -135,8 +119,9 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
     Voice_mix(voice, 128, 0, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
@@ -175,13 +160,16 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
-    fail_unless(Voice_add_event(voice, ev_off, 20),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_off, 20),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
     Voice_mix(voice, 20, 0, 8, 120);
-    fail_unless(voice->prio == VOICE_PRIO_BG,
-            "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
+//    fail_unless(voice->prio == VOICE_PRIO_BG,
+//            "Voice priority is %d after reaching Note Off (expected VOICE_PRIO_BG).", voice->prio);
+    Event_voice_process((Event_voice*)ev_off, voice);
+    voice->prio = VOICE_PRIO_BG;
     Voice_mix(voice, 128, 20, 8, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
@@ -235,11 +223,14 @@ START_TEST (mix)
     Voice_init(voice, Instrument_get_gen(ins, 0), &ch_state, &ch_state, 64, 120);
     fail_unless(voice->prio == VOICE_PRIO_NEW,
             "Voice_init() set Voice priority to %d (expected VOICE_PRIO_NEW).", voice->prio);
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
-    fail_unless(Voice_add_event(voice, ev_off, 70),
-            "Voice_add_event() failed.");
-    Voice_mix(voice, 128, 0, 16, 120);
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_off, 70),
+//            "Voice_add_event() failed.");
+    Event_voice_process((Event_voice*)ev_on, voice);
+    Voice_mix(voice, 70, 0, 16, 120);
+    Event_voice_process((Event_voice*)ev_off, voice);
+    Voice_mix(voice, 128, 70, 16, 120);
     fail_unless(voice->prio == VOICE_PRIO_INACTIVE,
             "Voice priority is %d after finishing mixing (expected VOICE_PRIO_INACTIVE).", voice->prio);
     for (int i = 0; i < 70; ++i)
@@ -318,7 +309,7 @@ START_TEST (mix_break_freq_inv)
     }
     nts[0] = notes;
     Instrument_set_scale(ins, 0);
-    Voice* voice = new_Voice(1);
+    Voice* voice = new_Voice();
     if (voice == NULL)
     {
         fprintf(stderr, "new_Voice() returned NULL -- out of memory?\n");
@@ -330,8 +321,8 @@ START_TEST (mix_break_freq_inv)
         fprintf(stderr, "new_Event() returned NULL -- out of memory?\n");
         return;
     }
-    fail_unless(Voice_add_event(voice, ev_on, 0),
-            "Voice_add_event() failed.");
+//    fail_unless(Voice_add_event(voice, ev_on, 0),
+//            "Voice_add_event() failed.");
     Voice_mix(voice, 1, 0, 0, 120);
     del_Voice(voice);
 }
@@ -355,8 +346,6 @@ Suite* Voice_suite(void)
     tcase_add_test(tc_mix, mix);
 
 #ifndef NDEBUG
-    tcase_add_test_raise_signal(tc_new, new_break_events_inv, SIGABRT);
-
     tcase_add_test_raise_signal(tc_mix, mix_break_voice_null, SIGABRT);
     tcase_add_test_raise_signal(tc_mix, mix_break_freq_inv, SIGABRT);
 #endif

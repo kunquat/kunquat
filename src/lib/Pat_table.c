@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -47,55 +39,6 @@ Pat_table* new_Pat_table(int size)
     }
     table->size = size;
     return table;
-}
-
-
-bool Pat_table_read(Pat_table* table, File_tree* tree, Read_state* state)
-{
-    assert(table != NULL);
-    assert(tree != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
-    {
-        Read_state_set_error(state, "Pattern table is not a directory");
-        return false;
-    }
-    for (int i = 0; i < KQT_PATTERNS_MAX; ++i)
-    {
-        char dir_name[] = "pattern_000";
-        snprintf(dir_name, 12, "pattern_%03x", i);
-        File_tree* pat_tree = File_tree_get_child(tree, dir_name);
-        if (pat_tree != NULL)
-        {
-            Read_state_init(state, File_tree_get_path(pat_tree));
-            Pattern* pat = new_Pattern();
-            if (pat == NULL)
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for Pattern %03x", i);
-                return false;
-            }
-            Pattern_read(pat, pat_tree, state);
-            if (state->error)
-            {
-                del_Pattern(pat);
-                return false;
-            }
-            if (!Pat_table_set(table, i, pat))
-            {
-                Read_state_set_error(state,
-                         "Couldn't allocate memory for Pattern %03x", i);
-                del_Pattern(pat);
-                return false;
-            }
-        }
-    }
-    return true;
 }
 
 

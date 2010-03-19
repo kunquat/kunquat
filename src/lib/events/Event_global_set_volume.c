@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -35,7 +27,8 @@ static Event_field_desc set_volume_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .range.double_type = { -INFINITY, 0 }
+        .min.field.double_type = -INFINITY,
+        .max.field.double_type = 0,
     },
     {
         .type = EVENT_FIELD_NONE
@@ -45,27 +38,32 @@ static Event_field_desc set_volume_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_volume,
                                    EVENT_GLOBAL_SET_VOLUME,
-                                   double, volume_dB)
-
-
-static void Event_global_set_volume_process(Event_global* event, Playdata* play);
+                                   double, volume_dB);
 
 
 Event_create_constructor(Event_global_set_volume,
                          EVENT_GLOBAL_SET_VOLUME,
                          set_volume_desc,
-                         event->volume_dB = 0)
+                         event->volume_dB = 0);
 
 
-static void Event_global_set_volume_process(Event_global* event, Playdata* play)
+bool Event_global_set_volume_process(Playdata* global_state, char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_VOLUME);
-    assert(play != NULL);
-    Event_global_set_volume* set_volume = (Event_global_set_volume*)event;
-    play->volume = exp2(set_volume->volume_dB / 6);
-    play->volume_slide = 0;
-    return;
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_volume_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->volume = exp2(data[0].field.double_type / 6);
+    global_state->volume_slide = 0;
+    return true;
 }
 
 

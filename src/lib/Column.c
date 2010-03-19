@@ -1,44 +1,42 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
 
 #include <Reltime.h>
+#include <Event_pg.h>
 #include <Event_global_set_tempo.h>
-#include <Event_voice_note_on.h>
-#include <Event_voice_note_off.h>
 #include <Column.h>
+#include <String_buffer.h>
 
 #include <xmemory.h>
+
+
+#define COLUMN_GLOBAL (-1)
+#define COLUMN_AUX (-2)
 
 
 typedef struct Event_list
 {
     Event* event;
+    bool copy;
     struct Event_list* prev;
     struct Event_list* next;
 } Event_list;
@@ -56,25 +54,27 @@ struct Column_iter
 struct Column
 {
     Reltime len;
+    bool is_aux;
     uint32_t version;
     Column_iter* edit_iter;
     AAtree* events;
 };
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event);
+static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy);
 
 static Event_list* Event_list_init(Event_list* elist);
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2);
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2);
 
 static void del_Event_list(Event_list* elist);
 
 
-static Event_list* new_Event_list(Event_list* nil, Event* event)
+static Event_list* new_Event_list(Event_list* nil, Event* event, bool copy)
 {
     assert(!(nil == NULL) || (event == NULL));
     assert(!(event == NULL) || (nil == NULL));
+    assert(event == NULL || (!copy || EVENT_IS_PG(Event_get_type(event))));
     Event_list* elist = xalloc(Event_list);
     if (elist == NULL)
     {
@@ -92,6 +92,7 @@ static Event_list* new_Event_list(Event_list* nil, Event* event)
         elist->event = event;
         elist->prev = elist->next = nil;
     }
+    elist->copy = copy;
     return elist;
 }
 
@@ -104,7 +105,7 @@ static Event_list* Event_list_init(Event_list* elist)
 }
 
 
-static int Event_list_cmp(Event_list* list1, Event_list* list2)
+static int Event_list_cmp(const Event_list* list1, const Event_list* list2)
 {
     assert(list1 != NULL);
     assert(list2 != NULL);
@@ -224,7 +225,8 @@ Column* new_Column(Reltime* len)
         return NULL;
     }
     col->version = 1;
-    col->events = new_AAtree((int (*)(void*, void*))Event_list_cmp,
+    col->is_aux = false;
+    col->events = new_AAtree((int (*)(const void*, const void*))Event_list_cmp,
             (void (*)(void*))del_Event_list);
     if (col->events == NULL)
     {
@@ -250,6 +252,106 @@ Column* new_Column(Reltime* len)
 }
 
 
+Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
+{
+    assert(mod_col != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    Column* aux = new_Column(&mod_col->len);
+    if (aux == NULL)
+    {
+        return NULL;
+    }
+    aux->is_aux = true;
+    Column_iter* iter = new_Column_iter(mod_col);
+    if (iter == NULL)
+    {
+        del_Column(aux);
+        return NULL;
+    }
+    if (old_aux != NULL)
+    {
+        Column_iter_change_col(iter, old_aux);
+        Event* event = Column_iter_get(iter, RELTIME_AUTO);
+        while (event != NULL)
+        {
+            assert(EVENT_IS_PG(Event_get_type(event)));
+            if (((Event_pg*)event)->ch_index < index)
+            {
+                if (!Column_ins(aux, event))
+                {
+                    del_Column(aux);
+                    del_Column_iter(iter);
+                    return NULL;
+                }
+            }
+            event = Column_iter_get_next(iter);
+        }
+    }
+    Column_iter_change_col(iter, mod_col);
+    Event* event = Column_iter_get(iter, RELTIME_AUTO);
+    while (event != NULL)
+    {
+        if (EVENT_IS_PG(Event_get_type(event)))
+        {
+            ((Event_pg*)event)->ch_index = index;
+            if (!Column_ins(aux, event))
+            {
+                del_Column(aux);
+                del_Column_iter(iter);
+                return NULL;
+            }
+        }
+        event = Column_iter_get_next(iter);
+    }
+    if (old_aux != NULL)
+    {
+        Column_iter_change_col(iter, old_aux);
+        Event* event = Column_iter_get(iter, RELTIME_AUTO);
+        while (event != NULL)
+        {
+            assert(EVENT_IS_PG(Event_get_type(event)));
+            if (((Event_pg*)event)->ch_index > index)
+            {
+                if (!Column_ins(aux, event))
+                {
+                    del_Column(aux);
+                    del_Column_iter(iter);
+                    return NULL;
+                }
+            }
+            event = Column_iter_get_next(iter);
+        }
+    }
+    del_Column_iter(iter);
+    return aux;
+}
+
+
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state)
+{
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    Column* col = new_Column(len);
+    if (col == NULL)
+    {
+        return NULL;
+    }
+    if (!Column_parse(col, str, is_global, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    return col;
+}
+
+
 #define break_if(error)   \
     if (true)             \
     {                     \
@@ -259,45 +361,21 @@ Column* new_Column(Reltime* len)
         }                 \
     } else (void)0
 
-bool Column_read(Column* col, File_tree* tree, Read_state* state)
+bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 {
     assert(col != NULL);
-    assert(tree != NULL);
     assert(state != NULL);
     if (state->error)
     {
         return false;
     }
-    Read_state_init(state, File_tree_get_path(tree));
-    if (!File_tree_is_dir(tree))
+    if (str == NULL)
     {
-        Read_state_set_error(state, "Column is not a directory");
-        return false;
-    }
-    bool is_global = strcmp(File_tree_get_name(tree), "global_column") == 0;
-    File_tree* event_tree = NULL;
-    if (!is_global)
-    {
-        event_tree = File_tree_get_child(tree, "voice_events.json");
-    }
-    else
-    {
-        event_tree = File_tree_get_child(tree, "global_events.json");
-    }
-    if (event_tree == NULL)
-    {
+        // An empty Column has no properties, so we're done.
         return true;
     }
-    if (File_tree_is_dir(event_tree))
-    {
-        Read_state_init(state, "Event list is a directory");
-        return false;
-    }
-    char* str = File_tree_get_data(event_tree);
-
     str = read_const_char(str, '[', state); // start of Column
     break_if(state->error);
-
     str = read_const_char(str, ']', state); // check of empty Column
     if (!state->error)
     {
@@ -326,7 +404,7 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
             Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
             return false;
         }
-        if ((is_global && EVENT_IS_VOICE(type)) ||
+        if ((is_global && EVENT_IS_CHANNEL(type)) ||
                 (!is_global && EVENT_IS_GLOBAL(type)))
         {
             Read_state_set_error(state,
@@ -370,18 +448,45 @@ bool Column_read(Column* col, File_tree* tree, Read_state* state)
 #undef break_if
 
 
-bool Column_write(Column* col, FILE* out, Write_state* state)
+char* Column_serialise(Column* col)
 {
     assert(col != NULL);
-    assert(out != NULL);
-    assert(state != NULL);
-    (void)col;
-    (void)out;
-    if (state->error)
+    Column_iter* iter = new_Column_iter(col);
+    if (iter == NULL)
     {
-        return false;
+        return NULL;
     }
-    return false;
+    String_buffer* sb = new_String_buffer();
+    if (iter == NULL || sb == NULL)
+    {
+        del_Column_iter(iter);
+        return NULL;
+    }
+    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
+    while (event != NULL)
+    {
+        if (String_buffer_get_length(sb) == 0)
+        {
+            String_buffer_append_string(sb, "\n\n[\n    ");
+        }
+        else
+        {
+            String_buffer_append_string(sb, ",\n    ");
+        }
+        Event_serialise(event, sb);
+        event = Column_iter_get_next(iter);
+    }
+    del_Column_iter(iter);
+    if (String_buffer_get_length(sb) > 0)
+    {
+        String_buffer_append_string(sb, "\n]\n\n\n");
+    }
+    if (String_buffer_error(sb))
+    {
+        xfree(del_String_buffer(sb));
+        return NULL;
+    }
+    return del_String_buffer(sb);
 }
 
 
@@ -395,12 +500,12 @@ bool Column_ins(Column* col, Event* event)
     if (ret == NULL || Reltime_cmp(Event_get_pos(event),
             Event_get_pos(ret->next->event)) != 0)
     {
-        Event_list* nil = new_Event_list(NULL, NULL);
+        Event_list* nil = new_Event_list(NULL, NULL, false);
         if (nil == NULL)
         {
             return false;
         }
-        Event_list* node = new_Event_list(nil, event);
+        Event_list* node = new_Event_list(nil, event, col->is_aux);
         if (node == NULL)
         {
             del_Event_list(nil);
@@ -419,7 +524,7 @@ bool Column_ins(Column* col, Event* event)
     assert(ret->next != ret);
     assert(ret->prev != ret);
     assert(ret->event == NULL);
-    Event_list* node = new_Event_list(ret, event);
+    Event_list* node = new_Event_list(ret, event, col->is_aux);
     if (node == NULL)
     {
         return false;
@@ -671,7 +776,10 @@ static void del_Event_list(Event_list* elist)
     {
         Event_list* next = cur->next;
         assert(cur->event != NULL);
-        del_Event(cur->event);
+        if (!cur->copy)
+        {
+            del_Event(cur->event);
+        }
         xfree(cur);
         cur = next;
     }

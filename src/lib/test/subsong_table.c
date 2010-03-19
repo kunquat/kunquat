@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -84,14 +76,14 @@ START_TEST (set_get)
         fprintf(stderr, "new_Subsong() returned NULL -- out of memory?\n");
         abort();
     }
-    if (Subsong_table_set(table, 0, ss) < 0)
+    if (!Subsong_table_set(table, 0, ss))
     {
-        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned false -- out of memory?\n");
         abort();
     }
-    if (Subsong_table_set(table, KQT_SUBSONGS_MAX - 1, ss_end) < 0)
+    if (!Subsong_table_set(table, KQT_SUBSONGS_MAX - 1, ss_end))
     {
-        fprintf(stderr, "Subsong_table_set() returned negative -- out of memory?\n");
+        fprintf(stderr, "Subsong_table_set() returned false -- out of memory?\n");
         abort();
     }
     if (!Subsong_set(ss, 0, 0))
@@ -139,7 +131,8 @@ START_TEST (set_get)
                     || (i == 0 && k == 8)
                     || (i == 0 && k == 33)
                     || (i == 0 && k == KQT_SECTIONS_MAX - 1)
-                    || (i == 1 && k == KQT_SECTIONS_MAX - 1))
+//                    || (i == 1 && k == KQT_SECTIONS_MAX - 1)
+                    )
             {
                 fail_unless(ret == i + k,
                         "Subsong table contained %hd instead of %d at subsong %d, index %d.",

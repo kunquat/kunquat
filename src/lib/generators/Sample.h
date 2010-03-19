@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -29,7 +21,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Voice_state.h>
 #include <Generator.h>
 
@@ -38,8 +30,6 @@ typedef enum
 {
     /// Uninitialised.
     SAMPLE_FORMAT_NONE = 0,
-    /// The native format.
-    // SAMPLE_FORMAT_KS,
     /// WavPack.
     SAMPLE_FORMAT_WAVPACK,
     /// Vorbis.
@@ -58,24 +48,65 @@ typedef enum
 
 
 /**
+ * Common parameters for a Sample (the parameters stored in p_sample.json).
+ */
+typedef struct Sample_params
+{
+    Sample_format format; ///< The file format.
+    double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
+    Sample_loop loop;     ///< Loop setting.
+    uint64_t loop_start;  ///< Loop start.
+    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
+} Sample_params;
+
+
+/**
  * Sample contains a digital sound sample.
  */
 typedef struct Sample
 {
+    Sample_params params;
     char* path;           ///< The path of the file (if applicable -- otherwise NULL).
-    Sample_format format; ///< The (compression) format.
     bool changed;         ///< Whether the sample (sound) data has changed after loading.
     bool is_lossy;        ///< Whether this sample uses lossy compression.
     int channels;         ///< The number of channels (1 or 2).
     int bits;             ///< The bit resolution (8, 16, 24 or 32).
     bool is_float;        ///< Whether this sample is in floating point format.
-    Sample_loop loop;     ///< Loop setting.
-    uint64_t loop_start;  ///< Loop start.
-    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
     uint64_t len;         ///< The length of the sample (in amplitude values per channel).
-    double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
     void* data[2];        ///< The sample data.
 } Sample;
+
+
+/**
+ * Initialises common Sample parameters.
+ *
+ * \param params   The Sample parameters -- must not be \c NULL.
+ *
+ * \return   The parameter \a params.
+ */
+Sample_params* Sample_params_init(Sample_params* params);
+
+
+/**
+ * Copies Sample parameters.
+ *
+ * \param dest   The copy destination -- must not be \c NULL.
+ * \param src    The copy source -- must not be \c NULL.
+ *
+ * \return   The parameter \a dest.
+ */
+Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src);
+
+
+/**
+ * Copies Sample parameters into a Sample.
+ *
+ * This function copies all the fields except the format field.
+ *
+ * \param sample   The destination Sample -- must not be \c NULL.
+ * \param params   The Sample parameters -- must not be \c NULL.
+ */
+void Sample_set_params(Sample* sample, Sample_params* params);
 
 
 /**
@@ -88,15 +119,13 @@ Sample* new_Sample(void);
 
 
 /**
- * Creates a Sample from a File tree.
+ * Gets the file format of the Sample.
  *
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param sample   The Sample -- must not be \c NULL.
  *
- * \return   The Sample if found and read successfully, otherwise \c NULL.
- *           The caller must check for errors in \a state.
+ * \return   The Sample format.
  */
-Sample* new_Sample_from_file_tree(File_tree* tree, Read_state* state);
+Sample_format Sample_get_format(Sample* sample);
 
 
 /**

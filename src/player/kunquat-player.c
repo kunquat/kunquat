@@ -1,25 +1,18 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
+#define _POSIX_SOURCE
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -31,6 +24,10 @@
 #include <inttypes.h>
 #include <math.h>
 #include <errno.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <getopt.h>
 
@@ -51,8 +48,8 @@
 
 static char* driver_names[] =
 {
-#if defined(WITH_AO)
-    "ao",
+#if defined(WITH_PULSE)
+    "pulse",
 #endif
 #if defined(WITH_JACK)
     "jack",
@@ -156,11 +153,10 @@ char* get_iso_today(void)
 
 void print_licence(void)
 {
-    fprintf(stdout, "Copyright 2009 Tomi Jylhä-Ollila\n");
-    fprintf(stdout, "License GPLv3+: GNU GPL version 3 or later"
-                    " <http://gnu.org/licenses/gpl.html>\n");
-    fprintf(stdout, "This is free software: you are free to change and redistribute it.\n");
-    fprintf(stdout, "There is NO WARRANTY, to the extent permitted by law.\n");
+    fprintf(stdout, "Author: Tomi Jylhä-Ollila\n");
+    fprintf(stdout, "No rights reserved\n");
+    fprintf(stdout, "CC0 1.0 Universal, "
+            "http://creativecommons.org/publicdomain/zero/1.0/\n");
     return;
 }
 
@@ -284,7 +280,7 @@ int main(int argc, char** argv)
             break;
             case ':':
             {
-                fprintf(stderr, "Option %s requires an argument\n", argv[opt_index]);
+                fprintf(stderr, "Option %s requires an argument.\n", argv[opt_index]);
                 fprintf(stderr, "Use -h for help.\n");
                 exit(EXIT_FAILURE);
             }
@@ -344,6 +340,10 @@ int main(int argc, char** argv)
         del_Audio(audio);
         exit(EXIT_FAILURE);
     }
+    if (interactive)
+    {
+        fprintf(stderr, "Audio device: %s\n", Audio_get_full_name(audio));
+    }
     
     if (interactive && !set_terminal(true, true))
     {
@@ -353,10 +353,32 @@ int main(int argc, char** argv)
     bool quit = false;
     for (int file_arg = optind; file_arg < argc && !quit; ++file_arg)
     {
-        kqt_Handle* handle = kqt_new_Handle_from_path(audio->nframes, argv[file_arg]);
+        struct stat* info = &(struct stat){ .st_mode = 0 };
+        errno = 0;
+        if (stat(argv[file_arg], info) != 0)
+        {
+            fprintf(stderr, "Couldn't access information about path %s: %s.\n",
+                    argv[file_arg], strerror(errno));
+            continue;
+        }
+        kqt_Handle* handle = NULL;
+        if (S_ISDIR(info->st_mode))
+        {
+            handle = kqt_new_Handle_rw(argv[file_arg]);
+        }
+        else
+        {
+            handle = kqt_new_Handle_r(argv[file_arg]);
+        }
         if (handle == NULL)
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
+            continue;
+        }
+        if (!kqt_Handle_set_buffer_size(handle, audio->nframes))
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
+            kqt_del_Handle(handle);
             continue;
         }
         int subsong = start_subsong;
@@ -364,15 +386,21 @@ int main(int argc, char** argv)
         {
             if (!kqt_Handle_set_position(handle, subsong, 0))
             {
-                fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+                fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
                 kqt_del_Handle(handle);
                 continue;
             }
         }
+        long long length_ns = kqt_Handle_get_duration(handle, subsong);
+        if (length_ns == -1)
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
 
         Audio_set_handle(audio, handle);
 
-        uint64_t length_ns = kqt_Handle_get_duration(handle);
         uint64_t clipped[2] = { 0 };
 
         const int status_line_max = 256;
@@ -484,7 +512,12 @@ int main(int argc, char** argv)
                         }
                         else
                         {
-                            length_ns = kqt_Handle_get_duration(handle);
+                            length_ns = kqt_Handle_get_duration(handle, subsong);
+                            if (length_ns == -1)
+                            {
+                                fprintf(stderr, "\n%s\n", kqt_Handle_get_error(handle));
+                                length_ns = 0;
+                            }
                         }
                         Audio_pause(audio, false);
                     }

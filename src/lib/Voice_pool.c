@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -45,7 +37,7 @@
  *
  * \return   The target index of the modified key.
  */
-// static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index);
+static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index);
 
 
 /**
@@ -79,7 +71,7 @@ static uint16_t downheap(Voice_pool* pool, uint16_t index);
  *
  * \return   The target index of the modified key.
  */
-// static uint16_t upheap(Voice_pool* pool, uint16_t index);
+static uint16_t upheap(Voice_pool* pool, uint16_t index);
 
 
 Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
@@ -101,7 +93,7 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
     }
     for (int i = 0; i < size; ++i)
     {
-        pool->voices[i] = new_Voice(events);
+        pool->voices[i] = new_Voice();
         if (pool->voices[i] == NULL)
         {
             for (--i; i >= 0; --i)
@@ -147,7 +139,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     }
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
-        pool->voices[i] = new_Voice(pool->events);
+        pool->voices[i] = new_Voice();
         if (pool->voices[i] == NULL)
         {
             for (--i; i >= pool->size; --i)
@@ -182,7 +174,6 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
         Voice* new_voice = pool->voices[0];
         new_voice->id = running_id;
         new_voice->prio = VOICE_PRIO_INACTIVE;
-        Event_queue_clear(new_voice->events);
         ++running_id;
         return new_voice;
     }
@@ -191,6 +182,33 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
         return voice;
     }
     return NULL;
+}
+
+
+uint16_t Voice_pool_mix_bg(Voice_pool* pool,
+                           uint32_t amount,
+                           uint32_t offset,
+                           uint32_t freq,
+                           double tempo)
+{
+    assert(pool != NULL);
+    assert(freq > 0);
+    uint16_t active_voices = 0;
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
+        {
+            if (pool->voices[i]->prio <= VOICE_PRIO_BG)
+            {
+//                fprintf(stderr, "Background mix start\n");
+                Voice_mix(pool->voices[i], amount, offset, freq, tempo);
+//                fprintf(stderr, "Background mix end\n");
+            }
+            ++active_voices;
+        }
+    }
+    heap_build(pool);
+    return active_voices;
 }
 
 
@@ -213,6 +231,16 @@ uint16_t Voice_pool_mix(Voice_pool* pool,
     }
     heap_build(pool);
     return active_voices;
+}
+
+
+void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice)
+{
+    assert(pool != NULL);
+    assert(voice != NULL);
+    assert(pool->voices[voice->pool_index] == voice);
+    heap_mod_key(pool, voice->pool_index);
+    return;
 }
 
 
@@ -240,7 +268,6 @@ void del_Voice_pool(Voice_pool* pool)
 }
 
 
-#if 0
 static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index)
 {
     assert(pool != NULL);
@@ -248,7 +275,6 @@ static uint16_t heap_mod_key(Voice_pool* pool, uint16_t index)
     index = upheap(pool, index);
     return downheap(pool, index);
 }
-#endif
 
 
 static void heap_build(Voice_pool* pool)
@@ -296,7 +322,6 @@ static uint16_t downheap(Voice_pool* pool, uint16_t index)
 }
 
 
-#if 0
 static uint16_t upheap(Voice_pool* pool, uint16_t index)
 {
     assert(pool != NULL);
@@ -315,6 +340,5 @@ static uint16_t upheap(Voice_pool* pool, uint16_t index)
     }
     return index;
 }
-#endif
 
 

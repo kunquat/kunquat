@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -228,6 +220,7 @@ START_TEST (mix)
     Song_set_mix_vol(song, 0);
     Playdata* play = song->play_state;
     if (play == NULL) abort();
+    Event_handler* eh = song->event_handler;
     Pattern* pat1 = new_Pattern();
     if (pat1 == NULL)
     {
@@ -363,7 +356,7 @@ START_TEST (mix)
         fprintf(stderr, "Column_ins() returned false -- out of memory?\n");
         abort();
     }
-    uint32_t ret = Song_mix(song, 256, play);
+    uint32_t ret = Song_mix(song, 256, eh);
     fail_unless(ret == 128,
             "Song_mix() mixed %lu frames instead of 128.", (unsigned long)ret);
     for (int i = 0; i < 64; ++i)
@@ -424,7 +417,13 @@ START_TEST (mix_break_song_null)
         fprintf(stderr, "xalloc() returned NULL -- out of memory?\n");
         return;
     }
-    Song_mix(NULL, 1, play);
+    Event_handler* eh = new_Event_handler(play);
+    if (eh == NULL)
+    {
+        fprintf(stderr, "new_Event_handler() returned NULL -- out of memory?\n");
+        return;
+    }
+    Song_mix(NULL, 1, eh);
     xfree(play);
 }
 END_TEST

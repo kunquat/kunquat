@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -40,6 +32,7 @@
 typedef struct Audio
 {
     char* name;
+    const char* full_name;
     bool active;
     char error[AUDIO_ERROR_LENGTH];
     bool pause;
@@ -78,6 +71,16 @@ Audio* new_Audio(char* name);
  * \return   The name.
  */
 char* Audio_get_name(Audio* audio);
+
+
+/**
+ * Gets the full name of the Audio (suitable for printing).
+ *
+ * \param audio   The Audio -- must not be \c NULL.
+ *
+ * \return   The full name.
+ */
+const char* Audio_get_full_name(Audio* audio);
 
 
 /**

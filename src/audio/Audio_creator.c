@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,8 +19,8 @@
 #include <Audio.h>
 #include <Audio_null.h>
 
-#ifdef WITH_AO
-#include <Audio_ao.h>
+#ifdef WITH_PULSE
+#include <Audio_pulse.h>
 #endif
 #ifdef WITH_JACK
 #include <Audio_jack.h>
@@ -41,23 +33,24 @@
 typedef struct Driver_info
 {
     char* name;
+    char* full_name;
     Audio* (*create)(void);
 } Driver_info;
 
 
 static Driver_info drivers[] =
 {
-#ifdef WITH_AO
-    { "ao", new_Audio_ao },
+#ifdef WITH_PULSE
+    { "pulse", "PulseAudio output", new_Audio_pulse },
 #endif
 #ifdef WITH_JACK
-    { "jack", new_Audio_jack },
+    { "jack", "JACK output", new_Audio_jack },
 #endif
 #ifdef WITH_OPENAL
-    { "openal", new_Audio_openal },
+    { "openal", "OpenAL output", new_Audio_openal },
 #endif
-    { "null", new_Audio_null },
-    { NULL, NULL }
+    { "null", "Null output", new_Audio_null },
+    { NULL, NULL, NULL }
 };
 
 
@@ -85,7 +78,13 @@ Audio* new_Audio(char* name)
         return NULL;
     }
     assert(driver->create != NULL);
-    return driver->create();
+    Audio* audio = driver->create();
+    if (audio == NULL)
+    {
+        return NULL;
+    }
+    audio->full_name = driver->full_name;
+    return audio;
 }
 
 

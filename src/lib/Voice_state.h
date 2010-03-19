@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,11 +19,11 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <Channel_state.h>
 #include <Reltime.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
+#include <Voice_params.h>
 
 
 #define FILTER_ORDER (2)
@@ -51,14 +43,11 @@ typedef struct Voice_state
     bool active;                   ///< Whether there is anything left to process.
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
-    Channel_state* cur_ch_state;   ///< Current Channel state.
-    Channel_state* new_ch_state;   ///< New (upcoming) Channel state.
+    Voice_params params;
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
-    int orig_note;                 ///< The note used at the beginning.
-    int orig_note_mod;             ///< The note modifier used at the beginning.
-    int orig_octave;               ///< The octave used at the beginning.
+    double orig_cents;             ///< The pitch in cents used at the beginning.
                                   
     pitch_t pitch;                 ///< The frequency at which the note is played.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
@@ -91,11 +80,11 @@ typedef struct Voice_state
     double noff_pos_rem;           ///< Note Off position remainder.
                                   
     double* pedal;                 ///< Instrument pedal state.
-    double on_ve_pos;              ///< Note On volume envelope position.
-    double off_ve_pos;             ///< Note Off volume envelope position.
+    double fe_pos;                 ///< Force envelope position.
+    double rel_fe_pos;             ///< Release force envelope position.
                                   
     double force;                  ///< The current force (linear factor).
-    double actual_force;           ///< The current actual force (includes tremolo).
+    double actual_force;           ///< The current actual force (includes tremolo & envs).
     int force_slide;               ///< Force slide state (0 = no slide, -1 = down, 1 = up).
     Reltime force_slide_length;
     double force_slide_target;     ///< Target force of the slide.
@@ -149,23 +138,22 @@ typedef struct Voice_state
 /**
  * Initialises a Voice state.
  *
- * \param state          The Voice state -- must not be \c NULL.
- * \param cur_ch_state   The current Channel state -- must not be \c NULL.
- * \param new_ch_state   The new (upcoming) Channel state -- must not be \c NULL.
- * \param freq           The mixing frequency -- must be > \c 0.
- * \param tempo          The current tempo -- must be > \c 0.
+ * \param state    The Voice state -- must not be \c NULL.
+ * \param params   The Voice parameters -- must not be \c NULL.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_init(Voice_state* state,
-                              Channel_state* cur_ch_state,
-                              Channel_state* new_ch_state,
+                              Voice_params* params,
                               uint32_t freq,
                               double tempo);
 
 
 /**
  * Clears a Voice state.
+ *
  * \param state   The Voice state -- must not be \c NULL.
  *
  * \return   The parameter \a state.

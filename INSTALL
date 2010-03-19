@@ -1,98 +1,10 @@
+On a relatively recent Ubuntu system you should be able to install and try out Kunquat by doing the following:
 
+sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpulse-dev check libsndfile1-dev
+scons
+scons prefix=~/kunquat install
+export LD_LIBRARY_PATH=~/kunquat/lib
+export PYTHONPATH=~/kunquat/lib/python2.6/site-packages
+~/kunquat/bin/kunquat-player ~/kunquat/share/doc/kunquat/examples/example.kqt.bz2
 
-    NOTE:
-
-Kunquat is in a very early development stage. Don't expect it to do anything
-useful.
-
-
-    Dependencies
-    ------------
-
-Building of Kunquat depends on the following tools and libraries:
-
-  scons (http://www.scons.org/)
-  libarchive (http://code.google.com/p/libarchive/)
-  libwavpack (http://www.wavpack.com/)
-
-In order to get sound you'll need one of the following:
-
-  JACK (http://jackaudio.org/)
-  libao (http://www.xiph.org/ao/)
-  OpenAL (http://www.openal.org/)
-
-If you want to build waveform audio export support, you'll need:
-
-  libsndfile (http://www.mega-nerd.com/libsndfile/)
-
-Additionally, if you want to build the test code, you'll need:
-
-  Check (http://check.sourceforge.net/)
-   
-
-    Installing the Dependencies
-    ---------------------------
-
-Ubuntu:
-
-On a relatively new Ubuntu you should be able to get all the required and
-optional dependencies by running the following command:
-
-sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libjack-dev jackd libao-dev libasound2-dev check libgtk2.0-dev libopenal-dev libalut-dev libsndfile1-dev
-
-
-    Building instructions
-    ---------------------
-
-To get a list of build options, run:
-
-  scons -h
-
-The build options can be altered in the file "options.py".
-
-To build Kunquat, run:
-
-  scons
-
-To clean the build, run:
-
-  scons -c
-
-This still leaves a couple of SCons-related files behind. If you need a more
-thorough clean, run:
-
-  scons -c --full-clean
-
-
-    Installation instructions
-    -------------------------
-
-To install Kunquat into the default directory, run:
-
-  scons install
-
-You can change the installation prefix in the file "options.py" or via
-command line. For example, to install into /opt, run:
-
-  scons prefix=/opt install
-
-To uninstall Kunquat, run:
-
-  scons -c install
-
-Make sure you use the same prefix as during the installation. Otherwise the
-files will not be removed.
-
-
-    Running instructions
-    --------------------
-
-To hear the example composition, run:
-
-  kunquat-player examples/example.kqt.bz2
-
-To get more details on how to use kunquat-player, run:
-
-  kunquat-player -h
-
-
+NOTE: Kunquat is in an early development stage. Don't expect it to do anything useful.

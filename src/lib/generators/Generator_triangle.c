@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -35,12 +27,10 @@
 #include <xmemory.h>
 
 
-bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state);
-
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
+Generator* new_Generator_triangle(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_triangle* triangle = xalloc(Generator_triangle);
@@ -53,29 +43,12 @@ Generator_triangle* new_Generator_triangle(Instrument_params* ins_params)
         xfree(triangle);
         return NULL;
     }
-    triangle->parent.read = Generator_triangle_read;
     triangle->parent.destroy = del_Generator_triangle;
     triangle->parent.type = GEN_TYPE_TRIANGLE;
     triangle->parent.init_state = Generator_triangle_init_state;
     triangle->parent.mix = Generator_triangle_mix;
     triangle->parent.ins_params = ins_params;
-    return triangle;
-}
-
-
-bool Generator_triangle_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_TRIANGLE);
-    assert(tree != NULL);
-    assert(state != NULL);
-    (void)gen;
-    (void)tree;
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
+    return &triangle->parent;
 }
 
 
@@ -141,7 +114,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
             triangle_state->phase -= floor(triangle_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+//        Generator_common_handle_note_off(gen, state, vals, 1, freq);
         vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
@@ -152,7 +125,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    Generator_common_persist(gen, state, mixed);
+//    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 

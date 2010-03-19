@@ -1,0 +1,165 @@
+.TH kunquat\-handle 3 "2010\-01\-19" "" "Kunquat"
+
+.SH NAME
+
+Kunquat Handle interface
+
+.SH SYNOPSIS
+
+.B #include <kunquat/Handle.h>
+
+.BI "kqt_Handle* kqt_new_Handle_r(char* " path );
+.br
+.BI "kqt_Handle* kqt_new_Handle_rw(char* " path );
+
+.BI "void* kqt_Handle_get_data(kqt_Handle* " handle ", const char* " key );
+.br
+.BI "long kqt_Handle_get_data_length(kqt_Handle* " handle ", const char* " key );
+.br
+.BI "int kqt_Handle_free_data(kqt_Handle* " handle ", void* " data );
+.br
+.BI "int kqt_Handle_set_data(kqt_Handle* " handle ", char* " key ", void* " data ", long " length );
+
+.BI "char* kqt_Handle_get_error(kqt_Handle* " handle );
+.br
+.BI "void kqt_Handle_clear_error(kqt_Handle* " handle );
+
+.BI "void kqt_del_Handle(kqt_Handle* " handle );
+
+.SH "KUNQUAT HANDLE"
+
+The \fBkqt_Handle\fR is an opaque data structure that represents a Kunquat
+composition file, directory or project. A Kunquat composition file (usually
+with a file extension "kqt", possibly succeeded by an extension indicating
+compression format) is a single file suitable for distribution. The Kunquat
+library provides read-only access to these files. A Kunquat composition
+directory contains the same type of data as a kqt file, but the contents are
+inside a directory tree. The library provides simple read/write access to
+these directories and it is mainly designed for player applications that
+support modifying composition metadata. Composition editor applications should
+use the editor interface (see
+.BR kunquat-editor-interface (3)).
+The composition project interface supports modifying composition data in a
+failure-resistant manner.
+
+Operations on Kunquat Handles are generally \fInot\fR thread-safe. In
+particular, multiple threads must not create or destroy Kunquat Handles or
+access a single Kunquat Handle in parallel. However, accessing different
+Kunquat Handles from different threads in parallel should be safe.
+
+.SH "CREATING KUNQUAT HANDLES"
+
+.IP "\fBkqt_Handle* kqt_new_Handle_r(char*\fR \fIpath\fR\fB);\fR"
+Creates a read-only Kunquat Handle associated with a composition file
+\fIpath\fR. The function returns the new Kunquat Handle on success, or NULL if
+an error occurred.
+
+.IP "\fBkqt_Handle* kqt_new_Handle_rw(char*\fR \fIpath\fR\fB);\fR"
+Creates a read/write Kunquat Handle associated with a composition directory
+\fIpath\fR. This directory is called "kunquatcXX" where "XX" is the version
+number of the format. In this case, the real path name should be used, i.e.
+the format version number should not be substituted with "XX". The function
+returns the new Kunquat Handle on success, or NULL if an error occurred.
+
+.SH "DATA ACCESS"
+
+Composition data can be accessed through a Kunquat Handle with keys. A valid
+key consists of one or more textual elements separated by forward slashes
+('/'). The last element is the only one that is allowed and required to
+contain a period. The format is similar, but not equivalent, to that of POSIX
+directory paths. Examples:
+
+.in +4n
+.nf
+p_composition.json
+pat_000/vcol_00/p_voice_events.json
+ins_01/kunquatiXX/p_instrument.json
+.fi
+.in
+
+The "XX" in the last example should be written literally. It is expanded to
+the file format version number behind the scenes.
+
+.IP "\fBvoid* kqt_Handle_get_data(kqt_Handle*\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB);\fR"
+Gets data from \fIhandle\fR associated with \fIkey\fR. The function returns
+the data if it exists and no error occurred. In this case, the caller must
+eventually free the data returned by using \fBkqt_Handle_free_data\fR. Note
+that \fBkqt_del_Handle(\fR\fIhandle\fR\fB)\fR also frees this data, so the
+caller needs to make a copy of the data if it needs the data beyond the
+lifetime of \fIhandle\fR. If the data does not exist or an error occurred,
+\fBkqt_Handle_get_data\fR returns NULL -- in this case, the caller needs to
+check \fBkqt_Handle_get_error(\fR\fIhandle\fR\fB)\fR to determine whether an
+error occurred or not.
+
+.IP "\fBlong kqt_Handle_get_data_length(kqt_Handle*\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB);\fR"
+Gets the length of data in \fIhandle\fR associated with \fIkey\fR. The caller
+must use this function with \fBkqt_Handle_get_data\fR in order to determine
+the size of the data returned. The function returns the size of the data in
+bytes, or -1 if an error occurred.
+
+.IP "\fBint kqt_Handle_free_data(kqt_Handle*\fR \fIhandle\fR\fB, void*\fR \fIdata\fR\fB);\fR"
+Frees data returned by \fBkqt_Handle_get_data\fR. This function returns 1 on
+success, 0 on failure. It only frees \fIdata\fR if it was originally retrieved
+from \fIhandle\fR.
+
+.IP "\fBint kqt_Handle_set_data(kqt_Handle*\fR \fIhandle\fR\fB, char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
+Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
+specifies the number of bytes in \fIdata\fR and must not exceed the real
+length of \fIdata\fR. If \fIlength\fR is 0, the data associated with \fIkey\fR
+is removed. If \fIkey\fR affects the way the music is mixed, \fIdata\fR is
+validated before setting. Otherwise, no checking is performed -- this is done
+to allow future extensions. This function returns 1 on success, 0 on failure.
+
+.SH ERRORS
+
+Errors in Kunquat are divided into the following categories:
+
+.IP \fBArgumentError\fR
+A Kunquat function was called with an inappropriate argument value. Usually,
+this indicates an error in the calling or the library code.
+
+.IP \fBFormatError\fR
+An input file or value to be stored was invalid.
+
+.IP \fBMemoryError\fR
+Memory allocation failed. If this happens with a function that modifies
+composition data, that data may end up corrupted.
+
+.IP \fBResourceError\fR
+The Kunquat library could not get service from an external resource such as
+another library or the file system.
+
+.PP
+Error messages consist of one of these error categories followed by a colon
+(':'), a space and an error description.
+
+.IP "\fBchar* kqt_Handle_get_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+Returns an error message describing the last error occurred when accessing
+\fIhandle\fR. \fIhandle\fR may also be NULL, in which case the function
+returns an error message about the last error occurred in using the Kunquat
+library in general. In particular, this is the only way to retrieve Handle
+creation error messages. The function will return the last error message, or
+an empty string if no error has occurred.
+
+.IP "\fBvoid kqt_Handle_clear_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+Clears error information in \fIhandle\fR. This is useful to do before calling
+a function for which the only way to detect an error is via
+\fBkqt_Handle_get_error\fR.
+\fIhandle\fR may also be NULL, in which case the generic error message is
+cleared.
+
+.SH "FREEING RESOURCES"
+
+.IP "\fBvoid kqt_del_Handle(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+Destroys \fIhandle\fR and all resources allocated for it. Note that the data
+returned by calls of \fBkqt_Handle_get_data\fR with this handle is also freed
+here in case it wasn't freed before through \fBkqt_Handle_free_data\fR. The
+function \fBkqt_del_Handle\fR does not return a value, and it only sets the
+generic error message in case \fIhandle\fR is invalid.
+
+.SH "SEE ALSO"
+
+.BR kunquat-player-interface (3),
+.BR kunquat-editor-interface (3)
+
+

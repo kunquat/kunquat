@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -30,6 +22,7 @@
 
 #include <Real.h>
 #include <Reltime.h>
+#include <kunquat/Handle.h>
 
 
 #define STATE_PATH_LENGTH (512)
@@ -84,7 +77,7 @@ typedef struct Write_state
  *
  * \return   The parameter \a state.
  */
-Read_state* Read_state_init(Read_state* state, char* path);
+Read_state* Read_state_init(Read_state* state, const char* path);
 
 
 /**
@@ -108,12 +101,14 @@ void Read_state_clear_error(Read_state* state);
 /**
  * Reads a file into a byte array.
  *
- * \param in      The input file -- must not be \c NULL and must be seekable.
- * \param state   The Read state -- must not be \c NULL.
+ * \param in       The input file -- must not be \c NULL and must be seekable.
+ * \param size     Pointer to a variable where file size is stored -- must not
+ *                 be \c NULL.
+ * \param handle   The Kunquat Handle, or \c NULL if not applicable.
  *
  * \return   The contents of the file if successful, otherwise \c NULL.
  */
-char* read_file(FILE* in, Read_state* state);
+char* read_file(FILE* in, long* size, kqt_Handle* handle);
 
 
 /**

@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,14 +19,15 @@
 #include <stdint.h>
 
 #include <kunquat/limits.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
+#include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
-#include <File_tree.h>
+#include <Event_handler.h>
 
 
 typedef struct Song
@@ -45,47 +38,54 @@ typedef struct Song
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
+    Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
-    Event_queue* events;                ///< Global events.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
     uint16_t init_subsong;              ///< Initial subsong number.
     Playdata* play_state;               ///< Playback state.
+    Event_handler* event_handler;       ///< The Event handler.
     Playdata* skip_state;               ///< Skip state (used for length calculation).
+    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
+    Event_handler* skip_handler;        ///< Skip state Event handler.
 } Song;
+
+
+#define SONG_DEFAULT_BUF_COUNT (2)
+#define SONG_DEFAULT_MIX_VOL (-8)
+#define SONG_DEFAULT_INIT_SUBSONG (0)
 
 
 /**
  * Creates a new Song.
+ *
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
  *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of a buffer -- must be > \c 0.
- * \param events      The maximum number of global events per tick -- must be
- *                    > \c 0.
  *
  * \see del_Song()
  *
  * \return   The new Song if successful, or \c NULL if memory allocation
  *           failed.
  */
-Song* new_Song(int buf_count, uint32_t buf_size, uint8_t events);
+Song* new_Song(int buf_count, uint32_t buf_size);
 
 
 /**
- * Reads a Song from a File tree.
+ * Parses the composition header of a Song.
  *
  * \param song    The Song -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Song_read(Song* song, File_tree* tree, Read_state* state);
+bool Song_parse_composition(Song* song, char* str, Read_state* state);
 
 
 /**
@@ -93,25 +93,24 @@ bool Song_read(Song* song, File_tree* tree, Read_state* state);
  *
  * \param song      The Song -- must not be \c NULL.
  * \param nframes   The amount of frames to be mixed.
- * \param play      The Playdata containing the playback state -- must not be
- *                  \c NULL.
+ * \param eh        The Event handler -- must not be \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes.
  */
-uint32_t Song_mix(Song* song, uint32_t nframes, Playdata* play);
+uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh);
 
 
 /**
  * Skips part of the Song.
  *
  * \param song     The Song -- must not be \c NULL.
- * \param play     The Playdata -- must not be \c NULL.
+ * \param eh       The Event handler -- must not be \c NULL.
  * \param amount   The amount of frames to be skipped.
  *
  * \return   The amount of frames actually skipped. This is <= \a amount.
  */
-uint64_t Song_skip(Song* song, Playdata* play, uint64_t amount);
+uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount);
 
 
 /**
@@ -266,6 +265,16 @@ Scale** Song_get_scales(Song* song);
 
 
 /**
+ * Sets a Scale in the Song.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param index   The Scale index -- must be >= 0 and < KQT_SCALES_MAX.
+ * \param scale   The Scale -- must not be \c NULL.
+ */
+void Song_set_scale(Song* song, int index, Scale* scale);
+
+
+/**
  * Gets a Scale of the Song.
  *
  * \param song    The Song -- must not be \c NULL.
@@ -305,16 +314,6 @@ bool Song_create_scale(Song* song, int index);
  *                If the Scale doesn't exist, nothing will be done.
  */
 void Song_remove_scale(Song* song, int index);
-
-
-/**
- * Gets the global Event queue of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The Event queue.
- */
-Event_queue* Song_get_events(Song* song);
 
 
 /**

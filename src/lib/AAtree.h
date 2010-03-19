@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -73,7 +65,7 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAiter_get(AAiter* iter, void* key);
+void* AAiter_get(AAiter* iter, const void* key);
 
 
 /**
@@ -84,7 +76,7 @@ void* AAiter_get(AAiter* iter, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAiter_get_at_most(AAiter* iter, void* key);
+void* AAiter_get_at_most(AAiter* iter, const void* key);
 
 
 /**
@@ -131,7 +123,7 @@ void del_AAiter(AAiter* iter);
  * \return   The new AAtree if successful, or \c NULL if memory allocation
  *           failed.
  */
-AAtree* new_AAtree(int (*cmp)(void*, void*), void (*destroy)(void*));
+AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*));
 
 
 /**
@@ -154,7 +146,7 @@ bool AAtree_ins(AAtree* tree, void* data);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get(AAtree* tree, void* key);
+void* AAtree_get(AAtree* tree, const void* key);
 
 
 /**
@@ -165,7 +157,7 @@ void* AAtree_get(AAtree* tree, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_exact(AAtree* tree, void* key);
+void* AAtree_get_exact(AAtree* tree, const void* key);
 
 
 /**
@@ -176,7 +168,7 @@ void* AAtree_get_exact(AAtree* tree, void* key);
  *
  * \return   The element if one exists, otherwise \c NULL.
  */
-void* AAtree_get_at_most(AAtree* tree, void* key);
+void* AAtree_get_at_most(AAtree* tree, const void* key);
 
 
 /**
@@ -187,7 +179,7 @@ void* AAtree_get_at_most(AAtree* tree, void* key);
  *
  * \return   The element if one was found, otherwise \c NULL.
  */
-void* AAtree_remove(AAtree* tree, void* key);
+void* AAtree_remove(AAtree* tree, const void* key);
 
 
 /**

@@ -1,27 +1,22 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
 #ifndef K_GENERATOR_TYPE_H
 #define K_GENERATOR_TYPE_H
+
+
+#include <File_base.h>
 
 
 typedef enum
@@ -54,6 +49,30 @@ typedef enum
     /// Sentinel -- never used as a valid type.
     GEN_TYPE_LAST
 } Gen_type;
+
+
+/**
+ * Parses a Generator type description.
+ *
+ * \param str     The textual description.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The Generator type if successful, \c GEN_TYPE_NONE if \a str is
+ *           \c NULL, or \c GEN_TYPE_LAST if an error occurred.
+ */
+Gen_type Generator_type_parse(char* str, Read_state* state);
+
+
+/**
+ * Tells whether the given subkey is part of the specification of given type.
+ *
+ * \param type     The type -- must be a valid type.
+ * \param subkey   The subkey. This is the part after "generator_XX/".
+ *
+ * \return   \c true if and only if \a subkey is part of the specification of
+ *           \a type.
+ */
+bool Generator_type_has_subkey(Gen_type type, const char* subkey);
 
 
 #endif // K_GENERATOR_TYPE_H

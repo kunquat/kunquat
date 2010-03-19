@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -31,6 +23,7 @@
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
+#include <String_buffer.h>
 
 #include <Event_type.h>
 
@@ -45,6 +38,7 @@ typedef struct Event
     Event_field_desc* field_types; ///< The field type description.
     bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
     void* (*get)(struct Event* event, int index);            ///< Field getter.
+    char* fields;
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 
@@ -62,6 +56,15 @@ Event* new_Event(Event_type type, Reltime* pos);
 
 
 /**
+ * Parses and retrieves all fields from a string.
+ */
+char* Event_type_get_fields(char* str,
+                            Event_field_desc field_descs[],
+                            Event_field fields[],
+                            Read_state* state);
+
+
+/**
  * Parses an Event from a string.
  *
  * \param event   The Event -- must not be \c NULL.
@@ -75,15 +78,15 @@ char* Event_read(Event* event, char* str, Read_state* state);
 
 
 /**
- * Writes an Event into a file.
+ * Serialises the Event.
  *
  * \param event   The Event -- must not be \c NULL.
- * \param out     The output file -- must not be \c NULL.
- * \param state   The Write state object -- must not be \c NULL.
+ * \param sb      The String buffer where the Event shall be written -- must
+ *                not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Event_write(Event* event, FILE* out, Write_state* state);
+bool Event_serialise(Event* event, String_buffer* sb);
 
 
 /**
@@ -163,6 +166,14 @@ bool Event_set_field(Event* event, int index, void* data);
  * \return   A pointer to the field if one exists, otherwise \c NULL.
  */
 void* Event_get_field(Event* event, int index);
+
+
+/**
+ * Gets a textual description of all the fields of the Event.
+ * 
+ * \param event   The Event -- must not be \c NULL.
+ */
+char* Event_get_fields(Event* event);
 
 
 /**

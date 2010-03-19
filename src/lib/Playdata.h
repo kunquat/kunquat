@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -28,11 +20,13 @@
 
 #include <Reltime.h>
 #include <Subsong_table.h>
-#include <Channel.h>
+//#include <Channel.h>
+#include <Column.h>
+#include <Random.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 
 
 /**
@@ -56,17 +50,16 @@ typedef struct Playdata
     Play_mode mode;                   ///< Current playback mode.
     uint32_t freq;                    ///< Mixing frequency.
     uint32_t old_freq;                ///< Old mixing frequency (used to detect freq change).
-//  uint16_t tick_size;               ///< Size of a tick in frames. TODO: implement if needed
     Subsong_table* subsongs;          ///< The Subsongs.
-    Event_queue* events;              ///< The global event queue.
-    Event_queue* ins_events;          ///< The Instrument event queue.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+    Random* random;                   ///< Random source.
 
     int buf_count;                    ///< Number of buffers used for mixing.
     kqt_frame** bufs;                 ///< The (top-level) buffers.
     Scale** scales;                   ///< The Scales.
-    Scale** active_scale;             ///< A reference to the currently active Scale.
+    Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
+    int scale;                        ///< Currently active Scale index.
 
     int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
     int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.
@@ -103,7 +96,6 @@ typedef struct Playdata
     Reltime pos;                      ///< Current position inside a pattern.
     Voice_pool* voice_pool;           ///< The Voice pool used.
     Column_iter* citer;               ///< Column iterator.
-    Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     uint16_t active_voices;             ///< Number of Voices used simultaneously.
     double min_amps[KQT_BUFFERS_MAX];   ///< Minimum amplitude values encountered.
     double max_amps[KQT_BUFFERS_MAX];   ///< Maximum amplitude values encountered.
@@ -120,13 +112,15 @@ typedef struct Playdata
  * \param insts       The Instrument table -- must not be \c NULL.
  * \param buf_count   Number of buffers used for mixing -- must be > \c 0.
  * \param bufs        The mixing buffers -- must not be \c NULL.
+ * \param random      The Random source -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
 Playdata* new_Playdata(Ins_table* insts,
                        int buf_count,
-                       kqt_frame** bufs);
+                       kqt_frame** bufs,
+                       Random* random);
 
 
 /**

@@ -1,25 +1,18 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
+#define _POSIX_SOURCE
 #define _GNU_SOURCE
 
 #include <stdlib.h>
@@ -31,6 +24,10 @@
 #include <string.h>
 #include <errno.h>
 #include <math.h>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include <getopt.h>
 
@@ -81,11 +78,10 @@ void usage(void)
 
 void print_licence(void)
 {
-    fprintf(stdout, "Copyright 2009 Tomi Jylhä-Ollila\n");
-    fprintf(stdout, "License GPLv3+: GNU GPL version 3 or later"
-                    " <http://gnu.org/licenses/gpl.html>\n");
-    fprintf(stdout, "This is free software: you are free to change and redistribute it.\n");
-    fprintf(stdout, "There is NO WARRANTY, to the extent permitted by law.\n");
+    fprintf(stdout, "Author: Tomi Jylhä-Ollila\n");
+    fprintf(stdout, "No rights reserved\n");
+    fprintf(stdout, "CC0 1.0 Universal, "
+            "http://creativecommons.org/publicdomain/zero/1.0/\n");
     return;
 }
 
@@ -154,7 +150,7 @@ int main(int argc, char** argv)
     bool quiet = false;
     char* output = NULL;
     long subsong = -1;
-    char* format = "wav";
+    char* format = NULL;
     long frequency = 48000;
     long bits = 0;
     bool float_frames = false;
@@ -263,6 +259,33 @@ int main(int argc, char** argv)
             }
         }
     }
+    if (format == NULL)
+    {
+        char* extension = NULL;
+        if (explicit_output && (extension = strrchr(output, '.')) != NULL)
+        {
+            if (strcmp(extension, ".wav") == 0)
+            {
+                format = "wav";
+            }
+            else if (strcmp(extension, ".au") == 0)
+            {
+                format = "au";
+            }
+            else if (strcmp(extension, ".flac") == 0)
+            {
+                format = "flac";
+            }
+            else
+            {
+                format = "wav";
+            }
+        }
+        else
+        {
+            format = "wav";
+        }
+    }
     if (bits == 0)
     {
         if (float_frames)
@@ -367,15 +390,44 @@ int main(int argc, char** argv)
 
     for (int file_arg = optind; file_arg < argc; ++file_arg)
     {
-        kqt_Handle* handle = kqt_new_Handle_from_path(OUT_BUFFER_SIZE, argv[file_arg]);
+        struct stat* info = &(struct stat){ .st_mode = 0 };
+        errno = 0;
+        if (stat(argv[file_arg], info) != 0)
+        {
+            fprintf(stderr, "Coudn't access information about path %s: %s.",
+                    argv[file_arg], strerror(errno));
+            continue;
+        }
+        kqt_Handle* handle = NULL;
+        if (S_ISDIR(info->st_mode))
+        {
+            handle = kqt_new_Handle_rw(argv[file_arg]);
+        }
+        else
+        {
+            handle = kqt_new_Handle_r(argv[file_arg]);
+        }
         if (handle == NULL)
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
+            continue;
+        }
+        if (!kqt_Handle_set_buffer_size(handle, OUT_BUFFER_SIZE))
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
             continue;
         }
         if (!kqt_Handle_set_position(handle, subsong, 0))
         {
-            fprintf(stderr, "%s\n", kqt_Handle_get_error(handle));
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
+        long long duration = kqt_Handle_get_duration(handle, subsong);
+        if (duration == -1)
+        {
+            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
             kqt_del_Handle(handle);
             continue;
         }
@@ -398,21 +450,20 @@ int main(int argc, char** argv)
             cleanup(handle, out_buf, output, explicit_output);
             exit(EXIT_FAILURE);
         }
-        long long duration = kqt_Handle_get_duration(handle);
         long mixed = 0;
         long long total = 0;
         while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
         {
-            kqt_frame* buf_l = kqt_Handle_get_buffer(handle, 0);
-            kqt_frame* buf_r = kqt_Handle_get_buffer(handle, 1);
+            float* buf_l = kqt_Handle_get_buffer(handle, 0);
+            float* buf_r = kqt_Handle_get_buffer(handle, 1);
             if (buf_r == NULL)
             {
                 buf_r = buf_l;
             }
             for (long i = 0; i < mixed; ++i)
             {
-                out_buf[i * 2] = (float)buf_l[i];
-                out_buf[(i * 2) + 1] = (float)buf_r[i];
+                out_buf[i * 2] = buf_l[i];
+                out_buf[(i * 2) + 1] = buf_r[i];
             }
             sf_writef_float(out, out_buf, mixed);
             total += mixed;

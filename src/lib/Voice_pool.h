@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -101,6 +93,36 @@ uint16_t Voice_pool_get_size(Voice_pool* pool);
 Voice* Voice_pool_get_voice(Voice_pool* pool,
                             Voice* voice,
                             uint64_t id);
+
+
+/**
+ * Mixes the background Voices in the Voice pool.
+ *
+ * \param pool     The Voice pool -- must not be \c NULL.
+ * \param amount   The number of frames to be mixed.
+ * \param offset   The buffer offset.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ *
+ * \return   The number of active Voices.
+ */
+uint16_t Voice_pool_mix_bg(Voice_pool* pool,
+                           uint32_t amount,
+                           uint32_t offset,
+                           uint32_t freq,
+                           double tempo);
+
+
+/**
+ * Repositions a Voice with changed priority inside the Voice pool.
+ *
+ * This function must be called if Voice_mix is called outside
+ * Voice_pool_mix_bg.
+ *
+ * \param pool    The Voice pool -- must not be \c NULL.
+ * \param voice   The Voice -- must not be \c NULL and must be an element of
+ *                \a pool.
+ */
+void Voice_pool_fix_priority(Voice_pool* pool, Voice* voice);
 
 
 /**

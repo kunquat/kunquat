@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -37,7 +29,8 @@ static Event_field_desc slide_tempo_length_desc[] =
 {
     {
         .type = EVENT_FIELD_RELTIME,
-        .range.Reltime_type = { { 0, 0 }, { INT64_MAX, KQT_RELTIME_BEAT - 1 } }
+        .min.field.Reltime_type = { 0, 0 },
+        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
     },
     {
         .type = EVENT_FIELD_NONE
@@ -47,36 +40,46 @@ static Event_field_desc slide_tempo_length_desc[] =
 
 Event_create_set_reltime_and_get(Event_global_slide_tempo_length,
                                  EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
-                                 length)
-
-
-static void Event_global_slide_tempo_length_process(Event_global* event, Playdata* play);
+                                 length);
 
 
 Event_create_constructor(Event_global_slide_tempo_length,
                          EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
                          slide_tempo_length_desc,
-                         Reltime_set(&event->length, 0, 0))
+                         Reltime_set(&event->length, 0, 0));
 
 
-static void Event_global_slide_tempo_length_process(Event_global* event, Playdata* play)
+bool Event_global_slide_tempo_length_process(Playdata* global_state,
+                                             char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SLIDE_TEMPO_LENGTH);
-    assert(play != NULL);
-    Event_global_slide_tempo_length* slide_tempo_length = (Event_global_slide_tempo_length*)event;
-    if (play->tempo_slide != 0)
+    assert(global_state != NULL);
+    if (fields == NULL)
     {
-        Reltime_init(&play->tempo_slide_int_left);
-        Reltime_copy(&play->tempo_slide_left, &slide_tempo_length->length);
-        double rems_total = (double)Reltime_get_beats(&slide_tempo_length->length) *
-                            KQT_RELTIME_BEAT +
-                            Reltime_get_rem(&slide_tempo_length->length);
-        double slices = rems_total / 36756720; // slide updated 24 times per beat
-        play->tempo_slide_update = (play->tempo_slide_target - play->tempo) / slices;
+        return false;
     }
-    Reltime_copy(&play->tempo_slide_length, &slide_tempo_length->length);
-    return;
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, slide_tempo_length_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (global_state->tempo_slide != 0)
+    {
+        Reltime_init(&global_state->tempo_slide_int_left);
+        Reltime_copy(&global_state->tempo_slide_left,
+                     &data[0].field.Reltime_type);
+        double rems_total =
+                (double)Reltime_get_beats(&data[0].field.Reltime_type) *
+                            KQT_RELTIME_BEAT +
+                            Reltime_get_rem(&data[0].field.Reltime_type);
+        double slices = rems_total / 36756720; // slide updated 24 times per beat
+        global_state->tempo_slide_update = (global_state->tempo_slide_target -
+                                            global_state->tempo) / slices;
+    }
+    Reltime_copy(&global_state->tempo_slide_length,
+                 &data[0].field.Reltime_type);
+    return true;
 }
 
 

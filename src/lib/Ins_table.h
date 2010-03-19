@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -44,38 +36,6 @@ typedef struct Ins_table Ins_table;
  *           allocation failed.
  */
 Ins_table* new_Ins_table(int size);
-
-
-/**
- * Reads an Instrument table from a File tree.
- *
- * \param table           The Pattern table -- must not be \c NULL.
- * \param tree            The File tree -- must not be \c NULL.
- * \param state           The Read state -- must not be \c NULL.
- * \param bufs            The mixing buffer of the Song -- must not be \c NULL.
- * \param voice_bufs      The Voice buffers of the Song -- must not be \c NULL.
- * \param voice_bufs2     The auxiliary Voice buffers of the Song -- must not be \c NULL.
- * \param buf_count       The number of buffers in the Song -- must be > \c 0 and
- *                        < \c KQT_BUFFERS_MAX.
- * \param buf_len         The length of the buffers in the Song -- must be
- *                        > \c 0.
- * \param scales          The Scales of the Song -- must not be \c NULL.
- * \param default_scale   An indirect reference to the default scale -- must
- *                        not be \c NULL. Also, *default_scale must be an
- *                        element of \a scales.
- * \param events          The Event queue size -- must be > \c 0.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Ins_table_read(Ins_table* table, File_tree* tree, Read_state* state,
-                    kqt_frame** bufs,
-                    kqt_frame** voice_bufs,
-                    kqt_frame** voice_bufs2,
-                    int buf_count,
-                    uint32_t buf_len,
-                    Scale** scales,
-                    Scale*** default_scale,
-                    uint8_t events);
 
 
 /**

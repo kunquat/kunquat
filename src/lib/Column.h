@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -30,7 +22,6 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <AAtree.h>
-#include <File_tree.h>
 
 
 /**
@@ -111,27 +102,57 @@ Column* new_Column(Reltime* len);
 
 
 /**
- * Reads a Column from a File tree.
+ * Creates a new auxiliary global Column.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
+ * \param old_aux   The old auxiliary global Column, or \c NULL if not
+ *                  applicable.
+ * \param mod_col   The Column with the new Events -- must not be \c NULL.
+ * \param index     The Column index -- must be >= \c 0 and
+ *                  < \c KQT_COLUMNS_MAX.
  */
-bool Column_read(Column* col, File_tree* tree, Read_state* state);
+Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
 
 
 /**
- * Writes the Column into a file.
+ * Creates a new Column from a textual description.
  *
- * \param col     The Column -- must not be \c NULL.
- * \param out     The output file -- must not be \c NULL.
- * \param state   The Write state -- must not be \c NULL.
+ * \param len         The length of the column. If this is \c NULL, the length is
+ *                    set to INT64_MAX beats.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true if and only if the Column is to be global.
+ * \param state       The Read state -- must not be \c NULL.
+ *
+ * \return   The new Column if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
+ */
+Column* new_Column_from_string(Reltime* len,
+                               char* str,
+                               bool is_global,
+                               Read_state* state);
+
+
+/**
+ * Parses a Column.
+ *
+ * \param col         The Column -- must not be \c NULL.
+ * \param str         The textual description -- must not be \c NULL.
+ * \param is_global   \c true if and only if \a col is a global Column.
+ * \param state       The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Column_write(Column* col, FILE* out, Write_state* state);
+bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
+
+
+/**
+ * Serialises the Column.
+ *
+ * \param col   The Column -- must not be \c NULL.
+ *
+ * \return   A string representation of the Column, or \c NULL if memory
+ *           allocation failed.
+ */
+char* Column_serialise(Column* col);
 
 
 /**

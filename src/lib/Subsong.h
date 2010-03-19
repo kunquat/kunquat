@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,7 +19,6 @@
 #include <stdint.h>
 
 #include <File_base.h>
-#include <File_tree.h>
 
 
 #define KQT_SECTION_NONE (-1)
@@ -47,6 +38,11 @@ typedef struct Subsong
 } Subsong;
 
 
+#define SUBSONG_DEFAULT_TEMPO (120)
+#define SUBSONG_DEFAULT_GLOBAL_VOL (-4)
+#define SUBSONG_DEFAULT_SCALE (0)
+
+
 /**
  * Creates a new Subsong.
  *
@@ -57,15 +53,15 @@ Subsong* new_Subsong(void);
 
 
 /**
- * Reads a Subsong from a File tree.
+ * Creates a new Subsong from a textual description.
  *
- * \param ss      The Subsong -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description.
  * \param state   The Read state -- must not be \c NULL.
  *
- * \return   \c true if successful, otherwise \c false.
+ * \return   The new Subsong if successful, otherwise \c NULL. \a state
+ *           will _not_ be updated if memory allocation failed.
  */
-bool Subsong_read(Subsong* ss, File_tree* tree, Read_state* state);
+Subsong* new_Subsong_from_string(char* str, Read_state* state);
 
 
 /**

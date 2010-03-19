@@ -1,31 +1,25 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdbool.h>
 #include <inttypes.h>
 #include <math.h>
 
 #include <Real.h>
+#include <String_buffer.h>
 
 
 /**
@@ -93,6 +87,28 @@ Real* Real_init_as_double(Real* real, double val)
     real->is_frac = 0;
     real->fod.doub = val;
     return real;
+}
+
+
+bool Real_serialise(Real* real, String_buffer* sb)
+{
+    assert(real != NULL);
+    assert(sb != NULL);
+    if (String_buffer_error(sb))
+    {
+        return false;
+    }
+    if (Real_is_frac(real))
+    {
+        String_buffer_append_string(sb, "[\"/\", [");
+        String_buffer_append_int(sb, Real_get_numerator(real));
+        String_buffer_append_string(sb, ", ");
+        String_buffer_append_int(sb, Real_get_denominator(real));
+        return String_buffer_append_string(sb, "]");
+    }
+    String_buffer_append_string(sb, "[\"f\", ");
+    String_buffer_append_float(sb, Real_get_double(real));
+    return String_buffer_append_string(sb, "]");
 }
 
 

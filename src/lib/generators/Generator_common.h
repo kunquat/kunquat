@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -27,7 +19,7 @@
 
 #include <Voice_state.h>
 #include <Generator.h>
-#include <kunquat/frame.h>
+#include <frame.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 
@@ -41,17 +33,17 @@
  * This should be called at the beginning of the mixing function of the
  * Generator.
  */
-#define Generator_common_check_active(gen, state, mixed)                      \
-    if (true)                                                                 \
-    {                                                                         \
-        if (!(state)->active || (!(state)->note_on &&                         \
-                                 ((state)->pos == 0) &&                       \
-                                 ((state)->pos_rem == 0) &&                   \
-                                 !(gen)->ins_params->volume_off_env_enabled)) \
-        {                                                                     \
-            (state)->active = false;                                          \
-            return (mixed);                                                   \
-        }                                                                     \
+#define Generator_common_check_active(gen, state, mixed)                     \
+    if (true)                                                                \
+    {                                                                        \
+        if (!(state)->active || (!(state)->note_on &&                        \
+                                 ((state)->pos == 0) &&                      \
+                                 ((state)->pos_rem == 0) &&                  \
+                                 !(gen)->ins_params->env_force_rel_enabled)) \
+        {                                                                    \
+            (state)->active = false;                                         \
+            return (mixed);                                                  \
+        }                                                                    \
     } else (void)0
 
 
@@ -351,86 +343,192 @@
  * should be called after Generator_common_handle_pitch and
  * Generator_common_handle_filter.
  */
-#define Generator_common_handle_force(gen, state, frames, frame_count)        \
-    if (true)                                                                 \
-    {                                                                         \
-        if ((state)->force_slide != 0)                                        \
-        {                                                                     \
-            (state)->force *= (state)->force_slide_update;                    \
-            (state)->force_slide_frames -= 1;                                 \
-            if ((state)->force_slide_frames <= 0)                             \
-            {                                                                 \
-                (state)->force = (state)->force_slide_target;                 \
-                (state)->force_slide = 0;                                     \
-            }                                                                 \
-            else if ((state)->force_slide == 1)                               \
-            {                                                                 \
-                if ((state)->force > (state)->force_slide_target)             \
-                {                                                             \
-                    (state)->force = (state)->force_slide_target;             \
-                    (state)->force_slide = 0;                                 \
-                }                                                             \
-            }                                                                 \
-            else                                                              \
-            {                                                                 \
-                assert((state)->force_slide == -1);                           \
-                if ((state)->force < (state)->force_slide_target)             \
-                {                                                             \
-                    (state)->force = (state)->force_slide_target;             \
-                    (state)->force_slide = 0;                                 \
-                }                                                             \
-            }                                                                 \
-        }                                                                     \
-        (state)->actual_force = (state)->force;                               \
-        if ((state)->tremolo)                                                 \
-        {                                                                     \
-            double fac_dB = sin((state)->tremolo_phase);                      \
-            if ((state)->tremolo_delay_pos < 1)                               \
-            {                                                                 \
-                double actual_depth = (1 - (state)->tremolo_delay_pos) *      \
-                        (state)->tremolo_depth +                              \
-                        (state)->tremolo_delay_pos *                          \
-                        (state)->tremolo_depth_target;                        \
-                fac_dB *= actual_depth;                                       \
-                (state)->tremolo_delay_pos += (state)->tremolo_delay_update;  \
-            }                                                                 \
-            else                                                              \
-            {                                                                 \
-                (state)->tremolo_depth = (state)->tremolo_depth_target;       \
-                fac_dB *= (state)->tremolo_depth;                             \
-                if ((state)->tremolo_depth == 0)                              \
-                {                                                             \
-                    (state)->tremolo = false;                                 \
-                }                                                             \
-            }                                                                 \
-            (state)->actual_force *= exp2(fac_dB / 6);                        \
-            if (!(state)->tremolo &&                                          \
-                    (state)->tremolo_length > (state)->freq)                  \
-            {                                                                 \
-                (state)->tremolo_length = (state)->freq;                      \
-                (state)->tremolo_update = (2 * PI) / (state)->tremolo_length; \
-            }                                                                 \
-            double new_phase = (state)->tremolo_phase +                       \
-                    (state)->tremolo_update;                                  \
-            if (new_phase >= (2 * PI))                                        \
-            {                                                                 \
-                new_phase = fmod(new_phase, (2 * PI));                        \
-            }                                                                 \
-            if (!(state)->tremolo && (new_phase < (state)->tremolo_phase      \
-                        || (new_phase >= PI && (state)->tremolo_phase < PI))) \
-            {                                                                 \
-                (state)->tremolo_phase = 0;                                   \
-                (state)->tremolo_update = 0;                                  \
-            }                                                                 \
-            else                                                              \
-            {                                                                 \
-                (state)->tremolo_phase = new_phase;                           \
-            }                                                                 \
-        }                                                                     \
-        for (int i = 0; i < (frame_count); ++i)                               \
-        {                                                                     \
-            (frames)[i] *= (state)->actual_force;                             \
-        }                                                                     \
+#define Generator_common_handle_force(gen, state, frames, frame_count)              \
+    if (true)                                                                       \
+    {                                                                               \
+        if ((state)->force_slide != 0)                                              \
+        {                                                                           \
+            (state)->force *= (state)->force_slide_update;                          \
+            (state)->force_slide_frames -= 1;                                       \
+            if ((state)->force_slide_frames <= 0)                                   \
+            {                                                                       \
+                (state)->force = (state)->force_slide_target;                       \
+                (state)->force_slide = 0;                                           \
+            }                                                                       \
+            else if ((state)->force_slide == 1)                                     \
+            {                                                                       \
+                if ((state)->force > (state)->force_slide_target)                   \
+                {                                                                   \
+                    (state)->force = (state)->force_slide_target;                   \
+                    (state)->force_slide = 0;                                       \
+                }                                                                   \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                assert((state)->force_slide == -1);                                 \
+                if ((state)->force < (state)->force_slide_target)                   \
+                {                                                                   \
+                    (state)->force = (state)->force_slide_target;                   \
+                    (state)->force_slide = 0;                                       \
+                }                                                                   \
+            }                                                                       \
+        }                                                                           \
+        (state)->actual_force = (state)->force;                                     \
+        if ((state)->tremolo)                                                       \
+        {                                                                           \
+            double fac_dB = sin((state)->tremolo_phase);                            \
+            if ((state)->tremolo_delay_pos < 1)                                     \
+            {                                                                       \
+                double actual_depth = (1 - (state)->tremolo_delay_pos) *            \
+                        (state)->tremolo_depth +                                    \
+                        (state)->tremolo_delay_pos *                                \
+                        (state)->tremolo_depth_target;                              \
+                fac_dB *= actual_depth;                                             \
+                (state)->tremolo_delay_pos += (state)->tremolo_delay_update;        \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                (state)->tremolo_depth = (state)->tremolo_depth_target;             \
+                fac_dB *= (state)->tremolo_depth;                                   \
+                if ((state)->tremolo_depth == 0)                                    \
+                {                                                                   \
+                    (state)->tremolo = false;                                       \
+                }                                                                   \
+            }                                                                       \
+            (state)->actual_force *= exp2(fac_dB / 6);                              \
+            if (!(state)->tremolo &&                                                \
+                    (state)->tremolo_length > (state)->freq)                        \
+            {                                                                       \
+                (state)->tremolo_length = (state)->freq;                            \
+                (state)->tremolo_update = (2 * PI) / (state)->tremolo_length;       \
+            }                                                                       \
+            double new_phase = (state)->tremolo_phase +                             \
+                    (state)->tremolo_update;                                        \
+            if (new_phase >= (2 * PI))                                              \
+            {                                                                       \
+                new_phase = fmod(new_phase, (2 * PI));                              \
+            }                                                                       \
+            if (!(state)->tremolo && (new_phase < (state)->tremolo_phase            \
+                        || (new_phase >= PI && (state)->tremolo_phase < PI)))       \
+            {                                                                       \
+                (state)->tremolo_phase = 0;                                         \
+                (state)->tremolo_update = 0;                                        \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                (state)->tremolo_phase = new_phase;                                 \
+            }                                                                       \
+        }                                                                           \
+        if ((gen)->ins_params->env_force_enabled)                                   \
+        {                                                                           \
+            Envelope* env = (gen)->ins_params->env_force;                           \
+            double scale = Envelope_get_value(env, (state)->fe_pos);                \
+            assert(isfinite(scale));                                                \
+            (state)->actual_force *= scale;                                         \
+            int loop_start_index = Envelope_get_mark(env, 0);                       \
+            int loop_end_index = Envelope_get_mark(env, 1);                         \
+            double* loop_start = loop_start_index == -1 ? NULL :                    \
+                                 Envelope_get_node(env, loop_start_index);          \
+            double* loop_end = loop_end_index == -1 ? NULL :                        \
+                               Envelope_get_node(env, loop_end_index);              \
+            double stretch = 1;                                                     \
+            if ((gen)->ins_params->env_force_scale_amount != 0)                     \
+            {                                                                       \
+                stretch = pow((state)->actual_pitch /                               \
+                                  (gen)->ins_params->env_force_center,              \
+                              (gen)->ins_params->env_force_scale_amount);           \
+            }                                                                       \
+            double new_pos = (state)->fe_pos + (stretch) / (freq);                  \
+            if (loop_start != NULL && loop_end != NULL)                             \
+            {                                                                       \
+                if (new_pos > loop_end[0])                                          \
+                {                                                                   \
+                    double loop_len = loop_end[0] - loop_start[0];                  \
+                    assert(loop_len >= 0);                                          \
+                    if (loop_len == 0)                                              \
+                    {                                                               \
+                        new_pos = loop_end[0];                                      \
+                    }                                                               \
+                    else                                                            \
+                    {                                                               \
+                        double exceed = new_pos - loop_end[0];                      \
+                        double offset = fmod(exceed, loop_len);                     \
+                        new_pos = loop_start[0] + offset;                           \
+                        assert(new_pos >= loop_start[0]);                           \
+                        assert(new_pos <= loop_end[0]);                             \
+                    }                                                               \
+                }                                                                   \
+            }                                                                       \
+            else                                                                    \
+            {                                                                       \
+                double* last = Envelope_get_node(env,                               \
+                                                 Envelope_node_count(env) - 1);     \
+                if (new_pos > last[0])                                              \
+                {                                                                   \
+                    new_pos = last[0];                                              \
+                    if ((state)->fe_pos > last[0] && last[1] == 0)                  \
+                    {                                                               \
+                        (state)->active = false;                                    \
+                        break;                                                      \
+                    }                                                               \
+                }                                                                   \
+            }                                                                       \
+            (state)->fe_pos = new_pos;                                              \
+        }                                                                           \
+        if (!(state)->note_on)                                                      \
+        {                                                                           \
+            if ((gen)->ins_params->env_force_rel_enabled)                           \
+            {                                                                       \
+                double scale = Envelope_get_value((gen)->ins_params->env_force_rel, \
+                                                  (state)->rel_fe_pos);             \
+                if (!isfinite(scale))                                               \
+                {                                                                   \
+                    (state)->active = false;                                        \
+                    break;                                                          \
+                }                                                                   \
+                double stretch = 1;                                                 \
+                if ((gen)->ins_params->env_force_rel_scale_amount != 0)             \
+                {                                                                   \
+                    stretch = pow((state)->actual_pitch /                           \
+                                      (gen)->ins_params->env_force_rel_center,      \
+                                  (gen)->ins_params->env_force_rel_scale_amount);   \
+                }                                                                   \
+                (state)->rel_fe_pos += stretch * (1.0 - *(state)->pedal) / (freq);  \
+                (state)->actual_force *= scale;                                     \
+            }                                                                       \
+            else if (*(state)->pedal < 0.5)                                         \
+            {                                                                       \
+                if ((state)->ramp_release < 1)                                      \
+                {                                                                   \
+                    for (int i = 0; i < (frame_count); ++i)                         \
+                    {                                                               \
+                        (frames)[i] *= 1 - (state)->ramp_release;                   \
+                    }                                                               \
+                }                                                                   \
+                else                                                                \
+                {                                                                   \
+                    (state)->active = false;                                        \
+                    break;                                                          \
+                }                                                                   \
+                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                \
+            }                                                                       \
+        }                                                                           \
+        if ((gen)->ins_params->env_force_filter_enabled)                            \
+        {                                                                           \
+            double force = (state)->actual_force;                                   \
+            if (force > 1)                                                          \
+            {                                                                       \
+                force = 1;                                                          \
+            }                                                                       \
+            double factor = Envelope_get_value((gen)->ins_params->env_force_filter, \
+                                               force);                              \
+            assert(isfinite(factor));                                               \
+            (state)->actual_filter = MIN((state)->actual_filter, 16384) * factor;   \
+        }                                                                           \
+        for (int i = 0; i < (frame_count); ++i)                                     \
+        {                                                                           \
+            (frames)[i] *= (state)->actual_force;                                   \
+        }                                                                           \
     } else (void)0
 
 
@@ -458,44 +556,46 @@
  * needed).
  * This should be called after updating the Voice state position indicator.
  */
-#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)      \
-    if (true)                                                                        \
-    {                                                                                \
-        if (!(state)->note_on)                                                       \
-        {                                                                            \
-            if ((gen)->ins_params->volume_off_env_enabled)                           \
-            {                                                                        \
-                double scale = Envelope_get_value((gen)->ins_params->volume_off_env, \
-                                                  (state)->off_ve_pos);              \
-                if (!isfinite(scale))                                                \
-                {                                                                    \
-                    (state)->active = false;                                         \
-                    break;                                                           \
-                }                                                                    \
-                (state)->off_ve_pos += (1.0 - *(state)->pedal) / (freq);             \
-                for (int i = 0; i < (frame_count); ++i)                              \
-                {                                                                    \
-                    (frames)[i] *= scale;                                            \
-                }                                                                    \
-            }                                                                        \
-            else if (*(state)->pedal < 0.5)                                          \
-            {                                                                        \
-                if ((state)->ramp_release < 1)                                       \
-                {                                                                    \
-                    for (int i = 0; i < (frame_count); ++i)                          \
-                    {                                                                \
-                        (frames)[i] *= 1 - (state)->ramp_release;                    \
-                    }                                                                \
-                }                                                                    \
-                else                                                                 \
-                {                                                                    \
-                    (state)->active = false;                                         \
-                    break;                                                           \
-                }                                                                    \
-                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                 \
-            }                                                                        \
-        }                                                                            \
+#if 0
+#define Generator_common_handle_note_off(gen, state, frames, frame_count, freq)     \
+    if (true)                                                                       \
+    {                                                                               \
+        if (!(state)->note_on)                                                      \
+        {                                                                           \
+            if ((gen)->ins_params->env_force_rel_enabled)                           \
+            {                                                                       \
+                double scale = Envelope_get_value((gen)->ins_params->env_force_rel, \
+                                                  (state)->rel_fe_pos);             \
+                if (!isfinite(scale))                                               \
+                {                                                                   \
+                    (state)->active = false;                                        \
+                    break;                                                          \
+                }                                                                   \
+                (state)->rel_fe_pos += (1.0 - *(state)->pedal) / (freq);            \
+                for (int i = 0; i < (frame_count); ++i)                             \
+                {                                                                   \
+                    (frames)[i] *= scale;                                           \
+                }                                                                   \
+            }                                                                       \
+            else if (*(state)->pedal < 0.5)                                         \
+            {                                                                       \
+                if ((state)->ramp_release < 1)                                      \
+                {                                                                   \
+                    for (int i = 0; i < (frame_count); ++i)                         \
+                    {                                                               \
+                        (frames)[i] *= 1 - (state)->ramp_release;                   \
+                    }                                                               \
+                }                                                                   \
+                else                                                                \
+                {                                                                   \
+                    (state)->active = false;                                        \
+                    break;                                                          \
+                }                                                                   \
+                (state)->ramp_release += RAMP_RELEASE_TIME / (freq);                \
+            }                                                                       \
+        }                                                                           \
     } else (void)0
+#endif
 
 
 /**
@@ -534,30 +634,34 @@
                 }                                                         \
             }                                                             \
             (state)->actual_panning = (state)->panning;                   \
+            if ((gen)->ins_params->env_pitch_pan_enabled)                 \
+            {                                                             \
+                Envelope* env = (gen)->ins_params->env_pitch_pan;         \
+                double cents = log2((state)->pitch / 440) * 1200;         \
+                if (cents < -6000)                                        \
+                {                                                         \
+                    cents = -6000;                                        \
+                }                                                         \
+                else if (cents > 6000)                                    \
+                {                                                         \
+                    cents = 6000;                                         \
+                }                                                         \
+                double pan = Envelope_get_value(env, cents);              \
+                assert(isfinite(pan));                                    \
+                double separation = 1 - fabs((state)->actual_panning);    \
+                (state)->actual_panning += pan * separation;              \
+                if ((state)->actual_panning < -1)                         \
+                {                                                         \
+                    (state)->actual_panning = -1;                         \
+                }                                                         \
+                else if ((state)->actual_panning > 1)                     \
+                {                                                         \
+                    (state)->actual_panning = 1;                          \
+                }                                                         \
+            }                                                             \
             (frames)[0] *= 1 - (state)->actual_panning;                   \
             (frames)[1] *= 1 + (state)->actual_panning;                   \
         }                                                                 \
-    } else (void)0
-
-
-/**
- * Updates parameters that are persistent across mixing calls.
- * This should be called before returning from the mixing function of the
- * subclass.
- */
-#define Generator_common_persist(gen, state, mixed)                         \
-    if (true)                                                               \
-    {                                                                       \
-        Channel_state* ch_state = (state)->new_ch_state;                    \
-        if ((state)->note_on && (mixed) > ch_state->panning_slide_prog)     \
-        {                                                                   \
-            ch_state->panning_slide_prog = (mixed);                         \
-            ch_state->panning = (state)->panning;                           \
-            ch_state->panning_slide = (state)->panning_slide;               \
-            ch_state->panning_slide_target = (state)->panning_slide_target; \
-            ch_state->panning_slide_frames = (state)->panning_slide_frames; \
-            ch_state->panning_slide_update = (state)->panning_slide_update; \
-        }                                                                   \
     } else (void)0
 
 

@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -35,12 +27,10 @@
 #include <xmemory.h>
 
 
-bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state);
-
 void Generator_square303_init_state(Generator* gen, Voice_state* state);
 
 
-Generator_square303* new_Generator_square303(Instrument_params* ins_params)
+Generator* new_Generator_square303(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_square303* square303 = xalloc(Generator_square303);
@@ -53,29 +43,12 @@ Generator_square303* new_Generator_square303(Instrument_params* ins_params)
         xfree(square303);
         return NULL;
     }
-    square303->parent.read = Generator_square303_read;
     square303->parent.destroy = del_Generator_square303;
     square303->parent.type = GEN_TYPE_SQUARE303;
     square303->parent.init_state = Generator_square303_init_state;
     square303->parent.mix = Generator_square303_mix;
     square303->parent.ins_params = ins_params;
-    return square303;
-}
-
-
-bool Generator_square303_read(Generator* gen, File_tree* tree, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE303);
-    assert(tree != NULL);
-    assert(state != NULL);
-    (void)gen;
-    (void)tree;
-    if (state->error)
-    {
-        return false;
-    }
-    return true;
+    return &square303->parent;
 }
 
 
@@ -147,7 +120,7 @@ uint32_t Generator_square303_mix(Generator* gen,
             square303_state->phase -= floor(square303_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+//        Generator_common_handle_note_off(gen, state, vals, 1, freq);
         vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
@@ -158,7 +131,7 @@ uint32_t Generator_square303_mix(Generator* gen,
         } */
     }
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
-    Generator_common_persist(gen, state, mixed);
+//    Generator_common_persist(gen, state, mixed);
     return mixed;
 }
 

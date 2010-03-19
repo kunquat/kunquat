@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -26,28 +18,26 @@
 #include <math.h>
 
 #include <Voice_state.h>
+#include <Voice_params.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state,
-                              Channel_state* cur_ch_state,
-                              Channel_state* new_ch_state,
+                              Voice_params* params,
                               uint32_t freq,
                               double tempo)
 {
     assert(state != NULL);
-    assert(cur_ch_state != NULL);
-    assert(new_ch_state != NULL);
+    assert(params != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
     state->active = true;
     state->note_on = true;
-    state->cur_ch_state = cur_ch_state;
-    state->new_ch_state = new_ch_state;
     state->freq = freq;
     state->tempo = tempo;
+    Voice_params_copy(&state->params, params);
     return state;
 }
 
@@ -60,9 +50,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->tempo = 0;
     state->ramp_attack = 0;
     state->ramp_release = 0;
-    state->orig_note = 0;
-    state->orig_note_mod = -1;
-    state->orig_octave = KQT_SCALE_MIDDLE_OCTAVE;
+    state->orig_cents = 0;
 
     state->pitch = 0;
     state->actual_pitch = 0;
@@ -107,8 +95,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos_rem = 0;
     
     state->pedal = NULL;
-    state->on_ve_pos = 0;
-    state->off_ve_pos = 0;
+    state->fe_pos = 0;
+    state->rel_fe_pos = 0;
 
     state->force = 1;
     state->actual_force = 1;

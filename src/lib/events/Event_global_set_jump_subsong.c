@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -36,7 +28,8 @@ static Event_field_desc set_jump_subsong_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .range.integral_type = { -1, KQT_SUBSONGS_MAX - 1 }
+        .min.field.integral_type = -1,
+        .max.field.integral_type = KQT_SUBSONGS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -46,26 +39,32 @@ static Event_field_desc set_jump_subsong_desc[] =
 
 Event_create_set_primitive_and_get(Event_global_set_jump_subsong,
                                    EVENT_GLOBAL_SET_JUMP_SUBSONG,
-                                   int64_t, subsong)
-
-
-static void Event_global_set_jump_subsong_process(Event_global* event, Playdata* play);
+                                   int64_t, subsong);
 
 
 Event_create_constructor(Event_global_set_jump_subsong,
                          EVENT_GLOBAL_SET_JUMP_SUBSONG,
                          set_jump_subsong_desc,
-                         event->subsong = -1)
+                         event->subsong = -1);
 
 
-static void Event_global_set_jump_subsong_process(Event_global* event, Playdata* play)
+bool Event_global_set_jump_subsong_process(Playdata* global_state,
+                                           char* fields)
 {
-    assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_SET_JUMP_SUBSONG);
-    assert(play != NULL);
-    Event_global_set_jump_subsong* set_jump_subsong = (Event_global_set_jump_subsong*)event;
-    play->jump_set_subsong = set_jump_subsong->subsong;
-    return;
+    assert(global_state != NULL);
+    if (fields == NULL)
+    {
+        return false;
+    }
+    Event_field data[1];
+    Read_state* state = READ_STATE_AUTO;
+    Event_type_get_fields(fields, set_jump_subsong_desc, data, state);
+    if (state->error)
+    {
+        return false;
+    }
+    global_state->jump_set_subsong = data[0].field.integral_type;
+    return true;
 }
 
 

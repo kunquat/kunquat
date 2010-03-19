@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -26,10 +18,10 @@
 
 #include <stdint.h>
 
-#include <Playdata.h>
 #include <Column.h>
+#include <Channel.h>
 #include <Reltime.h>
-#include <File_tree.h>
+#include <Event_handler.h>
 #include <kunquat/limits.h>
 
 
@@ -39,9 +31,13 @@
 typedef struct Pattern
 {
     Column* global;
+    Column* aux;
     Column* cols[KQT_COLUMNS_MAX];
     Reltime length;
 } Pattern;
+
+
+#define PATTERN_DEFAULT_LENGTH (Reltime_set(RELTIME_AUTO, 16, 0))
 
 
 /**
@@ -58,15 +54,15 @@ Pattern* new_Pattern(void);
 
 
 /**
- * Reads a Pattern from a File tree.
+ * Parses the header of a Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
- * \param tree    The File tree -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
  * \param state   The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Pattern_read(Pattern* pat, File_tree* tree, Read_state* state);
+bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
 
 
 /**
@@ -92,6 +88,18 @@ Reltime* Pattern_get_length(Pattern* pat);
 
 
 /**
+ * Replaces a Column of the Pattern.
+ *
+ * \param pat     The Pattern -- must not be \c NULL.
+ * \param index   The Column index -- must be >= \c 0 and < \c KQT_COLUMNS_MAX.
+ * \param col     The Column -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Pattern_set_col(Pattern* pat, int index, Column* col);
+
+
+/**
  * Returns a Column of the Pattern.
  *
  * \param pat     The Pattern -- must not be \c NULL.
@@ -100,6 +108,15 @@ Reltime* Pattern_get_length(Pattern* pat);
  * \return   The Column.
  */
 Column* Pattern_get_col(Pattern* pat, int index);
+
+
+/**
+ * Replaces the global Column of the Pattern.
+ *
+ * \param pat   The Pattern -- must not be \c NULL.
+ * \param col   The Column -- must not be \c NULL.
+ */
+void Pattern_set_global(Pattern* pat, Column* col);
 
 
 /**
@@ -119,16 +136,17 @@ Column* Pattern_get_global(Pattern* pat);
  * \param nframes   The amount of frames to be mixed.
  * \param offset    The mixing buffer offset to be used -- must be
  *                  < \a nframes.
- * \param play      The Playdata object -- must not be \c NULL.
+ * \param eh        The Event handler -- must not be \c NULL.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes. A value that is < \a nframes indicates that the
  *           mixing of the Pattern is complete.
  */
 uint32_t Pattern_mix(Pattern* pat,
-        uint32_t nframes,
-        uint32_t offset,
-        Playdata* play);
+                     uint32_t nframes,
+                     uint32_t offset,
+                     Event_handler* eh,
+                     Channel** channels);
 
 
 /**

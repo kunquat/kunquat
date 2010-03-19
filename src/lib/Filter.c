@@ -1,22 +1,15 @@
 
 
 /*
- * Copyright 2009 Ossi Saresoja, Tomi Jylhä-Ollila
+ * Authors: Ossi Saresoja, Finland 2009
+ *          Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -26,52 +19,53 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <math_common.h>
 #include <Filter.h>
 
 const double  bt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
-						      1.0,  1.0,
-						      1.0,  2.0,   1.0,
-						      1.0,  3.0,   3.0,   1.0,
-						      1.0,  4.0,   6.0,   4.0,   1.0,
-						      1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
-						      1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
-						      1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
-						      1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0, 1.0};
+                                                      1.0,  1.0,
+                                                      1.0,  2.0,   1.0,
+                                                      1.0,  3.0,   3.0,   1.0,
+                                                      1.0,  4.0,   6.0,   4.0,   1.0,
+                                                      1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
+                                                      1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
+                                                      1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
+                                                      1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0, 1.0};
 
 
 const double nbt[BINOM_MAX * (BINOM_MAX + 1) / 2] = { 1.0,
-						     -1.0,  1.0,
-						      1.0, -2.0,   1.0,
-						     -1.0,  3.0, - 3.0,   1.0,
-						      1.0, -4.0,   6.0, - 4.0,   1.0,
-						     -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
-						      1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
-						     -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
-						      1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0, 1.0};
+                                                     -1.0,  1.0,
+                                                      1.0, -2.0,   1.0,
+                                                     -1.0,  3.0, - 3.0,   1.0,
+                                                      1.0, -4.0,   6.0, - 4.0,   1.0,
+                                                     -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
+                                                      1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
+                                                     -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
+                                                      1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0, 1.0};
 
 
 const double*    binom[BINOM_MAX] = { bt     ,
-				      bt + 1 ,
-				      bt + 3 ,
-				      bt + 6 ,
-				      bt + 10,
-				      bt + 15,
-				      bt + 21,
-				      bt + 28,
-				      bt + 36};
+                                      bt + 1 ,
+                                      bt + 3 ,
+                                      bt + 6 ,
+                                      bt + 10,
+                                      bt + 15,
+                                      bt + 21,
+                                      bt + 28,
+                                      bt + 36};
 
 
 const double* negbinom[BINOM_MAX] = {nbt     ,
-				     nbt + 1 ,
-				     nbt + 3 ,
-				     nbt + 6 ,
-				     nbt + 10,
-				     nbt + 15,
-				     nbt + 21,
-				     nbt + 28,
-				     nbt + 36};
+                                     nbt + 1 ,
+                                     nbt + 3 ,
+                                     nbt + 6 ,
+                                     nbt + 10,
+                                     nbt + 15,
+                                     nbt + 21,
+                                     nbt + 28,
+                                     nbt + 36};
 
 
 double sinc(double x)
@@ -141,6 +135,8 @@ void bilinear_butterworth_lowpass_filter_create(int n,
     assert(q <= 1000);
     assert(coeffsa != NULL);
     assert(coeffsb != NULL);
+//    static int created = 0;
+//    fprintf(stderr, "  %d \n", ++created);
 
     double a0   = 1.0;
     double fna0 = 1.0;
@@ -270,13 +266,14 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
 }
 
 
-#define dprod2(histbuf, sourcebuf, coeffs, n, i, acc, oper)	\
-  if (true)							\
-    {								\
-      int j = 0;						\
-      int k = (i);						\
-      dprod(histbuf, coeffs, j, k, n, n, acc, oper);		\
-      dprod(sourcebuf, coeffs, j, k, nframes, n, acc, oper);	\
+#define dprod2(histbuf, sourcebuf, coeffs, n, i, acc, oper)       \
+    if (true)                                                     \
+    {                                                             \
+        int j = (i);                                              \
+        int k = 0;                                                \
+        dprod(histbuf, coeffs, j, k, n, n, acc, oper);            \
+        j -= (n);                                                 \
+        dprod(sourcebuf, coeffs, j, k, nframes, n, acc, oper);    \
     } else (void)0
 
 

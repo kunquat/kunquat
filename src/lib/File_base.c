@@ -1,22 +1,14 @@
 
 
 /*
- * Copyright 2009 Tomi Jylhä-Ollila
+ * Author: Tomi Jylhä-Ollila, Finland 2010
  *
  * This file is part of Kunquat.
  *
- * Kunquat is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
  *
- * Kunquat is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with Kunquat.  If not, see <http://www.gnu.org/licenses/>.
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
  */
 
 
@@ -36,11 +28,12 @@
 #include <Real.h>
 #include <Reltime.h>
 #include <File_base.h>
+#include <Handle_private.h>
 
 #include <xmemory.h>
 
 
-Read_state* Read_state_init(Read_state* state, char* path)
+Read_state* Read_state_init(Read_state* state, const char* path)
 {
     assert(state != NULL);
     assert(path != NULL);
@@ -76,45 +69,49 @@ void Read_state_clear_error(Read_state* state)
 }
 
 
-#define return_null_if(cond, state, msg)          \
-    if (true)                                     \
-    {                                             \
-        if ((cond))                               \
-        {                                         \
-            Read_state_set_error((state), (msg)); \
-            return NULL;                          \
-        }                                         \
+#if 0
+#define return_null_if(cond, handle, msg)                              \
+    if (true)                                                          \
+    {                                                                  \
+        if ((cond))                                                    \
+        {                                                              \
+            kqt_Handle_set_error((handle), "%s: %s", __func__, (msg)); \
+            return NULL;                                               \
+        }                                                              \
     } else (void)0
 
-char* read_file(FILE* in, Read_state* state)
+char* read_file(FILE* in, long* size, kqt_Handle* handle)
 {
     assert(in != NULL);
-    assert(state != NULL);
+    assert(size != NULL);
     
     errno = 0;
     int err = fseek(in, 0, SEEK_END);
-    return_null_if(err < 0, state, strerror(errno));
+    return_null_if(err < 0, handle, strerror(errno));
     
     errno = 0;
     long length = ftell(in);
-    return_null_if(length < 0, state, strerror(errno));
+    return_null_if(length < 0, handle, strerror(errno));
     
     errno = 0;
     err = fseek(in, 0, SEEK_SET);
-    return_null_if(err < 0, state, strerror(errno));
+    return_null_if(err < 0, handle, strerror(errno));
     
     char* data = xcalloc(char, length + 1);
-    return_null_if(data == NULL, state, "Couldn't allocate memory for input file.");
+    return_null_if(data == NULL, handle, "Couldn't allocate memory");
     long pos = 0;
     char* location = data;
+    *size = 0;
     while (pos < length)
     {
         size_t read = fread(location, 1, 1024, in);
+        *size += read;
         pos += 1024;
         location += 1024;
         if (read < 1024 && pos < length)
         {
-            Read_state_set_error(state, "Couldn't read data from the input file");
+            kqt_Handle_set_error(handle, "%s: Couldn't read data from the"
+                    " input file", __func__);
             xfree(data);
             return NULL;
         }
@@ -123,6 +120,7 @@ char* read_file(FILE* in, Read_state* state)
 }
 
 #undef return_null_if
+#endif
 
 
 char* skip_line(char* str, Read_state* state)
