@@ -203,7 +203,7 @@ uint32_t Sample_mix(Sample* sample,
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
     uint32_t mixed = offset;
-    for (; mixed < nframes; ++mixed)
+    for (; mixed < nframes && state->active; ++mixed)
     {
         if (state->rel_pos >= sample->len)
         {
@@ -278,35 +278,35 @@ uint32_t Sample_mix(Sample* sample,
         {
             mix_factor = 1 - state->rel_pos_rem;
         }
-        kqt_frame vals[KQT_BUFFERS_MAX] = { 0 };
+        double vals[KQT_BUFFERS_MAX] = { 0 };
 
-#define get_items(type)                                            \
-        if (true)                                                  \
-        {                                                          \
-            type* buf_l = sample->data[0];                         \
-            type cur[2] = { buf_l[state->rel_pos] };               \
-            type next[2] = { 0 };                                  \
-            if (next_exists)                                       \
-            {                                                      \
-                next[0] = buf_l[next_pos];                         \
-            }                                                      \
-            vals[0] = ((kqt_frame)cur[0]) * (1 - mix_factor) +     \
-                      ((kqt_frame)next[0]) * mix_factor;           \
-            if (sample->channels > 1)                              \
-            {                                                      \
-                type* buf_r = sample->data[1];                     \
-                cur[1] = buf_r[state->rel_pos];                    \
-                if (next_exists)                                   \
-                {                                                  \
-                    next[1] = buf_r[next_pos];                     \
-                }                                                  \
-                vals[1] = ((kqt_frame)cur[1]) * (1 - mix_factor) + \
-                          ((kqt_frame)next[1]) * mix_factor;       \
-            }                                                      \
-            else                                                   \
-            {                                                      \
-                vals[1] = vals[0];                                 \
-            }                                                      \
+#define get_items(type)                                         \
+        if (true)                                               \
+        {                                                       \
+            type* buf_l = sample->data[0];                      \
+            type cur[2] = { buf_l[state->rel_pos] };            \
+            type next[2] = { 0 };                               \
+            if (next_exists)                                    \
+            {                                                   \
+                next[0] = buf_l[next_pos];                      \
+            }                                                   \
+            vals[0] = ((double)cur[0]) * (1 - mix_factor) +     \
+                      ((double)next[0]) * mix_factor;           \
+            if (sample->channels > 1)                           \
+            {                                                   \
+                type* buf_r = sample->data[1];                  \
+                cur[1] = buf_r[state->rel_pos];                 \
+                if (next_exists)                                \
+                {                                               \
+                    next[1] = buf_r[next_pos];                  \
+                }                                               \
+                vals[1] = ((double)cur[1]) * (1 - mix_factor) + \
+                          ((double)next[1]) * mix_factor;       \
+            }                                                   \
+            else                                                \
+            {                                                   \
+                vals[1] = vals[0];                              \
+            }                                                   \
         } else (void)0
 
         if (sample->is_float)
@@ -343,7 +343,7 @@ uint32_t Sample_mix(Sample* sample,
         }
 #undef get_items
 
-        Generator_common_handle_force(gen, state, vals, 2);
+        Generator_common_handle_force(gen, state, vals, 2, freq);
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;

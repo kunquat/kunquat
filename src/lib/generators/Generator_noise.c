@@ -153,7 +153,7 @@ uint32_t Generator_noise_mix(Generator* gen,
     Generator_noise* noise = (Generator_noise*)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
     uint32_t mixed = offset;
-    for (; mixed < nframes; ++mixed)
+    for (; mixed < nframes && state->active; ++mixed)
     {
         Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
@@ -182,7 +182,7 @@ uint32_t Generator_noise_mix(Generator* gen,
             noise_state->k = k;
             power_law_filter(noise->order, buf, temp, vals[i]);
         }
-        Generator_common_handle_force(gen, state, vals, 2);
+        Generator_common_handle_force(gen, state, vals, 2, freq);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         state->pos = 1; // XXX: hackish
 //        Generator_common_handle_note_off(gen, state, vals, 2, freq);
