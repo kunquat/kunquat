@@ -203,6 +203,7 @@ bool Generator_type_has_subkey(Gen_type type, const char* subkey)
     {
         [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
         [GEN_TYPE_SQUARE] = Generator_square_has_subkey,
+        [GEN_TYPE_NOISE] = Generator_noise_has_subkey,
     };
     if (map[type] == NULL)
     {
