@@ -336,7 +336,7 @@ class Status(object):
                        self.dur_to_str(duration - handle.nanoseconds),
                        self.dur_to_str(duration))
         components.append(elapsed)
-        return self.get_peak_meter(14, -40, -4, bufs) + ', '.join(components)
+        return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
         if lower < Status.SILENCE:
