@@ -155,7 +155,6 @@ uint32_t Generator_noise_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
         
         double vals[KQT_BUFFERS_MAX] = { 0 };
@@ -183,6 +182,7 @@ uint32_t Generator_noise_mix(Generator* gen,
             power_law_filter(noise->order, buf, temp, vals[i]);
         }
         Generator_common_handle_force(gen, state, vals, 2, freq);
+        Generator_common_handle_filter(gen, state, vals, 2, freq);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         state->pos = 1; // XXX: hackish
 //        Generator_common_handle_note_off(gen, state, vals, 2, freq);

@@ -35,6 +35,7 @@ typedef struct Filter_state
     double coeffs2[FILTER_ORDER + 1]; ///< Second coefficient table.
     kqt_frame history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
     kqt_frame history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
+    int buf_pos;                  ///< Current buffer position.
 } Filter_state;
 
 

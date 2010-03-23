@@ -211,7 +211,6 @@ uint32_t Sample_mix(Sample* sample,
             break;
         }
         
-        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
 
         bool next_exists = false;
@@ -344,6 +343,7 @@ uint32_t Sample_mix(Sample* sample,
 #undef get_items
 
         Generator_common_handle_force(gen, state, vals, 2, freq);
+        Generator_common_handle_filter(gen, state, vals, 2, freq);
         double advance = (state->actual_pitch / middle_tone) * middle_freq / freq;
         uint64_t adv = floor(advance);
         double adv_rem = advance - adv;

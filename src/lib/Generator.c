@@ -273,6 +273,9 @@ void Generator_mix(Generator* gen,
     assert(gen->mix != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    gen->mix(gen, state, nframes, offset, freq, tempo,
+             gen->ins_params->buf_count, gen->ins_params->bufs);
+#if 0
     uint32_t mixed = offset;
     while (mixed < nframes)
     {
@@ -418,6 +421,7 @@ void Generator_mix(Generator* gen,
             break;
         }
     }
+#endif
     return;
 }
 

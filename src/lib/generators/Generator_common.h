@@ -66,6 +66,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
  * coefficients need to be updated. It can therefore be called before any
  * inital amplitude values are calculated.
  */
+#if 0
 #define Generator_common_handle_filter(gen, state)                                     \
     if (true)                                                                          \
     {                                                                                  \
@@ -155,6 +156,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             }                                                                          \
         }                                                                              \
     } else (void)0
+#endif
 
 
 /**
@@ -169,10 +171,6 @@ void Generator_common_handle_pitch(Generator* gen,
 
 /**
  * Force handling.
- * 
- * This may affect the actual pitch and filter cutoff settings and therefore
- * should be called after Generator_common_handle_pitch and
- * Generator_common_handle_filter.
  *
  * \param gen           The Generator -- must not be \c NULL.
  * \param state         The Voice state -- must not be \c NULL.
@@ -185,6 +183,24 @@ void Generator_common_handle_force(Generator* gen,
                                    double frames[],
                                    int frame_count,
                                    uint32_t freq);
+
+
+/**
+ * Filter handling.
+ *
+ * This should be called after force handling.
+ *
+ * \param gen           The Generator -- must not be \c NULL.
+ * \param state         The Voice state -- must not be \c NULL.
+ * \param frames        The frames to be modified -- must not be \c NULL.
+ * \param frame_count   The number of frames to be modified -- must be > \c 0.
+ * \param freq          The mixing frequency -- must be > \c 0.
+ */
+void Generator_common_handle_filter(Generator* gen,
+                                    Voice_state* state,
+                                    double frames[],
+                                    int frame_count,
+                                    uint32_t freq);
 
 
 /**

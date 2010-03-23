@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 
+#include <Filter.h>
 #include <Generator_common.h>
 #include <Generator.h>
 #include <Voice_state.h>
@@ -407,6 +408,100 @@ void Generator_common_handle_force(Generator* gen,
             state->ramp_release += RAMP_RELEASE_TIME / freq;
         }
     }
+    for (int i = 0; i < frame_count; ++i)
+    {
+        frames[i] *= state->actual_force;
+    }
+    return;
+}
+
+
+void Generator_common_handle_filter(Generator* gen,
+                                    Voice_state* state,
+                                    double frames[],
+                                    int frame_count,
+                                    uint32_t freq)
+{
+    assert(gen != NULL);
+    assert(state != NULL);
+    assert(frames != NULL);
+    assert(frame_count > 0);
+    assert(freq > 0);
+    if (state->filter_slide != 0)
+    {
+        state->filter *= state->filter_slide_update;
+        state->filter_slide_frames -= 1;
+        if (state->filter_slide_frames <= 0)
+        {
+            state->filter = state->filter_slide_target;
+            state->filter_slide = 0;
+        }
+        else if (state->filter_slide == 1)
+        {
+            if (state->filter > state->filter_slide_target)
+            {
+                state->filter = state->filter_slide_target;
+                state->filter_slide = 0;
+            }
+        }
+        else
+        {
+            assert(state->filter_slide == -1);
+            if (state->filter < state->filter_slide_target)
+            {
+                state->filter = state->filter_slide_target;
+                state->filter_slide = 0;
+            }
+        }
+    }
+    state->actual_filter = state->filter;
+    if (state->autowah)
+    {
+        double fac_log = sin(state->autowah_phase);
+        if (state->autowah_delay_pos < 1)
+        {
+            double actual_depth = (1 - state->autowah_delay_pos) *
+                    state->autowah_depth +
+                    state->autowah_delay_pos *
+                    state->autowah_depth_target;
+            fac_log *= actual_depth;
+            state->autowah_delay_pos += state->autowah_delay_update;
+        }
+        else
+        {
+            state->autowah_depth = state->autowah_depth_target;
+            fac_log *= state->autowah_depth;
+            if (state->autowah_depth == 0)
+            {
+                state->autowah = false;
+            }
+        }
+        if (fac_log > 85)
+        {
+            fac_log = 85;
+        }
+        state->actual_filter *= exp2(fac_log);
+        if (!state->autowah && state->autowah_length > state->freq)
+        {
+            state->autowah_length = state->freq;
+            state->autowah_update = (2 * PI) / state->autowah_length;
+        }
+        double new_phase = state->autowah_phase + state->autowah_update;
+        if (new_phase >= (2 * PI))
+        {
+            new_phase = fmod(new_phase, 2 * PI);
+        }
+        if (!state->autowah && (new_phase < state->autowah_phase ||
+                    (new_phase >= PI && state->autowah_phase < PI)))
+        {
+            state->autowah_phase = 0;
+            state->autowah_update = 0;
+        }
+        else
+        {
+            state->autowah_phase = new_phase;
+        }
+    }
     if (gen->ins_params->env_force_filter_enabled)
     {
         double force = state->actual_force;
@@ -419,9 +514,129 @@ void Generator_common_handle_force(Generator* gen,
         assert(isfinite(factor));
         state->actual_filter = MIN(state->actual_filter, 16384) * factor;
     }
-    for (int i = 0; i < frame_count; ++i)
+
+    if (!state->filter_update &&
+            state->filter_xfade_pos >= 1 &&
+            (state->actual_filter < state->effective_filter * 0.98566319864018759 ||
+             state->actual_filter > state->effective_filter * 1.0145453349375237 ||
+             state->filter_resonance != state->effective_resonance))
     {
-        frames[i] *= state->actual_force;
+        state->filter_update = true;
+        state->filter_xfade_state_used = state->filter_state_used;
+        if (state->pos > 0)
+        {
+            state->filter_xfade_pos = 0;
+        }
+        else
+        {
+            state->filter_xfade_pos = 1;
+        }
+        state->filter_xfade_update = 200.0 / freq; // FIXME: / freq
+        if (state->actual_filter < freq / 2)
+        {
+            int new_state = 1 - abs(state->filter_state_used);
+            bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
+                    state->actual_filter / freq,
+                    state->filter_resonance,
+                    state->filter_state[new_state].coeffs1,
+                    state->filter_state[new_state].coeffs2);
+            for (int i = 0; i < gen->ins_params->buf_count; ++i)
+            {
+                for (int k = 0; k < FILTER_ORDER; ++k)
+                {
+                    state->filter_state[new_state].history1[i][k] = 0;
+                    state->filter_state[new_state].history2[i][k] = 0;
+                }
+            }
+            state->filter_state[new_state].buf_pos = 0;
+            state->filter_state_used = new_state;
+//            fprintf(stderr, "created filter with cutoff %f\n", state->actual_filter);
+        }
+        else
+        {
+            if (state->filter_state_used == -1)
+            {
+                state->filter_xfade_pos = 1;
+            }
+            state->filter_state_used = -1;
+        }
+        state->effective_filter = state->actual_filter;
+        state->effective_resonance = state->filter_resonance;
+        state->filter_update = false;
+    }
+
+    if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
+    {
+        assert(state->filter_state_used != state->filter_xfade_state_used);
+        double result[KQT_BUFFERS_MAX] = { 0 };
+        if (state->filter_state_used > -1)
+        {
+            Filter_state* fst =
+                    &state->filter_state[state->filter_state_used];
+            int buf_pos = fst->buf_pos;
+            for (int i = 0; i < frame_count; ++i)
+            {
+                buf_pos = fst->buf_pos;
+                iir_filter_df1(FILTER_ORDER, fst->coeffs1, fst->coeffs2,
+                               fst->history1[i], fst->history2[i],
+                               buf_pos, frames[i], result[i]);
+            }
+            fst->buf_pos = buf_pos;
+        }
+        else
+        {
+            for (int i = 0; i < frame_count; ++i)
+            {
+                result[i] = frames[i];
+            }
+        }
+        double vol = state->filter_xfade_pos;
+        if (vol > 1)
+        {
+            vol = 1;
+        }
+        for (int i = 0; i < frame_count; ++i)
+        {
+            result[i] *= vol;
+        }
+        if (state->filter_xfade_pos < 1)
+        {
+            double fade_result[KQT_BUFFERS_MAX] = { 0 };
+            if (state->filter_xfade_state_used > -1)
+            {
+                Filter_state* fst =
+                        &state->filter_state[state->filter_xfade_state_used];
+                int buf_pos = fst->buf_pos;
+                for (int i = 0; i < frame_count; ++i)
+                {
+                    buf_pos = fst->buf_pos;
+                    iir_filter_df1(FILTER_ORDER, fst->coeffs1, fst->coeffs2,
+                                   fst->history1[i], fst->history2[i],
+                                   buf_pos, frames[i], fade_result[i]);
+                }
+                fst->buf_pos = buf_pos;
+            }
+            else
+            {
+                for (int i = 0; i < frame_count; ++i)
+                {
+                    fade_result[i] = frames[i];
+                }
+            }
+            double vol = 1 - state->filter_xfade_pos;
+            if (vol > 0)
+            {
+                for (int i = 0; i < frame_count; ++i)
+                {
+                    result[i] += fade_result[i] * vol;
+                }
+            }
+            state->filter_xfade_pos += state->filter_xfade_update;
+        }
+        for (int i = 0; i < frame_count; ++i)
+        {
+            frames[i] = result[i];
+        }
     }
     return;
 }

@@ -101,12 +101,12 @@ uint32_t Generator_triangle_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = triangle(triangle_state->phase) / 6;
         Generator_common_handle_force(gen, state, vals, 1, freq);
+        Generator_common_handle_filter(gen, state, vals, 1, freq);
         Generator_common_ramp_attack(gen, state, vals, 1, freq);
         triangle_state->phase += state->actual_pitch / freq;
         if (triangle_state->phase >= 1)

@@ -68,15 +68,15 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
     if (true)                                                           \
     {                                                                   \
         (out) = (coeffs)[n] * (in);                                     \
-        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (var), +=);    \
+        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (out), +=);    \
     } else (void)0
 
 
 #define iir_step(n, coeffs, bsize, buf, k, in, out)                     \
     if (true)                                                           \
     {                                                                   \
-        (out) = (in);                                                   \
-        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (var), -=);    \
+     /*   (out) = (in); */                                                  \
+        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (out), -=);    \
     } else (void)0
 
 

@@ -154,12 +154,12 @@ uint32_t Generator_square_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = square(square_state->phase, square_state->pulse_width) / 6;
         Generator_common_handle_force(gen, state, vals, 1, freq);
+        Generator_common_handle_filter(gen, state, vals, 1, freq);
         Generator_common_ramp_attack(gen, state, vals, 1, freq);
         square_state->phase += state->actual_pitch / freq;
         if (square_state->phase >= 1)
