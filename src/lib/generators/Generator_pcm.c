@@ -491,6 +491,10 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
             del_AAtree(map);
             return NULL;
         }
+        list->freq = exp2(cents / 1200) * 440;
+        list->cents = cents;
+        list->force = force;
+        list->entry_count = 0;
         if (!AAtree_ins(map, list))
         {
             Read_state_set_error(state, "Couldn't allocate memory for sample mapping");
@@ -498,10 +502,6 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
             del_AAtree(map);
             return NULL;
         }
-        list->freq = exp2(cents / 1200) * 440;
-        list->cents = cents;
-        list->force = force;
-        list->entry_count = 0;
         bool expect_entry = true;
         while (expect_entry && list->entry_count < PCM_RANDOMS_MAX)
         {

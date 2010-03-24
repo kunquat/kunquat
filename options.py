@@ -6,6 +6,9 @@ prefix = '/usr/local'
 # Build in debug mode.
 enable_debug = True
 
+# Build profiling code.
+enable_profiling = False
+
 # Enable libkunquat.
 enable_libkunquat = True
 
@@ -22,7 +25,7 @@ enable_tests = False
 enable_player = True
 
 # Enable kunquat-export (requires libsndfile).
-enable_export = False
+enable_export = True
 
 # Build example Kunquat files.
 enable_examples = True
