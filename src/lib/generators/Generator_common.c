@@ -502,7 +502,8 @@ void Generator_common_handle_filter(Generator* gen,
             state->autowah_phase = new_phase;
         }
     }
-    if (gen->ins_params->env_force_filter_enabled)
+    if (gen->ins_params->env_force_filter_enabled &&
+            state->filter_xfade_pos >= 1)
     {
         double force = state->actual_force;
         if (force > 1)
