@@ -289,8 +289,8 @@ uint32_t Sample_mix(Sample* sample,
             {                                                   \
                 next[0] = buf_l[next_pos];                      \
             }                                                   \
-            vals[0] = ((double)cur[0]) * (1 - mix_factor) +     \
-                      ((double)next[0]) * mix_factor;           \
+            vals[0] = (double)cur[0] + mix_factor *             \
+                      ((double)next[0] - (double)cur[0]);       \
             if (sample->channels > 1)                           \
             {                                                   \
                 type* buf_r = sample->data[1];                  \
@@ -299,8 +299,8 @@ uint32_t Sample_mix(Sample* sample,
                 {                                               \
                     next[1] = buf_r[next_pos];                  \
                 }                                               \
-                vals[1] = ((double)cur[1]) * (1 - mix_factor) + \
-                          ((double)next[1]) * mix_factor;       \
+                vals[1] = (double)cur[1] + mix_factor *         \
+                          ((double)next[1] - (double)cur[1]);   \
             }                                                   \
             else                                                \
             {                                                   \
