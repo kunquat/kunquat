@@ -457,30 +457,35 @@ void Generator_common_handle_filter(Generator* gen,
     state->actual_filter = state->filter;
     if (state->autowah)
     {
-        double fac_log = sin(state->autowah_phase);
+        if (state->filter_xfade_pos >= 1)
+        {
+            double fac_log = sin(state->autowah_phase);
+            if (state->autowah_delay_pos < 1)
+            {
+                double actual_depth = (1 - state->autowah_delay_pos) *
+                                      state->autowah_depth +
+                                      state->autowah_delay_pos *
+                                      state->autowah_depth_target;
+                fac_log *= actual_depth;
+            }
+            else
+            {
+                fac_log *= state->autowah_depth_target;
+            }
+            state->actual_filter *= exp2(fac_log);
+        }
         if (state->autowah_delay_pos < 1)
         {
-            double actual_depth = (1 - state->autowah_delay_pos) *
-                    state->autowah_depth +
-                    state->autowah_delay_pos *
-                    state->autowah_depth_target;
-            fac_log *= actual_depth;
             state->autowah_delay_pos += state->autowah_delay_update;
         }
-        else
+        else if (state->autowah_depth == 0)
         {
             state->autowah_depth = state->autowah_depth_target;
-            fac_log *= state->autowah_depth;
             if (state->autowah_depth == 0)
             {
                 state->autowah = false;
             }
         }
-        if (fac_log > 85)
-        {
-            fac_log = 85;
-        }
-        state->actual_filter *= exp2(fac_log);
         if (!state->autowah && state->autowah_length > state->freq)
         {
             state->autowah_length = state->freq;
