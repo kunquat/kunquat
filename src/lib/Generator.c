@@ -274,8 +274,11 @@ void Generator_mix(Generator* gen,
     assert(gen->mix != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-    gen->mix(gen, state, nframes, offset, freq, tempo,
-             gen->ins_params->buf_count, gen->ins_params->bufs);
+    if (offset < nframes)
+    {
+        gen->mix(gen, state, nframes, offset, freq, tempo,
+                 gen->ins_params->buf_count, gen->ins_params->bufs);
+    }
     return;
 }
 

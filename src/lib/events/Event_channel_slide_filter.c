@@ -65,15 +65,7 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
         return false;
     }
     double target_cutoff = data[0].field.double_type;
-    double target_cutoff_exp = NAN;
-    if (target_cutoff > 86)
-    {
-        target_cutoff_exp = INFINITY;
-    }
-    else
-    {
-        target_cutoff_exp = exp2((target_cutoff + 86) / 12);
-    }
+    double target_cutoff_exp = exp2((target_cutoff + 86) / 12);
     const double inf_limit = exp2((86.0 + 86) / 12);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
