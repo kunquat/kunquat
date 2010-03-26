@@ -366,6 +366,47 @@ void Generator_common_handle_force(Generator* gen,
     {
         if (gen->ins_params->env_force_rel_enabled)
         {
+            double stretch = 1;
+            if (gen->ins_params->env_force_rel_scale_amount != 0)
+            {
+                stretch = pow(state->actual_pitch /
+                                  gen->ins_params->env_force_rel_center,
+                              gen->ins_params->env_force_rel_scale_amount);
+            }
+            Envelope* env = gen->ins_params->env_force_rel;
+            double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
+            assert(next_node != NULL);
+            double scale = NAN;
+            if (state->rel_fe_pos >= next_node[0])
+            {
+                ++state->rel_fe_next_node;
+                scale = Envelope_get_value(env, state->rel_fe_pos);
+                if (!isfinite(scale))
+                {
+                    state->active = false;
+                    for (int i = 0; i < frame_count; ++i)
+                    {
+                        frames[i] = 0;
+                    }
+                    return;
+                }
+                double next_scale = Envelope_get_value(env, state->rel_fe_pos +
+                                                            1.0 / freq);
+                state->rel_fe_value = scale;
+                state->rel_fe_update = next_scale - scale;
+            }
+            else
+            {
+                assert(isfinite(state->rel_fe_update));
+                state->rel_fe_value += state->rel_fe_update *
+                                       stretch * (1.0 - *state->pedal);
+                scale = state->rel_fe_value;
+                if (scale < 0)
+                {
+                    scale = 0;
+                }
+            }
+#if 0
             double scale = Envelope_get_value(gen->ins_params->env_force_rel,
                                               state->rel_fe_pos);
             if (!isfinite(scale))
@@ -377,13 +418,7 @@ void Generator_common_handle_force(Generator* gen,
                 }
                 return;
             }
-            double stretch = 1;
-            if (gen->ins_params->env_force_rel_scale_amount != 0)
-            {
-                stretch = pow(state->actual_pitch /
-                                  gen->ins_params->env_force_rel_center,
-                              gen->ins_params->env_force_rel_scale_amount);
-            }
+#endif
             state->rel_fe_pos += stretch * (1.0 - *state->pedal) / freq;
             state->actual_force *= scale;
         }
