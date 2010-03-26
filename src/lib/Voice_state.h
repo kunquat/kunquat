@@ -83,10 +83,13 @@ typedef struct Voice_state
     double* pedal;                 ///< Instrument pedal state.
 
     double fe_pos;                 ///< Force envelope position.
+    int fe_next_node;              ///< Next force envelope node.
+    double fe_value;               ///< Current force envelope value.
+    double fe_update;              ///< Force envelope update.
 
     double rel_fe_pos;             ///< Release force envelope position.
     int rel_fe_next_node;          ///< Next release force envelope node.
-    double rel_fe_value;           ///< Current release force envelope value in rel_fe_pos.
+    double rel_fe_value;           ///< Current release force envelope value.
     double rel_fe_update;          ///< Release force envelope update.
                                   
     double force;                  ///< The current force (linear factor).

@@ -96,6 +96,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     
     state->pedal = NULL;
     state->fe_pos = 0;
+    state->fe_next_node = 0;
+    state->fe_value = NAN;
+    state->fe_update = 0;
 
     state->rel_fe_pos = 0;
     state->rel_fe_next_node = 0;

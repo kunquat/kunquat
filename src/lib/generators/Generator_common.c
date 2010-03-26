@@ -305,9 +305,7 @@ void Generator_common_handle_force(Generator* gen,
     if (gen->ins_params->env_force_enabled)
     {
         Envelope* env = gen->ins_params->env_force;
-        double scale = Envelope_get_value(env, state->fe_pos);
-        assert(isfinite(scale));
-        state->actual_force *= scale;
+
         int loop_start_index = Envelope_get_mark(env, 0);
         int loop_end_index = Envelope_get_mark(env, 1);
         double* loop_start = loop_start_index == -1 ? NULL :
@@ -321,6 +319,45 @@ void Generator_common_handle_force(Generator* gen,
                               gen->ins_params->env_force_center,
                           gen->ins_params->env_force_scale_amount);
         }
+
+        double* next_node = Envelope_get_node(env, state->fe_next_node);
+        double scale = NAN;
+        if (next_node == NULL)
+        {
+            assert(loop_start == NULL);
+            assert(loop_end == NULL);
+            double* last_node = Envelope_get_node(env,
+                                        Envelope_node_count(env) - 1);
+            scale = last_node[1];
+        }
+        else if (state->fe_pos >= next_node[0])
+        {
+            ++state->fe_next_node;
+            if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
+            {
+                assert(loop_start_index >= 0);
+                state->fe_next_node = loop_start_index;
+            }
+            scale = Envelope_get_value(env, state->fe_pos);
+            assert(isfinite(scale));
+            double next_scale = Envelope_get_value(env, state->fe_pos +
+                                                        1.0 / freq);
+            state->fe_value = scale;
+            state->fe_update = next_scale - scale;
+        }
+        else
+        {
+            assert(isfinite(state->fe_update));
+            state->fe_value += state->fe_update * stretch;
+            scale = state->fe_value;
+            if (scale < 0)
+            {
+                scale = 0;
+            }
+        }
+//        double scale = Envelope_get_value(env, state->fe_pos);
+        assert(isfinite(scale));
+        state->actual_force *= scale;
         double new_pos = state->fe_pos + stretch / freq;
         if (loop_start != NULL && loop_end != NULL)
         {
@@ -339,6 +376,7 @@ void Generator_common_handle_force(Generator* gen,
                     new_pos = loop_start[0] + offset;
                     assert(new_pos >= loop_start[0]);
                     assert(new_pos <= loop_end[0]);
+                    state->fe_next_node = loop_start_index;
                 }
             }
         }
