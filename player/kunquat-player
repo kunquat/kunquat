@@ -14,6 +14,7 @@
 #
 
 from __future__ import print_function
+import collections
 from itertools import cycle, chain
 import math
 from optparse import OptionParser, OptionGroup
@@ -21,6 +22,7 @@ import os.path
 import string
 import sys
 import termios
+import time
 
 import kunquat
 from kunquat.extras import pulseaudio
@@ -81,10 +83,21 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     return_key = KeyHandler.RETURN
     status_len_max = 0
     bufs = handle.mix()
+    rt_cycle_len = float(options.buffer_size) / options.frequency
+    mix_cycle_start = 0
+    mix_cycle_end = 0
+    mix_loads = collections.deque([0] * 8)
     while bufs[0]:
+        mix_loads.popleft()
+        mix_loads.append((mix_cycle_end - mix_cycle_start) / rt_cycle_len)
+        mix_load = (sum(mix_loads) - min(mix_loads) - max(mix_loads)) / \
+                   (len(mix_loads) - 2)
         pa_handle.write(*bufs)
         if options.interactive:
-            status_line = status.get_status_line(handle, duration, bufs)
+            status_line = status.get_status_line(handle,
+                                                 duration,
+                                                 bufs,
+                                                 mix_load)
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
@@ -143,7 +156,9 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                                 (handle.subsong + 1)] and handle.subsong < 255:
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
+        mix_cycle_start = time.time()
         bufs = handle.mix()
+        mix_cycle_end = time.time()
     pa_handle.drain()
     return return_key
 
@@ -324,7 +339,7 @@ class Status(object):
             seconds = 0
         return '%02d:%04.1f' % (seconds // 60, seconds % 60)
 
-    def get_status_line(self, handle, duration, bufs):
+    def get_status_line(self, handle, duration, bufs, mix_load):
         components = []
         if handle.subsong is None:
             components.append('All subsongs')
@@ -336,6 +351,8 @@ class Status(object):
                        self.dur_to_str(duration - handle.nanoseconds),
                        self.dur_to_str(duration))
         components.append(elapsed)
+        if mix_load > 0:
+            components.append('Load: %.0f %%' % (mix_load * 100))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
