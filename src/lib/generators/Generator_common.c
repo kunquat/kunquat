@@ -126,6 +126,7 @@ void Generator_common_handle_pitch(Generator* gen,
 {
     assert(gen != NULL);
     assert(state != NULL);
+    state->prev_pitch = state->pitch;
     if (state->pitch_slide != 0)
     {
         state->pitch *= state->pitch_slide_update;
@@ -153,6 +154,7 @@ void Generator_common_handle_pitch(Generator* gen,
             }
         }
     }
+    state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
     if (state->vibrato)
     {
@@ -312,12 +314,12 @@ void Generator_common_handle_force(Generator* gen,
                              Envelope_get_node(env, loop_start_index);
         double* loop_end = loop_end_index == -1 ? NULL :
                            Envelope_get_node(env, loop_end_index);
-        double stretch = 1;
-        if (gen->ins_params->env_force_scale_amount != 0)
+        if (gen->ins_params->env_force_scale_amount != 0 &&
+                state->actual_pitch != state->prev_actual_pitch)
         {
-            stretch = pow(state->actual_pitch /
-                              gen->ins_params->env_force_center,
-                          gen->ins_params->env_force_scale_amount);
+            state->fe_scale = pow(state->actual_pitch /
+                                      gen->ins_params->env_force_center,
+                                  gen->ins_params->env_force_scale_amount);
         }
 
         double* next_node = Envelope_get_node(env, state->fe_next_node);
@@ -348,7 +350,7 @@ void Generator_common_handle_force(Generator* gen,
         else
         {
             assert(isfinite(state->fe_update));
-            state->fe_value += state->fe_update * stretch;
+            state->fe_value += state->fe_update * state->fe_scale;
             scale = state->fe_value;
             if (scale < 0)
             {
@@ -358,7 +360,7 @@ void Generator_common_handle_force(Generator* gen,
 //        double scale = Envelope_get_value(env, state->fe_pos);
         assert(isfinite(scale));
         state->actual_force *= scale;
-        double new_pos = state->fe_pos + stretch / freq;
+        double new_pos = state->fe_pos + state->fe_scale / freq;
         if (loop_start != NULL && loop_end != NULL)
         {
             if (new_pos > loop_end[0])
@@ -404,12 +406,17 @@ void Generator_common_handle_force(Generator* gen,
     {
         if (gen->ins_params->env_force_rel_enabled)
         {
-            double stretch = 1;
-            if (gen->ins_params->env_force_rel_scale_amount != 0)
+            if (gen->ins_params->env_force_rel_scale_amount != 0 &&
+                    (state->actual_pitch != state->prev_actual_pitch ||
+                     isnan(state->rel_fe_scale)))
             {
-                stretch = pow(state->actual_pitch /
-                                  gen->ins_params->env_force_rel_center,
-                              gen->ins_params->env_force_rel_scale_amount);
+                state->rel_fe_scale = pow(state->actual_pitch /
+                                          gen->ins_params->env_force_rel_center,
+                                      gen->ins_params->env_force_rel_scale_amount);
+            }
+            else if (isnan(state->rel_fe_scale))
+            {
+                state->rel_fe_scale = 1;
             }
             Envelope* env = gen->ins_params->env_force_rel;
             double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
@@ -437,7 +444,7 @@ void Generator_common_handle_force(Generator* gen,
             {
                 assert(isfinite(state->rel_fe_update));
                 state->rel_fe_value += state->rel_fe_update *
-                                       stretch * (1.0 - *state->pedal);
+                                       state->rel_fe_scale * (1.0 - *state->pedal);
                 scale = state->rel_fe_value;
                 if (scale < 0)
                 {
@@ -457,7 +464,7 @@ void Generator_common_handle_force(Generator* gen,
                 return;
             }
 #endif
-            state->rel_fe_pos += stretch * (1.0 - *state->pedal) / freq;
+            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->pedal) / freq;
             state->actual_force *= scale;
         }
         else if (*state->pedal < 0.5)

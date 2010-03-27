@@ -53,7 +53,9 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->orig_cents = 0;
 
     state->pitch = 0;
+    state->prev_pitch = 0;
     state->actual_pitch = 0;
+    state->prev_actual_pitch = 0;
     state->pitch_slide = 0;
     Reltime_init(&state->pitch_slide_length);
     state->pitch_slide_target = 0;
@@ -99,11 +101,13 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->fe_next_node = 0;
     state->fe_value = NAN;
     state->fe_update = 0;
+    state->fe_scale = 1;
 
     state->rel_fe_pos = 0;
     state->rel_fe_next_node = 0;
     state->rel_fe_value = NAN;
     state->rel_fe_update = 0;
+    state->rel_fe_scale = NAN;
 
     state->force = 1;
     state->actual_force = 1;

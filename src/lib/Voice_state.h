@@ -51,7 +51,9 @@ typedef struct Voice_state
     double orig_cents;             ///< The pitch in cents used at the beginning.
                                   
     pitch_t pitch;                 ///< The frequency at which the note is played.
+    pitch_t prev_pitch;            ///< The frequency in the previous mixing cycle.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
+    pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     int pitch_slide;               ///< Pitch slide state (0 = no slide, -1 = down, 1 = up).
     Reltime pitch_slide_length;
     pitch_t pitch_slide_target;    ///< Target pitch of the slide.
@@ -86,11 +88,13 @@ typedef struct Voice_state
     int fe_next_node;              ///< Next force envelope node.
     double fe_value;               ///< Current force envelope value.
     double fe_update;              ///< Force envelope update.
+    double fe_scale;               ///< Current force envelope scale factor.
 
     double rel_fe_pos;             ///< Release force envelope position.
     int rel_fe_next_node;          ///< Next release force envelope node.
     double rel_fe_value;           ///< Current release force envelope value.
     double rel_fe_update;          ///< Release force envelope update.
+    double rel_fe_scale;           ///< Current release force envelope scale factor.
                                   
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
