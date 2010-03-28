@@ -116,13 +116,8 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state)
     assert(state != NULL);
     (void)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    noise_state->k = 0;
-    for (int i = 0; i < 2; i++)
-    {
-        memset(noise_state->buf[i], 0, BINOM_MAX * sizeof(double)); 
-        memset(noise_state->bufa[i], 0, BINOM_MAX * sizeof(double));
-        memset(noise_state->bufb[i], 0, BINOM_MAX * sizeof(double));
-    }
+    memset(noise_state->buf[0], 0, NOISE_MAX * sizeof(double)); 
+    memset(noise_state->buf[1], 0, NOISE_MAX * sizeof(double)); 
     return;
 }
 
@@ -153,36 +148,16 @@ uint32_t Generator_noise_mix(Generator* gen,
     Generator_noise* noise = (Generator_noise*)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
     uint32_t mixed = offset;
-    for (; mixed < nframes; ++mixed)
+    for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_filter(gen, state);
-        Generator_common_handle_pitch(gen, state);
-        
+        Generator_common_handle_pitch(gen, state);        
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        for (int i = 0; i < 2; ++i)
-        {
-            int k = noise_state->k;
-            double* buf = noise_state->buf[i];
-//          double* bufa = noise_state->bufa[i];
-//          double* bufb = noise_state->bufb[i];
-            double temp = rand_u;
-            vals[i] = rand_u;
-            if (noise->order > 0)
-            {
-                //int n =  noise->order;
-                //iir_filter_strict(n, negbinom[n], buf, k, temp, vals[i]);
-                //iir_filter_df1(n,    binom[n], negbinom[n], bufa, bufb, k, temp, vals[i]);
-            }
-            else if (noise->order < 0)
-            {
-                //int n = -noise->order;
-                //fir_filter(n, negbinom[n], buf, k, temp, vals[i]);
-                //iir_filter_df1(n, negbinom[n],    binom[n], bufa, bufb, k, temp, vals[i]);
-            }
-            noise_state->k = k;
-            power_law_filter(noise->order, buf, temp, vals[i]);
-        }
-        Generator_common_handle_force(gen, state, vals, 2);
+	double temp = rand_u;
+	power_law_filter(noise->order, noise_state->buf[0], temp, vals[0]);
+	temp = rand_u;
+	power_law_filter(noise->order, noise_state->buf[1], temp, vals[1]);
+        Generator_common_handle_force(gen, state, vals, 2, freq);
+        Generator_common_handle_filter(gen, state, vals, 2, freq);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
         state->pos = 1; // XXX: hackish
 //        Generator_common_handle_note_off(gen, state, vals, 2, freq);

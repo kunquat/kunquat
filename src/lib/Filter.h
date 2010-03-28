@@ -68,15 +68,14 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
     if (true)                                                           \
     {                                                                   \
         (out) = (coeffs)[n] * (in);                                     \
-        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (var), +=);    \
+        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (out), +=);    \
     } else (void)0
 
 
 #define iir_step(n, coeffs, bsize, buf, k, in, out)                     \
     if (true)                                                           \
     {                                                                   \
-        (out) = (in);                                                   \
-        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (var), -=);    \
+        cyclic_dprod((n), (coeffs), (bsize), (buf), (k), (out), -=);    \
     } else (void)0
 
 
@@ -100,20 +99,10 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
     } else (void)0
 
 
-#define iir_filter_df2(n, coeffsa, coeffsb, buf, k, in, out)            \
-    if (true)                                                           \
-    {                                                                   \
-        iir_step((n), (coeffsa), (n),  (buf), (k), (var));              \
-        (in) = (out);                                                   \
-        fir_step((n), (coeffsb), (n),  (buf), (k), (var));              \
-        (buf)[k]  = (in);                                               \
-        (k) = ((k) + 1) % (n);                                          \
-    } else (void)0
-
-
 #define iir_filter_strict(n, coeffs, buf, k, in, out)             \
     if (true)                                                     \
     {                                                             \
+        (out) = (in);                                             \
         iir_step((n),  (coeffs), (n),  (buf), (k), (in), (out));  \
         (buf)[k]  = (out);                                        \
         (k) = ((k) + 1) % (n);                                    \
@@ -123,23 +112,23 @@ void bilinear_chebyshev_t1_lowpass_filter_create(int n,
 #define power_law_filter(n, buf, in, out)                       \
     if (true)                                                   \
     {                                                           \
-        if ((n) > 0)                                            \
+        if ((n) < 0)                                            \
         {                                                       \
-            (out) = (in);                                       \
-            for (int filter_i = 0; filter_i < (n); ++filter_i)  \
-            {                                                   \
-                (out) += (buf)[filter_i];                       \
-                (buf)[filter_i] = (out);                        \
-            }                                                   \
-        }                                                       \
-        else                                                    \
-        {                                                       \
-            for (int filter_i = 0; filter_i < (n); ++filter_i)  \
+            for (int filter_i = 0; filter_i < -(n); ++filter_i) \
             {                                                   \
                 (out) = (in) - (buf)[filter_i];                 \
                 (buf)[filter_i] = (in);                         \
                 (in) = (out);                                   \
             }                                                   \
+        else                                                    \
+        {                                                       \
+           (out) = (in);                                        \
+            for (int filter_i = 0; filter_i < (n); ++filter_i)  \
+            {                                                   \
+                (out) += (buf)[filter_i];                       \
+                (buf)[filter_i] = (out);                        \
+            }                                                   \
+
         }                                                       \
     } else (void)0
 
@@ -156,3 +145,5 @@ void iir_filter_df1_old(int na,
 
 
 #endif // K_FILTER_H
+
+

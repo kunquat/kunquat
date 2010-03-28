@@ -153,6 +153,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
     state->filter_state[0].coeffs2[FILTER_ORDER] = 0;
     state->filter_state[1].coeffs2[FILTER_ORDER] = 0;
+    state->filter_state[0].buf_pos = 0;
+    state->filter_state[1].buf_pos = 0;
 
     return state;
 }
