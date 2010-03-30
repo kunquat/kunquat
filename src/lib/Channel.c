@@ -145,7 +145,14 @@ void Channel_set_voices(Channel* ch,
         {
             if (ch->cur_state.fg[i] != NULL)
             {
-                Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
+                ch->cur_state.fg[i] = Voice_pool_get_voice(pool,
+                                              ch->cur_state.fg[i],
+                                              ch->cur_state.fg_id[i]);
+                if (ch->cur_state.fg[i] != NULL)
+                {
+                    assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
+                    Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
+                }
             }
         }
         mixed = to_be_mixed;
