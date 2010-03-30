@@ -157,8 +157,17 @@ void Channel_set_voices(Channel* ch,
         if (EVENT_IS_CHANNEL(Event_get_type(next)))
         {
             Event_handler_handle(eh, ch->init_state.num,
-                                 Event_get_type((Event*)next),
-                                 Event_get_fields((Event*)next));
+                                 Event_get_type(next),
+                                 Event_get_fields(next));
+        }
+        else if (EVENT_IS_INS(Event_get_type(next)))
+        {
+            if (ch->cur_state.instrument > 0)
+            {
+                Event_handler_handle(eh, ch->cur_state.instrument,
+                                     Event_get_type(next),
+                                     Event_get_fields(next));
+            }
         }
         if (next == ch->single)
         {
