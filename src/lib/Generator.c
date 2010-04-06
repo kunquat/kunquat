@@ -29,6 +29,7 @@
 #include <File_base.h>
 #include <Filter.h>
 #include <Event_ins.h>
+#include <pitch_t.h>
 #include <Random.h>
 
 #include <xmemory.h>
@@ -62,6 +63,8 @@ bool Generator_init(Generator* gen)
     gen->enabled = GENERATOR_DEFAULT_ENABLED;
     gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
     gen->volume = exp2(gen->volume_dB / 6);
+    gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
+    gen->pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
     gen->parse = NULL;
     return true;
 }
@@ -82,6 +85,8 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->enabled = src->enabled;
     dest->volume_dB = src->volume_dB;
     dest->volume = src->volume;
+    dest->pitch_lock_enabled = src->pitch_lock_enabled;
+    dest->pitch_lock_value = src->pitch_lock_value;
     dest->random = src->random;
     return;
 }
@@ -97,6 +102,8 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     }
     bool enabled = false;
     double volume = 0;
+    bool pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
+    double pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -126,6 +133,11 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
                 {
                     str = read_double(str, &volume, state);
                 }
+                else if (strcmp(key, "pitch_lock") == 0)
+                {
+                    pitch_lock_enabled = true;
+                    str = read_double(str, &pitch_lock_value, state);
+                }
                 else
                 {
                     Read_state_set_error(state,
@@ -148,6 +160,9 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     gen->enabled = enabled;
     gen->volume_dB = volume;
     gen->volume = exp2(gen->volume_dB / 6);
+    gen->pitch_lock_enabled = pitch_lock_enabled;
+    gen->pitch_lock_value = pitch_lock_value;
+    gen->pitch_lock_freq = exp2(gen->pitch_lock_value / 1200.0) * 440;
     return true;
 }
 
@@ -252,6 +267,7 @@ void Generator_process_note(Generator* gen,
             *gen->ins_params->scale == NULL ||
             **gen->ins_params->scale == NULL)
     {
+        state->pitch = cents;
         return;
     }
     pitch_t pitch = Scale_get_pitch_from_cents(**gen->ins_params->scale, cents);

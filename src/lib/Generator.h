@@ -21,6 +21,7 @@
 
 #include <Generator_type.h>
 #include <Instrument_params.h>
+#include <pitch_t.h>
 #include <Random.h>
 #include <Voice_state.h>
 #include <File_base.h>
@@ -36,6 +37,9 @@ typedef struct Generator
     bool enabled;
     double volume_dB;
     double volume;
+    bool pitch_lock_enabled;
+    double pitch_lock_value;
+    pitch_t pitch_lock_freq;
     Random* random;
     bool (*parse)(struct Generator*, const char*, void*, long, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
@@ -48,6 +52,8 @@ typedef struct Generator
 
 #define GENERATOR_DEFAULT_ENABLED (false)
 #define GENERATOR_DEFAULT_VOLUME (0)
+#define GENERATOR_DEFAULT_PITCH_LOCK_ENABLED (false)
+#define GENERATOR_DEFAULT_PITCH_LOCK_VALUE (0)
 
 
 /**
