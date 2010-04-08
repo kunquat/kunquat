@@ -127,15 +127,18 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
         Event_check_voice(ch_state, i);
         Voice* voice = ch_state->fg[i];
         Voice_state* vs = &voice->state.generic;
-        if (voice->gen->ins_params->scale == NULL ||
-                *voice->gen->ins_params->scale == NULL ||
-                **voice->gen->ins_params->scale == NULL)
+        pitch_t orig_pitch = -1;
+        if (voice->gen->ins_params->scale != NULL &&
+                *voice->gen->ins_params->scale != NULL &&
+                **voice->gen->ins_params->scale != NULL)
         {
-            vs->arpeggio = false;
-            continue;
+            orig_pitch = Scale_get_pitch_from_cents(
+                         **voice->gen->ins_params->scale, vs->orig_cents);
         }
-        Scale* scale = **voice->gen->ins_params->scale;
-        pitch_t orig_pitch = Scale_get_pitch_from_cents(scale, vs->orig_cents);
+        else
+        {
+            orig_pitch = exp2(vs->orig_cents / 1200) * 440;
+        }
         if (orig_pitch <= 0)
         {
             vs->arpeggio = false;
@@ -148,8 +151,19 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
             {
                 last_nonzero = k;
             }
-            pitch_t new_pitch = Scale_get_pitch_from_cents(scale,
-                                vs->orig_cents + data[k + 1].field.double_type);
+            pitch_t new_pitch = -1;
+            if (voice->gen->ins_params->scale != NULL &&
+                    *voice->gen->ins_params->scale != NULL &&
+                    **voice->gen->ins_params->scale != NULL)
+            {
+                Scale* scale = **voice->gen->ins_params->scale;
+                new_pitch = Scale_get_pitch_from_cents(scale,
+                            vs->orig_cents + data[k + 1].field.double_type);
+            }
+            else
+            {
+                new_pitch = vs->orig_cents + data[k + 1].field.double_type;
+            }
             if (new_pitch <= 0)
             {
                 last_nonzero = -1;

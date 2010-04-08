@@ -20,6 +20,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <Random.h>
 #include <Real.h>
 #include <Song.h>
 #include <File_base.h>
@@ -50,6 +51,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     song->event_handler = NULL;
     song->skip_state = NULL;
     song->skip_handler = NULL;
+    song->random = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -84,6 +86,12 @@ Song* new_Song(int buf_count, uint32_t buf_size)
             return NULL;
         }
     }
+    song->random = new_Random();
+    if (song->random == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
     song->subsongs = new_Subsong_table();
     if (song->subsongs == NULL)
     {
@@ -109,7 +117,10 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         del_Song(song);
         return NULL;
     }
-    song->play_state = new_Playdata(song->insts, song->buf_count, song->bufs);
+    song->play_state = new_Playdata(song->insts,
+                                    song->buf_count,
+                                    song->bufs,
+                                    song->random);
     if (song->play_state == NULL)
     {
         del_Song(song);
@@ -364,6 +375,10 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         }
     }
     play->play_frames += mixed;
+#if 0
+    fprintf(stderr, "%3d  \r", play->active_voices);
+    play->active_voices = 0;
+#endif
     return mixed;
 }
 
@@ -711,6 +726,10 @@ void del_Song(Song* song)
     if (song->skip_handler != NULL)
     {
         del_Event_handler(song->skip_handler);
+    }
+    if (song->random != NULL)
+    {
+        del_Random(song->random);
     }
     xfree(song);
     return;

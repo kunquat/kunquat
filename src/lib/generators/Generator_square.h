@@ -41,7 +41,7 @@ Generator* new_Generator_square(Instrument_params* ins_params);
 /**
  * Tells whether the given subkey is part of the Square Generator specification.
  *
- * \param subkey   The subkey. This is the part after "generator_XX/".
+ * \param subkey   The subkey. This is the part after "gen_XX/".
  *
  * \return   \c true if and only if \a subkey is part of the specification.
  */
@@ -52,7 +52,7 @@ bool Generator_square_has_subkey(const char* subkey);
  * Parses data associated with a Square Generator.
  *
  * \param gen      The Generator -- must be a valid Square Generator.
- * \param subkey   The subkey. This is the part after "generator_XX/".
+ * \param subkey   The subkey. This is the part after "gen_XX/".
  * \param data     The data -- must not be \c NULL unless \a length is 0.
  * \param length   The length of the data -- must be >= \c 0.
  * \param state    The Read state -- must not be \c NULL.

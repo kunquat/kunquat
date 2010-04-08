@@ -25,9 +25,12 @@
 #include <Generator_square.h>
 #include <Generator_square303.h>
 #include <Generator_pcm.h>
+#include <Generator_noise.h>
 #include <File_base.h>
 #include <Filter.h>
 #include <Event_ins.h>
+#include <pitch_t.h>
+#include <Random.h>
 
 #include <xmemory.h>
 
@@ -44,6 +47,7 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
         [GEN_TYPE_TRIANGLE] = new_Generator_triangle,
         [GEN_TYPE_SQUARE] = new_Generator_square,
         [GEN_TYPE_SQUARE303] = new_Generator_square303,
+        [GEN_TYPE_NOISE] = new_Generator_noise,
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
     assert(cons[type] != NULL);
@@ -59,6 +63,8 @@ bool Generator_init(Generator* gen)
     gen->enabled = GENERATOR_DEFAULT_ENABLED;
     gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
     gen->volume = exp2(gen->volume_dB / 6);
+    gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
+    gen->pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
     gen->parse = NULL;
     return true;
 }
@@ -79,6 +85,9 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->enabled = src->enabled;
     dest->volume_dB = src->volume_dB;
     dest->volume = src->volume;
+    dest->pitch_lock_enabled = src->pitch_lock_enabled;
+    dest->pitch_lock_value = src->pitch_lock_value;
+    dest->random = src->random;
     return;
 }
 
@@ -93,6 +102,8 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     }
     bool enabled = false;
     double volume = 0;
+    bool pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
+    double pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -122,6 +133,11 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
                 {
                     str = read_double(str, &volume, state);
                 }
+                else if (strcmp(key, "pitch_lock") == 0)
+                {
+                    pitch_lock_enabled = true;
+                    str = read_double(str, &pitch_lock_value, state);
+                }
                 else
                 {
                     Read_state_set_error(state,
@@ -144,6 +160,9 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     gen->enabled = enabled;
     gen->volume_dB = volume;
     gen->volume = exp2(gen->volume_dB / 6);
+    gen->pitch_lock_enabled = pitch_lock_enabled;
+    gen->pitch_lock_value = pitch_lock_value;
+    gen->pitch_lock_freq = exp2(gen->pitch_lock_value / 1200.0) * 440;
     return true;
 }
 
@@ -166,6 +185,7 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
         [GEN_TYPE_SQUARE] = "square",
         [GEN_TYPE_SQUARE303] = "square303",
         [GEN_TYPE_SAWTOOTH] = "sawtooth",
+        [GEN_TYPE_NOISE] = "noise",
         [GEN_TYPE_PCM] = "pcm",
     };
     char desc[128] = { '\0' };
@@ -198,6 +218,7 @@ bool Generator_type_has_subkey(Gen_type type, const char* subkey)
     {
         [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
         [GEN_TYPE_SQUARE] = Generator_square_has_subkey,
+        [GEN_TYPE_NOISE] = Generator_noise_has_subkey,
     };
     if (map[type] == NULL)
     {
@@ -246,6 +267,7 @@ void Generator_process_note(Generator* gen,
             *gen->ins_params->scale == NULL ||
             **gen->ins_params->scale == NULL)
     {
+        state->pitch = cents;
         return;
     }
     pitch_t pitch = Scale_get_pitch_from_cents(**gen->ins_params->scale, cents);
@@ -268,150 +290,10 @@ void Generator_mix(Generator* gen,
     assert(gen->mix != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-    uint32_t mixed = offset;
-    while (mixed < nframes)
+    if (offset < nframes)
     {
-        kqt_frame** bufs = gen->ins_params->bufs;
-        if ((state->filter_update && state->filter_xfade_pos >= 1)
-                || freq != state->freq)
-        {
-            state->filter_xfade_state_used = state->filter_state_used;
-            state->filter_xfade_pos = 0;
-            state->filter_xfade_update = 200.0 / freq;
-            if (state->actual_filter < freq / 2)
-            {
-                int new_state = (state->filter_state_used + 1) % 2;
-                bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
-                        state->actual_filter / freq,
-                        state->filter_resonance,
-                        state->filter_state[new_state].coeffs1,
-                        state->filter_state[new_state].coeffs2);
-                for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                {
-                    for (int k = 0; k < FILTER_ORDER; ++k)
-                    {
-                        state->filter_state[new_state].history1[i][k] = 0;
-                        state->filter_state[new_state].history2[i][k] = 0;
-                    }
-                }
-                state->filter_state_used = new_state;
-            }
-            else
-            {
-                if (state->filter_state_used == -1)
-                {
-                    state->filter_xfade_pos = 1;
-                }
-                state->filter_state_used = -1;
-            }
-            state->effective_filter = state->actual_filter;
-            state->effective_resonance = state->filter_resonance;
-            state->filter_update = false;
-        }
-
-        uint32_t mix_until = nframes;
-
-        if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
-        {
-            bufs = gen->ins_params->vbufs;
-            if (state->filter_xfade_pos < 1 && mix_until - offset >
-                    (1 - state->filter_xfade_pos) / state->filter_xfade_update)
-            {
-                mix_until = offset +
-                        ceil((1 - state->filter_xfade_pos) / state->filter_xfade_update);
-            }
-        }
-
-        mixed = gen->mix(gen, state, mix_until, mixed, freq, tempo,
-                         gen->ins_params->buf_count,
-                         bufs);
-
-        if (bufs == gen->ins_params->vbufs)
-        {
-            assert(state->filter_state_used != state->filter_xfade_state_used);
-            kqt_frame** in_buf = gen->ins_params->vbufs;
-            if (state->filter_state_used > -1)
-            {
-                in_buf = gen->ins_params->vbufs2;
-                for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                {
-                    iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
-                                   state->filter_state[state->filter_state_used].coeffs1,
-                                   state->filter_state[state->filter_state_used].coeffs2,
-                                   state->filter_state[state->filter_state_used].history1[i],
-                                   state->filter_state[state->filter_state_used].history2[i],
-                                   mixed - offset,
-                                   gen->ins_params->vbufs[i] + offset,
-                                   gen->ins_params->vbufs2[i] + offset);
-                }
-            }
-            double vol = state->filter_xfade_pos;
-            for (uint32_t k = offset; k < mixed; ++k)
-            {
-                if (vol > 1)
-                {
-                    vol = 1;
-                }
-                for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                {
-                    gen->ins_params->bufs[i][k] += in_buf[i][k] * vol;
-                }
-                vol += state->filter_xfade_update;
-            }
-            if (state->filter_xfade_pos < 1)
-            {
-                kqt_frame** fade_buf = gen->ins_params->vbufs;
-                if (state->filter_xfade_state_used > -1)
-                {
-                    fade_buf = gen->ins_params->vbufs2;
-                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                    {
-                        for (uint32_t k = 0; k < nframes; ++k)
-                        {
-                            gen->ins_params->vbufs2[i][k] = 0;
-                        }
-                    }
-                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                    {
-                        iir_filter_df1(FILTER_ORDER, FILTER_ORDER,
-                                state->filter_state[state->filter_xfade_state_used].coeffs1,
-                                state->filter_state[state->filter_xfade_state_used].coeffs2,
-                                state->filter_state[state->filter_xfade_state_used].history1[i],
-                                state->filter_state[state->filter_xfade_state_used].history2[i],
-                                mixed - offset,
-                                gen->ins_params->vbufs[i] + offset,
-                                gen->ins_params->vbufs2[i] + offset);
-                    }
-                }
-                double vol = 1 - state->filter_xfade_pos;
-                for (uint32_t k = offset; k < mixed; ++k)
-                {
-                    if (vol <= 0)
-                    {
-                        break;
-                    }
-                    for (int i = 0; i < gen->ins_params->buf_count; ++i)
-                    {
-                        gen->ins_params->bufs[i][k] += fade_buf[i][k] * vol;
-                    }
-                    vol -= state->filter_xfade_update;
-                }
-            }
-            for (int i = 0; i < gen->ins_params->buf_count; ++i)
-            {
-                for (uint32_t k = 0; k < nframes; ++k)
-                {
-                    gen->ins_params->vbufs[i][k] = 0;
-                    gen->ins_params->vbufs2[i][k] = 0;
-                }
-            }
-            state->filter_xfade_pos += state->filter_xfade_update * (mixed - offset);
-        }
-        offset = mixed;
-        if (!state->active)
-        {
-            break;
-        }
+        gen->mix(gen, state, nframes, offset, freq, tempo,
+                 gen->ins_params->buf_count, gen->ins_params->bufs);
     }
     return;
 }

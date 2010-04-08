@@ -22,6 +22,7 @@
 #include <Subsong_table.h>
 //#include <Channel.h>
 #include <Column.h>
+#include <Random.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
 #include <kunquat/limits.h>
@@ -52,6 +53,7 @@ typedef struct Playdata
     Subsong_table* subsongs;          ///< The Subsongs.
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
+    Random* random;                   ///< Random source.
 
     int buf_count;                    ///< Number of buffers used for mixing.
     kqt_frame** bufs;                 ///< The (top-level) buffers.
@@ -110,13 +112,15 @@ typedef struct Playdata
  * \param insts       The Instrument table -- must not be \c NULL.
  * \param buf_count   Number of buffers used for mixing -- must be > \c 0.
  * \param bufs        The mixing buffers -- must not be \c NULL.
+ * \param random      The Random source -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
 Playdata* new_Playdata(Ins_table* insts,
                        int buf_count,
-                       kqt_frame** bufs);
+                       kqt_frame** bufs,
+                       Random* random);
 
 
 /**

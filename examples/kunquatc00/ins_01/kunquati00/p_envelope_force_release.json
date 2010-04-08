@@ -2,8 +2,8 @@
 
 {
     "enabled" : true,
-    "scale_factor" : 1,
-    "scale_center" : 440,
+    "scale_amount" : 0,
+    "scale_center" : 0,
     "nodes" :
     [
         [0, 1],

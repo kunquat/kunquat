@@ -23,6 +23,7 @@
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
+#include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
 #include <File_base.h>
@@ -37,6 +38,7 @@ typedef struct Song
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
+    Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.

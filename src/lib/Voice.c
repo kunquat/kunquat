@@ -87,6 +87,7 @@ void Voice_init(Voice* voice,
 void Voice_reset(Voice* voice)
 {
     assert(voice != NULL);
+    voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->was_fg = true;
     voice->fg_mixed = 0;

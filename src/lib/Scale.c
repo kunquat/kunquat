@@ -695,7 +695,6 @@ double Scale_get_cur_note_cents(Scale* scale, int index)
 
 pitch_t Scale_get_pitch(Scale* scale,
                         int index,
-                        int mod,
                         int octave)
 {
     octave -= KQT_SCALE_OCTAVE_BIAS;
@@ -703,7 +702,6 @@ pitch_t Scale_get_pitch(Scale* scale,
     assert(scale != NULL);
     assert(index >= 0);
     assert(index < KQT_SCALE_NOTES);
-    assert(mod < KQT_SCALE_NOTE_MODS);
     assert(octave >= 0);
     assert(octave < KQT_SCALE_OCTAVES);
     if (!NOTE_EXISTS(scale, index))

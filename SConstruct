@@ -27,6 +27,7 @@ opts.AddVariables(
     PathVariable('prefix', 'Installation prefix.', '/usr/local', PathVariable.PathIsDirCreate),
     ('optimise', 'Optimisation level (0..3).', 2, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
+    BoolVariable('enable_profiling', 'Build profiling code.', False),
     BoolVariable('enable_libkunquat', 'Enable libkunquat.', True),
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
     BoolVariable('enable_python_bindings', 'Install Python bindings.', True),
@@ -79,6 +80,10 @@ if env['enable_debug']:
 else:
     env.Append(CCFLAGS = ['-DNDEBUG'])
 
+if env['enable_profiling']:
+    env.Append(CCFLAGS = ['-pg'])
+    env.Append(LINKFLAGS = ['-pg'])
+
 if env['optimise'] > 0 and env['optimise'] <= 3:
     oflag = '-O%s' % env['optimise']
     env.Append(CCFLAGS = [oflag])
@@ -129,8 +134,12 @@ if not env.GetOption('clean') and not env.GetOption('help'):
         conf.env.Append(CCFLAGS = '-Duint64_t=uint_least64_t')
         conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
-    if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
-        conf_errors.append('Math library was not found.')
+    if env['enable_profiling']:
+        if not conf.CheckLibWithHeader('m_p', 'math.h', 'C'):
+            conf_errors.append('Profiling math library not found.')
+    else:
+        if not conf.CheckLibWithHeader('m', 'math.h', 'C'):
+            conf_errors.append('Math library was not found.')
 
     if env['with_wavpack']:
         conf.env.Append(CCFLAGS = '-Dushort=uint16_t')

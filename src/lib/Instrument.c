@@ -37,7 +37,6 @@ typedef struct Gen_group
 struct Instrument
 {
     double default_force;       ///< Default force.
-    double force_variation;     ///< Force variation.
 
     Scale** scales;             ///< The Scales of the Song.
     Scale*** default_scale;     ///< The default Scale of the Song.
@@ -55,7 +54,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            int buf_count,
                            uint32_t buf_len,
                            Scale** scales,
-                           Scale*** default_scale)
+                           Scale*** default_scale,
+                           Random* random)
 {
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
@@ -70,6 +70,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     assert(*default_scale != NULL);
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
+    assert(random != NULL);
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {
@@ -85,7 +86,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     }
 
     ins->default_force = INS_DEFAULT_FORCE;
-    ins->force_variation = INS_DEFAULT_FORCE_VAR;
+    ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
 
     ins->scales = scales;
     ins->default_scale = default_scale;
@@ -103,6 +104,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
             xfree(ins);
             return NULL;
         }
+        ins->gens[i].common_params.random = random;
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
             ins->gens[i].types[k] = NULL;
@@ -186,7 +188,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
         }
     }
     ins->default_force = default_force;
-    ins->force_variation = force_variation;
+    ins->params.force_variation = force_variation;
     Instrument_set_scale(ins, scale_index);
     return true;
 }

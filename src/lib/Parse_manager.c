@@ -224,6 +224,7 @@ static bool parse_song_level(kqt_Handle* handle,
     assert(key != NULL);
     assert(data != NULL || length == 0);
     assert(length >= 0);
+    (void)length;
     if (strcmp(key, "p_composition.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -284,7 +285,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                  Song_get_buf_count(handle->song),
                                  Song_get_buf_size(handle->song),
                                  Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song));
+                                 Song_get_active_scale(handle->song),
+                                 handle->song->random);
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -316,7 +318,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool (*read)(Instrument_params*, char* str, Read_state*);
     } parse[] =
     {
-        { "p_envelope_volume_release.json", Instrument_params_parse_env_vol_rel },
+        { "p_envelope_force.json", Instrument_params_parse_env_force },
+        { "p_envelope_force_release.json", Instrument_params_parse_env_force_rel },
+        { "p_envelope_force_filter.json", Instrument_params_parse_env_force_filter },
+        { "p_envelope_pitch_pan.json", Instrument_params_parse_env_pitch_pan },
         { NULL, NULL }
     };
     for (int i = 0; parse[i].name != NULL; ++i)
@@ -334,7 +339,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                      Song_get_buf_count(handle->song),
                                      Song_get_buf_size(handle->song),
                                      Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song));
+                                     Song_get_active_scale(handle->song),
+                                     handle->song->random);
                 if (ins == NULL)
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -403,7 +409,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                              Song_get_buf_count(handle->song),
                              Song_get_buf_size(handle->song),
                              Song_get_scales(handle->song),
-                             Song_get_active_scale(handle->song));
+                             Song_get_active_scale(handle->song),
+                             handle->song->random);
         if (ins == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -547,6 +554,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_PATTERNS_MAX)
     {
         return true;
@@ -683,6 +691,7 @@ static bool parse_scale_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_SCALES_MAX)
     {
         return true;
@@ -734,6 +743,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     if (index < 0 || index >= KQT_SUBSONGS_MAX)
     {
         return true;

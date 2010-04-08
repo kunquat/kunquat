@@ -96,10 +96,11 @@ void Channel_set_voices(Channel* ch,
 {
     assert(ch != NULL);
     assert(pool != NULL);
+    (void)pool; // FIXME: remove?
 //  assert(citer != NULL);
     assert(start != NULL);
     assert(end != NULL);
-    assert(offset < nframes);
+    assert(offset <= nframes);
     assert(tempo > 0);
     assert(freq > 0);
     assert(eh != NULL);
@@ -144,7 +145,14 @@ void Channel_set_voices(Channel* ch,
         {
             if (ch->cur_state.fg[i] != NULL)
             {
-                Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
+                ch->cur_state.fg[i] = Voice_pool_get_voice(pool,
+                                              ch->cur_state.fg[i],
+                                              ch->cur_state.fg_id[i]);
+                if (ch->cur_state.fg[i] != NULL)
+                {
+                    assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
+                    Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
+                }
             }
         }
         mixed = to_be_mixed;
@@ -156,8 +164,17 @@ void Channel_set_voices(Channel* ch,
         if (EVENT_IS_CHANNEL(Event_get_type(next)))
         {
             Event_handler_handle(eh, ch->init_state.num,
-                                 Event_get_type((Event*)next),
-                                 Event_get_fields((Event*)next));
+                                 Event_get_type(next),
+                                 Event_get_fields(next));
+        }
+        else if (EVENT_IS_INS(Event_get_type(next)))
+        {
+            if (ch->cur_state.instrument > 0)
+            {
+                Event_handler_handle(eh, ch->cur_state.instrument,
+                                     Event_get_type(next),
+                                     Event_get_fields(next));
+            }
         }
         if (next == ch->single)
         {

@@ -150,8 +150,8 @@ char* Envelope_read(Envelope* env, char* str, Read_state* state)
                          env->max_x, env->max_y);
                 return str;
             }
-    }
-    ++node_count;
+        }
+        ++node_count;
     }
     str = read_const_char(str, ']', state);
     return str;
@@ -443,10 +443,8 @@ double Envelope_get_value(Envelope* env, double x)
         } break;
         case ENVELOPE_INT_LINEAR:
         {
-            double interval = next_x - prev_x;
-            double y = prev_y * (next_x - x) / interval
-                    + next_y * (x - prev_x) / interval;
-            return y;
+            return prev_y + (x - prev_x) *
+                   ((next_y - prev_y) / (next_x - prev_x));
         } break;
         default:
             assert(false);

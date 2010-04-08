@@ -20,6 +20,7 @@
 #include <Event_common.h>
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
+#include <Random.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <Scale.h>
@@ -39,11 +40,6 @@ static Event_field_desc note_on_desc[] =
         .type = EVENT_FIELD_NONE
     }
 };
-
-
-//static bool Event_channel_note_on_set(Event* event, int index, void* data);
-
-//static void* Event_channel_note_on_get(Event* event, int index);
 
 
 Event_create_set_primitive_and_get(Event_channel_note_on,
@@ -84,6 +80,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     }
     // allocate new Voices
     ch_state->panning_slide = 0;
+    double force_var = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         if (Instrument_get_gen(ins, i) == NULL)
@@ -110,6 +107,18 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;
+        if (voice->gen->ins_params->force_variation != 0)
+        {
+            if (isnan(force_var))
+            {
+                double var_dB = ((double)Random_get(voice->gen->random) /
+                                 KQT_RANDOM_MAX) *
+                                voice->gen->ins_params->force_variation;
+                var_dB -= voice->gen->ins_params->force_variation / 2;
+                force_var = exp2(var_dB / 6);
+            }
+            vs->force *= force_var;
+        }
 
         Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
         vs->tremolo_length = ch_state->tremolo_length;
@@ -134,75 +143,5 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     }
     return true;
 }
-
-
-#if 0
-static bool Event_channel_note_on_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_ON);
-    assert(data != NULL);
-    Event_channel_note_on* note_on = (Event_channel_note_on*)event;
-    int64_t num = *(int64_t*)data;
-    if (index < 0 || index >= 3)
-    {
-        return false;
-    }
-    Event_check_integral_range(num, event->field_types[index]);
-    switch (index)
-    {
-        case 0:
-        {
-            note_on->note = num;
-        }
-        break;
-        case 1:
-        {
-            note_on->mod = num;
-        }
-        break;
-        case 2:
-        {
-            note_on->octave = num;
-        }
-        break;
-        default:
-        {
-            assert(false);
-        }
-        break;
-    }
-    return true;
-}
-
-
-static void* Event_channel_note_on_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_ON);
-    Event_channel_note_on* note_on = (Event_channel_note_on*)event;
-    switch (index)
-    {
-        case 0:
-        {
-            return &note_on->note;
-        }
-        break;
-        case 1:
-        {
-            return &note_on->mod;
-        }
-        break;
-        case 2:
-        {
-            return &note_on->octave;
-        }
-        break;
-        default:
-        break;
-    }
-    return NULL;
-}
-#endif
 
 

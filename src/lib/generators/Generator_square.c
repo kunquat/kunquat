@@ -74,6 +74,7 @@ bool Generator_square_parse(Generator* gen,
     assert(Generator_square_has_subkey(subkey));
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
+    (void)length;
     assert(state != NULL);
     if (state->error)
     {
@@ -151,14 +152,14 @@ uint32_t Generator_square_mix(Generator* gen,
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_square* square_state = (Voice_state_square*)state;
     uint32_t mixed = offset;
-    for (; mixed < nframes; ++mixed)
+    for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_filter(gen, state);
         Generator_common_handle_pitch(gen, state);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = square(square_state->phase, square_state->pulse_width) / 6;
-        Generator_common_handle_force(gen, state, vals, 1);
+        Generator_common_handle_force(gen, state, vals, 1, freq);
+        Generator_common_handle_filter(gen, state, vals, 1, freq);
         Generator_common_ramp_attack(gen, state, vals, 1, freq);
         square_state->phase += state->actual_pitch / freq;
         if (square_state->phase >= 1)
@@ -166,7 +167,7 @@ uint32_t Generator_square_mix(Generator* gen,
             square_state->phase -= floor(square_state->phase);
         }
         state->pos = 1; // XXX: hackish
-        Generator_common_handle_note_off(gen, state, vals, 1, freq);
+//        Generator_common_handle_note_off(gen, state, vals, 1, freq);
         vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];

@@ -291,8 +291,6 @@ double Scale_get_cur_note_cents(Scale* scale, int index);
  * \param scale    The Scale -- must not be \c NULL.
  * \param index    The index of the note -- must be >= \c 0 and
  *                 < \c KQT_SCALE_NOTES.
- * \param mod      The note modifier -- must be < \c KQT_SCALE_NOTE_MODS.
- *                 Negative value means that no modifier will be used.
  * \param octave   The octave -- must be >= \c KQT_SCALE_OCTAVE_FIRST
  *                 and <= \c KQT_SCALE_OCTAVE_LAST.
  *
@@ -300,7 +298,6 @@ double Scale_get_cur_note_cents(Scale* scale, int index);
  */
 pitch_t Scale_get_pitch(Scale* scale,
                         int index,
-                        int mod,
                         int octave);
 
 

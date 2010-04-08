@@ -234,14 +234,14 @@ static WavpackStreamReader reader_str =
     if (true)                                                               \
     {                                                                       \
         assert(buf_l != NULL);                                              \
-        for (uint32_t i = 0; i < count / channels; ++i)                     \
+        for (uint32_t i = 0; i < count; ++i)                                \
         {                                                                   \
             buf_l[offset + i] = src[i * channels] << lshift;                \
         }                                                                   \
         if (channels == 2)                                                  \
         {                                                                   \
             assert(buf_r != NULL);                                          \
-            for (uint32_t i = 0; i < count / channels; ++i)                 \
+            for (uint32_t i = 0; i < count; ++i)                            \
             {                                                               \
                 buf_r[offset + i] = src[i * channels + 1] << lshift;        \
             }                                                               \

@@ -20,6 +20,7 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
+#include <Random.h>
 #include <Reltime.h>
 
 #include <Playdata.h>
@@ -29,16 +30,20 @@
 
 Playdata* new_Playdata(Ins_table* insts,
                        int buf_count,
-                       kqt_frame** bufs)
+                       kqt_frame** bufs,
+                       Random* random)
 {
     assert(insts != NULL);
+    (void)insts; // FIXME: remove?
     assert(buf_count > 0);
     assert(bufs != NULL);
+    assert(random != NULL);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
     {
         return NULL;
     }
+    play->random = random;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -115,6 +120,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    play->random = NULL;
     play->play_id = 1;
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -227,6 +233,10 @@ void Playdata_reset(Playdata* play)
                 Scale_retune(play->scales[i], -1, 0);
             }
         }
+    }
+    if (play->random != NULL)
+    {
+        Random_reset(play->random);
     }
     play->scale = 0;
 
