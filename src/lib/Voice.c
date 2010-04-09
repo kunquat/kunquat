@@ -19,18 +19,30 @@
 #include <inttypes.h>
 
 #include <Voice.h>
+#include <Voice_state.h>
 #include <Voice_params.h>
 
 #include <xmemory.h>
 
 
-Voice* new_Voice(void)
+Voice* new_Voice(uint16_t state_size)
 {
     Voice* voice = xalloc(Voice);
     if (voice == NULL)
     {
         return NULL;
     }
+    if (state_size < sizeof(Voice_state))
+    {
+        state_size = sizeof(Voice_state);
+    }
+    voice->state_new = xcalloc(char, state_size);
+    if (voice->state_new == NULL)
+    {
+        xfree(voice);
+        return NULL;
+    }
+    voice->state_size = state_size;
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
@@ -39,6 +51,24 @@ Voice* new_Voice(void)
     voice->gen = NULL;
     Voice_state_clear(&voice->state.generic);
     return voice;
+}
+
+
+bool Voice_reserve_state_space(Voice* voice, uint16_t state_size)
+{
+    assert(voice != NULL);
+    if (voice->state_size >= state_size)
+    {
+        return true;
+    }
+    void* state = xrealloc(char, state_size, voice->state_new);
+    if (state == NULL)
+    {
+        return false;
+    }
+    voice->state_new = state;
+    voice->state_size = state_size;
+    return true;
 }
 
 
@@ -145,6 +175,7 @@ void Voice_mix(Voice* voice,
 void del_Voice(Voice* voice)
 {
     assert(voice != NULL);
+    xfree(voice->state_new);
     xfree(voice);
     return;
 }
