@@ -77,6 +77,9 @@ static bool is_index_digit(char ch);
 static int parse_index(const char* str);
 
 
+static bool key_is_for_text(const char* key);
+
+
 #define set_parse_error(handle, state) \
     (kqt_Handle_set_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
@@ -133,6 +136,18 @@ int parse_index_dir(const char* key, const char* prefix, int digits)
 }
 
 
+static bool key_is_for_text(const char* key)
+{
+    assert(key != NULL);
+    return string_has_suffix(key, ".json") ||
+           string_has_suffix(key, ".b") ||
+           string_has_suffix(key, ".i") ||
+           string_has_suffix(key, ".f") ||
+           string_has_suffix(key, ".r") ||
+           string_has_suffix(key, ".rt");
+}
+
+
 bool parse_data(kqt_Handle* handle,
                 const char* key,
                 void* data,
@@ -163,7 +178,7 @@ bool parse_data(kqt_Handle* handle,
         return true;
     }
     char* json = NULL;
-    if (data != NULL && string_has_suffix(key, ".json"))
+    if (data != NULL && key_is_for_text(key))
     {
         json = xcalloc(char, length + 1);
         if (json == NULL)
