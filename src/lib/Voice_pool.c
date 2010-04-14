@@ -105,7 +105,7 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
             return NULL;
         }
     }
-    pool->state_size = 0;
+    pool->dyn_state_size = 0;
     return pool;
 }
 
@@ -140,7 +140,7 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     }
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
-        pool->voices[i] = new_Voice(pool->state_size);
+        pool->voices[i] = new_Voice(pool->dyn_state_size);
         if (pool->voices[i] == NULL)
         {
             for (--i; i >= pool->size; --i)
@@ -156,21 +156,22 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
 }
 
 
-bool Voice_pool_reserve_state_space(Voice_pool* pool, uint16_t state_size)
+bool Voice_pool_reserve_dyn_state_space(Voice_pool* pool,
+                                        uint16_t dyn_state_size)
 {
     assert(pool != NULL);
-    if (pool->state_size >= state_size)
+    if (pool->dyn_state_size >= dyn_state_size)
     {
         return true;
     }
     for (uint16_t i = 0; i < pool->size; ++i)
     {
-        if (!Voice_reserve_state_space(pool->voices[i], state_size))
+        if (!Voice_reserve_dyn_state_space(pool->voices[i], dyn_state_size))
         {
             return false;
         }
     }
-    pool->state_size = state_size;
+    pool->dyn_state_size = dyn_state_size;
     return true;
 }
 
