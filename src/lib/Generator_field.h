@@ -46,7 +46,8 @@ typedef struct Generator_field Generator_field;
  * \param key    The key -- must be a valid key. A valid Generator field key
  *               has the suffix .b (boolean), .i (int), .f (float), .r (Real),
  *               .rt (Reltime) or .wv (WavPack).
- * \param data   Pointer to the data that must have a type matching the key.
+ * \param data   Pointer to the data that must have a type matching the key,
+ *               or \c NULL.
  *
  * \return   The new field if successful, or \c NULL if memory allocation
  *           failed.
@@ -66,10 +67,30 @@ Generator_field* new_Generator_field(const char* key, void* data);
  * \return   The new Generator field if successful, otherwise \c NULL.
  *           \a state will _not_ be modified if memory allocation failed.
  */
-Generator_field* new_Generator_field_from_string(const char* key,
-                                                 void* data,
-                                                 long length,
-                                                 Read_state* state);
+Generator_field* new_Generator_field_from_data(const char* key,
+                                               void* data,
+                                               long length,
+                                               Read_state* state);
+
+
+/**
+ * Changes the data of a Generator field.
+ *
+ * This is used for modifying _composition_ data (not playback data).
+ *
+ * \param field    The Generator field -- must not be \c NULL.
+ * \param data     The data -- must not be \c NULL if it has a non-zero
+ *                 length.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. \a state will _not_
+ *           be modified if memory allocation failed.
+ */
+bool Generator_field_change(Generator_field* field,
+                            void* data,
+                            long length,
+                            Read_state* state);
 
 
 /**
@@ -78,12 +99,68 @@ Generator_field* new_Generator_field_from_string(const char* key,
  * \param field1   The first field -- must not be \c NULL.
  * \param field2   The second field -- must not be \c NULL.
  *
- * \return   An integer less than, equal to or greater than zero if \ə field1
+ * \return   An integer less than, equal to or greater than zero if \a field1
  *           is found, respectively, to be less than, equal to or greater than
  *           \a field2.
  */
 int Generator_field_cmp(const Generator_field* field1,
                         const Generator_field* field2);
+
+
+/**
+ * Sets the Event control bit of the Generator field.
+ *
+ * If a Generator field has the Event control bit set, it may be empty while
+ * still being allocated memory.
+ *
+ * \param field     The Generator field -- must not be \c NULL. Sample fields
+ *                  are not supported.
+ * \param control   The Event control flag.
+ */
+void Generator_field_set_event_control(Generator_field* field, bool control);
+
+
+/**
+ * Gets the Event control bit of the Generator field.
+ *
+ * \param field   The Generator field -- must not be \c NULL.
+ *
+ * \return   The Event control flag.
+ */
+bool Generator_field_get_event_control(Generator_field* field);
+
+
+/**
+ * Sets the empty flag of the Generator field.
+ *
+ * \param field   The Generator field -- must not be \c NULL. Sample fields
+ *                are not supported.
+ * \param flag    The empty flag.
+ */
+void Generator_field_set_empty(Generator_field* field, bool empty);
+
+
+/**
+ * Gets the empty flag of the Generator field.
+ *
+ * \param field   The Generator field -- must not be \c NULL.
+ *
+ * \return   The empty flag.
+ */
+bool Generator_field_get_empty(Generator_field* field);
+
+
+/**
+ * Modifies Generator field data.
+ *
+ * \param field   The Generator field -- must not be \c NULL and must not
+ *                contain a Sample.
+ * \param str     The new data as a string.
+ *
+ * \return   \c true if the Generator field was successfully modified,
+ *           otherwise \c false.
+ */
+bool Generator_field_modify(Generator_field* field, char* str);
 
 
 /**

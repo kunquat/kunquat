@@ -36,8 +36,10 @@ typedef union
 
 struct Generator_field
 {
+    char key[100];
     Generator_field_type type;
-    char* key;
+    bool event_control;
+    bool empty;
     Gen_fields data;
 };
 
@@ -87,30 +89,50 @@ Generator_field* new_Generator_field(const char* key, void* data)
     {
         return NULL;
     }
-    field->key = xcalloc(char, strlen(key) + 1);
-    if (field->key == NULL)
-    {
-        xfree(field);
-        return NULL;
-    }
-    strcpy(field->key, key);
+    strncpy(field->key, key, 99);
+    field->key[99] = '\0';
     field->type = type;
-    memcpy(&field->data, data, data_size);
+    field->event_control = false;
+    if (data != NULL)
+    {
+        field->empty = false;
+        memcpy(&field->data, data, data_size);
+    }
+    else
+    {
+        field->event_control = true;
+        field->empty = true;
+        memset(&field->data, 0, sizeof(Gen_fields));
+    }
     return field;
 }
 
 
-Generator_field* new_Generator_field_from_string(const char* key,
-                                                 void* data,
-                                                 long length,
-                                                 Read_state* state)
+Generator_field* new_Generator_field_from_data(const char* key,
+                                               void* data,
+                                               long length,
+                                               Read_state* state)
 {
     assert(key != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
     assert(state != NULL);
     if (state->error)
     {
         return NULL;
     }
+    Generator_field* field = new_Generator_field(key, NULL);
+    if (field == NULL)
+    {
+        return NULL;
+    }
+    if (!Generator_field_change(field, data, length, state))
+    {
+        del_Generator_field(field);
+        return NULL;
+    }
+    return field;
+#if 0
     Gen_fields field_data;
     if (string_has_suffix(key, ".b"))
     {
@@ -184,6 +206,94 @@ Generator_field* new_Generator_field_from_string(const char* key,
         return NULL;
     }
     return new_Generator_field(key, &field_data);
+#endif
+}
+
+
+bool Generator_field_change(Generator_field* field,
+                            void* data,
+                            long length,
+                            Read_state* state)
+{
+    assert(field != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    switch (field->type)
+    {
+        case GENERATOR_FIELD_BOOL:
+        {
+            if (data != NULL)
+            {
+                char* str = data;
+                read_bool(str, &field->data.bool_type, state);
+            }
+        } break;
+        case GENERATOR_FIELD_INT:
+        {
+            if (data != NULL)
+            {
+                char* str = data;
+                read_int(str, &field->data.int_type, state);
+            }
+        } break;
+        case GENERATOR_FIELD_FLOAT:
+        {
+            if (data != NULL)
+            {
+                char* str = data;
+                read_double(str, &field->data.float_type, state);
+            }
+        } break;
+        case GENERATOR_FIELD_REAL:
+        {
+            if (data != NULL)
+            {
+                assert(false); // TODO: implement
+            }
+        } break;
+        case GENERATOR_FIELD_RELTIME:
+        {
+            if (data != NULL)
+            {
+                char* str = data;
+                read_reltime(str, &field->data.Reltime_type, state);
+            }
+        } break;
+        case GENERATOR_FIELD_WAVPACK:
+        {
+            Sample* sample = NULL;
+            if (data != NULL)
+            {
+                sample = new_Sample();
+                if (sample == NULL)
+                {
+                    return false;
+                }
+                if (!Sample_parse_wavpack(sample, data, length, state))
+                {
+                    del_Sample(sample);
+                    return false;
+                }
+            }
+            if (state->error)
+            {
+                return false;
+            }
+            if (field->data.Sample_type != NULL)
+            {
+                del_Sample(field->data.Sample_type);
+            }
+            field->data.Sample_type = sample;
+        } break;
+        default:
+            assert(false);
+    }
+    return !state->error;
 }
 
 
@@ -195,6 +305,72 @@ int Generator_field_cmp(const Generator_field* field1,
     assert(field2 != NULL);
     assert(field2->key != NULL);
     return strcmp(field1->key, field2->key);
+}
+
+
+void Generator_field_set_event_control(Generator_field* field, bool control)
+{
+    assert(field != NULL);
+    if (field->type != GENERATOR_FIELD_WAVPACK)
+    {
+        field->event_control = control;
+    }
+    return;
+}
+
+
+bool Generator_field_get_event_control(Generator_field* field)
+{
+    assert(field != NULL);
+    return field->event_control;
+}
+
+
+void Generator_field_set_empty(Generator_field* field, bool empty)
+{
+    assert(field != NULL);
+    if (field->type != GENERATOR_FIELD_WAVPACK)
+    {
+        field->empty = empty;
+    }
+    return;
+}
+
+
+bool Generator_field_get_empty(Generator_field* field)
+{
+    assert(field != NULL);
+    return field->empty;
+}
+
+
+bool Generator_field_modify(Generator_field* field, char* str)
+{
+    assert(field != NULL);
+    assert(field->type != GENERATOR_FIELD_WAVPACK);
+    Read_state* state = READ_STATE_AUTO;
+    switch (field->type)
+    {
+        case GENERATOR_FIELD_BOOL:
+        {
+            read_bool(str, &field->data.bool_type, state);
+        } break;
+        case GENERATOR_FIELD_INT:
+        {
+            read_int(str, &field->data.int_type, state);
+        } break;
+        case GENERATOR_FIELD_FLOAT:
+        {
+            read_double(str, &field->data.float_type, state);
+        } break;
+        case GENERATOR_FIELD_RELTIME:
+        {
+            read_reltime(str, &field->data.Reltime_type, state);
+        } break;
+        default:
+            assert(false);
+    }
+    return !state->error;
 }
 
 
@@ -254,7 +430,6 @@ void del_Generator_field(Generator_field* field)
     {
         del_Sample(field->data.Sample_type);
     }
-    xfree(field->key);
     xfree(field);
     return;
 }
