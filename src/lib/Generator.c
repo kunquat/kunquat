@@ -53,6 +53,12 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
     assert(cons[type] != NULL);
     Generator* gen = cons[type](ins_params);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
+    gen->type_params = new_Generator_params();
+    if (gen->type_params == NULL)
+    {
+        gen->destroy(gen);
+        return NULL;
+    }
     return gen;
 }
 
@@ -303,6 +309,7 @@ void del_Generator(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->destroy != NULL);
+    del_Generator_params(gen->type_params);
     gen->destroy(gen);
     return;
 }

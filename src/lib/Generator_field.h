@@ -22,7 +22,8 @@
 #include <File_base.h>
 #include <Real.h>
 #include <Reltime.h>
-#include <Sample.h>
+//#include <Sample.h>
+#include <Sample_map.h>
 
 
 typedef enum
@@ -33,7 +34,9 @@ typedef enum
     GENERATOR_FIELD_FLOAT,
     GENERATOR_FIELD_REAL,
     GENERATOR_FIELD_RELTIME,
+    GENERATOR_FIELD_ENVELOPE,
     GENERATOR_FIELD_WAVPACK,
+    GENERATOR_FIELD_SAMPLE_MAP,
 } Generator_field_type;
 
 
@@ -117,7 +120,7 @@ int Generator_field_cmp(const Generator_field* field1,
  *                  are not supported.
  * \param control   The Event control flag.
  */
-void Generator_field_set_event_control(Generator_field* field, bool control);
+//void Generator_field_set_event_control(Generator_field* field, bool control);
 
 
 /**
@@ -127,7 +130,7 @@ void Generator_field_set_event_control(Generator_field* field, bool control);
  *
  * \return   The Event control flag.
  */
-bool Generator_field_get_event_control(Generator_field* field);
+//bool Generator_field_get_event_control(Generator_field* field);
 
 
 /**
@@ -226,7 +229,18 @@ Reltime* Generator_field_get_reltime(Generator_field* field);
  *
  * \return   The Sample.
  */
-Sample* Generator_field_get_sample(Generator_field* field);
+//Sample* Generator_field_get_sample(Generator_field* field);
+
+
+/**
+ * Gets a Sample map from the Generator field.
+ *
+ * \param field   The Generator field -- must not be \c NULL and must contain
+ *                a Sample.
+ *
+ * \return   The Sample map.
+ */
+Sample_map* Generator_field_get_sample_map(Generator_field* field);
 
 
 /**

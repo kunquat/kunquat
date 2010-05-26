@@ -171,7 +171,20 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
  *
  * \return   The Sample, or \c NULL if \a key doesn't exist.
  */
-Sample* Generator_params_get_sample(Generator_params* params, const char* key);
+//Sample* Generator_params_get_sample(Generator_params* params, const char* key);
+
+
+/**
+ * Retrieves a Sample map from Generator parameters.
+ *
+ * \param params   The Generator parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".ms".
+ *
+ * \return   The Sample map, or \c NULL if \a key doesn't exist.
+ */
+Sample_map* Generator_params_get_sample_map(Generator_params* params,
+                                            const char* key);
 
 
 /**

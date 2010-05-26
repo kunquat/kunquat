@@ -32,12 +32,14 @@
 #define PCM_RANDOMS_MAX (8)
 
 
+#if 0
 typedef struct Sample_entry
 {
     double freq;
     double vol_scale;
     uint16_t sample;
 } Sample_entry;
+#endif
 
 
 typedef struct Random_list

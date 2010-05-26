@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <string.h>
+#include <math.h>
 
 #include <AAtree.h>
 #include <Generator_field.h>
@@ -202,7 +203,7 @@ bool Generator_params_parse_events(Generator_params* params,
                 return false;
             }
             Generator_field* field = new_Generator_field(param, NULL);
-            if (field == NULL || (Generator_field_set_event_control(field, true),
+            if (field == NULL || (/*Generator_field_set_event_control(field, true),*/
                                   !AAtree_ins(params->event_data, field)))
             {
                 del_AAtree(params->event_names);
@@ -395,6 +396,7 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
 }
 
 
+#if 0
 Sample* Generator_params_get_sample(Generator_params* params, const char* key)
 {
     assert(params != NULL);
@@ -404,6 +406,21 @@ Sample* Generator_params_get_sample(Generator_params* params, const char* key)
         return NULL;
     }
     get_of_type(params, key, sample);
+    return NULL;
+}
+#endif
+
+
+Sample_map* Generator_params_get_sample_map(Generator_params* params,
+                                            const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    if (!string_has_suffix(key, ".ms"))
+    {
+        return NULL;
+    }
+    get_of_type(params, key, sample_map);
     return NULL;
 }
 

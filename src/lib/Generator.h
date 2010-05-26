@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Generator_params.h>
 #include <Generator_type.h>
 #include <Instrument_params.h>
 #include <pitch_t.h>
@@ -41,6 +42,7 @@ typedef struct Generator
     double pitch_lock_value;
     pitch_t pitch_lock_freq;
     Random* random;
+    Generator_params* type_params;
     bool (*parse)(struct Generator*, const char*, void*, long, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);

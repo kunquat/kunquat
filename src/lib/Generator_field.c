@@ -30,7 +30,8 @@ typedef union
     double float_type;
     Real Real_type;
     Reltime Reltime_type;
-    Sample* Sample_type;
+//    Sample* Sample_type;
+    Sample_map* Sample_map_type;
 } Gen_fields;
 
 
@@ -38,7 +39,7 @@ struct Generator_field
 {
     char key[100];
     Generator_field_type type;
-    bool event_control;
+//    bool event_control;
     bool empty;
     Gen_fields data;
 };
@@ -77,8 +78,15 @@ Generator_field* new_Generator_field(const char* key, void* data)
     }
     else if (string_has_suffix(key, ".wv"))
     {
+#if 0
         type = GENERATOR_FIELD_WAVPACK;
         data_size = sizeof(Sample*);
+#endif
+    }
+    else if (string_has_suffix(key, ".ms"))
+    {
+        type = GENERATOR_FIELD_SAMPLE_MAP;
+        data_size = sizeof(Sample_map*);
     }
     else
     {
@@ -92,7 +100,7 @@ Generator_field* new_Generator_field(const char* key, void* data)
     strncpy(field->key, key, 99);
     field->key[99] = '\0';
     field->type = type;
-    field->event_control = false;
+//    field->event_control = false;
     if (data != NULL)
     {
         field->empty = false;
@@ -100,7 +108,7 @@ Generator_field* new_Generator_field(const char* key, void* data)
     }
     else
     {
-        field->event_control = true;
+//        field->event_control = true;
         field->empty = true;
         memset(&field->data, 0, sizeof(Gen_fields));
     }
@@ -266,6 +274,7 @@ bool Generator_field_change(Generator_field* field,
         } break;
         case GENERATOR_FIELD_WAVPACK:
         {
+#if 0
             Sample* sample = NULL;
             if (data != NULL)
             {
@@ -280,20 +289,32 @@ bool Generator_field_change(Generator_field* field,
                     return false;
                 }
             }
-            if (state->error)
-            {
-                return false;
-            }
+            assert(!state->error);
             if (field->data.Sample_type != NULL)
             {
                 del_Sample(field->data.Sample_type);
             }
             field->data.Sample_type = sample;
+#endif
+        } break;
+        case GENERATOR_FIELD_SAMPLE_MAP:
+        {
+            Sample_map* map = new_Sample_map_from_string(data, state);
+            if (map == NULL)
+            {
+                return false;
+            }
+            field->data.Sample_map_type = map;
         } break;
         default:
             assert(false);
     }
-    return !state->error;
+    if (state->error)
+    {
+        return false;
+    }
+    field->empty = data == NULL;
+    return true;
 }
 
 
@@ -308,6 +329,7 @@ int Generator_field_cmp(const Generator_field* field1,
 }
 
 
+#if 0
 void Generator_field_set_event_control(Generator_field* field, bool control)
 {
     assert(field != NULL);
@@ -324,6 +346,7 @@ bool Generator_field_get_event_control(Generator_field* field)
     assert(field != NULL);
     return field->event_control;
 }
+#endif
 
 
 void Generator_field_set_empty(Generator_field* field, bool empty)
@@ -348,6 +371,7 @@ bool Generator_field_modify(Generator_field* field, char* str)
 {
     assert(field != NULL);
     assert(field->type != GENERATOR_FIELD_WAVPACK);
+    assert(field->type != GENERATOR_FIELD_SAMPLE_MAP);
     Read_state* state = READ_STATE_AUTO;
     switch (field->type)
     {
@@ -414,21 +438,38 @@ Reltime* Generator_field_get_reltime(Generator_field* field)
 }
 
 
+#if 0
 Sample* Generator_field_get_sample(Generator_field* field)
 {
     assert(field != NULL);
     assert(field->type == GENERATOR_FIELD_WAVPACK);
     return field->data.Sample_type;
 }
+#endif
+
+
+Sample_map* Generator_field_get_sample_map(Generator_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == GENERATOR_FIELD_SAMPLE_MAP);
+    return field->data.Sample_map_type;
+}
 
 
 void del_Generator_field(Generator_field* field)
 {
     assert(field != NULL);
+#if 0
     if (field->type == GENERATOR_FIELD_WAVPACK &&
             field->data.Sample_type != NULL)
     {
         del_Sample(field->data.Sample_type);
+    }
+#endif
+    if (field->type == GENERATOR_FIELD_SAMPLE_MAP &&
+            field->data.Sample_map_type != NULL)
+    {
+        del_Sample_map(field->data.Sample_map_type);
     }
     xfree(field);
     return;
