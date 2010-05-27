@@ -99,11 +99,25 @@ Instrument* new_Instrument(kqt_frame** bufs,
         {
             for (int k = i - 1; k >= 0; --k)
             {
+                del_Generator_params(ins->gens[k].common_params.type_params);
                 Generator_uninit(&ins->gens[k].common_params);
             }
             xfree(ins);
             return NULL;
         }
+        Generator_params* gen_params = new_Generator_params();
+        if (gen_params == NULL)
+        {
+            Generator_uninit(&ins->gens[i].common_params);
+            for (int k = i - 1; k >= 0; --k)
+            {
+                del_Generator_params(ins->gens[k].common_params.type_params);
+                Generator_uninit(&ins->gens[k].common_params);
+            }
+            xfree(ins);
+            return NULL;
+        }
+        ins->gens[i].common_params.type_params = gen_params;
         ins->gens[i].common_params.random = random;
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
@@ -338,6 +352,7 @@ void del_Instrument(Instrument* ins)
     Instrument_params_uninit(&ins->params);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
+        del_Generator_params(ins->gens[i].common_params.type_params);
         Generator_uninit(&ins->gens[i].common_params);
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {

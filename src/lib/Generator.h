@@ -112,6 +112,26 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
 
 
 /**
+ * Parses a Generator parameter.
+ *
+ * \param gen      The Generator -- must not be \c NULL.
+ * \param subkey   The subkey of the parameter -- must begin with either "i/"
+ *                 or "c/".
+ * \param data     The data -- must not be \c NULL unless \a length is 0.
+ * \param length   The length of the data -- must be >= \c 0.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. \a state will not be
+ *           modified if memory allocation failed.
+ */
+bool Generator_parse_param(Generator* gen,
+                           const char* subkey,
+                           void* data,
+                           long length,
+                           Read_state* state);
+
+
+/**
  * Parses data associated with the Generator.
  *
  * \param gen      The Generator -- must not be \c NULL.

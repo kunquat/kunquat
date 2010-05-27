@@ -53,12 +53,15 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
     assert(cons[type] != NULL);
     Generator* gen = cons[type](ins_params);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
+    gen->type_params = NULL;
+#if 0
     gen->type_params = new_Generator_params();
     if (gen->type_params == NULL)
     {
         gen->destroy(gen);
         return NULL;
     }
+#endif
     return gen;
 }
 
@@ -72,6 +75,7 @@ bool Generator_init(Generator* gen)
     gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
     gen->pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
     gen->parse = NULL;
+    gen->type_params = NULL;
     return true;
 }
 
@@ -79,7 +83,6 @@ bool Generator_init(Generator* gen)
 void Generator_uninit(Generator* gen)
 {
     assert(gen != NULL);
-    (void)gen;
     return;
 }
 
@@ -94,6 +97,7 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->pitch_lock_enabled = src->pitch_lock_enabled;
     dest->pitch_lock_value = src->pitch_lock_value;
     dest->random = src->random;
+    dest->type_params = src->type_params;
     return;
 }
 
@@ -170,6 +174,26 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     gen->pitch_lock_value = pitch_lock_value;
     gen->pitch_lock_freq = exp2(gen->pitch_lock_value / 1200.0) * 440;
     return true;
+}
+
+
+bool Generator_parse_param(Generator* gen,
+                           const char* subkey,
+                           void* data,
+                           long length,
+                           Read_state* state)
+{
+    assert(gen != NULL);
+    assert(subkey != NULL);
+    assert(data != NULL || length == 0);
+    assert(length >= 0);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    return Generator_params_parse_value(gen->type_params, subkey,
+                                        data, length, state);
 }
 
 
@@ -309,7 +333,6 @@ void del_Generator(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->destroy != NULL);
-    del_Generator_params(gen->type_params);
     gen->destroy(gen);
     return;
 }

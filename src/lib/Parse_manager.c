@@ -19,6 +19,7 @@
 #include <ctype.h>
 
 #include <File_base.h>
+#include <Generator_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
 
@@ -144,7 +145,8 @@ static bool key_is_for_text(const char* key)
            string_has_suffix(key, ".i") ||
            string_has_suffix(key, ".f") ||
            string_has_suffix(key, ".r") ||
-           string_has_suffix(key, ".rt");
+           string_has_suffix(key, ".rt") ||
+           string_has_suffix(key, ".ms");
 }
 
 
@@ -439,6 +441,38 @@ static bool parse_generator_level(kqt_Handle* handle,
         assert(common_params != NULL);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Generator_parse_general(common_params, data, state))
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+    }
+    else if ((string_has_prefix(subkey, "i/") ||
+              string_has_prefix(subkey, "c/")) &&
+             (string_has_suffix(subkey, ".b") ||
+              string_has_suffix(subkey, ".i") ||
+              string_has_suffix(subkey, ".f") ||
+              string_has_suffix(subkey, ".r") ||
+              string_has_suffix(subkey, ".rt") ||
+              string_has_suffix(subkey, ".wv") ||
+              string_has_suffix(subkey, ".ogg") ||
+              string_has_suffix(subkey, ".ms"))) // FIXME: ugly
+    {
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Generator_parse_param(common_params, subkey, data, length, state))
         {
             set_parse_error(handle, state);
             if (new_ins)
