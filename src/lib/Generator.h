@@ -68,7 +68,8 @@ typedef struct Generator
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-Generator* new_Generator(Gen_type type, Instrument_params* ins_params);
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
+                         Generator_params* gen_params);
 
 
 /**
@@ -87,6 +88,16 @@ bool Generator_init(Generator* gen);
  * \param gen   The Generator -- must not be \c NULL.
  */
 void Generator_uninit(Generator* gen);
+
+
+/**
+ * Retrieves the Generator parameter tree.
+ *
+ * \param gen   The Generator -- must not be \c NULL.
+ *
+ * \return   The Generator parameter tree.
+ */
+Generator_params* Generator_get_params(Generator* gen);
 
 
 /**

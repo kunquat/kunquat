@@ -507,7 +507,10 @@ static bool parse_generator_level(kqt_Handle* handle,
         if (gen == NULL)
         {
 //            fprintf(stderr, "1\n");
-            gen = new_Generator(type, Instrument_get_params(ins));
+            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+            assert(common_params != NULL);
+            gen = new_Generator(type, Instrument_get_params(ins),
+                                Generator_get_params(common_params));
 //            fprintf(stderr, "2 -- gen %p for ins %p\n", (void*)gen, (void*)ins);
             if (gen == NULL)
             {
@@ -519,8 +522,6 @@ static bool parse_generator_level(kqt_Handle* handle,
                 }
                 return false;
             }
-            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-            assert(common_params != NULL);
             Generator_copy_general(gen, common_params);
             Instrument_set_gen(ins, gen_index, gen);
         }
@@ -539,7 +540,11 @@ static bool parse_generator_level(kqt_Handle* handle,
                 bool new_gen = gen == NULL;
                 if (new_gen)
                 {
-                    gen = new_Generator(i, Instrument_get_params(ins));
+                    Generator* common_params = Instrument_get_common_gen_params(ins,
+                                                       gen_index);
+                    assert(common_params != NULL);
+                    gen = new_Generator(i, Instrument_get_params(ins),
+                                        Generator_get_params(common_params));
 /*                    if (i == GEN_TYPE_PCM)
                     {
                         fprintf(stderr, "Creating pcm %p for inst %p\n", (void*)gen, (void*)ins);
@@ -554,8 +559,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                         }
                         return false;
                     }
-                    Generator_copy_general(gen,
-                            Instrument_get_common_gen_params(ins, gen_index));
+                    Generator_copy_general(gen, common_params);
                 }
                 Read_state* state = Read_state_init(READ_STATE_AUTO, key);
                 if (!Generator_parse(gen, subkey, data, length, state))

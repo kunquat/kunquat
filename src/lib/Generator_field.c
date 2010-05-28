@@ -48,7 +48,6 @@ struct Generator_field
 Generator_field* new_Generator_field(const char* key, void* data)
 {
     assert(key != NULL);
-    assert(data != NULL);
     Generator_field_type type = GENERATOR_FIELD_NONE;
     size_t data_size = 0;
     if (string_has_suffix(key, ".b"))
@@ -398,27 +397,27 @@ bool Generator_field_modify(Generator_field* field, char* str)
 }
 
 
-bool Generator_field_get_bool(Generator_field* field)
+bool* Generator_field_get_bool(Generator_field* field)
 {
     assert(field != NULL);
     assert(field->type == GENERATOR_FIELD_BOOL);
-    return field->data.bool_type;
+    return &field->data.bool_type;
 }
 
 
-int64_t Generator_field_get_int(Generator_field* field)
+int64_t* Generator_field_get_int(Generator_field* field)
 {
     assert(field != NULL);
     assert(field->type == GENERATOR_FIELD_INT);
-    return field->data.int_type;
+    return &field->data.int_type;
 }
 
 
-double Generator_field_get_float(Generator_field* field)
+double* Generator_field_get_float(Generator_field* field)
 {
     assert(field != NULL);
     assert(field->type == GENERATOR_FIELD_FLOAT);
-    return field->data.float_type;
+    return &field->data.float_type;
 }
 
 

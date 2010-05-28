@@ -30,11 +30,13 @@ typedef struct Generator_triangle
  * Creates a new Triangle Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new Triangle Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_triangle(Instrument_params* ins_params);
+Generator* new_Generator_triangle(Instrument_params* ins_params,
+                                  Generator_params* gen_params);
 
 
 uint32_t Generator_triangle_mix(Generator* gen,

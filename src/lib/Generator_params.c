@@ -331,42 +331,42 @@ bool Generator_params_modify_value(Generator_params* params,
     }                                                                           \
     else (void)0
 
-bool Generator_params_get_bool(Generator_params* params, const char* key)
+bool* Generator_params_get_bool(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
     if (!string_has_suffix(key, ".b"))
     {
-        return false;
+        return NULL;
     }
     get_of_type(params, key, bool);
-    return false;
+    return NULL;
 }
 
 
-int64_t Generator_params_get_int(Generator_params* params, const char* key)
+int64_t* Generator_params_get_int(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
     if (!string_has_suffix(key, ".i"))
     {
-        return 0;
+        return NULL;
     }
     get_of_type(params, key, int);
-    return 0;
+    return NULL;
 }
 
 
-double Generator_params_get_float(Generator_params* params, const char* key)
+double* Generator_params_get_float(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
     if (!string_has_suffix(key, ".f"))
     {
-        return NAN;
+        return NULL;
     }
     get_of_type(params, key, float);
-    return NAN;
+    return NULL;
 }
 
 

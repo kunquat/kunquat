@@ -21,6 +21,7 @@
 
 #include <Generator.h>
 #include <Generator_common.h>
+#include <Generator_params.h>
 #include <Generator_square.h>
 #include <Voice_state_square.h>
 #include <kunquat/limits.h>
@@ -31,9 +32,11 @@
 static void Generator_square_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_square(Instrument_params* ins_params)
+Generator* new_Generator_square(Instrument_params* ins_params,
+                                Generator_params* gen_params)
 {
     assert(ins_params != NULL);
+    assert(gen_params != NULL);
     Generator_square* square = xalloc(Generator_square);
     if (square == NULL)
     {
@@ -50,6 +53,7 @@ Generator* new_Generator_square(Instrument_params* ins_params)
     square->parent.init_state = Generator_square_init_state;
     square->parent.mix = Generator_square_mix;
     square->parent.ins_params = ins_params;
+    square->parent.type_params = gen_params;
     square->pulse_width = 0.5;
     return &square->parent;
 }
@@ -151,6 +155,12 @@ uint32_t Generator_square_mix(Generator* gen,
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_square* square_state = (Voice_state_square*)state;
+    double* pulse_width_arg = Generator_params_get_float(gen->type_params,
+                                                         "p_pulse_width.f");
+    if (pulse_width_arg != NULL)
+    {
+        square_state->pulse_width = *pulse_width_arg; // FIXME: not quite right
+    }
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
@@ -188,6 +198,7 @@ void del_Generator_square(Generator* gen)
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_SQUARE);
     Generator_square* square = (Generator_square*)gen;
+    Generator_uninit(gen);
     xfree(square);
     return;
 }

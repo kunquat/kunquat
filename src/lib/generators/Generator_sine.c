@@ -31,9 +31,11 @@
 void Generator_sine_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_sine(Instrument_params* ins_params)
+Generator* new_Generator_sine(Instrument_params* ins_params,
+                              Generator_params* gen_params)
 {
     assert(ins_params != NULL);
+    assert(gen_params != NULL);
     Generator_sine* sine = xalloc(Generator_sine);
     if (sine == NULL)
     {
@@ -49,6 +51,7 @@ Generator* new_Generator_sine(Instrument_params* ins_params)
     sine->parent.init_state = Generator_sine_init_state;
     sine->parent.mix = Generator_sine_mix;
     sine->parent.ins_params = ins_params;
+    sine->parent.type_params = gen_params;
     return &sine->parent;
 }
 

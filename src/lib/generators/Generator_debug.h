@@ -30,11 +30,13 @@ typedef struct Generator_debug
  * Creates a new Debug Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param gen_params   The Generator parameters.
  *
  * \return   The new Debug Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_debug* new_Generator_debug(Instrument_params* ins_params);
+Generator_debug* new_Generator_debug(Instrument_params* ins_params,
+                                     Generator_params* gen_params);
 
 
 uint32_t Generator_debug_mix(Generator* gen,

@@ -72,11 +72,13 @@ typedef struct Generator_pcm
  * Creates a new PCM Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new PCM Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_pcm(Instrument_params* ins_params);
+Generator* new_Generator_pcm(Instrument_params* ins_params,
+                             Generator_params* gen_params);
 
 
 /**

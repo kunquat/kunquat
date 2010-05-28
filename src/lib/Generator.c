@@ -35,12 +35,14 @@
 #include <xmemory.h>
 
 
-Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
+Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
+                         Generator_params* gen_params)
 {
     assert(type > GEN_TYPE_NONE);
     assert(type < GEN_TYPE_LAST);
     assert(ins_params != NULL);
-    Generator* (*cons[])(Instrument_params*) =
+    assert(gen_params != NULL);
+    Generator* (*cons[])(Instrument_params*, Generator_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
@@ -51,9 +53,8 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params)
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
     assert(cons[type] != NULL);
-    Generator* gen = cons[type](ins_params);
+    Generator* gen = cons[type](ins_params, gen_params);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
-    gen->type_params = NULL;
 #if 0
     gen->type_params = new_Generator_params();
     if (gen->type_params == NULL)
@@ -83,7 +84,16 @@ bool Generator_init(Generator* gen)
 void Generator_uninit(Generator* gen)
 {
     assert(gen != NULL);
+    (void)gen;
     return;
+}
+
+
+Generator_params* Generator_get_params(Generator* gen)
+{
+    assert(gen != NULL);
+    assert(gen->type_params != NULL);
+    return gen->type_params;
 }
 
 

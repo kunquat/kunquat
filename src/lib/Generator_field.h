@@ -167,36 +167,36 @@ bool Generator_field_modify(Generator_field* field, char* str);
 
 
 /**
- * Gets a boolean value from the Generator field.
+ * Gets a reference to a boolean value from the Generator field.
  *
  * \param field   The Generator field -- must not be \c NULL and must contain
  *                a boolean value.
  *
  * \return   The boolean value.
  */
-bool Generator_field_get_bool(Generator_field* field);
+bool* Generator_field_get_bool(Generator_field* field);
 
 
 /**
- * Gets an integer value from the Generator field.
+ * Gets a reference to an integer value from the Generator field.
  *
  * \param field   The Generator field -- must not be \c NULL and must contain
  *                an integer value.
  *
  * \return   The integer value.
  */
-int64_t Generator_field_get_int(Generator_field* field);
+int64_t* Generator_field_get_int(Generator_field* field);
 
 
 /**
- * Gets a floating point value from the Generator field.
+ * Gets a reference to a floating point value from the Generator field.
  *
  * \param field   The Generator field -- must not be \c NULL and must contain
  *                a floating point value.
  *
  * \return   The floating point value.
  */
-double Generator_field_get_float(Generator_field* field);
+double* Generator_field_get_float(Generator_field* field);
 
 
 /**

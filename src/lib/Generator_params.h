@@ -103,39 +103,39 @@ bool Generator_params_modify_value(Generator_params* params,
 
 
 /**
- * Retrieves a boolean value from Generator parameters.
+ * Retrieves a reference to a boolean value from Generator parameters.
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ or i/ directory and must have the suffix ".b".
  *
- * \return   The boolean value, or \c false if \a key doesn't exist.
+ * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
-bool Generator_params_get_bool(Generator_params* params, const char* key);
+bool* Generator_params_get_bool(Generator_params* params, const char* key);
 
 
 /**
- * Retrieves an integer value from Generator parameters.
+ * Retrieves a reference to an integer value from Generator parameters.
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ or i/ directory and must have the suffix ".i".
  *
- * \return   The integer value, or \c 0 if \a key doesn't exist.
+ * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
-int64_t Generator_params_get_int(Generator_params* params, const char* key);
+int64_t* Generator_params_get_int(Generator_params* params, const char* key);
 
 
 /**
- * Retrieves a floating point value from Generator parameters.
+ * Retrieves a reference to a floating point value from Generator parameters.
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ or i/ directory and must have the suffix ".f".
  *
- * \return   The floating point value, or \c 0 if \a key doesn't exist.
+ * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
-double Generator_params_get_float(Generator_params* params, const char* key);
+double* Generator_params_get_float(Generator_params* params, const char* key);
 
 
 /**

@@ -21,6 +21,7 @@
 #include <AAtree.h>
 #include <Generator.h>
 #include <Generator_common.h>
+#include <Generator_params.h>
 #include <Generator_pcm.h>
 #include <Voice_state_pcm.h>
 #include <Sample.h>
@@ -42,9 +43,11 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state);
 
 
-Generator* new_Generator_pcm(Instrument_params* ins_params)
+Generator* new_Generator_pcm(Instrument_params* ins_params,
+                             Generator_params* gen_params)
 {
     assert(ins_params != NULL);
+    assert(gen_params != NULL);
     Generator_pcm* pcm = xalloc(Generator_pcm);
     if (pcm == NULL)
     {
@@ -61,6 +64,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
     pcm->parent.init_state = Generator_pcm_init_state;
     pcm->parent.mix = Generator_pcm_mix;
     pcm->parent.ins_params = ins_params;
+    pcm->parent.type_params = gen_params;
     pcm->iter = new_AAiter(NULL);
     if (pcm->iter == NULL)
     {
