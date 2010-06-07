@@ -29,6 +29,48 @@ typedef struct Generator_params Generator_params;
 
 
 /**
+ * Tells whether a given key is a Generator parameter key.
+ *
+ * The key is assumed to originate from Parse manager, in which case it is a
+ * valid key.
+ *
+ * \param key   The key -- must not be \c NULL.
+ *
+ * \return   \c true if \a key is a Generator parameter key,
+ *           otherwise \c false.
+ */
+bool key_is_generator_param(const char* key);
+
+
+/**
+ * Tells whether a given key is a real-time modifiable Generator parameter key.
+ *
+ * The key is assumed to originate from Parse manager, in which case it is a
+ * valid key.
+ *
+ * \param key   The key -- must not be \c NULL.
+ *
+ * \return   \c true if \a key is a real-time modifiable Generator parameter
+ *           key, otherwise \c false.
+ */
+bool key_is_real_time_generator_param(const char* key);
+
+
+/**
+ * Tells whether a given key is a text-mode Generator parameter key.
+ *
+ * The key is assumed to originate from Parse manager, in which case it is a
+ * valid key.
+ *
+ * \param key   The key -- must not be \c NULL.
+ *
+ * \return   \c true if \a key is a text-mode Generator parameter key,
+ *           otherwise \c false.
+ */
+bool key_is_text_generator_param(const char* key);
+
+
+/**
  * Creates new Generator parameters.
  *
  * \return   The new Generator parameters if successful, otherwise \c NULL.
@@ -107,7 +149,7 @@ bool Generator_params_modify_value(Generator_params* params,
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".b".
+ *                 c/ or i/ directory and must have the suffix ".jsonb".
  *
  * \return   The boolean value, or \c NULL if \a key doesn't exist.
  */
@@ -119,7 +161,7 @@ bool* Generator_params_get_bool(Generator_params* params, const char* key);
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".i".
+ *                 c/ or i/ directory and must have the suffix ".jsoni".
  *
  * \return   The integer value, or \c NULL if \a key doesn't exist.
  */
@@ -131,7 +173,7 @@ int64_t* Generator_params_get_int(Generator_params* params, const char* key);
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".f".
+ *                 c/ or i/ directory and must have the suffix ".jsonf".
  *
  * \return   The floating point value, or \c NULL if \a key doesn't exist.
  */
@@ -143,7 +185,7 @@ double* Generator_params_get_float(Generator_params* params, const char* key);
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".r".
+ *                 c/ or i/ directory and must have the suffix ".jsonr".
  *
  * \return   The Real value, or \c 1/1 if \a key doesn't exist.
  */
@@ -155,7 +197,7 @@ Real* Generator_params_get_real(Generator_params* params, const char* key);
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".rt".
+ *                 c/ or i/ directory and must have the suffix ".jsont".
  *
  * \return   The Reltime value, or \c [0, 0] if \a key doesn't exist.
  */
@@ -175,11 +217,24 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
 
 
 /**
+ * Retrieves Sample parameters from Generator parameters.
+ *
+ * \param params   The Generator parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsonsh".
+ *
+ * \return   The Sample map, or \c NULL if \a key doesn't exist.
+ */
+//Sample_params* Generator_params_get_sample_params(Generator_params* params,
+//                                                  const char* key);
+
+
+/**
  * Retrieves a Sample map from Generator parameters.
  *
  * \param params   The Generator parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
- *                 c/ or i/ directory and must have the suffix ".ms".
+ *                 c/ or i/ directory and must have the suffix ".jsonsm".
  *
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */

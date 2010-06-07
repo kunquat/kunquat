@@ -23,6 +23,7 @@
 #include <Real.h>
 #include <Reltime.h>
 //#include <Sample.h>
+//#include <Sample_params.h>
 #include <Sample_map.h>
 
 
@@ -36,6 +37,8 @@ typedef enum
     GENERATOR_FIELD_RELTIME,
     GENERATOR_FIELD_ENVELOPE,
     GENERATOR_FIELD_WAVPACK,
+    GENERATOR_FIELD_VORBIS,
+    GENERATOR_FIELD_SAMPLE_PARAMS,
     GENERATOR_FIELD_SAMPLE_MAP,
 } Generator_field_type;
 
@@ -230,6 +233,17 @@ Reltime* Generator_field_get_reltime(Generator_field* field);
  * \return   The Sample.
  */
 //Sample* Generator_field_get_sample(Generator_field* field);
+
+
+/**
+ * Gets Sample parameters from the Generator field.
+ *
+ * \param field   The Generator field -- must not be \c NULL and must contain
+ *                Sample parameters.
+ *
+ * \return   The Sample parameters.
+ */
+//Sample_params* Generator_field_get_sample_params(Generator_field* field);
 
 
 /**

@@ -141,12 +141,7 @@ static bool key_is_for_text(const char* key)
 {
     assert(key != NULL);
     return string_has_suffix(key, ".json") ||
-           string_has_suffix(key, ".b") ||
-           string_has_suffix(key, ".i") ||
-           string_has_suffix(key, ".f") ||
-           string_has_suffix(key, ".r") ||
-           string_has_suffix(key, ".rt") ||
-           string_has_suffix(key, ".ms");
+           key_is_text_generator_param(key);
 }
 
 
@@ -460,14 +455,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
-             (string_has_suffix(subkey, ".b") ||
-              string_has_suffix(subkey, ".i") ||
-              string_has_suffix(subkey, ".f") ||
-              string_has_suffix(subkey, ".r") ||
-              string_has_suffix(subkey, ".rt") ||
-              string_has_suffix(subkey, ".wv") ||
-              string_has_suffix(subkey, ".ogg") ||
-              string_has_suffix(subkey, ".ms"))) // FIXME: ugly
+             key_is_generator_param(subkey))
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);

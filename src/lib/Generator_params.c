@@ -59,6 +59,37 @@ struct Generator_params
 };
 
 
+bool key_is_generator_param(const char* key)
+{
+    assert(key != NULL);
+    return key_is_real_time_generator_param(key) ||
+           key_is_text_generator_param(key) ||
+           string_has_suffix(key, ".wv") ||
+           string_has_suffix(key, ".ogg");
+}
+
+
+bool key_is_real_time_generator_param(const char* key)
+{
+    assert(key != NULL);
+    return string_has_suffix(key, ".jsonb") ||
+           string_has_suffix(key, ".jsoni") ||
+           string_has_suffix(key, ".jsonf") ||
+           string_has_suffix(key, ".jsonr") ||
+           string_has_suffix(key, ".jsont");
+}
+
+
+bool key_is_text_generator_param(const char* key)
+{
+    assert(key != NULL);
+    return key_is_real_time_generator_param(key) ||
+           string_has_suffix(key, ".jsone") ||
+           string_has_suffix(key, ".jsonsm") ||
+           string_has_suffix(key, ".jsonsh");
+}
+
+
 Generator_params* new_Generator_params(void)
 {
     Generator_params* params = xalloc(Generator_params);
@@ -186,11 +217,10 @@ bool Generator_params_parse_events(Generator_params* params,
 
         if (type == 0) // generator level
         {
-            if (string_has_suffix(param, ".wv") ||
-                    string_has_suffix(param, ".ogg"))
+            if (!key_is_real_time_generator_param(param))
             {
-                Read_state_set_error(state, "Samples are not supported as"
-                                     " event-modifiable keys (%s)", param);
+                Read_state_set_error(state, "Key %s cannot be modified"
+                                     " through events", param);
                 clean_if_fail();
             }
             Event_name_to_param* e = new_Event_name_to_param(name, param);
@@ -244,12 +274,7 @@ bool Generator_params_parse_value(Generator_params* params,
     assert(length >= 0);
     assert(state != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(string_has_suffix(key, ".b") ||
-            string_has_suffix(key, ".i") ||
-            string_has_suffix(key, ".f") ||
-            string_has_suffix(key, ".r") ||
-            string_has_suffix(key, ".rt") ||
-            string_has_suffix(key, ".wv"));
+    assert(key_is_generator_param(key));
     if (state->error)
     {
         return false;
@@ -298,8 +323,7 @@ bool Generator_params_modify_value(Generator_params* params,
 {
     assert(params != NULL);
     assert(key != NULL);
-    assert(!string_has_suffix(key, ".wv"));
-    assert(!string_has_suffix(key, ".ogg"));
+    assert(key_is_real_time_generator_param(key));
     assert(str != NULL);
     Generator_field* field = AAtree_get_exact(params->event_data, key);
     if (field == NULL)
@@ -335,7 +359,7 @@ bool* Generator_params_get_bool(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".b"))
+    if (!string_has_suffix(key, ".jsonb"))
     {
         return NULL;
     }
@@ -348,7 +372,7 @@ int64_t* Generator_params_get_int(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".i"))
+    if (!string_has_suffix(key, ".jsoni"))
     {
         return NULL;
     }
@@ -361,7 +385,7 @@ double* Generator_params_get_float(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".f"))
+    if (!string_has_suffix(key, ".jsonf"))
     {
         return NULL;
     }
@@ -374,7 +398,7 @@ Real* Generator_params_get_real(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".r"))
+    if (!string_has_suffix(key, ".jsonr"))
     {
         return NULL;
     }
@@ -387,7 +411,7 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".rt"))
+    if (!string_has_suffix(key, ".jsont"))
     {
         return NULL;
     }
@@ -408,6 +432,20 @@ Sample* Generator_params_get_sample(Generator_params* params, const char* key)
     get_of_type(params, key, sample);
     return NULL;
 }
+
+
+Sample_params* Generator_params_get_sample_params(Generator_params* params,
+                                                  const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    if (!string_has_suffix(key, ".jsonsh"))
+    {
+        return NULL;
+    }
+    get_of_type(params, key, sample_params);
+    return NULL;
+}
 #endif
 
 
@@ -416,7 +454,7 @@ Sample_map* Generator_params_get_sample_map(Generator_params* params,
 {
     assert(params != NULL);
     assert(key != NULL);
-    if (!string_has_suffix(key, ".ms"))
+    if (!string_has_suffix(key, ".jsonsm"))
     {
         return NULL;
     }

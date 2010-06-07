@@ -22,42 +22,9 @@
 #include <stdio.h>
 
 #include <frame.h>
+#include <Sample_params.h>
 #include <Voice_state.h>
 #include <Generator.h>
-
-
-typedef enum
-{
-    /// Uninitialised.
-    SAMPLE_FORMAT_NONE = 0,
-    /// WavPack.
-    SAMPLE_FORMAT_WAVPACK,
-    /// Vorbis.
-    // SAMPLE_FORMAT_VORBIS,
-    /// Sentinel -- not a valid format.
-    SAMPLE_FORMAT_LAST
-} Sample_format;
-
-
-typedef enum
-{
-    SAMPLE_LOOP_OFF = 0, ///< No loop.
-    SAMPLE_LOOP_UNI,     ///< Unidirectional (forward) loop.
-    SAMPLE_LOOP_BI       ///< Bidirectional loop.
-} Sample_loop;
-
-
-/**
- * Common parameters for a Sample (the parameters stored in p_sample.json).
- */
-typedef struct Sample_params
-{
-    Sample_format format; ///< The file format.
-    double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
-    Sample_loop loop;     ///< Loop setting.
-    uint64_t loop_start;  ///< Loop start.
-    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
-} Sample_params;
 
 
 /**

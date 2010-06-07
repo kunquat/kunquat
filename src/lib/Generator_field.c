@@ -31,6 +31,7 @@ typedef union
     Real Real_type;
     Reltime Reltime_type;
 //    Sample* Sample_type;
+//    Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
 } Gen_fields;
 
@@ -50,27 +51,27 @@ Generator_field* new_Generator_field(const char* key, void* data)
     assert(key != NULL);
     Generator_field_type type = GENERATOR_FIELD_NONE;
     size_t data_size = 0;
-    if (string_has_suffix(key, ".b"))
+    if (string_has_suffix(key, ".jsonb"))
     {
         type = GENERATOR_FIELD_BOOL;
         data_size = sizeof(bool);
     }
-    else if (string_has_suffix(key, ".i"))
+    else if (string_has_suffix(key, ".jsoni"))
     {
         type = GENERATOR_FIELD_INT;
         data_size = sizeof(int64_t);
     }
-    else if (string_has_suffix(key, ".f"))
+    else if (string_has_suffix(key, ".jsonf"))
     {
         type = GENERATOR_FIELD_FLOAT;
         data_size = sizeof(double);
     }
-    else if (string_has_suffix(key, ".r"))
+    else if (string_has_suffix(key, ".jsonr"))
     {
         type = GENERATOR_FIELD_REAL;
         data_size = sizeof(Real);
     }
-    else if (string_has_suffix(key, ".rt"))
+    else if (string_has_suffix(key, ".jsont"))
     {
         type = GENERATOR_FIELD_RELTIME;
         data_size = sizeof(Reltime);
@@ -82,7 +83,12 @@ Generator_field* new_Generator_field(const char* key, void* data)
         data_size = sizeof(Sample*);
 #endif
     }
-    else if (string_has_suffix(key, ".ms"))
+    else if (string_has_suffix(key, ".jsonsh"))
+    {
+        type = GENERATOR_FIELD_SAMPLE_PARAMS;
+        data_size = sizeof(Sample_params);
+    }
+    else if (string_has_suffix(key, ".jsonsm"))
     {
         type = GENERATOR_FIELD_SAMPLE_MAP;
         data_size = sizeof(Sample_map*);
@@ -296,6 +302,16 @@ bool Generator_field_change(Generator_field* field,
             field->data.Sample_type = sample;
 #endif
         } break;
+        case GENERATOR_FIELD_SAMPLE_PARAMS:
+        {
+#if 0
+            if (!Sample_params_parse(&field->data.Sample_params_type,
+                                     data, state))
+            {
+                return false;
+            }
+#endif
+        } break;
         case GENERATOR_FIELD_SAMPLE_MAP:
         {
             Sample_map* map = new_Sample_map_from_string(data, state);
@@ -443,6 +459,14 @@ Sample* Generator_field_get_sample(Generator_field* field)
     assert(field != NULL);
     assert(field->type == GENERATOR_FIELD_WAVPACK);
     return field->data.Sample_type;
+}
+
+
+Sample_params* Generator_field_get_sample_params(Generator_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == GENERATOR_SAMPLE_PARAMS);
+    return field->data.Sample_params_type;
 }
 #endif
 
