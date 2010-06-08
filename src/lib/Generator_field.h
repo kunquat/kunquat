@@ -22,8 +22,8 @@
 #include <File_base.h>
 #include <Real.h>
 #include <Reltime.h>
-//#include <Sample.h>
-//#include <Sample_params.h>
+#include <Sample.h>
+#include <Sample_params.h>
 #include <Sample_map.h>
 
 
@@ -232,7 +232,7 @@ Reltime* Generator_field_get_reltime(Generator_field* field);
  *
  * \return   The Sample.
  */
-//Sample* Generator_field_get_sample(Generator_field* field);
+Sample* Generator_field_get_sample(Generator_field* field);
 
 
 /**
@@ -243,7 +243,7 @@ Reltime* Generator_field_get_reltime(Generator_field* field);
  *
  * \return   The Sample parameters.
  */
-//Sample_params* Generator_field_get_sample_params(Generator_field* field);
+Sample_params* Generator_field_get_sample_params(Generator_field* field);
 
 
 /**

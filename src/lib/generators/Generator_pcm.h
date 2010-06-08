@@ -39,7 +39,6 @@ typedef struct Sample_entry
     double vol_scale;
     uint16_t sample;
 } Sample_entry;
-#endif
 
 
 typedef struct Random_list
@@ -57,14 +56,17 @@ typedef struct Sample_group
     Sample_params params;
     Sample* formats[SAMPLE_FORMAT_LAST];
 } Sample_group;
+#endif
 
 
 typedef struct Generator_pcm
 {
     Generator parent;
+#if 0
     AAiter* iter;
     AAtree* maps[PCM_SOURCES_MAX * PCM_EXPRESSIONS_MAX];
     Sample_group samples[PCM_SAMPLES_MAX];
+#endif
 } Generator_pcm;
 
 

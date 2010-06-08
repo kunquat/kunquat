@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <generators/File_wavpack.h>
@@ -30,8 +31,8 @@ typedef union
     double float_type;
     Real Real_type;
     Reltime Reltime_type;
-//    Sample* Sample_type;
-//    Sample_params Sample_params_type;
+    Sample* Sample_type;
+    Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
 } Gen_fields;
 
@@ -78,10 +79,8 @@ Generator_field* new_Generator_field(const char* key, void* data)
     }
     else if (string_has_suffix(key, ".wv"))
     {
-#if 0
         type = GENERATOR_FIELD_WAVPACK;
         data_size = sizeof(Sample*);
-#endif
     }
     else if (string_has_suffix(key, ".jsonsh"))
     {
@@ -229,6 +228,7 @@ bool Generator_field_change(Generator_field* field,
                             Read_state* state)
 {
     assert(field != NULL);
+    assert(field->type != GENERATOR_FIELD_NONE);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
@@ -279,7 +279,6 @@ bool Generator_field_change(Generator_field* field,
         } break;
         case GENERATOR_FIELD_WAVPACK:
         {
-#if 0
             Sample* sample = NULL;
             if (data != NULL)
             {
@@ -300,17 +299,14 @@ bool Generator_field_change(Generator_field* field,
                 del_Sample(field->data.Sample_type);
             }
             field->data.Sample_type = sample;
-#endif
         } break;
         case GENERATOR_FIELD_SAMPLE_PARAMS:
         {
-#if 0
             if (!Sample_params_parse(&field->data.Sample_params_type,
                                      data, state))
             {
                 return false;
             }
-#endif
         } break;
         case GENERATOR_FIELD_SAMPLE_MAP:
         {
@@ -453,7 +449,6 @@ Reltime* Generator_field_get_reltime(Generator_field* field)
 }
 
 
-#if 0
 Sample* Generator_field_get_sample(Generator_field* field)
 {
     assert(field != NULL);
@@ -465,10 +460,9 @@ Sample* Generator_field_get_sample(Generator_field* field)
 Sample_params* Generator_field_get_sample_params(Generator_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_SAMPLE_PARAMS);
-    return field->data.Sample_params_type;
+    assert(field->type == GENERATOR_FIELD_SAMPLE_PARAMS);
+    return &field->data.Sample_params_type;
 }
-#endif
 
 
 Sample_map* Generator_field_get_sample_map(Generator_field* field)
@@ -482,13 +476,11 @@ Sample_map* Generator_field_get_sample_map(Generator_field* field)
 void del_Generator_field(Generator_field* field)
 {
     assert(field != NULL);
-#if 0
     if (field->type == GENERATOR_FIELD_WAVPACK &&
             field->data.Sample_type != NULL)
     {
         del_Sample(field->data.Sample_type);
     }
-#endif
     if (field->type == GENERATOR_FIELD_SAMPLE_MAP &&
             field->data.Sample_map_type != NULL)
     {

@@ -420,7 +420,6 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
 }
 
 
-#if 0
 Sample* Generator_params_get_sample(Generator_params* params, const char* key)
 {
     assert(params != NULL);
@@ -446,7 +445,6 @@ Sample_params* Generator_params_get_sample_params(Generator_params* params,
     get_of_type(params, key, sample_params);
     return NULL;
 }
-#endif
 
 
 Sample_map* Generator_params_get_sample_map(Generator_params* params,

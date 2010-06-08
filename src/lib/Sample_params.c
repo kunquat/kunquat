@@ -156,10 +156,7 @@ Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src)
 {
     assert(dest != NULL);
     assert(src != NULL);
-    dest->mid_freq = src->mid_freq;
-    dest->loop = src->loop;
-    dest->loop_start = src->loop_start;
-    dest->loop_end = src->loop_end;
+    memcpy(dest, src, sizeof(Sample_params));
     return dest;
 }
 

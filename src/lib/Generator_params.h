@@ -213,7 +213,7 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
  *
  * \return   The Sample, or \c NULL if \a key doesn't exist.
  */
-//Sample* Generator_params_get_sample(Generator_params* params, const char* key);
+Sample* Generator_params_get_sample(Generator_params* params, const char* key);
 
 
 /**
@@ -225,8 +225,8 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
  *
  * \return   The Sample map, or \c NULL if \a key doesn't exist.
  */
-//Sample_params* Generator_params_get_sample_params(Generator_params* params,
-//                                                  const char* key);
+Sample_params* Generator_params_get_sample_params(Generator_params* params,
+                                                  const char* key);
 
 
 /**

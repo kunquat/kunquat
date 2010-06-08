@@ -25,6 +25,7 @@
 #include <Generator_pcm.h>
 #include <Voice_state_pcm.h>
 #include <Sample.h>
+#include <Sample_mix.h>
 #include <pitch_t.h>
 #include <Parse_manager.h>
 #include <File_wavpack.h>
@@ -32,15 +33,15 @@
 #include <xmemory.h>
 
 
-static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
+//static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
 
-static void del_Random_list(Random_list* list);
+//static void del_Random_list(Random_list* list);
 
 
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
-static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state);
+//static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state);
 
 
 Generator* new_Generator_pcm(Instrument_params* ins_params,
@@ -65,6 +66,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params,
     pcm->parent.mix = Generator_pcm_mix;
     pcm->parent.ins_params = ins_params;
     pcm->parent.type_params = gen_params;
+#if 0
     pcm->iter = new_AAiter(NULL);
     if (pcm->iter == NULL)
     {
@@ -83,6 +85,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params,
             pcm->samples[i].formats[k] = NULL;
         }
     }
+#endif
     return &pcm->parent;
 }
 
@@ -90,6 +93,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params,
 bool Generator_pcm_has_subkey(const char* subkey)
 {
     assert(subkey != NULL);
+#if 0
     if (strncmp(subkey, "gen_pcm/", 8) != 0)
     {
         return false;
@@ -126,10 +130,12 @@ bool Generator_pcm_has_subkey(const char* subkey)
             return true;
         }
     }
+#endif
     return false;
 }
 
 
+#if 0
 static bool Generator_pcm_parse_sample_map(Generator* gen,
                                            char* str,
                                            Read_state* state,
@@ -148,6 +154,7 @@ static bool Generator_pcm_parse_wv(Generator* gen,
                                    long length,
                                    Read_state* state,
                                    int index);
+#endif
 
 
 bool Generator_pcm_parse(Generator* gen,
@@ -163,6 +170,8 @@ bool Generator_pcm_parse(Generator* gen,
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
+    assert(false);
+#if 0
     if (state->error)
     {
         return false;
@@ -217,10 +226,12 @@ bool Generator_pcm_parse(Generator* gen,
             }
         }
     }
+#endif
     return false;
 }
 
 
+#if 0
 static AAtree* new_map_from_string(char* str, Read_state* state);
 
 
@@ -567,6 +578,7 @@ static AAtree* new_map_from_string(char* str, Read_state* state)
     }
     return map;
 }
+#endif
 
 
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
@@ -582,10 +594,12 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
     pcm_state->source = 0;
     pcm_state->expr = 0;
     pcm_state->middle_tone = 0;
+    Sample_params_init(&pcm_state->params);
     return;
 }
 
 
+#if 0
 void Generator_pcm_set_sample(Generator_pcm* gen_pcm,
                               uint16_t index,
                               Sample* sample)
@@ -640,6 +654,7 @@ Sample* Generator_pcm_get_sample_of_format(Generator_pcm* gen_pcm,
     assert(format < SAMPLE_FORMAT_LAST);
     return gen_pcm->samples[index].formats[format];
 }
+#endif
 
 
 #if 0
@@ -711,7 +726,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     Generator_common_check_active(gen, state, offset);
-    Generator_pcm* pcm = (Generator_pcm*)gen;
+//    Generator_pcm* pcm = (Generator_pcm*)gen;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
     if (nframes <= offset)
     {
@@ -719,8 +734,18 @@ uint32_t Generator_pcm_mix(Generator* gen,
     }
     if (pcm_state->sample < 0)
     {
-        Sample_entry* entry = state_to_sample(pcm, pcm_state);
-        if (entry == NULL)
+        Sample_map* map = Generator_params_get_sample_map(gen->type_params,
+                                  "exp_0/src_0/p_sample_map.jsonsm"); // FIXME: indices
+        if (map == NULL)
+        {
+            state->active = false;
+            return offset;
+        }
+        const Sample_entry* entry = Sample_map_get_entry(map,
+                                            log2(state->pitch / 440) * 1200,
+                                            state->force,
+                                            gen->random);
+        if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
         {
             state->active = false;
             return offset;
@@ -728,15 +753,38 @@ uint32_t Generator_pcm_mix(Generator* gen,
         pcm_state->sample = entry->sample;
         pcm_state->freq = entry->freq;
         pcm_state->volume = entry->vol_scale;
+        pcm_state->middle_tone = entry->ref_freq;
+        char header_key[] = "smp_XXX/p_sample.jsonsh";
+        snprintf(header_key, strlen(header_key) + 1,
+                 "smp_%03x/p_sample.jsonsh", pcm_state->sample);
+        Sample_params* header = Generator_params_get_sample_params(gen->type_params,
+                                        header_key);
+        if (header == NULL)
+        {
+            state->active = false;
+            return offset;
+        }
+        Sample_params_copy(&pcm_state->params, header);
     }
     assert(pcm_state->sample < PCM_SAMPLES_MAX);
-    Sample_format active_format = pcm->samples[pcm_state->sample].params.format;
-    Sample* sample = pcm->samples[pcm_state->sample].formats[active_format];
+    assert(pcm_state->params.format > SAMPLE_FORMAT_NONE);
+    static const char* extensions[] =
+    {
+        [SAMPLE_FORMAT_WAVPACK] = "wv",
+    };
+    char sample_key[] = "smp_XXX/p_sample.NONE";
+    snprintf(sample_key, strlen(sample_key) + 1,
+             "smp_%03x/p_sample.%s", pcm_state->sample,
+             extensions[pcm_state->params.format]);
+    Sample* sample = Generator_params_get_sample(gen->type_params, sample_key);
     if (sample == NULL)
     {
         state->active = false;
         return offset;
     }
+    Sample_set_loop_start(sample, pcm_state->params.loop_start);
+    Sample_set_loop_end(sample, pcm_state->params.loop_end);
+    Sample_set_loop(sample, pcm_state->params.loop);
     return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, buf_count, bufs,
                       pcm_state->middle_tone, pcm_state->freq);
 }
@@ -747,6 +795,7 @@ void del_Generator_pcm(Generator* gen)
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_PCM);
     Generator_pcm* pcm = (Generator_pcm*)gen;
+#if 0
     for (uint16_t i = 0; i < PCM_SAMPLES_MAX; ++i)
     {
         for (Sample_format k = SAMPLE_FORMAT_NONE + 1; k < SAMPLE_FORMAT_LAST; ++k)
@@ -766,11 +815,14 @@ void del_Generator_pcm(Generator* gen)
         }
     }
     del_AAiter(pcm->iter);
+#endif
+    Generator_uninit(gen);
     xfree(pcm);
     return;
 }
 
 
+#if 0
 static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 {
     assert(list1 != NULL);
@@ -801,6 +853,7 @@ static void del_Random_list(Random_list* list)
     xfree(list);
     return;
 }
+#endif
 
 
 #if 0
@@ -929,6 +982,7 @@ bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
 #endif
 
 
+#if 0
 static double distance(Random_list* list, Random_list* key);
 
 
@@ -940,8 +994,10 @@ static double distance(Random_list* list, Random_list* key)
     double force_d = list->force - key->force;
     return sqrt(tone_d * tone_d + force_d * force_d);
 }
+#endif
 
 
+#if 0
 static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
 {
     assert(pcm != NULL);
@@ -1024,5 +1080,6 @@ static Sample_entry* state_to_sample(Generator_pcm* pcm, Voice_state_pcm* state)
 //    fprintf(stderr, "%d\n", index);
     return &choice->entries[index];
 }
+#endif
 
 

@@ -23,8 +23,6 @@
 
 #include <frame.h>
 #include <Sample_params.h>
-#include <Voice_state.h>
-#include <Generator.h>
 
 
 /**
@@ -42,27 +40,6 @@ typedef struct Sample
     uint64_t len;         ///< The length of the sample (in amplitude values per channel).
     void* data[2];        ///< The sample data.
 } Sample;
-
-
-/**
- * Initialises common Sample parameters.
- *
- * \param params   The Sample parameters -- must not be \c NULL.
- *
- * \return   The parameter \a params.
- */
-Sample_params* Sample_params_init(Sample_params* params);
-
-
-/**
- * Copies Sample parameters.
- *
- * \param dest   The copy destination -- must not be \c NULL.
- * \param src    The copy source -- must not be \c NULL.
- *
- * \return   The parameter \a dest.
- */
-Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src);
 
 
 /**
@@ -237,6 +214,7 @@ uint64_t Sample_get_loop_end(Sample* sample);
  * \param middle_freq   The mixing speed of the Sample used for playing
  *                      \a middle_tone -- must be > \c 0.
  */
+#if 0
 uint32_t Sample_mix(Sample* sample,
                     Generator* gen,
                     Voice_state* state,
@@ -248,6 +226,7 @@ uint32_t Sample_mix(Sample* sample,
                     kqt_frame** bufs,
                     double middle_tone,
                     double middle_freq);
+#endif
 
 
 /**
