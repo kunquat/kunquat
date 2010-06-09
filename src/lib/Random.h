@@ -63,7 +63,7 @@ void Random_reset(Random* random);
  *
  * \param random   The Random generator -- must not be \c NULL.
  *
- * \return   The pseudo-random number.
+ * \return   A pseudo-random integer in the range [0, KQT_RANDOM_MAX].
  */
 uint32_t Random_get(Random* random);
 

@@ -31,9 +31,6 @@
 #include <xmemory.h>
 
 
-#define rand_u ((double)((rand() << 1) - RAND_MAX)/RAND_MAX)
-
-
 void Generator_noise_init_state(Generator* gen, Voice_state* state);
 
 
@@ -131,14 +128,16 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state)
 }
 
 
+#define rand_u ((double)((rand() << 1) - RAND_MAX)/RAND_MAX)
+
 uint32_t Generator_noise_mix(Generator* gen,
-                            Voice_state* state,
-                            uint32_t nframes,
-                            uint32_t offset,
-                            uint32_t freq,
-                            double tempo,
-                            int buf_count,
-                            kqt_frame** bufs)
+                             Voice_state* state,
+                             uint32_t nframes,
+                             uint32_t offset,
+                             uint32_t freq,
+                             double tempo,
+                             int buf_count,
+                             kqt_frame** bufs)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_NOISE);
@@ -156,6 +155,16 @@ uint32_t Generator_noise_mix(Generator* gen,
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Generator_noise* noise = (Generator_noise*)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
+    int64_t* order_arg = Generator_params_get_int(gen->type_params,
+                                                  "p_order.jsoni");
+    if (order_arg != NULL)
+    {
+        noise->order = *order_arg;
+    }
+    else
+    {
+        noise->order = 0;
+    }
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
@@ -202,6 +211,8 @@ uint32_t Generator_noise_mix(Generator* gen,
     return mixed;
 }
 
+#undef rand_u
+
 
 void del_Generator_noise(Generator* gen)
 {
@@ -211,3 +222,5 @@ void del_Generator_noise(Generator* gen)
     xfree(noise);
     return;
 }
+
+

@@ -161,6 +161,10 @@ uint32_t Generator_square_mix(Generator* gen,
     {
         square_state->pulse_width = *pulse_width_arg; // FIXME: not quite right
     }
+    else
+    {
+        square_state->pulse_width = 0.5;
+    }
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
