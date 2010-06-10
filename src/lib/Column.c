@@ -404,8 +404,9 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
             Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
             return false;
         }
-        if ((is_global && EVENT_IS_CHANNEL(type)) ||
+        if (((is_global && EVENT_IS_CHANNEL(type)) ||
                 (!is_global && EVENT_IS_GLOBAL(type)))
+                && !EVENT_IS_GENERAL(type))
         {
             Read_state_set_error(state,
                      "Incorrect Event type for %s column", is_global ? "global" : "note");

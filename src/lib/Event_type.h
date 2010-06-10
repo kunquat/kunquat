@@ -127,6 +127,7 @@ typedef enum
     EVENT_FIELD_DOUBLE,
     EVENT_FIELD_REAL,
     EVENT_FIELD_RELTIME,
+    EVENT_FIELD_STRING,
     EVENT_FIELD_LAST
 } Event_field_type;
 

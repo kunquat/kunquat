@@ -140,7 +140,7 @@ uint64_t Sample_get_loop_start(Sample* sample)
 void Sample_set_loop_end(Sample* sample, uint64_t end)
 {
     assert(sample != NULL);
-    if (end <= sample->params.loop_start || end > sample->params.loop_end)
+    if (end <= sample->params.loop_start || end >= sample->len)
     {
         sample->params.loop = SAMPLE_LOOP_OFF;
     }

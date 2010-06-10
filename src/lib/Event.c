@@ -226,6 +226,15 @@ char* Event_read(Event* event, char* str, Read_state* state)
                     data = rt;
                 }
                 break;
+                case EVENT_FIELD_STRING:
+                {
+                    str = read_string(str, NULL, 0, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                }
+                break;
                 default:
                 {
                     // Erroneous internal structures
@@ -233,7 +242,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
                 }
                 break;
             }
-            assert(data != NULL);
+            assert(data != NULL || event->field_types[i].type == EVENT_FIELD_STRING);
             if (!Event_set_field(event, i, data))
             {
                 Read_state_set_error(state, "Field %d is not inside valid range.", i);
@@ -370,7 +379,7 @@ bool Event_set_field(Event* event, int index, void* data)
 {
     assert(event != NULL);
     assert(event->set != NULL);
-    assert(data != NULL);
+    assert(data != NULL || event->field_types[index].type == EVENT_FIELD_STRING);
     return event->set(event, index, data);
 }
 
