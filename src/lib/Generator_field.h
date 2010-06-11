@@ -139,8 +139,8 @@ int Generator_field_cmp(const Generator_field* field1,
 /**
  * Sets the empty flag of the Generator field.
  *
- * \param field   The Generator field -- must not be \c NULL. Sample fields
- *                are not supported.
+ * \param field   The Generator field -- must not be \c NULL. Fields that are
+ *                not real-time are not supported.
  * \param flag    The empty flag.
  */
 void Generator_field_set_empty(Generator_field* field, bool empty);

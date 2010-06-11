@@ -21,13 +21,18 @@
 #include <Reltime.h>
 
 
-Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
+bool Channel_state_init(Channel_state* state, int num, bool* mute)
 {
     assert(state != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(mute != NULL);
 
+    state->cgstate = new_Channel_gen_state();
+    if (state->cgstate == NULL)
+    {
+        return false;
+    }
     state->num = num;
     state->instrument = 0;
     state->mute = mute;
@@ -60,7 +65,7 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute)
     state->panning_slide_update = 0;
     state->panning_slide_prog = 0;
 
-    return state;
+    return true;
 }
 
 
@@ -102,6 +107,18 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     dest->panning_slide_prog = src->panning_slide_prog;
 #endif
     return dest;
+}
+
+
+void Channel_state_uninit(Channel_state* state)
+{
+    assert(state != NULL);
+    if (state->cgstate != NULL)
+    {
+        del_Channel_gen_state(state->cgstate);
+        state->cgstate = NULL;
+    }
+    return;
 }
 
 

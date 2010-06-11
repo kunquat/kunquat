@@ -67,7 +67,11 @@ Channel* new_Channel(Ins_table* insts,
         return NULL;
     } */
     ch->single = NULL;
-    Channel_state_init(&ch->init_state, num, &ch->mute);
+    if (!Channel_state_init(&ch->init_state, num, &ch->mute))
+    {
+        xfree(ch);
+        return NULL;
+    }
     ch->init_state.insts = insts;
     ch->init_state.fg_count = 0;
     ch->init_state.pool = pool;
@@ -267,6 +271,9 @@ void del_Channel(Channel* ch)
 //    assert(ch->single != NULL);
 //    del_Event(ch->note_off);
 //    del_Event(ch->single);
+    Channel_state_uninit(&ch->init_state);
+    // cur_state must not be uninitialised -- it merely contains references
+    // to dynamic structures in init_state.
     xfree(ch);
     return;
 }
