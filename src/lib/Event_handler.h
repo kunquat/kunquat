@@ -107,6 +107,18 @@ Playdata* Event_handler_get_global_state(Event_handler* eh);
 
 
 /**
+ * Adds a key into all Channel-specific generator parameter dictionaries.
+ *
+ * \param eh    The Event handler -- must not be \c NULL.
+ * \param key   The key -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
+                                             const char* key);
+
+
+/**
  * Destroys an existing Event handler.
  *
  * \param eh   The Event handler -- must not be \c NULL.

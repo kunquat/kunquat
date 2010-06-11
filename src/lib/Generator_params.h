@@ -100,9 +100,9 @@ bool Generator_params_set_key(Generator_params* params, const char* key);
  * \return   \c true if successful, otherwise \c false. \a state will _not_ be
  *           modified if memory allocation failed.
  */
-bool Generator_params_parse_events(Generator_params* params,
-                                   char* str,
-                                   Read_state* state);
+//bool Generator_params_parse_events(Generator_params* params,
+//                                   char* str,
+//                                   Read_state* state);
 
 
 /**

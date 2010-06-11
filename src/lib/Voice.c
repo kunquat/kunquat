@@ -93,12 +93,14 @@ uint64_t Voice_id(Voice* voice)
 void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
+                Channel_gen_state* cgstate,
                 uint32_t freq,
                 double tempo)
 {
     assert(voice != NULL);
     assert(gen != NULL);
     assert(params != NULL);
+    assert(cgstate != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
@@ -107,6 +109,7 @@ void Voice_init(Voice* voice,
     voice->gen = gen;
     Voice_state_init(&voice->state.generic,
                      params,
+                     cgstate,
                      freq,
                      tempo);
     if (gen->init_state != NULL)

@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Channel_gen_state.h>
 #include <Generator.h>
 #include <Voice_params.h>
 
@@ -129,6 +130,7 @@ uint64_t Voice_id(Voice* voice);
 void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
+                Channel_gen_state* cgstate,
                 uint32_t freq,
                 double tempo);
 

@@ -19,6 +19,7 @@
 #include <ctype.h>
 
 #include <File_base.h>
+#include <Generator_event_keys.h>
 #include <Generator_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
@@ -461,6 +462,32 @@ static bool parse_generator_level(kqt_Handle* handle,
         assert(common_params != NULL);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Generator_parse_param(common_params, subkey, data, length, state))
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+    }
+    else if (strcmp(subkey, "p_events.json") == 0)
+    {
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Generator_params_parse_events(common_params->type_params,
+                                           handle->song->event_handler,
+                                           data,
+                                           state))
         {
             set_parse_error(handle, state);
             if (new_ins)

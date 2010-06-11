@@ -297,6 +297,22 @@ Playdata* Event_handler_get_global_state(Event_handler* eh)
 }
 
 
+bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
+                                             const char* key)
+{
+    assert(eh != NULL);
+    assert(key != NULL);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        if (!Channel_gen_state_set_key(eh->ch_states[i]->cgstate, key))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 void del_Event_handler(Event_handler* eh)
 {
     assert(eh != NULL);

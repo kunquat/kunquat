@@ -16,8 +16,10 @@
 #include <assert.h>
 #include <string.h>
 #include <math.h>
+#include <stdio.h>
 
 #include <AAtree.h>
+#include <Generator_event_keys.h>
 #include <Generator_field.h>
 #include <Generator_params.h>
 #include <string_common.h>
@@ -52,10 +54,10 @@ Event_name_to_param* new_Event_name_to_param(const char key[],
 
 struct Generator_params
 {
-    AAtree* implement;
-    AAtree* config;
-    AAtree* event_data;
-    AAtree* event_names;
+    AAtree* implement;   ///< The implementation part of the generator.
+    AAtree* config;      ///< The configuration part of the generator.
+    AAtree* event_data;  ///< The playback state of the parameters.
+    AAtree* event_names; ///< A mapping from event names to parameters.
 };
 
 
@@ -157,10 +159,12 @@ bool Generator_params_set_key(Generator_params* params, const char* key)
     } else (void)0
 
 bool Generator_params_parse_events(Generator_params* params,
+                                   Event_handler* eh,
                                    char* str,
                                    Read_state* state)
 {
     assert(params != NULL);
+    assert(eh != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -209,8 +213,10 @@ bool Generator_params_parse_events(Generator_params* params,
         clean_if_fail();
         char name[129] = { '\0' };
         str = read_string(str, name, 128, state);
+        str = read_const_char(str, ',', state);
         int64_t type = -1;
         str = read_int(str, &type, state);
+        str = read_const_char(str, ',', state);
         char param[100] = { '\0' };
         str = read_string(str, param, 99, state);
         clean_if_fail();
@@ -243,8 +249,22 @@ bool Generator_params_parse_events(Generator_params* params,
                 return false;
             }
         }
-        else if (type == 1) // TODO: channel level?
+        else if (type == 1) // channel level
         {
+            if (!key_is_real_time_generator_param(param))
+            {
+                Read_state_set_error(state, "Key %s cannot be modified"
+                                     " through events", param);
+                clean_if_fail();
+            }
+            if (!Event_handler_add_channel_gen_state_key(eh, param))
+            {
+                del_AAtree(params->event_names);
+                params->event_names = old_names;
+                del_AAtree(params->event_data);
+                params->event_data = old_data;
+                return false;
+            }
         }
 
         str = read_const_char(str, ']', state);

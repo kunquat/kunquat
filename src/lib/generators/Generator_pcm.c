@@ -734,8 +734,35 @@ uint32_t Generator_pcm_mix(Generator* gen,
     }
     if (pcm_state->sample < 0)
     {
+        int expression = 0;
+        int source = 0;
+        int64_t* expression_arg = Channel_gen_state_get_int(state->cgstate,
+                                                            "expression.jsoni");
+        if (expression_arg != NULL)
+        {
+            if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
+            {
+                state->active = false;
+                return offset;
+            }
+            expression = *expression_arg;
+        }
+        int64_t* source_arg = Channel_gen_state_get_int(state->cgstate,
+                                                        "source.jsoni");
+        if (source_arg != NULL)
+        {
+            if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)
+            {
+                state->active = false;
+                return offset;
+            }
+            source = *source_arg;
+        }
+        char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
+        snprintf(map_key, strlen(map_key) + 1,
+                 "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
         Sample_map* map = Generator_params_get_sample_map(gen->type_params,
-                                  "exp_0/src_0/p_sample_map.jsonsm"); // FIXME: indices
+                                                          map_key);
         if (map == NULL)
         {
             state->active = false;
