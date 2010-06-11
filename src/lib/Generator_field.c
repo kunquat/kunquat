@@ -405,7 +405,12 @@ bool Generator_field_modify(Generator_field* field, char* str)
         default:
             assert(false);
     }
-    return !state->error;
+    if (state->error)
+    {
+        return false;
+    }
+    Generator_field_set_empty(field, false);
+    return true;
 }
 
 

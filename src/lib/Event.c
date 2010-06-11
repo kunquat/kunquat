@@ -380,6 +380,10 @@ bool Event_set_field(Event* event, int index, void* data)
     assert(event != NULL);
     assert(event->set != NULL);
     assert(data != NULL || event->field_types[index].type == EVENT_FIELD_STRING);
+    if (event->field_types[index].type == EVENT_FIELD_STRING)
+    {
+        return true;
+    }
     return event->set(event, index, data);
 }
 

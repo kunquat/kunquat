@@ -180,6 +180,12 @@ void Channel_set_voices(Channel* ch,
                                      Event_get_fields(next));
             }
         }
+        else if (EVENT_IS_GENERATOR(Event_get_type(next)))
+        {
+            Event_handler_handle(eh, ch->init_state.num,
+                                 Event_get_type(next),
+                                 Event_get_fields(next));
+        }
         if (next == ch->single)
         {
             Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));

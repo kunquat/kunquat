@@ -43,6 +43,7 @@
 #include <Event_ins_set_pedal.h>
 
 #include <Event_channel_set_instrument.h>
+#include <Event_channel_set_generator.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -73,6 +74,8 @@
 #include <Event_channel_set_panning.h>
 #include <Event_channel_slide_panning.h>
 #include <Event_channel_slide_panning_length.h>
+
+#include <Event_generator_set_float.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -107,6 +110,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
         [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
+        [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
 
         [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
         [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
@@ -137,6 +141,8 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
         [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
         [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
+
+        [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
     };
     if (cons[type] == NULL)
     {

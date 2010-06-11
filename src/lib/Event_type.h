@@ -95,6 +95,12 @@ typedef enum
     EVENT_CHANNEL_SLIDE_PANNING      = 522,
     EVENT_CHANNEL_SLIDE_PANNING_LENGTH = 523,
 
+    EVENT_CHANNEL_SET_GEN_BOOL       = 541,
+    EVENT_CHANNEL_SET_GEN_INT        = 542,
+    EVENT_CHANNEL_SET_GEN_FLOAT      = 543,
+    EVENT_CHANNEL_SET_GEN_REAL       = 544,
+    EVENT_CHANNEL_SET_GEN_RELTIME    = 545,
+
     EVENT_CHANNEL_UPPER              = 800,
 
     EVENT_INS_LOWER                  = 800, ///< Instrument Events
@@ -102,20 +108,32 @@ typedef enum
     EVENT_INS_SET_PEDAL              = 801,
                                     
     EVENT_INS_UPPER                  = 900,
+
+    EVENT_GENERATOR_LOWER            = 900, ///< Generator Events
+
+    EVENT_GENERATOR_SET_BOOL         = 901,
+    EVENT_GENERATOR_SET_INT          = 902,
+    EVENT_GENERATOR_SET_FLOAT        = 903,
+    EVENT_GENERATOR_SET_REAL         = 904,
+    EVENT_GENERATOR_SET_RELTIME      = 905,
+
+    EVENT_GENERATOR_UPPER            = 1000,
                                     
     EVENT_LAST
 } Event_type;
 
 
-#define EVENT_IS_GENERAL(type) ((type) > EVENT_GENERAL_LOWER && (type) < EVENT_GENERAL_UPPER)
-#define EVENT_IS_GLOBAL(type)  ((type) > EVENT_GLOBAL_LOWER && (type) < EVENT_GLOBAL_UPPER)
-#define EVENT_IS_CHANNEL(type) ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
-#define EVENT_IS_INS(type)     ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
-#define EVENT_IS_PG(type)      (EVENT_IS_INS(type)) // TODO: generator and effect
-#define EVENT_IS_VALID(type)   (EVENT_IS_GENERAL((type)) || \
-                                EVENT_IS_GLOBAL((type))  || \
-                                EVENT_IS_INS((type))     || \
-                                EVENT_IS_CHANNEL((type)))
+#define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && (type) < EVENT_GENERAL_UPPER)
+#define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && (type) < EVENT_GLOBAL_UPPER)
+#define EVENT_IS_CHANNEL(type)   ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
+#define EVENT_IS_INS(type)       ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
+#define EVENT_IS_GENERATOR(type) ((type) > EVENT_GENERATOR_LOWER && (type) < EVENT_GENERATOR_UPPER)
+#define EVENT_IS_PG(type)        (EVENT_IS_INS(type) || EVENT_IS_GENERATOR(type)) // TODO: effect
+#define EVENT_IS_VALID(type)     (EVENT_IS_GENERAL((type))   || \
+                                  EVENT_IS_GLOBAL((type))    || \
+                                  EVENT_IS_INS((type))       || \
+                                  EVENT_IS_GENERATOR((type)) || \
+                                  EVENT_IS_CHANNEL((type)))
 
 
 typedef enum

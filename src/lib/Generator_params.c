@@ -211,17 +211,19 @@ bool Generator_params_parse_events(Generator_params* params,
     {
         str = read_const_char(str, '[', state);
         clean_if_fail();
-        char name[129] = { '\0' };
-        str = read_string(str, name, 128, state);
-        str = read_const_char(str, ',', state);
-        int64_t type = -1;
-        str = read_int(str, &type, state);
+//        char name[129] = { '\0' };
+//        str = read_string(str, name, 128, state);
+//        str = read_const_char(str, ',', state);
+//        int64_t type = -1;
+//        str = read_int(str, &type, state);
+        bool channel_level = false;
+        str = read_bool(str, &channel_level, state);
         str = read_const_char(str, ',', state);
         char param[100] = { '\0' };
         str = read_string(str, param, 99, state);
         clean_if_fail();
 
-        if (type == 0) // generator level
+        if (!channel_level) // generator level
         {
             if (!key_is_real_time_generator_param(param))
             {
@@ -229,6 +231,7 @@ bool Generator_params_parse_events(Generator_params* params,
                                      " through events", param);
                 clean_if_fail();
             }
+#if 0
             Event_name_to_param* e = new_Event_name_to_param(name, param);
             if (e == NULL || !AAtree_ins(params->event_names, e))
             {
@@ -238,6 +241,7 @@ bool Generator_params_parse_events(Generator_params* params,
                 params->event_data = old_data;
                 return false;
             }
+#endif
             Generator_field* field = new_Generator_field(param, NULL);
             if (field == NULL || (/*Generator_field_set_event_control(field, true),*/
                                   !AAtree_ins(params->event_data, field)))
@@ -249,7 +253,7 @@ bool Generator_params_parse_events(Generator_params* params,
                 return false;
             }
         }
-        else if (type == 1) // channel level
+        else // if (type == 1) // channel level
         {
             if (!key_is_real_time_generator_param(param))
             {

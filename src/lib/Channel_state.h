@@ -44,6 +44,7 @@ typedef struct Channel_state
     int fg_count;
 
     int instrument;                ///< Currently active Instrument.
+    int generator;                 ///< Currently active Generator.
     Ins_table* insts;
     uint32_t* freq;
     double* tempo;
