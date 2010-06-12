@@ -73,6 +73,15 @@ char* Event_type_get_fields(char* str,
         const char* error_message = "Event field %d is not inside valid range";
         switch (field_descs[i].type)
         {
+            case EVENT_FIELD_BOOL:
+            {
+                str = read_bool(str, &fields[i].field.bool_type, state);
+                if (state->error)
+                {
+                    return str;
+                }
+            }
+            break;
             case EVENT_FIELD_INT:
             case EVENT_FIELD_NOTE:
             case EVENT_FIELD_NOTE_MOD:
@@ -177,6 +186,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
         int field_count = Event_get_field_count(event);
         for (int i = 0; i < field_count; ++i)
         {
+            bool bool_value = false;
             int64_t numi = 0;
             double numd = NAN;
             Real* real = Real_init(REAL_AUTO);
@@ -184,6 +194,16 @@ char* Event_read(Event* event, char* str, Read_state* state)
             void* data = NULL;
             switch (event->field_types[i].type)
             {
+                case EVENT_FIELD_BOOL:
+                {
+                    str = read_bool(str, &bool_value, state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    data = &bool_value;
+                }
+                break;
                 case EVENT_FIELD_INT:
                 case EVENT_FIELD_NOTE:
                 case EVENT_FIELD_NOTE_MOD:

@@ -139,6 +139,7 @@ typedef enum
 typedef enum
 {
     EVENT_FIELD_NONE = 0,
+    EVENT_FIELD_BOOL,
     EVENT_FIELD_INT,
     EVENT_FIELD_NOTE,
     EVENT_FIELD_NOTE_MOD,
@@ -155,6 +156,7 @@ typedef struct Event_field
     Event_field_type type;
     union
     {
+        bool bool_type;
         int64_t integral_type; ///< Used for int and note(_mod) types.
         double double_type;
         Real Real_type;

@@ -76,7 +76,10 @@
 
 #include <events/Event_ins_set_pedal.h>
 
+#include <events/Event_generator_set_bool.h>
+#include <events/Event_generator_set_int.h>
 #include <events/Event_generator_set_float.h>
+#include <events/Event_generator_set_reltime.h>
 
 #include <xmemory.h>
 
@@ -214,8 +217,14 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ins_process(eh, EVENT_INS_SET_PEDAL,
                                   Event_ins_set_pedal_process);
 
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_BOOL,
+                                        Event_generator_set_bool_process);
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_INT,
+                                        Event_generator_set_int_process);
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME,
+                                        Event_generator_set_reltime_process);
 
     return eh;
 }
