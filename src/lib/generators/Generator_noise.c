@@ -155,15 +155,18 @@ uint32_t Generator_noise_mix(Generator* gen,
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Generator_noise* noise = (Generator_noise*)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    int64_t* order_arg = Generator_params_get_int(gen->type_params,
-                                                  "p_order.jsoni");
-    if (order_arg != NULL)
+    if (state->note_on)
     {
-        noise->order = *order_arg;
-    }
-    else
-    {
-        noise->order = 0;
+        int64_t* order_arg = Channel_gen_state_get_int(state->cgstate,
+                                                      "order.jsoni");
+        if (order_arg != NULL)
+        {
+            noise->order = *order_arg;
+        }
+        else
+        {
+            noise->order = 0;
+        }
     }
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)

@@ -74,7 +74,10 @@
 #include <events/Event_channel_slide_panning.h>
 #include <events/Event_channel_slide_panning_length.h>
 
+#include <events/Event_channel_set_gen_bool.h>
+#include <events/Event_channel_set_gen_int.h>
 #include <events/Event_channel_set_gen_float.h>
+#include <events/Event_channel_set_gen_reltime.h>
 
 #include <events/Event_ins_set_pedal.h>
 
@@ -216,8 +219,14 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_BOOL,
+                                 Event_channel_set_gen_bool_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_INT,
+                                 Event_channel_set_gen_int_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME,
+                                 Event_channel_set_gen_reltime_process);
 
     Event_handler_set_ins_process(eh, EVENT_INS_SET_PEDAL,
                                   Event_ins_set_pedal_process);

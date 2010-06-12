@@ -75,7 +75,10 @@
 #include <Event_channel_slide_panning.h>
 #include <Event_channel_slide_panning_length.h>
 
+#include <Event_channel_set_gen_bool.h>
+#include <Event_channel_set_gen_int.h>
 #include <Event_channel_set_gen_float.h>
+#include <Event_channel_set_gen_reltime.h>
 
 #include <Event_generator_set_bool.h>
 #include <Event_generator_set_int.h>
@@ -147,7 +150,10 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
         [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
 
+        [EVENT_CHANNEL_SET_GEN_BOOL] = new_Event_channel_set_gen_bool,
+        [EVENT_CHANNEL_SET_GEN_INT] = new_Event_channel_set_gen_int,
         [EVENT_CHANNEL_SET_GEN_FLOAT] = new_Event_channel_set_gen_float,
+        [EVENT_CHANNEL_SET_GEN_RELTIME] = new_Event_channel_set_gen_reltime,
 
         [EVENT_GENERATOR_SET_BOOL] = new_Event_generator_set_bool,
         [EVENT_GENERATOR_SET_INT] = new_Event_generator_set_int,

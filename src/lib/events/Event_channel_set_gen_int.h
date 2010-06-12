@@ -12,26 +12,28 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_SET_GEN_FLOAT_H
-#define K_EVENT_CHANNEL_SET_GEN_FLOAT_H
+#ifndef K_EVENT_CHANNEL_SET_GEN_INT_H
+#define K_EVENT_CHANNEL_SET_GEN_INT_H
 
+
+#include <stdint.h>
 
 #include <Event_channel.h>
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_gen_float
+typedef struct Event_channel_set_gen_int
 {
     Event_channel parent;
-    double value;
-} Event_channel_set_gen_float;
+    int64_t value;
+} Event_channel_set_gen_int;
 
 
-Event* new_Event_channel_set_gen_float(Reltime* pos);
+Event* new_Event_channel_set_gen_int(Reltime* pos);
 
-bool Event_channel_set_gen_float_process(Channel_state* ch_state, char* fields);
+bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields);
 
 
-#endif // K_EVENT_CHANNEL_SET_GEN_FLOAT_H
+#endif // K_EVENT_CHANNEL_SET_GEN_INT_H
 
 
