@@ -65,31 +65,16 @@ typedef struct Voice
         Voice_state_sawtooth sawtooth;
         Voice_state_noise noise;
     } state;
-    uint16_t dyn_state_size;
-    void* dyn_state;
 } Voice;
 
 
 /**
  * Creates a new Voice.
  *
- * \param dyn_state_size   Number of bytes to reserve for the Voice state.
- *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
-Voice* new_Voice(uint16_t dyn_state_size);
-
-
-/**
- * Reserves extra memory for the Voice state.
- *
- * \param voice            The Voice -- must not be \c NULL.
- * \param dyn_state_size   Number of bytes to reserve.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Voice_reserve_dyn_state_space(Voice* voice, uint16_t dyn_state_size);
+Voice* new_Voice(void);
 
 
 /**

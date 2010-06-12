@@ -25,27 +25,13 @@
 #include <xmemory.h>
 
 
-Voice* new_Voice(uint16_t dyn_state_size)
+Voice* new_Voice(void)
 {
     Voice* voice = xalloc(Voice);
     if (voice == NULL)
     {
         return NULL;
     }
-    if (dyn_state_size > 0)
-    {
-        voice->dyn_state = xcalloc(char, dyn_state_size);
-        if (voice->dyn_state == NULL)
-        {
-            xfree(voice);
-            return NULL;
-        }
-    }
-    else
-    {
-        voice->dyn_state = NULL;
-    }
-    voice->dyn_state_size = dyn_state_size;
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
@@ -54,24 +40,6 @@ Voice* new_Voice(uint16_t dyn_state_size)
     voice->gen = NULL;
     Voice_state_clear(&voice->state.generic);
     return voice;
-}
-
-
-bool Voice_reserve_dyn_state_space(Voice* voice, uint16_t dyn_state_size)
-{
-    assert(voice != NULL);
-    if (voice->dyn_state_size >= dyn_state_size)
-    {
-        return true;
-    }
-    void* state = xrealloc(char, dyn_state_size, voice->dyn_state);
-    if (state == NULL)
-    {
-        return false;
-    }
-    voice->dyn_state = state;
-    voice->dyn_state_size = dyn_state_size;
-    return true;
 }
 
 
@@ -181,10 +149,6 @@ void Voice_mix(Voice* voice,
 void del_Voice(Voice* voice)
 {
     assert(voice != NULL);
-    if (voice->dyn_state != NULL)
-    {
-        xfree(voice->dyn_state);
-    }
     xfree(voice);
     return;
 }
