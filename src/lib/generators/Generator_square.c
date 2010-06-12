@@ -155,15 +155,18 @@ uint32_t Generator_square_mix(Generator* gen,
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
     Voice_state_square* square_state = (Voice_state_square*)state;
-    double* pulse_width_arg = Generator_params_get_float(gen->type_params,
-                                                         "p_pulse_width.jsonf");
-    if (pulse_width_arg != NULL)
+    if (state->note_on)
     {
-        square_state->pulse_width = *pulse_width_arg; // FIXME: not quite right
-    }
-    else
-    {
-        square_state->pulse_width = 0.5;
+        double* pulse_width_arg = Channel_gen_state_get_float(state->cgstate,
+                                                        "pulse_width.jsonf");
+        if (pulse_width_arg != NULL)
+        {
+            square_state->pulse_width = *pulse_width_arg;
+        }
+        else
+        {
+            square_state->pulse_width = 0.5;
+        }
     }
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)

@@ -104,7 +104,7 @@ bool* Channel_gen_state_get_bool(Channel_gen_state* state,
         return NULL;
     }
     Generator_field* field = AAtree_get_exact(state->tree, key);
-    if (field == NULL)
+    if (field == NULL || Generator_field_get_empty(field))
     {
         return NULL;
     }
@@ -122,7 +122,7 @@ int64_t* Channel_gen_state_get_int(Channel_gen_state* state,
         return NULL;
     }
     Generator_field* field = AAtree_get_exact(state->tree, key);
-    if (field == NULL)
+    if (field == NULL || Generator_field_get_empty(field))
     {
         return NULL;
     }
@@ -140,7 +140,7 @@ double* Channel_gen_state_get_float(Channel_gen_state* state,
         return NULL;
     }
     Generator_field* field = AAtree_get_exact(state->tree, key);
-    if (field == NULL)
+    if (field == NULL || Generator_field_get_empty(field))
     {
         return NULL;
     }
@@ -158,7 +158,7 @@ Real* Channel_gen_state_get_real(Channel_gen_state* state,
         return NULL;
     }
     Generator_field* field = AAtree_get_exact(state->tree, key);
-    if (field == NULL)
+    if (field == NULL || Generator_field_get_empty(field))
     {
         return NULL;
     }
@@ -176,7 +176,7 @@ Reltime* Channel_gen_state_get_reltime(Channel_gen_state* state,
         return NULL;
     }
     Generator_field* field = AAtree_get_exact(state->tree, key);
-    if (field == NULL)
+    if (field == NULL || Generator_field_get_empty(field))
     {
         return NULL;
     }
