@@ -156,66 +156,73 @@ void Generator_common_handle_pitch(Generator* gen,
     }
     state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
-    if (state->vibrato)
+    if (gen->pitch_lock_enabled)
     {
-        double fac_log = sin(state->vibrato_phase);
-        if (state->vibrato_delay_pos < 1)
+        state->actual_pitch = gen->pitch_lock_freq;
+    }
+    else
+    {
+        if (state->vibrato)
         {
-            double actual_depth = (1 - state->vibrato_delay_pos) *
-                    state->vibrato_depth +
-                    state->vibrato_delay_pos *
-                    state->vibrato_depth_target;
-            fac_log *= actual_depth;
-            state->vibrato_delay_pos += state->vibrato_delay_update;
-        }
-        else
-        {
-            state->vibrato_depth = state->vibrato_depth_target;
-            fac_log *= state->vibrato_depth;
-            if (state->vibrato_depth == 0)
+            double fac_log = sin(state->vibrato_phase);
+            if (state->vibrato_delay_pos < 1)
             {
-                state->vibrato = false;
+                double actual_depth = (1 - state->vibrato_delay_pos) *
+                        state->vibrato_depth +
+                        state->vibrato_delay_pos *
+                        state->vibrato_depth_target;
+                fac_log *= actual_depth;
+                state->vibrato_delay_pos += state->vibrato_delay_update;
+            }
+            else
+            {
+                state->vibrato_depth = state->vibrato_depth_target;
+                fac_log *= state->vibrato_depth;
+                if (state->vibrato_depth == 0)
+                {
+                    state->vibrato = false;
+                }
+            }
+            state->actual_pitch *= exp2(fac_log);
+            if (!state->vibrato && state->vibrato_length > state->freq)
+            {
+                state->vibrato_length = state->freq;
+                state->vibrato_update = (2 * PI) / state->vibrato_length;
+            }
+            double new_phase = state->vibrato_phase + state->vibrato_update;
+            if (new_phase >= (2 * PI))
+            {
+                new_phase = fmod(new_phase, 2 * PI);
+            }
+            if (!state->vibrato && (new_phase < state->vibrato_phase
+                    || (new_phase >= PI && state->vibrato_phase < PI)))
+            {
+                state->vibrato_phase = 0;
+                state->vibrato_update = 0;
+            }
+            else
+            {
+                state->vibrato_phase = new_phase;
             }
         }
-        state->actual_pitch *= exp2(fac_log);
-        if (!state->vibrato && state->vibrato_length > state->freq)
+        if (state->arpeggio)
         {
-            state->vibrato_length = state->freq;
-            state->vibrato_update = (2 * PI) / state->vibrato_length;
-        }
-        double new_phase = state->vibrato_phase + state->vibrato_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->vibrato && (new_phase < state->vibrato_phase
-                || (new_phase >= PI && state->vibrato_phase < PI)))
-        {
-            state->vibrato_phase = 0;
-            state->vibrato_update = 0;
-        }
-        else
-        {
-            state->vibrato_phase = new_phase;
-        }
-    }
-    if (state->arpeggio)
-    {
-        if (state->arpeggio_note > 0)
-        {
-            state->actual_pitch *= state->arpeggio_factors[
-                                   state->arpeggio_note - 1];
-        }
-        state->arpeggio_frames += 1;
-        if (state->arpeggio_frames >= state->arpeggio_length)
-        {
-            state->arpeggio_frames -= state->arpeggio_length;
-            ++state->arpeggio_note;
-            if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
-                    || state->arpeggio_factors[
-                            state->arpeggio_note - 1] <= 0)
+            if (state->arpeggio_note > 0)
             {
-                state->arpeggio_note = 0;
+                state->actual_pitch *= state->arpeggio_factors[
+                                       state->arpeggio_note - 1];
+            }
+            state->arpeggio_frames += 1;
+            if (state->arpeggio_frames >= state->arpeggio_length)
+            {
+                state->arpeggio_frames -= state->arpeggio_length;
+                ++state->arpeggio_note;
+                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
+                        || state->arpeggio_factors[
+                                state->arpeggio_note - 1] <= 0)
+                {
+                    state->arpeggio_note = 0;
+                }
             }
         }
     }

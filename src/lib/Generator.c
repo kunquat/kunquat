@@ -66,7 +66,8 @@ bool Generator_init(Generator* gen)
     gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
     gen->volume = exp2(gen->volume_dB / 6);
     gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
-    gen->pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
+    gen->pitch_lock_cents = GENERATOR_DEFAULT_PITCH_LOCK_CENTS;
+    gen->pitch_lock_freq = exp2(gen->pitch_lock_cents / 1200.0) * 440;
     gen->type_params = NULL;
     return true;
 }
@@ -96,7 +97,8 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->volume_dB = src->volume_dB;
     dest->volume = src->volume;
     dest->pitch_lock_enabled = src->pitch_lock_enabled;
-    dest->pitch_lock_value = src->pitch_lock_value;
+    dest->pitch_lock_cents = src->pitch_lock_cents;
+    dest->pitch_lock_freq = src->pitch_lock_freq;
     dest->random = src->random;
     dest->type_params = src->type_params;
     return;
@@ -114,7 +116,7 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     bool enabled = false;
     double volume = 0;
     bool pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
-    double pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
+    double pitch_lock_cents = GENERATOR_DEFAULT_PITCH_LOCK_CENTS;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -146,8 +148,11 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
                 }
                 else if (strcmp(key, "pitch_lock") == 0)
                 {
-                    pitch_lock_enabled = true;
-                    str = read_double(str, &pitch_lock_value, state);
+                    str = read_bool(str, &pitch_lock_enabled, state);
+                }
+                else if (strcmp(key, "pitch_lock_cents") == 0)
+                {
+                    str = read_double(str, &pitch_lock_cents, state);
                 }
                 else
                 {
@@ -172,8 +177,8 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
     gen->volume_dB = volume;
     gen->volume = exp2(gen->volume_dB / 6);
     gen->pitch_lock_enabled = pitch_lock_enabled;
-    gen->pitch_lock_value = pitch_lock_value;
-    gen->pitch_lock_freq = exp2(gen->pitch_lock_value / 1200.0) * 440;
+    gen->pitch_lock_cents = pitch_lock_cents;
+    gen->pitch_lock_freq = exp2(gen->pitch_lock_cents / 1200.0) * 440;
     return true;
 }
 

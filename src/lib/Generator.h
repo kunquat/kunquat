@@ -39,7 +39,7 @@ typedef struct Generator
     double volume_dB;
     double volume;
     bool pitch_lock_enabled;
-    double pitch_lock_value;
+    double pitch_lock_cents;
     pitch_t pitch_lock_freq;
     Random* random;
     Generator_params* type_params;
@@ -54,7 +54,7 @@ typedef struct Generator
 #define GENERATOR_DEFAULT_ENABLED (false)
 #define GENERATOR_DEFAULT_VOLUME (0)
 #define GENERATOR_DEFAULT_PITCH_LOCK_ENABLED (false)
-#define GENERATOR_DEFAULT_PITCH_LOCK_VALUE (0)
+#define GENERATOR_DEFAULT_PITCH_LOCK_CENTS (0)
 
 
 /**
