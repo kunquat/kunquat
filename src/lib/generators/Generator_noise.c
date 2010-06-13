@@ -49,7 +49,7 @@ Generator* new_Generator_noise(Instrument_params* ins_params,
         xfree(noise);
         return NULL;
     }
-    noise->parent.parse = Generator_noise_parse;
+//    noise->parent.parse = Generator_noise_parse;
     noise->parent.destroy = del_Generator_noise;
     noise->parent.type = GEN_TYPE_NOISE;
     noise->parent.init_state = Generator_noise_init_state;
@@ -61,13 +61,16 @@ Generator* new_Generator_noise(Instrument_params* ins_params,
 }
 
 
+#if 0
 bool Generator_noise_has_subkey(const char* subkey)
 {
     assert(subkey != NULL);
     return strcmp(subkey, "gen_noise/p_noise.json") == 0;
 }
+#endif
 
 
+#if 0
 bool Generator_noise_parse(Generator* gen,
                            const char* subkey,
                            void* data,
@@ -108,6 +111,7 @@ bool Generator_noise_parse(Generator* gen,
     }
     return false;
 }
+#endif
 
 
 void Generator_noise_init_state(Generator* gen, Voice_state* state)

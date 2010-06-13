@@ -42,7 +42,7 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
     assert(type < GEN_TYPE_LAST);
     assert(ins_params != NULL);
     assert(gen_params != NULL);
-    Generator* (*cons[])(Instrument_params*, Generator_params*) =
+    static Generator* (*cons[])(Instrument_params*, Generator_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
@@ -55,14 +55,6 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
     assert(cons[type] != NULL);
     Generator* gen = cons[type](ins_params, gen_params);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
-#if 0
-    gen->type_params = new_Generator_params();
-    if (gen->type_params == NULL)
-    {
-        gen->destroy(gen);
-        return NULL;
-    }
-#endif
     return gen;
 }
 
@@ -75,7 +67,6 @@ bool Generator_init(Generator* gen)
     gen->volume = exp2(gen->volume_dB / 6);
     gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
     gen->pitch_lock_value = GENERATOR_DEFAULT_PITCH_LOCK_VALUE;
-    gen->parse = NULL;
     gen->type_params = NULL;
     return true;
 }
@@ -243,49 +234,6 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
     }
     Read_state_set_error(state, "Unsupported Generator type: %s", desc);
     return GEN_TYPE_LAST;
-}
-
-
-bool Generator_type_has_subkey(Gen_type type, const char* subkey)
-{
-    assert(type > GEN_TYPE_NONE);
-    assert(type < GEN_TYPE_LAST);
-    if (subkey == NULL)
-    {
-        return false;
-    }
-    static bool (*map[GEN_TYPE_LAST])(const char*) =
-    {
-        [GEN_TYPE_PCM] = Generator_pcm_has_subkey,
-        [GEN_TYPE_SQUARE] = Generator_square_has_subkey,
-        [GEN_TYPE_NOISE] = Generator_noise_has_subkey,
-    };
-    if (map[type] == NULL)
-    {
-        return false;
-    }
-    return map[type](subkey);
-}
-
-
-bool Generator_parse(Generator* gen,
-                     const char* subkey,
-                     void* data,
-                     long length,
-                     Read_state* state)
-{
-    assert(gen != NULL);
-    assert(subkey != NULL);
-    assert(Generator_type_has_subkey(Generator_get_type(gen), subkey));
-    assert(data != NULL || length == 0);
-    assert(length >= 0);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    assert(gen->parse != NULL);
-    return gen->parse(gen, subkey, data, length, state);
 }
 
 

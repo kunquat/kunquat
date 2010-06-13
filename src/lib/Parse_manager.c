@@ -545,59 +545,6 @@ static bool parse_generator_level(kqt_Handle* handle,
             Instrument_set_gen(ins, gen_index, gen);
         }
     }
-    else
-    {
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            if (Generator_type_has_subkey(i, subkey))
-            {
-                Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-                bool new_gen = gen == NULL;
-                if (new_gen)
-                {
-                    Generator* common_params = Instrument_get_common_gen_params(ins,
-                                                       gen_index);
-                    assert(common_params != NULL);
-                    gen = new_Generator(i, Instrument_get_params(ins),
-                                        Generator_get_params(common_params));
-/*                    if (i == GEN_TYPE_PCM)
-                    {
-                        fprintf(stderr, "Creating pcm %p for inst %p\n", (void*)gen, (void*)ins);
-                    } */
-                    if (gen == NULL)
-                    {
-                        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                "Couldn't allocate memory");
-                        if (new_ins)
-                        {
-                            del_Instrument(ins);
-                        }
-                        return false;
-                    }
-                    Generator_copy_general(gen, common_params);
-                }
-                Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-                if (!Generator_parse(gen, subkey, data, length, state))
-                {
-                    set_parse_error(handle, state);
-                    if (new_gen)
-                    {
-                        del_Generator(gen);
-                    }
-                    if (new_ins)
-                    {
-                        del_Instrument(ins);
-                    }
-                    return false;
-                }
-                if (new_gen)
-                {
-                    Instrument_set_gen_of_type(ins, gen_index, gen);
-                }
-                break;
-            }
-        }
-    }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,

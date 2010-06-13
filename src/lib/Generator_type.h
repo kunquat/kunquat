@@ -72,7 +72,7 @@ Gen_type Generator_type_parse(char* str, Read_state* state);
  * \return   \c true if and only if \a subkey is part of the specification of
  *           \a type.
  */
-bool Generator_type_has_subkey(Gen_type type, const char* subkey);
+//bool Generator_type_has_subkey(Gen_type type, const char* subkey);
 
 
 #endif // K_GENERATOR_TYPE_H

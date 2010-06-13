@@ -57,7 +57,7 @@ struct Generator_params
     AAtree* implement;   ///< The implementation part of the generator.
     AAtree* config;      ///< The configuration part of the generator.
     AAtree* event_data;  ///< The playback state of the parameters.
-    AAtree* event_names; ///< A mapping from event names to parameters.
+//    AAtree* event_names; ///< A mapping from event names to parameters.
 };
 
 
@@ -111,10 +111,10 @@ Generator_params* new_Generator_params(void)
     params->event_data = new_AAtree((int (*)(const void*,
                                              const void*))Generator_field_cmp,
                                     (void (*)(void*))del_Generator_field);
-    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
-                                     free);
+//    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
+//                                     free);
     if (params->implement == NULL || params->config == NULL ||
-            params->event_data == NULL || params->event_names == NULL)
+            params->event_data == NULL /* || params->event_names == NULL*/)
     {
         del_Generator_params(params);
         return NULL;
@@ -152,8 +152,8 @@ bool Generator_params_set_key(Generator_params* params, const char* key)
         {                                    \
             del_AAtree(params->event_data);  \
             params->event_data = old_data;   \
-            del_AAtree(params->event_names); \
-            params->event_names = old_names; \
+/*            del_AAtree(params->event_names); \
+            params->event_names = old_names; */ \
             return false;                    \
         }                                    \
     } else (void)0
@@ -179,6 +179,7 @@ bool Generator_params_parse_events(Generator_params* params,
         params->event_data = old_data;
         return false;
     }
+#if 0
     AAtree* old_names = params->event_names;
     params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
                                      free);
@@ -189,10 +190,11 @@ bool Generator_params_parse_events(Generator_params* params,
         params->event_names = old_names;
         return false;
     }
+#endif
     if (str == NULL)
     {
         del_AAtree(old_data);
-        del_AAtree(old_names);
+//        del_AAtree(old_names);
         return true;
     }
     str = read_const_char(str, '[', state);
@@ -201,7 +203,7 @@ bool Generator_params_parse_events(Generator_params* params,
     if (!state->error)
     {
         del_AAtree(old_data);
-        del_AAtree(old_names);
+//        del_AAtree(old_names);
         return true;
     }
     Read_state_clear_error(state);
@@ -214,8 +216,6 @@ bool Generator_params_parse_events(Generator_params* params,
 //        char name[129] = { '\0' };
 //        str = read_string(str, name, 128, state);
 //        str = read_const_char(str, ',', state);
-//        int64_t type = -1;
-//        str = read_int(str, &type, state);
         bool channel_level = false;
         str = read_bool(str, &channel_level, state);
         str = read_const_char(str, ',', state);
@@ -246,14 +246,14 @@ bool Generator_params_parse_events(Generator_params* params,
             if (field == NULL || (/*Generator_field_set_event_control(field, true),*/
                                   !AAtree_ins(params->event_data, field)))
             {
-                del_AAtree(params->event_names);
-                params->event_names = old_names;
+//                del_AAtree(params->event_names);
+//                params->event_names = old_names;
                 del_AAtree(params->event_data);
                 params->event_data = old_data;
                 return false;
             }
         }
-        else // if (type == 1) // channel level
+        else // channel level
         {
             if (!key_is_real_time_generator_param(param))
             {
@@ -263,8 +263,8 @@ bool Generator_params_parse_events(Generator_params* params,
             }
             if (!Event_handler_add_channel_gen_state_key(eh, param))
             {
-                del_AAtree(params->event_names);
-                params->event_names = old_names;
+//                del_AAtree(params->event_names);
+//                params->event_names = old_names;
                 del_AAtree(params->event_data);
                 params->event_data = old_data;
                 return false;
@@ -279,7 +279,7 @@ bool Generator_params_parse_events(Generator_params* params,
     clean_if_fail();
     
     del_AAtree(old_data);
-    del_AAtree(old_names);
+//    del_AAtree(old_names);
     return true;
 }
 
@@ -502,10 +502,12 @@ void del_Generator_params(Generator_params* params)
     {
         del_AAtree(params->event_data);
     }
+#if 0
     if (params->event_names != NULL)
     {
         del_AAtree(params->event_names);
     }
+#endif
     xfree(params);
     return;
 }

@@ -43,7 +43,6 @@ typedef struct Generator
     pitch_t pitch_lock_freq;
     Random* random;
     Generator_params* type_params;
-    bool (*parse)(struct Generator*, const char*, void*, long, Read_state*);
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
@@ -140,27 +139,6 @@ bool Generator_parse_param(Generator* gen,
                            void* data,
                            long length,
                            Read_state* state);
-
-
-/**
- * Parses data associated with the Generator.
- *
- * \param gen      The Generator -- must not be \c NULL.
- * \param subkey   The subkey. This is the part after "generator_XX/".
- *                 \a subkey must be part of the type specification of
- *                 \a gen.
- * \param data     The data -- must not be \c NULL unless \a length is 0.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false. The Read state error
- *           will _not_ be set if memory allocation failed.
- */
-bool Generator_parse(Generator* gen,
-                     const char* subkey,
-                     void* data,
-                     long length,
-                     Read_state* state);
 
 
 /**

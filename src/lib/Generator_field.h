@@ -114,29 +114,6 @@ int Generator_field_cmp(const Generator_field* field1,
 
 
 /**
- * Sets the Event control bit of the Generator field.
- *
- * If a Generator field has the Event control bit set, it may be empty while
- * still being allocated memory.
- *
- * \param field     The Generator field -- must not be \c NULL. Sample fields
- *                  are not supported.
- * \param control   The Event control flag.
- */
-//void Generator_field_set_event_control(Generator_field* field, bool control);
-
-
-/**
- * Gets the Event control bit of the Generator field.
- *
- * \param field   The Generator field -- must not be \c NULL.
- *
- * \return   The Event control flag.
- */
-//bool Generator_field_get_event_control(Generator_field* field);
-
-
-/**
  * Sets the empty flag of the Generator field.
  *
  * \param field   The Generator field -- must not be \c NULL. Fields that are

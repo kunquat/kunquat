@@ -41,7 +41,6 @@ struct Generator_field
 {
     char key[100];
     Generator_field_type type;
-//    bool event_control;
     bool empty;
     Gen_fields data;
 };
@@ -104,7 +103,6 @@ Generator_field* new_Generator_field(const char* key, void* data)
     strncpy(field->key, key, 99);
     field->key[99] = '\0';
     field->type = type;
-//    field->event_control = false;
     if (data != NULL)
     {
         field->empty = false;
@@ -112,7 +110,6 @@ Generator_field* new_Generator_field(const char* key, void* data)
     }
     else
     {
-//        field->event_control = true;
         field->empty = true;
         memset(&field->data, 0, sizeof(Gen_fields));
     }
@@ -144,81 +141,6 @@ Generator_field* new_Generator_field_from_data(const char* key,
         return NULL;
     }
     return field;
-#if 0
-    Gen_fields field_data;
-    if (string_has_suffix(key, ".b"))
-    {
-        field_data.bool_type = false;
-        if (data != NULL)
-        {
-            char* str = data;
-            read_bool(str, &field_data.bool_type, state);
-        }
-    }
-    else if (string_has_suffix(key, ".i"))
-    {
-        field_data.int_type = 0;
-        if (data != NULL)
-        {
-            char* str = data;
-            read_int(str, &field_data.int_type, state);
-        }
-    }
-    else if (string_has_suffix(key, ".f"))
-    {
-        field_data.float_type = 0;
-        if (data != NULL)
-        {
-            char* str = data;
-            read_double(str, &field_data.float_type, state);
-        }
-    }
-    else if (string_has_suffix(key, ".r"))
-    {
-        Real_init(&field_data.Real_type);
-        if (data != NULL)
-        {
-            //char* str = data;
-            assert(false); // TODO: implement
-        }
-    }
-    else if (string_has_suffix(key, ".rt"))
-    {
-        Reltime_init(&field_data.Reltime_type);
-        if (data != NULL)
-        {
-            char* str = data;
-            read_reltime(str, &field_data.Reltime_type, state);
-        }
-    }
-    else if (string_has_suffix(key, ".wv"))
-    {
-        field_data.Sample_type = NULL;
-        if (data != NULL)
-        {
-            field_data.Sample_type = new_Sample();
-            if (field_data.Sample_type == NULL)
-            {
-                return NULL;
-            }
-            if (!Sample_parse_wavpack(field_data.Sample_type,
-                                      data, length, state))
-            {
-                del_Sample(field_data.Sample_type);
-                return NULL;
-            }
-        }
-    }
-    else
-    {
-        assert(false);
-    }
-    if (state->error)
-    {
-        return NULL;
-    }
-    return new_Generator_field(key, &field_data);
-#endif
 }
 
 
@@ -338,26 +260,6 @@ int Generator_field_cmp(const Generator_field* field1,
     assert(field2->key != NULL);
     return strcmp(field1->key, field2->key);
 }
-
-
-#if 0
-void Generator_field_set_event_control(Generator_field* field, bool control)
-{
-    assert(field != NULL);
-    if (field->type != GENERATOR_FIELD_WAVPACK)
-    {
-        field->event_control = control;
-    }
-    return;
-}
-
-
-bool Generator_field_get_event_control(Generator_field* field)
-{
-    assert(field != NULL);
-    return field->event_control;
-}
-#endif
 
 
 void Generator_field_set_empty(Generator_field* field, bool empty)
