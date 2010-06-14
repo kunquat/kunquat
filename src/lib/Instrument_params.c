@@ -72,6 +72,10 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->volume = 1;
     ip->force_variation = 0;
 
+    ip->pitch_lock_enabled = false;
+    ip->pitch_lock_cents = 0;
+    ip->pitch_lock_freq = exp2(ip->pitch_lock_cents / 1200.0) * 440;
+
     new_env_or_fail(ip->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
     ip->force_volume_env_enabled = false;
     Envelope_set_node(ip->force_volume_env, 0, 0);

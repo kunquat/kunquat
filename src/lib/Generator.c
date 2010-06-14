@@ -256,6 +256,11 @@ void Generator_process_note(Generator* gen,
     assert(gen != NULL);
     assert(state != NULL);
     assert(isfinite(cents));
+    if (gen->ins_params->pitch_lock_enabled)
+    {
+        state->pitch = gen->ins_params->pitch_lock_freq;
+        return;
+    }
     if (gen->ins_params->scale == NULL ||
             *gen->ins_params->scale == NULL ||
             **gen->ins_params->scale == NULL)
