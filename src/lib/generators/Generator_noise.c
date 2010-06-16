@@ -132,8 +132,6 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state)
 }
 
 
-#define rand_u ((double)((rand() << 1) - RAND_MAX)/RAND_MAX)
-
 uint32_t Generator_noise_mix(Generator* gen,
                              Voice_state* state,
                              uint32_t nframes,
@@ -184,8 +182,8 @@ uint32_t Generator_noise_mix(Generator* gen,
             double* buf = noise_state->buf[i];
 //          double* bufa = noise_state->bufa[i];
 //          double* bufb = noise_state->bufb[i];
-            double temp = rand_u;
-            vals[i] = rand_u;
+            double temp = Random_get_float_signal(gen->random);
+            vals[i] = Random_get_float_signal(gen->random);
             if (noise->order > 0)
             {
                 //int n =  noise->order;
@@ -217,8 +215,6 @@ uint32_t Generator_noise_mix(Generator* gen,
 //  fprintf(stderr, "max_amp is %lf\n", max_amp);
     return mixed;
 }
-
-#undef rand_u
 
 
 void del_Generator_noise(Generator* gen)

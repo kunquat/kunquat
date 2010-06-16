@@ -310,7 +310,7 @@ const Sample_entry* Sample_map_get_entry(Sample_map* map,
     assert(choice->entry_count > 0);
     assert(choice->entry_count < SAMPLE_MAP_RANDOMS_MAX);
 //    state->middle_tone = choice->freq;
-    int index = Random_get(random) % choice->entry_count;
+    int index = Random_get_index(random, choice->entry_count);
     assert(index >= 0);
 //    fprintf(stderr, "%d\n", index);
     return &choice->entries[index];

@@ -112,8 +112,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         {
             if (isnan(force_var))
             {
-                double var_dB = ((double)Random_get(voice->gen->random) /
-                                 KQT_RANDOM_MAX) *
+                double var_dB = Random_get_float_scale(voice->gen->random) *
                                 voice->gen->ins_params->force_variation;
                 var_dB -= voice->gen->ins_params->force_variation / 2;
                 force_var = exp2(var_dB / 6);
