@@ -63,18 +63,6 @@ typedef enum
 Gen_type Generator_type_parse(char* str, Read_state* state);
 
 
-/**
- * Tells whether the given subkey is part of the specification of given type.
- *
- * \param type     The type -- must be a valid type.
- * \param subkey   The subkey. This is the part after "generator_XX/".
- *
- * \return   \c true if and only if \a subkey is part of the specification of
- *           \a type.
- */
-//bool Generator_type_has_subkey(Gen_type type, const char* subkey);
-
-
 #endif // K_GENERATOR_TYPE_H
 
 
