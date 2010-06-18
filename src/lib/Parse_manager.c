@@ -264,7 +264,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    if (index < 1 || index > KQT_INSTRUMENTS_MAX)
+    if (index < 0 || index >= KQT_INSTRUMENTS_MAX)
     {
         return true;
     }
@@ -406,8 +406,8 @@ static bool parse_generator_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    assert(ins_index >= 1);
-    assert(ins_index <= KQT_INSTRUMENTS_MAX);
+    assert(ins_index >= 0);
+    assert(ins_index < KQT_INSTRUMENTS_MAX);
     if (gen_index < 0 || gen_index >= KQT_GENERATORS_MAX)
     {
         return true;

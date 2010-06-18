@@ -44,7 +44,7 @@ Ins_table* new_Ins_table(int size);
  * If the target index already contains an Instrument, it will be deleted.
  *
  * \param table   The Instrument table -- must not be \c NULL.
- * \param index   The target index -- must be > \c 0 and not greater than
+ * \param index   The target index -- must be >= \c 0 and less than
  *                the table size.
  * \param ins     The Instrument to be inserted -- must not be \c NULL or
  *                an Instrument already stored in the table.
@@ -58,7 +58,7 @@ bool Ins_table_set(Ins_table* table, int index, Instrument* ins);
  * Gets an Instrument from the Instrument table.
  *
  * \param table   The Instrument table -- must not be \c NULL.
- * \param index   The target index -- must be > \c 0 and not greater than
+ * \param index   The target index -- must be >= \c 0 and less than
  *                the table size.
  *
  * \return   The Instrument if found, otherwise \c NULL.
@@ -70,7 +70,7 @@ Instrument* Ins_table_get(Ins_table* table, int index);
  * Removes an Instrument from the Instrument table.
  *
  * \param table   The Instrument table -- must not be \c NULL.
- * \param index   The target index -- must be > \c 0 and not greater than
+ * \param index   The target index -- must be >= \c 0 and less than
  *                the table size.
  */
 void Ins_table_remove(Ins_table* table, int index);

@@ -31,7 +31,7 @@ static Event_field_desc set_generator_desc[] =
     {
         .type = EVENT_FIELD_INT,
         .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_GENERATORS_MAX
+        .max.field.integral_type = KQT_GENERATORS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE
