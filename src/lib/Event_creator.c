@@ -43,6 +43,7 @@
 #include <Event_ins_set_pedal.h>
 
 #include <Event_channel_set_instrument.h>
+#include <Event_channel_set_generator.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -73,6 +74,16 @@
 #include <Event_channel_set_panning.h>
 #include <Event_channel_slide_panning.h>
 #include <Event_channel_slide_panning_length.h>
+
+#include <Event_channel_set_gen_bool.h>
+#include <Event_channel_set_gen_int.h>
+#include <Event_channel_set_gen_float.h>
+#include <Event_channel_set_gen_reltime.h>
+
+#include <Event_generator_set_bool.h>
+#include <Event_generator_set_int.h>
+#include <Event_generator_set_float.h>
+#include <Event_generator_set_reltime.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -107,6 +118,7 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
 
         [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
+        [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
 
         [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
         [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
@@ -137,6 +149,16 @@ Event* new_Event(Event_type type, Reltime* pos)
         [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
         [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
         [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
+
+        [EVENT_CHANNEL_SET_GEN_BOOL] = new_Event_channel_set_gen_bool,
+        [EVENT_CHANNEL_SET_GEN_INT] = new_Event_channel_set_gen_int,
+        [EVENT_CHANNEL_SET_GEN_FLOAT] = new_Event_channel_set_gen_float,
+        [EVENT_CHANNEL_SET_GEN_RELTIME] = new_Event_channel_set_gen_reltime,
+
+        [EVENT_GENERATOR_SET_BOOL] = new_Event_generator_set_bool,
+        [EVENT_GENERATOR_SET_INT] = new_Event_generator_set_int,
+        [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
+        [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
     };
     if (cons[type] == NULL)
     {

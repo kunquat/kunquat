@@ -18,6 +18,7 @@
 #include <Event_handler.h>
 #include <Event_type.h>
 #include <Channel_state.h>
+#include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
 #include <kunquat/limits.h>
@@ -41,6 +42,7 @@
 #include <events/Event_global_slide_volume_length.h>
 
 #include <events/Event_channel_set_instrument.h>
+#include <events/Event_channel_set_generator.h>
 
 #include <events/Event_channel_note_on.h>
 #include <events/Event_channel_note_off.h>
@@ -72,7 +74,17 @@
 #include <events/Event_channel_slide_panning.h>
 #include <events/Event_channel_slide_panning_length.h>
 
+#include <events/Event_channel_set_gen_bool.h>
+#include <events/Event_channel_set_gen_int.h>
+#include <events/Event_channel_set_gen_float.h>
+#include <events/Event_channel_set_gen_reltime.h>
+
 #include <events/Event_ins_set_pedal.h>
+
+#include <events/Event_generator_set_bool.h>
+#include <events/Event_generator_set_int.h>
+#include <events/Event_generator_set_float.h>
+#include <events/Event_generator_set_reltime.h>
 
 #include <xmemory.h>
 
@@ -88,7 +100,8 @@ struct Event_handler
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata* state,
                                                char* fields);
     bool (*ins_process[EVENT_INS_UPPER])(Instrument_params* state, char* fields);
-    // TODO: generator and effect process collections
+    bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*, char*);
+    // TODO: effect process collections
 };
 
 
@@ -149,6 +162,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INSTRUMENT,
                                  Event_channel_set_instrument_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GENERATOR,
+                                 Event_channel_set_generator_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
                                  Event_channel_note_on_process);
@@ -204,8 +219,26 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_BOOL,
+                                 Event_channel_set_gen_bool_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_INT,
+                                 Event_channel_set_gen_int_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT,
+                                 Event_channel_set_gen_float_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME,
+                                 Event_channel_set_gen_reltime_process);
+
     Event_handler_set_ins_process(eh, EVENT_INS_SET_PEDAL,
                                   Event_ins_set_pedal_process);
+
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_BOOL,
+                                        Event_generator_set_bool_process);
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_INT,
+                                        Event_generator_set_int_process);
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT,
+                                        Event_generator_set_float_process);
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME,
+                                        Event_generator_set_reltime_process);
 
     return eh;
 }
@@ -248,6 +281,18 @@ void Event_handler_set_ins_process(Event_handler* eh,
 }
 
 
+void Event_handler_set_generator_process(Event_handler* eh,
+                                         Event_type type,
+                                         bool (*gen_process)(Generator*, char*))
+{
+    assert(eh != NULL);
+    assert(EVENT_IS_GENERATOR(type));
+    assert(gen_process != NULL);
+    eh->generator_process[type] = gen_process;
+    return;
+}
+
+
 bool Event_handler_handle(Event_handler* eh,
                           int index,
                           Event_type type,
@@ -286,6 +331,24 @@ bool Event_handler_handle(Event_handler* eh,
         }
         return eh->global_process[type](eh->global_state, fields);
     }
+    else if (EVENT_IS_GENERATOR(type))
+    {
+        assert(index >= 0);
+        assert(index < KQT_GENERATORS_MAX);
+        Instrument* ins = Ins_table_get(eh->insts,
+                                        eh->ch_states[index]->instrument);
+        if (ins == NULL)
+        {
+            return false;
+        }
+        Generator* gen = Instrument_get_gen(ins,
+                                            eh->ch_states[index]->generator);
+        if (gen == NULL)
+        {
+            return false;
+        }
+        return eh->generator_process[type](gen, fields);
+    }
     return false;
 }
 
@@ -294,6 +357,22 @@ Playdata* Event_handler_get_global_state(Event_handler* eh)
 {
     assert(eh != NULL);
     return eh->global_state;
+}
+
+
+bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
+                                             const char* key)
+{
+    assert(eh != NULL);
+    assert(key != NULL);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        if (!Channel_gen_state_set_key(eh->ch_states[i]->cgstate, key))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 

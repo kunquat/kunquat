@@ -99,11 +99,25 @@ Instrument* new_Instrument(kqt_frame** bufs,
         {
             for (int k = i - 1; k >= 0; --k)
             {
+                del_Generator_params(ins->gens[k].common_params.type_params);
                 Generator_uninit(&ins->gens[k].common_params);
             }
             xfree(ins);
             return NULL;
         }
+        Generator_params* gen_params = new_Generator_params();
+        if (gen_params == NULL)
+        {
+            Generator_uninit(&ins->gens[i].common_params);
+            for (int k = i - 1; k >= 0; --k)
+            {
+                del_Generator_params(ins->gens[k].common_params.type_params);
+                Generator_uninit(&ins->gens[k].common_params);
+            }
+            xfree(ins);
+            return NULL;
+        }
+        ins->gens[i].common_params.type_params = gen_params;
         ins->gens[i].common_params.random = random;
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {
@@ -124,6 +138,8 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     double default_force = INS_DEFAULT_FORCE;
     double force_variation = INS_DEFAULT_FORCE_VAR;
+    bool pitch_lock_enabled = false;
+    double pitch_lock_cents = 0;
     int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
     if (str != NULL)
     {
@@ -153,6 +169,14 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 else if (strcmp(key, "force_variation") == 0)
                 {
                     str = read_double(str, &force_variation, state);
+                }
+                else if (strcmp(key, "pitch_lock") == 0)
+                {
+                    str = read_bool(str, &pitch_lock_enabled, state);
+                }
+                else if (strcmp(key, "pitch_lock_cents") == 0)
+                {
+                    str = read_double(str, &pitch_lock_cents, state);
                 }
                 else if (strcmp(key, "scale") == 0)
                 {
@@ -189,6 +213,9 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     ins->default_force = default_force;
     ins->params.force_variation = force_variation;
+    ins->params.pitch_lock_enabled = pitch_lock_enabled;
+    ins->params.pitch_lock_cents = pitch_lock_cents;
+    ins->params.pitch_lock_freq = exp2(ins->params.pitch_lock_cents / 1200.0) * 440;
     Instrument_set_scale(ins, scale_index);
     return true;
 }
@@ -338,6 +365,7 @@ void del_Instrument(Instrument* ins)
     Instrument_params_uninit(&ins->params);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
+        del_Generator_params(ins->gens[i].common_params.type_params);
         Generator_uninit(&ins->gens[i].common_params);
         for (int k = 0; k < GEN_TYPE_LAST; ++k)
         {

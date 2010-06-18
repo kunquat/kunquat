@@ -12,29 +12,29 @@
  */
 
 
-#ifndef K_VOICE_STATE_SQUARE_H
-#define K_VOICE_STATE_SQUARE_H
+#ifndef K_VOICE_STATE_PULSE_H
+#define K_VOICE_STATE_PULSE_H
 
 
 #include <Voice_state.h>
 
 
-typedef struct Voice_state_square
+typedef struct Voice_state_pulse
 {
     Voice_state parent;
     double phase;
     double pulse_width;
-} Voice_state_square;
+} Voice_state_pulse;
 
 
 /**
- * Initialises the Square Instrument parameters.
+ * Initialises the Pulse generator parameters.
  *
- * \param square   The Square parameters -- must not be \c NULL.
+ * \param pulse   The Pulse parameters -- must not be \c NULL.
  */
-void Voice_state_square_init(Voice_state* state);
+void Voice_state_pulse_init(Voice_state* state);
 
 
-#endif // K_VOICE_STATE_SQUARE_H
+#endif // K_VOICE_STATE_PULSE_H
 
 

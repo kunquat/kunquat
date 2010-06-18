@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Channel_gen_state.h>
 #include <Reltime.h>
 #include <frame.h>
 #include <kunquat/limits.h>
@@ -45,6 +46,7 @@ typedef struct Voice_state
     uint32_t freq;                 ///< The last mixing frequency used.
     double tempo;                  ///< The last tempo setting used.
     Voice_params params;
+    Channel_gen_state* cgstate;    ///< Channel-specific Generator parameters.
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
@@ -160,6 +162,7 @@ typedef struct Voice_state
  */
 Voice_state* Voice_state_init(Voice_state* state,
                               Voice_params* params,
+                              Channel_gen_state* cgstate,
                               uint32_t freq,
                               double tempo);
 

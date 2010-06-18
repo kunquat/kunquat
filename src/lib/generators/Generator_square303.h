@@ -30,11 +30,13 @@ typedef struct Generator_square303
  * Creates a new Square303 Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new Square303 Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_square303(Instrument_params* ins_params);
+Generator* new_Generator_square303(Instrument_params* ins_params,
+                                   Generator_params* gen_params);
 
 
 uint32_t Generator_square303_mix(Generator* gen,

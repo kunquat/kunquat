@@ -22,42 +22,7 @@
 #include <stdio.h>
 
 #include <frame.h>
-#include <Voice_state.h>
-#include <Generator.h>
-
-
-typedef enum
-{
-    /// Uninitialised.
-    SAMPLE_FORMAT_NONE = 0,
-    /// WavPack.
-    SAMPLE_FORMAT_WAVPACK,
-    /// Vorbis.
-    // SAMPLE_FORMAT_VORBIS,
-    /// Sentinel -- not a valid format.
-    SAMPLE_FORMAT_LAST
-} Sample_format;
-
-
-typedef enum
-{
-    SAMPLE_LOOP_OFF = 0, ///< No loop.
-    SAMPLE_LOOP_UNI,     ///< Unidirectional (forward) loop.
-    SAMPLE_LOOP_BI       ///< Bidirectional loop.
-} Sample_loop;
-
-
-/**
- * Common parameters for a Sample (the parameters stored in p_sample.json).
- */
-typedef struct Sample_params
-{
-    Sample_format format; ///< The file format.
-    double mid_freq;      ///< The playback frequency used to represent 440 Hz tone.
-    Sample_loop loop;     ///< Loop setting.
-    uint64_t loop_start;  ///< Loop start.
-    uint64_t loop_end;    ///< Loop end (the frame at this index will not be played).
-} Sample_params;
+#include <Sample_params.h>
 
 
 /**
@@ -75,27 +40,6 @@ typedef struct Sample
     uint64_t len;         ///< The length of the sample (in amplitude values per channel).
     void* data[2];        ///< The sample data.
 } Sample;
-
-
-/**
- * Initialises common Sample parameters.
- *
- * \param params   The Sample parameters -- must not be \c NULL.
- *
- * \return   The parameter \a params.
- */
-Sample_params* Sample_params_init(Sample_params* params);
-
-
-/**
- * Copies Sample parameters.
- *
- * \param dest   The copy destination -- must not be \c NULL.
- * \param src    The copy source -- must not be \c NULL.
- *
- * \return   The parameter \a dest.
- */
-Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src);
 
 
 /**
@@ -270,6 +214,7 @@ uint64_t Sample_get_loop_end(Sample* sample);
  * \param middle_freq   The mixing speed of the Sample used for playing
  *                      \a middle_tone -- must be > \c 0.
  */
+#if 0
 uint32_t Sample_mix(Sample* sample,
                     Generator* gen,
                     Voice_state* state,
@@ -281,6 +226,7 @@ uint32_t Sample_mix(Sample* sample,
                     kqt_frame** bufs,
                     double middle_tone,
                     double middle_freq);
+#endif
 
 
 /**

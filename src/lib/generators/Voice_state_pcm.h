@@ -16,6 +16,7 @@
 #define K_VOICE_STATE_PCM_H
 
 
+#include <Sample_params.h>
 #include <Voice_state.h>
 
 
@@ -23,6 +24,7 @@ typedef struct Voice_state_pcm
 {
     Voice_state parent;
     int sample;
+    Sample_params params;
     double freq;
     double volume;
     uint8_t source;

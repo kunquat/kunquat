@@ -42,6 +42,10 @@ typedef struct Instrument_params
 //    double force;                  ///< Force.
     double force_variation;        ///< Force variation.
 
+    bool pitch_lock_enabled;
+    double pitch_lock_cents;
+    double pitch_lock_freq;
+
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.
 

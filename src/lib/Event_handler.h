@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Channel_state.h>
+#include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
 #include <Event_type.h>
@@ -76,15 +77,27 @@ void Event_handler_set_ins_process(Event_handler* eh,
 
 
 /**
+ * Registers a Generator Event processor.
+ *
+ * \param eh        The Event handler -- must not be \c NULL.
+ * \param type      The type of the Event -- must be a Generator Event.
+ * \param process   The process function -- must not be \c NULL.
+ */
+void Event_handler_set_generator_process(Event_handler* eh,
+                                         Event_type type,
+                                         bool (*gen_process)(Generator*, char*));
+
+
+/**
  * Handles an Event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param index    The index number. This must be \c -1 for global Events,
  *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Channel Events,
- *                 or >= \c 0 and < \c KQT_INSTRUMENTS_MAX for Instrument
- *                 Events.
+ *                 or >= \c 0 and < \c KQT_INSTRUMENTS_MAX for Instrument Events,
+ *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Generator Events.
  * \param type     The type of the Event -- must be a valid type and
- *                 compatible with the channel number.
+ *                 compatible with \a index.
  * \param fields   Event fields, or \c NULL if not applicable.
  *
  * \return   \c true if the Event was handled, or \c false if arguments were
@@ -104,6 +117,18 @@ bool Event_handler_handle(Event_handler* eh,
  * \return   The global state.
  */
 Playdata* Event_handler_get_global_state(Event_handler* eh);
+
+
+/**
+ * Adds a key into all Channel-specific generator parameter dictionaries.
+ *
+ * \param eh    The Event handler -- must not be \c NULL.
+ * \param key   The key -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
+                                             const char* key);
 
 
 /**

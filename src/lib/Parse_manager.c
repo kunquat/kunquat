@@ -19,6 +19,8 @@
 #include <ctype.h>
 
 #include <File_base.h>
+#include <Generator_event_keys.h>
+#include <Generator_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
 
@@ -77,6 +79,9 @@ static bool is_index_digit(char ch);
 static int parse_index(const char* str);
 
 
+static bool key_is_for_text(const char* key);
+
+
 #define set_parse_error(handle, state) \
     (kqt_Handle_set_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
@@ -133,6 +138,14 @@ int parse_index_dir(const char* key, const char* prefix, int digits)
 }
 
 
+static bool key_is_for_text(const char* key)
+{
+    assert(key != NULL);
+    return string_has_suffix(key, ".json") ||
+           key_is_text_generator_param(key);
+}
+
+
 bool parse_data(kqt_Handle* handle,
                 const char* key,
                 void* data,
@@ -163,7 +176,7 @@ bool parse_data(kqt_Handle* handle,
         return true;
     }
     char* json = NULL;
-    if (data != NULL && string_has_suffix(key, ".json"))
+    if (data != NULL && key_is_for_text(key))
     {
         json = xcalloc(char, length + 1);
         if (json == NULL)
@@ -251,7 +264,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    if (index < 1 || index > KQT_INSTRUMENTS_MAX)
+    if (index < 0 || index >= KQT_INSTRUMENTS_MAX)
     {
         return true;
     }
@@ -393,8 +406,8 @@ static bool parse_generator_level(kqt_Handle* handle,
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    assert(ins_index >= 1);
-    assert(ins_index <= KQT_INSTRUMENTS_MAX);
+    assert(ins_index >= 0);
+    assert(ins_index < KQT_INSTRUMENTS_MAX);
     if (gen_index < 0 || gen_index >= KQT_GENERATORS_MAX)
     {
         return true;
@@ -441,6 +454,57 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
         }
     }
+    else if ((string_has_prefix(subkey, "i/") ||
+              string_has_prefix(subkey, "c/")) &&
+             key_is_generator_param(subkey))
+    {
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Generator_parse_param(common_params, subkey, data, length, state))
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+    }
+    else if (strcmp(subkey, "p_events.json") == 0)
+    {
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Generator_params_parse_events(common_params->type_params,
+                                           handle->song->event_handler,
+                                           data,
+                                           state))
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+    }
     else if (strcmp(subkey, "p_gen_type.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -458,7 +522,10 @@ static bool parse_generator_level(kqt_Handle* handle,
         if (gen == NULL)
         {
 //            fprintf(stderr, "1\n");
-            gen = new_Generator(type, Instrument_get_params(ins));
+            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+            assert(common_params != NULL);
+            gen = new_Generator(type, Instrument_get_params(ins),
+                                Generator_get_params(common_params));
 //            fprintf(stderr, "2 -- gen %p for ins %p\n", (void*)gen, (void*)ins);
             if (gen == NULL)
             {
@@ -470,64 +537,12 @@ static bool parse_generator_level(kqt_Handle* handle,
                 }
                 return false;
             }
-            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-            assert(common_params != NULL);
             Generator_copy_general(gen, common_params);
             Instrument_set_gen(ins, gen_index, gen);
         }
         else
         {
             Instrument_set_gen(ins, gen_index, gen);
-        }
-    }
-    else
-    {
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            if (Generator_type_has_subkey(i, subkey))
-            {
-                Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-                bool new_gen = gen == NULL;
-                if (new_gen)
-                {
-                    gen = new_Generator(i, Instrument_get_params(ins));
-/*                    if (i == GEN_TYPE_PCM)
-                    {
-                        fprintf(stderr, "Creating pcm %p for inst %p\n", (void*)gen, (void*)ins);
-                    } */
-                    if (gen == NULL)
-                    {
-                        kqt_Handle_set_error(handle, ERROR_MEMORY,
-                                "Couldn't allocate memory");
-                        if (new_ins)
-                        {
-                            del_Instrument(ins);
-                        }
-                        return false;
-                    }
-                    Generator_copy_general(gen,
-                            Instrument_get_common_gen_params(ins, gen_index));
-                }
-                Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-                if (!Generator_parse(gen, subkey, data, length, state))
-                {
-                    set_parse_error(handle, state);
-                    if (new_gen)
-                    {
-                        del_Generator(gen);
-                    }
-                    if (new_ins)
-                    {
-                        del_Instrument(ins);
-                    }
-                    return false;
-                }
-                if (new_gen)
-                {
-                    Instrument_set_gen_of_type(ins, gen_index, gen);
-                }
-                break;
-            }
         }
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
@@ -600,8 +615,8 @@ static bool parse_pattern_level(kqt_Handle* handle,
     bool global_column = strcmp(subkey, "gcol/p_global_events.json") == 0;
     int col_index = 0;
     ++second_element;
-    if (((col_index = parse_index_dir(subkey, "vcol_", 2)) >= 0
-                    && strcmp(second_element, "p_voice_events.json") == 0)
+    if (((col_index = parse_index_dir(subkey, "ccol_", 2)) >= 0
+                    && strcmp(second_element, "p_channel_events.json") == 0)
                 || global_column)
     {
         if (global_column)

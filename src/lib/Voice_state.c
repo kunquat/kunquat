@@ -25,6 +25,7 @@
 
 Voice_state* Voice_state_init(Voice_state* state,
                               Voice_params* params,
+                              Channel_gen_state* cgstate,
                               uint32_t freq,
                               double tempo)
 {
@@ -33,6 +34,7 @@ Voice_state* Voice_state_init(Voice_state* state,
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
+    state->cgstate = cgstate;
     state->active = true;
     state->note_on = true;
     state->freq = freq;
@@ -45,6 +47,8 @@ Voice_state* Voice_state_init(Voice_state* state,
 Voice_state* Voice_state_clear(Voice_state* state)
 {
     assert(state != NULL);
+    state->cgstate = NULL;
+
     state->active = false;
     state->freq = 0;
     state->tempo = 0;

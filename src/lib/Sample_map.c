@@ -1,0 +1,334 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2010
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#include <stdlib.h>
+#include <assert.h>
+#include <math.h>
+
+#include <pitch_t.h>
+#include <Sample_map.h>
+
+#include <xmemory.h>
+
+
+struct Sample_map
+{
+    AAtree* map;
+    AAiter* iter;
+};
+
+
+typedef struct Random_list
+{
+    pitch_t freq;
+    double cents;
+    double force;
+    int entry_count;
+    Sample_entry entries[SAMPLE_MAP_RANDOMS_MAX];
+} Random_list;
+
+
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2);
+
+static void del_Random_list(Random_list* list);
+
+static double distance(Random_list* list, Random_list* key);
+
+
+static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
+{
+    assert(list1 != NULL);
+    assert(list2 != NULL);
+    if (list1->cents < list2->cents)
+    {
+        return -1;
+    }
+    else if (list1->cents > list2->cents)
+    {
+        return 1;
+    }
+    if (list1->force < list2->force)
+    {
+        return -1;
+    }
+    if (list1->force > list2->force)
+    {
+        return 1;
+    }
+    return 0;
+}
+
+
+static void del_Random_list(Random_list* list)
+{
+    assert(list != NULL);
+    xfree(list);
+    return;
+}
+
+
+Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
+{
+    assert(state != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Sample_map* map = xalloc(Sample_map);
+    if (map == NULL)
+    {
+        return NULL;
+    }
+    map->map = NULL;
+    map->iter = NULL;
+    map->map = new_AAtree((int (*)(const void*, const void*))Random_list_cmp,
+                          (void (*)(void*))del_Random_list);
+    if (map->map == NULL)
+    {
+        del_Sample_map(map);
+        return NULL;
+    }
+    map->iter = new_AAiter(map->map);
+    if (map->iter == NULL)
+    {
+        del_Sample_map(map);
+        return NULL;
+    }
+    if (str == NULL)
+    {
+        return map;
+    }
+    str = read_const_char(str, '[', state);
+    if (state->error)
+    {
+        del_Sample_map(map);
+        return NULL;
+    }
+    str = read_const_char(str, ']', state);
+    if (!state->error)
+    {
+        return map;
+    }
+    Read_state_clear_error(state);
+    bool expect_list = true;
+    while (expect_list)
+    {
+        Random_list* list = xalloc(Random_list);
+        if (list == NULL)
+        {
+            Read_state_set_error(state, "Couldn't allocate memory for sample point");
+            del_Sample_map(map);
+            return NULL;
+        }
+        str = read_const_char(str, '[', state);
+
+        str = read_const_char(str, '[', state);
+        double cents = NAN;
+        str = read_double(str, &cents, state);
+        str = read_const_char(str, ',', state);
+        double force = NAN;
+        str = read_double(str, &force, state);
+        str = read_const_char(str, ']', state);
+        str = read_const_char(str, ',', state);
+        str = read_const_char(str, '[', state);
+        if (state->error)
+        {
+            xfree(list);
+            del_Sample_map(map);
+            return NULL;
+        }
+        if (!isfinite(cents))
+        {
+            Read_state_set_error(state, "Mapping cents is not finite");
+            xfree(list);
+            del_Sample_map(map);
+            return NULL;
+        }
+        if (!isfinite(force))
+        {
+            Read_state_set_error(state, "Mapping force is not finite");
+            xfree(list);
+            del_Sample_map(map);
+            return NULL;
+        }
+        list->freq = exp2(cents / 1200) * 440;
+        list->cents = cents;
+        list->force = force;
+        list->entry_count = 0;
+        if (!AAtree_ins(map->map, list))
+        {
+            Read_state_set_error(state, "Couldn't allocate memory for sample mapping");
+            xfree(list);
+            del_Sample_map(map);
+            return NULL;
+        }
+        bool expect_entry = true;
+        while (expect_entry && list->entry_count < SAMPLE_MAP_RANDOMS_MAX)
+        {
+            str = read_const_char(str, '[', state);
+            double sample_freq = NAN;
+            str = read_double(str, &sample_freq, state);
+            str = read_const_char(str, ',', state);
+            double vol_scale = NAN;
+            str = read_double(str, &vol_scale, state);
+            str = read_const_char(str, ',', state);
+            int64_t sample = -1;
+            str = read_int(str, &sample, state);
+            str = read_const_char(str, ']', state);
+            if (state->error)
+            {
+                del_Sample_map(map);
+                return NULL;
+            }
+            if (!(sample_freq > 0))
+            {
+                Read_state_set_error(state, "Sample frequency is not positive");
+                del_Sample_map(map);
+                return NULL;
+            }
+            if (!(vol_scale >= 0))
+            {
+                Read_state_set_error(state, "Volume scale is not positive or zero");
+                del_Sample_map(map);
+                return NULL;
+            }
+            if (sample < 0)
+            {
+                Read_state_set_error(state, "Sample number must be non-negative");
+                del_Sample_map(map);
+                return NULL;
+            }
+            list->entries[list->entry_count].ref_freq = list->freq;
+            list->entries[list->entry_count].freq = sample_freq;
+            list->entries[list->entry_count].vol_scale = vol_scale;
+            list->entries[list->entry_count].sample = sample;
+            ++list->entry_count;
+            check_next(str, state, expect_entry);
+        }
+        str = read_const_char(str, ']', state);
+
+        str = read_const_char(str, ']', state);
+        if (state->error)
+        {
+            del_Sample_map(map);
+            return NULL;
+        }
+        check_next(str, state, expect_list);
+    }
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        del_Sample_map(map);
+        return NULL;
+    }
+    return map;
+}
+
+
+static double distance(Random_list* list, Random_list* key)
+{
+    assert(list != NULL);
+    assert(key != NULL);
+    double tone_d = (list->cents - key->cents) * 64;
+    double force_d = list->force - key->force;
+    return sqrt(tone_d * tone_d + force_d * force_d);
+}
+
+
+const Sample_entry* Sample_map_get_entry(Sample_map* map,
+                                         double cents,
+                                         double force,
+                                         Random* random)
+{
+    assert(map != NULL);
+    assert(isfinite(cents));
+    assert(isfinite(force) || (isinf(force) && force < 0));
+    assert(random != NULL);
+    Random_list* key = &(Random_list){ .force = force,
+                                       .freq = NAN,
+                                       .cents = cents };
+    Random_list* estimate_low = AAiter_get_at_most(map->iter, key);
+    Random_list* choice = NULL;
+    double choice_d = INFINITY;
+    if (estimate_low != NULL)
+    {
+        choice = estimate_low;
+        choice_d = distance(choice, key);
+        double min_tone = key->cents - choice_d;
+        Random_list* candidate = AAiter_get_prev(map->iter);
+        while (candidate != NULL && candidate->cents >= min_tone)
+        {
+            double d = distance(candidate, key);
+            if (d < choice_d)
+            {
+                choice = candidate;
+                choice_d = d;
+                min_tone = key->cents - choice_d;
+            }
+            candidate = AAiter_get_prev(map->iter);
+        }
+    }
+    Random_list* estimate_high = AAiter_get(map->iter, key);
+    if (estimate_high != NULL)
+    {
+        double d = distance(estimate_high, key);
+        if (choice == NULL || choice_d > d)
+        {
+            choice = estimate_high;
+            choice_d = d;
+        }
+        double max_tone = key->cents + choice_d;
+        Random_list* candidate = AAiter_get_next(map->iter);
+        while (candidate != NULL && candidate->cents <= max_tone)
+        {
+            d = distance(candidate, key);
+            if (d < choice_d)
+            {
+                choice = candidate;
+                choice_d = d;
+                max_tone = key->cents + choice_d;
+            }
+            candidate = AAiter_get_next(map->iter);
+        }
+    }
+    if (choice == NULL)
+    {
+//        fprintf(stderr, "empty map\n");
+        return NULL;
+    }
+    assert(choice->entry_count > 0);
+    assert(choice->entry_count < SAMPLE_MAP_RANDOMS_MAX);
+//    state->middle_tone = choice->freq;
+    int index = Random_get_index(random, choice->entry_count);
+    assert(index >= 0);
+//    fprintf(stderr, "%d\n", index);
+    return &choice->entries[index];
+}
+
+
+void del_Sample_map(Sample_map* map)
+{
+    assert(map != NULL);
+    if (map->iter != NULL)
+    {
+        del_AAiter(map->iter);
+    }
+    if (map->map != NULL)
+    {
+        del_AAtree(map->map);
+    }
+    return;
+}
+
+

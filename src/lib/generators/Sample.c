@@ -20,36 +20,13 @@
 #include <math.h>
 
 #include <Sample.h>
+#include <Sample_params.h>
 #include <Generator_common.h>
 #include <File_wavpack.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 
 #include <xmemory.h>
-
-
-Sample_params* Sample_params_init(Sample_params* params)
-{
-    assert(params != NULL);
-    params->format = SAMPLE_FORMAT_NONE;
-    params->mid_freq = 48000;
-    params->loop = SAMPLE_LOOP_OFF;
-    params->loop_start = 0;
-    params->loop_end = 0;
-    return params;
-}
-
-
-Sample_params* Sample_params_copy(Sample_params* dest, Sample_params* src)
-{
-    assert(dest != NULL);
-    assert(src != NULL);
-    dest->mid_freq = src->mid_freq;
-    dest->loop = src->loop;
-    dest->loop_start = src->loop_start;
-    dest->loop_end = src->loop_end;
-    return dest;
-}
 
 
 void Sample_set_params(Sample* sample, Sample_params* params)
@@ -163,7 +140,7 @@ uint64_t Sample_get_loop_start(Sample* sample)
 void Sample_set_loop_end(Sample* sample, uint64_t end)
 {
     assert(sample != NULL);
-    if (end <= sample->params.loop_start || end > sample->params.loop_end)
+    if (end <= sample->params.loop_start || end >= sample->len)
     {
         sample->params.loop = SAMPLE_LOOP_OFF;
     }
