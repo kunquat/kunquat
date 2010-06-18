@@ -84,10 +84,9 @@ extern "C" {
 
 
 /**
- * Maximum number of Instruments in a Kunquat Handle (Note: Instrument
- * indices start at 1).
+ * Maximum number of Instruments in a Kunquat Handle.
  */
-#define KQT_INSTRUMENTS_MAX (255)
+#define KQT_INSTRUMENTS_MAX (256)
 
 
 /**
