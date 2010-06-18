@@ -22,57 +22,57 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_params.h>
-#include <Generator_square.h>
-#include <Voice_state_square.h>
+#include <Generator_pulse.h>
+#include <Voice_state_pulse.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
 
 
-static void Generator_square_init_state(Generator* gen, Voice_state* state);
+static void Generator_pulse_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_square(Instrument_params* ins_params,
-                                Generator_params* gen_params)
+Generator* new_Generator_pulse(Instrument_params* ins_params,
+                               Generator_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);
-    Generator_square* square = xalloc(Generator_square);
-    if (square == NULL)
+    Generator_pulse* pulse = xalloc(Generator_pulse);
+    if (pulse == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&square->parent))
+    if (!Generator_init(&pulse->parent))
     {
-        xfree(square);
+        xfree(pulse);
         return NULL;
     }
-//    square->parent.parse = Generator_square_parse;
-    square->parent.destroy = del_Generator_square;
-    square->parent.type = GEN_TYPE_SQUARE;
-    square->parent.init_state = Generator_square_init_state;
-    square->parent.mix = Generator_square_mix;
-    square->parent.ins_params = ins_params;
-    square->parent.type_params = gen_params;
-    square->pulse_width = 0.5;
-    return &square->parent;
+//    pulse->parent.parse = Generator_pulse_parse;
+    pulse->parent.destroy = del_Generator_pulse;
+    pulse->parent.type = GEN_TYPE_PULSE;
+    pulse->parent.init_state = Generator_pulse_init_state;
+    pulse->parent.mix = Generator_pulse_mix;
+    pulse->parent.ins_params = ins_params;
+    pulse->parent.type_params = gen_params;
+    pulse->pulse_width = 0.5;
+    return &pulse->parent;
 }
 
 
-static void Generator_square_init_state(Generator* gen, Voice_state* state)
+static void Generator_pulse_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE);
+    assert(gen->type == GEN_TYPE_PULSE);
     assert(state != NULL);
-    Voice_state_square* square_state = (Voice_state_square*)state;
-    Generator_square* square = (Generator_square*)gen;
-    square_state->phase = 0;
-    square_state->pulse_width = square->pulse_width;
+    Voice_state_pulse* pulse_state = (Voice_state_pulse*)state;
+    Generator_pulse* pulse = (Generator_pulse*)gen;
+    pulse_state->phase = 0;
+    pulse_state->pulse_width = pulse->pulse_width;
     return;
 }
 
 
-double square(double phase, double pulse_width)
+double pulse(double phase, double pulse_width)
 {
     if (phase < pulse_width)
     {
@@ -82,17 +82,17 @@ double square(double phase, double pulse_width)
 }
 
 
-uint32_t Generator_square_mix(Generator* gen,
-                              Voice_state* state,
-                              uint32_t nframes,
-                              uint32_t offset,
-                              uint32_t freq,
-                              double tempo,
-                              int buf_count,
-                              kqt_frame** bufs)
+uint32_t Generator_pulse_mix(Generator* gen,
+                             Voice_state* state,
+                             uint32_t nframes,
+                             uint32_t offset,
+                             uint32_t freq,
+                             double tempo,
+                             int buf_count,
+                             kqt_frame** bufs)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE);
+    assert(gen->type == GEN_TYPE_PULSE);
     assert(state != NULL);
 //  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
@@ -105,18 +105,18 @@ uint32_t Generator_square_mix(Generator* gen,
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
 //  fprintf(stderr, "bufs are %p and %p\n", ins->bufs[0], ins->bufs[1]);
-    Voice_state_square* square_state = (Voice_state_square*)state;
+    Voice_state_pulse* pulse_state = (Voice_state_pulse*)state;
     if (state->note_on)
     {
         double* pulse_width_arg = Channel_gen_state_get_float(state->cgstate,
                                                         "pulse_width.jsonf");
         if (pulse_width_arg != NULL)
         {
-            square_state->pulse_width = *pulse_width_arg;
+            pulse_state->pulse_width = *pulse_width_arg;
         }
         else
         {
-            square_state->pulse_width = 0.5;
+            pulse_state->pulse_width = 0.5;
         }
     }
     uint32_t mixed = offset;
@@ -125,14 +125,14 @@ uint32_t Generator_square_mix(Generator* gen,
         Generator_common_handle_pitch(gen, state);
 
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        vals[0] = square(square_state->phase, square_state->pulse_width) / 6;
+        vals[0] = pulse(pulse_state->phase, pulse_state->pulse_width) / 6;
         Generator_common_handle_force(gen, state, vals, 1, freq);
         Generator_common_handle_filter(gen, state, vals, 1, freq);
         Generator_common_ramp_attack(gen, state, vals, 1, freq);
-        square_state->phase += state->actual_pitch / freq;
-        if (square_state->phase >= 1)
+        pulse_state->phase += state->actual_pitch / freq;
+        if (pulse_state->phase >= 1)
         {
-            square_state->phase -= floor(square_state->phase);
+            pulse_state->phase -= floor(pulse_state->phase);
         }
         state->pos = 1; // XXX: hackish
 //        Generator_common_handle_note_off(gen, state, vals, 1, freq);
@@ -151,13 +151,13 @@ uint32_t Generator_square_mix(Generator* gen,
 }
 
 
-void del_Generator_square(Generator* gen)
+void del_Generator_pulse(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE);
-    Generator_square* square = (Generator_square*)gen;
+    assert(gen->type == GEN_TYPE_PULSE);
+    Generator_pulse* pulse = (Generator_pulse*)gen;
     Generator_uninit(gen);
-    xfree(square);
+    xfree(pulse);
     return;
 }
 

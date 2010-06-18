@@ -32,8 +32,8 @@ typedef enum
     GEN_TYPE_SINE,
     /// A simple triangle wave generator.
     GEN_TYPE_TRIANGLE,
-    /// A simple square wave generator.
-    GEN_TYPE_SQUARE,
+    /// A simple pulse wave generator.
+    GEN_TYPE_PULSE,
     /// A simple 303 square wave generator.
     GEN_TYPE_SQUARE303,
     /// A simple sawtooth wave generator.

@@ -26,7 +26,7 @@
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
-#include <Voice_state_square.h>
+#include <Voice_state_pulse.h>
 #include <Voice_state_square303.h>
 #include <Voice_state_sawtooth.h>
 #include <Voice_state_noise.h>
@@ -60,7 +60,7 @@ typedef struct Voice
         Voice_state_sine sine;
         Voice_state_pcm pcm;
         Voice_state_triangle triangle;
-        Voice_state_square square;
+        Voice_state_pulse pulse;
         Voice_state_square303 square303;
         Voice_state_sawtooth sawtooth;
         Voice_state_noise noise;

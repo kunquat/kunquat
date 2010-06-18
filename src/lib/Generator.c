@@ -22,7 +22,7 @@
 #include <Generator_sine.h>
 #include <Generator_sawtooth.h>
 #include <Generator_triangle.h>
-#include <Generator_square.h>
+#include <Generator_pulse.h>
 #include <Generator_square303.h>
 #include <Generator_pcm.h>
 #include <Generator_noise.h>
@@ -47,7 +47,7 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
         [GEN_TYPE_TRIANGLE] = new_Generator_triangle,
-        [GEN_TYPE_SQUARE] = new_Generator_square,
+        [GEN_TYPE_PULSE] = new_Generator_pulse,
         [GEN_TYPE_SQUARE303] = new_Generator_square303,
         [GEN_TYPE_NOISE] = new_Generator_noise,
         [GEN_TYPE_PCM] = new_Generator_pcm,
@@ -218,7 +218,7 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
     {
         [GEN_TYPE_SINE] = "sine",
         [GEN_TYPE_TRIANGLE] = "triangle",
-        [GEN_TYPE_SQUARE] = "square",
+        [GEN_TYPE_PULSE] = "pulse",
         [GEN_TYPE_SQUARE303] = "square303",
         [GEN_TYPE_SAWTOOTH] = "sawtooth",
         [GEN_TYPE_NOISE] = "noise",
