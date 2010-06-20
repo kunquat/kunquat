@@ -33,32 +33,27 @@ typedef enum
 } DSP_vertex_state;
 
 
+#define KQT_DSP_VERTEX_NAME_MAX (32)
+
+
 /**
  * A vertex in a DSP graph. This contains an index of the DSP table, not the
  * DSP node itself.
  *
- * The structure in memory allows DSP vertices to be compared against values
- * of type int.
+ * The structure in memory allows DSP vertices to be compared against strings.
  */
 typedef struct DSP_vertex DSP_vertex;
-
-
-#define DSP_VERTEX_MASTER (-1)
-#define DSP_VERTEX_OTHERS (-2)
-#define DSP_VERTEX_MIN    MIN(DSP_VERTEX_MASTER, DSP_VERTEX_OTHERS)
 
 
 /**
  * Creates a new DSP vertex.
  *
- * \param index   The index of the corresponding DSP node in the DSP table
- *                -- must be >= \c 0 and < \c KQT_DSP_NODES_MAX, or either
- *                \c DSP_VERTEX_MASTER or \c DSP_VERTEX_OTHERS.
+ * \param name   The name of the vertex -- must not be \c NULL.
  *
  * \return   The new DSP vertex if successful, or \c NULL if memory allocation
  *           failed.
  */
-DSP_vertex* new_DSP_vertex(int index);
+DSP_vertex* new_DSP_vertex(const char* name);
 
 
 /**
@@ -75,14 +70,13 @@ int DSP_vertex_cmp(const DSP_vertex* v1, const DSP_vertex* v2);
 
 
 /**
- * Gets the index of the corresponding DSP node in the DSP table.
+ * Gets the name of the corresponding DSP node in the DSP table.
  *
  * \param vertex   The DSP vertex -- must not be \c NULL.
  *
- * \return   The index. \c -1 indicates that this vertex represents the
- *           master node, and \c -2 represents the "others" node.
+ * \return   The name.
  */
-int DSP_vertex_get_index(DSP_vertex* vertex);
+char* DSP_vertex_get_name(DSP_vertex* vertex);
 
 
 /**

@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <string.h>
 
 #include <DSP_vertex.h>
 #include <kunquat/limits.h>
@@ -31,23 +32,23 @@ typedef struct DSP_edge
 
 struct DSP_vertex
 {
-    int index;
+    char name[KQT_DSP_VERTEX_NAME_MAX];
     DSP_vertex_state state;
     DSP_edge* iter;
     DSP_edge* adj[KQT_DSP_PORTS_MAX];
 };
 
 
-DSP_vertex* new_DSP_vertex(int index)
+DSP_vertex* new_DSP_vertex(const char* name)
 {
-    assert(index >= DSP_VERTEX_MIN);
-    assert(index < KQT_DSP_NODES_MAX);
+    assert(name != NULL);
     DSP_vertex* vertex = xalloc(DSP_vertex);
     if (vertex == NULL)
     {
         return NULL;
     }
-    vertex->index = index;
+    strncpy(vertex->name, name, KQT_DSP_VERTEX_NAME_MAX - 1);
+    vertex->name[KQT_DSP_VERTEX_NAME_MAX - 1] = '\0';
     vertex->state = DSP_VERTEX_STATE_NEW;
     vertex->iter = NULL;
     for (int i = 0; i < KQT_DSP_PORTS_MAX; ++i)
@@ -62,14 +63,14 @@ int DSP_vertex_cmp(const DSP_vertex* v1, const DSP_vertex* v2)
 {
     assert(v1 != NULL);
     assert(v2 != NULL);
-    return v1->index - v2->index;
+    return strcmp(v1->name, v2->name);
 }
 
 
-int DSP_vertex_get_index(DSP_vertex* vertex)
+char* DSP_vertex_get_name(DSP_vertex* vertex)
 {
     assert(vertex != NULL);
-    return vertex->index;
+    return vertex->name;
 }
 
 
