@@ -96,6 +96,18 @@ extern "C" {
 
 
 /**
+ * Maximum number of DSP nodes in a Kunquat Handle.
+ */
+#define KQT_DSP_NODES_MAX (512)
+
+
+/**
+ * Maximum number of input/output ports in a DSP node.
+ */
+#define KQT_DSP_PORTS_MAX KQT_GENERATORS_MAX
+
+
+/**
  * Maximum number of Scales in a Kunquat Handle.
  */
 #define KQT_SCALES_MAX (16)
