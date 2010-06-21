@@ -59,12 +59,15 @@ static bool DSP_graph_is_cyclic(DSP_graph* graph);
  *
  * This function also strips the port directory off the path.
  *
- * \param str     The path -- must not be \c NULL.
- * \param state   The Read state -- must not be \c NULL.
+ * \param str         The path -- must not be \c NULL.
+ * \param ins_level   Whether this connection is in the Instrument level or not.
+ * \param state       The Read state -- must not be \c NULL.
  *
  * \return   The port number if the path is valid, otherwise \c -1.
  */
-static int validate_connection_path(char* str, Read_state* state);
+static int validate_connection_path(char* str,
+                                    bool ins_level,
+                                    Read_state* state);
 
 
 #define clean_if(expr, graph, vertex)   \
@@ -81,7 +84,9 @@ static int validate_connection_path(char* str, Read_state* state);
         }                               \
     } else (void)0
 
-DSP_graph* new_DSP_graph_from_string(char* str, Read_state* state)
+DSP_graph* new_DSP_graph_from_string(char* str,
+                                     bool ins_level,
+                                     Read_state* state)
 {
     assert(state != NULL);
     if (state->error)
@@ -130,8 +135,8 @@ DSP_graph* new_DSP_graph_from_string(char* str, Read_state* state)
         str = read_string(str, dest_name, KQT_DSP_VERTEX_NAME_MAX, state);
         str = read_const_char(str, ']', state);
 
-        int src_port = validate_connection_path(src_name, state);
-        int dest_port = validate_connection_path(dest_name, state);
+        int src_port = validate_connection_path(src_name, ins_level, state);
+        int dest_port = validate_connection_path(dest_name, ins_level, state);
         clean_if(state->error, graph, NULL);
         
         if (AAtree_get_exact(graph->vertices, src_name) == NULL)
@@ -235,7 +240,9 @@ static int read_index(char* str)
 }
 
 
-static int validate_connection_path(char* str, Read_state* state)
+static int validate_connection_path(char* str,
+                                    bool ins_level,
+                                    Read_state* state)
 {
     assert(str != NULL);
     assert(state != NULL);
@@ -243,17 +250,20 @@ static int validate_connection_path(char* str, Read_state* state)
     {
         return -1;
     }
-    if (*str != '/')
-    {
-        Read_state_set_error(state, "The connection begins with '%c'"
-                " instead of '/'", *str);
-        return -1;
-    }
-    ++str;
-    bool in_allowed = false;
+    bool instrument = false;
     bool generator = false;
+    bool dsp = false;
+    bool root = true;
     if (string_has_prefix(str, "ins_"))
     {
+        if (ins_level)
+        {
+            Read_state_set_error(state,
+                    "Instrument directory in an instrument-level connection");
+            return -1;
+        }
+        instrument = true;
+        root = false;
         str += strlen("ins_");
         if (read_index(str) >= KQT_INSTRUMENTS_MAX)
         {
@@ -277,38 +287,45 @@ static int validate_connection_path(char* str, Read_state* state)
             return -1;
         }
         str += strlen(MAGIC_ID "iXX/");
-        if (string_has_prefix(str, "gen_"))
-        {
-            generator = true;
-            str += strlen("gen_");
-            if (read_index(str) >= KQT_GENERATORS_MAX)
-            {
-                Read_state_set_error(state,
-                        "Invalid generator number in the connection");
-                return -1;
-            }
-            str += 2;
-            if (*str != '/')
-            {
-                Read_state_set_error(state,
-                        "Unexpected '%c' after the generator number"
-                        " in the connection", *str);
-                return -1;
-            }
-            ++str;
-            if (!string_has_prefix(str, "C/"))
-            {
-                Read_state_set_error(state,
-                        "Invalid generator parameter directory"
-                        " in the connection");
-                return -1;
-            }
-            str += strlen("C/");
-        }
     }
-    if (string_has_prefix(str, "dsp_") && !generator)
+    else if (string_has_prefix(str, "gen_"))
     {
-        in_allowed = true;
+        if (!ins_level)
+        {
+            Read_state_set_error(state,
+                    "Generator directory in a root-level connection");
+        }
+        root = false;
+        generator = true;
+        str += strlen("gen_");
+        if (read_index(str) >= KQT_GENERATORS_MAX)
+        {
+            Read_state_set_error(state,
+                    "Invalid generator number in the connection");
+            return -1;
+        }
+        str += 2;
+        if (*str != '/')
+        {
+            Read_state_set_error(state,
+                    "Unexpected '%c' after the generator number"
+                    " in the connection", *str);
+            return -1;
+        }
+        ++str;
+        if (!string_has_prefix(str, "C/"))
+        {
+            Read_state_set_error(state,
+                    "Invalid generator parameter directory"
+                    " in the connection");
+            return -1;
+        }
+        str += strlen("C/");
+    }
+    else if (string_has_prefix(str, "dsp_"))
+    {
+        root = false;
+        dsp = true;
         str += strlen("dsp_");
         if (read_index(str) >= KQT_DSP_NODES_MAX)
         {
@@ -336,12 +353,17 @@ static int validate_connection_path(char* str, Read_state* state)
     }
     if (string_has_prefix(str, "in_") || string_has_suffix(str, "out_"))
     {
-        if (string_has_prefix(str, "in_") && !in_allowed)
+        if (string_has_prefix(str, "in_") && (instrument || generator))
         {
             Read_state_set_error(state,
                     "Input ports are not allowed for instruments"
                     " or generators");
             return -1;
+        }
+        if (string_has_prefix(str, "in_") && root)
+        {
+            Read_state_set_error(state,
+                    "Input ports are not allowed for root");
         }
         char* trim_point = str;
         str += strcspn(str, "_") + 1;

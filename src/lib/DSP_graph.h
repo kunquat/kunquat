@@ -16,6 +16,8 @@
 #define K_DSP_GRAPH_H
 
 
+#include <stdbool.h>
+
 #include <DSP_vertex.h>
 #include <File_base.h>
 
@@ -29,13 +31,16 @@ typedef struct DSP_graph DSP_graph;
 /**
  * Creates a new DSP graph from a string.
  *
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
+ * \param str         The textual description.
+ * \param ins_level   Whether this is an instrument-level graph or not.
+ * \param state       The Read state -- must not be \c NULL.
  *
  * \return   The new DSP graph if successful, otherwise \c NULL. \a state
  *           will not be modified if memory allocation failed.
  */
-DSP_graph* new_DSP_graph_from_string(char* str, Read_state* state);
+DSP_graph* new_DSP_graph_from_string(char* str,
+                                     bool ins_level,
+                                     Read_state* state);
 
 
 /**
