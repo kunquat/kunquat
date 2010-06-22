@@ -152,10 +152,16 @@ uint32_t Generator_noise_mix(Generator* gen,
     {
         Generator_common_handle_pitch(gen, state);        
         double vals[KQT_BUFFERS_MAX] = { 0 };
-	double temp = rand_u;
-	power_law_filter(noise->order, noise_state->buf[0], temp, vals[0]);
-	temp = rand_u;
-	power_law_filter(noise->order, noise_state->buf[1], temp, vals[1]);
+	if(noise->order < 0)
+	  {
+	    vals[0] = dc_pole_filter(-noise->order, noise_state->buf[0], rand_u);
+	    vals[1] = dc_pole_filter(-noise->order, noise_state->buf[1], rand_u);
+	  }
+	else 
+	  {
+	    vals[0] = dc_zero_filter( noise->order, noise_state->buf[0], rand_u);
+	    vals[1] = dc_zero_filter( noise->order, noise_state->buf[1], rand_u);
+	  }
         Generator_common_handle_force(gen, state, vals, 2, freq);
         Generator_common_handle_filter(gen, state, vals, 2, freq);
         Generator_common_ramp_attack(gen, state, vals, 2, freq);
