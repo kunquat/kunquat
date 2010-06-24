@@ -32,11 +32,10 @@
 
 typedef struct Filter_state
 {
-    double coeffs1[FILTER_ORDER]; ///< First coefficient table.
-    double coeffs2[FILTER_ORDER + 1]; ///< Second coefficient table.
-    kqt_frame history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
-    kqt_frame history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
-    int buf_pos;                  ///< Current buffer position.
+    double coeffs[FILTER_ORDER]; ///< Coefficient table.
+    double a0;
+    double history1[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
+    double history2[KQT_BUFFERS_MAX][FILTER_ORDER]; ///< History buffer.
 } Filter_state;
 
 

@@ -25,90 +25,13 @@
 #include <Filter.h>
 
 
-const double  bt[BINOM_MAX * (BINOM_MAX + 1) / 2] =
-                  { 1.0,
-                    1.0,  1.0,
-                    1.0,  2.0,   1.0,
-                    1.0,  3.0,   3.0,   1.0,
-                    1.0,  4.0,   6.0,   4.0,   1.0,
-                    1.0,  5.0,  10.0,  10.0,   5.0,   1.0,
-                    1.0,  6.0,  15.0,  20.0,  15.0,   6.0,   1.0,
-                    1.0,  7.0,  21.0,  35.0,  35.0,  21.0,   7.0,  1.0,
-                    1.0,  8.0,  28.0,  56.0,  70.0,  56.0,  28.0,  8.0,  1.0 };
-
-
-const double nbt[BINOM_MAX * (BINOM_MAX + 1) / 2] =
-                  {  1.0,
-                    -1.0,  1.0,
-                     1.0, -2.0,   1.0,
-                    -1.0,  3.0, - 3.0,   1.0,
-                     1.0, -4.0,   6.0, - 4.0,   1.0,
-                    -1.0,  5.0, -10.0,  10.0, - 5.0,   1.0,
-                     1.0, -6.0,  15.0, -20.0,  15.0, - 6.0,   1.0,
-                    -1.0,  7.0, -21.0,  35.0, -35.0,  21.0, - 7.0,  1.0,
-                     1.0, -8.0,  28.0, -56.0,  70.0, -56.0,  28.0, -8.0,  1.0 };
-
-
-const double* binom[BINOM_MAX] = { bt     ,
-                                   bt + 1 ,
-                                   bt + 3 ,
-                                   bt + 6 ,
-                                   bt + 10,
-                                   bt + 15,
-                                   bt + 21,
-                                   bt + 28,
-                                   bt + 36 };
-
-
-const double* negbinom[BINOM_MAX] = { nbt     ,
-                                      nbt + 1 ,
-                                      nbt + 3 ,
-                                      nbt + 6 ,
-                                      nbt + 10,
-                                      nbt + 15,
-                                      nbt + 21,
-                                      nbt + 28,
-                                      nbt + 36 };
-
-
 double sinc(double x)
 {
     return x == 0.0 ? 1.0 : sin(x) / x;
 }
 
 
-double powi(double x, int n)
-{
-    double ret = 1.0;
-    while (n > 0)
-    {
-        if ((n & 1) != 0)
-        {
-            ret *= x;
-        }
-        n >>= 1;
-        x *= x;
-    }
-    return ret;
-}
-
-
-double poly(double x, int n, ...)
-{
-    va_list args;
-    double ret;
-    va_start(args, n);
-    ret = va_arg(args, double);
-    for (int i = 0; i < n; ++i)
-    {
-        ret = ret * x + va_arg(args, double);
-    }
-    va_end(args);
-    return ret;
-}
-
-
-void simple_lowpass_fir_create(int n, double f, double coeffs[])
+void simple_lowpass_fir_create(int n, double f, double *coeffs)
 {
     for (int i = 0; i <= n; ++i)
     {
@@ -118,153 +41,60 @@ void simple_lowpass_fir_create(int n, double f, double coeffs[])
 }
 
 
-#define C1 1.41421356237309504880 //sqrt(2)
-#define C2 2.61312592975275305571 //sqrt(4+2*sqrt(2)) or equivalently sqrt(2+sqrt(2))+sqrt(2-sqrt(2))
-#define C3 2.23606797749978969641 //sqrt(5)
-#define C4 1.73205080756887729353 //sqrt(3)
-#define C5 2.44948974278317809820 //sqrt(6)
-
-
-void bilinear_butterworth_lowpass_filter_create(int n,
-                                                double f,
-                                                double q,
-                                                double coeffsa[],
-                                                double coeffsb[])
+void two_pole_lowpass_filter_create(double f,
+                                    double q,
+                                    double coeffs[2],
+                                    double *a0)
 {
-    assert(n >= 1);
-    assert(n <= 6);
     assert(f < 0.5);
-    assert(q >= 1.0);
+    assert(q >= 0.5);
     assert(q <= 1000);
-    assert(coeffsa != NULL);
-    assert(coeffsb != NULL);
-//    static int created = 0;
-//    fprintf(stderr, "  %d \n", ++created);
+    assert(coeffs != NULL);
+    assert(a0 != NULL);
+    //    static int created = 0;
+    //    fprintf(stderr, "  %d \n", ++created);
 
-    double a0   = 1.0;
-    double fna0 = 1.0;
-    f = tan(PI * f); //Prewarp
-    switch(n)
-    {
-        case 1:
-        {
-            coeffsa[0] = poly(f, 1, 1.0, -1.0);
-            a0         = poly(f, 1, 1.0,  1.0);
-        }
-        break;
-        case 2:
-        {
-            coeffsa[0] = poly(f, 2, 1.0, -C1 / q,  1.0);
-            coeffsa[1] = poly(f, 2, 2.0, 0.0, -2.0);
-            a0         = poly(f, 2, 1.0,  C1 / q,  1.0);
-        }
-        break;
-        case 3:
-        {
-            coeffsa[0] = poly(f, 3, 1.0, -2.0,  2.0, -1.0);
-            coeffsa[1] = poly(f, 3, 3.0, -2.0, -2.0,  3.0);
-            coeffsa[2] = poly(f, 3, 3.0,  2.0, -2.0, -3.0);
-            a0         = poly(f, 3, 1.0,  2.0,  2.0,  1.0);
-        }
-        break;
-        case 4:
-        {
-            coeffsa[0] = poly(f, 4, 1.0, -  C2,  2.0+  C1, -  C2,  1.0);
-            coeffsa[1] = poly(f, 4, 4.0, -2*C2,       0.0,  2*C2, -4.0);
-            coeffsa[2] = poly(f, 4, 6.0,   0.0, -4.0-2*C1,   0.0,  6.0);
-            coeffsa[3] = poly(f, 4, 4.0,  2*C2,       0.0, -2*C2, -4.0);
-            a0         = poly(f, 4, 1.0,    C2,  2.0+  C1,    C2,  1.0);
-        }
-        break;
-        case 5:
-        {
-            coeffsa[0] = poly(f, 5,  1.0, -1.0-  C3,  3.0+  C3, -3.0-  C3,  1.0+  C3, - 1.0);
-            coeffsa[1] = poly(f, 5,  5.0, -3.0-3*C3,  3.0+  C3,  3.0+  C3, -3.0-3*C3,   5.0);
-            coeffsa[2] = poly(f, 5, 10.0, -2.0-2*C3, -6.0-2*C3,  6.0+2*C3,  2.0+2*C3, -10.0);
-            coeffsa[3] = poly(f, 5, 10.0,  2.0+2*C3, -6.0-2*C3, -6.0-2*C3,  2.0+2*C3,  10.0);
-            coeffsa[4] = poly(f, 5,  5.0,  3.0+3*C3,  3.0+  C3, -3.0-  C3, -3.0-3*C3, - 5.0);
-            a0         = poly(f, 5,  1.0,  1.0+  C3,  3.0+  C3,  3.0+  C3,  1.0+  C3,   1.0);
-        }
-        break;
-        case 6:
-        {
-            coeffsa[0] = poly(f, 6,  1.0, -  C1-  C5,   4.0+2*C4, -3*C1-2*C5,   4.0+2*C4,  -  C1-  C5,   1.0);
-            coeffsa[1] = poly(f, 6,  6.0, -4*C1-4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,   4*C1+4*C5, - 6.0);
-            coeffsa[2] = poly(f, 6, 15.0, -5*C1-5*C5, - 4.0-2*C4,  9*C1+6*C5, - 4.0-2*C4,  -5*C1-5*C5,  15.0);
-            coeffsa[3] = poly(f, 6, 20.0,        0.0, -16.0-8*C4,        0.0,  16.0+8*C4,         0.0, -20.0);
-            coeffsa[4] = poly(f, 6, 15.0,  5*C1+5*C5, - 4.0-2*C4, -9*C1-6*C5, - 4.0-2*C4,   5*C1+5*C5,  15.0);
-            coeffsa[5] = poly(f, 6,  6.0,  4*C1+4*C5,   8.0+4*C4,        0.0, - 8.0-4*C4,  -4*C1-4*C5, - 6.0);
-            a0         = poly(f, 6,  1.0,    C1+  C5,   4.0+2*C4,  3*C1+2*C5,   4.0+2*C4,     C1+  C5,   1.0);
-        }
-        break;
-        default:
-        {
-            assert(false);
-        }
-    }
-    for (int i = 0; i < n; ++i)
-    {
-        coeffsa[i] /= a0;
-    }
-    fna0 = powi(f, n) / a0;
-    for (int i = 0; i <= n; ++i)
-    {
-        coeffsb[i] = binom[n][i] * fna0;
-    }
+    f = 1.0 / tan(PI * f); //Prewarp
+    double i2q = 1.0 / (2 * q);
+    double a0_temp   = ((f + i2q) * (f + i2q) + (1.0 + i2q) * (1.0 - i2q))          ;
+           coeffs[0] = ((f - i2q) * (f - i2q) + (1.0 + i2q) * (1.0 - i2q)) / a0_temp;
+           coeffs[1] = 2 * (1.0 + f) * (1.0 - f) / a0_temp;
+    *a0 = a0_temp;
     return;
 }
 
 
-void bilinear_chebyshev_t1_lowpass_filter_create(int n,
-                                                 double f,
-                                                 double e,
-                                                 double* coeffsa,
-                                                 double* coeffsb)
+void butterworth_lowpass_filter_create(int n,
+                                       double f,
+                                       double coeffs[n],
+                                       double *a0)
+
 {
-    int i;
-    double a0 = 1.0;
-    double fna0 = 0;
- 
-    double temp1 = pow((sqrt(1.0 + e * e) + 1.0) / 2, 1.0 / n);
-    double temp2 = pow((sqrt(1.0 + e * e) - 1.0) / 2, 1.0 / n);
-    double sh = temp1-temp2;
-    double ch = temp1+temp2;
- 
-    f = tan(PI*f);
- 
-    switch(n)
+    assert(n >= 1);
+    assert(f < 0.5);
+    assert(coeffs != NULL);
+    assert(a0 != NULL);
+    //    static int created = 0;
+    //    fprintf(stderr, "  %d \n", ++created);
+
+    f = 1.0 / tan(PI * f); //Prewarp
+    double a0_tot  = 1.0;
+    for(int i = 0; i < (n & ~((int)1)); i += 2)
     {
-        case 1:
-        {
-            coeffsa[0] = poly(f, n, sh, -1.0);
-            a0         = poly(f, n, sh,  1.0);
-        }
-        break;
-        case 2:
-        {
-            coeffsa[0] = poly(f, n, (sh*sh+ch*ch)/2, -sh*C1,  1.0);
-            coeffsa[1] = poly(f, n,  sh*sh+ch*ch   ,    0.0, -2.0);
-            a0         = poly(f, n, (sh*sh+ch*ch)/2,  sh*C1,  1.0);
-        }
-        break;
-        default:
-        {
-            assert(false);
-        }
-        break;
+        double sini = sin(PI / (2 * n) * (i + 1));
+        double cosi = cos(PI / (2 * n) * (i + 1));
+        double a0_temp     = ((sini + f) * (sini + f) + cosi * cosi)          ;
+               coeffs[i  ] = ((sini - f) * (sini - f) + cosi * cosi) / a0_temp;
+               coeffs[i+1] = 2 * (1.0 + f) * (1.0 - f) / a0_temp;
+        a0_tot *= a0_temp;
     }
- 
-    for (i = 0; i < n; ++i)
+    if(n & 1)
     {
-        coeffsa[i] /= a0;
+        double a0_temp     = (1.0 + f)          ;
+               coeffs[n-1] = (1.0 - f) / a0_temp;
+        a0_tot *= a0_temp;
     }
- 
-    fna0 = powi(f, n) * e * (1 << (n - 1)) / a0;
- 
-    for (i = 0; i <= n; ++i)
-    {
-        coeffsb[i] = binom[n][i] * fna0;
-    }
+    *a0 = a0_tot;
     return;
 }
 
@@ -298,6 +128,100 @@ void buffer(kqt_frame* histbuf,
 }
 
 
+double iir_filter_strict_cascade(int n,
+                                 double coeffs[n],
+                                 double buf[n],
+                                 double var)
+{
+    for (int i = 0; i < (n & ~((int)1)); i += 2)
+    {
+        var -= coeffs[i] * buf[i] + coeffs[i+1] * buf[i+1];
+        buf[i] = buf[i+1];
+        buf[i+1] = var;
+    }
+    if (n & 1)
+    {
+        var -= coeffs[n-1] * buf[n-1];
+        buf[n-1] = var;
+    }
+    return var;
+}
+
+
+double iir_filter_strict_transposed_cascade(int n,
+                                            double coeffs[n],
+                                            double buf[n],
+                                            double var)
+{
+    for (int i = 0; i < (n & ~((int)1)); i += 2)
+    {
+        var += buf[i+1];
+        buf[i+1] = buf[i] - coeffs[i+1] * var;
+        buf[i] = -coeffs[i] * var;
+    }
+    if (n & 1)
+    {
+        var += buf[n-1];
+        buf[n-1] = -coeffs[n-1] * var;
+    }
+    return var;
+}
+
+
+double dc_zero_filter(int n,
+                      double buf[n],
+                      double var)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        double temp = buf[i];
+        buf[i] = var;
+        var -= temp;
+    }
+    return var;
+}
+
+
+double nq_zero_filter(int n,
+                      double buf[n],
+                      double var)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        double temp = buf[i];
+        buf[i] = var;
+        var += temp;
+    }
+    return var;
+}
+
+
+double dc_pole_filter(int n,
+                      double buf[n],
+                      double var)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        var += buf[i];
+        buf[i] = var;
+    }
+    return var;
+}
+
+
+double nq_pole_filter(int n,
+                      double buf[n],
+                      double var)
+{
+    for (int i = 0; i < n; ++i)
+    {
+        var -= buf[i];
+        buf[i] = var;
+    }
+    return var;
+}
+
+
 #if 0
 void fir_filter(int n,
                 double* coeffs,
@@ -317,51 +241,6 @@ void fir_filter(int n,
  
     buffer(histbuf, inbuf, n, nframes);
  
-    return;
-}
-#endif
-
-
-void iir_filter_df1_old(int na,
-                        int nb,
-                        double* coeffsa,
-                        double* coeffsb,
-                        kqt_frame* histbufa,
-                        kqt_frame* histbufb,
-                        int nframes,
-                        kqt_frame* inbuf,
-                        kqt_frame* outbuf)
-{
-    double temp;
-    for (int i = 0; i < nframes; ++i)
-    {
-        temp = inbuf[i] * coeffsb[nb];
-        dprod2(histbufa, outbuf, coeffsa, na, i, temp, -=);
-        dprod2(histbufb,  inbuf, coeffsb, nb, i, temp, +=);
-        outbuf[i] = temp;
-    }
-    buffer(histbufa, outbuf, na, nframes);
-    buffer(histbufb,  inbuf, nb, nframes);
-    return;
-}
-
-
-#if 0
-void iir_filter_pure(int n,
-                     double* coeffs,
-                     kqt_frame* histbuf,
-                     int nframes,
-                     kqt_frame* inbuf,
-                     kqt_frame* outbuf)
-{
-    double temp;
-    for (int i = 0; i < nframes; ++i)
-    {
-        temp = inbuf[i];
-        dprod2(histbuf, outbuf, coeffs, n, i, temp, -=);
-        outbuf[i] = temp;
-    }
-    buffer(histbuf, outbuf, n, nframes);
     return;
 }
 #endif

@@ -27,14 +27,12 @@
 #include <Voice_state.h>
 #include <Filter.h>
 
+#define NOISE_MAX 8
 
 typedef struct Voice_state_noise
 {
     Voice_state parent;
-    int k;
-    double buf[2][BINOM_MAX];
-    double bufa[2][BINOM_MAX];
-    double bufb[2][BINOM_MAX];
+    double buf[2][NOISE_MAX];
 } Voice_state_noise;
 
 
