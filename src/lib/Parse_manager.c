@@ -268,8 +268,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strncmp(subkey, MAGIC_ID "iXX/", 11) != 0 &&
-            strncmp(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/", 11) != 0)
+    if (!string_has_prefix(subkey, MAGIC_ID "iXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/"))
     {
         return true;
     }
@@ -412,6 +412,13 @@ static bool parse_generator_level(kqt_Handle* handle,
     {
         return true;
     }
+    if (!string_has_prefix(subkey, MAGIC_ID "gXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "g" KQT_FORMAT_VERSION "/"))
+    {
+        return true;
+    }
+    subkey = strchr(subkey, '/');
+    ++subkey;
     Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
     bool new_ins = ins == NULL;
     if (new_ins)

@@ -272,21 +272,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (*str != '/')
+        if (!string_has_prefix(str, "/" MAGIC_ID "iXX/"))
         {
             Read_state_set_error(state,
-                    "Unexpected '%c' after the instrument number"
-                    " in the connection", *str);
-            return -1;
-        }
-        ++str;
-        if (!string_has_prefix(str, MAGIC_ID "iXX/"))
-        {
-            Read_state_set_error(state, "Invalid instrument header"
+                    "Missing instrument header after the instrument number"
                     " in the connection");
             return -1;
         }
-        str += strlen(MAGIC_ID "iXX/");
+        str += strlen("/" MAGIC_ID "iXX/");
     }
     else if (string_has_prefix(str, "gen_"))
     {
@@ -305,14 +298,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (*str != '/')
+        if (!string_has_prefix(str, "/" MAGIC_ID "gXX/"))
         {
             Read_state_set_error(state,
-                    "Unexpected '%c' after the generator number"
-                    " in the connection", *str);
+                    "Missing generator header after the generator number"
+                    " in the connection");
             return -1;
         }
-        ++str;
+        str += strlen("/" MAGIC_ID "gXX/");
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,
@@ -334,14 +327,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (*str != '/')
+        if (!string_has_prefix(str, "/" MAGIC_ID "eXX/"))
         {
             Read_state_set_error(state,
-                    "Unexpected '%c' after the DSP number"
+                    "Missing DSP header after the DSP number"
                     " in the connection", *str);
             return -1;
         }
-        ++str;
+        str += strlen("/" MAGIC_ID "eXX/");
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,
