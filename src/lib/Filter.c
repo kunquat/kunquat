@@ -41,10 +41,11 @@ void simple_lowpass_fir_create(int n, double f, double *coeffs)
 }
 
 
-void two_pole_lowpass_filter_create(double f,
-                                    double q,
-                                    double coeffs[2],
-                                    double *a0)
+void two_pole_filter_create(double f,
+			    double q,
+			    int s,
+			    double coeffs[2],
+			    double *a0)
 {
   assert(f < 0.5);
   assert(q >= 0.5);
@@ -54,20 +55,32 @@ void two_pole_lowpass_filter_create(double f,
   //    static int created = 0;
   //    fprintf(stderr, "  %d \n", ++created);
 
-  f = 1.0 / tan(PI * f); //Prewarp
+  if (s == 1)
+    {
+      f = 1.0 / tan(PI * f); //Prewarp
+    }
+  else if (s == -1)
+    {
+      f = tan(PI * f); //Prewarp
+    }
+  else
+    {
+      assert(false);
+    }
   double i2q = 1.0 / (2 * q);
-  double a0_temp   = ((f + i2q) * (f + i2q) + (1.0 + i2q) * (1.0 - i2q))          ;
-         coeffs[0] = ((f - i2q) * (f - i2q) + (1.0 + i2q) * (1.0 - i2q)) / a0_temp;
-         coeffs[1] = 2 * (1.0 + f) * (1.0 - f) / a0_temp;
+  double a0_temp   = ((i2q + f) * (i2q + f) + (1.0 + i2q) * (1.0 - i2q))          ;
+         coeffs[0] = ((i2q - f) * (i2q - f) + (1.0 + i2q) * (1.0 - i2q)) / a0_temp;
+         coeffs[1] = s * 2 * (1.0 + f) * (1.0 - f) / a0_temp;
   *a0 = a0_temp;
   return;
 }
 
 
-void butterworth_lowpass_filter_create(int n,
-                                       double f,
-                                       double coeffs[n],
-                                       double *a0)
+void butterworth_filter_create(int n,
+			       double f,
+			       int s,
+			       double coeffs[n],
+			       double *a0)
 
 {
     assert(n >= 1);
@@ -77,7 +90,19 @@ void butterworth_lowpass_filter_create(int n,
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    f = 1.0 / tan(PI * f); //Prewarp
+
+    if (s == 1)
+      {
+	f = 1.0 / tan(PI * f); //Prewarp
+      }
+    else if (s == -1)
+      {
+	f = tan(PI * f); //Prewarp
+      }
+    else
+      {
+	assert(false);
+      }
     double a0_tot  = 1.0;
     for(int i = 0; i < (n & ~((int)1)); i += 2)
       {
@@ -85,13 +110,13 @@ void butterworth_lowpass_filter_create(int n,
         double cosi = cos(PI / (2 * n) * (i + 1));
         double a0_temp     = ((sini + f) * (sini + f) + cosi * cosi)          ;
                coeffs[i  ] = ((sini - f) * (sini - f) + cosi * cosi) / a0_temp;
-               coeffs[i+1] = 2 * (1.0 + f) * (1.0 - f) / a0_temp;
+               coeffs[i+1] = s * 2 * (1.0 + f) * (1.0 - f) / a0_temp;
         a0_tot *= a0_temp;
       }
     if(n & 1)
       {
-        double a0_temp     = (1.0 + f)          ;
-               coeffs[n-1] = (1.0 - f) / a0_temp;
+        double a0_temp     =     (1.0 + f)          ;
+               coeffs[n-1] = s * (1.0 - f) / a0_temp;
         a0_tot *= a0_temp;
       }
     *a0 = a0_tot;

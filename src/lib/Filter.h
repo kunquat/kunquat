@@ -41,16 +41,18 @@
     } else (void)0
 
 
-void two_pole_lowpass_filter_create(double f,
-                                    double q,
-                                    double coeffs[2],
-                                    double *a0);
+void two_pole_filter_create(double f,
+			    double q,
+			    int s,
+			    double coeffs[2],
+			    double *a0);
 
 
-void butterworth_lowpass_filter_create(int n,
-                                       double f,
-                                       double coeffs[n],
-                                       double *a0);
+void butterworth_filter_create(int n,
+			       double f,
+			       int s,
+			       double coeffs[n],
+			       double *a0);
 
 
 double iir_filter_strict_cascade(int n,

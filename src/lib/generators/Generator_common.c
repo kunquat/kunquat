@@ -535,10 +535,11 @@ void Generator_common_handle_filter(Generator* gen,
         if (state->actual_filter < freq / 2)
         {
             int new_state = 1 - abs(state->filter_state_used);
-	    two_pole_lowpass_filter_create(state->actual_filter / freq,
-					   state->filter_resonance,
-					   state->filter_state[new_state].coeffs,
-					   &state->filter_state[new_state].a0);
+	    two_pole_filter_create(state->actual_filter / freq,
+				   state->filter_resonance,
+				   1,
+				   state->filter_state[new_state].coeffs,
+				   &state->filter_state[new_state].a0);
             for (int i = 0; i < gen->ins_params->buf_count; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
