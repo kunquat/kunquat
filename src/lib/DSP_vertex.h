@@ -99,49 +99,66 @@ DSP_vertex_state DSP_vertex_get_state(DSP_vertex* vertex);
 
 
 /**
- * Adds a neighbour of a DSP vertex.
+ * Connects two DSP vertices.
  *
- * \param vertex     The DSP vertex -- must not be \c NULL.
- * \param in_port    The input port number of \a vertex -- must be >= \c 0 and
- *                   < \c KQT_DSP_PORTS_MAX.
- * \param adj        The neighbouring DSP vertex -- must not be \c NULL.
- * \param out_port   The output port number of \a adj -- must be >= \c 0 and
- *                   < \c KQT_DSP_PORTS_MAX.
+ * \param receiver    The DSP vertex that receives audio -- must not
+ *                    be \c NULL.
+ * \param rec_port    The receive port number of \a receiver -- must be
+ *                    >= \c 0 and < \c KQT_DSP_PORTS_MAX.
+ * \param sender      The DSP vertex that sends audio -- must not be \c NULL.
+ * \param send_port   The send port number of \a sender -- must be >= \c 0
+ *                    and < \c KQT_DSP_PORTS_MAX.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool DSP_vertex_set_adjacent(DSP_vertex* vertex,
-                             int in_port,
-                             DSP_vertex* adj,
-                             int out_port);
+bool DSP_vertex_connect(DSP_vertex* receiver,
+                        int rec_port,
+                        DSP_vertex* sender,
+                        int send_port);
 
 
 /**
- * Gets the first in a list of neighbours of a DSP vertex.
+ * Gets the first in a list of DSP vertices that send audio to this DSP vertex.
  *
- * \param vertex     The DSP vertex -- must not be \c NULL.
- * \param in_port    The input port number -- must be >= \c 0 and
- *                   < \c KQT_DSP_PORTS_MAX.
- * \param out_port   A pointer where the output port of the returned vertex
- *                   will be stored, or \c NULL.
+ * \param vertex      The DSP vertex -- must not be \c NULL.
+ * \param rec_port    The receive port number -- must be >= \c 0 and
+ *                    < \c KQT_DSP_PORTS_MAX.
+ * \param send_port   A pointer where the send port of the returned vertex
+ *                    will be stored, or \c NULL.
  *
- * \return   The first neighbour if one exists, otherwise \c NULL.
+ * \return   The first sender if one exists, otherwise \c NULL.
  */
-DSP_vertex* DSP_vertex_get_adjacent(DSP_vertex* vertex,
-                                    int in_port,
-                                    int* out_port);
+DSP_vertex* DSP_vertex_get_sender(DSP_vertex* vertex,
+                                  int rec_port,
+                                  int* send_port);
+
+
+/**
+ * Gets the first in a list of DSP vertices that receive audio from this DSP vertex.
+ *
+ * \param vertex      The DSP vertex -- must not be \c NULL.
+ * \param send_port   The send port number -- must be >= \c 0 and
+ *                    < \c KQT_DSP_PORTS_MAX.
+ * \param rec_port    A pointer where the receive port of the returned
+ *                    vertex will be stored, or \c NULL.
+ *
+ * \return   The first receiver if one exists, otherwise \c NULL.
+ */
+DSP_vertex* DSP_vertex_get_receiver(DSP_vertex* vertex,
+                                    int send_port,
+                                    int* rec_port);
 
 
 /**
  * Gets the next neighbour from the last requested list of a DSP vertex.
  *
- * \param vertex     The DSP vertex -- must not be \c NULL.
- * \param out_port   A pointer where the output port of the returned vertex
- *                   will be stored, or \c NULL.
+ * \param vertex   The DSP vertex -- must not be \c NULL.
+ * \param port     A pointer where the port of the returned vertex
+ *                 will be stored, or \c NULL.
  *
  * \return   The next neighbour if one exists, otherwise \c NULL.
  */
-DSP_vertex* DSP_vertex_get_next(DSP_vertex* vertex, int* out_port);
+DSP_vertex* DSP_vertex_get_next(DSP_vertex* vertex, int* port);
 
 
 /**

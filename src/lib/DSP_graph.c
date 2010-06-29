@@ -157,10 +157,8 @@ DSP_graph* new_DSP_graph_from_string(char* str,
 
         assert(src_vertex != NULL);
         assert(dest_vertex != NULL);
-        // Note: we are creating the transpose of the input graph for mixing
-        //       purposes, so the edge goes from the destination to the source.
-        clean_if(!DSP_vertex_set_adjacent(dest_vertex, dest_port,
-                                          src_vertex, src_port), graph, NULL);
+        clean_if(!DSP_vertex_connect(dest_vertex, dest_port,
+                                     src_vertex, src_port), graph, NULL);
 
         check_next(str, state, expect_entry);
     }
