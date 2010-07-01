@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_DSP_GRAPH_H
-#define K_DSP_GRAPH_H
+#ifndef K_CONNECTIONS_H
+#define K_CONNECTIONS_H
 
 
 #include <stdbool.h>
@@ -25,32 +25,32 @@
 /**
  * This structure contains connection information of the DSP nodes.
  */
-typedef struct DSP_graph DSP_graph;
+typedef struct Connections Connections;
 
 
 /**
- * Creates a new DSP graph from a string.
+ * Creates new Connections from a string.
  *
  * \param str         The textual description.
  * \param ins_level   Whether this is an instrument-level graph or not.
  * \param state       The Read state -- must not be \c NULL.
  *
- * \return   The new DSP graph if successful, otherwise \c NULL. \a state
+ * \return   The new Connections if successful, otherwise \c NULL. \a state
  *           will not be modified if memory allocation failed.
  */
-DSP_graph* new_DSP_graph_from_string(char* str,
-                                     bool ins_level,
-                                     Read_state* state);
+Connections* new_Connections_from_string(char* str,
+                                         bool ins_level,
+                                         Read_state* state);
 
 
 /**
- * Destroys an existing DSP graph.
+ * Destroys existing Connections.
  *
- * \param graph   The DSP graph -- must not be \c NULL.
+ * \param graph   The Connections -- must not be \c NULL.
  */
-void del_DSP_graph(DSP_graph* graph);
+void del_Connections(Connections* graph);
 
 
-#endif // K_DSP_GRAPH_H
+#endif // K_CONNECTIONS_H
 
 

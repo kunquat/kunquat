@@ -20,14 +20,14 @@
 #include <string.h>
 
 #include <AAtree.h>
-#include <DSP_graph.h>
+#include <Connections.h>
 #include <DSP_vertex.h>
 #include <string_common.h>
 
 #include <xmemory.h>
 
 
-struct DSP_graph
+struct Connections
 {
     AAtree* vertices;
     AAiter* iter;
@@ -37,21 +37,21 @@ struct DSP_graph
 /**
  * Resets the graph for searching purposes.
  *
- * \param graph   The DSP graph -- must not be \c NULL.
+ * \param graph   The Connections -- must not be \c NULL.
  */
-static void DSP_graph_reset(DSP_graph* graph);
+static void Connections_reset(Connections* graph);
 
 
 /**
- * Tells whether there is a cycle inside a DSP graph.
+ * Tells whether there is a cycle inside Connections.
  *
- * All DSP graphs must be acyclic.
+ * All Connections must be acyclic.
  *
- * \param graph   The DSP graph -- must not be \c NULL.
+ * \param graph   The Connections -- must not be \c NULL.
  *
  * \return   \c true if there is a cycle in \a graph, otherwise \c false.
  */
-static bool DSP_graph_is_cyclic(DSP_graph* graph);
+static bool Connections_is_cyclic(Connections* graph);
 
 
 /**
@@ -79,21 +79,21 @@ static int validate_connection_path(char* str,
             {                           \
                 del_DSP_vertex(vertex); \
             }                           \
-            del_DSP_graph(graph);       \
+            del_Connections(graph);     \
             return NULL;                \
         }                               \
     } else (void)0
 
-DSP_graph* new_DSP_graph_from_string(char* str,
-                                     bool ins_level,
-                                     Read_state* state)
+Connections* new_Connections_from_string(char* str,
+                                         bool ins_level,
+                                         Read_state* state)
 {
     assert(state != NULL);
     if (state->error)
     {
         return NULL;
     }
-    DSP_graph* graph = xalloc(DSP_graph);
+    Connections* graph = xalloc(Connections);
     if (graph == NULL)
     {
         return NULL;
@@ -165,10 +165,10 @@ DSP_graph* new_DSP_graph_from_string(char* str,
     str = read_const_char(str, ']', state);
     clean_if(state->error, graph, NULL);
 
-    if (DSP_graph_is_cyclic(graph))
+    if (Connections_is_cyclic(graph))
     {
         Read_state_set_error(state, "The DSP graph contains a cycle");
-        del_DSP_graph(graph);
+        del_Connections(graph);
         return NULL;
     }
     return graph;
@@ -177,7 +177,7 @@ DSP_graph* new_DSP_graph_from_string(char* str,
 #undef clean_if
 
 
-static void DSP_graph_reset(DSP_graph* graph)
+static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
     int index = -1;
@@ -191,10 +191,10 @@ static void DSP_graph_reset(DSP_graph* graph)
 }
 
 
-static bool DSP_graph_is_cyclic(DSP_graph* graph)
+static bool Connections_is_cyclic(Connections* graph)
 {
     assert(graph != NULL);
-    DSP_graph_reset(graph);
+    Connections_reset(graph);
     int index = -1;
     DSP_vertex* vertex = AAiter_get(graph->iter, &index);
     while (vertex != NULL)
@@ -210,7 +210,7 @@ static bool DSP_graph_is_cyclic(DSP_graph* graph)
 }
 
 
-void del_DSP_graph(DSP_graph* graph)
+void del_Connections(Connections* graph)
 {
     assert(graph != NULL);
     if (graph->iter != NULL)
