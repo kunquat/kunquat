@@ -37,6 +37,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
     assert(freq > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));
+    (void)gen;
     if (state->freq != freq || state->tempo != tempo)
     {
         if (state->pitch_slide != 0)
@@ -748,6 +749,7 @@ void Generator_common_ramp_attack(Generator* gen,
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
+    (void)gen;
     if (state->ramp_attack < 1)
     {
         for (int i = 0; i < frame_count; ++i)
