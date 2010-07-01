@@ -15,25 +15,25 @@
 #include <stdlib.h>
 #include <assert.h>
 
-#include <DSP_buffer.h>
+#include <Audio_buffer.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
 
 #include <xmemory.h>
 
 
-struct DSP_buffer
+struct Audio_buffer
 {
     uint32_t size;
     kqt_frame* bufs[KQT_BUFFERS_MAX];
 };
 
 
-DSP_buffer* new_DSP_buffer(uint32_t size)
+Audio_buffer* new_Audio_buffer(uint32_t size)
 {
     assert(size > 0);
     assert(size <= 4194304);
-    DSP_buffer* buffer = xalloc(DSP_buffer);
+    Audio_buffer* buffer = xalloc(Audio_buffer);
     if (buffer == NULL)
     {
         return NULL;
@@ -48,7 +48,7 @@ DSP_buffer* new_DSP_buffer(uint32_t size)
         buffer->bufs[i] = xnalloc(kqt_frame, size);
         if (buffer->bufs[i] == NULL)
         {
-            del_DSP_buffer(buffer);
+            del_Audio_buffer(buffer);
             return NULL;
         }
     }
@@ -56,14 +56,14 @@ DSP_buffer* new_DSP_buffer(uint32_t size)
 }
 
 
-uint32_t DSP_buffer_get_size(DSP_buffer* buffer)
+uint32_t Audio_buffer_get_size(Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     return buffer->size;
 }
 
 
-bool DSP_buffer_resize(DSP_buffer* buffer, uint32_t size)
+bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 {
     assert(buffer != NULL);
     assert(size > 0);
@@ -83,7 +83,7 @@ bool DSP_buffer_resize(DSP_buffer* buffer, uint32_t size)
 }
 
 
-void DSP_buffer_clear(DSP_buffer* buffer)
+void Audio_buffer_clear(Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
@@ -97,7 +97,7 @@ void DSP_buffer_clear(DSP_buffer* buffer)
 }
 
 
-void DSP_buffer_mix(DSP_buffer* buffer, DSP_buffer* in)
+void Audio_buffer_mix(Audio_buffer* buffer, Audio_buffer* in)
 {
     assert(buffer != NULL);
     assert(in != NULL);
@@ -117,7 +117,7 @@ void DSP_buffer_mix(DSP_buffer* buffer, DSP_buffer* in)
 }
 
 
-kqt_frame* DSP_buffer_get_buffer(DSP_buffer* buffer, int index)
+kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index)
 {
     assert(buffer != NULL);
     assert(index >= 0);
@@ -126,7 +126,7 @@ kqt_frame* DSP_buffer_get_buffer(DSP_buffer* buffer, int index)
 }
 
 
-void del_DSP_buffer(DSP_buffer* buffer)
+void del_Audio_buffer(Audio_buffer* buffer)
 {
     assert(buffer != NULL);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
