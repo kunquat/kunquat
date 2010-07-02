@@ -16,43 +16,43 @@
 #include <assert.h>
 #include <string.h>
 
-#include <DSP_vertex.h>
+#include <Device_node.h>
 #include <kunquat/limits.h>
 
 #include <xmemory.h>
 
 
-typedef struct DSP_edge
+typedef struct Connection
 {
-    DSP_vertex* vertex; ///< The neighbour node.
-    int port;           ///< The port of the neighbour node.
-    struct DSP_edge* next;
-} DSP_edge;
+    Device_node* vertex;     ///< The neighbour node.
+    int port;                ///< The port of the neighbour node.
+    struct Connection* next;
+} Connection;
 
 
-struct DSP_vertex
+struct Device_node
 {
-    char name[KQT_DSP_VERTEX_NAME_MAX];
-    DSP_vertex_state state;
-    DSP_edge* iter;
-    DSP_edge* receive[KQT_DSP_PORTS_MAX];
-    DSP_edge* send[KQT_DSP_PORTS_MAX];
+    char name[KQT_DEVICE_NODE_NAME_MAX];
+    Device_node_state state;
+    Connection* iter;
+    Connection* receive[KQT_DEVICE_PORTS_MAX];
+    Connection* send[KQT_DEVICE_PORTS_MAX];
 };
 
 
-DSP_vertex* new_DSP_vertex(const char* name)
+Device_node* new_Device_node(const char* name)
 {
     assert(name != NULL);
-    DSP_vertex* vertex = xalloc(DSP_vertex);
+    Device_node* vertex = xalloc(Device_node);
     if (vertex == NULL)
     {
         return NULL;
     }
-    strncpy(vertex->name, name, KQT_DSP_VERTEX_NAME_MAX - 1);
-    vertex->name[KQT_DSP_VERTEX_NAME_MAX - 1] = '\0';
-    vertex->state = DSP_VERTEX_STATE_NEW;
+    strncpy(vertex->name, name, KQT_DEVICE_NODE_NAME_MAX - 1);
+    vertex->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
+    vertex->state = DEVICE_NODE_STATE_NEW;
     vertex->iter = NULL;
-    for (int i = 0; i < KQT_DSP_PORTS_MAX; ++i)
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
         vertex->receive[i] = NULL;
         vertex->send[i] = NULL;
@@ -61,7 +61,7 @@ DSP_vertex* new_DSP_vertex(const char* name)
 }
 
 
-int DSP_vertex_cmp(const DSP_vertex* v1, const DSP_vertex* v2)
+int Device_node_cmp(const Device_node* v1, const Device_node* v2)
 {
     assert(v1 != NULL);
     assert(v2 != NULL);
@@ -69,47 +69,47 @@ int DSP_vertex_cmp(const DSP_vertex* v1, const DSP_vertex* v2)
 }
 
 
-char* DSP_vertex_get_name(DSP_vertex* vertex)
+char* Device_node_get_name(Device_node* vertex)
 {
     assert(vertex != NULL);
     return vertex->name;
 }
 
 
-void DSP_vertex_set_state(DSP_vertex* vertex, DSP_vertex_state state)
+void Device_node_set_state(Device_node* vertex, Device_node_state state)
 {
     assert(vertex != NULL);
-//    assert(state >= DSP_VERTEX_STATE_NEW);
-    assert(state <= DSP_VERTEX_STATE_VISITED);
+//    assert(state >= DEVICE_NODE_STATE_NEW);
+    assert(state <= DEVICE_NODE_STATE_VISITED);
     vertex->state = state;
     return;
 }
 
 
-DSP_vertex_state DSP_vertex_get_state(DSP_vertex* vertex)
+Device_node_state Device_node_get_state(Device_node* vertex)
 {
     assert(vertex != NULL);
     return vertex->state;
 }
 
 
-bool DSP_vertex_connect(DSP_vertex* receiver,
-                        int rec_port,
-                        DSP_vertex* sender,
-                        int send_port)
+bool Device_node_connect(Device_node* receiver,
+                         int rec_port,
+                         Device_node* sender,
+                         int send_port)
 {
     assert(receiver != NULL);
     assert(rec_port >= 0);
-    assert(rec_port < KQT_DSP_PORTS_MAX);
+    assert(rec_port < KQT_DEVICE_PORTS_MAX);
     assert(sender != NULL);
     assert(send_port >= 0);
-    assert(send_port < KQT_DSP_PORTS_MAX);
-    DSP_edge* receive_edge = xalloc(DSP_edge);
+    assert(send_port < KQT_DEVICE_PORTS_MAX);
+    Connection* receive_edge = xalloc(Connection);
     if (receive_edge == NULL)
     {
         return false;
     }
-    DSP_edge* send_edge = xalloc(DSP_edge);
+    Connection* send_edge = xalloc(Connection);
     if (send_edge == NULL)
     {
         xfree(receive_edge);
@@ -129,13 +129,13 @@ bool DSP_vertex_connect(DSP_vertex* receiver,
 }
 
 
-DSP_vertex* DSP_vertex_get_sender(DSP_vertex* vertex,
-                                  int rec_port,
-                                  int* send_port)
+Device_node* Device_node_get_sender(Device_node* vertex,
+                                    int rec_port,
+                                    int* send_port)
 {
     assert(vertex != NULL);
     assert(rec_port >= 0);
-    assert(rec_port < KQT_DSP_PORTS_MAX);
+    assert(rec_port < KQT_DEVICE_PORTS_MAX);
     vertex->iter = vertex->receive[rec_port];
     if (vertex->iter == NULL)
     {
@@ -149,13 +149,13 @@ DSP_vertex* DSP_vertex_get_sender(DSP_vertex* vertex,
 }
 
 
-DSP_vertex* DSP_vertex_get_receiver(DSP_vertex* vertex,
-                                    int send_port,
-                                    int* rec_port)
+Device_node* Device_node_get_receiver(Device_node* vertex,
+                                      int send_port,
+                                      int* rec_port)
 {
     assert(vertex != NULL);
     assert(send_port >= 0);
-    assert(send_port < KQT_DSP_PORTS_MAX);
+    assert(send_port < KQT_DEVICE_PORTS_MAX);
     vertex->iter = vertex->send[send_port];
     if (vertex->iter == NULL)
     {
@@ -169,7 +169,7 @@ DSP_vertex* DSP_vertex_get_receiver(DSP_vertex* vertex,
 }
 
 
-DSP_vertex* DSP_vertex_get_next(DSP_vertex* vertex, int* port)
+Device_node* Device_node_get_next(Device_node* vertex, int* port)
 {
     assert(vertex != NULL);
     if (vertex->iter == NULL)
@@ -185,42 +185,42 @@ DSP_vertex* DSP_vertex_get_next(DSP_vertex* vertex, int* port)
 }
 
 
-bool DSP_vertex_cycle_in_path(DSP_vertex* vertex)
+bool Device_node_cycle_in_path(Device_node* vertex)
 {
     assert(vertex != NULL);
-    if (DSP_vertex_get_state(vertex) == DSP_VERTEX_STATE_VISITED)
+    if (Device_node_get_state(vertex) == DEVICE_NODE_STATE_VISITED)
     {
         return false;
     }
-    if (DSP_vertex_get_state(vertex) == DSP_VERTEX_STATE_REACHED)
+    if (Device_node_get_state(vertex) == DEVICE_NODE_STATE_REACHED)
     {
         return true;
     }
-    DSP_vertex_set_state(vertex, DSP_VERTEX_STATE_REACHED);
-    for (int i = 0; i < KQT_DSP_PORTS_MAX; ++i)
+    Device_node_set_state(vertex, DEVICE_NODE_STATE_REACHED);
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
-        DSP_edge* edge = vertex->receive[i];
+        Connection* edge = vertex->receive[i];
         while (edge != NULL)
         {
-            if (DSP_vertex_cycle_in_path(edge->vertex))
+            if (Device_node_cycle_in_path(edge->vertex))
             {
                 return true;
             }
             edge = edge->next;
         }
     }
-    DSP_vertex_set_state(vertex, DSP_VERTEX_STATE_VISITED);
+    Device_node_set_state(vertex, DEVICE_NODE_STATE_VISITED);
     return false;
 }
 
 
-void del_DSP_vertex(DSP_vertex* vertex)
+void del_Device_node(Device_node* vertex)
 {
     assert(vertex != NULL);
-    for (int i = 0; i < KQT_DSP_PORTS_MAX; ++i)
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
-        DSP_edge* cur = vertex->receive[i];
-        DSP_edge* next = NULL;
+        Connection* cur = vertex->receive[i];
+        Connection* next = NULL;
         while (cur != NULL)
         {
             next = cur->next;

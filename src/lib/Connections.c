@@ -21,7 +21,7 @@
 
 #include <AAtree.h>
 #include <Connections.h>
-#include <DSP_vertex.h>
+#include <Device_node.h>
 #include <string_common.h>
 
 #include <xmemory.h>
@@ -77,7 +77,7 @@ static int validate_connection_path(char* str,
         {                               \
             if (vertex != NULL)         \
             {                           \
-                del_DSP_vertex(vertex); \
+                del_Device_node(vertex); \
             }                           \
             del_Connections(graph);     \
             return NULL;                \
@@ -100,13 +100,13 @@ Connections* new_Connections_from_string(char* str,
     }
     graph->vertices = NULL;
     graph->iter = NULL;
-    graph->vertices = new_AAtree((int (*)(const void*, const void*))DSP_vertex_cmp,
-                                 (void (*)(void*))del_DSP_vertex);
+    graph->vertices = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
+                                 (void (*)(void*))del_Device_node);
     clean_if(graph->vertices == NULL, graph, NULL);
     graph->iter = new_AAiter(graph->vertices);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    DSP_vertex* master = new_DSP_vertex("/");
+    Device_node* master = new_Device_node("/");
     clean_if(master == NULL, graph, NULL);
     clean_if(!AAtree_ins(graph->vertices, master), graph, master);
 
@@ -128,11 +128,11 @@ Connections* new_Connections_from_string(char* str,
     while (expect_entry)
     {
         str = read_const_char(str, '[', state);
-        char src_name[KQT_DSP_VERTEX_NAME_MAX] = { '\0' };
-        str = read_string(str, src_name, KQT_DSP_VERTEX_NAME_MAX, state);
+        char src_name[KQT_DEVICE_NODE_NAME_MAX] = { '\0' };
+        str = read_string(str, src_name, KQT_DEVICE_NODE_NAME_MAX, state);
         str = read_const_char(str, ',', state);
-        char dest_name[KQT_DSP_VERTEX_NAME_MAX] = { '\0' };
-        str = read_string(str, dest_name, KQT_DSP_VERTEX_NAME_MAX, state);
+        char dest_name[KQT_DEVICE_NODE_NAME_MAX] = { '\0' };
+        str = read_string(str, dest_name, KQT_DEVICE_NODE_NAME_MAX, state);
         str = read_const_char(str, ']', state);
 
         int src_port = validate_connection_path(src_name, ins_level, state);
@@ -141,23 +141,23 @@ Connections* new_Connections_from_string(char* str,
         
         if (AAtree_get_exact(graph->vertices, src_name) == NULL)
         {
-            DSP_vertex* new_src = new_DSP_vertex(src_name);
+            Device_node* new_src = new_Device_node(src_name);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->vertices, new_src), graph, new_src);
         }
-        DSP_vertex* src_vertex = AAtree_get_exact(graph->vertices, src_name);
+        Device_node* src_vertex = AAtree_get_exact(graph->vertices, src_name);
 
         if (AAtree_get_exact(graph->vertices, dest_name) == NULL)
         {
-            DSP_vertex* new_dest = new_DSP_vertex(dest_name);
+            Device_node* new_dest = new_Device_node(dest_name);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->vertices, new_dest), graph, new_dest);
         }
-        DSP_vertex* dest_vertex = AAtree_get_exact(graph->vertices, dest_name);
+        Device_node* dest_vertex = AAtree_get_exact(graph->vertices, dest_name);
 
         assert(src_vertex != NULL);
         assert(dest_vertex != NULL);
-        clean_if(!DSP_vertex_connect(dest_vertex, dest_port,
+        clean_if(!Device_node_connect(dest_vertex, dest_port,
                                      src_vertex, src_port), graph, NULL);
 
         check_next(str, state, expect_entry);
@@ -167,7 +167,7 @@ Connections* new_Connections_from_string(char* str,
 
     if (Connections_is_cyclic(graph))
     {
-        Read_state_set_error(state, "The DSP graph contains a cycle");
+        Read_state_set_error(state, "The connection graph contains a cycle");
         del_Connections(graph);
         return NULL;
     }
@@ -181,10 +181,10 @@ static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
     int index = -1;
-    DSP_vertex* vertex = AAiter_get(graph->iter, &index);
+    Device_node* vertex = AAiter_get(graph->iter, &index);
     while (vertex != NULL)
     {
-        DSP_vertex_set_state(vertex, DSP_VERTEX_STATE_NEW);
+        Device_node_set_state(vertex, DEVICE_NODE_STATE_NEW);
         vertex = AAiter_get_next(graph->iter);
     }
     return;
@@ -196,11 +196,11 @@ static bool Connections_is_cyclic(Connections* graph)
     assert(graph != NULL);
     Connections_reset(graph);
     int index = -1;
-    DSP_vertex* vertex = AAiter_get(graph->iter, &index);
+    Device_node* vertex = AAiter_get(graph->iter, &index);
     while (vertex != NULL)
     {
-        assert(DSP_vertex_get_state(vertex) != DSP_VERTEX_STATE_REACHED);
-        if (DSP_vertex_cycle_in_path(vertex))
+        assert(Device_node_get_state(vertex) != DEVICE_NODE_STATE_REACHED);
+        if (Device_node_cycle_in_path(vertex))
         {
             return true;
         }
@@ -318,7 +318,7 @@ static int validate_connection_path(char* str,
         root = false;
         dsp = true;
         str += strlen("dsp_");
-        if (read_index(str) >= KQT_DSP_NODES_MAX)
+        if (read_index(str) >= KQT_DSP_EFFECTS_MAX)
         {
             Read_state_set_error(state,
                     "Invalid DSP number in the connection");
@@ -359,7 +359,7 @@ static int validate_connection_path(char* str,
         char* trim_point = str;
         str += strcspn(str, "_") + 1;
         int port = read_index(str);
-        if (port >= KQT_DSP_PORTS_MAX)
+        if (port >= KQT_DEVICE_PORTS_MAX)
         {
             Read_state_set_error(state, "Invalid port number");
             return -1;
