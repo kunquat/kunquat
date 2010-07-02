@@ -60,10 +60,10 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
                 " positive");
         return 0;
     }
-    if (size > 4194304)
+    if (size > KQT_BUFFER_SIZE_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Buffer size must not be"
-                " greater than 4194304 frames");
+                " greater than %ld frames", KQT_BUFFER_SIZE_MAX);
         return 0;
     }
     bool success = Song_set_buf_size(handle->song, size);

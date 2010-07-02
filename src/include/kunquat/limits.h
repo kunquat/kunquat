@@ -46,6 +46,12 @@ extern "C" {
 
 
 /**
+ * Maximum size of an output buffer in frames.
+ */
+#define KQT_BUFFER_SIZE_MAX (1048576)
+
+
+/**
  * Maximum number of Voices used for mixing.
  */
 #define KQT_VOICES_MAX (1024)
