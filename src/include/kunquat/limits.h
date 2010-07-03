@@ -47,6 +47,9 @@ extern "C" {
 
 /**
  * Maximum size of an output buffer in frames.
+ *
+ * This upper limit is a safety measure. Typical applications use much smaller
+ * buffer sizes, e.g. 1024 to 8192 frames.
  */
 #define KQT_BUFFER_SIZE_MAX (1048576)
 

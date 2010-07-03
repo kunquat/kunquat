@@ -54,29 +54,15 @@ bool Device_init(Device* device, uint32_t buffer_size);
 
 
 /**
- * Resizes the buffers in the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param size     The new buffer size -- must be > \c 0 and <=
- *                 \c KQT_BUFFER_SIZE_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_resize_buffers(Device* device, uint32_t size);
-
-
-/**
  * Registers a new port for the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param type     The type of the port -- must be a valid type.
  * \param port     The port number -- must be >= \c 0 and
  *                 < \c KQT_DEVICE_PORTS_MAX. If the port is already
- *                 registered, the function does nothing and succeeds.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
+ *                 registered, the function does nothing.
  */
-bool Device_register_port(Device* device, Device_port_type type, int port);
+void Device_register_port(Device* device, Device_port_type type, int port);
 
 
 /**
@@ -89,6 +75,31 @@ bool Device_register_port(Device* device, Device_port_type type, int port);
  *                 the function does nothing.
  */
 void Device_unregister_port(Device* device, Device_port_type type, int port);
+
+
+/**
+ * Initialises the internal buffers of the Device.
+ *
+ * This function should be called after each time the Device connection graph
+ * is changed.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_init_buffers(Device* device);
+
+
+/**
+ * Resizes the buffers in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param size     The new buffer size -- must be > \c 0 and <=
+ *                 \c KQT_BUFFER_SIZE_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_resize_buffers(Device* device, uint32_t size);
 
 
 /**
