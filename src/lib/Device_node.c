@@ -24,7 +24,7 @@
 
 typedef struct Connection
 {
-    Device_node* vertex;     ///< The neighbour node.
+    Device_node* node;       ///< The neighbour node.
     int port;                ///< The port of the neighbour node.
     struct Connection* next;
 } Connection;
@@ -33,6 +33,7 @@ typedef struct Connection
 struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
+    Device* device;
     Device_node_state state;
     Connection* iter;
     Connection* receive[KQT_DEVICE_PORTS_MAX];
@@ -43,53 +44,62 @@ struct Device_node
 Device_node* new_Device_node(const char* name)
 {
     assert(name != NULL);
-    Device_node* vertex = xalloc(Device_node);
-    if (vertex == NULL)
+    Device_node* node = xalloc(Device_node);
+    if (node == NULL)
     {
         return NULL;
     }
-    strncpy(vertex->name, name, KQT_DEVICE_NODE_NAME_MAX - 1);
-    vertex->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
-    vertex->state = DEVICE_NODE_STATE_NEW;
-    vertex->iter = NULL;
-    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
+    strncpy(node->name, name, KQT_DEVICE_NODE_NAME_MAX - 1);
+    node->device = NULL;
+    node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
+    node->state = DEVICE_NODE_STATE_NEW;
+    node->iter = NULL;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        vertex->receive[i] = NULL;
-        vertex->send[i] = NULL;
+        node->receive[port] = NULL;
+        node->send[port] = NULL;
     }
-    return vertex;
+    return node;
 }
 
 
-int Device_node_cmp(const Device_node* v1, const Device_node* v2)
+int Device_node_cmp(const Device_node* n1, const Device_node* n2)
 {
-    assert(v1 != NULL);
-    assert(v2 != NULL);
-    return strcmp(v1->name, v2->name);
+    assert(n1 != NULL);
+    assert(n2 != NULL);
+    return strcmp(n1->name, n2->name);
 }
 
 
-char* Device_node_get_name(Device_node* vertex)
+void Device_node_set_device(Device_node* node, Device* device)
 {
-    assert(vertex != NULL);
-    return vertex->name;
-}
-
-
-void Device_node_set_state(Device_node* vertex, Device_node_state state)
-{
-    assert(vertex != NULL);
-//    assert(state >= DEVICE_NODE_STATE_NEW);
-    assert(state <= DEVICE_NODE_STATE_VISITED);
-    vertex->state = state;
+    assert(node != NULL);
+    node->device = device;
     return;
 }
 
 
-Device_node_state Device_node_get_state(Device_node* vertex)
+char* Device_node_get_name(Device_node* node)
 {
-    assert(vertex != NULL);
-    return vertex->state;
+    assert(node != NULL);
+    return node->name;
+}
+
+
+void Device_node_set_state(Device_node* node, Device_node_state state)
+{
+    assert(node != NULL);
+//    assert(state >= DEVICE_NODE_STATE_NEW);
+    assert(state <= DEVICE_NODE_STATE_VISITED);
+    node->state = state;
+    return;
+}
+
+
+Device_node_state Device_node_get_state(Device_node* node)
+{
+    assert(node != NULL);
+    return node->state;
 }
 
 
@@ -116,12 +126,12 @@ bool Device_node_connect(Device_node* receiver,
         return false;
     }
 
-    receive_edge->vertex = sender;
+    receive_edge->node = sender;
     receive_edge->port = send_port;
     receive_edge->next = receiver->receive[rec_port];
     receiver->receive[rec_port] = receive_edge;
 
-    send_edge->vertex = receiver;
+    send_edge->node = receiver;
     send_edge->port = rec_port;
     send_edge->next = sender->send[send_port];
     sender->send[send_port] = send_edge;
@@ -129,97 +139,97 @@ bool Device_node_connect(Device_node* receiver,
 }
 
 
-Device_node* Device_node_get_sender(Device_node* vertex,
+Device_node* Device_node_get_sender(Device_node* node,
                                     int rec_port,
                                     int* send_port)
 {
-    assert(vertex != NULL);
+    assert(node != NULL);
     assert(rec_port >= 0);
     assert(rec_port < KQT_DEVICE_PORTS_MAX);
-    vertex->iter = vertex->receive[rec_port];
-    if (vertex->iter == NULL)
+    node->iter = node->receive[rec_port];
+    if (node->iter == NULL)
     {
         return NULL;
     }
     if (send_port != NULL)
     {
-        *send_port = vertex->iter->port;
+        *send_port = node->iter->port;
     }
-    return vertex->iter->vertex;
+    return node->iter->node;
 }
 
 
-Device_node* Device_node_get_receiver(Device_node* vertex,
+Device_node* Device_node_get_receiver(Device_node* node,
                                       int send_port,
                                       int* rec_port)
 {
-    assert(vertex != NULL);
+    assert(node != NULL);
     assert(send_port >= 0);
     assert(send_port < KQT_DEVICE_PORTS_MAX);
-    vertex->iter = vertex->send[send_port];
-    if (vertex->iter == NULL)
+    node->iter = node->send[send_port];
+    if (node->iter == NULL)
     {
         return NULL;
     }
     if (rec_port != NULL)
     {
-        *rec_port = vertex->iter->port;
+        *rec_port = node->iter->port;
     }
-    return vertex->iter->vertex;
+    return node->iter->node;
 }
 
 
-Device_node* Device_node_get_next(Device_node* vertex, int* port)
+Device_node* Device_node_get_next(Device_node* node, int* port)
 {
-    assert(vertex != NULL);
-    if (vertex->iter == NULL)
+    assert(node != NULL);
+    if (node->iter == NULL)
     {
         return NULL;
     }
-    vertex->iter = vertex->iter->next;
-    if (vertex->iter != NULL && port != NULL)
+    node->iter = node->iter->next;
+    if (node->iter != NULL && port != NULL)
     {
-        *port = vertex->iter->port;
+        *port = node->iter->port;
     }
-    return vertex->iter->vertex;
+    return node->iter->node;
 }
 
 
-bool Device_node_cycle_in_path(Device_node* vertex)
+bool Device_node_cycle_in_path(Device_node* node)
 {
-    assert(vertex != NULL);
-    if (Device_node_get_state(vertex) == DEVICE_NODE_STATE_VISITED)
+    assert(node != NULL);
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
     {
         return false;
     }
-    if (Device_node_get_state(vertex) == DEVICE_NODE_STATE_REACHED)
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_REACHED)
     {
         return true;
     }
-    Device_node_set_state(vertex, DEVICE_NODE_STATE_REACHED);
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
     for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
-        Connection* edge = vertex->receive[i];
+        Connection* edge = node->receive[i];
         while (edge != NULL)
         {
-            if (Device_node_cycle_in_path(edge->vertex))
+            if (Device_node_cycle_in_path(edge->node))
             {
                 return true;
             }
             edge = edge->next;
         }
     }
-    Device_node_set_state(vertex, DEVICE_NODE_STATE_VISITED);
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return false;
 }
 
 
-void del_Device_node(Device_node* vertex)
+void del_Device_node(Device_node* node)
 {
-    assert(vertex != NULL);
+    assert(node != NULL);
     for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
-        Connection* cur = vertex->receive[i];
+        Connection* cur = node->receive[i];
         Connection* next = NULL;
         while (cur != NULL)
         {
@@ -227,7 +237,7 @@ void del_Device_node(Device_node* vertex)
             xfree(cur);
             cur = next;
         }
-        cur = vertex->send[i];
+        cur = node->send[i];
         next = NULL;
         while (cur != NULL)
         {
@@ -236,7 +246,7 @@ void del_Device_node(Device_node* vertex)
             cur = next;
         }
     }
-    xfree(vertex);
+    xfree(node);
     return;
 }
 

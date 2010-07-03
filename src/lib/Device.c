@@ -27,7 +27,6 @@ bool Device_init(Device* device, uint32_t buffer_size)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     device->buffer_size = buffer_size;
-    device->node = NULL;
     for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -83,14 +82,6 @@ bool Device_resize_buffers(Device* device, uint32_t size)
     }
     device->buffer_size = size;
     return true;
-}
-
-
-void Device_set_node(Device* device, Device_node* node)
-{
-    assert(device != NULL);
-    device->node = node;
-    return;
 }
 
 

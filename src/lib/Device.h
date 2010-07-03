@@ -20,7 +20,6 @@
 #include <stdint.h>
 
 #include <Audio_buffer.h>
-#include <Device_node.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 
@@ -36,7 +35,6 @@ typedef enum
 typedef struct Device
 {
     uint32_t buffer_size;
-    Device_node* node;
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
@@ -65,15 +63,6 @@ bool Device_init(Device* device, uint32_t buffer_size);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_resize_buffers(Device* device, uint32_t size);
-
-
-/**
- * Sets the corresponding Device node of the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param node     The Device node, or \c NULL if \a device is not connected.
- */
-void Device_set_node(Device* device, Device_node* node);
 
 
 /**

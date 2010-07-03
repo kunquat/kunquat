@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 
+#include <Device.h>
 #include <math_common.h>
 
 
@@ -67,6 +68,15 @@ Device_node* new_Device_node(const char* name);
  *           \a v2.
  */
 int Device_node_cmp(const Device_node* n1, const Device_node* n2);
+
+
+/**
+ * Sets the device of the Device node.
+ *
+ * \param node     The Device node -- must not be \c NULL.
+ * \param device   The Device, or \c NULL.
+ */
+void Device_node_set_device(Device_node* node, Device* device);
 
 
 /**
