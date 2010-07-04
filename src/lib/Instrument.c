@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <Device.h>
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
@@ -35,6 +36,8 @@ typedef struct Gen_group
 
 struct Instrument
 {
+    Device parent;
+
     double default_force;       ///< Default force.
 
     Scale** scales;             ///< The Scales of the Song.
@@ -83,6 +86,12 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
+    if (!Device_init(&ins->parent, buf_len))
+    {
+        Instrument_params_uninit(&ins->params);
+        xfree(ins);
+        return NULL;
+    }
 
     ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
@@ -93,26 +102,22 @@ Instrument* new_Instrument(kqt_frame** bufs,
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
+        ins->gens[i].common_params.type_params = NULL;
+        ins->gens[i].gen = NULL;
+    }
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
         if (!Generator_init(&ins->gens[i].common_params))
         {
-            for (int k = i - 1; k >= 0; --k)
-            {
-                del_Generator_params(ins->gens[k].common_params.type_params);
-                Generator_uninit(&ins->gens[k].common_params);
-            }
-            xfree(ins);
+            del_Instrument(ins);
             return NULL;
         }
         Generator_params* gen_params = new_Generator_params();
         if (gen_params == NULL)
         {
             Generator_uninit(&ins->gens[i].common_params);
-            for (int k = i - 1; k >= 0; --k)
-            {
-                del_Generator_params(ins->gens[k].common_params.type_params);
-                Generator_uninit(&ins->gens[k].common_params);
-            }
-            xfree(ins);
+            del_Instrument(ins);
             return NULL;
         }
         ins->gens[i].common_params.type_params = gen_params;
@@ -316,15 +321,20 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX &&
+                    ins->gens[i].common_params.type_params != NULL; ++i)
     {
-        del_Generator_params(ins->gens[i].common_params.type_params);
+        if (ins->gens[i].common_params.type_params != NULL)
+        {
+            del_Generator_params(ins->gens[i].common_params.type_params);
+        }
         Generator_uninit(&ins->gens[i].common_params);
         if (ins->gens[i].gen != NULL)
         {
             del_Generator(ins->gens[i].gen);
         }
     }
+    Device_uninit(&ins->parent);
     xfree(ins);
     return;
 }
