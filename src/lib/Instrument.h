@@ -147,9 +147,9 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
  *                < \c KQT_GENERATORS_MAX.
  * \param gen     The Generator -- must not be \c NULL.
  */
-void Instrument_set_gen_of_type(Instrument* ins,
-                                int index,
-                                Generator* gen);
+//void Instrument_set_gen_of_type(Instrument* ins,
+//                                int index,
+//                                Generator* gen);
 
 
 /**
@@ -165,9 +165,9 @@ void Instrument_set_gen_of_type(Instrument* ins,
  *
  * \return   The Generator if one exists, otherwise \c NULL.
  */
-Generator* Instrument_get_gen_of_type(Instrument* ins,
-                                      int index,
-                                      Gen_type type);
+//Generator* Instrument_get_gen_of_type(Instrument* ins,
+//                                      int index,
+//                                      Gen_type type);
 
 
 /**

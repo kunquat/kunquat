@@ -452,6 +452,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -460,6 +466,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
@@ -477,6 +484,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -485,6 +498,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if (strcmp(subkey, "p_events.json") == 0)
     {
@@ -503,6 +517,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -511,6 +531,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if (strcmp(subkey, "p_gen_type.json") == 0)
     {
@@ -525,6 +546,28 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen == NULL || Generator_get_type(gen) != type)
+        {
+            Generator* common_params =
+                    Instrument_get_common_gen_params(ins, gen_index);
+            assert(common_params != NULL);
+            gen = new_Generator(type, Instrument_get_params(ins),
+                                Generator_get_params(common_params));
+            if (gen == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                if (new_ins)
+                {
+                    del_Instrument(ins);
+                }
+                return false;
+            }
+            Generator_copy_general(gen, common_params);
+        }
+        Instrument_set_gen(ins, gen_index, gen);
+#if 0
         Generator* gen = Instrument_get_gen_of_type(ins, gen_index, type);
         if (gen == NULL)
         {
@@ -551,6 +594,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         {
             Instrument_set_gen(ins, gen_index, gen);
         }
+#endif
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
     {

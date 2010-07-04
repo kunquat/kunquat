@@ -78,6 +78,19 @@ void Device_unregister_port(Device* device, Device_port_type type, int port);
 
 
 /**
+ * Sets a direct send buffer for the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param port     The send port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX.
+ * \param buffer   The Audio buffer, or \c NULL.
+ */
+void Device_set_direct_send(Device* device,
+                            int port,
+                            Audio_buffer* buffer);
+
+
+/**
  * Initialises the internal buffers of the Device.
  *
  * This function should be called after each time the Device connection graph

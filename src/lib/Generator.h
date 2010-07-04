@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Device.h>
 #include <Generator_params.h>
 #include <Generator_type.h>
 #include <Instrument_params.h>
@@ -34,6 +35,7 @@
  */
 typedef struct Generator
 {
+    Device parent;
     Gen_type type;
     bool enabled;
     double volume_dB;

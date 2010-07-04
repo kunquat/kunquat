@@ -63,6 +63,18 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
 }
 
 
+void Device_set_direct_send(Device* device,
+                            int port,
+                            Audio_buffer* buffer)
+{
+    assert(device != NULL);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+    device->direct_send[port] = buffer;
+    return;
+}
+
+
 bool Device_init_buffers(Device* device)
 {
     assert(device != NULL);
