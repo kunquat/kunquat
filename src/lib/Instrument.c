@@ -92,6 +92,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
+    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
 
     ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;

@@ -22,7 +22,7 @@
 
 
 /**
- * This structure contains connection information of the DSP nodes.
+ * This structure contains connection information of the Devices.
  */
 typedef struct Connections Connections;
 

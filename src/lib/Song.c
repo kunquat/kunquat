@@ -45,6 +45,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         xfree(song);
         return NULL;
     }
+    Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     song->buf_count = buf_count;
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
