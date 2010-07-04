@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <File_base.h>
+#include <Ins_table.h>
 
 
 /**
@@ -40,6 +41,20 @@ typedef struct Connections Connections;
 Connections* new_Connections_from_string(char* str,
                                          bool ins_level,
                                          Read_state* state);
+
+
+/**
+ * Sets the appropriate Devices for the Connections.
+ *
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param master   The master Device -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
+ */
+void Connections_set_devices(Connections* graph,
+                             Device* master,
+                             Ins_table* insts /*,
+                             DSP_table* dsps */);
 
 
 /**

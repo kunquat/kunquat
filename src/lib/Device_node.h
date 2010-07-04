@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Device.h>
+#include <Ins_table.h>
 #include <math_common.h>
 
 
@@ -71,12 +72,17 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
 
 
 /**
- * Sets the device of the Device node.
+ * Sets the devices starting from the given Device node.
  *
  * \param node     The Device node -- must not be \c NULL.
- * \param device   The Device, or \c NULL.
+ * \param master   The master Device -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
  */
-void Device_node_set_device(Device_node* node, Device* device);
+void Device_node_set_devices(Device_node* node,
+                             Device* master,
+                             Ins_table* insts/*,
+                             DSP_table* dsps*/);
 
 
 /**

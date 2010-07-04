@@ -18,6 +18,7 @@
 
 #include <Device_node.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 
 #include <xmemory.h>
 
@@ -71,10 +72,50 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2)
 }
 
 
-void Device_node_set_device(Device_node* node, Device* device)
+void Device_node_set_devices(Device_node* node,
+                             Device* master,
+                             Ins_table* insts/*,
+                             DSP_table* dsps*/)
 {
     assert(node != NULL);
-    node->device = device;
+    assert(insts != NULL);
+//    assert(dsps != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (strcmp(node->name, "/") == 0)
+    {
+        assert(master != NULL);
+        node->device = master;
+    }
+    else if (string_has_prefix(node->name, "/ins_"))
+    {
+        const char* num_s = strchr(node->name, '_');
+        assert(num_s != NULL);
+        ++num_s;
+        char* num_s_end = NULL;
+        long index = strtol(num_s, &num_s_end, 16);
+        assert(num_s + 2 == num_s_end);
+        assert(index >= 0);
+        assert(index < KQT_INSTRUMENTS_MAX);
+        node->device = (Device*)Ins_table_get(insts, index);
+    }
+    else
+    {
+        assert(false);
+    }
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
+    {
+        Connection* edge = node->receive[i];
+        while (edge != NULL)
+        {
+            Device_node_set_devices(edge->node, NULL, insts/*, dsps*/);
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }
 

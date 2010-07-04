@@ -29,7 +29,7 @@
 
 struct Connections
 {
-    AAtree* vertices;
+    AAtree* nodes;
     AAiter* iter;
 };
 
@@ -70,14 +70,14 @@ static int validate_connection_path(char* str,
                                     Read_state* state);
 
 
-#define clean_if(expr, graph, vertex)   \
+#define clean_if(expr, graph, node)   \
     if (true)                           \
     {                                   \
         if ((expr))                     \
         {                               \
-            if (vertex != NULL)         \
+            if (node != NULL)         \
             {                           \
-                del_Device_node(vertex); \
+                del_Device_node(node); \
             }                           \
             del_Connections(graph);     \
             return NULL;                \
@@ -98,17 +98,17 @@ Connections* new_Connections_from_string(char* str,
     {
         return NULL;
     }
-    graph->vertices = NULL;
+    graph->nodes = NULL;
     graph->iter = NULL;
-    graph->vertices = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
+    graph->nodes = new_AAtree((int (*)(const void*, const void*))Device_node_cmp,
                                  (void (*)(void*))del_Device_node);
-    clean_if(graph->vertices == NULL, graph, NULL);
-    graph->iter = new_AAiter(graph->vertices);
+    clean_if(graph->nodes == NULL, graph, NULL);
+    graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
     Device_node* master = new_Device_node("/");
     clean_if(master == NULL, graph, NULL);
-    clean_if(!AAtree_ins(graph->vertices, master), graph, master);
+    clean_if(!AAtree_ins(graph->nodes, master), graph, master);
 
     if (str == NULL)
     {
@@ -139,26 +139,26 @@ Connections* new_Connections_from_string(char* str,
         int dest_port = validate_connection_path(dest_name, ins_level, state);
         clean_if(state->error, graph, NULL);
         
-        if (AAtree_get_exact(graph->vertices, src_name) == NULL)
+        if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
             Device_node* new_src = new_Device_node(src_name);
             clean_if(new_src == NULL, graph, NULL);
-            clean_if(!AAtree_ins(graph->vertices, new_src), graph, new_src);
+            clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
-        Device_node* src_vertex = AAtree_get_exact(graph->vertices, src_name);
+        Device_node* src_node = AAtree_get_exact(graph->nodes, src_name);
 
-        if (AAtree_get_exact(graph->vertices, dest_name) == NULL)
+        if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
             Device_node* new_dest = new_Device_node(dest_name);
             clean_if(new_dest == NULL, graph, NULL);
-            clean_if(!AAtree_ins(graph->vertices, new_dest), graph, new_dest);
+            clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
-        Device_node* dest_vertex = AAtree_get_exact(graph->vertices, dest_name);
+        Device_node* dest_node = AAtree_get_exact(graph->nodes, dest_name);
 
-        assert(src_vertex != NULL);
-        assert(dest_vertex != NULL);
-        clean_if(!Device_node_connect(dest_vertex, dest_port,
-                                     src_vertex, src_port), graph, NULL);
+        assert(src_node != NULL);
+        assert(dest_node != NULL);
+        clean_if(!Device_node_connect(dest_node, dest_port,
+                                     src_node, src_port), graph, NULL);
 
         check_next(str, state, expect_entry);
     }
@@ -177,15 +177,32 @@ Connections* new_Connections_from_string(char* str,
 #undef clean_if
 
 
+void Connections_set_devices(Connections* graph,
+                             Device* master,
+                             Ins_table* insts /*,
+                             DSP_table* dsps */)
+{
+    assert(graph != NULL);
+    assert(master != NULL);
+    assert(insts != NULL);
+//    assert(dsps != NULL);
+    Connections_reset(graph);
+    Device_node* master_node = AAtree_get_exact(graph->nodes, "/");
+    assert(master_node != NULL);
+    Device_node_set_devices(master_node, master, insts/*, dsps*/);
+    return;
+}
+
+
 static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
-    int index = -1;
-    Device_node* vertex = AAiter_get(graph->iter, &index);
-    while (vertex != NULL)
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
     {
-        Device_node_set_state(vertex, DEVICE_NODE_STATE_NEW);
-        vertex = AAiter_get_next(graph->iter);
+        Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
+        node = AAiter_get_next(graph->iter);
     }
     return;
 }
@@ -195,16 +212,16 @@ static bool Connections_is_cyclic(Connections* graph)
 {
     assert(graph != NULL);
     Connections_reset(graph);
-    int index = -1;
-    Device_node* vertex = AAiter_get(graph->iter, &index);
-    while (vertex != NULL)
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
     {
-        assert(Device_node_get_state(vertex) != DEVICE_NODE_STATE_REACHED);
-        if (Device_node_cycle_in_path(vertex))
+        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+        if (Device_node_cycle_in_path(node))
         {
             return true;
         }
-        vertex = AAiter_get_next(graph->iter);
+        node = AAiter_get_next(graph->iter);
     }
     return false;
 }
@@ -217,9 +234,9 @@ void del_Connections(Connections* graph)
     {
         del_AAiter(graph->iter);
     }
-    if (graph->vertices != NULL)
+    if (graph->nodes != NULL)
     {
-        del_AAtree(graph->vertices);
+        del_AAtree(graph->nodes);
     }
     return;
 }
@@ -252,6 +269,13 @@ static int validate_connection_path(char* str,
     bool generator = false;
     bool dsp = false;
     bool root = true;
+    if (*str != '/')
+    {
+        Read_state_set_error(state,
+                "Connection path begins with '%c' instead of '/'", *str);
+        return -1;
+    }
+    ++str;
     if (string_has_prefix(str, "ins_"))
     {
         if (ins_level)
