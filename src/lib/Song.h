@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Device.h>
 #include <kunquat/limits.h>
 #include <frame.h>
 #include <Subsong_table.h>
@@ -32,6 +33,7 @@
 
 typedef struct Song
 {
+    Device parent;
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
     kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
@@ -66,7 +68,8 @@ typedef struct Song
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
  *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
- * \param buf_size    Size of a buffer -- must be > \c 0.
+ * \param buf_size    Size of the mixing buffer -- must be > \c 0 and
+ *                    <= KQT_BUFFER_SIZE_MAX.
  *
  * \see del_Song()
  *
