@@ -35,13 +35,17 @@
 #include <xmemory.h>
 
 
-Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
-                         Generator_params* gen_params)
+Generator* new_Generator(Gen_type type,
+                         Instrument_params* ins_params,
+                         Generator_params* gen_params,
+                         uint32_t buffer_size)
 {
     assert(type > GEN_TYPE_NONE);
     assert(type < GEN_TYPE_LAST);
     assert(ins_params != NULL);
     assert(gen_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     static Generator* (*cons[])(Instrument_params*, Generator_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
@@ -54,6 +58,16 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
     };
     assert(cons[type] != NULL);
     Generator* gen = cons[type](ins_params, gen_params);
+    if (gen == NULL)
+    {
+        return NULL;
+    }
+    if (!Device_init(&gen->parent, buffer_size))
+    {
+        del_Generator(gen);
+        return NULL;
+    }
+    Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
     return gen;
 }
@@ -301,6 +315,7 @@ void del_Generator(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->destroy != NULL);
+    Device_uninit(&gen->parent);
     gen->destroy(gen);
     return;
 }

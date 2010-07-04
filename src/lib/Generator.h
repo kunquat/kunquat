@@ -23,6 +23,7 @@
 #include <Generator_params.h>
 #include <Generator_type.h>
 #include <Instrument_params.h>
+#include <kunquat/limits.h>
 #include <pitch_t.h>
 #include <Random.h>
 #include <Voice_state.h>
@@ -62,15 +63,20 @@ typedef struct Generator
 /**
  * Creates a new Generator of the specified type.
  *
- * \param type         The Generator type -- must be a valid and supported
- *                     type.
- * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param type          The Generator type -- must be a valid and supported
+ *                      type.
+ * \param ins_params    The Instrument parameters -- must not be \c NULL.
+ * \param gen_params    The Generator parameters -- must not be \c NULL.
+ * \param buffer_size   The mixing buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
  *
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
-                         Generator_params* gen_params);
+Generator* new_Generator(Gen_type type,
+                         Instrument_params* ins_params,
+                         Generator_params* gen_params,
+                         uint32_t buffer_size);
 
 
 /**

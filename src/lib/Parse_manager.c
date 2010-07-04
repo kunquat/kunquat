@@ -553,7 +553,8 @@ static bool parse_generator_level(kqt_Handle* handle,
                     Instrument_get_common_gen_params(ins, gen_index);
             assert(common_params != NULL);
             gen = new_Generator(type, Instrument_get_params(ins),
-                                Generator_get_params(common_params));
+                                Generator_get_params(common_params),
+                                Song_get_buf_size(handle->song));
             if (gen == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
