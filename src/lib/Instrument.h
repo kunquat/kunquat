@@ -100,16 +100,6 @@ Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
 
 
 /**
- * Gets the number of Generators used by the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The number of Generators.
- */
-// int Instrument_get_gen_count(Instrument* ins);
-
-
-/**
  * Sets a Generator of the Instrument.
  *
  * If a Generator already exists at the specified index, it will be removed.
@@ -134,40 +124,6 @@ void Instrument_set_gen(Instrument* ins,
  * \return   The Generator if found, otherwise \c NULL.
  */
 Generator* Instrument_get_gen(Instrument* ins, int index);
-
-
-/**
- * Sets a Generator of the Instrument based on the Generator type.
- *
- * Only Parse manager should use this function. It does not change the
- * effective Generator unless it has the same type as the new Generator.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- * \param gen     The Generator -- must not be \c NULL.
- */
-//void Instrument_set_gen_of_type(Instrument* ins,
-//                                int index,
-//                                Generator* gen);
-
-
-/**
- * Gets a Generator of the Instrument based on a Generator type.
- *
- * Only Parse manager should use this function. The Generator returned is
- * not necessarily the active one.
- *
- * \param ins        The Instrument -- must not be \c NULL.
- * \param index      The index of the Generator -- must be >= \c 0 and
- *                   < \c KQT_GENERATORS_MAX.
- * \param gen_type   The Generator type -- must be a valid type.
- *
- * \return   The Generator if one exists, otherwise \c NULL.
- */
-//Generator* Instrument_get_gen_of_type(Instrument* ins,
-//                                      int index,
-//                                      Gen_type type);
 
 
 /**
