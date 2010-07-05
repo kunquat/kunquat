@@ -18,6 +18,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include <Connections.h>
 #include <File_base.h>
 #include <Generator_event_keys.h>
 #include <Generator_params.h>
@@ -246,6 +247,28 @@ static bool parse_song_level(kqt_Handle* handle,
             set_parse_error(handle, state);
             return false;
         }
+    }
+    else if (strcmp(key, "p_connections.json") == 0)
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Connections* graph = new_Connections_from_string(data, false, state);
+        if (graph == NULL)
+        {
+            if (state->error)
+            {
+                set_parse_error(handle, state);
+            }
+            else
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            return false;
+        }
+        del_Connections(handle->song->connections);
+        handle->song->connections = graph;
+        Connections_set_devices(graph, &handle->song->parent,
+                                Song_get_insts(handle->song));
     }
     return true;
 }

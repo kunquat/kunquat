@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Connections.h>
 #include <Device.h>
 #include <kunquat/limits.h>
 #include <frame.h>
@@ -44,6 +45,7 @@ typedef struct Song
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
+    Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
