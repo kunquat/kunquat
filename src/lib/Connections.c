@@ -269,13 +269,7 @@ static int validate_connection_path(char* str,
     bool generator = false;
     bool dsp = false;
     bool root = true;
-    if (*str != '/')
-    {
-        Read_state_set_error(state,
-                "Connection path begins with '%c' instead of '/'", *str);
-        return -1;
-    }
-    ++str;
+    char* trim_point = str;
     if (string_has_prefix(str, "ins_"))
     {
         if (ins_level)
@@ -302,6 +296,7 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += strlen("/" MAGIC_ID "iXX/");
+        trim_point = str - 1;
     }
     else if (string_has_prefix(str, "gen_"))
     {
@@ -336,6 +331,7 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += strlen("C/");
+        trim_point = str - 1;
     }
     else if (string_has_prefix(str, "dsp_"))
     {
@@ -365,6 +361,7 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += strlen("C/");
+        trim_point = str - 1;
     }
     if (string_has_prefix(str, "in_") || string_has_suffix(str, "out_"))
     {
@@ -380,7 +377,6 @@ static int validate_connection_path(char* str,
             Read_state_set_error(state,
                     "Input ports are not allowed for root");
         }
-        char* trim_point = str;
         str += strcspn(str, "_") + 1;
         int port = read_index(str);
         if (port >= KQT_DEVICE_PORTS_MAX)

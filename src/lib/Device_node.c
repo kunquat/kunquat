@@ -85,12 +85,12 @@ void Device_node_set_devices(Device_node* node,
         return;
     }
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
-    if (strcmp(node->name, "/") == 0)
+    if (node->name[0] == '\0')
     {
         assert(master != NULL);
         node->device = master;
     }
-    else if (string_has_prefix(node->name, "/ins_"))
+    else if (string_has_prefix(node->name, "ins_"))
     {
         const char* num_s = strchr(node->name, '_');
         assert(num_s != NULL);
