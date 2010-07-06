@@ -265,7 +265,10 @@ static bool parse_song_level(kqt_Handle* handle,
             }
             return false;
         }
-        del_Connections(handle->song->connections);
+        if (handle->song->connections != NULL)
+        {
+            del_Connections(handle->song->connections);
+        }
         handle->song->connections = graph;
         Connections_set_devices(graph, &handle->song->parent,
                                 Song_get_insts(handle->song));
