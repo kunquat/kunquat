@@ -6,6 +6,9 @@ prefix = '/usr/local'
 # Build in debug mode.
 enable_debug = True
 
+# Build profiling code.
+enable_profiling = False
+
 # Enable libkunquat.
 enable_libkunquat = True
 

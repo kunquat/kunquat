@@ -34,11 +34,18 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     assert(buf_count >= 1);
     assert(buf_count <= KQT_BUFFERS_MAX);
     assert(buf_size > 0);
+    assert(buf_size <= KQT_BUFFER_SIZE_MAX);
     Song* song = xalloc(Song);
     if (song == NULL)
     {
         return NULL;
     }
+    if (!Device_init(&song->parent, buf_size))
+    {
+        xfree(song);
+        return NULL;
+    }
+    Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     song->buf_count = buf_count;
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
@@ -731,6 +738,7 @@ void del_Song(Song* song)
     {
         del_Random(song->random);
     }
+    Device_uninit(&song->parent);
     xfree(song);
     return;
 }

@@ -105,10 +105,10 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
  * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
  * \param handle   The Handle -- should not be \c NULL.
- * \param size     The new buffer size -- should be > \c 0 and <= \c 4194304.
- *                 The upper limit is a safety measure -- typically,
- *                 implementations use a buffer size of no more than a couple
- *                 of thousand frames.
+ * \param size     The new buffer size -- should be > \c 0 and
+ *                 <= \c KQT_BUFFER_SIZE_MAX. The upper limit is a safety
+ *                 measure -- typically, implementations use a buffer size of
+ *                 no more than a couple of thousand frames.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  *           Note: If memory allocation fails, mixing is still possible but

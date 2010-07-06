@@ -59,7 +59,7 @@ functions are usually easy to implement.
 
 .IP "\fBint kqt_Handle_set_buffer_size(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
 Sets the mixing buffer size of \fIhandle\fR to \fIsize\fR frames. \fIsize\fR
-should be positive and not more than 4194304. The upper limit is a safety
+should be positive and not more than 1048576. The upper limit is a safety
 measure -- typically, implementations use a buffer size of no more than a
 couple of thousand frames.
 

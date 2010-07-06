@@ -47,32 +47,32 @@ void two_pole_filter_create(double f,
 			    double coeffs[2],
 			    double *a0)
 {
-  assert(f < 0.5);
-  assert(q >= 0.5);
-  assert(q <= 1000);
-  assert(coeffs != NULL);
-  assert(a0 != NULL);
-  //    static int created = 0;
-  //    fprintf(stderr, "  %d \n", ++created);
+    assert(f < 0.5);
+    assert(q >= 0.5);
+    assert(q <= 1000);
+    assert(coeffs != NULL);
+    assert(a0 != NULL);
+    //    static int created = 0;
+    //    fprintf(stderr, "  %d \n", ++created);
 
-  if (s == 1)
+    if (s == 1)
     {
-      f = 1.0 / tan(PI * f); //Prewarp
+        f = 1.0 / tan(PI * f); //Prewarp
     }
-  else if (s == -1)
+    else if (s == -1)
     {
-      f = tan(PI * f); //Prewarp
+        f = tan(PI * f); //Prewarp
     }
-  else
+    else
     {
-      assert(false);
+        assert(false);
     }
-  double i2q = 1.0 / (2 * q);
-  double a0_temp   = ((i2q + f) * (i2q + f) + (1.0 + i2q) * (1.0 - i2q))          ;
-         coeffs[0] = ((i2q - f) * (i2q - f) + (1.0 + i2q) * (1.0 - i2q)) / a0_temp;
-         coeffs[1] = s * 2 * (1.0 + f) * (1.0 - f) / a0_temp;
-  *a0 = a0_temp;
-  return;
+    double i2q = 1.0 / (2 * q);
+    double a0_temp   = ((i2q + f) * (i2q + f) + (1.0 + i2q) * (1.0 - i2q))          ;
+           coeffs[0] = ((i2q - f) * (i2q - f) + (1.0 + i2q) * (1.0 - i2q)) / a0_temp;
+           coeffs[1] = s * 2 * (1.0 + f) * (1.0 - f) / a0_temp;
+    *a0 = a0_temp;
+    return;
 }
 
 
@@ -105,20 +105,20 @@ void butterworth_filter_create(int n,
       }
     double a0_tot  = 1.0;
     for(int i = 0; i < (n & ~((int)1)); i += 2)
-      {
+    {
         double sini = sin(PI / (2 * n) * (i + 1));
         double cosi = cos(PI / (2 * n) * (i + 1));
         double a0_temp     = ((sini + f) * (sini + f) + cosi * cosi)          ;
                coeffs[i  ] = ((sini - f) * (sini - f) + cosi * cosi) / a0_temp;
                coeffs[i+1] = s * 2 * (1.0 + f) * (1.0 - f) / a0_temp;
         a0_tot *= a0_temp;
-      }
+    }
     if(n & 1)
-      {
+    {
         double a0_temp     =     (1.0 + f)          ;
                coeffs[n-1] = s * (1.0 - f) / a0_temp;
         a0_tot *= a0_temp;
-      }
+    }
     *a0 = a0_tot;
     return;
 }
@@ -158,18 +158,18 @@ double iir_filter_strict_cascade(int n,
                                  double buf[n],
                                  double var)
 {
-  for(int i = 0; i < (n & ~((int)1)); i += 2)
+    for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
-      var -= coeffs[i] * buf[i] + coeffs[i+1] * buf[i+1];
-      buf[i] = buf[i+1];
-      buf[i+1] = var;
+        var -= coeffs[i] * buf[i] + coeffs[i+1] * buf[i+1];
+        buf[i] = buf[i+1];
+        buf[i+1] = var;
     }
-  if(n & 1)
+    if (n & 1)
     {
-      var -= coeffs[n-1] * buf[n-1];
-      buf[n-1] = var;
+        var -= coeffs[n-1] * buf[n-1];
+        buf[n-1] = var;
     }
-  return var;
+    return var;
 }
 
 
@@ -178,72 +178,72 @@ double iir_filter_strict_transposed_cascade(int n,
                                             double buf[n],
                                             double var)
 {
-  for(int i = 0; i < (n & ~((int)1)); i += 2)
+    for (int i = 0; i < (n & ~((int)1)); i += 2)
     {
-      var += buf[i+1];
-      buf[i+1] = buf[i] - coeffs[i+1] * var;
-      buf[i] = -coeffs[i] * var;
+        var += buf[i+1];
+        buf[i+1] = buf[i] - coeffs[i+1] * var;
+        buf[i] = -coeffs[i] * var;
     }
-  if(n & 1)
+    if (n & 1)
     {
-      var += buf[n-1];
-      buf[n-1] = -coeffs[n-1] * var;
+        var += buf[n-1];
+        buf[n-1] = -coeffs[n-1] * var;
     }
-  return var;
+    return var;
 }
 
 
 double dc_zero_filter(int n,
-		      double buf[n],
-		      double var)
+                      double buf[n],
+                      double var)
 {
-  for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      double temp = buf[i];
-      buf[i] = var;
-      var -= temp;
+        double temp = buf[i];
+        buf[i] = var;
+        var -= temp;
     }
-  return var;
+    return var;
 }
 
 
 double nq_zero_filter(int n,
-		      double buf[n],
-		      double var)
+                      double buf[n],
+                      double var)
 {
-  for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      double temp = buf[i];
-      buf[i] = var;
-      var += temp;
+        double temp = buf[i];
+        buf[i] = var;
+        var += temp;
     }
-  return var;
+    return var;
 }
 
 
 double dc_pole_filter(int n,
-		      double buf[n],
-		      double var)
+                      double buf[n],
+                      double var)
 {
-  for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      var += buf[i];
-      buf[i] = var;
+        var += buf[i];
+        buf[i] = var;
     }
-  return var;
+    return var;
 }
 
 
 double nq_pole_filter(int n,
-		      double buf[n],
-		      double var)
+                      double buf[n],
+                      double var)
 {
-  for (int i = 0; i < n; ++i)
+    for (int i = 0; i < n; ++i)
     {
-      var -= buf[i];
-      buf[i] = var;
+        var -= buf[i];
+        buf[i] = var;
     }
-  return var;
+    return var;
 }
 
 
@@ -269,6 +269,5 @@ void fir_filter(int n,
     return;
 }
 #endif
-
 
 

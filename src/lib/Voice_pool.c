@@ -169,7 +169,7 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
     assert(pool != NULL);
     if (voice == NULL)
     {
-        static uint64_t running_id = 0;
+        static uint64_t running_id = 1;
         downheap(pool, 0);
         Voice* new_voice = pool->voices[0];
         new_voice->id = running_id;

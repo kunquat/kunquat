@@ -38,7 +38,7 @@ typedef struct Event
     Event_field_desc* field_types; ///< The field type description.
     bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
     void* (*get)(struct Event* event, int index);            ///< Field getter.
-    char* fields;
+    char* fields;                  ///< Event fields as an unparsed JSON list.
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 

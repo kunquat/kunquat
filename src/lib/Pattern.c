@@ -375,14 +375,20 @@ uint32_t Pattern_mix(Pattern* pat,
             }
         }
 
-        // - Handle aux events
+        // - Find out if we need to process aux events
         Column_iter_change_col(play->citer, pat->aux);
         Event* next_aux = Column_iter_get(play->citer, &play->pos);
         Reltime* next_aux_pos = NULL;
+        bool aux_process = false;
         if (next_aux != NULL)
         {
             next_aux_pos = Event_get_pos(next_aux);
+            if (Reltime_cmp(next_aux_pos, &play->pos) == 0)
+            {
+                aux_process = true;
+            }
         }
+#if 0
         while (next_aux != NULL && Reltime_cmp(next_aux_pos, &play->pos) == 0)
         {
             assert(EVENT_IS_PG(Event_get_type(next_aux)));
@@ -395,16 +401,6 @@ uint32_t Pattern_mix(Pattern* pat,
                     Event_handler_handle(eh, ch_state->instrument,
                                          Event_get_type(next_aux),
                                          Event_get_fields(next_aux));
-#if 0
-                    Instrument* ins = Ins_table_get(ch_state->insts,
-                                                    ch_state->instrument);
-                    if (ins != NULL)
-                    {
-                        Event_ins_set_params((Event_ins*)next_aux,
-                                             Instrument_get_params(ins));
-                        Event_ins_process((Event_ins*)next_aux);
-                    }
-#endif
                 }
             }
             next_aux = Column_iter_get_next(play->citer);
@@ -413,6 +409,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 next_aux_pos = Event_get_pos(next_aux);
             }
         }
+#endif
 
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,
@@ -441,20 +438,23 @@ uint32_t Pattern_mix(Pattern* pat,
         //   how much we can mix for now
         if (!delay && next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
         {
-            assert(next_global_pos != NULL);
             Reltime_copy(limit, next_global_pos);
             to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
                                                        limit, &play->pos),
                                            play->tempo,
                                            play->freq);
         }
-        if (next_aux != NULL && Reltime_cmp(next_aux_pos, limit) < 0)
+        if (!delay && next_aux != NULL && Reltime_cmp(next_aux_pos, limit) < 0)
         {
             Reltime_copy(limit, next_aux_pos);
             to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
                                                        limit, &play->pos),
                                            play->tempo,
                                            play->freq);
+        }
+        if (!delay && aux_process)
+        {
+            Reltime_add(limit, &play->pos, Reltime_set(RELTIME_AUTO, 0, 1));
         }
         // - Calculate the number of frames to be mixed
         assert(Reltime_cmp(&play->pos, limit) <= 0);

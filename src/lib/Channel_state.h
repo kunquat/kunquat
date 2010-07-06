@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Channel_gen_state.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <Voice_params.h>
@@ -35,6 +36,7 @@ typedef struct Channel_state
     int num;                       ///< Channel number.
     Voice_params vp;               ///< Voice parameters.
     bool* mute;                    ///< Channel mute.
+    Channel_gen_state* cgstate;    ///< Channel-specific generator state.
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
@@ -42,6 +44,7 @@ typedef struct Channel_state
     int fg_count;
 
     int instrument;                ///< Currently active Instrument.
+    int generator;                 ///< Currently active Generator.
     Ins_table* insts;
     uint32_t* freq;
     double* tempo;
@@ -85,9 +88,9 @@ typedef struct Channel_state
  * \param mute    A reference to the channel mute state -- must not be
  *                \c NULL.
  *
- * \return   The parameter \a state.
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute);
+bool Channel_state_init(Channel_state* state, int num, bool* mute);
 
 
 /**
@@ -99,6 +102,14 @@ Channel_state* Channel_state_init(Channel_state* state, int num, bool* mute);
  * \return   The parameter \a dest.
  */
 Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src);
+
+
+/**
+ * Uninitialises the Channel state.
+ *
+ * \param state   The Channel state -- must not be \c NULL.
+ */
+void Channel_state_uninit(Channel_state* state);
 
 
 #endif // K_CHANNEL_STATE_H

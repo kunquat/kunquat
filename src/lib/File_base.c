@@ -160,6 +160,26 @@ char* skip_whitespace(char* str, Read_state* state)
 }
 
 
+char* read_null(char* str, Read_state* state)
+{
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    str = read_const_char(str, 'n', state);
+    str = read_const_char(str, 'u', state);
+    str = read_const_char(str, 'l', state);
+    str = read_const_char(str, 'l', state);
+    if (state->error)
+    {
+        Read_state_set_error(state, "Expected null");
+    }
+    return str;
+}
+
+
 char* read_const_char(char* str, char result, Read_state* state)
 {
     assert(str != NULL);

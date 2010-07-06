@@ -331,7 +331,7 @@ class RWCHandle(RWHandle):
 
         Exceptions:
         KunquatFormatError   -- The project contains invalid data.
-                                This usually means that the worspace
+                                This usually means that the workspace
                                 was modified manually or there's a bug
                                 in Kunquat.
         KunquatResourceError -- File system access failed.

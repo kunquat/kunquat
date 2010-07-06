@@ -1,0 +1,200 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2010
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#ifndef K_DEVICE_NODE_H
+#define K_DEVICE_NODE_H
+
+
+#include <stdbool.h>
+
+#include <Device.h>
+#include <Ins_table.h>
+#include <math_common.h>
+
+
+/**
+ * The state of a Device node during a search. These are sometimes referred to
+ * as the colours white, gray and black.
+ */
+typedef enum
+{
+    DEVICE_NODE_STATE_NEW = 0,
+    DEVICE_NODE_STATE_REACHED,
+    DEVICE_NODE_STATE_VISITED
+} Device_node_state;
+
+
+#define KQT_DEVICE_NODE_NAME_MAX (32)
+
+
+/**
+ * A node in Connections. This contains a reference to the Device, not the
+ * Device itself.
+ *
+ * The structure in memory allows Device nodes to be compared against strings.
+ */
+typedef struct Device_node Device_node;
+
+
+/**
+ * Creates a new Device node.
+ *
+ * \param name   The name of the node -- must not be \c NULL.
+ *
+ * \return   The new Device node if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Device_node* new_Device_node(const char* name);
+
+
+/**
+ * Compares two existing Device nodes.
+ *
+ * \param n1   The first Device node -- must not be \c NULL.
+ * \param n2   The second Device node -- must not be \c NULL.
+ *
+ * \return   An integer less than, equal to, or greater than zero if \a v1 is
+ *           found, respectively, to be less than, equal to or greater than
+ *           \a v2.
+ */
+int Device_node_cmp(const Device_node* n1, const Device_node* n2);
+
+
+/**
+ * Sets the devices starting from the given Device node.
+ *
+ * \param node     The Device node -- must not be \c NULL.
+ * \param master   The master Device -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
+ */
+void Device_node_set_devices(Device_node* node,
+                             Device* master,
+                             Ins_table* insts/*,
+                             DSP_table* dsps*/);
+
+
+/**
+ * Gets the name of the corresponding Device.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The name.
+ */
+char* Device_node_get_name(Device_node* node);
+
+
+/**
+ * Sets the node state of the Device node.
+ *
+ * \param node    The Device node -- must not be \c NULL.
+ * \param state   The state -- must be valid.
+ */
+void Device_node_set_state(Device_node* node, Device_node_state state);
+
+
+/**
+ * Gets the node state of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The state.
+ */
+Device_node_state Device_node_get_state(Device_node* node);
+
+
+/**
+ * Connects two Device nodes.
+ *
+ * \param receiver    The Device node that receives audio -- must not
+ *                    be \c NULL.
+ * \param rec_port    The receive port number of \a receiver -- must be
+ *                    >= \c 0 and < \c KQT_DEVICE_PORTS_MAX.
+ * \param sender      The Device node that sends audio -- must not be \c NULL.
+ * \param send_port   The send port number of \a sender -- must be >= \c 0
+ *                    and < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_connect(Device_node* receiver,
+                         int rec_port,
+                         Device_node* sender,
+                         int send_port);
+
+
+/**
+ * Gets the first in a list of Device nodes that send audio to this Device node.
+ *
+ * \param node        The Device node -- must not be \c NULL.
+ * \param rec_port    The receive port number -- must be >= \c 0 and
+ *                    < \c KQT_DEVICE_PORTS_MAX.
+ * \param send_port   A pointer where the send port of the returned node
+ *                    will be stored, or \c NULL.
+ *
+ * \return   The first sender if one exists, otherwise \c NULL.
+ */
+Device_node* Device_node_get_sender(Device_node* node,
+                                    int rec_port,
+                                    int* send_port);
+
+
+/**
+ * Gets the first in a list of Device nodes that receive audio from this Device node.
+ *
+ * \param node        The Device node -- must not be \c NULL.
+ * \param send_port   The send port number -- must be >= \c 0 and
+ *                    < \c KQT_DEVICE_PORTS_MAX.
+ * \param rec_port    A pointer where the receive port of the returned
+ *                    node will be stored, or \c NULL.
+ *
+ * \return   The first receiver if one exists, otherwise \c NULL.
+ */
+Device_node* Device_node_get_receiver(Device_node* node,
+                                      int send_port,
+                                      int* rec_port);
+
+
+/**
+ * Gets the next neighbour from the last requested list of a Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param port   A pointer where the port of the returned node
+ *               will be stored, or \c NULL.
+ *
+ * \return   The next neighbour if one exists, otherwise \c NULL.
+ */
+Device_node* Device_node_get_next(Device_node* node, int* port);
+
+
+/**
+ * Searches for a cycle in the path starting from this Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if a cycle was found, otherwise \c false.
+ */
+bool Device_node_cycle_in_path(Device_node* node);
+
+
+/**
+ * Destroys an existing Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void del_Device_node(Device_node* node);
+
+
+#endif // K_DEVICE_NODE_H
+
+

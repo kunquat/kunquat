@@ -443,10 +443,8 @@ double Envelope_get_value(Envelope* env, double x)
         } break;
         case ENVELOPE_INT_LINEAR:
         {
-            double interval = next_x - prev_x;
-            double y = prev_y * (next_x - x) / interval
-                    + next_y * (x - prev_x) / interval;
-            return y;
+            return prev_y + (x - prev_x) *
+                   ((next_y - prev_y) / (next_x - prev_x));
         } break;
         default:
             assert(false);

@@ -46,6 +46,15 @@ extern "C" {
 
 
 /**
+ * Maximum size of an output buffer in frames.
+ *
+ * This upper limit is a safety measure. Typical applications use much smaller
+ * buffer sizes, e.g. 1024 to 8192 frames.
+ */
+#define KQT_BUFFER_SIZE_MAX (1048576)
+
+
+/**
  * Maximum number of Voices used for mixing.
  */
 #define KQT_VOICES_MAX (1024)
@@ -84,16 +93,27 @@ extern "C" {
 
 
 /**
- * Maximum number of Instruments in a Kunquat Handle (Note: Instrument
- * indices start at 1).
+ * Maximum number of Instruments in a Kunquat Handle.
  */
-#define KQT_INSTRUMENTS_MAX (255)
+#define KQT_INSTRUMENTS_MAX (256)
 
 
 /**
  * Maximum number of Generators in a Kunquat Instruemnt.
  */
 #define KQT_GENERATORS_MAX (8)
+
+
+/**
+ * Maximum number of DSP effects in a Kunquat Handle.
+ */
+#define KQT_DSP_EFFECTS_MAX (256)
+
+
+/**
+ * Maximum number of input/output ports in a Device.
+ */
+#define KQT_DEVICE_PORTS_MAX KQT_GENERATORS_MAX
 
 
 /**

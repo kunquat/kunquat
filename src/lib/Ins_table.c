@@ -52,10 +52,9 @@ Ins_table* new_Ins_table(int size)
 bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
 {
     assert(table != NULL);
-    assert(index > 0);
-    assert(index <= table->size);
+    assert(index >= 0);
+    assert(index < table->size);
     assert(ins != NULL);
-    --index;
     return Etable_set(table->insts, index, ins);
 }
 
@@ -63,9 +62,8 @@ bool Ins_table_set(Ins_table* table, int index, Instrument* ins)
 Instrument* Ins_table_get(Ins_table* table, int index)
 {
     assert(table != NULL);
-    assert(index > 0);
-    assert(index <= table->size);
-    --index;
+    assert(index >= 0);
+    assert(index < table->size);
     return Etable_get(table->insts, index);
 }
 
@@ -73,9 +71,8 @@ Instrument* Ins_table_get(Ins_table* table, int index)
 void Ins_table_remove(Ins_table* table, int index)
 {
     assert(table != NULL);
-    assert(index > 0);
-    assert(index <= table->size);
-    --index;
+    assert(index >= 0);
+    assert(index < table->size);
     Etable_remove(table->insts, index);
     return;
 }

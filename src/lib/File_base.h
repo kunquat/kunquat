@@ -112,6 +112,17 @@ char* read_file(FILE* in, long* size, kqt_Handle* handle);
 
 
 /**
+ * Reads a null value.
+ *
+ * \param str     The input string -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The position of \a str after parsing.
+ */
+char* read_null(char* str, Read_state* state);
+
+
+/**
  * Reads a specified character.
  *
  * \param str      The input string -- must not be \c NULL.

@@ -30,11 +30,13 @@ typedef struct Generator_sine
  * Creates a new Sine Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new Sine Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_sine(Instrument_params* ins_params);
+Generator* new_Generator_sine(Instrument_params* ins_params,
+                              Generator_params* gen_params);
 
 
 uint32_t Generator_sine_mix(Generator* gen,

@@ -49,7 +49,7 @@ ln_cmd = 'ln -s ${SOURCE.file} ${TARGET.file}' # TARGET is the link
 
 def InstallLibCreatePath(env, path, source):
     target = env.InstallCreatePath(path, source)
-    if 'install' in COMMAND_LINE_TARGETS:
+    if 'install' in COMMAND_LINE_TARGETS and not env_lib['enable_profiling']:
         for file in source:
             env.Command(os.path.join(path, '%s.%s' % (str(file),
                                            str(env['lib_version_major']))),
@@ -59,15 +59,21 @@ def InstallLibCreatePath(env, path, source):
 
 env_lib.AddMethod(InstallLibCreatePath, 'InstallLibCreatePath')
 
-env_lib.Append(SHLINKFLAGS = ['-Wl,-soname,libkunquat.so.' +
-                              str(env_lib['lib_version_major'])])
-libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
+
+if env_lib['enable_profiling']:
+    libkunquat = env_lib.StaticLibrary('kunquat', env_lib.sources)
+else:
+    env_lib.Append(SHLINKFLAGS = ['-Wl,-soname,libkunquat.so.' +
+                                  str(env_lib['lib_version_major'])])
+    libkunquat = env_lib.SharedLibrary('kunquat', env_lib.sources)
+
 # For some reason, SCons sets the mode to 0755 by default
 env_lib.AddPostAction(libkunquat, Chmod(libkunquat[0].abspath, 0644))
 env_lib.InstallLibCreatePath(env_lib['prefix'] + '/lib', libkunquat)
 
 # This hack fixes the test builds.
-env_lib.Command('libkunquat.so.%d' % env_lib['lib_version_major'],
-                'libkunquat.so', ln_cmd, chdir=1)
+if not env_lib['enable_profiling']:
+    env_lib.Command('libkunquat.so.%d' % env_lib['lib_version_major'],
+                    'libkunquat.so', ln_cmd, chdir=1)
 
 

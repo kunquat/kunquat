@@ -23,8 +23,8 @@
 
 struct Random
 {
-    uint32_t seed;
-    uint32_t state;
+    uint64_t seed;
+    uint64_t state;
 };
 
 
@@ -40,7 +40,7 @@ Random* new_Random(void)
 }
 
 
-void Random_set_seed(Random* random, uint32_t seed)
+void Random_set_seed(Random* random, uint64_t seed)
 {
     assert(random != NULL);
     random->seed = random->state = seed;
@@ -56,11 +56,44 @@ void Random_reset(Random* random)
 }
 
 
-uint32_t Random_get(Random* random)
+uint64_t Random_get_uint64(Random* random)
 {
     assert(random != NULL);
-    random->state = 1664525UL * random->state + 1013904223UL;
+    // multiplier and increment from Knuth
+    random->state = 6364136223846793005ULL * random->state + 1442695040888963407ULL;
     return random->state;
+}
+
+
+uint32_t Random_get_uint32(Random* random)
+{
+    assert(random != NULL);
+    return Random_get_uint64(random) >> 32;
+}
+
+
+int32_t Random_get_index(Random* random, int32_t size)
+{
+    assert(random != NULL);
+    assert(size > 0);
+    return (int32_t)(Random_get_uint64(random) >> 33) % size;
+}
+
+
+double Random_get_float_scale(Random* random)
+{
+    assert(random != NULL);
+    return Random_get_uint64(random) / (double)KQT_RANDOM64_MAX;
+}
+
+
+double Random_get_float_signal(Random* random)
+{
+    assert(random != NULL);
+    uint64_t bits = (Random_get_uint64(random) >> 1); // max: 0x7fffffffffffffff
+    bits &= ~(uint64_t)1;                             //      0x7ffffffffffffffe
+    return ((int64_t)bits - 0x3fffffffffffffffLL) /
+                    (double)0x3fffffffffffffffLL;
 }
 
 

@@ -142,16 +142,23 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice* voice = ch_state->fg[i];
+        if (voice->gen->ins_params->pitch_lock_enabled)
+        {
+            return true;
+        }
         Voice_state* vs = &voice->state.generic;
+        pitch_t pitch = -1;
         if (voice->gen->ins_params->scale == NULL ||
                 *voice->gen->ins_params->scale == NULL ||
                 **voice->gen->ins_params->scale == NULL)
         {
-            continue;
+            pitch = data[0].field.double_type;
         }
-        pitch_t pitch =
-                Scale_get_pitch_from_cents(**voice->gen->ins_params->scale,
-                                           data[0].field.double_type);
+        else
+        {
+            pitch = Scale_get_pitch_from_cents(**voice->gen->ins_params->scale,
+                                               data[0].field.double_type);
+        }
         if (pitch <= 0)
         {
             continue;

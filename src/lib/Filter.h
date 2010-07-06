@@ -68,23 +68,23 @@ double iir_filter_strict_transposed_cascade(int n,
 
 
 double dc_zero_filter(int n,
-		      double buf[n],
-		      double var);
+                      double buf[n],
+                      double var);
 
 
 double nq_zero_filter(int n,
-		      double buf[n],
-		      double var);
+                      double buf[n],
+                      double var);
 
 
 double dc_pole_filter(int n,
-		      double buf[n],
-		      double var);
+                      double buf[n],
+                      double var);
 
 
 double nq_pole_filter(int n,
-		      double buf[n],
-		      double var);
+                      double buf[n],
+                      double var);
 
 
 #endif // K_FILTER_H

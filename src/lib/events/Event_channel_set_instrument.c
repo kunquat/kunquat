@@ -31,7 +31,7 @@ static Event_field_desc set_instrument_desc[] =
     {
         .type = EVENT_FIELD_INT,
         .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_INSTRUMENTS_MAX
+        .max.field.integral_type = KQT_INSTRUMENTS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE

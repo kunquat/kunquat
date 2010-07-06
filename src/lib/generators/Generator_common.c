@@ -37,6 +37,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
     assert(freq > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));
+    (void)gen;
     if (state->freq != freq || state->tempo != tempo)
     {
         if (state->pitch_slide != 0)
@@ -126,6 +127,7 @@ void Generator_common_handle_pitch(Generator* gen,
 {
     assert(gen != NULL);
     assert(state != NULL);
+    state->prev_pitch = state->pitch;
     if (state->pitch_slide != 0)
     {
         state->pitch *= state->pitch_slide_update;
@@ -153,67 +155,75 @@ void Generator_common_handle_pitch(Generator* gen,
             }
         }
     }
+    state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
-    if (state->vibrato)
+    if (gen->pitch_lock_enabled)
     {
-        double fac_log = sin(state->vibrato_phase);
-        if (state->vibrato_delay_pos < 1)
+        state->actual_pitch = gen->pitch_lock_freq;
+    }
+    else
+    {
+        if (state->vibrato)
         {
-            double actual_depth = (1 - state->vibrato_delay_pos) *
-                    state->vibrato_depth +
-                    state->vibrato_delay_pos *
-                    state->vibrato_depth_target;
-            fac_log *= actual_depth;
-            state->vibrato_delay_pos += state->vibrato_delay_update;
-        }
-        else
-        {
-            state->vibrato_depth = state->vibrato_depth_target;
-            fac_log *= state->vibrato_depth;
-            if (state->vibrato_depth == 0)
+            double fac_log = sin(state->vibrato_phase);
+            if (state->vibrato_delay_pos < 1)
             {
-                state->vibrato = false;
+                double actual_depth = (1 - state->vibrato_delay_pos) *
+                        state->vibrato_depth +
+                        state->vibrato_delay_pos *
+                        state->vibrato_depth_target;
+                fac_log *= actual_depth;
+                state->vibrato_delay_pos += state->vibrato_delay_update;
+            }
+            else
+            {
+                state->vibrato_depth = state->vibrato_depth_target;
+                fac_log *= state->vibrato_depth;
+                if (state->vibrato_depth == 0)
+                {
+                    state->vibrato = false;
+                }
+            }
+            state->actual_pitch *= exp2(fac_log);
+            if (!state->vibrato && state->vibrato_length > state->freq)
+            {
+                state->vibrato_length = state->freq;
+                state->vibrato_update = (2 * PI) / state->vibrato_length;
+            }
+            double new_phase = state->vibrato_phase + state->vibrato_update;
+            if (new_phase >= (2 * PI))
+            {
+                new_phase = fmod(new_phase, 2 * PI);
+            }
+            if (!state->vibrato && (new_phase < state->vibrato_phase
+                    || (new_phase >= PI && state->vibrato_phase < PI)))
+            {
+                state->vibrato_phase = 0;
+                state->vibrato_update = 0;
+            }
+            else
+            {
+                state->vibrato_phase = new_phase;
             }
         }
-        state->actual_pitch *= exp2(fac_log);
-        if (!state->vibrato && state->vibrato_length > state->freq)
+        if (state->arpeggio)
         {
-            state->vibrato_length = state->freq;
-            state->vibrato_update = (2 * PI) / state->vibrato_length;
-        }
-        double new_phase = state->vibrato_phase + state->vibrato_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->vibrato && (new_phase < state->vibrato_phase
-                || (new_phase >= PI && state->vibrato_phase < PI)))
-        {
-            state->vibrato_phase = 0;
-            state->vibrato_update = 0;
-        }
-        else
-        {
-            state->vibrato_phase = new_phase;
-        }
-    }
-    if (state->arpeggio)
-    {
-        if (state->arpeggio_note > 0)
-        {
-            state->actual_pitch *= state->arpeggio_factors[
-                                   state->arpeggio_note - 1];
-        }
-        state->arpeggio_frames += 1;
-        if (state->arpeggio_frames >= state->arpeggio_length)
-        {
-            state->arpeggio_frames -= state->arpeggio_length;
-            ++state->arpeggio_note;
-            if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
-                    || state->arpeggio_factors[
-                            state->arpeggio_note - 1] <= 0)
+            if (state->arpeggio_note > 0)
             {
-                state->arpeggio_note = 0;
+                state->actual_pitch *= state->arpeggio_factors[
+                                       state->arpeggio_note - 1];
+            }
+            state->arpeggio_frames += 1;
+            if (state->arpeggio_frames >= state->arpeggio_length)
+            {
+                state->arpeggio_frames -= state->arpeggio_length;
+                ++state->arpeggio_note;
+                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
+                        || state->arpeggio_factors[
+                                state->arpeggio_note - 1] <= 0)
+                {
+                    state->arpeggio_note = 0;
+                }
             }
         }
     }
@@ -305,23 +315,60 @@ void Generator_common_handle_force(Generator* gen,
     if (gen->ins_params->env_force_enabled)
     {
         Envelope* env = gen->ins_params->env_force;
-        double scale = Envelope_get_value(env, state->fe_pos);
-        assert(isfinite(scale));
-        state->actual_force *= scale;
+
         int loop_start_index = Envelope_get_mark(env, 0);
         int loop_end_index = Envelope_get_mark(env, 1);
         double* loop_start = loop_start_index == -1 ? NULL :
                              Envelope_get_node(env, loop_start_index);
         double* loop_end = loop_end_index == -1 ? NULL :
                            Envelope_get_node(env, loop_end_index);
-        double stretch = 1;
-        if (gen->ins_params->env_force_scale_amount != 0)
+        if (gen->ins_params->env_force_scale_amount != 0 &&
+                state->actual_pitch != state->prev_actual_pitch)
         {
-            stretch = pow(state->actual_pitch /
-                              gen->ins_params->env_force_center,
-                          gen->ins_params->env_force_scale_amount);
+            state->fe_scale = pow(state->actual_pitch /
+                                      gen->ins_params->env_force_center,
+                                  gen->ins_params->env_force_scale_amount);
         }
-        double new_pos = state->fe_pos + stretch / freq;
+
+        double* next_node = Envelope_get_node(env, state->fe_next_node);
+        double scale = NAN;
+        if (next_node == NULL)
+        {
+            assert(loop_start == NULL);
+            assert(loop_end == NULL);
+            double* last_node = Envelope_get_node(env,
+                                        Envelope_node_count(env) - 1);
+            scale = last_node[1];
+        }
+        else if (state->fe_pos >= next_node[0])
+        {
+            ++state->fe_next_node;
+            if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
+            {
+                assert(loop_start_index >= 0);
+                state->fe_next_node = loop_start_index;
+            }
+            scale = Envelope_get_value(env, state->fe_pos);
+            assert(isfinite(scale));
+            double next_scale = Envelope_get_value(env, state->fe_pos +
+                                                        1.0 / freq);
+            state->fe_value = scale;
+            state->fe_update = next_scale - scale;
+        }
+        else
+        {
+            assert(isfinite(state->fe_update));
+            state->fe_value += state->fe_update * state->fe_scale;
+            scale = state->fe_value;
+            if (scale < 0)
+            {
+                scale = 0;
+            }
+        }
+//        double scale = Envelope_get_value(env, state->fe_pos);
+        assert(isfinite(scale));
+        state->actual_force *= scale;
+        double new_pos = state->fe_pos + state->fe_scale / freq;
         if (loop_start != NULL && loop_end != NULL)
         {
             if (new_pos > loop_end[0])
@@ -339,6 +386,7 @@ void Generator_common_handle_force(Generator* gen,
                     new_pos = loop_start[0] + offset;
                     assert(new_pos >= loop_start[0]);
                     assert(new_pos <= loop_end[0]);
+                    state->fe_next_node = loop_start_index;
                 }
             }
         }
@@ -366,6 +414,52 @@ void Generator_common_handle_force(Generator* gen,
     {
         if (gen->ins_params->env_force_rel_enabled)
         {
+            if (gen->ins_params->env_force_rel_scale_amount != 0 &&
+                    (state->actual_pitch != state->prev_actual_pitch ||
+                     isnan(state->rel_fe_scale)))
+            {
+                state->rel_fe_scale = pow(state->actual_pitch /
+                                          gen->ins_params->env_force_rel_center,
+                                      gen->ins_params->env_force_rel_scale_amount);
+            }
+            else if (isnan(state->rel_fe_scale))
+            {
+                state->rel_fe_scale = 1;
+            }
+            Envelope* env = gen->ins_params->env_force_rel;
+            double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
+            assert(next_node != NULL);
+            double scale = NAN;
+            if (state->rel_fe_pos >= next_node[0])
+            {
+                ++state->rel_fe_next_node;
+                scale = Envelope_get_value(env, state->rel_fe_pos);
+                if (!isfinite(scale))
+                {
+                    state->active = false;
+                    for (int i = 0; i < frame_count; ++i)
+                    {
+                        frames[i] = 0;
+                    }
+                    return;
+                }
+                double next_scale = Envelope_get_value(env, state->rel_fe_pos +
+                                                            1.0 / freq);
+                state->rel_fe_value = scale;
+                state->rel_fe_update = next_scale - scale;
+            }
+            else
+            {
+                assert(isfinite(state->rel_fe_update));
+                state->rel_fe_value += state->rel_fe_update *
+                                       state->rel_fe_scale * (1.0 - *state->pedal);
+                scale = state->rel_fe_value;
+                if (scale < 0)
+                {
+                    scale = 0;
+                }
+            }
+#if 0
             double scale = Envelope_get_value(gen->ins_params->env_force_rel,
                                               state->rel_fe_pos);
             if (!isfinite(scale))
@@ -377,14 +471,8 @@ void Generator_common_handle_force(Generator* gen,
                 }
                 return;
             }
-            double stretch = 1;
-            if (gen->ins_params->env_force_rel_scale_amount != 0)
-            {
-                stretch = pow(state->actual_pitch /
-                                  gen->ins_params->env_force_rel_center,
-                              gen->ins_params->env_force_rel_scale_amount);
-            }
-            state->rel_fe_pos += stretch * (1.0 - *state->pedal) / freq;
+#endif
+            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->pedal) / freq;
             state->actual_force *= scale;
         }
         else if (*state->pedal < 0.5)
@@ -457,30 +545,35 @@ void Generator_common_handle_filter(Generator* gen,
     state->actual_filter = state->filter;
     if (state->autowah)
     {
-        double fac_log = sin(state->autowah_phase);
+        if (state->filter_xfade_pos >= 1)
+        {
+            double fac_log = sin(state->autowah_phase);
+            if (state->autowah_delay_pos < 1)
+            {
+                double actual_depth = (1 - state->autowah_delay_pos) *
+                                      state->autowah_depth +
+                                      state->autowah_delay_pos *
+                                      state->autowah_depth_target;
+                fac_log *= actual_depth;
+            }
+            else
+            {
+                fac_log *= state->autowah_depth_target;
+            }
+            state->actual_filter *= exp2(fac_log);
+        }
         if (state->autowah_delay_pos < 1)
         {
-            double actual_depth = (1 - state->autowah_delay_pos) *
-                    state->autowah_depth +
-                    state->autowah_delay_pos *
-                    state->autowah_depth_target;
-            fac_log *= actual_depth;
             state->autowah_delay_pos += state->autowah_delay_update;
         }
-        else
+        else if (state->autowah_depth == 0)
         {
             state->autowah_depth = state->autowah_depth_target;
-            fac_log *= state->autowah_depth;
             if (state->autowah_depth == 0)
             {
                 state->autowah = false;
             }
         }
-        if (fac_log > 85)
-        {
-            fac_log = 85;
-        }
-        state->actual_filter *= exp2(fac_log);
         if (!state->autowah && state->autowah_length > state->freq)
         {
             state->autowah_length = state->freq;
@@ -502,7 +595,8 @@ void Generator_common_handle_filter(Generator* gen,
             state->autowah_phase = new_phase;
         }
     }
-    if (gen->ins_params->env_force_filter_enabled)
+    if (gen->ins_params->env_force_filter_enabled &&
+            state->filter_xfade_pos >= 1)
     {
         double force = state->actual_force;
         if (force > 1)
@@ -574,9 +668,14 @@ void Generator_common_handle_filter(Generator* gen,
                     &state->filter_state[state->filter_state_used];
             for (int i = 0; i < frame_count; ++i)
             {
-		result[i] = nq_zero_filter(FILTER_ORDER, fst->history1[i], frames[i]);
-		result[i] = iir_filter_strict_cascade(FILTER_ORDER, fst->coeffs, fst->history2[i], result[i]);
-		result[i] /= fst->a0;
+                result[i] = nq_zero_filter(FILTER_ORDER,
+                                           fst->history1[i],
+                                           frames[i]);
+                result[i] = iir_filter_strict_cascade(FILTER_ORDER,
+                                                      fst->coeffs,
+                                                      fst->history2[i],
+                                                      result[i]);
+                result[i] /= fst->a0;
             }
         }
         else
@@ -604,9 +703,14 @@ void Generator_common_handle_filter(Generator* gen,
                         &state->filter_state[state->filter_xfade_state_used];
                 for (int i = 0; i < frame_count; ++i)
                 {
-                    fade_result[i] = nq_zero_filter(FILTER_ORDER, fst->history1[i], frames[i]);
-		    fade_result[i] = iir_filter_strict_cascade(FILTER_ORDER, fst->coeffs, fst->history2[i], fade_result[i]);
-		    fade_result[i] /= fst->a0;
+                    fade_result[i] = nq_zero_filter(FILTER_ORDER,
+                                                    fst->history1[i],
+                                                    frames[i]);
+                    fade_result[i] = iir_filter_strict_cascade(FILTER_ORDER,
+                                                               fst->coeffs,
+                                                               fst->history2[i],
+                                                               fade_result[i]);
+                    fade_result[i] /= fst->a0;
                 }
             }
             else
@@ -646,6 +750,7 @@ void Generator_common_ramp_attack(Generator* gen,
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
+    (void)gen;
     if (state->ramp_attack < 1)
     {
         for (int i = 0; i < frame_count; ++i)

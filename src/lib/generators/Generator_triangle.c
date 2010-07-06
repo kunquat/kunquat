@@ -30,9 +30,11 @@
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_triangle(Instrument_params* ins_params)
+Generator* new_Generator_triangle(Instrument_params* ins_params,
+                                  Generator_params* gen_params)
 {
     assert(ins_params != NULL);
+    assert(gen_params != NULL);
     Generator_triangle* triangle = xalloc(Generator_triangle);
     if (triangle == NULL)
     {
@@ -48,6 +50,7 @@ Generator* new_Generator_triangle(Instrument_params* ins_params)
     triangle->parent.init_state = Generator_triangle_init_state;
     triangle->parent.mix = Generator_triangle_mix;
     triangle->parent.ins_params = ins_params;
+    triangle->parent.type_params = gen_params;
     return &triangle->parent;
 }
 

@@ -68,6 +68,10 @@ bool Event_channel_vibrato_depth_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
+        if (ch_state->fg[i]->gen->ins_params->pitch_lock_enabled)
+        {
+            return true;
+        }
         Voice_state* vs = &ch_state->fg[i]->state.generic;
         if (data[0].field.double_type > 0 && vs->vibrato_length > 0)
         {

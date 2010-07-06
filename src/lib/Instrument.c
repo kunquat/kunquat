@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <Device.h>
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
@@ -28,14 +29,15 @@
 
 typedef struct Gen_group
 {
-    Gen_type active_type;
     Generator common_params;
-    Generator* types[GEN_TYPE_LAST];
+    Generator* gen;
 } Gen_group;
 
 
 struct Instrument
 {
+    Device parent;
+
     double default_force;       ///< Default force.
 
     Scale** scales;             ///< The Scales of the Song.
@@ -84,6 +86,14 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
+    if (!Device_init(&ins->parent, buf_len))
+    {
+        Instrument_params_uninit(&ins->params);
+        xfree(ins);
+        return NULL;
+    }
+    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
 
     ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
@@ -94,21 +104,27 @@ Instrument* new_Instrument(kqt_frame** bufs,
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        ins->gens[i].active_type = GEN_TYPE_NONE;
+        ins->gens[i].common_params.type_params = NULL;
+        ins->gens[i].gen = NULL;
+    }
+
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
         if (!Generator_init(&ins->gens[i].common_params))
         {
-            for (int k = i - 1; k >= 0; --k)
-            {
-                Generator_uninit(&ins->gens[k].common_params);
-            }
-            xfree(ins);
+            del_Instrument(ins);
             return NULL;
         }
-        ins->gens[i].common_params.random = random;
-        for (int k = 0; k < GEN_TYPE_LAST; ++k)
+        Generator_params* gen_params = new_Generator_params();
+        if (gen_params == NULL)
         {
-            ins->gens[i].types[k] = NULL;
+            Generator_uninit(&ins->gens[i].common_params);
+            del_Instrument(ins);
+            return NULL;
         }
+        ins->gens[i].common_params.type_params = gen_params;
+        ins->gens[i].common_params.random = random;
+        ins->gens[i].gen = NULL;
     }
     return ins;
 }
@@ -124,6 +140,8 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     double default_force = INS_DEFAULT_FORCE;
     double force_variation = INS_DEFAULT_FORCE_VAR;
+    bool pitch_lock_enabled = false;
+    double pitch_lock_cents = 0;
     int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
     if (str != NULL)
     {
@@ -153,6 +171,14 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 else if (strcmp(key, "force_variation") == 0)
                 {
                     str = read_double(str, &force_variation, state);
+                }
+                else if (strcmp(key, "pitch_lock") == 0)
+                {
+                    str = read_bool(str, &pitch_lock_enabled, state);
+                }
+                else if (strcmp(key, "pitch_lock_cents") == 0)
+                {
+                    str = read_double(str, &pitch_lock_cents, state);
                 }
                 else if (strcmp(key, "scale") == 0)
                 {
@@ -189,6 +215,9 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     ins->default_force = default_force;
     ins->params.force_variation = force_variation;
+    ins->params.pitch_lock_enabled = pitch_lock_enabled;
+    ins->params.pitch_lock_cents = pitch_lock_cents;
+    ins->params.pitch_lock_freq = exp2(ins->params.pitch_lock_cents / 1200.0) * 440;
     Instrument_set_scale(ins, scale_index);
     return true;
 }
@@ -210,15 +239,6 @@ Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
 }
 
 
-#if 0
-int Instrument_get_gen_count(Instrument* ins)
-{
-    assert(ins != NULL);
-    return ins->gen_count;
-}
-#endif
-
-
 void Instrument_set_gen(Instrument* ins,
                         int index,
                         Generator* gen)
@@ -227,8 +247,11 @@ void Instrument_set_gen(Instrument* ins,
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
     assert(gen != NULL);
-    Instrument_set_gen_of_type(ins, index, gen);
-    ins->gens[index].active_type = Generator_get_type(gen);
+    if (ins->gens[index].gen != NULL && ins->gens[index].gen != gen)
+    {
+        del_Generator(ins->gens[index].gen);
+    }
+    ins->gens[index].gen = gen;
     return;
 }
 
@@ -239,39 +262,7 @@ Generator* Instrument_get_gen(Instrument* ins,
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    return ins->gens[index].types[ins->gens[index].active_type];
-}
-
-
-void Instrument_set_gen_of_type(Instrument* ins,
-                                int index,
-                                Generator* gen)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    assert(gen != NULL);
-    Gen_type type = Generator_get_type(gen);
-    if (ins->gens[index].types[type] != NULL &&
-            ins->gens[index].types[type] != gen)
-    {
-        del_Generator(ins->gens[index].types[type]);
-    }
-    ins->gens[index].types[type] = gen;
-    return;
-}
-
-
-Generator* Instrument_get_gen_of_type(Instrument* ins,
-                                      int index,
-                                      Gen_type type)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    assert(type > GEN_TYPE_NONE);
-    assert(type < GEN_TYPE_LAST);
-    return ins->gens[index].types[type];
+    return ins->gens[index].gen;
 }
 
 
@@ -280,14 +271,11 @@ void Instrument_del_gen(Instrument* ins, int index)
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    Gen_type active_type = ins->gens[index].active_type;
-    if (ins->gens[index].types[active_type] == NULL)
+    if (ins->gens[index].gen != NULL)
     {
-        return;
+        del_Generator(ins->gens[index].gen);
+        ins->gens[index].gen = NULL;
     }
-    del_Generator(ins->gens[index].types[active_type]);
-    ins->gens[index].types[active_type] = NULL;
-    ins->gens[index].active_type = GEN_TYPE_NONE;
     return;
 }
 
@@ -321,10 +309,9 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Gen_type active_type = ins->gens[i].active_type;
-        if (ins->gens[i].types[active_type] != NULL)
+        if (ins->gens[i].gen != NULL)
         {
-            Generator_mix(ins->gens[i].types[active_type],
+            Generator_mix(ins->gens[i].gen,
                           &states[i], nframes, offset, freq, 120);
         }
     }
@@ -336,17 +323,20 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    for (int i = 0; i < KQT_GENERATORS_MAX &&
+                    ins->gens[i].common_params.type_params != NULL; ++i)
     {
-        Generator_uninit(&ins->gens[i].common_params);
-        for (int k = 0; k < GEN_TYPE_LAST; ++k)
+        if (ins->gens[i].common_params.type_params != NULL)
         {
-            if (ins->gens[i].types[k] != NULL)
-            {
-                del_Generator(ins->gens[i].types[k]);
-            }
+            del_Generator_params(ins->gens[i].common_params.type_params);
+        }
+        Generator_uninit(&ins->gens[i].common_params);
+        if (ins->gens[i].gen != NULL)
+        {
+            del_Generator(ins->gens[i].gen);
         }
     }
+    Device_uninit(&ins->parent);
     xfree(ins);
     return;
 }
