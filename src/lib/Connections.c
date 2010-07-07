@@ -72,18 +72,18 @@ static int validate_connection_path(char* str,
                                     Read_state* state);
 
 
-#define clean_if(expr, graph, node)   \
-    if (true)                           \
-    {                                   \
-        if ((expr))                     \
-        {                               \
-            if (node != NULL)         \
-            {                           \
+#define clean_if(expr, graph, node)    \
+    if (true)                          \
+    {                                  \
+        if ((expr))                    \
+        {                              \
+            if (node != NULL)          \
+            {                          \
                 del_Device_node(node); \
-            }                           \
-            del_Connections(graph);     \
-            return NULL;                \
-        }                               \
+            }                          \
+            del_Connections(graph);    \
+            return NULL;               \
+        }                              \
     } else (void)0
 
 Connections* new_Connections_from_string(char* str,

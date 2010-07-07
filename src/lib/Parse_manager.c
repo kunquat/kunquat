@@ -19,6 +19,7 @@
 #include <ctype.h>
 
 #include <Connections.h>
+#include <Connections_search.h>
 #include <File_base.h>
 #include <Generator_event_keys.h>
 #include <Generator_params.h>
@@ -375,6 +376,53 @@ static bool parse_instrument_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             del_Instrument(ins);
             return false;
+        }
+    }
+    else if (strcmp(subkey, "p_connections.json") == 0)
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Connections* graph = new_Connections_from_string(data, true, state);
+        if (graph == NULL)
+        {
+            if (state->error)
+            {
+                set_parse_error(handle, state);
+            }
+            else
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            return false;
+        }
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        if (ins == NULL)
+        {
+            ins = new_Instrument(Song_get_bufs(handle->song),
+                                 Song_get_voice_bufs(handle->song),
+                                 Song_get_voice_bufs2(handle->song),
+                                 Song_get_buf_count(handle->song),
+                                 Song_get_buf_size(handle->song),
+                                 Song_get_scales(handle->song),
+                                 Song_get_active_scale(handle->song),
+                                 handle->song->random);
+            if (ins == NULL || !Ins_table_set(Song_get_insts(handle->song),
+                                              index, ins))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Connections(graph);
+                return false;
+            }
+        }
+        assert(ins != NULL);
+        Instrument_set_connections(ins, graph);
+        Connections* global_graph = handle->song->connections;
+        if (global_graph != NULL)
+        {
+            Connections_set_devices(global_graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+            Connections_print(global_graph, stderr);
         }
     }
     struct

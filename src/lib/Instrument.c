@@ -38,6 +38,8 @@ struct Instrument
 {
     Device parent;
 
+    Connections* connections;
+
     double default_force;       ///< Default force.
 
     Scale** scales;             ///< The Scales of the Song.
@@ -78,6 +80,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     {
         return NULL;
     }
+    ins->connections = NULL;
     if (Instrument_params_init(&ins->params,
                                bufs, vbufs, vbufs2,
                                buf_count, buf_len,
@@ -297,6 +300,19 @@ void Instrument_set_scale(Instrument* ins, int index)
 }
 
 
+void Instrument_set_connections(Instrument* ins, Connections* graph)
+{
+    assert(ins != NULL);
+    assert(graph != NULL);
+    if (ins->connections != NULL)
+    {
+        del_Connections(ins->connections);
+    }
+    ins->connections = graph;
+    return;
+}
+
+
 void Instrument_mix(Instrument* ins,
                     Voice_state* states,
                     uint32_t nframes,
@@ -335,6 +351,10 @@ void del_Instrument(Instrument* ins)
         {
             del_Generator(ins->gens[i].gen);
         }
+    }
+    if (ins->connections != NULL)
+    {
+        del_Connections(ins->connections);
     }
     Device_uninit(&ins->parent);
     xfree(ins);
