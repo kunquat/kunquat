@@ -135,7 +135,7 @@ if not env.GetOption('clean') and not env.GetOption('help'):
         conf.env.Append(CCFLAGS = '-Duint64_t=uint_least64_t')
         conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
 
-    if env['enable_kunquat_assert']:
+    if env['enable_kunquat_assert'] and env['enable_debug']:
         conf.env.Append(CCFLAGS = '-DENABLE_KUNQUAT_ASSERT')
         if conf.CheckHeader('execinfo.h', language='C'):
             conf.env.Append(CCFLAGS = '-DHAS_EXECINFO')

@@ -86,6 +86,8 @@
 #endif // SILENT_ASSERT
 
 
+#ifndef NDEBUG
+
 #define assert(expr)                   \
     if (true)                          \
     {                                  \
@@ -96,6 +98,12 @@
             abort();                   \
         }                              \
     } else (void)0
+
+#else // NDEBUG
+
+#define assert(expr) (void)0
+
+#endif // NDEBUG
 
 
 #else // ENABLE_KUNQUAT_ASSERT
