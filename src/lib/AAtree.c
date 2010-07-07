@@ -13,11 +13,10 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <AAtree.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -58,7 +57,7 @@ static AAnode* aasplit(AAnode* root);
 static void aafree(AAnode* node, void (*destroy)(void*));
 
 #ifndef NDEBUG
-#define aavalidate(node, msg) (assert(aavalidate_(node, msg)))
+#define aavalidate(node, msg) assert(aavalidate_(node, msg))
 static bool aavalidate_(AAnode* node, char* msg);
 #else
 #define aavalidate(node, msg) (void)0

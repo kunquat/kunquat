@@ -13,13 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <AAtree.h>
 #include <Channel_gen_state.h>
 #include <Generator_field.h>
 #include <string_common.h>
 
+#include <xassert.h>
 #include <xmemory.h>
 
 

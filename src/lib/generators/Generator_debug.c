@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 
 #include <Generator_debug.h>
 #include <Generator_params.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

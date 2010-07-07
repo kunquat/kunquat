@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <Device_node.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

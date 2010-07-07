@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -29,7 +28,7 @@
 #include <pitch_t.h>
 #include <Parse_manager.h>
 #include <File_wavpack.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

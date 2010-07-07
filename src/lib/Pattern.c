@@ -14,7 +14,6 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -27,7 +26,7 @@
 #include <Event_ins.h>
 #include <Event_handler.h>
 #include <events/Event_global_jump.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -21,7 +20,7 @@
 #include <Event_channel_set_filter.h>
 #include <Reltime.h>
 #include <Voice.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

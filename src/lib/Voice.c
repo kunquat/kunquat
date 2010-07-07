@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -21,7 +20,7 @@
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

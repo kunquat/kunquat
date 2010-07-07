@@ -14,7 +14,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -27,7 +26,7 @@
 #include <Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

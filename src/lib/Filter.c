@@ -14,7 +14,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdarg.h>
@@ -23,6 +22,7 @@
 
 #include <math_common.h>
 #include <Filter.h>
+#include <xassert.h>
 
 
 double sinc(double x)

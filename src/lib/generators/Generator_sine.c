@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -24,7 +23,7 @@
 #include <Voice_state_sine.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

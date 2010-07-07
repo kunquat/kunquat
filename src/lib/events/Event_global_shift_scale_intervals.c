@@ -13,14 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
 #include <Event_global_shift_scale_intervals.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

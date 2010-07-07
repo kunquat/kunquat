@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -31,7 +30,7 @@
 #include <Event_channel_note_off.h>
 #include <Column.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

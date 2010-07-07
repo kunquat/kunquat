@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
@@ -25,7 +24,7 @@
 #include <Generator_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -332,7 +331,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
-            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
+//            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
             Connections_set_devices(graph, &handle->song->parent,
                                     Song_get_insts(handle->song));
 //            Connections_print(graph, stderr);
@@ -422,7 +421,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         {
             Connections_set_devices(global_graph, &handle->song->parent,
                                     Song_get_insts(handle->song));
-            Connections_print(global_graph, stderr);
+//            Connections_print(global_graph, stderr);
         }
     }
     struct

@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <math.h>
 #include <float.h>
 
 #include <Envelope.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

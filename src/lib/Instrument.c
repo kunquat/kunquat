@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -23,7 +22,7 @@
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

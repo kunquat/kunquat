@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
@@ -22,7 +21,7 @@
 #include <Channel.h>
 #include <Channel_state.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

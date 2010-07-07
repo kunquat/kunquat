@@ -14,10 +14,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
-#include <assert.h>
 
 #include <Random.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

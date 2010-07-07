@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -22,7 +21,7 @@
 #include <kunquat/limits.h>
 #include <File_base.h>
 #include <Subsong.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

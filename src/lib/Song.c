@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -25,7 +24,7 @@
 #include <Song.h>
 #include <File_base.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

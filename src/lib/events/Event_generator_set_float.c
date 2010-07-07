@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
@@ -21,7 +20,7 @@
 #include <File_base.h>
 #include <Generator.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

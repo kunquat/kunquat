@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -23,7 +22,7 @@
 #include <Generator_triangle.h>
 #include <Voice_state_triangle.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

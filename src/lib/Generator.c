@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -31,7 +30,7 @@
 #include <Event_ins.h>
 #include <pitch_t.h>
 #include <Random.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

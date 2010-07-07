@@ -13,10 +13,9 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Etable.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

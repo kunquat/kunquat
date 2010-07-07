@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <math.h>
@@ -25,7 +24,7 @@
 #include <Generator_pulse.h>
 #include <Voice_state_pulse.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

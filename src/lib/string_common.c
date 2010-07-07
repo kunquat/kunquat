@@ -13,11 +13,11 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include <string_common.h>
+#include <xassert.h>
 
 
 bool string_has_prefix(const char* str, const char* prefix)

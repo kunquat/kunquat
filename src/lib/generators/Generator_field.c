@@ -13,14 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <generators/File_wavpack.h>
 #include <Generator_field.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
