@@ -235,6 +235,19 @@ static bool Connections_is_cyclic(Connections* graph)
 }
 
 
+void Connections_print(Connections* graph, FILE* out)
+{
+    assert(graph != NULL);
+    assert(out != NULL);
+    Connections_reset(graph);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    Device_node_print(master, out);
+    fprintf(out, "\n");
+    return;
+}
+
+
 void del_Connections(Connections* graph)
 {
     assert(graph != NULL);
@@ -246,6 +259,7 @@ void del_Connections(Connections* graph)
     {
         del_AAtree(graph->nodes);
     }
+    xfree(graph);
     return;
 }
 

@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <File_base.h>
 #include <Ins_table.h>
@@ -55,6 +56,15 @@ void Connections_set_devices(Connections* graph,
                              Device* master,
                              Ins_table* insts /*,
                              DSP_table* dsps */);
+
+
+/**
+ * Prints the Connections.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ * \param out     The output file -- must not be \c NULL.
+ */
+void Connections_print(Connections* graph, FILE* out);
 
 
 /**

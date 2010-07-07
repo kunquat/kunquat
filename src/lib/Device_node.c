@@ -265,6 +265,54 @@ bool Device_node_cycle_in_path(Device_node* node)
 }
 
 
+void Device_node_print(Device_node* node, FILE* out)
+{
+    assert(node != NULL);
+    assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+    assert(out != NULL);
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
+    {
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    fprintf(out, "\nDevice node: %s, Device: %p\n",
+                 node->name[0] == '\0' ? "[Master]" : node->name,
+                 (void*)node->device);
+    bool conn_printed = false;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        bool port_printed = false;
+        while (edge != NULL)
+        {
+            if (!conn_printed)
+            {
+                fprintf(out, "Connections to input ports:\n");
+                conn_printed = true;
+            }
+            if (!port_printed)
+            {
+                fprintf(out, "  Port %d:\n", port);
+                port_printed = true;
+            }
+            fprintf(out, "    %s\n", edge->node->name);
+            edge = edge->next;
+        }
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_print(edge->node, out);
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
 void del_Device_node(Device_node* node)
 {
     assert(node != NULL);

@@ -202,8 +202,19 @@ bool parse_data(kqt_Handle* handle,
     if (strncmp(key, "ins_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
+        bool changed = Ins_table_get(Song_get_insts(handle->song),
+                                                    index) != NULL;
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
+        changed ^= Ins_table_get(Song_get_insts(handle->song),
+                                                index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            Connections_set_devices(graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+//            Connections_print(graph, stderr);
+        }
     }
     else if (strncmp(key, "pat_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
@@ -272,6 +283,7 @@ static bool parse_song_level(kqt_Handle* handle,
         handle->song->connections = graph;
         Connections_set_devices(graph, &handle->song->parent,
                                 Song_get_insts(handle->song));
+//        Connections_print(graph, stderr);
     }
     return true;
 }
@@ -308,9 +320,23 @@ static bool parse_instrument_level(kqt_Handle* handle,
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        return parse_generator_level(handle, key, subkey,
-                                     data, length, 
-                                     index, gen_index);
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        bool changed = ins != NULL && Instrument_get_gen(ins,
+                                                         gen_index) != NULL;
+        bool success = parse_generator_level(handle, key, subkey,
+                                             data, length, 
+                                             index, gen_index);
+        ins = Ins_table_get(Song_get_insts(handle->song), index);
+        changed ^= ins != NULL && Instrument_get_gen(ins, gen_index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
+            Connections_set_devices(graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+//            Connections_print(graph, stderr);
+        }
+        return success;
     }
     if (strcmp(subkey, "p_instrument.json") == 0)
     {

@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdio.h>
 
 #include <Device.h>
 #include <Ins_table.h>
@@ -185,6 +186,15 @@ Device_node* Device_node_get_next(Device_node* node, int* port);
  * \return   \c true if a cycle was found, otherwise \c false.
  */
 bool Device_node_cycle_in_path(Device_node* node);
+
+
+/**
+ * Prints a textual description of the Device node and its neighbours.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param out    The output file -- must not be \c NULL.
+ */
+void Device_node_print(Device_node* node, FILE* out);
 
 
 /**
