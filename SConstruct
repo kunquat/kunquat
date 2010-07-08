@@ -88,6 +88,7 @@ if env['enable_profiling']:
 if env['optimise'] > 0 and env['optimise'] <= 3:
     oflag = '-O%s' % env['optimise']
     env.Append(CCFLAGS = [oflag])
+#    env.Append(CCFLAGS = '-funroll-loops')
 
 
 audio_found = False
