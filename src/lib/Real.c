@@ -43,7 +43,7 @@ static Real* Real_normalise(Real* real);
      * \return   \c true if and only if the Real object is valid.
      */
     static bool Real_validate_(Real* real);
-    #define Real_validate(real)   assert(Real_validate_(real))
+    #define Real_validate(real)   (assert(Real_validate_(real)))
 #else
     #define Real_validate(real)   ((void)0)
 #endif

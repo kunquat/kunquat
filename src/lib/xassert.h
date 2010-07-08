@@ -20,47 +20,16 @@
 
 
 /**
- * This is an internal implementation of assert. Note that this version of
- * assert can only be used as a statement, not as an expression.
+ * This is an internal implementation of assert.
  */
-
-
-#include <stdbool.h>
-#include <stdio.h>
 
 
 #if defined(HAS_EXECINFO) && !defined(SILENT_ASSERT)
 
-#include <execinfo.h>
-
-#define BACKTRACE_LEVELS_MAX 256
-
-#define xassert_print_backtrace()                                   \
-    if (true)                                                       \
-    {                                                               \
-        void* buffer[BACKTRACE_LEVELS_MAX] = { NULL };              \
-        size_t size = backtrace(buffer, BACKTRACE_LEVELS_MAX);      \
-        char** symbols = backtrace_symbols(buffer, size);           \
-        if (symbols == NULL)                                        \
-        {                                                           \
-            fprintf(stderr, "(Could not allocate memory"            \
-                            " for a backtrace)\n");                 \
-        }                                                           \
-        else                                                        \
-        {                                                           \
-            fprintf(stderr, "Backtrace:\n");                        \
-            for (size_t i = 0; i < size; ++i)                       \
-            {                                                       \
-                fprintf(stderr, "  %s\n", symbols[i]);              \
-            }                                                       \
-            if (size >= BACKTRACE_LEVELS_MAX)                       \
-            {                                                       \
-                fprintf(stderr, "(Reached maximum number of levels" \
-                                " in the backtrace)\n");            \
-            }                                                       \
-            free(symbols);                                          \
-        }                                                           \
-    } else (void)0
+/**
+ * Prints a backtrace of the execution.
+ */
+void xassert_print_backtrace(void);
 
 #else // !HAS_EXECINFO || SILENT_ASSERT
 
@@ -71,13 +40,18 @@
 
 #ifndef SILENT_ASSERT
 
-#define xassert_print_msg(str)                              \
-    if (true)                                               \
-    {                                                       \
-        fprintf(stderr, "libkunquat: %s:%d: %s: "           \
-                        "Assertion `%s' failed.\n",         \
-                        __FILE__, __LINE__, __func__, str); \
-    } else (void)0
+/**
+ * Prints a message of failed assertion.
+ *
+ * \param file_name     The source code file name -- must not be \c NULL.
+ * \param line_number   The source code file line number.
+ * \param func_name     The name of the function -- must not be \c NULL.
+ * \param assertion     The assertion that failed -- must not be \c NULL.
+ */
+void xassert_print_msg(const char* file_name,
+                       int line_number,
+                       const char* func_name,
+                       const char* assertion);
 
 #else // SILENT_ASSERT
 
@@ -88,16 +62,17 @@
 
 #ifndef NDEBUG
 
-#define assert(expr)                   \
-    if (true)                          \
-    {                                  \
-        if (!(expr))                   \
-        {                              \
-            xassert_print_msg(#expr);  \
-            xassert_print_backtrace(); \
-            abort();                   \
-        }                              \
-    } else (void)0
+#define assert(expr)                                                \
+    (                                                               \
+        (expr) ?                                                    \
+            (void)0                                                 \
+        :                                                           \
+        (                                                           \
+            xassert_print_msg(__FILE__, __LINE__, __func__, #expr), \
+            xassert_print_backtrace(),                              \
+            abort()                                                 \
+        )                                                           \
+    )
 
 #else // NDEBUG
 
