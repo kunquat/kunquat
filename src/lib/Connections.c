@@ -113,6 +113,7 @@ Connections* new_Connections_from_string(char* str,
 
     if (str == NULL)
     {
+        Connections_reset(graph);
         return graph;
     }
     
@@ -121,6 +122,7 @@ Connections* new_Connections_from_string(char* str,
     str = read_const_char(str, ']', state);
     if (!state->error)
     {
+        Connections_reset(graph);
         return graph;
     }
     Read_state_clear_error(state);
@@ -178,10 +180,18 @@ Connections* new_Connections_from_string(char* str,
         del_Connections(graph);
         return NULL;
     }
+    Connections_reset(graph);
     return graph;
 }
 
 #undef clean_if
+
+
+Device_node* Connections_get_master(Connections* graph)
+{
+    assert(graph != NULL);
+    return AAtree_get_exact(graph->nodes, "");
+}
 
 
 void Connections_set_devices(Connections* graph,
@@ -238,9 +248,10 @@ void Connections_print(Connections* graph, FILE* out)
 {
     assert(graph != NULL);
     assert(out != NULL);
-    Connections_reset(graph);
+//    Connections_reset(graph);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
+    Device_node_reset(master);
     Device_node_print(master, out);
     fprintf(out, "\n");
     return;

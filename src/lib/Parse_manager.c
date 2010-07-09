@@ -416,6 +416,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         assert(ins != NULL);
         Instrument_set_connections(ins, graph);
+//        fprintf(stderr, "Set connections for ins %d\n", index);
         Connections* global_graph = handle->song->connections;
         if (global_graph != NULL)
         {

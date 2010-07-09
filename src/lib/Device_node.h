@@ -73,6 +73,17 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
 
 
 /**
+ * Resets the Device node and its subgraph.
+ *
+ * This function assumes that if the underlying Connections graph is not
+ * reset, all its nodes have been marked at least reached.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_reset(Device_node* node);
+
+
+/**
  * Sets the devices starting from the given Device node.
  *
  * \param node     The Device node -- must not be \c NULL.

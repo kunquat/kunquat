@@ -19,6 +19,7 @@
 #include <stdbool.h>
 
 #include <Connections.h>
+//#include <Device_node.h>
 #include <Instrument_params.h>
 #include <Generator.h>
 #include <frame.h>
@@ -160,6 +161,16 @@ void Instrument_set_scale(Instrument* ins, int index);
  * \param graph   The Connections -- must not be \c NULL.
  */
 void Instrument_set_connections(Instrument* ins, Connections* graph);
+
+
+/**
+ * Gets the Connections of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Connections, or \c NULL if none exist.
+ */
+Connections* Instrument_get_connections(Instrument* ins);
 
 
 /**

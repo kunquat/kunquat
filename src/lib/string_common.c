@@ -54,3 +54,50 @@ bool string_has_suffix(const char* str, const char* suffix)
 }
 
 
+int string_extract_index(const char* path, const char* prefix, int digits)
+{
+    assert(path != NULL);
+    assert(digits > 0);
+    if (!string_has_prefix(path, prefix))
+    {
+        return -1;
+    }
+    int prefix_len = 0;
+    if (prefix != NULL)
+    {
+        prefix_len = strlen(prefix);
+    }
+    else
+    {
+        prefix_len = strcspn(path, "_");
+        if (path[prefix_len] == '\0')
+        {
+            return -1;
+        }
+        ++prefix_len;
+    }
+    const char* num_s = path + prefix_len;
+    static const char hex_digits[] = "0123456789abcdef";
+    int index = 0;
+    for (int i = 0; i < digits; ++i, ++num_s)
+    {
+        index *= 0x10;
+        if (*num_s == '\0')
+        {
+            return -1;
+        }
+        char* pos = strchr(hex_digits, *num_s);
+        if (pos == NULL)
+        {
+            return -1;
+        }
+        index += pos - hex_digits;
+    }
+    if (strchr(hex_digits, *num_s) != NULL)
+    {
+        return -1;
+    }
+    return index;
+}
+
+

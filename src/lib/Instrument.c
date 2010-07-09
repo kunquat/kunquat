@@ -51,7 +51,7 @@ struct Instrument
 
 //    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
     Generator gen_conf[KQT_GENERATORS_MAX];
-    Generator* gen[KQT_GENERATORS_MAX];
+    Generator* gens[KQT_GENERATORS_MAX];
 };
 
 
@@ -111,7 +111,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ins->gen_conf[i].type_params = NULL;
-        ins->gen[i] = NULL;
+        ins->gens[i] = NULL;
     }
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -130,7 +130,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
         }
         ins->gen_conf[i].type_params = gen_params;
         ins->gen_conf[i].random = random;
-        ins->gen[i] = NULL;
+        ins->gens[i] = NULL;
     }
     return ins;
 }
@@ -253,11 +253,11 @@ void Instrument_set_gen(Instrument* ins,
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
     assert(gen != NULL);
-    if (ins->gen[index] != NULL && ins->gen[index] != gen)
+    if (ins->gens[index] != NULL && ins->gens[index] != gen)
     {
-        del_Generator(ins->gen[index]);
+        del_Generator(ins->gens[index]);
     }
-    ins->gen[index] = gen;
+    ins->gens[index] = gen;
     return;
 }
 
@@ -268,7 +268,7 @@ Generator* Instrument_get_gen(Instrument* ins,
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    return ins->gen[index];
+    return ins->gens[index];
 }
 
 
@@ -277,10 +277,10 @@ void Instrument_del_gen(Instrument* ins, int index)
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    if (ins->gen[index] != NULL)
+    if (ins->gens[index] != NULL)
     {
-        del_Generator(ins->gen[index]);
-        ins->gen[index] = NULL;
+        del_Generator(ins->gens[index]);
+        ins->gens[index] = NULL;
     }
     return;
 }
@@ -316,6 +316,13 @@ void Instrument_set_connections(Instrument* ins, Connections* graph)
 }
 
 
+Connections* Instrument_get_connections(Instrument* ins)
+{
+    assert(ins != NULL);
+    return ins->connections;
+}
+
+
 void Instrument_mix(Instrument* ins,
                     Voice_state* states,
                     uint32_t nframes,
@@ -328,9 +335,9 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (ins->gen[i] != NULL)
+        if (ins->gens[i] != NULL)
         {
-            Generator_mix(ins->gen[i],
+            Generator_mix(ins->gens[i],
                           &states[i], nframes, offset, freq, 120);
         }
     }
@@ -350,9 +357,9 @@ void del_Instrument(Instrument* ins)
             del_Generator_params(ins->gen_conf[i].type_params);
         }
         Generator_uninit(&ins->gen_conf[i]);
-        if (ins->gen[i] != NULL)
+        if (ins->gens[i] != NULL)
         {
-            del_Generator(ins->gen[i]);
+            del_Generator(ins->gens[i]);
         }
     }
     if (ins->connections != NULL)

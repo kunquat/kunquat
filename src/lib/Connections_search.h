@@ -18,12 +18,23 @@
 
 #include <Connections.h>
 #include <Device.h>
+#include <Device_node.h>
 #include <Ins_table.h>
 
 
 /**
- * These are the search algorithms used with Connections.
+ * These are auxiliary algorithms used with Connections.
  */
+
+
+/**
+ * Retrieves the master Device node of the Connections.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ *
+ * \return   The master node if one exists, otherwise \c NULL.
+ */
+Device_node* Connections_get_master(Connections* graph);
 
 
 /**

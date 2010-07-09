@@ -172,6 +172,7 @@ static bool File_traverse_dir(Handle_rw* handle_rw, Directory* dir, int key_star
                 }
             }
             fclose(in);
+//            fprintf(stderr, "parsing key %s\n", key);
             bool success = parse_data(&handle_rw->handle, key, data, length);
             xfree(data);
             if (!success)
