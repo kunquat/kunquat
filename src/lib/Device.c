@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <inttypes.h>
 
 #include <Device.h>
 #include <math_common.h>
@@ -62,6 +63,35 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
 }
 
 
+bool Device_init_buffer(Device* device, Device_port_type type, int port)
+{
+    assert(device != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+    if (!device->reg[type][port])
+    {
+        return true;
+    }
+    if (device->buffers[type][port] != NULL)
+    {
+        if (type == DEVICE_PORT_TYPE_SEND)
+        {
+            device->direct_send[port] = NULL;
+        }
+        return true;
+    }
+    Audio_buffer* buffer = new_Audio_buffer(device->buffer_size);
+    if (buffer == NULL)
+    {
+        return false;
+    }
+    assert(device->buffers[type][port] == NULL);
+    device->buffers[type][port] = buffer;
+    return true;
+}
+
+
 void Device_set_direct_send(Device* device,
                             int port,
                             Audio_buffer* buffer)
@@ -74,6 +104,7 @@ void Device_set_direct_send(Device* device,
 }
 
 
+#if 0
 bool Device_init_buffers(Device* device)
 {
     assert(device != NULL);
@@ -123,6 +154,7 @@ bool Device_init_buffers(Device* device)
     }
     return true;
 }
+#endif
 
 
 bool Device_resize_buffers(Device* device, uint32_t size)
@@ -185,6 +217,53 @@ void Device_clear_buffers(Device* device)
         {
             Audio_buffer_clear(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
         }
+    }
+    return;
+}
+
+
+void Device_print(Device* device, FILE* out)
+{
+    assert(device != NULL);
+    assert(out != NULL);
+    fprintf(out, "Device buffer size: %" PRIu32 " frames\n",
+                 device->buffer_size);
+    bool printed = false;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        if (!device->reg[DEVICE_PORT_TYPE_SEND][port])
+        {
+            continue;
+        }
+        if (!printed)
+        {
+            fprintf(out, "Registered send ports:\n");
+            printed = true;
+        }
+        bool direct = true;
+        Audio_buffer* buffer = device->direct_send[port];
+        if (buffer == NULL)
+        {
+            direct = false;
+            buffer = device->buffers[DEVICE_PORT_TYPE_SEND][port];
+        }
+        fprintf(out, "  Port %02x, buffer %p%s\n", port, (void*)buffer,
+                     direct ? " (direct)" : "");
+    }
+    printed = false;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        if (!device->reg[DEVICE_PORT_TYPE_RECEIVE][port])
+        {
+            continue;
+        }
+        if (!printed)
+        {
+            fprintf(out, "Registered receive ports:\n");
+            printed = true;
+        }
+        fprintf(out, "  Port %02x, buffer %p\n", port,
+                     (void*)device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
     }
     return;
 }

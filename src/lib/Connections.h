@@ -44,6 +44,16 @@ Connections* new_Connections_from_string(char* str,
 
 
 /**
+ * Initialises all Audio buffers in the Connections.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Connections_init_buffers_simple(Connections* graph);
+
+
+/**
  * Prints the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.

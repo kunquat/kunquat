@@ -203,11 +203,22 @@ void Connections_set_devices(Connections* graph,
     assert(master != NULL);
     assert(insts != NULL);
 //    assert(dsps != NULL);
-    Connections_reset(graph);
+//    Connections_reset(graph);
     Device_node* master_node = AAtree_get_exact(graph->nodes, "");
     assert(master_node != NULL);
+    Device_node_reset(master_node);
     Device_node_set_devices(master_node, master, insts/*, dsps*/);
     return;
+}
+
+
+bool Connections_init_buffers_simple(Connections* graph)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    Device_node_reset(master);
+    return Device_node_init_buffers_simple(master);
 }
 
 
@@ -251,7 +262,6 @@ void Connections_print(Connections* graph, FILE* out)
 //    Connections_reset(graph);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
-    Device_node_reset(master);
     Device_node_print(master, out);
     fprintf(out, "\n");
     return;

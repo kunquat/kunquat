@@ -98,6 +98,16 @@ void Device_node_set_devices(Device_node* node,
 
 
 /**
+ * Initialises all Audio buffers in the Device node and its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_buffers_simple(Device_node* node);
+
+
+/**
  * Gets the name of the corresponding Device.
  *
  * \param node   The Device node -- must not be \c NULL.
