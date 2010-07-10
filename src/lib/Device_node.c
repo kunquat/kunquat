@@ -264,6 +264,114 @@ bool Device_node_init_buffers_simple(Device_node* node)
 }
 
 
+void Device_node_clear_buffers(Device_node* node,
+                               uint32_t start,
+                               uint32_t until)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+    }
+    Device_clear_buffers(node->device, start, until);
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_clear_buffers(edge->node, start, until);
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_mix(node->ins_dual, start, until);
+        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        {
+            Audio_buffer* receive = Device_get_buffer(node->device,
+                                            DEVICE_PORT_TYPE_RECEIVE, port);
+            Audio_buffer* send = Device_get_buffer(node->device,
+                                            DEVICE_PORT_TYPE_SEND, port);
+            if (receive == NULL || send == NULL)
+            {
+                continue;
+            }
+            Audio_buffer_mix(send, receive, start, until);
+        }
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            Device_node_mix(edge->node, start, until);
+            Audio_buffer* send = Device_get_buffer(edge->node->device,
+                                         DEVICE_PORT_TYPE_SEND, edge->port);
+            Audio_buffer* receive = Device_get_buffer(node->device,
+                                         DEVICE_PORT_TYPE_RECEIVE, port);
+            if (receive == NULL || send == NULL)
+            {
+#if 0
+                if (receive != NULL)
+                {
+                    fprintf(stderr, "receive %p, but no send!\n", (void*)receive);
+                }
+                else if (send != NULL)
+                {
+                    fprintf(stderr, "send %p, but no receive!\n", (void*)send);
+                }
+#endif
+                edge = edge->next;
+                continue;
+            }
+            Audio_buffer_mix(receive, send, start, until);
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
 char* Device_node_get_name(Device_node* node)
 {
     assert(node != NULL);

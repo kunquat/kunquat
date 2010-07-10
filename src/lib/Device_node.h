@@ -17,6 +17,7 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 
 #include <Device.h>
@@ -105,6 +106,34 @@ void Device_node_set_devices(Device_node* node,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_node_init_buffers_simple(Device_node* node);
+
+
+/**
+ * Clears the audio buffers in the Device node and its subgraph.
+ *
+ * \param node    The Device node -- must not be \c NULL.
+ * \param start   The first frame to be cleared -- must be less than the
+ *                buffer size.
+ * \param until   The first frame not to be cleared -- must be less than or
+ *                equal to the buffer size. If \a until <= \a start, nothing
+ *                will be cleared.
+ */
+void Device_node_clear_buffers(Device_node* node,
+                               uint32_t start,
+                               uint32_t until);
+
+
+/**
+ * Mixes audio in the Device node and its subgraph.
+ *
+ * \param node    The Device node -- must not be \c NULL.
+ * \param start   The first frame to be mixed -- must be less than the
+ *                buffer size.
+ * \param until   The first frame not to be mixed -- must be less than or
+ *                equal to the buffer size. If \a until <= \a start, nothing
+ *                will be mixed.
+ */
+void Device_node_mix(Device_node* node, uint32_t start, uint32_t until);
 
 
 /**

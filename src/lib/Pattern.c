@@ -498,7 +498,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             if (connections != NULL)
             {
-                // TODO: mix Connections here!
+                Connections_mix(connections, mixed, mix_until);
             }
         }
         if ((play->volume != 1 || play->volume_slide != 0))

@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <Audio_buffer.h>
 #include <kunquat/limits.h>
@@ -82,12 +83,16 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 }
 
 
-void Audio_buffer_clear(Audio_buffer* buffer)
+void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until)
 {
     assert(buffer != NULL);
+    assert(start < buffer->size);
+    assert(until <= buffer->size);
+//    fprintf(stderr, "Clearing %p [%d..%d)\n",
+//            (void*)buffer, (int)start, (int)until);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        for (uint32_t k = 0; k < buffer->size; ++k)
+        for (uint32_t k = start; k < until; ++k)
         {
             buffer->bufs[i][k] = 0;
         }
@@ -108,8 +113,12 @@ void Audio_buffer_mix(Audio_buffer* buffer,
     assert(until <= buffer->size);
     if (buffer == in || until <= start)
     {
+//        fprintf(stderr, "Not mixing %p to %p [%d..%d)\n",
+//                (void*)in, (void*)buffer, (int)start, (int)until);
         return;
     }
+//    fprintf(stderr, "Mixing %p to %p [%d..%d)\n",
+//            (void*)in, (void*)buffer, (int)start, (int)until);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         for (uint32_t k = start; k < until; ++k)

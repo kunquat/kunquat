@@ -149,11 +149,18 @@ bool Device_resize_buffers(Device* device, uint32_t size);
 
 
 /**
- * Clears all the Audio buffers of the Device.
+ * Clears all the Audio buffers owned by the Device.
+ *
+ * This function does not clear direct send buffers.
  *
  * \param device   The Device -- must not be \c NULL.
+ * \param start    The first frame to be cleared -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
  */
-void Device_clear_buffers(Device* device);
+void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
 
 
 /**

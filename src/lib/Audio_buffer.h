@@ -63,8 +63,13 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size);
  * Clears the Audio buffer.
  *
  * \param buffer   The Audio buffer -- must not be \c NULL.
+ * \param start    The first frame to be cleared -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
  */
-void Audio_buffer_clear(Audio_buffer* buffer);
+void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until);
 
 
 /**

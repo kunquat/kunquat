@@ -204,18 +204,20 @@ Audio_buffer* Device_get_buffer(Device* device,
 }
 
 
-void Device_clear_buffers(Device* device)
+void Device_clear_buffers(Device* device, uint32_t start, uint32_t until)
 {
     assert(device != NULL);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL)
+        Audio_buffer* receive = device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
+        Audio_buffer* send = device->buffers[DEVICE_PORT_TYPE_SEND][port];
+        if (receive != NULL)
         {
-            Audio_buffer_clear(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
+            Audio_buffer_clear(receive, start, until);
         }
-        if (device->buffers[DEVICE_PORT_TYPE_SEND][port] != NULL)
+        if (send != NULL && send != receive)
         {
-            Audio_buffer_clear(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
+            Audio_buffer_clear(send, start, until);
         }
     }
     return;
