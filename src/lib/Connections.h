@@ -55,6 +55,21 @@ bool Connections_init_buffers_simple(Connections* graph);
 
 
 /**
+ * Clears the Audio buffers in the Connections.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ * \param start   The first frame to be cleared -- must be less than the
+ *                buffer size.
+ * \param until   The first frame not to be cleared -- must be less than or
+ *                equal to the buffer size. If \a until <= \a start, nothing
+ *                will be mixed.
+ */
+void Connections_clear_buffers(Connections* graph,
+                               uint32_t start,
+                               uint32_t until);
+
+
+/**
  * Mixes the audio in Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.

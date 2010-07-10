@@ -83,19 +83,15 @@ uint32_t Generator_pcm_mix(Generator* gen,
                            uint32_t nframes,
                            uint32_t offset,
                            uint32_t freq,
-                           double tempo,
-                           int buf_count,
-                           kqt_frame** bufs)
+                           double tempo)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_PCM);
     assert(state != NULL);
-//  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
+    kqt_frame* bufs[] = { NULL, NULL };
+    Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
 //    Generator_pcm* pcm = (Generator_pcm*)gen;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
@@ -183,7 +179,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     Sample_set_loop_start(sample, pcm_state->params.loop_start);
     Sample_set_loop_end(sample, pcm_state->params.loop_end);
     Sample_set_loop(sample, pcm_state->params.loop);
-    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, buf_count, bufs,
+    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, 2, bufs,
                       pcm_state->middle_tone, pcm_state->freq);
 }
 

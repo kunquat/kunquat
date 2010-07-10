@@ -19,6 +19,7 @@
 #include <inttypes.h>
 #include <math.h>
 
+#include <Connections_search.h>
 #include <Pattern.h>
 #include <Playdata.h>
 #include <Event.h>
@@ -503,8 +504,21 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         if ((play->volume != 1 || play->volume_slide != 0))
         {
-            if (!play->silent)
+            Audio_buffer* buffer = NULL;
+            if (connections != NULL)
             {
+                Device* master = Device_node_get_device(
+                                         Connections_get_master(connections));
+                buffer = Device_get_buffer(master,
+                                 DEVICE_PORT_TYPE_RECEIVE, 0);
+            }
+            if (!play->silent && buffer != NULL)
+            {
+                kqt_frame* bufs[] =
+                {
+                    Audio_buffer_get_buffer(buffer, 0),
+                    Audio_buffer_get_buffer(buffer, 1),
+                };
                 for (uint32_t i = mixed; i < mixed + to_be_mixed; ++i)
                 {
                     if (play->volume_slide != 0)
@@ -525,10 +539,10 @@ uint32_t Pattern_mix(Pattern* pat,
                             play->volume_slide = 0;
                         }
                     }
-                    for (int k = 0; k < play->buf_count; ++k)
+                    for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
                     {
-                        assert(play->bufs[k] != NULL);
-                        play->bufs[k][i] *= play->volume;
+                        assert(bufs[k] != NULL);
+                        bufs[k][i] *= play->volume;
                     }
                 }
             }

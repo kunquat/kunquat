@@ -131,20 +131,15 @@ uint32_t Generator_noise_mix(Generator* gen,
                              uint32_t nframes,
                              uint32_t offset,
                              uint32_t freq,
-                             double tempo,
-                             int buf_count,
-                             kqt_frame** bufs)
+                             double tempo)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_NOISE);
     assert(state != NULL);
-//  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    (void)buf_count;
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
+    kqt_frame* bufs[] = { NULL, NULL };
+    Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;

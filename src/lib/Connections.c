@@ -237,6 +237,23 @@ bool Connections_init_buffers_simple(Connections* graph)
 }
 
 
+void Connections_clear_buffers(Connections* graph,
+                               uint32_t start,
+                               uint32_t until)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    if (start >= until)
+    {
+        return;
+    }
+    Device_node_reset(master);
+    Device_node_clear_buffers(master, start, until);
+    return;
+}
+
+
 void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
 {
     assert(graph != NULL);
@@ -256,8 +273,6 @@ void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
     Connections_print(graph, stderr);
     fprintf(stderr, "Mix process:\n");
 #endif
-    Device_node_reset(master);
-    Device_node_clear_buffers(master, start, until);
     Device_node_reset(master);
     Device_node_mix(master, start, until);
     return;

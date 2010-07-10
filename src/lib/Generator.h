@@ -48,8 +48,8 @@ typedef struct Generator
     Generator_params* type_params;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
-    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
-                int, kqt_frame**);
+    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t,
+                    uint32_t, double);
     Instrument_params* ins_params;
 } Generator;
 

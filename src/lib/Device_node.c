@@ -379,6 +379,13 @@ char* Device_node_get_name(Device_node* node)
 }
 
 
+Device* Device_node_get_device(Device_node* node)
+{
+    assert(node != NULL);
+    return node->device;
+}
+
+
 void Device_node_set_state(Device_node* node, Device_node_state state)
 {
     assert(node != NULL);

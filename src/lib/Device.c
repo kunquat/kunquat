@@ -27,6 +27,8 @@ bool Device_init(Device* device, uint32_t buffer_size)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     device->buffer_size = buffer_size;
+    device->reset = NULL;
+    device->process = NULL;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -38,6 +40,25 @@ bool Device_init(Device* device, uint32_t buffer_size)
         device->direct_send[port] = NULL;
     }
     return true;
+}
+
+
+void Device_set_reset(Device* device, void (*reset)(Device*))
+{
+    assert(device != NULL);
+    assert(reset != NULL);
+    device->reset = reset;
+    return;
+}
+
+
+void Device_set_process(Device* device,
+                        void (*process)(Device*, uint32_t, uint32_t))
+{
+    assert(device != NULL);
+    assert(process != NULL);
+    device->process = process;
+    return;
 }
 
 
@@ -99,6 +120,7 @@ void Device_set_direct_send(Device* device,
     assert(device != NULL);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
+    assert(Audio_buffer_get_size(buffer) == device->buffer_size);
     device->direct_send[port] = buffer;
     return;
 }
@@ -207,6 +229,8 @@ Audio_buffer* Device_get_buffer(Device* device,
 void Device_clear_buffers(Device* device, uint32_t start, uint32_t until)
 {
     assert(device != NULL);
+    assert(start < device->buffer_size);
+    assert(until <= device->buffer_size);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Audio_buffer* receive = device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
@@ -219,6 +243,30 @@ void Device_clear_buffers(Device* device, uint32_t start, uint32_t until)
         {
             Audio_buffer_clear(send, start, until);
         }
+    }
+    return;
+}
+
+
+void Device_reset(Device* device)
+{
+    assert(device != NULL);
+    if (device->reset != NULL)
+    {
+        device->reset(device);
+    }
+    return;
+}
+
+
+void Device_process(Device* device, uint32_t start, uint32_t until)
+{
+    assert(device != NULL);
+    assert(start < device->buffer_size);
+    assert(until <= device->buffer_size);
+    if (device->process != NULL)
+    {
+        device->process(device, start, until);
     }
     return;
 }

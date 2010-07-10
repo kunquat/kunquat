@@ -147,6 +147,16 @@ char* Device_node_get_name(Device_node* node);
 
 
 /**
+ * Gets the Device of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The Device.
+ */
+Device* Device_node_get_device(Device_node* node);
+
+
+/**
  * Sets the node state of the Device node.
  *
  * \param node    The Device node -- must not be \c NULL.

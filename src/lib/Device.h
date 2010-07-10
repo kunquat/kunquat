@@ -36,6 +36,8 @@ typedef enum
 typedef struct Device
 {
     uint32_t buffer_size;
+    void (*reset)(struct Device*);
+    void (*process)(struct Device*, uint32_t, uint32_t);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
@@ -52,6 +54,25 @@ typedef struct Device
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_init(Device* device, uint32_t buffer_size);
+
+
+/**
+ * Sets the reset function of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param reset    The reset function -- must not be \c NULL.
+ */
+void Device_set_reset(Device* device, void (*reset)(Device*));
+
+
+/**
+ * Sets the process function of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param process   The process function -- must not be \c NULL.
+ */
+void Device_set_process(Device* device,
+                        void (*process)(Device*, uint32_t, uint32_t));
 
 
 /**
@@ -161,6 +182,27 @@ bool Device_resize_buffers(Device* device, uint32_t size);
  *                 will be cleared.
  */
 void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
+
+
+/**
+ * Resets the internal state of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ */
+void Device_reset(Device* device);
+
+
+/**
+ * Processes audio in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param start    The first frame to be processed -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be processed -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
+ */
+void Device_process(Device* device, uint32_t start, uint32_t until);
 
 
 /**

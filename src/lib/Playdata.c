@@ -27,14 +27,10 @@
 
 
 Playdata* new_Playdata(Ins_table* insts,
-                       int buf_count,
-                       kqt_frame** bufs,
                        Random* random)
 {
     assert(insts != NULL);
     (void)insts; // FIXME: remove?
-    assert(buf_count > 0);
-    assert(bufs != NULL);
     assert(random != NULL);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
@@ -63,8 +59,6 @@ Playdata* new_Playdata(Ins_table* insts,
     play->subsongs = NULL;
 //    play->events = NULL;
 
-    play->buf_count = buf_count;
-    play->bufs = bufs;
     play->scales = NULL;
     play->active_scale = NULL;
     play->scale = 0;
@@ -135,8 +129,6 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->subsongs = NULL;
 //    play->events = NULL;
 
-    play->buf_count = 0;
-    play->bufs = NULL;
     play->scales = NULL;
     play->active_scale = NULL;
     play->scale = 0;
@@ -177,9 +169,6 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->play_frames = 0;
     Reltime_init(&play->pos);
     Playdata_reset_stats(play);
-
-    play->buf_count = 0;
-    play->bufs = NULL;
 
     return play;
 }

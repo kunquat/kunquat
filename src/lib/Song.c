@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <math.h>
 
+#include <Connections_search.h>
 #include <Random.h>
 #include <Real.h>
 #include <Song.h>
@@ -125,8 +126,6 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         return NULL;
     }
     song->play_state = new_Playdata(song->insts,
-                                    song->buf_count,
-                                    song->bufs,
                                     song->random);
     if (song->play_state == NULL)
     {
@@ -143,6 +142,27 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
+
+    if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
+    {
+        del_Song(song);
+        return NULL;
+    }
+    Read_state* conn_state = READ_STATE_AUTO;
+    song->connections = new_Connections_from_string(NULL, false, conn_state);
+    if (song->connections == NULL)
+    {
+        assert(!conn_state->error);
+        del_Song(song);
+        return NULL;
+    }
+    if (!Connections_prepare(song->connections,
+                             &song->parent,
+                             song->insts))
+    {
+        del_Song(song);
+        return NULL;
+    }
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
@@ -306,13 +326,13 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         nframes = song->buf_size;
     }
-    if (!play->silent)
+    if (!play->silent && song->connections != NULL)
     {
+        Connections_clear_buffers(song->connections, 0, nframes);
         for (int i = 0; i < song->buf_count; ++i)
         {
             for (uint32_t k = 0; k < nframes; ++k)
             {
-                song->bufs[i][k] = 0;
                 song->voice_bufs[i][k] = 0;
                 song->voice_bufs2[i][k] = 0;
             }
@@ -359,22 +379,35 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
                              song->connections);
     }
-    if (!play->silent)
+    Audio_buffer* buffer = NULL;
+    if (song->connections != NULL)
     {
+        Device* master = Device_node_get_device(
+                                 Connections_get_master(song->connections));
+        buffer = Device_get_buffer(master,
+                         DEVICE_PORT_TYPE_RECEIVE, 0);
+    }
+    if (!play->silent && buffer != NULL)
+    {
+        kqt_frame* bufs[] =
+        {
+            Audio_buffer_get_buffer(buffer, 0),
+            Audio_buffer_get_buffer(buffer, 1),
+        };
         for (int i = 0; i < song->buf_count; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {
-                song->bufs[i][k] *= song->mix_vol;
-                if (song->bufs[i][k] < play->min_amps[i])
+                bufs[i][k] *= song->mix_vol;
+                if (bufs[i][k] < play->min_amps[i])
                 {
-                    play->min_amps[i] = song->bufs[i][k];
+                    play->min_amps[i] = bufs[i][k];
                 }
-                if (song->bufs[i][k] > play->max_amps[i])
+                if (bufs[i][k] > play->max_amps[i])
                 {
-                    play->max_amps[i] = song->bufs[i][k];
+                    play->max_amps[i] = bufs[i][k];
                 }
-                if (fabs(song->bufs[i][k]) > 1)
+                if (fabs(bufs[i][k]) > 1)
                 {
                     ++play->clipped[i];
                 }

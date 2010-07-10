@@ -44,9 +44,7 @@ uint32_t Generator_debug_mix(Generator* gen,
                              uint32_t nframes,
                              uint32_t offset,
                              uint32_t freq,
-                             double tempo,
-                             int buf_count,
-                             kqt_frame** bufs);
+                             double tempo);
 
 
 /**
