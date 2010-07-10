@@ -20,6 +20,7 @@
 
 #include <AAtree.h>
 #include <Connections.h>
+#include <Connections_search.h>
 #include <Device_node.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -191,6 +192,20 @@ Device_node* Connections_get_master(Connections* graph)
 {
     assert(graph != NULL);
     return AAtree_get_exact(graph->nodes, "");
+}
+
+
+bool Connections_prepare(Connections* graph,
+                         Device* master,
+                         Ins_table* insts/*,
+                         DSP_table* dsps*/)
+{
+    assert(graph != NULL);
+    assert(master != NULL);
+    assert(insts != NULL);
+//    assert(dsps != NULL);
+    Connections_set_devices(graph, master, insts/*, dsps*/);
+    return Connections_init_buffers_simple(graph);
 }
 
 

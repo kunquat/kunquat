@@ -169,11 +169,13 @@ uint32_t Pattern_mix(Pattern* pat,
                      uint32_t nframes,
                      uint32_t offset,
                      Event_handler* eh,
-                     Channel** channels)
+                     Channel** channels,
+                     Connections* connections)
 {
 //  assert(pat != NULL);
     assert(offset < nframes);
     assert(eh != NULL);
+    assert(channels != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
@@ -493,6 +495,10 @@ uint32_t Pattern_mix(Pattern* pat,
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
                 Channel_update_state(channels[i], mix_until); // FIXME
+            }
+            if (connections != NULL)
+            {
+                // TODO: mix Connections here!
             }
         }
         if ((play->volume != 1 || play->volume_slide != 0))

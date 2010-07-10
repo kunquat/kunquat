@@ -96,18 +96,23 @@ void Audio_buffer_clear(Audio_buffer* buffer)
 }
 
 
-void Audio_buffer_mix(Audio_buffer* buffer, Audio_buffer* in)
+void Audio_buffer_mix(Audio_buffer* buffer,
+                      Audio_buffer* in,
+                      uint32_t start,
+                      uint32_t until)
 {
     assert(buffer != NULL);
     assert(in != NULL);
     assert(buffer->size == in->size);
-    if (buffer == in)
+    assert(start < buffer->size);
+    assert(until <= buffer->size);
+    if (buffer == in || until <= start)
     {
         return;
     }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        for (uint32_t k = 0; k < buffer->size; ++k)
+        for (uint32_t k = start; k < until; ++k)
         {
             buffer->bufs[i][k] += in->bufs[i][k];
         }

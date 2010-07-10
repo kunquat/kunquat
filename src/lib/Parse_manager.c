@@ -211,6 +211,15 @@ bool parse_data(kqt_Handle* handle,
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
             Connections_set_devices(graph, &handle->song->parent,
                                     Song_get_insts(handle->song));
             if (!Connections_init_buffers_simple(graph))
@@ -219,6 +228,7 @@ bool parse_data(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
+#endif
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -290,6 +300,15 @@ static bool parse_song_level(kqt_Handle* handle,
         handle->song->connections = graph;
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
+        if (!Connections_prepare(graph,
+                                 &handle->song->parent,
+                                 Song_get_insts(handle->song)))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+#if 0
         Connections_set_devices(graph, &handle->song->parent,
                                 Song_get_insts(handle->song));
         //fprintf(stderr, "line: %d\n", __LINE__);
@@ -300,6 +319,7 @@ static bool parse_song_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             return false;
         }
+#endif
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
@@ -350,6 +370,15 @@ static bool parse_instrument_level(kqt_Handle* handle,
         if (changed && graph != NULL)
         {
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
             Connections_set_devices(graph, &handle->song->parent,
                                     Song_get_insts(handle->song));
             if (!Connections_init_buffers_simple(graph))
@@ -358,6 +387,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
+#endif
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -445,6 +475,15 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Connections* global_graph = handle->song->connections;
         if (global_graph != NULL)
         {
+            if (!Connections_prepare(global_graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
             Connections_set_devices(global_graph, &handle->song->parent,
                                     Song_get_insts(handle->song));
             //fprintf(stderr, "line: %d\n", __LINE__);
@@ -455,6 +494,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
+#endif
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(global_graph, stderr);
         }

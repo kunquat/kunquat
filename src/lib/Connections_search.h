@@ -38,6 +38,25 @@ Device_node* Connections_get_master(Connections* graph);
 
 
 /**
+ * Prepares the Connections for mixing.
+ *
+ * This function is a shorthand for calling Connections_set_devices and
+ * a buffer allocation function.
+ *
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param master   The master Device -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Connections_prepare(Connections* graph,
+                         Device* master,
+                         Ins_table* insts/*,
+                         DSP_table* dsps*/);
+
+
+/**
  * Sets the appropriate Devices for the Connections.
  *
  * \param graph    The Connections -- must not be \c NULL.

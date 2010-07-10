@@ -76,8 +76,16 @@ void Audio_buffer_clear(Audio_buffer* buffer);
  *                 not be \c NULL.
  * \param in       The input Audio buffer -- must not be \c NULL and must
  *                 have the same size as \a buffer.
+ * \param start    The first frame to be mixed -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be mixed -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be mixed.
  */
-void Audio_buffer_mix(Audio_buffer* buffer, Audio_buffer* in);
+void Audio_buffer_mix(Audio_buffer* buffer,
+                      Audio_buffer* in,
+                      uint32_t start,
+                      uint32_t until);
 
 
 /**

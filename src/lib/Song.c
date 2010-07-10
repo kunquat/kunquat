@@ -356,8 +356,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             Playdata_set_subsong(play, play->subsong + 1);
             continue;
         }
-        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels);
-        // TODO: Mix effect graph
+        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
+                             song->connections);
     }
     if (!play->silent)
     {
