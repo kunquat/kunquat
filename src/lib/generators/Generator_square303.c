@@ -30,7 +30,7 @@ void Generator_square303_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_square303(Instrument_params* ins_params,
-                                   Generator_params* gen_params)
+                                   Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);

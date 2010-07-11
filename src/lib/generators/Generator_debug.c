@@ -18,13 +18,13 @@
 
 #include <Generator_common.h>
 #include <Generator_debug.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
 Generator_debug* new_Generator_debug(Instrument_params* ins_params,
-                                     Generator_params* gen_params)
+                                     Device_params* gen_params)
 {
     assert(ins_params != NULL);
     Generator_debug* debug = xalloc(Generator_debug);

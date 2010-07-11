@@ -20,8 +20,8 @@
 #include <Connections.h>
 #include <Connections_search.h>
 #include <File_base.h>
-#include <Generator_event_keys.h>
-#include <Generator_params.h>
+#include <Device_event_keys.h>
+#include <Device_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -143,7 +143,7 @@ static bool key_is_for_text(const char* key)
 {
     assert(key != NULL);
     return string_has_suffix(key, ".json") ||
-           key_is_text_generator_param(key);
+           key_is_text_device_param(key);
 }
 
 
@@ -644,7 +644,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
-             key_is_generator_param(subkey))
+              key_is_device_param(subkey))
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);
@@ -679,10 +679,11 @@ static bool parse_generator_level(kqt_Handle* handle,
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Generator_params_parse_events(common_params->type_params,
-                                           handle->song->event_handler,
-                                           data,
-                                           state))
+        if (!Device_params_parse_events(common_params->type_params,
+                                        DEVICE_EVENT_TYPE_GENERATOR,
+                                        handle->song->event_handler,
+                                        data,
+                                        state))
         {
             set_parse_error(handle, state);
             if (new_ins)

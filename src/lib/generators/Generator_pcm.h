@@ -48,7 +48,7 @@ typedef struct Generator_pcm
  *           allocation failed.
  */
 Generator* new_Generator_pcm(Instrument_params* ins_params,
-                             Generator_params* gen_params);
+                             Device_params* gen_params);
 
 
 uint32_t Generator_pcm_mix(Generator* gen,

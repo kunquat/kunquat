@@ -121,7 +121,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
             del_Instrument(ins);
             return NULL;
         }
-        Generator_params* gen_params = new_Generator_params();
+        Device_params* gen_params = new_Device_params();
         if (gen_params == NULL)
         {
             Generator_uninit(&ins->gen_conf[i]);
@@ -354,7 +354,7 @@ void del_Instrument(Instrument* ins)
     {
         if (ins->gen_conf[i].type_params != NULL)
         {
-            del_Generator_params(ins->gen_conf[i].type_params);
+            del_Device_params(ins->gen_conf[i].type_params);
         }
         Generator_uninit(&ins->gen_conf[i]);
         if (ins->gens[i] != NULL)

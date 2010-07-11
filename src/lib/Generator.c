@@ -36,7 +36,7 @@
 
 Generator* new_Generator(Gen_type type,
                          Instrument_params* ins_params,
-                         Generator_params* gen_params,
+                         Device_params* gen_params,
                          uint32_t buffer_size)
 {
     assert(type > GEN_TYPE_NONE);
@@ -45,7 +45,7 @@ Generator* new_Generator(Gen_type type,
     assert(gen_params != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
-    static Generator* (*cons[])(Instrument_params*, Generator_params*) =
+    static Generator* (*cons[])(Instrument_params*, Device_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
@@ -94,7 +94,7 @@ void Generator_uninit(Generator* gen)
 }
 
 
-Generator_params* Generator_get_params(Generator* gen)
+Device_params* Generator_get_params(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->type_params != NULL);
@@ -211,8 +211,8 @@ bool Generator_parse_param(Generator* gen,
     {
         return false;
     }
-    return Generator_params_parse_value(gen->type_params, subkey,
-                                        data, length, state);
+    return Device_params_parse_value(gen->type_params, subkey,
+                                     data, length, state);
 }
 
 

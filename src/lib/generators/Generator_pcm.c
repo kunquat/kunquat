@@ -20,7 +20,7 @@
 #include <AAtree.h>
 #include <Generator.h>
 #include <Generator_common.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Generator_pcm.h>
 #include <Voice_state_pcm.h>
 #include <Sample.h>
@@ -36,7 +36,7 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_pcm(Instrument_params* ins_params,
-                             Generator_params* gen_params)
+                             Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);
@@ -128,7 +128,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
         snprintf(map_key, strlen(map_key) + 1,
                  "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
-        Sample_map* map = Generator_params_get_sample_map(gen->type_params,
+        Sample_map* map = Device_params_get_sample_map(gen->type_params,
                                                           map_key);
         if (map == NULL)
         {
@@ -151,7 +151,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char header_key[] = "smp_XXX/p_sample.jsonsh";
         snprintf(header_key, strlen(header_key) + 1,
                  "smp_%03x/p_sample.jsonsh", pcm_state->sample);
-        Sample_params* header = Generator_params_get_sample_params(gen->type_params,
+        Sample_params* header = Device_params_get_sample_params(gen->type_params,
                                         header_key);
         if (header == NULL)
         {
@@ -170,7 +170,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     snprintf(sample_key, strlen(sample_key) + 1,
              "smp_%03x/p_sample.%s", pcm_state->sample,
              extensions[pcm_state->params.format]);
-    Sample* sample = Generator_params_get_sample(gen->type_params, sample_key);
+    Sample* sample = Device_params_get_sample(gen->type_params, sample_key);
     if (sample == NULL)
     {
         state->active = false;

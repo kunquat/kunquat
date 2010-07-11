@@ -22,7 +22,7 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_noise.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
@@ -34,7 +34,7 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_noise(Instrument_params* ins_params,
-                               Generator_params* gen_params)
+                               Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);

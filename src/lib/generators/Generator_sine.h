@@ -36,7 +36,7 @@ typedef struct Generator_sine
  *           allocation failed.
  */
 Generator* new_Generator_sine(Instrument_params* ins_params,
-                              Generator_params* gen_params);
+                              Device_params* gen_params);
 
 
 uint32_t Generator_sine_mix(Generator* gen,

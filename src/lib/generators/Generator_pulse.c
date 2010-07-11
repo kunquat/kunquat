@@ -20,7 +20,7 @@
 
 #include <Generator.h>
 #include <Generator_common.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Generator_pulse.h>
 #include <Voice_state_pulse.h>
 #include <kunquat/limits.h>
@@ -32,7 +32,7 @@ static void Generator_pulse_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_pulse(Instrument_params* ins_params,
-                               Generator_params* gen_params)
+                               Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);
