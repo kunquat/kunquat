@@ -46,7 +46,7 @@ typedef struct Channel_state
     int instrument;                ///< Currently active Instrument.
     int generator;                 ///< Currently active Generator.
     int dsp;                       ///< Currently active DSP.
-    int ins_dsp;                   ///< Currently active Instrument DSP.
+    int dsp_context;               ///< Currently active DSP context.
     Ins_table* insts;
     uint32_t* freq;
     double* tempo;

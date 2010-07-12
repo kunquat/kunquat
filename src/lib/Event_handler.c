@@ -45,7 +45,7 @@
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
 #include <Event_channel_set_dsp.h>
-#include <Event_channel_set_ins_dsp.h>
+#include <Event_channel_set_dsp_context.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -180,8 +180,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_generator_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_DSP,
                                  Event_channel_set_dsp_process);
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INS_DSP,
-                                 Event_channel_set_ins_dsp_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_DSP_CONTEXT,
+                                 Event_channel_set_dsp_context_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
                                  Event_channel_note_on_process);
@@ -392,7 +392,22 @@ bool Event_handler_handle(Event_handler* eh,
     {
         assert(index >= 0);
         assert(index < KQT_DSP_EFFECTS_MAX);
-        DSP_conf* conf = DSP_table_get_conf(eh->dsps, index);
+        DSP_table* dsps = eh->dsps;
+        if (eh->ch_states[index]->dsp_context >= 0)
+        {
+            Instrument* ins = Ins_table_get(eh->insts,
+                                            eh->ch_states[index]->dsp_context);
+            if (ins == NULL)
+            {
+                return false;
+            }
+            dsps = Instrument_get_dsps(ins);
+        }
+        if (dsps == NULL)
+        {
+            return false;
+        }
+        DSP_conf* conf = DSP_table_get_conf(dsps, eh->ch_states[index]->dsp);
         if (conf == NULL)
         {
             return false;

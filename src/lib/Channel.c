@@ -186,7 +186,7 @@ void Channel_set_voices(Channel* ch,
         }
         else if (EVENT_IS_DSP(Event_get_type(next)))
         {
-            Event_handler_handle(eh, ch->cur_state.dsp,
+            Event_handler_handle(eh, ch->init_state.num,
                                  Event_get_type(next),
                                  Event_get_fields(next));
         }

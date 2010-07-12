@@ -18,19 +18,19 @@
 #include <Channel.h>
 #include <Channel_state.h>
 #include <Event_common.h>
-#include <Event_channel_set_ins_dsp.h>
+#include <Event_channel_set_dsp_context.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_ins_dsp_desc[] =
+static Event_field_desc set_dsp_context_desc[] =
 {
     {
         .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_INSTRUMENT_DSPS_MAX - 1
+        .min.field.integral_type = -1,
+        .max.field.integral_type = KQT_INSTRUMENTS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -38,18 +38,18 @@ static Event_field_desc set_ins_dsp_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_ins_dsp,
-                                   EVENT_CHANNEL_SET_INS_DSP,
-                                   int64_t, ins_dsp);
+Event_create_set_primitive_and_get(Event_channel_set_dsp_context,
+                                   EVENT_CHANNEL_SET_DSP_CONTEXT,
+                                   int64_t, dsp_context);
 
 
-Event_create_constructor(Event_channel_set_ins_dsp,
-                         EVENT_CHANNEL_SET_INS_DSP,
-                         set_ins_dsp_desc,
-                         event->ins_dsp = 0);
+Event_create_constructor(Event_channel_set_dsp_context,
+                         EVENT_CHANNEL_SET_DSP_CONTEXT,
+                         set_dsp_context_desc,
+                         event->dsp_context = -1);
 
 
-bool Event_channel_set_ins_dsp_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_dsp_context_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)
@@ -58,12 +58,12 @@ bool Event_channel_set_ins_dsp_process(Channel_state* ch_state, char* fields)
     }
     Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_ins_dsp_desc, data, state);
+    Event_type_get_fields(fields, set_dsp_context_desc, data, state);
     if (state->error)
     {
         return false;
     }
-    ch_state->ins_dsp = data[0].field.integral_type;
+    ch_state->dsp_context = data[0].field.integral_type;
     return true;
 }
 

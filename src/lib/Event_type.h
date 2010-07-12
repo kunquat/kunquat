@@ -64,7 +64,7 @@ typedef enum
     EVENT_CHANNEL_SET_INSTRUMENT     = 401,
     EVENT_CHANNEL_SET_GENERATOR      = 402,
     EVENT_CHANNEL_SET_DSP            = 403,
-    EVENT_CHANNEL_SET_INS_DSP        = 404,
+    EVENT_CHANNEL_SET_DSP_CONTEXT    = 404,
 
     EVENT_CHANNEL_NOTE_ON            = 421,
     EVENT_CHANNEL_NOTE_OFF           = 422,
@@ -102,17 +102,17 @@ typedef enum
     EVENT_CHANNEL_SET_GEN_REAL       = 544,
     EVENT_CHANNEL_SET_GEN_RELTIME    = 545,
 
+    EVENT_CHANNEL_SET_INS_DSP_BOOL   = 561,
+    EVENT_CHANNEL_SET_INS_DSP_INT    = 562,
+    EVENT_CHANNEL_SET_INS_DSP_FLOAT  = 563,
+    EVENT_CHANNEL_SET_INS_DSP_REAL   = 564,
+    EVENT_CHANNEL_SET_INS_DSP_RELTIME = 565,
+
     EVENT_CHANNEL_UPPER              = 800,
 
     EVENT_INS_LOWER                  = 800, ///< Instrument Events
                                     
     EVENT_INS_SET_PEDAL              = 801,
-
-    EVENT_INS_SET_DSP_BOOL           = 821,
-    EVENT_INS_SET_DSP_INT            = 822,
-    EVENT_INS_SET_DSP_FLOAT          = 823,
-    EVENT_INS_SET_DSP_REAL           = 824,
-    EVENT_INS_SET_DSP_RELTIME        = 825,
                                     
     EVENT_INS_UPPER                  = 900,
 
