@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <string.h>
@@ -22,6 +23,7 @@
 #include <Connections.h>
 #include <Connections_search.h>
 #include <Device_node.h>
+#include <DSP_table.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -197,32 +199,32 @@ Device_node* Connections_get_master(Connections* graph)
 
 bool Connections_prepare(Connections* graph,
                          Device* master,
-                         Ins_table* insts/*,
-                         DSP_table* dsps*/)
+                         Ins_table* insts,
+                         DSP_table* dsps)
 {
     assert(graph != NULL);
     assert(master != NULL);
     assert(insts != NULL);
-//    assert(dsps != NULL);
-    Connections_set_devices(graph, master, insts/*, dsps*/);
+    assert(dsps != NULL);
+    Connections_set_devices(graph, master, insts, dsps);
     return Connections_init_buffers_simple(graph);
 }
 
 
 void Connections_set_devices(Connections* graph,
                              Device* master,
-                             Ins_table* insts /*,
-                             DSP_table* dsps */)
+                             Ins_table* insts,
+                             DSP_table* dsps)
 {
     assert(graph != NULL);
     assert(master != NULL);
     assert(insts != NULL);
-//    assert(dsps != NULL);
+    assert(dsps != NULL);
 //    Connections_reset(graph);
     Device_node* master_node = AAtree_get_exact(graph->nodes, "");
     assert(master_node != NULL);
     Device_node_reset(master_node);
-    Device_node_set_devices(master_node, master, insts/*, dsps*/);
+    Device_node_set_devices(master_node, master, insts, dsps);
     return;
 }
 
@@ -265,13 +267,12 @@ void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
     }
 #if 0
     static bool called = false;
-    if (called)
+    if (!called)
     {
-        return;
+        Connections_print(graph, stderr);
     }
     called = true;
-    Connections_print(graph, stderr);
-    fprintf(stderr, "Mix process:\n");
+//    fprintf(stderr, "Mix process:\n");
 #endif
     Device_node_reset(master);
     Device_node_mix(master, start, until);

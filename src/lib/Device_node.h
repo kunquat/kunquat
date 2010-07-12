@@ -94,8 +94,8 @@ void Device_node_reset(Device_node* node);
  */
 void Device_node_set_devices(Device_node* node,
                              Device* master,
-                             Ins_table* insts/*,
-                             DSP_table* dsps*/);
+                             Ins_table* insts,
+                             DSP_table* dsps);
 
 
 /**

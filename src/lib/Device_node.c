@@ -50,8 +50,8 @@ struct Device_node
 void Device_node_set_devices_(Device_node* node,
                               Device* master,
                               Ins_table* insts,
-                              Instrument* ins/*,
-                              DSP_table* dsps*/);
+                              Instrument* ins,
+                              DSP_table* dsps);
 
 
 Device_node* new_Device_node(const char* name)
@@ -113,15 +113,15 @@ void Device_node_reset(Device_node* node)
 
 void Device_node_set_devices(Device_node* node,
                              Device* master,
-                             Ins_table* insts/*,
-                             DSP_table* dsps*/)
+                             Ins_table* insts,
+                             DSP_table* dsps)
 {
     assert(node != NULL);
     assert(master != NULL);
     assert(insts != NULL);
-//    assert(dsps != NULL);
+    assert(dsps != NULL);
 //    fprintf(stderr, "setting...\n");
-    Device_node_set_devices_(node, master, insts, NULL/*, dsps*/);
+    Device_node_set_devices_(node, master, insts, NULL, dsps);
     return;
 }
 
@@ -129,12 +129,12 @@ void Device_node_set_devices(Device_node* node,
 void Device_node_set_devices_(Device_node* node,
                               Device* master,
                               Ins_table* insts,
-                              Instrument* ins/*,
-                              DSP_table* dsps*/)
+                              Instrument* ins,
+                              DSP_table* dsps)
 {
     assert(node != NULL);
     assert((insts != NULL) ^ (ins != NULL));
-//    assert(dsps != NULL);
+    assert(dsps != NULL);
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
         assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
@@ -187,6 +187,18 @@ void Device_node_set_devices_(Device_node* node,
         Generator* gen = Instrument_get_gen(ins, gen_index);
         node->device = (Device*)gen;
     }
+    else if (string_has_prefix(node->name, "dsp_"))
+    {
+        assert(dsps != NULL);
+        int index = string_extract_index(node->name, "dsp_", 2);
+        assert(index >= 0);
+        assert(ins != NULL || index < KQT_DSP_EFFECTS_MAX);
+        assert(ins == NULL || index < KQT_INSTRUMENT_DSPS_MAX);
+        DSP* dsp = DSP_table_get_dsp(dsps, index);
+//        if (dsp == NULL) fprintf(stderr, "null dsp is null\n");
+//        else fprintf(stderr, "dsp found\n");
+        node->device = (Device*)dsp;
+    }
     else
     {
         assert(false);
@@ -202,7 +214,7 @@ void Device_node_set_devices_(Device_node* node,
         assert(!string_has_prefix(node->name, "gen_") || edge == NULL);
         while (edge != NULL)
         {
-            Device_node_set_devices_(edge->node, NULL, insts, ins/*, dsps*/);
+            Device_node_set_devices_(edge->node, NULL, insts, ins, dsps);
             edge = edge->next;
         }
     }
@@ -367,6 +379,7 @@ void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
             edge = edge->next;
         }
     }
+    Device_process(node->device, start, until);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }

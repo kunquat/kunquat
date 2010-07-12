@@ -165,7 +165,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     }
     if (!Connections_prepare(song->connections,
                              &song->parent,
-                             song->insts))
+                             song->insts,
+                             song->dsps))
     {
         del_Song(song);
         return NULL;

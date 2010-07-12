@@ -222,7 +222,8 @@ bool parse_data(kqt_Handle* handle,
         {
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
-                                     Song_get_insts(handle->song)))
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -255,7 +256,8 @@ bool parse_data(kqt_Handle* handle,
         {
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
-                                     Song_get_insts(handle->song)))
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -332,7 +334,8 @@ static bool parse_song_level(kqt_Handle* handle,
         //Connections_print(graph, stderr);
         if (!Connections_prepare(graph,
                                  &handle->song->parent,
-                                 Song_get_insts(handle->song)))
+                                 Song_get_insts(handle->song),
+                                 Song_get_dsps(handle->song)))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -403,7 +406,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
-                                     Song_get_insts(handle->song)))
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -464,7 +468,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         {
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
-                                     Song_get_insts(handle->song)))
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -557,7 +562,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         {
             if (!Connections_prepare(global_graph,
                                      &handle->song->parent,
-                                     Song_get_insts(handle->song)))
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -888,6 +894,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
     subkey = strchr(subkey, '/') + 1;
     if (strcmp(subkey, "p_dsp_type.json") == 0)
     {
+//        fprintf(stderr, "%s\n", subkey);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         DSP* dsp = new_DSP(data, Song_get_buf_size(handle->song), state);
         if (dsp == NULL)
@@ -918,6 +925,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
               string_has_prefix(subkey, "c/")) &&
              key_is_device_param(subkey))
     {
+//        fprintf(stderr, "%s\n", subkey);
         DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
                                          Song_get_dsps(handle->song);
         assert(table != NULL);
@@ -945,6 +953,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
     }
     else if (strcmp(subkey, "p_events.json"))
     {
+//        fprintf(stderr, "%s\n", subkey);
         DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
                                          Song_get_dsps(handle->song);
         assert(table != NULL);

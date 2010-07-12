@@ -19,6 +19,7 @@
 #include <Connections.h>
 #include <Device.h>
 #include <Device_node.h>
+#include <DSP_table.h>
 #include <Ins_table.h>
 
 
@@ -52,8 +53,8 @@ Device_node* Connections_get_master(Connections* graph);
  */
 bool Connections_prepare(Connections* graph,
                          Device* master,
-                         Ins_table* insts/*,
-                         DSP_table* dsps*/);
+                         Ins_table* insts,
+                         DSP_table* dsps);
 
 
 /**
@@ -66,8 +67,8 @@ bool Connections_prepare(Connections* graph,
  */
 void Connections_set_devices(Connections* graph,
                              Device* master,
-                             Ins_table* insts /*,
-                             DSP_table* dsps */);
+                             Ins_table* insts,
+                             DSP_table* dsps);
 
 
 #endif // K_CONNECTIONS_SEARCH_H
