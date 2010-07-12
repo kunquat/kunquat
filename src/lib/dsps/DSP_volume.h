@@ -12,25 +12,25 @@
  */
 
 
-#ifndef K_DSP_SCALE_H
-#define K_DSP_SCALE_H
+#ifndef K_DSP_VOLUME_H
+#define K_DSP_VOLUME_H
 
 
 #include <stdint.h>
 
 
 /**
- * Creates a new scale DSP.
+ * Creates a new volume DSP.
  *
  * \param buffer_size   The size of the buffers -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
  *
- * \return   The new scale DSP if successful, or \c NULL if memory allocation
+ * \return   The new volume DSP if successful, or \c NULL if memory allocation
  *           failed.
  */
-DSP* new_DSP_scale(uint32_t buffer_size);
+DSP* new_DSP_volume(uint32_t buffer_size);
 
 
-#endif // K_DSP_SCALE_H
+#endif // K_DSP_VOLUME_H
 
 

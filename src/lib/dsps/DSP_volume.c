@@ -19,49 +19,49 @@
 #include <math.h>
 
 #include <DSP.h>
-#include <DSP_scale.h>
+#include <DSP_volume.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-typedef struct DSP_scale
+typedef struct DSP_volume
 {
     DSP parent;
-} DSP_scale;
+} DSP_volume;
 
 
-static void DSP_scale_process(Device* device, uint32_t start, uint32_t until);
+static void DSP_volume_process(Device* device, uint32_t start, uint32_t until);
 
 
-static void del_DSP_scale(DSP* dsp);
+static void del_DSP_volume(DSP* dsp);
 
 
-DSP* new_DSP_scale(uint32_t buffer_size)
+DSP* new_DSP_volume(uint32_t buffer_size)
 {
-    DSP_scale* scale = xalloc(DSP_scale);
-    if (scale == NULL)
+    DSP_volume* volume = xalloc(DSP_volume);
+    if (volume == NULL)
     {
         return NULL;
     }
-    if (!DSP_init(&scale->parent, del_DSP_scale,
-                  DSP_scale_process, buffer_size))
+    if (!DSP_init(&volume->parent, del_DSP_volume,
+                  DSP_volume_process, buffer_size))
     {
-        xfree(scale);
+        xfree(volume);
         return NULL;
     }
-    Device_register_port(&scale->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&scale->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
-    return &scale->parent;
+    Device_register_port(&volume->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+    Device_register_port(&volume->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
+    return &volume->parent;
 }
 
 
-static void DSP_scale_process(Device* device, uint32_t start, uint32_t until)
+static void DSP_volume_process(Device* device, uint32_t start, uint32_t until)
 {
     assert(device != NULL);
-    DSP_scale* scale = (DSP_scale*)device;
-    assert(strcmp(scale->parent.type, "scale") == 0);
-    assert(scale->parent.conf != NULL);
-    assert(scale->parent.conf->params != NULL);
+    DSP_volume* volume = (DSP_volume*)device;
+    assert(strcmp(volume->parent.type, "volume") == 0);
+    assert(volume->parent.conf != NULL);
+    assert(volume->parent.conf->params != NULL);
     Audio_buffer* in = Device_get_buffer(device, DEVICE_PORT_TYPE_RECEIVE, 0);
     Audio_buffer* out = Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, 0);
     if (in == NULL || out == NULL)
@@ -80,7 +80,7 @@ static void DSP_scale_process(Device* device, uint32_t start, uint32_t until)
         Audio_buffer_get_buffer(out, 1),
     };
     double factor = 1;
-    double* dB_arg = Device_params_get_float(scale->parent.conf->params,
+    double* dB_arg = Device_params_get_float(volume->parent.conf->params,
                                              "p_volume.jsonf");
     if (dB_arg != NULL && isfinite(*dB_arg))
     {
@@ -95,13 +95,13 @@ static void DSP_scale_process(Device* device, uint32_t start, uint32_t until)
 }
 
 
-static void del_DSP_scale(DSP* dsp)
+static void del_DSP_volume(DSP* dsp)
 {
     assert(dsp != NULL);
-    assert(strcmp(dsp->type, "scale") == 0);
-    DSP_scale* scale = (DSP_scale*)dsp;
-    Device_uninit(&scale->parent.parent);
-    xfree(scale);
+    assert(strcmp(dsp->type, "volume") == 0);
+    DSP_volume* volume = (DSP_volume*)dsp;
+    Device_uninit(&volume->parent.parent);
+    xfree(volume);
     return;
 }
 

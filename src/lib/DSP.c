@@ -20,7 +20,6 @@
 #include <DSP.h>
 #include <DSP_conf.h>
 #include <DSP_type.h>
-#include <DSP_scale.h>
 #include <File_base.h>
 #include <xassert.h>
 

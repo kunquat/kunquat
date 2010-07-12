@@ -19,7 +19,7 @@
 #include <stdint.h>
 
 #include <DSP.h>
-#include <DSP_scale.h>
+#include <DSP_volume.h>
 
 
 typedef struct DSP_type
@@ -31,7 +31,7 @@ typedef struct DSP_type
 
 static const DSP_type DSP_types[] =
 {
-    { "scale", new_DSP_scale },
+    { "volume", new_DSP_volume },
     { NULL, NULL }
 };
 
