@@ -274,8 +274,9 @@ bool Device_params_parse_events(Device_params* params,
             }
             else if (type == DEVICE_EVENT_TYPE_DSP)
             {
-                // TODO
-                assert(false);
+                Read_state_set_error(state, "DSP events are not"
+                                            " channel-specific");
+                clean_if_fail();
             }
             else
             {

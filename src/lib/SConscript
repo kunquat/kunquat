@@ -32,6 +32,7 @@ if not env_lib.GetOption('clean') and 'check' in env['LIBS']:
 env_lib.Append(CPPPATH = ['#/src/lib',
                           '#/src/lib/events',
                           '#/src/lib/generators',
+                          '#/src/lib/dsps',
                           '#/src/include'])
 
 
@@ -41,6 +42,7 @@ Export('env_lib')
 
 SConscript('events/SConscript')
 SConscript('generators/SConscript')
+SConscript('dsps/SConscript')
 
 
 env_lib['lib_version_major'] = 0

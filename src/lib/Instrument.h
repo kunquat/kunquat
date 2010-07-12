@@ -19,7 +19,8 @@
 #include <stdbool.h>
 
 #include <Connections.h>
-//#include <Device_node.h>
+#include <DSP.h>
+#include <DSP_table.h>
 #include <Instrument_params.h>
 #include <Generator.h>
 #include <frame.h>
@@ -140,6 +141,28 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
  *                < \c KQT_GENERATORS_MAX.
  */
 void Instrument_del_gen(Instrument* ins, int index);
+
+
+/**
+ * Gets a DSP of the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the DSP -- must be >= \c 0 and
+ *                < \c KQT_INSTRUMENT_DSPS_MAX.
+ *
+ * \return   The DSP if one exists, otherwise \c NULL.
+ */
+DSP* Instrument_get_dsp(Instrument* ins, int index);
+
+
+/**
+ * Gets the DSP table of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The DSP table.
+ */
+DSP_table* Instrument_get_dsps(Instrument* ins);
 
 
 /**

@@ -52,6 +52,8 @@ struct Instrument
 //    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
     Generator gen_conf[KQT_GENERATORS_MAX];
     Generator* gens[KQT_GENERATORS_MAX];
+
+    DSP_table* dsps;
 };
 
 
@@ -84,6 +86,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
     ins->connections = NULL;
+    ins->dsps = NULL;
     if (Instrument_params_init(&ins->params,
                                bufs, vbufs, vbufs2,
                                buf_count, buf_len,
@@ -92,9 +95,18 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
+    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
+    if (ins->dsps == NULL)
+    {
+        Instrument_params_uninit(&ins->params);
+        xfree(ins);
+        return NULL;
+    }
     if (!Device_init(&ins->parent, buf_len))
     {
         Instrument_params_uninit(&ins->params);
+        del_DSP_table(ins->dsps);
+        ins->dsps = NULL;
         xfree(ins);
         return NULL;
     }
@@ -286,6 +298,22 @@ void Instrument_del_gen(Instrument* ins, int index)
 }
 
 
+DSP* Instrument_get_dsp(Instrument* ins, int index)
+{
+    assert(ins != NULL);
+    assert(ins->dsps != NULL);
+    return DSP_table_get_dsp(ins->dsps, index);
+}
+
+
+DSP_table* Instrument_get_dsps(Instrument* ins)
+{
+    assert(ins != NULL);
+    assert(ins->dsps != NULL);
+    return ins->dsps;
+}
+
+
 void Instrument_set_scale(Instrument* ins, int index)
 {
     assert(ins != NULL);
@@ -365,6 +393,10 @@ void del_Instrument(Instrument* ins)
     if (ins->connections != NULL)
     {
         del_Connections(ins->connections);
+    }
+    if (ins->dsps != NULL)
+    {
+        del_DSP_table(ins->dsps);
     }
     Device_uninit(&ins->parent);
     xfree(ins);

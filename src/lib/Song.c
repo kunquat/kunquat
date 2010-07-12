@@ -54,6 +54,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
+    song->dsps = NULL;
     song->connections = NULL;
     song->play_state = NULL;
     song->event_handler = NULL;
@@ -114,6 +115,12 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     }
     song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     if (song->insts == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+    song->dsps = new_DSP_table(KQT_DSP_EFFECTS_MAX);
+    if (song->dsps == NULL)
     {
         del_Song(song);
         return NULL;
@@ -640,6 +647,13 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
+DSP_table* Song_get_dsps(Song* song)
+{
+    assert(song != NULL);
+    return song->dsps;
+}
+
+
 Scale** Song_get_scales(Song* song)
 {
     assert(song != NULL);
@@ -739,6 +753,10 @@ void del_Song(Song* song)
     if (song->insts != NULL)
     {
         del_Ins_table(song->insts);
+    }
+    if (song->dsps != NULL)
+    {
+        del_DSP_table(song->dsps);
     }
     if (song->connections != NULL)
     {

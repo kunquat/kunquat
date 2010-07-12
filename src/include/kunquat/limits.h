@@ -105,9 +105,15 @@ extern "C" {
 
 
 /**
- * Maximum number of DSP effects in a Kunquat Handle.
+ * Maximum number of DSP effects in a Kunquat composition.
  */
 #define KQT_DSP_EFFECTS_MAX (256)
+
+
+/**
+ * Maximum number of DSP effects in a Kunquat instrument.
+ */
+#define KQT_INSTRUMENT_DSPS_MAX 16
 
 
 /**

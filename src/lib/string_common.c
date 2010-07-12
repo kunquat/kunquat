@@ -69,7 +69,7 @@ int string_extract_index(const char* path, const char* prefix, int digits)
     }
     else
     {
-        prefix_len = strcspn(path, "_");
+        prefix_len = strcspn(path, "_"); // FIXME: search for a hex digit instead
         if (path[prefix_len] == '\0')
         {
             return -1;
@@ -93,7 +93,7 @@ int string_extract_index(const char* path, const char* prefix, int digits)
         }
         index += pos - hex_digits;
     }
-    if (strchr(hex_digits, *num_s) != NULL)
+    if (*num_s != '/')
     {
         return -1;
     }
