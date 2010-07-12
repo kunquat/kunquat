@@ -62,8 +62,8 @@ typedef enum
     EVENT_CHANNEL_LOWER              = 400, ///< Channel Events.
 
     EVENT_CHANNEL_SET_INSTRUMENT     = 401,
-    EVENT_CHANNEL_SET_GENERATOR      = 402, // TODO
-    EVENT_CHANNEL_SET_EFFECT         = 403, // TODO
+    EVENT_CHANNEL_SET_GENERATOR      = 402,
+    EVENT_CHANNEL_SET_DSP            = 403,
 
     EVENT_CHANNEL_NOTE_ON            = 421,
     EVENT_CHANNEL_NOTE_OFF           = 422,

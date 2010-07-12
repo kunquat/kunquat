@@ -88,6 +88,7 @@
 #include <Event_generator_set_reltime.h>
 
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_float.h>
 
 #include <xassert.h>
 #include <xmemory.h>
@@ -251,6 +252,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT,
+                                  Event_dsp_set_float_process);
 
     return eh;
 }

@@ -951,7 +951,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (strcmp(subkey, "p_events.json"))
+    else if (strcmp(subkey, "p_events.json") == 0)
     {
 //        fprintf(stderr, "%s\n", subkey);
         DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :

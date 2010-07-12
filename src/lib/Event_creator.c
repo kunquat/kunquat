@@ -85,6 +85,7 @@
 #include <Event_generator_set_reltime.h>
 
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_float.h>
 
 #include <xassert.h>
 
@@ -160,6 +161,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
 
     [EVENT_DSP_SET_BOOL] = new_Event_dsp_set_bool,
+    [EVENT_DSP_SET_FLOAT] = new_Event_dsp_set_float,
 };
 
 
