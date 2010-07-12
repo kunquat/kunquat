@@ -192,7 +192,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
 
     song->event_handler = new_Event_handler(song->play_state,
                                             ch_states,
-                                            song->insts);
+                                            song->insts,
+                                            song->dsps);
     if (song->event_handler == NULL)
     {
         del_Song(song);
@@ -200,7 +201,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     }
     song->skip_handler = new_Event_handler(song->skip_state,
                                            ch_states,
-                                           song->insts);
+                                           song->insts,
+                                           song->dsps);
     if (song->skip_handler == NULL)
     {
         del_Song(song);

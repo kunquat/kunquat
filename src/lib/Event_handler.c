@@ -14,6 +14,8 @@
 
 #include <stdlib.h>
 
+#include <DSP_conf.h>
+#include <DSP_table.h>
 #include <Event_handler.h>
 #include <Event_type.h>
 #include <Channel_state.h>
@@ -22,68 +24,70 @@
 #include <Playdata.h>
 #include <kunquat/limits.h>
 
-#include <events/Event_global_pattern_delay.h>
-#include <events/Event_global_set_jump_counter.h>
-#include <events/Event_global_set_jump_row.h>
-#include <events/Event_global_set_jump_section.h>
-#include <events/Event_global_set_jump_subsong.h>
+#include <Event_global_pattern_delay.h>
+#include <Event_global_set_jump_counter.h>
+#include <Event_global_set_jump_row.h>
+#include <Event_global_set_jump_section.h>
+#include <Event_global_set_jump_subsong.h>
 
-#include <events/Event_global_set_scale.h>
-#include <events/Event_global_set_scale_offset.h>
-#include <events/Event_global_mimic_scale.h>
-#include <events/Event_global_shift_scale_intervals.h>
+#include <Event_global_set_scale.h>
+#include <Event_global_set_scale_offset.h>
+#include <Event_global_mimic_scale.h>
+#include <Event_global_shift_scale_intervals.h>
 
-#include <events/Event_global_set_tempo.h>
-#include <events/Event_global_set_volume.h>
-#include <events/Event_global_slide_tempo.h>
-#include <events/Event_global_slide_tempo_length.h>
-#include <events/Event_global_slide_volume.h>
-#include <events/Event_global_slide_volume_length.h>
+#include <Event_global_set_tempo.h>
+#include <Event_global_set_volume.h>
+#include <Event_global_slide_tempo.h>
+#include <Event_global_slide_tempo_length.h>
+#include <Event_global_slide_volume.h>
+#include <Event_global_slide_volume_length.h>
 
-#include <events/Event_channel_set_instrument.h>
-#include <events/Event_channel_set_generator.h>
+#include <Event_channel_set_instrument.h>
+#include <Event_channel_set_generator.h>
 
-#include <events/Event_channel_note_on.h>
-#include <events/Event_channel_note_off.h>
+#include <Event_channel_note_on.h>
+#include <Event_channel_note_off.h>
 
-#include <events/Event_channel_set_force.h>
-#include <events/Event_channel_slide_force.h>
-#include <events/Event_channel_slide_force_length.h>
-#include <events/Event_channel_tremolo_speed.h>
-#include <events/Event_channel_tremolo_depth.h>
-#include <events/Event_channel_tremolo_delay.h>
+#include <Event_channel_set_force.h>
+#include <Event_channel_slide_force.h>
+#include <Event_channel_slide_force_length.h>
+#include <Event_channel_tremolo_speed.h>
+#include <Event_channel_tremolo_depth.h>
+#include <Event_channel_tremolo_delay.h>
 
-#include <events/Event_channel_slide_pitch.h>
-#include <events/Event_channel_slide_pitch_length.h>
-#include <events/Event_channel_vibrato_speed.h>
-#include <events/Event_channel_vibrato_depth.h>
-#include <events/Event_channel_vibrato_delay.h>
-#include <events/Event_channel_arpeggio.h>
+#include <Event_channel_slide_pitch.h>
+#include <Event_channel_slide_pitch_length.h>
+#include <Event_channel_vibrato_speed.h>
+#include <Event_channel_vibrato_depth.h>
+#include <Event_channel_vibrato_delay.h>
+#include <Event_channel_arpeggio.h>
 
-#include <events/Event_channel_set_filter.h>
-#include <events/Event_channel_slide_filter.h>
-#include <events/Event_channel_slide_filter_length.h>
-#include <events/Event_channel_autowah_speed.h>
-#include <events/Event_channel_autowah_depth.h>
-#include <events/Event_channel_autowah_delay.h>
+#include <Event_channel_set_filter.h>
+#include <Event_channel_slide_filter.h>
+#include <Event_channel_slide_filter_length.h>
+#include <Event_channel_autowah_speed.h>
+#include <Event_channel_autowah_depth.h>
+#include <Event_channel_autowah_delay.h>
 
-#include <events/Event_channel_set_resonance.h>
+#include <Event_channel_set_resonance.h>
 
-#include <events/Event_channel_set_panning.h>
-#include <events/Event_channel_slide_panning.h>
-#include <events/Event_channel_slide_panning_length.h>
+#include <Event_channel_set_panning.h>
+#include <Event_channel_slide_panning.h>
+#include <Event_channel_slide_panning_length.h>
 
-#include <events/Event_channel_set_gen_bool.h>
-#include <events/Event_channel_set_gen_int.h>
-#include <events/Event_channel_set_gen_float.h>
-#include <events/Event_channel_set_gen_reltime.h>
+#include <Event_channel_set_gen_bool.h>
+#include <Event_channel_set_gen_int.h>
+#include <Event_channel_set_gen_float.h>
+#include <Event_channel_set_gen_reltime.h>
 
-#include <events/Event_ins_set_pedal.h>
+#include <Event_ins_set_pedal.h>
 
-#include <events/Event_generator_set_bool.h>
-#include <events/Event_generator_set_int.h>
-#include <events/Event_generator_set_float.h>
-#include <events/Event_generator_set_reltime.h>
+#include <Event_generator_set_bool.h>
+#include <Event_generator_set_int.h>
+#include <Event_generator_set_float.h>
+#include <Event_generator_set_reltime.h>
+
+#include <Event_dsp_set_bool.h>
 
 #include <xassert.h>
 #include <xmemory.h>
@@ -94,21 +98,25 @@ struct Event_handler
     bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Ins_table* insts;
+    DSP_table* dsps;
     Playdata* global_state;
-    bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state* state,
-                                           char* fields);
-    bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata* state,
-                                               char* fields);
-    bool (*ins_process[EVENT_INS_UPPER])(Instrument_params* state, char* fields);
+    bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
+    bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
+    bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
     bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*, char*);
-    // TODO: effect process collections
+    bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, char*);
 };
 
 
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
-                                 Ins_table* insts)
+                                 Ins_table* insts,
+                                 DSP_table* dsps)
 {
+    assert(global_state != NULL);
+    assert(ch_states != NULL);
+    assert(insts != NULL);
+    assert(dsps != NULL);
     Event_handler* eh = xalloc(Event_handler);
     if (eh == NULL)
     {
@@ -126,6 +134,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
 //        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
     }
     eh->insts = insts;
+    eh->dsps = dsps;
 
     Event_handler_set_global_process(eh, EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
@@ -240,6 +249,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_BOOL,
+                                  Event_dsp_set_bool_process);
+
     return eh;
 }
 
@@ -289,6 +301,18 @@ void Event_handler_set_generator_process(Event_handler* eh,
     assert(EVENT_IS_GENERATOR(type));
     assert(gen_process != NULL);
     eh->generator_process[type] = gen_process;
+    return;
+}
+
+
+void Event_handler_set_dsp_process(Event_handler* eh,
+                                   Event_type type,
+                                   bool (*dsp_process)(DSP_conf*, char*))
+{
+    assert(eh != NULL);
+    assert(EVENT_IS_DSP(type));
+    assert(dsp_process != NULL);
+    eh->dsp_process[type] = dsp_process;
     return;
 }
 
@@ -348,6 +372,17 @@ bool Event_handler_handle(Event_handler* eh,
             return false;
         }
         return eh->generator_process[type](gen, fields);
+    }
+    else if (EVENT_IS_DSP(type))
+    {
+        assert(index >= 0);
+        assert(index < KQT_DSP_EFFECTS_MAX);
+        DSP_conf* conf = DSP_table_get_conf(eh->dsps, index);
+        if (conf == NULL)
+        {
+            return false;
+        }
+        return eh->dsp_process[type](conf, fields);
     }
     return false;
 }

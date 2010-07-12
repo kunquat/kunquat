@@ -19,6 +19,8 @@
 #include <stdbool.h>
 
 #include <Channel_state.h>
+#include <DSP_conf.h>
+#include <DSP_table.h>
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
@@ -36,7 +38,8 @@ typedef struct Event_handler Event_handler;
  */
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
-                                 Ins_table* insts);
+                                 Ins_table* insts,
+                                 DSP_table* dsps);
 
 
 /**
@@ -86,6 +89,18 @@ void Event_handler_set_ins_process(Event_handler* eh,
 void Event_handler_set_generator_process(Event_handler* eh,
                                          Event_type type,
                                          bool (*gen_process)(Generator*, char*));
+
+
+/**
+ * Registers a DSP Event processor.
+ *
+ * \param eh        The Event handler -- must not be \c NULL.
+ * \param type      The type of the Event -- must be a DSP Event.
+ * \param process   The process function -- must not be \c NULL.
+ */
+void Event_handler_set_dsp_process(Event_handler* eh,
+                                   Event_type type,
+                                   bool (*dsp_process)(DSP_conf*, char*));
 
 
 /**
