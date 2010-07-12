@@ -44,6 +44,8 @@
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
+#include <Event_channel_set_dsp.h>
+#include <Event_channel_set_ins_dsp.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -88,7 +90,9 @@
 #include <Event_generator_set_reltime.h>
 
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_int.h>
 #include <Event_dsp_set_float.h>
+#include <Event_dsp_set_reltime.h>
 
 #include <xassert.h>
 #include <xmemory.h>
@@ -174,6 +178,10 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_instrument_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GENERATOR,
                                  Event_channel_set_generator_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_DSP,
+                                 Event_channel_set_dsp_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INS_DSP,
+                                 Event_channel_set_ins_dsp_process);
 
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
                                  Event_channel_note_on_process);
@@ -252,8 +260,12 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_INT,
+                                  Event_dsp_set_int_process);
     Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_RELTIME,
+                                  Event_dsp_set_reltime_process);
 
     return eh;
 }

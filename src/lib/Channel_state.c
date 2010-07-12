@@ -37,6 +37,7 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     state->instrument = 0;
     state->generator = 0;
     state->dsp = 0;
+    state->ins_dsp = 0;
     state->mute = mute;
 
     state->volume = 1;

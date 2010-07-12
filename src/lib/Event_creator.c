@@ -43,6 +43,8 @@
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
+#include <Event_channel_set_dsp.h>
+#include <Event_channel_set_ins_dsp.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -85,7 +87,9 @@
 #include <Event_generator_set_reltime.h>
 
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_int.h>
 #include <Event_dsp_set_float.h>
+#include <Event_dsp_set_reltime.h>
 
 #include <xassert.h>
 
@@ -119,6 +123,8 @@ static const Event_cons cons[EVENT_LAST] =
 
     [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
     [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
+    [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,
+    [EVENT_CHANNEL_SET_INS_DSP] = new_Event_channel_set_ins_dsp,
 
     [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
     [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
@@ -161,7 +167,9 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
 
     [EVENT_DSP_SET_BOOL] = new_Event_dsp_set_bool,
+    [EVENT_DSP_SET_INT] = new_Event_dsp_set_int,
     [EVENT_DSP_SET_FLOAT] = new_Event_dsp_set_float,
+    [EVENT_DSP_SET_RELTIME] = new_Event_dsp_set_reltime,
 };
 
 
