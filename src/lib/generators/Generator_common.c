@@ -631,7 +631,7 @@ void Generator_common_handle_filter(Generator* gen,
             int new_state = 1 - abs(state->filter_state_used);
 	    two_pole_filter_create(state->actual_filter / freq,
 				   state->filter_resonance,
-				   1,
+				   0,
 				   state->filter_state[new_state].coeffs,
 				   &state->filter_state[new_state].a0);
             for (int i = 0; i < gen->ins_params->buf_count; ++i)

@@ -43,14 +43,14 @@
 
 void two_pole_filter_create(double f,
 			    double q,
-			    int s,
+			    int bandform,
 			    double coeffs[2],
 			    double *a0);
 
 
 void butterworth_filter_create(int n,
 			       double f,
-			       int s,
+			       int bandform,
 			       double coeffs[n],
 			       double *a0);
 
