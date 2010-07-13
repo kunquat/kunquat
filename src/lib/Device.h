@@ -37,7 +37,7 @@ typedef struct Device
 {
     uint32_t buffer_size;
     void (*reset)(struct Device*);
-    void (*process)(struct Device*, uint32_t, uint32_t);
+    void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
@@ -72,7 +72,8 @@ void Device_set_reset(Device* device, void (*reset)(Device*));
  * \param process   The process function -- must not be \c NULL.
  */
 void Device_set_process(Device* device,
-                        void (*process)(Device*, uint32_t, uint32_t));
+                        void (*process)(Device*, uint32_t, uint32_t,
+                                                 uint32_t, double));
 
 
 /**
@@ -201,8 +202,14 @@ void Device_reset(Device* device);
  * \param until    The first frame not to be processed -- must be less than or
  *                 equal to the buffer size. If \a until <= \a start, nothing
  *                 will be cleared.
+ * \param freq     The mixing frequency -- must be > \c 0.
+ * \param tempo    The tempo -- must be > \c 0 and finite.
  */
-void Device_process(Device* device, uint32_t start, uint32_t until);
+void Device_process(Device* device,
+                    uint32_t start,
+                    uint32_t until,
+                    uint32_t freq,
+                    double tempo);
 
 
 /**

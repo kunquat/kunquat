@@ -30,7 +30,11 @@ typedef struct DSP_volume
 } DSP_volume;
 
 
-static void DSP_volume_process(Device* device, uint32_t start, uint32_t until);
+static void DSP_volume_process(Device* device,
+                               uint32_t start,
+                               uint32_t until,
+                               uint32_t freq,
+                               double tempo);
 
 
 static void del_DSP_volume(DSP* dsp);
@@ -55,9 +59,18 @@ DSP* new_DSP_volume(uint32_t buffer_size)
 }
 
 
-static void DSP_volume_process(Device* device, uint32_t start, uint32_t until)
+static void DSP_volume_process(Device* device,
+                               uint32_t start,
+                               uint32_t until,
+                               uint32_t freq,
+                               double tempo)
 {
     assert(device != NULL);
+    assert(freq > 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
+    (void)freq;
+    (void)tempo;
     DSP_volume* volume = (DSP_volume*)device;
     assert(strcmp(volume->parent.type, "volume") == 0);
     assert(volume->parent.conf != NULL);

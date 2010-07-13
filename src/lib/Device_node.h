@@ -132,8 +132,14 @@ void Device_node_clear_buffers(Device_node* node,
  * \param until   The first frame not to be mixed -- must be less than or
  *                equal to the buffer size. If \a until <= \a start, nothing
  *                will be mixed.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ * \param tempo   The tempo -- must be > \c 0 and finite.
  */
-void Device_node_mix(Device_node* node, uint32_t start, uint32_t until);
+void Device_node_mix(Device_node* node,
+                     uint32_t start,
+                     uint32_t until,
+                     uint32_t freq,
+                     double tempo);
 
 
 /**

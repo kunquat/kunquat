@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include <Device.h>
 #include <math_common.h>
@@ -53,7 +54,8 @@ void Device_set_reset(Device* device, void (*reset)(Device*))
 
 
 void Device_set_process(Device* device,
-                        void (*process)(Device*, uint32_t, uint32_t))
+                        void (*process)(Device*, uint32_t, uint32_t,
+                                                 uint32_t, double))
 {
     assert(device != NULL);
     assert(process != NULL);
@@ -259,14 +261,21 @@ void Device_reset(Device* device)
 }
 
 
-void Device_process(Device* device, uint32_t start, uint32_t until)
+void Device_process(Device* device,
+                    uint32_t start,
+                    uint32_t until,
+                    uint32_t freq,
+                    double tempo)
 {
     assert(device != NULL);
     assert(start < device->buffer_size);
     assert(until <= device->buffer_size);
+    assert(freq > 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
     if (device->process != NULL)
     {
-        device->process(device, start, until);
+        device->process(device, start, until, freq, tempo);
     }
     return;
 }

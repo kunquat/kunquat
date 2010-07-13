@@ -66,7 +66,7 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
 
 bool DSP_init(DSP* dsp,
               void (*destroy)(DSP*),
-              void (*process)(Device*, uint32_t, uint32_t),
+              void (*process)(Device*, uint32_t, uint32_t, uint32_t, double),
               uint32_t buffer_size)
 {
     assert(dsp != NULL);

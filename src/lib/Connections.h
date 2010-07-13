@@ -78,8 +78,14 @@ void Connections_clear_buffers(Connections* graph,
  * \param until   The first frame not to be mixed -- must be less than or
  *                equal to the buffer size. If \a until <= \a start, nothing
  *                will be mixed.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ * \param tempo   The tempo -- must be > \c 0 and finite.
  */
-void Connections_mix(Connections* graph, uint32_t start, uint32_t until);
+void Connections_mix(Connections* graph,
+                     uint32_t start,
+                     uint32_t until,
+                     uint32_t freq,
+                     double tempo);
 
 
 /**

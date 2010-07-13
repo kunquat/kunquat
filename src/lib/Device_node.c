@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 
 #include <Connections_search.h>
 #include <Device_node.h>
@@ -313,9 +314,16 @@ void Device_node_clear_buffers(Device_node* node,
 }
 
 
-void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
+void Device_node_mix(Device_node* node,
+                     uint32_t start,
+                     uint32_t until,
+                     uint32_t freq,
+                     double tempo)
 {
     assert(node != NULL);
+    assert(freq > 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
         assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
@@ -329,7 +337,7 @@ void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
     }
     if (node->ins_dual != NULL)
     {
-        Device_node_mix(node->ins_dual, start, until);
+        Device_node_mix(node->ins_dual, start, until, freq, tempo);
         for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
         {
             Audio_buffer* receive = Device_get_buffer(node->device,
@@ -355,7 +363,7 @@ void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
                 edge = edge->next;
                 continue;
             }
-            Device_node_mix(edge->node, start, until);
+            Device_node_mix(edge->node, start, until, freq, tempo);
             Audio_buffer* send = Device_get_buffer(edge->node->device,
                                          DEVICE_PORT_TYPE_SEND, edge->port);
             Audio_buffer* receive = Device_get_buffer(node->device,
@@ -379,7 +387,7 @@ void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
             edge = edge->next;
         }
     }
-    Device_process(node->device, start, until);
+    Device_process(node->device, start, until, freq, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }

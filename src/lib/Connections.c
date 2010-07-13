@@ -18,6 +18,7 @@
 #include <inttypes.h>
 #include <limits.h>
 #include <string.h>
+#include <math.h>
 
 #include <AAtree.h>
 #include <Connections.h>
@@ -256,9 +257,16 @@ void Connections_clear_buffers(Connections* graph,
 }
 
 
-void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
+void Connections_mix(Connections* graph,
+                     uint32_t start,
+                     uint32_t until,
+                     uint32_t freq,
+                     double tempo)
 {
     assert(graph != NULL);
+    assert(freq > 0);
+    assert(isfinite(tempo));
+    assert(tempo > 0);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     if (start >= until)
@@ -275,7 +283,7 @@ void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
 //    fprintf(stderr, "Mix process:\n");
 #endif
     Device_node_reset(master);
-    Device_node_mix(master, start, until);
+    Device_node_mix(master, start, until, freq, tempo);
     return;
 }
 
