@@ -18,6 +18,9 @@
 
 #include <stdint.h>
 
+#include <DSP.h>
+#include <kunquat/limits.h>
+
 
 /**
  * Creates a new volume DSP.

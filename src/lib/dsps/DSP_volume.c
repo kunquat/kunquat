@@ -19,6 +19,7 @@
 #include <math.h>
 
 #include <DSP.h>
+#include <DSP_common.h>
 #include <DSP_volume.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -75,23 +76,10 @@ static void DSP_volume_process(Device* device,
     assert(strcmp(volume->parent.type, "volume") == 0);
     assert(volume->parent.conf != NULL);
     assert(volume->parent.conf->params != NULL);
-    Audio_buffer* in = Device_get_buffer(device, DEVICE_PORT_TYPE_RECEIVE, 0);
-    Audio_buffer* out = Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, 0);
-    if (in == NULL || out == NULL)
-    {
-        return;
-    }
-    assert(in != out);
-    kqt_frame* in_data[] =
-    {
-        Audio_buffer_get_buffer(in, 0),
-        Audio_buffer_get_buffer(in, 1),
-    };
-    kqt_frame* out_data[] =
-    {
-        Audio_buffer_get_buffer(out, 0),
-        Audio_buffer_get_buffer(out, 1),
-    };
+    kqt_frame* in_data[] = { NULL, NULL };
+    kqt_frame* out_data[] = { NULL, NULL };
+    DSP_get_raw_input(device, 0, in_data);
+    DSP_get_raw_output(device, 0, out_data);
     double factor = 1;
     double* dB_arg = Device_params_get_float(volume->parent.conf->params,
                                              "p_volume.jsonf");

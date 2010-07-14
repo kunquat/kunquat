@@ -52,6 +52,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
             return NULL;
         }
     }
+    Audio_buffer_clear(buffer, 0, size);
     return buffer;
 }
 
