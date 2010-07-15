@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include <DSP.h>
+#include <DSP_freeverb.h>
 #include <DSP_volume.h>
 
 
@@ -31,6 +32,7 @@ typedef struct DSP_type
 
 static const DSP_type DSP_types[] =
 {
+    { "freeverb", new_DSP_freeverb },
     { "volume", new_DSP_volume },
     { NULL, NULL }
 };
