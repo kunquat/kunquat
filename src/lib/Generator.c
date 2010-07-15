@@ -37,7 +37,8 @@
 Generator* new_Generator(Gen_type type,
                          Instrument_params* ins_params,
                          Device_params* gen_params,
-                         uint32_t buffer_size)
+                         uint32_t buffer_size,
+                         uint32_t mix_rate)
 {
     assert(type > GEN_TYPE_NONE);
     assert(type < GEN_TYPE_LAST);
@@ -45,6 +46,7 @@ Generator* new_Generator(Gen_type type,
     assert(gen_params != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     static Generator* (*cons[])(Instrument_params*, Device_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
@@ -61,7 +63,7 @@ Generator* new_Generator(Gen_type type,
     {
         return NULL;
     }
-    if (!Device_init(&gen->parent, buffer_size))
+    if (!Device_init(&gen->parent, buffer_size, mix_rate))
     {
         del_Generator(gen);
         return NULL;

@@ -184,9 +184,9 @@ uint32_t Pattern_mix(Pattern* pat,
     {
         assert(!play->silent);
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
-                nframes - mixed,
-                play->tempo,
-                play->freq);
+                                            nframes - mixed,
+                                            play->tempo,
+                                            play->freq);
         for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
         {
             Channel_set_voices(channels[i],

@@ -41,15 +41,18 @@ static void DSP_volume_process(Device* device,
 static void del_DSP_volume(DSP* dsp);
 
 
-DSP* new_DSP_volume(uint32_t buffer_size)
+DSP* new_DSP_volume(uint32_t buffer_size, uint32_t mix_rate)
 {
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     DSP_volume* volume = xalloc(DSP_volume);
     if (volume == NULL)
     {
         return NULL;
     }
     if (!DSP_init(&volume->parent, del_DSP_volume,
-                  DSP_volume_process, buffer_size))
+                  DSP_volume_process, buffer_size, mix_rate))
     {
         xfree(volume);
         return NULL;

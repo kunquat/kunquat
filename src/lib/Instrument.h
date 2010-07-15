@@ -50,6 +50,7 @@ typedef struct Instrument Instrument;
  *                        must contain at least \a buf_count buffers.
  * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
+ * \param mix_rate        The mixing rate -- must be > \c 0.
  * \param scales          The Scales of the Song -- must not be \c NULL.
  * \param default_scale   The default Scale -- must not be \c NULL. Also,
  *                        *default_scales must be an element of \a scales.
@@ -63,6 +64,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs2,
                            int buf_count,
                            uint32_t buf_len,
+                           uint32_t mix_rate,
                            Scale** scales,
                            Scale*** default_scale,
                            Random* random);

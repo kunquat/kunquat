@@ -35,7 +35,10 @@ typedef enum
 
 typedef struct Device
 {
+    uint32_t mix_rate;
     uint32_t buffer_size;
+    bool (*set_mix_rate)(struct Device*, uint32_t);
+    bool (*set_buffer_size)(struct Device*, uint32_t);
     void (*reset)(struct Device*);
     void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
@@ -50,10 +53,31 @@ typedef struct Device
  * \param device        The Device -- must not be \c NULL.
  * \param buffer_size   The current buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The current mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_init(Device* device, uint32_t buffer_size);
+bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate);
+
+
+/**
+ * Sets the function for changing the mixing rate of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param changer   The change function, or \c NULL.
+ */
+void Device_set_mix_rate_changer(Device* device,
+                                 bool (*changer)(Device*, uint32_t));
+
+
+/**
+ * Sets the function for changing the buffer size of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param changer   The change function, or \c NULL.
+ */
+void Device_set_buffer_size_changer(Device* device,
+                                    bool (*changer)(Device*, uint32_t));
 
 
 /**
@@ -159,6 +183,27 @@ Audio_buffer* Device_get_buffer(Device* device,
 
 
 /**
+ * Sets the mixing rate of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param rate     The mixing rate -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_set_mix_rate(Device* device, uint32_t rate);
+
+
+/**
+ * Gets the mixing rate of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   The mixing rate.
+ */
+uint32_t Device_get_mix_rate(Device* device);
+
+
+/**
  * Resizes the buffers in the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -167,7 +212,17 @@ Audio_buffer* Device_get_buffer(Device* device,
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_resize_buffers(Device* device, uint32_t size);
+bool Device_set_buffer_size(Device* device, uint32_t size);
+
+
+/**
+ * Gets the buffer size of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   The buffer size.
+ */
+uint32_t Device_get_buffer_size(Device* device);
 
 
 /**

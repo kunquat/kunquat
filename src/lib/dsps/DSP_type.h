@@ -25,7 +25,7 @@
 typedef struct DSP_type
 {
     char* type;
-    DSP* (*cons)(uint32_t buffer_size);
+    DSP* (*cons)(uint32_t buffer_size, uint32_t mix_rate);
 } DSP_type;
 
 

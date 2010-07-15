@@ -27,7 +27,7 @@
 #include <xmemory.h>
 
 
-long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
+long kqt_Handle_mix(kqt_Handle* handle, long nframes)
 {
     check_handle(handle, 0);
     if (handle->song == NULL || !handle->song->play_state->mode)
@@ -40,14 +40,35 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
                 " be positive.");
         return 0;
     }
-    if (freq <= 0)
+    handle->song->play_state->freq =
+            Device_get_mix_rate((Device*)handle->song);
+    return Song_mix(handle->song, nframes, handle->song->event_handler);
+}
+
+
+int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
+{
+    check_handle(handle, 0);
+    if (rate <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing frequency must"
-                " be positive.");
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing rate must be"
+                " positive");
         return 0;
     }
-    handle->song->play_state->freq = freq;
-    return Song_mix(handle->song, nframes, handle->song->event_handler);
+    if (!Device_set_mix_rate((Device*)handle->song, rate))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory after change of mixing rate.");
+        return 0;
+    }
+    return 1;
+}
+
+
+long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
+{
+    check_handle(handle, 0);
+    return Device_get_mix_rate((Device*)handle->song);
 }
 
 
@@ -66,8 +87,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
                 " greater than %ld frames", KQT_BUFFER_SIZE_MAX);
         return 0;
     }
-    bool success = Song_set_buf_size(handle->song, size);
-    if (!success)
+    if (!Device_set_buffer_size((Device*)handle->song, size))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");
@@ -80,21 +100,21 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
     check_handle(handle, 0);
-    return Song_get_buf_size(handle->song);
+    return Device_get_buffer_size((Device*)handle->song);
 }
 
 
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
     check_handle(handle, 0);
-    return Song_get_buf_count(handle->song);
+    return KQT_BUFFERS_MAX;
 }
 
 
 float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
     check_handle(handle, NULL);
-    if (index < 0 || index >= Song_get_buf_count(handle->song))
+    if (index < 0 || index >= KQT_BUFFERS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Buffer #%d does not exist", index);

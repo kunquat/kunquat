@@ -52,13 +52,13 @@ class RHandle(object):
 
     Public instance variables:
     buffer_size -- Mixing buffer size.
-    freq        -- Mixing frequency.
+    mixing_rate -- Mixing rate.
     nanoseconds -- The current position in nanoseconds.
     subsong     -- The current subsong (None or [0,255]).
 
     """
 
-    def __init__(self, path, freq=48000):
+    def __init__(self, path, mixing_rate=48000):
         """Create a new RHandle.
 
         Arguments:
@@ -67,11 +67,11 @@ class RHandle(object):
                 indicating a compression format.
 
         Optional arguments:
-        freq -- Mixing frequency in frames per second. Typical values
-                are 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second. Typical values
+                       include 44100 ("CD quality") and 48000 (the default).
 
         Exceptions:
-        KunquatArgumentError -- path is None or freq is not positive.
+        KunquatArgumentError -- path is None or mixing_rate is not positive.
         KunquatFormatError   -- The file in path is not a valid Kunquat
                                 composition.
         KunquatResourceError -- Reading the input failed for a reason
@@ -85,9 +85,9 @@ class RHandle(object):
         self._subsong = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
-        if freq <= 0:
-            raise KunquatArgumentError('Mixing frequency must be positive')
-        self.freq = freq
+        if mixing_rate <= 0:
+            raise KunquatArgumentError('Mixing rate must be positive')
+        self.mixing_rate = mixing_rate
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
@@ -162,6 +162,21 @@ class RHandle(object):
         self._nanoseconds = value
 
     @property
+    def mixing_rate(self):
+        """Mixing rate in frames per second."""
+        return self._mixing_rate
+
+    @mixing_rate.setter
+    def mixing_rate(self, value):
+        """Set the mixing rate.
+
+        Typical values include 44100 ("CD quality") and 48000 (the default).
+
+        """
+        _kunquat.kqt_Handle_set_mixing_rate(self._handle, value)
+        self._mixing_rate = value
+
+    @property
     def buffer_size(self):
         """Mixing buffer size in frames."""
         return self._buffer_size
@@ -204,7 +219,7 @@ class RHandle(object):
                        value is self.buffer_size.
 
         Exceptions:
-        KunquatArgumentError -- self.freq or frame_count is not
+        KunquatArgumentError -- self.mixing_rate or frame_count is not
                                 positive.
 
         Returns:
@@ -215,7 +230,7 @@ class RHandle(object):
         """
         if not frame_count:
             frame_count = self._buffer_size
-        mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count, self.freq)
+        mixed = _kunquat.kqt_Handle_mix(self._handle, frame_count)
         cbuf_left = _kunquat.kqt_Handle_get_buffer(self._handle, 0)
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
@@ -244,7 +259,7 @@ class RWHandle(RHandle):
 
     """
 
-    def __init__(self, path, freq=48000):
+    def __init__(self, path, mixing_rate=48000):
         """Create a new RWHandle.
 
         Arguments:
@@ -256,15 +271,15 @@ class RWHandle(RHandle):
                 with 'XX'.
 
         Optional arguments:
-        freq -- Mixing frequency in frames per second. Typical values
-                are 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second. Typical values
+                       include 44100 ("CD quality") and 48000 (the default).
 
         """
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rw(path)
             if not self._handle:
                 raise _get_error(_kunquat.kqt_Handle_get_error(None))
-        RHandle.__init__(self, path, freq)
+        RHandle.__init__(self, path, mixing_rate)
 
     def __setitem__(self, key, value):
         """Set data in the handle.
@@ -306,7 +321,7 @@ class RWCHandle(RWHandle):
 
     """
 
-    def __init__(self, path, freq=48000):
+    def __init__(self, path, mixing_rate=48000):
         """Create a new RWCHandle.
 
         Arguments:
@@ -316,15 +331,15 @@ class RWCHandle(RWHandle):
                 directories may be empty.
 
         Optional arguments:
-        freq -- Mixing frequency in frames per second. Typical values
-                are 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second. Typical values
+                       include 44100 ("CD quality") and 48000 (the default).
 
         """
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rwc(path)
             if not self._handle:
                 raise _get_error(_kunquat.kqt_Handle_get_error(None))
-        RWHandle.__init__(self, path)
+        RWHandle.__init__(self, path, mixing_rate)
 
     def commit():
         """Commit the changes made in the handle.
@@ -418,13 +433,21 @@ _kunquat.kqt_Handle_commit.restype = ctypes.c_int
 _kunquat.kqt_Handle_commit.errcheck = _error_check
 
 _kunquat.kqt_Handle_mix.argtypes = [ctypes.c_void_p,
-                                    ctypes.c_long,
                                     ctypes.c_long]
 _kunquat.kqt_Handle_mix.restype = ctypes.c_long
 _kunquat.kqt_Handle_mix.errcheck = _error_check
 _kunquat.kqt_Handle_get_buffer.argtypes = [ctypes.c_void_p, ctypes.c_int]
 _kunquat.kqt_Handle_get_buffer.restype = ctypes.POINTER(ctypes.c_float)
 _kunquat.kqt_Handle_get_buffer.errcheck = _error_check
+
+_kunquat.kqt_Handle_set_mixing_rate.argtypes = [ctypes.c_void_p,
+                                                ctypes.c_long]
+_kunquat.kqt_Handle_set_mixing_rate.restype = ctypes.c_int
+_kunquat.kqt_Handle_set_mixing_rate.errcheck = _error_check
+_kunquat.kqt_Handle_get_mixing_rate.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_get_mixing_rate.restype = ctypes.c_long
+_kunquat.kqt_Handle_get_mixing_rate.errcheck = _error_check
+
 _kunquat.kqt_Handle_set_buffer_size.argtypes = [ctypes.c_void_p,
                                                 ctypes.c_long]
 _kunquat.kqt_Handle_set_buffer_size.restype = ctypes.c_int

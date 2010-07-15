@@ -24,7 +24,10 @@
 #include <xassert.h>
 
 
-DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
+DSP* new_DSP(char* str,
+             uint32_t buffer_size,
+             uint32_t mix_rate,
+             Read_state* state)
 {
     assert(str != NULL);
     assert(buffer_size > 0);
@@ -40,7 +43,7 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
     {
         return NULL;
     }
-    DSP* (*cons)(uint32_t) = NULL;
+    DSP* (*cons)(uint32_t, uint32_t) = NULL;
     for (int i = 0; DSP_types[i].type != NULL; ++i)
     {
         if (strcmp(type, DSP_types[i].type) == 0)
@@ -54,7 +57,7 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
         Read_state_set_error(state, "Unsupported DSP type: \"%s\"\n", type);
         return NULL;
     }
-    DSP* dsp = cons(buffer_size);
+    DSP* dsp = cons(buffer_size, mix_rate);
     if (dsp == NULL)
     {
         return NULL;
@@ -67,7 +70,8 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
 bool DSP_init(DSP* dsp,
               void (*destroy)(DSP*),
               void (*process)(Device*, uint32_t, uint32_t, uint32_t, double),
-              uint32_t buffer_size)
+              uint32_t buffer_size,
+              uint32_t mix_rate)
 {
     assert(dsp != NULL);
     assert(destroy != NULL);
@@ -75,7 +79,7 @@ bool DSP_init(DSP* dsp,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     dsp->destroy = destroy;
-    if (!Device_init(&dsp->parent, buffer_size))
+    if (!Device_init(&dsp->parent, buffer_size, mix_rate))
     {
         return false;
     }

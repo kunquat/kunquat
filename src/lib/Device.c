@@ -22,12 +22,16 @@
 #include <xmemory.h>
 
 
-bool Device_init(Device* device, uint32_t buffer_size)
+bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
 {
     assert(device != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
+    device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
+    device->set_mix_rate = NULL;
+    device->set_buffer_size = NULL;
     device->reset = NULL;
     device->process = NULL;
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -41,6 +45,24 @@ bool Device_init(Device* device, uint32_t buffer_size)
         device->direct_send[port] = NULL;
     }
     return true;
+}
+
+
+void Device_set_mix_rate_changer(Device* device,
+                                 bool (*changer)(Device*, uint32_t))
+{
+    assert(device != NULL);
+    device->set_mix_rate = changer;
+    return;
+}
+
+
+void Device_set_buffer_size_changer(Device* device,
+                                    bool (*changer)(Device*, uint32_t))
+{
+    assert(device != NULL);
+    device->set_buffer_size = changer;
+    return;
 }
 
 
@@ -181,7 +203,27 @@ bool Device_init_buffers(Device* device)
 #endif
 
 
-bool Device_resize_buffers(Device* device, uint32_t size)
+bool Device_set_mix_rate(Device* device, uint32_t rate)
+{
+    assert(device != NULL);
+    assert(rate > 0);
+    if (device->set_mix_rate != NULL && !device->set_mix_rate(device, rate))
+    {
+        return false;
+    }
+    device->mix_rate = rate;
+    return true;
+}
+
+
+uint32_t Device_get_mix_rate(Device* device)
+{
+    assert(device != NULL);
+    return device->mix_rate;
+}
+
+
+bool Device_set_buffer_size(Device* device, uint32_t size)
 {
     assert(device != NULL);
     assert(size > 0);
@@ -199,8 +241,21 @@ bool Device_resize_buffers(Device* device, uint32_t size)
             }
         }
     }
+    if (device->set_buffer_size != NULL &&
+            !device->set_buffer_size(device, size))
+    {
+        device->buffer_size = MIN(device->buffer_size, size);
+        return false;
+    }
     device->buffer_size = size;
     return true;
+}
+
+
+uint32_t Device_get_buffer_size(Device* device)
+{
+    assert(device != NULL);
+    return device->buffer_size;
 }
 
 

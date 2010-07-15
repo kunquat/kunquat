@@ -57,23 +57,33 @@ struct Instrument
 };
 
 
+static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
+
+
+static bool Instrument_set_buffer_size(Device* device, uint32_t size);
+
+
 Instrument* new_Instrument(kqt_frame** bufs,
                            kqt_frame** vbufs,
                            kqt_frame** vbufs2,
                            int buf_count,
                            uint32_t buf_len,
+                           uint32_t mix_rate,
                            Scale** scales,
                            Scale*** default_scale,
                            Random* random)
 {
+#if 0
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
     assert(vbufs2 != NULL);
     assert(vbufs2[0] != NULL);
+#endif
     assert(buf_count > 0);
     assert(buf_len > 0);
+    assert(mix_rate > 0);
     assert(scales != NULL);
     assert(default_scale != NULL);
     assert(*default_scale != NULL);
@@ -102,7 +112,7 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
-    if (!Device_init(&ins->parent, buf_len))
+    if (!Device_init(&ins->parent, buf_len, mix_rate))
     {
         Instrument_params_uninit(&ins->params);
         del_DSP_table(ins->dsps);
@@ -110,6 +120,8 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
+    Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
+    Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
 
@@ -370,6 +382,57 @@ void Instrument_mix(Instrument* ins,
         }
     }
     return;
+}
+
+
+static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
+{
+    assert(device != NULL);
+    assert(mix_rate > 0);
+    Instrument* ins = (Instrument*)device;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Generator* gen = ins->gens[i];
+        if (gen != NULL && !Device_set_mix_rate((Device*)gen, mix_rate))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
+        if (dsp != NULL && !Device_set_mix_rate((Device*)dsp, mix_rate))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+static bool Instrument_set_buffer_size(Device* device, uint32_t size)
+{
+    assert(device != NULL);
+    assert(size > 0);
+    assert(size <= KQT_BUFFER_SIZE_MAX);
+    Instrument* ins = (Instrument*)device;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Generator* gen = ins->gens[i];
+        if (gen != NULL && !Device_set_buffer_size((Device*)gen, size))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
+        if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 

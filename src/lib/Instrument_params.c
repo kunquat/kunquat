@@ -42,12 +42,14 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
                                           Scale*** scale)
 {
     assert(ip != NULL);
+#if 0
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     assert(vbufs != NULL);
     assert(vbufs[0] != NULL);
     assert(vbufs2 != NULL);
     assert(vbufs2[0] != NULL);
+#endif
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(scale != NULL);
