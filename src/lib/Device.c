@@ -131,6 +131,7 @@ bool Device_init_buffer(Device* device, Device_port_type type, int port)
     {
         return false;
     }
+//    fprintf(stderr, "Initialised buffer %p\n", (void*)buffer);
     assert(device->buffers[type][port] == NULL);
     device->buffers[type][port] = buffer;
     return true;

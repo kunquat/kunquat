@@ -144,6 +144,17 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         freeverb->allpass_left[i] = NULL;
         freeverb->allpass_right[i] = NULL;
     }
+    freeverb->gain = 0;
+    freeverb->room_size = 0;
+    freeverb->room_size1 = 0;
+    freeverb->damp = 0;
+    freeverb->damp1 = 0;
+    freeverb->wet = 0;
+    freeverb->wet1 = 0;
+    freeverb->wet2 = 0;
+    freeverb->dry = 0;
+    freeverb->width = 0;
+    freeverb->mode = 0;
     if (!DSP_freeverb_set_mix_rate(&freeverb->parent.parent, mix_rate))
     {
         del_DSP(&freeverb->parent);
@@ -155,6 +166,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
     DSP_freeverb_set_mode(freeverb, initial_mode);
+    DSP_freeverb_update(freeverb);
     return &freeverb->parent;
 }
 
@@ -164,7 +176,6 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
     assert(device != NULL);
     assert(mix_rate > 0);
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
-    assert(strcmp(freeverb->parent.type, "freeverb") == 0);
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         uint32_t left_size = MAX(1, comb_tuning[i] * mix_rate);
@@ -272,7 +283,6 @@ static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
 {
     assert(freeverb != NULL);
     freeverb->room_size = (room_size * scale_room) + offset_room;
-    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -281,7 +291,6 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
 {
     assert(freeverb != NULL);
     freeverb->damp = damp * scale_damp;
-    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -290,7 +299,6 @@ static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 {
     assert(freeverb != NULL);
     freeverb->wet = wet * scale_wet;
-    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -307,7 +315,6 @@ static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width)
 {
     assert(freeverb != NULL);
     freeverb->width = width;
-    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -316,7 +323,6 @@ static void DSP_freeverb_set_mode(DSP_freeverb* freeverb, kqt_frame mode)
 {
     assert(freeverb != NULL);
     freeverb->mode = mode;
-    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -327,12 +333,10 @@ static void DSP_freeverb_process(Device* device,
                                  uint32_t freq,
                                  double tempo)
 {
-    (void)start;
-    (void)until;
-    assert(false);
     assert(device != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
     (void)tempo;
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
     assert(strcmp(freeverb->parent.type, "freeverb") == 0);
@@ -342,7 +346,28 @@ static void DSP_freeverb_process(Device* device,
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(device, 0, in_data);
     DSP_get_raw_output(device, 0, out_data);
-    assert(false);
+    for (uint32_t i = start; i < until; ++i)
+    {
+        kqt_frame out_l = 0;
+        kqt_frame out_r = 0;
+        kqt_frame input = (in_data[0][i] + in_data[1][i]) * freeverb->gain;
+        for (int comb = 0; comb < FREEVERB_COMBS; ++comb)
+        {
+            out_l += Freeverb_comb_process(freeverb->comb_left[comb], input);
+            out_r += Freeverb_comb_process(freeverb->comb_right[comb], input);
+        }
+        for (int allpass = 0; allpass < FREEVERB_ALLPASSES; ++allpass)
+        {
+            out_l = Freeverb_allpass_process(freeverb->allpass_left[allpass],
+                                             out_l);
+            out_r = Freeverb_allpass_process(freeverb->allpass_right[allpass],
+                                             out_r);
+        }
+        out_data[0][i] += out_l * freeverb->wet1 + out_r * freeverb->wet2 +
+                                  in_data[0][i] * freeverb->dry;
+        out_data[1][i] += out_r * freeverb->wet1 + out_l * freeverb->wet2 +
+                                  in_data[1][i] * freeverb->dry;
+    }
     return;
 }
 

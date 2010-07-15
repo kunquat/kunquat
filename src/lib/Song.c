@@ -442,7 +442,9 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             Audio_buffer_get_buffer(buffer, 0),
             Audio_buffer_get_buffer(buffer, 1),
         };
-        for (int i = 0; i < song->buf_count; ++i)
+        assert(bufs[0] != NULL);
+        assert(bufs[1] != NULL);
+        for (int i = 0; i < 2; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {

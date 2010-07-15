@@ -49,6 +49,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size)
         return NULL;
     }
     allpass->buffer_size = buffer_size;
+    Freeverb_allpass_clear(allpass);
     return allpass;
 }
 

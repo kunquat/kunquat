@@ -260,6 +260,15 @@ bool Device_node_init_buffers_simple(Device_node* node)
             {
                 return false;
             }
+#if 0
+            if (node->name[0] == '\0' && node->send[0] == NULL)
+            {
+                fprintf(stderr, "allocated receive buffers for master\n");
+                fprintf(stderr, "%p %p   \n",
+                        (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 0),
+                        (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 1));
+            }
+#endif
             if (!Device_init_buffer(edge->node->device,
                                     DEVICE_PORT_TYPE_SEND, edge->port))
             {

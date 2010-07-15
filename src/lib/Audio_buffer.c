@@ -52,6 +52,8 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
             return NULL;
         }
     }
+//    fprintf(stderr, "Created buffer %p with arrays %p and %p\n",
+//            (void*)buffer, (void*)buffer->bufs[0], (void*)buffer->bufs[1]);
     Audio_buffer_clear(buffer, 0, size);
     return buffer;
 }
