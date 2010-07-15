@@ -166,7 +166,6 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
     DSP_freeverb_set_mode(freeverb, initial_mode);
-    DSP_freeverb_update(freeverb);
     return &freeverb->parent;
 }
 
@@ -283,6 +282,7 @@ static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
 {
     assert(freeverb != NULL);
     freeverb->room_size = (room_size * scale_room) + offset_room;
+    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -291,6 +291,7 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
 {
     assert(freeverb != NULL);
     freeverb->damp = damp * scale_damp;
+    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -299,6 +300,7 @@ static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 {
     assert(freeverb != NULL);
     freeverb->wet = wet * scale_wet;
+    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -315,6 +317,7 @@ static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width)
 {
     assert(freeverb != NULL);
     freeverb->width = width;
+    DSP_freeverb_update(freeverb);
     return;
 }
 
@@ -323,6 +326,7 @@ static void DSP_freeverb_set_mode(DSP_freeverb* freeverb, kqt_frame mode)
 {
     assert(freeverb != NULL);
     freeverb->mode = mode;
+    DSP_freeverb_update(freeverb);
     return;
 }
 
