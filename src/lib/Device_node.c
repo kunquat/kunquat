@@ -606,7 +606,11 @@ void Device_node_print(Device_node* node, FILE* out)
         Connection* edge = node->receive[port];
         while (edge != NULL)
         {
-            Device_node_print(edge->node, out);
+            assert(edge->node->send[edge->port] != NULL);
+            if (node == edge->node->send[edge->port]->node)
+            {
+                Device_node_print(edge->node, out);
+            }
             edge = edge->next;
         }
     }
