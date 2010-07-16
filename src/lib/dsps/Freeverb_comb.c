@@ -71,6 +71,8 @@ void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp)
 void Freeverb_comb_set_feedback(Freeverb_comb* comb, kqt_frame feedback)
 {
     assert(comb != NULL);
+    assert(feedback >= 0);
+    assert(feedback < 1);
     comb->feedback = feedback;
     return;
 }

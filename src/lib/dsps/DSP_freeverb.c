@@ -33,19 +33,28 @@
 #define FREEVERB_ALLPASSES 4
 
 
+const double initial_reflect = 20;
+const double initial_damp = 0.5;
+const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
+//const double initial_dry = 0;
+const double initial_width = 1;
+
+
 typedef struct DSP_freeverb
 {
     DSP parent;
-    kqt_frame gain;
-    kqt_frame room_size;
-    kqt_frame room_size1;
-    kqt_frame damp;
-    kqt_frame damp1;
-    kqt_frame wet;
-    kqt_frame wet1;
-    kqt_frame wet2;
-//    kqt_frame dry;
-    kqt_frame width;
+    double gain;
+    double reflect;
+    double reflect1;
+    double damp;
+    double damp1;
+    double wet;
+    double wet1;
+    double wet2;
+//    double dry;
+    double width;
+    double reflect_setting;
+    double damp_setting;
     Freeverb_comb* comb_left[FREEVERB_COMBS];
     Freeverb_comb* comb_right[FREEVERB_COMBS];
     Freeverb_allpass* allpass_left[FREEVERB_ALLPASSES];
@@ -57,12 +66,14 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_freeverb_update(DSP_freeverb* freeverb);
 
-static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
-                                       kqt_frame room_size);
-static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp);
-static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet);
-//static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry);
-static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width);
+static void DSP_freeverb_set_reflectivity(DSP_freeverb* freeverb,
+                                          double reflect);
+static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp);
+static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, double wet);
+//static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, double dry);
+static void DSP_freeverb_set_width(DSP_freeverb* freeverb, double width);
+
+static void DSP_freeverb_check_params(DSP_freeverb* freeverb);
 
 static void DSP_freeverb_process(Device* device,
                                  uint32_t start,
@@ -105,8 +116,8 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         freeverb->allpass_right[i] = NULL;
     }
     freeverb->gain = 0;
-    freeverb->room_size = 0;
-    freeverb->room_size1 = 0;
+    freeverb->reflect = 0;
+    freeverb->reflect1 = 0;
     freeverb->damp = 0;
     freeverb->damp1 = 0;
     freeverb->wet = 0;
@@ -126,13 +137,8 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         Freeverb_allpass_set_feedback(freeverb->allpass_left[i], 0.5);
         Freeverb_allpass_set_feedback(freeverb->allpass_right[i], 0.5);
     }
-    const double initial_room = 0.5;
-    const double initial_damp = 0.5;
-    const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
-//    const double initial_dry = 0;
-    const double initial_width = 1;
     DSP_freeverb_set_wet(freeverb, initial_wet);
-    DSP_freeverb_set_room_size(freeverb, initial_room);
+    DSP_freeverb_set_reflectivity(freeverb, initial_reflect);
 //    DSP_freeverb_set_dry(freeverb, initial_dry);
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
@@ -240,7 +246,7 @@ static void DSP_freeverb_update(DSP_freeverb* freeverb)
     assert(freeverb != NULL);
     freeverb->wet1 = freeverb->wet * (freeverb->width / 2 + 0.5);
     freeverb->wet2 = freeverb->wet * ((1 - freeverb->width) / 2);
-    freeverb->room_size1 = freeverb->room_size;
+    freeverb->reflect1 = freeverb->reflect;
     freeverb->damp1 = freeverb->damp;
     const double fixed_gain = 0.015;
     freeverb->gain = fixed_gain;
@@ -249,9 +255,9 @@ static void DSP_freeverb_update(DSP_freeverb* freeverb)
         assert(freeverb->comb_left[i] != NULL);
         assert(freeverb->comb_right[i] != NULL);
         Freeverb_comb_set_feedback(freeverb->comb_left[i],
-                                   freeverb->room_size1);
+                                   freeverb->reflect1);
         Freeverb_comb_set_feedback(freeverb->comb_right[i],
-                                   freeverb->room_size1);
+                                   freeverb->reflect1);
         Freeverb_comb_set_damp(freeverb->comb_left[i],
                                freeverb->damp1);
         Freeverb_comb_set_damp(freeverb->comb_right[i],
@@ -261,21 +267,25 @@ static void DSP_freeverb_update(DSP_freeverb* freeverb)
 }
 
 
-static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
-                                       kqt_frame room_size)
+static void DSP_freeverb_set_reflectivity(DSP_freeverb* freeverb,
+                                          double reflect)
 {
     assert(freeverb != NULL);
-    const double scale_room = 0.28;
-    const double offset_room = 0.7;
-    freeverb->room_size = (room_size * scale_room) + offset_room;
+    freeverb->reflect_setting = reflect;
+    freeverb->reflect = exp2(-5 / reflect);
+//    freeverb->reflect = pow(reflect, 1.0 / 8) * 0.98;
+//    const double scale_room = 0.28;
+//    const double offset_room = 0.7;
+//    freeverb->room_size = (room_size * scale_room) + offset_room;
     DSP_freeverb_update(freeverb);
     return;
 }
 
 
-static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
+static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp)
 {
     assert(freeverb != NULL);
+    freeverb->damp_setting = damp;
     const double scale_damp = 0.4;
     freeverb->damp = damp * scale_damp;
     DSP_freeverb_update(freeverb);
@@ -283,7 +293,7 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
 }
 
 
-static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
+static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, double wet)
 {
     assert(freeverb != NULL);
     const double scale_wet = 3;
@@ -294,7 +304,7 @@ static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 
 
 #if 0
-static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry)
+static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, double dry)
 {
     assert(freeverb != NULL);
     const double scale_dry = 2;
@@ -304,11 +314,58 @@ static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry)
 #endif
 
 
-static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width)
+static void DSP_freeverb_set_width(DSP_freeverb* freeverb, double width)
 {
     assert(freeverb != NULL);
     freeverb->width = width;
     DSP_freeverb_update(freeverb);
+    return;
+}
+
+
+static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
+{
+    assert(freeverb != NULL);
+    assert(freeverb->parent.conf != NULL);
+    assert(freeverb->parent.conf->params != NULL);
+    double* reflect = Device_params_get_float(freeverb->parent.conf->params,
+                                              "p_reflectivity.jsonf");
+    if (reflect == NULL && freeverb->reflect_setting != initial_reflect)
+    {
+        DSP_freeverb_set_reflectivity(freeverb, initial_reflect);
+    }
+    else if (reflect != NULL && freeverb->reflect_setting != *reflect)
+    {
+        if (*reflect > 200)
+        {
+            *reflect = 200;
+        }
+        else if (*reflect < 0)
+        {
+            *reflect = 0;
+        }
+        DSP_freeverb_set_reflectivity(freeverb, *reflect);
+    }
+    double* damp = Device_params_get_float(freeverb->parent.conf->params,
+                                           "p_damp.jsonf");
+    if (damp == NULL && freeverb->damp_setting != initial_damp)
+    {
+        DSP_freeverb_set_damp(freeverb, initial_damp);
+    }
+    else if (damp != NULL && freeverb->damp_setting != *damp)
+    {
+        DSP_freeverb_set_damp(freeverb, *damp);
+    }
+    double* width = Device_params_get_float(freeverb->parent.conf->params,
+                                            "p_width.jsonf");
+    if (width == NULL && freeverb->width != initial_width)
+    {
+        DSP_freeverb_set_width(freeverb, initial_width);
+    }
+    else if (width != NULL && freeverb->width != *width)
+    {
+        DSP_freeverb_set_width(freeverb, *width);
+    }
     return;
 }
 
@@ -326,8 +383,7 @@ static void DSP_freeverb_process(Device* device,
     (void)tempo;
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
     assert(strcmp(freeverb->parent.type, "freeverb") == 0);
-    assert(freeverb->parent.conf != NULL);
-    assert(freeverb->parent.conf->params != NULL);
+    DSP_freeverb_check_params(freeverb);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(device, 0, in_data);
