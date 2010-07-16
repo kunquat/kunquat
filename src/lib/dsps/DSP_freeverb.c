@@ -34,7 +34,7 @@
 
 
 const double initial_reflect = 20;
-const double initial_damp = 0.5;
+const double initial_damp = 20;
 const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
 //const double initial_dry = 0;
 const double initial_width = 1;
@@ -286,8 +286,8 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, double damp)
 {
     assert(freeverb != NULL);
     freeverb->damp_setting = damp;
-    const double scale_damp = 0.4;
-    freeverb->damp = damp * scale_damp;
+//    const double scale_damp = 0.4;
+    freeverb->damp = damp / 100;
     DSP_freeverb_update(freeverb);
     return;
 }
@@ -354,8 +354,17 @@ static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
     }
     else if (damp != NULL && freeverb->damp_setting != *damp)
     {
+        if (*damp > 100)
+        {
+            *damp = 100;
+        }
+        else if (*damp < 0)
+        {
+            *damp = 0;
+        }
         DSP_freeverb_set_damp(freeverb, *damp);
     }
+#if 0
     double* width = Device_params_get_float(freeverb->parent.conf->params,
                                             "p_width.jsonf");
     if (width == NULL && freeverb->width != initial_width)
@@ -366,6 +375,7 @@ static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
     {
         DSP_freeverb_set_width(freeverb, *width);
     }
+#endif
     return;
 }
 

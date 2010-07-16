@@ -62,6 +62,8 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size)
 void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp)
 {
     assert(comb != NULL);
+    assert(damp >= 0);
+    assert(damp <= 1);
     comb->damp1 = damp;
     comb->damp2 = 1 - damp;
     return;

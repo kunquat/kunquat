@@ -58,6 +58,8 @@ void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass,
                                    kqt_frame feedback)
 {
     assert(allpass != NULL);
+    assert(feedback > -1);
+    assert(feedback < 1);
     allpass->feedback = feedback;
     return;
 }

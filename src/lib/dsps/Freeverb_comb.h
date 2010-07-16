@@ -43,7 +43,7 @@ Freeverb_comb* new_Freeverb_comb(uint32_t buffer_size);
  * Sets the damp value of the Freeverb comb filter.
  *
  * \param comb   The Freeverb comb filter -- must not be \c NULL.
- * \param damp   The damp value. FIXME: limits!
+ * \param damp   The damp value -- must be >= \c 0 and <= \c 1.
  */
 void Freeverb_comb_set_damp(Freeverb_comb* comb, kqt_frame damp);
 

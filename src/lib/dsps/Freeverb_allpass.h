@@ -45,7 +45,7 @@ Freeverb_allpass* new_Freeverb_allpass(uint32_t buffer_size);
  * Sets the feedback of the Freeverb allpass filter.
  *
  * \param allpass    The Freeverb allpass filter -- must not be \c NULL.
- * \param feedback   The feedback value. FIXME: limits!
+ * \param feedback   The feedback value -- must be > \c -1 and < \c 1.
  */
 void Freeverb_allpass_set_feedback(Freeverb_allpass* allpass,
                                    kqt_frame feedback);
