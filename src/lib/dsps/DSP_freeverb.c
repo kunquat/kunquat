@@ -33,44 +33,6 @@
 #define FREEVERB_ALLPASSES 4
 
 
-const double muted = 0;
-const double fixed_gain = 0.015;
-const double scale_wet = 3;
-const double scale_dry = 2;
-const double scale_damp = 0.4;
-const double scale_room = 0.28;
-const double offset_room = 0.7;
-const double initial_room = 0.5;
-const double initial_damp = 0.5;
-const double initial_wet = 1 / 3.0; // scale_wet
-const double initial_dry = 0;
-const double initial_width = 1;
-const double initial_mode = 0;
-const double freeze_mode = 0.5;
-
-
-// The following constants are in seconds.
-const double stereo_spread = 0.000521542;
-const double comb_tuning[] =
-{
-    0.025306123,
-    0.026938776,
-    0.028956917,
-    0.030748300,
-    0.032244898,
-    0.033809524,
-    0.035306123,
-    0.036666667,
-};
-const double allpass_tuning[] =
-{
-    0.012607710,
-    0.010000001,
-    0.007732427,
-    0.005102041,
-};
-
-
 typedef struct DSP_freeverb
 {
     DSP parent;
@@ -160,6 +122,12 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         del_DSP(&freeverb->parent);
         return NULL;
     }
+    const double initial_room = 0.5;
+    const double initial_damp = 0.5;
+    const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
+    const double initial_dry = 0;
+    const double initial_width = 1;
+    const double initial_mode = 0;
     DSP_freeverb_set_wet(freeverb, initial_wet);
     DSP_freeverb_set_room_size(freeverb, initial_room);
     DSP_freeverb_set_dry(freeverb, initial_dry);
@@ -175,6 +143,27 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
     assert(device != NULL);
     assert(mix_rate > 0);
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    // The following constants are in seconds.
+    const double stereo_spread = 0.000521542;
+    const double comb_tuning[FREEVERB_COMBS] =
+    {
+        0.025306123,
+        0.026938776,
+        0.028956917,
+        0.030748300,
+        0.032244898,
+        0.033809524,
+        0.035306123,
+        0.036666667,
+    };
+    const double allpass_tuning[FREEVERB_ALLPASSES] =
+    {
+        0.012607710,
+        0.010000001,
+        0.007732427,
+        0.005102041,
+    };
+
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         uint32_t left_size = MAX(1, comb_tuning[i] * mix_rate);
@@ -207,6 +196,7 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
             return false;
         }
     }
+    
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
         uint32_t left_size = MAX(1, allpass_tuning[i] * mix_rate);
@@ -248,16 +238,21 @@ static void DSP_freeverb_update(DSP_freeverb* freeverb)
     assert(freeverb != NULL);
     freeverb->wet1 = freeverb->wet * (freeverb->width / 2 + 0.5);
     freeverb->wet2 = freeverb->wet * ((1 - freeverb->width) / 2);
+#if 0
+    const double freeze_mode = 0.5;
     if (freeverb->mode >= freeze_mode)
     {
         freeverb->room_size1 = 1;
         freeverb->damp1 = 0;
+        const double muted = 0;
         freeverb->gain = muted;
     }
     else
+#endif
     {
         freeverb->room_size1 = freeverb->room_size;
         freeverb->damp1 = freeverb->damp;
+        const double fixed_gain = 0.015;
         freeverb->gain = fixed_gain;
     }
     for (int i = 0; i < FREEVERB_COMBS; ++i)
@@ -281,6 +276,8 @@ static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
                                        kqt_frame room_size)
 {
     assert(freeverb != NULL);
+    const double scale_room = 0.28;
+    const double offset_room = 0.7;
     freeverb->room_size = (room_size * scale_room) + offset_room;
     DSP_freeverb_update(freeverb);
     return;
@@ -290,6 +287,7 @@ static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
 static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
 {
     assert(freeverb != NULL);
+    const double scale_damp = 0.4;
     freeverb->damp = damp * scale_damp;
     DSP_freeverb_update(freeverb);
     return;
@@ -299,6 +297,7 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp)
 static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 {
     assert(freeverb != NULL);
+    const double scale_wet = 3;
     freeverb->wet = wet * scale_wet;
     DSP_freeverb_update(freeverb);
     return;
@@ -308,6 +307,7 @@ static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry)
 {
     assert(freeverb != NULL);
+    const double scale_dry = 2;
     freeverb->dry = dry * scale_dry;
     return;
 }
