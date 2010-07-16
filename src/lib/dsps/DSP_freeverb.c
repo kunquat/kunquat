@@ -44,7 +44,7 @@ typedef struct DSP_freeverb
     kqt_frame wet;
     kqt_frame wet1;
     kqt_frame wet2;
-    kqt_frame dry;
+//    kqt_frame dry;
     kqt_frame width;
     Freeverb_comb* comb_left[FREEVERB_COMBS];
     Freeverb_comb* comb_right[FREEVERB_COMBS];
@@ -61,7 +61,7 @@ static void DSP_freeverb_set_room_size(DSP_freeverb* freeverb,
                                        kqt_frame room_size);
 static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp);
 static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet);
-static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry);
+//static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry);
 static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width);
 
 static void DSP_freeverb_process(Device* device,
@@ -112,7 +112,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     freeverb->wet = 0;
     freeverb->wet1 = 0;
     freeverb->wet2 = 0;
-    freeverb->dry = 0;
+//    freeverb->dry = 0;
     freeverb->width = 0;
     if (!DSP_freeverb_set_mix_rate(&freeverb->parent.parent, mix_rate))
     {
@@ -122,11 +122,11 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     const double initial_room = 0.5;
     const double initial_damp = 0.5;
     const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
-    const double initial_dry = 0;
+//    const double initial_dry = 0;
     const double initial_width = 1;
     DSP_freeverb_set_wet(freeverb, initial_wet);
     DSP_freeverb_set_room_size(freeverb, initial_room);
-    DSP_freeverb_set_dry(freeverb, initial_dry);
+//    DSP_freeverb_set_dry(freeverb, initial_dry);
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
     return &freeverb->parent;
@@ -286,6 +286,7 @@ static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet)
 }
 
 
+#if 0
 static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry)
 {
     assert(freeverb != NULL);
@@ -293,6 +294,7 @@ static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry)
     freeverb->dry = dry * scale_dry;
     return;
 }
+#endif
 
 
 static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width)
@@ -340,10 +342,10 @@ static void DSP_freeverb_process(Device* device,
             out_r = Freeverb_allpass_process(freeverb->allpass_right[allpass],
                                              out_r);
         }
-        out_data[0][i] += out_l * freeverb->wet1 + out_r * freeverb->wet2 +
-                                  in_data[0][i] * freeverb->dry;
-        out_data[1][i] += out_r * freeverb->wet1 + out_l * freeverb->wet2 +
-                                  in_data[1][i] * freeverb->dry;
+        out_data[0][i] += out_l * freeverb->wet1 + out_r * freeverb->wet2
+                                  /* + in_data[0][i] * freeverb->dry */;
+        out_data[1][i] += out_r * freeverb->wet1 + out_l * freeverb->wet2
+                                  /* + in_data[1][i] * freeverb->dry */;
     }
     return;
 }
