@@ -119,6 +119,13 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         del_DSP(&freeverb->parent);
         return NULL;
     }
+    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+    {
+        assert(freeverb->allpass_left[i] != NULL);
+        assert(freeverb->allpass_right[i] != NULL);
+        Freeverb_allpass_set_feedback(freeverb->allpass_left[i], 0.5);
+        Freeverb_allpass_set_feedback(freeverb->allpass_right[i], 0.5);
+    }
     const double initial_room = 0.5;
     const double initial_damp = 0.5;
     const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
