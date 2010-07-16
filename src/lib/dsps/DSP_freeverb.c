@@ -46,7 +46,6 @@ typedef struct DSP_freeverb
     kqt_frame wet2;
     kqt_frame dry;
     kqt_frame width;
-    kqt_frame mode;
     Freeverb_comb* comb_left[FREEVERB_COMBS];
     Freeverb_comb* comb_right[FREEVERB_COMBS];
     Freeverb_allpass* allpass_left[FREEVERB_ALLPASSES];
@@ -64,7 +63,6 @@ static void DSP_freeverb_set_damp(DSP_freeverb* freeverb, kqt_frame damp);
 static void DSP_freeverb_set_wet(DSP_freeverb* freeverb, kqt_frame wet);
 static void DSP_freeverb_set_dry(DSP_freeverb* freeverb, kqt_frame dry);
 static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width);
-static void DSP_freeverb_set_mode(DSP_freeverb* freeverb, kqt_frame mode);
 
 static void DSP_freeverb_process(Device* device,
                                  uint32_t start,
@@ -116,7 +114,6 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     freeverb->wet2 = 0;
     freeverb->dry = 0;
     freeverb->width = 0;
-    freeverb->mode = 0;
     if (!DSP_freeverb_set_mix_rate(&freeverb->parent.parent, mix_rate))
     {
         del_DSP(&freeverb->parent);
@@ -127,13 +124,11 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     const double initial_wet = 1 / 3.0; // 3.0 = scale_wet
     const double initial_dry = 0;
     const double initial_width = 1;
-    const double initial_mode = 0;
     DSP_freeverb_set_wet(freeverb, initial_wet);
     DSP_freeverb_set_room_size(freeverb, initial_room);
     DSP_freeverb_set_dry(freeverb, initial_dry);
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
-    DSP_freeverb_set_mode(freeverb, initial_mode);
     return &freeverb->parent;
 }
 
@@ -238,23 +233,10 @@ static void DSP_freeverb_update(DSP_freeverb* freeverb)
     assert(freeverb != NULL);
     freeverb->wet1 = freeverb->wet * (freeverb->width / 2 + 0.5);
     freeverb->wet2 = freeverb->wet * ((1 - freeverb->width) / 2);
-#if 0
-    const double freeze_mode = 0.5;
-    if (freeverb->mode >= freeze_mode)
-    {
-        freeverb->room_size1 = 1;
-        freeverb->damp1 = 0;
-        const double muted = 0;
-        freeverb->gain = muted;
-    }
-    else
-#endif
-    {
-        freeverb->room_size1 = freeverb->room_size;
-        freeverb->damp1 = freeverb->damp;
-        const double fixed_gain = 0.015;
-        freeverb->gain = fixed_gain;
-    }
+    freeverb->room_size1 = freeverb->room_size;
+    freeverb->damp1 = freeverb->damp;
+    const double fixed_gain = 0.015;
+    freeverb->gain = fixed_gain;
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
         assert(freeverb->comb_left[i] != NULL);
@@ -317,15 +299,6 @@ static void DSP_freeverb_set_width(DSP_freeverb* freeverb, kqt_frame width)
 {
     assert(freeverb != NULL);
     freeverb->width = width;
-    DSP_freeverb_update(freeverb);
-    return;
-}
-
-
-static void DSP_freeverb_set_mode(DSP_freeverb* freeverb, kqt_frame mode)
-{
-    assert(freeverb != NULL);
-    freeverb->mode = mode;
     DSP_freeverb_update(freeverb);
     return;
 }
