@@ -13,14 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <generators/File_wavpack.h>
-#include <Generator_field.h>
+#include <Device_field.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -34,68 +33,68 @@ typedef union
     Sample* Sample_type;
     Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
-} Gen_fields;
+} Dev_fields;
 
 
-struct Generator_field
+struct Device_field
 {
     char key[100];
-    Generator_field_type type;
+    Device_field_type type;
     bool empty;
-    Gen_fields data;
+    Dev_fields data;
 };
 
 
-Generator_field* new_Generator_field(const char* key, void* data)
+Device_field* new_Device_field(const char* key, void* data)
 {
     assert(key != NULL);
-    Generator_field_type type = GENERATOR_FIELD_NONE;
+    Device_field_type type = DEVICE_FIELD_NONE;
     size_t data_size = 0;
     if (string_has_suffix(key, ".jsonb"))
     {
-        type = GENERATOR_FIELD_BOOL;
+        type = DEVICE_FIELD_BOOL;
         data_size = sizeof(bool);
     }
     else if (string_has_suffix(key, ".jsoni"))
     {
-        type = GENERATOR_FIELD_INT;
+        type = DEVICE_FIELD_INT;
         data_size = sizeof(int64_t);
     }
     else if (string_has_suffix(key, ".jsonf"))
     {
-        type = GENERATOR_FIELD_FLOAT;
+        type = DEVICE_FIELD_FLOAT;
         data_size = sizeof(double);
     }
     else if (string_has_suffix(key, ".jsonr"))
     {
-        type = GENERATOR_FIELD_REAL;
+        type = DEVICE_FIELD_REAL;
         data_size = sizeof(Real);
     }
     else if (string_has_suffix(key, ".jsont"))
     {
-        type = GENERATOR_FIELD_RELTIME;
+        type = DEVICE_FIELD_RELTIME;
         data_size = sizeof(Reltime);
     }
     else if (string_has_suffix(key, ".wv"))
     {
-        type = GENERATOR_FIELD_WAVPACK;
+        type = DEVICE_FIELD_WAVPACK;
         data_size = sizeof(Sample*);
     }
     else if (string_has_suffix(key, ".jsonsh"))
     {
-        type = GENERATOR_FIELD_SAMPLE_PARAMS;
+        type = DEVICE_FIELD_SAMPLE_PARAMS;
         data_size = sizeof(Sample_params);
     }
     else if (string_has_suffix(key, ".jsonsm"))
     {
-        type = GENERATOR_FIELD_SAMPLE_MAP;
+        type = DEVICE_FIELD_SAMPLE_MAP;
         data_size = sizeof(Sample_map*);
     }
     else
     {
         assert(false);
     }
-    Generator_field* field = xalloc(Generator_field);
+    Device_field* field = xalloc(Device_field);
     if (field == NULL)
     {
         return NULL;
@@ -111,16 +110,16 @@ Generator_field* new_Generator_field(const char* key, void* data)
     else
     {
         field->empty = true;
-        memset(&field->data, 0, sizeof(Gen_fields));
+        memset(&field->data, 0, sizeof(Dev_fields));
     }
     return field;
 }
 
 
-Generator_field* new_Generator_field_from_data(const char* key,
-                                               void* data,
-                                               long length,
-                                               Read_state* state)
+Device_field* new_Device_field_from_data(const char* key,
+                                         void* data,
+                                         long length,
+                                         Read_state* state)
 {
     assert(key != NULL);
     assert((data == NULL) == (length == 0));
@@ -130,27 +129,27 @@ Generator_field* new_Generator_field_from_data(const char* key,
     {
         return NULL;
     }
-    Generator_field* field = new_Generator_field(key, NULL);
+    Device_field* field = new_Device_field(key, NULL);
     if (field == NULL)
     {
         return NULL;
     }
-    if (!Generator_field_change(field, data, length, state))
+    if (!Device_field_change(field, data, length, state))
     {
-        del_Generator_field(field);
+        del_Device_field(field);
         return NULL;
     }
     return field;
 }
 
 
-bool Generator_field_change(Generator_field* field,
-                            void* data,
-                            long length,
-                            Read_state* state)
+bool Device_field_change(Device_field* field,
+                         void* data,
+                         long length,
+                         Read_state* state)
 {
     assert(field != NULL);
-    assert(field->type != GENERATOR_FIELD_NONE);
+    assert(field->type != DEVICE_FIELD_NONE);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     assert(state != NULL);
@@ -160,7 +159,7 @@ bool Generator_field_change(Generator_field* field,
     }
     switch (field->type)
     {
-        case GENERATOR_FIELD_BOOL:
+        case DEVICE_FIELD_BOOL:
         {
             if (data != NULL)
             {
@@ -168,7 +167,7 @@ bool Generator_field_change(Generator_field* field,
                 read_bool(str, &field->data.bool_type, state);
             }
         } break;
-        case GENERATOR_FIELD_INT:
+        case DEVICE_FIELD_INT:
         {
             if (data != NULL)
             {
@@ -176,7 +175,7 @@ bool Generator_field_change(Generator_field* field,
                 read_int(str, &field->data.int_type, state);
             }
         } break;
-        case GENERATOR_FIELD_FLOAT:
+        case DEVICE_FIELD_FLOAT:
         {
             if (data != NULL)
             {
@@ -184,14 +183,14 @@ bool Generator_field_change(Generator_field* field,
                 read_double(str, &field->data.float_type, state);
             }
         } break;
-        case GENERATOR_FIELD_REAL:
+        case DEVICE_FIELD_REAL:
         {
             if (data != NULL)
             {
                 assert(false); // TODO: implement
             }
         } break;
-        case GENERATOR_FIELD_RELTIME:
+        case DEVICE_FIELD_RELTIME:
         {
             if (data != NULL)
             {
@@ -199,7 +198,7 @@ bool Generator_field_change(Generator_field* field,
                 read_reltime(str, &field->data.Reltime_type, state);
             }
         } break;
-        case GENERATOR_FIELD_WAVPACK:
+        case DEVICE_FIELD_WAVPACK:
         {
             Sample* sample = NULL;
             if (data != NULL)
@@ -222,7 +221,7 @@ bool Generator_field_change(Generator_field* field,
             }
             field->data.Sample_type = sample;
         } break;
-        case GENERATOR_FIELD_SAMPLE_PARAMS:
+        case DEVICE_FIELD_SAMPLE_PARAMS:
         {
             if (!Sample_params_parse(&field->data.Sample_params_type,
                                      data, state))
@@ -230,7 +229,7 @@ bool Generator_field_change(Generator_field* field,
                 return false;
             }
         } break;
-        case GENERATOR_FIELD_SAMPLE_MAP:
+        case DEVICE_FIELD_SAMPLE_MAP:
         {
             Sample_map* map = new_Sample_map_from_string(data, state);
             if (map == NULL)
@@ -251,8 +250,8 @@ bool Generator_field_change(Generator_field* field,
 }
 
 
-int Generator_field_cmp(const Generator_field* field1,
-                        const Generator_field* field2)
+int Device_field_cmp(const Device_field* field1,
+                     const Device_field* field2)
 {
     assert(field1 != NULL);
     assert(field1->key != NULL);
@@ -262,10 +261,10 @@ int Generator_field_cmp(const Generator_field* field1,
 }
 
 
-void Generator_field_set_empty(Generator_field* field, bool empty)
+void Device_field_set_empty(Device_field* field, bool empty)
 {
     assert(field != NULL);
-    if (field->type != GENERATOR_FIELD_WAVPACK)
+    if (field->type != DEVICE_FIELD_WAVPACK)
     {
         field->empty = empty;
     }
@@ -273,34 +272,34 @@ void Generator_field_set_empty(Generator_field* field, bool empty)
 }
 
 
-bool Generator_field_get_empty(Generator_field* field)
+bool Device_field_get_empty(Device_field* field)
 {
     assert(field != NULL);
     return field->empty;
 }
 
 
-bool Generator_field_modify(Generator_field* field, char* str)
+bool Device_field_modify(Device_field* field, char* str)
 {
     assert(field != NULL);
-    assert(field->type != GENERATOR_FIELD_WAVPACK);
-    assert(field->type != GENERATOR_FIELD_SAMPLE_MAP);
+    assert(field->type != DEVICE_FIELD_WAVPACK);
+    assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
     Read_state* state = READ_STATE_AUTO;
     switch (field->type)
     {
-        case GENERATOR_FIELD_BOOL:
+        case DEVICE_FIELD_BOOL:
         {
             read_bool(str, &field->data.bool_type, state);
         } break;
-        case GENERATOR_FIELD_INT:
+        case DEVICE_FIELD_INT:
         {
             read_int(str, &field->data.int_type, state);
         } break;
-        case GENERATOR_FIELD_FLOAT:
+        case DEVICE_FIELD_FLOAT:
         {
             read_double(str, &field->data.float_type, state);
         } break;
-        case GENERATOR_FIELD_RELTIME:
+        case DEVICE_FIELD_RELTIME:
         {
             read_reltime(str, &field->data.Reltime_type, state);
         } break;
@@ -311,84 +310,84 @@ bool Generator_field_modify(Generator_field* field, char* str)
     {
         return false;
     }
-    Generator_field_set_empty(field, false);
+    Device_field_set_empty(field, false);
     return true;
 }
 
 
-bool* Generator_field_get_bool(Generator_field* field)
+bool* Device_field_get_bool(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_BOOL);
+    assert(field->type == DEVICE_FIELD_BOOL);
     return &field->data.bool_type;
 }
 
 
-int64_t* Generator_field_get_int(Generator_field* field)
+int64_t* Device_field_get_int(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_INT);
+    assert(field->type == DEVICE_FIELD_INT);
     return &field->data.int_type;
 }
 
 
-double* Generator_field_get_float(Generator_field* field)
+double* Device_field_get_float(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_FLOAT);
+    assert(field->type == DEVICE_FIELD_FLOAT);
     return &field->data.float_type;
 }
 
 
-Real* Generator_field_get_real(Generator_field* field)
+Real* Device_field_get_real(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_REAL);
+    assert(field->type == DEVICE_FIELD_REAL);
     return &field->data.Real_type;
 }
 
 
-Reltime* Generator_field_get_reltime(Generator_field* field)
+Reltime* Device_field_get_reltime(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_RELTIME);
+    assert(field->type == DEVICE_FIELD_RELTIME);
     return &field->data.Reltime_type;
 }
 
 
-Sample* Generator_field_get_sample(Generator_field* field)
+Sample* Device_field_get_sample(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_WAVPACK);
+    assert(field->type == DEVICE_FIELD_WAVPACK);
     return field->data.Sample_type;
 }
 
 
-Sample_params* Generator_field_get_sample_params(Generator_field* field)
+Sample_params* Device_field_get_sample_params(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_SAMPLE_PARAMS);
+    assert(field->type == DEVICE_FIELD_SAMPLE_PARAMS);
     return &field->data.Sample_params_type;
 }
 
 
-Sample_map* Generator_field_get_sample_map(Generator_field* field)
+Sample_map* Device_field_get_sample_map(Device_field* field)
 {
     assert(field != NULL);
-    assert(field->type == GENERATOR_FIELD_SAMPLE_MAP);
+    assert(field->type == DEVICE_FIELD_SAMPLE_MAP);
     return field->data.Sample_map_type;
 }
 
 
-void del_Generator_field(Generator_field* field)
+void del_Device_field(Device_field* field)
 {
     assert(field != NULL);
-    if (field->type == GENERATOR_FIELD_WAVPACK &&
+    if (field->type == DEVICE_FIELD_WAVPACK &&
             field->data.Sample_type != NULL)
     {
         del_Sample(field->data.Sample_type);
     }
-    if (field->type == GENERATOR_FIELD_SAMPLE_MAP &&
+    if (field->type == DEVICE_FIELD_SAMPLE_MAP &&
             field->data.Sample_map_type != NULL)
     {
         del_Sample_map(field->data.Sample_map_type);

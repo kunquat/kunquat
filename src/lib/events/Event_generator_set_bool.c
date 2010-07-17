@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
@@ -21,7 +20,7 @@
 #include <File_base.h>
 #include <Generator.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -95,7 +94,7 @@ bool Event_generator_set_bool_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Generator_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->type_params, key, fields);
 }
 
 

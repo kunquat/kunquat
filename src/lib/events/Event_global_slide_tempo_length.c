@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <limits.h>
 
@@ -21,7 +20,7 @@
 #include <Event_global_slide_tempo_length.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

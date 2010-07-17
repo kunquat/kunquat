@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Filter.h>
 #include <Generator_common.h>
@@ -21,6 +20,7 @@
 #include <Voice_state.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <xassert.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)

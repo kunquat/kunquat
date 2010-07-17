@@ -13,13 +13,14 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
+#include <Connections_search.h>
 #include <Device_node.h>
+#include <Generator.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -34,12 +35,23 @@ typedef struct Connection
 struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
+    Device_node* ins_dual;
     Device* device;
     Device_node_state state;
     Connection* iter;
     Connection* receive[KQT_DEVICE_PORTS_MAX];
     Connection* send[KQT_DEVICE_PORTS_MAX];
 };
+
+
+/**
+ * Internal device setter.
+ */
+void Device_node_set_devices_(Device_node* node,
+                              Device* master,
+                              Ins_table* insts,
+                              Instrument* ins,
+                              DSP_table* dsps);
 
 
 Device_node* new_Device_node(const char* name)
@@ -51,6 +63,7 @@ Device_node* new_Device_node(const char* name)
         return NULL;
     }
     strncpy(node->name, name, KQT_DEVICE_NODE_NAME_MAX - 1);
+    node->ins_dual = NULL;
     node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
     node->state = DEVICE_NODE_STATE_NEW;
@@ -72,16 +85,59 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2)
 }
 
 
-void Device_node_set_devices(Device_node* node,
-                             Device* master,
-                             Ins_table* insts/*,
-                             DSP_table* dsps*/)
+void Device_node_reset(Device_node* node)
 {
     assert(node != NULL);
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_NEW)
+    {
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_NEW);
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_NEW);
+        node = node->ins_dual;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_reset(edge->node);
+            edge = edge->next;
+        }
+    }
+    return;
+}
+
+
+void Device_node_set_devices(Device_node* node,
+                             Device* master,
+                             Ins_table* insts,
+                             DSP_table* dsps)
+{
+    assert(node != NULL);
+    assert(master != NULL);
     assert(insts != NULL);
-//    assert(dsps != NULL);
+    assert(dsps != NULL);
+//    fprintf(stderr, "setting...\n");
+    Device_node_set_devices_(node, master, insts, NULL, dsps);
+    return;
+}
+
+
+void Device_node_set_devices_(Device_node* node,
+                              Device* master,
+                              Ins_table* insts,
+                              Instrument* ins,
+                              DSP_table* dsps)
+{
+    assert(node != NULL);
+    assert((insts != NULL) ^ (ins != NULL));
+    assert(dsps != NULL);
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
         return;
     }
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
@@ -92,29 +148,238 @@ void Device_node_set_devices(Device_node* node,
     }
     else if (string_has_prefix(node->name, "ins_"))
     {
-        const char* num_s = strchr(node->name, '_');
-        assert(num_s != NULL);
-        ++num_s;
-        char* num_s_end = NULL;
-        long index = strtol(num_s, &num_s_end, 16);
-        assert(num_s + 2 == num_s_end);
+        assert(insts != NULL);
+        assert(ins == NULL);
+        int index = string_extract_index(node->name, "ins_", 2);
         assert(index >= 0);
         assert(index < KQT_INSTRUMENTS_MAX);
-        node->device = (Device*)Ins_table_get(insts, index);
+        ins = Ins_table_get(insts, index);
+        node->device = (Device*)ins;
+        if (ins != NULL)
+        {
+            Connections* ins_graph = Instrument_get_connections(ins);
+            Device_node* ins_node = NULL;
+            if (ins_graph == NULL ||
+                    (ins_node = Connections_get_master(ins_graph)) == NULL)
+            {
+//                fprintf(stderr, "ins %p, graph %p, master %p\n",
+//                                (void*)ins, (void*)ins_graph, (void*)ins_node);
+                node->device = NULL;
+            }
+            else
+            {
+                Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+                Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
+                ins_node->device = node->device;
+                node->ins_dual = ins_node;
+                node = ins_node;
+                insts = NULL;
+            }
+        }
+    }
+    else if (string_has_prefix(node->name, "gen_"))
+    {
+        assert(insts == NULL);
+        assert(ins != NULL);
+        int gen_index = string_extract_index(node->name, "gen_", 2);
+        assert(gen_index >= 0);
+        assert(gen_index < KQT_GENERATORS_MAX);
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        node->device = (Device*)gen;
+    }
+    else if (string_has_prefix(node->name, "dsp_"))
+    {
+        assert(dsps != NULL);
+        int index = string_extract_index(node->name, "dsp_", 2);
+        assert(index >= 0);
+        assert(ins != NULL || index < KQT_DSP_EFFECTS_MAX);
+        assert(ins == NULL || index < KQT_INSTRUMENT_DSPS_MAX);
+        DSP* dsp = DSP_table_get_dsp(dsps, index);
+//        if (dsp == NULL) fprintf(stderr, "null dsp is null\n");
+//        else fprintf(stderr, "dsp found\n");
+        node->device = (Device*)dsp;
     }
     else
     {
         assert(false);
     }
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
     for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
         Connection* edge = node->receive[i];
+        assert(!string_has_prefix(node->name, "gen_") || edge == NULL);
         while (edge != NULL)
         {
-            Device_node_set_devices(edge->node, NULL, insts/*, dsps*/);
+            Device_node_set_devices_(edge->node, NULL, insts, ins, dsps);
             edge = edge->next;
         }
     }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+bool Device_node_init_buffers_simple(Device_node* node)
+{
+    assert(node != NULL);
+    assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+    if (Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED)
+    {
+        return true;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            assert(edge->node != NULL);
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            if (!Device_init_buffer(node->device,
+                                    DEVICE_PORT_TYPE_RECEIVE, port))
+            {
+                return false;
+            }
+            if (!Device_init_buffer(edge->node->device,
+                                    DEVICE_PORT_TYPE_SEND, edge->port))
+            {
+                return false;
+            }
+            if (!Device_node_init_buffers_simple(edge->node))
+            {
+                return false;
+            }
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return true;
+}
+
+
+void Device_node_clear_buffers(Device_node* node,
+                               uint32_t start,
+                               uint32_t until)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+    }
+    Device_clear_buffers(node->device, start, until);
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_clear_buffers(edge->node, start, until);
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+void Device_node_mix(Device_node* node, uint32_t start, uint32_t until)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_mix(node->ins_dual, start, until);
+        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        {
+            Audio_buffer* receive = Device_get_buffer(node->device,
+                                            DEVICE_PORT_TYPE_RECEIVE, port);
+            Audio_buffer* send = Device_get_buffer(node->device,
+                                            DEVICE_PORT_TYPE_SEND, port);
+            if (receive == NULL || send == NULL)
+            {
+                continue;
+            }
+            Audio_buffer_mix(send, receive, start, until);
+        }
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            Device_node_mix(edge->node, start, until);
+            Audio_buffer* send = Device_get_buffer(edge->node->device,
+                                         DEVICE_PORT_TYPE_SEND, edge->port);
+            Audio_buffer* receive = Device_get_buffer(node->device,
+                                         DEVICE_PORT_TYPE_RECEIVE, port);
+            if (receive == NULL || send == NULL)
+            {
+#if 0
+                if (receive != NULL)
+                {
+                    fprintf(stderr, "receive %p, but no send!\n", (void*)receive);
+                }
+                else if (send != NULL)
+                {
+                    fprintf(stderr, "send %p, but no receive!\n", (void*)send);
+                }
+#endif
+                edge = edge->next;
+                continue;
+            }
+            Audio_buffer_mix(receive, send, start, until);
+            edge = edge->next;
+        }
+    }
+    Device_process(node->device, start, until);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }
@@ -124,6 +389,13 @@ char* Device_node_get_name(Device_node* node)
 {
     assert(node != NULL);
     return node->name;
+}
+
+
+Device* Device_node_get_device(Device_node* node)
+{
+    assert(node != NULL);
+    return node->device;
 }
 
 
@@ -262,6 +534,66 @@ bool Device_node_cycle_in_path(Device_node* node)
     }
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return false;
+}
+
+
+void Device_node_print(Device_node* node, FILE* out)
+{
+    assert(node != NULL);
+    assert(out != NULL);
+    const char* states[] =
+    {
+        [DEVICE_NODE_STATE_NEW] = "new",
+        [DEVICE_NODE_STATE_REACHED] = "reached",
+        [DEVICE_NODE_STATE_VISITED] = "visited",
+    };
+    fprintf(out, "\nDevice node: %s, Device: %p, (state: %s)\n",
+                 node->name[0] == '\0' ? "[Master]" : node->name,
+                 (void*)node->device,
+                 states[Device_node_get_state(node)]);
+    if (node->ins_dual != NULL)
+    {
+        fprintf(out, "Instrument dual:");
+        Device_node_print(node->ins_dual, out);
+        return;
+    }
+    if (node->device != NULL)
+    {
+        Device_print(node->device, out);
+    }
+    bool conn_printed = false;
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        bool port_printed = false;
+        while (edge != NULL)
+        {
+            if (!conn_printed)
+            {
+                fprintf(out, "Connections to receive ports:\n");
+                conn_printed = true;
+            }
+            if (!port_printed)
+            {
+                fprintf(out, "  Port %02x:\n", port);
+                port_printed = true;
+            }
+            fprintf(out, "    %s (device %p), send port %02x\n",
+                         edge->node->name, (void*)edge->node->device,
+                         edge->port);
+            edge = edge->next;
+        }
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_print(edge->node, out);
+            edge = edge->next;
+        }
+    }
+    return;
 }
 
 

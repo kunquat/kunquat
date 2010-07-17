@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event.h>
@@ -84,6 +83,8 @@
 #include <Event_generator_set_int.h>
 #include <Event_generator_set_float.h>
 #include <Event_generator_set_reltime.h>
+
+#include <xassert.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);

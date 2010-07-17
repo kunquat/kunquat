@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <math.h>
 
@@ -23,7 +22,7 @@
 #include <Voice.h>
 #include <Scale.h>
 #include <float.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

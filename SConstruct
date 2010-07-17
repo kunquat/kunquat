@@ -27,6 +27,7 @@ opts.AddVariables(
     PathVariable('prefix', 'Installation prefix.', '/usr/local', PathVariable.PathIsDirCreate),
     ('optimise', 'Optimisation level (0..3).', 2, valid_optimise),
     BoolVariable('enable_debug', 'Build in debug mode.', True),
+    BoolVariable('enable_kunquat_assert', 'Enable internal assert code.', True),
     BoolVariable('enable_profiling', 'Build profiling code.', False),
     BoolVariable('enable_libkunquat', 'Enable libkunquat.', True),
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
@@ -87,6 +88,7 @@ if env['enable_profiling']:
 if env['optimise'] > 0 and env['optimise'] <= 3:
     oflag = '-O%s' % env['optimise']
     env.Append(CCFLAGS = [oflag])
+#    env.Append(CCFLAGS = '-funroll-loops')
 
 
 audio_found = False
@@ -133,6 +135,16 @@ if not env.GetOption('clean') and not env.GetOption('help'):
     if not conf.CheckType('uint64_t', '#include <stdint.h>'):
         conf.env.Append(CCFLAGS = '-Duint64_t=uint_least64_t')
         conf.env.Append(CCFLAGS = '-DUINT64_MAX=(18446744073709551615ULL)')
+
+    if env['enable_kunquat_assert'] and env['enable_debug']:
+        conf.env.Append(CCFLAGS = '-DENABLE_KUNQUAT_ASSERT')
+        if conf.CheckHeader('execinfo.h', language='C'):
+            conf.env.Append(CCFLAGS = '-DHAS_EXECINFO')
+            conf.env.Append(CCFLAGS = '-rdynamic')
+            if env['enable_profiling']:
+                conf.env.Append(LINKFLAGS = '-rdynamic')
+            else:
+                conf.env.Append(SHLINKFLAGS = '-rdynamic')
 
     if env['enable_profiling']:
         if not conf.CheckLibWithHeader('m_p', 'math.h', 'C'):

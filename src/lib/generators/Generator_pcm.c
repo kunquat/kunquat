@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
@@ -21,7 +20,7 @@
 #include <AAtree.h>
 #include <Generator.h>
 #include <Generator_common.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Generator_pcm.h>
 #include <Voice_state_pcm.h>
 #include <Sample.h>
@@ -29,7 +28,7 @@
 #include <pitch_t.h>
 #include <Parse_manager.h>
 #include <File_wavpack.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -37,7 +36,7 @@ static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_pcm(Instrument_params* ins_params,
-                             Generator_params* gen_params)
+                             Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);
@@ -84,19 +83,15 @@ uint32_t Generator_pcm_mix(Generator* gen,
                            uint32_t nframes,
                            uint32_t offset,
                            uint32_t freq,
-                           double tempo,
-                           int buf_count,
-                           kqt_frame** bufs)
+                           double tempo)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_PCM);
     assert(state != NULL);
-//  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
+    kqt_frame* bufs[] = { NULL, NULL };
+    Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
 //    Generator_pcm* pcm = (Generator_pcm*)gen;
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
@@ -133,7 +128,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
         snprintf(map_key, strlen(map_key) + 1,
                  "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
-        Sample_map* map = Generator_params_get_sample_map(gen->type_params,
+        Sample_map* map = Device_params_get_sample_map(gen->type_params,
                                                           map_key);
         if (map == NULL)
         {
@@ -156,7 +151,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char header_key[] = "smp_XXX/p_sample.jsonsh";
         snprintf(header_key, strlen(header_key) + 1,
                  "smp_%03x/p_sample.jsonsh", pcm_state->sample);
-        Sample_params* header = Generator_params_get_sample_params(gen->type_params,
+        Sample_params* header = Device_params_get_sample_params(gen->type_params,
                                         header_key);
         if (header == NULL)
         {
@@ -175,7 +170,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     snprintf(sample_key, strlen(sample_key) + 1,
              "smp_%03x/p_sample.%s", pcm_state->sample,
              extensions[pcm_state->params.format]);
-    Sample* sample = Generator_params_get_sample(gen->type_params, sample_key);
+    Sample* sample = Device_params_get_sample(gen->type_params, sample_key);
     if (sample == NULL)
     {
         state->active = false;
@@ -184,7 +179,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     Sample_set_loop_start(sample, pcm_state->params.loop_start);
     Sample_set_loop_end(sample, pcm_state->params.loop_end);
     Sample_set_loop(sample, pcm_state->params.loop);
-    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, buf_count, bufs,
+    return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, 2, bufs,
                       pcm_state->middle_tone, pcm_state->freq);
 }
 

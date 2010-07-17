@@ -13,12 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include <Instrument_params.h>
 #include <File_base.h>
+#include <xassert.h>
 
 
 #define new_env_or_fail(env, nodes, xmin, xmax, xstep, ymin, ymax, ystep) \

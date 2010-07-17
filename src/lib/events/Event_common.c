@@ -13,10 +13,9 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Event_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

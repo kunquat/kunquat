@@ -14,7 +14,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <math.h>
 #include <stdarg.h>
@@ -23,6 +22,7 @@
 
 #include <math_common.h>
 #include <Filter.h>
+#include <xassert.h>
 
 
 double sinc(double x)
@@ -72,10 +72,12 @@ void two_pole_filter_create(double f,
     //    fprintf(stderr, "  %d \n", ++created);
 
     f = tan(PI * f); //Prewarp
-    double a0_temp   = (1.0 + f * f + f / q)          ;
-           coeffs[0] = (1.0 + f * f - f / q) / a0_temp;
-           coeffs[1] = (1.0 + f * f) * 2     / a0_temp;
-	   *a0 = (bandform == 0) ? a0_temp / (f * f) : a0_temp;
+    double fq = f * q;
+    double a0_temp   = ((2.0 + fq) * (2.0 + fq) + (q + 2.0) * (q - 2.0))          ;
+           coeffs[0] = ((2.0 - fq) * (2.0 - fq) + (q + 2.0) * (q - 2.0)) / a0_temp;
+	   a0_temp /= (q * q);
+           coeffs[1] = 2 * (f + 1.0) * (f - 1.0) / a0_temp;
+    *a0 = (bandform == 0) ? a0_temp / (f * f) : a0_temp;
     return;
 }
 
@@ -99,9 +101,11 @@ void butterworth_filter_create(int n,
     for(int i = 0; i < (n & ~((int)1)); i += 2)
     {
         double sini = sin(PI / (2 * n) * (i + 1));
-	double a0_temp   = (1.0 + f * f + 2 * sini *f)          ;
-	       coeffs[0] = (1.0 + f * f - 2 * sini *f) / a0_temp;
-	       coeffs[1] = (1.0 + f * f) * 2           / a0_temp;
+        double cosi = cos(PI / (2 * n) * (i + 1));
+	double a0_temp     = ((sini + f) * (sini + f) + cosi * cosi)          ;
+	       coeffs[i  ] = ((sini - f) * (sini - f) + cosi * cosi) / a0_temp;
+	       coeffs[i+1] = 2 * (f + 1.0) * (f - 1.0) / a0_temp;
+        a0_tot *= a0_temp;
     }
     if(n & 1)
     {

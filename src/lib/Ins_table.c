@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Etable.h>
 #include <Instrument.h>
 #include <Ins_table.h>
 #include <File_base.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

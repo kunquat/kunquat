@@ -13,16 +13,23 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
+#include <stdbool.h>
 #include <inttypes.h>
 #include <stdio.h>
 
 #include <String_buffer.h>
 #include <Reltime.h>
+#include <xassert.h>
 
 
 #ifndef NDEBUG
-    #define Reltime_validate(r) assert((r) != NULL), assert((r)->rem >= 0), assert((r)->rem < KQT_RELTIME_BEAT)
+    #define Reltime_validate(r)              \
+    if (true)                                \
+    {                                        \
+        assert((r) != NULL);                 \
+        assert((r)->rem >= 0);               \
+        assert((r)->rem < KQT_RELTIME_BEAT); \
+    } else (void)0
 #else
     #define Reltime_validate(r) ((void)0)
 #endif

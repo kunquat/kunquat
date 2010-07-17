@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <limits.h>
 
@@ -23,7 +22,7 @@
 #include <Song.h>
 #include <Playdata.h>
 #include <Voice_pool.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

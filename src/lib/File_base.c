@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -29,7 +28,7 @@
 #include <Reltime.h>
 #include <File_base.h>
 #include <Handle_private.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

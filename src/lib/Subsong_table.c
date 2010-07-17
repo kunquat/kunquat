@@ -13,12 +13,11 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Subsong.h>
 #include <Etable.h>
 #include <Subsong_table.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

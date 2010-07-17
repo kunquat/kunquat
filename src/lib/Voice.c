@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -21,7 +20,7 @@
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -130,9 +129,13 @@ void Voice_mix(Voice* voice,
     }
 //    fprintf(stderr, "mix %p from %" PRIu32 " to %" PRIu32 "\n", (void*)voice, mixed, nframes);
     Generator_mix(voice->gen, &voice->state.generic, nframes, mixed, freq, tempo);
+//    fprintf(stderr, "mixed\n");
     if (!voice->state.generic.active)
     {
-        voice->prio = VOICE_PRIO_INACTIVE;
+//        fprintf(stderr, "not active -- setting priority %p to inactive\n",
+//                (void*)&voice->prio);
+        Voice_reset(voice);
+//        voice->prio = VOICE_PRIO_INACTIVE;
     }
     else if (!voice->state.generic.note_on)
     {

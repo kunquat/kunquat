@@ -13,17 +13,19 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <inttypes.h>
 #include <limits.h>
 #include <string.h>
 
 #include <AAtree.h>
 #include <Connections.h>
+#include <Connections_search.h>
 #include <Device_node.h>
+#include <DSP_table.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -61,27 +63,29 @@ static bool Connections_is_cyclic(Connections* graph);
  *
  * \param str         The path -- must not be \c NULL.
  * \param ins_level   Whether this connection is in the Instrument level or not.
+ * \param type        The type of the path -- must be valid.
  * \param state       The Read state -- must not be \c NULL.
  *
  * \return   The port number if the path is valid, otherwise \c -1.
  */
 static int validate_connection_path(char* str,
                                     bool ins_level,
+                                    Device_port_type type,
                                     Read_state* state);
 
 
-#define clean_if(expr, graph, node)   \
-    if (true)                           \
-    {                                   \
-        if ((expr))                     \
-        {                               \
-            if (node != NULL)         \
-            {                           \
+#define clean_if(expr, graph, node)    \
+    if (true)                          \
+    {                                  \
+        if ((expr))                    \
+        {                              \
+            if (node != NULL)          \
+            {                          \
                 del_Device_node(node); \
-            }                           \
-            del_Connections(graph);     \
-            return NULL;                \
-        }                               \
+            }                          \
+            del_Connections(graph);    \
+            return NULL;               \
+        }                              \
     } else (void)0
 
 Connections* new_Connections_from_string(char* str,
@@ -106,12 +110,13 @@ Connections* new_Connections_from_string(char* str,
     graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    Device_node* master = new_Device_node("/");
+    Device_node* master = new_Device_node("");
     clean_if(master == NULL, graph, NULL);
     clean_if(!AAtree_ins(graph->nodes, master), graph, master);
 
     if (str == NULL)
     {
+        Connections_reset(graph);
         return graph;
     }
     
@@ -120,6 +125,7 @@ Connections* new_Connections_from_string(char* str,
     str = read_const_char(str, ']', state);
     if (!state->error)
     {
+        Connections_reset(graph);
         return graph;
     }
     Read_state_clear_error(state);
@@ -135,8 +141,14 @@ Connections* new_Connections_from_string(char* str,
         str = read_string(str, dest_name, KQT_DEVICE_NODE_NAME_MAX, state);
         str = read_const_char(str, ']', state);
 
-        int src_port = validate_connection_path(src_name, ins_level, state);
-        int dest_port = validate_connection_path(dest_name, ins_level, state);
+        int src_port = validate_connection_path(src_name,
+                                                ins_level,
+                                                DEVICE_PORT_TYPE_SEND,
+                                                state);
+        int dest_port = validate_connection_path(dest_name,
+                                                 ins_level,
+                                                 DEVICE_PORT_TYPE_RECEIVE,
+                                                 state);
         clean_if(state->error, graph, NULL);
         
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
@@ -171,25 +183,99 @@ Connections* new_Connections_from_string(char* str,
         del_Connections(graph);
         return NULL;
     }
+    Connections_reset(graph);
     return graph;
 }
 
 #undef clean_if
 
 
-void Connections_set_devices(Connections* graph,
-                             Device* master,
-                             Ins_table* insts /*,
-                             DSP_table* dsps */)
+Device_node* Connections_get_master(Connections* graph)
+{
+    assert(graph != NULL);
+    return AAtree_get_exact(graph->nodes, "");
+}
+
+
+bool Connections_prepare(Connections* graph,
+                         Device* master,
+                         Ins_table* insts,
+                         DSP_table* dsps)
 {
     assert(graph != NULL);
     assert(master != NULL);
     assert(insts != NULL);
-//    assert(dsps != NULL);
-    Connections_reset(graph);
-    Device_node* master_node = AAtree_get_exact(graph->nodes, "/");
+    assert(dsps != NULL);
+    Connections_set_devices(graph, master, insts, dsps);
+    return Connections_init_buffers_simple(graph);
+}
+
+
+void Connections_set_devices(Connections* graph,
+                             Device* master,
+                             Ins_table* insts,
+                             DSP_table* dsps)
+{
+    assert(graph != NULL);
+    assert(master != NULL);
+    assert(insts != NULL);
+    assert(dsps != NULL);
+//    Connections_reset(graph);
+    Device_node* master_node = AAtree_get_exact(graph->nodes, "");
     assert(master_node != NULL);
-    Device_node_set_devices(master_node, master, insts/*, dsps*/);
+    Device_node_reset(master_node);
+    Device_node_set_devices(master_node, master, insts, dsps);
+    return;
+}
+
+
+bool Connections_init_buffers_simple(Connections* graph)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    Device_node_reset(master);
+    return Device_node_init_buffers_simple(master);
+}
+
+
+void Connections_clear_buffers(Connections* graph,
+                               uint32_t start,
+                               uint32_t until)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    if (start >= until)
+    {
+        return;
+    }
+    Device_node_reset(master);
+    Device_node_clear_buffers(master, start, until);
+    return;
+}
+
+
+void Connections_mix(Connections* graph, uint32_t start, uint32_t until)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    if (start >= until)
+    {
+        return;
+    }
+#if 0
+    static bool called = false;
+    if (!called)
+    {
+        Connections_print(graph, stderr);
+    }
+    called = true;
+//    fprintf(stderr, "Mix process:\n");
+#endif
+    Device_node_reset(master);
+    Device_node_mix(master, start, until);
     return;
 }
 
@@ -227,6 +313,19 @@ static bool Connections_is_cyclic(Connections* graph)
 }
 
 
+void Connections_print(Connections* graph, FILE* out)
+{
+    assert(graph != NULL);
+    assert(out != NULL);
+//    Connections_reset(graph);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    Device_node_print(master, out);
+    fprintf(out, "\n");
+    return;
+}
+
+
 void del_Connections(Connections* graph)
 {
     assert(graph != NULL);
@@ -238,6 +337,7 @@ void del_Connections(Connections* graph)
     {
         del_AAtree(graph->nodes);
     }
+    xfree(graph);
     return;
 }
 
@@ -257,9 +357,11 @@ static int read_index(char* str)
 
 static int validate_connection_path(char* str,
                                     bool ins_level,
+                                    Device_port_type type,
                                     Read_state* state)
 {
     assert(str != NULL);
+    assert(type < DEVICE_PORT_TYPES);
     assert(state != NULL);
     if (state->error)
     {
@@ -269,13 +371,15 @@ static int validate_connection_path(char* str,
     bool generator = false;
     bool dsp = false;
     bool root = true;
+    char* path = str;
     char* trim_point = str;
     if (string_has_prefix(str, "ins_"))
     {
         if (ins_level)
         {
             Read_state_set_error(state,
-                    "Instrument directory in an instrument-level connection");
+                    "Instrument directory in an instrument-level connection:"
+                    " \"%s\"", path);
             return -1;
         }
         instrument = true;
@@ -284,7 +388,8 @@ static int validate_connection_path(char* str,
         if (read_index(str) >= KQT_INSTRUMENTS_MAX)
         {
             Read_state_set_error(state,
-                    "Invalid instrument number in the connection");
+                    "Invalid instrument number in the connection:"
+                    " \"%s\"", path);
             return -1;
         }
         str += 2;
@@ -292,7 +397,7 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Missing instrument header after the instrument number"
-                    " in the connection");
+                    " in the connection: \"%s\"", path);
             return -1;
         }
         str += strlen("/" MAGIC_ID "iXX/");
@@ -303,7 +408,8 @@ static int validate_connection_path(char* str,
         if (!ins_level)
         {
             Read_state_set_error(state,
-                    "Generator directory in a root-level connection");
+                    "Generator directory in a root-level connection:"
+                    " \"%s\"", path);
         }
         root = false;
         generator = true;
@@ -311,7 +417,8 @@ static int validate_connection_path(char* str,
         if (read_index(str) >= KQT_GENERATORS_MAX)
         {
             Read_state_set_error(state,
-                    "Invalid generator number in the connection");
+                    "Invalid generator number in the connection:"
+                    " \"%s\"", path);
             return -1;
         }
         str += 2;
@@ -319,7 +426,7 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Missing generator header after the generator number"
-                    " in the connection");
+                    " in the connection: \"%s\"", path);
             return -1;
         }
         str += strlen("/" MAGIC_ID "gXX/");
@@ -327,7 +434,7 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Invalid generator parameter directory"
-                    " in the connection");
+                    " in the connection: \"%s\"", path);
             return -1;
         }
         str += strlen("C/");
@@ -341,7 +448,7 @@ static int validate_connection_path(char* str,
         if (read_index(str) >= KQT_DSP_EFFECTS_MAX)
         {
             Read_state_set_error(state,
-                    "Invalid DSP number in the connection");
+                    "Invalid DSP number in the connection: \"%s\"", path);
             return -1;
         }
         str += 2;
@@ -349,7 +456,7 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Missing DSP header after the DSP number"
-                    " in the connection", *str);
+                    " in the connection: \"%s\"", path);
             return -1;
         }
         str += strlen("/" MAGIC_ID "eXX/");
@@ -357,44 +464,67 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Invalid DSP parameter directory"
-                    " in the connection");
+                    " in the connection: \"%s\"", path);
             return -1;
         }
         str += strlen("C/");
         trim_point = str - 1;
     }
-    if (string_has_prefix(str, "in_") || string_has_suffix(str, "out_"))
+    if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
         if (string_has_prefix(str, "in_") && (instrument || generator))
         {
             Read_state_set_error(state,
                     "Input ports are not allowed for instruments"
-                    " or generators");
+                    " or generators: \"%s\"", path);
             return -1;
         }
         if (string_has_prefix(str, "in_") && root)
         {
             Read_state_set_error(state,
-                    "Input ports are not allowed for root");
+                    "Input ports are not allowed for master: \"%s\"", path);
+        }
+        if (type == DEVICE_PORT_TYPE_RECEIVE)
+        {
+            bool can_receive = string_has_prefix(str, "in_") ||
+                               (root && string_has_prefix(str, "out_"));
+            if (!can_receive)
+            {
+                Read_state_set_error(state,
+                        "Destination port is not for receiving data:"
+                        " \"%s\"", path);
+                return -1;
+            }
+        }
+        else
+        {
+            assert(type == DEVICE_PORT_TYPE_SEND);
+            bool can_send = string_has_prefix(str, "out_") && !root;
+            if (!can_send)
+            {
+                Read_state_set_error(state,
+                        "Source port is not for sending data: \"%s\"", path);
+                return -1;
+            }
         }
         str += strcspn(str, "_") + 1;
         int port = read_index(str);
         if (port >= KQT_DEVICE_PORTS_MAX)
         {
-            Read_state_set_error(state, "Invalid port number");
+            Read_state_set_error(state, "Invalid port number: \"%s\"", path);
             return -1;
         }
         str += 2;
         if (str[0] != '/' && str[0] != '\0' && str[1] != '\0')
         {
             Read_state_set_error(state, "Connection path contains garbage"
-                    " after the port specification");
+                    " after the port specification: \"%s\"", path);
             return -1;
         }
         *trim_point = '\0';
         return port;
     }
-    Read_state_set_error(state, "Invalid connection");
+    Read_state_set_error(state, "Invalid connection: \"%s\"", path);
     return -1;
 }
 

@@ -14,12 +14,12 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <math.h>
 
+#include <Connections_search.h>
 #include <Pattern.h>
 #include <Playdata.h>
 #include <Event.h>
@@ -27,7 +27,7 @@
 #include <Event_ins.h>
 #include <Event_handler.h>
 #include <events/Event_global_jump.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -170,11 +170,13 @@ uint32_t Pattern_mix(Pattern* pat,
                      uint32_t nframes,
                      uint32_t offset,
                      Event_handler* eh,
-                     Channel** channels)
+                     Channel** channels,
+                     Connections* connections)
 {
 //  assert(pat != NULL);
     assert(offset < nframes);
     assert(eh != NULL);
+    assert(channels != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
@@ -495,11 +497,28 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 Channel_update_state(channels[i], mix_until); // FIXME
             }
+            if (connections != NULL)
+            {
+                Connections_mix(connections, mixed, mix_until);
+            }
         }
         if ((play->volume != 1 || play->volume_slide != 0))
         {
-            if (!play->silent)
+            Audio_buffer* buffer = NULL;
+            if (connections != NULL)
             {
+                Device* master = Device_node_get_device(
+                                         Connections_get_master(connections));
+                buffer = Device_get_buffer(master,
+                                 DEVICE_PORT_TYPE_RECEIVE, 0);
+            }
+            if (!play->silent && buffer != NULL)
+            {
+                kqt_frame* bufs[] =
+                {
+                    Audio_buffer_get_buffer(buffer, 0),
+                    Audio_buffer_get_buffer(buffer, 1),
+                };
                 for (uint32_t i = mixed; i < mixed + to_be_mixed; ++i)
                 {
                     if (play->volume_slide != 0)
@@ -520,10 +539,10 @@ uint32_t Pattern_mix(Pattern* pat,
                             play->volume_slide = 0;
                         }
                     }
-                    for (int k = 0; k < play->buf_count; ++k)
+                    for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
                     {
-                        assert(play->bufs[k] != NULL);
-                        play->bufs[k][i] *= play->volume;
+                        assert(bufs[k] != NULL);
+                        bufs[k][i] *= play->volume;
                     }
                 }
             }

@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <inttypes.h>
@@ -31,7 +30,7 @@
 #include <Event_channel_note_off.h>
 #include <Column.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -154,11 +153,13 @@ void Channel_set_voices(Channel* ch,
                                               ch->cur_state.fg_id[i]);
                 if (ch->cur_state.fg[i] != NULL)
                 {
+//                    fprintf(stderr, "checking priority %p\n", (void*)&ch->cur_state.fg[i]->prio);
                     assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
                     Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
                 }
             }
         }
+//        fprintf(stderr, "foo\n");
         mixed = to_be_mixed;
         if (Reltime_cmp(next_pos, end) >= 0)
         {

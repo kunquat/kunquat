@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <kunquat/Info.h>
 
@@ -21,6 +20,7 @@
 #include <Subsong.h>
 #include <Subsong_table.h>
 #include <Song.h>
+#include <xassert.h>
 
 
 int kqt_Handle_get_subsong_length(kqt_Handle* handle, int subsong)

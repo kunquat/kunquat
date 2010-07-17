@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -25,7 +24,7 @@
 #include <Event_global_set_tempo.h>
 #include <Column.h>
 #include <String_buffer.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

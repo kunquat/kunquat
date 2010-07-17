@@ -13,11 +13,10 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <AAtree.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

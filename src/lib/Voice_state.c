@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 
@@ -21,6 +20,7 @@
 #include <Voice_params.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
+#include <xassert.h>
 
 
 Voice_state* Voice_state_init(Voice_state* state,

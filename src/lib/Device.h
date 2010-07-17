@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <Audio_buffer.h>
 #include <frame.h>
@@ -35,6 +36,8 @@ typedef enum
 typedef struct Device
 {
     uint32_t buffer_size;
+    void (*reset)(struct Device*);
+    void (*process)(struct Device*, uint32_t, uint32_t);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
@@ -51,6 +54,25 @@ typedef struct Device
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_init(Device* device, uint32_t buffer_size);
+
+
+/**
+ * Sets the reset function of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param reset    The reset function -- must not be \c NULL.
+ */
+void Device_set_reset(Device* device, void (*reset)(Device*));
+
+
+/**
+ * Sets the process function of the Device.
+ *
+ * \param device    The Device -- must not be \c NULL.
+ * \param process   The process function -- must not be \c NULL.
+ */
+void Device_set_process(Device* device,
+                        void (*process)(Device*, uint32_t, uint32_t));
 
 
 /**
@@ -78,6 +100,23 @@ void Device_unregister_port(Device* device, Device_port_type type, int port);
 
 
 /**
+ * Initialises a buffer for the Device.
+ *
+ * Initialising a send buffer will replace a direct send buffer if one exists
+ * for the same send port.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param type     The type of the port -- must be a valid type.
+ * \param port     The port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX. If the port is not registered,
+ *                 the function does nothing and succeeds.
+ *
+ * \param   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_init_buffer(Device* device, Device_port_type type, int port);
+
+
+/**
  * Sets a direct send buffer for the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -88,31 +127,6 @@ void Device_unregister_port(Device* device, Device_port_type type, int port);
 void Device_set_direct_send(Device* device,
                             int port,
                             Audio_buffer* buffer);
-
-
-/**
- * Initialises the internal buffers of the Device.
- *
- * This function should be called after each time the Device connection graph
- * is changed.
- *
- * \param device   The Device -- must not be \c NULL.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_init_buffers(Device* device);
-
-
-/**
- * Resizes the buffers in the Device.
- *
- * \param device   The Device -- must not be \c NULL.
- * \param size     The new buffer size -- must be > \c 0 and <=
- *                 \c KQT_BUFFER_SIZE_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Device_resize_buffers(Device* device, uint32_t size);
 
 
 /**
@@ -131,11 +145,73 @@ Audio_buffer* Device_get_buffer(Device* device,
 
 
 /**
- * Clears all the Audio buffers of the Device.
+ * Initialises the internal buffers of the Device.
+ *
+ * This function should be called after each time the Device connection graph
+ * is changed.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+//bool Device_init_buffers(Device* device);
+
+
+/**
+ * Resizes the buffers in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param size     The new buffer size -- must be > \c 0 and <=
+ *                 \c KQT_BUFFER_SIZE_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_resize_buffers(Device* device, uint32_t size);
+
+
+/**
+ * Clears all the Audio buffers owned by the Device.
+ *
+ * This function does not clear direct send buffers.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param start    The first frame to be cleared -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be cleared -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
+ */
+void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
+
+
+/**
+ * Resets the internal state of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  */
-void Device_clear_buffers(Device* device);
+void Device_reset(Device* device);
+
+
+/**
+ * Processes audio in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param start    The first frame to be processed -- must be less than the
+ *                 buffer size.
+ * \param until    The first frame not to be processed -- must be less than or
+ *                 equal to the buffer size. If \a until <= \a start, nothing
+ *                 will be cleared.
+ */
+void Device_process(Device* device, uint32_t start, uint32_t until);
+
+
+/**
+ * Prints a textual description of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param out      The output file -- must not be \c NULL.
+ */
+void Device_print(Device* device, FILE* out);
 
 
 /**

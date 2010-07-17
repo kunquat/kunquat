@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 #include <Device.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Generator_type.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
@@ -45,11 +45,11 @@ typedef struct Generator
     double pitch_lock_cents;
     pitch_t pitch_lock_freq;
     Random* random;
-    Generator_params* type_params;
+    Device_params* type_params;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
-    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double,
-                int, kqt_frame**);
+    uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t,
+                    uint32_t, double);
     Instrument_params* ins_params;
 } Generator;
 
@@ -75,7 +75,7 @@ typedef struct Generator
  */
 Generator* new_Generator(Gen_type type,
                          Instrument_params* ins_params,
-                         Generator_params* gen_params,
+                         Device_params* gen_params,
                          uint32_t buffer_size);
 
 
@@ -104,7 +104,7 @@ void Generator_uninit(Generator* gen);
  *
  * \return   The Generator parameter tree.
  */
-Generator_params* Generator_get_params(Generator* gen);
+Device_params* Generator_get_params(Generator* gen);
 
 
 /**

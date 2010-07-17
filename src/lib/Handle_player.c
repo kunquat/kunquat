@@ -13,9 +13,9 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 
+#include <Audio_buffer.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
@@ -23,7 +23,7 @@
 #include <Playdata.h>
 #include <Event_handler.h>
 #include <Voice_pool.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -100,7 +100,10 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
                 "Buffer #%d does not exist", index);
         return NULL;
     }
-    return (float*)Song_get_bufs(handle->song)[index];
+    Audio_buffer* buffer = Device_get_buffer(&handle->song->parent,
+                                   DEVICE_PORT_TYPE_RECEIVE, 0);
+    assert(buffer != NULL);
+    return (float*)Audio_buffer_get_buffer(buffer, index);
 }
 
 

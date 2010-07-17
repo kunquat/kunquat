@@ -16,7 +16,6 @@
 #define _BSD_SOURCE // dirfd, lstat, realpath
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
@@ -32,7 +31,7 @@
 #include <math_common.h>
 #include <Directory.h>
 #include <Handle_private.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

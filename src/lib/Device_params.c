@@ -13,17 +13,16 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <math.h>
 #include <stdio.h>
 
 #include <AAtree.h>
-#include <Generator_event_keys.h>
-#include <Generator_field.h>
-#include <Generator_params.h>
+#include <Device_event_keys.h>
+#include <Device_field.h>
+#include <Device_params.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -52,7 +51,7 @@ Event_name_to_param* new_Event_name_to_param(const char key[],
 }
 
 
-struct Generator_params
+struct Device_params
 {
     AAtree* implement;   ///< The implementation part of the generator.
     AAtree* config;      ///< The configuration part of the generator.
@@ -61,17 +60,17 @@ struct Generator_params
 };
 
 
-bool key_is_generator_param(const char* key)
+bool key_is_device_param(const char* key)
 {
     assert(key != NULL);
-    return key_is_real_time_generator_param(key) ||
-           key_is_text_generator_param(key) ||
+    return key_is_real_time_device_param(key) ||
+           key_is_text_device_param(key) ||
            string_has_suffix(key, ".wv") ||
            string_has_suffix(key, ".ogg");
 }
 
 
-bool key_is_real_time_generator_param(const char* key)
+bool key_is_real_time_device_param(const char* key)
 {
     assert(key != NULL);
     return string_has_suffix(key, ".jsonb") ||
@@ -82,19 +81,19 @@ bool key_is_real_time_generator_param(const char* key)
 }
 
 
-bool key_is_text_generator_param(const char* key)
+bool key_is_text_device_param(const char* key)
 {
     assert(key != NULL);
-    return key_is_real_time_generator_param(key) ||
+    return key_is_real_time_device_param(key) ||
            string_has_suffix(key, ".jsone") ||
            string_has_suffix(key, ".jsonsm") ||
            string_has_suffix(key, ".jsonsh");
 }
 
 
-Generator_params* new_Generator_params(void)
+Device_params* new_Device_params(void)
 {
-    Generator_params* params = xalloc(Generator_params);
+    Device_params* params = xalloc(Device_params);
     if (params == NULL)
     {
         return NULL;
@@ -103,27 +102,27 @@ Generator_params* new_Generator_params(void)
     params->config = NULL;
     params->event_data = NULL;
     params->implement = new_AAtree((int (*)(const void*,
-                                            const void*))Generator_field_cmp,
-                                   (void (*)(void*))del_Generator_field);
+                                            const void*))Device_field_cmp,
+                                   (void (*)(void*))del_Device_field);
     params->config = new_AAtree((int (*)(const void*,
-                                         const void*))Generator_field_cmp,
-                                (void (*)(void*))del_Generator_field);
+                                         const void*))Device_field_cmp,
+                                (void (*)(void*))del_Device_field);
     params->event_data = new_AAtree((int (*)(const void*,
-                                             const void*))Generator_field_cmp,
-                                    (void (*)(void*))del_Generator_field);
+                                             const void*))Device_field_cmp,
+                                    (void (*)(void*))del_Device_field);
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
 //                                     free);
     if (params->implement == NULL || params->config == NULL ||
             params->event_data == NULL /* || params->event_names == NULL*/)
     {
-        del_Generator_params(params);
+        del_Device_params(params);
         return NULL;
     }
     return params;
 }
 
 
-bool Generator_params_set_key(Generator_params* params, const char* key)
+bool Device_params_set_key(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -131,14 +130,14 @@ bool Generator_params_set_key(Generator_params* params, const char* key)
     {
         return true;
     }
-    Generator_field* field = new_Generator_field(key, NULL);
+    Device_field* field = new_Device_field(key, NULL);
     if (field == NULL)
     {
         return false;
     }
     if (!AAtree_ins(params->event_data, field))
     {
-        del_Generator_field(field);
+        del_Device_field(field);
         return false;
     }
     return true;
@@ -158,10 +157,11 @@ bool Generator_params_set_key(Generator_params* params, const char* key)
         }                                    \
     } else (void)0
 
-bool Generator_params_parse_events(Generator_params* params,
-                                   Event_handler* eh,
-                                   char* str,
-                                   Read_state* state)
+bool Device_params_parse_events(Device_params* params,
+                                Device_event_type type,
+                                Event_handler* eh,
+                                char* str,
+                                Read_state* state)
 {
     assert(params != NULL);
     assert(eh != NULL);
@@ -172,8 +172,8 @@ bool Generator_params_parse_events(Generator_params* params,
     }
     AAtree* old_data = params->event_data;
     params->event_data = new_AAtree((int (*)(const void*,
-                                             const void*))Generator_field_cmp,
-                                    (void (*)(void*))del_Generator_field);
+                                             const void*))Device_field_cmp,
+                                    (void (*)(void*))del_Device_field);
     if (params->event_data == NULL)
     {
         params->event_data = old_data;
@@ -225,7 +225,7 @@ bool Generator_params_parse_events(Generator_params* params,
 
         if (!channel_level) // generator level
         {
-            if (!key_is_real_time_generator_param(param))
+            if (!key_is_real_time_device_param(param))
             {
                 Read_state_set_error(state, "Key %s cannot be modified"
                                      " through events", param);
@@ -242,8 +242,8 @@ bool Generator_params_parse_events(Generator_params* params,
                 return false;
             }
 #endif
-            Generator_field* field = new_Generator_field(param, NULL);
-            if (field == NULL || (/*Generator_field_set_event_control(field, true),*/
+            Device_field* field = new_Device_field(param, NULL);
+            if (field == NULL || (/*Device_field_set_event_control(field, true),*/
                                   !AAtree_ins(params->event_data, field)))
             {
 //                del_AAtree(params->event_names);
@@ -255,19 +255,32 @@ bool Generator_params_parse_events(Generator_params* params,
         }
         else // channel level
         {
-            if (!key_is_real_time_generator_param(param))
+            if (!key_is_real_time_device_param(param))
             {
                 Read_state_set_error(state, "Key %s cannot be modified"
                                      " through events", param);
                 clean_if_fail();
             }
-            if (!Event_handler_add_channel_gen_state_key(eh, param))
+            if (type == DEVICE_EVENT_TYPE_GENERATOR)
             {
-//                del_AAtree(params->event_names);
-//                params->event_names = old_names;
-                del_AAtree(params->event_data);
-                params->event_data = old_data;
-                return false;
+                if (!Event_handler_add_channel_gen_state_key(eh, param))
+                {
+//                    del_AAtree(params->event_names);
+//                    params->event_names = old_names;
+                    del_AAtree(params->event_data);
+                    params->event_data = old_data;
+                    return false;
+                }
+            }
+            else if (type == DEVICE_EVENT_TYPE_DSP)
+            {
+                Read_state_set_error(state, "DSP events are not"
+                                            " channel-specific");
+                clean_if_fail();
+            }
+            else
+            {
+                assert(false);
             }
         }
 
@@ -286,11 +299,11 @@ bool Generator_params_parse_events(Generator_params* params,
 #undef clean_if_fail
 
 
-bool Generator_params_parse_value(Generator_params* params,
-                                  const char* key,
-                                  void* data,
-                                  long length,
-                                  Read_state* state)
+bool Device_params_parse_value(Device_params* params,
+                               const char* key,
+                               void* data,
+                               long length,
+                               Read_state* state)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -298,7 +311,7 @@ bool Generator_params_parse_value(Generator_params* params,
     assert(length >= 0);
     assert(state != NULL);
     assert(string_has_prefix(key, "i/") || string_has_prefix(key, "c/"));
-    assert(key_is_generator_param(key));
+    assert(key_is_device_param(key));
     if (state->error)
     {
         return false;
@@ -319,21 +332,21 @@ bool Generator_params_parse_value(Generator_params* params,
         assert(false);
     }
     assert(tree != NULL);
-    Generator_field* field = AAtree_get_exact(tree, key);
+    Device_field* field = AAtree_get_exact(tree, key);
     if (field != NULL)
     {
-        return Generator_field_change(field, data, length, state);
+        return Device_field_change(field, data, length, state);
     }
     else
     {
-        field = new_Generator_field_from_data(key, data, length, state);
+        field = new_Device_field_from_data(key, data, length, state);
         if (field == NULL)
         {
             return false;
         }
         if (!AAtree_ins(tree, field))
         {
-            del_Generator_field(field);
+            del_Device_field(field);
             return false;
         }
     }
@@ -341,45 +354,45 @@ bool Generator_params_parse_value(Generator_params* params,
 }
 
 
-bool Generator_params_modify_value(Generator_params* params,
-                                   const char* key,
-                                   char* str)
+bool Device_params_modify_value(Device_params* params,
+                                const char* key,
+                                char* str)
 {
     assert(params != NULL);
     assert(key != NULL);
-    assert(key_is_real_time_generator_param(key));
+    assert(key_is_real_time_device_param(key));
     assert(str != NULL);
-    Generator_field* field = AAtree_get_exact(params->event_data, key);
+    Device_field* field = AAtree_get_exact(params->event_data, key);
     if (field == NULL)
     {
         return false;
     }
-    return Generator_field_modify(field, str);
+    return Device_field_modify(field, str);
 }
 
 
-#define get_of_type(params, key, ftype)                                         \
-    if (true)                                                                   \
-    {                                                                           \
-        Generator_field* field = AAtree_get_exact((params)->event_data, (key)); \
-        if (field != NULL && !Generator_field_get_empty(field))                 \
-        {                                                                       \
-            return Generator_field_get_ ## ftype(field);                        \
-        }                                                                       \
-        field = AAtree_get_exact(params->config, (key));                        \
-        if (field != NULL)                                                      \
-        {                                                                       \
-            return Generator_field_get_ ## ftype(field);                        \
-        }                                                                       \
-        field = AAtree_get_exact(params->implement, (key));                     \
-        if (field != NULL)                                                      \
-        {                                                                       \
-            return Generator_field_get_ ## ftype(field);                        \
-        }                                                                       \
-    }                                                                           \
+#define get_of_type(params, key, ftype)                                      \
+    if (true)                                                                \
+    {                                                                        \
+        Device_field* field = AAtree_get_exact((params)->event_data, (key)); \
+        if (field != NULL && !Device_field_get_empty(field))                 \
+        {                                                                    \
+            return Device_field_get_ ## ftype(field);                        \
+        }                                                                    \
+        field = AAtree_get_exact(params->config, (key));                     \
+        if (field != NULL)                                                   \
+        {                                                                    \
+            return Device_field_get_ ## ftype(field);                        \
+        }                                                                    \
+        field = AAtree_get_exact(params->implement, (key));                  \
+        if (field != NULL)                                                   \
+        {                                                                    \
+            return Device_field_get_ ## ftype(field);                        \
+        }                                                                    \
+    }                                                                        \
     else (void)0
 
-bool* Generator_params_get_bool(Generator_params* params, const char* key)
+bool* Device_params_get_bool(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -392,7 +405,7 @@ bool* Generator_params_get_bool(Generator_params* params, const char* key)
 }
 
 
-int64_t* Generator_params_get_int(Generator_params* params, const char* key)
+int64_t* Device_params_get_int(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -405,7 +418,7 @@ int64_t* Generator_params_get_int(Generator_params* params, const char* key)
 }
 
 
-double* Generator_params_get_float(Generator_params* params, const char* key)
+double* Device_params_get_float(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -418,7 +431,7 @@ double* Generator_params_get_float(Generator_params* params, const char* key)
 }
 
 
-Real* Generator_params_get_real(Generator_params* params, const char* key)
+Real* Device_params_get_real(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -431,7 +444,7 @@ Real* Generator_params_get_real(Generator_params* params, const char* key)
 }
 
 
-Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
+Reltime* Device_params_get_reltime(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -444,7 +457,7 @@ Reltime* Generator_params_get_reltime(Generator_params* params, const char* key)
 }
 
 
-Sample* Generator_params_get_sample(Generator_params* params, const char* key)
+Sample* Device_params_get_sample(Device_params* params, const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -457,8 +470,8 @@ Sample* Generator_params_get_sample(Generator_params* params, const char* key)
 }
 
 
-Sample_params* Generator_params_get_sample_params(Generator_params* params,
-                                                  const char* key)
+Sample_params* Device_params_get_sample_params(Device_params* params,
+                                               const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -471,8 +484,8 @@ Sample_params* Generator_params_get_sample_params(Generator_params* params,
 }
 
 
-Sample_map* Generator_params_get_sample_map(Generator_params* params,
-                                            const char* key)
+Sample_map* Device_params_get_sample_map(Device_params* params,
+                                         const char* key)
 {
     assert(params != NULL);
     assert(key != NULL);
@@ -487,7 +500,7 @@ Sample_map* Generator_params_get_sample_map(Generator_params* params,
 #undef get_of_type
 
 
-void del_Generator_params(Generator_params* params)
+void del_Device_params(Device_params* params)
 {
     assert(params != NULL);
     if (params->implement != NULL)

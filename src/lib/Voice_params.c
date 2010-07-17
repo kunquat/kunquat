@@ -13,11 +13,11 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 
 #include <Voice_params.h>
+#include <xassert.h>
 
 
 Voice_params* Voice_params_init(Voice_params* params)

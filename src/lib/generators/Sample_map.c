@@ -13,12 +13,11 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <math.h>
 
 #include <pitch_t.h>
 #include <Sample_map.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

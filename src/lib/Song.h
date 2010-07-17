@@ -25,6 +25,7 @@
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
+#include <DSP_table.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -45,6 +46,7 @@ typedef struct Song
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
+    DSP_table* dsps;                    ///< The DSPs.
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -257,6 +259,16 @@ Pat_table* Song_get_pats(Song* song);
  * \return   The Instrument table.
  */
 Ins_table* Song_get_insts(Song* song);
+
+
+/**
+ * Gets the DSPs of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The DSP table.
+ */
+DSP_table* Song_get_dsps(Song* song);
 
 
 /**

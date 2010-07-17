@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Event_handler.h>
 #include <Event_type.h>
@@ -86,6 +85,7 @@
 #include <events/Event_generator_set_float.h>
 #include <events/Event_generator_set_reltime.h>
 
+#include <xassert.h>
 #include <xmemory.h>
 
 

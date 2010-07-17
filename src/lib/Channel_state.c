@@ -13,12 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <string.h>
 
 #include <Channel_state.h>
 #include <Reltime.h>
+#include <xassert.h>
 
 
 bool Channel_state_init(Channel_state* state, int num, bool* mute)

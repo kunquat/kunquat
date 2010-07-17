@@ -17,6 +17,8 @@
 
 
 #include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
 
 #include <Device.h>
 #include <Ins_table.h>
@@ -72,6 +74,17 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
 
 
 /**
+ * Resets the Device node and its subgraph.
+ *
+ * This function assumes that if the underlying Connections graph is not
+ * reset, all its nodes have been marked at least reached.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_reset(Device_node* node);
+
+
+/**
  * Sets the devices starting from the given Device node.
  *
  * \param node     The Device node -- must not be \c NULL.
@@ -81,8 +94,46 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
  */
 void Device_node_set_devices(Device_node* node,
                              Device* master,
-                             Ins_table* insts/*,
-                             DSP_table* dsps*/);
+                             Ins_table* insts,
+                             DSP_table* dsps);
+
+
+/**
+ * Initialises all Audio buffers in the Device node and its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_buffers_simple(Device_node* node);
+
+
+/**
+ * Clears the audio buffers in the Device node and its subgraph.
+ *
+ * \param node    The Device node -- must not be \c NULL.
+ * \param start   The first frame to be cleared -- must be less than the
+ *                buffer size.
+ * \param until   The first frame not to be cleared -- must be less than or
+ *                equal to the buffer size. If \a until <= \a start, nothing
+ *                will be cleared.
+ */
+void Device_node_clear_buffers(Device_node* node,
+                               uint32_t start,
+                               uint32_t until);
+
+
+/**
+ * Mixes audio in the Device node and its subgraph.
+ *
+ * \param node    The Device node -- must not be \c NULL.
+ * \param start   The first frame to be mixed -- must be less than the
+ *                buffer size.
+ * \param until   The first frame not to be mixed -- must be less than or
+ *                equal to the buffer size. If \a until <= \a start, nothing
+ *                will be mixed.
+ */
+void Device_node_mix(Device_node* node, uint32_t start, uint32_t until);
 
 
 /**
@@ -93,6 +144,16 @@ void Device_node_set_devices(Device_node* node,
  * \return   The name.
  */
 char* Device_node_get_name(Device_node* node);
+
+
+/**
+ * Gets the Device of the Device node.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   The Device.
+ */
+Device* Device_node_get_device(Device_node* node);
 
 
 /**
@@ -185,6 +246,15 @@ Device_node* Device_node_get_next(Device_node* node, int* port);
  * \return   \c true if a cycle was found, otherwise \c false.
  */
 bool Device_node_cycle_in_path(Device_node* node);
+
+
+/**
+ * Prints a textual description of the Device node and its neighbours.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ * \param out    The output file -- must not be \c NULL.
+ */
+void Device_node_print(Device_node* node, FILE* out);
 
 
 /**

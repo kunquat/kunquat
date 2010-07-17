@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <Pat_table.h>
 #include <Pattern.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
