@@ -36,18 +36,20 @@
 
 Generator* new_Generator(Gen_type type,
                          Instrument_params* ins_params,
-                         Device_params* gen_params,
+//                         Device_params* gen_params,
                          uint32_t buffer_size,
-                         uint32_t mix_rate)
+                         uint32_t mix_rate,
+                         Random* random)
 {
     assert(type > GEN_TYPE_NONE);
     assert(type < GEN_TYPE_LAST);
     assert(ins_params != NULL);
-    assert(gen_params != NULL);
+//    assert(gen_params != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    static Generator* (*cons[])(Instrument_params*, Device_params*) =
+    assert(random != NULL);
+    static Generator* (*cons[])(Instrument_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
@@ -58,11 +60,13 @@ Generator* new_Generator(Gen_type type,
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
     assert(cons[type] != NULL);
-    Generator* gen = cons[type](ins_params, gen_params);
+    Generator* gen = cons[type](ins_params/*, gen_params*/);
     if (gen == NULL)
     {
         return NULL;
     }
+    gen->conf = NULL;
+    gen->random = random;
     if (!Device_init(&gen->parent, buffer_size, mix_rate))
     {
         del_Generator(gen);
@@ -77,6 +81,7 @@ Generator* new_Generator(Gen_type type,
 bool Generator_init(Generator* gen)
 {
     assert(gen != NULL);
+#if 0
     gen->enabled = GENERATOR_DEFAULT_ENABLED;
     gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
     gen->volume = exp2(gen->volume_dB / 6);
@@ -84,6 +89,7 @@ bool Generator_init(Generator* gen)
     gen->pitch_lock_cents = GENERATOR_DEFAULT_PITCH_LOCK_CENTS;
     gen->pitch_lock_freq = exp2(gen->pitch_lock_cents / 1200.0) * 440;
     gen->type_params = NULL;
+#endif
     return true;
 }
 
@@ -96,14 +102,29 @@ void Generator_uninit(Generator* gen)
 }
 
 
-Device_params* Generator_get_params(Generator* gen)
+void Generator_set_conf(Generator* gen, Gen_conf* conf)
 {
     assert(gen != NULL);
-    assert(gen->type_params != NULL);
-    return gen->type_params;
+    assert(conf != NULL);
+    gen->conf = conf;
+    return;
 }
 
 
+Device_params* Generator_get_params(Generator* gen)
+{
+    assert(gen != NULL);
+#if 0
+    assert(gen->type_params != NULL);
+    return gen->type_params;
+#endif
+    assert(gen->conf != NULL);
+    assert(gen->conf->params != NULL);
+    return gen->conf->params;
+}
+
+
+#if 0
 void Generator_copy_general(Generator* dest, Generator* src)
 {
     assert(dest != NULL);
@@ -118,86 +139,10 @@ void Generator_copy_general(Generator* dest, Generator* src)
     dest->type_params = src->type_params;
     return;
 }
+#endif
 
 
-bool Generator_parse_general(Generator* gen, char* str, Read_state* state)
-{
-    assert(gen != NULL);
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    bool enabled = false;
-    double volume = 0;
-    bool pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
-    double pitch_lock_cents = GENERATOR_DEFAULT_PITCH_LOCK_CENTS;
-    if (str != NULL)
-    {
-        str = read_const_char(str, '{', state);
-        if (state->error)
-        {
-            return false;
-        }
-        str = read_const_char(str, '}', state);
-        if (state->error)
-        {
-            Read_state_clear_error(state);
-            char key[128] = { '\0' };
-            bool expect_key = true;
-            while (expect_key)
-            {
-                str = read_string(str, key, 128, state);
-                str = read_const_char(str, ':', state);
-                if (state->error)
-                {
-                    return false;
-                }
-                if (strcmp(key, "enabled") == 0)
-                {
-                    str = read_bool(str, &enabled, state);
-                }
-                else if (strcmp(key, "volume") == 0)
-                {
-                    str = read_double(str, &volume, state);
-                }
-                else if (strcmp(key, "pitch_lock") == 0)
-                {
-                    str = read_bool(str, &pitch_lock_enabled, state);
-                }
-                else if (strcmp(key, "pitch_lock_cents") == 0)
-                {
-                    str = read_double(str, &pitch_lock_cents, state);
-                }
-                else
-                {
-                    Read_state_set_error(state,
-                             "Unsupported key in Generator info: %s", key);
-                    return false;
-                }
-                if (state->error)
-                {
-                    return false;
-                }
-                check_next(str, state, expect_key);
-            }
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                return false;
-            }
-        }
-    }
-    gen->enabled = enabled;
-    gen->volume_dB = volume;
-    gen->volume = exp2(gen->volume_dB / 6);
-    gen->pitch_lock_enabled = pitch_lock_enabled;
-    gen->pitch_lock_cents = pitch_lock_cents;
-    gen->pitch_lock_freq = exp2(gen->pitch_lock_cents / 1200.0) * 440;
-    return true;
-}
-
-
+#if 0
 bool Generator_parse_param(Generator* gen,
                            const char* subkey,
                            void* data,
@@ -216,6 +161,7 @@ bool Generator_parse_param(Generator* gen,
     return Device_params_parse_value(gen->type_params, subkey,
                                      data, length, state);
 }
+#endif
 
 
 Gen_type Generator_type_parse(char* str, Read_state* state)

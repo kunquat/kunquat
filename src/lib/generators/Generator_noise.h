@@ -32,13 +32,11 @@ typedef struct Generator_noise
  * Creates a new Noise Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
- * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new Noise Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_noise(Instrument_params* ins_params,
-                               Device_params* gen_params);
+Generator* new_Generator_noise(Instrument_params* ins_params);
 
 
 uint32_t Generator_noise_mix(Generator* gen,

@@ -23,8 +23,7 @@
 #include <xmemory.h>
 
 
-Generator_debug* new_Generator_debug(Instrument_params* ins_params,
-                                     Device_params* gen_params)
+Generator_debug* new_Generator_debug(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
     Generator_debug* debug = xalloc(Generator_debug);
@@ -42,7 +41,6 @@ Generator_debug* new_Generator_debug(Instrument_params* ins_params,
     debug->parent.init_state = NULL;
     debug->parent.mix = Generator_debug_mix;
     debug->parent.ins_params = ins_params;
-    debug->parent.type_params = gen_params;
     return debug;
 }
 

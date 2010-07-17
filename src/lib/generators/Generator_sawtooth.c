@@ -29,11 +29,9 @@
 void Generator_sawtooth_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_sawtooth(Instrument_params* ins_params,
-                                  Device_params* gen_params)
+Generator* new_Generator_sawtooth(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
-    assert(gen_params != NULL);
     Generator_sawtooth* sawtooth = xalloc(Generator_sawtooth);
     if (sawtooth == NULL)
     {
@@ -49,7 +47,6 @@ Generator* new_Generator_sawtooth(Instrument_params* ins_params,
     sawtooth->parent.init_state = Generator_sawtooth_init_state;
     sawtooth->parent.mix = Generator_sawtooth_mix;
     sawtooth->parent.ins_params = ins_params;
-    sawtooth->parent.type_params = gen_params;
     return &sawtooth->parent;
 }
 

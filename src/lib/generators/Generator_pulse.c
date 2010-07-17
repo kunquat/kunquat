@@ -31,11 +31,9 @@
 static void Generator_pulse_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_pulse(Instrument_params* ins_params,
-                               Device_params* gen_params)
+Generator* new_Generator_pulse(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
-    assert(gen_params != NULL);
     Generator_pulse* pulse = xalloc(Generator_pulse);
     if (pulse == NULL)
     {
@@ -52,7 +50,6 @@ Generator* new_Generator_pulse(Instrument_params* ins_params,
     pulse->parent.init_state = Generator_pulse_init_state;
     pulse->parent.mix = Generator_pulse_mix;
     pulse->parent.ins_params = ins_params;
-    pulse->parent.type_params = gen_params;
     pulse->pulse_width = 0.5;
     return &pulse->parent;
 }

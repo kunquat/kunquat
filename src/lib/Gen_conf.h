@@ -12,39 +12,48 @@
  */
 
 
-#ifndef K_DSP_CONF_H
-#define K_DSP_CONF_H
+#ifndef K_GEN_CONF_H
+#define K_GEN_CONF_H
 
 
 #include <stdbool.h>
 
 #include <Device_params.h>
 #include <File_base.h>
+#include <pitch_t.h>
+#include <Random.h>
 
 
 /**
- * This contains all the DSP information that originates from one or more
- * files.
+ * This contains all the Generator information that originates from one or
+ * more files.
  */
-typedef struct DSP_conf
+typedef struct Gen_conf
 {
     Device_params* params;
-} DSP_conf;
+    bool enabled;
+    double volume_dB;
+    double volume;
+    bool pitch_lock_enabled;
+    double pitch_lock_cents;
+    pitch_t pitch_lock_freq;
+    Random* random;
+} Gen_conf;
 
 
 /**
- * Creates a new DSP configuration.
+ * Creates a new Generator configuration.
  *
- * \return   The new DSP configuration if successful, or \c NULL if memory
- *           allocation failed.
+ * \return   The new Generator configuration if successful, or \c NULL if
+ *           memory allocation failed.
  */
-DSP_conf* new_DSP_conf(void);
+Gen_conf* new_Gen_conf(void);
 
 
 /**
- * Parses a key related to the DSP configuration.
+ * Parses a key related to the Generator configuration.
  *
- * \param conf     The DSP configuration -- must not be \c NULL.
+ * \param conf     The Generator configuration -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey.
  * \param data     The data -- must not be \c NULL if it has a non-zero
  *                 length.
@@ -54,7 +63,7 @@ DSP_conf* new_DSP_conf(void);
  * \return   \c true if successful, otherwise \c false. \a state will not be
  *           modified if memory allocation failed.
  */
-bool DSP_conf_parse(DSP_conf* conf,
+bool Gen_conf_parse(Gen_conf* conf,
                     const char* key,
                     void* data,
                     long length,
@@ -62,13 +71,13 @@ bool DSP_conf_parse(DSP_conf* conf,
 
 
 /**
- * Destroys an existing DSP configuration.
+ * Destroys an existing Generator configuration.
  *
- * \param conf   The DSP configuration -- must not be \c NULL.
+ * \param conf   The Generator configuration -- must not be \c NULL.
  */
-void del_DSP_conf(DSP_conf* conf);
+void del_Gen_conf(Gen_conf* conf);
 
 
-#endif // K_DSP_CONF_H
+#endif // K_GEN_CONF_H
 
 

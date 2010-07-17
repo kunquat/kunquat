@@ -21,6 +21,7 @@
 
 #include <Device.h>
 #include <Device_params.h>
+#include <Gen_conf.h>
 #include <Generator_type.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
@@ -38,14 +39,17 @@ typedef struct Generator
 {
     Device parent;
     Gen_type type;
+#if 0
     bool enabled;
     double volume_dB;
     double volume;
     bool pitch_lock_enabled;
     double pitch_lock_cents;
     pitch_t pitch_lock_freq;
+#endif
     Random* random;
-    Device_params* type_params;
+//    Device_params* type_params;
+    Gen_conf* conf;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t,
@@ -66,19 +70,20 @@ typedef struct Generator
  * \param type          The Generator type -- must be a valid and supported
  *                      type.
  * \param ins_params    The Instrument parameters -- must not be \c NULL.
- * \param gen_params    The Generator parameters -- must not be \c NULL.
  * \param buffer_size   The mixing buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
  * \param mix_rate      The mixing rate -- must be > \c 0.
+ * \param random        The Random source -- must not be \c NULL.
  *
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
 Generator* new_Generator(Gen_type type,
                          Instrument_params* ins_params,
-                         Device_params* gen_params,
+//                         Device_params* gen_params,
                          uint32_t buffer_size,
-                         uint32_t mix_rate);
+                         uint32_t mix_rate,
+                         Random* random);
 
 
 /**
@@ -100,6 +105,15 @@ void Generator_uninit(Generator* gen);
 
 
 /**
+ * Sets the configuration of the Generator.
+ *
+ * \param gen    The Generator -- must not be \c NULL.
+ * \param conf   The Generator configuration -- must not be \c NULL.
+ */
+void Generator_set_conf(Generator* gen, Gen_conf* conf);
+
+
+/**
  * Retrieves the Generator parameter tree.
  *
  * \param gen   The Generator -- must not be \c NULL.
@@ -115,7 +129,7 @@ Device_params* Generator_get_params(Generator* gen);
  * \param dest   The destination Generator -- must not be \c NULL.
  * \param src    The source Generator -- must not be \c NULL.
  */
-void Generator_copy_general(Generator* dest, Generator* src);
+//void Generator_copy_general(Generator* dest, Generator* src);
 
 
 /**
@@ -128,7 +142,7 @@ void Generator_copy_general(Generator* dest, Generator* src);
  * \return   \c true if successful, otherwise \c false. The state error will
  *           _not_ be set in case memory allocation failed.
  */
-bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
+//bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
 
 
 /**
@@ -144,11 +158,11 @@ bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
  * \return   \c true if successful, otherwise \c false. \a state will not be
  *           modified if memory allocation failed.
  */
-bool Generator_parse_param(Generator* gen,
-                           const char* subkey,
-                           void* data,
-                           long length,
-                           Read_state* state);
+//bool Generator_parse_param(Generator* gen,
+//                           const char* subkey,
+//                           void* data,
+//                           long length,
+//                           Read_state* state);
 
 
 /**

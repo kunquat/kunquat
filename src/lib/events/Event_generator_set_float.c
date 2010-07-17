@@ -96,7 +96,7 @@ bool Event_generator_set_float_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Device_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->conf->params, key, fields);
 }
 
 

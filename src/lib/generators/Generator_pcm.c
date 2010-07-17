@@ -35,11 +35,9 @@
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_pcm(Instrument_params* ins_params,
-                             Device_params* gen_params)
+Generator* new_Generator_pcm(Instrument_params* ins_params)
 {
     assert(ins_params != NULL);
-    assert(gen_params != NULL);
     Generator_pcm* pcm = xalloc(Generator_pcm);
     if (pcm == NULL)
     {
@@ -55,7 +53,6 @@ Generator* new_Generator_pcm(Instrument_params* ins_params,
     pcm->parent.init_state = Generator_pcm_init_state;
     pcm->parent.mix = Generator_pcm_mix;
     pcm->parent.ins_params = ins_params;
-    pcm->parent.type_params = gen_params;
     return &pcm->parent;
 }
 
@@ -128,8 +125,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
         snprintf(map_key, strlen(map_key) + 1,
                  "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
-        Sample_map* map = Device_params_get_sample_map(gen->type_params,
-                                                          map_key);
+        Sample_map* map = Device_params_get_sample_map(gen->conf->params,
+                                                       map_key);
         if (map == NULL)
         {
             state->active = false;
@@ -151,8 +148,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
         char header_key[] = "smp_XXX/p_sample.jsonsh";
         snprintf(header_key, strlen(header_key) + 1,
                  "smp_%03x/p_sample.jsonsh", pcm_state->sample);
-        Sample_params* header = Device_params_get_sample_params(gen->type_params,
-                                        header_key);
+        Sample_params* header = Device_params_get_sample_params(gen->conf->params,
+                                                                header_key);
         if (header == NULL)
         {
             state->active = false;
@@ -170,7 +167,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
     snprintf(sample_key, strlen(sample_key) + 1,
              "smp_%03x/p_sample.%s", pcm_state->sample,
              extensions[pcm_state->params.format]);
-    Sample* sample = Device_params_get_sample(gen->type_params, sample_key);
+    Sample* sample = Device_params_get_sample(gen->conf->params, sample_key);
     if (sample == NULL)
     {
         state->active = false;

@@ -22,6 +22,7 @@
 #include <DSP.h>
 #include <DSP_table.h>
 #include <Instrument_params.h>
+#include <Gen_table.h>
 #include <Generator.h>
 #include <frame.h>
 #include <Voice_state.h>
@@ -101,7 +102,7 @@ Instrument_params* Instrument_get_params(Instrument* ins);
  *
  * \return   The parameters. Note that this is not a valid Generator.
  */
-Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
+//Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
 
 
 /**
@@ -114,9 +115,9 @@ Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
  *                < \c KQT_GENERATORS_MAX.
  * \param gen     The Generator -- must not be \c NULL.
  */
-void Instrument_set_gen(Instrument* ins,
-                        int index,
-                        Generator* gen);
+//void Instrument_set_gen(Instrument* ins,
+//                        int index,
+//                        Generator* gen);
 
 
 /**
@@ -132,6 +133,16 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
 
 
 /**
+ * Gets the Generator table of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Generator table.
+ */
+Gen_table* Instrument_get_gens(Instrument* ins);
+
+
+/**
  * Removes a Generator of the Instrument.
  *
  * The Generators located at greater indices will be shifted backward in the
@@ -142,7 +153,7 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
  * \param index   The index of the Generator -- must be >= \c 0 and
  *                < \c KQT_GENERATORS_MAX.
  */
-void Instrument_del_gen(Instrument* ins, int index);
+//void Instrument_del_gen(Instrument* ins, int index);
 
 
 /**

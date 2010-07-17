@@ -157,9 +157,9 @@ void Generator_common_handle_pitch(Generator* gen,
     }
     state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
-    if (gen->pitch_lock_enabled)
+    if (gen->conf->pitch_lock_enabled)
     {
-        state->actual_pitch = gen->pitch_lock_freq;
+        state->actual_pitch = gen->conf->pitch_lock_freq;
     }
     else
     {

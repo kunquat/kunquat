@@ -13,44 +13,44 @@
 
 
 #include <stdlib.h>
-#include <stdbool.h>
 
-#include <DSP.h>
-#include <DSP_table.h>
+#include <Gen_conf.h>
+#include <Gen_table.h>
+#include <Generator.h>
 #include <Etable.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-struct DSP_table
+struct Gen_table
 {
     int size;
     Etable* confs;
-    Etable* dsps;
+    Etable* gens;
 };
 
 
-DSP_table* new_DSP_table(int size)
+Gen_table* new_Gen_table(int size)
 {
     assert(size > 0);
-    DSP_table* table = xalloc(DSP_table);
+    Gen_table* table = xalloc(Gen_table);
     if (table == NULL)
     {
         return NULL;
     }
     table->confs = NULL;
-    table->dsps = NULL;
+    table->gens = NULL;
 
-    table->confs = new_Etable(size, (void (*)(void*))del_DSP_conf);
+    table->confs = new_Etable(size, (void (*)(void*))del_Gen_conf);
     if (table->confs == NULL)
     {
-        del_DSP_table(table);
+        del_Gen_table(table);
         return NULL;
     }
-    table->dsps = new_Etable(size, (void (*)(void*))del_DSP);
-    if (table->dsps == NULL)
+    table->gens = new_Etable(size, (void (*)(void*))del_Generator);
+    if (table->gens == NULL)
     {
-        del_DSP_table(table);
+        del_Gen_table(table);
         return NULL;
     }
     table->size = size;
@@ -58,7 +58,7 @@ DSP_table* new_DSP_table(int size)
 }
 
 
-bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf)
+bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf)
 {
     assert(table != NULL);
     assert(index >= 0);
@@ -68,31 +68,31 @@ bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf)
     {
         return false;
     }
-    DSP* dsp = Etable_get(table->dsps, index);
-    if (dsp != NULL)
+    Generator* gen = Etable_get(table->gens, index);
+    if (gen != NULL)
     {
-        DSP_set_conf(dsp, conf);
+        Generator_set_conf(gen, conf);
     }
     return true;
 }
 
 
-DSP_conf* DSP_table_get_conf(DSP_table* table, int index)
+Gen_conf* Gen_table_get_conf(Gen_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    DSP_conf* conf = Etable_get(table->confs, index);
+    Gen_conf* conf = Etable_get(table->confs, index);
     if (conf == NULL)
     {
-        conf = new_DSP_conf();
+        conf = new_Gen_conf();
         if (conf == NULL)
         {
             return NULL;
         }
-        if (!DSP_table_set_conf(table, index, conf))
+        if (!Gen_table_set_conf(table, index, conf))
         {
-            del_DSP_conf(conf);
+            del_Gen_conf(conf);
             return NULL;
         }
     }
@@ -101,73 +101,64 @@ DSP_conf* DSP_table_get_conf(DSP_table* table, int index)
 }
 
 
-bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
+bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    assert(dsp != NULL);
-    DSP_conf* conf = Etable_get(table->confs, index);
+    assert(gen != NULL);
+    Gen_conf* conf = Gen_table_get_conf(table, index);
     if (conf == NULL)
-    {
-        conf = new_DSP_conf();
-        if (conf == NULL)
-        {
-            return false;
-        }
-        if (!Etable_set(table->confs, index, conf))
-        {
-            del_DSP_conf(conf);
-            return false;
-        }
-    }
-    if (!Etable_set(table->dsps, index, dsp))
     {
         return false;
     }
-    DSP_set_conf(dsp, conf);
+    if (!Etable_set(table->gens, index, gen))
+    {
+        return false;
+    }
+    Generator_set_conf(gen, conf);
     return true;
 }
 
 
-DSP* DSP_table_get_dsp(DSP_table* table, int index)
+Generator* Gen_table_get_gen(Gen_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    return Etable_get(table->dsps, index);
+    return Etable_get(table->gens, index);
 }
 
 
-void DSP_table_remove_dsp(DSP_table* table, int index)
+void Gen_table_remove_gen(Gen_table* table, int index)
 {
     assert(table != NULL);
     assert(index >= 0);
     assert(index < table->size);
-    Etable_remove(table->dsps, index);
+    Etable_remove(table->gens, index);
     return;
 }
 
 
-void DSP_table_clear(DSP_table* table)
+void Gen_table_clear(Gen_table* table)
 {
     assert(table != NULL);
     Etable_clear(table->confs);
-    Etable_clear(table->dsps);
+    Etable_clear(table->gens);
     return;
 }
 
 
-void del_DSP_table(DSP_table* table)
+void del_Gen_table(Gen_table* table)
 {
     assert(table != NULL);
     if (table->confs != NULL)
     {
         del_Etable(table->confs);
     }
-    if (table->dsps != NULL)
+    if (table->gens != NULL)
     {
-        del_Etable(table->dsps);
+        del_Etable(table->gens);
     }
     xfree(table);
     return;

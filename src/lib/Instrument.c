@@ -19,20 +19,14 @@
 #include <stdio.h>
 
 #include <Device.h>
+#include <DSP.h>
+#include <DSP_table.h>
+#include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
 #include <xassert.h>
 #include <xmemory.h>
-
-
-#if 0
-typedef struct Gen_group
-{
-    Generator common_params;
-    Generator* gen;
-} Gen_group;
-#endif
 
 
 struct Instrument
@@ -50,8 +44,9 @@ struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
 //    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
-    Generator gen_conf[KQT_GENERATORS_MAX];
-    Generator* gens[KQT_GENERATORS_MAX];
+//    Generator gen_conf[KQT_GENERATORS_MAX];
+//    Generator* gens[KQT_GENERATORS_MAX];
+    Gen_table* gens;
 
     DSP_table* dsps;
 };
@@ -96,7 +91,9 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
     ins->connections = NULL;
+    ins->gens = NULL;
     ins->dsps = NULL;
+    
     if (Instrument_params_init(&ins->params,
                                bufs, vbufs, vbufs2,
                                buf_count, buf_len,
@@ -105,18 +102,9 @@ Instrument* new_Instrument(kqt_frame** bufs,
         xfree(ins);
         return NULL;
     }
-    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
-    if (ins->dsps == NULL)
-    {
-        Instrument_params_uninit(&ins->params);
-        xfree(ins);
-        return NULL;
-    }
     if (!Device_init(&ins->parent, buf_len, mix_rate))
     {
         Instrument_params_uninit(&ins->params);
-        del_DSP_table(ins->dsps);
-        ins->dsps = NULL;
         xfree(ins);
         return NULL;
     }
@@ -124,6 +112,18 @@ Instrument* new_Instrument(kqt_frame** bufs,
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
+    ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
+    if (ins->gens == NULL)
+    {
+        del_Instrument(ins);
+        return NULL;
+    }
+    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
+    if (ins->dsps == NULL)
+    {
+        del_Instrument(ins);
+        return NULL;
+    }
 
     ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
@@ -132,30 +132,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
     ins->default_scale = default_scale;
     ins->scale_index = INS_DEFAULT_SCALE_INDEX;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        ins->gen_conf[i].type_params = NULL;
-        ins->gens[i] = NULL;
-    }
-
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        if (!Generator_init(&ins->gen_conf[i]))
-        {
-            del_Instrument(ins);
-            return NULL;
-        }
-        Device_params* gen_params = new_Device_params();
-        if (gen_params == NULL)
-        {
-            Generator_uninit(&ins->gen_conf[i]);
-            del_Instrument(ins);
-            return NULL;
-        }
-        ins->gen_conf[i].type_params = gen_params;
-        ins->gen_conf[i].random = random;
-        ins->gens[i] = NULL;
-    }
     return ins;
 }
 
@@ -260,6 +236,7 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
+#if 0
 Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
 {
     assert(ins != NULL);
@@ -267,8 +244,10 @@ Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
     assert(index < KQT_GENERATORS_MAX);
     return &ins->gen_conf[index];
 }
+#endif
 
 
+#if 0
 void Instrument_set_gen(Instrument* ins,
                         int index,
                         Generator* gen)
@@ -284,6 +263,7 @@ void Instrument_set_gen(Instrument* ins,
     ins->gens[index] = gen;
     return;
 }
+#endif
 
 
 Generator* Instrument_get_gen(Instrument* ins,
@@ -292,10 +272,18 @@ Generator* Instrument_get_gen(Instrument* ins,
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    return ins->gens[index];
+    return Gen_table_get_gen(ins->gens, index);
 }
 
 
+Gen_table* Instrument_get_gens(Instrument* ins)
+{
+    assert(ins != NULL);
+    return ins->gens;
+}
+
+
+#if 0
 void Instrument_del_gen(Instrument* ins, int index)
 {
     assert(ins != NULL);
@@ -308,6 +296,7 @@ void Instrument_del_gen(Instrument* ins, int index)
     }
     return;
 }
+#endif
 
 
 DSP* Instrument_get_dsp(Instrument* ins, int index)
@@ -375,10 +364,10 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (ins->gens[i] != NULL)
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        if (gen != NULL)
         {
-            Generator_mix(ins->gens[i],
-                          &states[i], nframes, offset, freq, 120);
+            Generator_mix(gen, &states[i], nframes, offset, freq, 120);
         }
     }
     return;
@@ -392,7 +381,7 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
     Instrument* ins = (Instrument*)device;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = ins->gens[i];
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL && !Device_set_mix_rate((Device*)gen, mix_rate))
         {
             return false;
@@ -418,7 +407,7 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
     Instrument* ins = (Instrument*)device;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = ins->gens[i];
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL && !Device_set_buffer_size((Device*)gen, size))
         {
             return false;
@@ -440,6 +429,7 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
+#if 0
     for (int i = 0; i < KQT_GENERATORS_MAX &&
                     ins->gen_conf[i].type_params != NULL; ++i)
     {
@@ -453,9 +443,14 @@ void del_Instrument(Instrument* ins)
             del_Generator(ins->gens[i]);
         }
     }
+#endif
     if (ins->connections != NULL)
     {
         del_Connections(ins->connections);
+    }
+    if (ins->gens != NULL)
+    {
+        del_Gen_table(ins->gens);
     }
     if (ins->dsps != NULL)
     {

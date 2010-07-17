@@ -23,13 +23,13 @@
 
 
 /**
- * This is the storage object for DSPs.
+ * This is the storage object for DSPs and their configurations.
  */
 typedef struct DSP_table DSP_table;
 
 
 /**
- * Creates a new DSP table
+ * Creates a new DSP table.
  *
  * \param size   The table size -- must be > \c 0.
  *

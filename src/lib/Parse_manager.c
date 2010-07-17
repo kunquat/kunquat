@@ -707,6 +707,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
+#if 0
     if (strcmp(subkey, "p_generator.json") == 0)
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
@@ -769,41 +770,8 @@ static bool parse_generator_level(kqt_Handle* handle,
         }
 #endif
     }
-    else if (strcmp(subkey, "p_events.json") == 0)
-    {
-        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-        assert(common_params != NULL);
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Device_params_parse_events(common_params->type_params,
-                                        DEVICE_EVENT_TYPE_GENERATOR,
-                                        handle->song->event_handler,
-                                        data,
-                                        state))
-        {
-            set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen != NULL)
-        {
-            Generator_copy_general(gen, common_params);
-        }
-#if 0
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-            if (gen != NULL)
-            {
-                Generator_copy_general(gen, common_params);
-            }
-        }
 #endif
-    }
-    else if (strcmp(subkey, "p_gen_type.json") == 0)
+    if (strcmp(subkey, "p_gen_type.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Gen_type type = Generator_type_parse(data, state);
@@ -816,6 +784,30 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = new_Generator(type, Instrument_get_params(ins),
+                                 Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
+                                 handle->song->random);
+        if (gen == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+        Gen_table* table = Instrument_get_gens(ins);
+        assert(table != NULL);
+        if (!Gen_table_set_gen(table, gen_index, gen))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_Generator(gen);
+            return false;
+        }
+#if 0
         Generator* gen = Instrument_get_gen(ins, gen_index);
         if (gen == NULL || Generator_get_type(gen) != type)
         {
@@ -839,6 +831,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             Generator_copy_general(gen, common_params);
         }
         Instrument_set_gen(ins, gen_index, gen);
+#endif
 #if 0
         Generator* gen = Instrument_get_gen_of_type(ins, gen_index, type);
         if (gen == NULL)
@@ -867,6 +860,84 @@ static bool parse_generator_level(kqt_Handle* handle,
             Instrument_set_gen(ins, gen_index, gen);
         }
 #endif
+    }
+    else if (strcmp(subkey, "p_events.json") == 0)
+    {
+        Gen_table* table = Instrument_get_gens(ins);
+        assert(table != NULL);
+        Gen_conf* conf = Gen_table_get_conf(table, gen_index);
+        if (conf == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+#if 0
+        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
+        assert(common_params != NULL);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+#endif
+        if (!Device_params_parse_events(conf->params,
+                                        DEVICE_EVENT_TYPE_GENERATOR,
+                                        handle->song->event_handler,
+                                        data,
+                                        state))
+        {
+            set_parse_error(handle, state);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
+#if 0
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#endif
+#if 0
+        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
+        {
+            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
+            if (gen != NULL)
+            {
+                Generator_copy_general(gen, common_params);
+            }
+        }
+#endif
+    }
+    else
+    {
+        Gen_table* table = Instrument_get_gens(ins);
+        assert(table != NULL);
+        Gen_conf* conf = Gen_table_get_conf(table, gen_index);
+        if (conf == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Gen_conf_parse(conf, subkey, data, length, state))
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
+            return false;
+        }
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
     {

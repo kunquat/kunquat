@@ -30,13 +30,11 @@ typedef struct Generator_sawtooth
  * Creates a new Sawtooth Generator.
  *
  * \param ins_params   The Instrument parameters -- must not be \c NULL.
- * \param gen_params   The Generator parameters -- must not be \c NULL.
  *
  * \return   The new Sawtooth Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_sawtooth(Instrument_params* ins_params,
-                                  Device_params* gen_params);
+Generator* new_Generator_sawtooth(Instrument_params* ins_params);
 
 
 uint32_t Generator_sawtooth_mix(Generator* gen,
