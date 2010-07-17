@@ -45,6 +45,18 @@ bool string_has_prefix(const char* str, const char* prefix);
 bool string_has_suffix(const char* str, const char* suffix);
 
 
+/**
+ * Extracts an unsigned hexadecimal index from a path component.
+ *
+ * \param path     The path -- must not be \c NULL.
+ * \param prefix   The prefix of the path, or \c NULL if irrelevant.
+ * \param digits   The number of hexadecimal digits -- must be > \c 0.
+ *
+ * \return   The extracted index, or \c -1 if the path is not valid.
+ */
+int string_extract_index(const char* path, const char* prefix, int digits);
+
+
 #endif // K_STRING_COMMON_H
 
 

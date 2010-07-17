@@ -6,9 +6,13 @@ Kunquat player API
 .SH SYNOPSIS
 .B #include <kunquat/Player.h>
 
-.BI "long kqt_Handle_mix(kqt_Handle* " handle ", long " nframes ", long " freq );
+.BI "long kqt_Handle_mix(kqt_Handle* " handle ", long " nframes );
 
 .BI "float* kqt_Handle_get_buffer(kqt_Handle* " handle ", int " index );
+
+.BI "int kqt_Handle_set_mixing_rate(kqt_handle* " handle ", long " rate );
+.br
+.BI "long kqt_Handle_get_mixing_rate(kqt_Handle* " handle );
 
 .BI "int kqt_Handle_set_buffer_size(kqt_Handle* " handle ", long " size );
 .br
@@ -26,11 +30,12 @@ The Kunquat library does not support any sound devices or libraries directly.
 However, it can mix PCM audio that can be sent to a suitable sound library for
 playback.
 
-.IP "\fBlong kqt_Handle_mix(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB, long\fR \fIfreq\fR\fB);\fR"
+.IP "\fBlong kqt_Handle_mix(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fInframes\fR\fB);\fR"
 Mixes music associated with \fIhandle\fR, starting from the current position.
 It will mix at most \fInframes\fR frames, but it will mix less if the mixing
 buffer size is less than \fInframes\fR or the end of the composition is
-reached. The function mixes the audio \fIfreq\fR frames per second.
+reached. By default, the function mixes the audio 48000 frames per second.
+This can be adjusted with the function \fBkqt_Handle_set_mixing_rate\fR.
 
 The function will return the number of frames actually mixed. The return value
 is 0 if the end of the composition/subsong is reached or an error occurred --
@@ -55,11 +60,23 @@ audio interfaces do not support 32-bit floating point format. The Kunquat
 library does not support interleaving or converting the audio data, but these
 functions are usually easy to implement.
 
+.SH "MIXING RATE"
+
+.IP "\fBint kqt_Handle_set_mixing_rate(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fIrate\fR\fB);\fR"
+Sets the mixing rate of \fIhandle\fR to \fIrate\fR frames per second.
+\fIrate\fR should be positive. Typical values for \fIrate\fR include 44100
+("CD quality") and 48000 (the default). Note that this function may fail due
+to a memory error if the composition uses features that allocate buffers based
+on the mixing rate.
+
+.IP "\fBlong kqt_Handle_get_mixing_rate(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
+Returns the mixing rate used by \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
+
 .SH "BUFFER SETTINGS"
 
 .IP "\fBint kqt_Handle_set_buffer_size(kqt_Handle*\fR \fIhandle\fR\fB, long\fR \fIsize\fR\fB);\fR"
 Sets the mixing buffer size of \fIhandle\fR to \fIsize\fR frames. \fIsize\fR
-should be positive and not more than 4194304. The upper limit is a safety
+should be positive and not more than 1048576. The upper limit is a safety
 measure -- typically, implementations use a buffer size of no more than a
 couple of thousand frames.
 

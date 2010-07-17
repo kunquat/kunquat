@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <string.h>
@@ -25,7 +24,7 @@
 #include <File_wavpack.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

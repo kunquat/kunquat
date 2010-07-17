@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <float.h>
 
 #include <Event_common.h>
 #include <Event_global_set_scale_offset.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

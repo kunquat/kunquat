@@ -55,8 +55,6 @@ typedef struct Playdata
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
 
-    int buf_count;                    ///< Number of buffers used for mixing.
-    kqt_frame** bufs;                 ///< The (top-level) buffers.
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
     int scale;                        ///< Currently active Scale index.
@@ -110,16 +108,12 @@ typedef struct Playdata
  * del_Playdata().
  *
  * \param insts       The Instrument table -- must not be \c NULL.
- * \param buf_count   Number of buffers used for mixing -- must be > \c 0.
- * \param bufs        The mixing buffers -- must not be \c NULL.
  * \param random      The Random source -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
 Playdata* new_Playdata(Ins_table* insts,
-                       int buf_count,
-                       kqt_frame** bufs,
                        Random* random);
 
 

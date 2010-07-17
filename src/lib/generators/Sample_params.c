@@ -13,10 +13,10 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <Sample_params.h>
+#include <xassert.h>
 
 
 Sample_params* Sample_params_init(Sample_params* params)

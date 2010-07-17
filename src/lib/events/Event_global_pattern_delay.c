@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <limits.h>
 
@@ -21,7 +20,7 @@
 #include <Event_global_pattern_delay.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

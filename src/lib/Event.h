@@ -56,6 +56,16 @@ Event* new_Event(Event_type type, Reltime* pos);
 
 
 /**
+ * Tells whether the given Event type is supported.
+ *
+ * \param type   The Event type -- must be valid.
+ *
+ * \return   \c true if \a type is supported, otherwise \c false.
+ */
+bool Event_type_is_supported(Event_type type);
+
+
+/**
  * Parses and retrieves all fields from a string.
  */
 char* Event_type_get_fields(char* str,

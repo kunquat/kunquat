@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
 
@@ -23,7 +22,7 @@
 #include <Generator.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -99,7 +98,7 @@ bool Event_generator_set_reltime_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Generator_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->type_params, key, fields);
 }
 
 

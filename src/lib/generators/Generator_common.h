@@ -25,6 +25,24 @@
 
 
 /**
+ * Gets the output buffers.
+ */
+#define Generator_common_get_buffers(gen, state, mixed, bufs)     \
+    if (true)                                                     \
+    {                                                             \
+        Audio_buffer* buffer = Device_get_buffer(&(gen)->parent,  \
+                                       DEVICE_PORT_TYPE_SEND, 0); \
+        if (buffer == NULL)                                       \
+        {                                                         \
+            (state)->active = false;                              \
+            return (mixed);                                       \
+        }                                                         \
+        bufs[0] = Audio_buffer_get_buffer(buffer, 0);             \
+        bufs[1] = Audio_buffer_get_buffer(buffer, 1);             \
+    } else (void)0
+
+
+/**
  * Checks whether there's anything left of the note to be mixed.
  * This should be called at the beginning of the mixing function of the
  * Generator.

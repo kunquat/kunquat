@@ -13,14 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 
 #include <Handle_private.h>
 #include <Handle_r.h>
 #include <File_kqt.h>
 #include <Entries.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

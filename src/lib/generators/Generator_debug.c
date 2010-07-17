@@ -13,18 +13,18 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <math.h>
 
+#include <Generator_common.h>
 #include <Generator_debug.h>
-#include <Generator_params.h>
-
+#include <Device_params.h>
+#include <xassert.h>
 #include <xmemory.h>
 
 
 Generator_debug* new_Generator_debug(Instrument_params* ins_params,
-                                     Generator_params* gen_params)
+                                     Device_params* gen_params)
 {
     assert(ins_params != NULL);
     Generator_debug* debug = xalloc(Generator_debug);
@@ -52,22 +52,16 @@ uint32_t Generator_debug_mix(Generator* gen,
                              uint32_t nframes,
                              uint32_t offset,
                              uint32_t freq,
-                             double tempo,
-                             int buf_count,
-                             kqt_frame** bufs)
+                             double tempo)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_DEBUG);
     assert(state != NULL);
-//  assert(nframes <= ins->buf_len); // XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    (void)gen;
     (void)tempo;
-    (void)buf_count;
+    kqt_frame* bufs[] = { NULL, NULL };
+    Generator_common_get_buffers(gen, state, offset, bufs);
     if (!state->active)
     {
         return offset;

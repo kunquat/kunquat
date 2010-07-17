@@ -42,7 +42,7 @@ extern "C" {
  * \code
  * long buffer_size = kqt_Handle_get_buffer_size(handle);
  * long mixed = 0;
- * while ((mixed = kqt_Handle_mix(handle, buffer_size, 48000)) > 0)
+ * while ((mixed = kqt_Handle_mix(handle, buffer_size)) > 0)
  * {
  *     kqt_frame* buffers[KQT_BUFFERS_MAX] = { NULL };
  *     buffers[0] = kqt_Handle_get_buffer(handle, 0); // left
@@ -61,14 +61,11 @@ extern "C" {
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed -- should be > \c 0.
- * \param freq      The mixing frequency in frames per second
- *                  -- should be > \c 0. Typical values are
- *                  44100 ("CD quality") and 48000.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes and <= kqt_Handle_get_buffer_size(handle).
  */
-long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
+long kqt_Handle_mix(kqt_Handle* handle, long nframes);
 
 
 /**
@@ -94,6 +91,31 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
 
 
 /**
+ * Sets the mixing rate of the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param rate     The mixing rate in frames per second -- should be > \c 0.
+ *                 Typical values include 44100 ("CD quality") and 48000 (the
+ *                 default).
+ *
+ * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
+ *           allocation failure is possible if the composition uses features
+ *           that allocate buffers based on the mixing rate.
+ */
+int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate);
+
+
+/**
+ * Gets the current mixing rate used by the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ *
+ * \return   The current mixing rate, or \c 0 if \a handle is invalid.
+ */
+long kqt_Handle_get_mixing_rate(kqt_Handle* handle);
+
+
+/**
  * Sets the buffer size of the Kunquat Handle.
  *
  * The buffer size determines the maximum amount of audio data that can
@@ -105,10 +127,10 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
  * in total), it should call kqt_new_Handle with a buffer size of \a n.
  *
  * \param handle   The Handle -- should not be \c NULL.
- * \param size     The new buffer size -- should be > \c 0 and <= \c 4194304.
- *                 The upper limit is a safety measure -- typically,
- *                 implementations use a buffer size of no more than a couple
- *                 of thousand frames.
+ * \param size     The new buffer size -- should be > \c 0 and
+ *                 <= \c KQT_BUFFER_SIZE_MAX. The upper limit is a safety
+ *                 measure -- typically, implementations use a buffer size of
+ *                 no more than a couple of thousand frames.
  *
  * \return   \c 1 if successful, otherwise \c 0.
  *           Note: If memory allocation fails, mixing is still possible but

@@ -14,7 +14,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
@@ -23,11 +22,11 @@
 #include <Generator.h>
 #include <Generator_common.h>
 #include <Generator_noise.h>
-#include <Generator_params.h>
+#include <Device_params.h>
 #include <Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -35,7 +34,7 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state);
 
 
 Generator* new_Generator_noise(Instrument_params* ins_params,
-                               Generator_params* gen_params)
+                               Device_params* gen_params)
 {
     assert(ins_params != NULL);
     assert(gen_params != NULL);
@@ -121,13 +120,8 @@ void Generator_noise_init_state(Generator* gen, Voice_state* state)
     assert(state != NULL);
     (void)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
-    noise_state->k = 0;
-    for (int i = 0; i < 2; i++)
-    {
-        memset(noise_state->buf[i], 0, BINOM_MAX * sizeof(double)); 
-        memset(noise_state->bufa[i], 0, BINOM_MAX * sizeof(double));
-        memset(noise_state->bufb[i], 0, BINOM_MAX * sizeof(double));
-    }
+    memset(noise_state->buf[0], 0, NOISE_MAX * sizeof(double)); 
+    memset(noise_state->buf[1], 0, NOISE_MAX * sizeof(double)); 
     return;
 }
 
@@ -137,20 +131,15 @@ uint32_t Generator_noise_mix(Generator* gen,
                              uint32_t nframes,
                              uint32_t offset,
                              uint32_t freq,
-                             double tempo,
-                             int buf_count,
-                             kqt_frame** bufs)
+                             double tempo)
 {
     assert(gen != NULL);
     assert(gen->type == GEN_TYPE_NOISE);
     assert(state != NULL);
-//  assert(nframes <= ins->buf_len); XXX: Revisit after adding instrument buffers
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    (void)buf_count;
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
+    kqt_frame* bufs[] = { NULL, NULL };
+    Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
 //    double max_amp = 0;
@@ -173,31 +162,21 @@ uint32_t Generator_noise_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_pitch(gen, state);
-        
+        Generator_common_handle_pitch(gen, state);        
         double vals[KQT_BUFFERS_MAX] = { 0 };
-        for (int i = 0; i < 2; ++i)
+        if(noise->order < 0)
         {
-            int k = noise_state->k;
-            double* buf = noise_state->buf[i];
-//          double* bufa = noise_state->bufa[i];
-//          double* bufb = noise_state->bufb[i];
-            double temp = Random_get_float_signal(gen->random);
-            vals[i] = Random_get_float_signal(gen->random);
-            if (noise->order > 0)
-            {
-                //int n =  noise->order;
-                //iir_filter_strict(n, negbinom[n], buf, k, temp, vals[i]);
-                //iir_filter_df1(n,    binom[n], negbinom[n], bufa, bufb, k, temp, vals[i]);
-            }
-            else if (noise->order < 0)
-            {
-                //int n = -noise->order;
-                //fir_filter(n, negbinom[n], buf, k, temp, vals[i]);
-                //iir_filter_df1(n, negbinom[n],    binom[n], bufa, bufb, k, temp, vals[i]);
-            }
-            noise_state->k = k;
-            power_law_filter(noise->order, buf, temp, vals[i]);
+            vals[0] = dc_pole_filter(-noise->order, noise_state->buf[0],
+                                     Random_get_float_signal(gen->random));
+            vals[1] = dc_pole_filter(-noise->order, noise_state->buf[1],
+                                     Random_get_float_signal(gen->random));
+        }
+        else 
+        {
+            vals[0] = dc_zero_filter(noise->order, noise_state->buf[0],
+                                     Random_get_float_signal(gen->random));
+            vals[1] = dc_zero_filter(noise->order, noise_state->buf[1],
+                                     Random_get_float_signal(gen->random));
         }
         Generator_common_handle_force(gen, state, vals, 2, freq);
         Generator_common_handle_filter(gen, state, vals, 2, freq);

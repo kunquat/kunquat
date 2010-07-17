@@ -18,11 +18,14 @@
 
 #include <stdint.h>
 
+#include <Connections.h>
+#include <Device.h>
 #include <kunquat/limits.h>
 #include <frame.h>
 #include <Subsong_table.h>
 #include <Pat_table.h>
 #include <Ins_table.h>
+#include <DSP_table.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -32,6 +35,7 @@
 
 typedef struct Song
 {
+    Device parent;
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
     kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
@@ -42,6 +46,8 @@ typedef struct Song
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
+    DSP_table* dsps;                    ///< The DSPs.
+    Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
     double mix_vol;                     ///< Mixing volume.
@@ -66,7 +72,8 @@ typedef struct Song
  *
  * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
  *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
- * \param buf_size    Size of a buffer -- must be > \c 0.
+ * \param buf_size    Size of the mixing buffer -- must be > \c 0 and
+ *                    <= KQT_BUFFER_SIZE_MAX.
  *
  * \see del_Song()
  *
@@ -252,6 +259,16 @@ Pat_table* Song_get_pats(Song* song);
  * \return   The Instrument table.
  */
 Ins_table* Song_get_insts(Song* song);
+
+
+/**
+ * Gets the DSPs of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ *
+ * \return   The DSP table.
+ */
+DSP_table* Song_get_dsps(Song* song);
 
 
 /**

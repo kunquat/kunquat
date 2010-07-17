@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
@@ -22,7 +21,7 @@
 #include <AAtree.h>
 #include <Entries.h>
 #include <Parse_manager.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

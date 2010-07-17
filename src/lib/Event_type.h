@@ -62,8 +62,9 @@ typedef enum
     EVENT_CHANNEL_LOWER              = 400, ///< Channel Events.
 
     EVENT_CHANNEL_SET_INSTRUMENT     = 401,
-    EVENT_CHANNEL_SET_GENERATOR      = 402, // TODO
-    EVENT_CHANNEL_SET_EFFECT         = 403, // TODO
+    EVENT_CHANNEL_SET_GENERATOR      = 402,
+    EVENT_CHANNEL_SET_DSP            = 403,
+    EVENT_CHANNEL_SET_DSP_CONTEXT    = 404,
 
     EVENT_CHANNEL_NOTE_ON            = 421,
     EVENT_CHANNEL_NOTE_OFF           = 422,
@@ -101,6 +102,12 @@ typedef enum
     EVENT_CHANNEL_SET_GEN_REAL       = 544,
     EVENT_CHANNEL_SET_GEN_RELTIME    = 545,
 
+    EVENT_CHANNEL_SET_INS_DSP_BOOL   = 561,
+    EVENT_CHANNEL_SET_INS_DSP_INT    = 562,
+    EVENT_CHANNEL_SET_INS_DSP_FLOAT  = 563,
+    EVENT_CHANNEL_SET_INS_DSP_REAL   = 564,
+    EVENT_CHANNEL_SET_INS_DSP_RELTIME = 565,
+
     EVENT_CHANNEL_UPPER              = 800,
 
     EVENT_INS_LOWER                  = 800, ///< Instrument Events
@@ -118,21 +125,41 @@ typedef enum
     EVENT_GENERATOR_SET_RELTIME      = 905,
 
     EVENT_GENERATOR_UPPER            = 1000,
+
+    EVENT_DSP_LOWER                  = 1000, ///< DSP Events
+
+    EVENT_DSP_SET_BOOL               = 1001,
+    EVENT_DSP_SET_INT                = 1002,
+    EVENT_DSP_SET_FLOAT              = 1003,
+    EVENT_DSP_SET_REAL               = 1004,
+    EVENT_DSP_SET_RELTIME            = 1005,
+
+    EVENT_DSP_UPPER                  = 1100,
                                     
     EVENT_LAST
 } Event_type;
 
 
-#define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && (type) < EVENT_GENERAL_UPPER)
-#define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && (type) < EVENT_GLOBAL_UPPER)
-#define EVENT_IS_CHANNEL(type)   ((type) > EVENT_CHANNEL_LOWER && (type) < EVENT_CHANNEL_UPPER)
-#define EVENT_IS_INS(type)       ((type) > EVENT_INS_LOWER && (type) < EVENT_INS_UPPER)
-#define EVENT_IS_GENERATOR(type) ((type) > EVENT_GENERATOR_LOWER && (type) < EVENT_GENERATOR_UPPER)
-#define EVENT_IS_PG(type)        (EVENT_IS_INS(type) || EVENT_IS_GENERATOR(type)) // TODO: effect
+#define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && \
+                                  (type) < EVENT_GENERAL_UPPER)
+#define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && \
+                                  (type) < EVENT_GLOBAL_UPPER)
+#define EVENT_IS_CHANNEL(type)   ((type) > EVENT_CHANNEL_LOWER && \
+                                  (type) < EVENT_CHANNEL_UPPER)
+#define EVENT_IS_INS(type)       ((type) > EVENT_INS_LOWER && \
+                                  (type) < EVENT_INS_UPPER)
+#define EVENT_IS_GENERATOR(type) ((type) > EVENT_GENERATOR_LOWER && \
+                                  (type) < EVENT_GENERATOR_UPPER)
+#define EVENT_IS_DSP(type)       ((type) > EVENT_DSP_LOWER && \
+                                  (type) < EVENT_DSP_UPPER)
+#define EVENT_IS_PG(type)        (EVENT_IS_INS((type)) || \
+                                  EVENT_IS_GENERATOR((type)) || \
+                                  EVENT_IS_DSP((type)))
 #define EVENT_IS_VALID(type)     (EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GLOBAL((type))    || \
                                   EVENT_IS_INS((type))       || \
                                   EVENT_IS_GENERATOR((type)) || \
+                                  EVENT_IS_DSP((type))       || \
                                   EVENT_IS_CHANNEL((type)))
 
 

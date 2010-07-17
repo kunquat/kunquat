@@ -13,9 +13,9 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Event_channel.h>
+#include <xassert.h>
 
 
 #if 0

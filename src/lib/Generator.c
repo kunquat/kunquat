@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
@@ -31,18 +30,24 @@
 #include <Event_ins.h>
 #include <pitch_t.h>
 #include <Random.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
-Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
-                         Generator_params* gen_params)
+Generator* new_Generator(Gen_type type,
+                         Instrument_params* ins_params,
+                         Device_params* gen_params,
+                         uint32_t buffer_size,
+                         uint32_t mix_rate)
 {
     assert(type > GEN_TYPE_NONE);
     assert(type < GEN_TYPE_LAST);
     assert(ins_params != NULL);
     assert(gen_params != NULL);
-    static Generator* (*cons[])(Instrument_params*, Generator_params*) =
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
+    static Generator* (*cons[])(Instrument_params*, Device_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
         [GEN_TYPE_SAWTOOTH] = new_Generator_sawtooth,
@@ -54,6 +59,16 @@ Generator* new_Generator(Gen_type type, Instrument_params* ins_params,
     };
     assert(cons[type] != NULL);
     Generator* gen = cons[type](ins_params, gen_params);
+    if (gen == NULL)
+    {
+        return NULL;
+    }
+    if (!Device_init(&gen->parent, buffer_size, mix_rate))
+    {
+        del_Generator(gen);
+        return NULL;
+    }
+    Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
     return gen;
 }
@@ -81,7 +96,7 @@ void Generator_uninit(Generator* gen)
 }
 
 
-Generator_params* Generator_get_params(Generator* gen)
+Device_params* Generator_get_params(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->type_params != NULL);
@@ -198,8 +213,8 @@ bool Generator_parse_param(Generator* gen,
     {
         return false;
     }
-    return Generator_params_parse_value(gen->type_params, subkey,
-                                        data, length, state);
+    return Device_params_parse_value(gen->type_params, subkey,
+                                     data, length, state);
 }
 
 
@@ -286,12 +301,12 @@ void Generator_mix(Generator* gen,
 {
     assert(gen != NULL);
     assert(gen->mix != NULL);
+    assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     if (offset < nframes)
     {
-        gen->mix(gen, state, nframes, offset, freq, tempo,
-                 gen->ins_params->buf_count, gen->ins_params->bufs);
+        gen->mix(gen, state, nframes, offset, freq, tempo);
     }
     return;
 }
@@ -301,6 +316,7 @@ void del_Generator(Generator* gen)
 {
     assert(gen != NULL);
     assert(gen->destroy != NULL);
+    Device_uninit(&gen->parent);
     gen->destroy(gen);
     return;
 }

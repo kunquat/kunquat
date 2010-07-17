@@ -13,14 +13,13 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <limits.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
 #include <Event_channel_set_gen_int.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 

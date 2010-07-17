@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 
 #include <Filter.h>
 #include <Generator_common.h>
@@ -21,6 +20,7 @@
 #include <Voice_state.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <xassert.h>
 
 
 #define RAMP_ATTACK_TIME (500.0)
@@ -37,6 +37,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
     assert(freq > 0);
     assert(tempo > 0);
     assert(isfinite(tempo));
+    (void)gen;
     if (state->freq != freq || state->tempo != tempo)
     {
         if (state->pitch_slide != 0)
@@ -628,11 +629,10 @@ void Generator_common_handle_filter(Generator* gen,
         if (state->actual_filter < freq / 2)
         {
             int new_state = 1 - abs(state->filter_state_used);
-            bilinear_butterworth_lowpass_filter_create(FILTER_ORDER,
-                    state->actual_filter / freq,
+            two_pole_lowpass_filter_create(state->actual_filter / freq,
                     state->filter_resonance,
-                    state->filter_state[new_state].coeffs1,
-                    state->filter_state[new_state].coeffs2);
+                    state->filter_state[new_state].coeffs,
+                    &state->filter_state[new_state].a0);
             for (int i = 0; i < gen->ins_params->buf_count; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
@@ -641,7 +641,6 @@ void Generator_common_handle_filter(Generator* gen,
                     state->filter_state[new_state].history2[i][k] = 0;
                 }
             }
-            state->filter_state[new_state].buf_pos = 0;
             state->filter_state_used = new_state;
 //            fprintf(stderr, "created filter with cutoff %f\n", state->actual_filter);
         }
@@ -666,15 +665,17 @@ void Generator_common_handle_filter(Generator* gen,
         {
             Filter_state* fst =
                     &state->filter_state[state->filter_state_used];
-            int buf_pos = fst->buf_pos;
             for (int i = 0; i < frame_count; ++i)
             {
-                buf_pos = fst->buf_pos;
-                iir_filter_df1(FILTER_ORDER, fst->coeffs1, fst->coeffs2,
-                               fst->history1[i], fst->history2[i],
-                               buf_pos, frames[i], result[i]);
+                result[i] = nq_zero_filter(FILTER_ORDER,
+                                           fst->history1[i],
+                                           frames[i]);
+                result[i] = iir_filter_strict_cascade(FILTER_ORDER,
+                                                      fst->coeffs,
+                                                      fst->history2[i],
+                                                      result[i]);
+                result[i] /= fst->a0;
             }
-            fst->buf_pos = buf_pos;
         }
         else
         {
@@ -699,15 +700,17 @@ void Generator_common_handle_filter(Generator* gen,
             {
                 Filter_state* fst =
                         &state->filter_state[state->filter_xfade_state_used];
-                int buf_pos = fst->buf_pos;
                 for (int i = 0; i < frame_count; ++i)
                 {
-                    buf_pos = fst->buf_pos;
-                    iir_filter_df1(FILTER_ORDER, fst->coeffs1, fst->coeffs2,
-                                   fst->history1[i], fst->history2[i],
-                                   buf_pos, frames[i], fade_result[i]);
+                    fade_result[i] = nq_zero_filter(FILTER_ORDER,
+                                                    fst->history1[i],
+                                                    frames[i]);
+                    fade_result[i] = iir_filter_strict_cascade(FILTER_ORDER,
+                                                               fst->coeffs,
+                                                               fst->history2[i],
+                                                               fade_result[i]);
+                    fade_result[i] /= fst->a0;
                 }
-                fst->buf_pos = buf_pos;
             }
             else
             {
@@ -746,6 +749,7 @@ void Generator_common_ramp_attack(Generator* gen,
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
+    (void)gen;
     if (state->ramp_attack < 1)
     {
         for (int i = 0; i < frame_count; ++i)

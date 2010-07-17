@@ -19,6 +19,7 @@
 #include <stdint.h>
 
 #include <Column.h>
+#include <Connections.h>
 #include <Channel.h>
 #include <Reltime.h>
 #include <Event_handler.h>
@@ -132,11 +133,13 @@ Column* Pattern_get_global(Pattern* pat);
 /**
  * Mixes a portion of the Pattern. TODO: params
  *
- * \param pat       The Pattern -- must not be \c NULL.
- * \param nframes   The amount of frames to be mixed.
- * \param offset    The mixing buffer offset to be used -- must be
- *                  < \a nframes.
- * \param eh        The Event handler -- must not be \c NULL.
+ * \param pat           The Pattern -- must not be \c NULL.
+ * \param nframes       The amount of frames to be mixed.
+ * \param offset        The mixing buffer offset to be used -- must be
+ *                      < \a nframes.
+ * \param eh            The Event handler -- must not be \c NULL.
+ * \param channels      The Channels -- must not be \c NULL.
+ * \param connections   The Connections, or \c NULL if not applicable.
  *
  * \return   The amount of frames actually mixed. This is always
  *           <= \a nframes. A value that is < \a nframes indicates that the
@@ -146,7 +149,8 @@ uint32_t Pattern_mix(Pattern* pat,
                      uint32_t nframes,
                      uint32_t offset,
                      Event_handler* eh,
-                     Channel** channels);
+                     Channel** channels,
+                     Connections* connections);
 
 
 /**

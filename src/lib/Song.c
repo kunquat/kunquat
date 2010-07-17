@@ -13,20 +13,47 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <string.h>
 #include <stdint.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <math.h>
 
+#include <Connections_search.h>
 #include <Random.h>
 #include <Real.h>
 #include <Song.h>
 #include <File_base.h>
 #include <math_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
+
+
+/**
+ * Sets the mixing rate of the Song.
+ *
+ * This function sets the mixing rate for all the Instruments and DSPs.
+ *
+ * \param device     The Song Device -- must not be \c NULL.
+ * \param mix_rate   The mixing frequency -- must be > \c 0.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+static bool Song_set_mix_rate(Device* device, uint32_t mix_rate);
+
+
+/**
+ * Sets the buffer size of the Song.
+ *
+ * This function sets the buffer size for all the Instruments and DSPs.
+ *
+ * \param device   The Song Device -- must not be \c NULL.
+ * \param size     The new buffer size -- must be > \c 0 and
+ *                 <= \c KQT_BUFFER_SIZE_MAX.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+static bool Song_set_buffer_size(Device* device, uint32_t size);
 
 
 Song* new_Song(int buf_count, uint32_t buf_size)
@@ -34,11 +61,20 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     assert(buf_count >= 1);
     assert(buf_count <= KQT_BUFFERS_MAX);
     assert(buf_size > 0);
+    assert(buf_size <= KQT_BUFFER_SIZE_MAX);
     Song* song = xalloc(Song);
     if (song == NULL)
     {
         return NULL;
     }
+    if (!Device_init(&song->parent, buf_size, 48000))
+    {
+        xfree(song);
+        return NULL;
+    }
+    Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
+    Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
+    Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     song->buf_count = buf_count;
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
@@ -47,6 +83,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
+    song->dsps = NULL;
+    song->connections = NULL;
     song->play_state = NULL;
     song->event_handler = NULL;
     song->skip_state = NULL;
@@ -59,7 +97,11 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         song->bufs[i] = NULL;
+        song->priv_bufs[i] = NULL;
+        song->voice_bufs[i] = NULL;
+        song->voice_bufs2[i] = NULL;
     }
+#if 0
     for (int i = 0; i < buf_count; ++i)
     {
         song->priv_bufs[i] = xnalloc(kqt_frame, buf_size);
@@ -86,6 +128,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
             return NULL;
         }
     }
+#endif
     song->random = new_Random();
     if (song->random == NULL)
     {
@@ -110,6 +153,12 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         del_Song(song);
         return NULL;
     }
+    song->dsps = new_DSP_table(KQT_DSP_EFFECTS_MAX);
+    if (song->dsps == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
     song->scales[0] = new_Scale(SCALE_DEFAULT_REF_PITCH,
             SCALE_DEFAULT_OCTAVE_RATIO);
     if (song->scales[0] == NULL)
@@ -118,8 +167,6 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         return NULL;
     }
     song->play_state = new_Playdata(song->insts,
-                                    song->buf_count,
-                                    song->bufs,
                                     song->random);
     if (song->play_state == NULL)
     {
@@ -136,6 +183,28 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         return NULL;
     }
     song->skip_state->subsongs = Song_get_subsongs(song);
+
+    if (!Device_init_buffer(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0))
+    {
+        del_Song(song);
+        return NULL;
+    }
+    Read_state* conn_state = READ_STATE_AUTO;
+    song->connections = new_Connections_from_string(NULL, false, conn_state);
+    if (song->connections == NULL)
+    {
+        assert(!conn_state->error);
+        del_Song(song);
+        return NULL;
+    }
+    if (!Connections_prepare(song->connections,
+                             &song->parent,
+                             song->insts,
+                             song->dsps))
+    {
+        del_Song(song);
+        return NULL;
+    }
 
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
@@ -157,7 +226,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
 
     song->event_handler = new_Event_handler(song->play_state,
                                             ch_states,
-                                            song->insts);
+                                            song->insts,
+                                            song->dsps);
     if (song->event_handler == NULL)
     {
         del_Song(song);
@@ -165,7 +235,8 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     }
     song->skip_handler = new_Event_handler(song->skip_state,
                                            ch_states,
-                                           song->insts);
+                                           song->insts,
+                                           song->dsps);
     if (song->skip_handler == NULL)
     {
         del_Song(song);
@@ -201,7 +272,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
     {
         return false;
     }
-    int64_t buf_count = SONG_DEFAULT_BUF_COUNT;
+//    int64_t buf_count = SONG_DEFAULT_BUF_COUNT;
     double mix_vol = SONG_DEFAULT_MIX_VOL;
     int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     if (str != NULL)
@@ -273,12 +344,14 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
             }
         }
     }
+#if 0
     if (!Song_set_buf_count(song, buf_count))
     {
         Read_state_set_error(state,
                 "Couldn't allocate memory for mixing buffers");
         return false;
     }
+#endif
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     Song_set_subsong(song, init_subsong);
@@ -299,17 +372,19 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         nframes = song->buf_size;
     }
-    if (!play->silent)
+    if (!play->silent && song->connections != NULL)
     {
+        Connections_clear_buffers(song->connections, 0, nframes);
+#if 0
         for (int i = 0; i < song->buf_count; ++i)
         {
             for (uint32_t k = 0; k < nframes; ++k)
             {
-                song->bufs[i][k] = 0;
                 song->voice_bufs[i][k] = 0;
                 song->voice_bufs2[i][k] = 0;
             }
         }
+#endif
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
@@ -349,25 +424,40 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             Playdata_set_subsong(play, play->subsong + 1);
             continue;
         }
-        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels);
-        // TODO: Mix effect graph
+        mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
+                             song->connections);
     }
-    if (!play->silent)
+    Audio_buffer* buffer = NULL;
+    if (song->connections != NULL)
     {
-        for (int i = 0; i < song->buf_count; ++i)
+        Device* master = Device_node_get_device(
+                                 Connections_get_master(song->connections));
+        buffer = Device_get_buffer(master,
+                         DEVICE_PORT_TYPE_RECEIVE, 0);
+    }
+    if (!play->silent && buffer != NULL)
+    {
+        kqt_frame* bufs[] =
+        {
+            Audio_buffer_get_buffer(buffer, 0),
+            Audio_buffer_get_buffer(buffer, 1),
+        };
+        assert(bufs[0] != NULL);
+        assert(bufs[1] != NULL);
+        for (int i = 0; i < 2; ++i)
         {
             for (uint32_t k = 0; k < mixed; ++k)
             {
-                song->bufs[i][k] *= song->mix_vol;
-                if (song->bufs[i][k] < play->min_amps[i])
+                bufs[i][k] *= song->mix_vol;
+                if (bufs[i][k] < play->min_amps[i])
                 {
-                    play->min_amps[i] = song->bufs[i][k];
+                    play->min_amps[i] = bufs[i][k];
                 }
-                if (song->bufs[i][k] > play->max_amps[i])
+                if (bufs[i][k] > play->max_amps[i])
                 {
-                    play->max_amps[i] = song->bufs[i][k];
+                    play->max_amps[i] = bufs[i][k];
                 }
-                if (fabs(song->bufs[i][k]) > 1)
+                if (fabs(bufs[i][k]) > 1)
                 {
                     ++play->clipped[i];
                 }
@@ -397,7 +487,7 @@ uint64_t Song_skip(Song* song, Event_handler* eh, uint64_t amount)
         uint64_t nframes = MIN(max_mix, play->freq);
         uint32_t inc = Song_mix(song, nframes, eh);
         mixed += inc;
-        if (inc < Song_get_buf_size(song))
+        if (inc < Device_get_buffer_size((Device*)song))
         {
             break;
         }
@@ -440,6 +530,7 @@ uint16_t Song_get_subsong(Song* song)
 }
 
 
+#if 0
 bool Song_set_buf_count(Song* song, int count)
 {
     assert(song != NULL);
@@ -556,6 +647,7 @@ uint32_t Song_get_buf_size(Song* song)
     assert(song != NULL);
     return song->buf_size;
 }
+#endif
 
 
 kqt_frame** Song_get_bufs(Song* song)
@@ -597,6 +689,13 @@ Ins_table* Song_get_insts(Song* song)
 {
     assert(song != NULL);
     return song->insts;
+}
+
+
+DSP_table* Song_get_dsps(Song* song)
+{
+    assert(song != NULL);
+    return song->dsps;
 }
 
 
@@ -673,6 +772,54 @@ void Song_remove_scale(Song* song, int index)
 }
 
 
+static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
+{
+    assert(device != NULL);
+    Song* song = (Song*)device;
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(song->insts, i);
+        if (ins != NULL && !Device_set_mix_rate((Device*)ins, mix_rate))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
+        if (dsp != NULL && !Device_set_mix_rate((Device*)dsp, mix_rate))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+static bool Song_set_buffer_size(Device* device, uint32_t size)
+{
+    assert(device != NULL);
+    Song* song = (Song*)device;
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(song->insts, i);
+        if (ins != NULL && !Device_set_buffer_size((Device*)ins, size))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
+        if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 void del_Song(Song* song)
 {
     assert(song != NULL);
@@ -699,6 +846,14 @@ void del_Song(Song* song)
     if (song->insts != NULL)
     {
         del_Ins_table(song->insts);
+    }
+    if (song->dsps != NULL)
+    {
+        del_DSP_table(song->dsps);
+    }
+    if (song->connections != NULL)
+    {
+        del_Connections(song->connections);
     }
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
@@ -731,6 +886,7 @@ void del_Song(Song* song)
     {
         del_Random(song->random);
     }
+    Device_uninit(&song->parent);
     xfree(song);
     return;
 }

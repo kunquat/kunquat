@@ -13,7 +13,6 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include <stdio.h>
@@ -22,7 +21,7 @@
 #include <Directory.h>
 #include <Handle_rwc.h>
 #include <File_dir.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 #include <kunquat/limits.h>

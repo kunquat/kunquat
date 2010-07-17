@@ -13,17 +13,18 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
 
+#include <Connections.h>
+#include <Connections_search.h>
 #include <File_base.h>
-#include <Generator_event_keys.h>
-#include <Generator_params.h>
+#include <Device_event_keys.h>
+#include <Device_params.h>
 #include <Handle_private.h>
 #include <string_common.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -48,6 +49,15 @@ static bool parse_generator_level(kqt_Handle* handle,
                                   long length,
                                   int ins_index,
                                   int gen_index);
+
+
+static bool parse_dsp_level(kqt_Handle* handle,
+                            Instrument* ins,
+                            const char* key,
+                            const char* subkey,
+                            void* data,
+                            long length,
+                            int dsp_index);
 
 
 static bool parse_pattern_level(kqt_Handle* handle,
@@ -142,7 +152,7 @@ static bool key_is_for_text(const char* key)
 {
     assert(key != NULL);
     return string_has_suffix(key, ".json") ||
-           key_is_text_generator_param(key);
+           key_is_text_device_param(key);
 }
 
 
@@ -201,8 +211,59 @@ bool parse_data(kqt_Handle* handle,
     if (strncmp(key, "ins_", first_len - 2) == 0 &&
             (index = parse_index(&key[first_len - 2])) >= 0)
     {
+        bool changed = Ins_table_get(Song_get_insts(handle->song),
+                                                    index) != NULL;
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
+        changed ^= Ins_table_get(Song_get_insts(handle->song),
+                                                index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
+            Connections_set_devices(graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+            if (!Connections_init_buffers_simple(graph))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#endif
+            //fprintf(stderr, "line: %d\n", __LINE__);
+            //Connections_print(graph, stderr);
+        }
+    }
+    else if ((index = string_extract_index(key, "dsp_", 2)) >= 0)
+    {
+        bool changed = DSP_table_get_dsp(Song_get_dsps(handle->song),
+                                         index) != NULL;
+        success = parse_dsp_level(handle, NULL, key, second_element,
+                                  data, length, index);
+        changed ^= DSP_table_get_dsp(Song_get_dsps(handle->song),
+                                     index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+        }
     }
     else if (strncmp(key, "pat_", first_len - 3) == 0 &&
             (index = parse_index(&key[first_len - 3])) >= 0)
@@ -247,6 +308,54 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
     }
+    else if (strcmp(key, "p_connections.json") == 0)
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Connections* graph = new_Connections_from_string(data, false, state);
+        if (graph == NULL)
+        {
+            if (state->error)
+            {
+                set_parse_error(handle, state);
+            }
+            else
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            return false;
+        }
+        if (handle->song->connections != NULL)
+        {
+            del_Connections(handle->song->connections);
+        }
+        handle->song->connections = graph;
+        //fprintf(stderr, "line: %d\n", __LINE__);
+        //Connections_print(graph, stderr);
+        if (!Connections_prepare(graph,
+                                 &handle->song->parent,
+                                 Song_get_insts(handle->song),
+                                 Song_get_dsps(handle->song)))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+#if 0
+        Connections_set_devices(graph, &handle->song->parent,
+                                Song_get_insts(handle->song));
+        //fprintf(stderr, "line: %d\n", __LINE__);
+        //Connections_print(graph, stderr);
+        if (!Connections_init_buffers_simple(graph))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+#endif
+        //fprintf(stderr, "line: %d\n", __LINE__);
+        //Connections_print(graph, stderr);
+    }
     return true;
 }
 
@@ -268,23 +377,111 @@ static bool parse_instrument_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strncmp(subkey, MAGIC_ID "iXX/", 11) != 0 &&
-            strncmp(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/", 11) != 0)
+    if (!string_has_prefix(subkey, MAGIC_ID "iXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/"))
     {
         return true;
     }
     subkey = strchr(subkey, '/');
     assert(subkey != NULL);
     ++subkey;
-    int gen_index = 0;
+    int gen_index = -1;
+    int dsp_index = -1;
     if ((gen_index = parse_index_dir(subkey, "gen_", 2)) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
         ++subkey;
-        return parse_generator_level(handle, key, subkey,
-                                     data, length, 
-                                     index, gen_index);
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        bool changed = ins != NULL && Instrument_get_gen(ins,
+                                                         gen_index) != NULL;
+        bool success = parse_generator_level(handle, key, subkey,
+                                             data, length, 
+                                             index, gen_index);
+        ins = Ins_table_get(Song_get_insts(handle->song), index);
+        changed ^= ins != NULL && Instrument_get_gen(ins, gen_index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+//            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
+            Connections_set_devices(graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+            if (!Connections_init_buffers_simple(graph))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#endif
+            //fprintf(stderr, "line: %d\n", __LINE__);
+            //Connections_print(graph, stderr);
+        }
+        return success;
+    }
+    else if ((dsp_index = string_extract_index(subkey, "dsp_", 2)) >= 0)
+    {
+        subkey = strchr(subkey, '/');
+        assert(subkey != NULL);
+        ++subkey;
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        bool changed = ins != NULL && Instrument_get_dsp(ins,
+                                              dsp_index) != NULL;
+        if (ins == NULL)
+        {
+            ins = new_Instrument(Song_get_bufs(handle->song),
+                                 Song_get_voice_bufs(handle->song),
+                                 Song_get_voice_bufs2(handle->song),
+                                 KQT_BUFFERS_MAX,
+                                 Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
+                                 Song_get_scales(handle->song),
+                                 Song_get_active_scale(handle->song),
+                                 handle->song->random);
+            if (ins == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+            if (!Ins_table_set(Song_get_insts(handle->song), index, ins))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Instrument(ins);
+                return false;
+            }
+        }
+//        fprintf(stderr, "creating dsp %d\n", (int)dsp_index);
+        bool success = parse_dsp_level(handle, ins, key, subkey,
+                                       data, length, dsp_index);
+//        fprintf(stderr, "created dsp %p\n", (void*)Instrument_get_dsp(ins, dsp_index));
+        changed ^= ins != NULL && Instrument_get_dsp(ins, dsp_index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            if (!Connections_prepare(graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+//            fprintf(stderr, "Set up connections:\n");
+//            Connections_print(graph, stderr);
+        }
+        return success;
     }
     if (strcmp(subkey, "p_instrument.json") == 0)
     {
@@ -295,8 +492,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
             ins = new_Instrument(Song_get_bufs(handle->song),
                                  Song_get_voice_bufs(handle->song),
                                  Song_get_voice_bufs2(handle->song),
-                                 Song_get_buf_count(handle->song),
-                                 Song_get_buf_size(handle->song),
+                                 KQT_BUFFERS_MAX,
+                                 Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
                                  Song_get_active_scale(handle->song),
                                  handle->song->random);
@@ -325,6 +523,75 @@ static bool parse_instrument_level(kqt_Handle* handle,
             return false;
         }
     }
+    else if (strcmp(subkey, "p_connections.json") == 0)
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Connections* graph = new_Connections_from_string(data, true, state);
+        if (graph == NULL)
+        {
+            if (state->error)
+            {
+                set_parse_error(handle, state);
+            }
+            else
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            return false;
+        }
+        Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
+        if (ins == NULL)
+        {
+            ins = new_Instrument(Song_get_bufs(handle->song),
+                                 Song_get_voice_bufs(handle->song),
+                                 Song_get_voice_bufs2(handle->song),
+                                 KQT_BUFFERS_MAX,
+                                 Device_get_buffer_size((Device*)handle->song),
+                                 Device_get_mix_rate((Device*)handle->song),
+                                 Song_get_scales(handle->song),
+                                 Song_get_active_scale(handle->song),
+                                 handle->song->random);
+            if (ins == NULL || !Ins_table_set(Song_get_insts(handle->song),
+                                              index, ins))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Connections(graph);
+                return false;
+            }
+        }
+        assert(ins != NULL);
+        Instrument_set_connections(ins, graph);
+//        fprintf(stderr, "Set connections for ins %d\n", index);
+        Connections* global_graph = handle->song->connections;
+        if (global_graph != NULL)
+        {
+            if (!Connections_prepare(global_graph,
+                                     &handle->song->parent,
+                                     Song_get_insts(handle->song),
+                                     Song_get_dsps(handle->song)))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#if 0
+            Connections_set_devices(global_graph, &handle->song->parent,
+                                    Song_get_insts(handle->song));
+            //fprintf(stderr, "line: %d\n", __LINE__);
+            //Connections_print(global_graph, stderr);
+            if (!Connections_init_buffers_simple(global_graph))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
+#endif
+//            fprintf(stderr, "line: %d\n", __LINE__);
+//            Connections_print(global_graph, stderr);
+        }
+    }
     struct
     {
         char* name;
@@ -349,8 +616,9 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 ins = new_Instrument(Song_get_bufs(handle->song),
                                      Song_get_voice_bufs(handle->song),
                                      Song_get_voice_bufs2(handle->song),
-                                     Song_get_buf_count(handle->song),
-                                     Song_get_buf_size(handle->song),
+                                     KQT_BUFFERS_MAX,
+                                     Device_get_buffer_size((Device*)handle->song),
+                                     Device_get_mix_rate((Device*)handle->song),
                                      Song_get_scales(handle->song),
                                      Song_get_active_scale(handle->song),
                                      handle->song->random);
@@ -412,6 +680,13 @@ static bool parse_generator_level(kqt_Handle* handle,
     {
         return true;
     }
+    if (!string_has_prefix(subkey, MAGIC_ID "gXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "g" KQT_FORMAT_VERSION "/"))
+    {
+        return true;
+    }
+    subkey = strchr(subkey, '/');
+    ++subkey;
     Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
     bool new_ins = ins == NULL;
     if (new_ins)
@@ -419,8 +694,9 @@ static bool parse_generator_level(kqt_Handle* handle,
         ins = new_Instrument(Song_get_bufs(handle->song),
                              Song_get_voice_bufs(handle->song),
                              Song_get_voice_bufs2(handle->song),
-                             Song_get_buf_count(handle->song),
-                             Song_get_buf_size(handle->song),
+                             KQT_BUFFERS_MAX,
+                             Device_get_buffer_size((Device*)handle->song),
+                             Device_get_mix_rate((Device*)handle->song),
                              Song_get_scales(handle->song),
                              Song_get_active_scale(handle->song),
                              handle->song->random);
@@ -445,6 +721,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -453,10 +735,11 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if ((string_has_prefix(subkey, "i/") ||
               string_has_prefix(subkey, "c/")) &&
-             key_is_generator_param(subkey))
+             key_is_device_param(subkey))
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);
@@ -470,6 +753,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -478,16 +767,18 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if (strcmp(subkey, "p_events.json") == 0)
     {
         Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
         assert(common_params != NULL);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Generator_params_parse_events(common_params->type_params,
-                                           handle->song->event_handler,
-                                           data,
-                                           state))
+        if (!Device_params_parse_events(common_params->type_params,
+                                        DEVICE_EVENT_TYPE_GENERATOR,
+                                        handle->song->event_handler,
+                                        data,
+                                        state))
         {
             set_parse_error(handle, state);
             if (new_ins)
@@ -496,6 +787,12 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen != NULL)
+        {
+            Generator_copy_general(gen, common_params);
+        }
+#if 0
         for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
         {
             Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
@@ -504,6 +801,7 @@ static bool parse_generator_level(kqt_Handle* handle,
                 Generator_copy_general(gen, common_params);
             }
         }
+#endif
     }
     else if (strcmp(subkey, "p_gen_type.json") == 0)
     {
@@ -518,6 +816,30 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+        Generator* gen = Instrument_get_gen(ins, gen_index);
+        if (gen == NULL || Generator_get_type(gen) != type)
+        {
+            Generator* common_params =
+                    Instrument_get_common_gen_params(ins, gen_index);
+            assert(common_params != NULL);
+            gen = new_Generator(type, Instrument_get_params(ins),
+                                Generator_get_params(common_params),
+                                Device_get_buffer_size((Device*)handle->song),
+                                Device_get_mix_rate((Device*)handle->song));
+            if (gen == NULL)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                if (new_ins)
+                {
+                    del_Instrument(ins);
+                }
+                return false;
+            }
+            Generator_copy_general(gen, common_params);
+        }
+        Instrument_set_gen(ins, gen_index, gen);
+#if 0
         Generator* gen = Instrument_get_gen_of_type(ins, gen_index, type);
         if (gen == NULL)
         {
@@ -544,6 +866,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         {
             Instrument_set_gen(ins, gen_index, gen);
         }
+#endif
     }
     if (new_ins && !Ins_table_set(Song_get_insts(handle->song), ins_index, ins))
     {
@@ -551,6 +874,119 @@ static bool parse_generator_level(kqt_Handle* handle,
                 "Couldn't allocate memory");
         del_Instrument(ins);
         return false;
+    }
+    return true;
+}
+
+
+static bool parse_dsp_level(kqt_Handle* handle,
+                            Instrument* ins,
+                            const char* key,
+                            const char* subkey,
+                            void* data,
+                            long length,
+                            int dsp_index)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    if (dsp_index < 0 || dsp_index >= KQT_DSP_EFFECTS_MAX)
+    {
+        return true;
+    }
+    if (!string_has_prefix(subkey, MAGIC_ID "eXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "e" KQT_FORMAT_VERSION "/"))
+    {
+        return true;
+    }
+    subkey = strchr(subkey, '/') + 1;
+    if (strcmp(subkey, "p_dsp_type.json") == 0)
+    {
+//        fprintf(stderr, "%s\n", subkey);
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        DSP* dsp = new_DSP(data,
+                           Device_get_buffer_size((Device*)handle->song),
+                           Device_get_mix_rate((Device*)handle->song),
+                           state);
+        if (dsp == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+        DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
+                                         Song_get_dsps(handle->song);
+        assert(table != NULL);
+        if (!DSP_table_set_dsp(table, dsp_index, dsp))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            del_DSP(dsp);
+            return false;
+        }
+    }
+    else if ((string_has_prefix(subkey, "i/") ||
+              string_has_prefix(subkey, "c/")) &&
+             key_is_device_param(subkey))
+    {
+//        fprintf(stderr, "%s\n", subkey);
+        DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
+                                         Song_get_dsps(handle->song);
+        assert(table != NULL);
+        DSP_conf* conf = DSP_table_get_conf(table, dsp_index);
+        if (conf == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!DSP_conf_parse(conf, subkey, data, length, state))
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+    }
+    else if (strcmp(subkey, "p_events.json") == 0)
+    {
+//        fprintf(stderr, "%s\n", subkey);
+        DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
+                                         Song_get_dsps(handle->song);
+        assert(table != NULL);
+        DSP_conf* conf = DSP_table_get_conf(table, dsp_index);
+        if (conf == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            return false;
+        }
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Device_params_parse_events(conf->params,
+                                        DEVICE_EVENT_TYPE_DSP,
+                                        handle->song->event_handler,
+                                        data,
+                                        state))
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
     }
     return true;
 }

@@ -13,13 +13,12 @@
 
 
 #include <stdlib.h>
-#include <assert.h>
 #include <stdbool.h>
 
 #include <Event_common.h>
 #include <Event_ins_set_pedal.h>
 #include <Instrument_params.h>
-
+#include <xassert.h>
 #include <xmemory.h>
 
 
