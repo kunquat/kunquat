@@ -286,6 +286,194 @@ bool Device_node_init_buffers_simple(Device_node* node)
 }
 
 
+void Device_node_remove_direct_buffers(Device_node* node)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+        return;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            Device_node_remove_direct_buffers(edge->node);
+            edge = edge->next;
+        }
+    }
+    Device_remove_direct_buffers(node->device);
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return;
+}
+
+
+bool Device_node_init_input_buffers(Device_node* node)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+        return true;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+    bool instrument_master = false;
+    if (node->ins_dual != NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+        instrument_master = true;
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            if (!instrument_master && !Device_init_buffer(node->device,
+                                          DEVICE_PORT_TYPE_RECEIVE, port))
+            {
+                return false;
+            }
+            if (!Device_node_init_input_buffers(edge->node))
+            {
+                return false;
+            }
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return true;
+}
+
+
+bool Device_node_init_buffers_by_suggestion(Device_node* node,
+                                            int send_port,
+                                            Audio_buffer* suggestion)
+{
+    assert(node != NULL);
+    assert(send_port >= 0);
+    assert(send_port < KQT_DEVICE_PORTS_MAX);
+    if (node->device == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+    assert(node->name[0] == '\0' || node->send[send_port] != NULL);
+    if (node->ins_dual != NULL &&
+            Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, send_port) ==
+                Device_get_buffer(node->device, DEVICE_PORT_TYPE_SEND, send_port) &&
+            Device_get_buffer(node->device, DEVICE_PORT_TYPE_SEND, send_port) != NULL)
+    {
+        return true;
+    }
+    else if (node->ins_dual == NULL &&
+            Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+//    if (Device_get_buffer(node->device, DEVICE_PORT_TYPE_SEND, send_port)
+//            != NULL)
+//    {
+//        return true;
+//    }
+    if (suggestion != NULL && node->send[send_port]->next == NULL)
+    {
+        Device_set_direct_send(node->device, send_port, suggestion);
+    }
+    else if (!Device_init_buffer(node->device,
+                                 DEVICE_PORT_TYPE_SEND,
+                                 send_port))
+    {
+        return false;
+    }
+    if (node->ins_dual != NULL)
+    {
+        Device_set_direct_receive(node->device, send_port);
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(node->ins_dual, DEVICE_NODE_STATE_REACHED);
+        node = node->ins_dual;
+        Connection* edge = node->receive[send_port];
+        suggestion = Device_get_buffer(node->device,
+                                       DEVICE_PORT_TYPE_RECEIVE,
+                                       send_port);
+        while (edge != NULL)
+        {
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            if (!Device_node_init_buffers_by_suggestion(edge->node,
+                                                        edge->port,
+                                                        suggestion))
+            {
+                return false;
+            }
+            edge = edge->next;
+        }
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+        return true;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        suggestion = Device_get_buffer(node->device,
+                                       DEVICE_PORT_TYPE_RECEIVE, port);
+        if (suggestion == NULL)
+        {
+            continue;
+        }
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (edge->node->device == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            if (!Device_node_init_buffers_by_suggestion(edge->node,
+                        edge->port, suggestion))
+            {
+                return false;
+            }
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return true;
+}
+
+
 void Device_node_clear_buffers(Device_node* node,
                                uint32_t start,
                                uint32_t until)

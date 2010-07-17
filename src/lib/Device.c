@@ -138,6 +138,29 @@ bool Device_init_buffer(Device* device, Device_port_type type, int port)
 }
 
 
+void Device_set_direct_receive(Device* device, int port)
+{
+    assert(device != NULL);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+    assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
+    if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL &&
+            device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=
+                device->buffers[DEVICE_PORT_TYPE_SEND][port] &&
+            device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=
+                device->direct_send[port])
+    {
+        del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
+    }
+    device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] =
+            Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port);
+//    fprintf(stderr, "Set direct receive %p in device %p\n",
+//            (void*)device->buffers[DEVICE_PORT_TYPE_RECEIVE][port],
+//            (void*)device);
+    return;
+}
+
+
 void Device_set_direct_send(Device* device,
                             int port,
                             Audio_buffer* buffer)
@@ -147,6 +170,30 @@ void Device_set_direct_send(Device* device,
     assert(port < KQT_DEVICE_PORTS_MAX);
     assert(Audio_buffer_get_size(buffer) == device->buffer_size);
     device->direct_send[port] = buffer;
+    return;
+}
+
+
+void Device_remove_direct_buffers(Device* device)
+{
+    assert(device != NULL);
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        // If this is an Instrument Device, the input buffer of a port number
+        // may be the same as the output with the same port number.
+        Audio_buffer* in = device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
+        if (in != NULL &&
+                (in == device->buffers[DEVICE_PORT_TYPE_SEND][port] ||
+                 in == device->direct_send[port]))
+        {
+            device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
+        }
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        device->direct_send[port] = NULL;
+    }
+//    fprintf(stderr, "Removed direct buffers in %p \n", (void*)device);
     return;
 }
 
@@ -377,8 +424,11 @@ void Device_print(Device* device, FILE* out)
             fprintf(out, "Registered receive ports:\n");
             printed = true;
         }
-        fprintf(out, "  Port %02x, buffer %p\n", port,
-                     (void*)device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
+        bool direct = device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] ==
+                      Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port);
+        fprintf(out, "  Port %02x, buffer %p%s\n", port,
+                     (void*)device->buffers[DEVICE_PORT_TYPE_RECEIVE][port],
+                     direct ? " (direct)" : "");
     }
     return;
 }
@@ -387,6 +437,7 @@ void Device_print(Device* device, FILE* out)
 void Device_uninit(Device* device)
 {
     assert(device != NULL);
+    Device_remove_direct_buffers(device);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL)

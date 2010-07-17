@@ -55,6 +55,20 @@ bool Connections_init_buffers_simple(Connections* graph);
 
 
 /**
+ * Initialises Audio buffers in the Connections.
+ *
+ * This function uses a more sophisticated approach to allocating buffers than
+ * Connections_init_buffers_simple. Typically, it uses far less buffers, which
+ * requires less mixing and saves a bit of memory.
+ *
+ * \param graph   The Connections -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Connections_init_buffers(Connections* graph);
+
+
+/**
  * Clears the Audio buffers in the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.

@@ -208,7 +208,7 @@ bool Connections_prepare(Connections* graph,
     assert(insts != NULL);
     assert(dsps != NULL);
     Connections_set_devices(graph, master, insts, dsps);
-    return Connections_init_buffers_simple(graph);
+    return Connections_init_buffers(graph);
 }
 
 
@@ -237,6 +237,39 @@ bool Connections_init_buffers_simple(Connections* graph)
     assert(master != NULL);
     Device_node_reset(master);
     return Device_node_init_buffers_simple(master);
+}
+
+
+bool Connections_init_buffers(Connections* graph)
+{
+    assert(graph != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+//    fprintf(stderr, "\n\n!!! Entering Connections_init_buffers:\n");
+
+    Device_node_reset(master);
+    Device_node_remove_direct_buffers(master);
+//    fprintf(stderr, "After Device_node_remove_direct_buffers:\n");
+//    Connections_print(graph, stderr);
+
+    Device_node_reset(master);
+    if (!Device_node_init_input_buffers(master))
+    {
+        return false;
+    }
+//    fprintf(stderr, "After Device_node_init_input_buffers:\n");
+//    Connections_print(graph, stderr);
+
+    Device_node_reset(master);
+    if (!Device_node_init_buffers_by_suggestion(master, 0, NULL))
+    {
+        return false;
+    }
+//    fprintf(stderr, "After Device_node_init_buffers_by_suggestion:\n");
+//    Connections_print(graph, stderr);
+
+ //   fprintf(stderr, "!!! Finished Connections_init_buffers\n\n");
+    return true;
 }
 
 

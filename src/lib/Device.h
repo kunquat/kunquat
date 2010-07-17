@@ -142,6 +142,17 @@ bool Device_init_buffer(Device* device, Device_port_type type, int port);
 
 
 /**
+ * Sets a direct receive buffer for the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param port     The receive port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX. Also, the send port with this
+ *                 number must contain a buffer.
+ */
+void Device_set_direct_receive(Device* device, int port);
+
+
+/**
  * Sets a direct send buffer for the Device.
  *
  * \param device   The Device -- must not be \c NULL.
@@ -152,6 +163,14 @@ bool Device_init_buffer(Device* device, Device_port_type type, int port);
 void Device_set_direct_send(Device* device,
                             int port,
                             Audio_buffer* buffer);
+
+
+/**
+ * Removes all direct buffers from the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ */
+void Device_remove_direct_buffers(Device* device);
 
 
 /**

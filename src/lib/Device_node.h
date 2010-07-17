@@ -109,6 +109,43 @@ bool Device_node_init_buffers_simple(Device_node* node);
 
 
 /**
+ * Removes all direct Audio buffers from the Device node and its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_remove_direct_buffers(Device_node* node);
+
+
+/**
+ * Initialises all the necessary input Audio buffers in the Device node and
+ * its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_input_buffers(Device_node* node);
+
+
+/**
+ * Initialises all the remaining Audio buffers in the Device node and its
+ * subgraph.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param send_port    The send port of the connection that the caller
+ *                     used to reach \a node -- must be >= \c 0 and
+ *                     <= \c KQT_DEVICE_PORTS_MAX.
+ * \param suggestion   A suggestion for the Device node to use as its
+ *                     send buffer for \a send_port, or \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_buffers_by_suggestion(Device_node* node,
+                                            int send_port,
+                                            Audio_buffer* suggestion);
+
+
+/**
  * Clears the audio buffers in the Device node and its subgraph.
  *
  * \param node    The Device node -- must not be \c NULL.
