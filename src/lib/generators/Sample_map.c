@@ -327,6 +327,7 @@ void del_Sample_map(Sample_map* map)
     {
         del_AAtree(map->map);
     }
+    xfree(map);
     return;
 }
 
