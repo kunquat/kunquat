@@ -461,8 +461,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 return false;
             }
         }
+//        fprintf(stderr, "creating dsp %d\n", (int)dsp_index);
         bool success = parse_dsp_level(handle, ins, key, subkey,
                                        data, length, dsp_index);
+//        fprintf(stderr, "created dsp %p\n", (void*)Instrument_get_dsp(ins, dsp_index));
         changed ^= ins != NULL && Instrument_get_dsp(ins, dsp_index) != NULL;
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
@@ -476,6 +478,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
+//            fprintf(stderr, "Set up connections:\n");
+//            Connections_print(graph, stderr);
         }
         return success;
     }
@@ -584,8 +588,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 return false;
             }
 #endif
-            //fprintf(stderr, "line: %d\n", __LINE__);
-            //Connections_print(global_graph, stderr);
+//            fprintf(stderr, "line: %d\n", __LINE__);
+//            Connections_print(global_graph, stderr);
         }
     }
     struct

@@ -175,6 +175,8 @@ void Device_node_set_devices_(Device_node* node,
                 node->ins_dual = ins_node;
                 node = ins_node;
                 insts = NULL;
+                dsps = Instrument_get_dsps(ins);
+                assert(dsps != NULL);
             }
         }
     }
@@ -199,6 +201,7 @@ void Device_node_set_devices_(Device_node* node,
 //        if (dsp == NULL) fprintf(stderr, "null dsp is null\n");
 //        else fprintf(stderr, "dsp found\n");
         node->device = (Device*)dsp;
+//        fprintf(stderr, "node->device: %p\n", (void*)node->device);
     }
     else
     {
