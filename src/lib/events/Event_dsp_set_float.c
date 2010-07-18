@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 
 #include <DSP_conf.h>
 #include <Event_common.h>
@@ -30,7 +31,9 @@ static Event_field_desc set_float_desc[] =
         .type = EVENT_FIELD_STRING
     },
     {
-        .type = EVENT_FIELD_DOUBLE
+        .type = EVENT_FIELD_DOUBLE,
+        .min.field.double_type = -INFINITY,
+        .max.field.double_type = INFINITY
     },
     {
         .type = EVENT_FIELD_NONE

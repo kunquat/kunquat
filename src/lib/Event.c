@@ -144,6 +144,15 @@ char* Event_type_get_fields(char* str,
                 Reltime_copy(&fields[i].field.Reltime_type, rt);
             }
             break;
+            case EVENT_FIELD_STRING:
+            {
+                str = read_string(str, NULL, 0, state);
+                if (state->error)
+                {
+                    return str;
+                }
+            }
+            break;
             default:
             {
                 assert(false);
@@ -184,73 +193,87 @@ char* Event_read(Event* event, char* str, Read_state* state)
         int field_count = Event_get_field_count(event);
         for (int i = 0; i < field_count; ++i)
         {
+#if 0
             bool bool_value = false;
             int64_t numi = 0;
             double numd = NAN;
             Real* real = Real_init(REAL_AUTO);
             Reltime* rt = Reltime_init(RELTIME_AUTO);
             void* data = NULL;
+#endif
             switch (event->field_types[i].type)
             {
                 case EVENT_FIELD_BOOL:
                 {
-                    str = read_bool(str, &bool_value, state);
+                    str = read_bool(str, NULL, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
                     data = &bool_value;
+#endif
                 }
                 break;
                 case EVENT_FIELD_INT:
                 case EVENT_FIELD_NOTE:
                 case EVENT_FIELD_NOTE_MOD:
                 {
-                    str = read_int(str, &numi, state);
+                    str = read_int(str, NULL, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
                     data = &numi;
+#endif
                 }
                 break;
                 case EVENT_FIELD_DOUBLE:
                 {
-                    str = read_double(str, &numd, state);
+                    str = read_double(str, NULL, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
                     data = &numd;
+#endif
                 }
                 break;
                 case EVENT_FIELD_REAL:
                 {
-                    str = read_tuning(str, real, &numd, state);
+                    str = read_tuning(str, NULL, NULL, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
                     data = real;
+#endif
                 }
                 break;
                 case EVENT_FIELD_RELTIME:
                 {
-                    str = read_reltime(str, rt, state);
+                    str = read_reltime(str, NULL, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
                     data = rt;
+#endif
                 }
                 break;
                 case EVENT_FIELD_STRING:
                 {
                     str = read_string(str, NULL, 0, state);
+#if 0
                     if (state->error)
                     {
                         return str;
                     }
+#endif
                 }
                 break;
                 default:
@@ -260,12 +283,14 @@ char* Event_read(Event* event, char* str, Read_state* state)
                 }
                 break;
             }
+#if 0
             assert(data != NULL || event->field_types[i].type == EVENT_FIELD_STRING);
             if (!Event_set_field(event, i, data))
             {
                 Read_state_set_error(state, "Field %d is not inside valid range.", i);
                 return str;
             }
+#endif
             if (i < field_count - 1)
             {
                 str = read_const_char(str, ',', state);
@@ -284,6 +309,12 @@ char* Event_read(Event* event, char* str, Read_state* state)
     }
     if (fields_start != NULL)
     {
+        Event_field data[16]; // FIXME: limit
+        Event_type_get_fields(fields_start, event->field_types, data, state);
+        if (state->error)
+        {
+            return str;
+        }
         assert(fields_end != NULL);
         assert(fields_end >= fields_start);
         event->fields = xcalloc(char, fields_end - fields_start + 1);
@@ -323,6 +354,7 @@ Event_type Event_get_type(Event* event)
 
 void* Event_get_field(Event* event, int index)
 {
+    assert(false);
     assert(event != NULL);
     assert(event->get != NULL);
     return event->get(event, index);
@@ -331,6 +363,7 @@ void* Event_get_field(Event* event, int index)
 
 bool Event_set_field(Event* event, int index, void* data)
 {
+    assert(false);
     assert(event != NULL);
     assert(event->set != NULL);
     assert(data != NULL || event->field_types[index].type == EVENT_FIELD_STRING);

@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include <DSP_conf.h>
@@ -30,7 +31,9 @@ static Event_field_desc set_int_desc[] =
         .type = EVENT_FIELD_STRING
     },
     {
-        .type = EVENT_FIELD_INT
+        .type = EVENT_FIELD_INT,
+        .min.field.integral_type = INT64_MIN,
+        .max.field.integral_type = INT64_MAX
     },
     {
         .type = EVENT_FIELD_NONE
