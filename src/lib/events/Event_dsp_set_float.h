@@ -24,7 +24,6 @@
 typedef struct Event_dsp_set_float
 {
     Event_dsp parent;
-//    double value;
 } Event_dsp_set_float;
 
 

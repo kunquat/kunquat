@@ -24,7 +24,6 @@
 typedef struct Event_global_set_jump_subsong
 {
     Event_global parent;
-//    int64_t subsong;
 } Event_global_set_jump_subsong;
 
 

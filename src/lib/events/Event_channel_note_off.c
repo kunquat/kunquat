@@ -30,17 +30,9 @@ static Event_field_desc note_off_desc[] =
 };
 
 
-#if 0
-static bool Event_channel_note_off_set(Event* event, int index, void* data);
-
-static void* Event_channel_note_off_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_channel_note_off,
                          EVENT_CHANNEL_NOTE_OFF,
-                         note_off_desc/*,
-                         (void)0*/);
+                         note_off_desc);
 
 
 bool Event_channel_note_off_process(Channel_state* ch_state, char* fields)
@@ -68,29 +60,5 @@ bool Event_channel_note_off_process(Channel_state* ch_state, char* fields)
     ch_state->fg_count = 0;
     return true;
 }
-
-
-#if 0
-static bool Event_channel_note_off_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_OFF);
-    assert(data != NULL);
-    (void)event;
-    (void)index;
-    (void)data;
-    return false;
-}
-
-
-static void* Event_channel_note_off_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_NOTE_OFF);
-    (void)event;
-    (void)index;
-    return NULL;
-}
-#endif
 
 

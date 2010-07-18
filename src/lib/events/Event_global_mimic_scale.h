@@ -23,7 +23,6 @@
 typedef struct Event_global_mimic_scale
 {
     Event_global parent;
-//    int64_t modifier_index;
 } Event_global_mimic_scale;
 
 

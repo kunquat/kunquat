@@ -40,48 +40,9 @@ static Event_field_desc set_gen_reltime_desc[] =
 };
 
 
-#if 0
-static bool Event_channel_set_gen_reltime_set(Event* event, int index, void* data);
-
-
-static void* Event_channel_set_gen_reltime_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_channel_set_gen_reltime,
                          EVENT_CHANNEL_SET_GEN_RELTIME,
-                         set_gen_reltime_desc/*,
-                         Reltime_init(&event->value)*/);
-
-
-#if 0
-static bool Event_channel_set_gen_reltime_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SET_GEN_RELTIME);
-    Event_channel_set_gen_reltime* set_gen_reltime = (Event_channel_set_gen_reltime*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        Reltime_copy(&set_gen_reltime->value, data);
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_channel_set_gen_reltime_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SET_GEN_RELTIME);
-    Event_channel_set_gen_reltime* set_gen_reltime = (Event_channel_set_gen_reltime*)event;
-    if (index == 1)
-    {
-        return &set_gen_reltime->value;
-    }
-    return NULL;
-}
-#endif
+                         set_gen_reltime_desc);
 
 
 bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields)

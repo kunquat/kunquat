@@ -38,17 +38,9 @@ static Event_field_desc vibrato_speed_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_channel_vibrato_speed,
-                                   EVENT_CHANNEL_VIBRATO_SPEED,
-                                   double, speed);
-#endif
-
-
 Event_create_constructor(Event_channel_vibrato_speed,
                          EVENT_CHANNEL_VIBRATO_SPEED,
-                         vibrato_speed_desc/*,
-                         event->speed = 0*/);
+                         vibrato_speed_desc);
 
 
 bool Event_channel_vibrato_speed_process(Channel_state* ch_state, char* fields)

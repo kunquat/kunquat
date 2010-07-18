@@ -23,7 +23,6 @@
 typedef struct Event_channel_set_resonance
 {
     Event_channel parent;
-//    double resonance;
 } Event_channel_set_resonance;
 
 

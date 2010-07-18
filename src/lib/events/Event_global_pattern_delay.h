@@ -24,7 +24,6 @@
 typedef struct Event_global_pattern_delay
 {
     Event_global parent;
-//    Reltime length;
 } Event_global_pattern_delay;
 
 

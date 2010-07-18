@@ -23,7 +23,6 @@
 typedef struct Event_channel_set_gen_float
 {
     Event_channel parent;
-//    double value;
 } Event_channel_set_gen_float;
 
 

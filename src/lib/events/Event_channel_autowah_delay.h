@@ -23,7 +23,6 @@
 typedef struct Event_channel_autowah_delay
 {
     Event_channel parent;
-//    Reltime delay;
 } Event_channel_autowah_delay;
 
 

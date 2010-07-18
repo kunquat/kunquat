@@ -35,17 +35,9 @@ static Event_field_desc set_pedal_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_ins_set_pedal,
-                                   EVENT_INS_SET_PEDAL,
-                                   double, pedal);
-#endif
-
-
 Event_create_constructor(Event_ins_set_pedal,
                          EVENT_INS_SET_PEDAL,
-                         set_pedal_desc/*,
-                         event->pedal = 0*/);
+                         set_pedal_desc);
 
 
 bool Event_ins_set_pedal_process(Instrument_params* ins_state, char* fields)

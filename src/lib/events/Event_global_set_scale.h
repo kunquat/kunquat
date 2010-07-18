@@ -23,7 +23,6 @@
 typedef struct Event_global_set_scale
 {
     Event_global parent;
-//    int64_t scale_index;
 } Event_global_set_scale;
 
 

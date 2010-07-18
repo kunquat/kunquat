@@ -41,48 +41,9 @@ static Event_field_desc set_int_desc[] =
 };
 
 
-#if 0
-static bool Event_dsp_set_int_set(Event* event, int index, void* data);
-
-
-static void* Event_dsp_set_int_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_dsp_set_int,
                          EVENT_DSP_SET_INT,
-                         set_int_desc/*,
-                         event->value = false*/);
-
-
-#if 0
-static bool Event_dsp_set_int_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_INT);
-    Event_dsp_set_int* set_int = (Event_dsp_set_int*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_int->value = *(int64_t*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_dsp_set_int_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_INT);
-    Event_dsp_set_int* set_int = (Event_dsp_set_int*)event;
-    if (index == 1)
-    {
-        return &set_int->value;
-    }
-    return NULL;
-}
-#endif
+                         set_int_desc);
 
 
 bool Event_dsp_set_int_process(DSP_conf* dsp_conf, char* fields)

@@ -37,17 +37,9 @@ static Event_field_desc pattern_delay_desc[] =
 };
 
 
-#if 0
-Event_create_set_reltime_and_get(Event_global_pattern_delay,
-                                 EVENT_GLOBAL_PATTERN_DELAY,
-                                 length);
-#endif
-
-
 Event_create_constructor(Event_global_pattern_delay,
                          EVENT_GLOBAL_PATTERN_DELAY,
-                         pattern_delay_desc/*,
-                         Reltime_init(&event->length)*/);
+                         pattern_delay_desc);
 
 
 bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)

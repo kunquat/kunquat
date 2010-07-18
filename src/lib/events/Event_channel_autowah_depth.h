@@ -23,7 +23,6 @@
 typedef struct Event_channel_autowah_depth
 {
     Event_channel parent;
-//    double depth;
 } Event_channel_autowah_depth;
 
 

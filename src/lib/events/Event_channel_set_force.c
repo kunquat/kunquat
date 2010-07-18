@@ -37,17 +37,9 @@ static Event_field_desc set_force_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_channel_set_force,
-                                   EVENT_CHANNEL_SET_FORCE,
-                                   double, force_dB);
-#endif
-
-
 Event_create_constructor(Event_channel_set_force,
                          EVENT_CHANNEL_SET_FORCE,
-                         set_force_desc/*,
-                         event->force_dB = 0*/);
+                         set_force_desc);
 
 
 bool Event_channel_set_force_process(Channel_state* ch_state, char* fields)

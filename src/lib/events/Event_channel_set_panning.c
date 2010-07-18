@@ -37,17 +37,9 @@ static Event_field_desc set_panning_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_channel_set_panning,
-                                   EVENT_CHANNEL_SET_PANNING,
-                                   double, panning);
-#endif
-
-
 Event_create_constructor(Event_channel_set_panning,
                          EVENT_CHANNEL_SET_PANNING,
-                         set_panning_desc/*,
-                         event->panning = 0*/);
+                         set_panning_desc);
 
 
 bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields)

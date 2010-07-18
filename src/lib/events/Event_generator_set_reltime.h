@@ -24,7 +24,6 @@
 typedef struct Event_generator_set_reltime
 {
     Event_generator parent;
-//    Reltime value;
 } Event_generator_set_reltime;
 
 

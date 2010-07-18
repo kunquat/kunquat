@@ -39,48 +39,9 @@ static Event_field_desc set_gen_int_desc[] =
 };
 
 
-#if 0
-static bool Event_channel_set_gen_int_set(Event* event, int index, void* data);
-
-
-static void* Event_channel_set_gen_int_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_channel_set_gen_int,
                          EVENT_CHANNEL_SET_GEN_INT,
-                         set_gen_int_desc/*,
-                         event->value = 0*/);
-
-
-#if 0
-static bool Event_channel_set_gen_int_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SET_GEN_INT);
-    Event_channel_set_gen_int* set_gen_int = (Event_channel_set_gen_int*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_gen_int->value = *(int64_t*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_channel_set_gen_int_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SET_GEN_INT);
-    Event_channel_set_gen_int* set_gen_int = (Event_channel_set_gen_int*)event;
-    if (index == 1)
-    {
-        return &set_gen_int->value;
-    }
-    return NULL;
-}
-#endif
+                         set_gen_int_desc);
 
 
 bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields)

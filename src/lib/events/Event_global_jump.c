@@ -32,13 +32,6 @@ static Event_field_desc jump_desc[] =
 };
 
 
-#if 0
-static bool Event_global_jump_set(Event* event, int index, void* data);
-
-static void* Event_global_jump_get(Event* event, int index);
-#endif
-
-
 Event* new_Event_global_jump(Reltime* pos)
 {
     assert(pos != NULL);
@@ -55,18 +48,6 @@ Event* new_Event_global_jump(Reltime* pos)
     Reltime_set(&event->row, 0, 0);
     return (Event*)event;
 }
-
-
-#if 0
-Event_create_constructor(Event_global_jump,
-                         EVENT_GLOBAL_JUMP,
-                         jump_desc,
-                         event->play_id = 0,
-                         event->counter = 0,
-                         event->subsong = -1,
-                         event->section = -1,
-                         Reltime_set(&event->row, 0, 0));
-#endif
 
 
 bool Event_global_jump_process(Playdata* global_state, char* fields)
@@ -107,29 +88,5 @@ void Trigger_global_jump_process(Event_global* event, Playdata* play)
     }
     return;
 }
-
-
-#if 0
-static bool Event_global_jump_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    assert(data != NULL);
-    (void)event;
-    (void)index;
-    (void)data;
-    return false;
-}
-
-
-static void* Event_global_jump_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    (void)event;
-    (void)index;
-    return NULL;
-}
-#endif
 
 

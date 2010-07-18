@@ -23,7 +23,6 @@
 typedef struct Event_channel_slide_pitch
 {
     Event_channel parent;
-//    double cents;
 } Event_channel_slide_pitch;
 
 

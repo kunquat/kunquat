@@ -24,7 +24,6 @@
 typedef struct Event_global_set_tempo
 {
     Event_global parent;
-//    double tempo;
 } Event_global_set_tempo;
 
 

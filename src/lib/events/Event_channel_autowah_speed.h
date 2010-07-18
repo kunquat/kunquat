@@ -23,7 +23,6 @@
 typedef struct Event_channel_autowah_speed
 {
     Event_channel parent;
-//    double speed;
 } Event_channel_autowah_speed;
 
 

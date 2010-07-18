@@ -26,7 +26,6 @@
 typedef struct Event_dsp_set_int
 {
     Event_dsp parent;
-//    int64_t value;
 } Event_dsp_set_int;
 
 

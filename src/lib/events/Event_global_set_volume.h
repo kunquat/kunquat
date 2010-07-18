@@ -23,7 +23,6 @@
 typedef struct Event_global_set_volume
 {
     Event_global parent;
-//    double volume_dB;
 } Event_global_set_volume;
 
 

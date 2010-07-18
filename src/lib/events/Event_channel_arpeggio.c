@@ -54,61 +54,9 @@ static Event_field_desc arpeggio_desc[] =
 };
 
 
-#if 0
-static bool Event_channel_arpeggio_set(Event* event, int index, void* data);
-
-static void* Event_channel_arpeggio_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_channel_arpeggio,
                          EVENT_CHANNEL_ARPEGGIO,
-                         arpeggio_desc/*,
-                         for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
-                         event->speed = 24*/);
-
-
-#if 0
-static bool Event_channel_arpeggio_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_ARPEGGIO);
-    assert(data != NULL);
-    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
-    if (index == 0)
-    {
-        double speed = *(double*)data;
-        Event_check_double_range(speed, event->field_types[0]);
-        arpeggio->speed = speed;
-        return true;
-    }
-    else if (index >= 1 && index < KQT_ARPEGGIO_NOTES_MAX + 1)
-    {
-        double note = *(double*)data;
-        Event_check_double_range(note, event->field_types[index]);
-        arpeggio->notes[index - 1] = note;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_channel_arpeggio_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_ARPEGGIO);
-    Event_channel_arpeggio* arpeggio = (Event_channel_arpeggio*)event;
-    if (index == 0)
-    {
-        return &arpeggio->speed;
-    }
-    else if (index >= 1 && index < KQT_ARPEGGIO_NOTES_MAX + 1)
-    {
-        return &arpeggio->notes[index - 1];
-    }
-    return NULL;
-}
-#endif
+                         arpeggio_desc);
 
 
 bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)

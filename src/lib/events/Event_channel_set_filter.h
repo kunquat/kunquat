@@ -23,7 +23,6 @@
 typedef struct Event_channel_set_filter
 {
     Event_channel parent;
-//    double cutoff;
 } Event_channel_set_filter;
 
 

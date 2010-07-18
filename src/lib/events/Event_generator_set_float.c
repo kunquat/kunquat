@@ -40,48 +40,9 @@ static Event_field_desc set_float_desc[] =
 };
 
 
-#if 0
-static bool Event_generator_set_float_set(Event* event, int index, void* data);
-
-
-static void* Event_generator_set_float_get(Event* event, int index);
-#endif
-
-
 Event_create_constructor(Event_generator_set_float,
                          EVENT_GENERATOR_SET_FLOAT,
-                         set_float_desc/*,
-                         event->value = 0*/);
-
-
-#if 0
-static bool Event_generator_set_float_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_FLOAT);
-    Event_generator_set_float* set_float = (Event_generator_set_float*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_float->value = *(double*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_generator_set_float_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_FLOAT);
-    Event_generator_set_float* set_float = (Event_generator_set_float*)event;
-    if (index == 1)
-    {
-        return &set_float->value;
-    }
-    return NULL;
-}
-#endif
+                         set_float_desc);
 
 
 bool Event_generator_set_float_process(Generator* gen, char* fields)

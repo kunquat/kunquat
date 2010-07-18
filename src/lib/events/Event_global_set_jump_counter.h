@@ -24,7 +24,6 @@
 typedef struct Event_global_set_jump_counter
 {
     Event_global parent;
-//    int64_t counter;
 } Event_global_set_jump_counter;
 
 

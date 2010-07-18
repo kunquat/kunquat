@@ -23,7 +23,6 @@
 typedef struct Event_channel_set_gen_bool
 {
     Event_channel parent;
-//    bool value;
 } Event_channel_set_gen_bool;
 
 

@@ -38,17 +38,9 @@ static Event_field_desc slide_filter_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_channel_slide_filter,
-                                   EVENT_CHANNEL_SLIDE_FILTER,
-                                   double, target_cutoff);
-#endif
-
-
 Event_create_constructor(Event_channel_slide_filter,
                          EVENT_CHANNEL_SLIDE_FILTER,
-                         slide_filter_desc/*,
-                         event->target_cutoff = 90*/);
+                         slide_filter_desc);
 
 
 bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)

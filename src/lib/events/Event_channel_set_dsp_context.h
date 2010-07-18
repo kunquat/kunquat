@@ -23,7 +23,6 @@
 typedef struct Event_channel_set_dsp_context
 {
     Event_channel parent;
-//    int64_t dsp_context;
 } Event_channel_set_dsp_context;
 
 

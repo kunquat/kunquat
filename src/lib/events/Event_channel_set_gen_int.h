@@ -25,7 +25,6 @@
 typedef struct Event_channel_set_gen_int
 {
     Event_channel parent;
-//    int64_t value;
 } Event_channel_set_gen_int;
 
 

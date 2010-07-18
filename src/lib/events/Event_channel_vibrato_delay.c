@@ -40,17 +40,9 @@ static Event_field_desc vibrato_delay_desc[] =
 };
 
 
-#if 0
-Event_create_set_reltime_and_get(Event_channel_vibrato_delay,
-                                 EVENT_CHANNEL_VIBRATO_DELAY,
-                                 delay);
-#endif
-
-
 Event_create_constructor(Event_channel_vibrato_delay,
                          EVENT_CHANNEL_VIBRATO_DELAY,
-                         vibrato_delay_desc/*,
-                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4)*/);
+                         vibrato_delay_desc);
 
 
 bool Event_channel_vibrato_delay_process(Channel_state* ch_state, char* fields)

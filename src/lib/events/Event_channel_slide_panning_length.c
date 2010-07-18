@@ -38,17 +38,9 @@ static Event_field_desc slide_panning_length_desc[] =
 };
 
 
-#if 0
-Event_create_set_reltime_and_get(Event_channel_slide_panning_length,
-                                 EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                                 length);
-#endif
-
-
 Event_create_constructor(Event_channel_slide_panning_length,
                          EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                         slide_panning_length_desc/*,
-                         Reltime_set(&event->length, 0, 0)*/);
+                         slide_panning_length_desc);
 
 
 bool Event_channel_slide_panning_length_process(Channel_state* ch_state, char* fields)

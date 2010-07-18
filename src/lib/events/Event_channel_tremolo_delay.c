@@ -40,17 +40,9 @@ static Event_field_desc tremolo_delay_desc[] =
 };
 
 
-#if 0
-Event_create_set_reltime_and_get(Event_channel_tremolo_delay,
-                                 EVENT_CHANNEL_TREMOLO_DELAY,
-                                 delay);
-#endif
-
-
 Event_create_constructor(Event_channel_tremolo_delay,
                          EVENT_CHANNEL_TREMOLO_DELAY,
-                         tremolo_delay_desc/*,
-                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4)*/);
+                         tremolo_delay_desc);
 
 
 bool Event_channel_tremolo_delay_process(Channel_state* ch_state, char* fields)

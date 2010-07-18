@@ -38,17 +38,9 @@ static Event_field_desc set_instrument_desc[] =
 };
 
 
-#if 0
-Event_create_set_primitive_and_get(Event_channel_set_instrument,
-                                   EVENT_CHANNEL_SET_INSTRUMENT,
-                                   int64_t, instrument);
-#endif
-
-
 Event_create_constructor(Event_channel_set_instrument,
                          EVENT_CHANNEL_SET_INSTRUMENT,
-                         set_instrument_desc/*,
-                         event->instrument = 0*/);
+                         set_instrument_desc);
 
 
 bool Event_channel_set_instrument_process(Channel_state* ch_state, char* fields)

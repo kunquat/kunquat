@@ -25,7 +25,6 @@
 typedef struct Event_channel_note_on
 {
     Event_channel parent;
-//    double cents;
 } Event_channel_note_on;
 
 
