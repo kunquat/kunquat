@@ -60,10 +60,10 @@ typedef struct Instrument Instrument;
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(kqt_frame** bufs,
+Instrument* new_Instrument(/*kqt_frame** bufs,
                            kqt_frame** vbufs,
                            kqt_frame** vbufs2,
-                           int buf_count,
+                           int buf_count,*/
                            uint32_t buf_len,
                            uint32_t mix_rate,
                            Scale** scales,

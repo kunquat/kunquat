@@ -440,10 +440,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                               dsp_index) != NULL;
         if (ins == NULL)
         {
-            ins = new_Instrument(Song_get_bufs(handle->song),
+            ins = new_Instrument(/*Song_get_bufs(handle->song),
                                  Song_get_voice_bufs(handle->song),
                                  Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,
+                                 KQT_BUFFERS_MAX,*/
                                  Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
@@ -491,10 +491,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool new_ins = ins == NULL;
         if (new_ins)
         {
-            ins = new_Instrument(Song_get_bufs(handle->song),
+            ins = new_Instrument(/*Song_get_bufs(handle->song),
                                  Song_get_voice_bufs(handle->song),
                                  Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,
+                                 KQT_BUFFERS_MAX,*/
                                  Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
@@ -545,10 +545,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
         if (ins == NULL)
         {
-            ins = new_Instrument(Song_get_bufs(handle->song),
+            ins = new_Instrument(/*Song_get_bufs(handle->song),
                                  Song_get_voice_bufs(handle->song),
                                  Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,
+                                 KQT_BUFFERS_MAX,*/
                                  Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
@@ -615,10 +615,10 @@ static bool parse_instrument_level(kqt_Handle* handle,
             bool new_ins = ins == NULL;
             if (new_ins)
             {
-                ins = new_Instrument(Song_get_bufs(handle->song),
+                ins = new_Instrument(/*Song_get_bufs(handle->song),
                                      Song_get_voice_bufs(handle->song),
                                      Song_get_voice_bufs2(handle->song),
-                                     KQT_BUFFERS_MAX,
+                                     KQT_BUFFERS_MAX,*/
                                      Device_get_buffer_size((Device*)handle->song),
                                      Device_get_mix_rate((Device*)handle->song),
                                      Song_get_scales(handle->song),
@@ -693,10 +693,10 @@ static bool parse_generator_level(kqt_Handle* handle,
     bool new_ins = ins == NULL;
     if (new_ins)
     {
-        ins = new_Instrument(Song_get_bufs(handle->song),
+        ins = new_Instrument(/*Song_get_bufs(handle->song),
                              Song_get_voice_bufs(handle->song),
                              Song_get_voice_bufs2(handle->song),
-                             KQT_BUFFERS_MAX,
+                             KQT_BUFFERS_MAX,*/
                              Device_get_buffer_size((Device*)handle->song),
                              Device_get_mix_rate((Device*)handle->song),
                              Song_get_scales(handle->song),

@@ -56,10 +56,12 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate);
 static bool Song_set_buffer_size(Device* device, uint32_t size);
 
 
-Song* new_Song(int buf_count, uint32_t buf_size)
+Song* new_Song(uint32_t buf_size)
 {
+#if 0
     assert(buf_count >= 1);
     assert(buf_count <= KQT_BUFFERS_MAX);
+#endif
     assert(buf_size > 0);
     assert(buf_size <= KQT_BUFFER_SIZE_MAX);
     Song* song = xalloc(Song);
@@ -75,11 +77,13 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
     Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
+#if 0
     song->buf_count = buf_count;
     song->buf_size = buf_size;
     song->priv_bufs[0] = NULL;
     song->voice_bufs[0] = NULL;
     song->voice_bufs2[0] = NULL;
+#endif
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
@@ -94,6 +98,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
     {
         song->scales[i] = NULL;
     }
+#if 0
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         song->bufs[i] = NULL;
@@ -101,6 +106,7 @@ Song* new_Song(int buf_count, uint32_t buf_size)
         song->voice_bufs[i] = NULL;
         song->voice_bufs2[i] = NULL;
     }
+#endif
 #if 0
     for (int i = 0; i < buf_count; ++i)
     {
@@ -368,9 +374,9 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         return 0;
     }
-    if (nframes > song->buf_size && !play->silent)
+    if (nframes > Device_get_buffer_size((Device*)song) && !play->silent)
     {
-        nframes = song->buf_size;
+        nframes = Device_get_buffer_size((Device*)song);
     }
     if (!play->silent && song->connections != NULL)
     {
@@ -647,7 +653,6 @@ uint32_t Song_get_buf_size(Song* song)
     assert(song != NULL);
     return song->buf_size;
 }
-#endif
 
 
 kqt_frame** Song_get_bufs(Song* song)
@@ -669,6 +674,7 @@ kqt_frame** Song_get_voice_bufs2(Song* song)
     assert(song != NULL);
     return song->voice_bufs2;
 }
+#endif
 
 
 Subsong_table* Song_get_subsongs(Song* song)
@@ -823,6 +829,7 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
 void del_Song(Song* song)
 {
     assert(song != NULL);
+#if 0
     for (int i = 0; i < song->buf_count && song->priv_bufs[i] != NULL; ++i)
     {
         xfree(song->priv_bufs[i]);
@@ -835,6 +842,7 @@ void del_Song(Song* song)
     {
         xfree(song->voice_bufs2[i]);
     }
+#endif
     if (song->subsongs != NULL)
     {
         del_Subsong_table(song->subsongs);

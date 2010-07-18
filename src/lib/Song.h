@@ -36,12 +36,14 @@
 typedef struct Song
 {
     Device parent;
+#if 0
     int buf_count;                      ///< Number of buffers used for mixing.
     uint32_t buf_size;                  ///< Buffer size.
     kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
     kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
     kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
     kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
+#endif
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
@@ -70,8 +72,6 @@ typedef struct Song
  *
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
- * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
- *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of the mixing buffer -- must be > \c 0 and
  *                    <= KQT_BUFFER_SIZE_MAX.
  *
@@ -80,7 +80,7 @@ typedef struct Song
  * \return   The new Song if successful, or \c NULL if memory allocation
  *           failed.
  */
-Song* new_Song(int buf_count, uint32_t buf_size);
+Song* new_Song(uint32_t buf_size);
 
 
 /**
@@ -167,7 +167,7 @@ uint16_t Song_get_subsong(Song* song);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Song_set_buf_count(Song* song, int count);
+//bool Song_set_buf_count(Song* song, int count);
 
 
 /**
@@ -177,7 +177,7 @@ bool Song_set_buf_count(Song* song, int count);
  *
  * \return   The number of buffers.
  */
-int Song_get_buf_count(Song* song);
+//int Song_get_buf_count(Song* song);
 
 
 /**
@@ -188,7 +188,7 @@ int Song_get_buf_count(Song* song);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Song_set_buf_size(Song* song, uint32_t size);
+//bool Song_set_buf_size(Song* song, uint32_t size);
 
 
 /**
@@ -198,7 +198,7 @@ bool Song_set_buf_size(Song* song, uint32_t size);
  *
  * \return   The buffer size.
  */
-uint32_t Song_get_buf_size(Song* song);
+//uint32_t Song_get_buf_size(Song* song);
 
 
 /**
@@ -208,7 +208,7 @@ uint32_t Song_get_buf_size(Song* song);
  *
  * \return   The buffers.
  */
-kqt_frame** Song_get_bufs(Song* song);
+//kqt_frame** Song_get_bufs(Song* song);
 
 
 /**
@@ -218,7 +218,7 @@ kqt_frame** Song_get_bufs(Song* song);
  *
  * \return   The Voice buffers.
  */
-kqt_frame** Song_get_voice_bufs(Song* song);
+//kqt_frame** Song_get_voice_bufs(Song* song);
 
 
 /**
@@ -228,7 +228,7 @@ kqt_frame** Song_get_voice_bufs(Song* song);
  *
  * \return   The auxiliary Voice buffers.
  */
-kqt_frame** Song_get_voice_bufs2(Song* song);
+//kqt_frame** Song_get_voice_bufs2(Song* song);
 
 
 /**
