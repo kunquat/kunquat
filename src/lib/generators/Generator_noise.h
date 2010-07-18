@@ -42,6 +42,18 @@ Generator* new_Generator_noise(uint32_t buffer_size,
                                uint32_t mix_rate);
 
 
+/**
+ * Returns Noise Generator property information.
+ *
+ * \param gen             The Noise Generator -- must be valid.
+ * \param property_type   The property type -- must not be \c NULL.
+ *
+ * \return   The Noise Generator property description matching
+ *           \a property_type, or \c NULL if one does not exist.
+ */
+char* Generator_noise_property(Generator* gen, const char* property_type);
+
+
 uint32_t Generator_noise_mix(Generator* gen,
                              Voice_state* state,
                              uint32_t nframes,

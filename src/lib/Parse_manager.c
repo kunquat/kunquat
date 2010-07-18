@@ -16,12 +16,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <ctype.h>
+#include <inttypes.h>
 
 #include <Connections.h>
 #include <Connections_search.h>
 #include <File_base.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
+#include <Gen_type.h>
 #include <Handle_private.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -808,6 +810,36 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
+
+        char* (*property)(Generator*, const char*) =
+                Gen_type_find_property(Generator_get_type(gen));
+        if (property != NULL)
+        {
+            char* size_str = property(gen, "voice_state_size");
+            if (size_str != NULL)
+            {
+                Read_state* state = READ_STATE_AUTO;
+                int64_t size = 0;
+                read_int(size_str, &size, state);
+                assert(!state->error);
+                assert(size >= 0);
+//                fprintf(stderr, "Reserving space for %" PRId64 " bytes\n",
+//                                size);
+                if (!Voice_pool_reserve_state_space(
+                            handle->song->play_state->voice_pool, size))
+                {
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
+                    del_Generator(gen);
+                    if (new_ins)
+                    {
+                        del_Instrument(ins);
+                    }
+                    return false;
+                }
+            }
+        }
+        
         Gen_table* table = Instrument_get_gens(ins);
         assert(table != NULL);
         if (!Gen_table_set_gen(table, gen_index, gen))
@@ -815,6 +847,10 @@ static bool parse_generator_level(kqt_Handle* handle,
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
             del_Generator(gen);
+            if (new_ins)
+            {
+                del_Instrument(ins);
+            }
             return false;
         }
 #if 0

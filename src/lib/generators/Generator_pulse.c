@@ -58,6 +58,25 @@ Generator* new_Generator_pulse(uint32_t buffer_size,
 }
 
 
+char* Generator_pulse_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "pulse"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_pulse));
+        }
+        return size_str;
+    }
+    return NULL;
+}
+
+
 static void Generator_pulse_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);

@@ -67,7 +67,7 @@ bool Event_channel_tremolo_depth_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         if (data[0].field.double_type > 0 && vs->tremolo_length > 0)
         {
             vs->tremolo = true;

@@ -29,6 +29,7 @@ typedef struct Voice_pool
 {
     uint16_t size;
     uint8_t events;
+    size_t state_size;
     Voice** voices;
 } Voice_pool;
 
@@ -44,6 +45,17 @@ typedef struct Voice_pool
  *           failed.
  */
 Voice_pool* new_Voice_pool(uint16_t size, uint8_t events);
+
+
+/**
+ * Reserves space for the Voice states.
+ *
+ * \param pool         The Voice pool -- must not be \c NULL.
+ * \param state_size   The amount of bytes to reserve for the Voice states.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size);
 
 
 /**

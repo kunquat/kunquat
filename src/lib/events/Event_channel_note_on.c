@@ -100,7 +100,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         Voice_pool_fix_priority(ch_state->pool, ch_state->fg[i]);
 
         Voice* voice = ch_state->fg[i];
-        Voice_state* vs = &voice->state.generic;
+        Voice_state* vs = voice->state;
         Generator_process_note(voice->gen,
                                vs,
                                data[0].field.double_type);

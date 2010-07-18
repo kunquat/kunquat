@@ -60,6 +60,25 @@ Generator* new_Generator_noise(uint32_t buffer_size,
 }
 
 
+char* Generator_noise_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "noise"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_noise));
+        }
+        return size_str;
+    }
+    return NULL;
+}
+
+
 #if 0
 bool Generator_noise_has_subkey(const char* subkey)
 {

@@ -55,6 +55,25 @@ Generator* new_Generator_triangle(uint32_t buffer_size,
 }
 
 
+char* Generator_triangle_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "triangle"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_triangle));
+        }
+        return size_str;
+    }
+    return NULL;
+}
+
+
 void Generator_triangle_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);

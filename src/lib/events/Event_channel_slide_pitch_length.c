@@ -72,7 +72,7 @@ bool Event_channel_slide_pitch_length_process(Channel_state* ch_state, char* fie
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->pitch_slide_frames = slide_frames;
         Reltime_copy(&vs->pitch_slide_length, &data[0].field.Reltime_type);
         if (vs->pitch_slide != 0)

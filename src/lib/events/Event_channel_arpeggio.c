@@ -125,7 +125,7 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice* voice = ch_state->fg[i];
-        Voice_state* vs = &voice->state.generic;
+        Voice_state* vs = voice->state;
         pitch_t orig_pitch = -1;
         if (voice->gen->ins_params->pitch_lock_enabled)
         {

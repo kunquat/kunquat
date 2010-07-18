@@ -67,7 +67,7 @@ bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->panning = ch_state->panning;
         vs->panning_slide = 0;
     }

@@ -86,7 +86,7 @@ bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->panning_slide_target = data[0].field.double_type;
         vs->panning_slide_frames = Reltime_toframes(&vs->panning_slide_length,
                                                     *ch_state->tempo,

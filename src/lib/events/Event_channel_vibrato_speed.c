@@ -75,7 +75,7 @@ bool Event_channel_vibrato_speed_process(Channel_state* ch_state, char* fields)
         {
             return true;
         }
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         if (data[0].field.double_type > 0 && vs->vibrato_depth_target > 0)
         {
             vs->vibrato = true;

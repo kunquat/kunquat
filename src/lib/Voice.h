@@ -22,7 +22,9 @@
 #include <Channel_gen_state.h>
 #include <Generator.h>
 #include <Voice_params.h>
+#include <Voice_state.h>
 
+#if 0
 #include <Voice_state_sine.h>
 #include <Voice_state_pcm.h>
 #include <Voice_state_triangle.h>
@@ -30,6 +32,7 @@
 #include <Voice_state_square303.h>
 #include <Voice_state_sawtooth.h>
 #include <Voice_state_noise.h>
+#endif
 
 
 typedef enum
@@ -53,7 +56,9 @@ typedef struct Voice
     bool was_fg;
     uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Generator* gen;        ///< The Generator.
-    /// The current playback state.
+    size_t state_size;     ///< The amount bytes allocated for the Voice state.
+    Voice_state* state;    ///< The current playback state.
+#if 0
     union
     {
         Voice_state generic;
@@ -65,16 +70,30 @@ typedef struct Voice
         Voice_state_sawtooth sawtooth;
         Voice_state_noise noise;
     } state;
+#endif
 } Voice;
 
 
 /**
  * Creates a new Voice.
  *
+ * \param state_size   The amount of bytes to reserve for Voice states.
+ *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
 Voice* new_Voice(void);
+
+
+/**
+ * Reserves space for the Voice state.
+ *
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param state_size   The amount of bytes to reserve for the Voice state.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Voice_reserve_state_space(Voice* voice, size_t state_size);
 
 
 /**

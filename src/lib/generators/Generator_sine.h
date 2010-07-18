@@ -40,6 +40,18 @@ Generator* new_Generator_sine(uint32_t buffer_size,
                               uint32_t mix_rate);
 
 
+/**
+ * Returns Sine Generator property information.
+ *
+ * \param gen             The Sine Generator -- must be valid.
+ * \param property_type   The property type -- must not be \c NULL.
+ *
+ * \return   The Sine Generator property description matching
+ *           \a property_type, or \c NULL if one does not exist.
+ */
+char* Generator_sine_property(Generator* gen, const char* property_type);
+
+
 uint32_t Generator_sine_mix(Generator* gen,
                             Voice_state* state,
                             uint32_t nframes,

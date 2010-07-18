@@ -19,36 +19,40 @@
 #include <stdint.h>
 
 #include <Generator.h>
-#include <Generator_debug.h>
-#include <Generator_noise.h>
-#include <Generator_pcm.h>
-#include <Generator_pulse.h>
-#include <Generator_sawtooth.h>
-#include <Generator_sine.h>
-#include <Generator_square303.h>
-#include <Generator_triangle.h>
+
+
+typedef Generator* Generator_cons(uint32_t buffer_size, uint32_t mix_rate);
+
+
+typedef char* Generator_property(Generator* gen, const char* property_type);
 
 
 typedef struct Gen_type
 {
     char* type;
-    Generator* (*cons)(uint32_t buffer_size, uint32_t mix_rate);
-    char* (*property)(const char* property_type);
+    Generator_cons* cons;
+    Generator_property* property;
 } Gen_type;
 
 
-const Gen_type gen_types[] =
-{
-    { "debug", new_Generator_debug, NULL },
-    { "noise", new_Generator_noise, NULL },
-    { "pcm", new_Generator_pcm, NULL },
-    { "pulse", new_Generator_pulse, NULL },
-    { "sawtooth", new_Generator_sawtooth, NULL },
-    { "sine", new_Generator_sine, NULL },
-    { "square303", new_Generator_square303, NULL },
-    { "triangle", new_Generator_triangle, NULL },
-    { NULL, NULL, NULL }
-};
+/**
+ * Finds a Generator constructor.
+ *
+ * \param type   The Generator type -- must not be \c NULL.
+ *
+ * \return   The property function if \a type is supported, otherwise \c NULL.
+ */
+Generator_cons* Gen_type_find_cons(char* type);
+
+
+/**
+ * Finds a Generator property function.
+ *
+ * \param type   The Generator type -- must be a valid type.
+ *
+ * \return   The property function if one exists, otherwise \c NULL.
+ */
+Generator_property* Gen_type_find_property(char* type);
 
 
 #endif // K_GEN_TYPE_H

@@ -72,7 +72,7 @@ bool Event_channel_vibrato_delay_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->vibrato_delay_pos = 0;
         vs->vibrato_delay_update = ch_state->vibrato_delay_update;
         if (vs->vibrato_delay_update == 0)

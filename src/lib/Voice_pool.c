@@ -83,6 +83,7 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
         return NULL;
     }
     pool->size = size;
+    pool->state_size = 0;
     pool->events = events;
     pool->voices = xnalloc(Voice, size);
     if (pool->voices == NULL)
@@ -105,6 +106,25 @@ Voice_pool* new_Voice_pool(uint16_t size, uint8_t events)
         }
     }
     return pool;
+}
+
+
+bool Voice_pool_reserve_state_space(Voice_pool* pool, size_t state_size)
+{
+    assert(pool != NULL);
+    if (state_size <= pool->state_size)
+    {
+        return true;
+    }
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        if (!Voice_reserve_state_space(pool->voices[i], state_size))
+        {
+            return false;
+        }
+    }
+    pool->state_size = state_size;
+    return true;
 }
 
 
@@ -139,7 +159,8 @@ bool Voice_pool_resize(Voice_pool* pool, uint16_t size)
     for (uint16_t i = pool->size; i < new_size; ++i)
     {
         pool->voices[i] = new_Voice();
-        if (pool->voices[i] == NULL)
+        if (pool->voices[i] == NULL ||
+                !Voice_reserve_state_space(pool->voices[i], pool->state_size))
         {
             for (--i; i >= pool->size; --i)
             {

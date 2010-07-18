@@ -61,6 +61,25 @@ Generator* new_Generator_pcm(uint32_t buffer_size,
 }
 
 
+char* Generator_pcm_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "pcm"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_pcm));
+        }
+        return size_str;
+    }
+    return NULL;
+}
+
+
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);

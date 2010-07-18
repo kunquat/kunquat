@@ -145,7 +145,7 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
         {
             return true;
         }
-        Voice_state* vs = &voice->state.generic;
+        Voice_state* vs = voice->state;
         pitch_t pitch = -1;
         if (voice->gen->ins_params->scale == NULL ||
                 *voice->gen->ins_params->scale == NULL ||

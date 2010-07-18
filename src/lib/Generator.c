@@ -73,15 +73,7 @@ Generator* new_Generator(char* str,
     {
         return NULL;
     }
-    Generator* (*cons)(uint32_t, uint32_t) = NULL;
-    for (int i = 0; gen_types[i].type != NULL; ++i)
-    {
-        if (strcmp(type, gen_types[i].type) == 0)
-        {
-            cons = gen_types[i].cons;
-            break;
-        }
-    }
+    Generator* (*cons)(uint32_t, uint32_t) = Gen_type_find_cons(type);
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported Generator type: %s", type);
