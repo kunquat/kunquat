@@ -709,85 +709,9 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-#if 0
-    if (strcmp(subkey, "p_generator.json") == 0)
-    {
-        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-        assert(common_params != NULL);
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Generator_parse_general(common_params, data, state))
-        {
-            set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen != NULL)
-        {
-            Generator_copy_general(gen, common_params);
-        }
-#if 0
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-            if (gen != NULL)
-            {
-                Generator_copy_general(gen, common_params);
-            }
-        }
-#endif
-    }
-    else if ((string_has_prefix(subkey, "i/") ||
-              string_has_prefix(subkey, "c/")) &&
-             key_is_device_param(subkey))
-    {
-        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-        assert(common_params != NULL);
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Generator_parse_param(common_params, subkey, data, length, state))
-        {
-            set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen != NULL)
-        {
-            Generator_copy_general(gen, common_params);
-        }
-#if 0
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-            if (gen != NULL)
-            {
-                Generator_copy_general(gen, common_params);
-            }
-        }
-#endif
-    }
-#endif
     if (strcmp(subkey, "p_gen_type.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-#if 0
-        Gen_type type = Generator_type_parse(data, state);
-        if (state->error)
-        {
-            set_parse_error(handle, state);
-            if (new_ins)
-            {
-                del_Instrument(ins);
-            }
-            return false;
-        }
-#endif
         Generator* gen = new_Generator(data, Instrument_get_params(ins),
                                  Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
@@ -853,59 +777,6 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
-#if 0
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen == NULL || Generator_get_type(gen) != type)
-        {
-            Generator* common_params =
-                    Instrument_get_common_gen_params(ins, gen_index);
-            assert(common_params != NULL);
-            gen = new_Generator(type, Instrument_get_params(ins),
-                                Generator_get_params(common_params),
-                                Device_get_buffer_size((Device*)handle->song),
-                                Device_get_mix_rate((Device*)handle->song));
-            if (gen == NULL)
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                if (new_ins)
-                {
-                    del_Instrument(ins);
-                }
-                return false;
-            }
-            Generator_copy_general(gen, common_params);
-        }
-        Instrument_set_gen(ins, gen_index, gen);
-#endif
-#if 0
-        Generator* gen = Instrument_get_gen_of_type(ins, gen_index, type);
-        if (gen == NULL)
-        {
-//            fprintf(stderr, "1\n");
-            Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-            assert(common_params != NULL);
-            gen = new_Generator(type, Instrument_get_params(ins),
-                                Generator_get_params(common_params));
-//            fprintf(stderr, "2 -- gen %p for ins %p\n", (void*)gen, (void*)ins);
-            if (gen == NULL)
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                if (new_ins)
-                {
-                    del_Instrument(ins);
-                }
-                return false;
-            }
-            Generator_copy_general(gen, common_params);
-            Instrument_set_gen(ins, gen_index, gen);
-        }
-        else
-        {
-            Instrument_set_gen(ins, gen_index, gen);
-        }
-#endif
     }
     else if (strcmp(subkey, "p_events.json") == 0)
     {
@@ -919,11 +790,6 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-#if 0
-        Generator* common_params = Instrument_get_common_gen_params(ins, gen_index);
-        assert(common_params != NULL);
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-#endif
         if (!Device_params_parse_events(conf->params,
                                         DEVICE_EVENT_TYPE_GENERATOR,
                                         handle->song->event_handler,
@@ -937,23 +803,6 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
-#if 0
-        Generator* gen = Instrument_get_gen(ins, gen_index);
-        if (gen != NULL)
-        {
-            Generator_copy_general(gen, common_params);
-        }
-#endif
-#if 0
-        for (Gen_type i = GEN_TYPE_NONE + 1; i < GEN_TYPE_LAST; ++i)
-        {
-            Generator* gen = Instrument_get_gen_of_type(ins, gen_index, i);
-            if (gen != NULL)
-            {
-                Generator_copy_general(gen, common_params);
-            }
-        }
-#endif
     }
     else
     {

@@ -21,18 +21,36 @@
 #include <Generator.h>
 
 
+/**
+ * This is the type of a Generator constructor.
+ *
+ * \param buffer_size   The mixing buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The mixing rate -- must be > \c 0.
+ *
+ * \return   The new Generator if successful, or \c NULL if memory allocation
+ *           failed.
+ */
 typedef Generator* Generator_cons(uint32_t buffer_size, uint32_t mix_rate);
 
 
+/**
+ * This is the type of a Generator property function.
+ *
+ * A Generator property function is used to retrieve information about the
+ * internal operation of the Generator. The property is returned as JSON data.
+ * Most importantly, the function may return the amount of bytes the Generator
+ * needs for Voice states to be available (property type "voice_state_size").
+ *
+ * \param gen             The Generator -- must not be \c NULL.
+ * \param property_type   The property to resolve -- must not be \c NULL.
+ *
+ * \return   The property for the Generator if one exists, otherwise \c NULL.
+ */
 typedef char* Generator_property(Generator* gen, const char* property_type);
 
 
-typedef struct Gen_type
-{
-    char* type;
-    Generator_cons* cons;
-    Generator_property* property;
-} Gen_type;
+typedef struct Gen_type Gen_type;
 
 
 /**

@@ -27,6 +27,14 @@
 #include <xassert.h>
 
 
+struct Gen_type
+{
+    char* type;
+    Generator_cons* cons;
+    Generator_property* property;
+};
+
+
 const Gen_type gen_types[] =
 {
     { "debug", new_Generator_debug, NULL },
