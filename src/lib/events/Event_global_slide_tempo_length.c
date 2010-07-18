@@ -37,15 +37,17 @@ static Event_field_desc slide_tempo_length_desc[] =
 };
 
 
+#if 0
 Event_create_set_reltime_and_get(Event_global_slide_tempo_length,
                                  EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
                                  length);
+#endif
 
 
 Event_create_constructor(Event_global_slide_tempo_length,
                          EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
-                         slide_tempo_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_tempo_length_desc/*,
+                         Reltime_set(&event->length, 0, 0)*/);
 
 
 bool Event_global_slide_tempo_length_process(Playdata* global_state,

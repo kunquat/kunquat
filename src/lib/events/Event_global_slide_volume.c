@@ -37,15 +37,17 @@ static Event_field_desc slide_volume_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_global_slide_volume,
                                    EVENT_GLOBAL_SLIDE_VOLUME,
                                    double, target_volume_dB);
+#endif
 
 
 Event_create_constructor(Event_global_slide_volume,
                          EVENT_GLOBAL_SLIDE_VOLUME,
-                         slide_volume_desc,
-                         event->target_volume_dB = 0);
+                         slide_volume_desc/*,
+                         event->target_volume_dB = 0*/);
 
 
 bool Event_global_slide_volume_process(Playdata* global_state, char* fields)

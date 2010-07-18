@@ -36,15 +36,17 @@ static Event_field_desc slide_tempo_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_global_slide_tempo,
                                    EVENT_GLOBAL_SLIDE_TEMPO,
                                    double, target_tempo);
+#endif
 
 
 Event_create_constructor(Event_global_slide_tempo,
                          EVENT_GLOBAL_SLIDE_TEMPO,
-                         slide_tempo_desc,
-                         event->target_tempo = 120);
+                         slide_tempo_desc/*,
+                         event->target_tempo = 120*/);
 
 
 bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)

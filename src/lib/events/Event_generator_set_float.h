@@ -24,7 +24,7 @@
 typedef struct Event_generator_set_float
 {
     Event_generator parent;
-    double value;
+//    double value;
 } Event_generator_set_float;
 
 

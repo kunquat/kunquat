@@ -24,7 +24,7 @@
 typedef struct Event_global_set_jump_row
 {
     Event_global parent;
-    Reltime row;
+//    Reltime row;
 } Event_global_set_jump_row;
 
 

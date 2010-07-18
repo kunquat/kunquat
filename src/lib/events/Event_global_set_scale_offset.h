@@ -23,7 +23,7 @@
 typedef struct Event_global_set_scale_offset
 {
     Event_global parent;
-    double offset;
+//    double offset;
 } Event_global_set_scale_offset;
 
 

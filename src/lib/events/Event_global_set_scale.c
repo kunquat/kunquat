@@ -35,15 +35,17 @@ static Event_field_desc set_scale_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_global_set_scale,
                                    EVENT_GLOBAL_SET_SCALE,
                                    int64_t, scale_index);
+#endif
 
 
 Event_create_constructor(Event_global_set_scale,
                          EVENT_GLOBAL_SET_SCALE,
-                         set_scale_desc,
-                         event->scale_index = 0);
+                         set_scale_desc/*,
+                         event->scale_index = 0*/);
 
 
 bool Event_global_set_scale_process(Playdata* global_state, char* fields)

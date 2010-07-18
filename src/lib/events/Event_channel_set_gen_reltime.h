@@ -23,7 +23,7 @@
 typedef struct Event_channel_set_gen_reltime
 {
     Event_channel parent;
-    Reltime value;
+//    Reltime value;
 } Event_channel_set_gen_reltime;
 
 

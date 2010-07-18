@@ -23,7 +23,7 @@
 typedef struct Event_global_slide_tempo
 {
     Event_global parent;
-    double target_tempo;
+//    double target_tempo;
 } Event_global_slide_tempo;
 
 

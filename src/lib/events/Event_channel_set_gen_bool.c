@@ -36,18 +36,21 @@ static Event_field_desc set_gen_bool_desc[] =
 };
 
 
+#if 0
 static bool Event_channel_set_gen_bool_set(Event* event, int index, void* data);
 
 
 static void* Event_channel_set_gen_bool_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_channel_set_gen_bool,
                          EVENT_CHANNEL_SET_GEN_BOOL,
-                         set_gen_bool_desc,
-                         event->value = false);
+                         set_gen_bool_desc/*,
+                         event->value = false*/);
 
 
+#if 0
 static bool Event_channel_set_gen_bool_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -74,6 +77,7 @@ static void* Event_channel_set_gen_bool_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_channel_set_gen_bool_process(Channel_state* ch_state, char* fields)

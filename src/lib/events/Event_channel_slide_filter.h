@@ -23,7 +23,7 @@
 typedef struct Event_channel_slide_filter
 {
     Event_channel parent;
-    double target_cutoff;
+//    double target_cutoff;
 } Event_channel_slide_filter;
 
 

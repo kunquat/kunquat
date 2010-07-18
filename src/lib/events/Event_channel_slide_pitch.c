@@ -40,15 +40,17 @@ static Event_field_desc slide_pitch_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_slide_pitch,
                                    EVENT_CHANNEL_SLIDE_PITCH,
                                    double, cents);
+#endif
 
 
 Event_create_constructor(Event_channel_slide_pitch,
                          EVENT_CHANNEL_SLIDE_PITCH,
-                         slide_pitch_desc,
-                         event->cents = 0);
+                         slide_pitch_desc/*,
+                         event->cents = 0*/);
 
 
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)

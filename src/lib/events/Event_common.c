@@ -22,22 +22,22 @@
 Event* Event_init(Event* event,
                   Reltime* pos,
                   Event_type type,
-                  Event_field_desc* field_types,
+                  Event_field_desc* field_types/*,
                   bool (*set)(Event*, int, void*),
-                  void* (*get)(Event*, int))
+                  void* (*get)(Event*, int)*/)
 {
     assert(event != NULL);
     assert(pos != NULL);
     assert(EVENT_IS_VALID(type));
     assert(field_types != NULL);
-    assert(set != NULL);
-    assert(get != NULL);
+//    assert(set != NULL);
+//    assert(get != NULL);
     event->type = type;
     Reltime_copy(&event->pos, pos);
     event->field_types = field_types;
     event->fields = NULL;
-    event->set = set;
-    event->get = get;
+//    event->set = set;
+//    event->get = get;
     event->destroy = del_Event_default;
     return event;
 }

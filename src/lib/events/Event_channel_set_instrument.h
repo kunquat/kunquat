@@ -23,7 +23,7 @@
 typedef struct Event_channel_set_instrument
 {
     Event_channel parent;
-    int64_t instrument;
+//    int64_t instrument;
 } Event_channel_set_instrument;
 
 

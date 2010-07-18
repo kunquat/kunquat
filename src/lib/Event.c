@@ -20,7 +20,6 @@
 #include <stdio.h>
 
 #include <Event.h>
-
 #include <Scale.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
@@ -352,6 +351,7 @@ Event_type Event_get_type(Event* event)
 }
 
 
+#if 0
 void* Event_get_field(Event* event, int index)
 {
     assert(false);
@@ -373,6 +373,7 @@ bool Event_set_field(Event* event, int index, void* data)
     }
     return event->set(event, index, data);
 }
+#endif
 
 
 char* Event_get_fields(Event* event)

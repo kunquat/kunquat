@@ -23,7 +23,7 @@
 typedef struct Event_channel_slide_force
 {
     Event_channel parent;
-    double target_force_dB;
+//    double target_force_dB;
 } Event_channel_slide_force;
 
 

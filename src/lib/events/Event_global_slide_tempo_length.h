@@ -23,7 +23,7 @@
 typedef struct Event_global_slide_tempo_length
 {
     Event_global parent;
-    Reltime length;
+//    Reltime length;
 } Event_global_slide_tempo_length;
 
 

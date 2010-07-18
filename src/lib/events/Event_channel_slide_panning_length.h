@@ -23,7 +23,7 @@
 typedef struct Event_channel_slide_panning_length
 {
     Event_channel parent;
-    Reltime length;
+//    Reltime length;
 } Event_channel_slide_panning_length;
 
 

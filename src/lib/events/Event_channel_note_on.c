@@ -41,15 +41,17 @@ static Event_field_desc note_on_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_note_on,
                                    EVENT_CHANNEL_NOTE_ON,
                                    double, cents);
+#endif
 
 
 Event_create_constructor(Event_channel_note_on,
                          EVENT_CHANNEL_NOTE_ON,
-                         note_on_desc,
-                         event->cents = 0);
+                         note_on_desc/*,
+                         event->cents = 0*/);
 
 
 bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)

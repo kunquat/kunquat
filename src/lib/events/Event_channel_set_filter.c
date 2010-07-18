@@ -37,15 +37,17 @@ static Event_field_desc set_filter_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_set_filter,
                                    EVENT_CHANNEL_SET_FILTER,
                                    double, cutoff);
+#endif
 
 
 Event_create_constructor(Event_channel_set_filter,
                          EVENT_CHANNEL_SET_FILTER,
-                         set_filter_desc,
-                         event->cutoff = INFINITY);
+                         set_filter_desc/*,
+                         event->cutoff = INFINITY*/);
 
 
 bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields)

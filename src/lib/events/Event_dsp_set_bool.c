@@ -38,18 +38,21 @@ static Event_field_desc set_bool_desc[] =
 };
 
 
+#if 0
 static bool Event_dsp_set_bool_set(Event* event, int index, void* data);
 
 
 static void* Event_dsp_set_bool_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_dsp_set_bool,
                          EVENT_DSP_SET_BOOL,
-                         set_bool_desc,
-                         event->value = false);
+                         set_bool_desc/*,
+                         event->value = false*/);
 
 
+#if 0
 static bool Event_dsp_set_bool_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -76,6 +79,7 @@ static void* Event_dsp_set_bool_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_dsp_set_bool_process(DSP_conf* dsp_conf, char* fields)

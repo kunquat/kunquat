@@ -38,18 +38,21 @@ static Event_field_desc set_gen_float_desc[] =
 };
 
 
+#if 0
 static bool Event_channel_set_gen_float_set(Event* event, int index, void* data);
 
 
 static void* Event_channel_set_gen_float_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_channel_set_gen_float,
                          EVENT_CHANNEL_SET_GEN_FLOAT,
-                         set_gen_float_desc,
-                         event->value = 0);
+                         set_gen_float_desc/*,
+                         event->value = 0*/);
 
 
+#if 0
 static bool Event_channel_set_gen_float_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -76,6 +79,7 @@ static void* Event_channel_set_gen_float_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_channel_set_gen_float_process(Channel_state* ch_state, char* fields)

@@ -23,7 +23,7 @@
 typedef struct Event_ins_set_pedal
 {
     Event_ins parent;
-    double pedal;
+//    double pedal;
 } Event_ins_set_pedal;
 
 

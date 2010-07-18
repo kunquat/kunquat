@@ -23,7 +23,7 @@
 typedef struct Event_channel_vibrato_speed
 {
     Event_channel parent;
-    double speed;
+//    double speed;
 } Event_channel_vibrato_speed;
 
 

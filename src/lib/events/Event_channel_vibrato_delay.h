@@ -23,7 +23,7 @@
 typedef struct Event_channel_vibrato_delay
 {
     Event_channel parent;
-    Reltime delay;
+//    Reltime delay;
 } Event_channel_vibrato_delay;
 
 

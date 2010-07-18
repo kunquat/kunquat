@@ -23,7 +23,7 @@
 typedef struct Event_channel_tremolo_depth
 {
     Event_channel parent;
-    double depth;
+//    double depth;
 } Event_channel_tremolo_depth;
 
 

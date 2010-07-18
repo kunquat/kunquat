@@ -20,6 +20,7 @@
 
 #include <Event.h>
 #include <Reltime.h>
+#include <xmemory.h>
 
 
 /**
@@ -40,9 +41,9 @@
 Event* Event_init(Event* event,
                   Reltime* pos,
                   Event_type type,
-                  Event_field_desc* field_types,
+                  Event_field_desc* field_types/*,
                   bool (*set)(Event*, int, void*),
-                  void* (*get)(Event*, int));
+                  void* (*get)(Event*, int)*/);
 
 
 /**
@@ -58,6 +59,7 @@ void del_Event_default(Event* event);
 #define Event_check_int64_t_range Event_check_integral_range
 
 
+#if 0
 #define Event_create_set_primitive(etype, etype_id, ftype, fname)        \
     static bool etype ## _set(Event* event, int index, void* data);      \
     static bool etype ## _set(Event* event, int index, void* data)       \
@@ -119,9 +121,10 @@ void del_Event_default(Event* event);
 #define Event_create_set_reltime_and_get(type, type_id, field_name) \
     Event_create_set_reltime(type, type_id, field_name);            \
     Event_create_get(type, type_id, field_name)
+#endif
 
 
-#define Event_create_constructor(etype, etype_id, field_desc, ...) \
+#define Event_create_constructor(etype, etype_id, field_desc) \
     Event* new_ ## etype(Reltime* pos)                             \
     {                                                              \
         assert(pos != NULL);                                       \
@@ -133,10 +136,10 @@ void del_Event_default(Event* event);
         Event_init((Event*)event,                                  \
                    pos,                                            \
                    etype_id,                                       \
-                   field_desc,                                     \
+                   field_desc/*,                                     \
                    etype ## _set,                                  \
-                   etype ## _get);                                 \
-        __VA_ARGS__;                                               \
+                   etype ## _get*/);                                 \
+        /*__VA_ARGS__;*/                                               \
         return (Event*)event;                                      \
     } Event* new_ ## etype(Reltime* pos)
 

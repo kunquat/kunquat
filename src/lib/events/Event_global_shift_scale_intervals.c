@@ -41,16 +41,18 @@ static Event_field_desc shift_scale_intervals_desc[] =
 };
 
 
+#if 0
 static bool Event_global_shift_scale_intervals_set(Event* event, int index, void* data);
 
 static void* Event_global_shift_scale_intervals_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_global_shift_scale_intervals,
                          EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
-                         shift_scale_intervals_desc,
+                         shift_scale_intervals_desc/*,
                          event->new_ref = 0,
-                         event->fixed_point = 0);
+                         event->fixed_point = 0*/);
 
 
 bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fields)
@@ -84,6 +86,7 @@ bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fi
 }
 
 
+#if 0
 static bool Event_global_shift_scale_intervals_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -123,5 +126,6 @@ static void* Event_global_shift_scale_intervals_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 

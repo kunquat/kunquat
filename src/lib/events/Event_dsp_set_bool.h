@@ -24,7 +24,7 @@
 typedef struct Event_dsp_set_bool
 {
     Event_dsp parent;
-    bool value;
+//    bool value;
 } Event_dsp_set_bool;
 
 

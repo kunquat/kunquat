@@ -54,18 +54,21 @@ static Event_field_desc arpeggio_desc[] =
 };
 
 
+#if 0
 static bool Event_channel_arpeggio_set(Event* event, int index, void* data);
 
 static void* Event_channel_arpeggio_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_channel_arpeggio,
                          EVENT_CHANNEL_ARPEGGIO,
-                         arpeggio_desc,
+                         arpeggio_desc/*,
                          for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i) { event->notes[i] = 0; }
-                         event->speed = 24);
+                         event->speed = 24*/);
 
 
+#if 0
 static bool Event_channel_arpeggio_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -105,6 +108,7 @@ static void* Event_channel_arpeggio_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)

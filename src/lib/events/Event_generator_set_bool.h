@@ -24,7 +24,7 @@
 typedef struct Event_generator_set_bool
 {
     Event_generator parent;
-    bool value;
+//    bool value;
 } Event_generator_set_bool;
 
 

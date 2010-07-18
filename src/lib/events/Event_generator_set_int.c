@@ -41,18 +41,21 @@ static Event_field_desc set_int_desc[] =
 };
 
 
+#if 0
 static bool Event_generator_set_int_set(Event* event, int index, void* data);
 
 
 static void* Event_generator_set_int_get(Event* event, int index);
+#endif
 
 
 Event_create_constructor(Event_generator_set_int,
                          EVENT_GENERATOR_SET_INT,
-                         set_int_desc,
-                         event->value = 0);
+                         set_int_desc/*,
+                         event->value = 0*/);
 
 
+#if 0
 static bool Event_generator_set_int_set(Event* event, int index, void* data)
 {
     assert(event != NULL);
@@ -79,6 +82,7 @@ static void* Event_generator_set_int_get(Event* event, int index)
     }
     return NULL;
 }
+#endif
 
 
 bool Event_generator_set_int_process(Generator* gen, char* fields)

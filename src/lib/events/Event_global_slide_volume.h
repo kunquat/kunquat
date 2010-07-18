@@ -23,7 +23,7 @@
 typedef struct Event_global_slide_volume
 {
     Event_global parent;
-    double target_volume_dB;
+//    double target_volume_dB;
 } Event_global_slide_volume;
 
 

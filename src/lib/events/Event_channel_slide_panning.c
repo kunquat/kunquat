@@ -38,15 +38,17 @@ static Event_field_desc slide_panning_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_slide_panning,
                                    EVENT_CHANNEL_SLIDE_PANNING,
                                    double, target_panning);
+#endif
 
 
 Event_create_constructor(Event_channel_slide_panning,
                          EVENT_CHANNEL_SLIDE_PANNING,
-                         slide_panning_desc,
-                         event->target_panning = 0);
+                         slide_panning_desc/*,
+                         event->target_panning = 0*/);
 
 
 bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)

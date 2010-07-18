@@ -35,15 +35,17 @@ static Event_field_desc set_volume_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_global_set_volume,
                                    EVENT_GLOBAL_SET_VOLUME,
                                    double, volume_dB);
+#endif
 
 
 Event_create_constructor(Event_global_set_volume,
                          EVENT_GLOBAL_SET_VOLUME,
-                         set_volume_desc,
-                         event->volume_dB = 0);
+                         set_volume_desc/*,
+                         event->volume_dB = 0*/);
 
 
 bool Event_global_set_volume_process(Playdata* global_state, char* fields)

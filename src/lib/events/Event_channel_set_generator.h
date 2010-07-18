@@ -23,7 +23,7 @@
 typedef struct Event_channel_set_generator
 {
     Event_channel parent;
-    int64_t generator;
+//    int64_t generator;
 } Event_channel_set_generator;
 
 

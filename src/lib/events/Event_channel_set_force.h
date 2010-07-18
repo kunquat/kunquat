@@ -23,7 +23,7 @@
 typedef struct Event_channel_set_force
 {
     Event_channel parent;
-    double force_dB;
+//    double force_dB;
 } Event_channel_set_force;
 
 

@@ -38,15 +38,17 @@ static Event_field_desc set_dsp_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_set_dsp,
                                    EVENT_CHANNEL_SET_DSP,
                                    int64_t, dsp);
+#endif
 
 
 Event_create_constructor(Event_channel_set_dsp,
                          EVENT_CHANNEL_SET_DSP,
-                         set_dsp_desc,
-                         event->dsp = 0);
+                         set_dsp_desc/*,
+                         event->dsp = 0*/);
 
 
 bool Event_channel_set_dsp_process(Channel_state* ch_state, char* fields)

@@ -23,7 +23,7 @@
 typedef struct Event_global_set_jump_section
 {
     Event_global parent;
-    int64_t section;
+//    int64_t section;
 } Event_global_set_jump_section;
 
 

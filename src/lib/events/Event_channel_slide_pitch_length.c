@@ -40,15 +40,17 @@ static Event_field_desc slide_pitch_length_desc[] =
 };
 
 
+#if 0
 Event_create_set_reltime_and_get(Event_channel_slide_pitch_length,
                                  EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
                                  length);
+#endif
 
 
 Event_create_constructor(Event_channel_slide_pitch_length,
                          EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
-                         slide_pitch_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_pitch_length_desc/*,
+                         Reltime_set(&event->length, 0, 0)*/);
 
 
 bool Event_channel_slide_pitch_length_process(Channel_state* ch_state, char* fields)

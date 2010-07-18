@@ -23,7 +23,7 @@
 typedef struct Event_channel_slide_panning
 {
     Event_channel parent;
-    double target_panning;
+//    double target_panning;
 } Event_channel_slide_panning;
 
 

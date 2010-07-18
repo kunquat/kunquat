@@ -35,8 +35,8 @@ typedef struct Event
     Reltime pos;                   ///< The Event position.
     Event_type type;               ///< The Event type.
     Event_field_desc* field_types; ///< The field type description.
-    bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
-    void* (*get)(struct Event* event, int index);            ///< Field getter.
+//    bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
+//    void* (*get)(struct Event* event, int index);            ///< Field getter.
     char* fields;                  ///< Event fields as an unparsed JSON list.
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
@@ -151,7 +151,7 @@ Event_type Event_get_type(Event* event);
  * \return   \c true if successful, or \c false if the index or value was
  *           illegal.
  */
-bool Event_set_field(Event* event, int index, void* data);
+//bool Event_set_field(Event* event, int index, void* data);
 
 
 /**
@@ -162,7 +162,7 @@ bool Event_set_field(Event* event, int index, void* data);
  *
  * \return   A pointer to the field if one exists, otherwise \c NULL.
  */
-void* Event_get_field(Event* event, int index);
+//void* Event_get_field(Event* event, int index);
 
 
 /**

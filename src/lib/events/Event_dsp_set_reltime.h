@@ -24,7 +24,7 @@
 typedef struct Event_dsp_set_reltime
 {
     Event_dsp parent;
-    Reltime value;
+//    Reltime value;
 } Event_dsp_set_reltime;
 
 

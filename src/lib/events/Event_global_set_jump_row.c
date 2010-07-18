@@ -36,15 +36,17 @@ static Event_field_desc set_jump_row_desc[] =
 };
 
 
+#if 0
 Event_create_set_reltime_and_get(Event_global_set_jump_row,
                                  EVENT_GLOBAL_SET_JUMP_ROW,
                                  row);
+#endif
 
 
 Event_create_constructor(Event_global_set_jump_row,
                          EVENT_GLOBAL_SET_JUMP_ROW,
-                         set_jump_row_desc,
-                         Reltime_set(&event->row, 0, 0));
+                         set_jump_row_desc/*,
+                         Reltime_set(&event->row, 0, 0)*/);
 
 
 bool Event_global_set_jump_row_process(Playdata* global_state, char* fields)

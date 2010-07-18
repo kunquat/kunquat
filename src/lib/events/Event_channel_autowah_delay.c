@@ -40,15 +40,17 @@ static Event_field_desc autowah_delay_desc[] =
 };
 
 
+#if 0
 Event_create_set_reltime_and_get(Event_channel_autowah_delay,
                                  EVENT_CHANNEL_AUTOWAH_DELAY,
                                  delay);
+#endif
 
 
 Event_create_constructor(Event_channel_autowah_delay,
                          EVENT_CHANNEL_AUTOWAH_DELAY,
-                         autowah_delay_desc,
-                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4));
+                         autowah_delay_desc/*,
+                         Reltime_set(&event->delay, 0, KQT_RELTIME_BEAT / 4)*/);
 
 
 bool Event_channel_autowah_delay_process(Channel_state* ch_state, char* fields)

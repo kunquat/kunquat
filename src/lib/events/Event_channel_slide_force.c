@@ -38,15 +38,17 @@ static Event_field_desc slide_force_desc[] =
 };
 
 
+#if 0
 Event_create_set_primitive_and_get(Event_channel_slide_force,
                                    EVENT_CHANNEL_SLIDE_FORCE,
                                    double, target_force_dB);
+#endif
 
 
 Event_create_constructor(Event_channel_slide_force,
                          EVENT_CHANNEL_SLIDE_FORCE,
-                         slide_force_desc,
-                         event->target_force_dB = 0);
+                         slide_force_desc/*,
+                         event->target_force_dB = 0*/);
 
 
 bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
