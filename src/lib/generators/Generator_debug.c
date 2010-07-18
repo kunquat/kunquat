@@ -19,29 +19,33 @@
 #include <Generator_common.h>
 #include <Generator_debug.h>
 #include <Device_params.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-Generator_debug* new_Generator_debug(Instrument_params* ins_params)
+Generator* new_Generator_debug(uint32_t buffer_size,
+                               uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_debug* debug = xalloc(Generator_debug);
     if (debug == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&debug->parent))
+    if (!Generator_init(&debug->parent,
+                        del_Generator_debug,
+                        Generator_debug_mix,
+                        NULL,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(debug);
         return NULL;
     }
-    debug->parent.destroy = del_Generator_debug;
-    debug->parent.type = GEN_TYPE_DEBUG;
-    debug->parent.init_state = NULL;
-    debug->parent.mix = Generator_debug_mix;
-    debug->parent.ins_params = ins_params;
-    return debug;
+    return &debug->parent;
 }
 
 
@@ -53,7 +57,7 @@ uint32_t Generator_debug_mix(Generator* gen,
                              double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_DEBUG);
+    assert(string_eq(gen->type, "debug"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -115,7 +119,7 @@ uint32_t Generator_debug_mix(Generator* gen,
 void del_Generator_debug(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_DEBUG);
+    assert(string_eq(gen->type, "debug"));
     Generator_debug* debug = (Generator_debug*)gen;
     xfree(debug);
     return;

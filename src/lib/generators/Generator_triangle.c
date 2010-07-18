@@ -22,6 +22,7 @@
 #include <Generator_triangle.h>
 #include <Voice_state_triangle.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -29,24 +30,27 @@
 void Generator_triangle_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_triangle(Instrument_params* ins_params)
+Generator* new_Generator_triangle(uint32_t buffer_size,
+                                  uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_triangle* triangle = xalloc(Generator_triangle);
     if (triangle == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&triangle->parent))
+    if (!Generator_init(&triangle->parent,
+                        del_Generator_triangle,
+                        Generator_triangle_mix,
+                        Generator_triangle_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(triangle);
         return NULL;
     }
-    triangle->parent.destroy = del_Generator_triangle;
-    triangle->parent.type = GEN_TYPE_TRIANGLE;
-    triangle->parent.init_state = Generator_triangle_init_state;
-    triangle->parent.mix = Generator_triangle_mix;
-    triangle->parent.ins_params = ins_params;
     return &triangle->parent;
 }
 
@@ -54,7 +58,7 @@ Generator* new_Generator_triangle(Instrument_params* ins_params)
 void Generator_triangle_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_TRIANGLE);
+    assert(string_eq(gen->type, "triangle"));
     (void)gen;
     assert(state != NULL);
     Voice_state_triangle* triangle_state = (Voice_state_triangle*)state;
@@ -81,7 +85,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
                                 double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_TRIANGLE);
+    assert(string_eq(gen->type, "triangle"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -127,7 +131,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
 void del_Generator_triangle(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_TRIANGLE);
+    assert(string_eq(gen->type, "triangle"));
     Generator_triangle* triangle = (Generator_triangle*)gen;
     xfree(triangle);
     return;

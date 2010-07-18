@@ -30,12 +30,15 @@ typedef struct Generator_pulse
 /**
  * Creates a new Pulse Generator.
  *
- * \param ins_params   The Instrument parameters -- must not be \c NULL.
+ * \param buffer_size   The mixing buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   The new Pulse Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_pulse(Instrument_params* ins_params);
+Generator* new_Generator_pulse(uint32_t buffer_size,
+                               uint32_t mix_rate);
 
 
 uint32_t Generator_pulse_mix(Generator* gen,

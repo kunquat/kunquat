@@ -37,18 +37,18 @@ DSP* new_DSP(char* str,
     {
         return NULL;
     }
-    char type[128] = { '\0' };
-    read_string(str, type, 128, state);
+    char type[DSP_TYPE_LENGTH_MAX] = { '\0' };
+    read_string(str, type, DSP_TYPE_LENGTH_MAX, state);
     if (state->error)
     {
         return NULL;
     }
     DSP* (*cons)(uint32_t, uint32_t) = NULL;
-    for (int i = 0; DSP_types[i].type != NULL; ++i)
+    for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
-        if (strcmp(type, DSP_types[i].type) == 0)
+        if (strcmp(type, dsp_types[i].type) == 0)
         {
-            cons = DSP_types[i].cons;
+            cons = dsp_types[i].cons;
             break;
         }
     }

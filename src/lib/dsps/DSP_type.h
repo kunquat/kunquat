@@ -25,12 +25,12 @@
 
 typedef struct DSP_type
 {
-    char* type;
+    const char* type;
     DSP* (*cons)(uint32_t buffer_size, uint32_t mix_rate);
 } DSP_type;
 
 
-static const DSP_type DSP_types[] =
+const DSP_type dsp_types[] =
 {
     { "freeverb", new_DSP_freeverb },
     { "volume", new_DSP_volume },

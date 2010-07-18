@@ -774,6 +774,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     if (strcmp(subkey, "p_gen_type.json") == 0)
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+#if 0
         Gen_type type = Generator_type_parse(data, state);
         if (state->error)
         {
@@ -784,14 +785,23 @@ static bool parse_generator_level(kqt_Handle* handle,
             }
             return false;
         }
-        Generator* gen = new_Generator(type, Instrument_get_params(ins),
+#endif
+        Generator* gen = new_Generator(data, Instrument_get_params(ins),
                                  Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
-                                 handle->song->random);
+                                 handle->song->random,
+                                 state);
         if (gen == NULL)
         {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
             if (new_ins)
             {
                 del_Instrument(ins);

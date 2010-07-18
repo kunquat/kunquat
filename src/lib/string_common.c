@@ -20,6 +20,20 @@
 #include <xassert.h>
 
 
+bool string_eq(const char* str1, const char* str2)
+{
+    if (str1 == NULL || *str1 == '\0')
+    {
+        if (str2 == NULL || *str2 == '\0')
+        {
+            return true;
+        }
+        return false;
+    }
+    return strcmp(str1, str2) == 0;
+}
+
+
 bool string_has_prefix(const char* str, const char* prefix)
 {
     if (prefix == NULL || *prefix == '\0')

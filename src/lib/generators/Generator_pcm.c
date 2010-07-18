@@ -28,6 +28,7 @@
 #include <pitch_t.h>
 #include <Parse_manager.h>
 #include <File_wavpack.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -35,24 +36,27 @@
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_pcm(Instrument_params* ins_params)
+Generator* new_Generator_pcm(uint32_t buffer_size,
+                             uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_pcm* pcm = xalloc(Generator_pcm);
     if (pcm == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&pcm->parent))
+    if (!Generator_init(&pcm->parent,
+                        del_Generator_pcm,
+                        Generator_pcm_mix,
+                        Generator_pcm_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(pcm);
         return NULL;
     }
-    pcm->parent.destroy = del_Generator_pcm;
-    pcm->parent.type = GEN_TYPE_PCM;
-    pcm->parent.init_state = Generator_pcm_init_state;
-    pcm->parent.mix = Generator_pcm_mix;
-    pcm->parent.ins_params = ins_params;
     return &pcm->parent;
 }
 
@@ -60,7 +64,7 @@ Generator* new_Generator_pcm(Instrument_params* ins_params)
 static void Generator_pcm_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PCM);
+    assert(string_eq(gen->type, "pcm"));
     (void)gen;
     assert(state != NULL);
     Voice_state_pcm* pcm_state = (Voice_state_pcm*)state;
@@ -83,7 +87,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
                            double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PCM);
+    assert(string_eq(gen->type, "pcm"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -184,9 +188,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
 void del_Generator_pcm(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PCM);
+    assert(string_eq(gen->type, "pcm"));
     Generator_pcm* pcm = (Generator_pcm*)gen;
-    Generator_uninit(gen);
     xfree(pcm);
     return;
 }

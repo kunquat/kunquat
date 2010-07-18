@@ -20,6 +20,19 @@
 
 
 /**
+ * Checks for equality between strings.
+ *
+ * NULL string is considered equivalent to an empty string.
+ *
+ * \param str1   The first string.
+ * \param str2   The second string.
+ *
+ * \return   \c true if and only if the strings are equal.
+ */
+bool string_eq(const char* str1, const char* str2);
+
+
+/**
  * Checks for a prefix in the given string.
  *
  * NULL string is considered equivalent to an empty string.

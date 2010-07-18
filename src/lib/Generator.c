@@ -17,6 +17,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 
+#include <Gen_type.h>
 #include <Generator.h>
 #include <Generator_sine.h>
 #include <Generator_sawtooth.h>
@@ -34,21 +35,27 @@
 #include <xmemory.h>
 
 
-Generator* new_Generator(Gen_type type,
+Generator* new_Generator(char* str,
                          Instrument_params* ins_params,
 //                         Device_params* gen_params,
                          uint32_t buffer_size,
                          uint32_t mix_rate,
-                         Random* random)
+                         Random* random,
+                         Read_state* state)
 {
-    assert(type > GEN_TYPE_NONE);
-    assert(type < GEN_TYPE_LAST);
+    assert(str != NULL);
     assert(ins_params != NULL);
 //    assert(gen_params != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
     assert(random != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+#if 0
     static Generator* (*cons[])(Instrument_params*) =
     {
         [GEN_TYPE_SINE] = new_Generator_sine,
@@ -59,47 +66,82 @@ Generator* new_Generator(Gen_type type,
         [GEN_TYPE_NOISE] = new_Generator_noise,
         [GEN_TYPE_PCM] = new_Generator_pcm,
     };
-    assert(cons[type] != NULL);
-    Generator* gen = cons[type](ins_params/*, gen_params*/);
+#endif
+    char type[GEN_TYPE_LENGTH_MAX] = { '\0' };
+    read_string(str, type, GEN_TYPE_LENGTH_MAX, state);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Generator* (*cons)(uint32_t, uint32_t) = NULL;
+    for (int i = 0; gen_types[i].type != NULL; ++i)
+    {
+        if (strcmp(type, gen_types[i].type) == 0)
+        {
+            cons = gen_types[i].cons;
+            break;
+        }
+    }
+    if (cons == NULL)
+    {
+        Read_state_set_error(state, "Unsupported Generator type: %s", type);
+        return NULL;
+    }
+    Generator* gen = cons(buffer_size, mix_rate);
     if (gen == NULL)
     {
         return NULL;
     }
+    strcpy(gen->type, type);
+    gen->ins_params = ins_params;
     gen->conf = NULL;
     gen->random = random;
+#if 0
     if (!Device_init(&gen->parent, buffer_size, mix_rate))
     {
         del_Generator(gen);
         return NULL;
     }
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
+#endif
 //    if (type == GEN_TYPE_PCM) fprintf(stderr, "returning new pcm %p\n", (void*)gen);
     return gen;
 }
 
 
-bool Generator_init(Generator* gen)
+bool Generator_init(Generator* gen,
+                    void (*destroy)(Generator*),
+                    uint32_t (*mix)(Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double),
+                    void (*init_state)(Generator*, Voice_state*),
+                    uint32_t buffer_size,
+                    uint32_t mix_rate)
 {
     assert(gen != NULL);
-#if 0
-    gen->enabled = GENERATOR_DEFAULT_ENABLED;
-    gen->volume_dB = GENERATOR_DEFAULT_VOLUME;
-    gen->volume = exp2(gen->volume_dB / 6);
-    gen->pitch_lock_enabled = GENERATOR_DEFAULT_PITCH_LOCK_ENABLED;
-    gen->pitch_lock_cents = GENERATOR_DEFAULT_PITCH_LOCK_CENTS;
-    gen->pitch_lock_freq = exp2(gen->pitch_lock_cents / 1200.0) * 440;
-    gen->type_params = NULL;
-#endif
+    assert(destroy != NULL);
+    assert(mix != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
+    gen->destroy = destroy;
+    gen->mix = mix;
+    gen->init_state = init_state;
+    if (!Device_init(&gen->parent, buffer_size, mix_rate))
+    {
+        return false;
+    }
+    Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
     return true;
 }
 
 
+#if 0
 void Generator_uninit(Generator* gen)
 {
     assert(gen != NULL);
     (void)gen;
     return;
 }
+#endif
 
 
 void Generator_set_conf(Generator* gen, Gen_conf* conf)
@@ -164,6 +206,7 @@ bool Generator_parse_param(Generator* gen,
 #endif
 
 
+#if 0
 Gen_type Generator_type_parse(char* str, Read_state* state)
 {
     assert(state != NULL);
@@ -201,9 +244,10 @@ Gen_type Generator_type_parse(char* str, Read_state* state)
     Read_state_set_error(state, "Unsupported Generator type: %s", desc);
     return GEN_TYPE_LAST;
 }
+#endif
 
 
-Gen_type Generator_get_type(Generator* gen)
+char* Generator_get_type(Generator* gen)
 {
     assert(gen != NULL);
     return gen->type;

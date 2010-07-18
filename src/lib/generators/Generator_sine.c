@@ -23,6 +23,7 @@
 #include <Voice_state_sine.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -30,24 +31,27 @@
 void Generator_sine_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_sine(Instrument_params* ins_params)
+Generator* new_Generator_sine(uint32_t buffer_size,
+                              uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_sine* sine = xalloc(Generator_sine);
     if (sine == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&sine->parent))
+    if (!Generator_init(&sine->parent,
+                        del_Generator_sine,
+                        Generator_sine_mix,
+                        Generator_sine_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(sine);
         return NULL;
     }
-    sine->parent.destroy = del_Generator_sine;
-    sine->parent.type = GEN_TYPE_SINE;
-    sine->parent.init_state = Generator_sine_init_state;
-    sine->parent.mix = Generator_sine_mix;
-    sine->parent.ins_params = ins_params;
     return &sine->parent;
 }
 
@@ -55,7 +59,7 @@ Generator* new_Generator_sine(Instrument_params* ins_params)
 void Generator_sine_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SINE);
+    assert(string_eq(gen->type, "sine"));
     assert(state != NULL);
     (void)gen;
     Voice_state_sine* sine_state = (Voice_state_sine*)state;
@@ -72,7 +76,7 @@ uint32_t Generator_sine_mix(Generator* gen,
                             double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SINE);
+    assert(string_eq(gen->type, "sine"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -118,7 +122,7 @@ uint32_t Generator_sine_mix(Generator* gen,
 void del_Generator_sine(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SINE);
+    assert(string_eq(gen->type, "sine"));
     Generator_sine* sine = (Generator_sine*)gen;
     xfree(sine);
     return;

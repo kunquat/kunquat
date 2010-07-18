@@ -22,6 +22,7 @@
 #include <Generator_square303.h>
 #include <Voice_state_square303.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -29,24 +30,27 @@
 void Generator_square303_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_square303(Instrument_params* ins_params)
+Generator* new_Generator_square303(uint32_t buffer_size,
+                                   uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_square303* square303 = xalloc(Generator_square303);
     if (square303 == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&square303->parent))
+    if (!Generator_init(&square303->parent,
+                        del_Generator_square303,
+                        Generator_square303_mix,
+                        Generator_square303_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(square303);
         return NULL;
     }
-    square303->parent.destroy = del_Generator_square303;
-    square303->parent.type = GEN_TYPE_SQUARE303;
-    square303->parent.init_state = Generator_square303_init_state;
-    square303->parent.mix = Generator_square303_mix;
-    square303->parent.ins_params = ins_params;
     return &square303->parent;
 }
 
@@ -54,7 +58,7 @@ Generator* new_Generator_square303(Instrument_params* ins_params)
 void Generator_square303_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE303);
+    assert(string_eq(gen->type, "square303"));
     (void)gen;
     assert(state != NULL);
     Voice_state_square303* square303_state = (Voice_state_square303*)state;
@@ -87,7 +91,7 @@ uint32_t Generator_square303_mix(Generator* gen,
                                  double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE303);
+    assert(string_eq(gen->type, "square303"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -133,7 +137,7 @@ uint32_t Generator_square303_mix(Generator* gen,
 void del_Generator_square303(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SQUARE303);
+    assert(string_eq(gen->type, "square303"));
     Generator_square303* square303 = (Generator_square303*)gen;
     xfree(square303);
     return;

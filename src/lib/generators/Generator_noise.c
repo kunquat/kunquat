@@ -26,6 +26,7 @@
 #include <Voice_state_noise.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -33,25 +34,27 @@
 void Generator_noise_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_noise(Instrument_params* ins_params)
+Generator* new_Generator_noise(uint32_t buffer_size,
+                               uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_noise* noise = xalloc(Generator_noise);
     if (noise == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&noise->parent))
+    if (!Generator_init(&noise->parent,
+                        del_Generator_noise,
+                        Generator_noise_mix,
+                        Generator_noise_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(noise);
         return NULL;
     }
-//    noise->parent.parse = Generator_noise_parse;
-    noise->parent.destroy = del_Generator_noise;
-    noise->parent.type = GEN_TYPE_NOISE;
-    noise->parent.init_state = Generator_noise_init_state;
-    noise->parent.mix = Generator_noise_mix;
-    noise->parent.ins_params = ins_params;
     noise->order = 0;
     return &noise->parent;
 }
@@ -113,7 +116,7 @@ bool Generator_noise_parse(Generator* gen,
 void Generator_noise_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_NOISE);
+    assert(string_eq(gen->type, "noise"));
     assert(state != NULL);
     (void)gen;
     Voice_state_noise* noise_state = (Voice_state_noise*)state;
@@ -131,7 +134,7 @@ uint32_t Generator_noise_mix(Generator* gen,
                              double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_NOISE);
+    assert(string_eq(gen->type, "noise"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -196,7 +199,7 @@ uint32_t Generator_noise_mix(Generator* gen,
 void del_Generator_noise(Generator* gen)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_NOISE);
+    assert(string_eq(gen->type, "noise"));
     Generator_noise* noise = (Generator_noise*)gen;
     xfree(noise);
     return;
