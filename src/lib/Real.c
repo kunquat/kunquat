@@ -18,7 +18,6 @@
 #include <math.h>
 
 #include <Real.h>
-//#include <String_buffer.h>
 #include <xassert.h>
 
 
@@ -88,30 +87,6 @@ Real* Real_init_as_double(Real* real, double val)
     real->fod.doub = val;
     return real;
 }
-
-
-#if 0
-bool Real_serialise(Real* real, String_buffer* sb)
-{
-    assert(real != NULL);
-    assert(sb != NULL);
-    if (String_buffer_error(sb))
-    {
-        return false;
-    }
-    if (Real_is_frac(real))
-    {
-        String_buffer_append_string(sb, "[\"/\", [");
-        String_buffer_append_int(sb, Real_get_numerator(real));
-        String_buffer_append_string(sb, ", ");
-        String_buffer_append_int(sb, Real_get_denominator(real));
-        return String_buffer_append_string(sb, "]");
-    }
-    String_buffer_append_string(sb, "[\"f\", ");
-    String_buffer_append_float(sb, Real_get_double(real));
-    return String_buffer_append_string(sb, "]");
-}
-#endif
 
 
 bool Real_is_frac(Real* real)

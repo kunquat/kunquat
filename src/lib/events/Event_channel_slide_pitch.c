@@ -40,11 +40,6 @@ static Event_field_desc slide_pitch_desc[] =
 };
 
 
-//static bool Event_channel_slide_pitch_set(Event* event, int index, void* data);
-
-//static void* Event_channel_slide_pitch_get(Event* event, int index);
-
-
 Event_create_set_primitive_and_get(Event_channel_slide_pitch,
                                    EVENT_CHANNEL_SLIDE_PITCH,
                                    double, cents);
@@ -54,73 +49,6 @@ Event_create_constructor(Event_channel_slide_pitch,
                          EVENT_CHANNEL_SLIDE_PITCH,
                          slide_pitch_desc,
                          event->cents = 0);
-
-
-#if 0
-static bool Event_channel_slide_pitch_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SLIDE_PITCH);
-    assert(data != NULL);
-    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
-    switch (index)
-    {
-        case 0:
-        {
-            int64_t num = *(int64_t*)data;
-            Event_check_integral_range(num, event->field_types[0]);
-            slide_pitch->note = num;
-            return true;
-        }
-        break;
-        case 1:
-        {
-            int64_t num = *(int64_t*)data;
-            Event_check_integral_range(num, event->field_types[1]);
-            slide_pitch->mod = num;
-            return true;
-        }
-        break;
-        case 2:
-        {
-            int64_t num = *(int64_t*)data;
-            Event_check_integral_range(num, event->field_types[2]);
-            slide_pitch->octave = num;
-            return true;
-        }
-        break;
-        default:
-        break;
-    }
-    return false;
-}
-
-
-static void* Event_channel_slide_pitch_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_CHANNEL_SLIDE_PITCH);
-    Event_channel_slide_pitch* slide_pitch = (Event_channel_slide_pitch*)event;
-    switch (index)
-    {
-        case 0:
-        {
-            return &slide_pitch->note;
-        }
-        case 1:
-        {
-            return &slide_pitch->mod;
-        }
-        case 2:
-        {
-            return &slide_pitch->octave;
-        }
-        default:
-        break;
-    }
-    return NULL;
-}
-#endif
 
 
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)

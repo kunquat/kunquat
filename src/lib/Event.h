@@ -23,7 +23,6 @@
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
-//#include <String_buffer.h>
 
 #include <Event_type.h>
 
@@ -85,18 +84,6 @@ char* Event_type_get_fields(char* str,
  *           check for errors through \a state.
  */
 char* Event_read(Event* event, char* str, Read_state* state);
-
-
-/**
- * Serialises the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param sb      The String buffer where the Event shall be written -- must
- *                not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-//bool Event_serialise(Event* event, String_buffer* sb);
 
 
 /**

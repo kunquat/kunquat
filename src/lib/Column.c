@@ -23,7 +23,6 @@
 #include <Event_pg.h>
 #include <Event_global_set_tempo.h>
 #include <Column.h>
-//#include <String_buffer.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -454,50 +453,6 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 }
 
 #undef break_if
-
-
-#if 0
-char* Column_serialise(Column* col)
-{
-    assert(col != NULL);
-    Column_iter* iter = new_Column_iter(col);
-    if (iter == NULL)
-    {
-        return NULL;
-    }
-    String_buffer* sb = new_String_buffer();
-    if (iter == NULL || sb == NULL)
-    {
-        del_Column_iter(iter);
-        return NULL;
-    }
-    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
-    while (event != NULL)
-    {
-        if (String_buffer_get_length(sb) == 0)
-        {
-            String_buffer_append_string(sb, "\n\n[\n    ");
-        }
-        else
-        {
-            String_buffer_append_string(sb, ",\n    ");
-        }
-        Event_serialise(event, sb);
-        event = Column_iter_get_next(iter);
-    }
-    del_Column_iter(iter);
-    if (String_buffer_get_length(sb) > 0)
-    {
-        String_buffer_append_string(sb, "\n]\n\n\n");
-    }
-    if (String_buffer_error(sb))
-    {
-        xfree(del_String_buffer(sb));
-        return NULL;
-    }
-    return del_String_buffer(sb);
-}
-#endif
 
 
 bool Column_ins(Column* col, Event* event)
