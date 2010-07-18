@@ -94,33 +94,6 @@ Instrument_params* Instrument_get_params(Instrument* ins);
 
 
 /**
- * Gets common Generator parameters of a Generator in the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- *
- * \return   The parameters. Note that this is not a valid Generator.
- */
-//Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
-
-
-/**
- * Sets a Generator of the Instrument.
- *
- * If a Generator already exists at the specified index, it will be removed.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- * \param gen     The Generator -- must not be \c NULL.
- */
-//void Instrument_set_gen(Instrument* ins,
-//                        int index,
-//                        Generator* gen);
-
-
-/**
  * Gets a Generator of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.

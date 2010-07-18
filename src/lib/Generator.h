@@ -41,16 +41,7 @@ typedef struct Generator
 {
     Device parent;
     char type[GEN_TYPE_LENGTH_MAX];
-#if 0
-    bool enabled;
-    double volume_dB;
-    double volume;
-    bool pitch_lock_enabled;
-    double pitch_lock_cents;
-    pitch_t pitch_lock_freq;
-#endif
     Random* random;
-//    Device_params* type_params;
     Gen_conf* conf;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
@@ -58,12 +49,6 @@ typedef struct Generator
                     uint32_t, double);
     Instrument_params* ins_params;
 } Generator;
-
-
-#define GENERATOR_DEFAULT_ENABLED (false)
-#define GENERATOR_DEFAULT_VOLUME (0)
-#define GENERATOR_DEFAULT_PITCH_LOCK_ENABLED (false)
-#define GENERATOR_DEFAULT_PITCH_LOCK_CENTS (0)
 
 
 /**
@@ -83,7 +68,6 @@ typedef struct Generator
  */
 Generator* new_Generator(char* str,
                          Instrument_params* ins_params,
-//                         Device_params* gen_params,
                          uint32_t buffer_size,
                          uint32_t mix_rate,
                          Random* random,
@@ -114,14 +98,6 @@ bool Generator_init(Generator* gen,
 
 
 /**
- * Uninitialises the general Generator parameters.
- *
- * \param gen   The Generator -- must not be \c NULL.
- */
-//void Generator_uninit(Generator* gen);
-
-
-/**
  * Sets the configuration of the Generator.
  *
  * \param gen    The Generator -- must not be \c NULL.
@@ -138,48 +114,6 @@ void Generator_set_conf(Generator* gen, Gen_conf* conf);
  * \return   The Generator parameter tree.
  */
 Device_params* Generator_get_params(Generator* gen);
-
-
-/**
- * Copies the general Generator parameters.
- *
- * \param dest   The destination Generator -- must not be \c NULL.
- * \param src    The source Generator -- must not be \c NULL.
- */
-//void Generator_copy_general(Generator* dest, Generator* src);
-
-
-/**
- * Parses general Generator header (p_generator.json).
- *
- * \param gen     The Generator -- must not be \c NULL.
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false. The state error will
- *           _not_ be set in case memory allocation failed.
- */
-//bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
-
-
-/**
- * Parses a Generator parameter.
- *
- * \param gen      The Generator -- must not be \c NULL.
- * \param subkey   The subkey of the parameter -- must begin with either "i/"
- *                 or "c/".
- * \param data     The data -- must not be \c NULL unless \a length is 0.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false. \a state will not be
- *           modified if memory allocation failed.
- */
-//bool Generator_parse_param(Generator* gen,
-//                           const char* subkey,
-//                           void* data,
-//                           long length,
-//                           Read_state* state);
 
 
 /**

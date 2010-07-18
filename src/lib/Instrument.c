@@ -43,9 +43,6 @@ struct Instrument
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
-//    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
-//    Generator gen_conf[KQT_GENERATORS_MAX];
-//    Generator* gens[KQT_GENERATORS_MAX];
     Gen_table* gens;
 
     DSP_table* dsps;
@@ -68,14 +65,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
                            Scale*** default_scale,
                            Random* random)
 {
-#if 0
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    assert(vbufs != NULL);
-    assert(vbufs[0] != NULL);
-    assert(vbufs2 != NULL);
-    assert(vbufs2[0] != NULL);
-#endif
     assert(buf_count > 0);
     assert(buf_len > 0);
     assert(mix_rate > 0);
@@ -236,36 +225,6 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
-#if 0
-Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    return &ins->gen_conf[index];
-}
-#endif
-
-
-#if 0
-void Instrument_set_gen(Instrument* ins,
-                        int index,
-                        Generator* gen)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    assert(gen != NULL);
-    if (ins->gens[index] != NULL && ins->gens[index] != gen)
-    {
-        del_Generator(ins->gens[index]);
-    }
-    ins->gens[index] = gen;
-    return;
-}
-#endif
-
-
 Generator* Instrument_get_gen(Instrument* ins,
                               int index)
 {
@@ -281,22 +240,6 @@ Gen_table* Instrument_get_gens(Instrument* ins)
     assert(ins != NULL);
     return ins->gens;
 }
-
-
-#if 0
-void Instrument_del_gen(Instrument* ins, int index)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    if (ins->gens[index] != NULL)
-    {
-        del_Generator(ins->gens[index]);
-        ins->gens[index] = NULL;
-    }
-    return;
-}
-#endif
 
 
 DSP* Instrument_get_dsp(Instrument* ins, int index)
@@ -429,21 +372,6 @@ void del_Instrument(Instrument* ins)
 {
     assert(ins != NULL);
     Instrument_params_uninit(&ins->params);
-#if 0
-    for (int i = 0; i < KQT_GENERATORS_MAX &&
-                    ins->gen_conf[i].type_params != NULL; ++i)
-    {
-        if (ins->gen_conf[i].type_params != NULL)
-        {
-            del_Device_params(ins->gen_conf[i].type_params);
-        }
-        Generator_uninit(&ins->gen_conf[i]);
-        if (ins->gens[i] != NULL)
-        {
-            del_Generator(ins->gens[i]);
-        }
-    }
-#endif
     if (ins->connections != NULL)
     {
         del_Connections(ins->connections);
