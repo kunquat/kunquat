@@ -23,7 +23,7 @@
 #include <Event_pg.h>
 #include <Event_global_set_tempo.h>
 #include <Column.h>
-#include <String_buffer.h>
+//#include <String_buffer.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -456,6 +456,7 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 #undef break_if
 
 
+#if 0
 char* Column_serialise(Column* col)
 {
     assert(col != NULL);
@@ -496,6 +497,7 @@ char* Column_serialise(Column* col)
     }
     return del_String_buffer(sb);
 }
+#endif
 
 
 bool Column_ins(Column* col, Event* event)

@@ -22,7 +22,7 @@
 #include <Event.h>
 
 #include <Scale.h>
-#include <String_buffer.h>
+//#include <String_buffer.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -299,6 +299,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
 }
 
 
+#if 0
 bool Event_serialise(Event* event, String_buffer* sb)
 {
     assert(event != NULL);
@@ -361,6 +362,7 @@ bool Event_serialise(Event* event, String_buffer* sb)
     }
     return String_buffer_append_string(sb, "]");
 }
+#endif
 
 
 Reltime* Event_get_pos(Event* event)

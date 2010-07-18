@@ -152,7 +152,7 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
  * \return   A string representation of the Column, or \c NULL if memory
  *           allocation failed.
  */
-char* Column_serialise(Column* col);
+//char* Column_serialise(Column* col);
 
 
 /**

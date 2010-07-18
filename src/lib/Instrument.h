@@ -43,13 +43,6 @@ typedef struct Instrument Instrument;
 /**
  * Creates a new Instrument.
  *
- * \param bufs            The global mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param vbufs           The Voice mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param vbufs2          The auxiliary Voice mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
  * \param mix_rate        The mixing rate -- must be > \c 0.
  * \param scales          The Scales of the Song -- must not be \c NULL.
@@ -60,11 +53,7 @@ typedef struct Instrument Instrument;
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(/*kqt_frame** bufs,
-                           kqt_frame** vbufs,
-                           kqt_frame** vbufs2,
-                           int buf_count,*/
-                           uint32_t buf_len,
+Instrument* new_Instrument(uint32_t buf_len,
                            uint32_t mix_rate,
                            Scale** scales,
                            Scale*** default_scale,

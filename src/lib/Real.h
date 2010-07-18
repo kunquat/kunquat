@@ -19,7 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <String_buffer.h>
+//#include <String_buffer.h>
 
 
 /**
@@ -67,10 +67,9 @@ Real* Real_init(Real* real);
  *
  * \return   The parameter \a real.
  */
-Real* Real_init_as_frac(
-        Real* real,
-        int64_t numerator,
-        int64_t denominator);
+Real* Real_init_as_frac(Real* real,
+                        int64_t numerator,
+                        int64_t denominator);
 
 
 /**
@@ -93,7 +92,7 @@ Real* Real_init_as_double(Real* real, double val);
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Real_serialise(Real* real, String_buffer* sb);
+//bool Real_serialise(Real* real, String_buffer* sb);
 
 
 /**

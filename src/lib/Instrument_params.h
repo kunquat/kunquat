@@ -27,16 +27,6 @@
 
 typedef struct Instrument_params
 {
-#if 0
-    kqt_frame** bufs;   ///< Mixing buffer used (same as either \a pbuf or \a gbuf).
-    kqt_frame** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
-    kqt_frame** gbufs;  ///< Global mixing buffers.
-    kqt_frame** vbufs;  ///< Voice buffers.
-    kqt_frame** vbufs2; ///< Auxiliary Voice buffers.
-    int buf_count;    ///< Number of mixing buffers.
-    uint32_t buf_len; ///< Mixing buffer length.
-#endif
-    
     Scale*** scale;    ///< An indirect reference to the current Scale used.
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
@@ -92,14 +82,6 @@ typedef struct Instrument_params
  * Initialises the Instrument parameters.
  *
  * \param ip          The Instrument parameters -- must not be \c NULL.
- * \param bufs        The global mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param vbufs       The Voice mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param vbufs2      The auxiliary Voice mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param buf_count   The number of buffers -- must be > \c 0.
- * \param buf_len     The length of the buffers -- must be > \c 0.
  * \param scale       An indirect reference to the Scale -- must not be
  *                    \c NULL.
  *
@@ -107,13 +89,6 @@ typedef struct Instrument_params
  *           allocation failed.
  */
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-#if 0
-                                          kqt_frame** bufs,
-                                          kqt_frame** vbufs,
-                                          kqt_frame** vbufs2,
-                                          int buf_count,
-                                          uint32_t buf_len,
-#endif
                                           Scale*** scale);
 
 

@@ -34,36 +34,11 @@
     } else (void)0
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-#if 0
-                                          kqt_frame** bufs,
-                                          kqt_frame** vbufs,
-                                          kqt_frame** vbufs2,
-                                          int buf_count,
-                                          uint32_t buf_len,
-#endif
                                           Scale*** scale)
 {
     assert(ip != NULL);
-#if 0
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    assert(vbufs != NULL);
-    assert(vbufs[0] != NULL);
-    assert(vbufs2 != NULL);
-    assert(vbufs2[0] != NULL);
-    assert(buf_count > 0);
-    assert(buf_len > 0);
-#endif
     assert(scale != NULL);
     assert(*scale != NULL);
-#if 0
-    ip->bufs = ip->gbufs = bufs;
-    ip->buf_count = buf_count;
-    ip->buf_len = buf_len;
-    ip->pbufs = NULL;
-    ip->vbufs = vbufs;
-    ip->vbufs2 = vbufs2;
-#endif
     ip->force_volume_env = NULL;
     ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;

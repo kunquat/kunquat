@@ -55,17 +55,12 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
 static bool Instrument_set_buffer_size(Device* device, uint32_t size);
 
 
-Instrument* new_Instrument(/*kqt_frame** bufs,
-                           kqt_frame** vbufs,
-                           kqt_frame** vbufs2,
-                           int buf_count,*/
-                           uint32_t buf_len,
+Instrument* new_Instrument(uint32_t buf_len,
                            uint32_t mix_rate,
                            Scale** scales,
                            Scale*** default_scale,
                            Random* random)
 {
-//    assert(buf_count > 0);
     assert(buf_len > 0);
     assert(mix_rate > 0);
     assert(scales != NULL);
@@ -83,12 +78,7 @@ Instrument* new_Instrument(/*kqt_frame** bufs,
     ins->gens = NULL;
     ins->dsps = NULL;
     
-    if (Instrument_params_init(&ins->params,
-#if 0
-                               bufs, vbufs, vbufs2,
-                               buf_count, buf_len,
-#endif
-                               default_scale) == NULL)
+    if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
         xfree(ins);
         return NULL;

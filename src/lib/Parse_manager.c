@@ -440,11 +440,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                               dsp_index) != NULL;
         if (ins == NULL)
         {
-            ins = new_Instrument(/*Song_get_bufs(handle->song),
-                                 Song_get_voice_bufs(handle->song),
-                                 Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,*/
-                                 Device_get_buffer_size((Device*)handle->song),
+            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
                                  Song_get_active_scale(handle->song),
@@ -491,11 +487,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         bool new_ins = ins == NULL;
         if (new_ins)
         {
-            ins = new_Instrument(/*Song_get_bufs(handle->song),
-                                 Song_get_voice_bufs(handle->song),
-                                 Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,*/
-                                 Device_get_buffer_size((Device*)handle->song),
+            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
                                  Song_get_active_scale(handle->song),
@@ -545,11 +537,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
         if (ins == NULL)
         {
-            ins = new_Instrument(/*Song_get_bufs(handle->song),
-                                 Song_get_voice_bufs(handle->song),
-                                 Song_get_voice_bufs2(handle->song),
-                                 KQT_BUFFERS_MAX,*/
-                                 Device_get_buffer_size((Device*)handle->song),
+            ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
                                  Song_get_active_scale(handle->song),
@@ -615,11 +603,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             bool new_ins = ins == NULL;
             if (new_ins)
             {
-                ins = new_Instrument(/*Song_get_bufs(handle->song),
-                                     Song_get_voice_bufs(handle->song),
-                                     Song_get_voice_bufs2(handle->song),
-                                     KQT_BUFFERS_MAX,*/
-                                     Device_get_buffer_size((Device*)handle->song),
+                ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                      Device_get_mix_rate((Device*)handle->song),
                                      Song_get_scales(handle->song),
                                      Song_get_active_scale(handle->song),
@@ -693,11 +677,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     bool new_ins = ins == NULL;
     if (new_ins)
     {
-        ins = new_Instrument(/*Song_get_bufs(handle->song),
-                             Song_get_voice_bufs(handle->song),
-                             Song_get_voice_bufs2(handle->song),
-                             KQT_BUFFERS_MAX,*/
-                             Device_get_buffer_size((Device*)handle->song),
+        ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                              Device_get_mix_rate((Device*)handle->song),
                              Song_get_scales(handle->song),
                              Song_get_active_scale(handle->song),
@@ -1116,23 +1096,6 @@ static bool parse_scale_level(kqt_Handle* handle,
     if (strcmp(subkey, MAGIC_ID "sXX/p_scale.json") == 0 ||
             strcmp(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json") == 0)
     {
-#if 0
-        Scale* scale = new_Scale(SCALE_DEFAULT_REF_PITCH,
-                                 SCALE_DEFAULT_OCTAVE_RATIO);
-        if (scale == NULL)
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
-        }
-        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Scale_parse(scale, data, state))
-        {
-            set_parse_error(handle, state);
-            del_Scale(scale);
-            return false;
-        }
-#endif
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Scale* scale = new_Scale_from_string(data, state);
         if (scale == NULL)

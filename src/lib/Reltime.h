@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <String_buffer.h>
+//#include <String_buffer.h>
 #include <kunquat/limits.h>
 
 
@@ -61,7 +61,7 @@ Reltime* Reltime_init(Reltime* r);
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Reltime_serialise(Reltime* r, String_buffer* sb);
+//bool Reltime_serialise(Reltime* r, String_buffer* sb);
 
 
 /**

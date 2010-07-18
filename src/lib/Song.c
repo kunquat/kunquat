@@ -58,10 +58,6 @@ static bool Song_set_buffer_size(Device* device, uint32_t size);
 
 Song* new_Song(uint32_t buf_size)
 {
-#if 0
-    assert(buf_count >= 1);
-    assert(buf_count <= KQT_BUFFERS_MAX);
-#endif
     assert(buf_size > 0);
     assert(buf_size <= KQT_BUFFER_SIZE_MAX);
     Song* song = xalloc(Song);
@@ -77,13 +73,6 @@ Song* new_Song(uint32_t buf_size)
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
     Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
-#if 0
-    song->buf_count = buf_count;
-    song->buf_size = buf_size;
-    song->priv_bufs[0] = NULL;
-    song->voice_bufs[0] = NULL;
-    song->voice_bufs2[0] = NULL;
-#endif
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
@@ -98,43 +87,6 @@ Song* new_Song(uint32_t buf_size)
     {
         song->scales[i] = NULL;
     }
-#if 0
-    for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
-    {
-        song->bufs[i] = NULL;
-        song->priv_bufs[i] = NULL;
-        song->voice_bufs[i] = NULL;
-        song->voice_bufs2[i] = NULL;
-    }
-#endif
-#if 0
-    for (int i = 0; i < buf_count; ++i)
-    {
-        song->priv_bufs[i] = xnalloc(kqt_frame, buf_size);
-        if (song->priv_bufs[i] == NULL)
-        {
-            del_Song(song);
-            return NULL;
-        }
-        for (uint32_t k = 0; k < buf_size; ++k)
-        {
-            song->priv_bufs[i][k] = 0;
-        }
-        song->bufs[i] = song->priv_bufs[i];
-        song->voice_bufs[i] = xnalloc(kqt_frame, buf_size);
-        if (song->voice_bufs[i] == NULL)
-        {
-            del_Song(song);
-            return NULL;
-        }
-        song->voice_bufs2[i] = xnalloc(kqt_frame, buf_size);
-        if (song->voice_bufs2[i] == NULL)
-        {
-            del_Song(song);
-            return NULL;
-        }
-    }
-#endif
     song->random = new_Random();
     if (song->random == NULL)
     {
@@ -278,7 +230,6 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
     {
         return false;
     }
-//    int64_t buf_count = SONG_DEFAULT_BUF_COUNT;
     double mix_vol = SONG_DEFAULT_MIX_VOL;
     int64_t init_subsong = SONG_DEFAULT_INIT_SUBSONG;
     if (str != NULL)
@@ -350,14 +301,6 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
             }
         }
     }
-#if 0
-    if (!Song_set_buf_count(song, buf_count))
-    {
-        Read_state_set_error(state,
-                "Couldn't allocate memory for mixing buffers");
-        return false;
-    }
-#endif
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     Song_set_subsong(song, init_subsong);
@@ -381,16 +324,6 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     if (!play->silent && song->connections != NULL)
     {
         Connections_clear_buffers(song->connections, 0, nframes);
-#if 0
-        for (int i = 0; i < song->buf_count; ++i)
-        {
-            for (uint32_t k = 0; k < nframes; ++k)
-            {
-                song->voice_bufs[i][k] = 0;
-                song->voice_bufs2[i][k] = 0;
-            }
-        }
-#endif
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
@@ -534,147 +467,6 @@ uint16_t Song_get_subsong(Song* song)
     assert(song != NULL);
     return song->init_subsong;
 }
-
-
-#if 0
-bool Song_set_buf_count(Song* song, int count)
-{
-    assert(song != NULL);
-    assert(count > 0);
-    assert(count <= KQT_BUFFERS_MAX);
-    if (song->buf_count == count)
-    {
-        return true;
-    }
-    else if (count < song->buf_count)
-    {
-        for (int i = count; i < song->buf_count; ++i)
-        {
-            xfree(song->priv_bufs[i]);
-            song->priv_bufs[i] = song->bufs[i] = NULL;
-            xfree(song->voice_bufs[i]);
-            song->voice_bufs[i] = NULL;
-            xfree(song->voice_bufs2[i]);
-            song->voice_bufs2[i] = NULL;
-        }
-        // TODO: remove Instrument buffers
-    }
-    else
-    {
-        for (int i = song->buf_count; i < count; ++i)
-        {
-            song->priv_bufs[i] = xnalloc(kqt_frame, song->buf_size);
-            if (song->priv_bufs[i] == NULL)
-            {
-                return false;
-            }
-            song->bufs[i] = song->priv_bufs[i];
-            song->voice_bufs[i] = xnalloc(kqt_frame, song->buf_size);
-            if (song->voice_bufs[i] == NULL)
-            {
-                return false;
-            }
-            song->voice_bufs2[i] = xnalloc(kqt_frame, song->buf_size);
-            if (song->voice_bufs2[i] == NULL)
-            {
-                return false;
-            }
-        }
-        // TODO: create Instrument buffers
-    }
-    song->buf_count = count;
-    return true;
-}
-
-
-int Song_get_buf_count(Song* song)
-{
-    assert(song != NULL);
-    return song->buf_count;
-}
-
-
-bool Song_set_buf_size(Song* song, uint32_t size)
-{
-    assert(song != NULL);
-    assert(size > 0);
-    if (song->buf_size == size)
-    {
-        return true;
-    }
-    for (int i = 0; i < song->buf_count; ++i)
-    {
-        kqt_frame* new_buf = xrealloc(kqt_frame, size, song->priv_bufs[i]);
-        if (new_buf == NULL)
-        {
-            if (i == 0) // first change failed -- keep the original state
-            {
-                return false;
-            }
-            if (size < song->buf_size)
-            {
-                song->buf_size = size;
-            }
-            return false;
-        }
-        song->priv_bufs[i] = new_buf;
-        song->bufs[i] = song->priv_bufs[i];
-
-        new_buf = xrealloc(kqt_frame, size, song->voice_bufs[i]);
-        if (new_buf == NULL)
-        {
-            if (size < song->buf_size)
-            {
-                song->buf_size = size;
-            }
-            return false;
-        }
-        song->voice_bufs[i] = new_buf;
-
-        new_buf = xrealloc(kqt_frame, size, song->voice_bufs2[i]);
-        if (new_buf == NULL)
-        {
-            if (size < song->buf_size)
-            {
-                song->buf_size = size;
-            }
-            return false;
-        }
-        song->voice_bufs2[i] = new_buf;
-    }
-    // TODO: resize Instrument buffers
-    song->buf_size = size;
-    return true;
-}
-
-
-uint32_t Song_get_buf_size(Song* song)
-{
-    assert(song != NULL);
-    return song->buf_size;
-}
-
-
-kqt_frame** Song_get_bufs(Song* song)
-{
-    assert(song != NULL);
-    return song->bufs;
-}
-
-
-kqt_frame** Song_get_voice_bufs(Song* song)
-{
-    assert(song != NULL);
-    return song->voice_bufs;
-}
-
-
-kqt_frame** Song_get_voice_bufs2(Song* song)
-{
-    assert(song != NULL);
-    return song->voice_bufs2;
-}
-#endif
 
 
 Subsong_table* Song_get_subsongs(Song* song)
@@ -829,20 +621,6 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
 void del_Song(Song* song)
 {
     assert(song != NULL);
-#if 0
-    for (int i = 0; i < song->buf_count && song->priv_bufs[i] != NULL; ++i)
-    {
-        xfree(song->priv_bufs[i]);
-    }
-    for (int i = 0; i < song->buf_count && song->voice_bufs[i] != NULL; ++i)
-    {
-        xfree(song->voice_bufs[i]);
-    }
-    for (int i = 0; i < song->buf_count && song->voice_bufs2[i] != NULL; ++i)
-    {
-        xfree(song->voice_bufs2[i]);
-    }
-#endif
     if (song->subsongs != NULL)
     {
         del_Subsong_table(song->subsongs);

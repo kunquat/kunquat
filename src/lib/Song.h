@@ -36,14 +36,6 @@
 typedef struct Song
 {
     Device parent;
-#if 0
-    int buf_count;                      ///< Number of buffers used for mixing.
-    uint32_t buf_size;                  ///< Buffer size.
-    kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
-    kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
-    kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
-    kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
-#endif
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
@@ -156,79 +148,6 @@ void Song_set_subsong(Song* song, uint16_t num);
  * \return   The initial subsong number.
  */
 uint16_t Song_get_subsong(Song* song);
-
-
-/**
- * Sets the number of buffers in the Song.
- *
- * \param song    The Song -- must not be \c NULL.
- * \param count   The number of buffers -- must be > \c 0 and
- *                <= \c KQT_BUFFERS_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Song_set_buf_count(Song* song, int count);
-
-
-/**
- * Gets the number of buffers in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The number of buffers.
- */
-//int Song_get_buf_count(Song* song);
-
-
-/**
- * Sets the size of buffers in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- * \param size   The new size for a single buffer -- must be > \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-//bool Song_set_buf_size(Song* song, uint32_t size);
-
-
-/**
- * Gets the size of a single buffer in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The buffer size.
- */
-//uint32_t Song_get_buf_size(Song* song);
-
-
-/**
- * Gets the buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The buffers.
- */
-//kqt_frame** Song_get_bufs(Song* song);
-
-
-/**
- * Gets the Voice buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The Voice buffers.
- */
-//kqt_frame** Song_get_voice_bufs(Song* song);
-
-
-/**
- * Gets the auxiliary Voice buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The auxiliary Voice buffers.
- */
-//kqt_frame** Song_get_voice_bufs2(Song* song);
 
 
 /**

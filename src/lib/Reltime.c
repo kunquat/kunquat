@@ -17,7 +17,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
-#include <String_buffer.h>
+//#include <String_buffer.h>
 #include <Reltime.h>
 #include <xassert.h>
 
@@ -44,6 +44,7 @@ Reltime* Reltime_init(Reltime* r)
 }
 
 
+#if 0
 bool Reltime_serialise(Reltime* r, String_buffer* sb)
 {
     Reltime_validate(r);
@@ -56,6 +57,7 @@ bool Reltime_serialise(Reltime* r, String_buffer* sb)
     snprintf(r_buf, 48, "[%" PRId64 ", %9" PRId32 "]", r->beats, r->rem);
     return String_buffer_append_string(sb, r_buf);
 }
+#endif
 
 
 int Reltime_cmp(const Reltime* r1, const Reltime* r2)

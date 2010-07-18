@@ -23,7 +23,7 @@
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <String_buffer.h>
+//#include <String_buffer.h>
 
 #include <Event_type.h>
 
@@ -96,7 +96,7 @@ char* Event_read(Event* event, char* str, Read_state* state);
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Event_serialise(Event* event, String_buffer* sb);
+//bool Event_serialise(Event* event, String_buffer* sb);
 
 
 /**
