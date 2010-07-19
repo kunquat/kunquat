@@ -16,6 +16,7 @@
 #include <string.h>
 
 #include <Sample_params.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -64,17 +65,17 @@ bool Sample_params_parse(Sample_params* params,
                 {
                     return false;
                 }
-                if (strcmp(key, "format") == 0)
+                if (string_eq(key, "format"))
                 {
                     char format[32] = { '\0' };
                     str = read_string(str, format, 32, state);
                     if (!state->error)
                     {
-                        if (strcmp(format, "WavPack") == 0)
+                        if (string_eq(format, "WavPack"))
                         {
                             input->format = SAMPLE_FORMAT_WAVPACK;
                         }
-/*                        else if (strcmp(format, "Ogg Vorbis") == 0)
+/*                        else if (string_eq(format, "Ogg Vorbis"))
                         {
                             input->format = SAMPLE_FORMAT_VORBIS;
                         } */
@@ -85,7 +86,7 @@ bool Sample_params_parse(Sample_params* params,
                         }
                     }
                 }
-                else if (strcmp(key, "mid_freq") == 0)
+                else if (string_eq(key, "mid_freq"))
                 {
                     str = read_double(str, &input->mid_freq, state);
                     if (!(input->mid_freq > 0))
@@ -94,19 +95,19 @@ bool Sample_params_parse(Sample_params* params,
                                 "Sample frequency is not positive");
                     }
                 }
-                else if (strcmp(key, "loop_mode") == 0)
+                else if (string_eq(key, "loop_mode"))
                 {
                     char mode[] = "off!";
                     str = read_string(str, mode, 5, state);
-                    if (strcmp(mode, "off") == 0)
+                    if (string_eq(mode, "off"))
                     {
                         input->loop = SAMPLE_LOOP_OFF;
                     }
-                    else if (strcmp(mode, "uni") == 0)
+                    else if (string_eq(mode, "uni"))
                     {
                         input->loop = SAMPLE_LOOP_UNI;
                     }
-                    else if (strcmp(mode, "bi") == 0)
+                    else if (string_eq(mode, "bi"))
                     {
                         input->loop = SAMPLE_LOOP_BI;
                     }
@@ -117,13 +118,13 @@ bool Sample_params_parse(Sample_params* params,
                                 " \"off\", \"uni\" or \"bi\")");
                     }
                 }
-                else if (strcmp(key, "loop_start") == 0)
+                else if (string_eq(key, "loop_start"))
                 {
                     int64_t loop_start = 0;
                     str = read_int(str, &loop_start, state);
                     input->loop_start = loop_start;
                 }
-                else if (strcmp(key, "loop_end") == 0)
+                else if (string_eq(key, "loop_end"))
                 {
                     int64_t loop_end = 0;
                     str = read_int(str, &loop_end, state);

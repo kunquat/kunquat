@@ -21,6 +21,7 @@
 #include <DSP.h>
 #include <DSP_common.h>
 #include <DSP_volume.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -76,7 +77,7 @@ static void DSP_volume_process(Device* device,
     (void)freq;
     (void)tempo;
     DSP_volume* volume = (DSP_volume*)device;
-    assert(strcmp(volume->parent.type, "volume") == 0);
+    assert(string_eq(volume->parent.type, "volume"));
     assert(volume->parent.conf != NULL);
     assert(volume->parent.conf->params != NULL);
     kqt_frame* in_data[] = { NULL, NULL };
@@ -102,7 +103,7 @@ static void DSP_volume_process(Device* device,
 static void del_DSP_volume(DSP* dsp)
 {
     assert(dsp != NULL);
-    assert(strcmp(dsp->type, "volume") == 0);
+    assert(string_eq(dsp->type, "volume"));
     DSP_volume* volume = (DSP_volume*)dsp;
     Device_uninit(&volume->parent.parent);
     xfree(volume);
