@@ -54,7 +54,7 @@ char* Event_type_get_fields(char* str,
 {
     assert(str != NULL);
     assert(field_descs != NULL);
-    assert(fields != NULL);
+//    assert(fields != NULL);
     assert(state != NULL);
     str = read_const_char(str, '[', state);
     if (state->error)
@@ -72,7 +72,9 @@ char* Event_type_get_fields(char* str,
         {
             case EVENT_FIELD_BOOL:
             {
-                str = read_bool(str, &fields[i].field.bool_type, state);
+                bool* value = fields != NULL ?
+                                  &fields[i].field.bool_type : NULL;
+                str = read_bool(str, value, state);
                 if (state->error)
                 {
                     return str;
@@ -95,7 +97,10 @@ char* Event_type_get_fields(char* str,
                     Read_state_set_error(state, error_message, i);
                     return str;
                 }
-                fields[i].field.integral_type = num;
+                if (fields != NULL)
+                {
+                    fields[i].field.integral_type = num;
+                }
             }
             break;
             case EVENT_FIELD_DOUBLE:
@@ -112,14 +117,18 @@ char* Event_type_get_fields(char* str,
                     Read_state_set_error(state, error_message, i);
                     return str;
                 }
-                fields[i].field.double_type = num;
+                if (fields != NULL)
+                {
+                    fields[i].field.double_type = num;
+                }
             }
             break;
             case EVENT_FIELD_REAL:
             {
+                Real* value = fields != NULL ?
+                                  &fields[i].field.Real_type : NULL;
                 double numd = NAN;
-                str = read_tuning(str, &fields[i].field.Real_type,
-                                  &numd, state);
+                str = read_tuning(str, value, &numd, state);
                 if (state->error)
                 {
                     return str;
@@ -140,7 +149,10 @@ char* Event_type_get_fields(char* str,
                     Read_state_set_error(state, error_message, i);
                     return str;
                 }
-                Reltime_copy(&fields[i].field.Reltime_type, rt);
+                if (fields != NULL)
+                {
+                    Reltime_copy(&fields[i].field.Reltime_type, rt);
+                }
             }
             break;
             case EVENT_FIELD_STRING:
@@ -173,8 +185,9 @@ char* Event_read(Event* event, char* str, Read_state* state)
     {
         return str;
     }
+#if 0
     char* fields_start = NULL;
-    char* fields_end = NULL;
+//    char* fields_end = NULL;
     int event_count = Event_get_field_count(event);
     if (event_count > 0)
     {
@@ -247,15 +260,24 @@ char* Event_read(Event* event, char* str, Read_state* state)
         {
             return str;
         }
-        fields_end = str;
+//        fields_end = str;
     }
-    if (fields_start != NULL)
+#endif
+    if (Event_get_field_count(event) > 0)
     {
-        Event_field data[16]; // FIXME: limit
-        Event_type_get_fields(fields_start, event->field_types, data, state);
+        str = read_const_char(str, ',', state);
+        str = read_const_char(str, '[', state);
         if (state->error)
         {
             return str;
+        }
+        char* fields_start = str - 1;
+        char* fields_end = Event_type_get_fields(fields_start,
+                                                 event->field_types,
+                                                 NULL, state);
+        if (state->error)
+        {
+            return fields_end;
         }
         assert(fields_end != NULL);
         assert(fields_end >= fields_start);
@@ -263,9 +285,10 @@ char* Event_read(Event* event, char* str, Read_state* state)
         if (event->fields == NULL)
         {
             Read_state_set_error(state, "Couldn't allocate memory.");
-            return str;
+            return fields_end;
         }
         strncpy(event->fields, fields_start, fields_end - fields_start);
+        return fields_end;
     }
     return str;
 }

@@ -64,6 +64,14 @@ bool Event_type_is_supported(Event_type type);
 
 /**
  * Parses and retrieves all fields from a string.
+ *
+ * \param str           The string -- must not be \c NULL.
+ * \param field_descs   The field descriptions -- must not be \c NULL.
+ * \param fields        The fields where the values will be stored, or
+ *                      \c NULL for parsing without storage.
+ * \param state         The Read state -- must not be \c NULL.
+ *
+ * \return   The position of \a str after parsing.
  */
 char* Event_type_get_fields(char* str,
                             Event_field_desc field_descs[],
