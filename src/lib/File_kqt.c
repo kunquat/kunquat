@@ -19,6 +19,7 @@
 #include <archive.h>
 #include <archive_entry.h>
 
+#include <File_base.h>
 #include <File_kqt.h>
 #include <Handle_r.h>
 #include <Entries.h>
@@ -78,24 +79,37 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
             return false;
         }
         const char* entry_path = archive_entry_pathname(entry);
-        const char* header = "kunquatc" KQT_FORMAT_VERSION;
+        const char* header = MAGIC_ID "c" KQT_FORMAT_VERSION;
         if (!string_has_prefix(entry_path, header) ||
                 (entry_path[strlen(header)] != '/' &&
                 entry_path[strlen(header)] != '\0'))
         {
-            const char* other_header = "kunquati";
-            if (parse_index_dir(entry_path, other_header, 2) >= 0)
+            const char* other_header = MAGIC_ID "i";
+            const char* file_type = NULL;
+            if (string_extract_index(entry_path, other_header, 2) >= 0)
             {
-                kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT,
-                        "The file %s appears to be a Kunquat instrument,"
-                        " not composition", path);
+                file_type = "instrument";
             }
-            else if (other_header = "kunquats",
-                    parse_index_dir(entry_path, other_header, 2) >= 0)
+            else if (other_header = MAGIC_ID "g",
+                    string_extract_index(entry_path, other_header, 2) >= 0)
+            {
+                file_type = "generator";
+            }
+            else if (other_header = MAGIC_ID "e",
+                    string_extract_index(entry_path, other_header, 2) >= 0)
+            {
+                file_type = "DSP effect";
+            }
+            else if (other_header = MAGIC_ID "s",
+                    string_extract_index(entry_path, other_header, 2) >= 0)
+            {
+                file_type = "scale";
+            }
+            if (file_type != NULL)
             {
                 kqt_Handle_set_error(&handle_r->handle, ERROR_FORMAT,
-                        "The file %s appears to be a Kunquat scale,"
-                        " not composition", path);
+                        "The file %s appears to be a Kunquat %s,"
+                        " not composition", path, file_type);
             }
             else
             {

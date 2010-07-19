@@ -86,9 +86,9 @@ static bool parse_subsong_level(kqt_Handle* handle,
                                 int index);
 
 
-static bool is_index_digit(char ch);
+//static bool is_index_digit(char ch);
 
-static int parse_index(const char* str);
+//static int parse_index(const char* str);
 
 
 static bool key_is_for_text(const char* key);
@@ -99,12 +99,15 @@ static bool key_is_for_text(const char* key);
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
 
 
+#if 0
 static bool is_index_digit(char ch)
 {
     return isxdigit(ch) && (strchr("ABCDEF", ch) == NULL);
 }
+#endif
 
 
+#if 0
 static int parse_index(const char* str)
 {
     int num = 0;
@@ -129,8 +132,10 @@ static int parse_index(const char* str)
     }
     return num;
 }
+#endif
 
 
+#if 0
 int parse_index_dir(const char* key, const char* prefix, int digits)
 {
     assert(key != NULL);
@@ -148,6 +153,7 @@ int parse_index_dir(const char* key, const char* prefix, int digits)
     }
     return parse_index(&key[prefix_len]);
 }
+#endif
 
 
 static bool key_is_for_text(const char* key)
@@ -210,8 +216,9 @@ bool parse_data(kqt_Handle* handle,
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
-    if (strncmp(key, "ins_", first_len - 2) == 0 &&
-            (index = parse_index(&key[first_len - 2])) >= 0)
+//    if (strncmp(key, "ins_", first_len - 2) == 0 &&
+//            (index = parse_index(&key[first_len - 2])) >= 0)
+    if ((index = string_extract_index(key, "ins_", 2)) >= 0)
     {
         bool changed = Ins_table_get(Song_get_insts(handle->song),
                                                     index) != NULL;
@@ -267,20 +274,23 @@ bool parse_data(kqt_Handle* handle,
             }
         }
     }
-    else if (strncmp(key, "pat_", first_len - 3) == 0 &&
-            (index = parse_index(&key[first_len - 3])) >= 0)
+//    else if (strncmp(key, "pat_", first_len - 3) == 0 &&
+//            (index = parse_index(&key[first_len - 3])) >= 0)
+    else if ((index = string_extract_index(key, "pat_", 3)) >= 0)
     {
         success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
     }
-    else if (strncmp(key, "scale_", first_len - 1) == 0 &&
-            (index = parse_index(&key[first_len - 1])) >= 0)
+//    else if (strncmp(key, "scale_", first_len - 1) == 0 &&
+//            (index = parse_index(&key[first_len - 1])) >= 0)
+    else if ((index = string_extract_index(key, "scale_", 1)) >= 0)
     {
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-    else if (strncmp(key, "subs_", first_len - 2) == 0 &&
-            (index = parse_index(&key[first_len - 2])) >= 0)
+//    else if (strncmp(key, "subs_", first_len - 2) == 0 &&
+//            (index = parse_index(&key[first_len - 2])) >= 0)
+    else if ((index = string_extract_index(key, "subs_", 2)) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
@@ -389,7 +399,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     ++subkey;
     int gen_index = -1;
     int dsp_index = -1;
-    if ((gen_index = parse_index_dir(subkey, "gen_", 2)) >= 0)
+    if ((gen_index = string_extract_index(subkey, "gen_", 2)) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
@@ -997,7 +1007,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     bool global_column = strcmp(subkey, "gcol/p_global_events.json") == 0;
     int col_index = 0;
     ++second_element;
-    if (((col_index = parse_index_dir(subkey, "ccol_", 2)) >= 0
+    if (((col_index = string_extract_index(subkey, "ccol_", 2)) >= 0
                     && strcmp(second_element, "p_channel_events.json") == 0)
                 || global_column)
     {

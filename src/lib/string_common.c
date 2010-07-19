@@ -76,6 +76,7 @@ int string_extract_index(const char* path, const char* prefix, int digits)
     {
         return -1;
     }
+    static const char hex_digits[] = "0123456789abcdef";
     int prefix_len = 0;
     if (prefix != NULL)
     {
@@ -83,15 +84,13 @@ int string_extract_index(const char* path, const char* prefix, int digits)
     }
     else
     {
-        prefix_len = strcspn(path, "_"); // FIXME: search for a hex digit instead
+        prefix_len = strcspn(path, hex_digits);
         if (path[prefix_len] == '\0')
         {
             return -1;
         }
-        ++prefix_len;
     }
     const char* num_s = path + prefix_len;
-    static const char hex_digits[] = "0123456789abcdef";
     int index = 0;
     for (int i = 0; i < digits; ++i, ++num_s)
     {

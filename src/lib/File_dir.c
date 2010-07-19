@@ -19,6 +19,7 @@
 #include <errno.h>
 
 #include <Directory.h>
+#include <File_base.h>
 #include <Handle_rw.h>
 #include <Handle_private.h>
 #include <Parse_manager.h>
@@ -41,27 +42,40 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
     {
         return false;
     }
-    const char* header = "kunquatc" KQT_FORMAT_VERSION;
+    const char* header = MAGIC_ID "c" KQT_FORMAT_VERSION;
     if (!string_has_suffix(abs_path, header))
     {
-        const char* other_header = "kunquati" KQT_FORMAT_VERSION;
+        const char* other_header = MAGIC_ID "i" KQT_FORMAT_VERSION;
+        const char* file_type = NULL;
         if (string_has_suffix(abs_path, other_header))
         {
-            kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
-                    "The path %s appears to be a Kunquat instrument,"
-                    " not composition", path);
+            file_type = "instrument";
         }
-        else if (other_header = "kunquats" KQT_FORMAT_VERSION,
+        else if (other_header = MAGIC_ID "g" KQT_FORMAT_VERSION,
                 string_has_suffix(abs_path, other_header))
         {
+            file_type = "generator";
+        }
+        else if (other_header = MAGIC_ID "e" KQT_FORMAT_VERSION,
+                string_has_suffix(abs_path, other_header))
+        {
+            file_type = "DSP effect";
+        }
+        else if (other_header = MAGIC_ID "s" KQT_FORMAT_VERSION,
+                string_has_suffix(abs_path, other_header))
+        {
+            file_type = "scale";
+        }
+        if (file_type != NULL)
+        {
             kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT,
-                    "The path %s appears to be a Kunquat scale,"
-                    " not composition", path);
+                    "The path %s appears to be a Kunquat %s,"
+                    " not composition", path, file_type);
         }
         else
         {
             kqt_Handle_set_error(&handle_rw->handle, ERROR_FORMAT, "The base"
-                    " path %s does not contain the header \"kunquatc"
+                    " path %s does not contain the header \"" MAGIC_ID "c"
                     KQT_FORMAT_VERSION "\" as a final component", abs_path);
         }
         xfree(abs_path);

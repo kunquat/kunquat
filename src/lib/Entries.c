@@ -20,7 +20,9 @@
 
 #include <AAtree.h>
 #include <Entries.h>
+#include <File_base.h>
 #include <Parse_manager.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -129,16 +131,16 @@ bool Entries_set(Entries* entries,
         del_Entry(entry);
         return false;
     }
-    const char* prefix = "kunquatc";
+    const char* prefix = MAGIC_ID "c";
     char* num_str = strstr(entry->key, prefix);
     if (num_str == NULL)
     {
-        prefix = "kunquats";
+        prefix = MAGIC_ID "s";
         num_str = strstr(entry->key, prefix);
     }
     if (num_str != NULL)
     {
-        int version = parse_index_dir(entry->key, prefix, 2);
+        int version = string_extract_index(entry->key, prefix, 2);
         if (version > entries->biggest_version)
         {
             entries->biggest_version = version;

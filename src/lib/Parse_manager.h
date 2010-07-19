@@ -31,7 +31,7 @@
  *
  * \return   The number after prefix if successful, otherwise \c -1.
  */
-int parse_index_dir(const char* key, const char* prefix, int digits);
+//int parse_index_dir(const char* key, const char* prefix, int digits);
 
 
 /**
