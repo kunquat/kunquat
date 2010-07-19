@@ -86,74 +86,12 @@ static bool parse_subsong_level(kqt_Handle* handle,
                                 int index);
 
 
-//static bool is_index_digit(char ch);
-
-//static int parse_index(const char* str);
-
-
 static bool key_is_for_text(const char* key);
 
 
 #define set_parse_error(handle, state) \
     (kqt_Handle_set_error((handle), ERROR_FORMAT, "Parse error in" \
             " %s:%d: %s", (state)->path, (state)->row, (state)->message))
-
-
-#if 0
-static bool is_index_digit(char ch)
-{
-    return isxdigit(ch) && (strchr("ABCDEF", ch) == NULL);
-}
-#endif
-
-
-#if 0
-static int parse_index(const char* str)
-{
-    int num = 0;
-    while (*str != '\0' && *str != '/')
-    {
-        num *= 16;
-        if (!is_index_digit(*str))
-        {
-            return -1;
-        }
-        if (isdigit(*str))
-        {
-            num += (*str - '0');
-        }
-        else
-        {
-            char reject[2] = { '\0' };
-            reject[0] = *str;
-            num += strcspn("abcdef", reject) + 10;
-        }
-        ++str;
-    }
-    return num;
-}
-#endif
-
-
-#if 0
-int parse_index_dir(const char* key, const char* prefix, int digits)
-{
-    assert(key != NULL);
-    assert(prefix != NULL);
-    assert(digits >= 1);
-    int prefix_len = strlen(prefix);
-    if (strncmp(key, prefix, prefix_len) != 0)
-    {
-        return -1;
-    }
-    if ((int)strlen(key) <= prefix_len + digits ||
-            key[prefix_len + digits] != '/')
-    {
-        return -1;
-    }
-    return parse_index(&key[prefix_len]);
-}
-#endif
 
 
 static bool key_is_for_text(const char* key)
@@ -216,8 +154,6 @@ bool parse_data(kqt_Handle* handle,
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
-//    if (strncmp(key, "ins_", first_len - 2) == 0 &&
-//            (index = parse_index(&key[first_len - 2])) >= 0)
     if ((index = string_extract_index(key, "ins_", 2)) >= 0)
     {
         bool changed = Ins_table_get(Song_get_insts(handle->song),
@@ -238,16 +174,6 @@ bool parse_data(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
-#if 0
-            Connections_set_devices(graph, &handle->song->parent,
-                                    Song_get_insts(handle->song));
-            if (!Connections_init_buffers_simple(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-#endif
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -274,22 +200,16 @@ bool parse_data(kqt_Handle* handle,
             }
         }
     }
-//    else if (strncmp(key, "pat_", first_len - 3) == 0 &&
-//            (index = parse_index(&key[first_len - 3])) >= 0)
     else if ((index = string_extract_index(key, "pat_", 3)) >= 0)
     {
         success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
     }
-//    else if (strncmp(key, "scale_", first_len - 1) == 0 &&
-//            (index = parse_index(&key[first_len - 1])) >= 0)
     else if ((index = string_extract_index(key, "scale_", 1)) >= 0)
     {
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-//    else if (strncmp(key, "subs_", first_len - 2) == 0 &&
-//            (index = parse_index(&key[first_len - 2])) >= 0)
     else if ((index = string_extract_index(key, "subs_", 2)) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
@@ -353,18 +273,6 @@ static bool parse_song_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             return false;
         }
-#if 0
-        Connections_set_devices(graph, &handle->song->parent,
-                                Song_get_insts(handle->song));
-        //fprintf(stderr, "line: %d\n", __LINE__);
-        //Connections_print(graph, stderr);
-        if (!Connections_init_buffers_simple(graph))
-        {
-            kqt_Handle_set_error(handle, ERROR_MEMORY,
-                    "Couldn't allocate memory");
-            return false;
-        }
-#endif
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
@@ -425,16 +333,6 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
-#if 0
-            Connections_set_devices(graph, &handle->song->parent,
-                                    Song_get_insts(handle->song));
-            if (!Connections_init_buffers_simple(graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-#endif
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
         }
@@ -576,18 +474,6 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         "Couldn't allocate memory");
                 return false;
             }
-#if 0
-            Connections_set_devices(global_graph, &handle->song->parent,
-                                    Song_get_insts(handle->song));
-            //fprintf(stderr, "line: %d\n", __LINE__);
-            //Connections_print(global_graph, stderr);
-            if (!Connections_init_buffers_simple(global_graph))
-            {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                return false;
-            }
-#endif
 //            fprintf(stderr, "line: %d\n", __LINE__);
 //            Connections_print(global_graph, stderr);
         }

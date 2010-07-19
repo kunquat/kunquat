@@ -18,7 +18,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-//#include <stdio.h>
 
 #include <Real.h>
 #include <Reltime.h>
@@ -40,25 +39,8 @@ typedef struct Read_state
 } Read_state;
 
 
-#if 0
-typedef struct Write_state
-{
-    bool error;
-    char path[STATE_PATH_LENGTH];
-    int row;
-    char message[ERROR_MESSAGE_LENGTH];
-    int indent;
-} Write_state;
-#endif
-
-
 #define READ_STATE_AUTO (&(Read_state){ .error = false, .path = { '\0' },\
                          .row = 0, .message = { '\0' } })
-
-#if 0
-#define WRITE_STATE_AUTO (&(Write_state){ .error = false, .path = { '\0' },\
-                          .row = 0, .message = { '\0' }, .indent = 0 })
-#endif
 
 
 #define check_next(str, state, expect)                \
@@ -100,19 +82,6 @@ void Read_state_set_error(Read_state* state, const char* message, ...);
  * \param state   The Read state -- must not be \c NULL.
  */
 void Read_state_clear_error(Read_state* state);
-
-
-/**
- * Reads a file into a byte array.
- *
- * \param in       The input file -- must not be \c NULL and must be seekable.
- * \param size     Pointer to a variable where file size is stored -- must not
- *                 be \c NULL.
- * \param handle   The Kunquat Handle, or \c NULL if not applicable.
- *
- * \return   The contents of the file if successful, otherwise \c NULL.
- */
-//char* read_file(FILE* in, long* size, kqt_Handle* handle);
 
 
 /**

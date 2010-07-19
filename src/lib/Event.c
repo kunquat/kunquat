@@ -54,7 +54,6 @@ char* Event_type_get_fields(char* str,
 {
     assert(str != NULL);
     assert(field_descs != NULL);
-//    assert(fields != NULL);
     assert(state != NULL);
     str = read_const_char(str, '[', state);
     if (state->error)
@@ -185,84 +184,6 @@ char* Event_read(Event* event, char* str, Read_state* state)
     {
         return str;
     }
-#if 0
-    char* fields_start = NULL;
-//    char* fields_end = NULL;
-    int event_count = Event_get_field_count(event);
-    if (event_count > 0)
-    {
-        str = read_const_char(str, ',', state);
-        if (state->error)
-        {
-            return str;
-        }
-        str = read_const_char(str, '[', state);
-        if (state->error)
-        {
-            return str;
-        }
-        fields_start = str - 1;
-        int field_count = Event_get_field_count(event);
-        for (int i = 0; i < field_count; ++i)
-        {
-            switch (event->field_types[i].type)
-            {
-                case EVENT_FIELD_BOOL:
-                {
-                    str = read_bool(str, NULL, state);
-                }
-                break;
-                case EVENT_FIELD_INT:
-                case EVENT_FIELD_NOTE:
-                case EVENT_FIELD_NOTE_MOD:
-                {
-                    str = read_int(str, NULL, state);
-                }
-                break;
-                case EVENT_FIELD_DOUBLE:
-                {
-                    str = read_double(str, NULL, state);
-                }
-                break;
-                case EVENT_FIELD_REAL:
-                {
-                    str = read_tuning(str, NULL, NULL, state);
-                }
-                break;
-                case EVENT_FIELD_RELTIME:
-                {
-                    str = read_reltime(str, NULL, state);
-                }
-                break;
-                case EVENT_FIELD_STRING:
-                {
-                    str = read_string(str, NULL, 0, state);
-                }
-                break;
-                default:
-                {
-                    // Erroneous internal structures
-                    assert(false);
-                }
-                break;
-            }
-            if (i < field_count - 1)
-            {
-                str = read_const_char(str, ',', state);
-                if (state->error)
-                {
-                    return str;
-                }
-            }
-        }
-        str = read_const_char(str, ']', state);
-        if (state->error)
-        {
-            return str;
-        }
-//        fields_end = str;
-    }
-#endif
     if (Event_get_field_count(event) > 0)
     {
         str = read_const_char(str, ',', state);

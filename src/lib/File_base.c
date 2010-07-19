@@ -63,63 +63,8 @@ void Read_state_clear_error(Read_state* state)
     assert(state != NULL);
     state->error = false;
     memset(state->message, 0, ERROR_MESSAGE_LENGTH);
-//    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
     return;
 }
-
-
-#if 0
-#define return_null_if(cond, handle, msg)                              \
-    if (true)                                                          \
-    {                                                                  \
-        if ((cond))                                                    \
-        {                                                              \
-            kqt_Handle_set_error((handle), "%s: %s", __func__, (msg)); \
-            return NULL;                                               \
-        }                                                              \
-    } else (void)0
-
-char* read_file(FILE* in, long* size, kqt_Handle* handle)
-{
-    assert(in != NULL);
-    assert(size != NULL);
-    
-    errno = 0;
-    int err = fseek(in, 0, SEEK_END);
-    return_null_if(err < 0, handle, strerror(errno));
-    
-    errno = 0;
-    long length = ftell(in);
-    return_null_if(length < 0, handle, strerror(errno));
-    
-    errno = 0;
-    err = fseek(in, 0, SEEK_SET);
-    return_null_if(err < 0, handle, strerror(errno));
-    
-    char* data = xcalloc(char, length + 1);
-    return_null_if(data == NULL, handle, "Couldn't allocate memory");
-    long pos = 0;
-    char* location = data;
-    *size = 0;
-    while (pos < length)
-    {
-        size_t read = fread(location, 1, 1024, in);
-        *size += read;
-        pos += 1024;
-        location += 1024;
-        if (read < 1024 && pos < length)
-        {
-            kqt_Handle_set_error(handle, "%s: Couldn't read data from the"
-                    " input file", __func__);
-            xfree(data);
-            return NULL;
-        }
-    }
-    return data;
-}
-
-#undef return_null_if
-#endif
 
 
 char* skip_line(char* str, Read_state* state)
