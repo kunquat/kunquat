@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_slide_filter
-{
-    Event_channel parent;
-} Event_channel_slide_filter;
-
-
 Event* new_Event_channel_slide_filter(Reltime* pos);
 
 

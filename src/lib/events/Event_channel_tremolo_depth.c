@@ -38,9 +38,9 @@ static Event_field_desc tremolo_depth_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_tremolo_depth,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_TREMOLO_DEPTH,
-                         tremolo_depth_desc);
+                         tremolo_depth);
 
 
 bool Event_channel_tremolo_depth_process(Channel_state* ch_state, char* fields)

@@ -21,12 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_generator_set_bool
-{
-    Event_generator parent;
-} Event_generator_set_bool;
-
-
 Event* new_Event_generator_set_bool(Reltime* pos);
 
 

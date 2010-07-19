@@ -38,9 +38,9 @@ static Event_field_desc set_gen_float_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_gen_float,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_FLOAT,
-                         set_gen_float_desc);
+                         set_gen_float);
 
 
 bool Event_channel_set_gen_float_process(Channel_state* ch_state, char* fields)

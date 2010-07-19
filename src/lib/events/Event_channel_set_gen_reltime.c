@@ -40,9 +40,9 @@ static Event_field_desc set_gen_reltime_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_gen_reltime,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_RELTIME,
-                         set_gen_reltime_desc);
+                         set_gen_reltime);
 
 
 bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields)

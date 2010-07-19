@@ -21,12 +21,6 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_set_tempo
-{
-    Event_global parent;
-} Event_global_set_tempo;
-
-
 Event* new_Event_global_set_tempo(Reltime* pos);
 
 

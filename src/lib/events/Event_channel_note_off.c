@@ -30,9 +30,9 @@ static Event_field_desc note_off_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_note_off,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_NOTE_OFF,
-                         note_off_desc);
+                         note_off);
 
 
 bool Event_channel_note_off_process(Channel_state* ch_state, char* fields)

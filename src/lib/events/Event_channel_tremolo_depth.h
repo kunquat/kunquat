@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_tremolo_depth
-{
-    Event_channel parent;
-} Event_channel_tremolo_depth;
-
-
 Event* new_Event_channel_tremolo_depth(Reltime* pos);
 
 

@@ -37,9 +37,9 @@ static Event_field_desc set_filter_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_filter,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_FILTER,
-                         set_filter_desc);
+                         set_filter);
 
 
 bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields)

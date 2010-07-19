@@ -38,9 +38,9 @@ static Event_field_desc autowah_speed_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_autowah_speed,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_AUTOWAH_SPEED,
-                         autowah_speed_desc);
+                         autowah_speed);
 
 
 bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields)

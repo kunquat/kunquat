@@ -37,9 +37,9 @@ static Event_field_desc slide_volume_desc[] =
 };
 
 
-Event_create_constructor(Event_global_slide_volume,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SLIDE_VOLUME,
-                         slide_volume_desc);
+                         slide_volume);
 
 
 bool Event_global_slide_volume_process(Playdata* global_state, char* fields)

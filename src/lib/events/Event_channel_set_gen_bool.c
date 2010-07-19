@@ -36,9 +36,9 @@ static Event_field_desc set_gen_bool_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_gen_bool,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_BOOL,
-                         set_gen_bool_desc);
+                         set_gen_bool);
 
 
 bool Event_channel_set_gen_bool_process(Channel_state* ch_state, char* fields)

@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_note_off
-{
-    Event_channel parent;
-} Event_channel_note_off;
-
-
 Event* new_Event_channel_note_off(Reltime* pos);
 
 

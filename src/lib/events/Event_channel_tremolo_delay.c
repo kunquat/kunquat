@@ -40,9 +40,9 @@ static Event_field_desc tremolo_delay_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_tremolo_delay,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_TREMOLO_DELAY,
-                         tremolo_delay_desc);
+                         tremolo_delay);
 
 
 bool Event_channel_tremolo_delay_process(Channel_state* ch_state, char* fields)

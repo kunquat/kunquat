@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_global_slide_volume_length
-{
-    Event_global parent;
-} Event_global_slide_volume_length;
-
-
 Event* new_Event_global_slide_volume_length(Reltime* pos);
 
 

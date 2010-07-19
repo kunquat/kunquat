@@ -39,9 +39,9 @@ static Event_field_desc slide_filter_length_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_slide_filter_length,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                         slide_filter_length_desc);
+                         slide_filter_length);
 
 
 bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fields)

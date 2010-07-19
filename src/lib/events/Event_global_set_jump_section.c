@@ -36,9 +36,9 @@ static Event_field_desc set_jump_section_desc[] =
 };
 
 
-Event_create_constructor(Event_global_set_jump_section,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_JUMP_SECTION,
-                         set_jump_section_desc);
+                         set_jump_section);
 
 
 bool Event_global_set_jump_section_process(Playdata* global_state,

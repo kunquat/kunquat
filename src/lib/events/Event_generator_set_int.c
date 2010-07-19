@@ -41,9 +41,9 @@ static Event_field_desc set_int_desc[] =
 };
 
 
-Event_create_constructor(Event_generator_set_int,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_INT,
-                         set_int_desc);
+                         set_int);
 
 
 bool Event_generator_set_int_process(Generator* gen, char* fields)

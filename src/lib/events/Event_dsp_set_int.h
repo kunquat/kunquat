@@ -23,12 +23,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_dsp_set_int
-{
-    Event_dsp parent;
-} Event_dsp_set_int;
-
-
 Event* new_Event_dsp_set_int(Reltime* pos);
 
 

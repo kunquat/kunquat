@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_global_set_jump_section
-{
-    Event_global parent;
-} Event_global_set_jump_section;
-
-
 Event* new_Event_global_set_jump_section(Reltime* pos);
 
 

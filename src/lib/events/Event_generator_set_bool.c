@@ -38,9 +38,9 @@ static Event_field_desc set_bool_desc[] =
 };
 
 
-Event_create_constructor(Event_generator_set_bool,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_BOOL,
-                         set_bool_desc);
+                         set_bool);
 
 
 bool Event_generator_set_bool_process(Generator* gen, char* fields)

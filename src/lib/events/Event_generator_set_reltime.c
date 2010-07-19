@@ -42,9 +42,9 @@ static Event_field_desc set_reltime_desc[] =
 };
 
 
-Event_create_constructor(Event_generator_set_reltime,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_RELTIME,
-                         set_reltime_desc);
+                         set_reltime);
 
 
 bool Event_generator_set_reltime_process(Generator* gen, char* fields)

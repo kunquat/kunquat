@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_global_set_scale
-{
-    Event_global parent;
-} Event_global_set_scale;
-
-
 Event* new_Event_global_set_scale(Reltime* pos);
 
 

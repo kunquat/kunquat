@@ -21,12 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_generator_set_reltime
-{
-    Event_generator parent;
-} Event_generator_set_reltime;
-
-
 Event* new_Event_generator_set_reltime(Reltime* pos);
 
 

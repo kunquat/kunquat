@@ -35,9 +35,9 @@ static Event_field_desc set_scale_desc[] =
 };
 
 
-Event_create_constructor(Event_global_set_scale,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_SCALE,
-                         set_scale_desc);
+                         set_scale);
 
 
 bool Event_global_set_scale_process(Playdata* global_state, char* fields)

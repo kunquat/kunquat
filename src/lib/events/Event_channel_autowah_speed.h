@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_autowah_speed
-{
-    Event_channel parent;
-} Event_channel_autowah_speed;
-
-
 Event* new_Event_channel_autowah_speed(Reltime* pos);
 
 

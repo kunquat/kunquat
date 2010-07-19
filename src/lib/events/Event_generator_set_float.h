@@ -21,12 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_generator_set_float
-{
-    Event_generator parent;
-} Event_generator_set_float;
-
-
 Event* new_Event_generator_set_float(Reltime* pos);
 
 

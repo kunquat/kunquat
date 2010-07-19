@@ -38,9 +38,9 @@ static Event_field_desc tremolo_speed_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_tremolo_speed,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_TREMOLO_SPEED,
-                         tremolo_speed_desc);
+                         tremolo_speed);
 
 
 bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)

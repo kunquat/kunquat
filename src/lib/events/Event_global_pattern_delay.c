@@ -37,9 +37,9 @@ static Event_field_desc pattern_delay_desc[] =
 };
 
 
-Event_create_constructor(Event_global_pattern_delay,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_PATTERN_DELAY,
-                         pattern_delay_desc);
+                         pattern_delay);
 
 
 bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)

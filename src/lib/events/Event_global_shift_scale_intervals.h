@@ -21,12 +21,6 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_shift_scale_intervals
-{
-    Event_global parent;
-} Event_global_shift_scale_intervals;
-
-
 Event* new_Event_global_shift_scale_intervals(Reltime* pos);
 
 

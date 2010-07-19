@@ -38,9 +38,9 @@ static Event_field_desc vibrato_depth_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_vibrato_depth,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_VIBRATO_DEPTH,
-                         vibrato_depth_desc);
+                         vibrato_depth);
 
 
 bool Event_channel_vibrato_depth_process(Channel_state* ch_state, char* fields)

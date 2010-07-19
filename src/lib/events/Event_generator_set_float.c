@@ -40,9 +40,9 @@ static Event_field_desc set_float_desc[] =
 };
 
 
-Event_create_constructor(Event_generator_set_float,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_FLOAT,
-                         set_float_desc);
+                         set_float);
 
 
 bool Event_generator_set_float_process(Generator* gen, char* fields)

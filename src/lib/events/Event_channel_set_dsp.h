@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_dsp
-{
-    Event_channel parent;
-} Event_channel_set_dsp;
-
-
 Event* new_Event_channel_set_dsp(Reltime* pos);
 
 

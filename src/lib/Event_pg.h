@@ -22,7 +22,7 @@
 /**
  * This class is used for "pseudo-global" events which need to be processed
  * at a global level but really affect only part of the playback, i.e.
- * Instrument, Generator and Effect events.
+ * Instrument, Generator and DSP events.
  */
 typedef struct Event_pg
 {

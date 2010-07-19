@@ -40,9 +40,9 @@ static Event_field_desc slide_pitch_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_slide_pitch,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_PITCH,
-                         slide_pitch_desc);
+                         slide_pitch);
 
 
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)

@@ -21,12 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_dsp_set_bool
-{
-    Event_dsp parent;
-} Event_dsp_set_bool;
-
-
 Event* new_Event_dsp_set_bool(Reltime* pos);
 
 

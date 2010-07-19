@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_generator
-{
-    Event_channel parent;
-} Event_channel_set_generator;
-
-
 Event* new_Event_channel_set_generator(Reltime* pos);
 
 

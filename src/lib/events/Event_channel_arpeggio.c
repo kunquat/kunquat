@@ -54,9 +54,9 @@ static Event_field_desc arpeggio_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_arpeggio,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_ARPEGGIO,
-                         arpeggio_desc);
+                         arpeggio);
 
 
 bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)

@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_slide_force_length
-{
-    Event_channel parent;
-} Event_channel_slide_force_length;
-
-
 Event* new_Event_channel_slide_force_length(Reltime* pos);
 
 

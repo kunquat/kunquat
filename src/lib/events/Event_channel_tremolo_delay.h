@@ -20,12 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_tremolo_delay
-{
-    Event_channel parent;
-} Event_channel_tremolo_delay;
-
-
 Event* new_Event_channel_tremolo_delay(Reltime* pos);
 
 

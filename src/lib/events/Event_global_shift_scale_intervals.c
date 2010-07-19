@@ -41,9 +41,9 @@ static Event_field_desc shift_scale_intervals_desc[] =
 };
 
 
-Event_create_constructor(Event_global_shift_scale_intervals,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
-                         shift_scale_intervals_desc);
+                         shift_scale_intervals);
 
 
 bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fields)

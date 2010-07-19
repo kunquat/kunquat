@@ -38,9 +38,9 @@ static Event_field_desc set_bool_desc[] =
 };
 
 
-Event_create_constructor(Event_dsp_set_bool,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_BOOL,
-                         set_bool_desc);
+                         set_bool);
 
 
 bool Event_dsp_set_bool_process(DSP_conf* dsp_conf, char* fields)

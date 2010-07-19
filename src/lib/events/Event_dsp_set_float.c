@@ -41,9 +41,9 @@ static Event_field_desc set_float_desc[] =
 };
 
 
-Event_create_constructor(Event_dsp_set_float,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_FLOAT,
-                         set_float_desc);
+                         set_float);
 
 
 bool Event_dsp_set_float_process(DSP_conf* dsp_conf, char* fields)

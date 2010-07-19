@@ -39,9 +39,9 @@ static Event_field_desc set_gen_int_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_gen_int,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_INT,
-                         set_gen_int_desc);
+                         set_gen_int);
 
 
 bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields)

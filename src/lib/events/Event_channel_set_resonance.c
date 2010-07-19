@@ -37,9 +37,9 @@ static Event_field_desc set_resonance_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_resonance,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_RESONANCE,
-                         set_resonance_desc);
+                         set_resonance);
 
 
 bool Event_channel_set_resonance_process(Channel_state* ch_state, char* fields)

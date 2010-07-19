@@ -38,9 +38,9 @@ static Event_field_desc set_instrument_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_instrument,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_INSTRUMENT,
-                         set_instrument_desc);
+                         set_instrument);
 
 
 bool Event_channel_set_instrument_process(Channel_state* ch_state, char* fields)

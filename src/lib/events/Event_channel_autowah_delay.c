@@ -40,9 +40,9 @@ static Event_field_desc autowah_delay_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_autowah_delay,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_AUTOWAH_DELAY,
-                         autowah_delay_desc);
+                         autowah_delay);
 
 
 bool Event_channel_autowah_delay_process(Channel_state* ch_state, char* fields)

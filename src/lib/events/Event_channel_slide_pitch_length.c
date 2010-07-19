@@ -40,9 +40,9 @@ static Event_field_desc slide_pitch_length_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_slide_pitch_length,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
-                         slide_pitch_length_desc);
+                         slide_pitch_length);
 
 
 bool Event_channel_slide_pitch_length_process(Channel_state* ch_state, char* fields)

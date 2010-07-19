@@ -21,12 +21,6 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_pattern_delay
-{
-    Event_global parent;
-} Event_global_pattern_delay;
-
-
 Event* new_Event_global_pattern_delay(Reltime* pos);
 
 

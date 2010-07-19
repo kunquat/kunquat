@@ -21,12 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_dsp_set_float
-{
-    Event_dsp parent;
-} Event_dsp_set_float;
-
-
 Event* new_Event_dsp_set_float(Reltime* pos);
 
 

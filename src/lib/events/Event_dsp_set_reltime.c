@@ -42,9 +42,9 @@ static Event_field_desc set_reltime_desc[] =
 };
 
 
-Event_create_constructor(Event_dsp_set_reltime,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_RELTIME,
-                         set_reltime_desc);
+                         set_reltime);
 
 
 bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf, char* fields)

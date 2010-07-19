@@ -40,9 +40,9 @@ static Event_field_desc vibrato_delay_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_vibrato_delay,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_VIBRATO_DELAY,
-                         vibrato_delay_desc);
+                         vibrato_delay);
 
 
 bool Event_channel_vibrato_delay_process(Channel_state* ch_state, char* fields)

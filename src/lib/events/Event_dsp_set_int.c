@@ -41,9 +41,9 @@ static Event_field_desc set_int_desc[] =
 };
 
 
-Event_create_constructor(Event_dsp_set_int,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_INT,
-                         set_int_desc);
+                         set_int);
 
 
 bool Event_dsp_set_int_process(DSP_conf* dsp_conf, char* fields)

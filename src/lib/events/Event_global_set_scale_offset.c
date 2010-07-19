@@ -35,9 +35,9 @@ static Event_field_desc set_scale_offset_desc[] =
 };
 
 
-Event_create_constructor(Event_global_set_scale_offset,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_SCALE_OFFSET,
-                         set_scale_offset_desc);
+                         set_scale_offset);
 
 
 bool Event_global_set_scale_offset_process(Playdata* global_state, char* fields)

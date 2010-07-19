@@ -36,9 +36,9 @@ static Event_field_desc set_jump_subsong_desc[] =
 };
 
 
-Event_create_constructor(Event_global_set_jump_subsong,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_JUMP_SUBSONG,
-                         set_jump_subsong_desc);
+                         set_jump_subsong);
 
 
 bool Event_global_set_jump_subsong_process(Playdata* global_state,

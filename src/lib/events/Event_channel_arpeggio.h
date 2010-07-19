@@ -21,12 +21,6 @@
 #include <kunquat/limits.h>
 
 
-typedef struct Event_channel_arpeggio
-{
-    Event_channel parent;
-} Event_channel_arpeggio;
-
-
 Event* new_Event_channel_arpeggio(Reltime* pos);
 
 

@@ -21,12 +21,6 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_set_jump_row
-{
-    Event_global parent;
-} Event_global_set_jump_row;
-
-
 Event* new_Event_global_set_jump_row(Reltime* pos);
 
 

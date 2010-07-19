@@ -38,9 +38,9 @@ static Event_field_desc set_dsp_desc[] =
 };
 
 
-Event_create_constructor(Event_channel_set_dsp,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_DSP,
-                         set_dsp_desc);
+                         set_dsp);
 
 
 bool Event_channel_set_dsp_process(Channel_state* ch_state, char* fields)

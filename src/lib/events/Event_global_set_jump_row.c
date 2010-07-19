@@ -36,9 +36,9 @@ static Event_field_desc set_jump_row_desc[] =
 };
 
 
-Event_create_constructor(Event_global_set_jump_row,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_JUMP_ROW,
-                         set_jump_row_desc);
+                         set_jump_row);
 
 
 bool Event_global_set_jump_row_process(Playdata* global_state, char* fields)
