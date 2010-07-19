@@ -21,6 +21,7 @@
 #include <Directory.h>
 #include <Handle_rwc.h>
 #include <File_dir.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -575,17 +576,17 @@ static bool inspect_dirs(const char* path,
     while (entry != NULL)
     {
         bool found = false;
-        if (strcmp(last_element(entry), "committed") == 0)
+        if (string_eq(last_element(entry), "committed"))
         {
             found = true;
             *has_committed = true;
         }
-        else if (strcmp(last_element(entry), "workspace") == 0)
+        else if (string_eq(last_element(entry), "workspace"))
         {
             found = true;
             *has_workspace = true;
         }
-        else if (strcmp(last_element(entry), "oldcommit") == 0)
+        else if (string_eq(last_element(entry), "oldcommit"))
         {
             found = true;
             *has_oldcommit = true;

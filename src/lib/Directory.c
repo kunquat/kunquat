@@ -31,6 +31,7 @@
 #include <math_common.h>
 #include <Directory.h>
 #include <Handle_private.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -248,7 +249,7 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     assert(dest[0] != '\0');
     assert(src != NULL);
     assert(src[0] != '\0');
-    assert(strcmp(dest, src) != 0);
+    assert(!string_eq(dest, src));
     
     Path_type info = path_info(dest, handle);
     if (info == PATH_ERROR)
@@ -345,7 +346,7 @@ bool move_dir(const char* dest, const char* src, kqt_Handle* handle)
     assert(dest[0] != '\0');
     assert(src != NULL);
     assert(src[0] != '\0');
-    if (strcmp(dest, src) == 0)
+    if (string_eq(dest, src))
     {
         return true;
     }
@@ -524,8 +525,8 @@ char* Directory_get_entry(Directory* dir)
         {
             return NULL;
         }
-    } while (strcmp(dir->entry->d_name, ".") == 0 ||
-             strcmp(dir->entry->d_name, "..") == 0);
+    } while (string_eq(dir->entry->d_name, ".") ||
+             string_eq(dir->entry->d_name, ".."));
     char* sub_path = append_to_path(dir->path, dir->entry->d_name);
     if (sub_path == NULL)
     {
@@ -608,7 +609,7 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
     assert(dest[0] != '\0');
     assert(src != NULL);
     assert(src[0] != '\0');
-    assert(strcmp(dest, src) != 0);
+    assert(!string_eq(dest, src));
 
     errno = 0;
     FILE* in = fopen(src, "rb");

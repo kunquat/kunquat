@@ -25,6 +25,7 @@
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -151,23 +152,23 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 {
                     return false;
                 }
-                if (strcmp(key, "force") == 0)
+                if (string_eq(key, "force"))
                 {
                     str = read_double(str, &default_force, state);
                 }
-                else if (strcmp(key, "force_variation") == 0)
+                else if (string_eq(key, "force_variation"))
                 {
                     str = read_double(str, &force_variation, state);
                 }
-                else if (strcmp(key, "pitch_lock") == 0)
+                else if (string_eq(key, "pitch_lock"))
                 {
                     str = read_bool(str, &pitch_lock_enabled, state);
                 }
-                else if (strcmp(key, "pitch_lock_cents") == 0)
+                else if (string_eq(key, "pitch_lock_cents"))
                 {
                     str = read_double(str, &pitch_lock_cents, state);
                 }
-                else if (strcmp(key, "scale") == 0)
+                else if (string_eq(key, "scale"))
                 {
                     str = read_int(str, &scale_index, state);
                     if (state->error)

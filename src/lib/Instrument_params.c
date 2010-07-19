@@ -18,6 +18,7 @@
 
 #include <Instrument_params.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -165,11 +166,11 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -236,11 +237,11 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -315,35 +316,35 @@ Envelope* parse_env_time(char* str,
                     del_Envelope(env);
                     return NULL;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, enabled, state);
                 }
-                else if (strcmp(key, "scale_amount") == 0)
+                else if (string_eq(key, "scale_amount"))
                 {
                     str = read_double(str, scale_amount, state);
                 }
-                else if (strcmp(key, "scale_center") == 0)
+                else if (string_eq(key, "scale_center"))
                 {
                     str = read_double(str, scale_center, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
-                else if (carry != NULL && strcmp(key, "carry") == 0)
+                else if (carry != NULL && string_eq(key, "carry"))
                 {
                     str = read_bool(str, carry, state);
                 }
-                else if (!release && strcmp(key, "loop") == 0)
+                else if (!release && string_eq(key, "loop"))
                 {
                     str = read_bool(str, &loop, state);
                 }
-                else if (!release && strcmp(key, "loop_start") == 0)
+                else if (!release && string_eq(key, "loop_start"))
                 {
                     str = read_int(str, &loop_start, state);
                 }
-                else if (!release && strcmp(key, "loop_end") == 0)
+                else if (!release && string_eq(key, "loop_end"))
                 {
                     str = read_int(str, &loop_end, state);
                 }

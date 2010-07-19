@@ -25,6 +25,7 @@
 #include <Song.h>
 #include <File_base.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -253,7 +254,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                 {
                     return false;
                 }
-                if (strcmp(key, "mix_vol") == 0)
+                if (string_eq(key, "mix_vol"))
                 {
                     str = read_double(str, &mix_vol, state);
                     if (state->error)
@@ -267,7 +268,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                         return false;
                     }
                 }
-                else if (strcmp(key, "init_subsong") == 0)
+                else if (string_eq(key, "init_subsong"))
                 {
                     str = read_int(str, &init_subsong, state);
                     if (state->error)
