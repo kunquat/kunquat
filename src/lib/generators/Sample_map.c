@@ -79,8 +79,7 @@ static void del_Random_list(Random_list* list)
 
 Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
 {
-    assert(state != NULL);
-    if (state->error)
+    if (state != NULL && state->error)
     {
         return NULL;
     }
@@ -108,6 +107,7 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
     {
         return map;
     }
+    assert(state != NULL);
     str = read_const_char(str, '[', state);
     if (state->error)
     {
@@ -235,13 +235,52 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
 }
 
 
+bool Sample_map_add_entry(Sample_map* map,
+                          double cents,
+                          double force,
+                          Sample_entry* entry)
+{
+    assert(map != NULL);
+    assert(isfinite(cents));
+    assert(isfinite(force));
+    assert(entry != NULL);
+    Random_list* key = &(Random_list){ .force = force,
+                                       .cents = cents };
+    Random_list* list = AAtree_get_exact(map->map, key);
+    if (list == NULL)
+    {
+        Random_list* list = xalloc(Random_list);
+        if (list == NULL || !AAtree_ins(map->map, list))
+        {
+            xfree(list);
+            return false;
+        }
+        list->freq = exp2(cents / 1200) * 440;
+        list->cents = cents;
+        list->force = force;
+        list->entry_count = 0;
+    }
+    if (list->entry_count >= SAMPLE_MAP_RANDOMS_MAX)
+    {
+        assert(list->entry_count == SAMPLE_MAP_RANDOMS_MAX);
+        return false;
+    }
+    list->entries[list->entry_count].ref_freq = list->freq;
+    list->entries[list->entry_count].freq = entry->freq;
+    list->entries[list->entry_count].vol_scale = entry->vol_scale;
+    list->entries[list->entry_count].sample = entry->sample;
+    ++list->entry_count;
+    return true;
+}
+
+
 static double distance(Random_list* list, Random_list* key)
 {
     assert(list != NULL);
     assert(key != NULL);
     double tone_d = (list->cents - key->cents) * 64;
     double force_d = list->force - key->force;
-    return sqrt(tone_d * tone_d + force_d * force_d);
+    return hypot(tone_d, force_d);
 }
 
 
