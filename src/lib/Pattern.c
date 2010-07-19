@@ -390,28 +390,6 @@ uint32_t Pattern_mix(Pattern* pat,
                 aux_process = true;
             }
         }
-#if 0
-        while (next_aux != NULL && Reltime_cmp(next_aux_pos, &play->pos) == 0)
-        {
-            assert(EVENT_IS_PG(Event_get_type(next_aux)));
-            int ch_index = ((Event_pg*)next_aux)->ch_index;
-            if (EVENT_IS_INS(Event_get_type(next_aux)))
-            {
-                Channel_state* ch_state = &channels[ch_index]->cur_state;
-                if (ch_state->instrument > 0)
-                {
-                    Event_handler_handle(eh, ch_state->instrument,
-                                         Event_get_type(next_aux),
-                                         Event_get_fields(next_aux));
-                }
-            }
-            next_aux = Column_iter_get_next(play->citer);
-            if (next_aux != NULL)
-            {
-                next_aux_pos = Event_get_pos(next_aux);
-            }
-        }
-#endif
 
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,

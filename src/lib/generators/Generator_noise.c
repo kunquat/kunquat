@@ -79,59 +79,6 @@ char* Generator_noise_property(Generator* gen, const char* property_type)
 }
 
 
-#if 0
-bool Generator_noise_has_subkey(const char* subkey)
-{
-    assert(subkey != NULL);
-    return strcmp(subkey, "gen_noise/p_noise.json") == 0;
-}
-#endif
-
-
-#if 0
-bool Generator_noise_parse(Generator* gen,
-                           const char* subkey,
-                           void* data,
-                           long length,
-                           Read_state* state)
-{
-    assert(gen != NULL);
-    assert(Generator_get_type(gen) == GEN_TYPE_NOISE);
-    assert(subkey != NULL);
-    assert(Generator_noise_has_subkey(subkey));
-    assert((data == NULL) == (length == 0));
-    assert(length >= 0);
-    (void)length;
-    assert(state != NULL);
-    if (state->error)
-    {
-        return false;
-    }
-    Generator_noise* gen_noise = (Generator_noise*)gen;
-    if (strcmp(subkey, "gen_noise/p_noise.json") == 0)
-    {
-        int64_t order = 0;
-        char* str = data;
-        if (str != NULL)
-        {
-            str = read_const_char(str, '{', state);
-            str = read_const_string(str, "order", state);
-            str = read_const_char(str, ':', state);
-            str = read_int(str, &order, state);
-            str = read_const_char(str, '}', state);
-            if (state->error)
-            {
-                return false;
-            }
-        }
-        gen_noise->order = order;
-        return true;
-    }
-    return false;
-}
-#endif
-
-
 void Generator_noise_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);

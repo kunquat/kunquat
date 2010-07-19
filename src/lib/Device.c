@@ -198,59 +198,6 @@ void Device_remove_direct_buffers(Device* device)
 }
 
 
-#if 0
-bool Device_init_buffers(Device* device)
-{
-    assert(device != NULL);
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Audio_buffer** receive = &device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
-        Audio_buffer** send = &device->buffers[DEVICE_PORT_TYPE_SEND][port];
-        if (device->reg[DEVICE_PORT_TYPE_RECEIVE][port])
-        {
-            if (*receive == NULL)
-            {
-                *receive = new_Audio_buffer(device->buffer_size);
-                if (*receive == NULL)
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (*receive != NULL)
-            {
-                del_Audio_buffer(*receive);
-                *receive = NULL;
-            }
-        }
-        if (device->reg[DEVICE_PORT_TYPE_SEND][port] &&
-                device->direct_send[port] == NULL)
-        {
-            if (*send == NULL)
-            {
-                *send = new_Audio_buffer(device->buffer_size);
-                if (*send == NULL)
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (*send != NULL)
-            {
-                del_Audio_buffer(*send);
-                *send = NULL;
-            }
-        }
-    }
-    return true;
-}
-#endif
-
-
 bool Device_set_mix_rate(Device* device, uint32_t rate)
 {
     assert(device != NULL);
