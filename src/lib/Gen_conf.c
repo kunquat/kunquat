@@ -81,7 +81,7 @@ bool Gen_conf_parse(Gen_conf* conf,
                                          data, length,
                                          state);
     }
-    else if (strcmp(key, "p_generator.json") == 0)
+    else if (string_eq(key, "p_generator.json"))
     {
         return Gen_conf_parse_general(conf, data, state);
     }
@@ -124,19 +124,19 @@ static bool Gen_conf_parse_general(Gen_conf* conf,
                 {
                     return false;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (strcmp(key, "volume") == 0)
+                else if (string_eq(key, "volume"))
                 {
                     str = read_double(str, &volume, state);
                 }
-                else if (strcmp(key, "pitch_lock") == 0)
+                else if (string_eq(key, "pitch_lock"))
                 {
                     str = read_bool(str, &pitch_lock_enabled, state);
                 }
-                else if (strcmp(key, "pitch_lock_cents") == 0)
+                else if (string_eq(key, "pitch_lock_cents"))
                 {
                     str = read_double(str, &pitch_lock_cents, state);
                 }

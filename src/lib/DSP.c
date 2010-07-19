@@ -21,6 +21,7 @@
 #include <DSP_conf.h>
 #include <DSP_type.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -46,7 +47,7 @@ DSP* new_DSP(char* str,
     DSP* (*cons)(uint32_t, uint32_t) = NULL;
     for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
-        if (strcmp(type, dsp_types[i].type) == 0)
+        if (string_eq(type, dsp_types[i].type))
         {
             cons = dsp_types[i].cons;
             break;

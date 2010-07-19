@@ -231,7 +231,7 @@ static bool parse_song_level(kqt_Handle* handle,
     assert(data != NULL || length == 0);
     assert(length >= 0);
     (void)length;
-    if (strcmp(key, "p_composition.json") == 0)
+    if (string_eq(key, "p_composition.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         if (!Song_parse_composition(handle->song, data, state))
@@ -240,7 +240,7 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (strcmp(key, "p_connections.json") == 0)
+    else if (string_eq(key, "p_connections.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Connections* graph = new_Connections_from_string(data, false, state);
@@ -389,7 +389,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
-    if (strcmp(subkey, "p_instrument.json") == 0)
+    if (string_eq(subkey, "p_instrument.json"))
     {
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
         bool new_ins = ins == NULL;
@@ -425,7 +425,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (strcmp(subkey, "p_connections.json") == 0)
+    else if (string_eq(subkey, "p_connections.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Connections* graph = new_Connections_from_string(data, true, state);
@@ -493,7 +493,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     for (int i = 0; parse[i].name != NULL; ++i)
     {
         assert(parse[i].read != NULL);
-        if (strcmp(subkey, parse[i].name) == 0)
+        if (string_eq(subkey, parse[i].name))
         {
             Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
             bool new_ins = ins == NULL;
@@ -585,7 +585,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    if (strcmp(subkey, "p_gen_type.json") == 0)
+    if (string_eq(subkey, "p_gen_type.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Generator* gen = new_Generator(data, Instrument_get_params(ins),
@@ -654,7 +654,7 @@ static bool parse_generator_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (strcmp(subkey, "p_events.json") == 0)
+    else if (string_eq(subkey, "p_events.json"))
     {
         Gen_table* table = Instrument_get_gens(ins);
         assert(table != NULL);
@@ -744,7 +744,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         return true;
     }
     subkey = strchr(subkey, '/') + 1;
-    if (strcmp(subkey, "p_dsp_type.json") == 0)
+    if (string_eq(subkey, "p_dsp_type.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
@@ -806,7 +806,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (strcmp(subkey, "p_events.json") == 0)
+    else if (string_eq(subkey, "p_events.json"))
     {
 //        fprintf(stderr, "%s\n", subkey);
         DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
@@ -852,7 +852,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strcmp(subkey, "p_pattern.json") == 0)
+    if (string_eq(subkey, "p_pattern.json"))
     {
         Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
         bool new_pattern = pat == NULL;
@@ -890,11 +890,11 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    bool global_column = strcmp(subkey, "gcol/p_global_events.json") == 0;
+    bool global_column = string_eq(subkey, "gcol/p_global_events.json");
     int col_index = 0;
     ++second_element;
     if (((col_index = string_extract_index(subkey, "ccol_", 2)) >= 0
-                    && strcmp(second_element, "p_channel_events.json") == 0)
+                    && string_eq(second_element, "p_channel_events.json"))
                 || global_column)
     {
         if (global_column)
@@ -989,8 +989,8 @@ static bool parse_scale_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strcmp(subkey, MAGIC_ID "sXX/p_scale.json") == 0 ||
-            strcmp(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json") == 0)
+    if (string_eq(subkey, MAGIC_ID "sXX/p_scale.json") ||
+            string_eq(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Scale* scale = new_Scale_from_string(data, state);
@@ -1024,7 +1024,7 @@ static bool parse_subsong_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (strcmp(subkey, "p_subsong.json") == 0)
+    if (string_eq(subkey, "p_subsong.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Subsong* ss = new_Subsong_from_string(data, state);

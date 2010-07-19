@@ -30,17 +30,21 @@ bool string_eq(const char* str1, const char* str2)
         }
         return false;
     }
+    if (str2 == NULL || *str2 == '\0')
+    {
+        return false;
+    }
     return strcmp(str1, str2) == 0;
 }
 
 
 bool string_has_prefix(const char* str, const char* prefix)
 {
-    if (prefix == NULL || *prefix == '\0')
+    if (string_eq(prefix, ""))
     {
         return true;
     }
-    if (str == NULL || *str == '\0')
+    if (string_eq(str, ""))
     {
         return false;
     }
@@ -50,11 +54,11 @@ bool string_has_prefix(const char* str, const char* prefix)
 
 bool string_has_suffix(const char* str, const char* suffix)
 {
-    if (suffix == NULL || *suffix == '\0')
+    if (string_eq(suffix, ""))
     {
         return true;
     }
-    if (str == NULL || *str == '\0')
+    if (string_eq(str, ""))
     {
         return false;
     }
@@ -64,7 +68,7 @@ bool string_has_suffix(const char* str, const char* suffix)
     }
     const char* search = str + (strlen(str) - strlen(suffix));
     assert(strlen(search) == strlen(suffix));
-    return strcmp(search, suffix) == 0;
+    return string_eq(search, suffix);
 }
 
 
