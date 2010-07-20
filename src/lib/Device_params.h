@@ -92,6 +92,9 @@ bool Device_params_set_key(Device_params* params, const char* key);
 /**
  * Marks a key to require explicit synchronisation on update.
  *
+ * If the function succeeds, it also sets the Device parameters to require
+ * synchronisation.
+ *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ directory.

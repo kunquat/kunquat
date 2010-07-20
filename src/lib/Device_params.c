@@ -75,7 +75,7 @@ static Slow_sync_info* new_Slow_sync_info(const char* key)
     }
     strncpy(info->key, key, 100);
     info->key[99] = '\0';
-    info->sync_needed = false;
+    info->sync_needed = true;
     return info;
 }
 
@@ -196,6 +196,7 @@ bool Device_params_set_slow_sync(Device_params* params, const char* key)
     assert(key != NULL);
     if (AAtree_contains(params->slow_sync, key))
     {
+        params->slow_sync_needed = true;
         return true;
     }
     Slow_sync_info* info = new_Slow_sync_info(key);
@@ -204,6 +205,7 @@ bool Device_params_set_slow_sync(Device_params* params, const char* key)
         del_Slow_sync_info(info);
         return false;
     }
+    params->slow_sync_needed = true;
     return true;
 }
 
