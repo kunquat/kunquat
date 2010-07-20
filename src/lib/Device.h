@@ -40,6 +40,7 @@ typedef struct Device
     bool (*set_mix_rate)(struct Device*, uint32_t);
     bool (*set_buffer_size)(struct Device*, uint32_t);
     void (*reset)(struct Device*);
+    bool (*sync)(struct Device*);
     void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
@@ -87,6 +88,15 @@ void Device_set_buffer_size_changer(Device* device,
  * \param reset    The reset function -- must not be \c NULL.
  */
 void Device_set_reset(Device* device, void (*reset)(Device*));
+
+
+/**
+ * Sets the synchronisation function of the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param sync     The synchronisation function -- must not be \c NULL.
+ */
+void Device_set_sync(Device* device, bool (*sync)(Device*));
 
 
 /**
@@ -265,6 +275,16 @@ void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
  * \param device   The Device -- must not be \c NULL.
  */
 void Device_reset(Device* device);
+
+
+/**
+ * Synchronises the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_sync(Device* device);
 
 
 /**

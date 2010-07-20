@@ -57,6 +57,19 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate);
 static bool Song_set_buffer_size(Device* device, uint32_t size);
 
 
+/**
+ * Synchronises the Song.
+ *
+ * This function synchronises all the Devices the Song contains. It should be
+ * called after loading a Kunquat composition.
+ *
+ * \param device   The Song Device -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+static bool Song_sync(Device* device);
+
+
 Song* new_Song(uint32_t buf_size)
 {
     assert(buf_size > 0);
@@ -73,6 +86,7 @@ Song* new_Song(uint32_t buf_size)
     }
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
+    Device_set_sync(&song->parent, Song_sync);
     Device_register_port(&song->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     song->subsongs = NULL;
     song->pats = NULL;
@@ -611,6 +625,30 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
     {
         DSP* dsp = DSP_table_get_dsp(song->dsps, i);
         if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
+static bool Song_sync(Device* device)
+{
+    assert(device != NULL);
+    Song* song = (Song*)device;
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(song->insts, i);
+        if (ins != NULL && !Device_sync((Device*)ins))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
+        if (dsp != NULL && !Device_sync((Device*)dsp))
         {
             return false;
         }

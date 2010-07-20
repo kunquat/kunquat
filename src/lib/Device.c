@@ -28,12 +28,15 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
     device->set_mix_rate = NULL;
     device->set_buffer_size = NULL;
     device->reset = NULL;
+    device->sync = NULL;
     device->process = NULL;
+    
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -71,6 +74,15 @@ void Device_set_reset(Device* device, void (*reset)(Device*))
     assert(device != NULL);
     assert(reset != NULL);
     device->reset = reset;
+    return;
+}
+
+
+void Device_set_sync(Device* device, bool (*sync)(Device*))
+{
+    assert(device != NULL);
+    assert(sync != NULL);
+    device->sync = sync;
     return;
 }
 
@@ -308,6 +320,17 @@ void Device_reset(Device* device)
         device->reset(device);
     }
     return;
+}
+
+
+bool Device_sync(Device* device)
+{
+    assert(device != NULL);
+    if (device->sync != NULL)
+    {
+        return device->sync(device);
+    }
+    return true;
 }
 
 
