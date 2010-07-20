@@ -127,6 +127,17 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 
 
 /**
+ * Finds out if a key exists inside the AAtree.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   \c true if and only if \a key is found inside \c tree.
+ */
+bool AAtree_contains(AAtree* tree, const void* key);
+
+
+/**
  * Inserts a new element into the AAtree.
  *
  * \param tree   The AAtree -- must not be \c NULL.

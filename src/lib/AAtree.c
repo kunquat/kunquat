@@ -148,6 +148,14 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
 }
 
 
+bool AAtree_contains(AAtree* tree, const void* key)
+{
+    assert(tree != NULL);
+    assert(key != NULL);
+    return AAtree_get_exact(tree, key) != NULL;
+}
+
+
 bool AAtree_ins(AAtree* tree, void* data)
 {
     assert(tree != NULL);
@@ -346,6 +354,10 @@ void* AAiter_get_next(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+    if (iter->node == NULL)
+    {
+        return NULL;
+    }
     AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
     {
@@ -364,6 +376,10 @@ void* AAiter_get_prev(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+    if (iter->node == NULL)
+    {
+        return NULL;
+    }
     AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
     {

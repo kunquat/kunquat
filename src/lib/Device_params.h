@@ -90,6 +90,57 @@ bool Device_params_set_key(Device_params* params, const char* key);
 
 
 /**
+ * Marks a key to require explicit synchronisation on update.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ directory.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_params_set_slow_sync(Device_params* params, const char* key);
+
+
+/**
+ * Marks a key to no longer require explicit synchronisation on update.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ directory.
+ */
+void Device_params_clear_slow_sync(Device_params* params, const char* key);
+
+
+/**
+ * Finds out whether any slow-sync parameters have changed.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ *
+ * \return   \c true if explicit synchronisation is needed,
+ *           otherwise \c false.
+ */
+bool Device_params_need_sync(Device_params* params);
+
+
+/**
+ * Retrieves a slow-sync key that has changed.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ *
+ * \return   One of the slow-sync keys, or \c NULL if no such keys are left.
+ */
+const char* Device_params_get_slow_sync_key(Device_params* params);
+
+
+/**
+ * Sets the Device parameters synchronised.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ */
+void Device_params_synchronised(Device_params* params);
+
+
+/**
  * Parses the Device Event list.
  *
  * \param params   The Device parameters -- must not be \c NULL.
@@ -130,6 +181,8 @@ bool Device_params_parse_value(Device_params* params,
  *
  * This function is used during playback.
  * Note that this function does not support sample files.
+ * Also, the function will not modify keys that are marked to require explicit
+ * synchronisation.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
