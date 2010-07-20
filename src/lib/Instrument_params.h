@@ -125,7 +125,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
 /**
  * Uninitialises the Instrument parameters.
  *
- * \param ip   The Instrument parameters -- must not be \c NULL.
+ * \param ip   The Instrument parameters, or \c NULL.
  */
 void Instrument_params_uninit(Instrument_params* ip);
 

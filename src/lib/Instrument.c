@@ -363,20 +363,14 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
 
 void del_Instrument(Instrument* ins)
 {
-    assert(ins != NULL);
+    if (ins == NULL)
+    {
+        return;
+    }
     Instrument_params_uninit(&ins->params);
-    if (ins->connections != NULL)
-    {
-        del_Connections(ins->connections);
-    }
-    if (ins->gens != NULL)
-    {
-        del_Gen_table(ins->gens);
-    }
-    if (ins->dsps != NULL)
-    {
-        del_DSP_table(ins->dsps);
-    }
+    del_Connections(ins->connections);
+    del_Gen_table(ins->gens);
+    del_DSP_table(ins->dsps);
     Device_uninit(&ins->parent);
     xfree(ins);
     return;

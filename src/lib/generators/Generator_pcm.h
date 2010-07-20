@@ -141,7 +141,7 @@ bool Generator_pcm_del_sample_mapping(Generator_pcm* pcm,
 /**
  * Destroys an existing PCM Generator.
  *
- * \param gen   The PCM Generator -- must not be \c NULL.
+ * \param gen   The PCM Generator, or \c NULL.
  */
 void del_Generator_pcm(Generator* gen);
 

@@ -623,17 +623,14 @@ static bool inspect_dirs(const char* path,
 
 static void del_Handle_rwc(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
-    if (handle_rwc->handle_rw.base_path != NULL)
-    {
-        xfree(handle_rwc->handle_rw.base_path);
-    }
-    if (handle_rwc->changed_files != NULL)
-    {
-        del_AAtree(handle_rwc->changed_files);
-    }
+    xfree(handle_rwc->handle_rw.base_path);
+    del_AAtree(handle_rwc->changed_files);
     xfree(handle_rwc);
     return;
 }

@@ -443,11 +443,11 @@ bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
 
 void del_Event_handler(Event_handler* eh)
 {
-    assert(eh != NULL);
-    if (eh->global_state != NULL)
+    if (eh == NULL)
     {
-//        del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
+        return;
     }
+//    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
     xfree(eh);
     return;
 }

@@ -143,7 +143,7 @@ void Voice_mix(Voice* voice,
 /**
  * Destroys an existing Voice.
  *
- * \param voice   The Voice -- must not be \c NULL.
+ * \param voice   The Voice, or \c NULL.
  */
 void del_Voice(Voice* voice);
 

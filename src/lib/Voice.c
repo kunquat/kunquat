@@ -180,11 +180,11 @@ void Voice_mix(Voice* voice,
 
 void del_Voice(Voice* voice)
 {
-    assert(voice != NULL);
-    if (voice->state != NULL)
+    if (voice == NULL)
     {
-        xfree(voice->state);
+        return;
     }
+    xfree(voice->state);
     xfree(voice);
     return;
 }

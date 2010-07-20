@@ -39,12 +39,12 @@ Event* Event_init(Event* event,
 
 void del_Event_default(Event* event)
 {
-    assert(event != NULL);
-    assert(EVENT_IS_VALID(event->type));
-    if (event->fields != NULL)
+    if (event == NULL)
     {
-        xfree(event->fields);
+        return;
     }
+    assert(EVENT_IS_VALID(event->type));
+    xfree(event->fields);
     xfree(event);
     return;
 }

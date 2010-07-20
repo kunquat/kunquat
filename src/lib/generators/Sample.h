@@ -250,7 +250,7 @@ uint32_t Sample_mix(Sample* sample,
 /**
  * Destroys a Sample.
  *
- * \param sample   The Sample -- must not be \c NULL.
+ * \param sample   The Sample, or \c NULL.
  */
 void del_Sample(Sample* sample);
 

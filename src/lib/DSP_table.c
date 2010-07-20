@@ -160,15 +160,12 @@ void DSP_table_clear(DSP_table* table)
 
 void del_DSP_table(DSP_table* table)
 {
-    assert(table != NULL);
-    if (table->confs != NULL)
+    if (table == NULL)
     {
-        del_Etable(table->confs);
+        return;
     }
-    if (table->dsps != NULL)
-    {
-        del_Etable(table->dsps);
-    }
+    del_Etable(table->confs);
+    del_Etable(table->dsps);
     xfree(table);
     return;
 }

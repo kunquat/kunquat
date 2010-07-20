@@ -63,7 +63,7 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
 /**
  * Destroys an existing Sawtooth Generator.
  *
- * \param gen   The Sawtooth Generator -- must not be \c NULL.
+ * \param gen   The Sawtooth Generator, or \c NULL.
  */
 void del_Generator_sawtooth(Generator* gen);
 

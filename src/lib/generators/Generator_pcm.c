@@ -206,7 +206,10 @@ uint32_t Generator_pcm_mix(Generator* gen,
 
 void del_Generator_pcm(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "pcm"));
     Generator_pcm* pcm = (Generator_pcm*)gen;
     xfree(pcm);

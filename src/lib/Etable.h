@@ -87,7 +87,7 @@ void Etable_clear(Etable* table);
 /**
  * Destroys an existing Etable.
  *
- * \param table   The Etable -- must not be \c NULL.
+ * \param table   The Etable, or \c NULL.
  */
 void del_Etable(Etable* table);
 

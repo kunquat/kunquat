@@ -208,7 +208,10 @@ Event* Column_iter_get_next(Column_iter* iter)
 
 void del_Column_iter(Column_iter* iter)
 {
-    assert(iter != NULL);
+    if (iter == NULL)
+    {
+        return;
+    }
     del_AAiter(iter->tree_iter);
     xfree(iter);
     return;
@@ -723,7 +726,10 @@ Reltime* Column_length(Column* col)
 
 void del_Column(Column* col)
 {
-    assert(col != NULL);
+    if (col == NULL)
+    {
+        return;
+    }
     del_AAtree(col->events);
     del_Column_iter(col->edit_iter);
     xfree(col);
@@ -733,7 +739,10 @@ void del_Column(Column* col)
 
 static void del_Event_list(Event_list* elist)
 {
-    assert(elist != NULL);
+    if (elist == NULL)
+    {
+        return;
+    }
     assert(elist->event == NULL);
     Event_list* cur = elist->next;
     assert(cur->event != NULL);

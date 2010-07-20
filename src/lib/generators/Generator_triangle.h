@@ -63,7 +63,7 @@ uint32_t Generator_triangle_mix(Generator* gen,
 /**
  * Destroys an existing Triangle Generator.
  *
- * \param gen   The Triangle Generator -- must not be \c NULL.
+ * \param gen   The Triangle Generator, or \c NULL.
  */
 void del_Generator_triangle(Generator* gen);
 

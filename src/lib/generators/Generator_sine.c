@@ -140,7 +140,10 @@ uint32_t Generator_sine_mix(Generator* gen,
 
 void del_Generator_sine(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "sine"));
     Generator_sine* sine = (Generator_sine*)gen;
     xfree(sine);

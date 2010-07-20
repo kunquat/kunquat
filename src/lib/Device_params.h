@@ -244,7 +244,7 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 /**
  * Destroys existing Device parameters.
  *
- * \param params   The Device parameters -- must not be \c NULL.
+ * \param params   The Device parameters, or \c NULL.
  */
 void del_Device_params(Device_params* params);
 

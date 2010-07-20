@@ -303,7 +303,7 @@ void Device_node_print(Device_node* node, FILE* out);
 /**
  * Destroys an existing Device node.
  *
- * \param node   The Device node -- must not be \c NULL.
+ * \param node   The Device node, or \c NULL.
  */
 void del_Device_node(Device_node* node);
 

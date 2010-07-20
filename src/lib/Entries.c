@@ -82,8 +82,10 @@ static int Entry_cmp(const Entry* e1, const Entry* e2)
 
 static void del_Entry(Entry* entry)
 {
-    assert(entry != NULL);
-    assert(entry->data != NULL);
+    if (entry == NULL)
+    {
+        return;
+    }
     xfree(entry->data);
     xfree(entry);
     return;
@@ -255,7 +257,10 @@ static void resolve_wildcard(Entries* entries, Entry* key_entry)
 
 void del_Entries(Entries* entries)
 {
-    assert(entries != NULL);
+    if (entries == NULL)
+    {
+        return;
+    }
     del_AAtree(entries->tree);
     xfree(entries);
     return;

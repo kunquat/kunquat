@@ -156,7 +156,7 @@ uint32_t Pattern_mix(Pattern* pat,
 /**
  * Destroys an existing Pattern.
  *
- * \param pat   The Pattern -- must not be \c NULL.
+ * \param pat   The Pattern, or \c NULL.
  */
 void del_Pattern(Pattern* pat);
 

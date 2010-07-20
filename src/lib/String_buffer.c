@@ -144,7 +144,10 @@ const char* String_buffer_get_string(String_buffer* sb)
 
 char* del_String_buffer(String_buffer* sb)
 {
-    assert(sb != NULL);
+    if (sb == NULL)
+    {
+        return NULL;
+    }
     char* buffer = sb->buffer;
     xfree(sb);
     return buffer;

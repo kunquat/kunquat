@@ -114,9 +114,9 @@ void Channel_reset(Channel* ch);
 
 
 /**
- * Destroys an existing Channel
+ * Destroys an existing Channel.
  *
- * \param ch   The Channel -- must not be \c NULL.
+ * \param ch   The Channel, or \c NULL.
  */
 void del_Channel(Channel* ch);
 

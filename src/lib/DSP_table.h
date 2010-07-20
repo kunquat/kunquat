@@ -120,7 +120,7 @@ void DSP_table_clear(DSP_table* table);
 /**
  * Destroys an existing DSP table.
  *
- * \param table   The DSP table -- must not be \c NULL.
+ * \param table   The DSP table, or \c NULL.
  */
 void del_DSP_table(DSP_table* table);
 

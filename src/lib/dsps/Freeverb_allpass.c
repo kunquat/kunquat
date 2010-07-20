@@ -117,11 +117,11 @@ void Freeverb_allpass_clear(Freeverb_allpass* allpass)
 
 void del_Freeverb_allpass(Freeverb_allpass* allpass)
 {
-    assert(allpass != NULL);
-    if (allpass->buffer != NULL)
+    if (allpass == NULL)
     {
-        xfree(allpass->buffer);
+        return;
     }
+    xfree(allpass->buffer);
     xfree(allpass);
     return;
 }

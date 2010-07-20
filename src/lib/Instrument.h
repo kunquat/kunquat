@@ -192,7 +192,7 @@ void Instrument_mix(Instrument* ins,
 /**
  * Destroys an existing Instrument.
  *
- * \param   The Instrument -- must not be \c NULL.
+ * \param   The Instrument, or \c NULL.
  */
 void del_Instrument(Instrument* ins);
 

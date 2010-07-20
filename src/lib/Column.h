@@ -263,7 +263,7 @@ Reltime* Column_length(Column* col);
 /**
  * Destroys an existing Column.
  *
- * \param col   The Column -- must not be \c NULL.
+ * \param col   The Column, or \c NULL.
  */
 void del_Column(Column* col);
 

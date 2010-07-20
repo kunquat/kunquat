@@ -127,7 +127,7 @@ double Random_get_float_signal(Random* random);
 /**
  * Destroys an existing Random generator.
  *
- * \param random   The Random generator -- must not be \c NULL.
+ * \param random   The Random generator, or \c NULL.
  */
 void del_Random(Random* random);
 

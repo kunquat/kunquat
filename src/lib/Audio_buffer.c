@@ -144,13 +144,13 @@ kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index)
 
 void del_Audio_buffer(Audio_buffer* buffer)
 {
-    assert(buffer != NULL);
+    if (buffer == NULL)
+    {
+        return;
+    }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        if (buffer->bufs[i] != NULL)
-        {
-            xfree(buffer->bufs[i]);
-        }
+        xfree(buffer->bufs[i]);
     }
     xfree(buffer);
     return;

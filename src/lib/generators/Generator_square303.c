@@ -155,7 +155,10 @@ uint32_t Generator_square303_mix(Generator* gen,
 
 void del_Generator_square303(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "square303"));
     Generator_square303* square303 = (Generator_square303*)gen;
     xfree(square303);

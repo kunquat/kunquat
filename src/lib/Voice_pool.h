@@ -165,7 +165,7 @@ void Voice_pool_reset(Voice_pool* pool);
 /**
  * Destroys an existing Voice pool.
  *
- * \param pool   The Voice pool -- must not be \c NULL.
+ * \param pool   The Voice pool, or \c NULL.
  */
 void del_Voice_pool(Voice_pool* pool);
 

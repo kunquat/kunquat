@@ -114,7 +114,7 @@ void Connections_print(Connections* graph, FILE* out);
 /**
  * Destroys existing Connections.
  *
- * \param graph   The Connections -- must not be \c NULL.
+ * \param graph   The Connections, or \c NULL.
  */
 void del_Connections(Connections* graph);
 

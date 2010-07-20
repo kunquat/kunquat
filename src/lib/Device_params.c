@@ -502,24 +502,15 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 
 void del_Device_params(Device_params* params)
 {
-    assert(params != NULL);
-    if (params->implement != NULL)
+    if (params == NULL)
     {
-        del_AAtree(params->implement);
+        return;
     }
-    if (params->config != NULL)
-    {
-        del_AAtree(params->config);
-    }
-    if (params->event_data != NULL)
-    {
-        del_AAtree(params->event_data);
-    }
+    del_AAtree(params->implement);
+    del_AAtree(params->config);
+    del_AAtree(params->event_data);
 #if 0
-    if (params->event_names != NULL)
-    {
-        del_AAtree(params->event_names);
-    }
+    del_AAtree(params->event_names);
 #endif
     xfree(params);
     return;

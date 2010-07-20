@@ -83,12 +83,12 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
 
 void Channel_state_uninit(Channel_state* state)
 {
-    assert(state != NULL);
-    if (state->cgstate != NULL)
+    if (state == NULL)
     {
-        del_Channel_gen_state(state->cgstate);
-        state->cgstate = NULL;
+        return;
     }
+    del_Channel_gen_state(state->cgstate);
+    state->cgstate = NULL;
     return;
 }
 

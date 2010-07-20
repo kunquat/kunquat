@@ -64,7 +64,7 @@ uint32_t Generator_pulse_mix(Generator* gen,
 /**
  * Destroys an existing Pulse Generator.
  *
- * \param gen   The Pulse Generator -- must not be \c NULL.
+ * \param gen   The Pulse Generator, or \c NULL.
  */
 void del_Generator_pulse(Generator* gen);
 

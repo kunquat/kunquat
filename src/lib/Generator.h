@@ -161,7 +161,7 @@ void Generator_mix(Generator* gen,
 /**
  * Uninitialises an existing Generator.
  *
- * \param gen   The Generator -- must not be \c NULL.
+ * \param gen   The Generator, or \c NULL.
  */
 void del_Generator(Generator* gen);
 

@@ -164,7 +164,10 @@ uint32_t Generator_noise_mix(Generator* gen,
 
 void del_Generator_noise(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "noise"));
     Generator_noise* noise = (Generator_noise*)gen;
     xfree(noise);

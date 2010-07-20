@@ -473,7 +473,10 @@ int Handle_rw_set_data(kqt_Handle* handle,
 
 static void del_Handle_rw(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ_WRITE);
     Handle_rw* handle_rw = (Handle_rw*)handle;
     xfree(handle_rw->base_path);

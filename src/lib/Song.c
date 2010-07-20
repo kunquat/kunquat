@@ -621,58 +621,28 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
 
 void del_Song(Song* song)
 {
-    assert(song != NULL);
-    if (song->subsongs != NULL)
+    if (song == NULL)
     {
-        del_Subsong_table(song->subsongs);
+        return;
     }
-    if (song->pats != NULL)
-    {
-        del_Pat_table(song->pats);
-    }
-    if (song->insts != NULL)
-    {
-        del_Ins_table(song->insts);
-    }
-    if (song->dsps != NULL)
-    {
-        del_DSP_table(song->dsps);
-    }
-    if (song->connections != NULL)
-    {
-        del_Connections(song->connections);
-    }
+    del_Subsong_table(song->subsongs);
+    del_Pat_table(song->pats);
+    del_Ins_table(song->insts);
+    del_DSP_table(song->dsps);
+    del_Connections(song->connections);
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
-        if (song->scales[i] != NULL)
-        {
-            del_Scale(song->scales[i]);
-        }
+        del_Scale(song->scales[i]);
     }
-    if (song->play_state != NULL)
-    {
-        del_Playdata(song->play_state);
-    }
-    if (song->skip_state != NULL)
-    {
-        del_Playdata(song->skip_state);
-    }
+    del_Playdata(song->play_state);
+    del_Playdata(song->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX && song->channels[i] != NULL; ++i)
     {
         del_Channel(song->channels[i]);
     }
-    if (song->event_handler != NULL)
-    {
-        del_Event_handler(song->event_handler);
-    }
-    if (song->skip_handler != NULL)
-    {
-        del_Event_handler(song->skip_handler);
-    }
-    if (song->random != NULL)
-    {
-        del_Random(song->random);
-    }
+    del_Event_handler(song->event_handler);
+    del_Event_handler(song->skip_handler);
+    del_Random(song->random);
     Device_uninit(&song->parent);
     xfree(song);
     return;

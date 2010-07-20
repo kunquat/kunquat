@@ -118,7 +118,10 @@ uint32_t Generator_debug_mix(Generator* gen,
 
 void del_Generator_debug(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "debug"));
     Generator_debug* debug = (Generator_debug*)gen;
     xfree(debug);

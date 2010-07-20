@@ -102,10 +102,12 @@ static void DSP_volume_process(Device* device,
 
 static void del_DSP_volume(DSP* dsp)
 {
-    assert(dsp != NULL);
+    if (dsp == NULL)
+    {
+        return;
+    }
     assert(string_eq(dsp->type, "volume"));
     DSP_volume* volume = (DSP_volume*)dsp;
-    Device_uninit(&volume->parent.parent);
     xfree(volume);
     return;
 }

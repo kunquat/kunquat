@@ -171,7 +171,10 @@ void Generator_mix(Generator* gen,
 
 void del_Generator(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(gen->destroy != NULL);
     Device_uninit(&gen->parent);
     gen->destroy(gen);

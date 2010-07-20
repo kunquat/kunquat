@@ -109,7 +109,7 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
 /**
  * Uninitialises the Channel state.
  *
- * \param state   The Channel state -- must not be \c NULL.
+ * \param state   The Channel state, or \c NULL.
  */
 void Channel_state_uninit(Channel_state* state);
 

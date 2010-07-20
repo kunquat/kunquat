@@ -383,22 +383,19 @@ void Device_print(Device* device, FILE* out)
 
 void Device_uninit(Device* device)
 {
-    assert(device != NULL);
+    if (device == NULL)
+    {
+        return;
+    }
     Device_remove_direct_buffers(device);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL)
-        {
-            del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
-        }
-        if (device->buffers[DEVICE_PORT_TYPE_SEND][port] != NULL)
-        {
-            del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
-        }
+        del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
+        device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
+        del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
+        device->buffers[DEVICE_PORT_TYPE_SEND][port] = NULL;
         device->reg[DEVICE_PORT_TYPE_RECEIVE][port] = false;
         device->reg[DEVICE_PORT_TYPE_SEND][port] = false;
-        device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
-        device->buffers[DEVICE_PORT_TYPE_SEND][port] = NULL;
         device->direct_send[port] = NULL;
     }
     return;

@@ -155,7 +155,7 @@ char* Event_get_fields(Event* event);
 /**
  * Destroys an existing Event.
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param event   The Event, or \c NULL.
  */
 void del_Event(Event* event);
 

@@ -67,11 +67,11 @@ bool DSP_conf_parse(DSP_conf* conf,
 
 void del_DSP_conf(DSP_conf* conf)
 {
-    assert(conf != NULL);
-    if (conf->params != NULL)
+    if (conf == NULL)
     {
-        del_Device_params(conf->params);
+        return;
     }
+    del_Device_params(conf->params);
     xfree(conf);
     return;
 }

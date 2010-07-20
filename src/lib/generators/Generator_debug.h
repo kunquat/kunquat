@@ -57,7 +57,7 @@ uint32_t Generator_debug_mix(Generator* gen,
 /**
  * Destroys an existing Debug Generator.
  *
- * \param gen   The Debug Generator -- must not be \c NULL.
+ * \param gen   The Debug Generator, or \c NULL.
  */
 void del_Generator_debug(Generator* gen);
 

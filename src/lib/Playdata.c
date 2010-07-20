@@ -266,16 +266,12 @@ void Playdata_reset_stats(Playdata* play)
 
 void del_Playdata(Playdata* play)
 {
-    assert(play != NULL);
-    if (play->voice_pool != NULL)
+    if (play == NULL)
     {
-        del_Voice_pool(play->voice_pool);
+        return;
     }
-    if (play->citer != NULL)
-    {
-        del_Column_iter(play->citer);
-        play->citer = NULL;
-    }
+    del_Voice_pool(play->voice_pool);
+    del_Column_iter(play->citer);
     xfree(play);
     return;
 }

@@ -896,11 +896,11 @@ void Scale_reset(Scale* scale)
 
 void del_Scale(Scale* scale)
 {
-    assert(scale != NULL);
-    if (scale->pitch_map != NULL)
+    if (scale == NULL)
     {
-        del_AAtree(scale->pitch_map);
+        return;
     }
+    del_AAtree(scale->pitch_map);
     xfree(scale);
     return;
 }

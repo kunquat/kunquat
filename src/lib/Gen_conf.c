@@ -171,11 +171,11 @@ static bool Gen_conf_parse_general(Gen_conf* conf,
 
 void del_Gen_conf(Gen_conf* conf)
 {
-    assert(conf != NULL);
-    if (conf->params != NULL)
+    if (conf == NULL)
     {
-        del_Device_params(conf->params);
+        return;
     }
+    del_Device_params(conf->params);
     xfree(conf);
     return;
 }

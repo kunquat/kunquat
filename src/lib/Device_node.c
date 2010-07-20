@@ -811,7 +811,10 @@ void Device_node_print(Device_node* node, FILE* out)
 
 void del_Device_node(Device_node* node)
 {
-    assert(node != NULL);
+    if (node == NULL)
+    {
+        return;
+    }
     for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
     {
         Connection* cur = node->receive[i];

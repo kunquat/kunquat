@@ -247,7 +247,10 @@ char* Event_get_fields(Event* event)
 
 void del_Event(Event* event)
 {
-    assert(event != NULL);
+    if (event == NULL)
+    {
+        return;
+    }
     assert(event->destroy != NULL);
     event->destroy(event);
     return;

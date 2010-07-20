@@ -145,7 +145,10 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
 
 void del_Generator_sawtooth(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "sawtooth"));
     Generator_sawtooth* sawtooth = (Generator_sawtooth*)gen;
     xfree(sawtooth);

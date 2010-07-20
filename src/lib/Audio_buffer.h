@@ -108,7 +108,7 @@ kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index);
 /**
  * Destroys an existing Audio buffer.
  *
- * \param buffer   The Audio buffer -- must not be \c NULL.
+ * \param buffer   The Audio buffer, or \c NULL.
  */
 void del_Audio_buffer(Audio_buffer* buffer);
 

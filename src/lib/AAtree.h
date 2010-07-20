@@ -108,7 +108,7 @@ void* AAiter_get_prev(AAiter* iter);
 /**
  * Destroys an existing AAiter.
  *
- * \param iter   The AAiter -- must not be \c NULL.
+ * \param iter   The AAiter, or \c NULL.
  */
 void del_AAiter(AAiter* iter);
 
@@ -194,7 +194,7 @@ void AAtree_clear(AAtree* tree);
  * Destroys an existing AAtree. All the elements in the tree will also be
  * destroyed.
  *
- * \param tree   The AAtree -- must not be \c NULL.
+ * \param tree   The AAtree, or \c NULL.
  */
 void del_AAtree(AAtree* tree);
 

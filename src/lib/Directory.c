@@ -540,19 +540,16 @@ char* Directory_get_entry(Directory* dir)
 
 void del_Directory(Directory* dir)
 {
-    assert(dir != NULL);
-    if (dir->path != NULL)
+    if (dir == NULL)
     {
-        xfree(dir->path);
+        return;
     }
+    xfree(dir->path);
     if (dir->dir != NULL)
     {
         closedir(dir->dir);
     }
-    if (dir->entry != NULL)
-    {
-        xfree(dir->entry);
-    }
+    xfree(dir->entry);
     xfree(dir);
     return;
 }

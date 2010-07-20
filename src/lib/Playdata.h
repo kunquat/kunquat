@@ -168,7 +168,7 @@ void Playdata_reset_stats(Playdata* play);
 /**
  * Deletes a Playdata object.
  *
- * \param play   The Playdata object -- must not be \c NULL.
+ * \param play   The Playdata object, or \c NULL.
  */
 void del_Playdata(Playdata* play);
 

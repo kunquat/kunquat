@@ -47,7 +47,7 @@ Event* Event_init(Event* event,
  *
  * This works for any Event that is allocated with a single call of malloc.
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param event   The Event, or \c NULL.
  */
 void del_Event_default(Event* event);
 

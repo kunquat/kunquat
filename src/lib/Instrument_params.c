@@ -455,19 +455,19 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
 }
 
 
-#define del_env_check(env)       \
-    if (true)                    \
-    {                            \
-        if ((env) != NULL)       \
-        {                        \
-            del_Envelope((env)); \
-            (env) = NULL;        \
-        }                        \
+#define del_env_check(env)   \
+    if (true)                \
+    {                        \
+        del_Envelope((env)); \
+        (env) = NULL;        \
     } else (void)0
 
 void Instrument_params_uninit(Instrument_params* ip)
 {
-    assert(ip != NULL);
+    if (ip == NULL)
+    {
+        return;
+    }
     del_env_check(ip->force_volume_env);
     del_env_check(ip->env_force_filter);
     del_env_check(ip->force_pitch_env);

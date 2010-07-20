@@ -372,7 +372,7 @@ void Scale_reset(Scale* scale);
 /**
  * Destroys the Scale.
  *
- * \param scale   The Scale -- must not be \c NULL.
+ * \param scale   The Scale, or \c NULL.
  */
 void del_Scale(Scale* scale);
 

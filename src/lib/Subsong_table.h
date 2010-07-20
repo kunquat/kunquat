@@ -82,7 +82,7 @@ bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong);
 /**
  * Destroys an existing Subsong table.
  *
- * \param table   The Subsong table -- must not be \c NULL.
+ * \param table   The Subsong table, or \c NULL.
  */
 void del_Subsong_table(Subsong_table* table);
 

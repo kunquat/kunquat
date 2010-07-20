@@ -94,7 +94,7 @@ const Sample_entry* Sample_map_get_entry(Sample_map* map,
 /**
  * Destroys an existing Sample map.
  *
- * \param map   The Sample map -- must not be \c NULL.
+ * \param map   The Sample map, or \c NULL.
  */
 void del_Sample_map(Sample_map* map);
 

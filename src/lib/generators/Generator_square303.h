@@ -63,7 +63,7 @@ uint32_t Generator_square303_mix(Generator* gen,
 /**
  * Destroys an existing Square303 Generator.
  *
- * \param gen   The Square303 Generator -- must not be \c NULL.
+ * \param gen   The Square303 Generator, or \c NULL.
  */
 void del_Generator_square303(Generator* gen);
 

@@ -568,16 +568,16 @@ uint32_t Pattern_mix(Pattern* pat,
 
 void del_Pattern(Pattern* pat)
 {
-    assert(pat != NULL);
+    if (pat == NULL)
+    {
+        return;
+    }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         del_Column(pat->cols[i]);
     }
     del_Column(pat->global);
-    if (pat->aux != NULL)
-    {
-        del_Column(pat->aux);
-    }
+    del_Column(pat->aux);
     xfree(pat);
     return;
 }

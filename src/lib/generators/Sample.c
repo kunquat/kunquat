@@ -452,21 +452,12 @@ uint64_t Sample_get_len(Sample* sample)
 
 void del_Sample(Sample* sample)
 {
-    assert(sample != NULL);
-#if 0
-    if (sample->path != NULL)
+    if (sample == NULL)
     {
-        xfree(sample->path);
+        return;
     }
-#endif
-    if (sample->data[0] != NULL)
-    {
-        xfree(sample->data[0]);
-    }
-    if (sample->data[1] != NULL)
-    {
-        xfree(sample->data[1]);
-    }
+    xfree(sample->data[0]);
+    xfree(sample->data[1]);
     xfree(sample);
     return;
 }

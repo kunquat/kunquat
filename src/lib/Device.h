@@ -298,7 +298,7 @@ void Device_print(Device* device, FILE* out);
 /**
  * Uninitialises the Device.
  *
- * \param device   The Device -- must not be \c NULL.
+ * \param device   The Device, or \c NULL.
  */
 void Device_uninit(Device* device);
 

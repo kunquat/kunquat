@@ -63,7 +63,7 @@ uint32_t Generator_sine_mix(Generator* gen,
 /**
  * Destroys an existing Sine Generator.
  *
- * \param gen   The Sine Generator -- must not be \c NULL.
+ * \param gen   The Sine Generator, or \c NULL.
  */
 void del_Generator_sine(Generator* gen);
 

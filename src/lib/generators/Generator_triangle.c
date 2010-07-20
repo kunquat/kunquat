@@ -149,7 +149,10 @@ uint32_t Generator_triangle_mix(Generator* gen,
 
 void del_Generator_triangle(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "triangle"));
     Generator_triangle* triangle = (Generator_triangle*)gen;
     xfree(triangle);

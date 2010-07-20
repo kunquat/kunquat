@@ -71,7 +71,6 @@ static int Random_list_cmp(const Random_list* list1, const Random_list* list2)
 
 static void del_Random_list(Random_list* list)
 {
-    assert(list != NULL);
     xfree(list);
     return;
 }
@@ -357,15 +356,12 @@ const Sample_entry* Sample_map_get_entry(Sample_map* map,
 
 void del_Sample_map(Sample_map* map)
 {
-    assert(map != NULL);
-    if (map->iter != NULL)
+    if (map == NULL)
     {
-        del_AAiter(map->iter);
+        return;
     }
-    if (map->map != NULL)
-    {
-        del_AAtree(map->map);
-    }
+    del_AAiter(map->iter);
+    del_AAtree(map->map);
     xfree(map);
     return;
 }

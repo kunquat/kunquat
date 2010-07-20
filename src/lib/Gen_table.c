@@ -151,15 +151,12 @@ void Gen_table_clear(Gen_table* table)
 
 void del_Gen_table(Gen_table* table)
 {
-    assert(table != NULL);
-    if (table->confs != NULL)
+    if (table == NULL)
     {
-        del_Etable(table->confs);
+        return;
     }
-    if (table->gens != NULL)
-    {
-        del_Etable(table->gens);
-    }
+    del_Etable(table->confs);
+    del_Etable(table->gens);
     xfree(table);
     return;
 }

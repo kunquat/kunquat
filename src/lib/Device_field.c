@@ -381,14 +381,15 @@ Sample_map* Device_field_get_sample_map(Device_field* field)
 
 void del_Device_field(Device_field* field)
 {
-    assert(field != NULL);
-    if (field->type == DEVICE_FIELD_WAVPACK &&
-            field->data.Sample_type != NULL)
+    if (field == NULL)
+    {
+        return;
+    }
+    if (field->type == DEVICE_FIELD_WAVPACK)
     {
         del_Sample(field->data.Sample_type);
     }
-    if (field->type == DEVICE_FIELD_SAMPLE_MAP &&
-            field->data.Sample_map_type != NULL)
+    if (field->type == DEVICE_FIELD_SAMPLE_MAP)
     {
         del_Sample_map(field->data.Sample_map_type);
     }

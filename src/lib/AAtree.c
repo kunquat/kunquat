@@ -91,7 +91,6 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree)
 
 void del_AAiter(AAiter* iter)
 {
-    assert(iter != NULL);
     xfree(iter);
     return;
 }
@@ -506,7 +505,10 @@ void AAtree_clear(AAtree* tree)
 
 void del_AAtree(AAtree* tree)
 {
-    assert(tree != NULL);
+    if (tree == NULL)
+    {
+        return;
+    }
     aavalidate(tree->root, "del");
     AAtree_clear(tree);
     xfree(tree->nil);
@@ -621,10 +623,7 @@ static void aafree(AAnode* node, void (*destroy)(void*))
     }
     aafree(node->left, destroy);
     aafree(node->right, destroy);
-    if (node->data != NULL)
-    {
-        destroy(node->data);
-    }
+    destroy(node->data);
     xfree(node);
     return;
 }

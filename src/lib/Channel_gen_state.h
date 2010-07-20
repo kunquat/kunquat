@@ -139,7 +139,7 @@ void Channel_gen_state_clear(Channel_gen_state* state);
 /**
  * Destroys an existing Channel gen state.
  *
- * \param state   The Channel gen state -- must not be \c NULL.
+ * \param state   The Channel gen state, or \c NULL.
  */
 void del_Channel_gen_state(Channel_gen_state* state);
 

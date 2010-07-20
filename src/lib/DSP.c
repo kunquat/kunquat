@@ -100,7 +100,10 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf)
 
 void del_DSP(DSP* dsp)
 {
-    assert(dsp != NULL);
+    if (dsp == NULL)
+    {
+        return;
+    }
     assert(dsp->destroy != NULL);
     Device_uninit(&dsp->parent);
     dsp->destroy(dsp);

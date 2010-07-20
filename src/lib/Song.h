@@ -255,7 +255,7 @@ void Song_remove_scale(Song* song, int index);
 /**
  * Destroys an existing Song.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param song   The Song, or \c NULL.
  */
 void del_Song(Song* song);
 

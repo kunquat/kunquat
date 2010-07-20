@@ -166,7 +166,10 @@ uint32_t Generator_pulse_mix(Generator* gen,
 
 void del_Generator_pulse(Generator* gen)
 {
-    assert(gen != NULL);
+    if (gen == NULL)
+    {
+        return;
+    }
     assert(string_eq(gen->type, "pulse"));
     Generator_pulse* pulse = (Generator_pulse*)gen;
     xfree(pulse);

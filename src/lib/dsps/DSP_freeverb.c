@@ -427,32 +427,22 @@ static void DSP_freeverb_process(Device* device,
 
 static void del_DSP_freeverb(DSP* dsp)
 {
-    assert(dsp != NULL);
+    if (dsp == NULL)
+    {
+        return;
+    }
     assert(string_eq(dsp->type, "freeverb"));
     DSP_freeverb* freeverb = (DSP_freeverb*)dsp;
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        if (freeverb->comb_left[i] != NULL)
-        {
-            del_Freeverb_comb(freeverb->comb_left[i]);
-        }
-        if (freeverb->comb_right[i] != NULL)
-        {
-            del_Freeverb_comb(freeverb->comb_right[i]);
-        }
+        del_Freeverb_comb(freeverb->comb_left[i]);
+        del_Freeverb_comb(freeverb->comb_right[i]);
     }
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        if (freeverb->allpass_left[i] != NULL)
-        {
-            del_Freeverb_allpass(freeverb->allpass_left[i]);
-        }
-        if (freeverb->allpass_right[i] != NULL)
-        {
-            del_Freeverb_allpass(freeverb->allpass_right[i]);
-        }
+        del_Freeverb_allpass(freeverb->allpass_left[i]);
+        del_Freeverb_allpass(freeverb->allpass_right[i]);
     }
-    Device_uninit(&freeverb->parent.parent);
     xfree(freeverb);
     return;
 }

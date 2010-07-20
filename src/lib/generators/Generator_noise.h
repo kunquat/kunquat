@@ -65,7 +65,7 @@ uint32_t Generator_noise_mix(Generator* gen,
 /**
  * Destroys an existing Noise Generator.
  *
- * \param gen   The Noise Generator -- must not be \c NULL.
+ * \param gen   The Noise Generator, or \c NULL.
  */
 void del_Generator_noise(Generator* gen);
 

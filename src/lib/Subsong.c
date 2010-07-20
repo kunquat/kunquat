@@ -319,7 +319,10 @@ void Subsong_clear(Subsong* ss)
 
 void del_Subsong(Subsong* ss)
 {
-    assert(ss != NULL);
+    if (ss == NULL)
+    {
+        return;
+    }
     xfree(ss->pats);
     xfree(ss);
     return;

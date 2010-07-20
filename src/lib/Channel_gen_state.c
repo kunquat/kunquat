@@ -199,15 +199,12 @@ void Channel_gen_state_clear(Channel_gen_state* state)
 
 void del_Channel_gen_state(Channel_gen_state* state)
 {
-    assert(state != NULL);
-    if (state->iter != NULL)
+    if (state == NULL)
     {
-        del_AAiter(state->iter);
+        return;
     }
-    if (state->tree != NULL)
-    {
-        del_AAtree(state->tree);
-    }
+    del_AAiter(state->iter);
+    del_AAtree(state->tree);
     xfree(state);
     return;
 }

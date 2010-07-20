@@ -121,7 +121,7 @@ void Gen_table_clear(Gen_table* table);
 /**
  * Destroys an existing Generator table.
  *
- * \param table   The Generator table -- must not be \c NULL.
+ * \param table   The Generator table, or \c NULL.
  */
 void del_Gen_table(Gen_table* table);
 

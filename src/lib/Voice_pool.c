@@ -276,7 +276,10 @@ void Voice_pool_reset(Voice_pool* pool)
 
 void del_Voice_pool(Voice_pool* pool)
 {
-    assert(pool != NULL);
+    if (pool == NULL)
+    {
+        return;
+    }
     for (uint16_t i = 0; i < pool->size; ++i)
     {
         del_Voice(pool->voices[i]);

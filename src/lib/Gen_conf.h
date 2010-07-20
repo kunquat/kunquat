@@ -73,7 +73,7 @@ bool Gen_conf_parse(Gen_conf* conf,
 /**
  * Destroys an existing Generator configuration.
  *
- * \param conf   The Generator configuration -- must not be \c NULL.
+ * \param conf   The Generator configuration, or \c NULL.
  */
 void del_Gen_conf(Gen_conf* conf);
 
