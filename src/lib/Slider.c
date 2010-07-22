@@ -48,12 +48,12 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
 
 
 void Slider_start(Slider* slider,
-                  double start,
-                  double target)
+                  double target,
+                  double start)
 {
     assert(slider != NULL);
-    assert(isfinite(start));
     assert(isfinite(target));
+    assert(isfinite(start));
 
     slider->steps_left = Reltime_toframes(&slider->length,
                                           slider->tempo,
@@ -133,6 +133,16 @@ double Slider_step(Slider* slider)
 }
 
 
+void Slider_break(Slider* slider)
+{
+    assert(slider != NULL);
+    slider->dir = 0;
+    slider->steps_left = 0;
+    slider->update = 0;
+    return;
+}
+
+
 void Slider_change_target(Slider* slider, double target)
 {
     assert(slider != NULL);
@@ -140,7 +150,7 @@ void Slider_change_target(Slider* slider, double target)
     slider->target_value = target;
     if (slider->dir != 0)
     {
-        Slider_start(slider, slider->current_value, target);
+        Slider_start(slider, target, slider->current_value);
     }
     return;
 }
@@ -153,7 +163,7 @@ void Slider_set_length(Slider* slider, Reltime* length)
     Reltime_copy(&slider->length, length);
     if (slider->dir != 0)
     {
-        Slider_start(slider, slider->current_value, slider->target_value);
+        Slider_start(slider, slider->target_value, slider->current_value);
     }
     return;
 }

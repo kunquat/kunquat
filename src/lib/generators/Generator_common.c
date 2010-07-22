@@ -71,6 +71,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->arpeggio_frames *= (double)freq / state->freq;
             state->arpeggio_frames *= state->tempo / tempo;
         }
+        Slider_set_mix_rate(&state->force_slider, freq);
+        Slider_set_tempo(&state->force_slider, tempo);
+#if 0
         if (state->force_slide != 0)
         {
             double update_dB = log2(state->force_slide_update) * 6;
@@ -80,6 +83,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->force_slide_frames *= (double)freq / state->freq;
             state->force_slide_frames *= state->tempo / tempo;
         }
+#endif
         if (state->tremolo_length > 0 && state->tremolo_depth > 0)
         {
             state->tremolo_phase *= (double)freq / state->freq;
@@ -251,6 +255,11 @@ void Generator_common_handle_force(Generator* gen,
     assert(state != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
+    if (Slider_in_progress(&state->force_slider))
+    {
+        state->force = Slider_step(&state->force_slider);
+    }
+#if 0
     if (state->force_slide != 0)
     {
         state->force *= state->force_slide_update;
@@ -278,6 +287,7 @@ void Generator_common_handle_force(Generator* gen,
             }
         }
     }
+#endif
     state->actual_force = state->force;
     if (state->tremolo)
     {

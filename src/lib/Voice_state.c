@@ -40,8 +40,17 @@ Voice_state* Voice_state_init(Voice_state* state,
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
+
     Slider_set_mix_rate(&state->pitch_slider, freq);
     Slider_set_tempo(&state->pitch_slider, tempo);
+    Slider_set_mix_rate(&state->force_slider, freq);
+    Slider_set_tempo(&state->force_slider, tempo);
+//    Slider_set_mix_rate(&state->panning_slider, freq);
+//    Slider_set_tempo(&state->panning_slider, tempo);
+//    Slider_set_mix_rate(&state->lowpass_slider, freq);
+//    Slider_set_tempo(&state->lowpass_slider, tempo);
+//  TODO: enable
+
     Voice_params_copy(&state->params, params);
     return state;
 }
@@ -121,11 +130,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->force = 1;
     state->actual_force = 1;
+    Slider_init(&state->force_slider, SLIDE_MODE_EXP);
+#if 0
     state->force_slide = 0;
     Reltime_init(&state->force_slide_length);
     state->force_slide_target = 1;
     state->force_slide_frames = 0;
     state->force_slide_update = 1;
+#endif
     state->tremolo = false;
     state->tremolo_length = 0;
     state->tremolo_depth = 0;

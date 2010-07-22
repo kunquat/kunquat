@@ -84,7 +84,14 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
         {
             continue;
         }
-        Slider_start(&vs->pitch_slider, vs->pitch, pitch);
+        if (Slider_in_progress(&vs->pitch_slider))
+        {
+            Slider_change_target(&vs->pitch_slider, pitch);
+        }
+        else
+        {
+            Slider_start(&vs->pitch_slider, pitch, vs->pitch);
+        }
 #if 0
         vs->pitch_slide_frames = Reltime_toframes(&vs->pitch_slide_length,
                                                   *ch_state->tempo,

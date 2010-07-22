@@ -115,7 +115,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
             vs->force *= force_var;
         }
 
-        Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
+        Slider_set_length(&vs->force_slider, &ch_state->force_slide_length);
+//        Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
         vs->tremolo_length = ch_state->tremolo_length;
         vs->tremolo_update = ch_state->tremolo_update;
         vs->tremolo_depth_target = ch_state->tremolo_depth;

@@ -62,7 +62,8 @@ bool Event_channel_set_force_process(Channel_state* ch_state, char* fields)
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
         vs->force = force;
-        vs->force_slide = 0;
+        Slider_break(&vs->force_slider);
+//        vs->force_slide = 0;
     }
     return true;
 }

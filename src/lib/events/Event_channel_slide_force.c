@@ -62,6 +62,15 @@ bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        if (Slider_in_progress(&vs->force_slider))
+        {
+            Slider_change_target(&vs->force_slider, slide_target);
+        }
+        else
+        {
+            Slider_start(&vs->force_slider, slide_target, vs->force);
+        }
+#if 0
         vs->force_slide_target = slide_target;
         vs->force_slide_frames = Reltime_toframes(&vs->force_slide_length,
                                                   *ch_state->tempo,
@@ -83,6 +92,7 @@ bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
             vs->force = vs->force_slide_target;
             vs->force_slide = 0;
         }
+#endif
     }
     return true;
 }

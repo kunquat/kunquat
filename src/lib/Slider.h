@@ -62,12 +62,12 @@ Slider* Slider_init(Slider* slider, Slide_mode mode);
  * Starts a slide.
  *
  * \param slider     The Slider -- must not be \c NULL.
- * \param start      The starting value -- must be finite.
  * \param target     The target value -- must be finite.
+ * \param start      The starting value -- must be finite.
  */
 void Slider_start(Slider* slider,
-                  double start,
-                  double target);
+                  double target,
+                  double start);
 
 
 /**
@@ -78,6 +78,14 @@ void Slider_start(Slider* slider,
  * \return   The new intermediate (or target) value in \a slider.
  */
 double Slider_step(Slider* slider);
+
+
+/**
+ * Explicitly breaks a slide in the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ */
+void Slider_break(Slider* slider);
 
 
 /**
