@@ -56,6 +56,19 @@ bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
     {
         return false;
     }
+    double target = exp2(data[0].field.double_type / 6);
+    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+    if (Slider_in_progress(&global_state->volume_slider))
+    {
+        Slider_change_target(&global_state->volume_slider, target);
+    }
+    else
+    {
+        Slider_start(&global_state->volume_slider,
+                     target, global_state->volume);
+    }
+#if 0
     global_state->volume_slide_target = exp2(data[0].field.double_type / 6);
     global_state->volume_slide_frames =
             Reltime_toframes(&global_state->volume_slide_length,
@@ -77,6 +90,7 @@ bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
     {
         global_state->volume = global_state->volume_slide_target;
     }
+#endif
     return true;
 }
 

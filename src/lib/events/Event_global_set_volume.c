@@ -55,7 +55,8 @@ bool Event_global_set_volume_process(Playdata* global_state, char* fields)
         return false;
     }
     global_state->volume = exp2(data[0].field.double_type / 6);
-    global_state->volume_slide = 0;
+    Slider_break(&global_state->volume_slider);
+//    global_state->volume_slide = 0;
     return true;
 }
 

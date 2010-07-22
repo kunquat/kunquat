@@ -58,6 +58,11 @@ bool Event_global_slide_volume_length_process(Playdata* global_state,
     {
         return false;
     }
+    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+    Slider_set_length(&global_state->volume_slider,
+                      &data[0].field.Reltime_type);
+#if 0
     if (global_state->volume_slide != 0)
     {
         global_state->volume_slide_frames =
@@ -72,6 +77,7 @@ bool Event_global_slide_volume_length_process(Playdata* global_state,
     }
     Reltime_copy(&global_state->volume_slide_length,
                  &data[0].field.Reltime_type);
+#endif
     return true;
 }
 

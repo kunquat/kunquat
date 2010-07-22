@@ -144,6 +144,44 @@ double Slider_step(Slider* slider)
 }
 
 
+double Slider_skip(Slider* slider, uint64_t steps)
+{
+    assert(slider != NULL);
+    if (steps == 0 || slider->dir == 0)
+    {
+        return slider->current_value;
+    }
+    else if (steps == 1)
+    {
+        return Slider_step(slider);
+    }
+    if (slider->mode == SLIDE_MODE_EXP)
+    {
+        slider->current_value *= pow(slider->update, steps);
+    }
+    else
+    {
+        assert(slider->mode == SLIDE_MODE_LINEAR);
+        slider->current_value += slider->update * steps;
+    }
+    slider->steps_left -= steps;
+    if (slider->steps_left <= 0)
+    {
+        slider->current_value = slider->target_value;
+        slider->dir = 0;
+    }
+    else if ((slider->dir == 1 &&
+              slider->current_value > slider->target_value) ||
+             (slider->dir == -1 &&
+              slider->current_value < slider->target_value))
+    {
+        slider->current_value = slider->target_value;
+        slider->dir = 0;
+    }
+    return slider->current_value;
+}
+
+
 void Slider_break(Slider* slider)
 {
     assert(slider != NULL);

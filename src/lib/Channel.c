@@ -170,12 +170,10 @@ void Channel_set_voices(Channel* ch,
                 }
             }
         }
-        if (Slider_in_progress(&ch->cur_state.panning_slider))
+        if (Slider_in_progress(&ch->cur_state.panning_slider) &&
+                to_be_mixed > mixed)
         {
-            for (uint32_t i = mixed; i < to_be_mixed; ++i)
-            {
-                Slider_step(&ch->cur_state.panning_slider);
-            }
+            Slider_skip(&ch->cur_state.panning_slider, to_be_mixed - mixed);
         }
         mixed = to_be_mixed;
         if (Reltime_cmp(next_pos, end) >= 0)

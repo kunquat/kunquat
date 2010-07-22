@@ -282,6 +282,9 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         if (play->old_tempo != play->tempo || play->old_freq != play->freq)
         {
+            Slider_set_mix_rate(&play->volume_slider, play->freq);
+            Slider_set_tempo(&play->volume_slider, play->tempo);
+#if 0
             if (play->volume_slide != 0)
             {
                 double update_dB = log2(play->volume_slide_update) * 6;
@@ -291,6 +294,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 play->volume_slide_frames *= (double)play->freq / play->old_freq;
                 play->volume_slide_frames *= play->old_tempo / play->tempo;
             }
+#endif
             play->old_freq = play->freq;
             play->old_tempo = play->tempo;
         }
@@ -483,7 +487,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                 play->freq, play->tempo);
             }
         }
-        if ((play->volume != 1 || play->volume_slide != 0))
+        if (play->volume != 1 || Slider_in_progress(&play->volume_slider))
         {
             Audio_buffer* buffer = NULL;
             if (connections != NULL)
@@ -502,6 +506,11 @@ uint32_t Pattern_mix(Pattern* pat,
                 };
                 for (uint32_t i = mixed; i < mixed + to_be_mixed; ++i)
                 {
+                    if (Slider_in_progress(&play->volume_slider))
+                    {
+                        play->volume = Slider_step(&play->volume_slider);
+                    }
+#if 0
                     if (play->volume_slide != 0)
                     {
                         play->volume *= play->volume_slide_update;
@@ -520,6 +529,7 @@ uint32_t Pattern_mix(Pattern* pat,
                             play->volume_slide = 0;
                         }
                     }
+#endif
                     for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
                     {
                         assert(bufs[k] != NULL);
@@ -527,8 +537,10 @@ uint32_t Pattern_mix(Pattern* pat,
                     }
                 }
             }
-            else if (play->volume_slide != 0)
+            else if (Slider_in_progress(&play->volume_slider))
             {
+                Slider_skip(&play->volume_slider, to_be_mixed);
+#if 0
                 play->volume *= pow(play->volume_slide_update, to_be_mixed);
                 play->volume_slide_frames -= to_be_mixed;
                 if (play->volume_slide_frames <= 0)
@@ -544,6 +556,7 @@ uint32_t Pattern_mix(Pattern* pat,
                     play->volume = play->volume_slide_target;
                     play->volume_slide = 0;
                 }
+#endif
             }
         }
         // - Increment play->pos
