@@ -19,6 +19,7 @@
 #include <Voice_state.h>
 #include <Voice_params.h>
 #include <Reltime.h>
+#include <Slider.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 
@@ -39,6 +40,8 @@ Voice_state* Voice_state_init(Voice_state* state,
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
+    Slider_set_mix_rate(&state->pitch_slider, freq);
+    Slider_set_tempo(&state->pitch_slider, tempo);
     Voice_params_copy(&state->params, params);
     return state;
 }
@@ -60,11 +63,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->prev_pitch = 0;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
+    Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
+#if 0
     state->pitch_slide = 0;
     Reltime_init(&state->pitch_slide_length);
     state->pitch_slide_target = 0;
     state->pitch_slide_frames = 0;
     state->pitch_slide_update = 1;
+#endif
     state->vibrato = false;
     state->vibrato_length = 0;
     state->vibrato_depth = 0;

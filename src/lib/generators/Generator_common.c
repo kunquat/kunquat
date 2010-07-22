@@ -40,6 +40,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
     (void)gen;
     if (state->freq != freq || state->tempo != tempo)
     {
+        Slider_set_mix_rate(&state->pitch_slider, freq);
+        Slider_set_tempo(&state->pitch_slider, tempo);
+#if 0
         if (state->pitch_slide != 0)
         {
             double slide_step = log2(state->pitch_slide_update);
@@ -49,6 +52,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->pitch_slide_frames *= (double)freq / state->freq;
             state->pitch_slide_frames *= state->tempo / tempo;
         }
+#endif
         if (state->vibrato_length > 0 && state->vibrato_depth > 0)
         {
             state->vibrato_phase *= (double)freq / state->freq;
@@ -128,6 +132,11 @@ void Generator_common_handle_pitch(Generator* gen,
     assert(gen != NULL);
     assert(state != NULL);
     state->prev_pitch = state->pitch;
+    if (Slider_in_progress(&state->pitch_slider))
+    {
+        state->pitch = Slider_step(&state->pitch_slider);
+    }
+#if 0
     if (state->pitch_slide != 0)
     {
         state->pitch *= state->pitch_slide_update;
@@ -155,6 +164,7 @@ void Generator_common_handle_pitch(Generator* gen,
             }
         }
     }
+#endif
     state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
     if (gen->conf->pitch_lock_enabled)

@@ -50,32 +50,24 @@ typedef struct Slider
 /**
  * Initialises a Slider.
  *
- * \param slider     The Slider -- must not be \c NULL.
- * \param mode       The Slide mode -- must be valid.
- * \param mix_rate   The mix rate -- must be > \c 0.
- * \param tempo      The tempo -- must be > \c 0 and finite.
+ * \param slider   The Slider -- must not be \c NULL.
+ * \param mode     The Slide mode -- must be valid.
  *
  * \param   The parameter \a slider.
  */
-Slider* Slider_init(Slider* slider,
-                    Slide_mode mode,
-                    uint32_t mix_rate,
-                    double tempo);
+Slider* Slider_init(Slider* slider, Slide_mode mode);
 
 
 /**
  * Starts a slide.
  *
- * \param slider    The Slider -- must not be \c NULL.
- * \param current   The starting value -- must be finite.
- * \param target    The target value -- must be finite.
- * \param length    The length of the slide -- must not be \c NULL
- *                  or negative.
+ * \param slider     The Slider -- must not be \c NULL.
+ * \param start      The starting value -- must be finite.
+ * \param target     The target value -- must be finite.
  */
 void Slider_start(Slider* slider,
                   double start,
-                  double target,
-                  Reltime* length);
+                  double target);
 
 
 /**
@@ -86,6 +78,33 @@ void Slider_start(Slider* slider,
  * \return   The new intermediate (or target) value in \a slider.
  */
 double Slider_step(Slider* slider);
+
+
+/**
+ * Sets the length of the slide in the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ * \param length   The new length -- must not be \c NULL or negative.
+ */
+void Slider_set_length(Slider* slider, Reltime* length);
+
+
+/**
+ * Sets the mixing rate assumed by the Slider.
+ *
+ * \param slider     The Slider -- must not be \c NULL.
+ * \param mix_rate   The mix rate -- must be > \c 0.
+ */
+void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate);
+
+
+/**
+ * Sets the tempo in the Slider.
+ *
+ * \param slider   The Slider -- must not be \c NULL.
+ * \param tempo    The tempo -- must be > \c 0 and finite.
+ */
+void Slider_set_tempo(Slider* slider, double tempo);
 
 
 /**
@@ -102,40 +121,13 @@ void Slider_change_target(Slider* slider, double target);
 
 
 /**
- * Changes the length of the slide in the Slider.
- *
- * \param slider   The Slider -- must not be \c NULL.
- * \param length   The new length -- must not be \c NULL or negative.
- */
-void Slider_change_length(Slider* slider, Reltime* length);
-
-
-/**
- * Changes the mixing rate assumed by the Slider.
- *
- * \param slider     The Slider -- must not be \c NULL.
- * \param mix_rate   The mix rate -- must be > \c 0.
- */
-void Slider_change_mix_rate(Slider* slider, uint32_t mix_rate);
-
-
-/**
- * Changes the tempo in the Slider.
- *
- * \param slider   The Slider -- must not be \c NULL.
- * \param tempo    The tempo -- must be > \c 0 and finite.
- */
-void Slider_change_tempo(Slider* slider, double tempo);
-
-
-/**
- * Tells whether the slide target has been reached in the Slider.
+ * Finds out whether a slide is in progress in the Slider.
  *
  * \param slider   The Slider -- must not be \c NULL.
  *
- * \return   \c true if the target value has been reached, otherwise \c false.
+ * \return   \c true if a slide is in progress, otherwise \c false.
  */
-bool Slider_target_reached(Slider* slider);
+bool Slider_in_progress(Slider* slider);
 
 
 #endif // K_SLIDER_H

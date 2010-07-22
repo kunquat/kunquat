@@ -49,6 +49,8 @@ Event_create_constructor(Event_channel,
 bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
+    assert(ch_state->freq != NULL);
+    assert(ch_state->tempo != NULL);
     if (fields == NULL)
     {
         return false;
@@ -119,7 +121,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->tremolo_depth_target = ch_state->tremolo_depth;
         vs->tremolo_delay_update = ch_state->tremolo_delay_update;
 
-        Reltime_copy(&vs->pitch_slide_length, &ch_state->pitch_slide_length);
+        Slider_set_length(&vs->pitch_slider, &ch_state->pitch_slide_length);
+//        Reltime_copy(&vs->pitch_slide_length, &ch_state->pitch_slide_length);
         vs->vibrato_length = ch_state->vibrato_length;
         vs->vibrato_update = ch_state->vibrato_update;
         vs->vibrato_depth_target = ch_state->vibrato_depth;

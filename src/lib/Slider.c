@@ -27,20 +27,14 @@ static void Slider_update_time(Slider* slider,
                                double tempo);
 
 
-Slider* Slider_init(Slider* slider,
-                    Slide_mode mode,
-                    uint32_t mix_rate,
-                    double tempo)
+Slider* Slider_init(Slider* slider, Slide_mode mode)
 {
     assert(slider != NULL);
     assert(mode == SLIDE_MODE_LINEAR || mode == SLIDE_MODE_EXP);
-    assert(mix_rate > 0);
-    assert(isfinite(tempo));
-    assert(tempo > 0);
 
     slider->mode = mode;
-    slider->mix_rate = mix_rate;
-    slider->tempo = tempo;
+    slider->mix_rate = 0;
+    slider->tempo = 0;
 
     slider->dir = 0;
     Reltime_init(&slider->length);
@@ -55,15 +49,12 @@ Slider* Slider_init(Slider* slider,
 
 void Slider_start(Slider* slider,
                   double start,
-                  double target,
-                  Reltime* length)
+                  double target)
 {
     assert(slider != NULL);
     assert(isfinite(start));
     assert(isfinite(target));
-    assert(length != NULL);
 
-    Reltime_copy(&slider->length, length);
     slider->steps_left = Reltime_toframes(&slider->length,
                                           slider->tempo,
                                           slider->mix_rate);
@@ -146,34 +137,50 @@ void Slider_change_target(Slider* slider, double target)
 {
     assert(slider != NULL);
     assert(isfinite(target));
-    Slider_start(slider, slider->current_value, target, &slider->length);
+    slider->target_value = target;
+    if (slider->dir != 0)
+    {
+        Slider_start(slider, slider->current_value, target);
+    }
     return;
 }
 
 
-void Slider_change_length(Slider* slider, Reltime* length)
+void Slider_set_length(Slider* slider, Reltime* length)
 {
     assert(slider != NULL);
     assert(length != NULL);
-    Slider_start(slider, slider->current_value, slider->target_value, length);
+    Reltime_copy(&slider->length, length);
+    if (slider->dir != 0)
+    {
+        Slider_start(slider, slider->current_value, slider->target_value);
+    }
     return;
 }
 
 
-void Slider_change_mix_rate(Slider* slider, uint32_t mix_rate)
+void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate)
 {
     assert(slider != NULL);
     assert(mix_rate > 0);
+    if (slider->dir == 0)
+    {
+        slider->mix_rate = mix_rate;
+    }
     Slider_update_time(slider, mix_rate, slider->tempo);
     return;
 }
 
 
-void Slider_change_tempo(Slider* slider, double tempo)
+void Slider_set_tempo(Slider* slider, double tempo)
 {
     assert(slider != NULL);
     assert(isfinite(tempo));
     assert(tempo > 0);
+    if (slider->dir == 0)
+    {
+        slider->tempo = tempo;
+    }
     Slider_update_time(slider, slider->mix_rate, tempo);
     return;
 }
@@ -186,6 +193,8 @@ static void Slider_update_time(Slider* slider,
     assert(slider != NULL);
     if (slider->dir == 0)
     {
+        slider->mix_rate = mix_rate;
+        slider->tempo = tempo;
         return;
     }
     if (slider->mode == SLIDE_MODE_EXP)
@@ -210,10 +219,10 @@ static void Slider_update_time(Slider* slider,
 }
 
 
-bool Slider_target_reached(Slider* slider)
+bool Slider_in_progress(Slider* slider)
 {
     assert(slider != NULL);
-    return slider->steps_left <= 0;
+    return slider->dir != 0;
 }
 
 

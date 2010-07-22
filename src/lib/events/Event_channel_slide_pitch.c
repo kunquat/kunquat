@@ -84,6 +84,8 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
         {
             continue;
         }
+        Slider_start(&vs->pitch_slider, vs->pitch, pitch);
+#if 0
         vs->pitch_slide_frames = Reltime_toframes(&vs->pitch_slide_length,
                                                   *ch_state->tempo,
                                                   *ch_state->freq);
@@ -104,6 +106,7 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
             vs->pitch = vs->pitch_slide_target;
             vs->pitch_slide = 0;
         }
+#endif
     }
     return true;
 }

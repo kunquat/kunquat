@@ -21,6 +21,7 @@
 
 #include <Channel_gen_state.h>
 #include <Reltime.h>
+#include <Slider.h>
 #include <frame.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
@@ -55,11 +56,14 @@ typedef struct Voice_state
     pitch_t prev_pitch;            ///< The frequency in the previous mixing cycle.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
+    Slider pitch_slider;
+#if 0
     int pitch_slide;               ///< Pitch slide state (0 = no slide, -1 = down, 1 = up).
     Reltime pitch_slide_length;
     pitch_t pitch_slide_target;    ///< Target pitch of the slide.
     double pitch_slide_frames;     ///< Number of frames left to complete the slide.
     double pitch_slide_update;     ///< The update factor of the slide.
+#endif
     bool vibrato;                  ///< Vibrato enabled.
     double vibrato_length;         ///< Length of the vibrato phase.
     double vibrato_depth;          ///< Depth of the vibrato.
