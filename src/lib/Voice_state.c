@@ -45,8 +45,8 @@ Voice_state* Voice_state_init(Voice_state* state,
     Slider_set_tempo(&state->pitch_slider, tempo);
     Slider_set_mix_rate(&state->force_slider, freq);
     Slider_set_tempo(&state->force_slider, tempo);
-//    Slider_set_mix_rate(&state->panning_slider, freq);
-//    Slider_set_tempo(&state->panning_slider, tempo);
+    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_tempo(&state->panning_slider, tempo);
 //    Slider_set_mix_rate(&state->lowpass_slider, freq);
 //    Slider_set_tempo(&state->lowpass_slider, tempo);
 //  TODO: enable
@@ -149,11 +149,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->panning = 0;
     state->actual_panning = 0;
+    Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
+#if 0
     state->panning_slide = 0;
     Reltime_init(&state->panning_slide_length);
     state->panning_slide_target = 0;
     state->panning_slide_frames = 0;
     state->panning_slide_update = 0;
+#endif
 
     state->filter = INFINITY;
     state->actual_filter = INFINITY;

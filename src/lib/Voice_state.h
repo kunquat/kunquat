@@ -122,11 +122,14 @@ typedef struct Voice_state
                                    
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.
+    Slider panning_slider;
+#if 0
     int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
     Reltime panning_slide_length;
     double panning_slide_target;   ///< Target panning position of the slide.
     double panning_slide_frames;   ///< Number of frames left to complete the slide.
     double panning_slide_update;   ///< The update amount of the slide.
+#endif
 
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.

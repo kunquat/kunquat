@@ -95,6 +95,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
         state->tremolo_update *= tempo / state->tempo;
         state->tremolo_delay_update *= (double)state->freq / freq;
         state->tremolo_delay_update *= tempo / state->tempo;
+        Slider_set_mix_rate(&state->panning_slider, freq);
+        Slider_set_tempo(&state->panning_slider, tempo);
+#if 0
         if (state->panning_slide != 0)
         {
             state->panning_slide_update *= (double)state->freq / freq;
@@ -102,6 +105,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->panning_slide_frames *= (double)freq / state->freq;
             state->panning_slide_frames *= state->tempo / tempo;
         }
+#endif
         if (state->filter_slide != 0)
         {
             double slide_step = log2(state->filter_slide_update);
@@ -793,6 +797,11 @@ void Generator_common_handle_panning(Generator* gen,
     assert(frame_count > 0);
     if ((frame_count) >= 2)
     {
+        if (Slider_in_progress(&state->panning_slider))
+        {
+            state->panning = Slider_step(&state->panning_slider);
+        }
+#if 0
         if ((state)->panning_slide != 0)
         {
             (state)->panning += (state)->panning_slide_update;
@@ -820,6 +829,7 @@ void Generator_common_handle_panning(Generator* gen,
                 }
             }
         }
+#endif
         (state)->actual_panning = (state)->panning;
         if ((gen)->ins_params->env_pitch_pan_enabled)
         {

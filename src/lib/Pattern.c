@@ -471,10 +471,12 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 play->active_voices = active_voices;
             }
+#if 0
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
                 Channel_update_state(channels[i], mix_until); // FIXME
             }
+#endif
             if (connections != NULL)
             {
                 Connections_mix(connections, mixed, mix_until,

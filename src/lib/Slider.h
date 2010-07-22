@@ -53,9 +53,20 @@ typedef struct Slider
  * \param slider   The Slider -- must not be \c NULL.
  * \param mode     The Slide mode -- must be valid.
  *
- * \param   The parameter \a slider.
+ * \return   The parameter \a slider.
  */
 Slider* Slider_init(Slider* slider, Slide_mode mode);
+
+
+/**
+ * Copies a Slider.
+ *
+ * \param dest   The destination Slider -- must not be \c NULL.
+ * \param src    The source Slider -- must not be \c NULL or \a dest.
+ *
+ * \return   The parameter \a dest.
+ */
+Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src);
 
 
 /**

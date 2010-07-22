@@ -143,6 +143,8 @@ void Channel_set_voices(Channel* ch,
         {
             abs_pos += offset;
         }
+        Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
+        Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
         uint32_t to_be_mixed = MIN(abs_pos, nframes);
         for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
         {
@@ -153,13 +155,28 @@ void Channel_set_voices(Channel* ch,
                                               ch->cur_state.fg_id[i]);
                 if (ch->cur_state.fg[i] != NULL)
                 {
+#if 0
+                    if (Slider_in_progress(&ch->cur_state.panning_slider) &&
+                            !Slider_in_progress(&ch->cur_state.fg[i]->
+                                                state->panning_slider))
+                    {
+                        Slider_copy(&ch->cur_state.fg[i]->state->panning_slider,
+                                    &ch->cur_state.panning_slider);
+                    }
+#endif
 //                    fprintf(stderr, "checking priority %p\n", (void*)&ch->cur_state.fg[i]->prio);
                     assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
                     Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
                 }
             }
         }
-//        fprintf(stderr, "foo\n");
+        if (Slider_in_progress(&ch->cur_state.panning_slider))
+        {
+            for (uint32_t i = mixed; i < to_be_mixed; ++i)
+            {
+                Slider_step(&ch->cur_state.panning_slider);
+            }
+        }
         mixed = to_be_mixed;
         if (Reltime_cmp(next_pos, end) >= 0)
         {

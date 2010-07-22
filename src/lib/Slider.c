@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <string.h>
 #include <math.h>
 
 #include <Reltime.h>
@@ -44,6 +45,16 @@ Slider* Slider_init(Slider* slider, Slide_mode mode)
     slider->update = mode == SLIDE_MODE_EXP ? 1 : 0;
 
     return slider;
+}
+
+
+Slider* Slider_copy(Slider* restrict dest, const Slider* restrict src)
+{
+    assert(dest != NULL);
+    assert(src != NULL);
+    assert(dest != src);
+    memcpy(dest, src, sizeof(Slider));
+    return dest;
 }
 
 
@@ -173,6 +184,10 @@ void Slider_set_mix_rate(Slider* slider, uint32_t mix_rate)
 {
     assert(slider != NULL);
     assert(mix_rate > 0);
+    if (slider->mix_rate == mix_rate)
+    {
+        return;
+    }
     if (slider->dir == 0)
     {
         slider->mix_rate = mix_rate;
@@ -187,6 +202,10 @@ void Slider_set_tempo(Slider* slider, double tempo)
     assert(slider != NULL);
     assert(isfinite(tempo));
     assert(tempo > 0);
+    if (slider->tempo == tempo)
+    {
+        return;
+    }
     if (slider->dir == 0)
     {
         slider->tempo = tempo;
