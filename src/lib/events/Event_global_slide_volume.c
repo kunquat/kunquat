@@ -68,29 +68,6 @@ bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
         Slider_start(&global_state->volume_slider,
                      target, global_state->volume);
     }
-#if 0
-    global_state->volume_slide_target = exp2(data[0].field.double_type / 6);
-    global_state->volume_slide_frames =
-            Reltime_toframes(&global_state->volume_slide_length,
-                             global_state->tempo,
-                             global_state->freq);
-    double volume_dB = log2(global_state->volume) * 6;
-    double dB_step = (data[0].field.double_type - volume_dB) /
-                     global_state->volume_slide_frames;
-    global_state->volume_slide_update = exp2(dB_step / 6);
-    if (dB_step > 0)
-    {
-        global_state->volume_slide = 1;
-    }
-    else if (dB_step < 0)
-    {
-        global_state->volume_slide = -1;
-    }
-    else
-    {
-        global_state->volume = global_state->volume_slide_target;
-    }
-#endif
     return true;
 }
 

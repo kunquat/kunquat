@@ -42,17 +42,6 @@ void Generator_common_check_relative_lengths(Generator* gen,
     {
         Slider_set_mix_rate(&state->pitch_slider, freq);
         Slider_set_tempo(&state->pitch_slider, tempo);
-#if 0
-        if (state->pitch_slide != 0)
-        {
-            double slide_step = log2(state->pitch_slide_update);
-            slide_step *= (double)state->freq / freq;
-            slide_step *= tempo / state->tempo;
-            state->pitch_slide_update = exp2(slide_step);
-            state->pitch_slide_frames *= (double)freq / state->freq;
-            state->pitch_slide_frames *= state->tempo / tempo;
-        }
-#endif
         if (state->vibrato_length > 0 && state->vibrato_depth > 0)
         {
             state->vibrato_phase *= (double)freq / state->freq;
@@ -73,17 +62,6 @@ void Generator_common_check_relative_lengths(Generator* gen,
         }
         Slider_set_mix_rate(&state->force_slider, freq);
         Slider_set_tempo(&state->force_slider, tempo);
-#if 0
-        if (state->force_slide != 0)
-        {
-            double update_dB = log2(state->force_slide_update) * 6;
-            update_dB *= (double)state->freq / freq;
-            update_dB *= tempo / state->tempo;
-            state->force_slide_update = exp2(update_dB / 6);
-            state->force_slide_frames *= (double)freq / state->freq;
-            state->force_slide_frames *= state->tempo / tempo;
-        }
-#endif
         if (state->tremolo_length > 0 && state->tremolo_depth > 0)
         {
             state->tremolo_phase *= (double)freq / state->freq;
@@ -97,28 +75,8 @@ void Generator_common_check_relative_lengths(Generator* gen,
         state->tremolo_delay_update *= tempo / state->tempo;
         Slider_set_mix_rate(&state->panning_slider, freq);
         Slider_set_tempo(&state->panning_slider, tempo);
-#if 0
-        if (state->panning_slide != 0)
-        {
-            state->panning_slide_update *= (double)state->freq / freq;
-            state->panning_slide_update *= tempo / state->tempo;
-            state->panning_slide_frames *= (double)freq / state->freq;
-            state->panning_slide_frames *= state->tempo / tempo;
-        }
-#endif
         Slider_set_mix_rate(&state->lowpass_slider, freq);
         Slider_set_tempo(&state->lowpass_slider, tempo);
-#if 0
-        if (state->filter_slide != 0)
-        {
-            double slide_step = log2(state->filter_slide_update);
-            slide_step *= (double)state->freq / freq;
-            slide_step *= tempo / state->tempo;
-            state->filter_slide_update = exp2(slide_step);
-            state->filter_slide_frames *= (double)freq / state->freq;
-            state->filter_slide_frames *= state->tempo / tempo;
-        }
-#endif
         if (state->autowah_length > 0 && state->autowah_depth > 0)
         {
             state->autowah_phase *= (double)freq / state->freq;
@@ -148,35 +106,6 @@ void Generator_common_handle_pitch(Generator* gen,
     {
         state->pitch = Slider_step(&state->pitch_slider);
     }
-#if 0
-    if (state->pitch_slide != 0)
-    {
-        state->pitch *= state->pitch_slide_update;
-        state->pitch_slide_frames -= 1;
-        if (state->pitch_slide_frames <= 0)
-        {
-            state->pitch = state->pitch_slide_target;
-            state->pitch_slide = 0;
-        }
-        else if (state->pitch_slide == 1)
-        {
-            if (state->pitch > state->pitch_slide_target)
-            {
-                state->pitch = state->pitch_slide_target;
-                state->pitch_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->pitch_slide == -1);
-            if (state->pitch < state->pitch_slide_target)
-            {
-                state->pitch = state->pitch_slide_target;
-                state->pitch_slide = 0;
-            }
-        }
-    }
-#endif
     state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
     if (gen->conf->pitch_lock_enabled)
@@ -267,35 +196,6 @@ void Generator_common_handle_force(Generator* gen,
     {
         state->force = Slider_step(&state->force_slider);
     }
-#if 0
-    if (state->force_slide != 0)
-    {
-        state->force *= state->force_slide_update;
-        state->force_slide_frames -= 1;
-        if (state->force_slide_frames <= 0)
-        {
-            state->force = state->force_slide_target;
-            state->force_slide = 0;
-        }
-        else if (state->force_slide == 1)
-        {
-            if (state->force > state->force_slide_target)
-            {
-                state->force = state->force_slide_target;
-                state->force_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->force_slide == -1);
-            if (state->force < state->force_slide_target)
-            {
-                state->force = state->force_slide_target;
-                state->force_slide = 0;
-            }
-        }
-    }
-#endif
     state->actual_force = state->force;
     if (state->tremolo)
     {
@@ -547,35 +447,6 @@ void Generator_common_handle_filter(Generator* gen,
     {
         state->filter = Slider_step(&state->lowpass_slider);
     }
-#if 0
-    if (state->filter_slide != 0)
-    {
-        state->filter *= state->filter_slide_update;
-        state->filter_slide_frames -= 1;
-        if (state->filter_slide_frames <= 0)
-        {
-            state->filter = state->filter_slide_target;
-            state->filter_slide = 0;
-        }
-        else if (state->filter_slide == 1)
-        {
-            if (state->filter > state->filter_slide_target)
-            {
-                state->filter = state->filter_slide_target;
-                state->filter_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->filter_slide == -1);
-            if (state->filter < state->filter_slide_target)
-            {
-                state->filter = state->filter_slide_target;
-                state->filter_slide = 0;
-            }
-        }
-    }
-#endif
     state->actual_filter = state->filter;
     if (state->autowah)
     {
@@ -811,35 +682,6 @@ void Generator_common_handle_panning(Generator* gen,
         {
             state->panning = Slider_step(&state->panning_slider);
         }
-#if 0
-        if ((state)->panning_slide != 0)
-        {
-            (state)->panning += (state)->panning_slide_update;
-            (state)->panning_slide_frames -= 1;
-            if ((state)->panning_slide_frames <= 0)
-            {
-                (state)->panning = (state)->panning_slide_target;
-                (state)->panning_slide = 0;
-            }
-            else if ((state)->panning_slide == 1)
-            {
-                if ((state)->panning > (state)->panning_slide_target)
-                {
-                    (state)->panning = (state)->panning_slide_target;
-                    (state)->panning_slide = 0;
-                }
-            }
-            else
-            {
-                assert((state)->panning_slide == -1);
-                if ((state)->panning < (state)->panning_slide_target)
-                {
-                    (state)->panning = (state)->panning_slide_target;
-                    (state)->panning_slide = 0;
-                }
-            }
-        }
-#endif
         (state)->actual_panning = (state)->panning;
         if ((gen)->ins_params->env_pitch_pan_enabled)
         {

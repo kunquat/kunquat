@@ -116,14 +116,12 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         }
 
         Slider_set_length(&vs->force_slider, &ch_state->force_slide_length);
-//        Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
         vs->tremolo_length = ch_state->tremolo_length;
         vs->tremolo_update = ch_state->tremolo_update;
         vs->tremolo_depth_target = ch_state->tremolo_depth;
         vs->tremolo_delay_update = ch_state->tremolo_delay_update;
 
         Slider_set_length(&vs->pitch_slider, &ch_state->pitch_slide_length);
-//        Reltime_copy(&vs->pitch_slide_length, &ch_state->pitch_slide_length);
         vs->vibrato_length = ch_state->vibrato_length;
         vs->vibrato_update = ch_state->vibrato_update;
         vs->vibrato_depth_target = ch_state->vibrato_depth;
@@ -131,16 +129,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 
         vs->panning = ch_state->panning;
         Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
-#if 0
-        vs->panning_slide = ch_state->panning_slide;
-        Reltime_copy(&vs->panning_slide_length, &ch_state->panning_slide_length);
-        vs->panning_slide_target = ch_state->panning_slide_target;
-        vs->panning_slide_frames = ch_state->panning_slide_frames;
-        vs->panning_slide_update = ch_state->panning_slide_update;
-#endif
 
         Slider_set_length(&vs->lowpass_slider, &ch_state->filter_slide_length);
-//        Reltime_copy(&vs->filter_slide_length, &ch_state->filter_slide_length);
     }
     return true;
 }

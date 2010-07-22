@@ -74,33 +74,6 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
                          target_cutoff_exp,
                          isfinite(vs->filter) ? vs->filter : inf_limit);
         }
-#if 0
-        vs->filter_slide_target = target_cutoff_exp;
-        vs->filter_slide_frames =
-                Reltime_toframes(&vs->filter_slide_length,
-                                 *ch_state->tempo,
-                                 *ch_state->freq);
-        if (vs->filter > inf_limit)
-        {
-            vs->filter = inf_limit;
-        }
-        double diff_log = target_cutoff - (log2(vs->filter) * 12 - 86);
-        double slide_step = diff_log / vs->filter_slide_frames;
-        vs->filter_slide_update = exp2(slide_step / 12);
-        if (slide_step > 0)
-        {
-            vs->filter_slide = 1;
-        }
-        else if (slide_step < 0)
-        {
-            vs->filter_slide = -1;
-        }
-        else
-        {
-            vs->filter_slide = 0;
-            vs->filter = vs->filter_slide_target;
-        }
-#endif
     }
     return true;
 }

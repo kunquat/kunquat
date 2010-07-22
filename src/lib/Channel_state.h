@@ -73,14 +73,6 @@ typedef struct Channel_state
 
     double panning;                ///< The current panning.
     Slider panning_slider;
-#if 0
-    int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
-    Reltime panning_slide_length;
-    double panning_slide_target;   ///< Target panning position of the slide.
-    double panning_slide_frames;   ///< Number of frames left to complete the slide.
-    double panning_slide_update;   ///< The update amount of the slide.
-    uint32_t panning_slide_prog;   ///< The amount of frames slided in the Voice processing.
-#endif
 } Channel_state;
 
 

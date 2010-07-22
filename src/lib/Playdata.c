@@ -76,13 +76,6 @@ Playdata* new_Playdata(Ins_table* insts,
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
     Slider_set_mix_rate(&play->volume_slider, 48000);
-#if 0
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
-    play->volume_slide_target = 1;
-    play->volume_slide_frames = 0;
-    play->volume_slide_update = 0;
-#endif
 
     play->tempo = 0;
     play->old_tempo = 0;
@@ -150,13 +143,6 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
     Slider_set_mix_rate(&play->volume_slider, freq);
-#if 0
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
-    play->volume_slide_target = 1;
-    play->volume_slide_frames = 0;
-    play->volume_slide_update = 0;
-#endif
 
     play->tempo = 0;
     play->old_tempo = 0;
@@ -249,10 +235,6 @@ void Playdata_reset(Playdata* play)
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
 //    Slider_set_mix_rate(&play->volume_slider, play->freq);
 //    Slider_set_tempo(&play->volume_slider, play->tempo);
-#if 0
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
-#endif
     play->tempo_slide = 0;
     Reltime_init(&play->tempo_slide_length);
     Reltime_init(&play->delay_left);

@@ -155,15 +155,6 @@ void Channel_set_voices(Channel* ch,
                                               ch->cur_state.fg_id[i]);
                 if (ch->cur_state.fg[i] != NULL)
                 {
-#if 0
-                    if (Slider_in_progress(&ch->cur_state.panning_slider) &&
-                            !Slider_in_progress(&ch->cur_state.fg[i]->
-                                                state->panning_slider))
-                    {
-                        Slider_copy(&ch->cur_state.fg[i]->state->panning_slider,
-                                    &ch->cur_state.panning_slider);
-                    }
-#endif
 //                    fprintf(stderr, "checking priority %p\n", (void*)&ch->cur_state.fg[i]->prio);
                     assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
                     Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
@@ -238,38 +229,6 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
     assert(ch != NULL);
     (void)ch;
     (void)mixed;
-#if 0
-    if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
-    {
-        uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
-        ch->new_state.panning += ch->new_state.panning_slide_update * frames_left;
-        ch->new_state.panning_slide_frames -= frames_left;
-        if (ch->new_state.panning_slide_frames <= 0)
-        {
-            ch->new_state.panning = ch->new_state.panning_slide_target;
-            ch->new_state.panning_slide = 0;
-        }
-        else if (ch->new_state.panning_slide == 1)
-        {
-            if (ch->new_state.panning > ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-        else
-        {
-            assert(ch->new_state.panning_slide == -1);
-            if (ch->new_state.panning < ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-    }
-    Channel_state_copy(&ch->cur_state, &ch->new_state);
-    ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
-#endif
     return;
 }
 

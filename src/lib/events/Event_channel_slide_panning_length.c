@@ -58,26 +58,11 @@ bool Event_channel_slide_panning_length_process(Channel_state* ch_state, char* f
         return false;
     }
     Slider_set_length(&ch_state->panning_slider, &data[0].field.Reltime_type);
-//    Reltime_copy(&ch_state->panning_slide_length, &data[0].field.Reltime_type);
-#if 0
-    uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
-                                             *ch_state->tempo,
-                                             *ch_state->freq);
-#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
         Slider_set_length(&vs->panning_slider, &data[0].field.Reltime_type);
-#if 0
-        vs->panning_slide_frames = slide_frames;
-        Reltime_copy(&vs->panning_slide_length, &data[0].field.Reltime_type);
-        if (vs->panning_slide != 0)
-        {
-            double diff = vs->panning_slide_target - vs->panning;
-            vs->panning_slide_update = diff / vs->panning_slide_frames;
-        }
-#endif
     }
     return true;
 }

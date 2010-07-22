@@ -68,54 +68,11 @@ bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)
                      data[0].field.double_type,
                      ch_state->panning);
     }
-#if 0
-    ch_state->panning_slide_target = data[0].field.double_type;
-    ch_state->panning_slide_frames =
-            Reltime_toframes(&ch_state->panning_slide_length,
-                             *ch_state->tempo,
-                             *ch_state->freq);
-    double diff = ch_state->panning_slide_target - ch_state->panning;
-    ch_state->panning_slide_update = diff / ch_state->panning_slide_frames;
-    if (diff > 0)
-    {
-        ch_state->panning_slide = 1;
-    }
-    else if (diff < 0)
-    {
-        ch_state->panning_slide = -1;
-    }
-    else
-    {
-        ch_state->panning = ch_state->panning_slide_target;
-        ch_state->panning_slide = 0;
-    }
-#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
         Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
-#if 0
-        vs->panning_slide_target = data[0].field.double_type;
-        vs->panning_slide_frames = Reltime_toframes(&vs->panning_slide_length,
-                                                    *ch_state->tempo,
-                                                    *ch_state->freq);
-        diff = vs->panning_slide_target - vs->panning;
-        vs->panning_slide_update = diff / vs->panning_slide_frames;
-        if (diff > 0)
-        {
-            vs->panning_slide = 1;
-        }
-        else if (diff < 0)
-        {
-            vs->panning_slide = -1;
-        }
-        else
-        {
-            vs->panning = vs->panning_slide_target;
-            vs->panning_slide = 0;
-        }
-#endif
     }
     return true;
 }

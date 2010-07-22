@@ -92,28 +92,6 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
         {
             Slider_start(&vs->pitch_slider, pitch, vs->pitch);
         }
-#if 0
-        vs->pitch_slide_frames = Reltime_toframes(&vs->pitch_slide_length,
-                                                  *ch_state->tempo,
-                                                  *ch_state->freq);
-        vs->pitch_slide_target = pitch;
-        double diff_log = log2(pitch) - log2(vs->pitch);
-        double slide_step = diff_log / vs->pitch_slide_frames;
-        vs->pitch_slide_update = exp2(slide_step);
-        if (slide_step > 0)
-        {
-            vs->pitch_slide = 1;
-        }
-        else if (slide_step < 0)
-        {
-            vs->pitch_slide = -1;
-        }
-        else
-        {
-            vs->pitch = vs->pitch_slide_target;
-            vs->pitch_slide = 0;
-        }
-#endif
     }
     return true;
 }

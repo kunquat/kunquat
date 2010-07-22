@@ -72,13 +72,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
-#if 0
-    state->pitch_slide = 0;
-    Reltime_init(&state->pitch_slide_length);
-    state->pitch_slide_target = 0;
-    state->pitch_slide_frames = 0;
-    state->pitch_slide_update = 1;
-#endif
     state->vibrato = false;
     state->vibrato_length = 0;
     state->vibrato_depth = 0;
@@ -130,13 +123,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->force = 1;
     state->actual_force = 1;
     Slider_init(&state->force_slider, SLIDE_MODE_EXP);
-#if 0
-    state->force_slide = 0;
-    Reltime_init(&state->force_slide_length);
-    state->force_slide_target = 1;
-    state->force_slide_frames = 0;
-    state->force_slide_update = 1;
-#endif
     state->tremolo = false;
     state->tremolo_length = 0;
     state->tremolo_depth = 0;
@@ -149,25 +135,11 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->panning = 0;
     state->actual_panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
-#if 0
-    state->panning_slide = 0;
-    Reltime_init(&state->panning_slide_length);
-    state->panning_slide_target = 0;
-    state->panning_slide_frames = 0;
-    state->panning_slide_update = 0;
-#endif
 
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
     state->effective_filter = INFINITY;
     Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
-#if 0
-    state->filter_slide = 0;
-    Reltime_init(&state->filter_slide_length);
-    state->filter_slide_target = INFINITY;
-    state->filter_slide_frames = 0;
-    state->filter_slide_update = 0;
-#endif
     state->filter_resonance = 1;
     state->effective_resonance = 1;
     state->filter_update = false;

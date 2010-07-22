@@ -62,14 +62,6 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
 
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
-#if 0
-    state->panning_slide = 0;
-    Reltime_set(&state->panning_slide_length, 0, 0);
-    state->panning_slide_target = 0;
-    state->panning_slide_frames = 0;
-    state->panning_slide_update = 0;
-    state->panning_slide_prog = 0;
-#endif
 
     return true;
 }

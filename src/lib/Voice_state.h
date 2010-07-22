@@ -57,13 +57,6 @@ typedef struct Voice_state
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;
-#if 0
-    int pitch_slide;               ///< Pitch slide state (0 = no slide, -1 = down, 1 = up).
-    Reltime pitch_slide_length;
-    pitch_t pitch_slide_target;    ///< Target pitch of the slide.
-    double pitch_slide_frames;     ///< Number of frames left to complete the slide.
-    double pitch_slide_update;     ///< The update factor of the slide.
-#endif
     bool vibrato;                  ///< Vibrato enabled.
     double vibrato_length;         ///< Length of the vibrato phase.
     double vibrato_depth;          ///< Depth of the vibrato.
@@ -104,13 +97,6 @@ typedef struct Voice_state
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
     Slider force_slider;
-#if 0
-    int force_slide;               ///< Force slide state (0 = no slide, -1 = down, 1 = up).
-    Reltime force_slide_length;
-    double force_slide_target;     ///< Target force of the slide.
-    double force_slide_frames;     ///< Number of frames left to complete the slide.
-    double force_slide_update;     ///< The update factor of the slide.
-#endif
     bool tremolo;                  ///< Tremolo enabled.
     double tremolo_length;         ///< Length of the tremolo phase.
     double tremolo_depth;          ///< Depth of the tremolo.
@@ -123,24 +109,10 @@ typedef struct Voice_state
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.
     Slider panning_slider;
-#if 0
-    int panning_slide;             ///< Panning slide state (0 = no slide, -1 = left, 1 = right).
-    Reltime panning_slide_length;
-    double panning_slide_target;   ///< Target panning position of the slide.
-    double panning_slide_frames;   ///< Number of frames left to complete the slide.
-    double panning_slide_update;   ///< The update amount of the slide.
-#endif
 
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
     Slider lowpass_slider;
-#if 0
-    int filter_slide;              ///< Filter slide state (0 = no slide, -1 = down, 1 = up).
-    Reltime filter_slide_length;
-    double filter_slide_target;    ///< Target cut-off frequency of the slide.
-    double filter_slide_frames;    ///< Number of frames left to complete the slide.
-    double filter_slide_update;    ///< The update factor of the slide.
-#endif
     double filter_resonance;       ///< The filter resonance (Q factor).
     bool autowah;                  ///< Auto-wah enabled.
     double autowah_length;         ///< Length of the auto-wah phase.

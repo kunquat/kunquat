@@ -71,13 +71,6 @@ typedef struct Playdata
 
     double volume;                    ///< Current global volume.
     Slider volume_slider;
-#if 0
-    int volume_slide;                 ///< Global volume slide (0 = no slide, -1 = down, 1 = up).
-    Reltime volume_slide_length;
-    double volume_slide_target;       ///< Target volume of the global volume slide.
-    double volume_slide_frames;       ///< Number of frames to complete the slide.
-    double volume_slide_update;       ///< The update factor of the slide.
-#endif
 
     double tempo;                     ///< Current tempo.
     int tempo_slide;                  ///< Tempo slide state (0 = no slide, -1 = down, 1 = up).

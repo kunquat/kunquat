@@ -70,29 +70,6 @@ bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
         {
             Slider_start(&vs->force_slider, slide_target, vs->force);
         }
-#if 0
-        vs->force_slide_target = slide_target;
-        vs->force_slide_frames = Reltime_toframes(&vs->force_slide_length,
-                                                  *ch_state->tempo,
-                                                  *ch_state->freq);
-        double force_dB = log2(vs->force) * 6;
-        double dB_step = (data[0].field.double_type - force_dB) /
-                         vs->force_slide_frames;
-        vs->force_slide_update = exp2(dB_step / 6);
-        if (dB_step > 0)
-        {
-            vs->force_slide = 1;
-        }
-        else if (dB_step < 0)
-        {
-            vs->force_slide = -1;
-        }
-        else
-        {
-            vs->force = vs->force_slide_target;
-            vs->force_slide = 0;
-        }
-#endif
     }
     return true;
 }
