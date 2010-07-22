@@ -47,9 +47,8 @@ Voice_state* Voice_state_init(Voice_state* state,
     Slider_set_tempo(&state->force_slider, tempo);
     Slider_set_mix_rate(&state->panning_slider, freq);
     Slider_set_tempo(&state->panning_slider, tempo);
-//    Slider_set_mix_rate(&state->lowpass_slider, freq);
-//    Slider_set_tempo(&state->lowpass_slider, tempo);
-//  TODO: enable
+    Slider_set_mix_rate(&state->lowpass_slider, freq);
+    Slider_set_tempo(&state->lowpass_slider, tempo);
 
     Voice_params_copy(&state->params, params);
     return state;
@@ -161,11 +160,14 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
     state->effective_filter = INFINITY;
+    Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
+#if 0
     state->filter_slide = 0;
     Reltime_init(&state->filter_slide_length);
     state->filter_slide_target = INFINITY;
     state->filter_slide_frames = 0;
     state->filter_slide_update = 0;
+#endif
     state->filter_resonance = 1;
     state->effective_resonance = 1;
     state->filter_update = false;

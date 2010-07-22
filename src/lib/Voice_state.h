@@ -133,11 +133,14 @@ typedef struct Voice_state
 
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
+    Slider lowpass_slider;
+#if 0
     int filter_slide;              ///< Filter slide state (0 = no slide, -1 = down, 1 = up).
     Reltime filter_slide_length;
     double filter_slide_target;    ///< Target cut-off frequency of the slide.
     double filter_slide_frames;    ///< Number of frames left to complete the slide.
     double filter_slide_update;    ///< The update factor of the slide.
+#endif
     double filter_resonance;       ///< The filter resonance (Q factor).
     bool autowah;                  ///< Auto-wah enabled.
     double autowah_length;         ///< Length of the auto-wah phase.

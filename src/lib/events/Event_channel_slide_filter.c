@@ -64,6 +64,18 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        if (Slider_in_progress(&vs->lowpass_slider))
+        {
+            Slider_change_target(&vs->lowpass_slider,
+                                 data[0].field.double_type);
+        }
+        else
+        {
+            Slider_start(&vs->lowpass_slider,
+                         target_cutoff_exp,
+                         isfinite(vs->filter) ? vs->filter : inf_limit);
+        }
+#if 0
         vs->filter_slide_target = target_cutoff_exp;
         vs->filter_slide_frames =
                 Reltime_toframes(&vs->filter_slide_length,
@@ -89,6 +101,7 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
             vs->filter_slide = 0;
             vs->filter = vs->filter_slide_target;
         }
+#endif
     }
     return true;
 }

@@ -139,7 +139,8 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->panning_slide_update = ch_state->panning_slide_update;
 #endif
 
-        Reltime_copy(&vs->filter_slide_length, &ch_state->filter_slide_length);
+        Slider_set_length(&vs->lowpass_slider, &ch_state->filter_slide_length);
+//        Reltime_copy(&vs->filter_slide_length, &ch_state->filter_slide_length);
     }
     return true;
 }

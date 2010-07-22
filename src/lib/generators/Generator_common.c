@@ -106,6 +106,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->panning_slide_frames *= state->tempo / tempo;
         }
 #endif
+        Slider_set_mix_rate(&state->lowpass_slider, freq);
+        Slider_set_tempo(&state->lowpass_slider, tempo);
+#if 0
         if (state->filter_slide != 0)
         {
             double slide_step = log2(state->filter_slide_update);
@@ -115,6 +118,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->filter_slide_frames *= (double)freq / state->freq;
             state->filter_slide_frames *= state->tempo / tempo;
         }
+#endif
         if (state->autowah_length > 0 && state->autowah_depth > 0)
         {
             state->autowah_phase *= (double)freq / state->freq;
@@ -539,6 +543,11 @@ void Generator_common_handle_filter(Generator* gen,
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
+    if (Slider_in_progress(&state->lowpass_slider))
+    {
+        state->filter = Slider_step(&state->lowpass_slider);
+    }
+#if 0
     if (state->filter_slide != 0)
     {
         state->filter *= state->filter_slide_update;
@@ -566,6 +575,7 @@ void Generator_common_handle_filter(Generator* gen,
             }
         }
     }
+#endif
     state->actual_filter = state->filter;
     if (state->autowah)
     {

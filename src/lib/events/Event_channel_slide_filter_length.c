@@ -59,13 +59,17 @@ bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fi
         return false;
     }
     Reltime_copy(&ch_state->filter_slide_length, &data[0].field.Reltime_type);
+#if 0
     uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
                                              *ch_state->tempo,
                                              *ch_state->freq);
+#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        Slider_set_length(&vs->lowpass_slider, &data[0].field.Reltime_type);
+#if 0
         vs->filter_slide_frames = slide_frames;
         Reltime_copy(&vs->filter_slide_length, &data[0].field.Reltime_type);
         if (vs->filter_slide != 0)
@@ -75,6 +79,7 @@ bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fi
             double slide_step = diff_log / vs->filter_slide_frames;
             vs->filter_slide_update = exp2(slide_step / 12);
         }
+#endif
     }
     return true;
 }
