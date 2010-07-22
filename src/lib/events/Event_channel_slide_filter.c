@@ -66,8 +66,7 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
         Voice_state* vs = ch_state->fg[i]->state;
         if (Slider_in_progress(&vs->lowpass_slider))
         {
-            Slider_change_target(&vs->lowpass_slider,
-                                 data[0].field.double_type);
+            Slider_change_target(&vs->lowpass_slider, target_cutoff_exp);
         }
         else
         {
