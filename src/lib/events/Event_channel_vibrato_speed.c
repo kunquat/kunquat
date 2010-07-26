@@ -59,13 +59,6 @@ bool Event_channel_vibrato_speed_process(Channel_state* ch_state, char* fields)
     }
     ch_state->vibrato_speed = data[0].field.double_type;
     LFO_set_speed(&ch_state->vibrato, data[0].field.double_type);
-#if 0
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       *ch_state->tempo,
-                                       *ch_state->freq);
-    ch_state->vibrato_length = unit_len / data[0].field.double_type;
-    ch_state->vibrato_update = (2 * PI) / ch_state->vibrato_length;
-#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
@@ -80,18 +73,6 @@ bool Event_channel_vibrato_speed_process(Channel_state* ch_state, char* fields)
             LFO_set_depth(&vs->vibrato, ch_state->vibrato_depth);
         }
         LFO_turn_on(&vs->vibrato);
-#if 0
-        if (data[0].field.double_type > 0 && vs->vibrato_depth_target > 0)
-        {
-            vs->vibrato = true;
-        }
-        vs->vibrato_length = ch_state->vibrato_length;
-        vs->vibrato_update = ch_state->vibrato_update;
-        if (!vs->vibrato)
-        {
-            vs->vibrato_delay_pos = 0;
-        }
-#endif
     }
     return true;
 }

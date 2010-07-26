@@ -43,22 +43,10 @@ typedef struct LFO
 
     double speed;
     Slider speed_slider;
-#if 0
-    double length_target;
-    double length_delay_pos;
-    double length_delay_update;
-#endif
-
     double depth;
     Slider depth_slider;
-#if 0
-    double depth_target;
-    double depth_delay_pos;
-    double depth_delay_update;
-#endif
 
     double offset;
-
     double phase;
     double update;
 } LFO;

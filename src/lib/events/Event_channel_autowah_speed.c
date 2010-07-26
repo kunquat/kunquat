@@ -59,13 +59,6 @@ bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields)
     }
     ch_state->autowah_speed = data[0].field.double_type;
     LFO_set_speed(&ch_state->autowah, data[0].field.double_type);
-#if 0
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       *ch_state->tempo,
-                                       *ch_state->freq);
-    ch_state->autowah_length = unit_len / data[0].field.double_type;
-    ch_state->autowah_update = (2 * PI) / ch_state->autowah_length;
-#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
@@ -76,18 +69,6 @@ bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields)
             LFO_set_depth(&vs->autowah, ch_state->autowah_depth);
         }
         LFO_turn_on(&vs->autowah);
-#if 0
-        if (data[0].field.double_type > 0 && vs->autowah_depth_target > 0)
-        {
-            vs->autowah = true;
-        }
-        vs->autowah_length = ch_state->autowah_length;
-        vs->autowah_update = ch_state->autowah_update;
-        if (!vs->autowah)
-        {
-            vs->autowah_delay_pos = 0;
-        }
-#endif
     }
     return true;
 }

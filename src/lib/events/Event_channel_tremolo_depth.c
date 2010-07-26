@@ -69,14 +69,6 @@ bool Event_channel_tremolo_depth_process(Channel_state* ch_state, char* fields)
         }
         LFO_set_depth(&vs->tremolo, actual_depth);
         LFO_turn_on(&vs->tremolo);
-#if 0
-        if (data[0].field.double_type > 0 && vs->tremolo_length > 0)
-        {
-            vs->tremolo = true;
-        }
-        vs->tremolo_depth_target = data[0].field.double_type;
-        vs->tremolo_delay_pos = 0;
-#endif
     }
     return true;
 }

@@ -79,16 +79,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
     LFO_init(&state->vibrato, LFO_MODE_EXP);
-#if 0
-    state->vibrato = false;
-    state->vibrato_length = 0;
-    state->vibrato_depth = 0;
-    state->vibrato_depth_target = 0;
-    state->vibrato_delay_pos = 0;
-    state->vibrato_delay_update = 1;
-    state->vibrato_phase = 0;
-    state->vibrato_update = 0;
-#endif
     state->arpeggio = false;
     state->arpeggio_length = 0;
     state->arpeggio_frames = 0;
@@ -99,16 +89,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     }
 
     LFO_init(&state->autowah, LFO_MODE_EXP);
-#if 0
-    state->autowah = false;
-    state->autowah_length = 0;
-    state->autowah_depth = 0;
-    state->autowah_depth_target = 0;
-    state->autowah_delay_pos = 0;
-    state->autowah_delay_update = 1;
-    state->autowah_phase = 0;
-    state->autowah_update = 0;
-#endif
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -136,16 +116,6 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_force = 1;
     Slider_init(&state->force_slider, SLIDE_MODE_EXP);
     LFO_init(&state->tremolo, LFO_MODE_EXP);
-#if 0
-    state->tremolo = false;
-    state->tremolo_length = 0;
-    state->tremolo_depth = 0;
-    state->tremolo_depth_target = 0;
-    state->tremolo_delay_pos = 0;
-    state->tremolo_delay_update = 1;
-    state->tremolo_phase = 0;
-    state->tremolo_update = 0;
-#endif
 
     state->panning = 0;
     state->actual_panning = 0;

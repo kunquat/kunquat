@@ -48,12 +48,6 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     Reltime_init(&state->tremolo_speed_delay);
     state->tremolo_depth = 0;
     Reltime_init(&state->tremolo_depth_delay);
-#if 0
-    state->tremolo_length = 0;
-    state->tremolo_update = 0;
-    state->tremolo_depth = 0;
-    state->tremolo_delay_update = 1;
-#endif
 
     Reltime_set(&state->pitch_slide_length, 0, 0);
     LFO_init(&state->vibrato, LFO_MODE_EXP);
@@ -61,12 +55,6 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     Reltime_init(&state->vibrato_speed_delay);
     state->vibrato_depth = 0;
     Reltime_init(&state->vibrato_depth_delay);
-#if 0
-    state->vibrato_length = 0;
-    state->vibrato_update = 0;
-    state->vibrato_depth = 0;
-    state->vibrato_delay_update = 1;
-#endif
 
     Reltime_set(&state->filter_slide_length, 0, 0);
     LFO_init(&state->autowah, LFO_MODE_EXP);
@@ -74,12 +62,6 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     Reltime_init(&state->autowah_speed_delay);
     state->autowah_depth = 0;
     Reltime_init(&state->autowah_depth_delay);
-#if 0
-    state->autowah_length = 0;
-    state->autowah_update = 0;
-    state->autowah_depth = 0;
-    state->autowah_delay_update = 1;
-#endif
 
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);

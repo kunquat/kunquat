@@ -44,19 +44,6 @@ void Generator_common_check_relative_lengths(Generator* gen,
         Slider_set_tempo(&state->pitch_slider, tempo);
         LFO_set_mix_rate(&state->vibrato, freq);
         LFO_set_tempo(&state->vibrato, tempo);
-#if 0
-        if (state->vibrato_length > 0 && state->vibrato_depth > 0)
-        {
-            state->vibrato_phase *= (double)freq / state->freq;
-            state->vibrato_phase *= state->tempo / tempo;
-        }
-        state->vibrato_length *= (double)freq / state->freq;
-        state->vibrato_length *= state->tempo / tempo;
-        state->vibrato_update *= (double)state->freq / freq;
-        state->vibrato_update *= tempo / state->tempo;
-        state->vibrato_delay_update *= (double)(state)->freq / freq;
-        state->vibrato_delay_update *= tempo / state->tempo;
-#endif
         if (state->arpeggio)
         {
             state->arpeggio_length *= (double)freq / state->freq;
@@ -64,42 +51,19 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->arpeggio_frames *= (double)freq / state->freq;
             state->arpeggio_frames *= state->tempo / tempo;
         }
+        
         Slider_set_mix_rate(&state->force_slider, freq);
         Slider_set_tempo(&state->force_slider, tempo);
         LFO_set_mix_rate(&state->tremolo, freq);
         LFO_set_tempo(&state->tremolo, tempo);
-#if 0
-        if (state->tremolo_length > 0 && state->tremolo_depth > 0)
-        {
-            state->tremolo_phase *= (double)freq / state->freq;
-            state->tremolo_phase *= state->tempo / tempo;
-        }
-        state->tremolo_length *= (double)freq / state->freq;
-        state->tremolo_length *= state->tempo / tempo;
-        state->tremolo_update *= (double)state->freq / freq;
-        state->tremolo_update *= tempo / state->tempo;
-        state->tremolo_delay_update *= (double)state->freq / freq;
-        state->tremolo_delay_update *= tempo / state->tempo;
-#endif
+
         Slider_set_mix_rate(&state->panning_slider, freq);
         Slider_set_tempo(&state->panning_slider, tempo);
+
         Slider_set_mix_rate(&state->lowpass_slider, freq);
         Slider_set_tempo(&state->lowpass_slider, tempo);
         LFO_set_mix_rate(&state->autowah, freq);
         LFO_set_tempo(&state->autowah, tempo);
-#if 0
-        if (state->autowah_length > 0 && state->autowah_depth > 0)
-        {
-            state->autowah_phase *= (double)freq / state->freq;
-            state->autowah_phase *= state->tempo / tempo;
-        }
-        state->autowah_length *= (double)freq / state->freq;
-        state->autowah_length *= state->tempo / tempo;
-        state->autowah_update *= (double)state->freq / freq;
-        state->autowah_update *= tempo / state->tempo;
-        state->autowah_delay_update *= (double)state->freq / freq;
-        state->autowah_delay_update *= tempo / state->tempo;
-#endif
 
         state->freq = freq;
         state->tempo = tempo;
@@ -130,51 +94,6 @@ void Generator_common_handle_pitch(Generator* gen,
         {
             state->actual_pitch *= LFO_step(&state->vibrato);
         }
-#if 0
-        if (state->vibrato)
-        {
-            double fac_log = sin(state->vibrato_phase);
-            if (state->vibrato_delay_pos < 1)
-            {
-                double actual_depth = (1 - state->vibrato_delay_pos) *
-                        state->vibrato_depth +
-                        state->vibrato_delay_pos *
-                        state->vibrato_depth_target;
-                fac_log *= actual_depth;
-                state->vibrato_delay_pos += state->vibrato_delay_update;
-            }
-            else
-            {
-                state->vibrato_depth = state->vibrato_depth_target;
-                fac_log *= state->vibrato_depth;
-                if (state->vibrato_depth == 0)
-                {
-                    state->vibrato = false;
-                }
-            }
-            state->actual_pitch *= exp2(fac_log);
-            if (!state->vibrato && state->vibrato_length > state->freq)
-            {
-                state->vibrato_length = state->freq;
-                state->vibrato_update = (2 * PI) / state->vibrato_length;
-            }
-            double new_phase = state->vibrato_phase + state->vibrato_update;
-            if (new_phase >= (2 * PI))
-            {
-                new_phase = fmod(new_phase, 2 * PI);
-            }
-            if (!state->vibrato && (new_phase < state->vibrato_phase
-                    || (new_phase >= PI && state->vibrato_phase < PI)))
-            {
-                state->vibrato_phase = 0;
-                state->vibrato_update = 0;
-            }
-            else
-            {
-                state->vibrato_phase = new_phase;
-            }
-        }
-#endif
         if (state->arpeggio)
         {
             if (state->arpeggio_note > 0)
@@ -219,51 +138,6 @@ void Generator_common_handle_force(Generator* gen,
     {
         state->actual_force *= LFO_step(&state->tremolo);
     }
-#if 0
-    if (state->tremolo)
-    {
-        double fac_dB = sin(state->tremolo_phase);
-        if (state->tremolo_delay_pos < 1)
-        {
-            double actual_depth = (1 - state->tremolo_delay_pos) *
-                                  state->tremolo_depth +
-                                  state->tremolo_delay_pos *
-                                  state->tremolo_depth_target;
-            fac_dB *= actual_depth;
-            state->tremolo_delay_pos += state->tremolo_delay_update;
-        }
-        else
-        {
-            state->tremolo_depth = state->tremolo_depth_target;
-            fac_dB *= state->tremolo_depth;
-            if (state->tremolo_depth == 0)
-            {
-                state->tremolo = false;
-            }
-        }
-        state->actual_force *= exp2(fac_dB / 6);
-        if (!state->tremolo && state->tremolo_length > state->freq)
-        {
-            state->tremolo_length = state->freq;
-            state->tremolo_update = (2 * PI) / state->tremolo_length;
-        }
-        double new_phase = state->tremolo_phase + state->tremolo_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->tremolo && (new_phase < state->tremolo_phase
-                    || (new_phase >= PI && state->tremolo_phase < PI)))
-        {
-            state->tremolo_phase = 0;
-            state->tremolo_update = 0;
-        }
-        else
-        {
-            state->tremolo_phase = new_phase;
-        }
-    }
-#endif
     if (gen->ins_params->env_force_enabled)
     {
         Envelope* env = gen->ins_params->env_force;
@@ -476,60 +350,6 @@ void Generator_common_handle_filter(Generator* gen,
     {
         state->actual_filter *= LFO_step(&state->autowah);
     }
-#if 0
-    if (state->autowah)
-    {
-        if (state->filter_xfade_pos >= 1)
-        {
-            double fac_log = sin(state->autowah_phase);
-            if (state->autowah_delay_pos < 1)
-            {
-                double actual_depth = (1 - state->autowah_delay_pos) *
-                                      state->autowah_depth +
-                                      state->autowah_delay_pos *
-                                      state->autowah_depth_target;
-                fac_log *= actual_depth;
-            }
-            else
-            {
-                fac_log *= state->autowah_depth_target;
-            }
-            state->actual_filter *= exp2(fac_log);
-        }
-        if (state->autowah_delay_pos < 1)
-        {
-            state->autowah_delay_pos += state->autowah_delay_update;
-        }
-        else if (state->autowah_depth == 0)
-        {
-            state->autowah_depth = state->autowah_depth_target;
-            if (state->autowah_depth == 0)
-            {
-                state->autowah = false;
-            }
-        }
-        if (!state->autowah && state->autowah_length > state->freq)
-        {
-            state->autowah_length = state->freq;
-            state->autowah_update = (2 * PI) / state->autowah_length;
-        }
-        double new_phase = state->autowah_phase + state->autowah_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->autowah && (new_phase < state->autowah_phase ||
-                    (new_phase >= PI && state->autowah_phase < PI)))
-        {
-            state->autowah_phase = 0;
-            state->autowah_update = 0;
-        }
-        else
-        {
-            state->autowah_phase = new_phase;
-        }
-    }
-#endif
     if (gen->ins_params->env_force_filter_enabled &&
             state->filter_xfade_pos >= 1)
     {

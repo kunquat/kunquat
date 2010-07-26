@@ -58,10 +58,9 @@ bool Event_channel_vibrato_depth_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    double actual_depth = data[0].field.double_type / 240;
+    double actual_depth = data[0].field.double_type / 240; // unit is 5 cents
     ch_state->vibrato_depth = actual_depth;
     LFO_set_depth(&ch_state->vibrato, actual_depth); // unit is 5 cents
-//    ch_state->vibrato_depth = data[0].field.double_type / 240; // unit is 5 cents
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
@@ -76,14 +75,6 @@ bool Event_channel_vibrato_depth_process(Channel_state* ch_state, char* fields)
         }
         LFO_set_depth(&vs->vibrato, actual_depth);
         LFO_turn_on(&vs->vibrato);
-#if 0
-        if (data[0].field.double_type > 0 && vs->vibrato_length > 0)
-        {
-            vs->vibrato = true;
-        }
-        vs->vibrato_depth_target = ch_state->vibrato_depth;
-        vs->vibrato_delay_pos = 0;
-#endif
     }
     return true;
 }

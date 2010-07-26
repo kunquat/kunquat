@@ -60,12 +60,6 @@ typedef struct Channel_state
     Reltime tremolo_speed_delay;
     double tremolo_depth;
     Reltime tremolo_depth_delay;
-#if 0
-    double tremolo_length;         ///< Tremolo length.
-    double tremolo_update;         ///< Tremolo update.
-    double tremolo_depth;          ///< Tremolo depth.
-    double tremolo_delay_update;   ///< The update amount of the tremolo delay.
-#endif
 
     Reltime pitch_slide_length;
     LFO vibrato;
@@ -73,12 +67,6 @@ typedef struct Channel_state
     Reltime vibrato_speed_delay;
     double vibrato_depth;
     Reltime vibrato_depth_delay;
-#if 0
-    double vibrato_length;         ///< Vibrato length.
-    double vibrato_update;         ///< Vibrato update.
-    double vibrato_depth;          ///< Vibrato depth.
-    double vibrato_delay_update;   ///< The update amount of the vibrato delay.
-#endif
 
     Reltime filter_slide_length;
     LFO autowah;
@@ -86,12 +74,6 @@ typedef struct Channel_state
     Reltime autowah_speed_delay;
     double autowah_depth;
     Reltime autowah_depth_delay;
-#if 0
-    double autowah_length;         ///< Auto-wah length.
-    double autowah_update;         ///< Auto-wah update.
-    double autowah_depth;          ///< Auto-wah depth.
-    double autowah_delay_update;   ///< The update amount of the auto-wah delay.
-#endif
 
     double panning;                ///< The current panning.
     Slider panning_slider;

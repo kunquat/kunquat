@@ -59,16 +59,6 @@ typedef struct Voice_state
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;
     LFO vibrato;
-#if 0
-    bool vibrato;                  ///< Vibrato enabled.
-    double vibrato_length;         ///< Length of the vibrato phase.
-    double vibrato_depth;          ///< Depth of the vibrato.
-    double vibrato_depth_target;   ///< Target vibrato depth.
-    double vibrato_delay_pos;      ///< Position of the vibrato delay.
-    double vibrato_delay_update;   ///< The update amount of the vibrato delay.
-    double vibrato_phase;          ///< Phase of the vibrato.
-    double vibrato_update;         ///< The update amount of the vibrato phase.
-#endif
     bool arpeggio;                 ///< Arpeggio enabled.
     double arpeggio_length;        ///< Length of one note in the arpeggio.
     double arpeggio_frames;        ///< Frames left of the current note in the arpeggio.
@@ -102,16 +92,6 @@ typedef struct Voice_state
     double actual_force;           ///< The current actual force (includes tremolo & envs).
     Slider force_slider;
     LFO tremolo;
-#if 0
-    bool tremolo;                  ///< Tremolo enabled.
-    double tremolo_length;         ///< Length of the tremolo phase.
-    double tremolo_depth;          ///< Depth of the tremolo.
-    double tremolo_depth_target;   ///< Target tremolo depth.
-    double tremolo_delay_pos;      ///< Position of the tremolo delay.
-    double tremolo_delay_update;   ///< The update amount of the tremolo delay.
-    double tremolo_phase;          ///< Phase of the tremolo.
-    double tremolo_update;         ///< The update amount of the tremolo phase.
-#endif
                                    
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.
@@ -122,16 +102,6 @@ typedef struct Voice_state
     Slider lowpass_slider;
     LFO autowah;
     double filter_resonance;       ///< The filter resonance (Q factor).
-#if 0
-    bool autowah;                  ///< Auto-wah enabled.
-    double autowah_length;         ///< Length of the auto-wah phase.
-    double autowah_depth;          ///< Depth of the auto-wah.
-    double autowah_depth_target;   ///< Target auto-wah depth.
-    double autowah_delay_pos;      ///< Position of the auto-wah delay.
-    double autowah_delay_update;   ///< The update amount of the auto-wah delay.
-    double autowah_phase;          ///< Phase of the auto-wah.
-    double autowah_update;         ///< The update amount of the auto-wah phase.
-#endif
 
     double effective_filter;       ///< The current filter cut-off frequency _really_ used.
     double effective_resonance;    ///< The current filter resonance _really_ used.

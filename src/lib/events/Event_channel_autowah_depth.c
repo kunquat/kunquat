@@ -69,16 +69,7 @@ bool Event_channel_autowah_depth_process(Channel_state* ch_state, char* fields)
         }
         LFO_set_depth(&vs->autowah, actual_depth);
         LFO_turn_on(&vs->autowah);
-#if 0
-        if (data[0].field.double_type > 0 && vs->autowah_length > 0)
-        {
-            vs->autowah = true;
-        }
-        vs->autowah_depth_target = depth_target;
-        vs->autowah_delay_pos = 0;
-#endif
     }
-//    ch_state->autowah_depth = depth_target;
     return true;
 }
 
