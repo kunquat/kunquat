@@ -85,6 +85,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
         Slider_set_tempo(&state->panning_slider, tempo);
         Slider_set_mix_rate(&state->lowpass_slider, freq);
         Slider_set_tempo(&state->lowpass_slider, tempo);
+        LFO_set_mix_rate(&state->autowah, freq);
+        LFO_set_tempo(&state->autowah, tempo);
+#if 0
         if (state->autowah_length > 0 && state->autowah_depth > 0)
         {
             state->autowah_phase *= (double)freq / state->freq;
@@ -96,6 +99,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
         state->autowah_update *= tempo / state->tempo;
         state->autowah_delay_update *= (double)state->freq / freq;
         state->autowah_delay_update *= tempo / state->tempo;
+#endif
 
         state->freq = freq;
         state->tempo = tempo;
@@ -468,6 +472,11 @@ void Generator_common_handle_filter(Generator* gen,
         state->filter = Slider_step(&state->lowpass_slider);
     }
     state->actual_filter = state->filter;
+    if (LFO_active(&state->autowah))
+    {
+        state->actual_filter *= LFO_step(&state->autowah);
+    }
+#if 0
     if (state->autowah)
     {
         if (state->filter_xfade_pos >= 1)
@@ -520,6 +529,7 @@ void Generator_common_handle_filter(Generator* gen,
             state->autowah_phase = new_phase;
         }
     }
+#endif
     if (gen->ins_params->env_force_filter_enabled &&
             state->filter_xfade_pos >= 1)
     {

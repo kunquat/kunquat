@@ -120,7 +120,9 @@ typedef struct Voice_state
     double filter;                 ///< The current filter cut-off frequency.
     double actual_filter;          ///< The current actual filter cut-off frequency.
     Slider lowpass_slider;
+    LFO autowah;
     double filter_resonance;       ///< The filter resonance (Q factor).
+#if 0
     bool autowah;                  ///< Auto-wah enabled.
     double autowah_length;         ///< Length of the auto-wah phase.
     double autowah_depth;          ///< Depth of the auto-wah.
@@ -129,6 +131,7 @@ typedef struct Voice_state
     double autowah_delay_update;   ///< The update amount of the auto-wah delay.
     double autowah_phase;          ///< Phase of the auto-wah.
     double autowah_update;         ///< The update amount of the auto-wah phase.
+#endif
 
     double effective_filter;       ///< The current filter cut-off frequency _really_ used.
     double effective_resonance;    ///< The current filter resonance _really_ used.

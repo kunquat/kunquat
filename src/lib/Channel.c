@@ -149,6 +149,8 @@ void Channel_set_voices(Channel* ch,
         LFO_set_tempo(&ch->cur_state.tremolo, tempo);
         Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
         Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
+        LFO_set_mix_rate(&ch->cur_state.autowah, freq);
+        LFO_set_tempo(&ch->cur_state.autowah, tempo);
         uint32_t to_be_mixed = MIN(abs_pos, nframes);
         for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
         {

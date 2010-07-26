@@ -53,6 +53,8 @@ Voice_state* Voice_state_init(Voice_state* state,
     Slider_set_tempo(&state->panning_slider, tempo);
     Slider_set_mix_rate(&state->lowpass_slider, freq);
     Slider_set_tempo(&state->lowpass_slider, tempo);
+    LFO_set_mix_rate(&state->autowah, freq);
+    LFO_set_tempo(&state->autowah, tempo);
 
     Voice_params_copy(&state->params, params);
     return state;
@@ -96,6 +98,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
         state->arpeggio_factors[i] = 0;
     }
 
+    LFO_init(&state->autowah, LFO_MODE_EXP);
+#if 0
     state->autowah = false;
     state->autowah_length = 0;
     state->autowah_depth = 0;
@@ -104,6 +108,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->autowah_delay_update = 1;
     state->autowah_phase = 0;
     state->autowah_update = 0;
+#endif
 
     state->pos = 0;
     state->pos_rem = 0;

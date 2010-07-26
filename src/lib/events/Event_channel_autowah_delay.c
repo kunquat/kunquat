@@ -59,22 +59,29 @@ bool Event_channel_autowah_delay_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
+    Reltime_copy(&ch_state->autowah_depth_delay, &data[0].field.Reltime_type);
+    LFO_set_depth_delay(&ch_state->autowah, &data[0].field.Reltime_type);
+#if 0
     double delay_frames = Reltime_toframes(&data[0].field.Reltime_type,
                                            *ch_state->tempo,
                                            *ch_state->freq);
     double delay_update = 1 / delay_frames;
+#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        LFO_set_depth_delay(&vs->autowah, &data[0].field.Reltime_type);
+#if 0
         vs->autowah_delay_pos = 0;
         vs->autowah_delay_update = delay_update;
         if (vs->autowah_delay_update == 0)
         {
             vs->autowah_delay_pos = 1;
         }
+#endif
     }
-    ch_state->autowah_delay_update = delay_update;
+//    ch_state->autowah_delay_update = delay_update;
     return true;
 }
 

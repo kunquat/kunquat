@@ -81,10 +81,17 @@ typedef struct Channel_state
 #endif
 
     Reltime filter_slide_length;
+    LFO autowah;
+    double autowah_speed;
+    Reltime autowah_speed_delay;
+    double autowah_depth;
+    Reltime autowah_depth_delay;
+#if 0
     double autowah_length;         ///< Auto-wah length.
     double autowah_update;         ///< Auto-wah update.
     double autowah_depth;          ///< Auto-wah depth.
     double autowah_delay_update;   ///< The update amount of the auto-wah delay.
+#endif
 
     double panning;                ///< The current panning.
     Slider panning_slider;
