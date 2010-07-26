@@ -101,6 +101,8 @@ typedef struct Voice_state
     double force;                  ///< The current force (linear factor).
     double actual_force;           ///< The current actual force (includes tremolo & envs).
     Slider force_slider;
+    LFO tremolo;
+#if 0
     bool tremolo;                  ///< Tremolo enabled.
     double tremolo_length;         ///< Length of the tremolo phase.
     double tremolo_depth;          ///< Depth of the tremolo.
@@ -109,6 +111,7 @@ typedef struct Voice_state
     double tremolo_delay_update;   ///< The update amount of the tremolo delay.
     double tremolo_phase;          ///< Phase of the tremolo.
     double tremolo_update;         ///< The update amount of the tremolo phase.
+#endif
                                    
     double panning;                ///< The current panning.
     double actual_panning;         ///< The current actual panning.

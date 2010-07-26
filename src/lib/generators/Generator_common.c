@@ -66,6 +66,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
         }
         Slider_set_mix_rate(&state->force_slider, freq);
         Slider_set_tempo(&state->force_slider, tempo);
+        LFO_set_mix_rate(&state->tremolo, freq);
+        LFO_set_tempo(&state->tremolo, tempo);
+#if 0
         if (state->tremolo_length > 0 && state->tremolo_depth > 0)
         {
             state->tremolo_phase *= (double)freq / state->freq;
@@ -77,6 +80,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
         state->tremolo_update *= tempo / state->tempo;
         state->tremolo_delay_update *= (double)state->freq / freq;
         state->tremolo_delay_update *= tempo / state->tempo;
+#endif
         Slider_set_mix_rate(&state->panning_slider, freq);
         Slider_set_tempo(&state->panning_slider, tempo);
         Slider_set_mix_rate(&state->lowpass_slider, freq);
@@ -207,6 +211,11 @@ void Generator_common_handle_force(Generator* gen,
         state->force = Slider_step(&state->force_slider);
     }
     state->actual_force = state->force;
+    if (LFO_active(&state->tremolo))
+    {
+        state->actual_force *= LFO_step(&state->tremolo);
+    }
+#if 0
     if (state->tremolo)
     {
         double fac_dB = sin(state->tremolo_phase);
@@ -250,6 +259,7 @@ void Generator_common_handle_force(Generator* gen,
             state->tremolo_phase = new_phase;
         }
     }
+#endif
     if (gen->ins_params->env_force_enabled)
     {
         Envelope* env = gen->ins_params->env_force;

@@ -55,10 +55,17 @@ typedef struct Channel_state
     double volume;                 ///< Channel volume (linear factor).
 
     Reltime force_slide_length;
+    LFO tremolo;
+    double tremolo_speed;
+    Reltime tremolo_speed_delay;
+    double tremolo_depth;
+    Reltime tremolo_depth_delay;
+#if 0
     double tremolo_length;         ///< Tremolo length.
     double tremolo_update;         ///< Tremolo update.
     double tremolo_depth;          ///< Tremolo depth.
     double tremolo_delay_update;   ///< The update amount of the tremolo delay.
+#endif
 
     Reltime pitch_slide_length;
     LFO vibrato;

@@ -57,15 +57,26 @@ bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
+    ch_state->tremolo_speed = data[0].field.double_type;
+    LFO_set_speed(&ch_state->tremolo, data[0].field.double_type);
+#if 0
     double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
                                        *ch_state->tempo,
                                        *ch_state->freq);
     ch_state->tremolo_length = unit_len / data[0].field.double_type;
     ch_state->tremolo_update = (2 * PI) / ch_state->tremolo_length;
+#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        LFO_set_speed(&vs->tremolo, data[0].field.double_type);
+        if (ch_state->tremolo_depth > 0)
+        {
+            LFO_set_depth(&vs->tremolo, ch_state->tremolo_depth);
+        }
+        LFO_turn_on(&vs->tremolo);
+#if 0
         if (data[0].field.double_type > 0 && vs->tremolo_depth_target > 0)
         {
             vs->tremolo = true;
@@ -76,6 +87,7 @@ bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)
         {
             vs->tremolo_delay_pos = 0;
         }
+#endif
     }
     return true;
 }
