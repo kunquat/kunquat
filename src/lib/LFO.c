@@ -248,7 +248,6 @@ double LFO_skip(LFO* lfo, uint64_t steps)
 {
     assert(lfo != NULL);
     (void)steps;
-    assert(false);
     if (steps == 0)
     {
         if (lfo->mode == LFO_MODE_EXP)
@@ -262,8 +261,18 @@ double LFO_skip(LFO* lfo, uint64_t steps)
     {
         return LFO_step(lfo);
     }
-    // TODO
-    return NAN;
+    lfo->speed = Slider_skip(&lfo->speed_slider, steps);
+    lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;
+    lfo->depth = Slider_skip(&lfo->depth_slider, steps);
+    // TODO: calculate phase properly :-)
+    lfo->phase = fmod(lfo->phase + lfo->update, 2 * PI);
+    double value = sin(lfo->phase) * lfo->depth;
+    if (lfo->mode == LFO_MODE_EXP)
+    {
+        return exp2(value);
+    }
+    assert(lfo->mode == LFO_MODE_LINEAR);
+    return value;
 }
 
 
