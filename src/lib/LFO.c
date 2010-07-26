@@ -205,10 +205,13 @@ double LFO_step(LFO* lfo)
     if (Slider_in_progress(&lfo->speed_slider))
     {
         lfo->speed = Slider_step(&lfo->speed_slider);
+#if 0
         double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
                                            lfo->tempo,
                                            lfo->mix_rate);
         lfo->update = (lfo->speed * (2 * PI)) / unit_len;
+#endif
+        lfo->update = (lfo->speed * (2 * PI)) / lfo->mix_rate;
     }
     if (Slider_in_progress(&lfo->depth_slider))
     {
@@ -273,9 +276,9 @@ static void LFO_update_time(LFO* lfo,
     assert(tempo > 0);
 
     lfo->speed *= (double)mix_rate / lfo->mix_rate;
-    lfo->speed *= lfo->tempo / tempo;
+//    lfo->speed *= lfo->tempo / tempo;
     lfo->update *= (double)lfo->mix_rate / mix_rate;
-    lfo->update *= tempo / lfo->tempo;
+//    lfo->update *= tempo / lfo->tempo;
     Slider_set_mix_rate(&lfo->speed_slider, mix_rate);
     Slider_set_tempo(&lfo->speed_slider, tempo);
     Slider_set_mix_rate(&lfo->depth_slider, mix_rate);
