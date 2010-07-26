@@ -42,6 +42,9 @@ void Generator_common_check_relative_lengths(Generator* gen,
     {
         Slider_set_mix_rate(&state->pitch_slider, freq);
         Slider_set_tempo(&state->pitch_slider, tempo);
+        LFO_set_mix_rate(&state->vibrato, freq);
+        LFO_set_tempo(&state->vibrato, tempo);
+#if 0
         if (state->vibrato_length > 0 && state->vibrato_depth > 0)
         {
             state->vibrato_phase *= (double)freq / state->freq;
@@ -53,6 +56,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
         state->vibrato_update *= tempo / state->tempo;
         state->vibrato_delay_update *= (double)(state)->freq / freq;
         state->vibrato_delay_update *= tempo / state->tempo;
+#endif
         if (state->arpeggio)
         {
             state->arpeggio_length *= (double)freq / state->freq;
@@ -114,6 +118,11 @@ void Generator_common_handle_pitch(Generator* gen,
     }
     else
     {
+        if (LFO_active(&state->vibrato))
+        {
+            state->actual_pitch *= LFO_step(&state->vibrato);
+        }
+#if 0
         if (state->vibrato)
         {
             double fac_log = sin(state->vibrato_phase);
@@ -157,6 +166,7 @@ void Generator_common_handle_pitch(Generator* gen,
                 state->vibrato_phase = new_phase;
             }
         }
+#endif
         if (state->arpeggio)
         {
             if (state->arpeggio_note > 0)

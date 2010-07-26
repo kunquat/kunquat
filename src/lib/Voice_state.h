@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <Channel_gen_state.h>
+#include <LFO.h>
 #include <Reltime.h>
 #include <Slider.h>
 #include <frame.h>
@@ -57,6 +58,8 @@ typedef struct Voice_state
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;
+    LFO vibrato;
+#if 0
     bool vibrato;                  ///< Vibrato enabled.
     double vibrato_length;         ///< Length of the vibrato phase.
     double vibrato_depth;          ///< Depth of the vibrato.
@@ -65,6 +68,7 @@ typedef struct Voice_state
     double vibrato_delay_update;   ///< The update amount of the vibrato delay.
     double vibrato_phase;          ///< Phase of the vibrato.
     double vibrato_update;         ///< The update amount of the vibrato phase.
+#endif
     bool arpeggio;                 ///< Arpeggio enabled.
     double arpeggio_length;        ///< Length of one note in the arpeggio.
     double arpeggio_frames;        ///< Frames left of the current note in the arpeggio.

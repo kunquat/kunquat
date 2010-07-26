@@ -143,6 +143,8 @@ void Channel_set_voices(Channel* ch,
         {
             abs_pos += offset;
         }
+        LFO_set_mix_rate(&ch->cur_state.vibrato, freq);
+        LFO_set_tempo(&ch->cur_state.vibrato, tempo);
         Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
         Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
         uint32_t to_be_mixed = MIN(abs_pos, nframes);

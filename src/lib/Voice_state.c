@@ -43,6 +43,8 @@ Voice_state* Voice_state_init(Voice_state* state,
 
     Slider_set_mix_rate(&state->pitch_slider, freq);
     Slider_set_tempo(&state->pitch_slider, tempo);
+    LFO_set_mix_rate(&state->vibrato, freq);
+    LFO_set_tempo(&state->vibrato, tempo);
     Slider_set_mix_rate(&state->force_slider, freq);
     Slider_set_tempo(&state->force_slider, tempo);
     Slider_set_mix_rate(&state->panning_slider, freq);
@@ -72,6 +74,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
+    LFO_init(&state->vibrato, LFO_MODE_EXP);
+#if 0
     state->vibrato = false;
     state->vibrato_length = 0;
     state->vibrato_depth = 0;
@@ -80,6 +84,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->vibrato_delay_update = 1;
     state->vibrato_phase = 0;
     state->vibrato_update = 0;
+#endif
     state->arpeggio = false;
     state->arpeggio_length = 0;
     state->arpeggio_frames = 0;

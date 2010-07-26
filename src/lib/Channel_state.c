@@ -49,10 +49,17 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     state->tremolo_delay_update = 1;
 
     Reltime_set(&state->pitch_slide_length, 0, 0);
+    LFO_init(&state->vibrato, LFO_MODE_EXP);
+    state->vibrato_speed = 0;
+    Reltime_init(&state->vibrato_speed_delay);
+    state->vibrato_depth = 0;
+    Reltime_init(&state->vibrato_depth_delay);
+#if 0
     state->vibrato_length = 0;
     state->vibrato_update = 0;
     state->vibrato_depth = 0;
     state->vibrato_delay_update = 1;
+#endif
 
     Reltime_set(&state->filter_slide_length, 0, 0);
     state->autowah_length = 0;

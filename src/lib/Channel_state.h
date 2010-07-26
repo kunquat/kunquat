@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <Channel_gen_state.h>
+#include <LFO.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <Voice_params.h>
@@ -60,10 +61,17 @@ typedef struct Channel_state
     double tremolo_delay_update;   ///< The update amount of the tremolo delay.
 
     Reltime pitch_slide_length;
+    LFO vibrato;
+    double vibrato_speed;
+    Reltime vibrato_speed_delay;
+    double vibrato_depth;
+    Reltime vibrato_depth_delay;
+#if 0
     double vibrato_length;         ///< Vibrato length.
     double vibrato_update;         ///< Vibrato update.
     double vibrato_depth;          ///< Vibrato depth.
     double vibrato_delay_update;   ///< The update amount of the vibrato delay.
+#endif
 
     Reltime filter_slide_length;
     double autowah_length;         ///< Auto-wah length.

@@ -59,20 +59,27 @@ bool Event_channel_vibrato_delay_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
+    Reltime_copy(&ch_state->vibrato_depth_delay, &data[0].field.Reltime_type);
+    LFO_set_depth_delay(&ch_state->vibrato, &data[0].field.Reltime_type);
+#if 0
     double delay_frames = Reltime_toframes(&data[0].field.Reltime_type,
                                            *ch_state->tempo,
                                            *ch_state->freq);
     ch_state->vibrato_delay_update = 1 / delay_frames;
+#endif
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
+        LFO_set_depth_delay(&vs->vibrato, &data[0].field.Reltime_type);
+#if 0
         vs->vibrato_delay_pos = 0;
         vs->vibrato_delay_update = ch_state->vibrato_delay_update;
         if (vs->vibrato_delay_update == 0)
         {
             vs->vibrato_delay_pos = 1;
         }
+#endif
     }
     return true;
 }

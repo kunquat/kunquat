@@ -122,10 +122,13 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->tremolo_delay_update = ch_state->tremolo_delay_update;
 
         Slider_set_length(&vs->pitch_slider, &ch_state->pitch_slide_length);
+//        LFO_copy(&vs->vibrato, &ch_state->vibrato);
+#if 0
         vs->vibrato_length = ch_state->vibrato_length;
         vs->vibrato_update = ch_state->vibrato_update;
         vs->vibrato_depth_target = ch_state->vibrato_depth;
         vs->vibrato_delay_update = ch_state->vibrato_delay_update;
+#endif
 
         vs->panning = ch_state->panning;
         Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
