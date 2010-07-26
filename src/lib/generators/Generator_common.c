@@ -86,7 +86,11 @@ void Generator_common_handle_pitch(Generator* gen,
     state->actual_pitch = state->pitch;
     if (gen->conf->pitch_lock_enabled)
     {
-        state->actual_pitch = gen->conf->pitch_lock_freq;
+        state->pitch = state->actual_pitch = gen->conf->pitch_lock_freq;
+        // TODO: The following alternative would enable a useful mode where
+        //       the actual pitch is locked but other pitch-dependent mappings
+        //       follow the original pitch.
+//        state->actual_pitch = gen->conf->pitch_lock_freq;
     }
     else
     {
