@@ -132,7 +132,7 @@ void LFO_set_depth_delay(LFO* lfo, Reltime* delay);
  * Sets the offset in the LFO.
  *
  * \param lfo      The LFO -- must not be \c NULL.
- * \param offset   The offset -- must be finite.
+ * \param offset   The offset -- must be >= \c -1 and <= \c 1.
  */
 void LFO_set_offset(LFO* lfo, double offset);
 

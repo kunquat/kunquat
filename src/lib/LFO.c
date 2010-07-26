@@ -161,6 +161,8 @@ void LFO_set_offset(LFO* lfo, double offset)
 {
     assert(lfo != NULL);
     assert(isfinite(offset));
+    assert(offset >= -1);
+    assert(offset <= 1);
     lfo->offset = offset;
     return;
 }
@@ -171,6 +173,16 @@ void LFO_turn_on(LFO* lfo)
     assert(lfo != NULL);
     assert(lfo->mix_rate > 0);
     assert(lfo->tempo > 0);
+    if (!lfo->on)
+    {
+        lfo->phase = fmod(asin(-lfo->offset), 2 * PI);
+        if (lfo->phase < 0)
+        {
+            lfo->phase += 2 * PI;
+        }
+        assert(lfo->phase >= 0);
+        assert(lfo->phase < 2 * PI);
+    }
     lfo->on = true;
     return;
 }
