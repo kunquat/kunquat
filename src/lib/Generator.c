@@ -52,7 +52,7 @@ Generator* new_Generator(char* str,
     {
         return NULL;
     }
-    Generator* (*cons)(uint32_t, uint32_t) = Gen_type_find_cons(type);
+    Generator_cons* cons = Gen_type_find_cons(type);
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported Generator type: %s", type);

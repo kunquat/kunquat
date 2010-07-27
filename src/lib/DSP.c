@@ -44,6 +44,8 @@ DSP* new_DSP(char* str,
     {
         return NULL;
     }
+    DSP_cons* cons = DSP_type_find_cons(type);
+#if 0
     DSP* (*cons)(uint32_t, uint32_t) = NULL;
     for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
@@ -53,6 +55,7 @@ DSP* new_DSP(char* str,
             break;
         }
     }
+#endif
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported DSP type: \"%s\"\n", type);

@@ -58,7 +58,7 @@ typedef struct Gen_type Gen_type;
  *
  * \param type   The Generator type -- must not be \c NULL.
  *
- * \return   The property function if \a type is supported, otherwise \c NULL.
+ * \return   The constructor if \a type is supported, otherwise \c NULL.
  */
 Generator_cons* Gen_type_find_cons(char* type);
 
