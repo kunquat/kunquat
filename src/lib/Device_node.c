@@ -151,7 +151,7 @@ void Device_node_set_devices_(Device_node* node,
     {
         assert(insts != NULL);
         assert(ins == NULL);
-        int index = string_extract_index(node->name, "ins_", 2);
+        int index = string_extract_index(node->name, "ins_", 2, "/");
         assert(index >= 0);
         assert(index < KQT_INSTRUMENTS_MAX);
         ins = Ins_table_get(insts, index);
@@ -184,7 +184,7 @@ void Device_node_set_devices_(Device_node* node,
     {
         assert(insts == NULL);
         assert(ins != NULL);
-        int gen_index = string_extract_index(node->name, "gen_", 2);
+        int gen_index = string_extract_index(node->name, "gen_", 2, "/");
         assert(gen_index >= 0);
         assert(gen_index < KQT_GENERATORS_MAX);
         Generator* gen = Instrument_get_gen(ins, gen_index);
@@ -193,7 +193,7 @@ void Device_node_set_devices_(Device_node* node,
     else if (string_has_prefix(node->name, "dsp_"))
     {
         assert(dsps != NULL);
-        int index = string_extract_index(node->name, "dsp_", 2);
+        int index = string_extract_index(node->name, "dsp_", 2, "/");
         assert(index >= 0);
         assert(ins != NULL || index < KQT_DSP_EFFECTS_MAX);
         assert(ins == NULL || index < KQT_INSTRUMENT_DSPS_MAX);

@@ -64,10 +64,15 @@ bool string_has_suffix(const char* str, const char* suffix);
  * \param path     The path -- must not be \c NULL.
  * \param prefix   The prefix of the path, or \c NULL if irrelevant.
  * \param digits   The number of hexadecimal digits -- must be > \c 0.
+ * \param after    Required characters after the digits, or \c NULL if
+ *                 irrelevant.
  *
  * \return   The extracted index, or \c -1 if the path is not valid.
  */
-int string_extract_index(const char* path, const char* prefix, int digits);
+int string_extract_index(const char* path,
+                         const char* prefix,
+                         int digits,
+                         const char* after);
 
 
 #endif // K_STRING_COMMON_H

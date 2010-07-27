@@ -72,7 +72,10 @@ bool string_has_suffix(const char* str, const char* suffix)
 }
 
 
-int string_extract_index(const char* path, const char* prefix, int digits)
+int string_extract_index(const char* path,
+                         const char* prefix,
+                         int digits,
+                         const char* after)
 {
     assert(path != NULL);
     assert(digits > 0);
@@ -110,7 +113,7 @@ int string_extract_index(const char* path, const char* prefix, int digits)
         }
         index += pos - hex_digits;
     }
-    if (*num_s != '/')
+    if (after != NULL && !string_has_prefix(num_s, after))
     {
         return -1;
     }

@@ -86,22 +86,22 @@ bool File_kqt_open(Handle_r* handle_r, const char* path)
         {
             const char* other_header = MAGIC_ID "i";
             const char* file_type = NULL;
-            if (string_extract_index(entry_path, other_header, 2) >= 0)
+            if (string_extract_index(entry_path, other_header, 2, "/") >= 0)
             {
                 file_type = "instrument";
             }
             else if (other_header = MAGIC_ID "g",
-                    string_extract_index(entry_path, other_header, 2) >= 0)
+                    string_extract_index(entry_path, other_header, 2, "/") >= 0)
             {
                 file_type = "generator";
             }
             else if (other_header = MAGIC_ID "e",
-                    string_extract_index(entry_path, other_header, 2) >= 0)
+                    string_extract_index(entry_path, other_header, 2, "/") >= 0)
             {
                 file_type = "DSP effect";
             }
             else if (other_header = MAGIC_ID "s",
-                    string_extract_index(entry_path, other_header, 2) >= 0)
+                    string_extract_index(entry_path, other_header, 2, "/") >= 0)
             {
                 file_type = "scale";
             }

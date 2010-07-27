@@ -154,7 +154,7 @@ bool parse_data(kqt_Handle* handle,
     int index = 0;
     const char* second_element = &key[first_len + 1];
     bool success = true;
-    if ((index = string_extract_index(key, "ins_", 2)) >= 0)
+    if ((index = string_extract_index(key, "ins_", 2, "/")) >= 0)
     {
         bool changed = Ins_table_get(Song_get_insts(handle->song),
                                                     index) != NULL;
@@ -178,7 +178,7 @@ bool parse_data(kqt_Handle* handle,
             //Connections_print(graph, stderr);
         }
     }
-    else if ((index = string_extract_index(key, "dsp_", 2)) >= 0)
+    else if ((index = string_extract_index(key, "dsp_", 2, "/")) >= 0)
     {
         bool changed = DSP_table_get_dsp(Song_get_dsps(handle->song),
                                          index) != NULL;
@@ -200,17 +200,17 @@ bool parse_data(kqt_Handle* handle,
             }
         }
     }
-    else if ((index = string_extract_index(key, "pat_", 3)) >= 0)
+    else if ((index = string_extract_index(key, "pat_", 3, "/")) >= 0)
     {
         success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
     }
-    else if ((index = string_extract_index(key, "scale_", 1)) >= 0)
+    else if ((index = string_extract_index(key, "scale_", 1, "/")) >= 0)
     {
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-    else if ((index = string_extract_index(key, "subs_", 2)) >= 0)
+    else if ((index = string_extract_index(key, "subs_", 2, "/")) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
@@ -307,7 +307,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     ++subkey;
     int gen_index = -1;
     int dsp_index = -1;
-    if ((gen_index = string_extract_index(subkey, "gen_", 2)) >= 0)
+    if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
@@ -338,7 +338,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
-    else if ((dsp_index = string_extract_index(subkey, "dsp_", 2)) >= 0)
+    else if ((dsp_index = string_extract_index(subkey, "dsp_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
         assert(subkey != NULL);
@@ -893,7 +893,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     bool global_column = string_eq(subkey, "gcol/p_global_events.json");
     int col_index = 0;
     ++second_element;
-    if (((col_index = string_extract_index(subkey, "ccol_", 2)) >= 0
+    if (((col_index = string_extract_index(subkey, "ccol_", 2, "/")) >= 0
                     && string_eq(second_element, "p_channel_events.json"))
                 || global_column)
     {

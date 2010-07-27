@@ -142,7 +142,7 @@ bool Entries_set(Entries* entries,
     }
     if (num_str != NULL)
     {
-        int version = string_extract_index(entry->key, prefix, 2);
+        int version = string_extract_index(entry->key, prefix, 2, "/");
         if (version > entries->biggest_version)
         {
             entries->biggest_version = version;
