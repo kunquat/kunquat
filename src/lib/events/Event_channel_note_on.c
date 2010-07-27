@@ -41,20 +41,16 @@ static Event_field_desc note_on_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_note_on,
-                                   EVENT_CHANNEL_NOTE_ON,
-                                   double, cents);
-
-
-Event_create_constructor(Event_channel_note_on,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_NOTE_ON,
-                         note_on_desc,
-                         event->cents = 0);
+                         note_on);
 
 
 bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
+    assert(ch_state->freq != NULL);
+    assert(ch_state->tempo != NULL);
     if (fields == NULL)
     {
         return false;
@@ -78,7 +74,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         return true;
     }
     // allocate new Voices
-    ch_state->panning_slide = 0;
+//    ch_state->panning_slide = 0;
     double force_var = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
@@ -100,10 +96,33 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         Voice_pool_fix_priority(ch_state->pool, ch_state->fg[i]);
 
         Voice* voice = ch_state->fg[i];
-        Voice_state* vs = &voice->state.generic;
+        Voice_state* vs = voice->state;
+
+        if (voice->gen->ins_params->pitch_locks[i].enabled)
+        {
+            vs->pitch = voice->gen->ins_params->pitch_locks[i].freq;
+        }
+        else if (voice->gen->ins_params->scale == NULL ||
+                 *voice->gen->ins_params->scale == NULL ||
+                 **voice->gen->ins_params->scale == NULL)
+        {
+            vs->pitch = data[0].field.double_type;
+        }
+        else
+        {
+            pitch_t pitch = Scale_get_pitch_from_cents(
+                                    **voice->gen->ins_params->scale,
+                                    data[0].field.double_type);
+            if (pitch > 0)
+            {
+                vs->pitch = pitch;
+            }
+        }
+#if 0
         Generator_process_note(voice->gen,
                                vs,
                                data[0].field.double_type);
+#endif
         vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;
@@ -119,26 +138,17 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
             vs->force *= force_var;
         }
 
-        Reltime_copy(&vs->force_slide_length, &ch_state->force_slide_length);
-        vs->tremolo_length = ch_state->tremolo_length;
-        vs->tremolo_update = ch_state->tremolo_update;
-        vs->tremolo_depth_target = ch_state->tremolo_depth;
-        vs->tremolo_delay_update = ch_state->tremolo_delay_update;
+        Slider_set_length(&vs->force_slider, &ch_state->force_slide_length);
+//        LFO_copy(&vs->tremolo, &ch_state->tremolo);
 
-        Reltime_copy(&vs->pitch_slide_length, &ch_state->pitch_slide_length);
-        vs->vibrato_length = ch_state->vibrato_length;
-        vs->vibrato_update = ch_state->vibrato_update;
-        vs->vibrato_depth_target = ch_state->vibrato_depth;
-        vs->vibrato_delay_update = ch_state->vibrato_delay_update;
+        Slider_set_length(&vs->pitch_slider, &ch_state->pitch_slide_length);
+//        LFO_copy(&vs->vibrato, &ch_state->vibrato);
 
         vs->panning = ch_state->panning;
-        vs->panning_slide = ch_state->panning_slide;
-        Reltime_copy(&vs->panning_slide_length, &ch_state->panning_slide_length);
-        vs->panning_slide_target = ch_state->panning_slide_target;
-        vs->panning_slide_frames = ch_state->panning_slide_frames;
-        vs->panning_slide_update = ch_state->panning_slide_update;
+        Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
 
-        Reltime_copy(&vs->filter_slide_length, &ch_state->filter_slide_length);
+        Slider_set_length(&vs->lowpass_slider, &ch_state->filter_slide_length);
+//        LFO_copy(&vs->autowah, &ch_state->autowah);
     }
     return true;
 }

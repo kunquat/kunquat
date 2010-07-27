@@ -106,13 +106,13 @@ static long Handle_r_get_data_length(kqt_Handle* handle, const char* key)
 
 static void del_Handle_r(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ);
     Handle_r* handle_r = (Handle_r*)handle;
-    if (handle_r->entries != NULL)
-    {
-        del_Entries(handle_r->entries);
-    }
+    del_Entries(handle_r->entries);
     xfree(handle_r);
     return;
 }

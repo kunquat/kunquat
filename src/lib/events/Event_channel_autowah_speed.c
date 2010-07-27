@@ -38,15 +38,9 @@ static Event_field_desc autowah_speed_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_autowah_speed,
-                                   EVENT_CHANNEL_AUTOWAH_SPEED,
-                                   double, speed);
-
-
-Event_create_constructor(Event_channel_autowah_speed,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_AUTOWAH_SPEED,
-                         autowah_speed_desc,
-                         event->speed = 0);
+                         autowah_speed);
 
 
 bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields)
@@ -63,25 +57,18 @@ bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       *ch_state->tempo,
-                                       *ch_state->freq);
-    ch_state->autowah_length = unit_len / data[0].field.double_type;
-    ch_state->autowah_update = (2 * PI) / ch_state->autowah_length;
+    ch_state->autowah_speed = data[0].field.double_type;
+    LFO_set_speed(&ch_state->autowah, data[0].field.double_type);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        if (data[0].field.double_type > 0 && vs->autowah_depth_target > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        LFO_set_speed(&vs->autowah, data[0].field.double_type);
+        if (ch_state->autowah_depth > 0)
         {
-            vs->autowah = true;
+            LFO_set_depth(&vs->autowah, ch_state->autowah_depth);
         }
-        vs->autowah_length = ch_state->autowah_length;
-        vs->autowah_update = ch_state->autowah_update;
-        if (!vs->autowah)
-        {
-            vs->autowah_delay_pos = 0;
-        }
+        LFO_turn_on(&vs->autowah);
     }
     return true;
 }

@@ -37,15 +37,9 @@ static Event_field_desc slide_volume_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_global_slide_volume,
-                                   EVENT_GLOBAL_SLIDE_VOLUME,
-                                   double, target_volume_dB);
-
-
-Event_create_constructor(Event_global_slide_volume,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SLIDE_VOLUME,
-                         slide_volume_desc,
-                         event->target_volume_dB = 0);
+                         slide_volume);
 
 
 bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
@@ -62,26 +56,17 @@ bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
     {
         return false;
     }
-    global_state->volume_slide_target = exp2(data[0].field.double_type / 6);
-    global_state->volume_slide_frames =
-            Reltime_toframes(&global_state->volume_slide_length,
-                             global_state->tempo,
-                             global_state->freq);
-    double volume_dB = log2(global_state->volume) * 6;
-    double dB_step = (data[0].field.double_type - volume_dB) /
-                     global_state->volume_slide_frames;
-    global_state->volume_slide_update = exp2(dB_step / 6);
-    if (dB_step > 0)
+    double target = exp2(data[0].field.double_type / 6);
+    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+    if (Slider_in_progress(&global_state->volume_slider))
     {
-        global_state->volume_slide = 1;
-    }
-    else if (dB_step < 0)
-    {
-        global_state->volume_slide = -1;
+        Slider_change_target(&global_state->volume_slider, target);
     }
     else
     {
-        global_state->volume = global_state->volume_slide_target;
+        Slider_start(&global_state->volume_slider,
+                     target, global_state->volume);
     }
     return true;
 }

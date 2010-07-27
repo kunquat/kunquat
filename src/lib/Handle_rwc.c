@@ -21,6 +21,7 @@
 #include <Directory.h>
 #include <Handle_rwc.h>
 #include <File_dir.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -575,17 +576,17 @@ static bool inspect_dirs(const char* path,
     while (entry != NULL)
     {
         bool found = false;
-        if (strcmp(last_element(entry), "committed") == 0)
+        if (string_eq(last_element(entry), "committed"))
         {
             found = true;
             *has_committed = true;
         }
-        else if (strcmp(last_element(entry), "workspace") == 0)
+        else if (string_eq(last_element(entry), "workspace"))
         {
             found = true;
             *has_workspace = true;
         }
-        else if (strcmp(last_element(entry), "oldcommit") == 0)
+        else if (string_eq(last_element(entry), "oldcommit"))
         {
             found = true;
             *has_oldcommit = true;
@@ -622,17 +623,14 @@ static bool inspect_dirs(const char* path,
 
 static void del_Handle_rwc(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
-    if (handle_rwc->handle_rw.base_path != NULL)
-    {
-        xfree(handle_rwc->handle_rw.base_path);
-    }
-    if (handle_rwc->changed_files != NULL)
-    {
-        del_AAtree(handle_rwc->changed_files);
-    }
+    xfree(handle_rwc->handle_rw.base_path);
+    del_AAtree(handle_rwc->changed_files);
     xfree(handle_rwc);
     return;
 }

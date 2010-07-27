@@ -28,15 +28,6 @@
 #include <xmemory.h>
 
 
-void Sample_set_params(Sample* sample, Sample_params* params)
-{
-    assert(sample != NULL);
-    assert(params != NULL);
-    Sample_params_copy(&sample->params, params);
-    return;
-}
-
-
 Sample* new_Sample(void)
 {
     Sample* sample = xalloc(Sample);
@@ -45,9 +36,9 @@ Sample* new_Sample(void)
         return NULL;
     }
     Sample_params_init(&sample->params);
-    sample->path = NULL;
-    sample->changed = false;
-    sample->is_lossy = false;
+//    sample->path = NULL;
+//    sample->changed = false;
+//    sample->is_lossy = false;
     sample->channels = 1;
     sample->bits = 16;
     sample->is_float = false;
@@ -58,18 +49,55 @@ Sample* new_Sample(void)
 }
 
 
+Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length)
+{
+    assert(buffers != NULL);
+    assert(count >= 1);
+    assert(count <= 2);
+    assert(length > 0);
+    Sample* sample = new_Sample();
+    if (sample == NULL)
+    {
+        return NULL;
+    }
+    sample->channels = count;
+    sample->bits = 32;
+    sample->is_float = true;
+    sample->len = length;
+    for (int i = 0; i < count; ++i)
+    {
+        assert(buffers[i] != NULL);
+        sample->data[i] = buffers[i];
+    }
+    return sample;
+}
+
+
+void Sample_set_params(Sample* sample, Sample_params* params)
+{
+    assert(sample != NULL);
+    assert(params != NULL);
+    Sample_params_copy(&sample->params, params);
+    return;
+}
+
+
+#if 0
 Sample_format Sample_get_format(Sample* sample)
 {
     assert(sample != NULL);
     return sample->params.format;
 }
+#endif
 
 
+#if 0
 char* Sample_get_path(Sample* sample)
 {
     assert(sample != NULL);
     return sample->path;
 }
+#endif
 
 
 void Sample_set_loop(Sample* sample, Sample_loop loop)
@@ -162,7 +190,7 @@ uint32_t Sample_mix(Sample* sample,
                     uint32_t offset,
                     uint32_t freq,
                     double tempo,
-                    int buf_count,
+//                    int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,
                     double middle_freq)
@@ -172,10 +200,11 @@ uint32_t Sample_mix(Sample* sample,
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
-    assert(buf_count > 0);
-    (void)buf_count;
+//    assert(buf_count > 0);
+//    (void)buf_count;
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
+    assert(bufs[1] != NULL);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
     uint32_t mixed = offset;
@@ -423,19 +452,12 @@ uint64_t Sample_get_len(Sample* sample)
 
 void del_Sample(Sample* sample)
 {
-    assert(sample != NULL);
-    if (sample->path != NULL)
+    if (sample == NULL)
     {
-        xfree(sample->path);
+        return;
     }
-    if (sample->data[0] != NULL)
-    {
-        xfree(sample->data[0]);
-    }
-    if (sample->data[1] != NULL)
-    {
-        xfree(sample->data[1]);
-    }
+    xfree(sample->data[0]);
+    xfree(sample->data[1]);
     xfree(sample);
     return;
 }

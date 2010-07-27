@@ -19,20 +19,15 @@
 #include <stdio.h>
 
 #include <Device.h>
+#include <DSP.h>
+#include <DSP_table.h>
+#include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
-
-
-#if 0
-typedef struct Gen_group
-{
-    Generator common_params;
-    Generator* gen;
-} Gen_group;
-#endif
 
 
 struct Instrument
@@ -49,9 +44,7 @@ struct Instrument
 
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
-//    Gen_group gens[KQT_GENERATORS_MAX]; ///< Generators.
-    Generator gen_conf[KQT_GENERATORS_MAX];
-    Generator* gens[KQT_GENERATORS_MAX];
+    Gen_table* gens;
 
     DSP_table* dsps;
 };
@@ -59,29 +52,17 @@ struct Instrument
 
 static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
 
-
 static bool Instrument_set_buffer_size(Device* device, uint32_t size);
 
+static bool Instrument_sync(Device* device);
 
-Instrument* new_Instrument(kqt_frame** bufs,
-                           kqt_frame** vbufs,
-                           kqt_frame** vbufs2,
-                           int buf_count,
-                           uint32_t buf_len,
+
+Instrument* new_Instrument(uint32_t buf_len,
                            uint32_t mix_rate,
                            Scale** scales,
                            Scale*** default_scale,
                            Random* random)
 {
-#if 0
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    assert(vbufs != NULL);
-    assert(vbufs[0] != NULL);
-    assert(vbufs2 != NULL);
-    assert(vbufs2[0] != NULL);
-#endif
-    assert(buf_count > 0);
     assert(buf_len > 0);
     assert(mix_rate > 0);
     assert(scales != NULL);
@@ -96,34 +77,37 @@ Instrument* new_Instrument(kqt_frame** bufs,
         return NULL;
     }
     ins->connections = NULL;
+    ins->gens = NULL;
     ins->dsps = NULL;
-    if (Instrument_params_init(&ins->params,
-                               bufs, vbufs, vbufs2,
-                               buf_count, buf_len,
-                               default_scale) == NULL)
+    
+    if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
-        xfree(ins);
-        return NULL;
-    }
-    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
-    if (ins->dsps == NULL)
-    {
-        Instrument_params_uninit(&ins->params);
         xfree(ins);
         return NULL;
     }
     if (!Device_init(&ins->parent, buf_len, mix_rate))
     {
         Instrument_params_uninit(&ins->params);
-        del_DSP_table(ins->dsps);
-        ins->dsps = NULL;
         xfree(ins);
         return NULL;
     }
     Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
+    Device_set_sync(&ins->parent, Instrument_sync);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
+    ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
+    if (ins->gens == NULL)
+    {
+        del_Instrument(ins);
+        return NULL;
+    }
+    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
+    if (ins->dsps == NULL)
+    {
+        del_Instrument(ins);
+        return NULL;
+    }
 
     ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
@@ -132,30 +116,6 @@ Instrument* new_Instrument(kqt_frame** bufs,
     ins->default_scale = default_scale;
     ins->scale_index = INS_DEFAULT_SCALE_INDEX;
 
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        ins->gen_conf[i].type_params = NULL;
-        ins->gens[i] = NULL;
-    }
-
-    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-    {
-        if (!Generator_init(&ins->gen_conf[i]))
-        {
-            del_Instrument(ins);
-            return NULL;
-        }
-        Device_params* gen_params = new_Device_params();
-        if (gen_params == NULL)
-        {
-            Generator_uninit(&ins->gen_conf[i]);
-            del_Instrument(ins);
-            return NULL;
-        }
-        ins->gen_conf[i].type_params = gen_params;
-        ins->gen_conf[i].random = random;
-        ins->gens[i] = NULL;
-    }
     return ins;
 }
 
@@ -170,8 +130,10 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     double default_force = INS_DEFAULT_FORCE;
     double force_variation = INS_DEFAULT_FORCE_VAR;
+#if 0
     bool pitch_lock_enabled = false;
     double pitch_lock_cents = 0;
+#endif
     int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
     if (str != NULL)
     {
@@ -194,23 +156,25 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 {
                     return false;
                 }
-                if (strcmp(key, "force") == 0)
+                if (string_eq(key, "force"))
                 {
                     str = read_double(str, &default_force, state);
                 }
-                else if (strcmp(key, "force_variation") == 0)
+                else if (string_eq(key, "force_variation"))
                 {
                     str = read_double(str, &force_variation, state);
                 }
-                else if (strcmp(key, "pitch_lock") == 0)
+#if 0
+                else if (string_eq(key, "pitch_lock"))
                 {
                     str = read_bool(str, &pitch_lock_enabled, state);
                 }
-                else if (strcmp(key, "pitch_lock_cents") == 0)
+                else if (string_eq(key, "pitch_lock_cents"))
                 {
                     str = read_double(str, &pitch_lock_cents, state);
                 }
-                else if (strcmp(key, "scale") == 0)
+#endif
+                else if (string_eq(key, "scale"))
                 {
                     str = read_int(str, &scale_index, state);
                     if (state->error)
@@ -245,10 +209,51 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     ins->default_force = default_force;
     ins->params.force_variation = force_variation;
+#if 0
     ins->params.pitch_lock_enabled = pitch_lock_enabled;
     ins->params.pitch_lock_cents = pitch_lock_cents;
     ins->params.pitch_lock_freq = exp2(ins->params.pitch_lock_cents / 1200.0) * 440;
+#endif
     Instrument_set_scale(ins, scale_index);
+    return true;
+}
+
+
+bool Instrument_parse_value(Instrument* ins,
+                            const char* subkey,
+                            char* str,
+                            Read_state* state)
+{
+    assert(ins != NULL);
+    assert(subkey != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    int gen_index = -1;
+    if ((gen_index = string_extract_index(subkey,
+                             "p_pitch_lock_enabled_", 2, ".json")) >= 0 &&
+            gen_index < KQT_GENERATORS_MAX)
+    {
+        read_bool(str, &ins->params.pitch_locks[gen_index].enabled, state);
+        if (state->error)
+        {
+            return false;
+        }
+    }
+    else if ((gen_index = string_extract_index(subkey,
+                                  "p_pitch_lock_cents_", 2, ".json")) >= 0 &&
+            gen_index < KQT_GENERATORS_MAX)
+    {
+        read_double(str, &ins->params.pitch_locks[gen_index].cents, state);
+        if (state->error)
+        {
+            return false;
+        }
+        ins->params.pitch_locks[gen_index].freq =
+                exp2(ins->params.pitch_locks[gen_index].cents / 1200.0) * 440;
+    }
     return true;
 }
 
@@ -260,53 +265,20 @@ Instrument_params* Instrument_get_params(Instrument* ins)
 }
 
 
-Generator* Instrument_get_common_gen_params(Instrument* ins, int index)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    return &ins->gen_conf[index];
-}
-
-
-void Instrument_set_gen(Instrument* ins,
-                        int index,
-                        Generator* gen)
-{
-    assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    assert(gen != NULL);
-    if (ins->gens[index] != NULL && ins->gens[index] != gen)
-    {
-        del_Generator(ins->gens[index]);
-    }
-    ins->gens[index] = gen;
-    return;
-}
-
-
 Generator* Instrument_get_gen(Instrument* ins,
                               int index)
 {
     assert(ins != NULL);
     assert(index >= 0);
     assert(index < KQT_GENERATORS_MAX);
-    return ins->gens[index];
+    return Gen_table_get_gen(ins->gens, index);
 }
 
 
-void Instrument_del_gen(Instrument* ins, int index)
+Gen_table* Instrument_get_gens(Instrument* ins)
 {
     assert(ins != NULL);
-    assert(index >= 0);
-    assert(index < KQT_GENERATORS_MAX);
-    if (ins->gens[index] != NULL)
-    {
-        del_Generator(ins->gens[index]);
-        ins->gens[index] = NULL;
-    }
-    return;
+    return ins->gens;
 }
 
 
@@ -375,10 +347,10 @@ void Instrument_mix(Instrument* ins,
     assert(freq > 0);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        if (ins->gens[i] != NULL)
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        if (gen != NULL)
         {
-            Generator_mix(ins->gens[i],
-                          &states[i], nframes, offset, freq, 120);
+            Generator_mix(gen, &states[i], nframes, offset, freq, 120);
         }
     }
     return;
@@ -392,7 +364,7 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
     Instrument* ins = (Instrument*)device;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = ins->gens[i];
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL && !Device_set_mix_rate((Device*)gen, mix_rate))
         {
             return false;
@@ -418,7 +390,7 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
     Instrument* ins = (Instrument*)device;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Generator* gen = ins->gens[i];
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
         if (gen != NULL && !Device_set_buffer_size((Device*)gen, size))
         {
             return false;
@@ -436,31 +408,40 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
 }
 
 
+static bool Instrument_sync(Device* device)
+{
+    assert(device != NULL);
+    Instrument* ins = (Instrument*)device;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        if (gen != NULL && !Device_sync((Device*)gen))
+        {
+            return false;
+        }
+    }
+    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
+        if (dsp != NULL && !Device_sync((Device*)dsp))
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 void del_Instrument(Instrument* ins)
 {
-    assert(ins != NULL);
+    if (ins == NULL)
+    {
+        return;
+    }
     Instrument_params_uninit(&ins->params);
-    for (int i = 0; i < KQT_GENERATORS_MAX &&
-                    ins->gen_conf[i].type_params != NULL; ++i)
-    {
-        if (ins->gen_conf[i].type_params != NULL)
-        {
-            del_Device_params(ins->gen_conf[i].type_params);
-        }
-        Generator_uninit(&ins->gen_conf[i]);
-        if (ins->gens[i] != NULL)
-        {
-            del_Generator(ins->gens[i]);
-        }
-    }
-    if (ins->connections != NULL)
-    {
-        del_Connections(ins->connections);
-    }
-    if (ins->dsps != NULL)
-    {
-        del_DSP_table(ins->dsps);
-    }
+    del_Connections(ins->connections);
+    del_Gen_table(ins->gens);
+    del_DSP_table(ins->dsps);
     Device_uninit(&ins->parent);
     xfree(ins);
     return;

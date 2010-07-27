@@ -86,7 +86,7 @@ void Freeverb_allpass_clear(Freeverb_allpass* allpass);
 /**
  * Destroys an existing Freeverb allpass filter.
  *
- * \param allpass   The Freeverb allpass filter -- must not be \c NULL.
+ * \param allpass   The Freeverb allpass filter, or \c NULL.
  */
 void del_Freeverb_allpass(Freeverb_allpass* allpass);
 

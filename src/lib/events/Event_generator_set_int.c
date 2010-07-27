@@ -41,44 +41,9 @@ static Event_field_desc set_int_desc[] =
 };
 
 
-static bool Event_generator_set_int_set(Event* event, int index, void* data);
-
-
-static void* Event_generator_set_int_get(Event* event, int index);
-
-
-Event_create_constructor(Event_generator_set_int,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_INT,
-                         set_int_desc,
-                         event->value = 0);
-
-
-static bool Event_generator_set_int_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_INT);
-    Event_generator_set_int* set_int = (Event_generator_set_int*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_int->value = *(int64_t*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_generator_set_int_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_INT);
-    Event_generator_set_int* set_int = (Event_generator_set_int*)event;
-    if (index == 1)
-    {
-        return &set_int->value;
-    }
-    return NULL;
-}
+                         set_int);
 
 
 bool Event_generator_set_int_process(Generator* gen, char* fields)
@@ -97,7 +62,7 @@ bool Event_generator_set_int_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Device_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->conf->params, key, fields);
 }
 
 

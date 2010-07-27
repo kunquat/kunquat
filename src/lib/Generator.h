@@ -21,13 +21,16 @@
 
 #include <Device.h>
 #include <Device_params.h>
-#include <Generator_type.h>
+#include <Gen_conf.h>
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
 #include <Random.h>
 #include <Voice_state.h>
 #include <File_base.h>
+
+
+#define GEN_TYPE_LENGTH_MAX 128
 
 
 /**
@@ -37,15 +40,9 @@
 typedef struct Generator
 {
     Device parent;
-    Gen_type type;
-    bool enabled;
-    double volume_dB;
-    double volume;
-    bool pitch_lock_enabled;
-    double pitch_lock_cents;
-    pitch_t pitch_lock_freq;
+    char type[GEN_TYPE_LENGTH_MAX];
     Random* random;
-    Device_params* type_params;
+    Gen_conf* conf;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
     uint32_t (*mix)(struct Generator*, Voice_state*, uint32_t, uint32_t,
@@ -54,49 +51,59 @@ typedef struct Generator
 } Generator;
 
 
-#define GENERATOR_DEFAULT_ENABLED (false)
-#define GENERATOR_DEFAULT_VOLUME (0)
-#define GENERATOR_DEFAULT_PITCH_LOCK_ENABLED (false)
-#define GENERATOR_DEFAULT_PITCH_LOCK_CENTS (0)
-
-
 /**
  * Creates a new Generator of the specified type.
  *
- * \param type          The Generator type -- must be a valid and supported
- *                      type.
+ * \param str           A textual representation of the Generator type -- must
+ *                      not be \c NULL.
  * \param ins_params    The Instrument parameters -- must not be \c NULL.
- * \param gen_params    The Generator parameters -- must not be \c NULL.
  * \param buffer_size   The mixing buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
  * \param mix_rate      The mixing rate -- must be > \c 0.
+ * \param random        The Random source -- must not be \c NULL.
+ * \param state         The Read state -- must not be \c NULL.
  *
  * \return   The new Generator if successful, or \c NULL if memory allocation
  *           failed.
  */
-Generator* new_Generator(Gen_type type,
+Generator* new_Generator(char* str,
                          Instrument_params* ins_params,
-                         Device_params* gen_params,
                          uint32_t buffer_size,
-                         uint32_t mix_rate);
+                         uint32_t mix_rate,
+                         Random* random,
+                         Read_state* state);
 
 
 /**
  * Initialises the general Generator parameters.
  *
- * \param gen      The Generator -- must not be \c NULL.
+ * \param gen           The Generator -- must not be \c NULL.
+ * \param destroy       The destructor of the Generator --
+ *                      must not be \c NULL.
+ * \param mix           The mixing function of the Generator --
+ *                      must not be \c NULL.
+ * \param init_state    The Voice state initialiser, or \c NULL if not needed.
+ * \param buffer_size   The buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Generator_init(Generator* gen);
+bool Generator_init(Generator* gen,
+                    void (*destroy)(Generator*),
+                    uint32_t (*mix)(Generator*, Voice_state*, uint32_t, uint32_t, uint32_t, double),
+                    void (*init_state)(Generator*, Voice_state*),
+                    uint32_t buffer_size,
+                    uint32_t mix_rate);
 
 
 /**
- * Uninitialises the general Generator parameters.
+ * Sets the configuration of the Generator.
  *
- * \param gen   The Generator -- must not be \c NULL.
+ * \param gen    The Generator -- must not be \c NULL.
+ * \param conf   The Generator configuration -- must not be \c NULL.
  */
-void Generator_uninit(Generator* gen);
+void Generator_set_conf(Generator* gen, Gen_conf* conf);
 
 
 /**
@@ -110,55 +117,13 @@ Device_params* Generator_get_params(Generator* gen);
 
 
 /**
- * Copies the general Generator parameters.
- *
- * \param dest   The destination Generator -- must not be \c NULL.
- * \param src    The source Generator -- must not be \c NULL.
- */
-void Generator_copy_general(Generator* dest, Generator* src);
-
-
-/**
- * Parses general Generator header (p_generator.json).
- *
- * \param gen     The Generator -- must not be \c NULL.
- * \param str     The textual description.
- * \param state   The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false. The state error will
- *           _not_ be set in case memory allocation failed.
- */
-bool Generator_parse_general(Generator* gen, char* str, Read_state* state);
-
-
-/**
- * Parses a Generator parameter.
- *
- * \param gen      The Generator -- must not be \c NULL.
- * \param subkey   The subkey of the parameter -- must begin with either "i/"
- *                 or "c/".
- * \param data     The data -- must not be \c NULL unless \a length is 0.
- * \param length   The length of the data -- must be >= \c 0.
- * \param state    The Read state -- must not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false. \a state will not be
- *           modified if memory allocation failed.
- */
-bool Generator_parse_param(Generator* gen,
-                           const char* subkey,
-                           void* data,
-                           long length,
-                           Read_state* state);
-
-
-/**
  * Returns the type of the Generator.
  *
  * \param gen   The Generator -- must not be \c NULL.
  *
  * \return   The type.
  */
-Gen_type Generator_get_type(Generator* gen);
+char* Generator_get_type(Generator* gen);
 
 
 /**
@@ -168,9 +133,11 @@ Gen_type Generator_get_type(Generator* gen);
  * \param states   The array of Voice states -- must not be \c NULL.
  * \param cents    The pitch in cents -- must be finite.
  */
+#if 0
 void Generator_process_note(Generator* gen,
                             Voice_state* states,
                             double cents);
+#endif
 
 
 /**
@@ -196,7 +163,7 @@ void Generator_mix(Generator* gen,
 /**
  * Uninitialises an existing Generator.
  *
- * \param gen   The Generator -- must not be \c NULL.
+ * \param gen   The Generator, or \c NULL.
  */
 void del_Generator(Generator* gen);
 

@@ -37,15 +37,9 @@ static Event_field_desc set_panning_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_panning,
-                                   EVENT_CHANNEL_SET_PANNING,
-                                   double, panning);
-
-
-Event_create_constructor(Event_channel_set_panning,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_PANNING,
-                         set_panning_desc,
-                         event->panning = 0);
+                         set_panning);
 
 
 bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields)
@@ -63,13 +57,15 @@ bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields)
         return false;
     }
     ch_state->panning = data[0].field.double_type;
-    ch_state->panning_slide = 0;
+    Slider_break(&ch_state->panning_slider);
+//    ch_state->panning_slide = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->panning = ch_state->panning;
-        vs->panning_slide = 0;
+        Slider_break(&vs->panning_slider);
+//        vs->panning_slide = 0;
     }
     return true;
 }

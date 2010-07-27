@@ -42,44 +42,9 @@ static Event_field_desc set_reltime_desc[] =
 };
 
 
-static bool Event_dsp_set_reltime_set(Event* event, int index, void* data);
-
-
-static void* Event_dsp_set_reltime_get(Event* event, int index);
-
-
-Event_create_constructor(Event_dsp_set_reltime,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_RELTIME,
-                         set_reltime_desc,
-                         Reltime_init(&event->value));
-
-
-static bool Event_dsp_set_reltime_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_RELTIME);
-    Event_dsp_set_reltime* set_reltime = (Event_dsp_set_reltime*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        Reltime_copy(&set_reltime->value, data);
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_dsp_set_reltime_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_RELTIME);
-    Event_dsp_set_reltime* set_reltime = (Event_dsp_set_reltime*)event;
-    if (index == 1)
-    {
-        return &set_reltime->value;
-    }
-    return NULL;
-}
+                         set_reltime);
 
 
 bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf, char* fields)

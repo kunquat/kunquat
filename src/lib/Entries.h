@@ -90,7 +90,7 @@ int32_t Entries_get_length(Entries* entries, const char* key);
 /**
  * Destroys Entries.
  *
- * \param entries   The Entries -- must not be \c NULL.
+ * \param entries   The Entries, or \c NULL.
  */
 void del_Entries(Entries* entries);
 

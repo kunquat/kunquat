@@ -38,15 +38,9 @@ static Event_field_desc set_dsp_context_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_dsp_context,
-                                   EVENT_CHANNEL_SET_DSP_CONTEXT,
-                                   int64_t, dsp_context);
-
-
-Event_create_constructor(Event_channel_set_dsp_context,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_DSP_CONTEXT,
-                         set_dsp_context_desc,
-                         event->dsp_context = -1);
+                         set_dsp_context);
 
 
 bool Event_channel_set_dsp_context_process(Channel_state* ch_state, char* fields)

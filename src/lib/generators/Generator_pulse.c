@@ -24,6 +24,7 @@
 #include <Generator_pulse.h>
 #include <Voice_state_pulse.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -31,37 +32,55 @@
 static void Generator_pulse_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_pulse(Instrument_params* ins_params,
-                               Device_params* gen_params)
+Generator* new_Generator_pulse(uint32_t buffer_size,
+                               uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
-    assert(gen_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_pulse* pulse = xalloc(Generator_pulse);
     if (pulse == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&pulse->parent))
+    if (!Generator_init(&pulse->parent,
+                        del_Generator_pulse,
+                        Generator_pulse_mix,
+                        Generator_pulse_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(pulse);
         return NULL;
     }
-//    pulse->parent.parse = Generator_pulse_parse;
-    pulse->parent.destroy = del_Generator_pulse;
-    pulse->parent.type = GEN_TYPE_PULSE;
-    pulse->parent.init_state = Generator_pulse_init_state;
-    pulse->parent.mix = Generator_pulse_mix;
-    pulse->parent.ins_params = ins_params;
-    pulse->parent.type_params = gen_params;
     pulse->pulse_width = 0.5;
     return &pulse->parent;
+}
+
+
+char* Generator_pulse_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "pulse"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_pulse));
+        }
+        return size_str;
+    }
+    return NULL;
 }
 
 
 static void Generator_pulse_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PULSE);
+    assert(string_eq(gen->type, "pulse"));
     assert(state != NULL);
     Voice_state_pulse* pulse_state = (Voice_state_pulse*)state;
     Generator_pulse* pulse = (Generator_pulse*)gen;
@@ -89,7 +108,7 @@ uint32_t Generator_pulse_mix(Generator* gen,
                              double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PULSE);
+    assert(string_eq(gen->type, "pulse"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -147,10 +166,12 @@ uint32_t Generator_pulse_mix(Generator* gen,
 
 void del_Generator_pulse(Generator* gen)
 {
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_PULSE);
+    if (gen == NULL)
+    {
+        return;
+    }
+    assert(string_eq(gen->type, "pulse"));
     Generator_pulse* pulse = (Generator_pulse*)gen;
-    Generator_uninit(gen);
     xfree(pulse);
     return;
 }

@@ -38,15 +38,9 @@ static Event_field_desc slide_panning_length_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_channel_slide_panning_length,
-                                 EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                                 length);
-
-
-Event_create_constructor(Event_channel_slide_panning_length,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
-                         slide_panning_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_panning_length);
 
 
 bool Event_channel_slide_panning_length_process(Channel_state* ch_state, char* fields)
@@ -63,21 +57,12 @@ bool Event_channel_slide_panning_length_process(Channel_state* ch_state, char* f
     {
         return false;
     }
-    Reltime_copy(&ch_state->panning_slide_length, &data[0].field.Reltime_type);
-    uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
-                                             *ch_state->tempo,
-                                             *ch_state->freq);
+    Slider_set_length(&ch_state->panning_slider, &data[0].field.Reltime_type);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->panning_slide_frames = slide_frames;
-        Reltime_copy(&vs->panning_slide_length, &data[0].field.Reltime_type);
-        if (vs->panning_slide != 0)
-        {
-            double diff = vs->panning_slide_target - vs->panning;
-            vs->panning_slide_update = diff / vs->panning_slide_frames;
-        }
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_set_length(&vs->panning_slider, &data[0].field.Reltime_type);
     }
     return true;
 }

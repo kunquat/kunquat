@@ -223,7 +223,7 @@ void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y);
 /**
  * Destroys an existing Envelope.
  *
- * \param env   The Envelope -- must not be \c NULL.
+ * \param env   The Envelope, or \c NULL.
  */
 void del_Envelope(Envelope* env);
 

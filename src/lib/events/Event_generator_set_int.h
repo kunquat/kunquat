@@ -21,13 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_generator_set_int
-{
-    Event_generator parent;
-    int64_t value;
-} Event_generator_set_int;
-
-
 Event* new_Event_generator_set_int(Reltime* pos);
 
 

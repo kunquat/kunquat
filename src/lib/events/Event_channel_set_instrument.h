@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_instrument
-{
-    Event_channel parent;
-    int64_t instrument;
-} Event_channel_set_instrument;
-
-
 Event* new_Event_channel_set_instrument(Reltime* pos);
 
 

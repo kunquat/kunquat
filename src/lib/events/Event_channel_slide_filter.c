@@ -38,15 +38,9 @@ static Event_field_desc slide_filter_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_slide_filter,
-                                   EVENT_CHANNEL_SLIDE_FILTER,
-                                   double, target_cutoff);
-
-
-Event_create_constructor(Event_channel_slide_filter,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_FILTER,
-                         slide_filter_desc,
-                         event->target_cutoff = 90);
+                         slide_filter);
 
 
 bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
@@ -69,31 +63,16 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->filter_slide_target = target_cutoff_exp;
-        vs->filter_slide_frames =
-                Reltime_toframes(&vs->filter_slide_length,
-                                 *ch_state->tempo,
-                                 *ch_state->freq);
-        if (vs->filter > inf_limit)
+        Voice_state* vs = ch_state->fg[i]->state;
+        if (Slider_in_progress(&vs->lowpass_slider))
         {
-            vs->filter = inf_limit;
-        }
-        double diff_log = target_cutoff - (log2(vs->filter) * 12 - 86);
-        double slide_step = diff_log / vs->filter_slide_frames;
-        vs->filter_slide_update = exp2(slide_step / 12);
-        if (slide_step > 0)
-        {
-            vs->filter_slide = 1;
-        }
-        else if (slide_step < 0)
-        {
-            vs->filter_slide = -1;
+            Slider_change_target(&vs->lowpass_slider, target_cutoff_exp);
         }
         else
         {
-            vs->filter_slide = 0;
-            vs->filter = vs->filter_slide_target;
+            Slider_start(&vs->lowpass_slider,
+                         target_cutoff_exp,
+                         isfinite(vs->filter) ? vs->filter : inf_limit);
         }
     }
     return true;

@@ -234,7 +234,7 @@ char* Directory_get_entry(Directory* dir);
  *
  * The file system path associated with the Directory will not be removed.
  *
- * \param dir   The Directory -- must not be \c NULL.
+ * \param dir   The Directory, or \c NULL.
  */
 void del_Directory(Directory* dir);
 

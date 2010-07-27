@@ -166,7 +166,7 @@ int Subsong_get_scale(Subsong* ss);
 /**
  * Destroys an existing Subsong.
  *
- * \param ss   The Subsong -- must not be \c NULL.
+ * \param ss   The Subsong, or \c NULL.
  */
 void del_Subsong(Subsong* ss);
 

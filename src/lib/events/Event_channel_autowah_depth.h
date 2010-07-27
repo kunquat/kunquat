@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_autowah_depth
-{
-    Event_channel parent;
-    double depth;
-} Event_channel_autowah_depth;
-
-
 Event* new_Event_channel_autowah_depth(Reltime* pos);
 
 

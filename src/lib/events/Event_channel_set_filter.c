@@ -37,15 +37,9 @@ static Event_field_desc set_filter_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_filter,
-                                   EVENT_CHANNEL_SET_FILTER,
-                                   double, cutoff);
-
-
-Event_create_constructor(Event_channel_set_filter,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_FILTER,
-                         set_filter_desc,
-                         event->cutoff = INFINITY);
+                         set_filter);
 
 
 bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields)
@@ -74,7 +68,7 @@ bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->filter = cutoff;
     }
     return true;

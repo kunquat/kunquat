@@ -88,7 +88,7 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf);
 /**
  * Destroys an existing DSP.
  *
- * \param dsp   The DSP -- must not be \c NULL.
+ * \param dsp   The DSP, or \c NULL.
  */
 void del_DSP(DSP* dsp);
 

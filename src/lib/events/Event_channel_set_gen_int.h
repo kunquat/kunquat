@@ -22,13 +22,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_gen_int
-{
-    Event_channel parent;
-    int64_t value;
-} Event_channel_set_gen_int;
-
-
 Event* new_Event_channel_set_gen_int(Reltime* pos);
 
 bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields);

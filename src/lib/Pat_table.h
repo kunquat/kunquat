@@ -84,7 +84,7 @@ void Pat_table_clear(Pat_table* table);
 /**
  * Destroys an existing Pattern table.
  *
- * \param table   The Pattern table -- must not be \c NULL.
+ * \param table   The Pattern table, or \c NULL.
  */
 void del_Pat_table(Pat_table* table);
 

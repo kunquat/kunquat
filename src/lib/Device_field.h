@@ -237,7 +237,7 @@ Sample_map* Device_field_get_sample_map(Device_field* field);
 /**
  * Destroys an existing Device field.
  *
- * \param field   The Device field -- must not be \c NULL.
+ * \param field   The Device field, or \c NULL.
  */
 void del_Device_field(Device_field* field);
 

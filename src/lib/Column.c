@@ -23,7 +23,6 @@
 #include <Event_pg.h>
 #include <Event_global_set_tempo.h>
 #include <Column.h>
-#include <String_buffer.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -209,7 +208,10 @@ Event* Column_iter_get_next(Column_iter* iter)
 
 void del_Column_iter(Column_iter* iter)
 {
-    assert(iter != NULL);
+    if (iter == NULL)
+    {
+        return;
+    }
     del_AAiter(iter->tree_iter);
     xfree(iter);
     return;
@@ -454,48 +456,6 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 }
 
 #undef break_if
-
-
-char* Column_serialise(Column* col)
-{
-    assert(col != NULL);
-    Column_iter* iter = new_Column_iter(col);
-    if (iter == NULL)
-    {
-        return NULL;
-    }
-    String_buffer* sb = new_String_buffer();
-    if (iter == NULL || sb == NULL)
-    {
-        del_Column_iter(iter);
-        return NULL;
-    }
-    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
-    while (event != NULL)
-    {
-        if (String_buffer_get_length(sb) == 0)
-        {
-            String_buffer_append_string(sb, "\n\n[\n    ");
-        }
-        else
-        {
-            String_buffer_append_string(sb, ",\n    ");
-        }
-        Event_serialise(event, sb);
-        event = Column_iter_get_next(iter);
-    }
-    del_Column_iter(iter);
-    if (String_buffer_get_length(sb) > 0)
-    {
-        String_buffer_append_string(sb, "\n]\n\n\n");
-    }
-    if (String_buffer_error(sb))
-    {
-        xfree(del_String_buffer(sb));
-        return NULL;
-    }
-    return del_String_buffer(sb);
-}
 
 
 bool Column_ins(Column* col, Event* event)
@@ -766,7 +726,10 @@ Reltime* Column_length(Column* col)
 
 void del_Column(Column* col)
 {
-    assert(col != NULL);
+    if (col == NULL)
+    {
+        return;
+    }
     del_AAtree(col->events);
     del_Column_iter(col->edit_iter);
     xfree(col);
@@ -776,7 +739,10 @@ void del_Column(Column* col)
 
 static void del_Event_list(Event_list* elist)
 {
-    assert(elist != NULL);
+    if (elist == NULL)
+    {
+        return;
+    }
     assert(elist->event == NULL);
     Event_list* cur = elist->next;
     assert(cur->event != NULL);

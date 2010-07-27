@@ -143,6 +143,14 @@ void Channel_set_voices(Channel* ch,
         {
             abs_pos += offset;
         }
+        LFO_set_mix_rate(&ch->cur_state.vibrato, freq);
+        LFO_set_tempo(&ch->cur_state.vibrato, tempo);
+        LFO_set_mix_rate(&ch->cur_state.tremolo, freq);
+        LFO_set_tempo(&ch->cur_state.tremolo, tempo);
+        Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
+        Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
+        LFO_set_mix_rate(&ch->cur_state.autowah, freq);
+        LFO_set_tempo(&ch->cur_state.autowah, tempo);
         uint32_t to_be_mixed = MIN(abs_pos, nframes);
         for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
         {
@@ -159,7 +167,11 @@ void Channel_set_voices(Channel* ch,
                 }
             }
         }
-//        fprintf(stderr, "foo\n");
+        if (Slider_in_progress(&ch->cur_state.panning_slider) &&
+                to_be_mixed > mixed)
+        {
+            Slider_skip(&ch->cur_state.panning_slider, to_be_mixed - mixed);
+        }
         mixed = to_be_mixed;
         if (Reltime_cmp(next_pos, end) >= 0)
         {
@@ -223,38 +235,6 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
     assert(ch != NULL);
     (void)ch;
     (void)mixed;
-#if 0
-    if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
-    {
-        uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
-        ch->new_state.panning += ch->new_state.panning_slide_update * frames_left;
-        ch->new_state.panning_slide_frames -= frames_left;
-        if (ch->new_state.panning_slide_frames <= 0)
-        {
-            ch->new_state.panning = ch->new_state.panning_slide_target;
-            ch->new_state.panning_slide = 0;
-        }
-        else if (ch->new_state.panning_slide == 1)
-        {
-            if (ch->new_state.panning > ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-        else
-        {
-            assert(ch->new_state.panning_slide == -1);
-            if (ch->new_state.panning < ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-    }
-    Channel_state_copy(&ch->cur_state, &ch->new_state);
-    ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
-#endif
     return;
 }
 
@@ -276,7 +256,10 @@ void Channel_reset(Channel* ch)
 
 void del_Channel(Channel* ch)
 {
-    assert(ch != NULL);
+    if (ch == NULL)
+    {
+        return;
+    }
 //    assert(ch->note_off != NULL);
 //    assert(ch->single != NULL);
 //    del_Event(ch->note_off);

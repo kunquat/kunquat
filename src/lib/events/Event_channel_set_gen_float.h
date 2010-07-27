@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_gen_float
-{
-    Event_channel parent;
-    double value;
-} Event_channel_set_gen_float;
-
-
 Event* new_Event_channel_set_gen_float(Reltime* pos);
 
 bool Event_channel_set_gen_float_process(Channel_state* ch_state, char* fields);

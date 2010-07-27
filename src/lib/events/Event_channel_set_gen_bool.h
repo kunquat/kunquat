@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_gen_bool
-{
-    Event_channel parent;
-    bool value;
-} Event_channel_set_gen_bool;
-
-
 Event* new_Event_channel_set_gen_bool(Reltime* pos);
 
 bool Event_channel_set_gen_bool_process(Channel_state* ch_state, char* fields);

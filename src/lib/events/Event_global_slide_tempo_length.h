@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_global_slide_tempo_length
-{
-    Event_global parent;
-    Reltime length;
-} Event_global_slide_tempo_length;
-
-
 Event* new_Event_global_slide_tempo_length(Reltime* pos);
 
 

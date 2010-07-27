@@ -21,6 +21,7 @@
 #include <DSP_conf.h>
 #include <DSP_type.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -37,21 +38,24 @@ DSP* new_DSP(char* str,
     {
         return NULL;
     }
-    char type[128] = { '\0' };
-    read_string(str, type, 128, state);
+    char type[DSP_TYPE_LENGTH_MAX] = { '\0' };
+    read_string(str, type, DSP_TYPE_LENGTH_MAX, state);
     if (state->error)
     {
         return NULL;
     }
+    DSP_cons* cons = DSP_type_find_cons(type);
+#if 0
     DSP* (*cons)(uint32_t, uint32_t) = NULL;
-    for (int i = 0; DSP_types[i].type != NULL; ++i)
+    for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
-        if (strcmp(type, DSP_types[i].type) == 0)
+        if (string_eq(type, dsp_types[i].type))
         {
-            cons = DSP_types[i].cons;
+            cons = dsp_types[i].cons;
             break;
         }
     }
+#endif
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported DSP type: \"%s\"\n", type);
@@ -99,7 +103,10 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf)
 
 void del_DSP(DSP* dsp)
 {
-    assert(dsp != NULL);
+    if (dsp == NULL)
+    {
+        return;
+    }
     assert(dsp->destroy != NULL);
     Device_uninit(&dsp->parent);
     dsp->destroy(dsp);

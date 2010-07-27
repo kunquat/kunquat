@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_tremolo_speed
-{
-    Event_channel parent;
-    double speed;
-} Event_channel_tremolo_speed;
-
-
 Event* new_Event_channel_tremolo_speed(Reltime* pos);
 
 

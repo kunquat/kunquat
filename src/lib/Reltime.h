@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 
-#include <String_buffer.h>
 #include <kunquat/limits.h>
 
 
@@ -50,18 +49,6 @@ typedef struct Reltime
  * \return   The parameter \a d.
  */
 Reltime* Reltime_init(Reltime* r);
-
-
-/**
- * Serialises a Reltime.
- *
- * \param r    The Reltime object -- must not be \c NULL.
- * \param sb   The String buffer where the Reltime shall be written -- must
- *             not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Reltime_serialise(Reltime* r, String_buffer* sb);
 
 
 /**

@@ -38,15 +38,9 @@ static Event_field_desc autowah_depth_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_autowah_depth,
-                                   EVENT_CHANNEL_AUTOWAH_DEPTH,
-                                   double, depth);
-
-
-Event_create_constructor(Event_channel_autowah_depth,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_AUTOWAH_DEPTH,
-                         autowah_depth_desc,
-                         event->depth = 0);
+                         autowah_depth);
 
 
 bool Event_channel_autowah_depth_process(Channel_state* ch_state, char* fields)
@@ -63,19 +57,19 @@ bool Event_channel_autowah_depth_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    double depth_target = data[0].field.double_type / 8;
+    double actual_depth = data[0].field.double_type / 8;
+    ch_state->autowah_depth = actual_depth;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        if (data[0].field.double_type > 0 && vs->autowah_length > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        if (ch_state->autowah_speed > 0)
         {
-            vs->autowah = true;
+            LFO_set_speed(&vs->autowah, ch_state->autowah_speed);
         }
-        vs->autowah_depth_target = depth_target;
-        vs->autowah_delay_pos = 0;
+        LFO_set_depth(&vs->autowah, actual_depth);
+        LFO_turn_on(&vs->autowah);
     }
-    ch_state->autowah_depth = depth_target;
     return true;
 }
 

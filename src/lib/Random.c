@@ -98,7 +98,6 @@ double Random_get_float_signal(Random* random)
 
 void del_Random(Random* random)
 {
-    assert(random != NULL);
     xfree(random);
     return;
 }

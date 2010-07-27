@@ -21,13 +21,6 @@
 #include <Playdata.h>
 
 
-typedef struct Event_global_set_jump_subsong
-{
-    Event_global parent;
-    int64_t subsong;
-} Event_global_set_jump_subsong;
-
-
 Event* new_Event_global_set_jump_subsong(Reltime* pos);
 
 

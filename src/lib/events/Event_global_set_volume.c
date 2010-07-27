@@ -35,15 +35,9 @@ static Event_field_desc set_volume_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_global_set_volume,
-                                   EVENT_GLOBAL_SET_VOLUME,
-                                   double, volume_dB);
-
-
-Event_create_constructor(Event_global_set_volume,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_VOLUME,
-                         set_volume_desc,
-                         event->volume_dB = 0);
+                         set_volume);
 
 
 bool Event_global_set_volume_process(Playdata* global_state, char* fields)
@@ -61,7 +55,8 @@ bool Event_global_set_volume_process(Playdata* global_state, char* fields)
         return false;
     }
     global_state->volume = exp2(data[0].field.double_type / 6);
-    global_state->volume_slide = 0;
+    Slider_break(&global_state->volume_slider);
+//    global_state->volume_slide = 0;
     return true;
 }
 

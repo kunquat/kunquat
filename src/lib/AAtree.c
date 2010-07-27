@@ -91,7 +91,6 @@ void AAiter_change_tree(AAiter* iter, AAtree* tree)
 
 void del_AAiter(AAiter* iter)
 {
-    assert(iter != NULL);
     xfree(iter);
     return;
 }
@@ -146,6 +145,14 @@ AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*))
     tree->destroy = destroy;
     aavalidate(tree->root, "init");
     return tree;
+}
+
+
+bool AAtree_contains(AAtree* tree, const void* key)
+{
+    assert(tree != NULL);
+    assert(key != NULL);
+    return AAtree_get_exact(tree, key) != NULL;
 }
 
 
@@ -347,6 +354,10 @@ void* AAiter_get_next(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+    if (iter->node == NULL)
+    {
+        return NULL;
+    }
     AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
     {
@@ -365,6 +376,10 @@ void* AAiter_get_prev(AAiter* iter)
 {
     assert(iter != NULL);
     assert(iter->tree != NULL);
+    if (iter->node == NULL)
+    {
+        return NULL;
+    }
     AAtree* tree = iter->tree;
     if (iter->node == tree->nil)
     {
@@ -506,7 +521,10 @@ void AAtree_clear(AAtree* tree)
 
 void del_AAtree(AAtree* tree)
 {
-    assert(tree != NULL);
+    if (tree == NULL)
+    {
+        return;
+    }
     aavalidate(tree->root, "del");
     AAtree_clear(tree);
     xfree(tree->nil);
@@ -621,10 +639,7 @@ static void aafree(AAnode* node, void (*destroy)(void*))
     }
     aafree(node->left, destroy);
     aafree(node->right, destroy);
-    if (node->data != NULL)
-    {
-        destroy(node->data);
-    }
+    destroy(node->data);
     xfree(node);
     return;
 }

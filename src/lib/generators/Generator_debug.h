@@ -16,6 +16,8 @@
 #define K_GENERATOR_DEBUG_H
 
 
+#include <stdint.h>
+
 #include <Generator.h>
 #include <Voice_state.h>
 
@@ -29,14 +31,19 @@ typedef struct Generator_debug
 /**
  * Creates a new Debug Generator.
  *
- * \param ins_params   The Instrument parameters -- must not be \c NULL.
- * \param gen_params   The Generator parameters.
+ * The Debug Generator generates a narrow pulse wave (with one sample value 1,
+ * the rest are 0.5) that lasts no more than 10 phase cycles. Note off lasts
+ * no more than two phase cycles with all sample values negated.
+ *
+ * \param buffer_size   The mixing buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   The new Debug Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator_debug* new_Generator_debug(Instrument_params* ins_params,
-                                     Device_params* gen_params);
+Generator* new_Generator_debug(uint32_t buffer_size,
+                               uint32_t mix_rate);
 
 
 uint32_t Generator_debug_mix(Generator* gen,
@@ -50,7 +57,7 @@ uint32_t Generator_debug_mix(Generator* gen,
 /**
  * Destroys an existing Debug Generator.
  *
- * \param gen   The Debug Generator -- must not be \c NULL.
+ * \param gen   The Debug Generator, or \c NULL.
  */
 void del_Generator_debug(Generator* gen);
 

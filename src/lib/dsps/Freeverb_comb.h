@@ -90,7 +90,7 @@ void Freeverb_comb_clear(Freeverb_comb* comb);
 /**
  * Destroys an existing Freeverb comb filter.
  *
- * \param comb   The Freeverb comb filter -- must not be \c NULL.
+ * \param comb   The Freeverb comb filter, or \c NULL.
  */
 void del_Freeverb_comb(Freeverb_comb* comb);
 

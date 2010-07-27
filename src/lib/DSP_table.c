@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Etable.h>
 #include <DSP.h>
 #include <DSP_table.h>
+#include <Etable.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -40,6 +40,7 @@ DSP_table* new_DSP_table(int size)
     }
     table->confs = NULL;
     table->dsps = NULL;
+
     table->confs = new_Etable(size, (void (*)(void*))del_DSP_conf);
     if (table->confs == NULL)
     {
@@ -151,23 +152,20 @@ void DSP_table_remove_dsp(DSP_table* table, int index)
 void DSP_table_clear(DSP_table* table)
 {
     assert(table != NULL);
-    Etable_clear(table->dsps);
     Etable_clear(table->confs);
+    Etable_clear(table->dsps);
     return;
 }
 
 
 void del_DSP_table(DSP_table* table)
 {
-    assert(table != NULL);
-    if (table->confs != NULL)
+    if (table == NULL)
     {
-        del_Etable(table->confs);
+        return;
     }
-    if (table->dsps != NULL)
-    {
-        del_Etable(table->dsps);
-    }
+    del_Etable(table->confs);
+    del_Etable(table->dsps);
     xfree(table);
     return;
 }

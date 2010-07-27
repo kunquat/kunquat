@@ -20,6 +20,19 @@
 
 
 /**
+ * Checks for equality between strings.
+ *
+ * NULL string is considered equivalent to an empty string.
+ *
+ * \param str1   The first string.
+ * \param str2   The second string.
+ *
+ * \return   \c true if and only if the strings are equal.
+ */
+bool string_eq(const char* str1, const char* str2);
+
+
+/**
  * Checks for a prefix in the given string.
  *
  * NULL string is considered equivalent to an empty string.
@@ -51,10 +64,17 @@ bool string_has_suffix(const char* str, const char* suffix);
  * \param path     The path -- must not be \c NULL.
  * \param prefix   The prefix of the path, or \c NULL if irrelevant.
  * \param digits   The number of hexadecimal digits -- must be > \c 0.
+ * \param after    Required characters after the digits, or \c NULL if
+ *                 irrelevant. If the first character is '.', \a after
+ *                 is assumed to be a file suffix and no additional
+ *                 characters are accepted.
  *
  * \return   The extracted index, or \c -1 if the path is not valid.
  */
-int string_extract_index(const char* path, const char* prefix, int digits);
+int string_extract_index(const char* path,
+                         const char* prefix,
+                         int digits,
+                         const char* after);
 
 
 #endif // K_STRING_COMMON_H

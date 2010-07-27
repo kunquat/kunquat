@@ -22,6 +22,7 @@
 #include <Scale.h>
 #include <File_base.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -235,7 +236,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                 del_Scale(scale);
                 return NULL;
             }
-            if (strcmp(key, "ref_note") == 0)
+            if (string_eq(key, "ref_note"))
             {
                 int64_t num = 0;
                 str = read_int(str, &num, state);
@@ -253,7 +254,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                 }
                 scale->ref_note = num;
             }
-            else if (strcmp(key, "ref_pitch") == 0)
+            else if (string_eq(key, "ref_pitch"))
             {
                 double num = 0;
                 str = read_double(str, &num, state);
@@ -271,7 +272,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                 }
                 scale->ref_pitch = num;
             }
-            else if (strcmp(key, "pitch_offset") == 0)
+            else if (string_eq(key, "pitch_offset"))
             {
                 double cents = NAN;
                 str = read_double(str, &cents, state);
@@ -291,7 +292,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                 scale->pitch_offset_cents = cents;
                 scale->pitch_offset = exp2(cents / 1200);
             }
-            else if (strcmp(key, "octave_ratio") == 0)
+            else if (string_eq(key, "octave_ratio"))
             {
                 Real* ratio = Real_init(REAL_AUTO);
                 double cents = NAN;
@@ -305,7 +306,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
                     Scale_set_octave_ratio(scale, ratio);
                 }
             }
-            else if (strcmp(key, "notes") == 0)
+            else if (string_eq(key, "notes"))
             {
                 int count = 0;
                 str = read_const_char(str, '[', state);
@@ -895,11 +896,11 @@ void Scale_reset(Scale* scale)
 
 void del_Scale(Scale* scale)
 {
-    assert(scale != NULL);
-    if (scale->pitch_map != NULL)
+    if (scale == NULL)
     {
-        del_AAtree(scale->pitch_map);
+        return;
     }
+    del_AAtree(scale->pitch_map);
     xfree(scale);
     return;
 }

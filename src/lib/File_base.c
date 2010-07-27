@@ -63,63 +63,8 @@ void Read_state_clear_error(Read_state* state)
     assert(state != NULL);
     state->error = false;
     memset(state->message, 0, ERROR_MESSAGE_LENGTH);
-//    state->message[0] = state->message[ERROR_MESSAGE_LENGTH - 1] = '\0';
     return;
 }
-
-
-#if 0
-#define return_null_if(cond, handle, msg)                              \
-    if (true)                                                          \
-    {                                                                  \
-        if ((cond))                                                    \
-        {                                                              \
-            kqt_Handle_set_error((handle), "%s: %s", __func__, (msg)); \
-            return NULL;                                               \
-        }                                                              \
-    } else (void)0
-
-char* read_file(FILE* in, long* size, kqt_Handle* handle)
-{
-    assert(in != NULL);
-    assert(size != NULL);
-    
-    errno = 0;
-    int err = fseek(in, 0, SEEK_END);
-    return_null_if(err < 0, handle, strerror(errno));
-    
-    errno = 0;
-    long length = ftell(in);
-    return_null_if(length < 0, handle, strerror(errno));
-    
-    errno = 0;
-    err = fseek(in, 0, SEEK_SET);
-    return_null_if(err < 0, handle, strerror(errno));
-    
-    char* data = xcalloc(char, length + 1);
-    return_null_if(data == NULL, handle, "Couldn't allocate memory");
-    long pos = 0;
-    char* location = data;
-    *size = 0;
-    while (pos < length)
-    {
-        size_t read = fread(location, 1, 1024, in);
-        *size += read;
-        pos += 1024;
-        location += 1024;
-        if (read < 1024 && pos < length)
-        {
-            kqt_Handle_set_error(handle, "%s: Couldn't read data from the"
-                    " input file", __func__);
-            xfree(data);
-            return NULL;
-        }
-    }
-    return data;
-}
-
-#undef return_null_if
-#endif
 
 
 char* skip_line(char* str, Read_state* state)
@@ -263,7 +208,6 @@ char* read_const_string(char* str, char* result, Read_state* state)
 char* read_bool(char* str, bool* result, Read_state* state)
 {
     assert(str != NULL);
-    assert(result != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -276,7 +220,10 @@ char* read_bool(char* str, bool* result, Read_state* state)
             && str[3] == 'e')
     {
         str += 4;
-        *result = true;
+        if (result != NULL)
+        {
+            *result = true;
+        }
     }
     else if (  str[0] == 'f'
             && str[1] == 'a'
@@ -285,7 +232,10 @@ char* read_bool(char* str, bool* result, Read_state* state)
             && str[4] == 'e')
     {
         str += 5;
-        *result = false;
+        if (result != NULL)
+        {
+            *result = false;
+        }
     }
     else
     {
@@ -298,7 +248,6 @@ char* read_bool(char* str, bool* result, Read_state* state)
 char* read_string(char* str, char* result, int max_len, Read_state* state)
 {
     assert(str != NULL);
-    assert((result != NULL) || (max_len <= 0));
     assert(state != NULL);
     if (state->error)
     {
@@ -322,7 +271,6 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
     ++str;
     for (int i = 0; i < max_len - 1; ++i)
     {
-        assert(result != NULL);
         if (*str == '\0')
         {
             Read_state_set_error(state, "Unexpected end of string");
@@ -339,17 +287,18 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
                 break;
             }
             ++str;
+            char special_ch = '\0';
             if (strchr("\"\\/", *str) != NULL)
             {
-                *result = *str;
+                special_ch = *str;
             }
             else if (*str == 'n')
             {
-                *result = '\n';
+                special_ch = '\n';
             }
             else if (*str == 't')
             {
-                *result = '\t';
+                special_ch = '\t';
             }
             else if (strchr("\b\r\f", *str) == NULL)
             {
@@ -357,15 +306,23 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
                         "Unsupported escape sequence '\\%c'", *str);
                 return str;
             }
-            ++result;
+            if (result != NULL)
+            {
+                *result = special_ch;
+                ++result;
+            }
             ++str;
             continue;
         }
-        *result++ = *str++;
+        if (result != NULL)
+        {
+            *result = *str;
+            ++result;
+        }
+        ++str;
     }
-    if (max_len > 0)
+    if (max_len > 0 && result != NULL)
     {
-        assert(result != NULL);
         *result = '\0';
     }
     while (*str != '\"')

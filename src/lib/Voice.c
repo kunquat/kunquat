@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include <math_common.h>
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
@@ -37,8 +38,36 @@ Voice* new_Voice(void)
     voice->was_fg = true;
     voice->fg_mixed = 0;
     voice->gen = NULL;
-    Voice_state_clear(&voice->state.generic);
+    voice->state_size = 0;
+    voice->state = NULL;
+
+    voice->state_size = sizeof(Voice_state);
+    voice->state = xalloc(Voice_state);
+    if (voice->state == NULL)
+    {
+        del_Voice(voice);
+        return NULL;
+    }
+    Voice_state_clear(voice->state);
     return voice;
+}
+
+
+bool Voice_reserve_state_space(Voice* voice, size_t state_size)
+{
+    assert(voice != NULL);
+    if (state_size <= voice->state_size)
+    {
+        return true;
+    }
+    Voice_state* new_state = xrealloc(char, state_size, voice->state);
+    if (new_state == NULL)
+    {
+        return false;
+    }
+    voice->state_size = state_size;
+    voice->state = new_state;
+    return true;
 }
 
 
@@ -74,14 +103,14 @@ void Voice_init(Voice* voice,
     voice->was_fg = true;
     voice->fg_mixed = 0;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic,
+    Voice_state_init(voice->state,
                      params,
                      cgstate,
                      freq,
                      tempo);
     if (gen->init_state != NULL)
     {
-        gen->init_state(gen, &voice->state.generic);
+        gen->init_state(gen, voice->state);
     }
     return;
 }
@@ -94,7 +123,7 @@ void Voice_reset(Voice* voice)
     voice->prio = VOICE_PRIO_INACTIVE;
     voice->was_fg = true;
     voice->fg_mixed = 0;
-    Voice_state_clear(&voice->state.generic);
+    Voice_state_clear(voice->state);
     voice->gen = NULL;
     return;
 }
@@ -128,16 +157,16 @@ void Voice_mix(Voice* voice,
         }
     }
 //    fprintf(stderr, "mix %p from %" PRIu32 " to %" PRIu32 "\n", (void*)voice, mixed, nframes);
-    Generator_mix(voice->gen, &voice->state.generic, nframes, mixed, freq, tempo);
+    Generator_mix(voice->gen, voice->state, nframes, mixed, freq, tempo);
 //    fprintf(stderr, "mixed\n");
-    if (!voice->state.generic.active)
+    if (!voice->state->active)
     {
 //        fprintf(stderr, "not active -- setting priority %p to inactive\n",
 //                (void*)&voice->prio);
         Voice_reset(voice);
 //        voice->prio = VOICE_PRIO_INACTIVE;
     }
-    else if (!voice->state.generic.note_on)
+    else if (!voice->state->note_on)
     {
         voice->prio = VOICE_PRIO_BG;
     }
@@ -151,7 +180,11 @@ void Voice_mix(Voice* voice,
 
 void del_Voice(Voice* voice)
 {
-    assert(voice != NULL);
+    if (voice == NULL)
+    {
+        return;
+    }
+    xfree(voice->state);
     xfree(voice);
     return;
 }

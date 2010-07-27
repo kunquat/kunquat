@@ -23,13 +23,13 @@
 
 
 /**
- * This is the storage object for DSPs.
+ * This is the storage object for DSPs and their configurations.
  */
 typedef struct DSP_table DSP_table;
 
 
 /**
- * Creates a new DSP table
+ * Creates a new DSP table.
  *
  * \param size   The table size -- must be > \c 0.
  *
@@ -120,7 +120,7 @@ void DSP_table_clear(DSP_table* table);
 /**
  * Destroys an existing DSP table.
  *
- * \param table   The DSP table -- must not be \c NULL.
+ * \param table   The DSP table, or \c NULL.
  */
 void del_DSP_table(DSP_table* table);
 

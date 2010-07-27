@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <limits.h>
 #include <stdbool.h>
 
 #include <DSP_conf.h>
@@ -30,7 +31,9 @@ static Event_field_desc set_int_desc[] =
         .type = EVENT_FIELD_STRING
     },
     {
-        .type = EVENT_FIELD_INT
+        .type = EVENT_FIELD_INT,
+        .min.field.integral_type = INT64_MIN,
+        .max.field.integral_type = INT64_MAX
     },
     {
         .type = EVENT_FIELD_NONE
@@ -38,44 +41,9 @@ static Event_field_desc set_int_desc[] =
 };
 
 
-static bool Event_dsp_set_int_set(Event* event, int index, void* data);
-
-
-static void* Event_dsp_set_int_get(Event* event, int index);
-
-
-Event_create_constructor(Event_dsp_set_int,
+Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_INT,
-                         set_int_desc,
-                         event->value = false);
-
-
-static bool Event_dsp_set_int_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_INT);
-    Event_dsp_set_int* set_int = (Event_dsp_set_int*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_int->value = *(int64_t*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_dsp_set_int_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_DSP_SET_INT);
-    Event_dsp_set_int* set_int = (Event_dsp_set_int*)event;
-    if (index == 1)
-    {
-        return &set_int->value;
-    }
-    return NULL;
-}
+                         set_int);
 
 
 bool Event_dsp_set_int_process(DSP_conf* dsp_conf, char* fields)

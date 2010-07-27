@@ -475,8 +475,10 @@ void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y)
 
 void del_Envelope(Envelope* env)
 {
-    assert(env != NULL);
-    assert(env->nodes != NULL);
+    if (env == NULL)
+    {
+        return;
+    }
     xfree(env->nodes);
     xfree(env);
     return;

@@ -41,16 +41,9 @@ static Event_field_desc shift_scale_intervals_desc[] =
 };
 
 
-static bool Event_global_shift_scale_intervals_set(Event* event, int index, void* data);
-
-static void* Event_global_shift_scale_intervals_get(Event* event, int index);
-
-
-Event_create_constructor(Event_global_shift_scale_intervals,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
-                         shift_scale_intervals_desc,
-                         event->new_ref = 0,
-                         event->fixed_point = 0);
+                         shift_scale_intervals);
 
 
 bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fields)
@@ -81,47 +74,6 @@ bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fi
     Scale_retune(scale, data[0].field.integral_type,
                  data[1].field.integral_type);
     return true;
-}
-
-
-static bool Event_global_shift_scale_intervals_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SHIFT_SCALE_INTERVALS);
-    assert(data != NULL);
-    Event_global_shift_scale_intervals* si = (Event_global_shift_scale_intervals*)event;
-    if (index == 0)
-    {
-        int64_t new_ref = *(int64_t*)data;
-        Event_check_integral_range(new_ref, event->field_types[0]);
-        si->new_ref = new_ref;
-        return true;
-    }
-    else if (index == 1)
-    {
-        int64_t fixed_point = *(int64_t*)data;
-        Event_check_integral_range(fixed_point, event->field_types[1]);
-        si->fixed_point = fixed_point;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_global_shift_scale_intervals_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_SHIFT_SCALE_INTERVALS);
-    Event_global_shift_scale_intervals* si = (Event_global_shift_scale_intervals*)event;
-    if (index == 0)
-    {
-        return &si->new_ref;
-    }
-    else if (index == 1)
-    {
-        return &si->fixed_point;
-    }
-    return NULL;
 }
 
 

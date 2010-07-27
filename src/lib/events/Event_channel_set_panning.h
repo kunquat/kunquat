@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_panning
-{
-    Event_channel parent;
-    double panning;
-} Event_channel_set_panning;
-
-
 Event* new_Event_channel_set_panning(Reltime* pos);
 
 

@@ -25,6 +25,7 @@
 #include <Freeverb_allpass.h>
 #include <Freeverb_comb.h>
 #include <math_common.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -392,7 +393,7 @@ static void DSP_freeverb_process(Device* device,
     (void)freq;
     (void)tempo;
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
-    assert(strcmp(freeverb->parent.type, "freeverb") == 0);
+    assert(string_eq(freeverb->parent.type, "freeverb"));
     DSP_freeverb_check_params(freeverb);
     kqt_frame* in_data[] = { NULL, NULL };
     kqt_frame* out_data[] = { NULL, NULL };
@@ -426,32 +427,22 @@ static void DSP_freeverb_process(Device* device,
 
 static void del_DSP_freeverb(DSP* dsp)
 {
-    assert(dsp != NULL);
-    assert(strcmp(dsp->type, "freeverb") == 0);
+    if (dsp == NULL)
+    {
+        return;
+    }
+    assert(string_eq(dsp->type, "freeverb"));
     DSP_freeverb* freeverb = (DSP_freeverb*)dsp;
     for (int i = 0; i < FREEVERB_COMBS; ++i)
     {
-        if (freeverb->comb_left[i] != NULL)
-        {
-            del_Freeverb_comb(freeverb->comb_left[i]);
-        }
-        if (freeverb->comb_right[i] != NULL)
-        {
-            del_Freeverb_comb(freeverb->comb_right[i]);
-        }
+        del_Freeverb_comb(freeverb->comb_left[i]);
+        del_Freeverb_comb(freeverb->comb_right[i]);
     }
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
-        if (freeverb->allpass_left[i] != NULL)
-        {
-            del_Freeverb_allpass(freeverb->allpass_left[i]);
-        }
-        if (freeverb->allpass_right[i] != NULL)
-        {
-            del_Freeverb_allpass(freeverb->allpass_right[i]);
-        }
+        del_Freeverb_allpass(freeverb->allpass_left[i]);
+        del_Freeverb_allpass(freeverb->allpass_right[i]);
     }
-    Device_uninit(&freeverb->parent.parent);
     xfree(freeverb);
     return;
 }

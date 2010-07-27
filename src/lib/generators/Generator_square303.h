@@ -29,14 +29,27 @@ typedef struct Generator_square303
 /**
  * Creates a new Square303 Generator.
  *
- * \param ins_params   The Instrument parameters -- must not be \c NULL.
- * \param gen_params   The Generator parameters -- must not be \c NULL.
+ * \param buffer_size   The mixing buffer size -- must be > \c 0 and
+ *                      <= \c KQT_BUFFER_SIZE_MAX.
+ * \param mix_rate      The mixing rate -- must be > \c 0.
  *
  * \return   The new Square303 Generator if successful, or \c NULL if memory
  *           allocation failed.
  */
-Generator* new_Generator_square303(Instrument_params* ins_params,
-                                   Device_params* gen_params);
+Generator* new_Generator_square303(uint32_t buffer_size,
+                                   uint32_t mix_rate);
+
+
+/**
+ * Returns Square303 Generator property information.
+ *
+ * \param gen             The Square303 Generator -- must be valid.
+ * \param property_type   The property type -- must not be \c NULL.
+ *
+ * \return   The Square303 Generator property description matching
+ *           \a property_type, or \c NULL if one does not exist.
+ */
+char* Generator_square303_property(Generator* gen, const char* property_type);
 
 
 uint32_t Generator_square303_mix(Generator* gen,
@@ -50,7 +63,7 @@ uint32_t Generator_square303_mix(Generator* gen,
 /**
  * Destroys an existing Square303 Generator.
  *
- * \param gen   The Square303 Generator -- must not be \c NULL.
+ * \param gen   The Square303 Generator, or \c NULL.
  */
 void del_Generator_square303(Generator* gen);
 

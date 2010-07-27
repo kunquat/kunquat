@@ -38,15 +38,9 @@ static Event_field_desc slide_force_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_slide_force,
-                                   EVENT_CHANNEL_SLIDE_FORCE,
-                                   double, target_force_dB);
-
-
-Event_create_constructor(Event_channel_slide_force,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_FORCE,
-                         slide_force_desc,
-                         event->target_force_dB = 0);
+                         slide_force);
 
 
 bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
@@ -67,27 +61,14 @@ bool Event_channel_slide_force_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->force_slide_target = slide_target;
-        vs->force_slide_frames = Reltime_toframes(&vs->force_slide_length,
-                                                  *ch_state->tempo,
-                                                  *ch_state->freq);
-        double force_dB = log2(vs->force) * 6;
-        double dB_step = (data[0].field.double_type - force_dB) /
-                         vs->force_slide_frames;
-        vs->force_slide_update = exp2(dB_step / 6);
-        if (dB_step > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        if (Slider_in_progress(&vs->force_slider))
         {
-            vs->force_slide = 1;
-        }
-        else if (dB_step < 0)
-        {
-            vs->force_slide = -1;
+            Slider_change_target(&vs->force_slider, slide_target);
         }
         else
         {
-            vs->force = vs->force_slide_target;
-            vs->force_slide = 0;
+            Slider_start(&vs->force_slider, slide_target, vs->force);
         }
     }
     return true;

@@ -19,6 +19,7 @@
 #include <Voice_state.h>
 #include <Voice_params.h>
 #include <Reltime.h>
+#include <Slider.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 
@@ -39,6 +40,22 @@ Voice_state* Voice_state_init(Voice_state* state,
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
+
+    Slider_set_mix_rate(&state->pitch_slider, freq);
+    Slider_set_tempo(&state->pitch_slider, tempo);
+    LFO_set_mix_rate(&state->vibrato, freq);
+    LFO_set_tempo(&state->vibrato, tempo);
+    Slider_set_mix_rate(&state->force_slider, freq);
+    Slider_set_tempo(&state->force_slider, tempo);
+    LFO_set_mix_rate(&state->tremolo, freq);
+    LFO_set_tempo(&state->tremolo, tempo);
+    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_tempo(&state->panning_slider, tempo);
+    Slider_set_mix_rate(&state->lowpass_slider, freq);
+    Slider_set_tempo(&state->lowpass_slider, tempo);
+    LFO_set_mix_rate(&state->autowah, freq);
+    LFO_set_tempo(&state->autowah, tempo);
+
     Voice_params_copy(&state->params, params);
     return state;
 }
@@ -60,19 +77,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->prev_pitch = 0;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
-    state->pitch_slide = 0;
-    Reltime_init(&state->pitch_slide_length);
-    state->pitch_slide_target = 0;
-    state->pitch_slide_frames = 0;
-    state->pitch_slide_update = 1;
-    state->vibrato = false;
-    state->vibrato_length = 0;
-    state->vibrato_depth = 0;
-    state->vibrato_depth_target = 0;
-    state->vibrato_delay_pos = 0;
-    state->vibrato_delay_update = 1;
-    state->vibrato_phase = 0;
-    state->vibrato_update = 0;
+    Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
+    LFO_init(&state->vibrato, LFO_MODE_EXP);
     state->arpeggio = false;
     state->arpeggio_length = 0;
     state->arpeggio_frames = 0;
@@ -82,14 +88,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
         state->arpeggio_factors[i] = 0;
     }
 
-    state->autowah = false;
-    state->autowah_length = 0;
-    state->autowah_depth = 0;
-    state->autowah_depth_target = 0;
-    state->autowah_delay_pos = 0;
-    state->autowah_delay_update = 1;
-    state->autowah_phase = 0;
-    state->autowah_update = 0;
+    LFO_init(&state->autowah, LFO_MODE_EXP);
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -115,36 +114,17 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->force = 1;
     state->actual_force = 1;
-    state->force_slide = 0;
-    Reltime_init(&state->force_slide_length);
-    state->force_slide_target = 1;
-    state->force_slide_frames = 0;
-    state->force_slide_update = 1;
-    state->tremolo = false;
-    state->tremolo_length = 0;
-    state->tremolo_depth = 0;
-    state->tremolo_depth_target = 0;
-    state->tremolo_delay_pos = 0;
-    state->tremolo_delay_update = 1;
-    state->tremolo_phase = 0;
-    state->tremolo_update = 0;
+    Slider_init(&state->force_slider, SLIDE_MODE_EXP);
+    LFO_init(&state->tremolo, LFO_MODE_EXP);
 
     state->panning = 0;
     state->actual_panning = 0;
-    state->panning_slide = 0;
-    Reltime_init(&state->panning_slide_length);
-    state->panning_slide_target = 0;
-    state->panning_slide_frames = 0;
-    state->panning_slide_update = 0;
+    Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
     state->filter = INFINITY;
     state->actual_filter = INFINITY;
     state->effective_filter = INFINITY;
-    state->filter_slide = 0;
-    Reltime_init(&state->filter_slide_length);
-    state->filter_slide_target = INFINITY;
-    state->filter_slide_frames = 0;
-    state->filter_slide_update = 0;
+    Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
     state->filter_resonance = 1;
     state->effective_resonance = 1;
     state->filter_update = false;

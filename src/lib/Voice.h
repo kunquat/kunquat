@@ -22,14 +22,7 @@
 #include <Channel_gen_state.h>
 #include <Generator.h>
 #include <Voice_params.h>
-
-#include <Voice_state_sine.h>
-#include <Voice_state_pcm.h>
-#include <Voice_state_triangle.h>
-#include <Voice_state_pulse.h>
-#include <Voice_state_square303.h>
-#include <Voice_state_sawtooth.h>
-#include <Voice_state_noise.h>
+#include <Voice_state.h>
 
 
 typedef enum
@@ -53,28 +46,31 @@ typedef struct Voice
     bool was_fg;
     uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Generator* gen;        ///< The Generator.
-    /// The current playback state.
-    union
-    {
-        Voice_state generic;
-        Voice_state_sine sine;
-        Voice_state_pcm pcm;
-        Voice_state_triangle triangle;
-        Voice_state_pulse pulse;
-        Voice_state_square303 square303;
-        Voice_state_sawtooth sawtooth;
-        Voice_state_noise noise;
-    } state;
+    size_t state_size;     ///< The amount bytes allocated for the Voice state.
+    Voice_state* state;    ///< The current playback state.
 } Voice;
 
 
 /**
  * Creates a new Voice.
  *
+ * \param state_size   The amount of bytes to reserve for Voice states.
+ *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
 Voice* new_Voice(void);
+
+
+/**
+ * Reserves space for the Voice state.
+ *
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param state_size   The amount of bytes to reserve for the Voice state.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Voice_reserve_state_space(Voice* voice, size_t state_size);
 
 
 /**
@@ -129,18 +125,6 @@ void Voice_reset(Voice* voice);
 
 
 /**
- * Adds a new Event into the Voice.
- *
- * \param voice   The Voice -- must not be \c NULL.
- * \param event   The Event -- must not be \c NULL.
- * \param pos     The position of the Event.
- *
- * \return   \c true if successful, or \c false if the Event queue is full.
- */
-//bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
-
-
-/**
  * Mixes the Voice.
  *
  * \param voice    The Voice -- must not be \c NULL.
@@ -159,7 +143,7 @@ void Voice_mix(Voice* voice,
 /**
  * Destroys an existing Voice.
  *
- * \param voice   The Voice -- must not be \c NULL.
+ * \param voice   The Voice, or \c NULL.
  */
 void del_Voice(Voice* voice);
 

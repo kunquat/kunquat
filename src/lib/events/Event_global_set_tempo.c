@@ -34,15 +34,9 @@ static Event_field_desc set_tempo_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_global_set_tempo,
-                                   EVENT_GLOBAL_SET_TEMPO,
-                                   double, tempo);
-
-
-Event_create_constructor(Event_global_set_tempo,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_TEMPO,
-                         set_tempo_desc,
-                         event->tempo = 120);
+                         set_tempo);
 
 
 bool Event_global_set_tempo_process(Playdata* global_state, char* fields)

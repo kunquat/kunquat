@@ -38,15 +38,9 @@ static Event_field_desc set_generator_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_generator,
-                                   EVENT_CHANNEL_SET_GENERATOR,
-                                   int64_t, generator);
-
-
-Event_create_constructor(Event_channel_set_generator,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GENERATOR,
-                         set_generator_desc,
-                         event->generator = 0);
+                         set_generator);
 
 
 bool Event_channel_set_generator_process(Channel_state* ch_state, char* fields)

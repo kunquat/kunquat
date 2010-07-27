@@ -38,15 +38,9 @@ static Event_field_desc slide_panning_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_slide_panning,
-                                   EVENT_CHANNEL_SLIDE_PANNING,
-                                   double, target_panning);
-
-
-Event_create_constructor(Event_channel_slide_panning,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_PANNING,
-                         slide_panning_desc,
-                         event->target_panning = 0);
+                         slide_panning);
 
 
 bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)
@@ -63,49 +57,22 @@ bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    ch_state->panning_slide_target = data[0].field.double_type;
-    ch_state->panning_slide_frames =
-            Reltime_toframes(&ch_state->panning_slide_length,
-                             *ch_state->tempo,
-                             *ch_state->freq);
-    double diff = ch_state->panning_slide_target - ch_state->panning;
-    ch_state->panning_slide_update = diff / ch_state->panning_slide_frames;
-    if (diff > 0)
+    if (Slider_in_progress(&ch_state->panning_slider))
     {
-        ch_state->panning_slide = 1;
-    }
-    else if (diff < 0)
-    {
-        ch_state->panning_slide = -1;
+        Slider_change_target(&ch_state->panning_slider,
+                             data[0].field.double_type);
     }
     else
     {
-        ch_state->panning = ch_state->panning_slide_target;
-        ch_state->panning_slide = 0;
+        Slider_start(&ch_state->panning_slider,
+                     data[0].field.double_type,
+                     ch_state->panning);
     }
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->panning_slide_target = data[0].field.double_type;
-        vs->panning_slide_frames = Reltime_toframes(&vs->panning_slide_length,
-                                                    *ch_state->tempo,
-                                                    *ch_state->freq);
-        diff = vs->panning_slide_target - vs->panning;
-        vs->panning_slide_update = diff / vs->panning_slide_frames;
-        if (diff > 0)
-        {
-            vs->panning_slide = 1;
-        }
-        else if (diff < 0)
-        {
-            vs->panning_slide = -1;
-        }
-        else
-        {
-            vs->panning = vs->panning_slide_target;
-            vs->panning_slide = 0;
-        }
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
     }
     return true;
 }

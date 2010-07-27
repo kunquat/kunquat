@@ -149,7 +149,7 @@ bool Event_handler_add_channel_gen_state_key(Event_handler* eh,
 /**
  * Destroys an existing Event handler.
  *
- * \param eh   The Event handler -- must not be \c NULL.
+ * \param eh   The Event handler, or \c NULL.
  */
 void del_Event_handler(Event_handler* eh);
 

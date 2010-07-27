@@ -36,15 +36,9 @@ static Event_field_desc set_jump_counter_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_global_set_jump_counter,
-                                   EVENT_GLOBAL_SET_JUMP_COUNTER,
-                                   int64_t, counter);
-
-
-Event_create_constructor(Event_global_set_jump_counter,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_JUMP_COUNTER,
-                         set_jump_counter_desc,
-                         event->counter = 0);
+                         set_jump_counter);
 
 
 bool Event_global_set_jump_counter_process(Playdata* global_state,

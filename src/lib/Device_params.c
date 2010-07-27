@@ -26,6 +26,7 @@
 #include <xmemory.h>
 
 
+#if 0
 typedef struct Event_name_to_param
 {
     char name[129];
@@ -49,14 +50,52 @@ Event_name_to_param* new_Event_name_to_param(const char key[],
     e->param[99] = '\0';
     return e;
 }
+#endif
+
+
+typedef struct Slow_sync_info
+{
+    char key[100];
+    bool sync_needed;
+} Slow_sync_info;
+
+
+static Slow_sync_info* new_Slow_sync_info(const char* key);
+
+static void del_Slow_sync_info(Slow_sync_info* info);
+
+
+static Slow_sync_info* new_Slow_sync_info(const char* key)
+{
+    assert(key != NULL);
+    Slow_sync_info* info = xalloc(Slow_sync_info);
+    if (info == NULL)
+    {
+        return NULL;
+    }
+    strncpy(info->key, key, 100);
+    info->key[99] = '\0';
+    info->sync_needed = true;
+    return info;
+}
+
+
+static void del_Slow_sync_info(Slow_sync_info* info)
+{
+    xfree(info);
+}
 
 
 struct Device_params
 {
-    AAtree* implement;   ///< The implementation part of the generator.
-    AAtree* config;      ///< The configuration part of the generator.
-    AAtree* event_data;  ///< The playback state of the parameters.
-//    AAtree* event_names; ///< A mapping from event names to parameters.
+    AAtree* implement;      ///< The implementation part of the generator.
+    AAtree* config;         ///< The configuration part of the generator.
+    AAtree* event_data;     ///< The playback state of the parameters.
+    AAtree* slow_sync;      ///< Keys that require explicit synchronisation.
+    AAiter* slow_sync_iter; ///< Iterator for slow_sync.
+    bool slow_sync_needed;  ///< Whether any slow-sync keys have changed.
+    bool slow_sync_keys_requested;
+//    AAtree* event_names;    ///< A mapping from event names to parameters.
 };
 
 
@@ -101,19 +140,26 @@ Device_params* new_Device_params(void)
     params->implement = NULL;
     params->config = NULL;
     params->event_data = NULL;
-    params->implement = new_AAtree((int (*)(const void*,
-                                            const void*))Device_field_cmp,
+    params->slow_sync = NULL;
+    params->slow_sync_iter = NULL;
+    params->slow_sync_needed = false;
+    params->slow_sync_keys_requested = false;
+
+    params->implement = new_AAtree((int (*)(const void*, const void*))strcmp,
                                    (void (*)(void*))del_Device_field);
-    params->config = new_AAtree((int (*)(const void*,
-                                         const void*))Device_field_cmp,
+    params->config = new_AAtree((int (*)(const void*, const void*))strcmp,
                                 (void (*)(void*))del_Device_field);
-    params->event_data = new_AAtree((int (*)(const void*,
-                                             const void*))Device_field_cmp,
+    params->event_data = new_AAtree((int (*)(const void*, const void*))strcmp,
                                     (void (*)(void*))del_Device_field);
+    params->slow_sync = new_AAtree((int (*)(const void*, const void*))strcmp,
+                                   (void (*)(void*))del_Slow_sync_info);
+    params->slow_sync_iter = new_AAiter(params->slow_sync);
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
 //                                     free);
     if (params->implement == NULL || params->config == NULL ||
-            params->event_data == NULL /* || params->event_names == NULL*/)
+            params->event_data == NULL ||
+            params->slow_sync == NULL || params->slow_sync_iter == NULL)
+//             || params->event_names == NULL)
     {
         del_Device_params(params);
         return NULL;
@@ -141,6 +187,78 @@ bool Device_params_set_key(Device_params* params, const char* key)
         return false;
     }
     return true;
+}
+
+
+bool Device_params_set_slow_sync(Device_params* params, const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    if (AAtree_contains(params->slow_sync, key))
+    {
+        params->slow_sync_needed = true;
+        return true;
+    }
+    Slow_sync_info* info = new_Slow_sync_info(key);
+    if (info == NULL || !AAtree_ins(params->slow_sync, info))
+    {
+        del_Slow_sync_info(info);
+        return false;
+    }
+    params->slow_sync_needed = true;
+    return true;
+}
+
+
+void Device_params_clear_slow_sync(Device_params* params, const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    del_Slow_sync_info(AAtree_remove(params->slow_sync, key));
+    return;
+}
+
+
+bool Device_params_need_sync(Device_params* params)
+{
+    assert(params != NULL);
+    return params->slow_sync_needed;
+}
+
+
+const char* Device_params_get_slow_sync_key(Device_params* params)
+{
+    assert(params != NULL);
+    Slow_sync_info* info = NULL;
+    if (!params->slow_sync_keys_requested)
+    {
+        params->slow_sync_keys_requested = true;
+        info = AAiter_get(params->slow_sync_iter, "");
+    }
+    else
+    {
+        info = AAiter_get_next(params->slow_sync_iter);
+    }
+    while (info != NULL && !info->sync_needed)
+    {
+        info = AAiter_get_next(params->slow_sync_iter);
+    }
+    return info != NULL ? info->key : NULL;
+}
+
+
+void Device_params_synchronised(Device_params* params)
+{
+    assert(params != NULL);
+    Slow_sync_info* info = AAiter_get(params->slow_sync_iter, "");
+    while (info != NULL)
+    {
+        info->sync_needed = false;
+        info = AAiter_get_next(params->slow_sync_iter);
+    }
+    params->slow_sync_needed = false;
+    params->slow_sync_keys_requested = false;
+    return;
 }
 
 
@@ -333,9 +451,10 @@ bool Device_params_parse_value(Device_params* params,
     }
     assert(tree != NULL);
     Device_field* field = AAtree_get_exact(tree, key);
+    bool success = true;
     if (field != NULL)
     {
-        return Device_field_change(field, data, length, state);
+        success = Device_field_change(field, data, length, state);
     }
     else
     {
@@ -350,7 +469,14 @@ bool Device_params_parse_value(Device_params* params,
             return false;
         }
     }
-    return true;
+    if (success && AAtree_contains(params->slow_sync, key))
+    {
+        Slow_sync_info* info = AAtree_get_exact(params->slow_sync, key);
+        assert(info != NULL);
+        info->sync_needed = true;
+        params->slow_sync_needed = true;
+    }
+    return success;
 }
 
 
@@ -362,6 +488,10 @@ bool Device_params_modify_value(Device_params* params,
     assert(key != NULL);
     assert(key_is_real_time_device_param(key));
     assert(str != NULL);
+    if (AAtree_contains(params->slow_sync, key))
+    {
+        return false;
+    }
     Device_field* field = AAtree_get_exact(params->event_data, key);
     if (field == NULL)
     {
@@ -502,24 +632,17 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 
 void del_Device_params(Device_params* params)
 {
-    assert(params != NULL);
-    if (params->implement != NULL)
+    if (params == NULL)
     {
-        del_AAtree(params->implement);
+        return;
     }
-    if (params->config != NULL)
-    {
-        del_AAtree(params->config);
-    }
-    if (params->event_data != NULL)
-    {
-        del_AAtree(params->event_data);
-    }
+    del_AAtree(params->implement);
+    del_AAtree(params->config);
+    del_AAtree(params->event_data);
+    del_AAtree(params->slow_sync);
+    del_AAiter(params->slow_sync_iter);
 #if 0
-    if (params->event_names != NULL)
-    {
-        del_AAtree(params->event_names);
-    }
+    del_AAtree(params->event_names);
 #endif
     xfree(params);
     return;

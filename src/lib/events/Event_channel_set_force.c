@@ -37,15 +37,9 @@ static Event_field_desc set_force_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_set_force,
-                                   EVENT_CHANNEL_SET_FORCE,
-                                   double, force_dB);
-
-
-Event_create_constructor(Event_channel_set_force,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_FORCE,
-                         set_force_desc,
-                         event->force_dB = 0);
+                         set_force);
 
 
 bool Event_channel_set_force_process(Channel_state* ch_state, char* fields)
@@ -66,9 +60,10 @@ bool Event_channel_set_force_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->force = force;
-        vs->force_slide = 0;
+        Slider_break(&vs->force_slider);
+//        vs->force_slide = 0;
     }
     return true;
 }

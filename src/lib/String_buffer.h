@@ -138,10 +138,10 @@ const char* String_buffer_get_string(String_buffer* sb);
  * If you want to destroy the buffer completely, call
  * xfree(del_String_buffer(sb)).
  *
- * \param sb   The String buffer -- must not be \c NULL.
+ * \param sb   The String buffer, or \c NULL.
  *
- * \return   The string stored inside the String buffer. This is always a
- *           valid string.
+ * \return   The string stored inside the String buffer, or \c NULL if
+ *           \a sb is \c NULL.
  */
 char* del_String_buffer(String_buffer* sb);
 

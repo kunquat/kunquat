@@ -145,17 +145,6 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
 
 
 /**
- * Serialises the Column.
- *
- * \param col   The Column -- must not be \c NULL.
- *
- * \return   A string representation of the Column, or \c NULL if memory
- *           allocation failed.
- */
-char* Column_serialise(Column* col);
-
-
-/**
  * Inserts a new Event into the Column.
  *
  * If other Events are already located at the target position, the new Event
@@ -274,7 +263,7 @@ Reltime* Column_length(Column* col);
 /**
  * Destroys an existing Column.
  *
- * \param col   The Column -- must not be \c NULL.
+ * \param col   The Column, or \c NULL.
  */
 void del_Column(Column* col);
 

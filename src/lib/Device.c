@@ -28,12 +28,15 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
+
     device->mix_rate = mix_rate;
     device->buffer_size = buffer_size;
     device->set_mix_rate = NULL;
     device->set_buffer_size = NULL;
     device->reset = NULL;
+    device->sync = NULL;
     device->process = NULL;
+    
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -71,6 +74,15 @@ void Device_set_reset(Device* device, void (*reset)(Device*))
     assert(device != NULL);
     assert(reset != NULL);
     device->reset = reset;
+    return;
+}
+
+
+void Device_set_sync(Device* device, bool (*sync)(Device*))
+{
+    assert(device != NULL);
+    assert(sync != NULL);
+    device->sync = sync;
     return;
 }
 
@@ -198,59 +210,6 @@ void Device_remove_direct_buffers(Device* device)
 }
 
 
-#if 0
-bool Device_init_buffers(Device* device)
-{
-    assert(device != NULL);
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
-    {
-        Audio_buffer** receive = &device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
-        Audio_buffer** send = &device->buffers[DEVICE_PORT_TYPE_SEND][port];
-        if (device->reg[DEVICE_PORT_TYPE_RECEIVE][port])
-        {
-            if (*receive == NULL)
-            {
-                *receive = new_Audio_buffer(device->buffer_size);
-                if (*receive == NULL)
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (*receive != NULL)
-            {
-                del_Audio_buffer(*receive);
-                *receive = NULL;
-            }
-        }
-        if (device->reg[DEVICE_PORT_TYPE_SEND][port] &&
-                device->direct_send[port] == NULL)
-        {
-            if (*send == NULL)
-            {
-                *send = new_Audio_buffer(device->buffer_size);
-                if (*send == NULL)
-                {
-                    return false;
-                }
-            }
-        }
-        else
-        {
-            if (*send != NULL)
-            {
-                del_Audio_buffer(*send);
-                *send = NULL;
-            }
-        }
-    }
-    return true;
-}
-#endif
-
-
 bool Device_set_mix_rate(Device* device, uint32_t rate)
 {
     assert(device != NULL);
@@ -364,6 +323,17 @@ void Device_reset(Device* device)
 }
 
 
+bool Device_sync(Device* device)
+{
+    assert(device != NULL);
+    if (device->sync != NULL)
+    {
+        return device->sync(device);
+    }
+    return true;
+}
+
+
 void Device_process(Device* device,
                     uint32_t start,
                     uint32_t until,
@@ -436,22 +406,19 @@ void Device_print(Device* device, FILE* out)
 
 void Device_uninit(Device* device)
 {
-    assert(device != NULL);
+    if (device == NULL)
+    {
+        return;
+    }
     Device_remove_direct_buffers(device);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL)
-        {
-            del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
-        }
-        if (device->buffers[DEVICE_PORT_TYPE_SEND][port] != NULL)
-        {
-            del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
-        }
+        del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
+        device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
+        del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
+        device->buffers[DEVICE_PORT_TYPE_SEND][port] = NULL;
         device->reg[DEVICE_PORT_TYPE_RECEIVE][port] = false;
         device->reg[DEVICE_PORT_TYPE_SEND][port] = false;
-        device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
-        device->buffers[DEVICE_PORT_TYPE_SEND][port] = NULL;
         device->direct_send[port] = NULL;
     }
     return;

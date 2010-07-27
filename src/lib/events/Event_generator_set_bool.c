@@ -38,44 +38,9 @@ static Event_field_desc set_bool_desc[] =
 };
 
 
-static bool Event_generator_set_bool_set(Event* event, int index, void* data);
-
-
-static void* Event_generator_set_bool_get(Event* event, int index);
-
-
-Event_create_constructor(Event_generator_set_bool,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_BOOL,
-                         set_bool_desc,
-                         event->value = false);
-
-
-static bool Event_generator_set_bool_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_BOOL);
-    Event_generator_set_bool* set_bool = (Event_generator_set_bool*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_bool->value = *(bool*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_generator_set_bool_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_BOOL);
-    Event_generator_set_bool* set_bool = (Event_generator_set_bool*)event;
-    if (index == 1)
-    {
-        return &set_bool->value;
-    }
-    return NULL;
-}
+                         set_bool);
 
 
 bool Event_generator_set_bool_process(Generator* gen, char* fields)
@@ -94,7 +59,7 @@ bool Event_generator_set_bool_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Device_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->conf->params, key, fields);
 }
 
 

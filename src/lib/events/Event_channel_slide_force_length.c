@@ -38,15 +38,9 @@ static Event_field_desc slide_force_length_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_channel_slide_force_length,
-                                 EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
-                                 length);
-
-
-Event_create_constructor(Event_channel_slide_force_length,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
-                         slide_force_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_force_length);
 
 
 bool Event_channel_slide_force_length_process(Channel_state* ch_state, char* fields)
@@ -64,22 +58,11 @@ bool Event_channel_slide_force_length_process(Channel_state* ch_state, char* fie
         return false;
     }
     Reltime_copy(&ch_state->force_slide_length, &data[0].field.Reltime_type);
-    uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
-                                             *ch_state->tempo,
-                                             *ch_state->freq);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        Reltime_copy(&vs->force_slide_length, &data[0].field.Reltime_type);
-        vs->force_slide_frames = slide_frames;
-        if (vs->force_slide != 0)
-        {
-            double force_dB = log2(vs->force) * 6;
-            double target_dB = log2(vs->force_slide_target) * 6;
-            double dB_step = (target_dB - force_dB) / vs->force_slide_frames;
-            vs->force_slide_update = exp2(dB_step / 6);
-        }
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_set_length(&vs->force_slider, &data[0].field.Reltime_type);
     }
     return true;
 }

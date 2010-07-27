@@ -38,15 +38,9 @@ static Event_field_desc slide_volume_length_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_global_slide_volume_length,
-                                 EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-                                 length);
-
-
-Event_create_constructor(Event_global_slide_volume_length,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
-                         slide_volume_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_volume_length);
 
 
 bool Event_global_slide_volume_length_process(Playdata* global_state,
@@ -64,20 +58,10 @@ bool Event_global_slide_volume_length_process(Playdata* global_state,
     {
         return false;
     }
-    if (global_state->volume_slide != 0)
-    {
-        global_state->volume_slide_frames =
-                Reltime_toframes(&data[0].field.Reltime_type,
-                                 global_state->tempo,
-                                 global_state->freq);
-        double volume_dB = log2(global_state->volume) * 6;
-        double target_dB = log2(global_state->volume_slide_target) * 6;
-        double dB_step = (target_dB - volume_dB) /
-                         global_state->volume_slide_frames;
-        global_state->volume_slide_update = exp2(dB_step / 6);
-    }
-    Reltime_copy(&global_state->volume_slide_length,
-                 &data[0].field.Reltime_type);
+    Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
+    Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
+    Slider_set_length(&global_state->volume_slider,
+                      &data[0].field.Reltime_type);
     return true;
 }
 

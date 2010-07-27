@@ -38,15 +38,9 @@ static Event_field_desc tremolo_depth_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_tremolo_depth,
-                                   EVENT_CHANNEL_TREMOLO_DEPTH,
-                                   double, depth);
-
-
-Event_create_constructor(Event_channel_tremolo_depth,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_TREMOLO_DEPTH,
-                         tremolo_depth_desc,
-                         event->depth = 0);
+                         tremolo_depth);
 
 
 bool Event_channel_tremolo_depth_process(Channel_state* ch_state, char* fields)
@@ -63,17 +57,18 @@ bool Event_channel_tremolo_depth_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    ch_state->tremolo_depth = data[0].field.double_type;
+    double actual_depth = data[0].field.double_type / 6;
+    ch_state->tremolo_depth = actual_depth;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        if (data[0].field.double_type > 0 && vs->tremolo_length > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        if (ch_state->tremolo_speed > 0)
         {
-            vs->tremolo = true;
+            LFO_set_speed(&vs->tremolo, ch_state->tremolo_speed);
         }
-        vs->tremolo_depth_target = data[0].field.double_type;
-        vs->tremolo_delay_pos = 0;
+        LFO_set_depth(&vs->tremolo, actual_depth);
+        LFO_turn_on(&vs->tremolo);
     }
     return true;
 }

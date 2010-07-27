@@ -21,13 +21,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_dsp_set_reltime
-{
-    Event_dsp parent;
-    Reltime value;
-} Event_dsp_set_reltime;
-
-
 Event* new_Event_dsp_set_reltime(Reltime* pos);
 
 

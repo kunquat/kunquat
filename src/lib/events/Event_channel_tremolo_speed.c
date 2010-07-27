@@ -38,15 +38,9 @@ static Event_field_desc tremolo_speed_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_channel_tremolo_speed,
-                                   EVENT_CHANNEL_TREMOLO_SPEED,
-                                   double, speed);
-
-
-Event_create_constructor(Event_channel_tremolo_speed,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_TREMOLO_SPEED,
-                         tremolo_speed_desc,
-                         event->speed = 0);
+                         tremolo_speed);
 
 
 bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)
@@ -63,25 +57,18 @@ bool Event_channel_tremolo_speed_process(Channel_state* ch_state, char* fields)
     {
         return false;
     }
-    double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
-                                       *ch_state->tempo,
-                                       *ch_state->freq);
-    ch_state->tremolo_length = unit_len / data[0].field.double_type;
-    ch_state->tremolo_update = (2 * PI) / ch_state->tremolo_length;
+    ch_state->tremolo_speed = data[0].field.double_type;
+    LFO_set_speed(&ch_state->tremolo, data[0].field.double_type);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        if (data[0].field.double_type > 0 && vs->tremolo_depth_target > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        LFO_set_speed(&vs->tremolo, data[0].field.double_type);
+        if (ch_state->tremolo_depth > 0)
         {
-            vs->tremolo = true;
+            LFO_set_depth(&vs->tremolo, ch_state->tremolo_depth);
         }
-        vs->tremolo_length = ch_state->tremolo_length;
-        vs->tremolo_update = ch_state->tremolo_update;
-        if (!vs->tremolo)
-        {
-            vs->tremolo_delay_pos = 0;
-        }
+        LFO_turn_on(&vs->tremolo);
     }
     return true;
 }

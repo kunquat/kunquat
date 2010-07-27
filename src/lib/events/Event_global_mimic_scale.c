@@ -35,15 +35,9 @@ static Event_field_desc mimic_scale_desc[] =
 };
 
 
-Event_create_set_primitive_and_get(Event_global_mimic_scale,
-                                   EVENT_GLOBAL_MIMIC_SCALE,
-                                   int64_t, modifier_index);
-
-
-Event_create_constructor(Event_global_mimic_scale,
+Event_create_constructor(Event_global,
                          EVENT_GLOBAL_MIMIC_SCALE,
-                         mimic_scale_desc,
-                         event->modifier_index = 0);
+                         mimic_scale);
 
 
 bool Event_global_mimic_scale_process(Playdata* global_state, char* fields)

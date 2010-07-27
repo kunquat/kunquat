@@ -132,11 +132,11 @@ void Freeverb_comb_clear(Freeverb_comb* comb)
 
 void del_Freeverb_comb(Freeverb_comb* comb)
 {
-    assert(comb != NULL);
-    if (comb->buffer != NULL)
+    if (comb == NULL)
     {
-        xfree(comb->buffer);
+        return;
     }
+    xfree(comb->buffer);
     xfree(comb);
     return;
 }

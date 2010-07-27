@@ -369,15 +369,12 @@ void Connections_print(Connections* graph, FILE* out)
 
 void del_Connections(Connections* graph)
 {
-    assert(graph != NULL);
-    if (graph->iter != NULL)
+    if (graph == NULL)
     {
-        del_AAiter(graph->iter);
+        return;
     }
-    if (graph->nodes != NULL)
-    {
-        del_AAtree(graph->nodes);
-    }
+    del_AAiter(graph->iter);
+    del_AAtree(graph->nodes);
     xfree(graph);
     return;
 }

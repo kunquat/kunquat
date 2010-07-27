@@ -40,44 +40,9 @@ static Event_field_desc set_float_desc[] =
 };
 
 
-static bool Event_generator_set_float_set(Event* event, int index, void* data);
-
-
-static void* Event_generator_set_float_get(Event* event, int index);
-
-
-Event_create_constructor(Event_generator_set_float,
+Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_FLOAT,
-                         set_float_desc,
-                         event->value = 0);
-
-
-static bool Event_generator_set_float_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_FLOAT);
-    Event_generator_set_float* set_float = (Event_generator_set_float*)event;
-    if (index == 1)
-    {
-        assert(data != NULL);
-        set_float->value = *(double*)data;
-        return true;
-    }
-    return false;
-}
-
-
-static void* Event_generator_set_float_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GENERATOR_SET_FLOAT);
-    Event_generator_set_float* set_float = (Event_generator_set_float*)event;
-    if (index == 1)
-    {
-        return &set_float->value;
-    }
-    return NULL;
-}
+                         set_float);
 
 
 bool Event_generator_set_float_process(Generator* gen, char* fields)
@@ -96,7 +61,7 @@ bool Event_generator_set_float_process(Generator* gen, char* fields)
     {
         return false;
     }
-    return Device_params_modify_value(gen->type_params, key, fields);
+    return Device_params_modify_value(gen->conf->params, key, fields);
 }
 
 

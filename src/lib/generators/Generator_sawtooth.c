@@ -22,6 +22,7 @@
 #include <Generator_sawtooth.h>
 #include <Voice_state_sawtooth.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -29,35 +30,54 @@
 void Generator_sawtooth_init_state(Generator* gen, Voice_state* state);
 
 
-Generator* new_Generator_sawtooth(Instrument_params* ins_params,
-                                  Device_params* gen_params)
+Generator* new_Generator_sawtooth(uint32_t buffer_size,
+                                  uint32_t mix_rate)
 {
-    assert(ins_params != NULL);
-    assert(gen_params != NULL);
+    assert(buffer_size > 0);
+    assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    assert(mix_rate > 0);
     Generator_sawtooth* sawtooth = xalloc(Generator_sawtooth);
     if (sawtooth == NULL)
     {
         return NULL;
     }
-    if (!Generator_init(&sawtooth->parent))
+    if (!Generator_init(&sawtooth->parent,
+                        del_Generator_sawtooth,
+                        Generator_sawtooth_mix,
+                        Generator_sawtooth_init_state,
+                        buffer_size,
+                        mix_rate))
     {
         xfree(sawtooth);
         return NULL;
     }
-    sawtooth->parent.destroy = del_Generator_sawtooth;
-    sawtooth->parent.type = GEN_TYPE_SAWTOOTH;
-    sawtooth->parent.init_state = Generator_sawtooth_init_state;
-    sawtooth->parent.mix = Generator_sawtooth_mix;
-    sawtooth->parent.ins_params = ins_params;
-    sawtooth->parent.type_params = gen_params;
     return &sawtooth->parent;
+}
+
+
+char* Generator_sawtooth_property(Generator* gen, const char* property_type)
+{
+    assert(gen != NULL);
+    assert(string_eq(gen->type, "sawtooth"));
+    assert(property_type != NULL);
+    (void)gen;
+    if (string_eq(property_type, "voice_state_size"))
+    {
+        static char size_str[8] = { '\0' };
+        if (string_eq(size_str, ""))
+        {
+            snprintf(size_str, 8, "%zd", sizeof(Voice_state_sawtooth));
+        }
+        return size_str;
+    }
+    return NULL;
 }
 
 
 void Generator_sawtooth_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SAWTOOTH);
+    assert(string_eq(gen->type, "sawtooth"));
     (void)gen;
     assert(state != NULL);
     Voice_state_sawtooth* sawtooth_state = (Voice_state_sawtooth*)state;
@@ -80,7 +100,7 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
                                 double tempo)
 {
     assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SAWTOOTH);
+    assert(string_eq(gen->type, "sawtooth"));
     assert(state != NULL);
     assert(freq > 0);
     assert(tempo > 0);
@@ -125,8 +145,11 @@ uint32_t Generator_sawtooth_mix(Generator* gen,
 
 void del_Generator_sawtooth(Generator* gen)
 {
-    assert(gen != NULL);
-    assert(gen->type == GEN_TYPE_SAWTOOTH);
+    if (gen == NULL)
+    {
+        return;
+    }
+    assert(string_eq(gen->type, "sawtooth"));
     Generator_sawtooth* sawtooth = (Generator_sawtooth*)gen;
     xfree(sawtooth);
     return;

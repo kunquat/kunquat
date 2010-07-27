@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_channel_set_gen_reltime
-{
-    Event_channel parent;
-    Reltime value;
-} Event_channel_set_gen_reltime;
-
-
 Event* new_Event_channel_set_gen_reltime(Reltime* pos);
 
 bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields);

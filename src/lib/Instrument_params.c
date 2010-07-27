@@ -18,6 +18,7 @@
 
 #include <Instrument_params.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
@@ -34,32 +35,11 @@
     } else (void)0
 
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-                                          kqt_frame** bufs,
-                                          kqt_frame** vbufs,
-                                          kqt_frame** vbufs2,
-                                          int buf_count,
-                                          uint32_t buf_len,
                                           Scale*** scale)
 {
     assert(ip != NULL);
-#if 0
-    assert(bufs != NULL);
-    assert(bufs[0] != NULL);
-    assert(vbufs != NULL);
-    assert(vbufs[0] != NULL);
-    assert(vbufs2 != NULL);
-    assert(vbufs2[0] != NULL);
-#endif
-    assert(buf_count > 0);
-    assert(buf_len > 0);
     assert(scale != NULL);
     assert(*scale != NULL);
-    ip->bufs = ip->gbufs = bufs;
-    ip->buf_count = buf_count;
-    ip->buf_len = buf_len;
-    ip->pbufs = NULL;
-    ip->vbufs = vbufs;
-    ip->vbufs2 = vbufs2;
     ip->force_volume_env = NULL;
     ip->env_force_filter = NULL;
     ip->force_pitch_env = NULL;
@@ -74,9 +54,17 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->volume = 1;
     ip->force_variation = 0;
 
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        ip->pitch_locks[i].enabled = false;
+        ip->pitch_locks[i].cents = 0;
+        ip->pitch_locks[i].freq = exp2(0 / 1200.0) * 440;
+    }
+#if 0
     ip->pitch_lock_enabled = false;
     ip->pitch_lock_cents = 0;
     ip->pitch_lock_freq = exp2(ip->pitch_lock_cents / 1200.0) * 440;
+#endif
 
     new_env_or_fail(ip->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
     ip->force_volume_env_enabled = false;
@@ -186,11 +174,11 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -257,11 +245,11 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                     del_Envelope(env);
                     return false;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -336,35 +324,35 @@ Envelope* parse_env_time(char* str,
                     del_Envelope(env);
                     return NULL;
                 }
-                if (strcmp(key, "enabled") == 0)
+                if (string_eq(key, "enabled"))
                 {
                     str = read_bool(str, enabled, state);
                 }
-                else if (strcmp(key, "scale_amount") == 0)
+                else if (string_eq(key, "scale_amount"))
                 {
                     str = read_double(str, scale_amount, state);
                 }
-                else if (strcmp(key, "scale_center") == 0)
+                else if (string_eq(key, "scale_center"))
                 {
                     str = read_double(str, scale_center, state);
                 }
-                else if (strcmp(key, "nodes") == 0)
+                else if (string_eq(key, "nodes"))
                 {
                     str = Envelope_read(env, str, state);
                 }
-                else if (carry != NULL && strcmp(key, "carry") == 0)
+                else if (carry != NULL && string_eq(key, "carry"))
                 {
                     str = read_bool(str, carry, state);
                 }
-                else if (!release && strcmp(key, "loop") == 0)
+                else if (!release && string_eq(key, "loop"))
                 {
                     str = read_bool(str, &loop, state);
                 }
-                else if (!release && strcmp(key, "loop_start") == 0)
+                else if (!release && string_eq(key, "loop_start"))
                 {
                     str = read_int(str, &loop_start, state);
                 }
-                else if (!release && strcmp(key, "loop_end") == 0)
+                else if (!release && string_eq(key, "loop_end"))
                 {
                     str = read_int(str, &loop_end, state);
                 }
@@ -475,19 +463,19 @@ bool Instrument_params_parse_env_force_rel(Instrument_params* ip,
 }
 
 
-#define del_env_check(env)       \
-    if (true)                    \
-    {                            \
-        if ((env) != NULL)       \
-        {                        \
-            del_Envelope((env)); \
-            (env) = NULL;        \
-        }                        \
+#define del_env_check(env)   \
+    if (true)                \
+    {                        \
+        del_Envelope((env)); \
+        (env) = NULL;        \
     } else (void)0
 
 void Instrument_params_uninit(Instrument_params* ip)
 {
-    assert(ip != NULL);
+    if (ip == NULL)
+    {
+        return;
+    }
     del_env_check(ip->force_volume_env);
     del_env_check(ip->env_force_filter);
     del_env_check(ip->force_pitch_env);

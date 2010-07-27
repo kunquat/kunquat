@@ -21,14 +21,6 @@
 #include <kunquat/limits.h>
 
 
-typedef struct Event_channel_arpeggio
-{
-    Event_channel parent;
-    double speed;
-    double notes[KQT_ARPEGGIO_NOTES_MAX];
-} Event_channel_arpeggio;
-
-
 Event* new_Event_channel_arpeggio(Reltime* pos);
 
 

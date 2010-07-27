@@ -39,15 +39,9 @@ static Event_field_desc slide_filter_length_desc[] =
 };
 
 
-Event_create_set_reltime_and_get(Event_channel_slide_filter_length,
-                                 EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                                 length);
-
-
-Event_create_constructor(Event_channel_slide_filter_length,
+Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                         slide_filter_length_desc,
-                         Reltime_set(&event->length, 0, 0));
+                         slide_filter_length);
 
 
 bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fields)
@@ -65,22 +59,11 @@ bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fi
         return false;
     }
     Reltime_copy(&ch_state->filter_slide_length, &data[0].field.Reltime_type);
-    uint32_t slide_frames = Reltime_toframes(&data[0].field.Reltime_type,
-                                             *ch_state->tempo,
-                                             *ch_state->freq);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->filter_slide_frames = slide_frames;
-        Reltime_copy(&vs->filter_slide_length, &data[0].field.Reltime_type);
-        if (vs->filter_slide != 0)
-        {
-            double diff_log = (log2(vs->filter_slide_target) * 12 - 86) -
-                              (log2(vs->filter) * 12 - 86);
-            double slide_step = diff_log / vs->filter_slide_frames;
-            vs->filter_slide_update = exp2(slide_step / 12);
-        }
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_set_length(&vs->lowpass_slider, &data[0].field.Reltime_type);
     }
     return true;
 }

@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_ins_set_pedal
-{
-    Event_ins parent;
-    double pedal;
-} Event_ins_set_pedal;
-
-
 Event* new_Event_ins_set_pedal(Reltime* pos);
 
 

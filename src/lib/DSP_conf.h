@@ -16,6 +16,8 @@
 #define K_DSP_CONF_H
 
 
+#include <stdbool.h>
+
 #include <Device_params.h>
 #include <File_base.h>
 
@@ -62,7 +64,7 @@ bool DSP_conf_parse(DSP_conf* conf,
 /**
  * Destroys an existing DSP configuration.
  *
- * \param conf   The DSP configuration -- must not be \c NULL.
+ * \param conf   The DSP configuration, or \c NULL.
  */
 void del_DSP_conf(DSP_conf* conf);
 

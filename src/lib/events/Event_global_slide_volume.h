@@ -20,13 +20,6 @@
 #include <Reltime.h>
 
 
-typedef struct Event_global_slide_volume
-{
-    Event_global parent;
-    double target_volume_dB;
-} Event_global_slide_volume;
-
-
 Event* new_Event_global_slide_volume(Reltime* pos);
 
 

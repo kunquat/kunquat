@@ -87,7 +87,7 @@ void Ins_table_clear(Ins_table* table);
 /**
  * Destroys an existing Instrument table.
  *
- * \param table   The Instrument table -- must not be \c NULL.
+ * \param table   The Instrument table, or \c NULL.
  */
 void del_Ins_table(Ins_table* table);
 

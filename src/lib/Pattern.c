@@ -282,15 +282,8 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         if (play->old_tempo != play->tempo || play->old_freq != play->freq)
         {
-            if (play->volume_slide != 0)
-            {
-                double update_dB = log2(play->volume_slide_update) * 6;
-                update_dB *= (double)play->old_freq / play->freq;
-                update_dB *= play->tempo / play->old_tempo;
-                play->volume_slide_update = exp2(update_dB / 6);
-                play->volume_slide_frames *= (double)play->freq / play->old_freq;
-                play->volume_slide_frames *= play->old_tempo / play->tempo;
-            }
+            Slider_set_mix_rate(&play->volume_slider, play->freq);
+            Slider_set_tempo(&play->volume_slider, play->tempo);
             play->old_freq = play->freq;
             play->old_tempo = play->tempo;
         }
@@ -390,28 +383,6 @@ uint32_t Pattern_mix(Pattern* pat,
                 aux_process = true;
             }
         }
-#if 0
-        while (next_aux != NULL && Reltime_cmp(next_aux_pos, &play->pos) == 0)
-        {
-            assert(EVENT_IS_PG(Event_get_type(next_aux)));
-            int ch_index = ((Event_pg*)next_aux)->ch_index;
-            if (EVENT_IS_INS(Event_get_type(next_aux)))
-            {
-                Channel_state* ch_state = &channels[ch_index]->cur_state;
-                if (ch_state->instrument > 0)
-                {
-                    Event_handler_handle(eh, ch_state->instrument,
-                                         Event_get_type(next_aux),
-                                         Event_get_fields(next_aux));
-                }
-            }
-            next_aux = Column_iter_get_next(play->citer);
-            if (next_aux != NULL)
-            {
-                next_aux_pos = Event_get_pos(next_aux);
-            }
-        }
-#endif
 
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,
@@ -493,17 +464,19 @@ uint32_t Pattern_mix(Pattern* pat,
             {
                 play->active_voices = active_voices;
             }
+#if 0
             for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
                 Channel_update_state(channels[i], mix_until); // FIXME
             }
+#endif
             if (connections != NULL)
             {
                 Connections_mix(connections, mixed, mix_until,
                                 play->freq, play->tempo);
             }
         }
-        if ((play->volume != 1 || play->volume_slide != 0))
+        if (play->volume != 1 || Slider_in_progress(&play->volume_slider))
         {
             Audio_buffer* buffer = NULL;
             if (connections != NULL)
@@ -522,23 +495,9 @@ uint32_t Pattern_mix(Pattern* pat,
                 };
                 for (uint32_t i = mixed; i < mixed + to_be_mixed; ++i)
                 {
-                    if (play->volume_slide != 0)
+                    if (Slider_in_progress(&play->volume_slider))
                     {
-                        play->volume *= play->volume_slide_update;
-                        play->volume_slide_frames -= 1;
-                        if (play->volume_slide_frames <= 0)
-                        {
-                            play->volume = play->volume_slide_target;
-                            play->volume_slide = 0;
-                        }
-                        else if ((play->volume_slide == 1 &&
-                                  play->volume > play->volume_slide_target) ||
-                                 (play->volume_slide == -1 &&
-                                  play->volume < play->volume_slide_target))
-                        {
-                            play->volume = play->volume_slide_target;
-                            play->volume_slide = 0;
-                        }
+                        play->volume = Slider_step(&play->volume_slider);
                     }
                     for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
                     {
@@ -547,23 +506,9 @@ uint32_t Pattern_mix(Pattern* pat,
                     }
                 }
             }
-            else if (play->volume_slide != 0)
+            else if (Slider_in_progress(&play->volume_slider))
             {
-                play->volume *= pow(play->volume_slide_update, to_be_mixed);
-                play->volume_slide_frames -= to_be_mixed;
-                if (play->volume_slide_frames <= 0)
-                {
-                    play->volume = play->volume_slide_target;
-                    play->volume_slide = 0;
-                }
-                else if ((play->volume_slide == 1 &&
-                          play->volume > play->volume_slide_target) ||
-                         (play->volume_slide == -1 &&
-                          play->volume < play->volume_slide_target))
-                {
-                    play->volume = play->volume_slide_target;
-                    play->volume_slide = 0;
-                }
+                Slider_skip(&play->volume_slider, to_be_mixed);
             }
         }
         // - Increment play->pos
@@ -590,16 +535,16 @@ uint32_t Pattern_mix(Pattern* pat,
 
 void del_Pattern(Pattern* pat)
 {
-    assert(pat != NULL);
+    if (pat == NULL)
+    {
+        return;
+    }
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         del_Column(pat->cols[i]);
     }
     del_Column(pat->global);
-    if (pat->aux != NULL)
-    {
-        del_Column(pat->aux);
-    }
+    del_Column(pat->aux);
     xfree(pat);
     return;
 }

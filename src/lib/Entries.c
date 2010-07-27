@@ -20,7 +20,9 @@
 
 #include <AAtree.h>
 #include <Entries.h>
+#include <File_base.h>
 #include <Parse_manager.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -80,8 +82,10 @@ static int Entry_cmp(const Entry* e1, const Entry* e2)
 
 static void del_Entry(Entry* entry)
 {
-    assert(entry != NULL);
-    assert(entry->data != NULL);
+    if (entry == NULL)
+    {
+        return;
+    }
     xfree(entry->data);
     xfree(entry);
     return;
@@ -129,16 +133,16 @@ bool Entries_set(Entries* entries,
         del_Entry(entry);
         return false;
     }
-    const char* prefix = "kunquatc";
+    const char* prefix = MAGIC_ID "c";
     char* num_str = strstr(entry->key, prefix);
     if (num_str == NULL)
     {
-        prefix = "kunquats";
+        prefix = MAGIC_ID "s";
         num_str = strstr(entry->key, prefix);
     }
     if (num_str != NULL)
     {
-        int version = parse_index_dir(entry->key, prefix, 2);
+        int version = string_extract_index(entry->key, prefix, 2, "/");
         if (version > entries->biggest_version)
         {
             entries->biggest_version = version;
@@ -253,7 +257,10 @@ static void resolve_wildcard(Entries* entries, Entry* key_entry)
 
 void del_Entries(Entries* entries)
 {
-    assert(entries != NULL);
+    if (entries == NULL)
+    {
+        return;
+    }
     del_AAtree(entries->tree);
     xfree(entries);
     return;

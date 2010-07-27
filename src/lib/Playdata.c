@@ -21,6 +21,7 @@
 #include <Channel.h>
 #include <Random.h>
 #include <Reltime.h>
+#include <Slider.h>
 #include <Playdata.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -73,11 +74,8 @@ Playdata* new_Playdata(Ins_table* insts,
     Reltime_init(&play->jump_row);
 
     play->volume = 1;
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
-    play->volume_slide_target = 1;
-    play->volume_slide_frames = 0;
-    play->volume_slide_update = 0;
+    Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
+    Slider_set_mix_rate(&play->volume_slider, 48000);
 
     play->tempo = 0;
     play->old_tempo = 0;
@@ -143,11 +141,8 @@ Playdata* new_Playdata_silent(uint32_t freq)
     Reltime_init(&play->jump_row);
 
     play->volume = 1;
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
-    play->volume_slide_target = 1;
-    play->volume_slide_frames = 0;
-    play->volume_slide_update = 0;
+    Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
+    Slider_set_mix_rate(&play->volume_slider, freq);
 
     play->tempo = 0;
     play->old_tempo = 0;
@@ -179,6 +174,7 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
     assert(play != NULL);
     assert(freq > 0);
     play->freq = freq;
+    Slider_set_mix_rate(&play->volume_slider, freq);
     return;
 }
 
@@ -236,8 +232,9 @@ void Playdata_reset(Playdata* play)
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
 
-    play->volume_slide = 0;
-    Reltime_init(&play->volume_slide_length);
+    Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
+//    Slider_set_mix_rate(&play->volume_slider, play->freq);
+//    Slider_set_tempo(&play->volume_slider, play->tempo);
     play->tempo_slide = 0;
     Reltime_init(&play->tempo_slide_length);
     Reltime_init(&play->delay_left);
@@ -266,16 +263,12 @@ void Playdata_reset_stats(Playdata* play)
 
 void del_Playdata(Playdata* play)
 {
-    assert(play != NULL);
-    if (play->voice_pool != NULL)
+    if (play == NULL)
     {
-        del_Voice_pool(play->voice_pool);
+        return;
     }
-    if (play->citer != NULL)
-    {
-        del_Column_iter(play->citer);
-        play->citer = NULL;
-    }
+    del_Voice_pool(play->voice_pool);
+    del_Column_iter(play->citer);
     xfree(play);
     return;
 }

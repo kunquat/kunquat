@@ -32,19 +32,22 @@ static Event_field_desc jump_desc[] =
 };
 
 
-static bool Event_global_jump_set(Event* event, int index, void* data);
-
-static void* Event_global_jump_get(Event* event, int index);
-
-
-Event_create_constructor(Event_global_jump,
-                         EVENT_GLOBAL_JUMP,
-                         jump_desc,
-                         event->play_id = 0,
-                         event->counter = 0,
-                         event->subsong = -1,
-                         event->section = -1,
-                         Reltime_set(&event->row, 0, 0));
+Event* new_Event_global_jump(Reltime* pos)
+{
+    assert(pos != NULL);
+    Event_global_jump* event = xalloc(Event_global_jump);
+    if (event == NULL)
+    {
+        return NULL;
+    }
+    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP, jump_desc);
+    event->play_id = 0;
+    event->counter = 0;
+    event->subsong = -1;
+    event->section = -1;
+    Reltime_set(&event->row, 0, 0);
+    return (Event*)event;
+}
 
 
 bool Event_global_jump_process(Playdata* global_state, char* fields)
@@ -84,28 +87,6 @@ void Trigger_global_jump_process(Event_global* event, Playdata* play)
         Reltime_copy(&play->jump_row, &jump->row);
     }
     return;
-}
-
-
-static bool Event_global_jump_set(Event* event, int index, void* data)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    assert(data != NULL);
-    (void)event;
-    (void)index;
-    (void)data;
-    return false;
-}
-
-
-static void* Event_global_jump_get(Event* event, int index)
-{
-    assert(event != NULL);
-    assert(event->type == EVENT_GLOBAL_JUMP);
-    (void)event;
-    (void)index;
-    return NULL;
 }
 
 
