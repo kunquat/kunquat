@@ -130,8 +130,10 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     double default_force = INS_DEFAULT_FORCE;
     double force_variation = INS_DEFAULT_FORCE_VAR;
+#if 0
     bool pitch_lock_enabled = false;
     double pitch_lock_cents = 0;
+#endif
     int64_t scale_index = INS_DEFAULT_SCALE_INDEX;
     if (str != NULL)
     {
@@ -162,6 +164,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 {
                     str = read_double(str, &force_variation, state);
                 }
+#if 0
                 else if (string_eq(key, "pitch_lock"))
                 {
                     str = read_bool(str, &pitch_lock_enabled, state);
@@ -170,6 +173,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 {
                     str = read_double(str, &pitch_lock_cents, state);
                 }
+#endif
                 else if (string_eq(key, "scale"))
                 {
                     str = read_int(str, &scale_index, state);
@@ -205,10 +209,51 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     ins->default_force = default_force;
     ins->params.force_variation = force_variation;
+#if 0
     ins->params.pitch_lock_enabled = pitch_lock_enabled;
     ins->params.pitch_lock_cents = pitch_lock_cents;
     ins->params.pitch_lock_freq = exp2(ins->params.pitch_lock_cents / 1200.0) * 440;
+#endif
     Instrument_set_scale(ins, scale_index);
+    return true;
+}
+
+
+bool Instrument_parse_value(Instrument* ins,
+                            const char* subkey,
+                            char* str,
+                            Read_state* state)
+{
+    assert(ins != NULL);
+    assert(subkey != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    int gen_index = -1;
+    if ((gen_index = string_extract_index(subkey,
+                             "p_pitch_lock_enabled_", 2, ".json")) >= 0 &&
+            gen_index < KQT_GENERATORS_MAX)
+    {
+        read_bool(str, &ins->params.pitch_locks[gen_index].enabled, state);
+        if (state->error)
+        {
+            return false;
+        }
+    }
+    else if ((gen_index = string_extract_index(subkey,
+                                  "p_pitch_lock_cents_", 2, ".json")) >= 0 &&
+            gen_index < KQT_GENERATORS_MAX)
+    {
+        read_double(str, &ins->params.pitch_locks[gen_index].cents, state);
+        if (state->error)
+        {
+            return false;
+        }
+        ins->params.pitch_locks[gen_index].freq =
+                exp2(ins->params.pitch_locks[gen_index].cents / 1200.0) * 440;
+    }
     return true;
 }
 

@@ -97,9 +97,32 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
 
         Voice* voice = ch_state->fg[i];
         Voice_state* vs = voice->state;
+
+        if (voice->gen->ins_params->pitch_locks[i].enabled)
+        {
+            vs->pitch = voice->gen->ins_params->pitch_locks[i].freq;
+        }
+        else if (voice->gen->ins_params->scale == NULL ||
+                 *voice->gen->ins_params->scale == NULL ||
+                 **voice->gen->ins_params->scale == NULL)
+        {
+            vs->pitch = data[0].field.double_type;
+        }
+        else
+        {
+            pitch_t pitch = Scale_get_pitch_from_cents(
+                                    **voice->gen->ins_params->scale,
+                                    data[0].field.double_type);
+            if (pitch > 0)
+            {
+                vs->pitch = pitch;
+            }
+        }
+#if 0
         Generator_process_note(voice->gen,
                                vs,
                                data[0].field.double_type);
+#endif
         vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;

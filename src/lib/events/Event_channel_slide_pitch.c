@@ -63,9 +63,9 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice* voice = ch_state->fg[i];
-        if (voice->gen->ins_params->pitch_lock_enabled)
+        if (voice->gen->ins_params->pitch_locks[i].enabled)
         {
-            return true;
+            continue;
         }
         Voice_state* vs = voice->state;
         pitch_t pitch = -1;

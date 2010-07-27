@@ -121,6 +121,7 @@ char* Generator_get_type(Generator* gen)
 }
 
 
+#if 0
 void Generator_process_note(Generator* gen,
                             Voice_state* state,
                             double cents)
@@ -147,6 +148,7 @@ void Generator_process_note(Generator* gen,
     }
     return;
 }
+#endif
 
 
 void Generator_mix(Generator* gen,

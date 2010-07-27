@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <string_common.h>
@@ -113,7 +114,11 @@ int string_extract_index(const char* path,
         }
         index += pos - hex_digits;
     }
-    if (after != NULL && !string_has_prefix(num_s, after))
+    if (string_has_prefix(after, ".") && !string_eq(num_s, after))
+    {
+        return -1;
+    }
+    else if (!string_has_prefix(num_s, after))
     {
         return -1;
     }

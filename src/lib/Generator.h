@@ -133,9 +133,11 @@ char* Generator_get_type(Generator* gen);
  * \param states   The array of Voice states -- must not be \c NULL.
  * \param cents    The pitch in cents -- must be finite.
  */
+#if 0
 void Generator_process_note(Generator* gen,
                             Voice_state* states,
                             double cents);
+#endif
 
 
 /**

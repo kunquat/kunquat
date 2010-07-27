@@ -54,9 +54,17 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->volume = 1;
     ip->force_variation = 0;
 
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        ip->pitch_locks[i].enabled = false;
+        ip->pitch_locks[i].cents = 0;
+        ip->pitch_locks[i].freq = exp2(0 / 1200.0) * 440;
+    }
+#if 0
     ip->pitch_lock_enabled = false;
     ip->pitch_lock_cents = 0;
     ip->pitch_lock_freq = exp2(ip->pitch_lock_cents / 1200.0) * 440;
+#endif
 
     new_env_or_fail(ip->force_volume_env, 8,  0, 1, 0,  0, 1, 0);
     ip->force_volume_env_enabled = false;

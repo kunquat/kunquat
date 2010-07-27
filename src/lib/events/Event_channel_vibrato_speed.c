@@ -62,9 +62,9 @@ bool Event_channel_vibrato_speed_process(Channel_state* ch_state, char* fields)
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        if (ch_state->fg[i]->gen->ins_params->pitch_lock_enabled)
+        if (ch_state->fg[i]->gen->ins_params->pitch_locks[i].enabled)
         {
-            return true;
+            continue;
         }
         Voice_state* vs = ch_state->fg[i]->state;
         LFO_set_speed(&vs->vibrato, data[0].field.double_type);

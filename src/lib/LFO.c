@@ -38,6 +38,8 @@ LFO* LFO_init(LFO* lfo, LFO_mode mode)
     lfo->mix_rate = 0;
     lfo->tempo = 0;
 
+    lfo->on = false;
+
     lfo->speed = 0;
     Slider_init(&lfo->speed_slider, SLIDE_MODE_LINEAR);
     lfo->depth = 0;

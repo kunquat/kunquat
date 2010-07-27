@@ -25,6 +25,14 @@
 #include <File_base.h>
 
 
+typedef struct Pitch_lock
+{
+    bool enabled;
+    double cents;
+    double freq;
+} Pitch_lock;
+
+
 typedef struct Instrument_params
 {
     Scale*** scale;    ///< An indirect reference to the current Scale used.
@@ -34,9 +42,12 @@ typedef struct Instrument_params
 //    double force;                  ///< Force.
     double force_variation;        ///< Force variation.
 
+    Pitch_lock pitch_locks[KQT_GENERATORS_MAX];
+#if 0
     bool pitch_lock_enabled;
     double pitch_lock_cents;
     double pitch_lock_freq;
+#endif
 
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.
