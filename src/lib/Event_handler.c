@@ -152,39 +152,39 @@ Event_handler* new_Event_handler(Playdata* global_state,
     eh->insts = insts;
     eh->dsps = dsps;
 
-    Event_handler_set_global_process(eh, "Opd", EVENT_GLOBAL_PATTERN_DELAY,
+    Event_handler_set_global_process(eh, "Wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
-    Event_handler_set_global_process(eh, "O.jc", EVENT_GLOBAL_SET_JUMP_COUNTER,
+    Event_handler_set_global_process(eh, "W.jc", EVENT_GLOBAL_SET_JUMP_COUNTER,
                                      Event_global_set_jump_counter_process);
-    Event_handler_set_global_process(eh, "O.jr", EVENT_GLOBAL_SET_JUMP_ROW,
+    Event_handler_set_global_process(eh, "W.jr", EVENT_GLOBAL_SET_JUMP_ROW,
                                      Event_global_set_jump_row_process);
-    Event_handler_set_global_process(eh, "O.js", EVENT_GLOBAL_SET_JUMP_SECTION,
+    Event_handler_set_global_process(eh, "W.js", EVENT_GLOBAL_SET_JUMP_SECTION,
                                      Event_global_set_jump_section_process);
-    Event_handler_set_global_process(eh, "O.jo", EVENT_GLOBAL_SET_JUMP_SUBSONG,
+    Event_handler_set_global_process(eh, "W.jss", EVENT_GLOBAL_SET_JUMP_SUBSONG,
                                      Event_global_set_jump_subsong_process);
-    Event_handler_set_global_process(eh, "Oj", EVENT_GLOBAL_JUMP,
+    Event_handler_set_global_process(eh, "Wj", EVENT_GLOBAL_JUMP,
                                      Event_global_jump_process);
 
-    Event_handler_set_global_process(eh, "O.s", EVENT_GLOBAL_SET_SCALE,
+    Event_handler_set_global_process(eh, "W.s", EVENT_GLOBAL_SET_SCALE,
                                      Event_global_set_scale_process);
-    Event_handler_set_global_process(eh, "O.so", EVENT_GLOBAL_SET_SCALE_OFFSET,
+    Event_handler_set_global_process(eh, "W.so", EVENT_GLOBAL_SET_SCALE_OFFSET,
                                      Event_global_set_scale_offset_process);
-    Event_handler_set_global_process(eh, "O.ms", EVENT_GLOBAL_MIMIC_SCALE,
+    Event_handler_set_global_process(eh, "W.ms", EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
-    Event_handler_set_global_process(eh, "O.si", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
+    Event_handler_set_global_process(eh, "W.si", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
                                      Event_global_shift_scale_intervals_process);
 
-    Event_handler_set_global_process(eh, "O.t", EVENT_GLOBAL_SET_TEMPO,
+    Event_handler_set_global_process(eh, "W.t", EVENT_GLOBAL_SET_TEMPO,
                                      Event_global_set_tempo_process);
-    Event_handler_set_global_process(eh, "O.v", EVENT_GLOBAL_SET_VOLUME,
+    Event_handler_set_global_process(eh, "W.v", EVENT_GLOBAL_SET_VOLUME,
                                      Event_global_set_volume_process);
-    Event_handler_set_global_process(eh, "O/t", EVENT_GLOBAL_SLIDE_TEMPO,
+    Event_handler_set_global_process(eh, "W/t", EVENT_GLOBAL_SLIDE_TEMPO,
                                      Event_global_slide_tempo_process);
-    Event_handler_set_global_process(eh, "O/Lt", EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
+    Event_handler_set_global_process(eh, "W/=t", EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
                                      Event_global_slide_tempo_length_process);
-    Event_handler_set_global_process(eh, "O/v", EVENT_GLOBAL_SLIDE_VOLUME,
+    Event_handler_set_global_process(eh, "W/v", EVENT_GLOBAL_SLIDE_VOLUME,
                                      Event_global_slide_volume_process);
-    Event_handler_set_global_process(eh, "O/Lv", EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+    Event_handler_set_global_process(eh, "W/=v", EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
                                      Event_global_slide_volume_length_process);
 
     Event_handler_set_ch_process(eh, "C.i", EVENT_CHANNEL_SET_INSTRUMENT,
@@ -205,7 +205,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_force_process);
     Event_handler_set_ch_process(eh, "C/f", EVENT_CHANNEL_SLIDE_FORCE,
                                  Event_channel_slide_force_process);
-    Event_handler_set_ch_process(eh, "C/Lf", EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
+    Event_handler_set_ch_process(eh, "C/=f", EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
                                  Event_channel_slide_force_length_process);
     Event_handler_set_ch_process(eh, "CTs", EVENT_CHANNEL_TREMOLO_SPEED,
                                  Event_channel_tremolo_speed_process);
@@ -216,7 +216,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_ch_process(eh, "C/p", EVENT_CHANNEL_SLIDE_PITCH,
                                  Event_channel_slide_pitch_process);
-    Event_handler_set_ch_process(eh, "C/Lp", EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
+    Event_handler_set_ch_process(eh, "C/=p", EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
                                  Event_channel_slide_pitch_length_process);
     Event_handler_set_ch_process(eh, "CVs", EVENT_CHANNEL_VIBRATO_SPEED,
                                  Event_channel_vibrato_speed_process);
@@ -231,7 +231,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_lowpass_process);
     Event_handler_set_ch_process(eh, "C/l", EVENT_CHANNEL_SLIDE_LOWPASS,
                                  Event_channel_slide_lowpass_process);
-    Event_handler_set_ch_process(eh, "C/Ll", EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
+    Event_handler_set_ch_process(eh, "C/=l", EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
                                  Event_channel_slide_lowpass_length_process);
     Event_handler_set_ch_process(eh, "CAs", EVENT_CHANNEL_AUTOWAH_SPEED,
                                  Event_channel_autowah_speed_process);
@@ -247,7 +247,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_panning_process);
     Event_handler_set_ch_process(eh, "C/P", EVENT_CHANNEL_SLIDE_PANNING,
                                  Event_channel_slide_panning_process);
-    Event_handler_set_ch_process(eh, "C/LP", EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
+    Event_handler_set_ch_process(eh, "C/=P", EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
     Event_handler_set_ch_process(eh, "C.Gb", EVENT_CHANNEL_SET_GEN_BOOL,
