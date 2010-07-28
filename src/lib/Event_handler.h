@@ -24,6 +24,7 @@
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
+#include <Event_names.h>
 #include <Event_type.h>
 
 
@@ -46,10 +47,15 @@ Event_handler* new_Event_handler(Playdata* global_state,
  * Registers a Channel Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
  * \param type      The type of the Event -- must be a Channel Event.
  * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Event_handler_set_ch_process(Event_handler* eh,
+bool Event_handler_set_ch_process(Event_handler* eh,
+                                  const char* name,
                                   Event_type type,
                                   bool (*ch_process)(Channel_state*, char*));
 
@@ -58,10 +64,15 @@ void Event_handler_set_ch_process(Event_handler* eh,
  * Registers a Global Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
  * \param type      The type of the Event -- must be a Global Event.
  * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Event_handler_set_global_process(Event_handler* eh,
+bool Event_handler_set_global_process(Event_handler* eh,
+                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
                                                              char*));
@@ -71,10 +82,15 @@ void Event_handler_set_global_process(Event_handler* eh,
  * Registers an Instrument Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
  * \param type      The type of the Event -- must be an Instrument Event.
  * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Event_handler_set_ins_process(Event_handler* eh,
+bool Event_handler_set_ins_process(Event_handler* eh,
+                                   const char* name,
                                    Event_type type,
                                    bool (*ins_process)(Instrument_params*, char*));
 
@@ -83,10 +99,15 @@ void Event_handler_set_ins_process(Event_handler* eh,
  * Registers a Generator Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
  * \param type      The type of the Event -- must be a Generator Event.
  * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Event_handler_set_generator_process(Event_handler* eh,
+bool Event_handler_set_generator_process(Event_handler* eh,
+                                         const char* name,
                                          Event_type type,
                                          bool (*gen_process)(Generator*, char*));
 
@@ -95,10 +116,15 @@ void Event_handler_set_generator_process(Event_handler* eh,
  * Registers a DSP Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
  * \param type      The type of the Event -- must be a DSP Event.
  * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Event_handler_set_dsp_process(Event_handler* eh,
+bool Event_handler_set_dsp_process(Event_handler* eh,
+                                   const char* name,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*, char*));
 
@@ -108,9 +134,8 @@ void Event_handler_set_dsp_process(Event_handler* eh,
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param index    The index number. This must be \c -1 for global Events,
- *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Channel Events,
- *                 or >= \c 0 and < \c KQT_INSTRUMENTS_MAX for Instrument Events,
- *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Generator Events.
+ *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Channel,
+ *                 Instrument, Generator or DSP Events.
  * \param type     The type of the Event -- must be a valid type and
  *                 compatible with \a index.
  * \param fields   Event fields, or \c NULL if not applicable.
@@ -122,6 +147,23 @@ bool Event_handler_handle(Event_handler* eh,
                           int index,
                           Event_type type,
                           char* fields);
+
+
+/**
+ * Triggers an Event outside the mixing context.
+ *
+ * \param eh      The Event handler -- must not be \c NULL.
+ * \param index   The index number -- must be >= \c -1 and
+ *                < \c KQT_COLUMNS_MAX. This should match the channel where
+ *                the Event is triggered. \c -1 is used for global Column.
+ * \param desc    The Event description in JSON format -- must not be \c NULL.
+ *
+ * \return   \c true if the Event was triggered successfully, otherwise
+ *           \c false.
+ */
+bool Event_handler_trigger(Event_handler* eh,
+                           int index,
+                           char* desc); // FIXME: this should be const
 
 
 /**

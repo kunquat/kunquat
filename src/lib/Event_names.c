@@ -26,7 +26,7 @@
 
 typedef struct Name_info
 {
-    char name[EVENT_NAME_MAX];
+    char name[EVENT_NAME_MAX + 1];
     Event_type type;
 } Name_info;
 
@@ -63,13 +63,22 @@ bool Event_names_add(Event_names* names, const char* name, Event_type type)
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+    assert(!AAtree_contains(names->names, name));
     assert(Event_type_is_supported(type));
     if (names->error)
     {
         return false;
     }
     Name_info* info = xalloc(Name_info);
-    if (info == NULL || !AAtree_ins(names->names, info))
+    if (info == NULL)
+    {
+        names->error = true;
+        return false;
+    }
+    strncpy(info->name, name, EVENT_NAME_MAX);
+    info->name[EVENT_NAME_MAX] = '\0';
+    info->type = type;
+    if (!AAtree_ins(names->names, info))
     {
         xfree(info);
         names->error = true;
@@ -90,9 +99,7 @@ Event_type Event_names_get(Event_names* names, const char* name)
 {
     assert(names != NULL);
     assert(name != NULL);
-    assert(strlen(name) > 0);
-    assert(strlen(name) < EVENT_NAME_MAX);
-    Name_info* info = AAtree_get(names->names, name);
+    Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
     {
         return EVENT_NONE;

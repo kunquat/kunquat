@@ -21,7 +21,7 @@
 #include <Event_type.h>
 
 
-#define EVENT_NAME_MAX 8
+#define EVENT_NAME_MAX 7
 
 
 typedef struct Event_names Event_names;
@@ -41,7 +41,8 @@ Event_names* new_Event_names(void);
  *
  * \param names   The Event name collection -- must not be \c NULL.
  * \param name    The Event name -- must not be \c NULL, empty string or
- *                longer than EVENT_NAME_MAX characters.
+ *                longer than EVENT_NAME_MAX characters. Also, the name must
+ *                not already exist in the collection.
  * \param type    The Event type -- must be a valid supported type.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -63,8 +64,7 @@ bool Event_names_error(Event_names* names);
  * Retrieves the Event type of the given name.
  *
  * \param names   The Event name collection -- must not be \c NULL.
- * \param name    The Event name -- must not be \c NULL, empty string or
- *                longer than EVENT_NAME_MAX characters.
+ * \param name    The Event name -- must not be \c NULL.
  *
  * \return   The Event type of the name, or EVENT_NONE if the name does not
  *           correspond to an Event type.
