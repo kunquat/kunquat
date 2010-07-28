@@ -395,6 +395,7 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
         break_if(state->error);
 
         str = read_const_char(str, ',', state);
+        str = read_const_char(str, '[', state);
         break_if(state->error);
 
         int64_t type = 0;
@@ -440,7 +441,8 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
             del_Event(event);
             return false;
         }
-        
+
+        str = read_const_char(str, ']', state);        
         str = read_const_char(str, ']', state);
         break_if(state->error);
 
