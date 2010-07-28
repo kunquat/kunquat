@@ -61,7 +61,7 @@ bool Event_channel_set_resonance_process(Channel_state* ch_state, char* fields)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
-        vs->filter_resonance = resonance;
+        vs->lowpass_resonance = resonance;
     }
     return true;
 }

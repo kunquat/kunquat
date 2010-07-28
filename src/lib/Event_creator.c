@@ -63,9 +63,9 @@
 #include <Event_channel_vibrato_delay.h>
 #include <Event_channel_arpeggio.h>
 
-#include <Event_channel_set_filter.h>
-#include <Event_channel_slide_filter.h>
-#include <Event_channel_slide_filter_length.h>
+#include <Event_channel_set_lowpass.h>
+#include <Event_channel_slide_lowpass.h>
+#include <Event_channel_slide_lowpass_length.h>
 #include <Event_channel_autowah_speed.h>
 #include <Event_channel_autowah_depth.h>
 #include <Event_channel_autowah_delay.h>
@@ -143,9 +143,9 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
     [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
    
-    [EVENT_CHANNEL_SET_FILTER] = new_Event_channel_set_filter,
-    [EVENT_CHANNEL_SLIDE_FILTER] = new_Event_channel_slide_filter,
-    [EVENT_CHANNEL_SLIDE_FILTER_LENGTH] = new_Event_channel_slide_filter_length,
+    [EVENT_CHANNEL_SET_LOWPASS] = new_Event_channel_set_lowpass,
+    [EVENT_CHANNEL_SLIDE_LOWPASS] = new_Event_channel_slide_lowpass,
+    [EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH] = new_Event_channel_slide_lowpass_length,
     [EVENT_CHANNEL_AUTOWAH_SPEED] = new_Event_channel_autowah_speed,
     [EVENT_CHANNEL_AUTOWAH_DEPTH] = new_Event_channel_autowah_depth,
     [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,

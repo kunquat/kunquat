@@ -15,21 +15,20 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <math.h>
-#include <limits.h>
 
 #include <Event_common.h>
-#include <Event_channel_slide_filter.h>
+#include <Event_channel_set_lowpass.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc slide_filter_desc[] =
+static Event_field_desc set_lowpass_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = 0,
+        .min.field.double_type = -INFINITY,
         .max.field.double_type = INFINITY
     },
     {
@@ -39,11 +38,11 @@ static Event_field_desc slide_filter_desc[] =
 
 
 Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_FILTER,
-                         slide_filter);
+                         EVENT_CHANNEL_SET_LOWPASS,
+                         set_lowpass);
 
 
-bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_lowpass_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)
@@ -52,28 +51,25 @@ bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields)
     }
     Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_filter_desc, data, state);
+    Event_type_get_fields(fields, set_lowpass_desc, data, state);
     if (state->error)
     {
         return false;
     }
-    double target_cutoff = data[0].field.double_type;
-    double target_cutoff_exp = exp2((target_cutoff + 86) / 12);
-    const double inf_limit = exp2((86.0 + 86) / 12);
+    double cutoff = NAN;
+    if (data[0].field.double_type > 86)
+    {
+        cutoff = INFINITY;
+    }
+    else
+    {
+        cutoff = exp2((data[0].field.double_type + 86) / 12);
+    }
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
-        if (Slider_in_progress(&vs->lowpass_slider))
-        {
-            Slider_change_target(&vs->lowpass_slider, target_cutoff_exp);
-        }
-        else
-        {
-            Slider_start(&vs->lowpass_slider,
-                         target_cutoff_exp,
-                         isfinite(vs->filter) ? vs->filter : inf_limit);
-        }
+        vs->lowpass = cutoff;
     }
     return true;
 }

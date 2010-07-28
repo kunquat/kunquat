@@ -97,20 +97,20 @@ typedef struct Voice_state
     double actual_panning;         ///< The current actual panning.
     Slider panning_slider;
 
-    double filter;                 ///< The current filter cut-off frequency.
-    double actual_filter;          ///< The current actual filter cut-off frequency.
+    double lowpass;                ///< The current lowpass cut-off frequency.
+    double actual_lowpass;         ///< The current actual lowpass cut-off frequency.
     Slider lowpass_slider;
     LFO autowah;
-    double filter_resonance;       ///< The filter resonance (Q factor).
+    double lowpass_resonance;      ///< The filter resonance (Q factor).
 
-    double effective_filter;       ///< The current filter cut-off frequency _really_ used.
+    double effective_lowpass;      ///< The current filter cut-off frequency _really_ used.
     double effective_resonance;    ///< The current filter resonance _really_ used.
-    bool filter_update;            ///< Whether filter needs to be updated.
-    double filter_xfade_pos;       ///< Filter crossfade position.
-    double filter_xfade_update;    ///< The update amount of the filter crossfade.
-    int filter_xfade_state_used;   ///< State fading out during the filter crossfade.
-    int filter_state_used;         ///< Primary filter state used.
-    Filter_state filter_state[2];  ///< States of the filters.
+    bool lowpass_update;           ///< Whether filter needs to be updated.
+    double lowpass_xfade_pos;      ///< Filter crossfade position.
+    double lowpass_xfade_update;   ///< The update amount of the filter crossfade.
+    int lowpass_xfade_state_used;  ///< State fading out during the filter crossfade.
+    int lowpass_state_used;        ///< Primary filter state used.
+    Filter_state lowpass_state[2]; ///< States of the filters.
 } Voice_state;
 
 

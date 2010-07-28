@@ -18,7 +18,7 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_channel_slide_filter_length.h>
+#include <Event_channel_slide_lowpass_length.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <kunquat/limits.h>
@@ -26,7 +26,7 @@
 #include <xmemory.h>
 
 
-static Event_field_desc slide_filter_length_desc[] =
+static Event_field_desc slide_lowpass_length_desc[] =
 {
     {
         .type = EVENT_FIELD_RELTIME,
@@ -40,11 +40,11 @@ static Event_field_desc slide_filter_length_desc[] =
 
 
 Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                         slide_filter_length);
+                         EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
+                         slide_lowpass_length);
 
 
-bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_lowpass_length_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     if (fields == NULL)
@@ -53,7 +53,7 @@ bool Event_channel_slide_filter_length_process(Channel_state* ch_state, char* fi
     }
     Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_filter_length_desc, data, state);
+    Event_type_get_fields(fields, slide_lowpass_length_desc, data, state);
     if (state->error)
     {
         return false;

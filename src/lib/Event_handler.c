@@ -64,9 +64,9 @@
 #include <Event_channel_vibrato_delay.h>
 #include <Event_channel_arpeggio.h>
 
-#include <Event_channel_set_filter.h>
-#include <Event_channel_slide_filter.h>
-#include <Event_channel_slide_filter_length.h>
+#include <Event_channel_set_lowpass.h>
+#include <Event_channel_slide_lowpass.h>
+#include <Event_channel_slide_lowpass_length.h>
 #include <Event_channel_autowah_speed.h>
 #include <Event_channel_autowah_depth.h>
 #include <Event_channel_autowah_delay.h>
@@ -214,12 +214,12 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_ARPEGGIO,
                                  Event_channel_arpeggio_process);
 
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FILTER,
-                                 Event_channel_set_filter_process);
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER,
-                                 Event_channel_slide_filter_process);
-    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FILTER_LENGTH,
-                                 Event_channel_slide_filter_length_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_LOWPASS,
+                                 Event_channel_set_lowpass_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_LOWPASS,
+                                 Event_channel_slide_lowpass_process);
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
+                                 Event_channel_slide_lowpass_length_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_SPEED,
                                  Event_channel_autowah_speed_process);
     Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DEPTH,

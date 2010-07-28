@@ -12,20 +12,20 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_SLIDE_FILTER_H
-#define K_EVENT_CHANNEL_SLIDE_FILTER_H
+#ifndef K_EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH_H
+#define K_EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH_H
 
 
 #include <Event_channel.h>
 #include <Reltime.h>
 
 
-Event* new_Event_channel_slide_filter(Reltime* pos);
+Event* new_Event_channel_slide_lowpass_length(Reltime* pos);
 
 
-bool Event_channel_slide_filter_process(Channel_state* ch_state, char* fields);
+bool Event_channel_slide_lowpass_length_process(Channel_state* ch_state, char* fields);
 
 
-#endif // K_EVENT_CHANNEL_SLIDE_FILTER_H
+#endif // K_EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH_H
 
 

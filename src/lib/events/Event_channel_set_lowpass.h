@@ -12,20 +12,20 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_SET_FILTER_H
-#define K_EVENT_CHANNEL_SET_FILTER_H
+#ifndef K_EVENT_CHANNEL_SET_LOWPASS_H
+#define K_EVENT_CHANNEL_SET_LOWPASS_H
 
 
 #include <Event_channel.h>
 #include <Reltime.h>
 
 
-Event* new_Event_channel_set_filter(Reltime* pos);
+Event* new_Event_channel_set_lowpass(Reltime* pos);
 
 
-bool Event_channel_set_filter_process(Channel_state* ch_state, char* fields);
+bool Event_channel_set_lowpass_process(Channel_state* ch_state, char* fields);
 
 
-#endif // K_EVENT_CHANNEL_SET_FILTER_H
+#endif // K_EVENT_CHANNEL_SET_LOWPASS_H
 
 
