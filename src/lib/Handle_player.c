@@ -188,6 +188,25 @@ long long kqt_Handle_get_position(kqt_Handle* handle)
 }
 
 
+int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event)
+{
+    check_handle(handle, 0);
+    if (channel < -1 || channel >= KQT_COLUMNS_MAX)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid channel number: %d", channel);
+        return 0;
+    }
+    if (event == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "No event description given.");
+        return 0;
+    }
+    return Event_handler_trigger(handle->song->event_handler, channel, event);
+}
+
+
 void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));

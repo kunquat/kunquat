@@ -19,6 +19,7 @@ from itertools import cycle, chain
 import math
 from optparse import OptionParser, OptionGroup
 import os.path
+import random
 import string
 import sys
 import termios
@@ -156,6 +157,9 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                                 (handle.subsong + 1)] and handle.subsong < 255:
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
+                elif key == '§':
+                    #handle.trigger(63, '["C.i", [1]]')
+                    handle.trigger(63, '["Cn+", [%f]]' % random.gauss(0, 1000))
         mix_cycle_start = time.time()
         bufs = handle.mix()
         mix_cycle_end = time.time()
