@@ -954,9 +954,12 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Event_names* event_names =
+                Event_handler_get_names(handle->song->event_handler);
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
                                              global_column,
+                                             event_names,
                                              state);
         if (col == NULL)
         {

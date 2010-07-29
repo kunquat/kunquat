@@ -157,9 +157,7 @@ typedef enum
                                   EVENT_IS_DSP((type)))
 #define EVENT_IS_VALID(type)     (EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GLOBAL((type))    || \
-                                  EVENT_IS_INS((type))       || \
-                                  EVENT_IS_GENERATOR((type)) || \
-                                  EVENT_IS_DSP((type))       || \
+                                  EVENT_IS_PG((type))        || \
                                   EVENT_IS_CHANNEL((type)))
 
 

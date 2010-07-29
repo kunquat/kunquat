@@ -21,6 +21,7 @@
 
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_names.h>
 #include <AAtree.h>
 
 
@@ -116,11 +117,12 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
 /**
  * Creates a new Column from a textual description.
  *
- * \param len         The length of the column. If this is \c NULL, the length is
- *                    set to INT64_MAX beats.
- * \param str         The textual description -- must not be \c NULL.
- * \param is_global   \c true if and only if the Column is to be global.
- * \param state       The Read state -- must not be \c NULL.
+ * \param len           The length of the column. If this is \c NULL, the
+ *                      length is set to INT64_MAX beats.
+ * \param str           The textual description -- must not be \c NULL.
+ * \param is_global     \c true if and only if the Column is to be global.
+ * \param event_names   The Event names -- must not be \c NULL.
+ * \param state         The Read state -- must not be \c NULL.
  *
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
@@ -128,6 +130,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
 Column* new_Column_from_string(Reltime* len,
                                char* str,
                                bool is_global,
+                               Event_names* event_names,
                                Read_state* state);
 
 
@@ -141,7 +144,7 @@ Column* new_Column_from_string(Reltime* len,
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
+//bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
 
 
 /**

@@ -169,9 +169,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_scale_process);
     Event_handler_set_global_process(eh, "W.so", EVENT_GLOBAL_SET_SCALE_OFFSET,
                                      Event_global_set_scale_offset_process);
-    Event_handler_set_global_process(eh, "W.ms", EVENT_GLOBAL_MIMIC_SCALE,
+    Event_handler_set_global_process(eh, "Wms", EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
-    Event_handler_set_global_process(eh, "W.si", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
+    Event_handler_set_global_process(eh, "Wssi", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
                                      Event_global_shift_scale_intervals_process);
 
     Event_handler_set_global_process(eh, "W.t", EVENT_GLOBAL_SET_TEMPO,
@@ -250,37 +250,49 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, "C/=P", EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
-    Event_handler_set_ch_process(eh, "C.Gb", EVENT_CHANNEL_SET_GEN_BOOL,
+    Event_handler_set_ch_process(eh, "C.gB", EVENT_CHANNEL_SET_GEN_BOOL,
                                  Event_channel_set_gen_bool_process);
-    Event_handler_set_ch_process(eh, "C.Gi", EVENT_CHANNEL_SET_GEN_INT,
+    Event_handler_set_ch_process(eh, "C.gI", EVENT_CHANNEL_SET_GEN_INT,
                                  Event_channel_set_gen_int_process);
-    Event_handler_set_ch_process(eh, "C.Gf", EVENT_CHANNEL_SET_GEN_FLOAT,
+    Event_handler_set_ch_process(eh, "C.gF", EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
-    Event_handler_set_ch_process(eh, "C.Gt", EVENT_CHANNEL_SET_GEN_RELTIME,
+    Event_handler_set_ch_process(eh, "C.gT", EVENT_CHANNEL_SET_GEN_RELTIME,
                                  Event_channel_set_gen_reltime_process);
 
     Event_handler_set_ins_process(eh, "I.ped", EVENT_INS_SET_PEDAL,
                                   Event_ins_set_pedal_process);
 
-    Event_handler_set_generator_process(eh, "G.b", EVENT_GENERATOR_SET_BOOL,
+    Event_handler_set_generator_process(eh, "G.B", EVENT_GENERATOR_SET_BOOL,
                                         Event_generator_set_bool_process);
-    Event_handler_set_generator_process(eh, "G.i", EVENT_GENERATOR_SET_INT,
+    Event_handler_set_generator_process(eh, "G.I", EVENT_GENERATOR_SET_INT,
                                         Event_generator_set_int_process);
-    Event_handler_set_generator_process(eh, "G.f", EVENT_GENERATOR_SET_FLOAT,
+    Event_handler_set_generator_process(eh, "G.F", EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
-    Event_handler_set_generator_process(eh, "G.t", EVENT_GENERATOR_SET_RELTIME,
+    Event_handler_set_generator_process(eh, "G.T", EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
-    Event_handler_set_dsp_process(eh, "D.b", EVENT_DSP_SET_BOOL,
+    Event_handler_set_dsp_process(eh, "D.B", EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
-    Event_handler_set_dsp_process(eh, "D.i", EVENT_DSP_SET_INT,
+    Event_handler_set_dsp_process(eh, "D.I", EVENT_DSP_SET_INT,
                                   Event_dsp_set_int_process);
-    Event_handler_set_dsp_process(eh, "D.f", EVENT_DSP_SET_FLOAT,
+    Event_handler_set_dsp_process(eh, "D.F", EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
-    Event_handler_set_dsp_process(eh, "D.t", EVENT_DSP_SET_RELTIME,
+    Event_handler_set_dsp_process(eh, "D.T", EVENT_DSP_SET_RELTIME,
                                   Event_dsp_set_reltime_process);
 
+    if (Event_names_error(eh->event_names))
+    {
+        del_Event_handler(eh);
+        return NULL;
+    }
     return eh;
+}
+
+
+Event_names* Event_handler_get_names(Event_handler* eh)
+{
+    assert(eh != NULL);
+    return eh->event_names;
 }
 
 

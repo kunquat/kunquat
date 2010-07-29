@@ -44,6 +44,16 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
 
 /**
+ * Retrieves the Event names from the Event handler.
+ *
+ * \param eh   The Event handler -- must not be \c NULL.
+ *
+ * \return   The Event names.
+ */
+Event_names* Event_handler_get_names(Event_handler* eh);
+
+
+/**
  * Registers a Channel Event processor.
  *
  * \param eh        The Event handler -- must not be \c NULL.
