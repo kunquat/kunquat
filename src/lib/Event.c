@@ -184,24 +184,18 @@ char* Event_read(Event* event, char* str, Read_state* state)
     {
         return str;
     }
+    char* fields_start = str /*- 1*/;
+    char* fields_end = Event_type_get_fields(fields_start,
+                                             event->field_types,
+                                             NULL, state);
+    if (state->error)
+    {
+        return fields_end;
+    }
+    assert(fields_end != NULL);
+    assert(fields_end > fields_start);
     if (Event_get_field_count(event) > 0)
     {
-        str = read_const_char(str, ',', state);
-        str = read_const_char(str, '[', state);
-        if (state->error)
-        {
-            return str;
-        }
-        char* fields_start = str - 1;
-        char* fields_end = Event_type_get_fields(fields_start,
-                                                 event->field_types,
-                                                 NULL, state);
-        if (state->error)
-        {
-            return fields_end;
-        }
-        assert(fields_end != NULL);
-        assert(fields_end >= fields_start);
         event->fields = xcalloc(char, fields_end - fields_start + 1);
         if (event->fields == NULL)
         {
@@ -211,7 +205,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
         strncpy(event->fields, fields_start, fields_end - fields_start);
         return fields_end;
     }
-    return str;
+    return fields_end;
 }
 
 

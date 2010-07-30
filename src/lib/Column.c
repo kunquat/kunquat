@@ -445,6 +445,7 @@ static bool Column_parse(Column* col,
             Read_state_set_error(state, "Couldn't allocate memory for Event");
             return false;
         }
+        str = read_const_char(str, ',', state);
         str = Event_read(event, str, state);
         if (state->error)
         {
