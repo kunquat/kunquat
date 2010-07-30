@@ -194,6 +194,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                NULL,
                                &play->pos,
                                limit,
+                               true,
                                nframes,
                                mixed,
                                play->tempo,
@@ -441,22 +442,20 @@ uint32_t Pattern_mix(Pattern* pat,
 /*            uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                     to_be_mixed + mixed, mixed, play->freq, play->tempo); */
             uint32_t mix_until = to_be_mixed + mixed;
-            if (Reltime_cmp(&play->delay_left, Reltime_init(RELTIME_AUTO)) <= 0)
+            for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
             {
-                for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-                {
-                    Column_iter_change_col(play->citer, pat->cols[i]);
-                    Channel_set_voices(channels[i],
-                                       play->voice_pool,
-                                       play->citer,
-                                       &play->pos,
-                                       limit,
-                                       mix_until,
-                                       mixed,
-                                       play->tempo,
-                                       play->freq,
-                                       eh);
-                }
+                Column_iter_change_col(play->citer, pat->cols[i]);
+                Channel_set_voices(channels[i],
+                                   play->voice_pool,
+                                   play->citer,
+                                   &play->pos,
+                                   limit,
+                                   delay,
+                                   mix_until,
+                                   mixed,
+                                   play->tempo,
+                                   play->freq,
+                                   eh);
             }
             uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                     mix_until, mixed, play->freq, play->tempo);

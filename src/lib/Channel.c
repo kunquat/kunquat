@@ -91,6 +91,7 @@ void Channel_set_voices(Channel* ch,
                         Column_iter* citer,
                         Reltime* start,
                         Reltime* end,
+                        bool delay,
                         uint32_t nframes,
                         uint32_t offset,
                         double tempo,
@@ -111,7 +112,7 @@ void Channel_set_voices(Channel* ch,
     if (true || Reltime_cmp(Event_get_pos(next), Reltime_init(RELTIME_AUTO)) < 0) // FIXME: true
     {
         next = NULL;
-        if (citer != NULL)
+        if (!delay && citer != NULL)
         {
             next = Column_iter_get(citer, start);
         }

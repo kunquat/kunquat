@@ -79,6 +79,7 @@ Channel* new_Channel(Ins_table* insts,
  * \param end      The timestamp at and after which no Events will be
  *                 included, i.e. an Event with precisely or greater than this
  *                 timestamp is left out -- must not be \c NULL.
+ * \param delay    Whether Pattern delay is active or not.
  * \param offset   The mixing buffer offset.
  * \param tempo    The tempo -- must be > \c 0.
  * \param freq     The mixing frequency -- must be > \c 0.
@@ -89,6 +90,7 @@ void Channel_set_voices(Channel* ch,
                         Column_iter* citer,
                         Reltime* start,
                         Reltime* end,
+                        bool delay,
                         uint32_t nframes,
                         uint32_t offset,
                         double tempo,
