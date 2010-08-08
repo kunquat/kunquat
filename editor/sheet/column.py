@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from collections import defaultdict
 import json
 import re
 
@@ -37,21 +38,56 @@ class Column(object):
         self.path = path
     """
 
-    def __init__(self, num, triggers):
+    def __init__(self, num, triggers, theme):
         assert num >= -1
         self.num = num
-        self.triggers = sorted(triggers) if triggers else []
-        self.width = 128
+        self.triggers = self.arrange_triggers(triggers)
+        self._width = 128
         self.height = 0
+        self.colours = theme[0]
+        self.fonts = theme[1]
+        self.set_dimensions()
+
+    def width(self):
+        return self._width + 1
+
+    def arrange_triggers(self, triggers):
+        if not triggers:
+            return []
+        d = defaultdict(list)
+        for (ts, event) in triggers:
+            d[tuple(ts)].append(event)
+        return sorted([[ts, d[ts]] for ts in d])
 
     def resize(self, ev):
         self.height = ev.size().height()
+        self.set_dimensions()
+
+    def set_dimensions(self):
+        self.col_head_height = QtGui.QFontMetrics(
+                                   self.fonts['column_head']).height()
+        self.trigger_height = QtGui.QFontMetrics(
+                                  self.fonts['trigger']).height()
+        self.edit_area_height = self.height - self.col_head_height
 
     def paint(self, ev, paint, x):
-        col_area = QtCore.QRect(x, 0, self.width, self.height)
+        col_area = QtCore.QRect(x, 0, self._width, self.height)
         real_area = ev.rect().intersect(col_area)
-        if real_area.isEmpty():
+        if real_area.isEmpty() or (self.edit_area_height <=
+                                   self.trigger_height):
             return
-        paint.drawRect(real_area)
+#        paint.drawRect(real_area)
+        paint.setBrush(self.colours['column_head_bg'])
+        paint.setPen(QtCore.Qt.NoPen)
+        paint.drawRect(x, 0, self._width, self.col_head_height)
+
+        header_style = QtGui.QTextOption(QtCore.Qt.AlignHCenter)
+        paint.setPen(self.colours['column_head_text'])
+        paint.drawText(QtCore.QRectF(x, 0, self._width, self.col_head_height),
+                       '%02d' % self.num if self.num >= 0 else 'Global',
+                       header_style)
+        
+        paint.setPen(self.colours['column_border'])
+        paint.drawLine(x + self._width, 0, x + self._width, self.height - 1)
 
 
