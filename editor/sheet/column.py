@@ -82,7 +82,8 @@ class Column(object):
         paint.drawRect(x, 0, self._width, self.col_head_height)
 
         header_style = QtGui.QTextOption(QtCore.Qt.AlignHCenter)
-        paint.setPen(self.colours['column_head_text'])
+        paint.setPen(self.colours['column_head_fg'])
+        paint.setFont(self.fonts['column_head'])
         paint.drawText(QtCore.QRectF(x, 0, self._width, self.col_head_height),
                        '%02d' % self.num if self.num >= 0 else 'Global',
                        header_style)

@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+
 from PyQt4 import Qt, QtGui, QtCore
 
 from column import Column
@@ -31,7 +33,9 @@ class Pattern(QtGui.QWidget):
                 'bg': QtGui.QColor(0, 0, 0),
                 'column_border': QtGui.QColor(0xcc, 0xcc, 0xcc),
                 'column_head_bg': QtGui.QColor(0x33, 0x77, 0x22),
-                'column_head_text': QtGui.QColor(0xff, 0xee, 0xee),
+                'column_head_fg': QtGui.QColor(0xff, 0xee, 0xee),
+                'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
+                'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 }
         self.fonts = {
                 'column_head': QtGui.QFont('Decorative', 10),
@@ -39,7 +43,9 @@ class Pattern(QtGui.QWidget):
                 'trigger': QtGui.QFont('Decorative', 10),
                 }
         self.beat_len = 96
-        self.ruler = Ruler((16, 0), (self.colours, self.fonts))
+        self.ruler = Ruler((self.colours, self.fonts))
+        self.ruler.set_length(ts.Timestamp((8, 0)))
+        self.ruler.set_beat_len(self.beat_len)
         self.columns = [Column(num, None, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
         self.view_columns = []
@@ -80,39 +86,125 @@ class Pattern(QtGui.QWidget):
 
 class Ruler(object):
 
-    def __init__(self, length, theme):
-        self.length = length
+    def __init__(self, theme):
         self.colours = theme[0]
         self.fonts = theme[1]
         self.height = 0
-        self.start = ts.Timestamp()
+        self.view_start = ts.Timestamp()
+        self.beat_div_base = 2
         self.set_dimensions()
+
+    def get_viewable_positions(self, interval):
+        view_end = float(self.view_start) + self.ruler_height / self.beat_len
+        view_end = min(view_end, float(self.length))
+        error = interval / 2
+        pos = math.ceil(float(self.view_start) / interval) * interval
+        while pos < view_end:
+            if abs(pos - round(pos)) < error:
+                pos = round(pos)
+            yield pos
+            pos += interval
 
     def paint(self, ev, paint):
         ruler_area = QtCore.QRect(0, 0, self._width, self.height)
         real_area = ev.rect().intersect(ruler_area)
-        if real_area.isEmpty() or (real_area.height() <=
-                                   self.col_head_height):
+        if real_area.isEmpty() or self.ruler_height <= 0:
             return
+
+        view_start = float(self.view_start)
+        view_len = self.ruler_height / self.beat_len
+        view_end = view_start + view_len
+
+        # paint background, including start and end borders if visible
+        bg_start = self.col_head_height
+        bg_end = min(self.height, (float(self.length) - view_start) *
+                                   self.beat_len + self.col_head_height)
+        paint.setBrush(self.colours['ruler_bg'])
+        paint.setPen(QtCore.Qt.NoPen)
+        paint.drawRect(0, bg_start, self._width, bg_end - bg_start)
+        paint.setPen(self.colours['ruler_fg'])
+        if self.view_start == 0:
+            paint.drawLine(0, self.col_head_height,
+                           self._width - 2, self.col_head_height)
+        if bg_end < self.height:
+            paint.drawLine(0, bg_end, self._width - 2, bg_end)
+
+        # resolve intervals
+        line_min_time = self.line_min_dist / self.beat_len
+        line_interval = self.beat_div_base**math.ceil(
+                                math.log(line_min_time, self.beat_div_base))
+        num_min_time = self.num_min_dist / self.beat_len
+        num_interval = self.beat_div_base**math.ceil(
+                               math.log(num_min_time, self.beat_div_base))
+
+        # paint ruler lines
+        for line_pos in set(self.get_viewable_positions(
+                line_interval)).difference(
+                        self.get_viewable_positions(num_interval)):
+            self.paint_line(line_pos, paint)
+
+        # paint ruler beat numbers
+        paint.setFont(self.fonts['ruler'])
+        for num_pos in self.get_viewable_positions(num_interval):
+            self.paint_number(num_pos, paint)
+
+        # paint right border
         paint.setPen(self.colours['column_border'])
         paint.drawLine(self._width - 1, 0,
                        self._width - 1, self.height - 1)
 
+    def paint_line(self, pos, paint):
+        view_start = float(self.view_start)
+        view_len = self.ruler_height / self.beat_len
+        view_end = view_start + view_len
+        y = self.col_head_height + (pos - view_start) * self.beat_len
+        if y < self.col_head_height or y >= self.height:
+            return
+        if pos == 0 or pos == float(self.length):
+            return
+        x = self._width - 3
+        paint.drawLine(x, y, self._width - 1, y)
+
+    def paint_number(self, pos, paint):
+        view_start = float(self.view_start)
+        view_len = self.ruler_height / self.beat_len
+        view_end = view_start + view_len
+        y = self.col_head_height + (pos - view_start) * self.beat_len
+        if y < self.col_head_height or y >= self.height:
+            return
+        if pos == 0 or pos == float(self.length):
+            return
+        x = self._width - 6
+        paint.drawLine(x, y, self._width - 1, y)
+        y -= self.num_height / 2
+        rect = QtCore.QRectF(0, y, self._width - 8, self.num_height)
+        text = str(round(pos, 3))
+        text = str(int(pos)) if pos == int(pos) else str(round(pos, 3))
+        paint.drawText(rect, text, QtGui.QTextOption(QtCore.Qt.AlignRight))
+
     def resize(self, ev):
         self.height = ev.size().height()
+        self.set_dimensions()
+
+    def set_beat_len(self, length):
+        self.beat_len = float(length)
 
     def set_dimensions(self):
-        self._width = QtGui.QFontMetrics(
-                          self.fonts['trigger']).boundingRect(
-                                                     '00.000').width() + 6
+        space = QtGui.QFontMetrics(
+                    self.fonts['ruler']).boundingRect('00.000')
+        self._width = space.width() + 8
+        self.num_height = space.height()
+        self.num_min_dist = space.height() * 2.0
+        self.line_min_dist = 4.0
         self.col_head_height = QtGui.QFontMetrics(
                                    self.fonts['column_head']).height()
+        self.ruler_height = self.height - self.col_head_height
 
     def set_length(self, length):
         self.length = length
 
-    def set_start(self, start):
-        self.start = start
+    def set_view_start(self, start):
+        self.view_start = start
 
     def width(self):
         return self._width
