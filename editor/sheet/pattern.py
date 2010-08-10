@@ -34,6 +34,8 @@ class Pattern(QtGui.QWidget):
                 'column_border': QtGui.QColor(0xcc, 0xcc, 0xcc),
                 'column_head_bg': QtGui.QColor(0x33, 0x77, 0x22),
                 'column_head_fg': QtGui.QColor(0xff, 0xee, 0xee),
+                'cursor_bg': QtGui.QColor(0xff, 0x44, 0x22, 0x77),
+                'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 }
@@ -44,12 +46,19 @@ class Pattern(QtGui.QWidget):
                 }
         self.length = ts.Timestamp(8)
         self.beat_len = 96
+        self.view_start = ts.Timestamp(0)
         self.ruler = Ruler((self.colours, self.fonts))
         self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)
+        self.ruler.set_view_start(self.view_start)
         self.columns = [Column(num, None, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
+        for col in self.columns:
+            col.set_length(self.length)
+            col.set_beat_len(self.beat_len)
+            col.set_view_start(self.view_start)
         self.cursor = Cursor(self.length, self.beat_len)
+        self.columns[0].set_cursor(self.cursor)
         self.view_columns = []
 
     def set_path(self, path):

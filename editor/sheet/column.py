@@ -46,6 +46,7 @@ class Column(object):
         self.colours = theme[0]
         self.fonts = theme[1]
         self.set_dimensions()
+        self.set_cursor()
 
     def width(self):
         return self._width + 1
@@ -62,12 +63,18 @@ class Column(object):
         self.height = ev.size().height()
         self.set_dimensions()
 
+    def set_cursor(self, cursor=None):
+        self.cursor = cursor
+
     def set_dimensions(self):
         self.col_head_height = QtGui.QFontMetrics(
                                    self.fonts['column_head']).height()
         self.trigger_height = QtGui.QFontMetrics(
                                   self.fonts['trigger']).height()
         self.edit_area_height = self.height - self.col_head_height
+
+    def set_view_start(self, start):
+        self.view_start = start
 
     def paint(self, ev, paint, x):
         col_area = QtCore.QRect(x, 0, self._width, self.height)
@@ -76,6 +83,14 @@ class Column(object):
                                    self.trigger_height):
             return
 #        paint.drawRect(real_area)
+
+        if self.cursor:
+            pix_cur_pos = self.cursor.get_pix_pos() - self.view_start
+            if 0 <= pix_cur_pos < self.edit_area_height:
+                pix_cur_pos += self.col_head_height
+                paint.setPen(self.colours['cursor_line'])
+                paint.drawLine(x, pix_cur_pos, x + self._width - 1, pix_cur_pos)
+
         paint.setBrush(self.colours['column_head_bg'])
         paint.setPen(QtCore.Qt.NoPen)
         paint.drawRect(x, 0, self._width, self.col_head_height)
@@ -89,5 +104,15 @@ class Column(object):
         
         paint.setPen(self.colours['column_border'])
         paint.drawLine(x + self._width, 0, x + self._width, self.height - 1)
+
+    def set_beat_len(self, length):
+        self.beat_len = float(length)
+
+    def set_length(self, length):
+        self.length = length
+
+    def set_view_start(self, start):
+        self.view_start = start
+        self.pix_view_start = start * self.beat_len
 
 

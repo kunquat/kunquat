@@ -50,10 +50,13 @@ class Cursor(object):
         self.pix_pos = ts * self.beat_len
 
     def set_pix_pos(self, pix_pos):
-        pix_pos = max(0, pix_pos)
+        self.pix_pos = max(0, pix_pos)
         self.ts = timestamp.Timestamp(self.pix_pos / self.beat_len)
         if self.ts > self.length:
             self.set_pos(self.length)
+
+    def get_pix_pos(self):
+        return self.pix_pos
 
     def set_index(self, index):
         assert index >= 0
