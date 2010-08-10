@@ -12,58 +12,47 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import math
+
 from kqt_limits import TIMESTAMP_BEAT
 
 
 class Timestamp(object):
 
-    def __init__(self, ts=(0, 0)):
-        assert isinstance(ts, tuple)
-        assert len(ts) == 2
-        assert isinstance(ts[0], int)
-        assert isinstance(ts[1], int)
-        assert ts[1] >= 0
-        assert ts[1] < TIMESTAMP_BEAT
-        self.beats = ts[0]
-        self.rem = ts[1]
+    def __init__(self, beats=0, rem=0):
+        self.beats = int(math.floor(beats) + rem // TIMESTAMP_BEAT)
+        self.rem = int((beats - math.floor(beats)) * TIMESTAMP_BEAT +
+                       rem % TIMESTAMP_BEAT)
 
     def __lt__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        if self.beats > other.beats:
-            return False
-        return self.beats < other.beats or self.rem < other.rem
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return (self.beats, self.rem) < (other.beats, other.rem)
 
     def __le__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        if self.beats > other.beats:
-            return False
-        return self.beats < other.beats or self.rem <= other.rem
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return (self.beats, self.rem) <= (other.beats, other.rem)
 
     def __eq__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
         return self.beats == other.beats and self.rem == other.rem
 
     def __ne__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
         return self.beats != other.beats or self.rem != other.rem
 
     def __gt__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        if self.beats < other.beats:
-            return False
-        return self.beats > other.beats or self.rem > other.rem
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return (self.beats, self.rem) > (other.beats, other.rem)
 
     def __ge__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        if self.beats < other.beats:
-            return False
-        return self.beats > other.beats or self.rem >= other.rem
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return (self.beats, self.rem) >= (other.beats, other.rem)
 
     def __hash__(self):
         return (self.beats, self.rem).__hash__()
@@ -72,45 +61,42 @@ class Timestamp(object):
         return self.beats != 0 or self.rem != 0
 
     def __add__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        beats = self.beats + other.beats
-        rem = self.rem + other.rem
-        if rem >= TIMESTAMP_BEAT:
-            beats += 1
-            rem -= TIMESTAMP_BEAT
-        elif rem < 0:
-            beats -= 1
-            rem += TIMESTAMP_BEAT
-        return Timestamp((beats, rem))
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return Timestamp(self.beats + other.beats, self.rem + other.rem)
 
     def __sub__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-        beats = self.beats - other.beats
-        rem = self.rem - other.rem
-        if rem >= TIMESTAMP_BEAT:
-            beats += 1
-            rem -= TIMESTAMP_BEAT
-        elif rem < 0:
-            beats -= 1
-            rem += TIMESTAMP_BEAT
-        return Timestamp((beats, rem))
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return Timestamp(self.beats - other.beats, self.rem - other.rem)
+
+    def __mul__(self, other):
+        other = float(other)
+        rems = self.beats * TIMESTAMP_BEAT + self.rem
+        return Timestamp(rem=rems * other)
+
+    def __div__(self, other):
+        return self.__mul__(1 / float(other))
 
     def __radd__(self, other):
         return self.__add__(other)
 
     def __rsub__(self, other):
-        if isinstance(other, int):
-            other = Timestamp((other, 0))
-            return other - self
+        if not isinstance(other, Timestamp):
+            other = Timestamp(other)
+        return other - self
+
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
+    def __rdiv__(self, other):
         return NotImplemented
 
     def __neg__(self):
         return 0 - self
 
     def __pos__(self):
-        return Timestamp((self.beats, self.rem))
+        return Timestamp(self.beats, self.rem)
 
     def __abs__(self):
         if self < 0:
@@ -118,7 +104,7 @@ class Timestamp(object):
         return self
 
     def __repr__(self):
-        return '(%d, %d)' % (self.beats, self.rem)
+        return 'Timestamp({0}, {1})'.format(self.beats, self.rem)
 
     def __int__(self):
         return self.beats

@@ -17,6 +17,7 @@ import math
 from PyQt4 import Qt, QtGui, QtCore
 
 from column import Column
+from cursor import Cursor
 import kqt_limits as lim
 import timestamp as ts
 
@@ -42,12 +43,14 @@ class Pattern(QtGui.QWidget):
                 'ruler': QtGui.QFont('Decorative', 8),
                 'trigger': QtGui.QFont('Decorative', 10),
                 }
+        self.length = ts.Timestamp(8)
         self.beat_len = 96
         self.ruler = Ruler((self.colours, self.fonts))
-        self.ruler.set_length(ts.Timestamp((8, 0)))
+        self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)
         self.columns = [Column(num, None, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
+        self.cursor = Cursor(self.length, self.beat_len)
         self.view_columns = []
 
     def set_path(self, path):
@@ -178,7 +181,7 @@ class Ruler(object):
         x = self._width - 6
         if y < self.height:
             paint.drawLine(x, y, self._width - 1, y)
-        y -= self.num_height / 2
+        y -= self.num_height // 2
         if y >= self.height:
             return
         rect = QtCore.QRectF(0, y, self._width - 8, self.num_height)
