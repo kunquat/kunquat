@@ -95,7 +95,8 @@ class Ruler(object):
         self.set_dimensions()
 
     def get_viewable_positions(self, interval):
-        view_end = float(self.view_start) + self.ruler_height / self.beat_len
+        view_end = float(self.view_start) + (self.ruler_height +
+                                             self.num_height) / self.beat_len
         view_end = min(view_end, float(self.length))
         error = interval / 2
         pos = math.ceil(float(self.view_start) / interval) * interval
@@ -170,13 +171,16 @@ class Ruler(object):
         view_len = self.ruler_height / self.beat_len
         view_end = view_start + view_len
         y = self.col_head_height + (pos - view_start) * self.beat_len
-        if y < self.col_head_height or y >= self.height:
+        if y < self.col_head_height:
             return
         if pos == 0 or pos == float(self.length):
             return
         x = self._width - 6
-        paint.drawLine(x, y, self._width - 1, y)
+        if y < self.height:
+            paint.drawLine(x, y, self._width - 1, y)
         y -= self.num_height / 2
+        if y >= self.height:
+            return
         rect = QtCore.QRectF(0, y, self._width - 8, self.num_height)
         text = str(round(pos, 3))
         text = str(int(pos)) if pos == int(pos) else str(round(pos, 3))
