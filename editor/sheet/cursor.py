@@ -25,10 +25,10 @@ class Cursor(object):
         self.init_trigger_delay = 6
         self.cur_trigger_delay = self.init_trigger_delay
         self.trigger_delay_left = 0
+        self.ts = timestamp.Timestamp()
         self.set_length(length)
         self.set_beat_len(beat_len)
         self.set_col(-1)
-        self.set_pos(timestamp.Timestamp())
         self.set_index(0)
         self.set_accel(1.18)
         self.direction = 0
@@ -48,6 +48,7 @@ class Cursor(object):
             self.set_pos(self.ts + 4)
         else:
             ev.ignore()
+        print(self.ts)
 
     def key_release(self, ev):
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
@@ -58,6 +59,7 @@ class Cursor(object):
     def set_beat_len(self, beat_len):
         assert beat_len > 0
         self.beat_len = beat_len
+        self.set_pos(self.ts)
 
     def set_length(self, length):
         assert length >= 0
@@ -69,11 +71,11 @@ class Cursor(object):
         self.col = col
 
     def set_pos(self, ts):
-        self.ts = min(max(0, ts), self.length)
+        self.ts = min(max(timestamp.Timestamp(), ts), self.length)
         self.pix_pos = self.ts * self.beat_len
 
     def set_pix_pos(self, pix_pos):
-        self.pix_pos = max(0, pix_pos)
+        self.pix_pos = float(max(0, pix_pos))
         self.ts = timestamp.Timestamp(self.pix_pos / self.beat_len)
         if self.ts > self.length:
             self.set_pos(self.length)
@@ -97,7 +99,13 @@ class Cursor(object):
         self.cur_speed = self.init_speed * direction
 
     def step(self):
+        if not self.cur_speed:
+            return
+        orig_pos = self.ts
         self.set_pix_pos(self.pix_pos + self.cur_speed)
+        if self.ts == orig_pos:
+            self.set_pos(self.ts + timestamp.Timestamp(0,
+                                       1 if self.cur_speed > 0 else -1))
         if abs(self.cur_speed) == self.max_speed:
             return
         self.cur_speed *= self.accel

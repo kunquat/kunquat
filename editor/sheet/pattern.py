@@ -120,6 +120,13 @@ class Pattern(QtGui.QWidget):
         return False
 
     def keyPressEvent(self, ev):
+        if ev.modifiers() == QtCore.Qt.ControlModifier:
+            if ev.key() == QtCore.Qt.Key_Up:
+                self.zoom(self.zoom_factor)
+            elif ev.key() == QtCore.Qt.Key_Down:
+                self.zoom(1 / self.zoom_factor)
+            return
+
         if ev.key() == QtCore.Qt.Key_Left:
             if self.cursor_col > -1:
                 self.columns[self.cursor_col + 1].set_cursor()
@@ -187,6 +194,31 @@ class Pattern(QtGui.QWidget):
             if used > total_width:
                 break
             yield column
+
+    def zoom(self, factor):
+        pix_view_start = self.view_start * self.beat_len
+        cur_view_pos = self.cursor.get_pix_pos() - pix_view_start
+        self.beat_len = min(max(1, self.beat_len * factor),
+                            lim.TIMESTAMP_BEAT * 3)
+        self.cursor.set_beat_len(self.beat_len)
+        self.view_start = ts.Timestamp((self.cursor.get_pix_pos() -
+                                        cur_view_pos) / self.beat_len)
+        if self.view_start < 0:
+            self.view_start = ts.Timestamp()
+        pix_view_start = self.view_start * self.beat_len
+        pix_pat_len = self.length * self.beat_len
+        col_head_height = QtGui.QFontMetrics(
+                              self.fonts['column_head']).height()
+        area_height = self.height - col_head_height
+        trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height()
+        if pix_pat_len - pix_view_start < area_height - trigger_height:
+            self.follow_cursor_vertical()
+        self.ruler.set_beat_len(self.beat_len)
+        self.ruler.set_view_start(self.view_start)
+        for col in self.columns:
+            col.set_beat_len(self.beat_len)
+            col.set_view_start(self.view_start)
+        self.update()
 
 
 class Ruler(object):
