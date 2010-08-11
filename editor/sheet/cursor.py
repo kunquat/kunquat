@@ -46,6 +46,12 @@ class Cursor(object):
         elif ev.key() == QtCore.Qt.Key_PageDown:
             self.set_direction()
             self.set_pos(self.ts + 4)
+        elif ev.key() == QtCore.Qt.Key_Home:
+            self.set_direction()
+            self.set_pos(self.ts * 0)
+        elif ev.key() == QtCore.Qt.Key_End:
+            self.set_direction()
+            self.set_pos(self.length)
         else:
             ev.ignore()
         print(self.ts)

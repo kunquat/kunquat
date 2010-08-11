@@ -148,7 +148,8 @@ class Pattern(QtGui.QWidget):
             else:
                 assert self.cursor_col == lim.COLUMNS_MAX - 1
         elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
-                          QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown):
+                          QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown,
+                          QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
             self.cursor.key_press(ev)
             self.follow_cursor_vertical()
             self.update()
