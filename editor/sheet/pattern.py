@@ -65,6 +65,7 @@ class Pattern(QtGui.QWidget):
         self.width = 0
         self.height = 0
         self.cursor_center_area = 0.3
+        self.zoom_factor = 1.5
 
     def set_path(self, path):
         pass
@@ -139,7 +140,8 @@ class Pattern(QtGui.QWidget):
                 self.update()
             else:
                 assert self.cursor_col == lim.COLUMNS_MAX - 1
-        elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
+        elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
+                          QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown):
             self.cursor.key_press(ev)
             self.follow_cursor_vertical()
             self.update()

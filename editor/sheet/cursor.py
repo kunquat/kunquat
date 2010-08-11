@@ -40,6 +40,12 @@ class Cursor(object):
         elif ev.key() == QtCore.Qt.Key_Down:
             self.set_direction(1)
             self.step()
+        elif ev.key() == QtCore.Qt.Key_PageUp:
+            self.set_direction()
+            self.set_pos(self.ts - 4)
+        elif ev.key() == QtCore.Qt.Key_PageDown:
+            self.set_direction()
+            self.set_pos(self.ts + 4)
         else:
             ev.ignore()
 
@@ -63,9 +69,8 @@ class Cursor(object):
         self.col = col
 
     def set_pos(self, ts):
-        assert ts >= 0
-        self.ts = ts
-        self.pix_pos = ts * self.beat_len
+        self.ts = min(max(0, ts), self.length)
+        self.pix_pos = self.ts * self.beat_len
 
     def set_pix_pos(self, pix_pos):
         self.pix_pos = max(0, pix_pos)
