@@ -62,12 +62,27 @@ class Pattern(QtGui.QWidget):
         self.columns[0].set_cursor(self.cursor)
         self.cursor_col = -1
         self.view_columns = []
+        self.width = 0
+        self.height = 0
 
     def set_path(self, path):
         pass
 
 #    def sizeHint(self):
 #        return QtCore.QSize(100, 100)
+
+    def follow_cursor_horizontal(self):
+        if not self.view_columns or self.cursor_col in self.view_columns:
+            return
+        elif self.cursor_col < self.view_columns[0].get_num():
+            self.first_column = self.cursor_col
+            self.view_columns = list(self.get_viewable_columns(self.width))
+        elif self.cursor_col > self.view_columns[-1].get_num():
+            left_cols = list(self.get_viewable_columns(self.width,
+                                                       self.cursor_col, -1))
+            if left_cols:
+                self.first_column = left_cols[-1].get_num()
+                self.view_columns = list(self.get_viewable_columns(self.width))
 
     def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Left:
@@ -76,6 +91,7 @@ class Pattern(QtGui.QWidget):
                 self.columns[self.cursor_col].set_cursor(self.cursor)
                 self.cursor.set_col(self.cursor_col - 1)
                 self.cursor_col -= 1
+                self.follow_cursor_horizontal()
                 self.update()
             else:
                 assert self.cursor_col == -1
@@ -85,6 +101,7 @@ class Pattern(QtGui.QWidget):
                 self.columns[self.cursor_col + 2].set_cursor(self.cursor)
                 self.cursor.set_col(self.cursor_col + 1)
                 self.cursor_col += 1
+                self.follow_cursor_horizontal()
                 self.update()
             else:
                 assert self.cursor_col == lim.COLUMNS_MAX - 1
@@ -115,17 +132,22 @@ class Pattern(QtGui.QWidget):
         paint.end()
 
     def resizeEvent(self, ev):
-        self.view_columns = list(self.get_viewable_columns(ev))
+        self.width = ev.size().width()
+        self.height = ev.size().height()
+        self.view_columns = list(self.get_viewable_columns(self.width))
         self.ruler.resize(ev)
-        for column in self.view_columns:
-            column.resize(ev)
+        for column in self.columns:
+            column.resize(self.height)
 
-    def get_viewable_columns(self, ev):
+    def get_viewable_columns(self, total_width, start=None, direction=1):
+        if start == None:
+            start = self.first_column
+        assert direction in (1, -1)
         used = self.ruler.width()
-        for (width, column) in \
-                ((c.width(), c) for c in self.columns[self.first_column + 1:]):
+        for (width, column) in ((c.width(), c) for c in \
+                           self.columns[start + 1::direction]):
             used += width
-            if used > ev.size().width():
+            if used > total_width:
                 break
             yield column
 

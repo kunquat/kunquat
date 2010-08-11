@@ -48,6 +48,9 @@ class Column(object):
         self.set_dimensions()
         self.set_cursor()
 
+    def get_num(self):
+        return self.num
+
     def width(self):
         return self._width + 1
 
@@ -59,8 +62,8 @@ class Column(object):
             d[tuple(ts)].append(event)
         return sorted([[ts, d[ts]] for ts in d])
 
-    def resize(self, ev):
-        self.height = ev.size().height()
+    def resize(self, height):
+        self.height = height
         self.set_dimensions()
 
     def set_cursor(self, cursor=None):
