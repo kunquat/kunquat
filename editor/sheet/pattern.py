@@ -64,6 +64,7 @@ class Pattern(QtGui.QWidget):
         self.view_columns = []
         self.width = 0
         self.height = 0
+        self.cursor_center_area = 0.3
 
     def set_path(self, path):
         pass
@@ -73,16 +74,49 @@ class Pattern(QtGui.QWidget):
 
     def follow_cursor_horizontal(self):
         if not self.view_columns or self.cursor_col in self.view_columns:
-            return
+            return False
         elif self.cursor_col < self.view_columns[0].get_num():
             self.first_column = self.cursor_col
             self.view_columns = list(self.get_viewable_columns(self.width))
+            return True
         elif self.cursor_col > self.view_columns[-1].get_num():
             left_cols = list(self.get_viewable_columns(self.width,
                                                        self.cursor_col, -1))
             if left_cols:
                 self.first_column = left_cols[-1].get_num()
                 self.view_columns = list(self.get_viewable_columns(self.width))
+            return True
+        return False
+
+    def follow_cursor_vertical(self):
+        col_head_height = QtGui.QFontMetrics(
+                              self.fonts['column_head']).height()
+        trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height()
+        pix_view_start = self.view_start * self.beat_len
+        pix_pat_end = (self.length - self.view_start) * self.beat_len
+        pix_pat_len = self.length * self.beat_len
+        cur_view_pos = self.cursor.get_pix_pos() - pix_view_start
+        area_height = self.height - col_head_height
+        neg_pix_shift = cur_view_pos - area_height * (0.5 -
+                                           (self.cursor_center_area / 2))
+        neg_pix_shift += trigger_height / 2
+        pos_pix_shift = cur_view_pos - area_height * (0.5 +
+                                           (self.cursor_center_area / 2))
+        pos_pix_shift += trigger_height / 2
+        if neg_pix_shift < 0:
+            pix_view_start = max(0, pix_view_start + neg_pix_shift)
+        elif pos_pix_shift > 0:
+            pix_view_start += pos_pix_shift
+            if pix_pat_len - pix_view_start < area_height - trigger_height:
+                pix_view_start = pix_pat_len - area_height + trigger_height
+                pix_view_start = max(0, pix_view_start)
+        if neg_pix_shift < 0 or pos_pix_shift > 0:
+            self.view_start = ts.Timestamp(pix_view_start / self.beat_len)
+            self.ruler.set_view_start(self.view_start)
+            for col in self.columns:
+                col.set_view_start(self.view_start)
+            return True
+        return False
 
     def keyPressEvent(self, ev):
         if ev.key() == QtCore.Qt.Key_Left:
@@ -107,6 +141,7 @@ class Pattern(QtGui.QWidget):
                 assert self.cursor_col == lim.COLUMNS_MAX - 1
         elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
             self.cursor.key_press(ev)
+            self.follow_cursor_vertical()
             self.update()
         else:
             print('press:', ev.key())

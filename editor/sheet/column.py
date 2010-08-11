@@ -88,7 +88,8 @@ class Column(object):
 #        paint.drawRect(real_area)
 
         if self.cursor:
-            pix_cur_pos = self.cursor.get_pix_pos() - self.view_start
+            pix_cur_pos = (self.cursor.get_pix_pos() -
+                           self.view_start * self.beat_len)
             if 0 <= pix_cur_pos < self.edit_area_height:
                 pix_cur_pos += self.col_head_height
                 paint.setPen(self.colours['cursor_line'])
