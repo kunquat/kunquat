@@ -27,6 +27,7 @@ class Pattern(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
+        self.setFocusPolicy(QtCore.Qt.StrongFocus)
         self.handle = handle
         self.first_column = -1
         self.colours = {
@@ -34,7 +35,7 @@ class Pattern(QtGui.QWidget):
                 'column_border': QtGui.QColor(0xcc, 0xcc, 0xcc),
                 'column_head_bg': QtGui.QColor(0x33, 0x77, 0x22),
                 'column_head_fg': QtGui.QColor(0xff, 0xee, 0xee),
-                'cursor_bg': QtGui.QColor(0xff, 0x44, 0x22, 0x77),
+                'cursor_bg': QtGui.QColor(0xff, 0x66, 0x22, 0x77),
                 'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
@@ -59,6 +60,7 @@ class Pattern(QtGui.QWidget):
             col.set_view_start(self.view_start)
         self.cursor = Cursor(self.length, self.beat_len)
         self.columns[0].set_cursor(self.cursor)
+        self.cursor_col = -1
         self.view_columns = []
 
     def set_path(self, path):
@@ -66,6 +68,39 @@ class Pattern(QtGui.QWidget):
 
 #    def sizeHint(self):
 #        return QtCore.QSize(100, 100)
+
+    def keyPressEvent(self, ev):
+        if ev.key() == QtCore.Qt.Key_Left:
+            if self.cursor_col > -1:
+                self.columns[self.cursor_col + 1].set_cursor()
+                self.columns[self.cursor_col].set_cursor(self.cursor)
+                self.cursor.set_col(self.cursor_col - 1)
+                self.cursor_col -= 1
+                self.update()
+            else:
+                assert self.cursor_col == -1
+        elif ev.key() == QtCore.Qt.Key_Right:
+            if self.cursor_col < lim.COLUMNS_MAX - 1:
+                self.columns[self.cursor_col + 1].set_cursor()
+                self.columns[self.cursor_col + 2].set_cursor(self.cursor)
+                self.cursor.set_col(self.cursor_col + 1)
+                self.cursor_col += 1
+                self.update()
+            else:
+                assert self.cursor_col == lim.COLUMNS_MAX - 1
+        elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
+            self.cursor.key_press(ev)
+            self.update()
+        else:
+            print('press:', ev.key())
+
+    def keyReleaseEvent(self, ev):
+        if ev.isAutoRepeat():
+            return
+        if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
+            self.cursor.key_release(ev)
+        else:
+            print('release:', ev.key())
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()

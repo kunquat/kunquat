@@ -16,7 +16,7 @@ import json
 import re
 
 import kunquat
-from PyQt4 import Qt, QtGui, QtCore
+from PyQt4 import QtGui, QtCore
 
 import kqt_limits
 

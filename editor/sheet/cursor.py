@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from PyQt4 import QtCore
+
 import kqt_limits as lim
 import timestamp
 
@@ -19,7 +21,7 @@ class Cursor(object):
 
     def __init__(self, length, beat_len):
         self.init_speed = 1
-        self.max_speed = 16
+        self.max_speed = 12
         self.init_trigger_delay = 6
         self.cur_trigger_delay = self.init_trigger_delay
         self.trigger_delay_left = 0
@@ -28,8 +30,24 @@ class Cursor(object):
         self.set_col(-1)
         self.set_pos(timestamp.Timestamp())
         self.set_index(0)
-        self.set_accel(1.5)
-        self.set_direction()
+        self.set_accel(1.18)
+        self.direction = 0
+
+    def key_press(self, ev):
+        if ev.key() == QtCore.Qt.Key_Up:
+            self.set_direction(-1)
+            self.step()
+        elif ev.key() == QtCore.Qt.Key_Down:
+            self.set_direction(1)
+            self.step()
+        else:
+            ev.ignore()
+
+    def key_release(self, ev):
+        if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
+            self.set_direction()
+        else:
+            ev.ignore()
 
     def set_beat_len(self, beat_len):
         assert beat_len > 0
@@ -68,6 +86,8 @@ class Cursor(object):
 
     def set_direction(self, direction=0):
         assert direction in [-1, 0, 1]
+        if self.direction == direction:
+            return
         self.direction = direction
         self.cur_speed = self.init_speed * direction
 

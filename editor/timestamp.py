@@ -57,6 +57,8 @@ class Timestamp(tuple):
     def __nonzero__(self):
         return self[0] != 0 or self[1] != 0
 
+    __bool__ = __nonzero__
+
     def __add__(self, other):
         if not isinstance(other, Timestamp):
             other = Timestamp(other)
