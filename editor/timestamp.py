@@ -77,6 +77,8 @@ class Timestamp(tuple):
     def __div__(self, other):
         return self.__mul__(1 / float(other))
 
+    __truediv__ = __div__
+
     def __radd__(self, other):
         return self.__add__(other)
 

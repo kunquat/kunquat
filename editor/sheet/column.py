@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import division
 from collections import defaultdict
 import json
 import re

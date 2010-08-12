@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import division
+
 from PyQt4 import QtCore
 
 import kqt_limits as lim
@@ -32,6 +34,7 @@ class Cursor(object):
         self.set_index(0)
         self.set_accel(1.18)
         self.direction = 0
+        self.triggers = []
 
     def key_press(self, ev):
         if ev.key() == QtCore.Qt.Key_Up:
@@ -70,6 +73,9 @@ class Cursor(object):
     def set_length(self, length):
         assert length >= 0
         self.length = length
+
+    def set_triggers(self, triggers):
+        self.triggers = triggers
 
     def set_col(self, col):
         assert col >= -1

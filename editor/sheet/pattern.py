@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import division
 import math
 
 from PyQt4 import Qt, QtGui, QtCore
@@ -52,7 +53,12 @@ class Pattern(QtGui.QWidget):
         self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)
         self.ruler.set_view_start(self.view_start)
-        self.columns = [Column(num, None, (self.colours, self.fonts))
+        mock_triggers = [
+                    [[0, 0], ['Cn+', [300]]],
+                    [[1, 0], ['Cn+', [0]]],
+                    [[1, 0], ['C.f', [-6]]],
+                ]
+        self.columns = [Column(num, mock_triggers, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
         for col in self.columns:
             col.set_length(self.length)
