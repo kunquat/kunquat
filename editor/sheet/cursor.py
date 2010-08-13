@@ -104,11 +104,12 @@ class Cursor(object):
         self.accel = accel
 
     def set_direction(self, direction=0):
-        assert direction in [-1, 0, 1]
+        assert direction in (-1, 0, 1)
         if self.direction == direction:
             return
         self.direction = direction
         self.cur_speed = self.init_speed * direction
+        self.trigger_delay_left = 0
 
     def step(self):
         if not self.cur_speed:

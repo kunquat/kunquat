@@ -40,6 +40,7 @@ class Pattern(QtGui.QWidget):
                 'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
+                'trigger_fg': QtGui.QColor(0xcc, 0xcc, 0xcc),
                 }
         self.fonts = {
                 'column_head': QtGui.QFont('Decorative', 10),
@@ -58,8 +59,9 @@ class Pattern(QtGui.QWidget):
                     [[1, 0], ['Cn+', [0]]],
                     [[1, 0], ['C.f', [-6]]],
                 ]
-        self.columns = [Column(num, mock_triggers, (self.colours, self.fonts))
+        self.columns = [Column(num, None, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
+        self.columns[0].set_triggers(mock_triggers)
         for col in self.columns:
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
@@ -159,16 +161,16 @@ class Pattern(QtGui.QWidget):
             self.cursor.key_press(ev)
             self.follow_cursor_vertical()
             self.update()
-        else:
-            print('press:', ev.key())
+#        else:
+#            print('press:', ev.key())
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
             return
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
             self.cursor.key_release(ev)
-        else:
-            print('release:', ev.key())
+#        else:
+#            print('release:', ev.key())
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()

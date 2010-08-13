@@ -11,6 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from collections import Sequence
 import math
 
 from kqt_limits import TIMESTAMP_BEAT
@@ -19,6 +20,8 @@ from kqt_limits import TIMESTAMP_BEAT
 class Timestamp(tuple):
 
     def __new__(cls, beats=0, rem=0):
+        if isinstance(beats, Sequence):
+            beats, rem = beats[0], beats[1]
         _beats = int(math.floor(beats) + rem // TIMESTAMP_BEAT)
         _rem = int((beats - math.floor(beats)) * TIMESTAMP_BEAT +
                    rem % TIMESTAMP_BEAT)
