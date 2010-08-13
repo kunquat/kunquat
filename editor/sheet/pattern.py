@@ -58,6 +58,18 @@ class Pattern(QtGui.QWidget):
                     [[0, 0], ['Cn+', [300]]],
                     [[1, 0], ['Cn+', [0]]],
                     [[1, 0], ['C.f', [-6]]],
+                    [[1, 441080640], ['C.f', [-6]]],
+                    [[2, 0], ['C.f', [-6]]],
+                    [[2, 441080640], ['C.f', [-6]]],
+                    [[3, 0], ['C.f', [-6]]],
+                    [[3, 441080640], ['C.f', [-6]]],
+                    [[4, 0], ['C.f', [-6]]],
+                    [[4, 441080640], ['C.f', [-6]]],
+                    [[5, 0], ['C.f', [-6]]],
+                    [[5, 441080640], ['C.f', [-6]]],
+                    [[6, 0], ['C.f', [-6]]],
+                    [[6, 441080640], ['C.f', [-6]]],
+                    [[7, 0], ['C.f', [-6]]],
                 ]
         self.columns = [Column(num, None, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
@@ -68,6 +80,7 @@ class Pattern(QtGui.QWidget):
             col.set_view_start(self.view_start)
         self.cursor = Cursor(self.length, self.beat_len)
         self.columns[0].set_cursor(self.cursor)
+        self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
         self.view_columns = []
         self.width = 0
@@ -139,7 +152,7 @@ class Pattern(QtGui.QWidget):
             if self.cursor_col > -1:
                 self.columns[self.cursor_col + 1].set_cursor()
                 self.columns[self.cursor_col].set_cursor(self.cursor)
-                self.cursor.set_col(self.cursor_col - 1)
+                self.cursor.set_col(self.columns[self.cursor_col])
                 self.cursor_col -= 1
                 self.follow_cursor_horizontal()
                 self.update()
@@ -149,7 +162,7 @@ class Pattern(QtGui.QWidget):
             if self.cursor_col < lim.COLUMNS_MAX - 1:
                 self.columns[self.cursor_col + 1].set_cursor()
                 self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-                self.cursor.set_col(self.cursor_col + 1)
+                self.cursor.set_col(self.columns[self.cursor_col + 2])
                 self.cursor_col += 1
                 self.follow_cursor_horizontal()
                 self.update()

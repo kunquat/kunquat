@@ -54,6 +54,9 @@ class Column(object):
     def get_num(self):
         return self.num
 
+    def get_triggers(self):
+        return self.triggers
+
     def width(self):
         return self._width + 1
 

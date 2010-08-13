@@ -78,8 +78,7 @@ class Cursor(object):
         self.triggers = triggers
 
     def set_col(self, col):
-        assert col >= -1
-        assert col < lim.COLUMNS_MAX
+        assert col
         self.col = col
 
     def set_pos(self, ts):
@@ -109,16 +108,32 @@ class Cursor(object):
             return
         self.direction = direction
         self.cur_speed = self.init_speed * direction
+        self.cur_trigger_delay = self.init_trigger_delay
         self.trigger_delay_left = 0
 
     def step(self):
         if not self.cur_speed:
+            return
+        if self.trigger_delay_left:
+            self.trigger_delay_left -= 1
             return
         orig_pos = self.ts
         self.set_pix_pos(self.pix_pos + self.cur_speed)
         if self.ts == orig_pos:
             self.set_pos(self.ts + timestamp.Timestamp(0,
                                        1 if self.cur_speed > 0 else -1))
+
+        first, second = ((orig_pos, self.ts) if orig_pos < self.ts
+                                             else (self.ts, orig_pos))
+        rows = [p for p in self.col.get_triggers() if first <= p <= second
+                                                      and p != orig_pos]
+        if rows:
+            pos = min(rows) if orig_pos < self.ts else max(rows)
+            self.set_pos(pos)
+            self.trigger_delay_left = self.cur_trigger_delay
+            if self.cur_trigger_delay:
+                self.cur_trigger_delay -= 1
+
         if abs(self.cur_speed) == self.max_speed:
             return
         self.cur_speed *= self.accel
