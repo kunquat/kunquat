@@ -1,0 +1,174 @@
+# -*- coding: utf-8 -*-
+
+#
+# Author: Tomi Jylhä-Ollila, Finland 2010
+#
+# This file is part of Kunquat.
+#
+# CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+#
+# To the extent possible under law, Kunquat Affirmers have waived all
+# copyright and related or neighboring rights to Kunquat.
+#
+
+from __future__ import division
+
+from PyQt4 import QtGui, QtCore
+
+import timestamp as ts
+
+
+class Trigger(list):
+
+    def __init__(self, data, theme):
+        list.__init__(self, data)
+        self.colours = theme[0]
+        self.fonts = theme[1]
+        self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
+        m_width = self.metrics.width('m')
+        self.margin = m_width * 0.3
+        self.padding = m_width * 0.3
+
+    def paint(self, paint, rect, offset=0, cursor=None):
+        paint.setPen(self.colours['trigger_fg'])
+        opt = QtGui.QTextOption()
+        opt.setWrapMode(QtGui.QTextOption.NoWrap)
+        opt.setAlignment(QtCore.Qt.AlignRight)
+
+        head_rect = QtCore.QRectF(rect)
+        head_rect.moveLeft(head_rect.left() + offset + self.margin)
+        type_width = self.metrics.width(self[0]) + self.margin
+        head_rect.setWidth(type_width)
+        head_rect = head_rect.intersect(rect)
+        if offset < 0:
+            if offset > -type_width:
+                paint.drawText(head_rect, self[0], opt)
+        else:
+            paint.drawText(head_rect, self[0], opt)
+        offset += type_width
+
+        for field in self[1]:
+            field_rect = QtCore.QRectF(rect)
+            field_rect.moveLeft(rect.left() + offset + self.padding)
+            field_width = self.field_width(field)
+            field_rect.setWidth(field_width)
+            field_rect = field_rect.intersect(rect)
+            if field_rect.isValid():
+                if field_rect.width() < field_width:
+                    opt.setAlignment(QtCore.Qt.AlignLeft)
+                self.paint_field(paint, field, field_rect, opt)
+                offset += field_rect.width()
+
+        offset += self.margin
+        if offset > 0:
+            paint.drawLine(rect.left(), rect.top(),
+                           rect.left() + offset, rect.top())
+        return max(0, offset)
+
+    def paint_field(self, paint, field, rect, opt):
+        s = None
+        if isinstance(field, int):
+            s = str(field)
+        elif isinstance(field, float):
+            s = '{0:.2}'.format(field)
+        elif isinstance(field, ts.Timestamp):
+            s = '{0:.2f}'.format(field)
+        paint.drawText(rect, s, opt)
+
+    def field_width(self, field):
+        w = self.padding
+        if isinstance(field, int):
+            return w + self.metrics.width(str(field))
+        elif isinstance(field, float):
+            return w + self.metrics.width('{0:.2}'.format(field))
+        elif isinstance(field, ts.Timestamp):
+            return w + self.metrics.width('{0:.2f}'.format(float(field)))
+
+    def width(self):
+        w = self.metrics.width(self[0])
+        for field in self[1]:
+            w += self.field_width(field)
+        return w + 2 * self.margin
+
+
+class note(float):
+    pass
+
+
+type_desc = {
+        'Wpd': [ts.Timestamp],
+        'W.jc': [int],
+        'W.jr': [ts.Timestamp],
+        'W.js': [int],
+        'W.jss': [int],
+        'Wj': [],
+
+        'W.s': [int],
+        'W.so': [float],
+        'Wms': [int],
+        'Wssi': [note, note],
+
+        'W.t': [float],
+        'W/t': [float],
+        'W/=t': [ts.Timestamp],
+        'W.v': [float],
+        'W/v': [float],
+        'W/=v': [ts.Timestamp],
+
+        'C.i': [int],
+        'C.g': [int],
+        'C.d': [int],
+        'C.dc': [int],
+
+        'Cn+': [float],
+        'Cn-': [],
+
+        'C.f': [float],
+        'C/f': [float],
+        'C/=f': [ts.Timestamp],
+        'CTs': [float],
+        'CTsd': [ts.Timestamp],
+        'CTd': [float],
+        'CTdd': [ts.Timestamp],
+
+        'C/p': [float],
+        'C/=p': [ts.Timestamp],
+        'CVs': [float],
+        'CVsd': [ts.Timestamp],
+        'CVd': [float],
+        'CVdd': [ts.Timestamp],
+        'CArp': [float, float, float, float],
+
+        'C.l': [float],
+        'C/l': [float],
+        'C/=l': [ts.Timestamp],
+        'CAs': [float],
+        'CAsd': [ts.Timestamp],
+        'CAd': [float],
+        'CAdd': [ts.Timestamp],
+
+        'C.r': [float],
+
+        'C.P': [float],
+        'C/P': [float],
+        'C/=P': [ts.Timestamp],
+
+        'C.gB': [bool],
+        'C.gI': [int],
+        'C.gF': [float],
+        'C.gT': [ts.Timestamp],
+
+        'I.ped': [float],
+
+        'G.B': [bool],
+        'G.I': [int],
+        'G.F': [float],
+        'G.T': [ts.Timestamp],
+
+        'D.B': [bool],
+        'D.I': [int],
+        'D.F': [float],
+        'D.T': [ts.Timestamp],
+}
+
+

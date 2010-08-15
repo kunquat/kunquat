@@ -13,6 +13,7 @@
 
 from __future__ import division
 from collections import defaultdict
+from itertools import izip_longest
 import json
 import re
 
@@ -21,6 +22,7 @@ from PyQt4 import QtGui, QtCore
 
 import kqt_limits
 import timestamp as ts
+import trigger
 import trigger_row as tr
 
 
@@ -63,9 +65,10 @@ class Column(object):
     def arrange_triggers(self, triggers):
         if not triggers:
             return {}
-        d = defaultdict(lambda: tr.Trigger_row((self.colours, self.fonts)))
+        theme = self.colours, self.fonts
+        d = defaultdict(lambda: tr.Trigger_row(theme))
         for (t, event) in triggers:
-            d[ts.Timestamp(t)].append(event)
+            d[ts.Timestamp(t)].append(trigger.Trigger(event, theme))
         return dict(d)
 
     def resize(self, height):
@@ -100,10 +103,23 @@ class Column(object):
                               self.fonts['column_head']).height()
         view_start = self.view_start - col_head_height / self.beat_len
         view_end = self.edit_area_height / self.beat_len + self.view_start
-        for pos in (p for p in self.triggers if view_start < p < view_end):
-            pix_pos = (pos - self.view_start) * self.beat_len + col_head_height
-            self.triggers[pos].paint(paint,
-                    QtCore.QRectF(x, pix_pos, self._width, col_head_height))
+        paint.setFont(self.fonts['trigger'])
+        trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height() - 1
+        visible_triggers = [p for p in self.triggers
+                            if view_start < p < view_end]
+        visible_triggers.sort()
+        if visible_triggers:
+            for pos, next_pos in izip_longest(visible_triggers,
+                                              visible_triggers[1:]):
+                pix_pos = float((pos - self.view_start) * self.beat_len +
+                                col_head_height)
+                next_pix_pos = pix_pos + trigger_height
+                if next_pos:
+                    next_pix_pos = float((next_pos - self.view_start) *
+                                         self.beat_len + col_head_height) - 1
+                row_height = next_pix_pos - pix_pos
+                rect = QtCore.QRectF(x, pix_pos, self._width, row_height)
+                self.triggers[pos].paint(paint, rect)
 
         if self.cursor:
             pix_cur_pos = (self.cursor.get_pix_pos() -

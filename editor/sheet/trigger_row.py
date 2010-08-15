@@ -13,6 +13,8 @@
 
 from PyQt4 import QtGui, QtCore
 
+import trigger
+
 
 class Trigger_row(list):
 
@@ -31,7 +33,10 @@ class Trigger_row(list):
 
     def paint(self, paint, rect):
         # TODO: remove the line after implementing trigger printing
-        paint.setPen(self.colours['trigger_fg'])
-        paint.drawLine(rect.left(), rect.top(), rect.right(), rect.top())
+        #paint.setPen(self.colours['trigger_fg'])
+        #paint.drawLine(rect.left(), rect.top(), rect.right(), rect.top())
+        offset = 0
+        for t in self:
+            offset += t.paint(paint, rect, offset)
 
 
