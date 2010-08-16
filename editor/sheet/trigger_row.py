@@ -31,6 +31,12 @@ class Trigger_row(list):
     def key_press(self, ev):
         pass
 
+    def slots(self):
+        s = 0
+        for t in self:
+            s += 1 + len(t[1])
+        return s
+
     def paint(self, paint, rect, cursor=None):
         offset = 0
         cursor_pos = -1
@@ -38,7 +44,21 @@ class Trigger_row(list):
             cursor_pos = cursor.get_index()
             paint.eraseRect(rect)
         for t in self:
-            offset += t.paint(paint, rect, offset, cursor_pos)
+            offset = t.paint(paint, rect, offset, cursor_pos)
             cursor_pos -= 1 + len(t[1])
+        if cursor_pos >= 0:
+            metrics = QtGui.QFontMetrics(self.fonts['trigger'])
+            width = metrics.width('n')
+            height = metrics.height()
+            cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top(),
+                                        width, height)
+            paint.setBackground(self.colours['trigger_fg'])
+            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
+            paint.drawText(cursor_rect, '  ')
+            paint.setBackground(self.colours['bg'])
+            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
+#            paint.fillRect(QtCore.QRectF(rect.left() + offset, rect.top(),
+#                                         width, height),
+#                           self.colours['trigger_fg'])
 
 

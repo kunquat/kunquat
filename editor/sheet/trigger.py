@@ -74,7 +74,7 @@ class Trigger(list):
         if offset > 0:
             paint.drawLine(rect.left(), rect.top(),
                            rect.left() + offset, rect.top())
-        return max(0, offset)
+        return offset
 
     def paint_field(self, paint, field, rect, opt, cursor):
         s = None

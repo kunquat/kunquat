@@ -12,6 +12,7 @@
 #
 
 from __future__ import division
+import sys
 
 from PyQt4 import QtCore
 
@@ -55,6 +56,29 @@ class Cursor(object):
         elif ev.key() == QtCore.Qt.Key_End:
             self.set_direction()
             self.set_pos(self.length)
+        elif ev.key() == QtCore.Qt.Key_Left:
+            if self.ts in self.col.get_triggers():
+                slots = self.col.get_triggers()[self.ts].slots()
+                if self.index <= 0:
+                    self.index = sys.maxsize
+                    ev.ignore()
+                elif self.index >= slots:
+                    self.index = slots - 1
+                else:
+                    self.index -= 1
+            else:
+                self.index = sys.maxsize
+                ev.ignore()
+        elif ev.key() == QtCore.Qt.Key_Right:
+            if self.ts in self.col.get_triggers():
+                slots = self.col.get_triggers()[self.ts].slots()
+                if self.index >= slots:
+                    self.index = 0
+                    ev.ignore()
+                else:
+                    self.index += 1
+            else:
+                ev.ignore()
         else:
             ev.ignore()
 

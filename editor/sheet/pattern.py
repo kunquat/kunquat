@@ -13,6 +13,7 @@
 
 from __future__ import division
 import math
+import sys
 
 from PyQt4 import Qt, QtGui, QtCore
 
@@ -149,25 +150,39 @@ class Pattern(QtGui.QWidget):
             return
 
         if ev.key() == QtCore.Qt.Key_Left:
-            if self.cursor_col > -1:
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col])
-                self.cursor_col -= 1
-                self.follow_cursor_horizontal()
-                self.update()
+            self.cursor.key_press(ev)
+            if not ev.isAccepted():
+                ev.accept()
+                if self.cursor_col > -1:
+                    if (self.cursor.get_pos() not in
+                            self.columns[self.cursor_col].get_triggers()):
+                        self.cursor.set_index(0)
+                    self.columns[self.cursor_col + 1].set_cursor()
+                    self.columns[self.cursor_col].set_cursor(self.cursor)
+                    self.cursor.set_col(self.columns[self.cursor_col])
+                    self.cursor_col -= 1
+                    self.follow_cursor_horizontal()
+                    self.update()
+                else:
+                    assert self.cursor_col == -1
+                    self.cursor.set_index(0)
             else:
-                assert self.cursor_col == -1
+                self.update()
         elif ev.key() == QtCore.Qt.Key_Right:
-            if self.cursor_col < lim.COLUMNS_MAX - 1:
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col + 2])
-                self.cursor_col += 1
-                self.follow_cursor_horizontal()
-                self.update()
+            self.cursor.key_press(ev)
+            if not ev.isAccepted():
+                ev.accept()
+                if self.cursor_col < lim.COLUMNS_MAX - 1:
+                    self.columns[self.cursor_col + 1].set_cursor()
+                    self.columns[self.cursor_col + 2].set_cursor(self.cursor)
+                    self.cursor.set_col(self.columns[self.cursor_col + 2])
+                    self.cursor_col += 1
+                    self.follow_cursor_horizontal()
+                    self.update()
+                else:
+                    assert self.cursor_col == lim.COLUMNS_MAX - 1
             else:
-                assert self.cursor_col == lim.COLUMNS_MAX - 1
+                self.update()
         elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
                           QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown,
                           QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
