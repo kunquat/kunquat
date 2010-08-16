@@ -31,12 +31,14 @@ class Trigger_row(list):
     def key_press(self, ev):
         pass
 
-    def paint(self, paint, rect):
-        # TODO: remove the line after implementing trigger printing
-        #paint.setPen(self.colours['trigger_fg'])
-        #paint.drawLine(rect.left(), rect.top(), rect.right(), rect.top())
+    def paint(self, paint, rect, cursor=None):
         offset = 0
+        cursor_pos = -1
+        if cursor:
+            cursor_pos = cursor.get_index()
+            paint.eraseRect(rect)
         for t in self:
-            offset += t.paint(paint, rect, offset)
+            offset += t.paint(paint, rect, offset, cursor_pos)
+            cursor_pos -= 1 + len(t[1])
 
 

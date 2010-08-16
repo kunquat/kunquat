@@ -30,7 +30,7 @@ class Cursor(object):
         self.ts = timestamp.Timestamp()
         self.set_length(length)
         self.set_beat_len(beat_len)
-        self.set_col(-1)
+        self.col = None
         self.set_index(0)
         self.set_accel(1.18)
         self.direction = 0
@@ -57,7 +57,6 @@ class Cursor(object):
             self.set_pos(self.length)
         else:
             ev.ignore()
-        print(self.ts)
 
     def key_release(self, ev):
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
@@ -91,12 +90,18 @@ class Cursor(object):
         if self.ts > self.length:
             self.set_pos(self.length)
 
+    def get_pos(self):
+        return self.ts
+
     def get_pix_pos(self):
         return self.pix_pos
 
     def set_index(self, index):
         assert index >= 0
         self.index = index
+
+    def get_index(self):
+        return self.index
 
     def set_accel(self, accel):
         assert accel >= 1

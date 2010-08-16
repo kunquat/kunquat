@@ -29,7 +29,7 @@ class Trigger(list):
         self.margin = m_width * 0.3
         self.padding = m_width * 0.3
 
-    def paint(self, paint, rect, offset=0, cursor=None):
+    def paint(self, paint, rect, offset=0, cursor_pos=-1):
         paint.setPen(self.colours['trigger_fg'])
         opt = QtGui.QTextOption()
         opt.setWrapMode(QtGui.QTextOption.NoWrap)
@@ -40,11 +40,20 @@ class Trigger(list):
         type_width = self.metrics.width(self[0]) + self.margin
         head_rect.setWidth(type_width)
         head_rect = head_rect.intersect(rect)
+        if cursor_pos == 0:
+            paint.setBackground(self.colours['trigger_fg'])
+            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
+            paint.setPen(self.colours['bg'])
         if offset < 0:
             if offset > -type_width:
                 paint.drawText(head_rect, self[0], opt)
         else:
             paint.drawText(head_rect, self[0], opt)
+        if cursor_pos == 0:
+            paint.setBackground(self.colours['bg'])
+            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
+            paint.setPen(self.colours['trigger_fg'])
+        cursor_pos -= 1
         offset += type_width
 
         for field in self[1]:
@@ -56,8 +65,10 @@ class Trigger(list):
             if field_rect.isValid():
                 if field_rect.width() < field_width:
                     opt.setAlignment(QtCore.Qt.AlignLeft)
-                self.paint_field(paint, field, field_rect, opt)
+                self.paint_field(paint, field, field_rect, opt,
+                                 cursor_pos == 0)
                 offset += field_rect.width()
+            cursor_pos -= 1
 
         offset += self.margin
         if offset > 0:
@@ -65,7 +76,7 @@ class Trigger(list):
                            rect.left() + offset, rect.top())
         return max(0, offset)
 
-    def paint_field(self, paint, field, rect, opt):
+    def paint_field(self, paint, field, rect, opt, cursor):
         s = None
         if isinstance(field, int):
             s = str(field)
@@ -73,7 +84,15 @@ class Trigger(list):
             s = '{0:.2}'.format(field)
         elif isinstance(field, ts.Timestamp):
             s = '{0:.2f}'.format(field)
+        if cursor:
+            paint.setBackground(self.colours['trigger_fg'])
+            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
+            paint.setPen(self.colours['bg'])
         paint.drawText(rect, s, opt)
+        if cursor:
+            paint.setBackground(self.colours['bg'])
+            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
+            paint.setPen(self.colours['trigger_fg'])
 
     def field_width(self, field):
         w = self.padding

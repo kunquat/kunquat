@@ -107,19 +107,24 @@ class Column(object):
         trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height() - 1
         visible_triggers = [p for p in self.triggers
                             if view_start < p < view_end]
-        visible_triggers.sort()
+        visible_triggers.sort(lambda x, y: (y - x)[0] * ts.TIMESTAMP_BEAT +
+                                           (y - x)[1])
+        next_pos = None
         if visible_triggers:
-            for pos, next_pos in izip_longest(visible_triggers,
-                                              visible_triggers[1:]):
+            for pos in visible_triggers:
                 pix_pos = float((pos - self.view_start) * self.beat_len +
                                 col_head_height)
                 next_pix_pos = pix_pos + trigger_height
-                if next_pos:
+                if next_pos and (not self.cursor or
+                                 pos != self.cursor.get_pos()):
                     next_pix_pos = float((next_pos - self.view_start) *
                                          self.beat_len + col_head_height) - 1
                 row_height = next_pix_pos - pix_pos
                 rect = QtCore.QRectF(x, pix_pos, self._width, row_height)
-                self.triggers[pos].paint(paint, rect)
+                self.triggers[pos].paint(paint, rect, self.cursor
+                             if self.cursor and pos == self.cursor.get_pos()
+                             else None)
+                next_pos = pos
 
         if self.cursor:
             pix_cur_pos = (self.cursor.get_pix_pos() -
