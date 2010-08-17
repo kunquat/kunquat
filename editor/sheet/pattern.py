@@ -39,6 +39,7 @@ class Pattern(QtGui.QWidget):
                 'column_head_fg': QtGui.QColor(0xff, 0xee, 0xee),
                 'cursor_bg': QtGui.QColor(0xff, 0x66, 0x22, 0x77),
                 'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
+                'cursor_arrow': QtGui.QColor(0xff, 0x44, 0x22),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 'trigger_fg': QtGui.QColor(0xcc, 0xcc, 0xcc),

@@ -24,6 +24,15 @@ class Trigger_row(list):
         self.fonts = theme[1]
         self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
         self.empty_cursor_width = self.metrics.width('  ')
+        self.arrow_size = self.metrics.height() * 0.25
+        self.arrow_left = QtGui.QPolygon([
+                            QtCore.QPoint(0, 0),
+                            QtCore.QPoint(self.arrow_size, self.arrow_size),
+                            QtCore.QPoint(self.arrow_size, 0)])
+        self.arrow_right = QtGui.QPolygon([
+                            QtCore.QPoint(-self.arrow_size, 0),
+                            QtCore.QPoint(-self.arrow_size, self.arrow_size),
+                            QtCore.QPoint(0, 0)])
 
     def get_active_trigger(self):
         if self.gap or self.cursor_pos == len(self):
@@ -53,6 +62,7 @@ class Trigger_row(list):
     def paint(self, paint, rect, cursor=None):
         offset = 0
         cursor_pos = -1
+        left_arrow, right_arrow = False, False
         if cursor:
             cursor_pos = cursor.get_index()
             paint.eraseRect(rect)
@@ -71,9 +81,13 @@ class Trigger_row(list):
             if full_width <= rect.width():
                 offset = 0
             cursor.set_view_start(-offset)
+        if offset < 0:
+            left_arrow = True
         for t in self:
             offset = t.paint(paint, rect, offset, cursor_pos)
             cursor_pos -= 1 + len(t[1])
+        if offset > rect.width():
+            right_arrow = True
         if cursor_pos >= 0:
             width = self.metrics.width('n')
             height = self.metrics.height()
@@ -87,6 +101,22 @@ class Trigger_row(list):
 #            paint.fillRect(QtCore.QRectF(rect.left() + offset, rect.top(),
 #                                         width, height),
 #                           self.colours['trigger_fg'])
+        if left_arrow:
+            self.paint_left_arrow(paint, rect)
+        if right_arrow:
+            self.paint_right_arrow(paint, rect)
+
+    def paint_left_arrow(self, paint, rect):
+        arrow = self.arrow_left.translated(rect.left(), rect.top() + 1)
+        paint.setPen(QtCore.Qt.NoPen)
+        paint.setBrush(self.colours['cursor_arrow'])
+        paint.drawConvexPolygon(arrow)
+
+    def paint_right_arrow(self, paint, rect):
+        arrow = self.arrow_right.translated(rect.right(), rect.top() + 1)
+        paint.setPen(QtCore.Qt.NoPen)
+        paint.setBrush(self.colours['cursor_arrow'])
+        paint.drawConvexPolygon(arrow)
 
     def width(self):
         return sum(t.width() for t in self)
