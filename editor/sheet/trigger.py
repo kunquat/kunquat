@@ -27,7 +27,23 @@ class Trigger(list):
         self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
         m_width = self.metrics.width('m')
         self.margin = m_width * 0.3
-        self.padding = m_width * 0.3
+        self.padding = m_width * 0.15
+
+    def cursor_area(self, index):
+        start = self.margin
+        hw = self.metrics.width(self[0])
+        if index == 0:
+            return start, hw
+        start += hw
+        index -= 1
+        for field in self[1]:
+            fw = self.field_width(field)
+            if index == 0:
+                return start + self.padding, fw - self.padding
+            start += fw
+            index -= 1
+        assert round(start + self.margin - self.width()) == 0
+        return start + self.margin, 0
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
         paint.setPen(self.colours['trigger_fg'])
@@ -36,7 +52,7 @@ class Trigger(list):
         opt.setAlignment(QtCore.Qt.AlignRight)
 
         head_rect = QtCore.QRectF(rect)
-        head_rect.moveLeft(head_rect.left() + offset + self.margin)
+        head_rect.moveLeft(head_rect.left() + offset)
         type_width = self.metrics.width(self[0]) + self.margin
         head_rect.setWidth(type_width)
         head_rect = head_rect.intersect(rect)
@@ -63,7 +79,8 @@ class Trigger(list):
             field_rect.setWidth(field_width)
             field_rect = field_rect.intersect(rect)
             if field_rect.isValid():
-                if field_rect.width() < field_width:
+                if field_rect.width() < field_width and \
+                        field_rect.right() == rect.right():
                     opt.setAlignment(QtCore.Qt.AlignLeft)
                 self.paint_field(paint, field, field_rect, opt,
                                  cursor_pos == 0)
@@ -72,8 +89,10 @@ class Trigger(list):
 
         offset += self.margin
         if offset > 0:
-            paint.drawLine(rect.left(), rect.top(),
-                           rect.left() + offset, rect.top())
+            left = max(head_rect.left(), rect.left())
+            right = min(rect.left() + offset, rect.right()) - 1
+            paint.drawLine(left, rect.top(),
+                           right, rect.top())
         return offset
 
     def paint_field(self, paint, field, rect, opt, cursor):

@@ -33,6 +33,7 @@ class Cursor(object):
         self.set_beat_len(beat_len)
         self.col = None
         self.set_index(0)
+        self.set_view_start(0)
         self.set_accel(1.18)
         self.direction = 0
         self.triggers = []
@@ -126,6 +127,13 @@ class Cursor(object):
 
     def get_index(self):
         return self.index
+
+    def set_view_start(self, start):
+        assert start >= 0
+        self.view_start = start
+
+    def get_view_start(self):
+        return self.view_start
 
     def set_accel(self, accel):
         assert accel >= 1
