@@ -90,6 +90,8 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
+        self.edit = QtGui.QLineEdit(self)
+        self.edit.hide()
 
     def set_path(self, path):
         pass
@@ -212,6 +214,7 @@ class Pattern(QtGui.QWidget):
         for column in self.view_columns:
             column.paint(ev, paint, col_pos)
             col_pos += column.width()
+#        self.edit.update()
         paint.end()
 
     def resizeEvent(self, ev):

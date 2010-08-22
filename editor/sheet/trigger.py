@@ -12,9 +12,12 @@
 #
 
 from __future__ import division
+from __future__ import print_function
+import math
 
 from PyQt4 import QtGui, QtCore
 
+import kqt_limits as lim
 import timestamp as ts
 
 
@@ -22,6 +25,14 @@ class Trigger(list):
 
     def __init__(self, data, theme):
         list.__init__(self, data)
+        self[0] = trigger_type(self[0])
+        if self[0].valid:
+            param_limits = type_desc[self[0]]
+            for i, v in enumerate([x for x in self[1]]):
+                cons, valid, default = param_limits[i]
+                self[1][i] = cons(v)
+                if not valid(self[1][i]):
+                    self[1][i] = default
         self.colours = theme[0]
         self.fonts = theme[1]
         self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
@@ -46,6 +57,7 @@ class Trigger(list):
         return start + self.margin, 0
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
+        init_offset = offset
         paint.setPen(self.colours['trigger_fg'])
         opt = QtGui.QTextOption()
         opt.setWrapMode(QtGui.QTextOption.NoWrap)
@@ -64,6 +76,9 @@ class Trigger(list):
             if offset > -type_width:
                 paint.drawText(head_rect, self[0], opt)
         else:
+            if head_rect.width() < type_width and \
+                    head_rect.right() == rect.right():
+                opt.setAlignment(QtCore.Qt.AlignLeft)
             paint.drawText(head_rect, self[0], opt)
         if cursor_pos == 0:
             paint.setBackground(self.colours['bg'])
@@ -84,7 +99,7 @@ class Trigger(list):
                     opt.setAlignment(QtCore.Qt.AlignLeft)
                 self.paint_field(paint, field, field_rect, opt,
                                  cursor_pos == 0)
-                offset += field_rect.width()
+            offset += field_width
             cursor_pos -= 1
 
         offset += self.margin
@@ -93,16 +108,13 @@ class Trigger(list):
             right = min(rect.left() + offset, rect.right()) - 1
             paint.drawLine(left, rect.top(),
                            right, rect.top())
+#        if round((offset - init_offset) - self.width()) != 0:
+#            print('offset change and width differ in', self, end=' -- ')
+#            print(offset - init_offset, '!=', self.width())
         return offset
 
     def paint_field(self, paint, field, rect, opt, cursor):
-        s = None
-        if isinstance(field, int):
-            s = str(field)
-        elif isinstance(field, float):
-            s = '{0:.2}'.format(field)
-        elif isinstance(field, ts.Timestamp):
-            s = '{0:.2f}'.format(field)
+        s = self.field_str(field)
         if cursor:
             paint.setBackground(self.colours['trigger_fg'])
             paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
@@ -113,100 +125,121 @@ class Trigger(list):
             paint.setBackgroundMode(QtCore.Qt.TransparentMode)
             paint.setPen(self.colours['trigger_fg'])
 
-    def field_width(self, field):
-        w = self.padding
+    def field_str(self, field):
         if isinstance(field, int):
-            return w + self.metrics.width(str(field))
+            return str(field)
         elif isinstance(field, float):
-            return w + self.metrics.width('{0:.2}'.format(field))
+            return '{0:.1f}'.format(field)
         elif isinstance(field, ts.Timestamp):
-            return w + self.metrics.width('{0:.2f}'.format(float(field)))
+            return '{0:.2f}'.format(float(field))
+
+    def field_width(self, field):
+        return self.padding + self.metrics.width(self.field_str(field))
 
     def width(self):
-        w = self.metrics.width(self[0])
-        for field in self[1]:
-            w += self.field_width(field)
-        return w + 2 * self.margin
+        return self.metrics.width(self[0]) + sum(
+                self.field_width(f) for f in self[1]) + 2 * self.margin
+
+
+class trigger_type(str):
+
+    def __init__(self, name):
+        self.valid = name in type_desc
 
 
 class note(float):
     pass
 
 
+def isfinite(x):
+    return not (math.isinf(x) or math.isnan(x))
+
+
+nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
+any_ts = (ts.Timestamp, lambda x: True, ts.Timestamp(0))
+finite_float = (float, isfinite, 0.0)
+nonneg_float = (float, lambda x: x >= 0 and isfinite(x), 0.0)
+pos_float = (float, lambda x: x > 0 and isfinite(x), 0.0)
+force = (float, lambda x: x <= 18 and not math.isnan(x), 0.0)
+volume = (float, lambda x: x <= 0 and not math.isnan(x), 0.0)
+any_float = (float, lambda x: True, 0.0)
+any_bool = (bool, lambda x: True, False)
+any_int = (int, lambda x: True, 0)
+
 type_desc = {
-        'Wpd': [ts.Timestamp],
-        'W.jc': [int],
-        'W.jr': [ts.Timestamp],
-        'W.js': [int],
-        'W.jss': [int],
+        'Wpd': [nonneg_ts],
+        'W.jc': [(int, lambda x: x >= 0 and x < 65536, 0)],
+        'W.jr': [nonneg_ts],
+        'W.js': [(int, lambda x: x >= -1 and x < lim.SECTIONS_MAX, -1)],
+        'W.jss': [(int, lambda x: x >= -1 and x < lim.SUBSONGS_MAX, -1)],
         'Wj': [],
 
-        'W.s': [int],
-        'W.so': [float],
-        'Wms': [int],
+        'W.s': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
+        'W.so': [finite_float],
+        'Wms': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
         'Wssi': [note, note],
 
-        'W.t': [float],
-        'W/t': [float],
-        'W/=t': [ts.Timestamp],
-        'W.v': [float],
-        'W/v': [float],
-        'W/=v': [ts.Timestamp],
+        'W.t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
+        'W/t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
+        'W/=t': [nonneg_ts],
+        'W.v': [volume],
+        'W/v': [volume],
+        'W/=v': [nonneg_ts],
 
-        'C.i': [int],
-        'C.g': [int],
-        'C.d': [int],
-        'C.dc': [int],
+        'C.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
+        'C.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
+        'C.d': [(int, lambda x: x >= 0 and x < lim.DSP_EFFECTS_MAX, 0)],
+        'C.dc': [(int, lambda x: x >= -1 and x < lim.INSTRUMENTS_MAX, -1)],
 
-        'Cn+': [float],
+        'Cn+': [finite_float],
         'Cn-': [],
 
-        'C.f': [float],
-        'C/f': [float],
-        'C/=f': [ts.Timestamp],
-        'CTs': [float],
-        'CTsd': [ts.Timestamp],
-        'CTd': [float],
-        'CTdd': [ts.Timestamp],
+        'C.f': [force],
+        'C/f': [force],
+        'C/=f': [nonneg_ts],
+        'CTs': [nonneg_float],
+        'CTsd': [nonneg_ts],
+        'CTd': [(float, lambda x: x >= 0.0 and x <= 24.0, 0.0)],
+        'CTdd': [nonneg_ts],
 
-        'C/p': [float],
-        'C/=p': [ts.Timestamp],
-        'CVs': [float],
-        'CVsd': [ts.Timestamp],
-        'CVd': [float],
-        'CVdd': [ts.Timestamp],
-        'CArp': [float, float, float, float],
+        'C/p': [finite_float],
+        'C/=p': [nonneg_ts],
+        'CVs': [nonneg_float],
+        'CVsd': [nonneg_ts],
+        'CVd': [nonneg_float],
+        'CVdd': [nonneg_ts],
+        'CArp': [pos_float, finite_float, finite_float, finite_float],
 
-        'C.l': [float],
-        'C/l': [float],
-        'C/=l': [ts.Timestamp],
-        'CAs': [float],
-        'CAsd': [ts.Timestamp],
-        'CAd': [float],
-        'CAdd': [ts.Timestamp],
+        'C.l': [(float, isfinite, 0.0)],
+        'C/l': [(float, isfinite, 0.0)],
+        'C/=l': [nonneg_ts],
+        'CAs': [nonneg_float],
+        'CAsd': [nonneg_ts],
+        'CAd': [nonneg_float],
+        'CAdd': [nonneg_ts],
 
-        'C.r': [float],
+        'C.r': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
 
-        'C.P': [float],
-        'C/P': [float],
-        'C/=P': [ts.Timestamp],
+        'C.P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
+        'C/P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
+        'C/=P': [nonneg_ts],
 
-        'C.gB': [bool],
-        'C.gI': [int],
-        'C.gF': [float],
-        'C.gT': [ts.Timestamp],
+        'C.gB': [any_bool],
+        'C.gI': [any_int],
+        'C.gF': [any_float],
+        'C.gT': [any_ts],
 
-        'I.ped': [float],
+        'I.ped': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
 
-        'G.B': [bool],
-        'G.I': [int],
-        'G.F': [float],
-        'G.T': [ts.Timestamp],
+        'G.B': [any_bool],
+        'G.I': [any_int],
+        'G.F': [any_float],
+        'G.T': [any_ts],
 
-        'D.B': [bool],
-        'D.I': [int],
-        'D.F': [float],
-        'D.T': [ts.Timestamp],
+        'D.B': [any_bool],
+        'D.I': [any_int],
+        'D.F': [any_float],
+        'D.T': [any_ts],
 }
 
 
