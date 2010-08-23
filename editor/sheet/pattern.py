@@ -214,7 +214,7 @@ class Pattern(QtGui.QWidget):
         self.ruler.paint(ev, paint)
         col_pos = self.ruler.width()
         for column in self.view_columns:
-            column.paint(ev, paint, col_pos)
+            column.paint(ev, paint, col_pos, self.hasFocus())
             col_pos += column.width()
 #        self.edit.update()
         paint.end()

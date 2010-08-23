@@ -91,7 +91,8 @@ class Column(object):
     def set_view_start(self, start):
         self.view_start = start
 
-    def paint(self, ev, paint, x):
+    def paint(self, ev, paint, x, focus):
+        focus = focus and self.cursor
         col_area = QtCore.QRect(x, 0, self._width, self.height)
         real_area = ev.rect().intersect(col_area)
         if real_area.isEmpty() or (self.edit_area_height <=
@@ -116,18 +117,18 @@ class Column(object):
                 pix_pos = float((pos - self.view_start) * self.beat_len +
                                 col_head_height)
                 next_pix_pos = pix_pos + trigger_height
-                if next_pos and (not self.cursor or
+                if next_pos and (not focus or
                                  pos != self.cursor.get_pos()):
                     next_pix_pos = float((next_pos - self.view_start) *
                                          self.beat_len + col_head_height) - 1
                 row_height = next_pix_pos - pix_pos
                 rect = QtCore.QRectF(x, pix_pos, self._width, row_height)
                 self.triggers[pos].paint(paint, rect, self.cursor
-                             if self.cursor and pos == self.cursor.get_pos()
+                             if focus and pos == self.cursor.get_pos()
                              else None)
                 next_pos = pos
 
-        if self.cursor:
+        if focus:
             pix_cur_pos = (self.cursor.get_pix_pos() -
                            self.view_start * self.beat_len)
             if 0 <= pix_cur_pos < self.edit_area_height:
