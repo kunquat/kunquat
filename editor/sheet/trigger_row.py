@@ -46,6 +46,14 @@ class Trigger_row(list):
         cursor_pos = cursor.get_index()
         if cursor_pos == 0:
             return 0, 1
+        if cursor.insert:
+            w = 0
+            for t in self:
+                cursor_pos -= 1 + len(t[1])
+                if cursor_pos < 0:
+                    break
+                w += t.width()
+            return w, self.empty_cursor_width
         start = 0
         for t in self:
             fstart, width = t.cursor_area(cursor_pos)
@@ -59,10 +67,10 @@ class Trigger_row(list):
     def slots(self):
         return sum(1 + len(t[1]) for t in self)
 
-    def paint(self, paint, rect, cursor=None):
-        offset = 0
+    def paint(self, paint, rect, cursor=None, offset=0):
         cursor_pos = -1
         left_arrow, right_arrow = False, False
+        insert_pos = None
         if cursor:
             cursor_pos = cursor.get_index()
             paint.eraseRect(rect)
@@ -81,30 +89,39 @@ class Trigger_row(list):
             if full_width <= rect.width():
                 offset = 0
             cursor.set_view_start(-offset)
+            if cursor.insert:
+                cp = cursor_pos
+                for t in self:
+                    if cp < 1 + len(t[1]):
+                        insert_pos = t
+                        cursor_pos = -1
+                        break
+                    cp -= 1 + len(t[1])
         if offset < 0:
             left_arrow = True
         for t in self:
+            if t == insert_pos:
+                height = self.metrics.height()
+                cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top() + 1,
+                                            self.empty_cursor_width, height)
+                self.paint_empty_cursor(paint, cursor_rect)
+                offset += self.empty_cursor_width
             offset = t.paint(paint, rect, offset, cursor_pos)
             cursor_pos -= 1 + len(t[1])
         if offset > rect.width():
             right_arrow = True
         if cursor_pos >= 0:
-            width = self.metrics.width('n')
             height = self.metrics.height()
             cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top(),
-                                        width, height)
-            paint.setBackground(self.colours['trigger_fg'])
-            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
-            paint.drawText(cursor_rect, '  ')
-            paint.setBackground(self.colours['bg'])
-            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
-#            paint.fillRect(QtCore.QRectF(rect.left() + offset, rect.top(),
-#                                         width, height),
-#                           self.colours['trigger_fg'])
+                                        self.empty_cursor_width, height)
+            self.paint_empty_cursor(paint, cursor_rect)
         if left_arrow:
             self.paint_left_arrow(paint, rect)
         if right_arrow:
             self.paint_right_arrow(paint, rect)
+
+    def paint_empty_cursor(self, paint, rect):
+        paint.fillRect(rect, self.colours['trigger_type_fg'])
 
     def paint_left_arrow(self, paint, rect):
         arrow = self.arrow_left.translated(rect.left(), rect.top() + 1)

@@ -31,6 +31,7 @@ class Cursor(object):
         self.ts = timestamp.Timestamp()
         self.set_length(length)
         self.set_beat_len(beat_len)
+        self.insert = False
         self.col = None
         self.set_index(0)
         self.set_view_start(0)
@@ -61,8 +62,11 @@ class Cursor(object):
             if self.ts in self.col.get_triggers():
                 slots = self.col.get_triggers()[self.ts].slots()
                 if self.index <= 0:
-                    self.index = sys.maxsize
-                    ev.ignore()
+                    if self.insert:
+                        self.index = 0
+                    else:
+                        self.index = sys.maxsize
+                        ev.ignore()
                 elif self.index >= slots:
                     self.index = slots - 1
                 else:
@@ -72,16 +76,23 @@ class Cursor(object):
                 ev.ignore()
         elif ev.key() == QtCore.Qt.Key_Right:
             if self.ts in self.col.get_triggers():
-                slots = self.col.get_triggers()[self.ts].slots()
-                if self.index >= slots:
-                    self.index = 0
-                    ev.ignore()
-                else:
-                    self.index += 1
+                if not self.insert:
+                    slots = self.col.get_triggers()[self.ts].slots()
+                    if self.index >= slots:
+                        self.index = 0
+                        ev.ignore()
+                    else:
+                        self.index += 1
             else:
                 ev.ignore()
+        elif ev.key() == QtCore.Qt.Key_Insert:
+            self.insert = True
+            return
+        elif ev.key() == QtCore.Qt.Key_Escape:
+            self.insert = False
         else:
             ev.ignore()
+        self.insert = False
 
     def key_release(self, ev):
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):

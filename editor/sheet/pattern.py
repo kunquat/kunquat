@@ -191,7 +191,8 @@ class Pattern(QtGui.QWidget):
                 self.update()
         elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
                           QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown,
-                          QtCore.Qt.Key_Home, QtCore.Qt.Key_End):
+                          QtCore.Qt.Key_Home, QtCore.Qt.Key_End,
+                          QtCore.Qt.Key_Insert, QtCore.Qt.Key_Escape):
             self.cursor.key_press(ev)
             self.follow_cursor_vertical()
             self.update()
