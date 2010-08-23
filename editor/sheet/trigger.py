@@ -63,9 +63,10 @@ class Trigger(list):
         opt.setWrapMode(QtGui.QTextOption.NoWrap)
         opt.setAlignment(QtCore.Qt.AlignRight)
 
+        offset += self.margin
         head_rect = QtCore.QRectF(rect)
         head_rect.moveLeft(head_rect.left() + offset)
-        type_width = self.metrics.width(self[0]) + self.margin
+        type_width = self.metrics.width(self[0])
         head_rect.setWidth(type_width)
         head_rect = head_rect.intersect(rect)
         if cursor_pos == 0:
@@ -104,7 +105,7 @@ class Trigger(list):
 
         offset += self.margin
         if offset > 0:
-            left = max(head_rect.left(), rect.left())
+            left = max(rect.left() + init_offset, rect.left())
             right = min(rect.left() + offset, rect.right()) - 1
             paint.drawLine(left, rect.top(),
                            right, rect.top())
