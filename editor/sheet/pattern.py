@@ -43,6 +43,8 @@ class Pattern(QtGui.QWidget):
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 'trigger_fg': QtGui.QColor(0xcc, 0xcc, 0xcc),
+                'trigger_type_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
+                'trigger_invalid_fg': QtGui.QColor(0xff, 0x33, 0x11),
                 }
         self.fonts = {
                 'column_head': QtGui.QFont('Decorative', 10),

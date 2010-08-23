@@ -69,25 +69,21 @@ class Trigger(list):
         type_width = self.metrics.width(self[0])
         head_rect.setWidth(type_width)
         head_rect = head_rect.intersect(rect)
-        if cursor_pos == 0:
-            paint.setBackground(self.colours['trigger_fg'])
-            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
-            paint.setPen(self.colours['bg'])
         if offset < 0:
             if offset > -type_width:
-                paint.drawText(head_rect, self[0], opt)
+                self[0].paint(self.colours, paint, head_rect,
+                              opt, cursor_pos == 0)
         else:
             if head_rect.width() < type_width and \
                     head_rect.right() == rect.right():
                 opt.setAlignment(QtCore.Qt.AlignLeft)
-            paint.drawText(head_rect, self[0], opt)
-        if cursor_pos == 0:
-            paint.setBackground(self.colours['bg'])
-            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
-            paint.setPen(self.colours['trigger_fg'])
+            self[0].paint(self.colours, paint, head_rect,
+                          opt, cursor_pos == 0)
         cursor_pos -= 1
         offset += type_width
 
+        paint.setBackground(self.colours['bg'])
+        paint.setPen(self.colours['trigger_fg'])
         for field in self[1]:
             field_rect = QtCore.QRectF(rect)
             field_rect.moveLeft(rect.left() + offset + self.padding)
@@ -118,12 +114,12 @@ class Trigger(list):
         s = self.field_str(field)
         if cursor:
             paint.setBackground(self.colours['trigger_fg'])
-            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
+#            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
             paint.setPen(self.colours['bg'])
         paint.drawText(rect, s, opt)
         if cursor:
             paint.setBackground(self.colours['bg'])
-            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
+#            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
             paint.setPen(self.colours['trigger_fg'])
 
     def field_str(self, field):
@@ -146,6 +142,18 @@ class trigger_type(str):
 
     def __init__(self, name):
         self.valid = name in type_desc
+
+    def paint(self, colours, paint, rect, opt, cursor):
+        if self.valid:
+            fore = colours['trigger_type_fg']
+        else:
+            fore = colours['trigger_invalid_fg']
+        back = colours['bg']
+        if cursor:
+            fore, back = back, fore
+        paint.setBackground(back)
+        paint.setPen(fore)
+        paint.drawText(rect, self, opt)
 
 
 class note(float):

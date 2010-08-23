@@ -99,6 +99,7 @@ class Column(object):
             return
 #        paint.drawRect(real_area)
 
+        paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
         col_head_height = QtGui.QFontMetrics(
                               self.fonts['column_head']).height()
         view_start = self.view_start - col_head_height / self.beat_len
@@ -134,6 +135,7 @@ class Column(object):
                 paint.setPen(self.colours['cursor_line'])
                 paint.drawLine(x, pix_cur_pos, x + self._width - 1, pix_cur_pos)
 
+        paint.setBackgroundMode(QtCore.Qt.TransparentMode)
         paint.setBrush(self.colours['column_head_bg'])
         paint.setPen(QtCore.Qt.NoPen)
         paint.drawRect(x, 0, self._width, self.col_head_height)
