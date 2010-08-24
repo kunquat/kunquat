@@ -39,6 +39,20 @@ class Trigger_row(list):
             return None
         return self[self.cursor_pos]
 
+    def get_field(self, cursor):
+        if cursor.insert:
+            return trigger.TriggerType('')
+        cursor_pos = cursor.get_index()
+        for t in self:
+            field = t.get_field(cursor_pos)
+            if field is not None:
+                return field
+            cursor_pos -= 1 + len(t[1])
+        return trigger.TriggerType('')
+
+    def set_field(self, cursor, field):
+        pass
+
     def key_press(self, ev):
         pass
 
@@ -67,7 +81,8 @@ class Trigger_row(list):
     def slots(self):
         return sum(1 + len(t[1]) for t in self)
 
-    def paint(self, paint, rect, cursor=None, offset=0):
+    def paint(self, paint, rect, cursor=None, focus=False):
+        offset = 0
         cursor_pos = -1
         left_arrow, right_arrow = False, False
         insert_pos = None
@@ -97,6 +112,10 @@ class Trigger_row(list):
                         cursor_pos = -1
                         break
                     cp -= 1 + len(t[1])
+            cursor.set_geometry(rect.left() + cursor_left + offset,
+                                rect.top(), max(cursor_width,
+                                    self.empty_cursor_width * 4),
+                                self.metrics.height())
         if offset < 0:
             left_arrow = True
         for t in self:
@@ -104,13 +123,14 @@ class Trigger_row(list):
                 height = self.metrics.height()
                 cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top() + 1,
                                             self.empty_cursor_width, height)
-                self.paint_empty_cursor(paint, cursor_rect)
+                if focus:
+                    self.paint_empty_cursor(paint, cursor_rect)
                 offset += self.empty_cursor_width
-            offset = t.paint(paint, rect, offset, cursor_pos)
+            offset = t.paint(paint, rect, offset, cursor_pos if focus else -1)
             cursor_pos -= 1 + len(t[1])
         if offset > rect.width():
             right_arrow = True
-        if cursor_pos >= 0:
+        if cursor_pos >= 0 and focus:
             height = self.metrics.height()
             cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top(),
                                         self.empty_cursor_width, height)

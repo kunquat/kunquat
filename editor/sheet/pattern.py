@@ -17,10 +17,12 @@ import sys
 
 from PyQt4 import Qt, QtGui, QtCore
 
+import accessors as acc
 from column import Column
 from cursor import Cursor
 import kqt_limits as lim
 import timestamp as ts
+import trigger
 
 
 class Pattern(QtGui.QWidget):
@@ -83,7 +85,12 @@ class Pattern(QtGui.QWidget):
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
             col.set_view_start(self.view_start)
-        self.cursor = Cursor(self.length, self.beat_len)
+        self.accessors = {
+                trigger.TriggerType: acc.TypeEdit(self),
+                }
+        for a in self.accessors:
+            self.accessors[a].hide()
+        self.cursor = Cursor(self.length, self.beat_len, self.accessors)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
@@ -92,8 +99,6 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
-        self.edit = QtGui.QLineEdit(self)
-        self.edit.hide()
 
     def set_path(self, path):
         pass
@@ -148,6 +153,9 @@ class Pattern(QtGui.QWidget):
         return False
 
     def keyPressEvent(self, ev):
+        if self.cursor.edit:
+            if ev.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Escape):
+                self.setFocus()
         if ev.modifiers() == QtCore.Qt.ControlModifier:
             if ev.key() == QtCore.Qt.Key_Up:
                 self.zoom(self.zoom_factor)
@@ -189,13 +197,11 @@ class Pattern(QtGui.QWidget):
                     assert self.cursor_col == lim.COLUMNS_MAX - 1
             else:
                 self.update()
-        elif ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down,
-                          QtCore.Qt.Key_PageUp, QtCore.Qt.Key_PageDown,
-                          QtCore.Qt.Key_Home, QtCore.Qt.Key_End,
-                          QtCore.Qt.Key_Insert, QtCore.Qt.Key_Escape):
+        else:
             self.cursor.key_press(ev)
-            self.follow_cursor_vertical()
-            self.update()
+            if ev.isAccepted():
+                self.follow_cursor_vertical()
+                self.update()
 #        else:
 #            print('press:', ev.key())
 

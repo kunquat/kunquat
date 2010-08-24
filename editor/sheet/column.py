@@ -92,7 +92,6 @@ class Column(object):
         self.view_start = start
 
     def paint(self, ev, paint, x, focus):
-        focus = focus and self.cursor
         col_area = QtCore.QRect(x, 0, self._width, self.height)
         real_area = ev.rect().intersect(col_area)
         if real_area.isEmpty() or (self.edit_area_height <=
@@ -117,20 +116,24 @@ class Column(object):
                 pix_pos = float((pos - self.view_start) * self.beat_len +
                                 col_head_height)
                 next_pix_pos = pix_pos + trigger_height
-                if next_pos and (not focus or
+                if next_pos and (not self.cursor or
                                  pos != self.cursor.get_pos()):
                     next_pix_pos = float((next_pos - self.view_start) *
                                          self.beat_len + col_head_height) - 1
                 row_height = next_pix_pos - pix_pos
                 rect = QtCore.QRectF(x, pix_pos, self._width, row_height)
                 self.triggers[pos].paint(paint, rect, self.cursor
-                             if focus and pos == self.cursor.get_pos()
-                             else None)
+                             if self.cursor and pos == self.cursor.get_pos()
+                             else None, focus)
                 next_pos = pos
 
-        if focus:
+        if focus and self.cursor:
             pix_cur_pos = (self.cursor.get_pix_pos() -
                            self.view_start * self.beat_len)
+            metrics = QtGui.QFontMetrics(self.fonts['trigger'])
+            edit_width = metrics.width('  ') * 4
+            self.cursor.set_geometry(x, pix_cur_pos + self.col_head_height,
+                                     edit_width, metrics.height())
             if 0 <= pix_cur_pos < self.edit_area_height:
                 pix_cur_pos += self.col_head_height
                 paint.setPen(self.colours['cursor_line'])

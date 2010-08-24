@@ -25,7 +25,7 @@ class Trigger(list):
 
     def __init__(self, data, theme):
         list.__init__(self, data)
-        self[0] = trigger_type(self[0])
+        self[0] = TriggerType(self[0])
         if self[0].valid:
             param_limits = type_desc[self[0]]
             for i, v in enumerate([x for x in self[1]]):
@@ -55,6 +55,13 @@ class Trigger(list):
             index -= 1
         assert round(start + self.margin - self.width()) == 0
         return start + self.margin, 0
+
+    def get_field(self, cursor_pos):
+        if cursor_pos == 0:
+            return self[0]
+        elif cursor_pos > 0 and cursor_pos <= len(self[1]):
+            return self[1][cursor_pos - 1]
+        return None
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
         init_offset = offset
@@ -138,7 +145,7 @@ class Trigger(list):
                 self.field_width(f) for f in self[1]) + 2 * self.margin
 
 
-class trigger_type(str):
+class TriggerType(str):
 
     def __init__(self, name):
         self.valid = name in type_desc

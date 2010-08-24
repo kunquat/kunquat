@@ -16,13 +16,15 @@ import sys
 
 from PyQt4 import QtCore
 
+import accessors as acc
 import kqt_limits as lim
 import timestamp
+import trigger
 
 
 class Cursor(object):
 
-    def __init__(self, length, beat_len):
+    def __init__(self, length, beat_len, accessors):
         self.init_speed = 1
         self.max_speed = 12
         self.init_trigger_delay = 6
@@ -32,12 +34,15 @@ class Cursor(object):
         self.set_length(length)
         self.set_beat_len(beat_len)
         self.insert = False
+        self.edit = False
         self.col = None
         self.set_index(0)
         self.set_view_start(0)
         self.set_accel(1.18)
         self.direction = 0
         self.triggers = []
+        self.accessors = accessors
+        self.active_accessor = None
 
     def key_press(self, ev):
         if ev.key() == QtCore.Qt.Key_Up:
@@ -89,7 +94,28 @@ class Cursor(object):
             self.insert = True
             return
         elif ev.key() == QtCore.Qt.Key_Escape:
+            self.edit = False
             self.insert = False
+            if self.active_accessor:
+                self.active_accessor.hide()
+                self.active_accessor = None
+        elif ev.key() == QtCore.Qt.Key_Delete:
+            if self.insert:
+                self.insert = False
+            else:
+                pass # TODO
+        elif ev.key() == QtCore.Qt.Key_Return:
+            self.edit = True
+            tr = self.col.get_triggers()
+            if self.ts in tr:
+                field = tr[self.ts].get_field(self)
+            else:
+                field = trigger.TriggerType('')
+            self.active_accessor = self.accessors[type(field)]
+            self.active_accessor.set_value(field)
+            self.active_accessor.show()
+            self.active_accessor.setFocus()
+            return
         else:
             ev.ignore()
         self.insert = False
@@ -104,6 +130,11 @@ class Cursor(object):
         assert beat_len > 0
         self.beat_len = beat_len
         self.set_pos(self.ts)
+
+    def set_geometry(self, x, y, w, h):
+        self.geom = QtCore.QRect(x, y, w, h)
+        for a in self.accessors:
+            self.accessors[a].setGeometry(self.geom)
 
     def set_length(self, length):
         assert length >= 0
