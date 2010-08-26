@@ -64,7 +64,13 @@ class Trigger_row(list):
             t = trigger.Trigger([value, []], theme)
             self.insert(index, t)
         else:
-            pass
+            for t in self:
+                assert cursor_pos >= 0
+                slots = 1 + len(t[1])
+                if cursor_pos < slots:
+                    t.set_value(cursor_pos, value)
+                    break
+                cursor_pos -= slots
 
     def key_press(self, ev):
         pass

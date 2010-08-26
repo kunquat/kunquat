@@ -63,6 +63,11 @@ class Trigger(list):
         else:
             self[1] = list(fields)
 
+    def set_value(self, cursor_pos, value):
+        if cursor_pos == 0:
+            self.set_type(value)
+            return
+
     def cursor_area(self, index):
         start = self.margin
         hw = self.metrics.width(self[0])
