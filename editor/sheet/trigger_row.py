@@ -50,8 +50,21 @@ class Trigger_row(list):
             cursor_pos -= 1 + len(t[1])
         return trigger.TriggerType('')
 
-    def set_field(self, cursor, field):
-        pass
+    def set_value(self, cursor, value):
+        cursor_pos = cursor.get_index()
+        if cursor.insert or cursor_pos >= self.slots():
+            assert isinstance(value, trigger.TriggerType)
+            index = 0
+            for t in self:
+                cursor_pos -= 1 + len(t[1])
+                if cursor_pos < 0:
+                    break
+                index += 1
+            theme = self.colours, self.fonts
+            t = trigger.Trigger([value, []], theme)
+            self.insert(index, t)
+        else:
+            pass
 
     def key_press(self, ev):
         pass

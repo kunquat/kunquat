@@ -92,7 +92,7 @@ class Column(object):
         assert self.cursor == cursor
         assert cursor
         if cursor.get_pos() in self.triggers:
-            print('modify', value)
+            self.triggers[cursor.get_pos()].set_value(cursor, value)
         else:
             assert isinstance(value, trigger.TriggerType)
             theme = self.colours, self.fonts

@@ -133,8 +133,9 @@ class Trigger(list):
         if offset > 0:
             left = max(rect.left() + init_offset, rect.left())
             right = min(rect.left() + offset, rect.right()) - 1
-            paint.drawLine(left, rect.top(),
-                           right, rect.top())
+            if left < right:
+                paint.drawLine(left, rect.top(),
+                               right, rect.top())
 #        if round((offset - init_offset) - self.width()) != 0:
 #            print('offset change and width differ in', self, end=' -- ')
 #            print(offset - init_offset, '!=', self.width())
@@ -159,6 +160,7 @@ class Trigger(list):
             return '{0:.1f}'.format(field)
         elif isinstance(field, ts.Timestamp):
             return '{0:.2f}'.format(float(field))
+        return repr(field)
 
     def field_width(self, field):
         return self.padding + self.metrics.width(self.field_str(field))
@@ -204,6 +206,7 @@ volume = (float, lambda x: x <= 0 and not math.isnan(x), 0.0)
 any_float = (float, lambda x: True, 0.0)
 any_bool = (bool, lambda x: True, False)
 any_int = (int, lambda x: True, 0)
+key = (str, lambda x: isinstance(x, str), '') # FIXME: validation
 
 type_desc = {
         'Wpd': [nonneg_ts],
@@ -263,22 +266,22 @@ type_desc = {
         'C/P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
         'C/=P': [nonneg_ts],
 
-        'C.gB': [any_bool],
-        'C.gI': [any_int],
-        'C.gF': [any_float],
-        'C.gT': [any_ts],
+        'C.gB': [key, any_bool],
+        'C.gI': [key, any_int],
+        'C.gF': [key, any_float],
+        'C.gT': [key, any_ts],
 
         'I.ped': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
 
-        'G.B': [any_bool],
-        'G.I': [any_int],
-        'G.F': [any_float],
-        'G.T': [any_ts],
+        'G.B': [key, any_bool],
+        'G.I': [key, any_int],
+        'G.F': [key, any_float],
+        'G.T': [key, any_ts],
 
-        'D.B': [any_bool],
-        'D.I': [any_int],
-        'D.F': [any_float],
-        'D.T': [any_ts],
+        'D.B': [key, any_bool],
+        'D.I': [key, any_int],
+        'D.F': [key, any_float],
+        'D.T': [key, any_ts],
 }
 
 
