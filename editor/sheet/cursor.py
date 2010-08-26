@@ -20,6 +20,7 @@ import accessors as acc
 import kqt_limits as lim
 import timestamp
 import trigger
+import trigger_row
 
 
 class Cursor(object):
@@ -43,6 +44,7 @@ class Cursor(object):
         self.triggers = []
         self.accessors = accessors
         self.active_accessor = None
+        self.valid_value = False
 
     def key_press(self, ev):
         if ev.key() == QtCore.Qt.Key_Up:
@@ -105,16 +107,26 @@ class Cursor(object):
             else:
                 pass # TODO
         elif ev.key() == QtCore.Qt.Key_Return:
-            self.edit = True
-            tr = self.col.get_triggers()
-            if self.ts in tr:
-                field = tr[self.ts].get_field(self)
+            if self.edit:
+                if not self.valid_value:
+                    return
+                self.valid_value = False
+                self.edit = False
+                self.insert = False
+                assert self.active_accessor
+                self.active_accessor.hide()
+                self.active_accessor = None
             else:
-                field = trigger.TriggerType('')
-            self.active_accessor = self.accessors[type(field)]
-            self.active_accessor.set_value(field)
-            self.active_accessor.show()
-            self.active_accessor.setFocus()
+                self.edit = True
+                tr = self.col.get_triggers()
+                if self.ts in tr:
+                    field = tr[self.ts].get_field(self)
+                else:
+                    field = trigger.TriggerType('')
+                self.active_accessor = self.accessors[type(field)]
+                self.active_accessor.set_value(field)
+                self.active_accessor.show()
+                self.active_accessor.setFocus()
             return
         else:
             ev.ignore()
@@ -176,6 +188,13 @@ class Cursor(object):
 
     def get_view_start(self):
         return self.view_start
+
+    def set_value(self):
+        assert self.active_accessor
+        assert self.active_accessor.hasFocus()
+        self.valid_value = True
+        value = self.active_accessor.get_value()
+        self.col.set_value(self, value)
 
     def set_accel(self, accel):
         assert accel >= 1

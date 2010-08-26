@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import print_function
+
 from PyQt4 import QtGui, QtCore
 
 import trigger
@@ -19,7 +21,7 @@ import trigger
 class TypeValidator(QtGui.QValidator):
 
     def validate(self, field, pos):
-        if field in trigger.type_desc:
+        if str(field) in trigger.type_desc:
             return QtGui.QValidator.Acceptable, pos
         return QtGui.QValidator.Intermediate, pos
 

@@ -88,6 +88,18 @@ class Column(object):
     def set_triggers(self, triggers):
         self.triggers = self.arrange_triggers(triggers)
 
+    def set_value(self, cursor, value):
+        assert self.cursor == cursor
+        assert cursor
+        if cursor.get_pos() in self.triggers:
+            print('modify', value)
+        else:
+            assert isinstance(value, trigger.TriggerType)
+            theme = self.colours, self.fonts
+            row = tr.Trigger_row(theme)
+            row.append(trigger.Trigger([value, []], theme))
+            self.triggers[cursor.get_pos()] = row
+
     def set_view_start(self, start):
         self.view_start = start
 

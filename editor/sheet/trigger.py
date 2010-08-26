@@ -13,6 +13,7 @@
 
 from __future__ import division
 from __future__ import print_function
+from itertools import izip_longest, takewhile
 import math
 
 from PyQt4 import QtGui, QtCore
@@ -25,6 +26,8 @@ class Trigger(list):
 
     def __init__(self, data, theme):
         list.__init__(self, data)
+        self.set_type(data[0])
+        """
         self[0] = TriggerType(self[0])
         if self[0].valid:
             param_limits = type_desc[self[0]]
@@ -33,12 +36,32 @@ class Trigger(list):
                 self[1][i] = cons(v)
                 if not valid(self[1][i]):
                     self[1][i] = default
+        """
         self.colours = theme[0]
         self.fonts = theme[1]
         self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
         m_width = self.metrics.width('m')
         self.margin = m_width * 0.3
         self.padding = m_width * 0.15
+
+    def set_type(self, ttype):
+        self[0] = TriggerType(ttype)
+        if self[0].valid:
+            param_limits = type_desc[self[0]]
+            lv = takewhile(lambda x: x[0],
+                           izip_longest(param_limits, self[1]))
+            self[1] = []
+            for limits, value in lv:
+                cons, valid, default = limits
+                try:
+                    if valid(value):
+                        self[1].append(cons(value))
+                    else:
+                        self[1].append(default)
+                except TypeError:
+                    self[1].append(default)
+        else:
+            self[1] = list(fields)
 
     def cursor_area(self, index):
         start = self.margin

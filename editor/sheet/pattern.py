@@ -85,11 +85,16 @@ class Pattern(QtGui.QWidget):
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
             col.set_view_start(self.view_start)
+
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
                 }
         for a in self.accessors:
             self.accessors[a].hide()
+        QtCore.QObject.connect(self.accessors[trigger.TriggerType],
+                               QtCore.SIGNAL('returnPressed()'),
+                               self.value_changed)
+
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
@@ -99,6 +104,11 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
+
+    def value_changed(self):
+        self.cursor.set_value()
+        self.setFocus()
+        self.update()
 
     def set_path(self, path):
         pass
@@ -154,7 +164,7 @@ class Pattern(QtGui.QWidget):
 
     def keyPressEvent(self, ev):
         if self.cursor.edit:
-            if ev.key() in (QtCore.Qt.Key_Return, QtCore.Qt.Key_Escape):
+            if ev.key() in (QtCore.Qt.Key_Escape,):
                 self.setFocus()
         if ev.modifiers() == QtCore.Qt.ControlModifier:
             if ev.key() == QtCore.Qt.Key_Up:
