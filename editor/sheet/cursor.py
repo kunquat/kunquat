@@ -12,6 +12,7 @@
 #
 
 from __future__ import division
+from __future__ import print_function
 import sys
 
 from PyQt4 import QtCore
@@ -102,10 +103,16 @@ class Cursor(object):
                 self.active_accessor.hide()
                 self.active_accessor = None
         elif ev.key() == QtCore.Qt.Key_Delete:
+            tr = self.col.get_triggers()
             if self.insert:
                 self.insert = False
-            else:
-                pass # TODO
+            elif self.ts in tr:
+                row = tr[self.ts]
+                tindex, findex = row.get_slot(self)
+                if tindex < len(row) and findex == 0:
+                    del row[tindex]
+                    if row == []:
+                        del tr[self.ts]
         elif ev.key() == QtCore.Qt.Key_Return:
             if not self.edit:
                 self.edit = True
