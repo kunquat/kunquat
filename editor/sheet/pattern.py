@@ -210,6 +210,7 @@ class Pattern(QtGui.QWidget):
                     self.update()
                 else:
                     assert self.cursor_col == lim.COLUMNS_MAX - 1
+                    self.cursor.set_index(sys.maxsize)
             else:
                 self.update()
         else:
