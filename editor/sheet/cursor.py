@@ -122,6 +122,7 @@ class Cursor(object):
                 else:
                     field = trigger.TriggerType('')
                     valid_func = None
+                    self.index = 0
                 if not valid_func:
                     valid_func = (trigger.is_global
                                   if self.col.get_num() == -1
