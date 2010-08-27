@@ -152,7 +152,7 @@ class Trigger_row(list):
         if offset < 0:
             left_arrow = True
         for t in self:
-            if t == insert_pos:
+            if t is insert_pos:
                 height = self.metrics.height()
                 cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top() + 1,
                                             self.empty_cursor_width, height)
