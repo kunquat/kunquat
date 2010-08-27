@@ -107,16 +107,7 @@ class Cursor(object):
             else:
                 pass # TODO
         elif ev.key() == QtCore.Qt.Key_Return:
-            if self.edit:
-                if not self.valid_value:
-                    return
-                self.valid_value = False
-                self.edit = False
-                self.insert = False
-                assert self.active_accessor
-                self.active_accessor.hide()
-                self.active_accessor = None
-            else:
+            if not self.edit:
                 self.edit = True
                 tr = self.col.get_triggers()
                 if self.ts in tr:
@@ -201,6 +192,11 @@ class Cursor(object):
         self.valid_value = True
         value = self.active_accessor.get_value()
         self.col.set_value(self, value)
+        self.edit = False
+        self.insert = False
+        assert self.active_accessor
+        self.active_accessor.hide()
+        self.active_accessor = None
 
     def set_accel(self, accel):
         assert accel >= 1

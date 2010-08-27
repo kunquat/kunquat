@@ -80,7 +80,7 @@ class Trigger_row(list):
         else:
             for t in self:
                 assert cursor_pos >= 0
-                slots = 1 + len(t[1])
+                slots = t.slots()
                 if cursor_pos < slots:
                     t.set_value(cursor_pos, value)
                     break

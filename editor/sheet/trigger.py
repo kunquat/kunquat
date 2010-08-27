@@ -73,6 +73,9 @@ class Trigger(list):
         if cursor_pos == 0:
             self.set_type(value)
             return
+        cursor_pos -= 1
+        cons, valid, default = self.type_info[cursor_pos]
+        self[1][cursor_pos] = cons(value)
 
     def cursor_area(self, index):
         start = self.margin
@@ -220,6 +223,12 @@ def is_channel(ttype):
     return ttype in channel_triggers or ttype in general_triggers
 
 
+def is_key(value):
+    if value is None:
+        return False
+    return True # FIXME
+
+
 nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
 any_ts = (ts.Timestamp, lambda x: True, ts.Timestamp(0))
 finite_float = (float, isfinite, 0.0)
@@ -230,7 +239,7 @@ volume = (float, lambda x: x <= 0 and not math.isnan(x), 0.0)
 any_float = (float, lambda x: True, 0.0)
 any_bool = (bool, lambda x: True, False)
 any_int = (int, lambda x: True, 0)
-key = (str, lambda x: isinstance(x, str), '') # FIXME: validation
+key = (str, is_key, '')
 
 global_triggers = {
         'Wpd': [nonneg_ts],

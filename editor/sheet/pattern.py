@@ -88,12 +88,17 @@ class Pattern(QtGui.QWidget):
 
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
+                bool: acc.BoolEdit(self),
+                float: acc.FloatEdit(self),
+                int: acc.IntEdit(self),
+                ts.Timestamp: acc.TimestampEdit(self),
+                str: acc.StringEdit(self),
                 }
         for a in self.accessors:
             self.accessors[a].hide()
-        QtCore.QObject.connect(self.accessors[trigger.TriggerType],
-                               QtCore.SIGNAL('returnPressed()'),
-                               self.value_changed)
+            QtCore.QObject.connect(self.accessors[a],
+                                   QtCore.SIGNAL('returnPressed()'),
+                                   self.value_changed)
 
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
         self.columns[0].set_cursor(self.cursor)
