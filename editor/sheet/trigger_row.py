@@ -34,21 +34,35 @@ class Trigger_row(list):
                             QtCore.QPoint(-self.arrow_size, self.arrow_size),
                             QtCore.QPoint(0, 0)])
 
+    """
     def get_active_trigger(self):
         if self.gap or self.cursor_pos == len(self):
             return None
         return self[self.cursor_pos]
+    """
 
-    def get_field(self, cursor):
-        if cursor.insert:
-            return trigger.TriggerType('')
+    def get_slot(self, cursor):
+        index = 0
         cursor_pos = cursor.get_index()
         for t in self:
-            field = t.get_field(cursor_pos)
-            if field is not None:
-                return field
-            cursor_pos -= 1 + len(t[1])
-        return trigger.TriggerType('')
+            slots = t.slots()
+            if cursor_pos < slots:
+                if cursor.insert:
+                    return index, 0
+                return index, cursor_pos
+            index += 1
+            cursor_pos -= slots
+        return index, 0
+
+    def get_field_info(self, cursor):
+        type_validator = (trigger.is_global if cursor.col.get_num() == -1
+                          else trigger.is_channel)
+        if cursor.insert:
+            return trigger.TriggerType(''), type_validator
+        index, pos = self.get_slot(cursor)
+        if index < len(self):
+            return self[index].get_field_info(pos)
+        return trigger.TriggerType(''), type_validator
 
     def set_value(self, cursor, value):
         cursor_pos = cursor.get_index()
@@ -98,7 +112,7 @@ class Trigger_row(list):
         return start, self.empty_cursor_width
 
     def slots(self):
-        return sum(1 + len(t[1]) for t in self)
+        return sum(t.slots() for t in self)
 
     def paint(self, paint, rect, cursor=None, focus=False):
         offset = 0

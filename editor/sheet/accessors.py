@@ -18,24 +18,34 @@ from PyQt4 import QtGui, QtCore
 import trigger
 
 
-class TypeValidator(QtGui.QValidator):
+class FuncValidator(QtGui.QValidator):
+
+    def __init__(self, func=lambda x: False):
+        super(FuncValidator, self).__init__()
+        self.isvalid = func
 
     def validate(self, field, pos):
-        if str(field) in trigger.type_desc:
+        if self.isvalid(field):
             return QtGui.QValidator.Acceptable, pos
         return QtGui.QValidator.Intermediate, pos
 
 
-class TypeEdit(QtGui.QLineEdit):
+class Edit(QtGui.QLineEdit):
 
     def __init__(self, parent=None):
-        super(TypeEdit, self).__init__(parent)
-        self.setValidator(TypeValidator())
+        super(Edit, self).__init__(parent)
+        self.setValidator(FuncValidator())
 
     def keyPressEvent(self, ev):
-        super(TypeEdit, self).keyPressEvent(ev)
+        super(Edit, self).keyPressEvent(ev)
         if ev.key() not in (QtCore.Qt.Key_Escape, QtCore.Qt.Key_Return):
             ev.accept()
+
+    def set_validator_func(self, func):
+        self.setValidator(FuncValidator(func))
+
+
+class TypeEdit(Edit):
 
     def set_value(self, value):
         self.setText(value)

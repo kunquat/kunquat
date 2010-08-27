@@ -46,10 +46,16 @@ class Trigger(list):
 
     def set_type(self, ttype):
         self[0] = TriggerType(ttype)
+        self.type_info = None
         if self[0].valid:
-            param_limits = type_desc[self[0]]
+            if self[0] in channel_triggers:
+                self.type_info = channel_triggers[self[0]]
+            elif self[0] in global_triggers:
+                self.type_info = global_triggers[self[0]]
+            else:
+                self.type_info = general_triggers[self[0]]
             lv = takewhile(lambda x: x[0],
-                           izip_longest(param_limits, self[1]))
+                           izip_longest(self.type_info, self[1]))
             self[1] = []
             for limits, value in lv:
                 cons, valid, default = limits
@@ -84,11 +90,11 @@ class Trigger(list):
         assert round(start + self.margin - self.width()) == 0
         return start + self.margin, 0
 
-    def get_field(self, cursor_pos):
+    def get_field_info(self, cursor_pos):
         if cursor_pos == 0:
-            return self[0]
+            return self[0], None
         elif cursor_pos > 0 and cursor_pos <= len(self[1]):
-            return self[1][cursor_pos - 1]
+            return self[1][cursor_pos - 1], self.type_info[cursor_pos - 1][1]
         return None
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
@@ -170,6 +176,9 @@ class Trigger(list):
     def field_width(self, field):
         return self.padding + self.metrics.width(self.field_str(field))
 
+    def slots(self):
+        return 1 + len(self[1])
+
     def width(self):
         return self.metrics.width(self[0]) + sum(
                 self.field_width(f) for f in self[1]) + 2 * self.margin
@@ -178,7 +187,7 @@ class Trigger(list):
 class TriggerType(str):
 
     def __init__(self, name):
-        self.valid = name in type_desc
+        self.valid = is_channel(name) or is_global(name) # FIXME
 
     def paint(self, colours, paint, rect, opt, cursor):
         if self.valid:
@@ -201,6 +210,16 @@ def isfinite(x):
     return not (math.isinf(x) or math.isnan(x))
 
 
+def is_global(ttype):
+    ttype = str(ttype)
+    return ttype in global_triggers or ttype in general_triggers
+
+
+def is_channel(ttype):
+    ttype = str(ttype)
+    return ttype in channel_triggers or ttype in general_triggers
+
+
 nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
 any_ts = (ts.Timestamp, lambda x: True, ts.Timestamp(0))
 finite_float = (float, isfinite, 0.0)
@@ -213,7 +232,7 @@ any_bool = (bool, lambda x: True, False)
 any_int = (int, lambda x: True, 0)
 key = (str, lambda x: isinstance(x, str), '') # FIXME: validation
 
-type_desc = {
+global_triggers = {
         'Wpd': [nonneg_ts],
         'W.jc': [(int, lambda x: x >= 0 and x < 65536, 0)],
         'W.jr': [nonneg_ts],
@@ -232,7 +251,9 @@ type_desc = {
         'W.v': [volume],
         'W/v': [volume],
         'W/=v': [nonneg_ts],
+}
 
+channel_triggers = {
         'C.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
         'C.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
         'C.d': [(int, lambda x: x >= 0 and x < lim.DSP_EFFECTS_MAX, 0)],
@@ -287,6 +308,9 @@ type_desc = {
         'D.I': [key, any_int],
         'D.F': [key, any_float],
         'D.T': [key, any_ts],
+}
+
+general_triggers = {
 }
 
 

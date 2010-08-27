@@ -120,10 +120,16 @@ class Cursor(object):
                 self.edit = True
                 tr = self.col.get_triggers()
                 if self.ts in tr:
-                    field = tr[self.ts].get_field(self)
+                    field, valid_func = tr[self.ts].get_field_info(self)
                 else:
                     field = trigger.TriggerType('')
+                    valid_func = None
+                if not valid_func:
+                    valid_func = (trigger.is_global
+                                  if self.col.get_num() == -1
+                                  else trigger.is_channel)
                 self.active_accessor = self.accessors[type(field)]
+                self.active_accessor.set_validator_func(valid_func)
                 self.active_accessor.set_value(field)
                 self.active_accessor.show()
                 self.active_accessor.setFocus()
