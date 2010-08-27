@@ -226,7 +226,7 @@ def is_channel(ttype):
 def is_key(value):
     if value is None:
         return False
-    return True # FIXME
+    return all(x in '_./' or x.isalpha() for x in str(value))
 
 
 nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
