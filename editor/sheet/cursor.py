@@ -47,6 +47,9 @@ class Cursor(object):
         self.active_accessor = None
         self.valid_value = False
 
+    def clear_delay(self):
+        self.trigger_delay_left = 0
+
     def key_press(self, ev):
         if ev.key() == QtCore.Qt.Key_Up:
             self.set_direction(-1)

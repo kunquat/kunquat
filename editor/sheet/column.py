@@ -119,7 +119,7 @@ class Column(object):
         paint.setFont(self.fonts['trigger'])
         trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height() - 1
         visible_triggers = [p for p in self.triggers
-                            if view_start < p < view_end]
+                            if view_start < p < min(view_end, self.length)]
         visible_triggers.sort(lambda x, y: (y - x)[0] * ts.TIMESTAMP_BEAT +
                                            (y - x)[1])
         next_pos = None
@@ -175,5 +175,16 @@ class Column(object):
     def set_view_start(self, start):
         self.view_start = start
         self.pix_view_start = start * self.beat_len
+
+    def shift(self, pos, shift):
+        shifted = {}
+        for key in self.triggers:
+            if key >= pos:
+                shifted[key] = self.triggers[key]
+        for key in shifted:
+            del self.triggers[key]
+        for key in shifted:
+            if key + shift >= pos:
+                self.triggers[key + shift] = shifted[key]
 
 

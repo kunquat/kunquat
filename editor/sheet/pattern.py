@@ -12,6 +12,7 @@
 #
 
 from __future__ import division
+from __future__ import print_function
 import math
 import sys
 
@@ -177,6 +178,19 @@ class Pattern(QtGui.QWidget):
             elif ev.key() == QtCore.Qt.Key_Down:
                 self.zoom(1 / self.zoom_factor)
             return
+        elif ev.modifiers() == QtCore.Qt.ShiftModifier:
+            if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
+                shift_pos = self.cursor.get_pos()
+                self.cursor.set_direction(1)
+                self.cursor.step()
+                if ev.key() == QtCore.Qt.Key_Insert:
+                    self.cursor.clear_delay()
+                shift = self.cursor.get_pos() - shift_pos
+                self.columns[self.cursor_col + 1].shift(shift_pos,
+                        -shift if ev.key() == QtCore.Qt.Key_Delete else shift)
+                self.cursor.set_pos(shift_pos)
+                self.update()
+            return
 
         if ev.key() == QtCore.Qt.Key_Left:
             self.cursor.key_press(ev)
@@ -223,6 +237,9 @@ class Pattern(QtGui.QWidget):
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
+            return
+        if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
+            self.cursor.set_direction()
             return
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
             self.cursor.key_release(ev)
