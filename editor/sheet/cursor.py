@@ -138,6 +138,25 @@ class Cursor(object):
                 self.active_accessor.show()
                 self.active_accessor.setFocus()
             return
+        elif ev.key() == QtCore.Qt.Key_1:
+            triggers = self.col.get_triggers()
+            if self.ts in triggers and not self.insert:
+                row = triggers[self.ts]
+                tindex, findex = row.get_slot(self)
+                if tindex < len(row):
+                    trig = row[tindex]
+                    if trig[0] == 'Cn+':
+                        del row[tindex]
+                        self.insert = True
+                        self.col.set_value(self, trigger.TriggerType('Cn-'))
+                        self.insert = False
+                else:
+                    self.index = row.slots()
+                    self.col.set_value(self, trigger.TriggerType('Cn-'))
+            else:
+                if self.ts not in triggers:
+                    self.index = 0
+                self.col.set_value(self, trigger.TriggerType('Cn-'))
         else:
             if not (self.note_input and self.scale and
                     self.col.get_num() >= 0):
@@ -164,10 +183,12 @@ class Cursor(object):
                                     trigger.Note):
                         self.col.set_value(self, cents)
                 else:
-                    self.index = len(row)
+                    self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('Cn+'))
                     self.col.set_value(self, cents)
             else:
+                if self.ts not in triggers:
+                    self.index = 0
                 self.col.set_value(self, trigger.TriggerType('Cn+'))
                 self.insert = False
                 self.col.set_value(self, cents)
