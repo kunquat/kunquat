@@ -46,6 +46,8 @@ class Cursor(object):
         self.accessors = accessors
         self.active_accessor = None
         self.valid_value = False
+        self.note_input = None
+        self.scale = None
 
     def clear_delay(self):
         self.trigger_delay_left = 0
@@ -137,7 +139,38 @@ class Cursor(object):
                 self.active_accessor.setFocus()
             return
         else:
-            ev.ignore()
+            if not (self.note_input and self.scale and
+                    self.col.get_num() >= 0):
+                ev.ignore()
+                return
+            try:
+                note, octave = self.note_input.get_note(ev.key())
+                cents = self.scale.get_cents(note, octave)
+            except KeyError:
+                ev.ignore()
+                return
+            triggers = self.col.get_triggers()
+            if self.ts in triggers and not self.insert:
+                row = triggers[self.ts]
+                tindex, findex = row.get_slot(self)
+                if tindex < len(row):
+                    trig = row[tindex]
+                    if trig[0] == 'Cn+':
+                        self.col.set_value(self, cents)
+                    elif trig[0] == 'Cn-':
+                        self.col.set_value(self, trigger.TriggerType('Cn+'))
+                        self.col.set_value(self, cents)
+                    elif isinstance(trig.get_field_info(findex)[0],
+                                    trigger.Note):
+                        self.col.set_value(self, cents)
+                else:
+                    self.index = len(row)
+                    self.col.set_value(self, trigger.TriggerType('Cn+'))
+                    self.col.set_value(self, cents)
+            else:
+                self.col.set_value(self, trigger.TriggerType('Cn+'))
+                self.insert = False
+                self.col.set_value(self, cents)
         self.insert = False
 
     def key_release(self, ev):
@@ -196,6 +229,12 @@ class Cursor(object):
 
     def get_view_start(self):
         return self.view_start
+
+    def set_scale(self, sc):
+        self.scale = sc
+
+    def set_input(self, note_input):
+        self.note_input = note_input
 
     def set_value(self):
         assert self.active_accessor

@@ -29,6 +29,11 @@ class Scale(object):
         self.octave, self.octave_cents = self.read_tuning(
                                              data['octave_ratio'])
 
+    def get_cents(self, note, octave):
+        root = self.center_cents
+        root += (octave - 5) * self.octave_cents
+        return root + self.notes[note][1]
+
     def get_display_info(self, cents):
         octave_number = math.floor((cents - self.center_cents) / 1200) + 5
         root_offset = (cents - self.center_cents) % 1200

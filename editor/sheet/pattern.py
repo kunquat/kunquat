@@ -16,14 +16,28 @@ from __future__ import print_function
 import math
 import sys
 
-from PyQt4 import Qt, QtGui, QtCore
+from PyQt4 import QtGui, QtCore
 
 import accessors as acc
 from column import Column
 from cursor import Cursor
 import kqt_limits as lim
+import note_input as ni
+import scale
 import timestamp as ts
 import trigger
+
+
+default_scale = scale.Scale({
+        'ref_pitch': 440 * 2**(3.0/12),
+        'octave_ratio': ['/', [2, 1]],
+        'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
+                           'F#', 'G', 'G#', 'A', 'A#', 'B'),
+                          (['c', cents] for cents in range(0, 1200, 100))))
+    })
+
+
+default_input = ni.NoteInput()
 
 
 class Pattern(QtGui.QWidget):
@@ -105,6 +119,8 @@ class Pattern(QtGui.QWidget):
                                    self.value_changed)
 
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
+        self.cursor.set_scale(default_scale)
+        self.cursor.set_input(default_input)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
@@ -183,6 +199,7 @@ class Pattern(QtGui.QWidget):
             return
         elif ev.modifiers() == QtCore.Qt.ShiftModifier:
             if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
+                self.cursor.set_index(0)
                 shift_pos = self.cursor.get_pos()
                 self.cursor.set_direction(1)
                 self.cursor.step()
