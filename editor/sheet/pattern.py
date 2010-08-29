@@ -89,6 +89,7 @@ class Pattern(QtGui.QWidget):
 
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
+                trigger.Note: acc.NoteEdit(self),
                 bool: acc.BoolEdit(self),
                 float: acc.FloatEdit(self),
                 int: acc.IntEdit(self),

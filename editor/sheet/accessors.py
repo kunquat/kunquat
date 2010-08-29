@@ -108,6 +108,12 @@ class FloatEdit(StringEdit):
         return float(self.text())
 
 
+class NoteEdit(FloatEdit):
+
+    def get_value(self):
+        return trigger.Note(self.text())
+
+
 class IntEdit(StringEdit):
 
     def _int_validate(self, value):

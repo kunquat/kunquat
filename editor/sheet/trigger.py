@@ -19,6 +19,7 @@ import math
 from PyQt4 import QtGui, QtCore
 
 import kqt_limits as lim
+import scale
 import timestamp as ts
 
 
@@ -168,6 +169,12 @@ class Trigger(list):
             paint.setPen(self.colours['trigger_fg'])
 
     def field_str(self, field):
+        if isinstance(field, Note):
+            n, o, c = default_scale.get_display_info(field)
+            c = int(round(c))
+            if c == 0:
+                return '{0}{1}'.format(n, o)
+            return '{0}{1}{2:+d}'.format(n, o, c)
         if isinstance(field, int):
             return str(field)
         elif isinstance(field, float):
@@ -205,7 +212,16 @@ class TriggerType(str):
         paint.drawText(rect, self, opt)
 
 
-class note(float):
+default_scale = scale.Scale({
+        'ref_pitch': 440 * 2**(3.0/12),
+        'octave_ratio': ['/', [2, 1]],
+        'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
+                           'F#', 'G', 'G#', 'A', 'A#', 'B'),
+                          (['c', cents] for cents in range(0, 1200, 100))))
+    })
+
+
+class Note(float):
     pass
 
 
@@ -240,6 +256,8 @@ any_float = (float, lambda x: True, 0.0)
 any_bool = (bool, lambda x: True, False)
 any_int = (int, lambda x: True, 0)
 key = (str, is_key, '')
+pitch = (Note, isfinite, Note(0))
+note_entry = (int, lambda x: x >= 0, 0) # FIXME
 
 global_triggers = {
         'Wpd': [nonneg_ts],
@@ -252,7 +270,7 @@ global_triggers = {
         'W.s': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
         'W.so': [finite_float],
         'Wms': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
-        'Wssi': [note, note],
+        'Wssi': [note_entry, note_entry],
 
         'W.t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
         'W/t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
@@ -268,7 +286,7 @@ channel_triggers = {
         'C.d': [(int, lambda x: x >= 0 and x < lim.DSP_EFFECTS_MAX, 0)],
         'C.dc': [(int, lambda x: x >= -1 and x < lim.INSTRUMENTS_MAX, -1)],
 
-        'Cn+': [finite_float],
+        'Cn+': [pitch],
         'Cn-': [],
 
         'C.f': [force],
@@ -279,13 +297,13 @@ channel_triggers = {
         'CTd': [(float, lambda x: x >= 0.0 and x <= 24.0, 0.0)],
         'CTdd': [nonneg_ts],
 
-        'C/p': [finite_float],
+        'C/p': [pitch],
         'C/=p': [nonneg_ts],
         'CVs': [nonneg_float],
         'CVsd': [nonneg_ts],
         'CVd': [nonneg_float],
         'CVdd': [nonneg_ts],
-        'CArp': [pos_float, finite_float, finite_float, finite_float],
+        'CArp': [pos_float, pitch, pitch, pitch],
 
         'C.l': [(float, isfinite, 0.0)],
         'C/l': [(float, isfinite, 0.0)],
