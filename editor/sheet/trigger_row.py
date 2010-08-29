@@ -11,6 +11,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import islice
+
 from PyQt4 import QtGui, QtCore
 
 import trigger
@@ -34,14 +36,14 @@ class Trigger_row(list):
                             QtCore.QPoint(-self.arrow_size, self.arrow_size),
                             QtCore.QPoint(0, 0)])
 
-    """
-    def get_active_trigger(self):
-        if self.gap or self.cursor_pos == len(self):
-            return None
-        return self[self.cursor_pos]
-    """
-
     def get_slot(self, cursor):
+        """Return the location of the cursor inside a Trigger row.
+
+        Return value:
+        A tuple with the index of the selected trigger as the first element,
+        and the cursor position inside that trigger as the second element.
+
+        """
         index = 0
         cursor_pos = cursor.get_index()
         for t in self:
@@ -68,23 +70,13 @@ class Trigger_row(list):
         cursor_pos = cursor.get_index()
         if cursor.insert or cursor_pos >= self.slots():
             assert isinstance(value, trigger.TriggerType)
-            index = 0
-            for t in self:
-                cursor_pos -= 1 + len(t[1])
-                if cursor_pos < 0:
-                    break
-                index += 1
+            index, _ = self.get_slot(cursor)
             theme = self.colours, self.fonts
             t = trigger.Trigger([value, []], theme)
             self.insert(index, t)
         else:
-            for t in self:
-                assert cursor_pos >= 0
-                slots = t.slots()
-                if cursor_pos < slots:
-                    t.set_value(cursor_pos, value)
-                    break
-                cursor_pos -= slots
+            trig, field = self.get_slot(cursor)
+            self[trig].set_value(field, value)
 
     def key_press(self, ev):
         pass
@@ -93,23 +85,15 @@ class Trigger_row(list):
         cursor_pos = cursor.get_index()
         if cursor_pos == 0:
             return 0, 1
+        trig, field = self.get_slot(cursor)
+        left = sum(t.width() for t in islice(self, trig))
         if cursor.insert:
-            w = 0
-            for t in self:
-                cursor_pos -= 1 + len(t[1])
-                if cursor_pos < 0:
-                    break
-                w += t.width()
-            return w, self.empty_cursor_width
-        start = 0
-        for t in self:
-            fstart, width = t.cursor_area(cursor_pos)
-            if width > 0:
-                return start + fstart, width
-            cursor_pos -= 1 + len(t[1])
-            start += fstart
-        assert round(start - self.width()) == 0
-        return start, self.empty_cursor_width
+            return left, self.empty_cursor_width
+        if trig < len(self):
+            fstart, width = self[trig].cursor_area(field)
+            return left + fstart, width
+        assert round(left - self.width()) == 0
+        return left, self.empty_cursor_width
 
     def slots(self):
         return sum(t.slots() for t in self)
@@ -138,13 +122,10 @@ class Trigger_row(list):
                 offset = 0
             cursor.set_view_start(-offset)
             if cursor.insert:
-                cp = cursor_pos
-                for t in self:
-                    if cp < 1 + len(t[1]):
-                        insert_pos = t
-                        cursor_pos = -1
-                        break
-                    cp -= 1 + len(t[1])
+                index, _ = self.get_slot(cursor)
+                if index < len(self):
+                    insert_pos = self[index]
+                    cursor_pos = -1
             cursor.set_geometry(rect.left() + cursor_left + offset,
                                 rect.top(), max(cursor_width,
                                     self.empty_cursor_width * 4),
@@ -160,7 +141,7 @@ class Trigger_row(list):
                     self.paint_empty_cursor(paint, cursor_rect)
                 offset += self.empty_cursor_width
             offset = t.paint(paint, rect, offset, cursor_pos if focus else -1)
-            cursor_pos -= 1 + len(t[1])
+            cursor_pos -= t.slots()
         if offset > rect.width():
             right_arrow = True
         if cursor_pos >= 0 and focus:

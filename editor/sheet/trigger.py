@@ -28,16 +28,6 @@ class Trigger(list):
     def __init__(self, data, theme):
         list.__init__(self, data)
         self.set_type(data[0])
-        """
-        self[0] = TriggerType(self[0])
-        if self[0].valid:
-            param_limits = type_desc[self[0]]
-            for i, v in enumerate([x for x in self[1]]):
-                cons, valid, default = param_limits[i]
-                self[1][i] = cons(v)
-                if not valid(self[1][i]):
-                    self[1][i] = default
-        """
         self.colours = theme[0]
         self.fonts = theme[1]
         self.metrics = QtGui.QFontMetrics(self.fonts['trigger'])
@@ -303,7 +293,7 @@ channel_triggers = {
         'CVsd': [nonneg_ts],
         'CVd': [nonneg_float],
         'CVdd': [nonneg_ts],
-        'CArp': [pos_float, pitch, pitch, pitch],
+        'CArp': [pos_float, finite_float, finite_float, finite_float],
 
         'C.l': [(float, isfinite, 0.0)],
         'C/l': [(float, isfinite, 0.0)],
