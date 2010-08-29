@@ -23,6 +23,9 @@ import scale
 import timestamp as ts
 
 
+note_off_str = u'══'
+
+
 class Trigger(list):
 
     def __init__(self, data, theme):
@@ -61,20 +64,24 @@ class Trigger(list):
             self[1] = list(fields)
 
     def set_value(self, cursor_pos, value):
-        if cursor_pos == 0:
-            self.set_type(value)
-            return
-        cursor_pos -= 1
+        if self[0] != 'Cn+':
+            if cursor_pos == 0:
+                self.set_type(value)
+                return
+            cursor_pos -= 1
         cons, valid, default = self.type_info[cursor_pos]
         self[1][cursor_pos] = cons(value)
 
     def cursor_area(self, index):
         start = self.margin
-        hw = self.metrics.width(self[0])
-        if index == 0:
-            return start, hw
-        start += hw
-        index -= 1
+        if self[0] != 'Cn+':
+            hw = self.metrics.width(self[0])
+            if index == 0:
+                return start, hw
+            start += hw
+            index -= 1
+        else:
+            start -= self.padding
         for field in self[1]:
             fw = self.field_width(field)
             if index == 0:
@@ -85,10 +92,12 @@ class Trigger(list):
         return start + self.margin, 0
 
     def get_field_info(self, cursor_pos):
-        if cursor_pos == 0:
-            return self[0], None
-        elif cursor_pos > 0 and cursor_pos <= len(self[1]):
-            return self[1][cursor_pos - 1], self.type_info[cursor_pos - 1][1]
+        if self[0] != 'Cn+':
+            if cursor_pos == 0:
+                return self[0], None
+            cursor_pos -= 1
+        if cursor_pos >= 0 and cursor_pos < len(self[1]):
+            return self[1][cursor_pos], self.type_info[cursor_pos][1]
         return None
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
@@ -99,26 +108,27 @@ class Trigger(list):
         opt.setAlignment(QtCore.Qt.AlignRight)
 
         offset += self.margin
-        head_rect = QtCore.QRectF(rect)
-        head_rect.moveLeft(head_rect.left() + offset)
-        type_width = self.metrics.width(self[0])
-        head_rect.setWidth(type_width)
-        head_rect = head_rect.intersect(rect)
-        if offset < 0:
-            if offset > -type_width:
+        if self[0] != 'Cn+':
+            head_rect = QtCore.QRectF(rect)
+            head_rect.moveLeft(head_rect.left() + offset)
+            type_width = self.metrics.width(self[0])
+            head_rect.setWidth(type_width)
+            head_rect = head_rect.intersect(rect)
+            if offset < 0:
+                if offset > -type_width:
+                    self[0].paint(self.colours, paint, head_rect,
+                                  opt, cursor_pos == 0)
+            else:
+                if head_rect.width() < type_width and \
+                        head_rect.right() == rect.right():
+                    opt.setAlignment(QtCore.Qt.AlignLeft)
                 self[0].paint(self.colours, paint, head_rect,
                               opt, cursor_pos == 0)
+            cursor_pos -= 1
+            offset += type_width
         else:
-            if head_rect.width() < type_width and \
-                    head_rect.right() == rect.right():
-                opt.setAlignment(QtCore.Qt.AlignLeft)
-            self[0].paint(self.colours, paint, head_rect,
-                          opt, cursor_pos == 0)
-        cursor_pos -= 1
-        offset += type_width
+            offset -= self.padding
 
-        paint.setBackground(self.colours['bg'])
-        paint.setPen(self.colours['trigger_fg'])
         for field in self[1]:
             field_rect = QtCore.QRectF(rect)
             field_rect.moveLeft(rect.left() + offset + self.padding)
@@ -136,6 +146,12 @@ class Trigger(list):
 
         offset += self.margin
         if offset > 0:
+            if self[0] == 'Cn+':
+                paint.setPen(self.colours['trigger_note_on_fg'])
+            elif self[0] == 'Cn-':
+                paint.setPen(self.colours['trigger_note_off_fg'])
+            else:
+                paint.setPen(self.colours['trigger_fg'])
             left = max(rect.left() + init_offset, rect.left())
             right = min(rect.left() + offset, rect.right()) - 1
             if left < right:
@@ -143,20 +159,22 @@ class Trigger(list):
                                right, rect.top())
 #        if round((offset - init_offset) - self.width()) != 0:
 #            print('offset change and width differ in', self, end=' -- ')
-#            print(offset - init_offset, '!=', self.width())
+#            print(offset - init_offset, '!=', self.width(), end=', ')
+#            print('diff:', (offset - init_offset) - self.width())
         return offset
 
     def paint_field(self, paint, field, rect, opt, cursor):
         s = self.field_str(field)
+        back = self.colours['bg']
+        if self[0] == 'Cn+':
+            fore = self.colours['trigger_note_on_fg']
+        else:
+            fore = self.colours['trigger_fg']
         if cursor:
-            paint.setBackground(self.colours['trigger_fg'])
-#            paint.setBackgroundMode(QtCore.Qt.OpaqueMode)
-            paint.setPen(self.colours['bg'])
+            back, fore = fore, back
+        paint.setBackground(back)
+        paint.setPen(fore)
         paint.drawText(rect, s, opt)
-        if cursor:
-            paint.setBackground(self.colours['bg'])
-#            paint.setBackgroundMode(QtCore.Qt.TransparentMode)
-            paint.setPen(self.colours['trigger_fg'])
 
     def field_str(self, field):
         if isinstance(field, Note):
@@ -177,11 +195,18 @@ class Trigger(list):
         return self.padding + self.metrics.width(self.field_str(field))
 
     def slots(self):
+        if self[0] == 'Cn+':
+            return len(self[1])
         return 1 + len(self[1])
 
     def width(self):
-        return self.metrics.width(self[0]) + sum(
-                self.field_width(f) for f in self[1]) + 2 * self.margin
+        fields_width = sum(self.field_width(f) for f in self[1])
+        type_width = -self.padding
+        if self[0] == 'Cn-':
+            type_width = self.metrics.width(note_off_str)
+        elif self[0] != 'Cn+':
+            type_width = self.metrics.width(self[0])
+        return type_width + fields_width + 2 * self.margin
 
 
 class TriggerType(str):
@@ -190,7 +215,9 @@ class TriggerType(str):
         self.valid = is_channel(name) or is_global(name) # FIXME
 
     def paint(self, colours, paint, rect, opt, cursor):
-        if self.valid:
+        if self == 'Cn-':
+            fore = colours['trigger_note_off_fg']
+        elif self.valid:
             fore = colours['trigger_type_fg']
         else:
             fore = colours['trigger_invalid_fg']
@@ -199,7 +226,7 @@ class TriggerType(str):
             fore, back = back, fore
         paint.setBackground(back)
         paint.setPen(fore)
-        paint.drawText(rect, self, opt)
+        paint.drawText(rect, self if self != 'Cn-' else note_off_str, opt)
 
 
 default_scale = scale.Scale({

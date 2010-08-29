@@ -45,8 +45,10 @@ class Pattern(QtGui.QWidget):
                 'cursor_arrow': QtGui.QColor(0xff, 0x44, 0x22),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
-                'trigger_fg': QtGui.QColor(0xcc, 0xcc, 0xcc),
-                'trigger_type_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
+                'trigger_fg': QtGui.QColor(0xaa, 0xaa, 0xaa),
+                'trigger_note_on_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
+                'trigger_note_off_fg': QtGui.QColor(0xaa, 0x88, 0x66),
+                'trigger_type_fg': QtGui.QColor(0xcc, 0xcc, 0xaa),
                 'trigger_invalid_fg': QtGui.QColor(0xff, 0x33, 0x11),
                 }
         self.fonts = {
