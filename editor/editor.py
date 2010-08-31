@@ -12,20 +12,47 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from __future__ import division
+from __future__ import print_function
+import random
 import sys
+import time
 
+from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
 from sheet import Sheet
+
+
+PROGRAM_NAME = 'Kunquat'
+PROGRAM_VERSION = '0.0.0'
 
 
 class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
+        self.set_appearance()
+        self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
+        self.mix_timer = QtCore.QTimer(self)
+        QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
+                               self.mix)
+
+    def mix(self):
+        noise_l = [random.random() / 6 for _ in xrange(1024)]
+        noise_r = [random.random() / 6 for _ in xrange(1024)]
+        self.pa.try_write(noise_l, noise_r)
+
+    def play(self):
+        self.mix_timer.start(0)
+
+    def stop(self):
+        self.mix_timer.stop()
+
+    def set_appearance(self):
         # FIXME: size and title
         self.resize(400, 300)
-        self.setWindowTitle('Kunquat')
+        self.setWindowTitle(PROGRAM_NAME)
 
         self.statusBar().showMessage('[status]')
 
@@ -78,10 +105,14 @@ class KqtEditor(QtGui.QMainWindow):
         play = QtGui.QToolButton()
         play.setText('Play')
         play.setAutoRaise(True)
+        QtCore.QObject.connect(play, QtCore.SIGNAL('clicked()'),
+                               self.play)
 
         stop = QtGui.QToolButton()
         stop.setText('Stop')
         stop.setAutoRaise(True)
+        QtCore.QObject.connect(stop, QtCore.SIGNAL('clicked()'),
+                               self.stop)
 
         seek_back = QtGui.QToolButton()
         seek_back.setText('Seek backwards')
