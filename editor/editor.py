@@ -14,6 +14,8 @@
 
 from __future__ import division
 from __future__ import print_function
+from itertools import count
+import math
 import random
 import sys
 import time
@@ -28,6 +30,14 @@ PROGRAM_NAME = 'Kunquat'
 PROGRAM_VERSION = '0.0.0'
 
 
+def sine():
+    phase = 0
+    shift = (2 * math.pi * 440) / 48000
+    while True:
+        yield math.sin(phase)
+        phase = (phase + shift) % (2 * math.pi)
+
+
 class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self):
@@ -37,11 +47,16 @@ class KqtEditor(QtGui.QMainWindow):
         self.mix_timer = QtCore.QTimer(self)
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)
+        self.bufs = (None, None)
+        self.sound = sine()
 
     def mix(self):
-        noise_l = [random.random() / 6 for _ in xrange(1024)]
-        noise_r = [random.random() / 6 for _ in xrange(1024)]
-        self.pa.try_write(noise_l, noise_r)
+        if not self.bufs[0]:
+            buf = [self.sound.next() / 6 for _ in xrange(1024)]
+            self.bufs = (buf, buf)
+        if self.pa.try_write(*self.bufs):
+            buf = [self.sound.next() / 6 for _ in xrange(1024)]
+            self.bufs = (buf, buf)
 
     def play(self):
         self.mix_timer.start(0)
