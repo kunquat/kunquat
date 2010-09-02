@@ -130,16 +130,17 @@ The Kunquat library could not get service from an external resource such as
 another library or the file system.
 
 .PP
-Error messages consist of one of these error categories followed by a colon
-(':'), a space and an error description.
+Error messages are JSON object strings that contain at least two keys: "type"
+and "message". The value of "type" is one of the categories above and the
+value of "message" is a human-readable description of the error.
 
 .IP "\fBchar* kqt_Handle_get_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
 Returns an error message describing the last error occurred when accessing
 \fIhandle\fR. \fIhandle\fR may also be NULL, in which case the function
 returns an error message about the last error occurred in using the Kunquat
-library in general. In particular, this is the only way to retrieve Handle
-creation error messages. The function will return the last error message, or
-an empty string if no error has occurred.
+library in general. In particular, passing NULL as the argument is the only
+way to retrieve Handle creation error messages. The function will return the
+last error message, or an empty string if no error has occurred.
 
 .IP "\fBvoid kqt_Handle_clear_error(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
 Clears error information in \fIhandle\fR. This is useful to do before calling

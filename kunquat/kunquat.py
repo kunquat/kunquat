@@ -25,11 +25,13 @@ Exceptions:
 KunquatError         -- The base class for Kunquat errors.
 KunquatArgumentError -- An error for most invalid argument errors.
 KunquatFormatError   -- An error for indicating invalid music data.
+KunquatMemoryError   -- An error for indicating memory allocation failure.
 KunquatResourceError -- An error for resource access errors.
 
 """
 
 import ctypes
+import json
 
 __all__ = ['RHandle', 'RWHandle', 'RWCHandle',
            'KunquatError', 'KunquatArgumentError',
@@ -82,7 +84,8 @@ class RHandle(object):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_r(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         self._subsong = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
@@ -295,7 +298,8 @@ class RWHandle(RHandle):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rw(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         RHandle.__init__(self, path, mixing_rate)
 
     def __setitem__(self, key, value):
@@ -355,7 +359,8 @@ class RWCHandle(RWHandle):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rwc(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         RWHandle.__init__(self, path, mixing_rate)
 
     def commit():
@@ -378,17 +383,16 @@ class RWCHandle(RWHandle):
         _kunquat.kqt_Handle_commit(self._handle)
 
 
-def _get_error(error_str):
-    description = error_str[error_str.index(' ') + 1:]
-    if error_str.startswith('ArgumentError:'):
-        return KunquatArgumentError(description)
-    elif error_str.startswith('FormatError:'):
-        return KunquatFormatError(description)
-    elif error_str.startswith('MemoryError:'):
-        return MemoryError(description)
-    elif error_str.startswith('ResourceError:'):
-        return KunquatResourceError(description)
-    return KunquatError(error_str)
+def _get_error(obj):
+    if obj['type'] == 'ArgumentError':
+        return KunquatArgumentError(obj)
+    elif obj['type'] == 'FormatError':
+        return KunquatFormatError(obj)
+    elif obj['type'] == 'MemoryError':
+        return KunquatMemoryError(obj)
+    elif obj['type'] == 'ResourceError':
+        return KunquatResourceError(obj)
+    return KunquatError(obj)
 
 
 def _error_check(result, func, arguments):
@@ -397,17 +401,31 @@ def _error_check(result, func, arguments):
     if not error_str:
         return result
     _kunquat.kqt_Handle_clear_error(chandle)
-    raise _get_error(error_str)
+    raise _get_error(json.loads(error_str))
 
 
 class KunquatError(Exception):
+
     """Base class for errors in Kunquat."""
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __str__(self):
+        return self.obj['message']
+
 
 class KunquatArgumentError(KunquatError):
     """Error indicating that a given method argument is invalid."""
 
+
 class KunquatFormatError(KunquatError):
     """Error indicating that composition data is invalid."""
+
+
+class KunquatMemoryError(KunquatError, MemoryError):
+    """Error indicating that memory allocation failed."""
+
 
 class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
