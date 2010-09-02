@@ -25,7 +25,8 @@ Exceptions:
 KunquatError         -- The base class for Kunquat errors.
 KunquatArgumentError -- An error for most invalid argument errors.
 KunquatFormatError   -- An error for indicating invalid music data.
-KunquatMemoryError   -- An error for indicating memory allocation failure.
+KunquatMemoryError   -- An error for indicating memory allocation
+                        failure.
 KunquatResourceError -- An error for resource access errors.
 
 """
@@ -35,7 +36,8 @@ import json
 
 __all__ = ['RHandle', 'RWHandle', 'RWCHandle',
            'KunquatError', 'KunquatArgumentError',
-           'KunquatFormatError', 'KunquatResourceError']
+           'KunquatFormatError', 'KunquatMemoryError',
+           'KunquatResourceError']
 
 
 class RHandle(object):
@@ -70,11 +72,13 @@ class RHandle(object):
                 indicating a compression format.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         Exceptions:
-        KunquatArgumentError -- path is None or mixing_rate is not positive.
+        KunquatArgumentError -- path is None or mixing_rate is not
+                                positive.
         KunquatFormatError   -- The file in path is not a valid Kunquat
                                 composition.
         KunquatResourceError -- Reading the input failed for a reason
@@ -100,9 +104,9 @@ class RHandle(object):
         key -- The key of the data in the composition.  A key consists
                of one or more textual elements separated by forward
                slashes ('/').  The last element is the only one that
-               is allowed and required to contain a period. Examples:
+               is allowed and required to contain a period.  Examples:
                'p_composition.json'
-               'pat_000/vcol_00/p_voice_events.json'
+               'pat_000/ccol_00/p_channel_events.json'
                'ins_01/kqtiXX/p_instrument.json'
                The 'XX' in the last example should be written
                literally.  It is expanded to the file format version
@@ -113,7 +117,7 @@ class RHandle(object):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatResourceError -- Retrieving the data failed. This can
+        KunquatResourceError -- Retrieving the data failed.  This can
                                 usually occur only with subclasses of
                                 RHandle.
 
@@ -174,7 +178,8 @@ class RHandle(object):
     def mixing_rate(self, value):
         """Set the mixing rate.
 
-        Typical values include 44100 ("CD quality") and 48000 (the default).
+        Typical values include 44100 ("CD quality") and 48000 (the
+        default).
 
         """
         _kunquat.kqt_Handle_set_mixing_rate(self._handle, value)
@@ -219,16 +224,15 @@ class RHandle(object):
         """Mix audio according to the state of the handle.
 
         Optional arguments:
-        frame_count -- The number of frames to be mixed. The default
+        frame_count -- The number of frames to be mixed.  The default
                        value is self.buffer_size.
 
         Exceptions:
-        KunquatArgumentError -- self.mixing_rate or frame_count is not
-                                positive.
+        KunquatArgumentError -- frame_count is not positive.
 
         Returns:
         A pair containing audio data for, respectively, the left and
-        the right output channel. Buffers shorter than frame_count
+        the right output channel.  Buffers shorter than frame_count
         frames indicate that the end has been reached.
 
         """
@@ -244,14 +248,15 @@ class RHandle(object):
         """Trigger an event.
 
         Arguments:
-        channel -- The channel where the event takes place. The channel number
-                   is >= 0 and < 64 for regular channels, and -1 for the
-                   global channel.
-        event -- The event description in JSON format. The description is a
-                 pair (list with two elements) with the event name as the
-                 first element and its argument list as the second element.
-                 Example: '["Cn+", [300]]' (Note On at 300 cents above A4,
-                 i.e. C5 in 12-tone Equal Temperament).
+        channel -- The channel where the event takes place. The channel
+                   number is >= 0 and < 64 for regular channels, and -1
+                   for the global channel.
+        event -- The event description in JSON format.  The description
+                 is a pair (list with two elements) with the event name
+                 as the first element and its argument list as the
+                 second element.  Example: '["Cn+", [300]]' (Note On at
+                 300 cents above A4, i.e. C5 in 12-tone Equal
+                 Temperament).
 
         """
         _kunquat.kqt_Handle_trigger(self._handle, channel, event)
@@ -291,8 +296,9 @@ class RWHandle(RHandle):
                 with 'XX'.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         """
         if '_handle' not in self.__dict__:
@@ -313,7 +319,7 @@ class RWHandle(RHandle):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid. Only the data
+        KunquatFormatError   -- The data is not valid.  Only the data
                                 that audibly affects mixing is
                                 validated.
 
@@ -333,9 +339,9 @@ class RWCHandle(RWHandle):
     """Handle for accessing composition projects with a state store.
 
     The RWCHandle extends the RWHandle with a journaling mechanism.  It
-    enables the user to commit to changes made in the composition
-    state.  A committed version of a composition can always be restored
-    in case the program execution is abruptly terminated.
+    enables the user to commit changes made in the composition state.
+    A committed version of a composition can always be restored in case
+    the program execution is abruptly terminated.
 
     Public methods:
     commit -- Commit the changes made in the handle.
@@ -352,8 +358,9 @@ class RWCHandle(RWHandle):
                 directories may be empty.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         """
         if '_handle' not in self.__dict__:
