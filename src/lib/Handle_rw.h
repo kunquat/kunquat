@@ -76,7 +76,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
 /**
  * Converts a virtual path into a real one.
  *
- * This function searches the given path for "kunquatiXX" or "kunquatsXX"
+ * This function searches the given path for MAGIC_ID "iXX" or MAGIC_ID "sXX"
  * and replaces the "XX" with an existent version number if found.
  *
  * \param handle_rw   The read/write Kunquat Handle -- must not be \c NULL.

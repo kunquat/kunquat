@@ -26,6 +26,7 @@
 #include <Handle_rw.h>
 #include <Parse_manager.h>
 #include <File_dir.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -120,10 +121,18 @@ char* add_path_element(char* partial_path, const char* full_path)
 static bool path_element_is_header(const char* element)
 {
     assert(element != NULL);
+    int header_len = strlen(MAGIC_ID "xXX/");
+    return strncmp(MAGIC_ID "iXX/", element, header_len) ||
+           strncmp(MAGIC_ID "gXX/", element, header_len) ||
+           strncmp(MAGIC_ID "sXX/", element, header_len) ||
+           strncmp(MAGIC_ID "eXX/", element, header_len) ||
+           strncmp(MAGIC_ID "dXX/", element, header_len);
+#if 0
     return strncmp("kunquat", element, 7) == 0 &&
            (element[7] == 'i' || element[7] == 's') &&
            strncmp("XX", element + 8, 2) == 0 &&
            element[10] == '/';
+#endif
 }
 
 
@@ -192,6 +201,19 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
             int max_version = -1;
             while (entry != NULL)
             {
+                int version = string_extract_index(entry, NULL, 2, "");
+                if (strncmp(cur_path, entry + last_pos,
+                            strlen(MAGIC_ID) + 1) == 0 && version >= 0 &&
+                        (entry + last_pos)[strlen(MAGIC_ID) + 3] == '\0')
+                {
+                    if (version > max_version)
+                    {
+                        max_version = version;
+                        strcpy(cur_path, entry + last_pos);
+                        strcat(cur_path, "/");
+                    }
+                }
+#if 0
                 if (strncmp(cur_path, entry + last_pos, 8) == 0 &&
                         isdigit((entry + last_pos)[8]) && isdigit((entry + last_pos)[9]) &&
                         (entry + last_pos)[10] == '\0')
@@ -205,6 +227,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
                         strcat(cur_path, "/");
                     }
                 }
+#endif
                 xfree(entry);
                 entry = Directory_get_entry(dir);
             }
@@ -373,7 +396,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
     {
         if (path_element_is_header(cur_path))
         {
-            strncpy(cur_path + 8, KQT_FORMAT_VERSION, 2);
+            strncpy(cur_path + strlen(MAGIC_ID) + 1, KQT_FORMAT_VERSION, 2);
         }
         bool cur_is_dir = cur_path[0] != '\0' &&
                           cur_path[strlen(cur_path) - 1] == '/';

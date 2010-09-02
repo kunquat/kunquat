@@ -207,10 +207,10 @@ bool Entries_remove(Entries* entries, const char* key)
 
 static char* find_wildcard(char* key)
 {
-    char* header_location = strstr(key, "kunquatiXX");
+    char* header_location = strstr(key, MAGIC_ID "iXX");
     if (header_location == NULL)
     {
-        header_location = strstr(key, "kunquatsXX");
+        header_location = strstr(key, MAGIC_ID "sXX");
         if (header_location == NULL)
         {
             return NULL;

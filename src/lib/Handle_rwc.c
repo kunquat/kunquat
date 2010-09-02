@@ -216,7 +216,7 @@ kqt_Handle* kqt_new_Handle_rwc(char* path)
     }
     handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
     handle_rwc->handle_rw.base_path = append_to_path(abs_workspace,
-            "kunquatc" KQT_FORMAT_VERSION);
+            MAGIC_ID "c" KQT_FORMAT_VERSION);
     xfree(abs_workspace);
     if (handle_rwc->handle_rw.base_path == NULL)
     {
