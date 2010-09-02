@@ -111,7 +111,10 @@ class Trigger(list):
         if self[0] != 'Cn+':
             head_rect = QtCore.QRectF(rect)
             head_rect.moveLeft(head_rect.left() + offset)
-            type_width = self.metrics.width(self[0])
+            if self[0] == 'Cn-':
+                type_width = self.metrics.width(note_off_str)
+            else:
+                type_width = self.metrics.width(self[0])
             head_rect.setWidth(type_width)
             head_rect = head_rect.intersect(rect)
             if offset < 0:
