@@ -103,7 +103,7 @@ class RHandle(object):
                is allowed and required to contain a period. Examples:
                'p_composition.json'
                'pat_000/vcol_00/p_voice_events.json'
-               'ins_01/kunquatiXX/p_instrument.json'
+               'ins_01/kqtiXX/p_instrument.json'
                The 'XX' in the last example should be written
                literally.  It is expanded to the file format version
                number behind the scenes.
@@ -284,7 +284,7 @@ class RWHandle(RHandle):
 
         Arguments:
         path -- The path to the extracted Kunquat composition
-                directory.  This directory is called 'kunquatcXX'
+                directory.  This directory is called 'kqtcXX'
                 where 'XX' is the version number of the format.  In
                 this case, the real path name should be used, i.e.
                 the format version number should not be substituted

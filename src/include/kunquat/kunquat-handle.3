@@ -56,7 +56,7 @@ an error occurred.
 
 .IP "\fBkqt_Handle* kqt_new_Handle_rw(char*\fR \fIpath\fR\fB);\fR"
 Creates a read/write Kunquat Handle associated with a composition directory
-\fIpath\fR. This directory is called "kunquatcXX" where "XX" is the version
+\fIpath\fR. This directory is called "kqtcXX" where "XX" is the version
 number of the format. In this case, the real path name should be used, i.e.
 the format version number should not be substituted with "XX". The function
 returns the new Kunquat Handle on success, or NULL if an error occurred.
@@ -73,7 +73,7 @@ directory paths. Examples:
 .nf
 p_composition.json
 pat_000/vcol_00/p_voice_events.json
-ins_01/kunquatiXX/p_instrument.json
+ins_01/kqtiXX/p_instrument.json
 .fi
 .in
 

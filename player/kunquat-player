@@ -68,7 +68,7 @@ def print_interactive_help():
 
 def play(options, file_name, pa_handle, key_handler, list_pos):
     try:
-        if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
+        if os.path.basename(os.path.realpath(file_name)) == 'kqtc00':
             handle = kunquat.RWHandle(file_name, options.frequency)
         else:
             handle = kunquat.RHandle(file_name, options.frequency)
