@@ -418,6 +418,9 @@ class KunquatError(Exception):
     def __init__(self, obj):
         self.obj = obj
 
+    def __getitem__(self, key):
+        return self.obj[key]
+
     def __str__(self):
         return self.obj['message']
 
