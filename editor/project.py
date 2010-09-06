@@ -44,12 +44,34 @@ class Project(object):
                                   '.kunquat', 'projects',
                                   '{0:08x}'.format(proj_id))
         try:
-            os.makedirs(self.root)
+            os.makedirs(self._root)
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise
         self._mixing_rate = mixing_rate
         self._handle = kunquat.RWCHandle(self._root, mixing_rate)
+        self._find_keys()
+
+    def _find_keys(self):
+        """Synchronises the internal set of used keys.
+
+        Using this method should only be necessary inside the __init__
+        method.
+
+        """
+        keys = set()
+        comp_root = os.path.join(self._root, 'committed', 'kqtc00')
+        for path in (os.path.join(d[0], f) for d in
+                     os.walk(comp_root) for f in d[2]):
+            components = []
+            assert path.startswith(comp_root) and path != comp_root
+            head, tail = os.path.split(path)
+            while head.startswith(comp_root):
+                components.append(tail)
+                head, tail = os.path.split(head)
+            components.reverse()
+            keys.add('/'.join(components))
+        self._keys = keys
 
     def __getitem__(self, key):
         """Get data from the Kunquat Handle.
@@ -81,10 +103,14 @@ class Project(object):
 
         """
         # TODO: update history
-        if key[key.index('.'):].startswith('.json'):
+        if value and key[key.index('.'):].startswith('.json'):
             self._handle[key] = json.dumps(value)
         else:
             self._handle[key] = value # FIXME: conversion
+        if value:
+            self._keys.add(key)
+        else:
+            self._keys.discard(key)
 
     @property
     def mixing_rate(self):
@@ -101,7 +127,7 @@ class Project(object):
         """Removes all composition data (but not the history)."""
         pass
 
-    def export(self, dest):
+    def export_kqt(self, dest):
         """Exports the composition in the Project.
 
         Arguments:
@@ -112,7 +138,7 @@ class Project(object):
         """
         pass
 
-    def import(self, src):
+    def import_kqt(self, src):
         """Imports a composition into the Project.
 
         This function will replace any composition data the Project

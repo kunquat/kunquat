@@ -370,7 +370,7 @@ class RWCHandle(RWHandle):
                                  _kunquat.kqt_Handle_get_error(None)))
         RWHandle.__init__(self, path, mixing_rate)
 
-    def commit():
+    def commit(self):
         """Commit the changes made in the handle.
 
         Exceptions:

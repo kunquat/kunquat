@@ -121,18 +121,11 @@ char* add_path_element(char* partial_path, const char* full_path)
 static bool path_element_is_header(const char* element)
 {
     assert(element != NULL);
-    int header_len = strlen(MAGIC_ID "xXX/");
-    return strncmp(MAGIC_ID "iXX/", element, header_len) ||
-           strncmp(MAGIC_ID "gXX/", element, header_len) ||
-           strncmp(MAGIC_ID "sXX/", element, header_len) ||
-           strncmp(MAGIC_ID "eXX/", element, header_len) ||
-           strncmp(MAGIC_ID "dXX/", element, header_len);
-#if 0
-    return strncmp("kunquat", element, 7) == 0 &&
-           (element[7] == 'i' || element[7] == 's') &&
-           strncmp("XX", element + 8, 2) == 0 &&
-           element[10] == '/';
-#endif
+    return string_has_prefix(element, MAGIC_ID "iXX/") ||
+           string_has_prefix(element, MAGIC_ID "gXX/") ||
+           string_has_prefix(element, MAGIC_ID "sXX/") ||
+           string_has_prefix(element, MAGIC_ID "eXX/") ||
+           string_has_prefix(element, MAGIC_ID "dXX/");
 }
 
 
