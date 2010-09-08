@@ -18,17 +18,19 @@ from pattern import Pattern
 
 class Sheet(QtGui.QSplitter):
 
-    def __init__(self, parent=None):
+    def __init__(self, project, parent=None):
         QtGui.QSplitter.__init__(self, parent)
+
+        self.project = project
 
         subsong_editor = QtGui.QLabel('[subsong editor]')
 
         self.addWidget(subsong_editor)
-        self.addWidget(self.create_pattern_editor())
+        self.addWidget(self.create_pattern_editor(project))
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
 
-    def create_pattern_editor(self):
+    def create_pattern_editor(self, project):
         pattern_editor = QtGui.QWidget()
         layout = QtGui.QVBoxLayout(pattern_editor)
         layout.setMargin(0)
@@ -44,7 +46,7 @@ class Sheet(QtGui.QSplitter):
         top_layout.addWidget(name)
         top_layout.addWidget(length)
 
-        pattern = Pattern(None)
+        pattern = Pattern(project)
 
         layout.addWidget(top_control, 0)
         layout.addWidget(pattern, 1)

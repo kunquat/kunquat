@@ -42,16 +42,33 @@ class Column(object):
         self.path = path
     """
 
-    def __init__(self, num, triggers, theme):
+    def __init__(self, num, theme):
         assert num >= -1
         self.num = num
         self.colours = theme[0]
         self.fonts = theme[1]
-        self.triggers = self.arrange_triggers(triggers)
+        self.arrange_triggers(None)
         self._width = 128
         self.height = 0
         self.set_dimensions()
         self.set_cursor()
+
+    def arrange_triggers(self, triggers):
+        if not triggers:
+            self.triggers = {}
+            return
+        theme = self.colours, self.fonts
+        d = defaultdict(lambda: tr.Trigger_row(theme))
+        for (t, event) in triggers:
+            d[ts.Timestamp(t)].append(trigger.Trigger(event, theme))
+        self.triggers = dict(d)
+
+    def flatten(self):
+        l = []
+        for row, trigs in self.triggers.iteritems():
+            for trig in trigs:
+                l.append([list(row), trig])
+        return l
 
     def get_num(self):
         return self.num
@@ -61,15 +78,6 @@ class Column(object):
 
     def width(self):
         return self._width + 1
-
-    def arrange_triggers(self, triggers):
-        if not triggers:
-            return {}
-        theme = self.colours, self.fonts
-        d = defaultdict(lambda: tr.Trigger_row(theme))
-        for (t, event) in triggers:
-            d[ts.Timestamp(t)].append(trigger.Trigger(event, theme))
-        return dict(d)
 
     def resize(self, height):
         self.height = height

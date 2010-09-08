@@ -16,6 +16,7 @@ from __future__ import print_function
 import math
 import sys
 
+import kunquat
 from PyQt4 import QtGui, QtCore
 
 import accessors as acc
@@ -42,12 +43,11 @@ default_input = ni.NoteInput()
 
 class Pattern(QtGui.QWidget):
 
-    def __init__(self, handle, parent=None):
+    def __init__(self, project, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.handle = handle
         self.first_column = -1
         self.colours = {
                 'bg': QtGui.QColor(0, 0, 0),
@@ -70,34 +70,15 @@ class Pattern(QtGui.QWidget):
                 'ruler': QtGui.QFont('Decorative', 8),
                 'trigger': QtGui.QFont('Decorative', 10),
                 }
-        self.length = ts.Timestamp(8)
+        self.length = ts.Timestamp(16)
         self.beat_len = 96
         self.view_start = ts.Timestamp(0)
         self.ruler = Ruler((self.colours, self.fonts))
         self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)
         self.ruler.set_view_start(self.view_start)
-        mock_triggers = [
-                    [[0, 0], ['Cn+', [300]]],
-                    [[1, 0], ['Cn+', [0]]],
-                    [[1, 0], ['C.f', [-6]]],
-                    [[1, 0], ['C.P', [-0.2]]],
-                    [[1, 441080640], ['C.f', [-6]]],
-                    [[2, 0], ['C.f', [-6]]],
-                    [[2, 441080640], ['Cn-', []]],
-                    [[3, 0], ['C.f', [-6]]],
-                    [[3, 441080640], ['C.f', [-6]]],
-                    [[4, 0], ['C.f', [-6]]],
-                    [[4, 441080640], ['C.f', [-6]]],
-                    [[5, 0], ['C.f', [-6]]],
-                    [[5, 441080640], ['C.f', [-6]]],
-                    [[6, 0], ['C.f', [-6]]],
-                    [[6, 441080640], ['C.f', [-6]]],
-                    [[7, 0], ['C.f', [-6]]],
-                ]
-        self.columns = [Column(num, None, (self.colours, self.fonts))
+        self.columns = [Column(num, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
-        self.columns[0].set_triggers(mock_triggers)
         for col in self.columns:
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
@@ -119,6 +100,7 @@ class Pattern(QtGui.QWidget):
                                    self.value_changed)
 
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
+        self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.cursor.set_input(default_input)
         self.columns[0].set_cursor(self.cursor)
@@ -130,13 +112,31 @@ class Pattern(QtGui.QWidget):
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
 
+    def set_pattern(self, num):
+        self.path = 'pat_{0:03x}'.format(num)
+        pat_info = self.project['/'.join((self.path, 'p_pattern.json'))]
+        if pat_info:
+            if 'length' in pat_info:
+                self.length = ts.Timestamp(pat_info['length'])
+                self.cursor.set_length(self.length)
+                self.ruler.set_length(self.length)
+        self.cursor.set_path(self.path)
+        self.columns[0].arrange_triggers(self.project['/'.join(
+                        (self.path, 'gcol', 'p_global_events.json'))])
+        for col in self.columns[1:]:
+            col_dir = 'ccol_{0:02x}'.format(col.get_num())
+            path = '/'.join((self.path, col_dir, 'p_channel_events.json'))
+            col.arrange_triggers(self.project[path])
+
+    def set_project(self, project):
+        self.project = project
+        self.cursor.set_project(project)
+        self.set_pattern(0)
+
     def value_changed(self):
         self.cursor.set_value()
         self.setFocus()
         self.update()
-
-    def set_path(self, path):
-        pass
 
 #    def sizeHint(self):
 #        return QtCore.QSize(100, 100)

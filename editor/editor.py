@@ -23,6 +23,7 @@ import time
 from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
+import project
 from sheet import Sheet
 
 
@@ -42,6 +43,8 @@ class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
+        self.project = project.Project(0)
+        self.handle = self.project.handle
         self.set_appearance()
         self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
         self.mix_timer = QtCore.QTimer(self)
@@ -49,14 +52,16 @@ class KqtEditor(QtGui.QMainWindow):
                                self.mix)
         self.bufs = (None, None)
         self.sound = sine()
+        self.c = count()
 
     def mix(self):
         if not self.bufs[0]:
-            buf = [self.sound.next() / 6 for _ in xrange(1024)]
-            self.bufs = (buf, buf)
+            self.bufs = self.handle.mix()
+            if not self.bufs[0]:
+                self.mix_timer.stop()
+                return
         if self.pa.try_write(*self.bufs):
-            buf = [self.sound.next() / 6 for _ in xrange(1024)]
-            self.bufs = (buf, buf)
+            self.bufs = self.handle.mix()
 
     def play(self):
         self.mix_timer.start(0)
@@ -80,7 +85,7 @@ class KqtEditor(QtGui.QMainWindow):
         top_control = self.create_top_control()
 
         tabs = QtGui.QTabWidget()
-        sheet = Sheet()
+        sheet = Sheet(self.project)
         tabs.addTab(sheet, 'Sheet')
         
         top_layout.addWidget(top_control)

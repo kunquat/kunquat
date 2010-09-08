@@ -50,6 +50,7 @@ class Project(object):
                 raise
         self._mixing_rate = mixing_rate
         self._handle = kunquat.RWCHandle(self._root, mixing_rate)
+        self._handle.buffer_size = 1024
         self._find_keys()
 
     def _find_keys(self):
@@ -72,6 +73,11 @@ class Project(object):
             components.reverse()
             keys.add('/'.join(components))
         self._keys = keys
+
+    @property
+    def handle(self):
+        """The Kunquat Handle associated with the Project."""
+        return self._handle
 
     def __getitem__(self, key):
         """Get data from the Kunquat Handle.

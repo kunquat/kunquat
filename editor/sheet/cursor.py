@@ -48,6 +48,8 @@ class Cursor(object):
         self.valid_value = False
         self.note_input = None
         self.scale = None
+        self.pattern_path = None
+        self.project = None
 
     def clear_delay(self):
         self.trigger_delay_left = 0
@@ -213,6 +215,12 @@ class Cursor(object):
     def set_length(self, length):
         assert length >= 0
         self.length = length
+
+    def set_path(self, path):
+        self.pattern_path = path
+
+    def set_project(self, project):
+        self.project = project
 
     def set_triggers(self, triggers):
         self.triggers = triggers
