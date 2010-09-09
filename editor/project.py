@@ -109,14 +109,22 @@ class Project(object):
 
         """
         # TODO: update history
-        if value and key[key.index('.'):].startswith('.json'):
-            self._handle[key] = json.dumps(value)
+        if value == None:
+            self._handle[key] = ''
+            self._keys.discard(key)
+        elif key[key.index('.'):].startswith('.json'):
+            js = json.dumps(value)
+            self._handle[key] = js
+            if js:
+                self._keys.add(key)
+            else:
+                self._keys.discard(key)
         else:
             self._handle[key] = value # FIXME: conversion
-        if value:
-            self._keys.add(key)
-        else:
-            self._keys.discard(key)
+            if value:
+                self._keys.add(key)
+            else:
+                self._keys.discard(key)
 
     @property
     def mixing_rate(self):

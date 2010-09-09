@@ -120,6 +120,7 @@ class Cursor(object):
                     del row[tindex]
                     if row == []:
                         del tr[self.ts]
+                    self.project[self.col_path] = self.col.flatten()
         elif ev.key() == QtCore.Qt.Key_Return:
             if not self.edit:
                 self.edit = True
@@ -141,6 +142,9 @@ class Cursor(object):
                 self.active_accessor.setFocus()
             return
         elif ev.key() == QtCore.Qt.Key_1:
+            if self.col.get_num() < 0:
+                ev.ignore()
+                return
             triggers = self.col.get_triggers()
             if self.ts in triggers and not self.insert:
                 row = triggers[self.ts]
@@ -152,13 +156,16 @@ class Cursor(object):
                         self.insert = True
                         self.col.set_value(self, trigger.TriggerType('Cn-'))
                         self.insert = False
+                        self.project[self.col_path] = self.col.flatten()
                 else:
                     self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('Cn-'))
+                    self.project[self.col_path] = self.col.flatten()
             else:
                 if self.ts not in triggers:
                     self.index = 0
                 self.col.set_value(self, trigger.TriggerType('Cn-'))
+                self.project[self.col_path] = self.col.flatten()
         else:
             if not (self.note_input and self.scale and
                     self.col.get_num() >= 0):
@@ -178,22 +185,27 @@ class Cursor(object):
                     trig = row[tindex]
                     if trig[0] == 'Cn+':
                         self.col.set_value(self, cents)
+                        self.project[self.col_path] = self.col.flatten()
                     elif trig[0] == 'Cn-':
                         self.col.set_value(self, trigger.TriggerType('Cn+'))
                         self.col.set_value(self, cents)
+                        self.project[self.col_path] = self.col.flatten()
                     elif isinstance(trig.get_field_info(findex)[0],
                                     trigger.Note):
                         self.col.set_value(self, cents)
+                        self.project[self.col_path] = self.col.flatten()
                 else:
                     self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('Cn+'))
                     self.col.set_value(self, cents)
+                    self.project[self.col_path] = self.col.flatten()
             else:
                 if self.ts not in triggers:
                     self.index = 0
                 self.col.set_value(self, trigger.TriggerType('Cn+'))
                 self.insert = False
                 self.col.set_value(self, cents)
+                self.project[self.col_path] = self.col.flatten()
         self.insert = False
 
     def key_release(self, ev):
@@ -207,6 +219,16 @@ class Cursor(object):
         self.beat_len = beat_len
         self.set_pos(self.ts)
 
+    def set_col_path(self):
+        if self.col:
+            if self.col.get_num() == -1:
+                self.col_path = '/'.join((self.pattern_path, 'gcol',
+                                          'p_global_events.json'))
+            else:
+                col_dir = 'ccol_{0:02x}'.format(self.col.get_num())
+                self.col_path = '/'.join((self.pattern_path, col_dir,
+                                          'p_channel_events.json'))
+
     def set_geometry(self, x, y, w, h):
         self.geom = QtCore.QRect(x, y, w, h)
         for a in self.accessors:
@@ -218,6 +240,7 @@ class Cursor(object):
 
     def set_path(self, path):
         self.pattern_path = path
+        self.set_col_path()
 
     def set_project(self, project):
         self.project = project
@@ -228,6 +251,7 @@ class Cursor(object):
     def set_col(self, col):
         assert col
         self.col = col
+        self.set_col_path()
 
     def set_pos(self, ts):
         self.ts = min(max(timestamp.Timestamp(), ts), self.length)
@@ -273,9 +297,9 @@ class Cursor(object):
         self.col.set_value(self, value)
         self.edit = False
         self.insert = False
-        assert self.active_accessor
         self.active_accessor.hide()
         self.active_accessor = None
+        self.project[self.col_path] = self.col.flatten()
 
     def set_accel(self, accel):
         assert accel >= 1

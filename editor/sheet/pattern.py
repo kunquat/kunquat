@@ -209,6 +209,8 @@ class Pattern(QtGui.QWidget):
                 self.columns[self.cursor_col + 1].shift(shift_pos,
                         -shift if ev.key() == QtCore.Qt.Key_Delete else shift)
                 self.cursor.set_pos(shift_pos)
+                self.project[self.cursor.col_path] = \
+                        self.columns[self.cursor_col + 1].flatten()
                 self.update()
             return
 

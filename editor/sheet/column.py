@@ -64,6 +64,8 @@ class Column(object):
         self.triggers = dict(d)
 
     def flatten(self):
+        if not self.triggers:
+            return None
         l = []
         for row, trigs in self.triggers.iteritems():
             for trig in trigs:
