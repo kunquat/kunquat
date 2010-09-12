@@ -230,6 +230,7 @@ void Channel_reset(Channel* ch)
     assert(ch != NULL);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
 //    Channel_state_copy(&ch->new_state, &ch->init_state);
+    Channel_gen_state_clear(ch->cur_state.cgstate);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->cur_state.fg[i] = NULL;

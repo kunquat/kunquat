@@ -63,6 +63,7 @@ typedef struct DSP_freeverb
 } DSP_freeverb;
 
 
+static void DSP_freeverb_reset(Device* device);
 static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_freeverb_update(DSP_freeverb* freeverb);
@@ -104,6 +105,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     }
     Device_set_mix_rate_changer(&freeverb->parent.parent,
                                 DSP_freeverb_set_mix_rate);
+    Device_set_reset(&freeverb->parent.parent, DSP_freeverb_reset);
     Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&freeverb->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
     for (int i = 0; i < FREEVERB_COMBS; ++i)
@@ -144,6 +146,29 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
     DSP_freeverb_set_damp(freeverb, initial_damp);
     DSP_freeverb_set_width(freeverb, initial_width);
     return &freeverb->parent;
+}
+
+
+static void DSP_freeverb_reset(Device* device)
+{
+    assert(device != NULL);
+    DSP_reset(device);
+    DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    if (freeverb->comb_left[0] == NULL)
+    {
+        return;
+    }
+    for (int i = 0; i < FREEVERB_COMBS; ++i)
+    {
+        Freeverb_comb_clear(freeverb->comb_left[i]);
+        Freeverb_comb_clear(freeverb->comb_right[i]);
+    }
+    for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
+    {
+        Freeverb_allpass_clear(freeverb->allpass_left[i]);
+        Freeverb_allpass_clear(freeverb->allpass_right[i]);
+    }
+    return;
 }
 
 

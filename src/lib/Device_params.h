@@ -200,6 +200,16 @@ bool Device_params_modify_value(Device_params* params,
 
 
 /**
+ * Resets Device parameter modifications.
+ *
+ * This function resets modifications made using Device_params_modify_value.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ */
+void Device_params_reset(Device_params* params);
+
+
+/**
  * Retrieves a reference to a boolean value from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.

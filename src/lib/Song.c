@@ -31,6 +31,14 @@
 
 
 /**
+ * Resets the Song.
+ *
+ * \param device   The Song Device -- must not be \c NULL.
+ */
+static void Song_reset(Device* device);
+
+
+/**
  * Sets the mixing rate of the Song.
  *
  * This function sets the mixing rate for all the Instruments and DSPs.
@@ -84,6 +92,7 @@ Song* new_Song(uint32_t buf_size)
         xfree(song);
         return NULL;
     }
+    Device_set_reset(&song->parent, Song_reset);
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
     Device_set_sync(&song->parent, Song_sync);
@@ -580,6 +589,36 @@ void Song_remove_scale(Song* song, int index)
     {
         del_Scale(song->scales[index]);
         song->scales[index] = NULL;
+    }
+    return;
+}
+
+
+static void Song_reset(Device* device)
+{
+    assert(device != NULL);
+    Song* song = (Song*)device;
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(song->insts, i);
+        if (ins != NULL)
+        {
+            Device_reset((Device*)ins);
+        }
+    }
+    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
+        if (dsp != NULL)
+        {
+            Device_reset((Device*)dsp);
+        }
+    }
+    Playdata_reset(song->play_state);
+    Playdata_reset(song->skip_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_reset(song->channels[i]);
     }
     return;
 }

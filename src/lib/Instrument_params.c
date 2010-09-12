@@ -135,6 +135,14 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 #undef new_env_or_fail
 
 
+void Instrument_params_reset(Instrument_params* ip)
+{
+    assert(ip != NULL);
+    ip->pedal = 0;
+    return;
+}
+
+
 bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                                               char* str,
                                               Read_state* state)

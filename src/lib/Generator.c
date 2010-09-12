@@ -91,8 +91,18 @@ bool Generator_init(Generator* gen,
     {
         return false;
     }
+    Device_set_reset(&gen->parent, Generator_reset);
     Device_register_port(&gen->parent, DEVICE_PORT_TYPE_SEND, 0);
     return true;
+}
+
+
+void Generator_reset(Device* device)
+{
+    assert(device != NULL);
+    Generator* gen = (Generator*)device;
+    Device_params_reset(gen->conf->params);
+    return;
 }
 
 

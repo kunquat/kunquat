@@ -82,7 +82,7 @@ void Device_set_buffer_size_changer(Device* device,
 
 
 /**
- * Sets the reset function of the Device.
+ * Sets the playback reset function of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  * \param reset    The reset function -- must not be \c NULL.
@@ -270,7 +270,7 @@ void Device_clear_buffers(Device* device, uint32_t start, uint32_t until);
 
 
 /**
- * Resets the internal state of the Device.
+ * Resets the internal playback state of the Device.
  *
  * \param device   The Device -- must not be \c NULL.
  */

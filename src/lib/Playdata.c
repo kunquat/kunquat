@@ -232,6 +232,7 @@ void Playdata_reset(Playdata* play)
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
 
+    play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
 //    Slider_set_mix_rate(&play->volume_slider, play->freq);
 //    Slider_set_tempo(&play->volume_slider, play->tempo);

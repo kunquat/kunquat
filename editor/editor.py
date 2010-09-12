@@ -51,8 +51,13 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)
         self.bufs = (None, None)
-        self.sound = sine()
-        self.c = count()
+
+        """
+        self.pa_debug_timer = QtCore.QTimer(self)
+        QtCore.QObject.connect(self.pa_debug_timer, QtCore.SIGNAL('timeout()'),
+                               self.print_pa_state)
+        self.pa_debug_timer.start(1)
+        """
 
     def mix(self):
         if not self.bufs[0]:
@@ -62,6 +67,11 @@ class KqtEditor(QtGui.QMainWindow):
                 return
         if self.pa.try_write(*self.bufs):
             self.bufs = self.handle.mix()
+
+    def print_pa_state(self):
+        print('Context: {0}, Stream: {1}, Error: {2}'.format(
+                  self.pa.context_state(), self.pa.stream_state(),
+                  self.pa.error()), end='\r')
 
     def play(self):
         self.mix_timer.start(0)

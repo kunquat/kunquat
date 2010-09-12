@@ -50,6 +50,8 @@ struct Instrument
 };
 
 
+static void Instrument_reset(Device* device);
+
 static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static bool Instrument_set_buffer_size(Device* device, uint32_t size);
@@ -91,6 +93,7 @@ Instrument* new_Instrument(uint32_t buf_len,
         xfree(ins);
         return NULL;
     }
+    Device_set_reset(&ins->parent, Instrument_reset);
     Device_set_mix_rate_changer(&ins->parent, Instrument_set_mix_rate);
     Device_set_buffer_size_changer(&ins->parent, Instrument_set_buffer_size);
     Device_set_sync(&ins->parent, Instrument_sync);
@@ -353,6 +356,31 @@ void Instrument_mix(Instrument* ins,
             Generator_mix(gen, &states[i], nframes, offset, freq, 120);
         }
     }
+    return;
+}
+
+
+static void Instrument_reset(Device* device)
+{
+    assert(device != NULL);
+    Instrument* ins = (Instrument*)device;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        Generator* gen = Gen_table_get_gen(ins->gens, i);
+        if (gen != NULL)
+        {
+            Device_reset((Device*)gen);
+        }
+    }
+    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
+        if (dsp != NULL)
+        {
+            Device_reset((Device*)dsp);
+        }
+    }
+    Instrument_params_reset(&ins->params);
     return;
 }
 

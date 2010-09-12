@@ -104,6 +104,14 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
 
 /**
+ * Resets the playback settings of the Instrument parameters.
+ *
+ * \param ip   The Instrument parameters -- must not be \c NULL.
+ */
+void Instrument_params_reset(Instrument_params* ip);
+
+
+/**
  * Parses an Instrument parameter file.
  *
  * \param ip      The Instrument parameters -- must not be \c NULL.

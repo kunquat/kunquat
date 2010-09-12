@@ -211,11 +211,14 @@ void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
     handle->song->play_state->mode = STOP;
+    Device_reset((Device*)handle->song);
+#if 0
     Playdata_reset(handle->song->play_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         Channel_reset(handle->song->channels[i]);
     }
+#endif
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
     Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
                                     handle->song->play_state->subsong);
