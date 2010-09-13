@@ -24,6 +24,15 @@ typedef enum
 {
     EVENT_NONE = 0, ///< An uninitialised event.
 
+    EVENT_CONTROL_LOWER, ///< Control Events.
+
+    EVENT_CONTROL_PAUSE,
+    EVENT_CONTROL_UNPAUSE,
+    EVENT_CONTROL_PLAY_PATTERN,
+    EVENT_CONTROL_TEMPO_FACTOR,
+
+    EVENT_CONTROL_UPPER,
+
     EVENT_GENERAL_LOWER, ///< General Events.
     
     EVENT_GENERAL_COMMENT, ///< A comment.
@@ -140,6 +149,8 @@ typedef enum
 } Event_type;
 
 
+#define EVENT_IS_CONTROL(type)   ((type) > EVENT_CONTROL_LOWER && \
+                                  (type) < EVENT_CONTROL_UPPER)
 #define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && \
                                   (type) < EVENT_GENERAL_UPPER)
 #define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && \
@@ -155,10 +166,12 @@ typedef enum
 #define EVENT_IS_PG(type)        (EVENT_IS_INS((type)) || \
                                   EVENT_IS_GENERATOR((type)) || \
                                   EVENT_IS_DSP((type)))
-#define EVENT_IS_VALID(type)     (EVENT_IS_GENERAL((type))   || \
+#define EVENT_IS_TRIGGER(type)   (EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GLOBAL((type))    || \
                                   EVENT_IS_PG((type))        || \
                                   EVENT_IS_CHANNEL((type)))
+#define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
+                                  EVENT_IS_CONTROL((type)))
 
 
 typedef enum

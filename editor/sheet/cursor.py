@@ -151,20 +151,20 @@ class Cursor(object):
                 tindex, findex = row.get_slot(self)
                 if tindex < len(row):
                     trig = row[tindex]
-                    if trig[0] == 'Cn+':
+                    if trig[0] == 'cn+':
                         del row[tindex]
                         self.insert = True
-                        self.col.set_value(self, trigger.TriggerType('Cn-'))
+                        self.col.set_value(self, trigger.TriggerType('cn-'))
                         self.insert = False
                         self.project[self.col_path] = self.col.flatten()
                 else:
                     self.index = row.slots()
-                    self.col.set_value(self, trigger.TriggerType('Cn-'))
+                    self.col.set_value(self, trigger.TriggerType('cn-'))
                     self.project[self.col_path] = self.col.flatten()
             else:
                 if self.ts not in triggers:
                     self.index = 0
-                self.col.set_value(self, trigger.TriggerType('Cn-'))
+                self.col.set_value(self, trigger.TriggerType('cn-'))
                 self.project[self.col_path] = self.col.flatten()
         else:
             if not (self.note_input and self.scale and
@@ -183,11 +183,11 @@ class Cursor(object):
                 tindex, findex = row.get_slot(self)
                 if tindex < len(row):
                     trig = row[tindex]
-                    if trig[0] == 'Cn+':
+                    if trig[0] == 'cn+':
                         self.col.set_value(self, cents)
                         self.project[self.col_path] = self.col.flatten()
-                    elif trig[0] == 'Cn-':
-                        self.col.set_value(self, trigger.TriggerType('Cn+'))
+                    elif trig[0] == 'cn-':
+                        self.col.set_value(self, trigger.TriggerType('cn+'))
                         self.col.set_value(self, cents)
                         self.project[self.col_path] = self.col.flatten()
                     elif isinstance(trig.get_field_info(findex)[0],
@@ -196,13 +196,13 @@ class Cursor(object):
                         self.project[self.col_path] = self.col.flatten()
                 else:
                     self.index = row.slots()
-                    self.col.set_value(self, trigger.TriggerType('Cn+'))
+                    self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
             else:
                 if self.ts not in triggers:
                     self.index = 0
-                self.col.set_value(self, trigger.TriggerType('Cn+'))
+                self.col.set_value(self, trigger.TriggerType('cn+'))
                 self.insert = False
                 self.col.set_value(self, cents)
                 self.project[self.col_path] = self.col.flatten()
