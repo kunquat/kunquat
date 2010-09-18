@@ -38,6 +38,7 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
+    General_state_init(&play->parent);
     play->random = random;
     play->play_id = 1;
     play->silent = false;
@@ -110,6 +111,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    General_state_init(&play->parent);
     play->random = NULL;
     play->play_id = 1;
     play->silent = true;

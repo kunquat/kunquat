@@ -176,7 +176,7 @@ static const Event_cons cons[EVENT_LAST] =
 bool Event_type_is_supported(Event_type type)
 {
     assert(EVENT_IS_VALID(type));
-    return cons[type] != NULL;
+    return cons[type] != NULL || EVENT_IS_CONTROL(type);
 }
 
 

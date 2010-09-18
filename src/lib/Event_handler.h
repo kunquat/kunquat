@@ -21,6 +21,7 @@
 #include <Channel_state.h>
 #include <DSP_conf.h>
 #include <DSP_table.h>
+#include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
@@ -51,6 +52,18 @@ Event_handler* new_Event_handler(Playdata* global_state,
  * \return   The Event names.
  */
 Event_names* Event_handler_get_names(Event_handler* eh);
+
+
+/**
+ * Registers a Control Event processor.
+ *
+ * \param eh   The Event handler -- must not be \c NULL.
+ */
+bool Event_handler_set_control_process(Event_handler* eh,
+                                       const char* name,
+                                       Event_type type,
+                                       bool (*control_process)(General_state*,
+                                                               char*));
 
 
 /**

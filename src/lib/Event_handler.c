@@ -22,10 +22,13 @@
 #include <Event_type.h>
 #include <File_base.h>
 #include <Channel_state.h>
+#include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
 #include <Playdata.h>
 #include <kunquat/limits.h>
+
+#include <Event_control_pause.h>
 
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_jump_counter.h>
@@ -110,6 +113,7 @@ struct Event_handler
     DSP_table* dsps;
     Playdata* global_state;
     Event_names* event_names;
+    bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
     bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
@@ -151,6 +155,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
     }
     eh->insts = insts;
     eh->dsps = dsps;
+
+    Event_handler_set_control_process(eh, ">pause", EVENT_CONTROL_PAUSE,
+                                      Event_control_pause_process);
 
     Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
@@ -312,6 +319,27 @@ bool Event_handler_set_ch_process(Event_handler* eh,
         return false;
     }
     eh->ch_process[type] = ch_process;
+    return true;
+}
+
+
+bool Event_handler_set_control_process(Event_handler* eh,
+                                       const char* name,
+                                       Event_type type,
+                                       bool (*control_process)(General_state*,
+                                                               char*))
+{
+    assert(eh != NULL);
+    assert(name != NULL);
+    assert(strlen(name) > 0);
+    assert(strlen(name) < EVENT_NAME_MAX);
+    assert(EVENT_IS_CONTROL(type));
+    assert(control_process != NULL);
+    if (!Event_names_add(eh->event_names, name, type))
+    {
+        return false;
+    }
+    eh->control_process[type] = control_process;
     return true;
 }
 
@@ -482,6 +510,10 @@ bool Event_handler_handle(Event_handler* eh,
         }
         return eh->dsp_process[type](conf, fields);
     }
+    else if (EVENT_IS_CONTROL(type))
+    {
+        return eh->control_process[type](&eh->global_state->parent, fields);
+    }
     return false;
 }
 
@@ -510,7 +542,7 @@ bool Event_handler_trigger(Event_handler* eh,
     }
     assert(Event_type_is_supported(type));
     if ((EVENT_IS_GLOBAL(type) != (index == -1)) &&
-            !EVENT_IS_GENERAL(type))
+            !EVENT_IS_GENERAL(type) && !EVENT_IS_CONTROL(type))
     {
         return false;
     }

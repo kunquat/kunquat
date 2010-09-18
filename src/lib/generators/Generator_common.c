@@ -388,7 +388,8 @@ void Generator_common_handle_filter(Generator* gen,
         if (state->actual_lowpass < freq / 2)
         {
             int new_state = 1 - abs(state->lowpass_state_used);
-            two_pole_lowpass_filter_create(state->actual_lowpass / freq,
+            double lowpass = MAX(state->actual_lowpass, 1);
+            two_pole_lowpass_filter_create(lowpass / freq,
                     state->lowpass_resonance,
                     state->lowpass_state[new_state].coeffs,
                     &state->lowpass_state[new_state].a0);

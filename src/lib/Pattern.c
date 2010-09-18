@@ -173,13 +173,14 @@ uint32_t Pattern_mix(Pattern* pat,
                      Channel** channels,
                      Connections* connections)
 {
-//  assert(pat != NULL);
+//    assert(pat != NULL);
     assert(offset < nframes);
     assert(eh != NULL);
     assert(channels != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
+#if 0
     if (pat == NULL)
     {
         assert(!play->silent);
@@ -215,13 +216,18 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         return nframes;
     }
+#endif
     Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
             && Reltime_cmp(&play->pos, &pat->length) <= 0)
     {
         Column_iter_change_col(play->citer, pat->global);
-        Event* next_global = Column_iter_get(play->citer, &play->pos);
+        Event* next_global = NULL;
+        if (!play->parent.pause)
+        {
+            next_global = Column_iter_get(play->citer, &play->pos);
+        }
         Reltime* next_global_pos = NULL;
         if (next_global != NULL)
         {
@@ -290,7 +296,7 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
         assert(!(delay && play->jump));
-        if (!delay && play->jump)
+        if (!delay && !play->parent.pause && play->jump)
         {
             play->jump = false;
             if (play->mode == PLAY_PATTERN)
@@ -316,7 +322,8 @@ uint32_t Pattern_mix(Pattern* pat,
             Reltime_copy(&play->pos, &play->jump_row);
             break;
         }
-        if (!delay && Reltime_cmp(&play->pos, &pat->length) >= 0)
+        if (!delay && !play->parent.pause &&
+                Reltime_cmp(&play->pos, &pat->length) >= 0)
         {
             assert(Reltime_cmp(&play->pos, &pat->length) == 0);
             Reltime_init(&play->pos);
@@ -373,7 +380,11 @@ uint32_t Pattern_mix(Pattern* pat,
 
         // - Find out if we need to process aux events
         Column_iter_change_col(play->citer, pat->aux);
-        Event* next_aux = Column_iter_get(play->citer, &play->pos);
+        Event* next_aux = NULL;
+        if (!play->parent.pause)
+        {
+            next_aux = Column_iter_get(play->citer, &play->pos);
+        }
         Reltime* next_aux_pos = NULL;
         bool aux_process = false;
         if (next_aux != NULL)
@@ -401,7 +412,8 @@ uint32_t Pattern_mix(Pattern* pat,
         }
         Reltime_add(limit, limit, &play->pos);
         // - Check for the end of pattern
-        if (!delay && Reltime_cmp(&pat->length, limit) < 0)
+        if (!delay && !play->parent.pause &&
+                Reltime_cmp(&pat->length, limit) < 0)
         {
             Reltime_copy(limit, &pat->length);
             to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO, limit, &play->pos),
@@ -447,7 +459,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 Column_iter_change_col(play->citer, pat->cols[i]);
                 Channel_set_voices(channels[i],
                                    play->voice_pool,
-                                   play->citer,
+                                   play->parent.pause ? NULL : play->citer,
                                    &play->pos,
                                    limit,
                                    delay,
@@ -522,7 +534,7 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             Reltime_sub(&play->delay_left, &play->delay_left, adv);
         }
-        else
+        else if (!play->parent.pause)
         {
             Reltime_copy(&play->pos, limit);
         }

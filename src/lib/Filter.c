@@ -47,6 +47,7 @@ void two_pole_lowpass_filter_create(double f,
                                     double *a0)
 {
     assert(f < 0.5);
+    assert(f > 0);
     assert(q >= 0.5);
     assert(q <= 1000);
     assert(coeffs != NULL);

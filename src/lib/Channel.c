@@ -65,7 +65,7 @@ Channel* new_Channel(Ins_table* insts,
         xfree(ch);
         return NULL;
     } */
-    ch->single = NULL;
+//    ch->single = NULL;
     if (!Channel_state_init(&ch->init_state, num, &ch->mute))
     {
         xfree(ch);
@@ -108,18 +108,14 @@ void Channel_set_voices(Channel* ch,
     assert(tempo > 0);
     assert(freq > 0);
     assert(eh != NULL);
-    Event* next = ch->single;
-    if (true || Reltime_cmp(Event_get_pos(next), Reltime_init(RELTIME_AUTO)) < 0) // FIXME: true
+    if (delay)
     {
-        next = NULL;
-        if (!delay && citer != NULL)
-        {
-            next = Column_iter_get(citer, start);
-        }
+        citer = NULL;
     }
-    else
+    Event* next = NULL;
+    if (citer != NULL)
     {
-        Event_set_pos(ch->single, start);
+        next = Column_iter_get(citer, start);
     }
     Reltime* next_pos = Reltime_set(RELTIME_AUTO, INT64_MAX, KQT_RELTIME_BEAT - 1);
     if (next != NULL)
@@ -179,15 +175,18 @@ void Channel_set_voices(Channel* ch,
             break;
         }
         assert(next != NULL);
-        if (EVENT_IS_CHANNEL(Event_get_type(next)) ||
-                EVENT_IS_INS(Event_get_type(next)) ||
-                EVENT_IS_GENERATOR(Event_get_type(next)) ||
-                EVENT_IS_DSP(Event_get_type(next)))
+        if (EVENT_IS_TRIGGER(Event_get_type(next)))
         {
             Event_handler_handle(eh, ch->init_state.num,
                                  Event_get_type(next),
                                  Event_get_fields(next));
         }
+        next = NULL;
+        if (citer != NULL)
+        {
+            next = Column_iter_get_next(citer);
+        }
+#if 0
         if (next == ch->single)
         {
             Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));
@@ -205,6 +204,7 @@ void Channel_set_voices(Channel* ch,
                 next = Column_iter_get_next(citer);
             }
         }
+#endif
         if (next == NULL)
         {
             Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);

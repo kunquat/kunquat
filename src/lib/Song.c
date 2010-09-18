@@ -427,7 +427,10 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             }
         }
     }
-    play->play_frames += mixed;
+    if (!play->parent.pause)
+    {
+        play->play_frames += mixed;
+    }
 #if 0
     fprintf(stderr, "%3d  \r", play->active_voices);
     play->active_voices = 0;
