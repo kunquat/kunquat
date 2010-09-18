@@ -88,6 +88,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     mix_cycle_start = 0
     mix_cycle_end = 0
     mix_loads = collections.deque([0] * 8)
+    pause = False
     while bufs[0]:
         mix_loads.popleft()
         mix_loads.append((mix_cycle_end - mix_cycle_start) / rt_cycle_len)
@@ -161,7 +162,11 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     #handle.trigger(63, '["c.i", [1]]')
                     handle.trigger(63, '["cn+", [%f]]' % random.gauss(0, 1000))
                 elif key == '½':
-                    handle.trigger(-1, '[">pause", []]')
+                    if not pause:
+                        handle.trigger(-1, '[">pause", []]')
+                    else:
+                        handle.trigger(-1, '[">resume", []]')
+                    pause = not pause
         mix_cycle_start = time.time()
         bufs = handle.mix()
         mix_cycle_end = time.time()

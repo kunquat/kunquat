@@ -29,6 +29,7 @@
 #include <kunquat/limits.h>
 
 #include <Event_control_pause.h>
+#include <Event_control_resume.h>
 
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_jump_counter.h>
@@ -158,6 +159,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_control_process(eh, ">pause", EVENT_CONTROL_PAUSE,
                                       Event_control_pause_process);
+    Event_handler_set_control_process(eh, ">resume", EVENT_CONTROL_RESUME,
+                                      Event_control_resume_process);
 
     Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
