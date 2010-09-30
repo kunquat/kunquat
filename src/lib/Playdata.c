@@ -113,7 +113,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     }
     General_state_init(&play->parent);
     play->random = NULL;
-    play->play_id = 1;
+    play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
