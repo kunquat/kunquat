@@ -207,6 +207,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 void Playdata_reset(Playdata* play)
 {
     assert(play != NULL);
+    General_state_init(&play->parent);
     ++play->play_id;
     if (!play->silent)
     {

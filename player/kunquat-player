@@ -83,12 +83,13 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         print('Playing', file_name)
     return_key = KeyHandler.RETURN
     status_len_max = 0
+    pause = False
+    #handle.trigger(-1, '[">pause", []]')
     bufs = handle.mix()
     rt_cycle_len = float(options.buffer_size) / options.frequency
     mix_cycle_start = 0
     mix_cycle_end = 0
     mix_loads = collections.deque([0] * 8)
-    pause = False
     while bufs[0]:
         mix_loads.popleft()
         mix_loads.append((mix_cycle_end - mix_cycle_start) / rt_cycle_len)

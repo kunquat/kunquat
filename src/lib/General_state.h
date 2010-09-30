@@ -22,6 +22,7 @@
 typedef struct General_state
 {
     bool pause;
+    int pattern;
 } General_state;
 
 

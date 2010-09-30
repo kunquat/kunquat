@@ -12,18 +12,18 @@
  */
 
 
-#include <stdlib.h>
+#ifndef K_EVENT_CONTROL_PLAY_PATTERN_H
+#define K_EVENT_CONTROL_PLAY_PATTERN_H
+
+
+#include <stdbool.h>
 
 #include <General_state.h>
-#include <xassert.h>
 
 
-General_state* General_state_init(General_state* state)
-{
-    assert(state != NULL);
-    state->pause = false;
-    state->pattern = -1;
-    return state;
-}
+bool Event_control_play_pattern_process(General_state* gstate, char* fields);
+
+
+#endif // K_EVENT_CONTROL_PLAY_PATTERN_H
 
 

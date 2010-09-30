@@ -370,7 +370,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         {
             pat = Pat_table_get(song->pats, play->pattern);
         }
-        if (pat == NULL && play->mode != PLAY_EVENT)
+        if (pat == NULL && !play->parent.pause /*&& play->mode != PLAY_EVENT*/)
         {
             if (play->mode < PLAY_SONG)
             {

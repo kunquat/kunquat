@@ -37,7 +37,7 @@
 typedef enum Play_mode
 {
     STOP = 0,       ///< Don't play.
-    PLAY_EVENT,     ///< Play a single event.
+//    PLAY_EVENT,     ///< Play a single event.
     PLAY_PATTERN,   ///< Play one pattern.
     PLAY_SUBSONG,   ///< Play one subsong.
     PLAY_SONG,      ///< Play all subsongs.
