@@ -51,6 +51,8 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)
         self.bufs = (None, None)
+        self.playing = False
+        self.mix_timer.start(1)
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
@@ -60,13 +62,16 @@ class KqtEditor(QtGui.QMainWindow):
         """
 
     def mix(self):
-        if not self.bufs[0]:
-            self.bufs = self.handle.mix()
+        if self.playing:
             if not self.bufs[0]:
-                self.mix_timer.stop()
-                return
-        if self.pa.try_write(*self.bufs):
-            self.bufs = self.handle.mix()
+                self.bufs = self.handle.mix()
+                if not self.bufs[0]:
+                    self.stop()
+                    return
+            if self.pa.try_write(*self.bufs):
+                self.bufs = self.handle.mix()
+        else:
+            self.pa.iterate()
 
     def print_pa_state(self):
         print('Context: {0}, Stream: {1}, Error: {2}'.format(
@@ -74,10 +79,11 @@ class KqtEditor(QtGui.QMainWindow):
                   self.pa.error()), end='\r')
 
     def play(self):
-        self.mix_timer.start(0)
+        self.playing = True
 
     def stop(self):
-        self.mix_timer.stop()
+        self.playing = False
+        self.handle.nanoseconds = 0
 
     def set_appearance(self):
         # FIXME: size and title
@@ -97,7 +103,7 @@ class KqtEditor(QtGui.QMainWindow):
         tabs = QtGui.QTabWidget()
         sheet = Sheet(self.project)
         tabs.addTab(sheet, 'Sheet')
-        
+
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
 
@@ -181,6 +187,10 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(instrument)
         layout.addWidget(octave)
         return top_control
+
+    def __del__(self):
+        self.mix_timer.stop()
+        #QtGui.QMainWindow.__del__(self)
 
 
 if __name__ == '__main__':
