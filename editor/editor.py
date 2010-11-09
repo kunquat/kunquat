@@ -85,6 +85,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = False
         self.handle.nanoseconds = 0
 
+    def save(self):
+        self.project.save()
+
     def set_appearance(self):
         # FIXME: size and title
         self.resize(400, 300)
@@ -137,6 +140,8 @@ class KqtEditor(QtGui.QMainWindow):
         save_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
                                              'standardbutton-save-32.png')))
         save_project.setAutoRaise(True)
+        QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
+                               self.save)
 
         play = QtGui.QToolButton()
         play.setText('Play')

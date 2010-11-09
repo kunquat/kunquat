@@ -52,6 +52,7 @@ class Project(object):
         self._handle = kunquat.RWCHandle(self._root, mixing_rate)
         self._handle.buffer_size = 1024
         self._find_keys()
+        self._changed = False
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.
@@ -73,6 +74,11 @@ class Project(object):
             components.reverse()
             keys.add('/'.join(components))
         self._keys = keys
+
+    @property
+    def changed(self):
+        """Whether the Project has changed since the last commit."""
+        return self._changed
 
     @property
     def handle(self):
@@ -125,6 +131,7 @@ class Project(object):
                 self._keys.add(key)
             else:
                 self._keys.discard(key)
+        self._changed = True
 
     @property
     def mixing_rate(self):
@@ -167,6 +174,7 @@ class Project(object):
     def save(self):
         """Saves the Project data."""
         self._handle.commit()
+        self._changed = False
 
     def undo(self):
         """Undoes a change made in the Project."""
