@@ -43,8 +43,6 @@ default_input = ni.NoteInput()
 
 class Pattern(QtGui.QWidget):
 
-    #section_signal = QtCore.pyqtSignal(int, int, name='sectionChanged')
-
     def __init__(self, project, section, parent=None):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
@@ -102,13 +100,6 @@ class Pattern(QtGui.QWidget):
             QtCore.QObject.connect(self.accessors[a],
                                    QtCore.SIGNAL('returnPressed()'),
                                    self.value_changed)
-        #self.section_signal = QtCore.pyqtSignal(int, int,
-        #                                        name='sectionChanged')
-        #QtCore.QObject.connect(self, QtCore.SIGNAL('sectionChanged()'),
-        #                       self.section_changed)
-        #self.section_signal.connect(self.section_changed)
-        #self.section_signal.emit(2, 3)
-        #QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'), 2, 3)
 
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
         self.set_project(project)
@@ -124,7 +115,11 @@ class Pattern(QtGui.QWidget):
         self.zoom_factor = 1.5
 
     def section_changed(self, *args):
-        print(args)
+        subsong, section = args
+        pattern = self.project.get_pattern(subsong, section)
+        if pattern != None:
+            self.set_pattern(pattern)
+            self.update()
 
     def set_pattern(self, num):
         self.path = 'pat_{0:03x}'.format(num)

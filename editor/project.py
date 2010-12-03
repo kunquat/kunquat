@@ -15,6 +15,7 @@ import errno
 import json
 import os
 
+import kqt_limits as lim
 import kunquat
 
 
@@ -143,6 +144,20 @@ class Project(object):
         """Set the mixing rate."""
         self._handle.mixing_rate = value
         self._mixing_rate = value
+
+    def get_pattern(self, subsong, section):
+        """Get a pattern number based on subsong and section number."""
+        if subsong < 0 or subsong >= lim.SUBSONGS_MAX:
+            raise IndexError, 'Invalid subsong number'
+        if section < 0 or section >= lim.SECTIONS_MAX:
+            raise IndexError, 'Invalid section number'
+        ss = self['subs_{0:02x}/p_subsong.json'.format(subsong)]
+        if not ss or 'patterns' not in ss:
+            return None
+        patterns = ss['patterns']
+        if len(patterns) <= section:
+            return None
+        return patterns[section]
 
     def clear(self):
         """Removes all composition data (but not the history)."""
