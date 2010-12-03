@@ -13,7 +13,9 @@
 
 from PyQt4 import QtGui, QtCore
 
+import kqt_limits as lim
 from pattern import Pattern
+from subsongs import Subsongs
 
 
 class Sheet(QtGui.QSplitter):
@@ -22,10 +24,11 @@ class Sheet(QtGui.QSplitter):
         QtGui.QSplitter.__init__(self, parent)
 
         self.project = project
+        self.section = Section(self)
 
         subsong_editor = QtGui.QLabel('[subsong editor]')
 
-        self.addWidget(subsong_editor)
+        self.addWidget(self.create_subsong_editor(project))
         self.addWidget(self.create_pattern_editor(project))
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
@@ -40,16 +43,49 @@ class Sheet(QtGui.QSplitter):
         top_layout = QtGui.QHBoxLayout(top_control)
 
         name = QtGui.QLabel('[pattern num/name]')
-        
+
         length = QtGui.QLabel('[length]')
 
         top_layout.addWidget(name)
         top_layout.addWidget(length)
 
-        pattern = Pattern(project)
+        pattern = Pattern(project, self.section)
 
         layout.addWidget(top_control, 0)
         layout.addWidget(pattern, 1)
         return pattern_editor
+
+    def create_subsong_editor(self, project):
+        subsong_editor = Subsongs(project, self.section)
+        return subsong_editor
+
+
+class Section(QtCore.QObject):
+
+    section_changed = QtCore.pyqtSignal(int, int, name='sectionChanged')
+
+    def __init__(self, parent=None):
+        QtCore.QObject.__init__(self, parent)
+        self._subsong = 0
+        self._section = 0
+
+    def connect(self, func):
+        self.section_changed.connect(func)
+
+    def set(self, subsong, section):
+        assert subsong < lim.SUBSONGS_MAX
+        assert section < lim.SECTIONS_MAX
+        self._subsong = subsong
+        self._section = section
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'),
+                            subsong, section)
+
+    @property
+    def subsong(self):
+        return self._subsong
+
+    @property
+    def section(self):
+        return self._section
 
 

@@ -43,8 +43,12 @@ default_input = ni.NoteInput()
 
 class Pattern(QtGui.QWidget):
 
-    def __init__(self, project, parent=None):
+    #section_signal = QtCore.pyqtSignal(int, int, name='sectionChanged')
+
+    def __init__(self, project, section, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        section.connect(self.section_changed)
+        self.section_manager = section
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -98,6 +102,13 @@ class Pattern(QtGui.QWidget):
             QtCore.QObject.connect(self.accessors[a],
                                    QtCore.SIGNAL('returnPressed()'),
                                    self.value_changed)
+        #self.section_signal = QtCore.pyqtSignal(int, int,
+        #                                        name='sectionChanged')
+        #QtCore.QObject.connect(self, QtCore.SIGNAL('sectionChanged()'),
+        #                       self.section_changed)
+        #self.section_signal.connect(self.section_changed)
+        #self.section_signal.emit(2, 3)
+        #QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'), 2, 3)
 
         self.cursor = Cursor(self.length, self.beat_len, self.accessors)
         self.set_project(project)
@@ -111,6 +122,9 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
+
+    def section_changed(self, *args):
+        print(args)
 
     def set_pattern(self, num):
         self.path = 'pat_{0:03x}'.format(num)
@@ -249,6 +263,16 @@ class Pattern(QtGui.QWidget):
                     self.cursor.set_index(sys.maxsize)
             else:
                 self.update()
+        elif ev.key() == QtCore.Qt.Key_Plus:
+            subsong = self.section_manager.subsong
+            section = self.section_manager.section
+            if section < lim.SECTIONS_MAX - 1:
+                self.section_manager.set(subsong, section + 1)
+        elif ev.key() == QtCore.Qt.Key_Minus:
+            subsong = self.section_manager.subsong
+            section = self.section_manager.section
+            if section > 0:
+                self.section_manager.set(subsong, section - 1)
         else:
             self.cursor.key_press(ev)
             if ev.isAccepted():
