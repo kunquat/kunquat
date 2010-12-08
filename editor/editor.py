@@ -39,10 +39,48 @@ def sine():
         phase = (phase + shift) % (2 * math.pi)
 
 
+class Playback(QtCore.QObject):
+
+    _play_sub = QtCore.pyqtSignal(int, name='playSubsong')
+    _play_pat = QtCore.pyqtSignal(int, name='playPattern')
+    _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
+    _stop = QtCore.pyqtSignal(name='stop')
+
+    def __init__(self, parent=None):
+        QtCore.QObject.__init__(self, parent)
+
+    def connect(self, play_sub, play_pat, play_event, stop):
+        """Connects the playback control signals to functions."""
+        self._play_sub.connect(play_sub)
+        self._play_pat.connect(play_pat)
+        self._play_event.connect(play_event)
+        self._stop.connect(stop)
+
+    def stop(self):
+        """Stops playback."""
+        QtCore.QObject.emit(self, QtCore.SIGNAL('stop()'))
+
+    def play_subsong(self, subsong):
+        """Plays a subsong."""
+        QtCore.QObject.emit(self, QtCore.SIGNAL('playSubsong(int)'), subsong)
+
+    def play_pattern(self, pattern):
+        """Plays a pattern repeatedly."""
+        QtCore.QObject.emit(self, QtCore.SIGNAL('playPattern(int)'), pattern)
+
+    def play_event(self, channel, event):
+        """Plays a single event."""
+        QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
+                            channel, event)
+
+
 class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
+        self._playback = Playback()
+        self._playback.connect(self.play_subsong, self.play_pattern,
+                               self.play_event, self.stop)
         self.project = project.Project(0)
         self.handle = self.project.handle
         self.set_appearance()
@@ -85,6 +123,22 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = False
         self.handle.nanoseconds = 0
 
+    def play_subsong(self, subsong):
+        self.handle.nanoseconds = 0
+        self.handle.subsong = subsong
+        self.playing = True
+
+    def play_pattern(self, pattern):
+        self.handle.nanoseconds = 0
+        self.playing = True
+        self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
+
+    def play_event(self, channel, event):
+        if not self.playing:
+            self.playing = True
+            self.handle.trigger(-1, '[">pause", []]')
+        self.handle.trigger(channel, event)
+
     def save(self):
         self.project.save()
 
@@ -104,7 +158,7 @@ class KqtEditor(QtGui.QMainWindow):
         top_control = self.create_top_control()
 
         tabs = QtGui.QTabWidget()
-        sheet = Sheet(self.project)
+        sheet = Sheet(self.project, self._playback)
         tabs.addTab(sheet, 'Sheet')
 
         top_layout.addWidget(top_control)

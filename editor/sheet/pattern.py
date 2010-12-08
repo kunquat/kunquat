@@ -43,10 +43,11 @@ default_input = ni.NoteInput()
 
 class Pattern(QtGui.QWidget):
 
-    def __init__(self, project, section, parent=None):
+    def __init__(self, project, section, playback, parent=None):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
         self.section_manager = section
+        self.playback_manager = playback
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
@@ -122,6 +123,7 @@ class Pattern(QtGui.QWidget):
             self.update()
 
     def set_pattern(self, num):
+        self.number = num
         self.path = 'pat_{0:03x}'.format(num)
         pat_info = self.project['/'.join((self.path, 'p_pattern.json'))]
         if pat_info:
@@ -268,6 +270,12 @@ class Pattern(QtGui.QWidget):
             section = self.section_manager.section
             if section > 0:
                 self.section_manager.set(subsong, section - 1)
+        elif ev.key() == QtCore.Qt.Key_F5:
+            self.playback_manager.play_subsong(0) # FIXME: subsong number
+        elif ev.key() == QtCore.Qt.Key_F6:
+            self.playback_manager.play_pattern(self.number)
+        elif ev.key() == QtCore.Qt.Key_F8:
+            self.playback_manager.stop()
         else:
             self.cursor.key_press(ev)
             if ev.isAccepted():

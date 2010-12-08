@@ -20,10 +20,11 @@ from subsongs import Subsongs
 
 class Sheet(QtGui.QSplitter):
 
-    def __init__(self, project, parent=None):
+    def __init__(self, project, playback, parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
         self.project = project
+        self._playback = playback
         self.section = Section(self)
 
         subsong_editor = QtGui.QLabel('[subsong editor]')
@@ -49,7 +50,7 @@ class Sheet(QtGui.QSplitter):
         top_layout.addWidget(name)
         top_layout.addWidget(length)
 
-        pattern = Pattern(project, self.section)
+        pattern = Pattern(project, self.section, self._playback)
 
         layout.addWidget(top_control, 0)
         layout.addWidget(pattern, 1)
