@@ -18,11 +18,11 @@
 #include <xassert.h>
 
 
-General_state* General_state_init(General_state* state)
+General_state* General_state_init(General_state* state, bool global)
 {
     assert(state != NULL);
+    state->global = global;
     state->pause = false;
-    state->pattern = -1;
     return state;
 }
 

@@ -38,7 +38,7 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
-    General_state_init(&play->parent);
+    General_state_init(&play->parent, true);
     play->random = random;
     play->play_id = 1;
     play->silent = false;
@@ -111,7 +111,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
-    General_state_init(&play->parent);
+    General_state_init(&play->parent, true);
     play->random = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
@@ -207,7 +207,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 void Playdata_reset(Playdata* play)
 {
     assert(play != NULL);
-    General_state_init(&play->parent);
+    General_state_init(&play->parent, true);
     ++play->play_id;
     if (!play->silent)
     {

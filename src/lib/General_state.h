@@ -21,8 +21,8 @@
 
 typedef struct General_state
 {
+    bool global;
     bool pause;
-    int pattern;
 } General_state;
 
 
@@ -33,7 +33,7 @@ typedef struct General_state
  *
  * \return   The parameter \a state.
  */
-General_state* General_state_init(General_state* state);
+General_state* General_state_init(General_state* state, bool global);
 
 
 #endif // K_GENERAL_STATE_H

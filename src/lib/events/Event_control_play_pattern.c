@@ -20,6 +20,7 @@
 #include <Event_type.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Playdata.h>
 #include <xassert.h>
 
 
@@ -39,7 +40,7 @@ static Event_field_desc play_pattern_desc[] =
 bool Event_control_play_pattern_process(General_state* gstate, char* fields)
 {
     assert(gstate != NULL);
-    if (fields == NULL)
+    if (fields == NULL || !gstate->global)
     {
         return false;
     }
@@ -50,7 +51,10 @@ bool Event_control_play_pattern_process(General_state* gstate, char* fields)
     {
         return false;
     }
-    gstate->pattern = data[0].field.integral_type;
+    Playdata* global_state = (Playdata*)gstate;
+    global_state->pattern = data[0].field.integral_type;
+    global_state->mode = PLAY_PATTERN;
+    Reltime_set(&global_state->pos, 0, 0);
     return true;
 }
 
