@@ -102,7 +102,10 @@ class Pattern(QtGui.QWidget):
                                    QtCore.SIGNAL('returnPressed()'),
                                    self.value_changed)
 
-        self.cursor = Cursor(self.length, self.beat_len, self.accessors)
+        self.cursor = Cursor(self.length,
+                             self.beat_len,
+                             self.accessors,
+                             playback)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.cursor.set_input(default_input)

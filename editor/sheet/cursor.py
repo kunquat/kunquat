@@ -26,7 +26,8 @@ import trigger_row
 
 class Cursor(object):
 
-    def __init__(self, length, beat_len, accessors):
+    def __init__(self, length, beat_len, accessors, playback_manager):
+        self.playback_manager = playback_manager
         self.init_speed = 1
         self.max_speed = 12
         self.init_trigger_delay = 6
@@ -50,6 +51,8 @@ class Cursor(object):
         self.scale = None
         self.pattern_path = None
         self.project = None
+        self.inst_num = 0
+        self.inst_auto = False
 
     def clear_delay(self):
         self.trigger_delay_left = 0
@@ -117,10 +120,16 @@ class Cursor(object):
                 row = tr[self.ts]
                 tindex, findex = row.get_slot(self)
                 if tindex < len(row) and findex == 0:
+                    play_note_off = False
+                    if row[tindex][0] == 'cn+':
+                        play_note_off = True
                     del row[tindex]
                     if row == []:
                         del tr[self.ts]
                     self.project[self.col_path] = self.col.flatten()
+                    if play_note_off:
+                        self.playback_manager.play_event(
+                                self.col.get_num(), '["cn-", []]')
         elif ev.key() == QtCore.Qt.Key_Return:
             if not self.edit:
                 self.edit = True
@@ -146,6 +155,7 @@ class Cursor(object):
                 ev.ignore()
                 return
             triggers = self.col.get_triggers()
+            play_note_off = False
             if self.ts in triggers and not self.insert:
                 row = triggers[self.ts]
                 tindex, findex = row.get_slot(self)
@@ -157,15 +167,21 @@ class Cursor(object):
                         self.col.set_value(self, trigger.TriggerType('cn-'))
                         self.insert = False
                         self.project[self.col_path] = self.col.flatten()
+                        play_note_off = True
                 else:
                     self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('cn-'))
                     self.project[self.col_path] = self.col.flatten()
+                    play_note_off = True
             else:
                 if self.ts not in triggers:
                     self.index = 0
                 self.col.set_value(self, trigger.TriggerType('cn-'))
                 self.project[self.col_path] = self.col.flatten()
+                play_note_off = True
+            if play_note_off:
+                self.playback_manager.play_event(
+                        self.col.get_num(), '["cn-", []]')
         else:
             if not (self.note_input and self.scale and
                     self.col.get_num() >= 0):
@@ -178,6 +194,7 @@ class Cursor(object):
                 ev.ignore()
                 return
             triggers = self.col.get_triggers()
+            play_note_on = False
             if self.ts in triggers and not self.insert:
                 row = triggers[self.ts]
                 tindex, findex = row.get_slot(self)
@@ -186,19 +203,23 @@ class Cursor(object):
                     if trig[0] == 'cn+':
                         self.col.set_value(self, cents)
                         self.project[self.col_path] = self.col.flatten()
+                        play_note_on = True
                     elif trig[0] == 'cn-':
                         self.col.set_value(self, trigger.TriggerType('cn+'))
                         self.col.set_value(self, cents)
                         self.project[self.col_path] = self.col.flatten()
+                        play_note_on = True
                     elif isinstance(trig.get_field_info(findex)[0],
                                     trigger.Note):
                         self.col.set_value(self, cents)
                         self.project[self.col_path] = self.col.flatten()
+                        # TODO: should we play?
                 else:
                     self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
+                    play_note_on = True
             else:
                 if self.ts not in triggers:
                     self.index = 0
@@ -206,6 +227,12 @@ class Cursor(object):
                 self.insert = False
                 self.col.set_value(self, cents)
                 self.project[self.col_path] = self.col.flatten()
+                play_note_on = True
+            if play_note_on:
+                self.playback_manager.play_event(self.col.get_num(),
+                                    '["c.i", [{0}]]'.format(self.inst_num))
+                self.playback_manager.play_event(self.col.get_num(),
+                                            '["cn+", [{0}]]'.format(cents))
         self.insert = False
 
     def key_release(self, ev):
@@ -295,6 +322,11 @@ class Cursor(object):
         self.valid_value = True
         value = self.active_accessor.get_value()
         self.col.set_value(self, value)
+        if self.active_accessor is self.accessors[int]:
+            row = self.col.get_triggers()[self.ts]
+            tindex, _ = row.get_slot(self)
+            if self.index > 0 and row[tindex][0] == 'c.i':
+                self.inst_num = value
         self.edit = False
         self.insert = False
         self.active_accessor.hide()

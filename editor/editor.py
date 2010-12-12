@@ -70,8 +70,9 @@ class Playback(QtCore.QObject):
 
     def play_event(self, channel, event):
         """Plays a single event."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
-                            channel, event)
+        self._play_event.emit(channel, event)
+        #QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
+        #                    channel, event)
 
 
 class KqtEditor(QtGui.QMainWindow):
@@ -133,7 +134,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = True
         self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
 
-    def play_event(self, channel, event):
+    def play_event(self, *args):
+        channel, event = args
+        event = str(event)
         if not self.playing:
             self.playing = True
             self.handle.trigger(-1, '[">pause", []]')
