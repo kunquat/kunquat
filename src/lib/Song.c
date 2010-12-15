@@ -345,9 +345,13 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         nframes = Device_get_buffer_size((Device*)song);
     }
-    if (!play->silent && song->connections != NULL)
+    if (!play->silent)
     {
-        Connections_clear_buffers(song->connections, 0, nframes);
+        if (song->connections != NULL)
+        {
+            Connections_clear_buffers(song->connections, 0, nframes);
+        }
+        Voice_pool_prepare(play->voice_pool);
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)

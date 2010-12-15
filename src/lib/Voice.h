@@ -125,6 +125,14 @@ void Voice_reset(Voice* voice);
 
 
 /**
+ * Prepares the Voice for a new mixing cycle.
+ *
+ * \param voice   The Voice -- must not be \c NULL.
+ */
+void Voice_prepare(Voice* voice);
+
+
+/**
  * Mixes the Voice.
  *
  * \param voice    The Voice -- must not be \c NULL.

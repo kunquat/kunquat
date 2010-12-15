@@ -129,6 +129,14 @@ void Voice_reset(Voice* voice)
 }
 
 
+void Voice_prepare(Voice* voice)
+{
+    assert(voice != NULL);
+    voice->was_fg = voice->prio >= VOICE_PRIO_FG;
+    return;
+}
+
+
 void Voice_mix(Voice* voice,
                uint32_t nframes,
                uint32_t offset,

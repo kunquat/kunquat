@@ -205,6 +205,20 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
 }
 
 
+void Voice_pool_prepare(Voice_pool* pool)
+{
+    assert(pool != NULL);
+    for (uint16_t i = 0; i < pool->size; ++i)
+    {
+        if (pool->voices[i]->prio != VOICE_PRIO_INACTIVE)
+        {
+            Voice_prepare(pool->voices[i]);
+        }
+    }
+    return;
+}
+
+
 uint16_t Voice_pool_mix_bg(Voice_pool* pool,
                            uint32_t amount,
                            uint32_t offset,
