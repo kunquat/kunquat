@@ -85,7 +85,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.project = project.Project(0)
         self.handle = self.project.handle
         self.set_appearance()
-        self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
+        self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor', file_out=True)
         self.mix_timer = QtCore.QTimer(self)
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)

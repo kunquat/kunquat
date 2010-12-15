@@ -24,6 +24,7 @@ from __future__ import print_function
 import ctypes
 import sys
 import time
+import wave
 
 __all__ = ['Simple', 'Poll', 'PulseAudioError']
 
@@ -193,7 +194,8 @@ class Poll(object):
                  client_name,
                  stream_name,
                  rate=48000,
-                 channels=2):
+                 channels=2,
+                 file_out=False):
         """Create a new PulseAudio connection.
 
         Arguments:
@@ -204,6 +206,7 @@ class Poll(object):
         rate        -- Mixing frequency in frames per second (default:
                        48000).
         channels    -- Number of output channels (default: 2).
+        file_out    -- Additional output to _kqtest.wav.
 
         """
         self.rate = 48000
@@ -252,6 +255,13 @@ class Poll(object):
                                              None) < 0:
             self._cleanup()
             raise PulseAudioError('Could not connect PulseAudio stream')
+
+        self._file_out = None
+        if file_out:
+            self._file_out = wave.open('_kqtest.wav', 'wb')
+            self._file_out.setsampwidth(2)
+            self._file_out.setframerate(rate)
+            self._file_out.setnchannels(channels)
 
     def context_state(self):
         return _pulse.pa_context_get_state(self._context)
@@ -305,6 +315,14 @@ class Poll(object):
                                   PA_SEEK_RELATIVE) < 0:
             raise PulseAudioError(_pulse.pa_strerror(
                                   _pulse.pa_context_errno(self._context)))
+        if self._file_out:
+            odata = [0] * (frame_count * self.channels)
+            for channel in xrange(self.channels):
+                odata[channel::self.channels] = data[channel]
+            for i, e in enumerate(odata):
+                odata[i] = wave.struct.pack('h', int(e * 32767))
+            ocdata = ''.join(odata)
+            self._file_out.writeframes(ocdata)
 
     def _cleanup(self):
         if self._stream:
@@ -323,6 +341,8 @@ class Poll(object):
 
     def __del__(self):
         self._cleanup()
+        if self._file_out:
+            self._file_out.close()
 
 
 _simple = ctypes.CDLL('libpulse-simple.so')
