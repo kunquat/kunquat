@@ -86,6 +86,10 @@ void Trigger_global_jump_process(Event_global* event, Playdata* play)
         play->jump_section = jump->section;
         Reltime_copy(&play->jump_row, &jump->row);
     }
+    else
+    {
+        jump->play_id = 0;
+    }
     return;
 }
 
