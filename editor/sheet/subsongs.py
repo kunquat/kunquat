@@ -28,6 +28,7 @@ class Subsongs(QtGui.QTreeView):
         self.set_project(project)
         section.connect(self.section_changed)
         self._section_manager = section
+        self.setHeaderHidden(True)
         self.sync()
         self.expandAll()
 

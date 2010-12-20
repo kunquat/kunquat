@@ -33,6 +33,7 @@ class Sheet(QtGui.QSplitter):
         self.addWidget(self.create_pattern_editor(project))
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
+        self.setSizes([180, 1])
 
     def create_pattern_editor(self, project):
         pattern_editor = QtGui.QWidget()
