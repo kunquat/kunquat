@@ -21,6 +21,9 @@ import kqt_limits as lim
 
 class Subsongs(QtGui.QTreeView):
 
+    comp_signal = QtCore.pyqtSignal(name='compositionParams')
+    subsong_signal = QtCore.pyqtSignal(int, name='subsongParams')
+
     def __init__(self, project, section, parent=None):
         QtGui.QTreeView.__init__(self, parent)
         self._section_signal = False
@@ -39,11 +42,13 @@ class Subsongs(QtGui.QTreeView):
         item = self._model.itemFromIndex(new_index)
         parent = item.parent()
         if not parent:
-            print('composition')
+            QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
             return
         child = item.child(0)
         if child:
-            print('subsong')
+            num = int(str(item.text()).split()[1])
+            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+                                num)
             return
         self._section_signal = True
         self._section_manager.set(parent.row(), item.row())

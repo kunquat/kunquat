@@ -23,23 +23,42 @@ class Sheet(QtGui.QSplitter):
     def __init__(self, project, playback, parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
-        self.project = project
+        self._project = project
         self._playback = playback
-        self.section = Section(project, self)
+        self._section = Section(project, self)
 
-        subsong_editor = QtGui.QLabel('[subsong editor]')
+        self._comp_params = QtGui.QLabel('[composition parameters]')
+        self._subsong_params = QtGui.QLabel('[subsong parameters]')
+        self._pattern_editor = PatternEditor(project, playback, self._section)
+        self._edit_area = QtGui.QStackedWidget()
+        self._edit_area.addWidget(self._comp_params)
+        self._edit_area.addWidget(self._subsong_params)
+        self._edit_area.addWidget(self._pattern_editor)
 
-        self.addWidget(self.create_subsong_editor(project))
-        self.addWidget(self.create_pattern_editor(project))
+        subsongs = Subsongs(project, self._section)
+        QtCore.QObject.connect(subsongs,
+                               QtCore.SIGNAL('compositionParams()'),
+                               self.to_comp_params)
+        self.addWidget(subsongs)
+        self.addWidget(self._edit_area)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([180, 1])
 
-    def create_pattern_editor(self, project):
-        return PatternEditor(project, self._playback, self.section)
+        self._section.connect(self.section_changed)
+        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('compositionParams()'),
+                               self.to_comp_params)
+        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('subsongParams(int)'),
+                               self.to_subsong_params)
 
-    def create_subsong_editor(self, project):
-        return Subsongs(project, self.section)
+    def section_changed(self, *args):
+        self._edit_area.setCurrentWidget(self._pattern_editor)
+
+    def to_comp_params(self, *args):
+        self._edit_area.setCurrentWidget(self._comp_params)
+
+    def to_subsong_params(self, num):
+        self._edit_area.setCurrentWidget(self._subsong_params)
 
 
 class Section(QtCore.QObject):
