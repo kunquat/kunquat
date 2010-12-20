@@ -25,7 +25,7 @@ class Sheet(QtGui.QSplitter):
 
         self.project = project
         self._playback = playback
-        self.section = Section(self)
+        self.section = Section(project, self)
 
         subsong_editor = QtGui.QLabel('[subsong editor]')
 
@@ -65,8 +65,9 @@ class Section(QtCore.QObject):
 
     section_changed = QtCore.pyqtSignal(int, int, name='sectionChanged')
 
-    def __init__(self, parent=None):
+    def __init__(self, project, parent=None):
         QtCore.QObject.__init__(self, parent)
+        self._project = project
         self._subsong = 0
         self._section = 0
 
@@ -76,6 +77,11 @@ class Section(QtCore.QObject):
     def set(self, subsong, section):
         assert subsong < lim.SUBSONGS_MAX
         assert section < lim.SECTIONS_MAX
+        pat = self._project.get_pattern(subsong, section)
+        if pat == None:
+            return
+        if self._subsong == subsong and self._section == section:
+            print('repeat signal for {0}:{1}'.format(subsong, section))
         self._subsong = subsong
         self._section = section
         QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'),
