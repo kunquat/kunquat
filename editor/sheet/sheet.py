@@ -14,7 +14,7 @@
 from PyQt4 import QtGui, QtCore
 
 import kqt_limits as lim
-from pattern import Pattern
+from pattern_editor import PatternEditor
 from subsongs import Subsongs
 
 
@@ -36,30 +36,10 @@ class Sheet(QtGui.QSplitter):
         self.setSizes([180, 1])
 
     def create_pattern_editor(self, project):
-        pattern_editor = QtGui.QWidget()
-        layout = QtGui.QVBoxLayout(pattern_editor)
-        layout.setMargin(0)
-        layout.setSpacing(0)
-
-        top_control = QtGui.QWidget()
-        top_layout = QtGui.QHBoxLayout(top_control)
-
-        name = QtGui.QLabel('[pattern num/name]')
-
-        length = QtGui.QLabel('[length]')
-
-        top_layout.addWidget(name)
-        top_layout.addWidget(length)
-
-        pattern = Pattern(project, self.section, self._playback)
-
-        layout.addWidget(top_control, 0)
-        layout.addWidget(pattern, 1)
-        return pattern_editor
+        return PatternEditor(project, self._playback, self.section)
 
     def create_subsong_editor(self, project):
-        subsong_editor = Subsongs(project, self.section)
-        return subsong_editor
+        return Subsongs(project, self.section)
 
 
 class Section(QtCore.QObject):
