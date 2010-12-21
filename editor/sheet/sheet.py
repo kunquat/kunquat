@@ -14,6 +14,7 @@
 from PyQt4 import QtGui, QtCore
 
 import kqt_limits as lim
+from comp_params import CompParams
 from pattern_editor import PatternEditor
 from subsongs import Subsongs
 
@@ -27,7 +28,7 @@ class Sheet(QtGui.QSplitter):
         self._playback = playback
         self._section = Section(project, self)
 
-        self._comp_params = QtGui.QLabel('[composition parameters]')
+        self._comp_params = CompParams(project)
         self._subsong_params = QtGui.QLabel('[subsong parameters]')
         self._pattern_editor = PatternEditor(project, playback, self._section)
         self._edit_area = QtGui.QStackedWidget()
