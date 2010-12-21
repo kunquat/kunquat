@@ -16,6 +16,7 @@ from PyQt4 import QtGui, QtCore
 import kqt_limits as lim
 from comp_params import CompParams
 from pattern_editor import PatternEditor
+from subsong_params import SubsongParams
 from subsongs import Subsongs
 
 
@@ -29,7 +30,7 @@ class Sheet(QtGui.QSplitter):
         self._section = Section(project, self)
 
         self._comp_params = CompParams(project)
-        self._subsong_params = QtGui.QLabel('[subsong parameters]')
+        self._subsong_params = SubsongParams(project)
         self._pattern_editor = PatternEditor(project, playback, self._section)
         self._edit_area = QtGui.QStackedWidget()
         self._edit_area.addWidget(self._comp_params)
@@ -51,6 +52,8 @@ class Sheet(QtGui.QSplitter):
                                self.to_comp_params)
         QtCore.QObject.connect(subsongs, QtCore.SIGNAL('subsongParams(int)'),
                                self.to_subsong_params)
+        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('subsongParams(int)'),
+                               self._subsong_params.subsong_changed)
 
     def section_changed(self, *args):
         self._edit_area.setCurrentWidget(self._pattern_editor)

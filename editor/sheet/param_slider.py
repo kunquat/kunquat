@@ -50,10 +50,12 @@ class ParamSlider(QtGui.QWidget):
         self._slider.setRange(val_range[0] * self._factor,
                               val_range[1] * self._factor)
         layout.addWidget(self._slider)
-        self._slider.setValue(int(round(value * self._factor)))
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
+        self._lock_update = True
+        self._slider.setValue(int(round(value * self._factor)))
+        self._lock_update = False
 
         self._value_display = QtGui.QLabel(str(value))
         metrics = QtGui.QFontMetrics(QtGui.QFont())
@@ -64,8 +66,23 @@ class ParamSlider(QtGui.QWidget):
         self._value_display.setFixedWidth(width)
         layout.addWidget(self._value_display)
 
+    def set_key(self, key):
+        self._key = key
+        if self._dict_key:
+            value = self._project[self._key][self._dict_key]
+        else:
+            value = self._project[self._key]
+        self._lock_update = True
+        self._slider.setValue(int(round(value * self._factor)))
+        self._lock_update = False
+
     def value_changed(self, svalue):
+        if self._lock_update:
+            return
         value = svalue / self._factor
+        if self._factor == 1:
+            assert value == int(value)
+            value = int(value)
         if self._dict_key:
             d = self._project[self._key]
             d[self._dict_key] = value
