@@ -28,14 +28,16 @@ class SubsongParams(QtGui.QWidget):
         key = 'subs_00/p_subsong.json'
         self._tempo = ParamSlider(project,
                                   'Initial tempo:',
-                                  key,
                                   (6, 360),
+                                  120,
+                                  key,
                                   'tempo')
         self._layout.addWidget(self._tempo)
         self._global_volume = ParamSlider(project,
                                           'Initial global volume:',
-                                          key,
                                           (-96, 8),
+                                          0,
+                                          key,
                                           'global_vol',
                                           1)
         self._layout.addWidget(self._global_volume)

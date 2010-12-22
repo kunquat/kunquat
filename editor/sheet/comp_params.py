@@ -26,8 +26,9 @@ class CompParams(QtGui.QWidget):
 
         self._layout.addWidget(ParamSlider(project,
                                            'Mixing volume:',
-                                           'p_composition.json',
                                            (-48, 0),
+                                           -8,
+                                           'p_composition.json',
                                            'mix_vol',
                                            1))
 

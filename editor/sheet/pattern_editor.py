@@ -40,8 +40,9 @@ class PatternEditor(QtGui.QWidget):
 
         self._length = TimestampSpin(project,
                                      'Length:',
-                                     'pat_000/p_pattern.json',
                                      (ts.Timestamp(0), ts.Timestamp(1024, 0)),
+                                     ts.Timestamp(16),
+                                     'pat_000/p_pattern.json',
                                      'length',
                                      2)
 

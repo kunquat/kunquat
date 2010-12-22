@@ -22,8 +22,9 @@ class ParamSlider(QtGui.QWidget):
     def __init__(self,
                  project,
                  label,
-                 key,
                  val_range,
+                 default_val,
+                 key,
                  dict_key=None,
                  decimals=0,
                  orientation=QtCore.Qt.Horizontal,
@@ -32,12 +33,8 @@ class ParamSlider(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._factor = 10**decimals
-        self._key = key
         self._dict_key = dict_key
-        if dict_key:
-            value = project[key][dict_key]
-        else:
-            value = project[key]
+        self._default_val = default_val
 
         if orientation == QtCore.Qt.Horizontal:
             layout = QtGui.QHBoxLayout(self)
@@ -53,11 +50,8 @@ class ParamSlider(QtGui.QWidget):
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
-        self._lock_update = True
-        self._slider.setValue(int(round(value * self._factor)))
-        self._lock_update = False
 
-        self._value_display = QtGui.QLabel(str(value))
+        self._value_display = QtGui.QLabel()
         metrics = QtGui.QFontMetrics(QtGui.QFont())
         min_str = '{0:.{1}f}'.format(val_range[0], decimals)
         max_str = '{0:.{1}f}'.format(val_range[1], decimals)
@@ -65,15 +59,22 @@ class ParamSlider(QtGui.QWidget):
                     metrics.width(max_str))
         self._value_display.setFixedWidth(width)
         layout.addWidget(self._value_display)
+        self.set_key(key)
 
     def set_key(self, key):
+        value = self._default_val
         if self._dict_key:
-            value = self._project[key][self._dict_key]
+            d = self._project[key]
+            if d and self._dict_key in d:
+                value = self._project[key][self._dict_key]
         else:
-            value = self._project[key]
+            actual = self._project[key]
+            if actual != None:
+                value = actual
         self._lock_update = True
         self._slider.setValue(int(round(value * self._factor)))
         self._lock_update = False
+        self._value_display.setText(str(value))
         self._key = key
 
     def value_changed(self, svalue):
@@ -85,10 +86,13 @@ class ParamSlider(QtGui.QWidget):
             value = int(value)
         if self._dict_key:
             d = self._project[self._key]
+            if d == None:
+                d = {}
             d[self._dict_key] = value
             self._project[self._key] = d
         else:
             self._project[self._key] = value
+        self._using_default = False
         self._value_display.setText(str(value))
 
 

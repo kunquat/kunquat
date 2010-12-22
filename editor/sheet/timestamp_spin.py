@@ -26,21 +26,17 @@ class TimestampSpin(QtGui.QWidget):
     def __init__(self,
                  project,
                  label,
-                 key,
                  val_range,
+                 default_val,
+                 key,
                  dict_key=None,
                  decimals=0,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._key = key
         self._dict_key = dict_key
         self._decimals = decimals
-        if dict_key:
-            value = project[key][dict_key]
-        else:
-            value = project[key]
-        value = ts.Timestamp(value)
+        self._default_val = default_val
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -54,16 +50,19 @@ class TimestampSpin(QtGui.QWidget):
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self.value_changed)
-        self._lock_update = True
-        self._spin.setValue(float(value))
-        self._lock_update = False
+        self.set_key(key)
         layout.addWidget(self._spin, 0)
 
     def set_key(self, key):
+        value = self._default_val
         if self._dict_key:
-            value = self._project[key][self._dict_key]
+            d = self._project[key]
+            if d and self._dict_key in d:
+                value = self._project[key][self._dict_key]
         else:
-            value = self._project[key]
+            actual = self._project[key]
+            if actual != None:
+                value = actual
         self._lock_update = True
         self._spin.setValue(float(ts.Timestamp(value)))
         self._lock_update = False
@@ -75,6 +74,8 @@ class TimestampSpin(QtGui.QWidget):
         value = list(ts.Timestamp(fvalue))
         if self._dict_key:
             d = self._project[self._key]
+            if d == None:
+                d = {}
             d[self._dict_key] = value
             self._project[self._key] = d
         else:
