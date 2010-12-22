@@ -39,6 +39,7 @@ class Subsongs(QtGui.QTreeView):
         if self._section_signal:
             print('signal loop')
             return
+        self.scrollTo(new_index)
         item = self._model.itemFromIndex(new_index)
         parent = item.parent()
         if not parent:
@@ -104,6 +105,7 @@ class Subsongs(QtGui.QTreeView):
                     add_section.setFont(QtGui.QFont('Decorative',
                                                     italic=True))
                     item.appendRow(add_section)
+                self.expand(self._model.indexFromItem(item))
                 QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
                                     subsong_number)
                 return
