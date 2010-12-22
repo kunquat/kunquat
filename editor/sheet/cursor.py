@@ -218,6 +218,24 @@ class Cursor(object):
                     self.index = row.slots()
                     self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
+                    if self.inst_auto:
+                        use_existing_trig = False
+                        self.index -= 1
+                        if self.index >= 1:
+                            ptindex, _ = row.get_slot(self)
+                            if row[ptindex][0] == 'c.i':
+                                use_existing_trig = True
+                        self.index += 1
+                        if use_existing_trig:
+                            self.index -= 1
+                        else:
+                            self.insert = True
+                            self.col.set_value(self,
+                                               trigger.TriggerType('c.i'))
+                            self.insert = False
+                            self.index += 1
+                        self.col.set_value(self, self.inst_num)
+                        self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
             else:
@@ -226,6 +244,24 @@ class Cursor(object):
                 self.col.set_value(self, trigger.TriggerType('cn+'))
                 self.insert = False
                 self.col.set_value(self, cents)
+                if self.inst_auto:
+                    use_existing_trig = False
+                    self.index -= 1
+                    if self.index >= 1:
+                        row = triggers[self.ts]
+                        ptindex, _ = row.get_slot(self)
+                        if row[ptindex][0] == 'c.i':
+                            use_existing_trig = True
+                    self.index += 1
+                    if use_existing_trig:
+                        self.index -= 1
+                    else:
+                        self.insert = True
+                        self.col.set_value(self, trigger.TriggerType('c.i'))
+                        self.insert = False
+                        self.index += 1
+                    self.col.set_value(self, self.inst_num)
+                    self.index += 1
                 self.project[self.col_path] = self.col.flatten()
                 play_note_on = True
             if play_note_on:
