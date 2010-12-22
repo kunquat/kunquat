@@ -16,8 +16,12 @@ from __future__ import print_function
 
 from PyQt4 import QtGui, QtCore
 
+import timestamp as ts
 
-class ParamSlider(QtGui.QWidget):
+
+class TimestampSpin(QtGui.QWidget):
+
+    ts_changed = QtCore.pyqtSignal(int, int, name='tsChanged')
 
     def __init__(self,
                  project,
@@ -26,45 +30,34 @@ class ParamSlider(QtGui.QWidget):
                  val_range,
                  dict_key=None,
                  decimals=0,
-                 orientation=QtCore.Qt.Horizontal,
                  parent=None):
-        assert orientation in (QtCore.Qt.Horizontal, QtCore.Qt.Vertical)
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._factor = 10**decimals
         self._key = key
         self._dict_key = dict_key
+        self._decimals = decimals
         if dict_key:
             value = project[key][dict_key]
         else:
             value = project[key]
+        value = ts.Timestamp(value)
 
-        if orientation == QtCore.Qt.Horizontal:
-            layout = QtGui.QHBoxLayout(self)
-        else:
-            layout = QtGui.QVBoxLayout(self)
+        layout = QtGui.QHBoxLayout(self)
+        layout.setMargin(0)
         lab = QtGui.QLabel(label)
         layout.addWidget(lab, 0)
 
-        self._slider = QtGui.QSlider(orientation)
-        self._slider.setRange(val_range[0] * self._factor,
-                              val_range[1] * self._factor)
-        layout.addWidget(self._slider, 1)
-        QtCore.QObject.connect(self._slider,
-                               QtCore.SIGNAL('valueChanged(int)'),
+        self._spin = QtGui.QDoubleSpinBox()
+        self._spin.setMinimum(float(val_range[0]))
+        self._spin.setMaximum(float(val_range[1]))
+        self._spin.setDecimals(decimals)
+        QtCore.QObject.connect(self._spin,
+                               QtCore.SIGNAL('valueChanged(double)'),
                                self.value_changed)
         self._lock_update = True
-        self._slider.setValue(int(round(value * self._factor)))
+        self._spin.setValue(float(value))
         self._lock_update = False
-
-        self._value_display = QtGui.QLabel(str(value))
-        metrics = QtGui.QFontMetrics(QtGui.QFont())
-        min_str = '{0:.{1}f}'.format(val_range[0], decimals)
-        max_str = '{0:.{1}f}'.format(val_range[1], decimals)
-        width = max(metrics.width(min_str),
-                    metrics.width(max_str))
-        self._value_display.setFixedWidth(width)
-        layout.addWidget(self._value_display)
+        layout.addWidget(self._spin, 0)
 
     def set_key(self, key):
         if self._dict_key:
@@ -72,23 +65,21 @@ class ParamSlider(QtGui.QWidget):
         else:
             value = self._project[key]
         self._lock_update = True
-        self._slider.setValue(int(round(value * self._factor)))
+        self._spin.setValue(float(ts.Timestamp(value)))
         self._lock_update = False
         self._key = key
 
-    def value_changed(self, svalue):
+    def value_changed(self, fvalue):
         if self._lock_update:
             return
-        value = svalue / self._factor
-        if self._factor == 1:
-            assert value == int(value)
-            value = int(value)
+        value = list(ts.Timestamp(fvalue))
         if self._dict_key:
             d = self._project[self._key]
             d[self._dict_key] = value
             self._project[self._key] = d
         else:
             self._project[self._key] = value
-        self._value_display.setText(str(value))
+        QtCore.QObject.emit(self, QtCore.SIGNAL('tsChanged(int, int)'),
+                                                value[0], value[1])
 
 

@@ -15,6 +15,8 @@ from PyQt4 import QtGui, QtCore
 
 import kqt_limits as lim
 from pattern import Pattern
+import timestamp as ts
+from timestamp_spin import TimestampSpin
 
 
 class PatternEditor(QtGui.QWidget):
@@ -25,6 +27,8 @@ class PatternEditor(QtGui.QWidget):
                  section_manager,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self._project = project
+        section_manager.connect(self.section_changed)
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -34,13 +38,27 @@ class PatternEditor(QtGui.QWidget):
 
         name = QtGui.QLabel('[pattern num/name]')
 
-        length = QtGui.QLabel('[length]')
+        self._length = TimestampSpin(project,
+                                     'Length:',
+                                     'pat_000/p_pattern.json',
+                                     (ts.Timestamp(0), ts.Timestamp(1024, 0)),
+                                     'length',
+                                     2)
 
-        top_layout.addWidget(name)
-        top_layout.addWidget(length)
+        top_layout.addWidget(name, 1)
+        top_layout.addWidget(self._length, 0)
 
         pattern = Pattern(project, section_manager, playback_manager)
         layout.addWidget(top_control, 0)
         layout.addWidget(pattern, 1)
+        QtCore.QObject.connect(self._length,
+                               QtCore.SIGNAL('tsChanged(int, int)'),
+                               pattern.length_changed)
+
+    def section_changed(self, subsong, section):
+        pattern = self._project.get_pattern(subsong, section)
+        if pattern != None:
+            key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
+            self._length.set_key(key)
 
 

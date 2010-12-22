@@ -118,6 +118,10 @@ class Pattern(QtGui.QWidget):
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
 
+    def length_changed(self, *flength):
+        self.set_pattern(self.number)
+        self.update()
+
     def section_changed(self, *args):
         subsong, section = args
         pattern = self.project.get_pattern(subsong, section)
