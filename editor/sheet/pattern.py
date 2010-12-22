@@ -133,11 +133,12 @@ class Pattern(QtGui.QWidget):
         self.number = num
         self.path = 'pat_{0:03x}'.format(num)
         pat_info = self.project['/'.join((self.path, 'p_pattern.json'))]
-        if pat_info:
-            if 'length' in pat_info:
-                self.length = ts.Timestamp(pat_info['length'])
-                self.cursor.set_length(self.length)
-                self.ruler.set_length(self.length)
+        if pat_info and 'length' in pat_info:
+            self.length = ts.Timestamp(pat_info['length'])
+        else:
+            self.length = ts.Timestamp(16)
+        self.cursor.set_length(self.length)
+        self.ruler.set_length(self.length)
         self.cursor.set_path(self.path)
         self.columns[0].arrange_triggers(self.project['/'.join(
                         (self.path, 'gcol', 'p_global_events.json'))])
