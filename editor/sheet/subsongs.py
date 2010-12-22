@@ -167,7 +167,16 @@ class Subsongs(QtGui.QTreeView):
                     pattern_item = QtGui.QStandardItem(str(pattern_number))
                     pattern_item.setEditable(False)
                     item.parent().insertRow(section_number, pattern_item)
+                    if len(slist) >= lim.SECTIONS_MAX:
+                        assert len(slist) == lim.SECTIONS_MAX
+                        item.parent().removeRow(lim.SECTIONS_MAX)
                 else:
+                    if len(slist) == lim.SECTIONS_MAX - 1:
+                        add_item = QtGui.QStandardItem('New section...')
+                        add_item.setEditable(False)
+                        add_item.setFont(QtGui.QFont('Decorative',
+                                                     italic=True))
+                        item.parent().appendRow(add_item)
                     item.parent().removeRow(section_number)
                 self._section_manager.set(subsong_number, section_number)
                 return
