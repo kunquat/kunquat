@@ -118,6 +118,12 @@ class Pattern(QtGui.QWidget):
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.5
 
+    def autoinst_changed(self, value):
+        if value:
+            self.cursor.inst_auto = True
+        else:
+            self.cursor.inst_auto = False
+
     def length_changed(self, *flength):
         self.set_pattern(self.number)
         self.update()

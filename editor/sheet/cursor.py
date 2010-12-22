@@ -52,7 +52,7 @@ class Cursor(object):
         self.pattern_path = None
         self.project = None
         self.inst_num = 0
-        self.inst_auto = False
+        self.inst_auto = True
 
     def clear_delay(self):
         self.trigger_delay_left = 0

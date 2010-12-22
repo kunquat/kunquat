@@ -38,6 +38,9 @@ class PatternEditor(QtGui.QWidget):
 
         name = QtGui.QLabel('[pattern num/name]')
 
+        autoinst = QtGui.QCheckBox('Explicit inst.')
+        autoinst.setChecked(True)
+
         self._length = TimestampSpin(project,
                                      'Length:',
                                      (ts.Timestamp(0), ts.Timestamp(1024, 0)),
@@ -47,6 +50,7 @@ class PatternEditor(QtGui.QWidget):
                                      2)
 
         top_layout.addWidget(name, 1)
+        top_layout.addWidget(autoinst, 0)
         top_layout.addWidget(self._length, 0)
 
         pattern = Pattern(project, section_manager, playback_manager)
@@ -55,6 +59,9 @@ class PatternEditor(QtGui.QWidget):
         QtCore.QObject.connect(self._length,
                                QtCore.SIGNAL('tsChanged(int, int)'),
                                pattern.length_changed)
+        QtCore.QObject.connect(autoinst,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               pattern.autoinst_changed)
 
     def section_changed(self, subsong, section):
         pattern = self._project.get_pattern(subsong, section)
