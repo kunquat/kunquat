@@ -226,6 +226,12 @@ uint32_t Pattern_mix(Pattern* pat,
     }
 #endif
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
+    if (pat != NULL && play->mode == PLAY_PATTERN &&
+            Reltime_cmp(zero_time, &pat->length) == 0)
+    {
+        play->mode = STOP;
+        return 0;
+    }
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
             && (pat == NULL || Reltime_cmp(&play->pos, &pat->length) <= 0))
