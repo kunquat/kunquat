@@ -45,7 +45,10 @@ class Subsongs(QtGui.QTreeView):
             QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
             return
         child = item.child(0)
-        if child:
+        if child or not parent.parent():
+            if item.row() >= len(self._slists):
+                assert item.row() == len(self._slists)
+                return
             num = int(str(item.text()).split()[1])
             QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
                                 num)
@@ -74,6 +77,36 @@ class Subsongs(QtGui.QTreeView):
                                         self._model.index(0, 0)):
             section_number = selection.row()
             subsong_number = selection.parent().row()
+        if parent and not parent.parent():
+            if ev.key() == QtCore.Qt.Key_Return:
+                if item.row() < len(self._slists):
+                    return
+                assert item.row() == len(self._slists)
+                subsong_number = item.row()
+                path = 'subs_{0:02x}/p_subsong.json'.format(subsong_number)
+                ss_info = self._project[path]
+                if ss_info == None:
+                    ss_info = {}
+                if 'patterns' in ss_info:
+                    self._slists.append(ss_info['patterns'])
+                else:
+                    self._slists.append([])
+                if len(self._slists[-1]) < lim.SUBSONGS_MAX:
+                    add_ss = QtGui.QStandardItem('New subsong...')
+                    add_ss.setEditable(False)
+                    add_ss.setFont(QtGui.QFont('Decorative', italic=True))
+                    item.parent().appendRow(add_ss)
+                item.setText('Subsong {0}'.format(subsong_number))
+                item.setFont(QtGui.QFont())
+                if len(self._slists[-1]) < lim.SUBSONGS_MAX:
+                    add_section = QtGui.QStandardItem('New section...')
+                    add_section.setEditable(False)
+                    add_section.setFont(QtGui.QFont('Decorative',
+                                                    italic=True))
+                    item.appendRow(add_section)
+                QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+                                    subsong_number)
+                return
         if subsong_number >= 0 and section_number >= 0:
             if ev.key() == QtCore.Qt.Key_Return:
                 if child or not parent:
@@ -85,15 +118,23 @@ class Subsongs(QtGui.QTreeView):
                 pattern_number = 0
                 path = 'subs_{0:02x}/p_subsong.json'.format(subsong_number)
                 ss_info = self._project[path]
-                slist = ss_info['patterns']
+                if ss_info and 'patterns' in ss_info:
+                    slist = ss_info['patterns']
+                else:
+                    if ss_info == None:
+                        ss_info = {}
+                    ss_info['patterns'] = []
+                    slist = ss_info['patterns']
                 if slist:
                     pattern_number = slist[-1]
                 slist.append(pattern_number)
                 self._project[path] = ss_info
                 self._slists[subsong_number] = slist
-                add_item = QtGui.QStandardItem('New section...')
-                add_item.setFont(QtGui.QFont('Decorative', italic=True))
-                item.parent().appendRow(add_item)
+                if len(slist) < lim.SECTIONS_MAX:
+                    add_item = QtGui.QStandardItem('New section...')
+                    add_item.setEditable(False)
+                    add_item.setFont(QtGui.QFont('Decorative', italic=True))
+                    item.parent().appendRow(add_item)
                 item.setText(str(slist[section_number]))
                 item.setFont(QtGui.QFont())
                 self._section_manager.set(subsong_number, section_number)
@@ -121,8 +162,9 @@ class Subsongs(QtGui.QTreeView):
                 self._project[path] = ss_info
                 self._slists[subsong_number] = slist
                 if ev.key() == QtCore.Qt.Key_Insert:
-                    item.parent().insertRow(section_number,
-                                    QtGui.QStandardItem(str(pattern_number)))
+                    pattern_item = QtGui.QStandardItem(str(pattern_number))
+                    pattern_item.setEditable(False)
+                    item.parent().insertRow(section_number, pattern_item)
                 else:
                     item.parent().removeRow(section_number)
                 self._section_manager.set(subsong_number, section_number)
@@ -172,7 +214,10 @@ class Subsongs(QtGui.QTreeView):
             subsong = self._project[path]
             if not subsong:
                 break
-            self._slists.append(subsong['patterns'])
+            if 'patterns' in subsong:
+                self._slists.append(subsong['patterns'])
+            else:
+                self._slists.append([])
         self._model = QtGui.QStandardItemModel(self._parent)
         root = self._model.invisibleRootItem()
         composition = QtGui.QStandardItem('Composition')
@@ -180,18 +225,22 @@ class Subsongs(QtGui.QTreeView):
         root.appendRow(composition)
         for index, slist in enumerate(self._slists):
             subsong_item = QtGui.QStandardItem('Subsong {0}'.format(index))
+            subsong_item.setEditable(False)
             composition.appendRow(subsong_item)
             for section, pattern in enumerate(slist):
                 pattern_item = QtGui.QStandardItem(str(pattern))
+                pattern_item.setEditable(False)
                 subsong_item.appendRow(pattern_item)
             if len(slist) < lim.SECTIONS_MAX:
                 add_item = QtGui.QStandardItem('New section...')
+                add_item.setEditable(False)
                 add_item.setFont(QtGui.QFont('Decorative', italic=True))
                 subsong_item.appendRow(add_item)
-        #if len(self._slists) < lim.SUBSONGS_MAX:
-        #    add_item = QtGui.QStandardItem('New subsong...')
-        #    add_item.setFont(QtGui.QFont('Decorative', italic=True))
-        #    composition.appendRow(add_item)
+        if len(self._slists) < lim.SUBSONGS_MAX:
+            add_item = QtGui.QStandardItem('New subsong...')
+            add_item.setEditable(False)
+            add_item.setFont(QtGui.QFont('Decorative', italic=True))
+            composition.appendRow(add_item)
         self.setModel(self._model)
 
 
