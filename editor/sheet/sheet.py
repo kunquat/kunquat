@@ -22,7 +22,12 @@ from subsongs import Subsongs
 
 class Sheet(QtGui.QSplitter):
 
-    def __init__(self, project, playback, parent=None):
+    def __init__(self,
+                 project,
+                 playback,
+                 subsong_changed_slot,
+                 pattern_changed_slot,
+                 parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
         self._project = project
@@ -31,7 +36,10 @@ class Sheet(QtGui.QSplitter):
 
         self._comp_params = CompParams(project)
         self._subsong_params = SubsongParams(project)
-        self._pattern_editor = PatternEditor(project, playback, self._section)
+        self._pattern_editor = PatternEditor(project,
+                                             playback,
+                                             self._section,
+                                             pattern_changed_slot)
         self._edit_area = QtGui.QStackedWidget()
         self._edit_area.addWidget(self._comp_params)
         self._edit_area.addWidget(self._subsong_params)
@@ -41,6 +49,9 @@ class Sheet(QtGui.QSplitter):
         QtCore.QObject.connect(subsongs,
                                QtCore.SIGNAL('compositionParams()'),
                                self.to_comp_params)
+        QtCore.QObject.connect(subsongs,
+                               QtCore.SIGNAL('subsongChanged(int)'),
+                               subsong_changed_slot)
         self.addWidget(subsongs)
         self.addWidget(self._edit_area)
         self.setStretchFactor(0, 0)
@@ -85,7 +96,8 @@ class Section(QtCore.QObject):
         if pat == None:
             return
         if self._subsong == subsong and self._section == section:
-            print('repeat signal for {0}:{1}'.format(subsong, section))
+            pass
+            #print('repeat signal for {0}:{1}'.format(subsong, section))
         self._subsong = subsong
         self._section = section
         QtCore.QObject.emit(self, QtCore.SIGNAL('sectionChanged(int, int)'),

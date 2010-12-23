@@ -92,6 +92,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.bufs = (None, None)
         self.playing = False
         self.mix_timer.start(1)
+        self._cur_subsong = -1
+        self._cur_pattern = 0
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
@@ -99,6 +101,14 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
+
+    def keyPressEvent(self, ev):
+        if ev.key() == QtCore.Qt.Key_F5:
+            self._playback.play_subsong(self._cur_subsong)
+        elif ev.key() == QtCore.Qt.Key_F6:
+            self._playback.play_pattern(self._cur_pattern)
+        elif ev.key() == QtCore.Qt.Key_F8:
+            self._playback.stop()
 
     def mix(self):
         if self.playing:
@@ -111,6 +121,12 @@ class KqtEditor(QtGui.QMainWindow):
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()
+
+    def pattern_changed(self, num):
+        self._cur_pattern = num
+
+    def subsong_changed(self, num):
+        self._cur_subsong = num
 
     def print_pa_state(self):
         print('Context: {0}, Stream: {1}, Error: {2}'.format(
@@ -161,7 +177,8 @@ class KqtEditor(QtGui.QMainWindow):
         top_control = self.create_top_control()
 
         tabs = QtGui.QTabWidget()
-        sheet = Sheet(self.project, self._playback)
+        sheet = Sheet(self.project, self._playback,
+                      self.subsong_changed, self.pattern_changed)
         tabs.addTab(sheet, 'Sheet')
 
         top_layout.addWidget(top_control)

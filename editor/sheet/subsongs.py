@@ -22,10 +22,12 @@ import kqt_limits as lim
 class Subsongs(QtGui.QTreeView):
 
     comp_signal = QtCore.pyqtSignal(name='compositionParams')
-    subsong_signal = QtCore.pyqtSignal(int, name='subsongParams')
+    subsong_params = QtCore.pyqtSignal(int, name='subsongParams')
+    subsong_changed = QtCore.pyqtSignal(int, name='subsongChanged')
 
     def __init__(self, project, section, parent=None):
         QtGui.QTreeView.__init__(self, parent)
+        self._cur_subsong = -1
         self._section_signal = False
         self._parent = parent
         self.set_project(project)
@@ -44,19 +46,32 @@ class Subsongs(QtGui.QTreeView):
         parent = item.parent()
         if not parent:
             QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
+            if self._cur_subsong != -1:
+                self._cur_subsong = -1
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('subsongChanged(int)'),
+                                    self._cur_subsong)
             return
         child = item.child(0)
         if child or not parent.parent():
             if item.row() >= len(self._slists):
                 assert item.row() == len(self._slists)
                 return
-            num = int(str(item.text()).split()[1])
             QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
-                                num)
+                                item.row())
+            if self._cur_subsong != item.row():
+                self._cur_subsong = item.row()
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('subsongChanged(int)'),
+                                    self._cur_subsong)
             return
         self._section_signal = True
         self._section_manager.set(parent.row(), item.row())
         self._section_signal = False
+        if self._cur_subsong != parent.row():
+            self._cur_subsong = parent.row()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
+                                self._cur_subsong)
 
     def keyPressEvent(self, ev):
         select_model = self.selectionModel()
@@ -78,7 +93,7 @@ class Subsongs(QtGui.QTreeView):
                                         self._model.index(0, 0)):
             section_number = selection.row()
             subsong_number = selection.parent().row()
-        if parent and not parent.parent():
+        if parent and not parent.parent(): # subsong
             if ev.key() == QtCore.Qt.Key_Return:
                 if item.row() < len(self._slists):
                     return
@@ -108,8 +123,10 @@ class Subsongs(QtGui.QTreeView):
                 self.expand(self._model.indexFromItem(item))
                 QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
                                     subsong_number)
+                QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
+                                    subsong_number)
                 return
-        if subsong_number >= 0 and section_number >= 0:
+        if subsong_number >= 0 and section_number >= 0: # section
             if ev.key() == QtCore.Qt.Key_Return:
                 if child or not parent:
                     return

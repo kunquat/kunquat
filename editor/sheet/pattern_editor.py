@@ -25,6 +25,7 @@ class PatternEditor(QtGui.QWidget):
                  project,
                  playback_manager,
                  section_manager,
+                 pattern_changed_slot,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
@@ -54,6 +55,8 @@ class PatternEditor(QtGui.QWidget):
         top_layout.addWidget(self._length, 0)
 
         pattern = Pattern(project, section_manager, playback_manager)
+        QtCore.QObject.connect(pattern, QtCore.SIGNAL('patternChanged(int)'),
+                               pattern_changed_slot)
         layout.addWidget(top_control, 0)
         layout.addWidget(pattern, 1)
         QtCore.QObject.connect(self._length,
