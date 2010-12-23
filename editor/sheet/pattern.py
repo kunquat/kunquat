@@ -116,7 +116,7 @@ class Pattern(QtGui.QWidget):
         self.width = 0
         self.height = 0
         self.cursor_center_area = 0.3
-        self.zoom_factor = 1.5
+        self.zoom_factor = 1.2
 
     def autoinst_changed(self, value):
         if value:
@@ -221,6 +221,18 @@ class Pattern(QtGui.QWidget):
                 self.zoom(self.zoom_factor)
             elif ev.key() == QtCore.Qt.Key_Down:
                 self.zoom(1 / self.zoom_factor)
+            elif ev.key() == QtCore.Qt.Key_Left:
+                for col in self.columns:
+                    col.set_width(col.width() / self.zoom_factor)
+                self.view_columns = list(self.get_viewable_columns(self.width))
+                self.follow_cursor_horizontal()
+                self.update()
+            elif ev.key() == QtCore.Qt.Key_Right:
+                for col in self.columns:
+                    col.set_width(col.width() * self.zoom_factor)
+                self.view_columns = list(self.get_viewable_columns(self.width))
+                self.follow_cursor_horizontal()
+                self.update()
             return
         elif ev.modifiers() == QtCore.Qt.ShiftModifier:
             if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):

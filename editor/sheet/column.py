@@ -81,6 +81,11 @@ class Column(object):
     def width(self):
         return self._width + 1
 
+    def set_width(self, width):
+        if width < 50:
+            width = 50
+        self._width = width - 1
+
     def resize(self, height):
         self.height = height
         self.set_dimensions()
@@ -172,7 +177,7 @@ class Column(object):
         paint.drawText(QtCore.QRectF(x, 0, self._width, self.col_head_height),
                        '%02d' % self.num if self.num >= 0 else 'Global',
                        header_style)
-        
+
         paint.setPen(self.colours['column_border'])
         paint.drawLine(x + self._width, 0, x + self._width, self.height - 1)
 
