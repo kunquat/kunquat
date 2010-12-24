@@ -23,6 +23,7 @@ import time
 from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
+import kqt_limits as lim
 import project
 from sheet import Sheet
 
@@ -109,6 +110,10 @@ class KqtEditor(QtGui.QMainWindow):
             self._playback.play_pattern(self._cur_pattern)
         elif ev.key() == QtCore.Qt.Key_F8:
             self._playback.stop()
+        elif ev.key() == QtCore.Qt.Key_Less:
+            self._octave.setValue(self._octave.value() - 1)
+        elif ev.key() == QtCore.Qt.Key_Greater:
+            self._octave.setValue(self._octave.value() + 1)
 
     def mix(self):
         if self.playing:
@@ -178,7 +183,8 @@ class KqtEditor(QtGui.QMainWindow):
 
         tabs = QtGui.QTabWidget()
         sheet = Sheet(self.project, self._playback,
-                      self.subsong_changed, self.pattern_changed)
+                      self.subsong_changed, self.pattern_changed,
+                      self._octave)
         tabs.addTab(sheet, 'Sheet')
 
         top_layout.addWidget(top_control)
@@ -245,7 +251,11 @@ class KqtEditor(QtGui.QMainWindow):
 
         instrument = QtGui.QLabel('[instrument]')
 
-        octave = QtGui.QLabel('[octave]')
+        self._octave = QtGui.QSpinBox()
+        self._octave.setMinimum(lim.SCALE_OCTAVE_FIRST)
+        self._octave.setMaximum(lim.SCALE_OCTAVE_LAST)
+        self._octave.setValue(4)
+        self._octave.setToolTip('Base octave')
 
         layout.addWidget(new_project)
         layout.addWidget(open_project)
@@ -264,7 +274,7 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self.create_separator())
 
         layout.addWidget(instrument)
-        layout.addWidget(octave)
+        layout.addWidget(self._octave)
         return top_control
 
     def __del__(self):

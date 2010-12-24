@@ -45,7 +45,7 @@ class Pattern(QtGui.QWidget):
 
     pattern_changed = QtCore.pyqtSignal(int, name='patternChanged')
 
-    def __init__(self, project, section, playback, parent=None):
+    def __init__(self, project, section, playback, octave_spin, parent=None):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
         self.number = 0
@@ -111,7 +111,11 @@ class Pattern(QtGui.QWidget):
                              playback)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
-        self.cursor.set_input(default_input)
+        self.note_input = default_input
+        self.cursor.set_input(self.note_input)
+        QtCore.QObject.connect(octave_spin,
+                               QtCore.SIGNAL('valueChanged(int)'),
+                               self.octave_changed)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
@@ -137,6 +141,9 @@ class Pattern(QtGui.QWidget):
         if pattern != None:
             self.set_pattern(pattern)
             self.update()
+
+    def octave_changed(self, octave):
+        self.note_input.base_octave = octave
 
     def set_pattern(self, num):
         self.path = 'pat_{0:03x}'.format(num)
@@ -239,6 +246,8 @@ class Pattern(QtGui.QWidget):
                 self.view_columns = list(self.get_viewable_columns(self.width))
                 self.follow_cursor_horizontal()
                 self.update()
+            else:
+                ev.ignore()
             return
         elif ev.modifiers() == QtCore.Qt.ShiftModifier:
             if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
@@ -255,6 +264,8 @@ class Pattern(QtGui.QWidget):
                 self.project[self.cursor.col_path] = \
                         self.columns[self.cursor_col + 1].flatten()
                 self.update()
+            else:
+                ev.ignore()
             return
 
         if ev.key() == QtCore.Qt.Key_Left:
