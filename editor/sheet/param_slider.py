@@ -27,6 +27,7 @@ class ParamSlider(QtGui.QWidget):
                  key,
                  dict_key=None,
                  decimals=0,
+                 unit='',
                  orientation=QtCore.Qt.Horizontal,
                  parent=None):
         assert orientation in (QtCore.Qt.Horizontal, QtCore.Qt.Vertical)
@@ -35,6 +36,7 @@ class ParamSlider(QtGui.QWidget):
         self._factor = 10**decimals
         self._dict_key = dict_key
         self._default_val = default_val
+        self._suffix = ' ' + unit if unit else ''
 
         if orientation == QtCore.Qt.Horizontal:
             layout = QtGui.QHBoxLayout(self)
@@ -53,8 +55,8 @@ class ParamSlider(QtGui.QWidget):
 
         self._value_display = QtGui.QLabel()
         metrics = QtGui.QFontMetrics(QtGui.QFont())
-        min_str = '{0:.{1}f}'.format(val_range[0], decimals)
-        max_str = '{0:.{1}f}'.format(val_range[1], decimals)
+        min_str = '{0:.{1}f}'.format(val_range[0], decimals) + self._suffix
+        max_str = '{0:.{1}f}'.format(val_range[1], decimals) + self._suffix
         width = max(metrics.width(min_str),
                     metrics.width(max_str))
         self._value_display.setFixedWidth(width)
@@ -74,7 +76,7 @@ class ParamSlider(QtGui.QWidget):
         self._lock_update = True
         self._slider.setValue(int(round(value * self._factor)))
         self._lock_update = False
-        self._value_display.setText(str(value))
+        self._value_display.setText(str(value) + self._suffix)
         self._key = key
 
     def value_changed(self, svalue):
@@ -92,7 +94,6 @@ class ParamSlider(QtGui.QWidget):
             self._project[self._key] = d
         else:
             self._project[self._key] = value
-        self._using_default = False
-        self._value_display.setText(str(value))
+        self._value_display.setText(str(value) + self._suffix)
 
 

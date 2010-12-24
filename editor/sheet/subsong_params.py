@@ -31,7 +31,8 @@ class SubsongParams(QtGui.QWidget):
                                   (6, 360),
                                   120,
                                   key,
-                                  'tempo')
+                                  'tempo',
+                                  unit='BPM')
         self._layout.addWidget(self._tempo)
         self._global_volume = ParamSlider(project,
                                           'Initial global volume:',
@@ -39,7 +40,8 @@ class SubsongParams(QtGui.QWidget):
                                           0,
                                           key,
                                           'global_vol',
-                                          1)
+                                          decimals=1,
+                                          unit='dB')
         self._layout.addWidget(self._global_volume)
 
     def subsong_changed(self, subsong):

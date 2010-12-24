@@ -30,6 +30,7 @@ class CompParams(QtGui.QWidget):
                                            -8,
                                            'p_composition.json',
                                            'mix_vol',
-                                           1))
+                                           decimals=1,
+                                           unit='dB'))
 
 
