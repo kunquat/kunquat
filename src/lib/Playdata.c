@@ -242,6 +242,7 @@ void Playdata_reset(Playdata* play)
     play->tempo_slide = 0;
     Reltime_init(&play->tempo_slide_length);
     Reltime_init(&play->delay_left);
+    play->delay_event_index = -1;
     play->play_frames = 0;
     play->section = 0;
     play->pattern = 0;
