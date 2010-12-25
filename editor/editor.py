@@ -104,6 +104,11 @@ class KqtEditor(QtGui.QMainWindow):
         """
 
     def keyPressEvent(self, ev):
+        if ev.modifiers() == QtCore.Qt.ShiftModifier:
+            if ev.key() == QtCore.Qt.Key_PageUp:
+                self._instrument.setValue(self._instrument.value() - 1)
+            elif ev.key() == QtCore.Qt.Key_PageDown:
+                self._instrument.setValue(self._instrument.value() + 1)
         if ev.key() == QtCore.Qt.Key_F5:
             self._playback.play_subsong(self._cur_subsong)
         elif ev.key() == QtCore.Qt.Key_F6:
@@ -184,7 +189,7 @@ class KqtEditor(QtGui.QMainWindow):
         tabs = QtGui.QTabWidget()
         sheet = Sheet(self.project, self._playback,
                       self.subsong_changed, self.pattern_changed,
-                      self._octave)
+                      self._octave, self._instrument)
         tabs.addTab(sheet, 'Sheet')
 
         top_layout.addWidget(top_control)
@@ -249,7 +254,11 @@ class KqtEditor(QtGui.QMainWindow):
 
         tempo_factor = QtGui.QLabel('[tempo factor]')
 
-        instrument = QtGui.QLabel('[instrument]')
+        self._instrument = QtGui.QSpinBox()
+        self._instrument.setMinimum(0)
+        self._instrument.setMaximum(lim.INSTRUMENTS_MAX - 1)
+        self._instrument.setValue(0)
+        self._instrument.setToolTip('Instrument')
 
         self._octave = QtGui.QSpinBox()
         self._octave.setMinimum(lim.SCALE_OCTAVE_FIRST)
@@ -273,7 +282,7 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(tempo_factor)
         layout.addWidget(self.create_separator())
 
-        layout.addWidget(instrument)
+        layout.addWidget(self._instrument)
         layout.addWidget(self._octave)
         return top_control
 

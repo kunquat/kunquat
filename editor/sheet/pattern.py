@@ -45,7 +45,13 @@ class Pattern(QtGui.QWidget):
 
     pattern_changed = QtCore.pyqtSignal(int, name='patternChanged')
 
-    def __init__(self, project, section, playback, octave_spin, parent=None):
+    def __init__(self,
+                 project,
+                 section,
+                 playback,
+                 octave_spin,
+                 instrument_spin,
+                 parent=None):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
         self.number = 0
@@ -108,7 +114,8 @@ class Pattern(QtGui.QWidget):
         self.cursor = Cursor(self.length,
                              self.beat_len,
                              self.accessors,
-                             playback)
+                             playback,
+                             instrument_spin)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.note_input = default_input
@@ -116,6 +123,9 @@ class Pattern(QtGui.QWidget):
         QtCore.QObject.connect(octave_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
+        QtCore.QObject.connect(instrument_spin,
+                               QtCore.SIGNAL('valueChanged(int)'),
+                               self.inst_changed)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
@@ -130,6 +140,9 @@ class Pattern(QtGui.QWidget):
             self.cursor.inst_auto = True
         else:
             self.cursor.inst_auto = False
+
+    def inst_changed(self, num):
+        self.cursor.inst_num = num
 
     def length_changed(self, *flength):
         self.set_pattern(self.number)

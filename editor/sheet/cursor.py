@@ -26,8 +26,14 @@ import trigger_row
 
 class Cursor(object):
 
-    def __init__(self, length, beat_len, accessors, playback_manager):
+    def __init__(self,
+                 length,
+                 beat_len,
+                 accessors,
+                 playback_manager,
+                 instrument_spin):
         self.playback_manager = playback_manager
+        self._instrument_spin = instrument_spin
         self.init_speed = 1
         self.max_speed = 12
         self.init_trigger_delay = 6
@@ -363,6 +369,7 @@ class Cursor(object):
             tindex, _ = row.get_slot(self)
             if self.index > 0 and row[tindex][0] == 'c.i':
                 self.inst_num = value
+                self._instrument_spin.setValue(value)
         self.edit = False
         self.insert = False
         self.active_accessor.hide()

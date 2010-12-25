@@ -27,6 +27,7 @@ class PatternEditor(QtGui.QWidget):
                  section_manager,
                  pattern_changed_slot,
                  octave_spin,
+                 instrument_spin,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
@@ -58,7 +59,8 @@ class PatternEditor(QtGui.QWidget):
         pattern = Pattern(project,
                           section_manager,
                           playback_manager,
-                          octave_spin)
+                          octave_spin,
+                          instrument_spin)
         QtCore.QObject.connect(pattern, QtCore.SIGNAL('patternChanged(int)'),
                                pattern_changed_slot)
         layout.addWidget(top_control, 0)

@@ -28,6 +28,7 @@ class Sheet(QtGui.QSplitter):
                  subsong_changed_slot,
                  pattern_changed_slot,
                  octave_spin,
+                 instrument_spin,
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
@@ -41,7 +42,8 @@ class Sheet(QtGui.QSplitter):
                                              playback,
                                              self._section,
                                              pattern_changed_slot,
-                                             octave_spin)
+                                             octave_spin,
+                                             instrument_spin)
         self._edit_area = QtGui.QStackedWidget()
         self._edit_area.addWidget(self._comp_params)
         self._edit_area.addWidget(self._subsong_params)
