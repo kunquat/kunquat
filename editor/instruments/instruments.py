@@ -13,6 +13,7 @@
 
 from PyQt4 import QtCore, QtGui
 
+from inst_editor import InstEditor
 from inst_list import InstList
 
 
@@ -25,7 +26,7 @@ class Instruments(QtGui.QSplitter):
 
         self._inst_list = InstList(project, instrument_spin)
 
-        self._inst_editor = QtGui.QLabel('[instrument editor]')
+        self._inst_editor = InstEditor(project, instrument_spin)
 
         self.addWidget(self._inst_list)
         self.addWidget(self._inst_editor)
