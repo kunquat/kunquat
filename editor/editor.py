@@ -23,6 +23,7 @@ import time
 from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
+from instruments import Instruments
 import kqt_limits as lim
 import project
 from sheet import Sheet
@@ -191,6 +192,8 @@ class KqtEditor(QtGui.QMainWindow):
                       self.subsong_changed, self.pattern_changed,
                       self._octave, self._instrument)
         tabs.addTab(sheet, 'Sheet')
+        instruments = Instruments(self.project)
+        tabs.addTab(instruments, 'Instruments')
 
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
