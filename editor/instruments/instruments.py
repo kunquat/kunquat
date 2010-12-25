@@ -18,12 +18,12 @@ from inst_list import InstList
 
 class Instruments(QtGui.QSplitter):
 
-    def __init__(self, project, parent=None):
+    def __init__(self, project, instrument_spin, parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
         self._project = project
 
-        self._inst_list = InstList(project)
+        self._inst_list = InstList(project, instrument_spin)
 
         self._inst_editor = QtGui.QLabel('[instrument editor]')
 

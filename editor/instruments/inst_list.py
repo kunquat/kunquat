@@ -18,16 +18,39 @@ import kqt_limits as lim
 
 class InstList(QtGui.QTableWidget):
 
-    def __init__(self, project, parent=None):
+    def __init__(self, project, instrument_spin, parent=None):
         QtGui.QTableWidget.__init__(self, lim.INSTRUMENTS_MAX, 1, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
         self._project = project
+        self._instrument_spin = instrument_spin
         self.setVerticalHeaderLabels([str(num) for num in
                                       xrange(lim.INSTRUMENTS_MAX)])
         self.setCornerButtonEnabled(False)
         self.setTabKeyNavigation(False)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
+
+        QtCore.QObject.connect(instrument_spin,
+                               QtCore.SIGNAL('valueChanged(int)'),
+                               self.inst_changed)
+        QtCore.QObject.connect(self,
+                    QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
+                               self.cell_changed)
+        self._signal = False
+
+    def inst_changed(self, num):
+        index = self.model().index(num, 0)
+        select = self.selectionModel()
+        select.clear()
+        select.select(index, QtGui.QItemSelectionModel.Select)
+        select.setCurrentIndex(index, QtGui.QItemSelectionModel.Select)
+
+    def cell_changed(self, cur_row, cur_col, prev_row, prev_col):
+        if self._signal:
+            return
+        self._signal = True
+        self._instrument_spin.setValue(cur_row)
+        self._signal = False
 
 

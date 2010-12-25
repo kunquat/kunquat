@@ -192,7 +192,8 @@ class KqtEditor(QtGui.QMainWindow):
                       self.subsong_changed, self.pattern_changed,
                       self._octave, self._instrument)
         tabs.addTab(sheet, 'Sheet')
-        instruments = Instruments(self.project)
+        instruments = Instruments(self.project,
+                                  self._instrument)
         tabs.addTab(instruments, 'Instruments')
 
         top_layout.addWidget(top_control)
