@@ -13,6 +13,8 @@
 
 from PyQt4 import QtCore, QtGui
 
+from inst_list import InstList
+
 
 class Instruments(QtGui.QSplitter):
 
@@ -21,7 +23,7 @@ class Instruments(QtGui.QSplitter):
 
         self._project = project
 
-        self._inst_list = QtGui.QLabel('[instrument list]')
+        self._inst_list = InstList(project)
 
         self._inst_editor = QtGui.QLabel('[instrument editor]')
 

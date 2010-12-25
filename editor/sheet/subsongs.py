@@ -41,7 +41,7 @@ class Subsongs(QtGui.QTreeView):
         if self._section_signal:
             print('signal loop')
             return
-        self.scrollTo(new_index)
+        QtGui.QTreeView.currentChanged(self, new_index, old_index)
         item = self._model.itemFromIndex(new_index)
         parent = item.parent()
         if not parent:
