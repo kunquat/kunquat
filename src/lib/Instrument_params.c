@@ -388,9 +388,8 @@ Envelope* parse_env_time(char* str,
     }
     if (Envelope_node_count(env) == 0)
     {
-        Read_state_set_error(state, "The envelope doesn't contain nodes");
-        del_Envelope(env);
-        return NULL;
+        *enabled = false;
+        return env;
     }
     if (!release && loop)
     {

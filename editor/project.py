@@ -169,6 +169,7 @@ class Project(object):
     def remove_dir(self, directory):
         """Removes a directory inside a composition."""
         for key in [k for k in self._keys if k.startswith(directory)]:
+            #print('removing', key)
             self[key] = None
 
     def export_kqt(self, dest):

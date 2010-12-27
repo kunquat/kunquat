@@ -238,6 +238,15 @@ bool Device_node_connect(Device_node* receiver,
 
 
 /**
+ * Disconnects a Device node from a subgraph.
+ *
+ * \param node     The root node of the subgraph -- must not be \c NULL.
+ * \param device   The Device to be disconnected -- must not be \c NULL.
+ */
+void Device_node_disconnect(Device_node* node, Device* device);
+
+
+/**
  * Gets the first in a list of Device nodes that send audio to this Device node.
  *
  * \param node        The Device node -- must not be \c NULL.

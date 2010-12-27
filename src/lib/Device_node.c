@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
@@ -657,6 +658,67 @@ bool Device_node_connect(Device_node* receiver,
     send_edge->next = sender->send[send_port];
     sender->send[send_port] = send_edge;
     return true;
+}
+
+
+void Device_node_disconnect(Device_node* node, Device* device)
+{
+    assert(node != NULL);
+    assert(device != NULL);
+    // NOTE: device must not be dereferenced here
+    //       because it may already be destroyed.
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
+    {
+        Connection* prev = NULL;
+        Connection* cur = node->receive[i];
+        while (cur != NULL)
+        {
+            Connection* next = cur->next;
+            assert(cur->node != NULL);
+            if (cur->node->device == device)
+            {
+                if (prev == NULL)
+                {
+                    node->receive[i] = next;
+                    xfree(cur);
+                    cur = NULL;
+                }
+                else
+                {
+                    prev->next = next;
+                    xfree(cur);
+                    cur = prev;
+                }
+            }
+            prev = cur;
+            cur = next;
+        }
+        prev = NULL;
+        cur = node->send[i];
+        while (cur != NULL)
+        {
+            Connection* next = cur->next;
+            assert(cur->node != NULL);
+            if (cur->node->device == device)
+            {
+                if (prev == NULL)
+                {
+                    node->send[i] = next;
+                    xfree(cur);
+                    cur = NULL;
+                }
+                else
+                {
+                    prev->next = next;
+                    xfree(cur);
+                    cur = prev;
+                }
+            }
+            prev = cur;
+            cur = next;
+        }
+    }
+    return;
 }
 
 

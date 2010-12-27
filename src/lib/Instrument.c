@@ -81,7 +81,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     ins->connections = NULL;
     ins->gens = NULL;
     ins->dsps = NULL;
-    
+
     if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
         xfree(ins);
@@ -321,7 +321,6 @@ void Instrument_set_scale(Instrument* ins, int index)
 void Instrument_set_connections(Instrument* ins, Connections* graph)
 {
     assert(ins != NULL);
-    assert(graph != NULL);
     if (ins->connections != NULL)
     {
         del_Connections(ins->connections);

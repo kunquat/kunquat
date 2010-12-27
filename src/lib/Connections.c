@@ -120,7 +120,7 @@ Connections* new_Connections_from_string(char* str,
         Connections_reset(graph);
         return graph;
     }
-    
+
     str = read_const_char(str, '[', state);
     clean_if(state->error, graph, NULL);
     str = read_const_char(str, ']', state);
@@ -151,7 +151,7 @@ Connections* new_Connections_from_string(char* str,
                                                  DEVICE_PORT_TYPE_RECEIVE,
                                                  state);
         clean_if(state->error, graph, NULL);
-        
+
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
             Device_node* new_src = new_Device_node(src_name);
@@ -317,6 +317,25 @@ void Connections_mix(Connections* graph,
 #endif
     Device_node_reset(master);
     Device_node_mix(master, start, until, freq, tempo);
+    return;
+}
+
+
+void Connections_disconnect(Connections* graph, Device* device)
+{
+    assert(graph != NULL);
+    assert(device != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    assert(Device_node_get_device(master) != device);
+    (void)master;
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
+    {
+        Device_node_disconnect(node, device);
+        node = AAiter_get_next(graph->iter);
+    }
     return;
 }
 

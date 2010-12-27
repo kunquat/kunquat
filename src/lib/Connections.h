@@ -20,6 +20,7 @@
 #include <stdint.h>
 #include <stdio.h>
 
+#include <Device.h>
 #include <File_base.h>
 
 
@@ -100,6 +101,15 @@ void Connections_mix(Connections* graph,
                      uint32_t until,
                      uint32_t freq,
                      double tempo);
+
+
+/**
+ * Disconnects a Device from the Connections.
+ *
+ * \param graph    The Connections -- must not be \c NULL.
+ * \param device   The Device -- must not be \c NULL.
+ */
+void Connections_disconnect(Connections* graph, Device* device);
 
 
 /**

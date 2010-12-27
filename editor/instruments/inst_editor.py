@@ -31,10 +31,17 @@ class InstEditor(QtGui.QWidget):
 
         load = QtGui.QPushButton('Load')
 
+        remove = QtGui.QPushButton('Remove')
+
         layout.addWidget(load, 0)
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
                                self.load)
+        layout.addWidget(remove, 0)
+        QtCore.QObject.connect(remove,
+                               QtCore.SIGNAL('clicked()'),
+                               self.remove)
+
         QtCore.QObject.connect(instrument_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.inst_changed)
@@ -44,5 +51,8 @@ class InstEditor(QtGui.QWidget):
 
     def load(self):
         print('load', self._cur_inst)
+
+    def remove(self):
+        self._project.remove_dir('ins_{0:02x}'.format(self._cur_inst))
 
 
