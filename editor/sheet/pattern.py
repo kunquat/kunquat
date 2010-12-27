@@ -168,6 +168,8 @@ class Pattern(QtGui.QWidget):
         self.cursor.set_length(self.length)
         self.ruler.set_length(self.length)
         self.cursor.set_path(self.path)
+        for col in self.columns:
+            col.set_length(self.length)
         self.columns[0].arrange_triggers(self.project['/'.join(
                         (self.path, 'gcol', 'p_global_events.json'))])
         for col in self.columns[1:]:

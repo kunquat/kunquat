@@ -134,7 +134,7 @@ class Column(object):
         paint.setFont(self.fonts['trigger'])
         trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height() - 1
         visible_triggers = [p for p in self.triggers
-                            if view_start < p < min(view_end, self.length)]
+                            if view_start < p <= min(view_end, self.length)]
         visible_triggers.sort(lambda x, y: (y - x)[0] * ts.TIMESTAMP_BEAT +
                                            (y - x)[1])
         next_pos = None
