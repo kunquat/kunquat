@@ -25,14 +25,18 @@ import trigger
 import trigger_row
 
 
-class Cursor(object):
+class Cursor(QtCore.QObject):
+
+    field_edit = QtCore.pyqtSignal(bool, name='fieldEdit')
 
     def __init__(self,
                  length,
                  beat_len,
                  accessors,
                  playback_manager,
-                 instrument_spin):
+                 instrument_spin,
+                 parent=None):
+        QtCore.QObject.__init__(self, parent)
         self.playback_manager = playback_manager
         self._instrument_spin = instrument_spin
         self.init_speed = 1
@@ -44,7 +48,7 @@ class Cursor(object):
         self.set_length(length)
         self.set_beat_len(beat_len)
         self.insert = False
-        self.edit = False
+        self._edit = False
         self.col = None
         self.set_index(0)
         self.set_view_start(0)
@@ -63,6 +67,15 @@ class Cursor(object):
 
     def clear_delay(self):
         self.trigger_delay_left = 0
+
+    @property
+    def edit(self):
+        return self._edit
+
+    @edit.setter
+    def edit(self, value):
+        self._edit = value
+        QtCore.QObject.emit(self, QtCore.SIGNAL('fieldEdit(bool)'), value)
 
     def key_press(self, ev):
         if ev.key() == QtCore.Qt.Key_Up:
@@ -352,9 +365,8 @@ class Cursor(object):
         self.geom = QtCore.QRect(x, y, w, h)
         for a in self.accessors:
             if a == trigger.Note:
-                extra_pad = 15
-                cents_geom = QtCore.QRect(x - extra_pad, y,
-                                          w + extra_pad * 2, h)
+                extra_pad = 30
+                cents_geom = QtCore.QRect(x, y, w + extra_pad, h)
                 self.accessors[a].setGeometry(cents_geom)
             else:
                 self.accessors[a].setGeometry(self.geom)

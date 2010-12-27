@@ -124,6 +124,9 @@ class Pattern(QtGui.QWidget):
                              self.accessors,
                              playback,
                              instrument_spin)
+        QtCore.QObject.connect(self.cursor,
+                               QtCore.SIGNAL('fieldEdit(bool)'),
+                               self.field_edit)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.note_input = default_input
@@ -148,6 +151,12 @@ class Pattern(QtGui.QWidget):
             self.cursor.inst_auto = True
         else:
             self.cursor.inst_auto = False
+
+    def field_edit(self, edit):
+        if edit:
+            self.setFocusPolicy(QtCore.Qt.NoFocus)
+        else:
+            self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
     def inst_changed(self, num):
         self.cursor.inst_num = num
