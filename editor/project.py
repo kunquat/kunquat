@@ -225,13 +225,18 @@ class Project(object):
             tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
             entry = tfile.next()
             while entry:
+                #print(entry.name)
                 if not entry.name.startswith('kqti'):
                     raise kunquat.KunquatFormatError('Invalid directory'
                                                      ' inside the instrument')
                 if entry.isfile():
                     key_path = '/'.join((ins_path, entry.name))
-                    self[key_path] = tfile.extractfile(entry).read()
-                tfile.next()
+                    data = tfile.extractfile(entry).read()
+                    if key_path[key_path.index('.'):].startswith('.json'):
+                        self[key_path] = json.loads(data)
+                    else:
+                        self[key_path] = data
+                entry = tfile.next()
         connections = self['p_connections.json']
         if not connections:
             connections = []
@@ -241,7 +246,7 @@ class Project(object):
                 break
         else:
             connections.append([ins_out, 'out_00'])
-            self['p_connections.json'] = connections
+        self['p_connections.json'] = connections
 
     def save(self):
         """Saves the Project data."""
