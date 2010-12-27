@@ -43,6 +43,9 @@ class BoolEdit(QtCore.QObject):
     def hide(self):
         pass
 
+    def setPalette(self, palette):
+        pass
+
     def show(self):
         pass
 

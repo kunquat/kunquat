@@ -153,6 +153,8 @@ class Cursor(object):
                                   else trigger.is_channel)
                 self.active_accessor = self.accessors[type(field)]
                 self.active_accessor.set_validator_func(valid_func)
+                if type(field) == trigger.Note:
+                    field = '{0:.1f}'.format(field)
                 self.active_accessor.set_value(field)
                 self.active_accessor.show()
                 self.active_accessor.setFocus()
@@ -342,9 +344,20 @@ class Cursor(object):
                                           'p_channel_events.json'))
 
     def set_geometry(self, x, y, w, h):
+        padding = 4
+        x -= padding
+        y -= padding
+        w += padding * 2
+        h += padding * 2
         self.geom = QtCore.QRect(x, y, w, h)
         for a in self.accessors:
-            self.accessors[a].setGeometry(self.geom)
+            if a == trigger.Note:
+                extra_pad = 15
+                cents_geom = QtCore.QRect(x - extra_pad, y,
+                                          w + extra_pad * 2, h)
+                self.accessors[a].setGeometry(cents_geom)
+            else:
+                self.accessors[a].setGeometry(self.geom)
 
     def set_length(self, length):
         assert length >= 0

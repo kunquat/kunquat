@@ -105,8 +105,16 @@ class Pattern(QtGui.QWidget):
                 ts.Timestamp: acc.TimestampEdit(self),
                 str: acc.StringEdit(self),
                 }
+        acc_palette = QtGui.QPalette(self.colours['trigger_fg'],
+                                     self.colours['bg'],
+                                     self.colours['column_border'],
+                                     self.colours['column_border'],
+                                     self.colours['column_border'],
+                                     self.colours['trigger_fg'],
+                                     self.colours['bg'])
         for a in self.accessors:
             self.accessors[a].hide()
+            self.accessors[a].setPalette(acc_palette)
             QtCore.QObject.connect(self.accessors[a],
                                    QtCore.SIGNAL('returnPressed()'),
                                    self.value_changed)
