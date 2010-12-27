@@ -13,6 +13,7 @@
 
 from __future__ import division
 from __future__ import print_function
+import string
 import sys
 
 from PyQt4 import QtCore
@@ -156,105 +157,120 @@ class Cursor(object):
                 self.active_accessor.show()
                 self.active_accessor.setFocus()
             return
-        elif ev.key() == QtCore.Qt.Key_1:
-            if self.col.get_num() < 0:
-                ev.ignore()
+        else:
+            self.direct_edit(ev)
+            if ev.isAccepted():
                 return
-            triggers = self.col.get_triggers()
-            play_note_off = False
-            if self.ts in triggers and not self.insert:
-                row = triggers[self.ts]
-                tindex, findex = row.get_slot(self)
-                if tindex < len(row):
-                    trig = row[tindex]
-                    if trig[0] == 'cn+':
-                        del row[tindex]
-                        self.insert = True
-                        self.col.set_value(self, trigger.TriggerType('cn-'))
-                        self.insert = False
-                        self.project[self.col_path] = self.col.flatten()
-                        play_note_off = True
-                else:
-                    self.index = row.slots()
+            ev.accept()
+            if ev.key() == QtCore.Qt.Key_1:
+                self.note_off_key(ev)
+                return
+            else:
+                self.note_on_key(ev)
+                return
+        self.insert = False
+
+    def direct_edit(self, ev):
+        triggers = self.col.get_triggers()
+        if self.ts in triggers and not self.insert:
+            row = triggers[self.ts]
+            tindex, findex = row.get_slot(self)
+            if tindex < len(row):
+                trig = row[tindex]
+                int_keys = string.digits + '-'
+                float_keys = int_keys + '.'
+                direct = False
+                if isinstance(trig.get_field_info(findex)[0], int) and \
+                        ev.key() < 256 and chr(ev.key()) in int_keys:
+                    direct = True
+                elif isinstance(trig.get_field_info(findex)[0], float) and \
+                        ev.key() < 256 and chr(ev.key()) in float_keys:
+                    direct = True
+                if direct:
+                    self.edit = True
+                    field, valid_func = row.get_field_info(self)
+                    self.active_accessor = self.accessors[type(field)]
+                    self.active_accessor.set_validator_func(valid_func)
+                    self.active_accessor.set_value(chr(ev.key()))
+                    self.active_accessor.show()
+                    self.active_accessor.setFocus()
+                    return
+        ev.ignore()
+
+    def note_off_key(self, ev):
+        if self.col.get_num() < 0:
+            ev.ignore()
+            return
+        triggers = self.col.get_triggers()
+        play_note_off = False
+        if self.ts in triggers and not self.insert:
+            row = triggers[self.ts]
+            tindex, findex = row.get_slot(self)
+            if tindex < len(row):
+                trig = row[tindex]
+                if trig[0] in ('cn+', 'cn-'):
+                    del row[tindex]
+                    self.insert = True
                     self.col.set_value(self, trigger.TriggerType('cn-'))
+                    self.insert = False
                     self.project[self.col_path] = self.col.flatten()
                     play_note_off = True
             else:
-                if self.ts not in triggers:
-                    self.index = 0
+                self.index = row.slots()
                 self.col.set_value(self, trigger.TriggerType('cn-'))
                 self.project[self.col_path] = self.col.flatten()
                 play_note_off = True
-            if play_note_off:
-                self.playback_manager.play_event(
-                        self.col.get_num(), '["cn-", []]')
         else:
-            if not (self.note_input and self.scale and
-                    self.col.get_num() >= 0):
-                ev.ignore()
-                return
-            try:
-                note, octave = self.note_input.get_note(ev.key())
-                cents = self.scale.get_cents(note, octave)
-            except KeyError:
-                ev.ignore()
-                return
-            triggers = self.col.get_triggers()
-            play_note_on = False
-            if self.ts in triggers and not self.insert:
-                row = triggers[self.ts]
-                tindex, findex = row.get_slot(self)
-                if tindex < len(row):
-                    trig = row[tindex]
-                    if trig[0] == 'cn+':
-                        self.col.set_value(self, cents)
-                        self.project[self.col_path] = self.col.flatten()
-                        play_note_on = True
-                    elif trig[0] == 'cn-':
-                        self.col.set_value(self, trigger.TriggerType('cn+'))
-                        self.col.set_value(self, cents)
-                        self.project[self.col_path] = self.col.flatten()
-                        play_note_on = True
-                    elif isinstance(trig.get_field_info(findex)[0],
-                                    trigger.Note):
-                        self.col.set_value(self, cents)
-                        self.project[self.col_path] = self.col.flatten()
-                        # TODO: should we play?
-                else:
-                    self.index = row.slots()
-                    self.col.set_value(self, trigger.TriggerType('cn+'))
+            if self.ts not in triggers:
+                self.index = 0
+            self.col.set_value(self, trigger.TriggerType('cn-'))
+            self.project[self.col_path] = self.col.flatten()
+            play_note_off = True
+        if play_note_off:
+            self.playback_manager.play_event(
+                    self.col.get_num(), '["cn-", []]')
+        self.insert = False
+
+    def note_on_key(self, ev):
+        if not (self.note_input and self.scale and
+                self.col.get_num() >= 0):
+            ev.ignore()
+            return
+        try:
+            note, octave = self.note_input.get_note(ev.key())
+            cents = self.scale.get_cents(note, octave)
+        except KeyError:
+            ev.ignore()
+            return
+        triggers = self.col.get_triggers()
+        play_note_on = False
+        if self.ts in triggers and not self.insert:
+            row = triggers[self.ts]
+            tindex, findex = row.get_slot(self)
+            if tindex < len(row):
+                trig = row[tindex]
+                if trig[0] == 'cn+':
                     self.col.set_value(self, cents)
-                    if self.inst_auto:
-                        use_existing_trig = False
-                        self.index -= 1
-                        if self.index >= 1:
-                            ptindex, _ = row.get_slot(self)
-                            if row[ptindex][0] == 'c.i':
-                                use_existing_trig = True
-                        self.index += 1
-                        if use_existing_trig:
-                            self.index -= 1
-                        else:
-                            self.insert = True
-                            self.col.set_value(self,
-                                               trigger.TriggerType('c.i'))
-                            self.insert = False
-                            self.index += 1
-                        self.col.set_value(self, self.inst_num)
-                        self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
+                elif trig[0] == 'cn-':
+                    self.col.set_value(self, trigger.TriggerType('cn+'))
+                    self.col.set_value(self, cents)
+                    self.project[self.col_path] = self.col.flatten()
+                    play_note_on = True
+                elif isinstance(trig.get_field_info(findex)[0],
+                                trigger.Note):
+                    self.col.set_value(self, cents)
+                    self.project[self.col_path] = self.col.flatten()
+                    # TODO: should we play?
             else:
-                if self.ts not in triggers:
-                    self.index = 0
+                self.index = row.slots()
                 self.col.set_value(self, trigger.TriggerType('cn+'))
-                self.insert = False
                 self.col.set_value(self, cents)
                 if self.inst_auto:
                     use_existing_trig = False
                     self.index -= 1
                     if self.index >= 1:
-                        row = triggers[self.ts]
                         ptindex, _ = row.get_slot(self)
                         if row[ptindex][0] == 'c.i':
                             use_existing_trig = True
@@ -263,18 +279,45 @@ class Cursor(object):
                         self.index -= 1
                     else:
                         self.insert = True
-                        self.col.set_value(self, trigger.TriggerType('c.i'))
+                        self.col.set_value(self,
+                                           trigger.TriggerType('c.i'))
                         self.insert = False
                         self.index += 1
                     self.col.set_value(self, self.inst_num)
                     self.index += 1
                 self.project[self.col_path] = self.col.flatten()
                 play_note_on = True
-            if play_note_on:
-                self.playback_manager.play_event(self.col.get_num(),
-                                    '["c.i", [{0}]]'.format(self.inst_num))
-                self.playback_manager.play_event(self.col.get_num(),
-                                            '["cn+", [{0}]]'.format(cents))
+        else:
+            if self.ts not in triggers:
+                self.index = 0
+            self.col.set_value(self, trigger.TriggerType('cn+'))
+            self.insert = False
+            self.col.set_value(self, cents)
+            if self.inst_auto:
+                use_existing_trig = False
+                self.index -= 1
+                if self.index >= 1:
+                    row = triggers[self.ts]
+                    ptindex, _ = row.get_slot(self)
+                    if row[ptindex][0] == 'c.i':
+                        use_existing_trig = True
+                self.index += 1
+                if use_existing_trig:
+                    self.index -= 1
+                else:
+                    self.insert = True
+                    self.col.set_value(self, trigger.TriggerType('c.i'))
+                    self.insert = False
+                    self.index += 1
+                self.col.set_value(self, self.inst_num)
+                self.index += 1
+            self.project[self.col_path] = self.col.flatten()
+            play_note_on = True
+        if play_note_on:
+            self.playback_manager.play_event(self.col.get_num(),
+                                '["c.i", [{0}]]'.format(self.inst_num))
+            self.playback_manager.play_event(self.col.get_num(),
+                                        '["cn+", [{0}]]'.format(cents))
         self.insert = False
 
     def key_release(self, ev):
