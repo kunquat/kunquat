@@ -50,7 +50,12 @@ class InstEditor(QtGui.QWidget):
         self._cur_inst = num
 
     def load(self):
-        print('load', self._cur_inst)
+        slot = self._cur_inst
+        fname = QtGui.QFileDialog.getOpenFileName(
+                caption='Load Kunquat Instrument (to index {0})'.format(slot),
+                filter='Kunquat Instruments (*.kqti *.kqti.gz *.kqti.bz2)')
+        if fname:
+            self._project.import_kqti(slot, str(fname))
 
     def remove(self):
         self._project.remove_dir('ins_{0:02x}'.format(self._cur_inst))
