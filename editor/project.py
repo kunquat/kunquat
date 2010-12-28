@@ -57,6 +57,7 @@ class Project(object):
         self._handle.buffer_size = 1024
         self._find_keys()
         self._changed = False
+        self._history = History(self)
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.
@@ -82,7 +83,7 @@ class Project(object):
     @property
     def changed(self):
         """Whether the Project has changed since the last commit."""
-        return self._changed
+        return self._history.at_commit()
 
     @property
     def handle(self):
@@ -105,6 +106,7 @@ class Project(object):
             value = self._handle[key]
             return json.loads(value) if value else None
         else:
+            # TODO
             pass
 
     def __setitem__(self, key, value):
@@ -118,7 +120,7 @@ class Project(object):
         value -- The data to be set.
 
         """
-        # TODO: update history
+        old_value = self._handle[key]
         if value == None:
             self._handle[key] = ''
             self._keys.discard(key)
@@ -135,6 +137,7 @@ class Project(object):
                 self._keys.add(key)
             else:
                 self._keys.discard(key)
+        self._history.step(key, old_value, value)
         self._changed = True
 
     @property
@@ -168,9 +171,11 @@ class Project(object):
 
     def remove_dir(self, directory):
         """Removes a directory inside a composition."""
+        self._history.start_group('Remove ' + directory)
         for key in [k for k in self._keys if k.startswith(directory)]:
             #print('removing', key)
             self[key] = None
+        self._history.end_group()
 
     def export_kqt(self, dest):
         """Exports the composition in the Project.
@@ -207,6 +212,8 @@ class Project(object):
         assert index >= 0
         assert index < lim.INSTRUMENTS_MAX
         ins_path = 'ins_{0:02x}'.format(index)
+        self._history.start_group(
+                'Load {0} into instrument {1:d}'.format(src, index))
         self.remove_dir(ins_path)
         if os.path.isdir(src):
             if not src or src[-1] != '/':
@@ -247,15 +254,17 @@ class Project(object):
         else:
             connections.append([ins_out, 'out_00'])
         self['p_connections.json'] = connections
+        self._history.end_group()
 
     def save(self):
         """Saves the Project data."""
         self._handle.commit()
+        self._history.set_commit()
         self._changed = False
 
     def undo(self):
         """Undoes a change made in the Project."""
-        pass
+        self._history.undo()
 
     def redo(self, branch=None):
         """Redoes a change made in the Project.
@@ -266,9 +275,196 @@ class Project(object):
                   selected.
 
         """
-        pass
+        self._history.redo(branch)
 
     def __del__(self):
         self._handle = None
+
+
+class History(object):
+
+    def __init__(self, project):
+        """Create a new History.
+
+        Arguments:
+        project -- The Kunquat Project associated with this History.
+
+        """
+        self._project = project
+        self._root = Step()
+        self._current = self._root
+        self._commit = self._root
+        self._group = 0
+
+    def at_commit(self):
+        assert not self._group
+        return self._commit == self._current
+
+    def set_commit(self):
+        assert not self._group
+        self._commit = self._current
+
+    def start_group(self, name=''):
+        """Start a group of changes.
+
+        Only the methods step() and end_group() may be called when a
+        group of changes is being made.
+
+        """
+        self._group += 1
+        if self._group > 1:
+            return
+        self._current = Step(self._current, name)
+
+    def end_group(self):
+        """End a group of changes."""
+        assert self._group > 0
+        self._group -= 1
+
+    def rollback(self):
+        assert self._group
+        # TODO: rollback
+        self._group = 0
+
+    def parents(self):
+        """Generate a sequence containing all ancestors of
+        the current state.
+
+        """
+        assert not self._group
+        node = self._current.parent
+        while node:
+            yield node
+            node = node.parent
+
+    def step(self, key, old_data, new_data, name=''):
+        if not self._group:
+            self._current = Step(self._current, name)
+        self._current.add_change(Change(key, old_data, new_data))
+
+    def undo(self):
+        assert not self._group
+        if not self._current.parent:
+            raise RuntimeError('Nothing to undo')
+        for change in self._current.changes:
+            self._project[change.key] = change.old_data
+        self._current = self._current.parent
+
+    def redo(self, branch=None):
+        assert not self._group
+        child = self._current.child(branch)
+        if not child:
+            raise RuntimeError('Nothing to redo')
+        for change in child.changes:
+            self._project[change.key] = change.new_data
+        self._current = child
+
+
+class Step(object):
+
+    """An editing step in a Kunquat Project."""
+
+    def __init__(self, parent=None, name=''):
+        """Create a new step.
+
+        Optional arguments:
+        parent  -- The step that precedes this step.
+        name    -- The name of this step.
+
+        """
+        self._changes = []
+        self._children = []
+        self._last_child = None
+        self._parent = parent
+        if parent:
+            parent._add_step(self)
+        self._name = name
+
+    def add_change(self, change):
+        """Adds a change into the step.
+
+        Arguments:
+        change -- The change.
+
+        """
+        self._changes.append(change)
+
+    @property
+    def changes(self):
+        return self._changes
+
+    def child(self, index=None):
+        if index == None:
+            return self._last_child
+        return self._children[index]
+
+    @property
+    def name(self):
+        """Return the name of the step.
+
+        Return value:
+        The name of the step. The default name is generated based on
+        the modified keys.
+
+        """
+        if self._name:
+            return self._name
+        if not self._children:
+            return 'No change'
+        prefix = self._children[0].key
+        for key in self._children[1:]:
+            for i, ch in enumerate(prefix):
+                if ch != key[i]:
+                    prefix = prefix[:i]
+                    break
+        if len(prefix) < len(self._children[0].key):
+            prefix = prefix + '*'
+        return prefix
+
+    @name.setter
+    def name(self, value):
+        """Set a name for the step."""
+        self._name = value
+
+    @property
+    def parent(self):
+        return self._parent
+
+    def _add_step(self, step):
+        self._children.append(step)
+        self._last_child = step
+
+
+class Change(object):
+
+    """A value change of a key inside a Kunquat Project."""
+
+    def __init__(self, key, old_data, new_data):
+        """Create a new Change.
+
+        Arguments:
+        key      -- The key modified.
+        old_data -- The value of the key before modification.
+        new_data -- The value of the key after modification.
+
+        """
+        self._key = key
+        self._old_data = old_data
+        self._new_data = new_data
+
+    @property
+    def key(self):
+        """Return the key of the change."""
+        return self._key
+
+    @property
+    def old_data(self):
+        """Return the value of the key before this change."""
+        return self._old_data
+
+    @property
+    def new_data(self):
+        """Return the value of the key after this change."""
+        return self._new_data
 
 
