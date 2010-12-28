@@ -50,6 +50,9 @@ class TimestampSpin(QtGui.QWidget):
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self.value_changed)
+        QtCore.QObject.connect(self._spin,
+                               QtCore.SIGNAL('editingFinished()'),
+                               self.finished)
         self.set_key(key)
         layout.addWidget(self._spin, 0)
 
@@ -77,10 +80,21 @@ class TimestampSpin(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
+            self._project.set(self._key, d)
+        else:
+            self._project.set(self._key, value)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('tsChanged(int, int)'),
+                                                value[0], value[1])
+
+    def finished(self):
+        value = list(ts.Timestamp(self._spin.value()))
+        if self._dict_key:
+            d = self._project[self._key]
+            if d == None:
+                d = {}
+            d[self._dict_key] = value
             self._project[self._key] = d
         else:
             self._project[self._key] = value
-        QtCore.QObject.emit(self, QtCore.SIGNAL('tsChanged(int, int)'),
-                                                value[0], value[1])
 
 
