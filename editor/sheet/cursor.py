@@ -195,10 +195,12 @@ class Cursor(QtCore.QObject):
                 int_keys = string.digits + '-'
                 float_keys = int_keys + '.'
                 direct = False
-                if isinstance(trig.get_field_info(findex)[0], int) and \
+                info = trig.get_field_info(findex)[0]
+                if isinstance(info, int) and \
                         ev.key() < 256 and chr(ev.key()) in int_keys:
                     direct = True
-                elif isinstance(trig.get_field_info(findex)[0], float) and \
+                elif isinstance(info, float) and \
+                        not isinstance(info, trigger.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
                 if direct:
