@@ -110,7 +110,7 @@ class Project(object):
             pass
 
     def __setitem__(self, key, value):
-        """Set data in the Kunquat Handle.
+        """Set data in the Kunquat Handle and History.
 
         For JSON keys, this function converts the given Python object
         into a JSON string.
@@ -121,6 +121,19 @@ class Project(object):
 
         """
         old_value = self._handle[key]
+        self.set(key, value)
+        self._history.step(key, old_value, value)
+
+    def set(self, key, value):
+        """Set data in the Kunquat Handle.
+
+        For JSON keys, this function converts the given Python object
+        into a JSON string.
+
+        Arguments:
+        key   -- The key of the data in the composition.
+        value -- The data to be set.
+        """
         if value == None:
             self._handle[key] = ''
             self._keys.discard(key)
@@ -137,7 +150,6 @@ class Project(object):
                 self._keys.add(key)
             else:
                 self._keys.discard(key)
-        self._history.step(key, old_value, value)
         self._changed = True
 
     @property
@@ -331,7 +343,7 @@ class History(object):
         the current state.
 
         """
-        assert not self._group
+        #assert not self._group
         node = self._current.parent
         while node:
             yield node
@@ -341,6 +353,8 @@ class History(object):
         if not self._group:
             self._current = Step(self._current, name)
         self._current.add_change(Change(key, old_data, new_data))
+        #for p in self.parents():
+        #    print(p.name)
 
     def undo(self):
         assert not self._group
@@ -409,15 +423,15 @@ class Step(object):
         """
         if self._name:
             return self._name
-        if not self._children:
+        if not self._changes:
             return 'No change'
-        prefix = self._children[0].key
-        for key in self._children[1:]:
+        prefix = self._changes[0].key
+        for key in self._changes[1:]:
             for i, ch in enumerate(prefix):
                 if ch != key[i]:
                     prefix = prefix[:i]
                     break
-        if len(prefix) < len(self._children[0].key):
+        if len(prefix) < len(self._changes[0].key):
             prefix = prefix + '*'
         return prefix
 

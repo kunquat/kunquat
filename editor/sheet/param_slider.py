@@ -45,13 +45,16 @@ class ParamSlider(QtGui.QWidget):
         lab = QtGui.QLabel(label)
         layout.addWidget(lab, 0)
 
-        self._slider = QtGui.QSlider(orientation)
+        self._slider = KSlider(orientation)
         self._slider.setRange(val_range[0] * self._factor,
                               val_range[1] * self._factor)
         layout.addWidget(self._slider, 1)
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
+        QtCore.QObject.connect(self._slider,
+                               QtCore.SIGNAL('sliderReleased()'),
+                               self.released)
 
         self._value_display = QtGui.QLabel()
         metrics = QtGui.QFontMetrics(QtGui.QFont())
@@ -78,6 +81,7 @@ class ParamSlider(QtGui.QWidget):
         self._lock_update = False
         self._value_display.setText(str(value) + self._suffix)
         self._key = key
+        self._value = value
 
     def value_changed(self, svalue):
         if self._lock_update:
@@ -91,9 +95,39 @@ class ParamSlider(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
+            self._project.set(self._key, d)
+        else:
+            self._project.set(self._key, value)
+        self._value_display.setText(str(value) + self._suffix)
+
+    def released(self):
+        value = self._slider.value() / self._factor
+        if value == self._value:
+            return
+        self._value = value
+        if self._factor == 1:
+            assert value == int(value)
+            value = int(value)
+        if self._dict_key:
+            d = self._project[self._key]
+            if d == None:
+                d = {}
+            d[self._dict_key] = value
             self._project[self._key] = d
         else:
             self._project[self._key] = value
         self._value_display.setText(str(value) + self._suffix)
+
+
+class KSlider(QtGui.QSlider):
+
+    def __init__(self, orientation, parent=None):
+        QtGui.QSlider.__init__(self, orientation, parent)
+
+    def keyReleaseEvent(self, ev):
+        QtGui.QSlider.keyReleaseEvent(self, ev)
+        if ev.isAutoRepeat():
+            return
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sliderReleased()'))
 
 
