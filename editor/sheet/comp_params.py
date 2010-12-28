@@ -24,13 +24,17 @@ class CompParams(QtGui.QWidget):
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
 
-        self._layout.addWidget(ParamSlider(project,
-                                           'Mixing volume:',
-                                           (-48, 0),
-                                           -8,
-                                           'p_composition.json',
-                                           'mix_vol',
-                                           decimals=1,
-                                           unit='dB'))
+        self._mix_vol = ParamSlider(project,
+                                    'Mixing volume:',
+                                    (-48, 0),
+                                    -8,
+                                    'p_composition.json',
+                                    'mix_vol',
+                                    decimals=1,
+                                    unit='dB')
+        self._layout.addWidget(self._mix_vol)
+
+    def sync(self):
+        self._mix_vol.sync()
 
 

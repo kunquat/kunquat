@@ -198,6 +198,10 @@ class Pattern(QtGui.QWidget):
                                 num)
         self.number = num
 
+    def sync(self):
+        self.set_pattern(self.number)
+        self.update()
+
     def set_project(self, project):
         self.project = project
         self.cursor.set_project(project)

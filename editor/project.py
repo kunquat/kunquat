@@ -16,6 +16,7 @@ from __future__ import print_function
 import errno
 import json
 import tarfile
+import types
 import os
 
 import kqt_limits as lim
@@ -107,7 +108,7 @@ class Project(object):
             return json.loads(value) if value else None
         else:
             # TODO
-            pass
+            return self._handle[key]
 
     def __setitem__(self, key, value):
         """Set data in the Kunquat Handle and History.
@@ -120,11 +121,9 @@ class Project(object):
         value -- The data to be set.
 
         """
-        old_value = self._handle[key]
-        self.set(key, value)
-        self._history.step(key, old_value, value)
+        self.set(key, value, self[key])
 
-    def set(self, key, value):
+    def set(self, key, value, old_value=types.NoneType):
         """Set data in the Kunquat Handle.
 
         For JSON keys, this function converts the given Python object
@@ -150,6 +149,16 @@ class Project(object):
                 self._keys.add(key)
             else:
                 self._keys.discard(key)
+        if old_value != types.NoneType:
+            if old_value == None:
+                old_value = ''
+            elif key[key.index('.'):].startswith('.json'):
+                old_value = json.dumps(old_value)
+            if value == None:
+                value = ''
+            elif key[key.index('.'):].startswith('.json'):
+                value = json.dumps(value)
+            self._history.step(key, old_value, value)
         self._changed = True
 
     @property
@@ -357,20 +366,32 @@ class History(object):
         #    print(p.name)
 
     def undo(self):
+        """Undoes a step."""
         assert not self._group
         if not self._current.parent:
-            raise RuntimeError('Nothing to undo')
+            return
+            #raise RuntimeError('Nothing to undo')
+        #print('undoing', self._current.name)
         for change in self._current.changes:
-            self._project[change.key] = change.old_data
+            self._project.handle[change.key] = change.old_data
         self._current = self._current.parent
 
     def redo(self, branch=None):
+        """Redoes a step.
+
+        Arguments:
+        branch -- The index of the branch to be used, or None for
+                  the last used branch in the current node.
+
+        """
         assert not self._group
         child = self._current.child(branch)
         if not child:
-            raise RuntimeError('Nothing to redo')
+            return
+            #raise RuntimeError('Nothing to redo')
+        #print('redoing', child.name)
         for change in child.changes:
-            self._project[change.key] = change.new_data
+            self._project.handle[change.key] = change.new_data
         self._current = child
 
 
@@ -463,8 +484,8 @@ class Change(object):
 
         """
         self._key = key
-        self._old_data = old_data
-        self._new_data = new_data
+        self._old_data = old_data if old_data != None else ''
+        self._new_data = new_data if new_data != None else ''
 
     @property
     def key(self):

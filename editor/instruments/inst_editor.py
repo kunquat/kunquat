@@ -60,4 +60,8 @@ class InstEditor(QtGui.QWidget):
     def remove(self):
         self._project.remove_dir('ins_{0:02x}'.format(self._cur_inst))
 
+    def sync(self):
+        # TODO
+        pass
+
 

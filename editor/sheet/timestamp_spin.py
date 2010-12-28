@@ -36,7 +36,7 @@ class TimestampSpin(QtGui.QWidget):
         self._project = project
         self._dict_key = dict_key
         self._decimals = decimals
-        self._default_val = default_val
+        self._default_val = list(default_val)
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -70,6 +70,7 @@ class TimestampSpin(QtGui.QWidget):
         self._spin.setValue(float(ts.Timestamp(value)))
         self._lock_update = False
         self._key = key
+        self._value = value
 
     def value_changed(self, fvalue):
         if self._lock_update:
@@ -88,13 +89,21 @@ class TimestampSpin(QtGui.QWidget):
 
     def finished(self):
         value = list(ts.Timestamp(self._spin.value()))
+        if value == self._value:
+            return
         if self._dict_key:
             d = self._project[self._key]
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project[self._key] = d
+            old_d = dict(d)
+            old_d[self._dict_key] = self._value
+            self._project.set(self._key, d, old_d)
         else:
-            self._project[self._key] = value
+            self._project.set(self._key, value, self._value)
+        self._value = value
+
+    def sync(self):
+        self.set_key(self._key)
 
 

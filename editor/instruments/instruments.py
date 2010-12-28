@@ -34,4 +34,8 @@ class Instruments(QtGui.QSplitter):
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
 
+    def sync(self):
+        self._inst_list.sync()
+        self._inst_editor.sync()
+
 

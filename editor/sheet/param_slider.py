@@ -83,6 +83,9 @@ class ParamSlider(QtGui.QWidget):
         self._key = key
         self._value = value
 
+    def sync(self):
+        self.set_key(self._key)
+
     def value_changed(self, svalue):
         if self._lock_update:
             return
@@ -104,7 +107,6 @@ class ParamSlider(QtGui.QWidget):
         value = self._slider.value() / self._factor
         if value == self._value:
             return
-        self._value = value
         if self._factor == 1:
             assert value == int(value)
             value = int(value)
@@ -113,10 +115,13 @@ class ParamSlider(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project[self._key] = d
+            old_d = dict(d)
+            old_d[self._dict_key] = self._value
+            self._project.set(self._key, d, old_d)
         else:
-            self._project[self._key] = value
+            self._project.set(self._key, value, self._value)
         self._value_display.setText(str(value) + self._suffix)
+        self._value = value
 
 
 class KSlider(QtGui.QSlider):

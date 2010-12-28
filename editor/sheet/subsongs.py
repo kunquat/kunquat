@@ -35,7 +35,6 @@ class Subsongs(QtGui.QTreeView):
         self._section_manager = section
         self.setHeaderHidden(True)
         self.sync()
-        self.expandAll()
 
     def currentChanged(self, new_index, old_index):
         if self._section_signal:
@@ -270,5 +269,6 @@ class Subsongs(QtGui.QTreeView):
             add_item.setFont(QtGui.QFont('Decorative', italic=True))
             composition.appendRow(add_item)
         self.setModel(self._model)
+        self.expandAll()
 
 

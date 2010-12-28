@@ -50,4 +50,8 @@ class SubsongParams(QtGui.QWidget):
         self._tempo.set_key(key)
         self._global_volume.set_key(key)
 
+    def sync(self):
+        self._tempo.sync()
+        self._global_volume.sync()
+
 

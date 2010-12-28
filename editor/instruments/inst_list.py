@@ -53,4 +53,8 @@ class InstList(QtGui.QTableWidget):
         self._instrument_spin.setValue(cur_row)
         self._signal = False
 
+    def sync(self):
+        # TODO
+        pass
+
 

@@ -49,25 +49,28 @@ class Sheet(QtGui.QSplitter):
         self._edit_area.addWidget(self._subsong_params)
         self._edit_area.addWidget(self._pattern_editor)
 
-        subsongs = Subsongs(project, self._section)
-        QtCore.QObject.connect(subsongs,
+        self._subsongs = Subsongs(project, self._section)
+        QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('compositionParams()'),
                                self.to_comp_params)
-        QtCore.QObject.connect(subsongs,
+        QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('subsongChanged(int)'),
                                subsong_changed_slot)
-        self.addWidget(subsongs)
+        self.addWidget(self._subsongs)
         self.addWidget(self._edit_area)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([180, 1])
 
         self._section.connect(self.section_changed)
-        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('compositionParams()'),
+        QtCore.QObject.connect(self._subsongs,
+                               QtCore.SIGNAL('compositionParams()'),
                                self.to_comp_params)
-        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('subsongParams(int)'),
+        QtCore.QObject.connect(self._subsongs,
+                               QtCore.SIGNAL('subsongParams(int)'),
                                self.to_subsong_params)
-        QtCore.QObject.connect(subsongs, QtCore.SIGNAL('subsongParams(int)'),
+        QtCore.QObject.connect(self._subsongs,
+                               QtCore.SIGNAL('subsongParams(int)'),
                                self._subsong_params.subsong_changed)
 
     def section_changed(self, *args):
@@ -78,6 +81,12 @@ class Sheet(QtGui.QSplitter):
 
     def to_subsong_params(self, num):
         self._edit_area.setCurrentWidget(self._subsong_params)
+
+    def sync(self):
+        self._subsongs.sync()
+        self._comp_params.sync()
+        self._subsong_params.sync()
+        self._pattern_editor.sync()
 
 
 class Section(QtCore.QObject):

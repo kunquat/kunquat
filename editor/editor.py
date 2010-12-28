@@ -105,11 +105,20 @@ class KqtEditor(QtGui.QMainWindow):
         """
 
     def keyPressEvent(self, ev):
+        if ev.modifiers() == QtCore.Qt.ControlModifier:
+            if ev.key() == QtCore.Qt.Key_Z:
+                self.project.undo()
+                self.sync()
+            if ev.key() == QtCore.Qt.Key_Y:
+                self.project.redo()
+                self.sync()
+            return
         if ev.modifiers() == QtCore.Qt.ShiftModifier:
             if ev.key() == QtCore.Qt.Key_PageUp:
                 self._instrument.setValue(self._instrument.value() - 1)
             elif ev.key() == QtCore.Qt.Key_PageDown:
                 self._instrument.setValue(self._instrument.value() + 1)
+            return
         if ev.key() == QtCore.Qt.Key_F5:
             self._playback.play_subsong(self._cur_subsong)
         elif ev.key() == QtCore.Qt.Key_F6:
@@ -172,6 +181,10 @@ class KqtEditor(QtGui.QMainWindow):
     def save(self):
         self.project.save()
 
+    def sync(self):
+        self._sheet.sync()
+        self._instruments.sync()
+
     def set_appearance(self):
         # FIXME: size and title
         self.resize(400, 300)
@@ -188,13 +201,13 @@ class KqtEditor(QtGui.QMainWindow):
         top_control = self.create_top_control()
 
         tabs = QtGui.QTabWidget()
-        sheet = Sheet(self.project, self._playback,
-                      self.subsong_changed, self.pattern_changed,
-                      self._octave, self._instrument)
-        tabs.addTab(sheet, 'Sheet')
-        instruments = Instruments(self.project,
-                                  self._instrument)
-        tabs.addTab(instruments, 'Instruments')
+        self._sheet = Sheet(self.project, self._playback,
+                            self.subsong_changed, self.pattern_changed,
+                            self._octave, self._instrument)
+        tabs.addTab(self._sheet, 'Sheet')
+        self._instruments = Instruments(self.project,
+                                        self._instrument)
+        tabs.addTab(self._instruments, 'Instruments')
 
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
