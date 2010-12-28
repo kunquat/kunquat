@@ -416,7 +416,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
         while (target_file != NULL)
         {
             errno = 0;
-            if (remove(target_file) != 0)
+            if (path_info(target_file, handle) != PATH_NO_ENTRY &&
+                    remove(target_file) != 0)
             {
                 kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't remove"
                         " %s: %s", target_file, strerror(errno));
@@ -461,7 +462,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't log changes to the key %s", key);
             xfree(key_copy);
-            return 1;
+            return 0;
         }
     }
     int set = Handle_rw_set_data(handle, key, data, length);
@@ -568,7 +569,7 @@ static bool inspect_dirs(const char* path,
     {
         return false;
     }
-    
+
     *has_committed = false;
     *has_workspace = false;
     *has_oldcommit = false;

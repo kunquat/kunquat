@@ -296,7 +296,7 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     assert(src != NULL);
     assert(src[0] != '\0');
     assert(!string_eq(dest, src));
-    
+
     Path_type info = path_info(dest, handle);
     if (info == PATH_ERROR)
     {
