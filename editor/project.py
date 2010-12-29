@@ -188,15 +188,21 @@ class Project(object):
 
     def clear(self):
         """Removes all composition data (but not the history)."""
-        self.remove_dir('')
+        self._history.start_group('Clear all')
+        try:
+            self.remove_dir('')
+        finally:
+            self._history.end_group()
 
     def remove_dir(self, directory):
         """Removes a directory inside a composition."""
         self._history.start_group('Remove ' + directory)
-        for key in [k for k in self._keys if k.startswith(directory)]:
-            #print('removing', key)
-            self[key] = None
-        self._history.end_group()
+        try:
+            for key in [k for k in self._keys if k.startswith(directory)]:
+                #print('removing', key)
+                self[key] = None
+        finally:
+            self._history.end_group()
 
     def export_kqt(self, dest):
         """Exports the composition in the Project.
@@ -235,47 +241,50 @@ class Project(object):
         ins_path = 'ins_{0:02x}'.format(index)
         self._history.start_group(
                 'Load {0} into instrument {1:d}'.format(src, index))
-        self.remove_dir(ins_path)
-        if os.path.isdir(src):
-            if not src or src[-1] != '/':
-                src = src + '/'
-            key_base = '/'.join((ins_path, 'kqti' + lim.FORMAT_VERSION))
-            for dir_spec in os.walk(src):
-                for fname in dir_spec[2]:
-                    full_path = os.path.join(dir_spec[0], fname)
-                    ins_key = '/'.join((key_base, full_path[len(src):]))
-                    with open(full_path) as f:
-                        if ins_key[ins_key.index('.'):].startswith('.json'):
-                            self[ins_key] = json.loads(f.read())
-                        else:
-                            self[ins_key] = f.read()
-        else:
-            tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
-            entry = tfile.next()
-            while entry:
-                #print(entry.name)
-                if not entry.name.startswith('kqti'):
-                    raise kunquat.KunquatFormatError('Invalid directory'
-                                                     ' inside the instrument')
-                if entry.isfile():
-                    key_path = '/'.join((ins_path, entry.name))
-                    data = tfile.extractfile(entry).read()
-                    if key_path[key_path.index('.'):].startswith('.json'):
-                        self[key_path] = json.loads(data)
-                    else:
-                        self[key_path] = data
+        try:
+            self.remove_dir(ins_path)
+            if os.path.isdir(src):
+                if not src or src[-1] != '/':
+                    src = src + '/'
+                key_base = '/'.join((ins_path, 'kqti' + lim.FORMAT_VERSION))
+                for dir_spec in os.walk(src):
+                    for fname in dir_spec[2]:
+                        full_path = os.path.join(dir_spec[0], fname)
+                        ins_key = '/'.join((key_base, full_path[len(src):]))
+                        with open(full_path) as f:
+                            if ins_key[ins_key.index('.'):].startswith(
+                                                                '.json'):
+                                self[ins_key] = json.loads(f.read())
+                            else:
+                                self[ins_key] = f.read()
+            else:
+                tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
                 entry = tfile.next()
-        connections = self['p_connections.json']
-        if not connections:
-            connections = []
-        ins_out = ins_path + '/kqtiXX/out_00'
-        for connection in connections:
-            if ins_out in connection:
-                break
-        else:
-            connections.append([ins_out, 'out_00'])
-        self['p_connections.json'] = connections
-        self._history.end_group()
+                while entry:
+                    #print(entry.name)
+                    if not entry.name.startswith('kqti'):
+                        raise kunquat.KunquatFormatError('Invalid directory'
+                                                    ' inside the instrument')
+                    if entry.isfile():
+                        key_path = '/'.join((ins_path, entry.name))
+                        data = tfile.extractfile(entry).read()
+                        if key_path[key_path.index('.'):].startswith('.json'):
+                            self[key_path] = json.loads(data)
+                        else:
+                            self[key_path] = data
+                    entry = tfile.next()
+            connections = self['p_connections.json']
+            if not connections:
+                connections = []
+            ins_out = ins_path + '/kqtiXX/out_00'
+            for connection in connections:
+                if ins_out in connection:
+                    break
+            else:
+                connections.append([ins_out, 'out_00'])
+            self['p_connections.json'] = connections
+        finally:
+            self._history.end_group()
 
     def save(self):
         """Saves the Project data."""

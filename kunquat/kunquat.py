@@ -385,7 +385,7 @@ class RWCHandle(RWHandle):
         project.  This will initiate a recovery procedure that will
         restore a valid composition state.  Changes made after the last
         successful commit are possibly lost in this case, though.
-        
+
         """
         _kunquat.kqt_Handle_commit(self._handle)
 
