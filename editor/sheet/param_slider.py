@@ -53,8 +53,8 @@ class ParamSlider(QtGui.QWidget):
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
         QtCore.QObject.connect(self._slider,
-                               QtCore.SIGNAL('sliderReleased()'),
-                               self.released)
+                               QtCore.SIGNAL('editingFinished()'),
+                               self.finished)
 
         self._value_display = QtGui.QLabel()
         metrics = QtGui.QFontMetrics(QtGui.QFont())
@@ -103,7 +103,7 @@ class ParamSlider(QtGui.QWidget):
             self._project.set(self._key, value)
         self._value_display.setText(str(value) + self._suffix)
 
-    def released(self):
+    def finished(self):
         value = self._slider.value() / self._factor
         if value == self._value:
             return
@@ -126,6 +126,8 @@ class ParamSlider(QtGui.QWidget):
 
 class KSlider(QtGui.QSlider):
 
+    finished = QtCore.pyqtSignal(name='editingFinished')
+
     def __init__(self, orientation, parent=None):
         QtGui.QSlider.__init__(self, orientation, parent)
 
@@ -133,6 +135,10 @@ class KSlider(QtGui.QSlider):
         QtGui.QSlider.keyReleaseEvent(self, ev)
         if ev.isAutoRepeat():
             return
-        QtCore.QObject.emit(self, QtCore.SIGNAL('sliderReleased()'))
+        #QtCore.QObject.emit(self, QtCore.SIGNAL('sliderReleased()'))
+
+    def focusOutEvent(self, ev):
+        QtGui.QSlider.focusOutEvent(self, ev)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('editingFinished()'))
 
 
