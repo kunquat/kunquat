@@ -66,6 +66,7 @@ DSP* new_DSP(char* str,
     {
         return NULL;
     }
+    //fprintf(stderr, "New DSP %p\n", (void*)dsp);
     strcpy(dsp->type, type);
     return dsp;
 }

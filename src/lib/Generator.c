@@ -63,6 +63,7 @@ Generator* new_Generator(char* str,
     {
         return NULL;
     }
+    //fprintf(stderr, "New Generator %p\n", (void*)gen);
     strcpy(gen->type, type);
     gen->ins_params = ins_params;
     gen->conf = NULL;

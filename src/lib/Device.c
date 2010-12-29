@@ -36,7 +36,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->reset = NULL;
     device->sync = NULL;
     device->process = NULL;
-    
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -293,6 +293,7 @@ Audio_buffer* Device_get_buffer(Device* device,
 void Device_clear_buffers(Device* device, uint32_t start, uint32_t until)
 {
     assert(device != NULL);
+    //fprintf(stderr, "Accessing device %p\n", (void*)device);
     assert(start < device->buffer_size);
     assert(until <= device->buffer_size);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -410,6 +411,7 @@ void Device_uninit(Device* device)
     {
         return;
     }
+    //fprintf(stderr, "Destroying device %p\n", (void*)device);
     Device_remove_direct_buffers(device);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

@@ -78,6 +78,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     {
         return NULL;
     }
+    //fprintf(stderr, "New Instrument %p\n", (void*)ins);
     ins->connections = NULL;
     ins->gens = NULL;
     ins->dsps = NULL;

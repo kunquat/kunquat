@@ -722,6 +722,41 @@ void Device_node_disconnect(Device_node* node, Device* device)
 }
 
 
+void Device_node_replace(Device_node* node,
+                         Device* old_device,
+                         Device* new_device)
+{
+    assert(node != NULL);
+    assert(old_device != NULL);
+    assert(new_device != NULL);
+    assert(new_device != old_device);
+    for (int i = 0; i < KQT_DEVICE_PORTS_MAX; ++i)
+    {
+        Connection* cur = node->receive[i];
+        while (cur != NULL)
+        {
+            assert(cur->node->device != new_device);
+            if (cur->node->device == old_device)
+            {
+                cur->node->device = new_device;
+            }
+            cur = cur->next;
+        }
+        cur = node->send[i];
+        while (cur != NULL)
+        {
+            assert(cur->node->device != new_device);
+            if (cur->node->device == old_device)
+            {
+                cur->node->device = new_device;
+            }
+            cur = cur->next;
+        }
+    }
+    return;
+}
+
+
 Device_node* Device_node_get_sender(Device_node* node,
                                     int rec_port,
                                     int* send_port)

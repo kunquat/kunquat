@@ -181,6 +181,18 @@ class KqtEditor(QtGui.QMainWindow):
     def save(self):
         self.project.save()
 
+    def import_composition(self):
+        path = QtGui.QFileDialog.getOpenFileName(
+                caption='Import Kunquat composition',
+                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
+        if path:
+            self.project.import_kqt(str(path))
+            self.sync()
+
+    def clear(self):
+        self.project.clear()
+        self.sync()
+
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
@@ -226,16 +238,22 @@ class KqtEditor(QtGui.QMainWindow):
         icon_prefix = ':/trolltech/styles/commonstyle/images/'
 
         new_project = QtGui.QToolButton()
-        new_project.setText('New Project')
+        new_project.setText('Clear Project')
         new_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
                                                       'file-32.png')))
         new_project.setAutoRaise(True)
+        QtCore.QObject.connect(new_project,
+                               QtCore.SIGNAL('clicked()'),
+                               self.clear)
 
         open_project = QtGui.QToolButton()
-        open_project.setText('Open Project')
+        open_project.setText('Import Composition')
         open_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
                                              'standardbutton-open-32.png')))
         open_project.setAutoRaise(True)
+        QtCore.QObject.connect(open_project,
+                               QtCore.SIGNAL('clicked()'),
+                               self.import_composition)
 
         save_project = QtGui.QToolButton()
         save_project.setText('Save Project')

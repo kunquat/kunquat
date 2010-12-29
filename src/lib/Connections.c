@@ -340,6 +340,30 @@ void Connections_disconnect(Connections* graph, Device* device)
 }
 
 
+void Connections_replace(Connections* graph,
+                         Device* old_device,
+                         Device* new_device)
+{
+    assert(graph != NULL);
+    assert(old_device != NULL);
+    assert(new_device != NULL);
+    assert(new_device != old_device);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    assert(Device_node_get_device(master) != old_device);
+    assert(Device_node_get_device(master) != new_device);
+    (void)master;
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
+    {
+        Device_node_replace(node, old_device, new_device);
+        node = AAiter_get_next(graph->iter);
+    }
+    return;
+}
+
+
 static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);

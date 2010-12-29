@@ -864,12 +864,18 @@ static bool parse_dsp_level(kqt_Handle* handle,
             DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
                                              Song_get_dsps(handle->song);
             assert(table != NULL);
+            DSP* old_dsp = DSP_table_get_dsp(table, dsp_index);
             if (!DSP_table_set_dsp(table, dsp_index, dsp))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_DSP(dsp);
                 return false;
+            }
+            if (old_dsp != NULL)
+            {
+                Connections_replace(handle->song->connections,
+                                    (Device*)old_dsp, (Device*)dsp);
             }
         }
     }

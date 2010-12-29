@@ -238,12 +238,25 @@ bool Device_node_connect(Device_node* receiver,
 
 
 /**
- * Disconnects a Device node from a subgraph.
+ * Disconnects a Device from the Device node.
  *
- * \param node     The root node of the subgraph -- must not be \c NULL.
+ * \param node     The Device node -- must not be \c NULL.
  * \param device   The Device to be disconnected -- must not be \c NULL.
  */
 void Device_node_disconnect(Device_node* node, Device* device);
+
+
+/**
+ * Replaces a Device in the connections of the Device node.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param old_device   The old Device -- must not be \c NULL.
+ * \param new_device   The new Device -- must not be \c NULL, equal to
+ *                     \a old_device or in the connections of \a node.
+ */
+void Device_node_replace(Device_node* node,
+                         Device* old_device,
+                         Device* new_device);
 
 
 /**

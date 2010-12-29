@@ -15,6 +15,7 @@ from __future__ import print_function
 
 import errno
 import json
+import re
 import tarfile
 import types
 import os
@@ -225,7 +226,45 @@ class Project(object):
         src -- The source file name.
 
         """
-        pass
+        self._history.start_group('Import composition {0}'.format(src))
+        try:
+            self.clear()
+            if os.path.isdir(src):
+                if not src or src[-1] != '/':
+                    src = src + '/'
+                for dir_spec in os.walk(src):
+                    for fname in dir_spec[2]:
+                        full_path = os.path.join(dir_spec[0], fname)
+                        key = full_path[len(src):]
+                        with open(full_path) as f:
+                            if key[key.index('.'):].startswith('.json'):
+                                self[key] = json.loads(f.read())
+                            else:
+                                self[key] = f.read()
+            else:
+                tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
+                entry = tfile.next()
+                while entry:
+                    if not re.match('kqtc[0-9a-f][0-9a-f]($|/)', entry.name):
+                        raise kunquat.KunquatFormatError(
+                                'The file is not a Kunquat composition')
+                    if entry.name[4:6] != lim.FORMAT_VERSION:
+                        raise kunquat.KunquatFormatError(
+                                'Unsupported format version: {0}'.format(
+                                                            entry.name[4:6]))
+                    if entry.name.find('/') < 0:
+                        entry = tfile.next()
+                        continue
+                    key = entry.name[entry.name.index('/') + 1:]
+                    if entry.isfile():
+                        data = tfile.extractfile(entry).read()
+                        if key[key.index('.'):].startswith('.json'):
+                            self[key] = json.loads(data)
+                        else:
+                            self[key] = data
+                    entry = tfile.next()
+        finally:
+            self._history.end_group()
 
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
@@ -263,8 +302,8 @@ class Project(object):
                 while entry:
                     #print(entry.name)
                     if not entry.name.startswith('kqti'):
-                        raise kunquat.KunquatFormatError('Invalid directory'
-                                                    ' inside the instrument')
+                        raise kunquat.KunquatFormatError(
+                                'The file is not a Kunquat instrument')
                     if entry.isfile():
                         key_path = '/'.join((ins_path, entry.name))
                         data = tfile.extractfile(entry).read()
@@ -382,6 +421,7 @@ class History(object):
             #raise RuntimeError('Nothing to undo')
         #print('undoing', self._current.name)
         for change in self._current.changes:
+            #print('undoing', change.key)
             self._project.handle[change.key] = change.old_data
         self._current = self._current.parent
 
@@ -431,7 +471,13 @@ class Step(object):
         change -- The change.
 
         """
-        self._changes.append(change)
+        for i, ch in enumerate(self._changes):
+            if ch.key == change.key:
+                self._changes[i] = Change(ch.key, ch.old_data,
+                                          change.new_data)
+                break
+        else:
+            self._changes.append(change)
 
     @property
     def changes(self):
