@@ -48,6 +48,7 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
         buffer->bufs[i] = xnalloc(kqt_frame, size);
         if (buffer->bufs[i] == NULL)
         {
+            //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
             del_Audio_buffer(buffer);
             return NULL;
         }
@@ -88,7 +89,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 
 void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until)
 {
-//    fprintf(stderr, "Clearing %p\n", (void*)buffer);
+    //fprintf(stderr, "Clearing %p\n", (void*)buffer);
     assert(buffer != NULL);
     assert(start < buffer->size);
     assert(until <= buffer->size);
@@ -149,7 +150,7 @@ void del_Audio_buffer(Audio_buffer* buffer)
     {
         return;
     }
-//    fprintf(stderr, "Destroying %p\n", (void*)buffer);
+    //fprintf(stderr, "Destroying %p\n", (void*)buffer);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         xfree(buffer->bufs[i]);

@@ -165,14 +165,7 @@ bool parse_data(kqt_Handle* handle,
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
-            if (Ins_table_get(Song_get_insts(handle->song), index) == NULL)
-            {
-                //Connections_disconnect(graph, (Device*)ins);
-            }
-            if (!Connections_prepare(graph,
-                                     &handle->song->parent,
-                                     Song_get_insts(handle->song),
-                                     Song_get_dsps(handle->song)))
+            if (!Connections_prepare(graph))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -193,10 +186,7 @@ bool parse_data(kqt_Handle* handle,
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph,
-                                     &handle->song->parent,
-                                     Song_get_insts(handle->song),
-                                     Song_get_dsps(handle->song)))
+            if (!Connections_prepare(graph))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -272,10 +262,7 @@ static bool parse_song_level(kqt_Handle* handle,
         handle->song->connections = graph;
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
-        if (!Connections_prepare(graph,
-                                 &handle->song->parent,
-                                 Song_get_insts(handle->song),
-                                 Song_get_dsps(handle->song)))
+        if (!Connections_prepare(graph))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't allocate memory");
@@ -321,25 +308,20 @@ static bool parse_instrument_level(kqt_Handle* handle,
         assert(subkey != NULL);
         ++subkey;
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
-        Generator* gen = Instrument_get_gen(ins, gen_index);
+        Generator* gen = ins != NULL ? Instrument_get_gen(ins, gen_index)
+                                     : NULL;
         bool changed = ins != NULL && gen != NULL;
         bool success = parse_generator_level(handle, key, subkey,
                                              data, length, 
                                              index, gen_index);
         ins = Ins_table_get(Song_get_insts(handle->song), index);
-        changed ^= ins != NULL && Instrument_get_gen(ins, gen_index) != NULL;
+        gen = ins != NULL ? Instrument_get_gen(ins, gen_index) : NULL;
+        changed ^= ins != NULL && gen != NULL;
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
-            if (Instrument_get_gen(ins, gen_index) == NULL)
-            {
-                //Connections_disconnect(graph, (Device*)gen);
-            }
-            if (!Connections_prepare(graph,
-                                     &handle->song->parent,
-                                     Song_get_insts(handle->song),
-                                     Song_get_dsps(handle->song)))
+            if (!Connections_prepare(graph))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -387,10 +369,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
-            if (!Connections_prepare(graph,
-                                     &handle->song->parent,
-                                     Song_get_insts(handle->song),
-                                     Song_get_dsps(handle->song)))
+            if (!Connections_prepare(graph))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
@@ -445,8 +424,6 @@ static bool parse_instrument_level(kqt_Handle* handle,
         {
             if (ins != NULL)
             {
-                //Connections_disconnect(handle->song->connections,
-                //                       (Device*)ins);
                 Instrument_set_connections(ins, NULL);
                 reconnect = true;
             }
@@ -467,6 +444,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                         !Ins_table_set(Song_get_insts(handle->song),
                                        index, ins))
                 {
+                    del_Instrument(ins);
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
                     return false;
@@ -505,10 +483,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             Connections* global_graph = handle->song->connections;
             if (global_graph != NULL)
             {
-                if (!Connections_prepare(global_graph,
-                                         &handle->song->parent,
-                                         Song_get_insts(handle->song),
-                                         Song_get_dsps(handle->song)))
+                if (!Connections_prepare(global_graph))
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
@@ -844,12 +819,6 @@ static bool parse_dsp_level(kqt_Handle* handle,
             DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
                                              Song_get_dsps(handle->song);
             assert(table != NULL);
-            DSP* dsp = DSP_table_get_dsp(table, dsp_index);
-            if (dsp != NULL)
-            {
-                //Connections_disconnect(handle->song->connections,
-                //                       (Device*)dsp);
-            }
             DSP_table_remove_dsp(table, dsp_index);
         }
         else
@@ -875,18 +844,12 @@ static bool parse_dsp_level(kqt_Handle* handle,
             DSP_table* table = ins != NULL ? Instrument_get_dsps(ins) :
                                              Song_get_dsps(handle->song);
             assert(table != NULL);
-            DSP* old_dsp = DSP_table_get_dsp(table, dsp_index);
             if (!DSP_table_set_dsp(table, dsp_index, dsp))
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
                         "Couldn't allocate memory");
                 del_DSP(dsp);
                 return false;
-            }
-            if (old_dsp != NULL)
-            {
-                //Connections_replace(handle->song->connections,
-                //                    (Device*)old_dsp, (Device*)dsp);
             }
         }
     }

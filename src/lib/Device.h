@@ -44,6 +44,7 @@ typedef struct Device
     void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
+    Audio_buffer* direct_receive[KQT_DEVICE_PORTS_MAX];
     Audio_buffer* direct_send[KQT_DEVICE_PORTS_MAX];
 } Device;
 

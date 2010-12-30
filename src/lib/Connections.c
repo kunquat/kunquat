@@ -206,20 +206,18 @@ Device_node* Connections_get_master(Connections* graph)
 }
 
 
-bool Connections_prepare(Connections* graph,
-                         Device* master,
-                         Ins_table* insts,
-                         DSP_table* dsps)
+bool Connections_prepare(Connections* graph)
 {
     assert(graph != NULL);
-    assert(master != NULL);
-    assert(insts != NULL);
-    assert(dsps != NULL);
-    Connections_set_devices(graph, master, insts, dsps);
+    //assert(master != NULL);
+    //assert(insts != NULL);
+    //assert(dsps != NULL);
+    //Connections_set_devices(graph, master, insts, dsps);
     return Connections_init_buffers(graph);
 }
 
 
+#if 0
 void Connections_set_devices(Connections* graph,
                              Device* master,
                              Ins_table* insts,
@@ -236,6 +234,7 @@ void Connections_set_devices(Connections* graph,
     Device_node_set_devices(master_node, master, insts, dsps);
     return;
 }
+#endif
 
 
 bool Connections_init_buffers_simple(Connections* graph)

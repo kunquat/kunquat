@@ -190,6 +190,7 @@ void Device_node_reset(Device_node* node)
 }
 
 
+#if 0
 void Device_node_set_devices(Device_node* node,
                              Device* master,
                              Ins_table* insts,
@@ -203,6 +204,7 @@ void Device_node_set_devices(Device_node* node,
     //Device_node_set_devices_(node, master, insts, NULL, dsps);
     return;
 }
+#endif
 
 
 #if 0
@@ -636,6 +638,7 @@ void Device_node_clear_buffers(Device_node* node,
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+    //fprintf(stderr, "Clearing buffers of %p\n", (void*)Device_node_get_device(node));
     Device_clear_buffers(Device_node_get_device(node), start, until);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {

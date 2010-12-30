@@ -183,10 +183,7 @@ Song* new_Song(uint32_t buf_size)
         del_Song(song);
         return NULL;
     }
-    if (!Connections_prepare(song->connections,
-                             &song->parent,
-                             song->insts,
-                             song->dsps))
+    if (!Connections_prepare(song->connections))
     {
         del_Song(song);
         return NULL;
@@ -715,9 +712,9 @@ void del_Song(Song* song)
     }
     del_Subsong_table(song->subsongs);
     del_Pat_table(song->pats);
+    del_Connections(song->connections);
     del_Ins_table(song->insts);
     del_DSP_table(song->dsps);
-    del_Connections(song->connections);
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         del_Scale(song->scales[i]);

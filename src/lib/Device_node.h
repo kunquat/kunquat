@@ -99,10 +99,12 @@ void Device_node_reset(Device_node* node);
  * \param insts    The Instrument table -- must not be \c NULL.
  * \param dsps     The DSP table -- must not be \c NULL.
  */
+#if 0
 void Device_node_set_devices(Device_node* node,
                              Device* master,
                              Ins_table* insts,
                              DSP_table* dsps);
+#endif
 
 
 /**
