@@ -177,14 +177,12 @@ bool parse_data(kqt_Handle* handle,
     }
     else if ((index = string_extract_index(key, "dsp_", 2, "/")) >= 0)
     {
-        bool changed = DSP_table_get_dsp(Song_get_dsps(handle->song),
-                                         index) != NULL;
+        DSP* dsp = DSP_table_get_dsp(Song_get_dsps(handle->song), index);
         success = parse_dsp_level(handle, NULL, key, second_element,
                                   data, length, index);
-        changed ^= DSP_table_get_dsp(Song_get_dsps(handle->song),
-                                     index) != NULL;
+        DSP* dsp2 = DSP_table_get_dsp(Song_get_dsps(handle->song), index);
         Connections* graph = handle->song->connections;
-        if (changed && graph != NULL)
+        if (dsp != dsp2 && graph != NULL)
         {
             if (!Connections_prepare(graph))
             {
