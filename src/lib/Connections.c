@@ -329,6 +329,7 @@ void Connections_mix(Connections* graph,
 }
 
 
+#if 0
 void Connections_disconnect(Connections* graph, Device* device)
 {
     assert(graph != NULL);
@@ -370,6 +371,7 @@ void Connections_replace(Connections* graph,
     }
     return;
 }
+#endif
 
 
 static void Connections_reset(Connections* graph)

@@ -167,7 +167,7 @@ bool parse_data(kqt_Handle* handle,
         {
             if (Ins_table_get(Song_get_insts(handle->song), index) == NULL)
             {
-                Connections_disconnect(graph, (Device*)ins);
+                //Connections_disconnect(graph, (Device*)ins);
             }
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
@@ -334,7 +334,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
 //            fprintf(stderr, "instrument %d, generator %d\n", index, gen_index);
             if (Instrument_get_gen(ins, gen_index) == NULL)
             {
-                Connections_disconnect(graph, (Device*)gen);
+                //Connections_disconnect(graph, (Device*)gen);
             }
             if (!Connections_prepare(graph,
                                      &handle->song->parent,
@@ -445,8 +445,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         {
             if (ins != NULL)
             {
-                Connections_disconnect(handle->song->connections,
-                                       (Device*)ins);
+                //Connections_disconnect(handle->song->connections,
+                //                       (Device*)ins);
                 Instrument_set_connections(ins, NULL);
                 reconnect = true;
             }
@@ -476,7 +476,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connections* graph = new_Connections_from_string(data, true,
                                                  Song_get_insts(handle->song),
-                                                 Song_get_dsps(handle->song),
+                                                 Instrument_get_dsps(ins),
                                                  (Device*)ins,
                                                  state);
             if (graph == NULL)
@@ -671,8 +671,8 @@ static bool parse_generator_level(kqt_Handle* handle,
             Generator* gen = Gen_table_get_gen(table, gen_index);
             if (gen != NULL)
             {
-                Connections_disconnect(handle->song->connections,
-                                       (Device*)gen);
+                //Connections_disconnect(handle->song->connections,
+                //                       (Device*)gen);
             }
             Gen_table_remove_gen(table, gen_index);
         }
@@ -847,8 +847,8 @@ static bool parse_dsp_level(kqt_Handle* handle,
             DSP* dsp = DSP_table_get_dsp(table, dsp_index);
             if (dsp != NULL)
             {
-                Connections_disconnect(handle->song->connections,
-                                       (Device*)dsp);
+                //Connections_disconnect(handle->song->connections,
+                //                       (Device*)dsp);
             }
             DSP_table_remove_dsp(table, dsp_index);
         }
@@ -885,8 +885,8 @@ static bool parse_dsp_level(kqt_Handle* handle,
             }
             if (old_dsp != NULL)
             {
-                Connections_replace(handle->song->connections,
-                                    (Device*)old_dsp, (Device*)dsp);
+                //Connections_replace(handle->song->connections,
+                //                    (Device*)old_dsp, (Device*)dsp);
             }
         }
     }
