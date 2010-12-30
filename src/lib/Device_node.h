@@ -52,12 +52,19 @@ typedef struct Device_node Device_node;
 /**
  * Creates a new Device node.
  *
- * \param name   The name of the node -- must not be \c NULL.
+ * \param name     The name of the node -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
+ * \param master   The global or Instrumet master Device
+ *                 -- must not be \c NULL.
  *
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_node* new_Device_node(const char* name);
+Device_node* new_Device_node(const char* name,
+                             Ins_table* insts,
+                             DSP_table* dsps,
+                             Device* master);
 
 
 /**

@@ -26,6 +26,16 @@
 #include <xmemory.h>
 
 
+typedef enum
+{
+    DEVICE_TYPE_MASTER     = 1,
+    DEVICE_TYPE_GENERATOR  = 2,
+    DEVICE_TYPE_EFFECT     = 4,
+    DEVICE_TYPE_DSP        = 6,
+    DEVICE_TYPE_INSTRUMENT = 8,
+} Device_type;
+
+
 typedef struct Connection
 {
     Device_node* node;       ///< The neighbour node.
@@ -38,6 +48,13 @@ struct Device_node
 {
     char name[KQT_DEVICE_NODE_NAME_MAX];
     Device_node* ins_dual;
+
+    // These fields are required for adaptation to changes
+    Ins_table* insts;
+    DSP_table* dsps;
+    Device* master; ///< The global or Instrument master
+
+    Device_type type;
     Device* device;
     Device_node_state state;
     Connection* iter;
@@ -56,16 +73,45 @@ void Device_node_set_devices_(Device_node* node,
                               DSP_table* dsps);
 
 
-Device_node* new_Device_node(const char* name)
+Device_node* new_Device_node(const char* name,
+                             Ins_table* insts,
+                             DSP_table* dsps,
+                             Device* master)
 {
     assert(name != NULL);
+    assert(insts != NULL);
+    assert(dsps != NULL);
+    assert(master != NULL);
     Device_node* node = xalloc(Device_node);
     if (node == NULL)
     {
         return NULL;
     }
     strncpy(node->name, name, KQT_DEVICE_NODE_NAME_MAX - 1);
+    if (string_eq(node->name, ""))
+    {
+        node->type = DEVICE_TYPE_MASTER;
+    }
+    else if (string_has_prefix(node->name, "ins_"))
+    {
+        node->type = DEVICE_TYPE_INSTRUMENT;
+    }
+    else if (string_has_prefix(node->name, "dsp_"))
+    {
+        node->type = DEVICE_TYPE_DSP;
+    }
+    else if (string_has_prefix(node->name, "gen_"))
+    {
+        node->type = DEVICE_TYPE_GENERATOR;
+    }
+    else
+    {
+        assert(false);
+    }
     node->ins_dual = NULL;
+    node->insts = insts;
+    node->dsps = dsps;
+    node->master = master;
     node->device = NULL;
     node->name[KQT_DEVICE_NODE_NAME_MAX - 1] = '\0';
     node->state = DEVICE_NODE_STATE_NEW;

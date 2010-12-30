@@ -172,7 +172,11 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     Read_state* conn_state = READ_STATE_AUTO;
-    song->connections = new_Connections_from_string(NULL, false, conn_state);
+    song->connections = new_Connections_from_string(NULL, false,
+                                                    song->insts,
+                                                    song->dsps,
+                                                    &song->parent,
+                                                    conn_state);
     if (song->connections == NULL)
     {
         assert(!conn_state->error);

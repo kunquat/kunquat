@@ -247,7 +247,11 @@ static bool parse_song_level(kqt_Handle* handle,
     else if (string_eq(key, "p_connections.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Connections* graph = new_Connections_from_string(data, false, state);
+        Connections* graph = new_Connections_from_string(data, false,
+                                                 Song_get_insts(handle->song),
+                                                 Song_get_dsps(handle->song),
+                                                 (Device*)handle->song,
+                                                 state);
         if (graph == NULL)
         {
             if (state->error)
@@ -449,23 +453,8 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         else
         {
-            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-            Connections* graph = new_Connections_from_string(data, true,
-                                                             state);
-            if (graph == NULL)
-            {
-                if (state->error)
-                {
-                    set_parse_error(handle, state);
-                }
-                else
-                {
-                    kqt_Handle_set_error(handle, ERROR_MEMORY,
-                            "Couldn't allocate memory");
-                }
-                return false;
-            }
-            if (ins == NULL)
+            bool new_ins = ins == NULL;
+            if (new_ins)
             {
                 ins = new_Instrument(Device_get_buffer_size(
                                             (Device*)handle->song),
@@ -480,11 +469,33 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
                             "Couldn't allocate memory");
-                    del_Connections(graph);
                     return false;
                 }
             }
             assert(ins != NULL);
+            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            Connections* graph = new_Connections_from_string(data, true,
+                                                 Song_get_insts(handle->song),
+                                                 Song_get_dsps(handle->song),
+                                                 (Device*)ins,
+                                                 state);
+            if (graph == NULL)
+            {
+                if (new_ins)
+                {
+                    Ins_table_remove(Song_get_insts(handle->song), index);
+                }
+                if (state->error)
+                {
+                    set_parse_error(handle, state);
+                }
+                else
+                {
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
+                }
+                return false;
+            }
             Instrument_set_connections(ins, graph);
             reconnect = true;
         }

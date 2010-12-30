@@ -91,8 +91,14 @@ static int validate_connection_path(char* str,
 
 Connections* new_Connections_from_string(char* str,
                                          bool ins_level,
+                                         Ins_table* insts,
+                                         DSP_table* dsps,
+                                         Device* master,
                                          Read_state* state)
 {
+    assert(insts != NULL);
+    assert(dsps != NULL);
+    assert(master != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -111,9 +117,9 @@ Connections* new_Connections_from_string(char* str,
     graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    Device_node* master = new_Device_node("");
-    clean_if(master == NULL, graph, NULL);
-    clean_if(!AAtree_ins(graph->nodes, master), graph, master);
+    Device_node* master_node = new_Device_node("", insts, dsps, master);
+    clean_if(master_node == NULL, graph, NULL);
+    clean_if(!AAtree_ins(graph->nodes, master_node), graph, master_node);
 
     if (str == NULL)
     {
@@ -154,7 +160,8 @@ Connections* new_Connections_from_string(char* str,
 
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
-            Device_node* new_src = new_Device_node(src_name);
+            Device_node* new_src = new_Device_node(src_name,
+                                                   insts, dsps, master);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
@@ -162,7 +169,8 @@ Connections* new_Connections_from_string(char* str,
 
         if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
-            Device_node* new_dest = new_Device_node(dest_name);
+            Device_node* new_dest = new_Device_node(dest_name,
+                                                    insts, dsps, master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
