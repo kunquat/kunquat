@@ -181,6 +181,13 @@ class KqtEditor(QtGui.QMainWindow):
     def save(self):
         self.project.save()
 
+    def export_composition(self):
+        path = QtGui.QFileDialog.getSaveFileName(
+                caption='Export Kunquat composition',
+                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
+        if path:
+            self.project.export_kqt(str(path))
+
     def import_composition(self):
         path = QtGui.QFileDialog.getOpenFileName(
                 caption='Import Kunquat composition',
@@ -263,6 +270,12 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
                                self.save)
 
+        export = QtGui.QToolButton()
+        export.setText('Export')
+        export.setAutoRaise(True)
+        QtCore.QObject.connect(export, QtCore.SIGNAL('clicked()'),
+                               self.export_composition)
+
         play = QtGui.QToolButton()
         play.setText('Play')
         play.setAutoRaise(True)
@@ -304,6 +317,7 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(new_project)
         layout.addWidget(open_project)
         layout.addWidget(save_project)
+        layout.addWidget(export)
         layout.addWidget(self.create_separator())
 
         layout.addWidget(play)

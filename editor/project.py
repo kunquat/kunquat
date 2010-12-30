@@ -214,7 +214,21 @@ class Project(object):
                 using, respectively, gzip or bzip2.
 
         """
-        pass
+        root = 'kqtc' + lim.FORMAT_VERSION + '/'
+        compression = ''
+        if dest.endswith('.gz'):
+            compression = 'gz'
+        elif dest.endswith('.bz2'):
+            compression = 'bz2'
+        tfile = tarfile.open(dest, 'w:' + compression,
+                             format=tarfile.USTAR_FORMAT)
+        for key in self._keys:
+            kfile = KeyFile(root + key, self._handle[key])
+            info = tarfile.TarInfo()
+            info.name = root + key
+            info.size = kfile.size
+            tfile.addfile(info, fileobj=kfile)
+        tfile.close()
 
     def import_kqt(self, src):
         """Imports a composition into the Project.
@@ -227,6 +241,7 @@ class Project(object):
 
         """
         self._history.start_group('Import composition {0}'.format(src))
+        tfile = None
         try:
             self.clear()
             if os.path.isdir(src):
@@ -264,6 +279,8 @@ class Project(object):
                             self[key] = data
                     entry = tfile.next()
         finally:
+            if tfile:
+                tfile.close()
             self._history.end_group()
 
     def import_kqti(self, index, src):
@@ -278,6 +295,7 @@ class Project(object):
         assert index >= 0
         assert index < lim.INSTRUMENTS_MAX
         ins_path = 'ins_{0:02x}'.format(index)
+        tfile = None
         self._history.start_group(
                 'Load {0} into instrument {1:d}'.format(src, index))
         try:
@@ -323,6 +341,8 @@ class Project(object):
                 connections.append([ins_out, 'out_00'])
             self['p_connections.json'] = connections
         finally:
+            if tfile:
+                tfile.close()
             self._history.end_group()
 
     def save(self):
@@ -348,6 +368,33 @@ class Project(object):
 
     def __del__(self):
         self._handle = None
+
+
+class KeyFile(object):
+
+    def __init__(self, name, data):
+        self.name = name
+        self._data = data
+        self._cur = 0
+
+    def read(self, size=-1):
+        if size < 0:
+            if not self._cur:
+                self._cur = len(self._data)
+                return self._data
+            cur = self._cur
+            self._cur = len(self._data)
+            return self._data[cur:]
+        cur = self._cur
+        self._cur = min(self._cur + size, len(self._data))
+        return self._data[cur:self._cur]
+
+    @property
+    def size(self):
+        return len(self._data)
+
+    def close(self):
+        self._cur = len(self._data)
 
 
 class History(object):
