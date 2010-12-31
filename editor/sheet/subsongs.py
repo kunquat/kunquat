@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010, 2011
 #
 # This file is part of Kunquat.
 #
@@ -106,7 +106,7 @@ class Subsongs(QtGui.QTreeView):
                     self._slists.append(ss_info['patterns'])
                 else:
                     self._slists.append([])
-                if len(self._slists[-1]) < lim.SUBSONGS_MAX:
+                if len(self._slists) < lim.SUBSONGS_MAX:
                     add_ss = QtGui.QStandardItem('New subsong...')
                     add_ss.setEditable(False)
                     add_ss.setFont(QtGui.QFont('Decorative', italic=True))
@@ -124,6 +124,27 @@ class Subsongs(QtGui.QTreeView):
                                     subsong_number)
                 QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
                                     subsong_number)
+                return
+            elif ev.key() == QtCore.Qt.Key_Delete:
+                if item.row() >= len(self._slists):
+                    assert item.row() == len(self._slists)
+                    return
+                subsong_number = item.row()
+                self._project.start_group(
+                        'Remove subsong {0:d}'.format(subsong_number))
+                try:
+                    key_format = 'subs_{0:02x}/p_subsong.json'
+                    #print('remove', subsong_number)
+                    self._project[key_format.format(subsong_number)] = None
+                    for i in xrange(subsong_number + 1, len(self._slists)):
+                        #print('move', i, 'to', i - 1)
+                        self._project[key_format.format(i - 1)] = \
+                                self._project[key_format.format(i)]
+                        self._project[key_format.format(i)] = None
+                    item.parent().removeRow(subsong_number)
+                    self._slists[subsong_number:subsong_number + 1] = []
+                finally:
+                    self._project.end_group()
                 return
         if subsong_number >= 0 and section_number >= 0: # section
             if ev.key() == QtCore.Qt.Key_Return:

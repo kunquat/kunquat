@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010, 2011
 #
 # This file is part of Kunquat.
 #
@@ -350,6 +350,19 @@ class Project(object):
         self._handle.commit()
         self._history.set_commit()
         self._changed = False
+
+    def start_group(self, name=''):
+        """Marks the start of a group of modifications.
+
+        Every call of start_group must always have a corresponding
+        call of end_group, including exceptional circumstances.
+
+        """
+        self._history.start_group(name)
+
+    def end_group(self):
+        """Marks the end of a group of modifications."""
+        self._history.end_group()
 
     def undo(self):
         """Undoes a change made in the Project."""
