@@ -13,6 +13,7 @@
 
 from __future__ import division
 from __future__ import print_function
+import random
 
 from PyQt4 import QtCore
 
@@ -54,6 +55,14 @@ class NoteInput(object):
             }
 
     def get_note(self, key):
+        if key == QtCore.Qt.Key_section:
+            note_indices = [x[0] for x in self.keys.itervalues() if x[1] == 0]
+            note_indices.sort()
+            value = int(random.gauss(len(note_indices) / 2,
+                                     len(note_indices)))
+            octave = value // len(note_indices)
+            note = value % len(note_indices)
+            return note, octave + self.base_octave
         note, octave = self.keys[key]
         return note, octave + self.base_octave
 

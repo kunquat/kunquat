@@ -193,10 +193,12 @@ class KqtEditor(QtGui.QMainWindow):
                 caption='Import Kunquat composition',
                 filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
         if path:
+            self.stop()
             self.project.import_kqt(str(path))
             self.sync()
 
     def clear(self):
+        self.stop()
         self.project.clear()
         self.sync()
 
