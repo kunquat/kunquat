@@ -141,8 +141,12 @@ class Subsongs(QtGui.QTreeView):
                         self._project[key_format.format(i - 1)] = \
                                 self._project[key_format.format(i)]
                         self._project[key_format.format(i)] = None
-                    item.parent().removeRow(subsong_number)
+                    parent = item.parent()
+                    parent.removeRow(subsong_number)
                     self._slists[subsong_number:subsong_number + 1] = []
+                    for i in xrange(subsong_number, len(self._slists)):
+                        parent.child(i).setText('Subsong {0}'.format(i))
+                    # TODO: update subsong jumps in pattern data!
                 finally:
                     self._project.end_group()
                 return
