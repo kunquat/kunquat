@@ -271,6 +271,22 @@ class Subsongs(QtGui.QTreeView):
                 self._slists.append(subsong['patterns'])
             else:
                 self._slists.append([])
+
+        cur_subsong = -1
+        cur_section = -1
+        select_model = self.selectionModel()
+        if select_model:
+            selected = select_model.selectedIndexes()
+            if selected:
+                assert len(selected) == 1
+                selected = selected[0]
+                if selected.isValid() and selected.parent().isValid():
+                    if not selected.parent().parent().isValid(): # subsong
+                        cur_subsong = selected.row()
+                    else: # section
+                        cur_subsong = selected.parent().row()
+                        cur_section = selected.row()
+
         self._model = QtGui.QStandardItemModel(self._parent)
         root = self._model.invisibleRootItem()
         composition = QtGui.QStandardItem('Composition')
@@ -296,5 +312,19 @@ class Subsongs(QtGui.QTreeView):
             composition.appendRow(add_item)
         self.setModel(self._model)
         self.expandAll()
+
+        item = self._model.item(0)
+        if cur_subsong >= 0:
+            child = item.child(cur_subsong)
+            item = child if child else item
+            if cur_section >= 0:
+                assert child
+                child = item.child(cur_section)
+                item = child if child else item
+        select_model = self.selectionModel()
+        assert select_model
+        index = self._model.indexFromItem(item)
+        select_model.select(index, QtGui.QItemSelectionModel.Select)
+        select_model.setCurrentIndex(index, QtGui.QItemSelectionModel.Select)
 
 
