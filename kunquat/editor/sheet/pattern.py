@@ -22,10 +22,10 @@ from PyQt4 import QtGui, QtCore
 import accessors as acc
 from column import Column
 from cursor import Cursor
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 import note_input as ni
 import scale
-import timestamp as ts
+import kunquat.editor.timestamp as ts
 import trigger
 
 

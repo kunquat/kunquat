@@ -20,8 +20,8 @@ import re
 import kunquat
 from PyQt4 import QtGui, QtCore
 
-import kqt_limits
-import timestamp as ts
+import kunquat.editor.kqt_limits
+import kunquat.editor.timestamp as ts
 import trigger
 import trigger_row as tr
 

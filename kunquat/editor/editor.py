@@ -342,7 +342,7 @@ class KqtEditor(QtGui.QMainWindow):
         #QtGui.QMainWindow.__del__(self)
 
 
-if __name__ == '__main__':
+def main():
     app = QtGui.QApplication(sys.argv)
     editor = KqtEditor()
     editor.show()

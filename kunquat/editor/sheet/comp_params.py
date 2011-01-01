@@ -13,7 +13,7 @@
 
 from PyQt4 import QtGui, QtCore
 
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 from param_slider import ParamSlider
 
 

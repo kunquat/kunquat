@@ -13,7 +13,7 @@
 
 from PyQt4 import QtGui, QtCore
 
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 from comp_params import CompParams
 from pattern_editor import PatternEditor
 from subsong_params import SubsongParams

@@ -13,7 +13,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 
 
 class InstList(QtGui.QTableWidget):

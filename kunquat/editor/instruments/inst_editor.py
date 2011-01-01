@@ -15,7 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 
 
 class InstEditor(QtGui.QWidget):

@@ -19,8 +19,8 @@ import sys
 from PyQt4 import QtCore
 
 import accessors as acc
-import kqt_limits as lim
-import timestamp
+import kunquat.editor.kqt_limits as lim
+import kunquat.editor.timestamp as ts
 import trigger
 import trigger_row
 
@@ -44,7 +44,7 @@ class Cursor(QtCore.QObject):
         self.init_trigger_delay = 6
         self.cur_trigger_delay = self.init_trigger_delay
         self.trigger_delay_left = 0
-        self.ts = timestamp.Timestamp()
+        self.ts = ts.Timestamp()
         self.set_length(length)
         self.set_beat_len(beat_len)
         self.insert = False
@@ -392,13 +392,13 @@ class Cursor(QtCore.QObject):
         self.col = col
         self.set_col_path()
 
-    def set_pos(self, ts):
-        self.ts = min(max(timestamp.Timestamp(), ts), self.length)
+    def set_pos(self, timestamp):
+        self.ts = min(max(ts.Timestamp(), timestamp), self.length)
         self.pix_pos = self.ts * self.beat_len
 
     def set_pix_pos(self, pix_pos):
         self.pix_pos = float(max(0, pix_pos))
-        self.ts = timestamp.Timestamp(self.pix_pos / self.beat_len)
+        self.ts = ts.Timestamp(self.pix_pos / self.beat_len)
         if self.ts > self.length:
             self.set_pos(self.length)
 
@@ -468,7 +468,7 @@ class Cursor(QtCore.QObject):
         orig_pos = self.ts
         self.set_pix_pos(self.pix_pos + self.cur_speed)
         if self.ts == orig_pos:
-            self.set_pos(self.ts + timestamp.Timestamp(0,
+            self.set_pos(self.ts + ts.Timestamp(0,
                                        1 if self.cur_speed > 0 else -1))
 
         first, second = ((orig_pos, self.ts) if orig_pos < self.ts

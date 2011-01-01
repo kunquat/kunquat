@@ -15,7 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtGui, QtCore
 
-import timestamp as ts
+import kunquat.editor.timestamp as ts
 import trigger
 
 

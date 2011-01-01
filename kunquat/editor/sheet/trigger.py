@@ -18,9 +18,9 @@ import math
 
 from PyQt4 import QtGui, QtCore
 
-import kqt_limits as lim
+import kunquat.editor.kqt_limits as lim
 import scale
-import timestamp as ts
+import kunquat.editor.timestamp as ts
 
 
 note_off_str = u'══'
