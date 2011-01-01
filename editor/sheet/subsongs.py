@@ -106,6 +106,7 @@ class Subsongs(QtGui.QTreeView):
                     self._slists.append(ss_info['patterns'])
                 else:
                     self._slists.append([])
+                self._project[path] = ss_info
                 if len(self._slists) < lim.SUBSONGS_MAX:
                     add_ss = QtGui.QStandardItem('New subsong...')
                     add_ss.setEditable(False)
@@ -264,7 +265,7 @@ class Subsongs(QtGui.QTreeView):
         for num in xrange(lim.SUBSONGS_MAX):
             path = 'subs_{0:02x}/p_subsong.json'.format(num)
             subsong = self._project[path]
-            if not subsong:
+            if subsong == None:
                 break
             if 'patterns' in subsong:
                 self._slists.append(subsong['patterns'])

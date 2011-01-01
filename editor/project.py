@@ -161,6 +161,7 @@ class Project(object):
                 value = json.dumps(value)
             self._history.step(key, old_value, value)
         self._changed = True
+        #self._history.show_latest_branch()
 
     @property
     def mixing_rate(self):
@@ -367,6 +368,7 @@ class Project(object):
     def undo(self):
         """Undoes a change made in the Project."""
         self._history.undo()
+        #self._history.show_latest_branch()
 
     def redo(self, branch=None):
         """Redoes a change made in the Project.
@@ -378,6 +380,7 @@ class Project(object):
 
         """
         self._history.redo(branch)
+        #self._history.show_latest_branch()
 
     def __del__(self):
         self._handle = None
@@ -432,6 +435,12 @@ class History(object):
     def set_commit(self):
         assert not self._group
         self._commit = self._current
+
+    def show_latest_branch(self):
+        cur = self._root
+        while cur:
+            print(cur.name, '<-' if cur == self._current else '')
+            cur = cur.child()
 
     def start_group(self, name=''):
         """Start a group of changes.
