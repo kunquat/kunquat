@@ -190,6 +190,7 @@ class Cursor(QtCore.QObject):
         self.insert = False
 
     def direct_edit(self, ev):
+        ev.accept()
         triggers = self.col.get_triggers()
         if self.ts in triggers and not self.insert:
             row = triggers[self.ts]

@@ -89,9 +89,6 @@ class KeyMap(QtCore.QObject):
         """
         return self._bind(key, modifier, call, self._map, self._calls)
 
-    def rbind(self, key, modifier, call):
-        return self._bind(key, modifier, call, self._map, self._calls)
-
     def call(self, ev):
         """Call a bound method based on a QKeyEvent.
 
@@ -128,10 +125,6 @@ class KeyMap(QtCore.QObject):
         """
         assert type(guide) == str
         return self.bind(key, modifier, guide)
-
-    def set_rguide(self, key, modifier, guide):
-        assert type(guide) == str
-        return self.rbind(key, modifier, guide)
 
     def _get_guide(self, ev, kmap):
         kspec = ev.key(), int(ev.modifiers())
