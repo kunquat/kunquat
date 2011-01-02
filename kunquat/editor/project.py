@@ -17,6 +17,7 @@ import errno
 import json
 import re
 import tarfile
+import time
 import types
 import os
 
@@ -228,6 +229,7 @@ class Project(object):
             info = tarfile.TarInfo()
             info.name = root + key
             info.size = kfile.size
+            info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=kfile)
         tfile.close()
 
