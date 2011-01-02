@@ -38,6 +38,42 @@ class KeyMap(QtCore.QObject):
                 ambiguous = self.bind(key, modifier, keys[(key, modifier)])
                 assert not ambiguous
 
+    def _bind(self, key, modifier, call, kmap, kcalls):
+        ambiguous = False
+        if modifier != None:
+            modifier = int(modifier)
+        if (key, modifier) in kmap:
+            ambiguous = any(kcall != call for kcall
+                                          in kmap[(key, modifier)])
+        if call in kcalls:
+            for kspec in kcalls[call]:
+                kmap[kspec].remove(call)
+            del kcalls[call]
+        kmap[(key, modifier)].append(call)
+        kcalls[call].append((key, modifier))
+        return ambiguous
+
+    def _call(self, ev, kmap, release=False):
+        kspec = ev.key(), int(ev.modifiers())
+        altspec = ev.key(), None
+        if kspec in kmap:
+            pass
+        elif altspec in kmap:
+            kspec = altspec
+        else:
+            ev.ignore()
+            return
+        assert len(kmap[kspec]) > 0
+        if len(kmap[kspec]) > 1:
+            raise RuntimeError(
+                    'Ambiguous key specification: {0:02x}:{0:08x}'.format(
+                            ev.key(), ev.modifiers()))
+        func = kmap[kspec][0][1 if release else 0]
+        if func:
+            func(ev)
+        else:
+            ev.ignore()
+
     def bind(self, key, modifier, call):
         """Bind a key combination to a call.
 
@@ -51,19 +87,10 @@ class KeyMap(QtCore.QObject):
         key combination.
 
         """
-        ambiguous = False
-        if modifier != None:
-            modifier = int(modifier)
-        if (key, modifier) in self._map:
-            ambiguous = any(kcall != call for kcall
-                                          in self._map[(key, modifier)])
-        if call in self._calls:
-            for kspec in self._calls[call]:
-                self._map[kspec].remove(call)
-            del self._calls[call]
-        self._map[(key, modifier)].append(call)
-        self._calls[call].append((key, modifier))
-        return ambiguous
+        return self._bind(key, modifier, call, self._map, self._calls)
+
+    def rbind(self, key, modifier, call):
+        return self._bind(key, modifier, call, self._map, self._calls)
 
     def call(self, ev):
         """Call a bound method based on a QKeyEvent.
@@ -78,21 +105,10 @@ class KeyMap(QtCore.QObject):
                         more than one call or guide).
 
         """
-        kspec = ev.key(), int(ev.modifiers())
-        altspec = ev.key(), None
-        if kspec in self._map:
-            pass
-        elif altspec in self._map:
-            kspec = altspec
-        else:
-            ev.ignore()
-            return
-        assert len(self._map[kspec]) > 0
-        if len(self._map[kspec]) > 1:
-            raise RuntimeError(
-                    'Ambiguous key specification: {0:02x}:{0:08x}'.format(
-                            ev.key(), ev.modifiers()))
-        self._map[kspec][0](ev)
+        self._call(ev, self._map)
+
+    def rcall(self, ev):
+        self._call(ev, self._map, release=True)
 
     def set_guide(self, key, modifier, guide):
         """Set a guide for a key combination.
@@ -113,6 +129,26 @@ class KeyMap(QtCore.QObject):
         assert type(guide) == str
         return self.bind(key, modifier, guide)
 
+    def set_rguide(self, key, modifier, guide):
+        assert type(guide) == str
+        return self.rbind(key, modifier, guide)
+
+    def _get_guide(self, ev, kmap):
+        kspec = ev.key(), int(ev.modifiers())
+        if kspec in kmap:
+            assert len(kmap[kspec]) > 0
+            if len(kmap[kspec]) > 1:
+                raise RuntimeError(
+                        'Ambiguous key specification: {0:02x}:{0:08x}'.format(
+                                ev.key(), ev.modifiers()))
+            s = kmap[kspec][0]
+            if type(s) != str:
+                raise TypeError('Key combination is bound to a callable')
+            return s
+        else:
+            ev.ignore()
+        return None
+
     def get_guide(self, ev):
         """Get a guide based on a QKeyEvent.
 
@@ -129,20 +165,7 @@ class KeyMap(QtCore.QObject):
         The guide if the key combination was found, otherwise None.
 
         """
-        kspec = ev.key(), int(ev.modifiers())
-        if kspec in self._map:
-            assert len(self._map[kspec]) > 0
-            if len(self._map[kspec]) > 1:
-                raise RuntimeError(
-                        'Ambiguous key specification: {0:02x}:{0:08x}'.format(
-                                ev.key(), ev.modifiers()))
-            s = self._map[kspec][0]
-            if type(s) != str:
-                raise TypeError('Key combination is bound to a callable')
-            return s
-        else:
-            ev.ignore()
-        return None
+        return _get_guide(self, ev, self._map)
 
     @property
     def name(self):

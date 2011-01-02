@@ -78,6 +78,10 @@ class Cursor(QtCore.QObject):
         QtCore.QObject.emit(self, QtCore.SIGNAL('fieldEdit(bool)'), value)
 
     def key_press(self, ev):
+        if ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
+            return
+        ev.accept()
         if ev.key() == QtCore.Qt.Key_Up:
             self.set_direction(-1)
             self.step()

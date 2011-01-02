@@ -22,6 +22,7 @@ from PyQt4 import QtGui, QtCore
 import accessors as acc
 from column import Column
 from cursor import Cursor
+import kunquat.editor.keymap as keymap
 import kunquat.editor.kqt_limits as lim
 import note_input as ni
 import scale
@@ -82,6 +83,36 @@ class Pattern(QtGui.QWidget):
                 'ruler': QtGui.QFont('Decorative', 8),
                 'trigger': QtGui.QFont('Decorative', 10),
                 }
+        self._keys = keymap.KeyMap('Pattern editing keys', {
+                (QtCore.Qt.Key_Up, QtCore.Qt.ControlModifier):
+                        (self._zoom_in, None),
+                (QtCore.Qt.Key_Down, QtCore.Qt.ControlModifier):
+                        (self._zoom_out, None),
+                (QtCore.Qt.Key_Left, QtCore.Qt.ControlModifier):
+                        (self._shrink_columns, None),
+                (QtCore.Qt.Key_Right, QtCore.Qt.ControlModifier):
+                        (self._expand_columns, None),
+                (QtCore.Qt.Key_Plus, QtCore.Qt.ControlModifier):
+                        (self._next_section, None),
+                (QtCore.Qt.Key_Minus, QtCore.Qt.ControlModifier):
+                        (self._prev_section, None),
+                (QtCore.Qt.Key_Insert, QtCore.Qt.ShiftModifier):
+                        (self._shift_down, self._reset_shift),
+                (QtCore.Qt.Key_Delete, QtCore.Qt.ShiftModifier):
+                        (self._shift_up, self._reset_shift),
+                (QtCore.Qt.Key_Insert, None):
+                        (None, self._reset_shift),
+                (QtCore.Qt.Key_Delete, None):
+                        (None, lambda ev: self._reset_shift(ev)), # id crisis
+                (QtCore.Qt.Key_Left, QtCore.Qt.ShiftModifier):
+                        (self._prev_column, None),
+                (QtCore.Qt.Key_Right, QtCore.Qt.ShiftModifier):
+                        (self._next_column, None),
+                (QtCore.Qt.Key_Left, QtCore.Qt.NoModifier):
+                        (self._cursor_left, None),
+                (QtCore.Qt.Key_Right, QtCore.Qt.NoModifier):
+                        (self._cursor_right, None),
+                })
         self.length = ts.Timestamp(16)
         self.beat_len = 96
         self.view_start = ts.Timestamp(0)
@@ -265,6 +296,9 @@ class Pattern(QtGui.QWidget):
         if self.cursor.edit:
             if ev.key() in (QtCore.Qt.Key_Escape,):
                 self.setFocus()
+            return
+        self._keys.call(ev)
+        """
         if ev.modifiers() == QtCore.Qt.ControlModifier:
             if ev.key() == QtCore.Qt.Key_Up:
                 self.zoom(self.zoom_factor)
@@ -365,7 +399,8 @@ class Pattern(QtGui.QWidget):
                     self.cursor.set_index(sys.maxsize)
             else:
                 self.update()
-        else:
+        """
+        if not ev.isAccepted():
             self.cursor.key_press(ev)
             if ev.isAccepted():
                 self.follow_cursor_vertical()
@@ -376,13 +411,125 @@ class Pattern(QtGui.QWidget):
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
             return
-        if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
-            self.cursor.set_direction()
+        self._keys.rcall(ev)
+        #if ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
+        #    self.cursor.set_direction()
+        #    return
+        if ev.isAccepted():
             return
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
             self.cursor.key_release(ev)
-#        else:
-#            print('release:', ev.key())
+
+    def _zoom_in(self, ev):
+        self.zoom(self.zoom_factor)
+
+    def _zoom_out(self, ev):
+        self.zoom(1 / self.zoom_factor)
+
+    def _shrink_columns(self, ev):
+        for col in self.columns:
+            col.set_width(col.width() / self.zoom_factor)
+        self.view_columns = list(self.get_viewable_columns(self.width))
+        self.follow_cursor_horizontal()
+        self.update()
+
+    def _expand_columns(self, ev):
+        for col in self.columns:
+            col.set_width(col.width() * self.zoom_factor)
+        self.view_columns = list(self.get_viewable_columns(self.width))
+        self.follow_cursor_horizontal()
+        self.update()
+
+    def _next_section(self, ev):
+        subsong = self.section_manager.subsong
+        section = self.section_manager.section
+        if section < lim.SECTIONS_MAX - 1:
+            self.section_manager.set(subsong, section + 1)
+
+    def _prev_section(self, ev):
+        subsong = self.section_manager.subsong
+        section = self.section_manager.section
+        if section > 0:
+            self.section_manager.set(subsong, section - 1)
+
+    def _shift(self, direction):
+        self.cursor.set_index(0)
+        shift_pos = self.cursor.get_pos()
+        self.cursor.set_direction(1)
+        self.cursor.step()
+        if direction > 0:
+            self.cursor.clear_delay()
+        shift = self.cursor.get_pos() - shift_pos
+        self.columns[self.cursor_col + 1].shift(shift_pos, shift * direction)
+        self.cursor.set_pos(shift_pos)
+        self.project[self.cursor.col_path] = \
+                self.columns[self.cursor_col + 1].flatten()
+        self.update()
+
+    def _shift_down(self, ev):
+        self._shift(1)
+
+    def _shift_up(self, ev):
+        self._shift(-1)
+
+    def _reset_shift(self, ev):
+        assert ev.type() == QtCore.QEvent.KeyRelease
+        self.cursor.set_direction()
+
+    def _prev_column(self, ev):
+        if self.cursor_col > -1:
+            self.columns[self.cursor_col + 1].set_cursor()
+            self.columns[self.cursor_col].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col])
+            self.cursor_col -= 1
+            self.follow_cursor_horizontal()
+            self.update()
+
+    def _next_column(self, ev):
+        if self.cursor_col < lim.COLUMNS_MAX - 1:
+            self.columns[self.cursor_col + 1].set_cursor()
+            self.columns[self.cursor_col + 2].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col + 2])
+            self.cursor_col += 1
+            self.follow_cursor_horizontal()
+            self.update()
+
+    def _cursor_left(self, ev):
+        self.cursor.key_press(ev)
+        if not ev.isAccepted():
+            ev.accept()
+            if self.cursor_col > -1:
+                if (self.cursor.get_pos() not in
+                        self.columns[self.cursor_col].get_triggers()):
+                    self.cursor.set_index(0)
+                self.columns[self.cursor_col + 1].set_cursor()
+                self.columns[self.cursor_col].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col])
+                self.cursor_col -= 1
+                self.follow_cursor_horizontal()
+                self.update()
+            else:
+                assert self.cursor_col == -1
+                self.cursor.set_index(0)
+        else:
+            self.update()
+
+    def _cursor_right(self, ev):
+        self.cursor.key_press(ev)
+        if not ev.isAccepted():
+            ev.accept()
+            if self.cursor_col < lim.COLUMNS_MAX - 1:
+                self.columns[self.cursor_col + 1].set_cursor()
+                self.columns[self.cursor_col + 2].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col + 2])
+                self.cursor_col += 1
+                self.follow_cursor_horizontal()
+                self.update()
+            else:
+                assert self.cursor_col == lim.COLUMNS_MAX - 1
+                self.cursor.set_index(sys.maxsize)
+        else:
+            self.update()
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()

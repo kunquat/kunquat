@@ -89,15 +89,24 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle = self.project.handle
         self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
-                (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier): self._undo,
-                (QtCore.Qt.Key_Y, QtCore.Qt.ControlModifier): self._redo,
-                (QtCore.Qt.Key_Up, QtCore.Qt.ShiftModifier): self._prev_ins,
-                (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier): self._next_ins,
-                (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier): self._play_subsong,
-                (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier): self._play_pattern,
-                (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier): self._stop,
-                (QtCore.Qt.Key_Less, None): self._octave_down,
-                (QtCore.Qt.Key_Greater, None): self._octave_up,
+                (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier):
+                        (self._undo, None),
+                (QtCore.Qt.Key_Y, QtCore.Qt.ControlModifier):
+                        (self._redo, None),
+                (QtCore.Qt.Key_Up, QtCore.Qt.ShiftModifier):
+                        (self._prev_ins, None),
+                (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier):
+                        (self._next_ins, None),
+                (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
+                        (self._play_subsong, None),
+                (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
+                        (self._play_pattern, None),
+                (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
+                        (self._stop, None),
+                (QtCore.Qt.Key_Less, None):
+                        (self._octave_down, None),
+                (QtCore.Qt.Key_Greater, None):
+                        (self._octave_up, None),
                 })
         self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
         self.mix_timer = QtCore.QTimer(self)
