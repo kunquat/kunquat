@@ -325,12 +325,12 @@ class RWHandle(RHandle):
 
         """
         data = buffer(value)
-        cdata = (ctypes.c_byte * len(data))()
+        cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
         _kunquat.kqt_Handle_set_data(self._handle,
                                      key,
                                      ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_byte)),
+                                         ctypes.POINTER(ctypes.c_ubyte)),
                                      len(data))
 
 
@@ -456,19 +456,19 @@ _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
 _kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
 
 _kunquat.kqt_Handle_get_data.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-_kunquat.kqt_Handle_get_data.restype = ctypes.POINTER(ctypes.c_byte)
+_kunquat.kqt_Handle_get_data.restype = ctypes.POINTER(ctypes.c_ubyte)
 _kunquat.kqt_Handle_get_data.errcheck = _error_check
 _kunquat.kqt_Handle_get_data_length.argtypes = [ctypes.c_void_p,
                                                 ctypes.c_char_p]
 _kunquat.kqt_Handle_get_data_length.restype = ctypes.c_long
 _kunquat.kqt_Handle_get_data_length.errcheck = _error_check
 _kunquat.kqt_Handle_free_data.argtypes = [ctypes.c_void_p,
-                                          ctypes.POINTER(ctypes.c_byte)]
+                                          ctypes.POINTER(ctypes.c_ubyte)]
 _kunquat.kqt_Handle_free_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_free_data.errcheck = _error_check
 _kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
                                          ctypes.c_char_p,
-                                         ctypes.POINTER(ctypes.c_byte),
+                                         ctypes.POINTER(ctypes.c_ubyte),
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
