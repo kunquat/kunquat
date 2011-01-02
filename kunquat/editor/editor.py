@@ -24,6 +24,7 @@ from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
 from instruments import Instruments
+import keymap
 import kqt_limits as lim
 import project
 from sheet import Sheet
@@ -87,6 +88,17 @@ class KqtEditor(QtGui.QMainWindow):
         self.project = project.Project(0)
         self.handle = self.project.handle
         self.set_appearance()
+        self._keys = keymap.KeyMap('Global keys', {
+                (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier): self._undo,
+                (QtCore.Qt.Key_Y, QtCore.Qt.ControlModifier): self._redo,
+                (QtCore.Qt.Key_Up, QtCore.Qt.ShiftModifier): self._prev_ins,
+                (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier): self._next_ins,
+                (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier): self._play_subsong,
+                (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier): self._play_pattern,
+                (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier): self._stop,
+                (QtCore.Qt.Key_Less, None): self._octave_down,
+                (QtCore.Qt.Key_Greater, None): self._octave_up,
+                })
         self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
         self.mix_timer = QtCore.QTimer(self)
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
@@ -104,31 +116,38 @@ class KqtEditor(QtGui.QMainWindow):
         self.pa_debug_timer.start(1)
         """
 
+    def _undo(self, ev):
+        self.project.undo()
+        self.sync()
+
+    def _redo(self, ev):
+        self.project.redo()
+        self.sync()
+
+    def _prev_ins(self, ev):
+        self._instrument.setValue(self._instrument.value() - 1)
+
+    def _next_ins(self, ev):
+        self._instrument.setValue(self._instrument.value() + 1)
+
+    def _play_subsong(self, ev):
+        self._playback.play_subsong(self._cur_subsong)
+
+    def _play_pattern(self, ev):
+        self._playback.play_pattern(self._cur_pattern)
+
+    def _stop(self, ev):
+        self._playback.stop()
+
+    def _octave_down(self, ev):
+        self._octave.setValue(self._octave.value() - 1)
+
+    def _octave_up(self, ev):
+        self._octave.setValue(self._octave.value() + 1)
+
     def keyPressEvent(self, ev):
-        if ev.modifiers() == QtCore.Qt.ControlModifier:
-            if ev.key() == QtCore.Qt.Key_Z:
-                self.project.undo()
-                self.sync()
-            if ev.key() == QtCore.Qt.Key_Y:
-                self.project.redo()
-                self.sync()
-            return
-        if ev.modifiers() == QtCore.Qt.ShiftModifier:
-            if ev.key() == QtCore.Qt.Key_PageUp:
-                self._instrument.setValue(self._instrument.value() - 1)
-            elif ev.key() == QtCore.Qt.Key_PageDown:
-                self._instrument.setValue(self._instrument.value() + 1)
-            return
-        if ev.key() == QtCore.Qt.Key_F5:
-            self._playback.play_subsong(self._cur_subsong)
-        elif ev.key() == QtCore.Qt.Key_F6:
-            self._playback.play_pattern(self._cur_pattern)
-        elif ev.key() == QtCore.Qt.Key_F8:
-            self._playback.stop()
-        elif ev.key() == QtCore.Qt.Key_Less:
-            self._octave.setValue(self._octave.value() - 1)
-        elif ev.key() == QtCore.Qt.Key_Greater:
-            self._octave.setValue(self._octave.value() + 1)
+        self._keys.call(ev)
+        return
 
     def mix(self):
         if self.playing:

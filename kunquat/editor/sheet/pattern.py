@@ -282,6 +282,16 @@ class Pattern(QtGui.QWidget):
                 self.view_columns = list(self.get_viewable_columns(self.width))
                 self.follow_cursor_horizontal()
                 self.update()
+            elif ev.key() == QtCore.Qt.Key_Plus:
+                subsong = self.section_manager.subsong
+                section = self.section_manager.section
+                if section < lim.SECTIONS_MAX - 1:
+                    self.section_manager.set(subsong, section + 1)
+            elif ev.key() == QtCore.Qt.Key_Minus:
+                subsong = self.section_manager.subsong
+                section = self.section_manager.section
+                if section > 0:
+                    self.section_manager.set(subsong, section - 1)
             else:
                 ev.ignore()
             return
@@ -316,16 +326,6 @@ class Pattern(QtGui.QWidget):
                     self.cursor_col += 1
                     self.follow_cursor_horizontal()
                     self.update()
-            elif ev.key() == QtCore.Qt.Key_Down:
-                subsong = self.section_manager.subsong
-                section = self.section_manager.section
-                if section < lim.SECTIONS_MAX - 1:
-                    self.section_manager.set(subsong, section + 1)
-            elif ev.key() == QtCore.Qt.Key_Up:
-                subsong = self.section_manager.subsong
-                section = self.section_manager.section
-                if section > 0:
-                    self.section_manager.set(subsong, section - 1)
             else:
                 ev.ignore()
             return
