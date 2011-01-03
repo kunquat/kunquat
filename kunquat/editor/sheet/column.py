@@ -143,7 +143,7 @@ class Column(object):
                 pix_pos = float((pos - self.view_start) * self.beat_len +
                                 col_head_height)
                 next_pix_pos = pix_pos + trigger_height
-                if next_pos and (not self.cursor or
+                if next_pos > 0 and (not self.cursor or
                                  pos != self.cursor.get_pos()):
                     next_pix_pos = float((next_pos - self.view_start) *
                                          self.beat_len + col_head_height) - 1

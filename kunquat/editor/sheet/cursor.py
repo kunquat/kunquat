@@ -203,6 +203,9 @@ class Cursor(QtCore.QObject):
                 self.active_accessor.setFocus()
             return
         """
+        if ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
+            return
         self.direct_edit(ev)
         if ev.isAccepted():
             return

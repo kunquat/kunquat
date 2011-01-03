@@ -65,9 +65,9 @@ class KeyMap(QtCore.QObject):
             return
         assert len(kmap[kspec]) > 0
         if len(kmap[kspec]) > 1:
-            raise RuntimeError(
+            raise RuntimeError, \
                     'Ambiguous key specification: {0:02x}:{0:08x}'.format(
-                            ev.key(), ev.modifiers()))
+                            ev.key(), ev.modifiers())
         func = kmap[kspec][0][1 if release else 0]
         if type(func) == str:
             ev.ignore()
@@ -133,9 +133,9 @@ class KeyMap(QtCore.QObject):
         if kspec in kmap:
             assert len(kmap[kspec]) > 0
             if len(kmap[kspec]) > 1:
-                raise RuntimeError(
+                raise RuntimeError, \
                         'Ambiguous key specification: {0:02x}:{0:08x}'.format(
-                                ev.key(), ev.modifiers()))
+                                ev.key(), ev.modifiers())
             s = kmap[kspec][0]
             if type(s) != str:
                 return None

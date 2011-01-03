@@ -12,6 +12,7 @@
 #
 
 from collections import Sequence
+import inspect
 import math
 
 from kqt_limits import TIMESTAMP_BEAT
@@ -58,7 +59,9 @@ class Timestamp(tuple):
         return tuple(self) >= tuple(other)
 
     def __nonzero__(self):
-        return self[0] != 0 or self[1] != 0
+        #print(inspect.stack()[1])
+        return True
+        #return self[0] != 0 or self[1] != 0
 
     __bool__ = __nonzero__
 
