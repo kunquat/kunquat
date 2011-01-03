@@ -295,6 +295,7 @@ class Pattern(QtGui.QWidget):
     def keyPressEvent(self, ev):
         if self.cursor.edit:
             if ev.key() in (QtCore.Qt.Key_Escape,):
+                self.cursor.edit = False
                 self.setFocus()
             return
         self._keys.call(ev)

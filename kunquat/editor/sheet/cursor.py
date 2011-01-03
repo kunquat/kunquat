@@ -94,7 +94,13 @@ class Cursor(QtCore.QObject):
     @edit.setter
     def edit(self, value):
         self._edit = value
+        if self.active_accessor:
+            self.active_accessor.hide()
+            self.active_accessor = None
         QtCore.QObject.emit(self, QtCore.SIGNAL('fieldEdit(bool)'), value)
+
+    def keyPressEvent(self, ev):
+        self.key_press(ev)
 
     def key_press(self, ev):
         ev.accept()
@@ -276,9 +282,6 @@ class Cursor(QtCore.QObject):
     def _reset(self, ev):
         self.edit = False
         self.insert = False
-        if self.active_accessor:
-            self.active_accessor.hide()
-            self.active_accessor = None
 
     def _delete(self, ev):
         tr = self.col.get_triggers()
@@ -581,8 +584,6 @@ class Cursor(QtCore.QObject):
                 self._instrument_spin.setValue(value)
         self.edit = False
         self.insert = False
-        self.active_accessor.hide()
-        self.active_accessor = None
         self.project[self.col_path] = self.col.flatten()
 
     def set_accel(self, accel):
