@@ -69,6 +69,9 @@ class KeyMap(QtCore.QObject):
                     'Ambiguous key specification: {0:02x}:{0:08x}'.format(
                             ev.key(), ev.modifiers()))
         func = kmap[kspec][0][1 if release else 0]
+        if type(func) == str:
+            ev.ignore()
+            return
         if func:
             func(ev)
         else:
@@ -97,7 +100,6 @@ class KeyMap(QtCore.QObject):
               combination is not found in the mapping.
 
         Exceptions:
-        TypeError    -- The key combination is set to a guide.
         RuntimeError -- The key combination is ambiguous (bound to
                         more than one call or guide).
 
@@ -136,10 +138,8 @@ class KeyMap(QtCore.QObject):
                                 ev.key(), ev.modifiers()))
             s = kmap[kspec][0]
             if type(s) != str:
-                raise TypeError('Key combination is bound to a callable')
+                return None
             return s
-        else:
-            ev.ignore()
         return None
 
     def get_guide(self, ev):
@@ -150,7 +150,6 @@ class KeyMap(QtCore.QObject):
               combination is not found in the mapping.
 
         Exceptions:
-        TypeError    -- The key combination is set to a call.
         RuntimeError -- The key combination is ambiguous (bound to
                         more than one call or guide).
 
@@ -158,7 +157,7 @@ class KeyMap(QtCore.QObject):
         The guide if the key combination was found, otherwise None.
 
         """
-        return _get_guide(self, ev, self._map)
+        return self._get_guide(ev, self._map)
 
     @property
     def name(self):

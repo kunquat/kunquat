@@ -19,6 +19,7 @@ import sys
 from PyQt4 import QtCore
 
 import accessors as acc
+import kunquat.editor.keymap as keymap
 import kunquat.editor.kqt_limits as lim
 import kunquat.editor.timestamp as ts
 import trigger
@@ -64,6 +65,24 @@ class Cursor(QtCore.QObject):
         self.project = None
         self.inst_num = 0
         self.inst_auto = True
+        nm = QtCore.Qt.NoModifier
+        self._keys = keymap.KeyMap('Cursor movement keys', {
+                (QtCore.Qt.Key_Up, nm): (self._step_up,
+                                         lambda ev: self.set_direction()),
+                (QtCore.Qt.Key_Down, nm): (self._step_down,
+                                           lambda ev: self.set_direction()),
+                (QtCore.Qt.Key_PageUp, nm): (self._bar_up, None),
+                (QtCore.Qt.Key_PageDown, nm): (self._bar_down, None),
+                (QtCore.Qt.Key_Home, nm): (self._top, None),
+                (QtCore.Qt.Key_End, nm): (self._bottom, None),
+                (QtCore.Qt.Key_Left, nm): (self._left, None),
+                (QtCore.Qt.Key_Right, nm): (self._right, None),
+                (QtCore.Qt.Key_Insert, nm): (self._insert, None),
+                (QtCore.Qt.Key_Escape, nm): (self._reset, None),
+                (QtCore.Qt.Key_Delete, nm): (self._delete, None),
+                (QtCore.Qt.Key_Return, nm): (self._enter, None),
+                })
+        self._keys.set_guide(QtCore.Qt.Key_1, nm, 'Note Off')
 
     def clear_delay(self):
         self.trigger_delay_left = 0
@@ -78,10 +97,11 @@ class Cursor(QtCore.QObject):
         QtCore.QObject.emit(self, QtCore.SIGNAL('fieldEdit(bool)'), value)
 
     def key_press(self, ev):
-        if ev.modifiers() != QtCore.Qt.NoModifier:
-            ev.ignore()
-            return
         ev.accept()
+        self._keys.call(ev)
+        if ev.isAccepted():
+            return
+        """
         if ev.key() == QtCore.Qt.Key_Up:
             self.set_direction(-1)
             self.step()
@@ -176,18 +196,131 @@ class Cursor(QtCore.QObject):
                 self.active_accessor.show()
                 self.active_accessor.setFocus()
             return
+        """
+        self.direct_edit(ev)
+        if ev.isAccepted():
+            return
+        ev.accept()
+        if self._keys.get_guide(ev) == 'Note Off':
+            self.note_off_key(ev)
+            return
         else:
-            self.direct_edit(ev)
-            if ev.isAccepted():
-                return
-            ev.accept()
-            if ev.key() == QtCore.Qt.Key_1:
-                self.note_off_key(ev)
-                return
-            else:
-                self.note_on_key(ev)
-                return
+            self.note_on_key(ev)
+            return
         self.insert = False
+
+    def _step_up(self, ev):
+        self.set_direction(-1)
+        self.step()
+        self.insert = False
+
+    def _step_down(self, ev):
+        self.set_direction(1)
+        self.step()
+        self.insert = False
+
+    def _bar_up(self, ev):
+        self.set_direction()
+        self.set_pos(self.ts - 4)
+        self.insert = False
+
+    def _bar_down(self, ev):
+        self.set_direction()
+        self.set_pos(self.ts + 4)
+        self.insert = False
+
+    def _top(self, ev):
+        self.set_direction()
+        self.set_pos(self.ts * 0)
+        self.insert = False
+
+    def _bottom(self, ev):
+        self.set_direction()
+        self.set_pos(self.length)
+        self.insert = False
+
+    def _left(self, ev):
+        if self.ts in self.col.get_triggers():
+            slots = self.col.get_triggers()[self.ts].slots()
+            if self.index <= 0:
+                if self.insert:
+                    self.index = 0
+                else:
+                    self.index = sys.maxsize
+                    ev.ignore()
+            elif self.index >= slots:
+                self.index = slots - 1
+            else:
+                self.index -= 1
+        else:
+            self.index = sys.maxsize
+            ev.ignore()
+        self.insert = False
+
+    def _right(self, ev):
+        if self.ts in self.col.get_triggers():
+            if not self.insert:
+                slots = self.col.get_triggers()[self.ts].slots()
+                if self.index >= slots:
+                    self.index = 0
+                    ev.ignore()
+                else:
+                    self.index += 1
+        else:
+            ev.ignore()
+        self.insert = False
+
+    def _insert(self, ev):
+        self.insert = True
+
+    def _reset(self, ev):
+        self.edit = False
+        self.insert = False
+        if self.active_accessor:
+            self.active_accessor.hide()
+            self.active_accessor = None
+
+    def _delete(self, ev):
+        tr = self.col.get_triggers()
+        if self.insert:
+            self.insert = False
+        elif self.ts in tr:
+            row = tr[self.ts]
+            tindex, findex = row.get_slot(self)
+            if tindex < len(row) and findex == 0:
+                play_note_off = False
+                if row[tindex][0] == 'cn+':
+                    play_note_off = True
+                del row[tindex]
+                if row == []:
+                    del tr[self.ts]
+                self.project[self.col_path] = self.col.flatten()
+                if play_note_off:
+                    self.playback_manager.play_event(
+                            self.col.get_num(), '["cn-", []]')
+        self.insert = False
+
+    def _enter(self, ev):
+        if not self.edit:
+            self.edit = True
+            tr = self.col.get_triggers()
+            if self.ts in tr:
+                field, valid_func = tr[self.ts].get_field_info(self)
+            else:
+                field = trigger.TriggerType('')
+                valid_func = None
+                self.index = 0
+            if not valid_func:
+                valid_func = (trigger.is_global
+                              if self.col.get_num() == -1
+                              else trigger.is_channel)
+            self.active_accessor = self.accessors[type(field)]
+            self.active_accessor.set_validator_func(valid_func)
+            if type(field) == trigger.Note:
+                field = '{0:.1f}'.format(field)
+            self.active_accessor.set_value(field)
+            self.active_accessor.show()
+            self.active_accessor.setFocus()
 
     def direct_edit(self, ev):
         ev.accept()
@@ -343,10 +476,11 @@ class Cursor(QtCore.QObject):
         self.insert = False
 
     def key_release(self, ev):
-        if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
-            self.set_direction()
-        else:
-            ev.ignore()
+        self._keys.rcall(ev)
+        #if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
+        #    self.set_direction()
+        #else:
+        #    ev.ignore()
 
     def set_beat_len(self, beat_len):
         assert beat_len > 0
