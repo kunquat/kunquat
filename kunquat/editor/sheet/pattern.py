@@ -158,6 +158,9 @@ class Pattern(QtGui.QWidget):
         QtCore.QObject.connect(self.cursor,
                                QtCore.SIGNAL('fieldEdit(bool)'),
                                self.field_edit)
+        QtCore.QObject.connect(self.cursor,
+                               QtCore.SIGNAL('nextCol()'),
+                               self.visit_next_col)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.note_input = default_input
@@ -171,6 +174,7 @@ class Pattern(QtGui.QWidget):
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
         self.cursor_col = -1
+        self.orig_cursor_col = None
         self.view_columns = []
         self.width = 0
         self.height = 0
@@ -313,6 +317,19 @@ class Pattern(QtGui.QWidget):
             return
         if ev.key() in (QtCore.Qt.Key_Up, QtCore.Qt.Key_Down):
             self.cursor.key_release(ev)
+        if not ev.isAccepted() and ev.key() == QtCore.Qt.Key_Shift:
+            if self.orig_cursor_col != None and False:
+                # FIXME: recognise shift+number
+                while self.cursor_col != self.orig_cursor_col and \
+                        self.cursor_col > -1:
+                    self._prev_column(ev)
+                self.orig_cursor_col = None
+
+    def visit_next_col(self):
+        return # FIXME: recognise shift+number
+        if self.orig_cursor_col == None:
+            self.orig_cursor_col = self.cursor_col
+        self._next_column(None)
 
     def _zoom_in(self, ev):
         self.zoom(self.zoom_factor)

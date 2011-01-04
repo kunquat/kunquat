@@ -29,6 +29,7 @@ import trigger_row
 class Cursor(QtCore.QObject):
 
     field_edit = QtCore.pyqtSignal(bool, name='fieldEdit')
+    next_col = QtCore.pyqtSignal(name='nextCol')
 
     def __init__(self,
                  length,
@@ -107,108 +108,10 @@ class Cursor(QtCore.QObject):
         self._keys.call(ev)
         if ev.isAccepted():
             return
-        """
-        if ev.key() == QtCore.Qt.Key_Up:
-            self.set_direction(-1)
-            self.step()
-        elif ev.key() == QtCore.Qt.Key_Down:
-            self.set_direction(1)
-            self.step()
-        elif ev.key() == QtCore.Qt.Key_PageUp:
-            self.set_direction()
-            self.set_pos(self.ts - 4)
-        elif ev.key() == QtCore.Qt.Key_PageDown:
-            self.set_direction()
-            self.set_pos(self.ts + 4)
-        elif ev.key() == QtCore.Qt.Key_Home:
-            self.set_direction()
-            self.set_pos(self.ts * 0)
-        elif ev.key() == QtCore.Qt.Key_End:
-            self.set_direction()
-            self.set_pos(self.length)
-        elif ev.key() == QtCore.Qt.Key_Left:
-            if self.ts in self.col.get_triggers():
-                slots = self.col.get_triggers()[self.ts].slots()
-                if self.index <= 0:
-                    if self.insert:
-                        self.index = 0
-                    else:
-                        self.index = sys.maxsize
-                        ev.ignore()
-                elif self.index >= slots:
-                    self.index = slots - 1
-                else:
-                    self.index -= 1
-            else:
-                self.index = sys.maxsize
-                ev.ignore()
-        elif ev.key() == QtCore.Qt.Key_Right:
-            if self.ts in self.col.get_triggers():
-                if not self.insert:
-                    slots = self.col.get_triggers()[self.ts].slots()
-                    if self.index >= slots:
-                        self.index = 0
-                        ev.ignore()
-                    else:
-                        self.index += 1
-            else:
-                ev.ignore()
-        elif ev.key() == QtCore.Qt.Key_Insert:
-            self.insert = True
-            return
-        elif ev.key() == QtCore.Qt.Key_Escape:
-            self.edit = False
-            self.insert = False
-            if self.active_accessor:
-                self.active_accessor.hide()
-                self.active_accessor = None
-        elif ev.key() == QtCore.Qt.Key_Delete:
-            tr = self.col.get_triggers()
-            if self.insert:
-                self.insert = False
-            elif self.ts in tr:
-                row = tr[self.ts]
-                tindex, findex = row.get_slot(self)
-                if tindex < len(row) and findex == 0:
-                    play_note_off = False
-                    if row[tindex][0] == 'cn+':
-                        play_note_off = True
-                    del row[tindex]
-                    if row == []:
-                        del tr[self.ts]
-                    self.project[self.col_path] = self.col.flatten()
-                    if play_note_off:
-                        self.playback_manager.play_event(
-                                self.col.get_num(), '["cn-", []]')
-        elif ev.key() == QtCore.Qt.Key_Return:
-            if not self.edit:
-                self.edit = True
-                tr = self.col.get_triggers()
-                if self.ts in tr:
-                    field, valid_func = tr[self.ts].get_field_info(self)
-                else:
-                    field = trigger.TriggerType('')
-                    valid_func = None
-                    self.index = 0
-                if not valid_func:
-                    valid_func = (trigger.is_global
-                                  if self.col.get_num() == -1
-                                  else trigger.is_channel)
-                self.active_accessor = self.accessors[type(field)]
-                self.active_accessor.set_validator_func(valid_func)
-                if type(field) == trigger.Note:
-                    field = '{0:.1f}'.format(field)
-                self.active_accessor.set_value(field)
-                self.active_accessor.show()
-                self.active_accessor.setFocus()
-            return
-        """
-        if ev.modifiers() != QtCore.Qt.NoModifier:
-            ev.ignore()
-            return
-        self.direct_edit(ev)
-        if ev.isAccepted():
-            return
+        if ev.modifiers() == QtCore.Qt.NoModifier:
+            self.direct_edit(ev)
+            if ev.isAccepted():
+                return
         ev.accept()
         if self._keys.get_guide(ev) == 'Note Off':
             self.note_off_key(ev)
@@ -364,32 +267,38 @@ class Cursor(QtCore.QObject):
             return
         triggers = self.col.get_triggers()
         play_note_off = False
+        note_off_entered = False
         if self.ts in triggers and not self.insert:
             row = triggers[self.ts]
             tindex, findex = row.get_slot(self)
             if tindex < len(row):
                 trig = row[tindex]
-                if trig[0] in ('cn+', 'cn-'):
+                if trig[0] in ('cn+', 'cn-'): # replace existing Note On/Off
                     del row[tindex]
                     self.insert = True
                     self.col.set_value(self, trigger.TriggerType('cn-'))
                     self.insert = False
                     self.project[self.col_path] = self.col.flatten()
                     play_note_off = True
-            else:
+                    note_off_entered = True
+            else: # append to trigger row
                 self.index = row.slots()
                 self.col.set_value(self, trigger.TriggerType('cn-'))
                 self.project[self.col_path] = self.col.flatten()
                 play_note_off = True
-        else:
+                note_off_entered = True
+        else: # create a new trigger row
             if self.ts not in triggers:
                 self.index = 0
             self.col.set_value(self, trigger.TriggerType('cn-'))
             self.project[self.col_path] = self.col.flatten()
             play_note_off = True
+            note_off_entered = True
         if play_note_off:
             self.playback_manager.play_event(
                     self.col.get_num(), '["cn-", []]')
+        if note_off_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False
 
     def note_on_key(self, ev):
@@ -405,26 +314,29 @@ class Cursor(QtCore.QObject):
             return
         triggers = self.col.get_triggers()
         play_note_on = False
+        note_on_entered = False
         if self.ts in triggers and not self.insert:
             row = triggers[self.ts]
             tindex, findex = row.get_slot(self)
             if tindex < len(row):
                 trig = row[tindex]
-                if trig[0] == 'cn+':
+                if trig[0] == 'cn+': # replace existing Note On
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
-                elif trig[0] == 'cn-':
+                    note_on_entered = True
+                elif trig[0] == 'cn-': # replace existing Note Off
                     self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
+                    note_on_entered = True
                 elif isinstance(trig.get_field_info(findex)[0],
-                                trigger.Note):
+                                trigger.Note): # modify field
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
                     # TODO: should we play?
-            else:
+            else: # append to trigger row
                 self.index = row.slots()
                 self.col.set_value(self, trigger.TriggerType('cn+'))
                 self.col.set_value(self, cents)
@@ -448,7 +360,8 @@ class Cursor(QtCore.QObject):
                     self.index += 1
                 self.project[self.col_path] = self.col.flatten()
                 play_note_on = True
-        else:
+                note_on_entered = True
+        else: # create a new trigger row
             if self.ts not in triggers:
                 self.index = 0
             self.col.set_value(self, trigger.TriggerType('cn+'))
@@ -474,11 +387,14 @@ class Cursor(QtCore.QObject):
                 self.index += 1
             self.project[self.col_path] = self.col.flatten()
             play_note_on = True
+            note_on_entered = True
         if play_note_on:
             self.playback_manager.play_event(self.col.get_num(),
                                 '["c.i", [{0}]]'.format(self.inst_num))
             self.playback_manager.play_event(self.col.get_num(),
                                         '["cn+", [{0}]]'.format(cents))
+        if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False
 
     def key_release(self, ev):
