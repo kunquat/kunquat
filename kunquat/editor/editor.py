@@ -239,7 +239,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.resize(400, 300)
         self.setWindowTitle(PROGRAM_NAME)
 
-        self.statusBar().showMessage('[status]')
+        #self.statusBar().showMessage('[status]')
 
         self.central = QtGui.QWidget(self)
         self.setCentralWidget(self.central)
@@ -258,8 +258,11 @@ class KqtEditor(QtGui.QMainWindow):
                                         self._instrument)
         tabs.addTab(self._instruments, 'Instruments')
 
+        bottom_control = self.create_bottom_control()
+
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
+        top_layout.addWidget(bottom_control)
 
     def create_separator(self):
         separator = QtGui.QFrame()
@@ -364,6 +367,22 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self._instrument)
         layout.addWidget(self._octave)
         return top_control
+
+    def create_bottom_control(self):
+        bottom_control = QtGui.QWidget()
+        layout = QtGui.QHBoxLayout(bottom_control)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+
+        self._status_bar = QtGui.QStatusBar()
+        self._status_bar.showMessage('[status]')
+
+        self._progress_bar = QtGui.QProgressBar()
+        self._progress_bar.hide()
+
+        layout.addWidget(self._status_bar, 1)
+        layout.addWidget(self._progress_bar, 0)
+        return bottom_control
 
     def __del__(self):
         self.mix_timer.stop()
