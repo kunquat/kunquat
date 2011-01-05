@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 
 #include <Connections_search.h>
 #include <Pattern.h>
+#include <Pattern_location.h>
 #include <Playdata.h>
 #include <Event.h>
 #include <Event_global.h>
@@ -47,6 +48,8 @@ Pattern* new_Pattern(void)
     }
     pat->aux = NULL;
     pat->global = new_Column(NULL);
+    pat->locations = NULL;
+    pat->locations_iter = NULL;
     if (pat->global == NULL)
     {
         xfree(pat);
@@ -68,6 +71,14 @@ Pattern* new_Pattern(void)
     }
     pat->aux = new_Column_aux(NULL, pat->cols[0], 0);
     if (pat->aux == NULL)
+    {
+        del_Pattern(pat);
+        return NULL;
+    }
+    pat->locations = new_AAtree(
+            (int (*)(const void*, const void*))Pattern_location_cmp, free);
+    pat->locations_iter = new_AAiter(pat->locations);
+    if (pat->locations == NULL || pat->locations_iter == NULL)
     {
         del_Pattern(pat);
         return NULL;
@@ -105,6 +116,44 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state)
     }
     Pattern_set_length(pat, len);
     return true;
+}
+
+
+bool Pattern_set_location(Pattern* pat, int subsong, int section)
+{
+    assert(pat != NULL);
+    assert(subsong >= 0);
+    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(section >= 0);
+    assert(section < KQT_SECTIONS_MAX);
+    Pattern_location* key = PATTERN_LOCATION_AUTO;
+    key->subsong = subsong;
+    key->section = section;
+    if (AAtree_get_exact(pat->locations, key) != NULL)
+    {
+        return true;
+    }
+    key = new_Pattern_location(subsong, section);
+    if (key == NULL || !AAtree_ins(pat->locations, key))
+    {
+        xfree(key);
+        return false;
+    }
+    if (!Column_update_locations(pat->global,
+                                 pat->locations, pat->locations_iter))
+    {
+        return false;
+    }
+    return true;
+}
+
+
+AAtree* Pattern_get_locations(Pattern* pat, AAiter** iter)
+{
+    assert(pat != NULL);
+    assert(iter != NULL);
+    *iter = pat->locations_iter;
+    return pat->locations;
 }
 
 
@@ -649,6 +698,8 @@ void del_Pattern(Pattern* pat)
     }
     del_Column(pat->global);
     del_Column(pat->aux);
+    del_AAtree(pat->locations);
+    del_AAiter(pat->locations_iter);
     xfree(pat);
     return;
 }

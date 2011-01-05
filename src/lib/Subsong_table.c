@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -76,6 +76,14 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
     {
         return NULL;
     }
+    return Etable_get(table->subs, index);
+}
+
+
+Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index)
+{
+    assert(table != NULL);
+    assert(index < KQT_SUBSONGS_MAX);
     return Etable_get(table->subs, index);
 }
 

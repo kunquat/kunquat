@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -45,7 +45,8 @@ Event* Event_init(Event* event,
 /**
  * The default destructor for Events.
  *
- * This works for any Event that is allocated with a single call of malloc.
+ * This works for any Event that does not contain dynamically allocated fields
+ * in addition to the event fields.
  *
  * \param event   The Event, or \c NULL.
  */

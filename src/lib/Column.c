@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,8 @@
 
 #include <Reltime.h>
 #include <Event_pg.h>
-#include <Event_global_set_tempo.h>
+#include <Event_global_jump.h>
+//#include <Event_global_set_tempo.h>
 #include <Event_names.h>
 #include <Column.h>
 #include <xassert.h>
@@ -340,11 +341,15 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 Column* new_Column_from_string(Reltime* len,
                                char* str,
                                bool is_global,
+                               AAtree* locations,
+                               AAiter* locations_iter,
                                Event_names* event_names,
                                Read_state* state)
 {
     assert(event_names != NULL);
     assert(state != NULL);
+    assert(!is_global || locations != NULL);
+    assert(locations == NULL || locations_iter != NULL);
     if (state->error)
     {
         return false;
@@ -355,6 +360,11 @@ Column* new_Column_from_string(Reltime* len,
         return NULL;
     }
     if (!Column_parse(col, str, is_global, event_names, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    if (is_global && !Column_update_locations(col, locations, locations_iter))
     {
         del_Column(col);
         return NULL;
@@ -465,7 +475,7 @@ static bool Column_parse(Column* col,
             return false;
         }
 
-        str = read_const_char(str, ']', state);        
+        str = read_const_char(str, ']', state);
         str = read_const_char(str, ']', state);
         break_if(state->error);
 
@@ -481,6 +491,33 @@ static bool Column_parse(Column* col,
 }
 
 #undef break_if
+
+
+bool Column_update_locations(Column* col,
+                             AAtree* locations,
+                             AAiter* locations_iter)
+{
+    assert(col != NULL);
+    assert(locations != NULL);
+    assert(locations_iter != NULL);
+    Column_iter_change_col(col->edit_iter, col);
+    Event* event = Column_iter_get(col->edit_iter,
+                                   Reltime_init(RELTIME_AUTO));
+    while (event != NULL)
+    {
+        Event_type type = Event_get_type(event);
+        assert(!EVENT_IS_CHANNEL(type));
+        if (type == EVENT_GLOBAL_JUMP &&
+                !Trigger_global_jump_set_locations((Event_global_jump*)event,
+                                                   locations,
+                                                   locations_iter))
+        {
+            return false;
+        }
+        event = Column_iter_get_next(col->edit_iter);
+    }
+    return true;
+}
 
 
 bool Column_ins(Column* col, Event* event)

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -194,8 +194,35 @@ bool parse_data(kqt_Handle* handle,
     }
     else if ((index = string_extract_index(key, "pat_", 3, "/")) >= 0)
     {
+        Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
         success = parse_pattern_level(handle, key, second_element,
                                       data, length, index);
+        Pattern* new_pat = Pat_table_get(Song_get_pats(handle->song), index);
+        if (success && pat != new_pat && new_pat != NULL)
+        {
+            for (int subsong = 0; subsong < KQT_SUBSONGS_MAX; ++subsong)
+            {
+                Subsong* ss = Subsong_table_get_hidden(
+                                      Song_get_subsongs(handle->song),
+                                      subsong);
+                if (ss == NULL)
+                {
+                    continue;
+                }
+                for (int section = 0; section < KQT_SECTIONS_MAX; ++section)
+                {
+                    if (Subsong_get(ss, section) == index)
+                    {
+                        if (!Pattern_set_location(new_pat, subsong, section))
+                        {
+                            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                    "Couldn't allocate memory");
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
     }
     else if ((index = string_extract_index(key, "scale_", 1, "/")) >= 0)
     {
@@ -993,11 +1020,15 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
         }
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        AAiter* locations_iter = NULL;
+        AAtree* locations = Pattern_get_locations(pat, &locations_iter);
         Event_names* event_names =
                 Event_handler_get_names(handle->song->event_handler);
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
                                              global_column,
+                                             locations,
+                                             locations_iter,
                                              event_names,
                                              state);
         if (col == NULL)
@@ -1118,6 +1149,28 @@ static bool parse_subsong_level(kqt_Handle* handle,
                 set_parse_error(handle, state);
             }
             return false;
+        }
+        for (int i = 0; i < KQT_SECTIONS_MAX; ++i)
+        {
+            int16_t pat_index = Subsong_get(ss, i);
+            if (pat_index == KQT_SECTION_NONE)
+            {
+                break;
+            }
+            Pat_table* pats = Song_get_pats(handle->song);
+            assert(pats != NULL);
+            Pattern* pat = Pat_table_get(pats, pat_index);
+            if (pat == NULL)
+            {
+                continue;
+            }
+            if (!Pattern_set_location(pat, index, i))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                del_Subsong(ss);
+                return false;
+            }
         }
         Subsong_table* st = Song_get_subsongs(handle->song);
         if (!Subsong_table_set(st, index, ss))

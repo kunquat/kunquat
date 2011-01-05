@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -34,7 +34,7 @@ typedef enum
     EVENT_CONTROL_UPPER,
 
     EVENT_GENERAL_LOWER, ///< General Events.
-    
+
     EVENT_GENERAL_COMMENT, ///< A comment.
 
     EVENT_GENERAL_IF,
@@ -43,12 +43,12 @@ typedef enum
     EVENT_GENERAL_UPPER,
 
     EVENT_GLOBAL_LOWER, ///< Global Events.
-                                     
+
     EVENT_GLOBAL_SET_TEMPO,
     EVENT_GLOBAL_SLIDE_TEMPO,
     EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
     EVENT_GLOBAL_PATTERN_DELAY,
-                                     
+
     EVENT_GLOBAL_SET_VOLUME,
     EVENT_GLOBAL_SLIDE_VOLUME,
     EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
@@ -63,9 +63,9 @@ typedef enum
     EVENT_GLOBAL_SET_JUMP_ROW,
     EVENT_GLOBAL_SET_JUMP_COUNTER,
     EVENT_GLOBAL_JUMP,
-                                     
+
     EVENT_GLOBAL_SET_VAR, ///< Set a variable.
-                                     
+
     EVENT_GLOBAL_UPPER,
 
     EVENT_CHANNEL_LOWER, ///< Channel Events.
@@ -100,6 +100,8 @@ typedef enum
     EVENT_CHANNEL_AUTOWAH_DELAY,
 
     EVENT_CHANNEL_SET_RESONANCE,
+    EVENT_CHANNEL_SLIDE_RESONANCE,
+    EVENT_CHANNEL_SLIDE_RESONANCE_LENGTH,
 
     EVENT_CHANNEL_SET_PANNING,
     EVENT_CHANNEL_SLIDE_PANNING,
@@ -120,9 +122,9 @@ typedef enum
     EVENT_CHANNEL_UPPER,
 
     EVENT_INS_LOWER, ///< Instrument Events
-                                    
+
     EVENT_INS_SET_PEDAL,
-                                    
+
     EVENT_INS_UPPER,
 
     EVENT_GENERATOR_LOWER, ///< Generator Events
@@ -144,7 +146,7 @@ typedef enum
     EVENT_DSP_SET_RELTIME,
 
     EVENT_DSP_UPPER,
-                                    
+
     EVENT_LAST
 } Event_type;
 
