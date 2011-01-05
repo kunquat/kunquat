@@ -26,6 +26,7 @@ from PyQt4 import QtCore, QtGui
 from instruments import Instruments
 import keymap
 import kqt_limits as lim
+from peak_meter import PeakMeter
 import project
 from sheet import Sheet
 
@@ -114,7 +115,7 @@ class KqtEditor(QtGui.QMainWindow):
                                self.mix)
         self.bufs = (None, None)
         self.playing = False
-        self.mix_timer.start(1)
+        self.mix_timer.start(5)
         self._cur_subsong = -1
         self._cur_pattern = 0
 
@@ -166,6 +167,14 @@ class KqtEditor(QtGui.QMainWindow):
                     self.stop()
                     return
             if self.pa.try_write(*self.bufs):
+                dB = [float('-inf')] * 2
+                for ch in (0, 1):
+                    min_val = min(self.bufs[ch])
+                    max_val = max(self.bufs[ch])
+                    amp = (max_val - min_val) / 2
+                    if amp > 0:
+                        dB[ch] = math.log(amp, 2) * 6
+                self._peak_meter.set_peaks(*dB)
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()
@@ -187,6 +196,7 @@ class KqtEditor(QtGui.QMainWindow):
     def stop(self):
         self.playing = False
         self.handle.nanoseconds = 0
+        self._peak_meter.set_peaks(float('-inf'), float('-inf'))
 
     def play_subsong(self, subsong):
         self.handle.nanoseconds = 0
@@ -258,10 +268,13 @@ class KqtEditor(QtGui.QMainWindow):
                                         self._instrument)
         tabs.addTab(self._instruments, 'Instruments')
 
+        self._peak_meter = PeakMeter(-48, 0)
+
         bottom_control = self.create_bottom_control()
 
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
+        top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(bottom_control)
 
     def create_separator(self):
