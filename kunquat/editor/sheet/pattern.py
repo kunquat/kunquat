@@ -71,6 +71,7 @@ class Pattern(QtGui.QWidget):
                 'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
                 'cursor_arrow': QtGui.QColor(0xff, 0x44, 0x22),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
+                'ruler_cur': QtGui.QColor(0x77, 0x99, 0xbb),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 'trigger_fg': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'trigger_note_on_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
@@ -116,10 +117,6 @@ class Pattern(QtGui.QWidget):
         self.length = ts.Timestamp(16)
         self.beat_len = 96
         self.view_start = ts.Timestamp(0)
-        self.ruler = Ruler((self.colours, self.fonts))
-        self.ruler.set_length(self.length)
-        self.ruler.set_beat_len(self.beat_len)
-        self.ruler.set_view_start(self.view_start)
         self.columns = [Column(num, (self.colours, self.fonts))
                         for num in xrange(-1, lim.COLUMNS_MAX)]
         for col in self.columns:
@@ -161,6 +158,10 @@ class Pattern(QtGui.QWidget):
         QtCore.QObject.connect(self.cursor,
                                QtCore.SIGNAL('nextCol()'),
                                self.visit_next_col)
+        self.ruler = Ruler((self.colours, self.fonts), self.cursor)
+        self.ruler.set_length(self.length)
+        self.ruler.set_beat_len(self.beat_len)
+        self.ruler.set_view_start(self.view_start)
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.note_input = default_input
@@ -503,9 +504,10 @@ class Pattern(QtGui.QWidget):
 
 class Ruler(object):
 
-    def __init__(self, theme):
+    def __init__(self, theme, cursor):
         self.colours = theme[0]
         self.fonts = theme[1]
+        self._cursor = cursor
         self.height = 0
         self.view_start = ts.Timestamp()
         self.beat_div_base = 2
@@ -533,13 +535,23 @@ class Ruler(object):
         view_len = self.ruler_height / self.beat_len
         view_end = view_start + view_len
 
-        # paint background, including start and end borders if visible
+        # paint background
         bg_start = self.col_head_height
         bg_end = min(self.height, (float(self.length) - view_start) *
                                    self.beat_len + self.col_head_height)
         paint.setBrush(self.colours['ruler_bg'])
         paint.setPen(QtCore.Qt.NoPen)
         paint.drawRect(0, bg_start, self._width, bg_end - bg_start)
+
+        # paint cursor position marker
+        cursor_pos = float(self._cursor.get_pos())
+        if view_start <= cursor_pos <= view_end:
+            paint.setPen(self.colours['ruler_cur'])
+            pix_pos = (self._cursor.get_pix_pos() + self.col_head_height -
+                       self.view_start * self.beat_len)
+            paint.drawLine(0, pix_pos, self._width - 2, pix_pos)
+
+        # paint start and end borders if visible
         paint.setPen(self.colours['ruler_fg'])
         if self.view_start == 0:
             paint.drawLine(0, self.col_head_height,
