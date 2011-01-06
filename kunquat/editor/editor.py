@@ -115,7 +115,7 @@ class KqtEditor(QtGui.QMainWindow):
                                self.mix)
         self.bufs = (None, None)
         self.playing = False
-        self.mix_timer.start(5)
+        self.mix_timer.start(2)
         self._cur_subsong = -1
         self._cur_pattern = 0
 
@@ -168,13 +168,17 @@ class KqtEditor(QtGui.QMainWindow):
                     return
             if self.pa.try_write(*self.bufs):
                 dB = [float('-inf')] * 2
+                abs_max = [0] * 2
                 for ch in (0, 1):
                     min_val = min(self.bufs[ch])
                     max_val = max(self.bufs[ch])
+                    abs_max[ch] = max(abs(min_val), abs(max_val))
                     amp = (max_val - min_val) / 2
                     if amp > 0:
                         dB[ch] = math.log(amp, 2) * 6
-                self._peak_meter.set_peaks(*dB)
+                self._peak_meter.set_peaks(dB[0], dB[1],
+                                           abs_max[0], abs_max[1],
+                                           len(self.bufs[0]))
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()
@@ -196,7 +200,7 @@ class KqtEditor(QtGui.QMainWindow):
     def stop(self):
         self.playing = False
         self.handle.nanoseconds = 0
-        self._peak_meter.set_peaks(float('-inf'), float('-inf'))
+        self._peak_meter.set_peaks(float('-inf'), float('-inf'), 0, 0, 0)
 
     def play_subsong(self, subsong):
         self.handle.nanoseconds = 0
@@ -268,7 +272,7 @@ class KqtEditor(QtGui.QMainWindow):
                                         self._instrument)
         tabs.addTab(self._instruments, 'Instruments')
 
-        self._peak_meter = PeakMeter(-48, 0)
+        self._peak_meter = PeakMeter(-48, 0, self.handle.mixing_rate)
 
         bottom_control = self.create_bottom_control()
 

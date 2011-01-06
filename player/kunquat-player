@@ -318,7 +318,7 @@ class Status(object):
                  (True, False)  : u'▘',
                  (False, True)  : u'▖',
                  (False, False) : u' ' }
-    
+
     block_map = { (3, 3) : u'█',
                   (3, 2) : u'▜',
                   (3, 1) : u'▛',
