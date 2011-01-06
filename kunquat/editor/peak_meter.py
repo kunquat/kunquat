@@ -102,11 +102,14 @@ class PeakMeter(QtGui.QWidget):
             else:
                 level, nframes = self._level[ch].get()
                 self._prev_level[ch] = level
-            history = self._level_history[ch]
-            if len(history) >= 5:
-                history.popleft()
-            history.append(level if level > -96 else -96)
-            level = sum(history) / len(history)
+            if nframes:
+                history = self._level_history[ch]
+                if len(history) >= 5:
+                    history.popleft()
+                history.append(level if level > -96 else -96)
+                level = sum(history) / len(history)
+            else:
+                level = float('-inf')
             #if ch == 0:
             #    print(level, history)
             if level > self._lowest:
