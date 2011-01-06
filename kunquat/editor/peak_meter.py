@@ -107,11 +107,14 @@ class PeakMeter(QtGui.QWidget):
                 if len(history) >= 5:
                     history.popleft()
                 history.append(level if level > -96 else -96)
-                level = sum(history) / len(history)
+                if len(history) >= 2:
+                    level = (sum(history) - min(history)) / (len(history) - 1)
+                else:
+                    level = sum(history) / len(history)
             else:
                 level = float('-inf')
             #if ch == 0:
-            #    print(level, history)
+            #    print(level, self._level_history[0])
             if level > self._lowest:
                 grad.setColorAt(0, self._colours['low'])
                 grad.setColorAt(mid_point, self._colours['mid'])
