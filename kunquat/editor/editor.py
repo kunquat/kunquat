@@ -275,6 +275,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter = PeakMeter(-48, 0, self.handle.mixing_rate)
 
         bottom_control = self.create_bottom_control()
+        self.project.status_view = bottom_control
 
         top_layout.addWidget(top_control)
         top_layout.addWidget(tabs)
@@ -386,24 +387,49 @@ class KqtEditor(QtGui.QMainWindow):
         return top_control
 
     def create_bottom_control(self):
-        bottom_control = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout(bottom_control)
+        return Status()
+
+    def __del__(self):
+        self.mix_timer.stop()
+        #QtGui.QMainWindow.__del__(self)
+
+
+class Status(QtGui.QWidget):
+
+    def __init__(self, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
 
         self._status_bar = QtGui.QStatusBar()
-        self._status_bar.showMessage('[status]')
+        self._status_bar.showMessage('')
 
         self._progress_bar = QtGui.QProgressBar()
         self._progress_bar.hide()
 
         layout.addWidget(self._status_bar, 1)
         layout.addWidget(self._progress_bar, 0)
-        return bottom_control
 
-    def __del__(self):
-        self.mix_timer.stop()
-        #QtGui.QMainWindow.__del__(self)
+        self._step = 0
+
+    def start_task(self, steps):
+        self._progress_bar.setMinimum(0)
+        self._progress_bar.setMaximum(steps)
+        self._progress_bar.reset()
+        self._progress_bar.show()
+
+    def step(self, description):
+        self._status_bar.showMessage(description)
+        self._progress_bar.setValue(self._step)
+        if self._step < self._progress_bar.maximum():
+            self._step += 1
+        self.update()
+
+    def end_task(self):
+        self._progress_bar.hide()
+        self._status_bar.showMessage('')
+        self._step = 0
 
 
 def main():

@@ -61,6 +61,7 @@ class Project(object):
         self._find_keys()
         self._changed = False
         self._history = History(self)
+        self.status_view = None
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.
@@ -245,6 +246,7 @@ class Project(object):
         """
         self._history.start_group('Import composition {0}'.format(src))
         tfile = None
+        #self.status_view.start_task(0)
         try:
             self.clear()
             if os.path.isdir(src):
@@ -255,6 +257,8 @@ class Project(object):
                         full_path = os.path.join(dir_spec[0], fname)
                         key = full_path[len(src):]
                         with open(full_path) as f:
+                            #self.status_view.step(
+                            #        'Importing {0} ...'.format(key))
                             if key[key.index('.'):].startswith('.json'):
                                 self[key] = json.loads(f.read())
                             else:
@@ -275,6 +279,7 @@ class Project(object):
                         continue
                     key = entry.name[entry.name.index('/') + 1:]
                     if entry.isfile():
+                        #self.status_view.step('Importing {0} ...'.format(key))
                         data = tfile.extractfile(entry).read()
                         if key[key.index('.'):].startswith('.json'):
                             self[key] = json.loads(data)
@@ -285,6 +290,7 @@ class Project(object):
             if tfile:
                 tfile.close()
             self._history.end_group()
+            #self.status_view.end_task()
 
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
