@@ -239,7 +239,7 @@ class KqtEditor(QtGui.QMainWindow):
         if path:
             self.stop()
             self.project.import_kqt(str(path))
-            self.sync()
+            #self.sync()
 
     def clear(self):
         self.stop()
@@ -249,6 +249,10 @@ class KqtEditor(QtGui.QMainWindow):
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
+
+    def busy(self, busy_set):
+        self._top_control.setEnabled(not busy_set)
+        self._tabs.setEnabled(not busy_set)
 
     def set_appearance(self):
         # FIXME: size and title
@@ -263,24 +267,35 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
 
-        top_control = self.create_top_control()
+        self._top_control = self.create_top_control()
 
-        tabs = QtGui.QTabWidget()
+        self._tabs = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
                             self.subsong_changed, self.pattern_changed,
                             self._octave, self._instrument)
-        tabs.addTab(self._sheet, 'Sheet')
+        self._tabs.addTab(self._sheet, 'Sheet')
         self._instruments = Instruments(self.project,
                                         self._instrument)
-        tabs.addTab(self._instruments, 'Instruments')
+        self._tabs.addTab(self._instruments, 'Instruments')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         bottom_control = self.create_bottom_control()
-        self.project.status_view = bottom_control
+        QtCore.QObject.connect(self.project,
+                               QtCore.SIGNAL('startTask(int)'),
+                               bottom_control.start_task)
+        QtCore.QObject.connect(self.project,
+                               QtCore.SIGNAL('step(QString)'),
+                               bottom_control.step)
+        QtCore.QObject.connect(self.project,
+                               QtCore.SIGNAL('endTask()'),
+                               bottom_control.end_task)
+        QtCore.QObject.connect(self.project,
+                               QtCore.SIGNAL('endTask()'),
+                               self.sync)
 
-        top_layout.addWidget(top_control)
-        top_layout.addWidget(tabs)
+        top_layout.addWidget(self._top_control)
+        top_layout.addWidget(self._tabs)
         top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(bottom_control)
 
@@ -389,7 +404,7 @@ class KqtEditor(QtGui.QMainWindow):
         return top_control
 
     def create_bottom_control(self):
-        return Status()
+        return Status(self.busy)
 
     def __del__(self):
         self.mix_timer.stop()
@@ -398,8 +413,9 @@ class KqtEditor(QtGui.QMainWindow):
 
 class Status(QtGui.QWidget):
 
-    def __init__(self, parent=None):
+    def __init__(self, busy, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self._busy = busy
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -408,29 +424,40 @@ class Status(QtGui.QWidget):
         self._status_bar.showMessage('')
 
         self._progress_bar = QtGui.QProgressBar()
+        #self._progress_bar.setAlignment(QtCore.Qt.AlignLeft)
         self._progress_bar.hide()
 
         layout.addWidget(self._status_bar, 1)
-        layout.addWidget(self._progress_bar, 0)
+        layout.addWidget(self._progress_bar)
 
         self._step = 0
+        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
+                           QtGui.QSizePolicy.Fixed)
+
+    def sizeHint(self):
+        h = max(self._status_bar.sizeHint().height(),
+                self._progress_bar.sizeHint().height())
+        return QtCore.QSize(200, h)
 
     def start_task(self, steps):
-        self._progress_bar.setMinimum(0)
-        self._progress_bar.setMaximum(steps)
+        self._busy(True)
+        self._progress_bar.setRange(0, steps)
         self._progress_bar.reset()
-        self._progress_bar.show()
+        if steps > 0:
+            self._progress_bar.show()
 
     def step(self, description):
         self._status_bar.showMessage(description)
-        self._progress_bar.setValue(self._step)
+        #self._progress_bar.setFormat(description)
         if self._step < self._progress_bar.maximum():
+            self._progress_bar.setValue(self._step)
             self._step += 1
-        self.update()
+        #self._status_bar.update()
 
     def end_task(self):
-        self._progress_bar.hide()
+        self._busy(False)
         self._status_bar.showMessage('')
+        self._progress_bar.hide()
         self._step = 0
 
 

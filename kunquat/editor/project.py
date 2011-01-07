@@ -21,11 +21,39 @@ import time
 import types
 import os
 
+from PyQt4 import QtCore
+
 import kqt_limits as lim
 import kunquat
 
 
-class Project(object):
+class Process(QtCore.QThread):
+
+    def __init__(self, parent=None):
+        QtCore.QThread.__init__(self, parent)
+        self._reset()
+
+    def process(self, func, *args):
+        self._func = func
+        self._args = args
+        self.start()
+
+    def _reset(self):
+        self._func = None
+        self._args = ()
+
+    def run(self):
+        self.setPriority(QtCore.QThread.LowPriority)
+        if not self._func:
+            self._reset()
+            return
+        func = self._func
+        args = self._args
+        self._reset()
+        func(*args)
+
+
+class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
 
@@ -33,8 +61,11 @@ class Project(object):
     and History.
 
     """
+    _start_task = QtCore.pyqtSignal(int, name='startTask')
+    _step = QtCore.pyqtSignal(QtCore.QString, name='step')
+    _end_task = QtCore.pyqtSignal(name='endTask')
 
-    def __init__(self, proj_id, mixing_rate=48000):
+    def __init__(self, proj_id, mixing_rate=48000, parent=None):
         """Create a new Project.
 
         Arguments:
@@ -47,6 +78,8 @@ class Project(object):
         mixing_rate -- Mixing rate in frames per second.
 
         """
+        QtCore.QObject.__init__(self, parent)
+        self._process = Process()
         self._root = os.path.join(os.path.expanduser('~'),
                                   '.kunquat', 'projects',
                                   '{0:08x}'.format(proj_id))
@@ -244,9 +277,12 @@ class Project(object):
         src -- The source file name.
 
         """
+        self._process.process(self._import_kqt, src)
+
+    def _import_kqt(self, src):
         self._history.start_group('Import composition {0}'.format(src))
         tfile = None
-        #self.status_view.start_task(0)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
         try:
             self.clear()
             if os.path.isdir(src):
@@ -257,8 +293,9 @@ class Project(object):
                         full_path = os.path.join(dir_spec[0], fname)
                         key = full_path[len(src):]
                         with open(full_path) as f:
-                            #self.status_view.step(
-                            #        'Importing {0} ...'.format(key))
+                            QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('step(QString)'),
+                                    'Importing {0} ...'.format(key))
                             if key[key.index('.'):].startswith('.json'):
                                 self[key] = json.loads(f.read())
                             else:
@@ -279,7 +316,9 @@ class Project(object):
                         continue
                     key = entry.name[entry.name.index('/') + 1:]
                     if entry.isfile():
-                        #self.status_view.step('Importing {0} ...'.format(key))
+                        QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('step(QString)'),
+                                'Importing {0} ...'.format(key))
                         data = tfile.extractfile(entry).read()
                         if key[key.index('.'):].startswith('.json'):
                             self[key] = json.loads(data)
@@ -290,7 +329,7 @@ class Project(object):
             if tfile:
                 tfile.close()
             self._history.end_group()
-            #self.status_view.end_task()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
