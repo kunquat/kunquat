@@ -208,6 +208,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = True
 
     def play_pattern(self, pattern):
+        self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
