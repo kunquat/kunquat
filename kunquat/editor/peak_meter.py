@@ -48,6 +48,9 @@ class PeakMeter(QtGui.QWidget):
         #self._update_timer.start(10)
         self._level_history = [deque(), deque()]
         self._clipped = [False, False]
+        self._hold_limit = mix_rate
+        self._holds = [[-384, self._hold_limit],
+                       [-384, self._hold_limit]]
 
     @property
     def _updating(self):
@@ -65,6 +68,8 @@ class PeakMeter(QtGui.QWidget):
                 self._updating_ = False
                 self._level = [LifoQueue(), LifoQueue()]
                 self._level_history = [deque(), deque()]
+                self._holds = [[-384, self._hold_limit],
+                               [-384, self._hold_limit]]
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()
@@ -113,17 +118,31 @@ class PeakMeter(QtGui.QWidget):
                     level = sum(history) / len(history)
             else:
                 level = float('-inf')
-            #if ch == 0:
-            #    print(level, self._level_history[0])
+            y_offset = ch * (self._thickness + self._padding)
+            grad.setColorAt(0, self._colours['low'])
+            grad.setColorAt(mid_point, self._colours['mid'])
+            grad.setColorAt(1, self._colours['high'])
             if level > self._lowest:
-                grad.setColorAt(0, self._colours['low'])
-                grad.setColorAt(mid_point, self._colours['mid'])
-                grad.setColorAt(1, self._colours['high'])
                 level = min(0, level)
                 filled = ((level - self._lowest) /
                           (self._highest - self._lowest))
-                paint.fillRect(0, ch * (self._thickness + self._padding),
+                paint.fillRect(0, y_offset,
                                width * filled, self._thickness, grad)
+            if nframes:
+                hold = self._holds[ch]
+                if hold[1] >= self._hold_limit or hold[0] <= level:
+                    hold[0] = level
+                    hold[1] = 0
+                peak_pos = ((hold[0] - self._lowest) /
+                            (self._highest - self._lowest)) * width
+                if peak_pos > 0:
+                    peak_width = self._thickness * 2
+                    peak_pos -= peak_width
+                    peak_width += min(0, peak_pos)
+                    peak_pos = max(0, peak_pos)
+                    paint.fillRect(peak_pos, y_offset, peak_width,
+                                   self._thickness, grad)
+                hold[1] += nframes
         wait = (nframes / self._mix_rate) * 950
         #print(self._prev_level)
         #if self._level[0].qsize() < 10:
