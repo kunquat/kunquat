@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 #include <stdint.h>
@@ -224,7 +225,7 @@ Scale* new_Scale_from_string(char* str, Read_state* state)
             return scale;
         }
         Read_state_clear_error(state);
-        
+
         bool expect_key = true;
         while (expect_key)
         {

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <float.h>
 
 #include <Event_common.h>
@@ -106,7 +107,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
                  *voice->gen->ins_params->scale == NULL ||
                  **voice->gen->ins_params->scale == NULL)
         {
-            vs->pitch = data[0].field.double_type;
+            vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
         }
         else
         {
@@ -117,7 +118,12 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
             {
                 vs->pitch = pitch;
             }
+            else
+            {
+                vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
+            }
         }
+        //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
 #if 0
         Generator_process_note(voice->gen,
                                vs,
