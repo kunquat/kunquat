@@ -201,6 +201,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = False
         self.handle.nanoseconds = 0
         self._peak_meter.set_peaks(float('-inf'), float('-inf'), 0, 0, 0)
+        self.bufs = (None, None)
 
     def play_subsong(self, subsong):
         self.handle.nanoseconds = 0
@@ -273,7 +274,7 @@ class KqtEditor(QtGui.QMainWindow):
                                         self._instrument)
         tabs.addTab(self._instruments, 'Instruments')
 
-        self._peak_meter = PeakMeter(-48, 0, self.handle.mixing_rate)
+        self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         bottom_control = self.create_bottom_control()
         self.project.status_view = bottom_control

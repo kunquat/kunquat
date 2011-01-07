@@ -13,13 +13,14 @@
 
 from __future__ import division
 from __future__ import print_function
-from collections import deque
-from Queue import LifoQueue
+from Queue import Queue
 
 from PyQt4 import QtCore, QtGui
 
 
 class PeakMeter(QtGui.QWidget):
+
+    SILENCE = -384
 
     def __init__(self, lowest, highest, mix_rate=48000, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -38,7 +39,7 @@ class PeakMeter(QtGui.QWidget):
         self._clip_width = 20
         self._lowest = lowest
         self._highest = highest
-        self._level = [LifoQueue(), LifoQueue()]
+        self._level = [Queue(), Queue()]
         self._prev_level = [float('-inf'), float('-inf')]
         self._update_timer = QtCore.QTimer(self)
         QtCore.QObject.connect(self._update_timer, QtCore.SIGNAL('timeout()'),
@@ -46,11 +47,10 @@ class PeakMeter(QtGui.QWidget):
         self._update_timer.setSingleShot(True)
         self._updating_ = False
         #self._update_timer.start(10)
-        self._level_history = [deque(), deque()]
         self._clipped = [False, False]
         self._hold_limit = mix_rate
-        self._holds = [[-384, self._hold_limit],
-                       [-384, self._hold_limit]]
+        self._holds = [[PeakMeter.SILENCE, self._hold_limit],
+                       [PeakMeter.SILENCE, self._hold_limit]]
 
     @property
     def _updating(self):
@@ -66,10 +66,9 @@ class PeakMeter(QtGui.QWidget):
         else:
             if self._updating_:
                 self._updating_ = False
-                self._level = [LifoQueue(), LifoQueue()]
-                self._level_history = [deque(), deque()]
-                self._holds = [[-384, self._hold_limit],
-                               [-384, self._hold_limit]]
+                self._level = [Queue(), Queue()]
+                self._holds = [[PeakMeter.SILENCE, self._hold_limit],
+                               [PeakMeter.SILENCE, self._hold_limit]]
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()
@@ -107,16 +106,7 @@ class PeakMeter(QtGui.QWidget):
             else:
                 level, nframes = self._level[ch].get()
                 self._prev_level[ch] = level
-            if nframes:
-                history = self._level_history[ch]
-                if len(history) >= 5:
-                    history.popleft()
-                history.append(level if level > -96 else -96)
-                if len(history) >= 2:
-                    level = (sum(history) - min(history)) / (len(history) - 1)
-                else:
-                    level = sum(history) / len(history)
-            else:
+            if not nframes:
                 level = float('-inf')
             y_offset = ch * (self._thickness + self._padding)
             grad.setColorAt(0, self._colours['low'])
@@ -147,7 +137,7 @@ class PeakMeter(QtGui.QWidget):
         #print(self._prev_level)
         #if self._level[0].qsize() < 10:
         #    wait *= 1.5
-        if self._level[0].qsize() > 20:
+        if self._level[0].qsize() > 15:
             self._level[0].get()
             self._level[1].get()
         if nframes:
