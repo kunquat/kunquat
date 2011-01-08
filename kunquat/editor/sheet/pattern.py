@@ -50,6 +50,7 @@ class Pattern(QtGui.QWidget):
                  project,
                  section,
                  playback,
+                 pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
                  parent=None):
@@ -158,6 +159,9 @@ class Pattern(QtGui.QWidget):
         QtCore.QObject.connect(self.cursor,
                                QtCore.SIGNAL('nextCol()'),
                                self.visit_next_col)
+        QtCore.QObject.connect(self.cursor,
+                            QtCore.SIGNAL('patternOffsetChanged(int, int)'),
+                            pattern_offset_changed_slot)
         self.ruler = Ruler((self.colours, self.fonts), self.cursor)
         self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)

@@ -26,6 +26,7 @@ class PatternEditor(QtGui.QWidget):
                  playback_manager,
                  section_manager,
                  pattern_changed_slot,
+                 pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
                  parent=None):
@@ -59,6 +60,7 @@ class PatternEditor(QtGui.QWidget):
         self._pattern = Pattern(project,
                                 section_manager,
                                 playback_manager,
+                                pattern_offset_changed_slot,
                                 octave_spin,
                                 instrument_spin)
         QtCore.QObject.connect(self._pattern,

@@ -29,6 +29,7 @@ import kqt_limits as lim
 from peak_meter import PeakMeter
 import project
 from sheet import Sheet
+import timestamp as ts
 
 
 PROGRAM_NAME = 'Kunquat'
@@ -47,16 +48,18 @@ class Playback(QtCore.QObject):
 
     _play_sub = QtCore.pyqtSignal(int, name='playSubsong')
     _play_pat = QtCore.pyqtSignal(int, name='playPattern')
+    _play_from = QtCore.pyqtSignal(int, int, int, int, name='playFrom')
     _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
     _stop = QtCore.pyqtSignal(name='stop')
 
     def __init__(self, parent=None):
         QtCore.QObject.__init__(self, parent)
 
-    def connect(self, play_sub, play_pat, play_event, stop):
+    def connect(self, play_sub, play_pat, play_from, play_event, stop):
         """Connects the playback control signals to functions."""
         self._play_sub.connect(play_sub)
         self._play_pat.connect(play_pat)
+        self._play_from.connect(play_from)
         self._play_event.connect(play_event)
         self._stop.connect(stop)
 
@@ -72,6 +75,12 @@ class Playback(QtCore.QObject):
         """Plays a pattern repeatedly."""
         QtCore.QObject.emit(self, QtCore.SIGNAL('playPattern(int)'), pattern)
 
+    def play_from(self, subsong, section, beats, rem):
+        """Plays a subsong starting from specified position."""
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('playFrom(int, int, int, int)'),
+                            subsong, section, beats, rem)
+
     def play_event(self, channel, event):
         """Plays a single event."""
         self._play_event.emit(channel, event)
@@ -85,7 +94,7 @@ class KqtEditor(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
         self._playback = Playback()
         self._playback.connect(self.play_subsong, self.play_pattern,
-                               self.play_event, self.stop)
+                               self.play_from, self.play_event, self.stop)
         self.project = project.Project(0)
         self.handle = self.project.handle
         self.set_appearance()
@@ -102,6 +111,8 @@ class KqtEditor(QtGui.QMainWindow):
                         (self._play_subsong, None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
                         (self._play_pattern, None),
+                (QtCore.Qt.Key_F7, QtCore.Qt.NoModifier):
+                        (self._play_from, None),
                 (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
                         (self._stop, None),
                 (QtCore.Qt.Key_Less, None):
@@ -117,6 +128,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = False
         self.mix_timer.start(2)
         self._cur_subsong = -1
+        self._cur_section = -1
+        self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
 
         """
@@ -145,6 +158,11 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _play_pattern(self, ev):
         self._playback.play_pattern(self._cur_pattern)
+
+    def _play_from(self, ev):
+        self._playback.play_from(self._cur_subsong, self._cur_section,
+                                 self._cur_pattern_offset[0],
+                                 self._cur_pattern_offset[1])
 
     def _stop(self, ev):
         self._playback.stop()
@@ -189,6 +207,13 @@ class KqtEditor(QtGui.QMainWindow):
     def subsong_changed(self, num):
         self._cur_subsong = num
 
+    def section_changed(self, subsong, section):
+        self._cur_subsong = subsong
+        self._cur_section = section
+
+    def pattern_offset_changed(self, beats, rem):
+        self._cur_pattern_offset = ts.Timestamp(beats, rem)
+
     def print_pa_state(self):
         print('Context: {0}, Stream: {1}, Error: {2}'.format(
                   self.pa.context_state(), self.pa.stream_state(),
@@ -213,6 +238,15 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
+
+    def play_from(self, subsong, section, beats, rem):
+        self.handle.subsong = subsong
+        self.handle.nanoseconds = 0
+        self.playing = True
+        self.handle.trigger(-1, '["w.js", [{0}]]'.format(section))
+        self.handle.trigger(-1, '["w.jr", [[{0}, {1}]]]'.format(beats, rem))
+        self.handle.trigger(-1, '["w.jc", [1]]')
+        self.handle.trigger(-1, '["wj", []]')
 
     def play_event(self, *args):
         channel, event = args
@@ -271,7 +305,8 @@ class KqtEditor(QtGui.QMainWindow):
 
         self._tabs = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
-                            self.subsong_changed, self.pattern_changed,
+                            self.subsong_changed, self.section_changed,
+                            self.pattern_changed, self.pattern_offset_changed,
                             self._octave, self._instrument)
         self._tabs.addTab(self._sheet, 'Sheet')
         self._instruments = Instruments(self.project,

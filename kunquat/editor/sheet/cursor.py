@@ -30,6 +30,7 @@ class Cursor(QtCore.QObject):
 
     field_edit = QtCore.pyqtSignal(bool, name='fieldEdit')
     next_col = QtCore.pyqtSignal(name='nextCol')
+    pattern_offset = QtCore.pyqtSignal(int, int, name='patternOffsetChanged')
 
     def __init__(self,
                  length,
@@ -462,12 +463,18 @@ class Cursor(QtCore.QObject):
     def set_pos(self, timestamp):
         self.ts = min(max(ts.Timestamp(), timestamp), self.length)
         self.pix_pos = self.ts * self.beat_len
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('patternOffsetChanged(int, int)'),
+                            self.ts[0], self.ts[1])
 
     def set_pix_pos(self, pix_pos):
         self.pix_pos = float(max(0, pix_pos))
         self.ts = ts.Timestamp(self.pix_pos / self.beat_len)
         if self.ts > self.length:
             self.set_pos(self.length)
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('patternOffsetChanged(int, int)'),
+                            self.ts[0], self.ts[1])
 
     def get_pos(self):
         return self.ts
