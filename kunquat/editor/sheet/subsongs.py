@@ -35,6 +35,9 @@ class Subsongs(QtGui.QTreeView):
         self._section_manager = section
         self.setHeaderHidden(True)
         self.sync()
+        QtCore.QObject.connect(self,
+                           QtCore.SIGNAL('doubleClicked(const QModelIndex&)'),
+                           self.create_new_node)
 
     def currentChanged(self, new_index, old_index):
         if self._section_signal:
@@ -97,34 +100,7 @@ class Subsongs(QtGui.QTreeView):
                 if item.row() < len(self._slists):
                     return
                 assert item.row() == len(self._slists)
-                subsong_number = item.row()
-                path = 'subs_{0:02x}/p_subsong.json'.format(subsong_number)
-                ss_info = self._project[path]
-                if ss_info == None:
-                    ss_info = {}
-                if 'patterns' in ss_info:
-                    self._slists.append(ss_info['patterns'])
-                else:
-                    self._slists.append([])
-                self._project[path] = ss_info
-                if len(self._slists) < lim.SUBSONGS_MAX:
-                    add_ss = QtGui.QStandardItem('New subsong...')
-                    add_ss.setEditable(False)
-                    add_ss.setFont(QtGui.QFont('Decorative', italic=True))
-                    item.parent().appendRow(add_ss)
-                item.setText('Subsong {0}'.format(subsong_number))
-                item.setFont(QtGui.QFont())
-                if len(self._slists[-1]) < lim.SUBSONGS_MAX:
-                    add_section = QtGui.QStandardItem('New section...')
-                    add_section.setEditable(False)
-                    add_section.setFont(QtGui.QFont('Decorative',
-                                                    italic=True))
-                    item.appendRow(add_section)
-                self.expand(self._model.indexFromItem(item))
-                QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
-                                    subsong_number)
-                QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
-                                    subsong_number)
+                self.create_new_node(self._model.indexFromItem(item))
                 return
             elif ev.key() == QtCore.Qt.Key_Delete:
                 if item.row() >= len(self._slists):
@@ -159,29 +135,7 @@ class Subsongs(QtGui.QTreeView):
                         len(self._slists[subsong_number]) != section_number:
                     return
                 assert len(self._slists[subsong_number]) < lim.SECTIONS_MAX
-                pattern_number = 0
-                path = 'subs_{0:02x}/p_subsong.json'.format(subsong_number)
-                ss_info = self._project[path]
-                if ss_info and 'patterns' in ss_info:
-                    slist = ss_info['patterns']
-                else:
-                    if ss_info == None:
-                        ss_info = {}
-                    ss_info['patterns'] = []
-                    slist = ss_info['patterns']
-                if slist:
-                    pattern_number = slist[-1]
-                slist.append(pattern_number)
-                self._project[path] = ss_info
-                self._slists[subsong_number] = slist
-                if len(slist) < lim.SECTIONS_MAX:
-                    add_item = QtGui.QStandardItem('New section...')
-                    add_item.setEditable(False)
-                    add_item.setFont(QtGui.QFont('Decorative', italic=True))
-                    item.parent().appendRow(add_item)
-                item.setText(str(slist[section_number]))
-                item.setFont(QtGui.QFont())
-                self._section_manager.set(subsong_number, section_number)
+                self.create_new_node(self._model.indexFromItem(item))
                 return
             elif ev.key() in (QtCore.Qt.Key_Insert, QtCore.Qt.Key_Delete):
                 if child or not parent:
@@ -207,7 +161,7 @@ class Subsongs(QtGui.QTreeView):
                 self._slists[subsong_number] = slist
                 if ev.key() == QtCore.Qt.Key_Insert:
                     pattern_item = QtGui.QStandardItem(str(pattern_number))
-                    pattern_item.setEditable(False)
+                    pattern_item.setEditable(True)
                     item.parent().insertRow(section_number, pattern_item)
                     if len(slist) >= lim.SECTIONS_MAX:
                         assert len(slist) == lim.SECTIONS_MAX
@@ -249,6 +203,103 @@ class Subsongs(QtGui.QTreeView):
                 return
         QtGui.QTreeView.keyPressEvent(self, ev)
 
+    def modified(self, item):
+        subsong, section = self.resolve_location(item)
+        if subsong >= 0:
+            path = 'subs_{0:02x}/p_subsong.json'.format(subsong)
+            if section >= 0:
+                if section >= len(self._slists[subsong]):
+                    return
+                ss_info = self._project[path]
+                try:
+                    pat = int(item.text())
+                    if pat < 0 or pat >= lim.PATTERNS_MAX:
+                        raise ValueError
+                except ValueError:
+                    item.setText(str(self._slists[subsong][section]))
+                    return
+                slist = ss_info['patterns']
+                assert slist
+                if pat == slist[section]:
+                    return
+                slist[section] = pat
+                self._project[path] = ss_info
+                self._slists[subsong][section] = pat
+                self._section_manager.set(subsong, section)
+            else:
+                pass
+
+    def resolve_location(self, item):
+        subsong = -1
+        section = -1
+        if item.parent():
+            num = item.row()
+            if item.parent().parent():
+                subsong = item.parent().row()
+                section = num
+            else:
+                subsong = num
+        return subsong, section
+
+    def create_new_node(self, index):
+        item = self._model.itemFromIndex(index)
+        subsong, section = self.resolve_location(item)
+        if subsong >= 0:
+            path = 'subs_{0:02x}/p_subsong.json'.format(subsong)
+            if section >= 0:
+                if section == len(self._slists[subsong]):
+                    pattern_number = 0
+                    ss_info = self._project[path]
+                    if ss_info and 'patterns' in ss_info:
+                        slist = ss_info['patterns']
+                    else:
+                        if ss_info == None:
+                            ss_info = {}
+                        ss_info['patterns'] = []
+                        slist = ss_info['patterns']
+                    if slist:
+                        pattern_number = slist[-1]
+                    slist.append(pattern_number)
+                    self._project[path] = ss_info
+                    self._slists[subsong] = slist
+                    if len(slist) < lim.SECTIONS_MAX:
+                        add_item = QtGui.QStandardItem('New section...')
+                        add_item.setEditable(False)
+                        add_item.setFont(QtGui.QFont('Decorative', italic=True))
+                        item.parent().appendRow(add_item)
+                    item.setText(str(slist[section]))
+                    item.setEditable(True)
+                    item.setFont(QtGui.QFont())
+                    self._section_manager.set(subsong, section)
+            else:
+                if subsong == len(self._slists):
+                    ss_info = self._project[path]
+                    if ss_info == None:
+                        ss_info = {}
+                    if 'patterns' in ss_info:
+                        self._slists.append(ss_info['patterns'])
+                    else:
+                        self._slists.append([])
+                    self._project[path] = ss_info
+                    if len(self._slists) < lim.SUBSONGS_MAX:
+                        add_ss = QtGui.QStandardItem('New subsong...')
+                        add_ss.setEditable(False)
+                        add_ss.setFont(QtGui.QFont('Decorative', italic=True))
+                        item.parent().appendRow(add_ss)
+                    item.setText('Subsong {0}'.format(subsong))
+                    item.setFont(QtGui.QFont())
+                    if len(self._slists[-1]) < lim.SUBSONGS_MAX:
+                        add_section = QtGui.QStandardItem('New section...')
+                        add_section.setEditable(False)
+                        add_section.setFont(QtGui.QFont('Decorative',
+                                                        italic=True))
+                        item.appendRow(add_section)
+                    self.expand(self._model.indexFromItem(item))
+                    QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
+                                        subsong)
+                    QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
+                                        subsong)
+
     def section_changed(self, *args):
         subsong, section = args
         select_model = self.selectionModel()
@@ -288,6 +339,9 @@ class Subsongs(QtGui.QTreeView):
                         cur_section = selected.row()
 
         self._model = QtGui.QStandardItemModel(self._parent)
+        QtCore.QObject.connect(self._model,
+                               QtCore.SIGNAL('itemChanged(QStandardItem*)'),
+                               self.modified)
         root = self._model.invisibleRootItem()
         composition = QtGui.QStandardItem('Composition')
         composition.setEditable(False)
@@ -298,7 +352,7 @@ class Subsongs(QtGui.QTreeView):
             composition.appendRow(subsong_item)
             for section, pattern in enumerate(slist):
                 pattern_item = QtGui.QStandardItem(str(pattern))
-                pattern_item.setEditable(False)
+                pattern_item.setEditable(True)
                 subsong_item.appendRow(pattern_item)
             if len(slist) < lim.SECTIONS_MAX:
                 add_item = QtGui.QStandardItem('New section...')
