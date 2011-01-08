@@ -45,6 +45,8 @@ class Subsongs(QtGui.QTreeView):
             return
         QtGui.QTreeView.currentChanged(self, new_index, old_index)
         item = self._model.itemFromIndex(new_index)
+        if not item:
+            return
         parent = item.parent()
         if not parent:
             QtCore.QObject.emit(self, QtCore.SIGNAL('compositionParams()'))
@@ -102,6 +104,48 @@ class Subsongs(QtGui.QTreeView):
                 assert item.row() == len(self._slists)
                 self.create_new_node(self._model.indexFromItem(item))
                 return
+            elif ev.key() == QtCore.Qt.Key_Insert:
+                if item.row() >= len(self._slists):
+                    assert item.row() == len(self._slists)
+                    return
+                if len(self._slists) >= lim.SUBSONGS_MAX:
+                    assert len(self._slists) == lim.SUBSONGS_MAX
+                    return
+                subsong_number = item.row()
+                self._project.start_group(
+                        'Insert subsong {0:d}'.format(subsong_number))
+                try:
+                    key_format = 'subs_{0:02x}/p_subsong.json'
+                    for i in xrange(len(self._slists), subsong_number, -1):
+                        #print('move', i - 1, 'to', i)
+                        self._project[key_format.format(i)] = \
+                                self._project[key_format.format(i - 1)]
+                    ss_info = {'patterns': []}
+                    self._project[key_format.format(subsong_number)] = ss_info
+                finally:
+                    self._project.end_group()
+                new_ss = QtGui.QStandardItem('Subsong {0}'.format(
+                                                        subsong_number))
+                item.parent().insertRow(subsong_number, new_ss)
+                add_section = QtGui.QStandardItem('New section...')
+                add_section.setEditable(False)
+                add_section.setFont(QtGui.QFont('Decorative', italic=True))
+                new_ss.appendRow(add_section)
+                self._slists[subsong_number:subsong_number] = [[]]
+                parent = item.parent()
+                for i in xrange(subsong_number + 1, len(self._slists)):
+                    parent.child(i).setText('Subsong {0}'.format(i))
+                select_model = self.selectionModel()
+                index = self._model.indexFromItem(new_ss)
+                selection_mode = QtGui.QItemSelectionModel.Select
+                select_model.clear()
+                select_model.select(index, selection_mode)
+                select_model.setCurrentIndex(index, selection_mode)
+                self.expand(index)
+                if len(self._slists) >= lim.SUBSONGS_MAX:
+                    assert len(self._slists) == lim.SUBSONGS_MAX
+                    item.parent().removeRow(lim.SUBSONGS_MAX)
+                return
             elif ev.key() == QtCore.Qt.Key_Delete:
                 if item.row() >= len(self._slists):
                     assert item.row() == len(self._slists)
@@ -118,14 +162,19 @@ class Subsongs(QtGui.QTreeView):
                         self._project[key_format.format(i - 1)] = \
                                 self._project[key_format.format(i)]
                         self._project[key_format.format(i)] = None
-                    parent = item.parent()
-                    parent.removeRow(subsong_number)
-                    self._slists[subsong_number:subsong_number + 1] = []
-                    for i in xrange(subsong_number, len(self._slists)):
-                        parent.child(i).setText('Subsong {0}'.format(i))
-                    # TODO: update subsong jumps in pattern data!
                 finally:
                     self._project.end_group()
+                parent = item.parent()
+                parent.removeRow(subsong_number)
+                self._slists[subsong_number:subsong_number + 1] = []
+                for i in xrange(subsong_number, len(self._slists)):
+                    parent.child(i).setText('Subsong {0}'.format(i))
+                if len(self._slists) == lim.SUBSONGS_MAX - 1:
+                    add_ss = QtGui.QStandardItem('New subsong...')
+                    add_ss.setEditable(False)
+                    add_ss.setFont(QtGui.QFont('Decorative', italic=True))
+                    parent.appendRow(add_ss)
+                # TODO: update subsong jumps in pattern data!
                 return
         if subsong_number >= 0 and section_number >= 0: # section
             if ev.key() == QtCore.Qt.Key_Return:
