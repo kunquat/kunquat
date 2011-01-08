@@ -265,6 +265,9 @@ class Cursor(QtCore.QObject):
         if self.col.get_num() < 0:
             ev.ignore()
             return
+        if ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
+            return
         triggers = self.col.get_triggers()
         play_note_off = False
         note_off_entered = False
@@ -304,6 +307,9 @@ class Cursor(QtCore.QObject):
     def note_on_key(self, ev):
         if not (self.note_input and self.scale and
                 self.col.get_num() >= 0):
+            ev.ignore()
+            return
+        if ev.modifiers() != QtCore.Qt.NoModifier:
             ev.ignore()
             return
         try:
