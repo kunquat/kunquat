@@ -180,8 +180,21 @@ class Subsongs(QtGui.QTreeView):
             if ev.key() == QtCore.Qt.Key_Return:
                 if child or not parent:
                     return
-                if len(self._slists) <= subsong_number or \
-                        len(self._slists[subsong_number]) != section_number:
+                if len(self._slists) <= subsong_number:
+                    return
+                if len(self._slists[subsong_number]) != section_number:
+                    sel = select_model.selection()
+                    region = self.visualRegionForSelection(sel)
+                    area = region.boundingRect()
+                    if area.isNull():
+                        return
+                    center = area.center()
+                    me = QtGui.QMouseEvent(QtCore.QEvent.MouseButtonDblClick,
+                                           center, QtCore.Qt.LeftButton,
+                                           QtCore.Qt.NoButton,
+                                           QtCore.Qt.NoModifier)
+                    self.mouseDoubleClickEvent(me)
+                    self.mouseDoubleClickEvent(me)
                     return
                 assert len(self._slists[subsong_number]) < lim.SECTIONS_MAX
                 self.create_new_node(self._model.indexFromItem(item))
