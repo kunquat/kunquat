@@ -253,7 +253,7 @@ class Cursor(QtCore.QObject):
                     direct = True
                 elif isinstance(info, ts.Timestamp):
                     direct = True
-                elif isinstance(info, str) and ev.text():
+                elif isinstance(info, str) and trig[0] != 'cn-' and ev.text():
                     direct = True
                 elif isinstance(info, bool) and \
                         ev.text() in ('y', 't', 'n', 'f'):
@@ -346,12 +346,48 @@ class Cursor(QtCore.QObject):
                 trig = row[tindex]
                 if trig[0] == 'cn+': # replace existing Note On
                     self.col.set_value(self, cents)
+                    if self.inst_auto:
+                        use_existing_trig = False
+                        self.index -= 1
+                        if self.index >= 1:
+                            ptindex, _ = row.get_slot(self)
+                            if row[ptindex][0] == 'c.i':
+                                use_existing_trig = True
+                        self.index += 1
+                        if use_existing_trig:
+                            self.index -= 1
+                        else:
+                            self.insert = True
+                            self.col.set_value(self,
+                                               trigger.TriggerType('c.i'))
+                            self.insert = False
+                            self.index += 1
+                        self.col.set_value(self, self.inst_num)
+                        self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
                     note_on_entered = True
                 elif trig[0] == 'cn-': # replace existing Note Off
                     self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
+                    if self.inst_auto:
+                        use_existing_trig = False
+                        self.index -= 1
+                        if self.index >= 1:
+                            ptindex, _ = row.get_slot(self)
+                            if row[ptindex][0] == 'c.i':
+                                use_existing_trig = True
+                        self.index += 1
+                        if use_existing_trig:
+                            self.index -= 1
+                        else:
+                            self.insert = True
+                            self.col.set_value(self,
+                                               trigger.TriggerType('c.i'))
+                            self.insert = False
+                            self.index += 1
+                        self.col.set_value(self, self.inst_num)
+                        self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
                     note_on_entered = True
