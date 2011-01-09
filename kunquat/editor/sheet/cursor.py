@@ -16,7 +16,7 @@ from __future__ import print_function
 import string
 import sys
 
-from PyQt4 import QtCore
+from PyQt4 import QtCore, QtGui
 
 import accessors as acc
 import kunquat.editor.keymap as keymap
@@ -251,12 +251,29 @@ class Cursor(QtCore.QObject):
                         not isinstance(info, trigger.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
+                elif isinstance(info, ts.Timestamp):
+                    direct = True
+                elif isinstance(info, str) and ev.text():
+                    direct = True
+                elif isinstance(info, bool) and \
+                        ev.text() in ('y', 't', 'n', 'f'):
+                    direct = True
+                    text = ''
+                    if ev.text() not in ('y', 't'): # not reverses acc getter
+                        text = 'True'
+                    ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 0,
+                                         QtCore.Qt.NoModifier, text)
                 if direct:
                     self.edit = True
                     field, valid_func = row.get_field_info(self)
                     self.active_accessor = self.accessors[type(field)]
+                    if not valid_func:
+                        assert type(info) == trigger.TriggerType
+                        valid_func = (trigger.is_global
+                                      if self.col.get_num() == -1
+                                      else trigger.is_channel)
                     self.active_accessor.set_validator_func(valid_func)
-                    self.active_accessor.set_value(chr(ev.key()))
+                    self.active_accessor.set_value(ev.text())
                     self.active_accessor.show()
                     self.active_accessor.setFocus()
                     return

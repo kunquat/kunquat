@@ -77,6 +77,7 @@ class StringEdit(QtGui.QLineEdit):
             ev.accept()
 
     def set_validator_func(self, func):
+        assert func
         self.setValidator(FuncValidator(func))
 
     def set_value(self, value):
@@ -87,6 +88,9 @@ class StringEdit(QtGui.QLineEdit):
 
 
 class TypeEdit(StringEdit):
+
+    def __init__(self, parent=None):
+        super(TypeEdit, self).__init__(parent)
 
     def get_value(self):
         return trigger.TriggerType(self.text())
@@ -149,7 +153,9 @@ class TimestampEdit(StringEdit):
         self.setValidator(FuncValidator(self._ts_validate))
 
     def set_value(self, value):
-        self.setText(str(float(value)))
+        int_val = int(value)
+        float_val = float(value)
+        self.setText(str(int_val if int_val == float_val else float_val))
 
     def get_value(self):
         return ts.Timestamp(float(self.text()))
