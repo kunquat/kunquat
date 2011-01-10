@@ -439,6 +439,9 @@ class Project(QtCore.QObject):
 
     def undo(self):
         """Undoes a change made in the Project."""
+        self._process.process(self._undo)
+
+    def _undo(self):
         self._history.undo(self)
         #self._history.show_latest_branch()
 
@@ -451,6 +454,9 @@ class Project(QtCore.QObject):
                   selected.
 
         """
+        self._process.process(self._redo, branch)
+
+    def _redo(self, branch=None):
         self._history.redo(branch, self)
         #self._history.show_latest_branch()
 

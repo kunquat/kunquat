@@ -142,11 +142,9 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _undo(self, ev):
         self.project.undo()
-        self.sync()
 
     def _redo(self, ev):
         self.project.redo()
-        self.sync()
 
     def _prev_ins(self, ev):
         self._instrument.setValue(self._instrument.value() - 1)
@@ -175,6 +173,8 @@ class KqtEditor(QtGui.QMainWindow):
         self._octave.setValue(self._octave.value() + 1)
 
     def keyPressEvent(self, ev):
+        if self._status.in_progress():
+            return
         self._keys.call(ev)
         return
 
@@ -321,16 +321,16 @@ class KqtEditor(QtGui.QMainWindow):
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
-        bottom_control = self.create_bottom_control()
+        self._status = self.create_bottom_control()
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('startTask(int)'),
-                               bottom_control.start_task)
+                               self._status.start_task)
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('step(QString)'),
-                               bottom_control.step)
+                               self._status.step)
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('endTask()'),
-                               bottom_control.end_task)
+                               self._status.end_task)
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
@@ -338,7 +338,7 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout.addWidget(self._top_control)
         top_layout.addWidget(self._tabs)
         top_layout.addWidget(self._peak_meter)
-        top_layout.addWidget(bottom_control)
+        top_layout.addWidget(self._status)
 
     def create_separator(self):
         separator = QtGui.QFrame()
@@ -474,7 +474,15 @@ class Status(QtGui.QWidget):
         self._step = 0
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                            QtGui.QSizePolicy.Fixed)
-        self._start_time = 0
+        self._busy_timer = QtCore.QTimer(self)
+        self._busy_timer.setSingleShot(True)
+        QtCore.QObject.connect(self._busy_timer, QtCore.SIGNAL('timeout()'),
+                               lambda: self._busy(True))
+        self._tasks = 0
+
+    def in_progress(self):
+        assert self._tasks >= 0
+        return self._tasks > 0
 
     def sizeHint(self):
         h = max(self._status_bar.sizeHint().height(),
@@ -482,29 +490,29 @@ class Status(QtGui.QWidget):
         return QtCore.QSize(200, h)
 
     def start_task(self, steps):
-        #self._busy(True)
-        self._start_time = time.time()
+        self._tasks += 1
+        self._busy_timer.start(100)
         self._progress_bar.setRange(0, steps)
         self._progress_bar.reset()
-        if steps > 0:
+        if steps > 1:
             self._progress_bar.show()
 
     def step(self, description):
         self._status_bar.showMessage(description)
-        #self._progress_bar.setFormat(description)
-        if self._start_time and time.time() > self._start_time + 0.5:
-            self._busy(True)
-            self._start_time = 0
         if self._step < self._progress_bar.maximum():
             self._progress_bar.setValue(self._step)
             self._step += 1
         #self._status_bar.update()
 
     def end_task(self):
+        self._busy_timer.stop()
+        self._busy_timer.setSingleShot(True)
         self._busy(False)
         self._status_bar.showMessage('')
         self._progress_bar.hide()
         self._step = 0
+        self._tasks -= 1
+        assert self._tasks >= 0
 
 
 def main():
