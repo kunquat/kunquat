@@ -131,6 +131,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_section = -1
         self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
+        self._focus_backup = None
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
@@ -285,8 +286,13 @@ class KqtEditor(QtGui.QMainWindow):
         self._instruments.sync()
 
     def busy(self, busy_set):
+        if busy_set:
+            self._focus_backup = QtGui.QApplication.focusWidget()
         self._top_control.setEnabled(not busy_set)
         self._tabs.setEnabled(not busy_set)
+        if not busy_set:
+            if self._focus_backup:
+                self._focus_backup.setFocus()
 
     def set_appearance(self):
         # FIXME: size and title
@@ -468,6 +474,7 @@ class Status(QtGui.QWidget):
         self._step = 0
         self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
                            QtGui.QSizePolicy.Fixed)
+        self._start_time = 0
 
     def sizeHint(self):
         h = max(self._status_bar.sizeHint().height(),
@@ -475,7 +482,8 @@ class Status(QtGui.QWidget):
         return QtCore.QSize(200, h)
 
     def start_task(self, steps):
-        self._busy(True)
+        #self._busy(True)
+        self._start_time = time.time()
         self._progress_bar.setRange(0, steps)
         self._progress_bar.reset()
         if steps > 0:
@@ -484,6 +492,9 @@ class Status(QtGui.QWidget):
     def step(self, description):
         self._status_bar.showMessage(description)
         #self._progress_bar.setFormat(description)
+        if self._start_time and time.time() > self._start_time + 0.5:
+            self._busy(True)
+            self._start_time = 0
         if self._step < self._progress_bar.maximum():
             self._progress_bar.setValue(self._step)
             self._step += 1

@@ -352,12 +352,16 @@ class Project(QtCore.QObject):
         src   -- The source file name.
 
         """
+        self._process.process(self._import_kqti, index, src)
+
+    def _import_kqti(self, index, src):
         assert index >= 0
         assert index < lim.INSTRUMENTS_MAX
         ins_path = 'ins_{0:02x}'.format(index)
         tfile = None
         self._history.start_group(
                 'Load {0} into instrument {1:d}'.format(src, index))
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
         try:
             self.remove_dir(ins_path)
             if os.path.isdir(src):
@@ -369,6 +373,10 @@ class Project(QtCore.QObject):
                         full_path = os.path.join(dir_spec[0], fname)
                         ins_key = '/'.join((key_base, full_path[len(src):]))
                         with open(full_path) as f:
+                            QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('step(QString)'),
+                                    'Importing instrument {0} ...'.format(
+                                        full_path))
                             if ins_key[ins_key.index('.'):].startswith(
                                                                 '.json'):
                                 self[ins_key] = json.loads(f.read())
@@ -384,6 +392,10 @@ class Project(QtCore.QObject):
                                 'The file is not a Kunquat instrument')
                     if entry.isfile():
                         key_path = '/'.join((ins_path, entry.name))
+                        QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('step(QString)'),
+                                'Importing instrument {0}:{1} ...'.format(src,
+                                    key_path))
                         data = tfile.extractfile(entry).read()
                         if key_path[key_path.index('.'):].startswith('.json'):
                             self[key_path] = json.loads(data)
@@ -404,6 +416,7 @@ class Project(QtCore.QObject):
             if tfile:
                 tfile.close()
             self._history.end_group()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def save(self):
         """Saves the Project data."""
@@ -426,7 +439,7 @@ class Project(QtCore.QObject):
 
     def undo(self):
         """Undoes a change made in the Project."""
-        self._history.undo()
+        self._history.undo(self)
         #self._history.show_latest_branch()
 
     def redo(self, branch=None):
@@ -438,7 +451,7 @@ class Project(QtCore.QObject):
                   selected.
 
         """
-        self._history.redo(branch)
+        self._history.redo(branch, self)
         #self._history.show_latest_branch()
 
     def __del__(self):
@@ -541,19 +554,33 @@ class History(object):
         #for p in self.parents():
         #    print(p.name)
 
-    def undo(self):
+    def undo(self, step_signaller=None):
         """Undoes a step."""
         assert not self._group
         if not self._current.parent:
             return
             #raise RuntimeError('Nothing to undo')
         #print('undoing', self._current.name)
-        for change in self._current.changes:
-            #print('undoing', change.key)
-            self._project.handle[change.key] = change.old_data
+        if step_signaller:
+            QtCore.QObject.emit(step_signaller,
+                                QtCore.SIGNAL('startTask(int)'),
+                                len(self._current.changes))
+        try:
+            for change in self._current.changes:
+                #print('undoing', change.key)
+                if step_signaller:
+                    QtCore.QObject.emit(step_signaller,
+                                        QtCore.SIGNAL('step(QString)'),
+                                        'Undoing {0} ({1}) ...'.format(
+                                            self._current.name, change.key))
+                self._project.handle[change.key] = change.old_data
+        finally:
+            if step_signaller:
+                QtCore.QObject.emit(step_signaller,
+                                    QtCore.SIGNAL('endTask()'))
         self._current = self._current.parent
 
-    def redo(self, branch=None):
+    def redo(self, branch=None, step_signaller=None):
         """Redoes a step.
 
         Arguments:
@@ -567,8 +594,22 @@ class History(object):
             return
             #raise RuntimeError('Nothing to redo')
         #print('redoing', child.name)
-        for change in child.changes:
-            self._project.handle[change.key] = change.new_data
+        if step_signaller:
+            QtCore.QObject.emit(step_signaller,
+                                QtCore.SIGNAL('startTask(int)'),
+                                len(child.changes))
+        try:
+            for change in child.changes:
+                if step_signaller:
+                    QtCore.QObject.emit(step_signaller,
+                                        QtCore.SIGNAL('step(QString)'),
+                                        'Redoing {0} ({1}) ...'.format(
+                                            child.name, change.key))
+                self._project.handle[change.key] = change.new_data
+        finally:
+            if step_signaller:
+                QtCore.QObject.emit(step_signaller,
+                                    QtCore.SIGNAL('endTask()'))
         self._current = child
 
 
