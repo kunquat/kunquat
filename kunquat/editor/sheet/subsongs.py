@@ -433,8 +433,7 @@ class Subsongs(QtGui.QTreeView):
         if cur_subsong >= 0:
             child = item.child(cur_subsong)
             item = child if child else item
-            if cur_section >= 0:
-                assert child
+            if cur_section >= 0 and child:
                 child = item.child(cur_section)
                 item = child if child else item
         select_model = self.selectionModel()

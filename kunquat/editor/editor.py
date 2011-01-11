@@ -279,7 +279,6 @@ class KqtEditor(QtGui.QMainWindow):
     def clear(self):
         self.stop()
         self.project.clear()
-        self.sync()
 
     def sync(self):
         self._sheet.sync()
@@ -491,6 +490,10 @@ class Status(QtGui.QWidget):
 
     def start_task(self, steps):
         self._tasks += 1
+        if self._tasks > 1:
+            self._progress_bar.setMaximum(self._progress_bar.maximum() +
+                                          steps)
+            return
         self._busy_timer.start(100)
         self._progress_bar.setRange(0, steps)
         self._progress_bar.reset()
@@ -505,6 +508,9 @@ class Status(QtGui.QWidget):
         #self._status_bar.update()
 
     def end_task(self):
+        if self._tasks > 1:
+            self._tasks -= 1
+            return
         self._busy_timer.stop()
         self._busy_timer.setSingleShot(True)
         self._busy(False)

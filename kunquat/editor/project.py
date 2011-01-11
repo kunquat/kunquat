@@ -170,21 +170,24 @@ class Project(QtCore.QObject):
         value -- The data to be set.
         """
         if value == None:
-            self._handle[key] = ''
-            self._keys.discard(key)
+            self.set_raw(key, '')
+            #self._handle[key] = ''
+            #self._keys.discard(key)
         elif key[key.index('.'):].startswith('.json'):
-            js = json.dumps(value)
-            self._handle[key] = js
-            if js:
-                self._keys.add(key)
-            else:
-                self._keys.discard(key)
+            self.set_raw(key, json.dumps(value))
+            #js = json.dumps(value)
+            #self._handle[key] = js
+            #if js:
+            #    self._keys.add(key)
+            #else:
+            #    self._keys.discard(key)
         else:
-            self._handle[key] = value # FIXME: conversion
-            if value:
-                self._keys.add(key)
-            else:
-                self._keys.discard(key)
+            self.set_raw(key, value)
+            #self._handle[key] = value # FIXME: conversion
+            #if value:
+            #    self._keys.add(key)
+            #else:
+            #    self._keys.discard(key)
         if old_value != types.NoneType:
             if old_value == None:
                 old_value = ''
@@ -197,6 +200,19 @@ class Project(QtCore.QObject):
             self._history.step(key, old_value, value)
         self._changed = True
         #self._history.show_latest_branch()
+
+    def set_raw(self, key, value):
+        """Set raw data in the Project.
+
+        This function does not do JSON conversion or update the
+        History.
+
+        """
+        self._handle[key] = value
+        if value:
+            self._keys.add(key)
+        else:
+            self._keys.discard(key)
 
     @property
     def mixing_rate(self):
@@ -224,25 +240,49 @@ class Project(QtCore.QObject):
         return patterns[section]
 
     def clear(self):
-        """Removes all composition data (but not the history)."""
+        """Removes all composition data (but not the history).
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
+        """
+        self._process.process(self._clear)
+
+    def _clear(self):
         self._history.start_group('Clear all')
         try:
-            self.remove_dir('')
+            self._remove_dir('')
         finally:
             self._history.end_group()
 
     def remove_dir(self, directory):
-        """Removes a directory inside a composition."""
+        """Removes a directory inside a composition.
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
+        """
+        self._process.process(self._remove_dir, directory)
+
+    def _remove_dir(self, directory):
         self._history.start_group('Remove ' + directory)
+        target_keys = [k for k in self._keys if k.startswith(directory)]
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
+                            len(target_keys))
         try:
-            for key in [k for k in self._keys if k.startswith(directory)]:
-                #print('removing', key)
+            for key in target_keys:
+                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
+                                    'Removing {0} ...'.format(key))
                 self[key] = None
         finally:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
             self._history.end_group()
 
     def export_kqt(self, dest):
         """Exports the composition in the Project.
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
 
         Arguments:
         dest -- The destination file name.  If the name contains '.gz'
@@ -282,6 +322,9 @@ class Project(QtCore.QObject):
     def import_kqt(self, src):
         """Imports a composition into the Project.
 
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
         This function will replace any composition data the Project
         may contain before invocation.
 
@@ -296,7 +339,7 @@ class Project(QtCore.QObject):
         tfile = None
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
         try:
-            self.clear()
+            self._clear()
             if os.path.isdir(src):
                 if not src or src[-1] != '/':
                     src = src + '/'
@@ -346,6 +389,9 @@ class Project(QtCore.QObject):
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
 
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
         Arguments:
         index -- The index of the new instrument. Any existing
                  instrument data will be removed before loading.
@@ -363,7 +409,7 @@ class Project(QtCore.QObject):
                 'Load {0} into instrument {1:d}'.format(src, index))
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
         try:
-            self.remove_dir(ins_path)
+            self._remove_dir(ins_path)
             if os.path.isdir(src):
                 if not src or src[-1] != '/':
                     src = src + '/'
@@ -419,7 +465,9 @@ class Project(QtCore.QObject):
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def save(self):
-        """Saves the Project data."""
+        """Saves the Project data.
+
+        """
         self._handle.commit()
         self._history.set_commit()
         self._changed = False
@@ -438,7 +486,12 @@ class Project(QtCore.QObject):
         self._history.end_group()
 
     def undo(self):
-        """Undoes a change made in the Project."""
+        """Undoes a change made in the Project.
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
+        """
         self._process.process(self._undo)
 
     def _undo(self):
@@ -447,6 +500,9 @@ class Project(QtCore.QObject):
 
     def redo(self, branch=None):
         """Redoes a change made in the Project.
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
 
         Optional arguments:
         branch -- The branch of changes to follow. The default is
@@ -579,7 +635,8 @@ class History(object):
                                         QtCore.SIGNAL('step(QString)'),
                                         'Undoing {0} ({1}) ...'.format(
                                             self._current.name, change.key))
-                self._project.handle[change.key] = change.old_data
+                self._project.set_raw(change.key, change.old_data)
+                #self._project.handle[change.key] = change.old_data
         finally:
             if step_signaller:
                 QtCore.QObject.emit(step_signaller,
@@ -611,7 +668,8 @@ class History(object):
                                         QtCore.SIGNAL('step(QString)'),
                                         'Redoing {0} ({1}) ...'.format(
                                             child.name, change.key))
-                self._project.handle[change.key] = change.new_data
+                self._project.set_raw(change.key, change.new_data)
+                #self._project.handle[change.key] = change.new_data
         finally:
             if step_signaller:
                 QtCore.QObject.emit(step_signaller,
