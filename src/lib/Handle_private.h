@@ -26,7 +26,7 @@
 #include <Voice_pool.h>
 
 
-#define KQT_HANDLE_ERROR_LENGTH (256)
+#define KQT_HANDLE_ERROR_LENGTH (512)
 
 #define POSITION_LENGTH (64)
 
@@ -82,9 +82,12 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
  *                  printf family of functions.
  */
 #define kqt_Handle_set_error(handle, type, ...) \
-    (kqt_Handle_set_error_((handle), (type), __func__, __VA_ARGS__))
+    (kqt_Handle_set_error_((handle), (type), \
+                           __FILE__, __LINE__, __func__, __VA_ARGS__))
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           const char* file,
+                           int line,
                            const char* func,
                            const char* message, ...);
 

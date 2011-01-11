@@ -115,11 +115,15 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
 
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           const char* file,
+                           int line,
                            const char* func,
                            const char* message, ...)
 {
     assert(type > ERROR_NONE);
     assert(type < ERROR_LAST);
+    assert(file != NULL);
+    assert(line >= 0);
     assert(func != NULL);
     assert(message != NULL);
     char err_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
@@ -130,22 +134,65 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
         [ERROR_MEMORY] = "MemoryError",
         [ERROR_RESOURCE] = "ResourceError",
     };
-    strcpy(err_str, error_codes[type]);
-    strcat(err_str, ": ");
-#ifndef NDEBUG
-    strcat(err_str, "@");
+    strcpy(err_str, "{ \"type\": \"");
+    strcat(err_str, error_codes[type]);
+    strcat(err_str, "\", ");
+
+    strcat(err_str, "\"file\": \"");
+    strcat(err_str, file);
+    strcat(err_str, "\", ");
+
+    sprintf(&err_str[strlen(err_str)], "\"line\": %d, ", line);
+    
+    strcat(err_str, "\"function\": \"");
     strcat(err_str, func);
-    strcat(err_str, ": ");
-#else
-    (void)func;
-#endif
-    int error_code_length = strlen(err_str);
+    strcat(err_str, "\", ");
+
+    strcat(err_str, "\"message\": \"");
+    char message_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
     va_list args;
     va_start(args, message);
-    vsnprintf(err_str + error_code_length,
-              KQT_HANDLE_ERROR_LENGTH - error_code_length,
-              message, args);
+    vsnprintf(message_str, KQT_HANDLE_ERROR_LENGTH, message, args);
     va_end(args);
+    int json_pos = strlen(err_str);
+    for (int i = 0; json_pos < KQT_HANDLE_ERROR_LENGTH - 4 &&
+                    message_str[i] != '\0'; ++i, ++json_pos)
+    {
+        char ch = message_str[i];
+        static const char named_controls[] = "\"\\\b\f\n\r\t";
+        static const char* named_replace[] =
+                { "\\\"", "\\\\", "\\b", "\\f", "\\n", "\\r", "\\t" };
+        const char* named_control = strchr(named_controls, ch);
+        if (named_control != NULL)
+        {
+            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 5)
+            {
+                break;
+            }
+            int pos = named_control - named_controls;
+            assert(pos >= 0);
+            assert(pos < (int)strlen(named_controls));
+            strcpy(&err_str[json_pos], named_replace[pos]);
+            json_pos += strlen(named_replace[pos]) - 1;
+        }
+        else if (ch < 0x20 || ch == 0x7f)
+        {
+            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 4 - 5)
+            {
+                break;
+            }
+            // FIXME: We should really check for all control characters
+            char code[] = "\\u0000";
+            snprintf(code, strlen(code) + 1, "\\u%04x", ch);
+            strcpy(&err_str[json_pos], code);
+            json_pos += strlen(code) - 1;
+        }
+        else
+        {
+            err_str[json_pos] = ch;
+        }
+    }
+    strcat(err_str, "\" }");
     err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
     strcpy(null_error, err_str);

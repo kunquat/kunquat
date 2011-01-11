@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -22,124 +22,137 @@
 
 typedef enum
 {
-    EVENT_NONE = 0,                         ///< An uninitialised event.
+    EVENT_NONE = 0, ///< An uninitialised event.
 
-    EVENT_GENERAL_LOWER              =   0, ///< General Events.
-    
-    EVENT_GENERAL_COMMENT            =   1, ///< A comment.
+    EVENT_CONTROL_LOWER, ///< Control Events.
 
-    EVENT_GENERAL_IF                 =  11,
-    EVENT_GENERAL_END_IF             =  12,
+    EVENT_CONTROL_PAUSE,
+    EVENT_CONTROL_RESUME,
+    EVENT_CONTROL_PLAY_PATTERN,
+    EVENT_CONTROL_TEMPO_FACTOR,
 
-    EVENT_GENERAL_UPPER              = 200,
+    EVENT_CONTROL_UPPER,
 
-    EVENT_GLOBAL_LOWER               = 200, ///< Global Events.
-                                     
-    EVENT_GLOBAL_SET_TEMPO           = 201,
-    EVENT_GLOBAL_SLIDE_TEMPO         = 202,
-    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH  = 203,
-    EVENT_GLOBAL_PATTERN_DELAY       = 204,
-                                     
-    EVENT_GLOBAL_SET_VOLUME          = 221,
-    EVENT_GLOBAL_SLIDE_VOLUME        = 222,
-    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH = 223,
+    EVENT_GENERAL_LOWER, ///< General Events.
 
-    EVENT_GLOBAL_SET_SCALE           = 241,
-    EVENT_GLOBAL_SET_SCALE_OFFSET    = 242,
-    EVENT_GLOBAL_MIMIC_SCALE         = 243,
-    EVENT_GLOBAL_SHIFT_SCALE_INTERVALS = 244,
+    EVENT_GENERAL_COMMENT, ///< A comment.
 
-    EVENT_GLOBAL_SET_JUMP_SUBSONG    = 261,
-    EVENT_GLOBAL_SET_JUMP_SECTION    = 262,
-    EVENT_GLOBAL_SET_JUMP_ROW        = 263,
-    EVENT_GLOBAL_SET_JUMP_COUNTER    = 264,
-    EVENT_GLOBAL_JUMP                = 265,
-                                     
-    EVENT_GLOBAL_SET_VAR,                   ///< Set a variable.
-                                     
-    EVENT_GLOBAL_UPPER               = 400,
+    EVENT_GENERAL_IF,
+    EVENT_GENERAL_END_IF,
 
-    EVENT_CHANNEL_LOWER              = 400, ///< Channel Events.
+    EVENT_GENERAL_UPPER,
 
-    EVENT_CHANNEL_SET_INSTRUMENT     = 401,
-    EVENT_CHANNEL_SET_GENERATOR      = 402,
-    EVENT_CHANNEL_SET_DSP            = 403,
-    EVENT_CHANNEL_SET_DSP_CONTEXT    = 404,
+    EVENT_GLOBAL_LOWER, ///< Global Events.
 
-    EVENT_CHANNEL_NOTE_ON            = 421,
-    EVENT_CHANNEL_NOTE_OFF           = 422,
+    EVENT_GLOBAL_SET_TEMPO,
+    EVENT_GLOBAL_SLIDE_TEMPO,
+    EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
+    EVENT_GLOBAL_PATTERN_DELAY,
 
-    EVENT_CHANNEL_SET_FORCE          = 441,
-    EVENT_CHANNEL_SLIDE_FORCE        = 442,
-    EVENT_CHANNEL_SLIDE_FORCE_LENGTH = 443,
-    EVENT_CHANNEL_TREMOLO_SPEED      = 444,
-    EVENT_CHANNEL_TREMOLO_DEPTH      = 445,
-    EVENT_CHANNEL_TREMOLO_DELAY      = 446,
+    EVENT_GLOBAL_SET_VOLUME,
+    EVENT_GLOBAL_SLIDE_VOLUME,
+    EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
 
-    EVENT_CHANNEL_SLIDE_PITCH        = 462,
-    EVENT_CHANNEL_SLIDE_PITCH_LENGTH = 463,
-    EVENT_CHANNEL_VIBRATO_SPEED      = 464,
-    EVENT_CHANNEL_VIBRATO_DEPTH      = 465,
-    EVENT_CHANNEL_VIBRATO_DELAY      = 466,
-    EVENT_CHANNEL_ARPEGGIO           = 467,
+    EVENT_GLOBAL_SET_SCALE,
+    EVENT_GLOBAL_SET_SCALE_OFFSET,
+    EVENT_GLOBAL_MIMIC_SCALE,
+    EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
 
-    EVENT_CHANNEL_SET_FILTER         = 481,
-    EVENT_CHANNEL_SLIDE_FILTER       = 482,
-    EVENT_CHANNEL_SLIDE_FILTER_LENGTH = 483,
-    EVENT_CHANNEL_AUTOWAH_SPEED      = 484,
-    EVENT_CHANNEL_AUTOWAH_DEPTH      = 485,
-    EVENT_CHANNEL_AUTOWAH_DELAY      = 486,
+    EVENT_GLOBAL_SET_JUMP_SUBSONG,
+    EVENT_GLOBAL_SET_JUMP_SECTION,
+    EVENT_GLOBAL_SET_JUMP_ROW,
+    EVENT_GLOBAL_SET_JUMP_COUNTER,
+    EVENT_GLOBAL_JUMP,
 
-    EVENT_CHANNEL_SET_RESONANCE      = 501,
+    EVENT_GLOBAL_SET_VAR, ///< Set a variable.
 
-    EVENT_CHANNEL_SET_PANNING        = 521,
-    EVENT_CHANNEL_SLIDE_PANNING      = 522,
-    EVENT_CHANNEL_SLIDE_PANNING_LENGTH = 523,
+    EVENT_GLOBAL_UPPER,
 
-    EVENT_CHANNEL_SET_GEN_BOOL       = 541,
-    EVENT_CHANNEL_SET_GEN_INT        = 542,
-    EVENT_CHANNEL_SET_GEN_FLOAT      = 543,
-    EVENT_CHANNEL_SET_GEN_REAL       = 544,
-    EVENT_CHANNEL_SET_GEN_RELTIME    = 545,
+    EVENT_CHANNEL_LOWER, ///< Channel Events.
 
-    EVENT_CHANNEL_SET_INS_DSP_BOOL   = 561,
-    EVENT_CHANNEL_SET_INS_DSP_INT    = 562,
-    EVENT_CHANNEL_SET_INS_DSP_FLOAT  = 563,
-    EVENT_CHANNEL_SET_INS_DSP_REAL   = 564,
-    EVENT_CHANNEL_SET_INS_DSP_RELTIME = 565,
+    EVENT_CHANNEL_SET_INSTRUMENT,
+    EVENT_CHANNEL_SET_GENERATOR,
+    EVENT_CHANNEL_SET_DSP,
+    EVENT_CHANNEL_SET_DSP_CONTEXT,
 
-    EVENT_CHANNEL_UPPER              = 800,
+    EVENT_CHANNEL_NOTE_ON,
+    EVENT_CHANNEL_NOTE_OFF,
 
-    EVENT_INS_LOWER                  = 800, ///< Instrument Events
-                                    
-    EVENT_INS_SET_PEDAL              = 801,
-                                    
-    EVENT_INS_UPPER                  = 900,
+    EVENT_CHANNEL_SET_FORCE,
+    EVENT_CHANNEL_SLIDE_FORCE,
+    EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
+    EVENT_CHANNEL_TREMOLO_SPEED,
+    EVENT_CHANNEL_TREMOLO_DEPTH,
+    EVENT_CHANNEL_TREMOLO_DELAY,
 
-    EVENT_GENERATOR_LOWER            = 900, ///< Generator Events
+    EVENT_CHANNEL_SLIDE_PITCH,
+    EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
+    EVENT_CHANNEL_VIBRATO_SPEED,
+    EVENT_CHANNEL_VIBRATO_DEPTH,
+    EVENT_CHANNEL_VIBRATO_DELAY,
+    EVENT_CHANNEL_ARPEGGIO,
 
-    EVENT_GENERATOR_SET_BOOL         = 901,
-    EVENT_GENERATOR_SET_INT          = 902,
-    EVENT_GENERATOR_SET_FLOAT        = 903,
-    EVENT_GENERATOR_SET_REAL         = 904,
-    EVENT_GENERATOR_SET_RELTIME      = 905,
+    EVENT_CHANNEL_SET_LOWPASS,
+    EVENT_CHANNEL_SLIDE_LOWPASS,
+    EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
+    EVENT_CHANNEL_AUTOWAH_SPEED,
+    EVENT_CHANNEL_AUTOWAH_DEPTH,
+    EVENT_CHANNEL_AUTOWAH_DELAY,
 
-    EVENT_GENERATOR_UPPER            = 1000,
+    EVENT_CHANNEL_SET_RESONANCE,
+    EVENT_CHANNEL_SLIDE_RESONANCE,
+    EVENT_CHANNEL_SLIDE_RESONANCE_LENGTH,
 
-    EVENT_DSP_LOWER                  = 1000, ///< DSP Events
+    EVENT_CHANNEL_SET_PANNING,
+    EVENT_CHANNEL_SLIDE_PANNING,
+    EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
 
-    EVENT_DSP_SET_BOOL               = 1001,
-    EVENT_DSP_SET_INT                = 1002,
-    EVENT_DSP_SET_FLOAT              = 1003,
-    EVENT_DSP_SET_REAL               = 1004,
-    EVENT_DSP_SET_RELTIME            = 1005,
+    EVENT_CHANNEL_SET_GEN_BOOL,
+    EVENT_CHANNEL_SET_GEN_INT,
+    EVENT_CHANNEL_SET_GEN_FLOAT,
+    EVENT_CHANNEL_SET_GEN_REAL,
+    EVENT_CHANNEL_SET_GEN_RELTIME,
 
-    EVENT_DSP_UPPER                  = 1100,
-                                    
+    EVENT_CHANNEL_SET_INS_DSP_BOOL,
+    EVENT_CHANNEL_SET_INS_DSP_INT,
+    EVENT_CHANNEL_SET_INS_DSP_FLOAT,
+    EVENT_CHANNEL_SET_INS_DSP_REAL,
+    EVENT_CHANNEL_SET_INS_DSP_RELTIME,
+
+    EVENT_CHANNEL_UPPER,
+
+    EVENT_INS_LOWER, ///< Instrument Events
+
+    EVENT_INS_SET_PEDAL,
+
+    EVENT_INS_UPPER,
+
+    EVENT_GENERATOR_LOWER, ///< Generator Events
+
+    EVENT_GENERATOR_SET_BOOL,
+    EVENT_GENERATOR_SET_INT,
+    EVENT_GENERATOR_SET_FLOAT,
+    EVENT_GENERATOR_SET_REAL,
+    EVENT_GENERATOR_SET_RELTIME,
+
+    EVENT_GENERATOR_UPPER,
+
+    EVENT_DSP_LOWER, ///< DSP Events
+
+    EVENT_DSP_SET_BOOL,
+    EVENT_DSP_SET_INT,
+    EVENT_DSP_SET_FLOAT,
+    EVENT_DSP_SET_REAL,
+    EVENT_DSP_SET_RELTIME,
+
+    EVENT_DSP_UPPER,
+
     EVENT_LAST
 } Event_type;
 
 
+#define EVENT_IS_CONTROL(type)   ((type) > EVENT_CONTROL_LOWER && \
+                                  (type) < EVENT_CONTROL_UPPER)
 #define EVENT_IS_GENERAL(type)   ((type) > EVENT_GENERAL_LOWER && \
                                   (type) < EVENT_GENERAL_UPPER)
 #define EVENT_IS_GLOBAL(type)    ((type) > EVENT_GLOBAL_LOWER && \
@@ -155,12 +168,12 @@ typedef enum
 #define EVENT_IS_PG(type)        (EVENT_IS_INS((type)) || \
                                   EVENT_IS_GENERATOR((type)) || \
                                   EVENT_IS_DSP((type)))
-#define EVENT_IS_VALID(type)     (EVENT_IS_GENERAL((type))   || \
+#define EVENT_IS_TRIGGER(type)   (EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GLOBAL((type))    || \
-                                  EVENT_IS_INS((type))       || \
-                                  EVENT_IS_GENERATOR((type)) || \
-                                  EVENT_IS_DSP((type))       || \
+                                  EVENT_IS_PG((type))        || \
                                   EVENT_IS_CHANNEL((type)))
+#define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
+                                  EVENT_IS_CONTROL((type)))
 
 
 typedef enum

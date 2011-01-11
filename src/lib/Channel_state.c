@@ -27,6 +27,7 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(mute != NULL);
+    General_state_init(&state->parent, false);
 
     state->cgstate = new_Channel_gen_state();
     if (state->cgstate == NULL)

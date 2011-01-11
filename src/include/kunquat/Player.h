@@ -189,6 +189,22 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
 long long kqt_Handle_get_position(kqt_Handle* handle);
 
 
+/**
+ * Triggers an event.
+ *
+ * \param handle    The Handle -- should not be \c NULL.
+ * \param channel   The channel where the event takes place -- should be
+ *                  >= \c 0 and < \c KQT_COLUMNS_MAX for regular channels, or
+ *                  \c -1 for the global channel.
+ * \param event     The event description in JSON format. The description is a
+ *                  pair (list with two elements) with the event name as the
+ *                  first element and its argument list as the second element.
+ *
+ * \return   \c 1 if the event was successfully triggered, otherwise \c 0.
+ */
+int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
+
+
 /* \} */
 
 

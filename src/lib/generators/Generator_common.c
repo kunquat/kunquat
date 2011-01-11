@@ -347,15 +347,15 @@ void Generator_common_handle_filter(Generator* gen,
     assert(freq > 0);
     if (Slider_in_progress(&state->lowpass_slider))
     {
-        state->filter = Slider_step(&state->lowpass_slider);
+        state->lowpass = Slider_step(&state->lowpass_slider);
     }
-    state->actual_filter = state->filter;
+    state->actual_lowpass = state->lowpass;
     if (LFO_active(&state->autowah))
     {
-        state->actual_filter *= LFO_step(&state->autowah);
+        state->actual_lowpass *= LFO_step(&state->autowah);
     }
     if (gen->ins_params->env_force_filter_enabled &&
-            state->filter_xfade_pos >= 1)
+            state->lowpass_xfade_pos >= 1)
     {
         double force = state->actual_force;
         if (force > 1)
@@ -365,65 +365,66 @@ void Generator_common_handle_filter(Generator* gen,
         double factor = Envelope_get_value(gen->ins_params->env_force_filter,
                                            force);
         assert(isfinite(factor));
-        state->actual_filter = MIN(state->actual_filter, 16384) * factor;
+        state->actual_lowpass = MIN(state->actual_lowpass, 16384) * factor;
     }
 
-    if (!state->filter_update &&
-            state->filter_xfade_pos >= 1 &&
-            (state->actual_filter < state->effective_filter * 0.98566319864018759 ||
-             state->actual_filter > state->effective_filter * 1.0145453349375237 ||
-             state->filter_resonance != state->effective_resonance))
+    if (!state->lowpass_update &&
+            state->lowpass_xfade_pos >= 1 &&
+            (state->actual_lowpass < state->effective_lowpass * 0.98566319864018759 ||
+             state->actual_lowpass > state->effective_lowpass * 1.0145453349375237 ||
+             state->lowpass_resonance != state->effective_resonance))
     {
-        state->filter_update = true;
-        state->filter_xfade_state_used = state->filter_state_used;
+        state->lowpass_update = true;
+        state->lowpass_xfade_state_used = state->lowpass_state_used;
         if (state->pos > 0)
         {
-            state->filter_xfade_pos = 0;
+            state->lowpass_xfade_pos = 0;
         }
         else
         {
-            state->filter_xfade_pos = 1;
+            state->lowpass_xfade_pos = 1;
         }
-        state->filter_xfade_update = 200.0 / freq; // FIXME: / freq
-        if (state->actual_filter < freq / 2)
+        state->lowpass_xfade_update = 200.0 / freq; // FIXME: / freq
+        if (state->actual_lowpass < freq / 2)
         {
-            int new_state = 1 - abs(state->filter_state_used);
-            two_pole_lowpass_filter_create(state->actual_filter / freq,
-                    state->filter_resonance,
-                    state->filter_state[new_state].coeffs,
-                    &state->filter_state[new_state].a0);
+            int new_state = 1 - abs(state->lowpass_state_used);
+            double lowpass = MAX(state->actual_lowpass, 1);
+            two_pole_lowpass_filter_create(lowpass / freq,
+                    state->lowpass_resonance,
+                    state->lowpass_state[new_state].coeffs,
+                    &state->lowpass_state[new_state].a0);
             for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
                 {
-                    state->filter_state[new_state].history1[i][k] = 0;
-                    state->filter_state[new_state].history2[i][k] = 0;
+                    state->lowpass_state[new_state].history1[i][k] = 0;
+                    state->lowpass_state[new_state].history2[i][k] = 0;
                 }
             }
-            state->filter_state_used = new_state;
+            state->lowpass_state_used = new_state;
 //            fprintf(stderr, "created filter with cutoff %f\n", state->actual_filter);
         }
         else
         {
-            if (state->filter_state_used == -1)
+            if (state->lowpass_state_used == -1)
             {
-                state->filter_xfade_pos = 1;
+                state->lowpass_xfade_pos = 1;
             }
-            state->filter_state_used = -1;
+            state->lowpass_state_used = -1;
         }
-        state->effective_filter = state->actual_filter;
-        state->effective_resonance = state->filter_resonance;
-        state->filter_update = false;
+        state->effective_lowpass = state->actual_lowpass;
+        state->effective_resonance = state->lowpass_resonance;
+        state->lowpass_update = false;
     }
 
-    if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
+    if (state->lowpass_state_used > -1 || state->lowpass_xfade_state_used > -1)
     {
-        assert(state->filter_state_used != state->filter_xfade_state_used);
+        assert(state->lowpass_state_used != state->lowpass_xfade_state_used);
         double result[KQT_BUFFERS_MAX] = { 0 };
-        if (state->filter_state_used > -1)
+        if (state->lowpass_state_used > -1)
         {
             Filter_state* fst =
-                    &state->filter_state[state->filter_state_used];
+                    &state->lowpass_state[state->lowpass_state_used];
             for (int i = 0; i < frame_count; ++i)
             {
                 result[i] = nq_zero_filter(FILTER_ORDER,
@@ -443,7 +444,7 @@ void Generator_common_handle_filter(Generator* gen,
                 result[i] = frames[i];
             }
         }
-        double vol = state->filter_xfade_pos;
+        double vol = state->lowpass_xfade_pos;
         if (vol > 1)
         {
             vol = 1;
@@ -452,13 +453,13 @@ void Generator_common_handle_filter(Generator* gen,
         {
             result[i] *= vol;
         }
-        if (state->filter_xfade_pos < 1)
+        if (state->lowpass_xfade_pos < 1)
         {
             double fade_result[KQT_BUFFERS_MAX] = { 0 };
-            if (state->filter_xfade_state_used > -1)
+            if (state->lowpass_xfade_state_used > -1)
             {
                 Filter_state* fst =
-                        &state->filter_state[state->filter_xfade_state_used];
+                        &state->lowpass_state[state->lowpass_xfade_state_used];
                 for (int i = 0; i < frame_count; ++i)
                 {
                     fade_result[i] = nq_zero_filter(FILTER_ORDER,
@@ -478,7 +479,7 @@ void Generator_common_handle_filter(Generator* gen,
                     fade_result[i] = frames[i];
                 }
             }
-            double vol = 1 - state->filter_xfade_pos;
+            double vol = 1 - state->lowpass_xfade_pos;
             if (vol > 0)
             {
                 for (int i = 0; i < frame_count; ++i)
@@ -486,7 +487,7 @@ void Generator_common_handle_filter(Generator* gen,
                     result[i] += fade_result[i] * vol;
                 }
             }
-            state->filter_xfade_pos += state->filter_xfade_update;
+            state->lowpass_xfade_pos += state->lowpass_xfade_update;
         }
         for (int i = 0; i < frame_count; ++i)
         {

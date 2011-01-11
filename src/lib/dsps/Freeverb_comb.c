@@ -16,6 +16,7 @@
 #include <stdint.h>
 
 #include <Freeverb_comb.h>
+#include <math_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -84,8 +85,10 @@ kqt_frame Freeverb_comb_process(Freeverb_comb* comb, kqt_frame input)
 {
     assert(comb != NULL);
     kqt_frame output = comb->buffer[comb->buffer_pos];
+    output = undenormalise(output);
     comb->filter_store = (output * comb->damp2) +
                          (comb->filter_store * comb->damp1);
+    comb->filter_store = undenormalise(comb->filter_store);
     comb->buffer[comb->buffer_pos] = input + (comb->filter_store *
                                               comb->feedback);
     ++comb->buffer_pos;

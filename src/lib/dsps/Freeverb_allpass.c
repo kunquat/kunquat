@@ -17,6 +17,7 @@
 #include <stdint.h>
 
 #include <Freeverb_allpass.h>
+#include <math_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -70,6 +71,7 @@ kqt_frame Freeverb_allpass_process(Freeverb_allpass* allpass,
 {
     assert(allpass != NULL);
     kqt_frame bufout = allpass->buffer[allpass->buffer_pos];
+    bufout = undenormalise(bufout);
     allpass->buffer[allpass->buffer_pos] = input + (bufout *
                                                     allpass->feedback);
     ++allpass->buffer_pos;

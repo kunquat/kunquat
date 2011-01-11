@@ -91,8 +91,14 @@ static int validate_connection_path(char* str,
 
 Connections* new_Connections_from_string(char* str,
                                          bool ins_level,
+                                         Ins_table* insts,
+                                         DSP_table* dsps,
+                                         Device* master,
                                          Read_state* state)
 {
+    assert(insts != NULL);
+    assert(dsps != NULL);
+    assert(master != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -111,16 +117,16 @@ Connections* new_Connections_from_string(char* str,
     graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    Device_node* master = new_Device_node("");
-    clean_if(master == NULL, graph, NULL);
-    clean_if(!AAtree_ins(graph->nodes, master), graph, master);
+    Device_node* master_node = new_Device_node("", insts, dsps, master);
+    clean_if(master_node == NULL, graph, NULL);
+    clean_if(!AAtree_ins(graph->nodes, master_node), graph, master_node);
 
     if (str == NULL)
     {
         Connections_reset(graph);
         return graph;
     }
-    
+
     str = read_const_char(str, '[', state);
     clean_if(state->error, graph, NULL);
     str = read_const_char(str, ']', state);
@@ -151,10 +157,11 @@ Connections* new_Connections_from_string(char* str,
                                                  DEVICE_PORT_TYPE_RECEIVE,
                                                  state);
         clean_if(state->error, graph, NULL);
-        
+
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
-            Device_node* new_src = new_Device_node(src_name);
+            Device_node* new_src = new_Device_node(src_name,
+                                                   insts, dsps, master);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
@@ -162,7 +169,8 @@ Connections* new_Connections_from_string(char* str,
 
         if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
-            Device_node* new_dest = new_Device_node(dest_name);
+            Device_node* new_dest = new_Device_node(dest_name,
+                                                    insts, dsps, master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
@@ -198,20 +206,18 @@ Device_node* Connections_get_master(Connections* graph)
 }
 
 
-bool Connections_prepare(Connections* graph,
-                         Device* master,
-                         Ins_table* insts,
-                         DSP_table* dsps)
+bool Connections_prepare(Connections* graph)
 {
     assert(graph != NULL);
-    assert(master != NULL);
-    assert(insts != NULL);
-    assert(dsps != NULL);
-    Connections_set_devices(graph, master, insts, dsps);
+    //assert(master != NULL);
+    //assert(insts != NULL);
+    //assert(dsps != NULL);
+    //Connections_set_devices(graph, master, insts, dsps);
     return Connections_init_buffers(graph);
 }
 
 
+#if 0
 void Connections_set_devices(Connections* graph,
                              Device* master,
                              Ins_table* insts,
@@ -228,6 +234,7 @@ void Connections_set_devices(Connections* graph,
     Device_node_set_devices(master_node, master, insts, dsps);
     return;
 }
+#endif
 
 
 bool Connections_init_buffers_simple(Connections* graph)
@@ -319,6 +326,51 @@ void Connections_mix(Connections* graph,
     Device_node_mix(master, start, until, freq, tempo);
     return;
 }
+
+
+#if 0
+void Connections_disconnect(Connections* graph, Device* device)
+{
+    assert(graph != NULL);
+    assert(device != NULL);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    assert(Device_node_get_device(master) != device);
+    (void)master;
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
+    {
+        Device_node_disconnect(node, device);
+        node = AAiter_get_next(graph->iter);
+    }
+    return;
+}
+
+
+void Connections_replace(Connections* graph,
+                         Device* old_device,
+                         Device* new_device)
+{
+    assert(graph != NULL);
+    assert(old_device != NULL);
+    assert(new_device != NULL);
+    assert(new_device != old_device);
+    Device_node* master = AAtree_get_exact(graph->nodes, "");
+    assert(master != NULL);
+    assert(Device_node_get_device(master) != old_device);
+    assert(Device_node_get_device(master) != new_device);
+    (void)master;
+    const char* name = "";
+    Device_node* node = AAiter_get(graph->iter, name);
+    while (node != NULL)
+    {
+        Device_node_replace(node, old_device, new_device);
+        node = AAiter_get_next(graph->iter);
+    }
+    return;
+}
+#endif
 
 
 static void Connections_reset(Connections* graph)

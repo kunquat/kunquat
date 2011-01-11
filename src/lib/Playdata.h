@@ -22,6 +22,7 @@
 #include <Subsong_table.h>
 //#include <Channel.h>
 #include <Column.h>
+#include <General_state.h>
 #include <Random.h>
 #include <Slider.h>
 #include <Voice_pool.h>
@@ -36,7 +37,7 @@
 typedef enum Play_mode
 {
     STOP = 0,       ///< Don't play.
-    PLAY_EVENT,     ///< Play a single event.
+//    PLAY_EVENT,     ///< Play a single event.
     PLAY_PATTERN,   ///< Play one pattern.
     PLAY_SUBSONG,   ///< Play one subsong.
     PLAY_SONG,      ///< Play all subsongs.
@@ -46,6 +47,7 @@ typedef enum Play_mode
 
 typedef struct Playdata
 {
+    General_state parent;
     uint64_t play_id;                 ///< A unique identifier for successive playbacks.
     bool silent;                      ///< \c true if this Playdata is used for statistics only.
     Play_mode mode;                   ///< Current playback mode.

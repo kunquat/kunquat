@@ -24,6 +24,9 @@ enable_tests = False
 # Enable kunquat-player (requires enable_python_bindings).
 enable_player = True
 
+# Enable kunquat-editor (requires enable_python_bindings and PyQt4).
+enable_editor = True
+
 # Enable kunquat-export (requires libsndfile).
 enable_export = False
 

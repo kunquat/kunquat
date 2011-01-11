@@ -173,7 +173,7 @@ void Instrument_set_scale(Instrument* ins, int index);
  * Previously set Connections will be removed if found.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param graph   The Connections -- must not be \c NULL.
+ * \param graph   The Connections, or \c NULL.
  */
 void Instrument_set_connections(Instrument* ins, Connections* graph);
 

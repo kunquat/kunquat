@@ -121,27 +121,27 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->actual_panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
-    state->filter = INFINITY;
-    state->actual_filter = INFINITY;
-    state->effective_filter = INFINITY;
+    state->lowpass = INFINITY;
+    state->actual_lowpass = INFINITY;
+    state->effective_lowpass = INFINITY;
     Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
-    state->filter_resonance = 1;
+    state->lowpass_resonance = 1;
     state->effective_resonance = 1;
-    state->filter_update = false;
-    state->filter_state_used = -1;
-    state->filter_xfade_state_used = -1;
-    state->filter_xfade_pos = 1;
-    state->filter_xfade_update = 0;
+    state->lowpass_update = false;
+    state->lowpass_state_used = -1;
+    state->lowpass_xfade_state_used = -1;
+    state->lowpass_xfade_pos = 1;
+    state->lowpass_xfade_update = 0;
     for (int i = 0; i < FILTER_ORDER; ++i)
     {
-        state->filter_state[0].coeffs[i] = 0;
-        state->filter_state[1].coeffs[i] = 0;
+        state->lowpass_state[0].coeffs[i] = 0;
+        state->lowpass_state[1].coeffs[i] = 0;
         for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
         {
-            state->filter_state[0].history1[k][i] = 0;
-            state->filter_state[0].history2[k][i] = 0;
-            state->filter_state[1].history1[k][i] = 0;
-            state->filter_state[1].history2[k][i] = 0;
+            state->lowpass_state[0].history1[k][i] = 0;
+            state->lowpass_state[0].history2[k][i] = 0;
+            state->lowpass_state[1].history1[k][i] = 0;
+            state->lowpass_state[1].history2[k][i] = 0;
         }
     }
 

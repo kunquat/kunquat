@@ -27,7 +27,7 @@
 #define STATE_PATH_LENGTH (512)
 #define ERROR_MESSAGE_LENGTH (256)
 
-#define MAGIC_ID "kunquat"
+#define MAGIC_ID "kqt"
 
 
 typedef struct Read_state

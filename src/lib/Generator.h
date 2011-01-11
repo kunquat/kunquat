@@ -98,6 +98,16 @@ bool Generator_init(Generator* gen,
 
 
 /**
+ * Resets the playback parameters of the Generator.
+ *
+ * If you override this function, call this inside the overriding function.
+ *
+ * \param gen   The Generator Device -- must not be \c NULL.
+ */
+void Generator_reset(Device* device);
+
+
+/**
  * Sets the configuration of the Generator.
  *
  * \param gen    The Generator -- must not be \c NULL.

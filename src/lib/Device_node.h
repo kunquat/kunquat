@@ -52,12 +52,19 @@ typedef struct Device_node Device_node;
 /**
  * Creates a new Device node.
  *
- * \param name   The name of the node -- must not be \c NULL.
+ * \param name     The name of the node -- must not be \c NULL.
+ * \param insts    The Instrument table -- must not be \c NULL.
+ * \param dsps     The DSP table -- must not be \c NULL.
+ * \param master   The global or Instrumet master Device
+ *                 -- must not be \c NULL.
  *
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_node* new_Device_node(const char* name);
+Device_node* new_Device_node(const char* name,
+                             Ins_table* insts,
+                             DSP_table* dsps,
+                             Device* master);
 
 
 /**
@@ -92,10 +99,12 @@ void Device_node_reset(Device_node* node);
  * \param insts    The Instrument table -- must not be \c NULL.
  * \param dsps     The DSP table -- must not be \c NULL.
  */
+#if 0
 void Device_node_set_devices(Device_node* node,
                              Device* master,
                              Ins_table* insts,
                              DSP_table* dsps);
+#endif
 
 
 /**
@@ -235,6 +244,28 @@ bool Device_node_connect(Device_node* receiver,
                          int rec_port,
                          Device_node* sender,
                          int send_port);
+
+
+/**
+ * Disconnects a Device from the Device node.
+ *
+ * \param node     The Device node -- must not be \c NULL.
+ * \param device   The Device to be disconnected -- must not be \c NULL.
+ */
+void Device_node_disconnect(Device_node* node, Device* device);
+
+
+/**
+ * Replaces a Device in the connections of the Device node.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param old_device   The old Device -- must not be \c NULL.
+ * \param new_device   The new Device -- must not be \c NULL, equal to
+ *                     \a old_device or in the connections of \a node.
+ */
+void Device_node_replace(Device_node* node,
+                         Device* old_device,
+                         Device* new_device);
 
 
 /**

@@ -25,15 +25,19 @@ Exceptions:
 KunquatError         -- The base class for Kunquat errors.
 KunquatArgumentError -- An error for most invalid argument errors.
 KunquatFormatError   -- An error for indicating invalid music data.
+KunquatMemoryError   -- An error for indicating memory allocation
+                        failure.
 KunquatResourceError -- An error for resource access errors.
 
 """
 
 import ctypes
+import json
 
 __all__ = ['RHandle', 'RWHandle', 'RWCHandle',
            'KunquatError', 'KunquatArgumentError',
-           'KunquatFormatError', 'KunquatResourceError']
+           'KunquatFormatError', 'KunquatMemoryError',
+           'KunquatResourceError']
 
 
 class RHandle(object):
@@ -49,6 +53,7 @@ class RHandle(object):
     __getitem__  -- Dictionary-like composition data retrieval.
     get_duration -- Calculate the length of a subsong.
     mix          -- Mix audio data.
+    trigger      -- Trigger an event.
 
     Public instance variables:
     buffer_size -- Mixing buffer size.
@@ -67,11 +72,13 @@ class RHandle(object):
                 indicating a compression format.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         Exceptions:
-        KunquatArgumentError -- path is None or mixing_rate is not positive.
+        KunquatArgumentError -- path is None or mixing_rate is not
+                                positive.
         KunquatFormatError   -- The file in path is not a valid Kunquat
                                 composition.
         KunquatResourceError -- Reading the input failed for a reason
@@ -81,7 +88,8 @@ class RHandle(object):
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_r(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         self._subsong = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
@@ -96,10 +104,10 @@ class RHandle(object):
         key -- The key of the data in the composition.  A key consists
                of one or more textual elements separated by forward
                slashes ('/').  The last element is the only one that
-               is allowed and required to contain a period. Examples:
+               is allowed and required to contain a period.  Examples:
                'p_composition.json'
-               'pat_000/vcol_00/p_voice_events.json'
-               'ins_01/kunquatiXX/p_instrument.json'
+               'pat_000/ccol_00/p_channel_events.json'
+               'ins_01/kqtiXX/p_instrument.json'
                The 'XX' in the last example should be written
                literally.  It is expanded to the file format version
                number behind the scenes.
@@ -109,7 +117,7 @@ class RHandle(object):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatResourceError -- Retrieving the data failed. This can
+        KunquatResourceError -- Retrieving the data failed.  This can
                                 usually occur only with subclasses of
                                 RHandle.
 
@@ -170,7 +178,8 @@ class RHandle(object):
     def mixing_rate(self, value):
         """Set the mixing rate.
 
-        Typical values include 44100 ("CD quality") and 48000 (the default).
+        Typical values include 44100 ("CD quality") and 48000 (the
+        default).
 
         """
         _kunquat.kqt_Handle_set_mixing_rate(self._handle, value)
@@ -215,16 +224,15 @@ class RHandle(object):
         """Mix audio according to the state of the handle.
 
         Optional arguments:
-        frame_count -- The number of frames to be mixed. The default
+        frame_count -- The number of frames to be mixed.  The default
                        value is self.buffer_size.
 
         Exceptions:
-        KunquatArgumentError -- self.mixing_rate or frame_count is not
-                                positive.
+        KunquatArgumentError -- frame_count is not positive.
 
         Returns:
         A pair containing audio data for, respectively, the left and
-        the right output channel. Buffers shorter than frame_count
+        the right output channel.  Buffers shorter than frame_count
         frames indicate that the end has been reached.
 
         """
@@ -235,6 +243,23 @@ class RHandle(object):
         cbuf_right = _kunquat.kqt_Handle_get_buffer(self._handle, 1)
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
         return cbuf_left[:mixed], cbuf_right[:mixed]
+
+    def trigger(self, channel, event):
+        """Trigger an event.
+
+        Arguments:
+        channel -- The channel where the event takes place. The channel
+                   number is >= 0 and < 64 for regular channels, and -1
+                   for the global channel.
+        event -- The event description in JSON format.  The description
+                 is a pair (list with two elements) with the event name
+                 as the first element and its argument list as the
+                 second element.  Example: '["Cn+", [300]]' (Note On at
+                 300 cents above A4, i.e. C5 in 12-tone Equal
+                 Temperament).
+
+        """
+        _kunquat.kqt_Handle_trigger(self._handle, channel, event)
 
     def __del__(self):
         if self._handle:
@@ -264,21 +289,23 @@ class RWHandle(RHandle):
 
         Arguments:
         path -- The path to the extracted Kunquat composition
-                directory.  This directory is called 'kunquatcXX'
+                directory.  This directory is called 'kqtcXX'
                 where 'XX' is the version number of the format.  In
                 this case, the real path name should be used, i.e.
                 the format version number should not be substituted
                 with 'XX'.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         """
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rw(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         RHandle.__init__(self, path, mixing_rate)
 
     def __setitem__(self, key, value):
@@ -292,18 +319,18 @@ class RWHandle(RHandle):
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid. Only the data
+        KunquatFormatError   -- The data is not valid.  Only the data
                                 that audibly affects mixing is
                                 validated.
 
         """
         data = buffer(value)
-        cdata = (ctypes.c_byte * len(data))()
+        cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
         _kunquat.kqt_Handle_set_data(self._handle,
                                      key,
                                      ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_byte)),
+                                         ctypes.POINTER(ctypes.c_ubyte)),
                                      len(data))
 
 
@@ -312,9 +339,9 @@ class RWCHandle(RWHandle):
     """Handle for accessing composition projects with a state store.
 
     The RWCHandle extends the RWHandle with a journaling mechanism.  It
-    enables the user to commit to changes made in the composition
-    state.  A committed version of a composition can always be restored
-    in case the program execution is abruptly terminated.
+    enables the user to commit changes made in the composition state.
+    A committed version of a composition can always be restored in case
+    the program execution is abruptly terminated.
 
     Public methods:
     commit -- Commit the changes made in the handle.
@@ -331,17 +358,19 @@ class RWCHandle(RWHandle):
                 directories may be empty.
 
         Optional arguments:
-        mixing_rate -- Mixing rate in frames per second. Typical values
-                       include 44100 ("CD quality") and 48000 (the default).
+        mixing_rate -- Mixing rate in frames per second.  Typical
+                       values include 44100 ("CD quality") and 48000
+                       (the default).
 
         """
         if '_handle' not in self.__dict__:
             self._handle = _kunquat.kqt_new_Handle_rwc(path)
             if not self._handle:
-                raise _get_error(_kunquat.kqt_Handle_get_error(None))
+                raise _get_error(json.loads(
+                                 _kunquat.kqt_Handle_get_error(None)))
         RWHandle.__init__(self, path, mixing_rate)
 
-    def commit():
+    def commit(self):
         """Commit the changes made in the handle.
 
         Exceptions:
@@ -356,22 +385,21 @@ class RWCHandle(RWHandle):
         project.  This will initiate a recovery procedure that will
         restore a valid composition state.  Changes made after the last
         successful commit are possibly lost in this case, though.
-        
+
         """
         _kunquat.kqt_Handle_commit(self._handle)
 
 
-def _get_error(error_str):
-    description = error_str[error_str.index(' ') + 1:]
-    if error_str.startswith('ArgumentError:'):
-        return KunquatArgumentError(description)
-    elif error_str.startswith('FormatError:'):
-        return KunquatFormatError(description)
-    elif error_str.startswith('MemoryError:'):
-        return MemoryError(description)
-    elif error_str.startswith('ResourceError:'):
-        return KunquatResourceError(description)
-    return KunquatError(error_str)
+def _get_error(obj):
+    if obj['type'] == 'ArgumentError':
+        return KunquatArgumentError(obj)
+    elif obj['type'] == 'FormatError':
+        return KunquatFormatError(obj)
+    elif obj['type'] == 'MemoryError':
+        return KunquatMemoryError(obj)
+    elif obj['type'] == 'ResourceError':
+        return KunquatResourceError(obj)
+    return KunquatError(obj)
 
 
 def _error_check(result, func, arguments):
@@ -380,17 +408,34 @@ def _error_check(result, func, arguments):
     if not error_str:
         return result
     _kunquat.kqt_Handle_clear_error(chandle)
-    raise _get_error(error_str)
+    raise _get_error(json.loads(error_str))
 
 
 class KunquatError(Exception):
+
     """Base class for errors in Kunquat."""
+
+    def __init__(self, obj):
+        self.obj = obj
+
+    def __getitem__(self, key):
+        return self.obj[key]
+
+    def __str__(self):
+        return self.obj['message']
+
 
 class KunquatArgumentError(KunquatError):
     """Error indicating that a given method argument is invalid."""
 
+
 class KunquatFormatError(KunquatError):
     """Error indicating that composition data is invalid."""
+
+
+class KunquatMemoryError(KunquatError, MemoryError):
+    """Error indicating that memory allocation failed."""
+
 
 class KunquatResourceError(KunquatError):
     """Error indicating that an external service request has failed."""
@@ -411,19 +456,19 @@ _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
 _kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
 
 _kunquat.kqt_Handle_get_data.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-_kunquat.kqt_Handle_get_data.restype = ctypes.POINTER(ctypes.c_byte)
+_kunquat.kqt_Handle_get_data.restype = ctypes.POINTER(ctypes.c_ubyte)
 _kunquat.kqt_Handle_get_data.errcheck = _error_check
 _kunquat.kqt_Handle_get_data_length.argtypes = [ctypes.c_void_p,
                                                 ctypes.c_char_p]
 _kunquat.kqt_Handle_get_data_length.restype = ctypes.c_long
 _kunquat.kqt_Handle_get_data_length.errcheck = _error_check
 _kunquat.kqt_Handle_free_data.argtypes = [ctypes.c_void_p,
-                                          ctypes.POINTER(ctypes.c_byte)]
+                                          ctypes.POINTER(ctypes.c_ubyte)]
 _kunquat.kqt_Handle_free_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_free_data.errcheck = _error_check
 _kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
                                          ctypes.c_char_p,
-                                         ctypes.POINTER(ctypes.c_byte),
+                                         ctypes.POINTER(ctypes.c_ubyte),
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
@@ -467,5 +512,11 @@ _kunquat.kqt_Handle_set_position.errcheck = _error_check
 _kunquat.kqt_Handle_get_position.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
+
+_kunquat.kqt_Handle_trigger.argtypes = [ctypes.c_void_p,
+                                        ctypes.c_int,
+                                        ctypes.c_char_p]
+_kunquat.kqt_Handle_trigger.restype = ctypes.c_int
+_kunquat.kqt_Handle_trigger.errcheck = _error_check
 
 

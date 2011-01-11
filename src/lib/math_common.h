@@ -16,6 +16,9 @@
 #define K_MATH_COMMON_H
 
 
+#include <math.h>
+
+
 #undef PI
 #define PI (3.14159265358979323846)
 
@@ -24,6 +27,8 @@
 
 #undef MAX
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
+
+#define undenormalise(x) (fpclassify((x)) != FP_SUBNORMAL ? (x) : 0.0)
 
 
 #endif // K_MATH_COMMON_H

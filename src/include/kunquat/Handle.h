@@ -164,23 +164,26 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 /**
  * Gets an error message from the Kunquat Handle.
  *
- * An error message consists of an error code followed by a colon, a space and
- * an error description. Possible error codes are:
+ * An error message is a JSON object string that contains at least two keys:
+ * "type" and "message". The value of "type" is one of the following:
  *
- * \li ArgumentError -- a Kunquat function was called with an inappropriate
+ * \li "ArgumentError" -- a Kunquat function was called with an inappropriate
  *                      argument value.
- * \li FormatError   -- an input file or value to be stored was invalid.
- * \li MemoryError   -- memory allocation failed.
- * \li ResourceError -- libkunquat couldn't get service from an external
+ * \li "FormatError"   -- an input file or value to be stored was invalid.
+ * \li "MemoryError"   -- memory allocation failed.
+ * \li "ResourceError" -- libkunquat couldn't get service from an external
  *                      resource.
  *
- * kqt_Handle_get_error(\a handle) returns a message describing the last
+ * The value of "message" is a human-readable description of the error.
+ *
+ * kqt_Handle_get_error(\a handle) returns a JSON object describing the last
  * error occurred when processing \a handle.
  *
- * kqt_Handle_get_error(\c NULL) returns a message describing the last error
- * occurred in Kunquat Handle processing in general. In a single-threaded
- * application, you can always call kqt_Handle_get_error(\c NULL) to get the
- * last error message, whether or not connected to any particular Handle.
+ * kqt_Handle_get_error(\c NULL) returns a JSON object describing the last
+ * error occurred in Kunquat Handle processing in general. In a
+ * single-threaded application, you can always call
+ * kqt_Handle_get_error(\c NULL) to get the last error message, whether or
+ * not related to any particular Handle.
  *
  * \param handle   The Handle, or \c NULL if retrieving error information
  *                 that is not necessarily associated with a Kunquat Handle.

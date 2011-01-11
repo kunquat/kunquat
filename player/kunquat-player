@@ -19,6 +19,7 @@ from itertools import cycle, chain
 import math
 from optparse import OptionParser, OptionGroup
 import os.path
+import random
 import string
 import sys
 import termios
@@ -67,7 +68,7 @@ def print_interactive_help():
 
 def play(options, file_name, pa_handle, key_handler, list_pos):
     try:
-        if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
+        if os.path.basename(os.path.realpath(file_name)) == 'kqtc00':
             handle = kunquat.RWHandle(file_name, options.frequency)
         else:
             handle = kunquat.RHandle(file_name, options.frequency)
@@ -82,6 +83,8 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         print('Playing', file_name)
     return_key = KeyHandler.RETURN
     status_len_max = 0
+    pause = False
+    #handle.trigger(-1, '[">pause", []]')
     bufs = handle.mix()
     rt_cycle_len = float(options.buffer_size) / options.frequency
     mix_cycle_start = 0
@@ -156,6 +159,17 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                                 (handle.subsong + 1)] and handle.subsong < 255:
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
+                """
+                elif key == '§':
+                    #handle.trigger(63, '["c.i", [1]]')
+                    handle.trigger(63, '["cn+", [%f]]' % random.gauss(0, 1000))
+                elif key == '½':
+                    if not pause:
+                        handle.trigger(-1, '[">pause", []]')
+                    else:
+                        handle.trigger(-1, '[">resume", []]')
+                    pause = not pause
+                """
         mix_cycle_start = time.time()
         bufs = handle.mix()
         mix_cycle_end = time.time()
@@ -304,7 +318,7 @@ class Status(object):
                  (True, False)  : u'▘',
                  (False, True)  : u'▖',
                  (False, False) : u' ' }
-    
+
     block_map = { (3, 3) : u'█',
                   (3, 2) : u'▜',
                   (3, 1) : u'▛',

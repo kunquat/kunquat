@@ -38,6 +38,7 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
+    General_state_init(&play->parent, true);
     play->random = random;
     play->play_id = 1;
     play->silent = false;
@@ -110,8 +111,9 @@ Playdata* new_Playdata_silent(uint32_t freq)
     {
         return NULL;
     }
+    General_state_init(&play->parent, true);
     play->random = NULL;
-    play->play_id = 1;
+    play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
     if (play->citer == NULL)
@@ -205,6 +207,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 void Playdata_reset(Playdata* play)
 {
     assert(play != NULL);
+    General_state_init(&play->parent, true);
     ++play->play_id;
     if (!play->silent)
     {
@@ -232,12 +235,14 @@ void Playdata_reset(Playdata* play)
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
 
+    play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
 //    Slider_set_mix_rate(&play->volume_slider, play->freq);
 //    Slider_set_tempo(&play->volume_slider, play->tempo);
     play->tempo_slide = 0;
     Reltime_init(&play->tempo_slide_length);
     Reltime_init(&play->delay_left);
+    play->delay_event_index = -1;
     play->play_frames = 0;
     play->section = 0;
     play->pattern = 0;

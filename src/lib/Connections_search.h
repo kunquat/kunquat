@@ -29,6 +29,28 @@
 
 
 /**
+ * Creates new Connections from a string.
+ *
+ * \param str         The textual description.
+ * \param ins_level   Whether this is an instrument-level graph or not.
+ * \param insts       The Instrument table -- must not be \c NULL.
+ * \param dsps        The DSP table -- must not be \c NULL.
+ * \param master      The global or Instrument master node
+ *                    -- must not be \c NULL.
+ * \param state       The Read state -- must not be \c NULL.
+ *
+ * \return   The new Connections if successful, otherwise \c NULL. \a state
+ *           will not be modified if memory allocation failed.
+ */
+Connections* new_Connections_from_string(char* str,
+                                         bool ins_level,
+                                         Ins_table* insts,
+                                         DSP_table* dsps,
+                                         Device* master,
+                                         Read_state* state);
+
+
+/**
  * Retrieves the master Device node of the Connections.
  *
  * \param graph   The Connections -- must not be \c NULL.
@@ -41,20 +63,11 @@ Device_node* Connections_get_master(Connections* graph);
 /**
  * Prepares the Connections for mixing.
  *
- * This function is a shorthand for calling Connections_set_devices and
- * a buffer allocation function.
- *
  * \param graph    The Connections -- must not be \c NULL.
- * \param master   The master Device -- must not be \c NULL.
- * \param insts    The Instrument table -- must not be \c NULL.
- * \param dsps     The DSP table -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_prepare(Connections* graph,
-                         Device* master,
-                         Ins_table* insts,
-                         DSP_table* dsps);
+bool Connections_prepare(Connections* graph);
 
 
 /**
@@ -65,10 +78,12 @@ bool Connections_prepare(Connections* graph,
  * \param insts    The Instrument table -- must not be \c NULL.
  * \param dsps     The DSP table -- must not be \c NULL.
  */
+#if 0
 void Connections_set_devices(Connections* graph,
                              Device* master,
                              Ins_table* insts,
                              DSP_table* dsps);
+#endif
 
 
 #endif // K_CONNECTIONS_SEARCH_H

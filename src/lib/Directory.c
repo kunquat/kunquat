@@ -143,6 +143,52 @@ bool create_dir(const char* path, kqt_Handle* handle)
 }
 
 
+/**
+ * Creates a directory path including all the intermediate directories.
+ *
+ * \param path     The path -- must not be \c NULL.
+ * \param handle   The Kunquat Handle associated with the path, or \c NULL if
+ *                 one does not exist. This is used for error reporting.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool create_dir_path(char* path, kqt_Handle* handle)
+{
+    assert(path != NULL);
+    if (string_eq(path, ""))
+    {
+        return true;
+    }
+    Path_type info = path_info(path, handle);
+    if (info == PATH_ERROR)
+    {
+        return false;
+    }
+    else if (info == PATH_IS_DIR)
+    {
+        return true;
+    }
+    else if (info != PATH_NO_ENTRY)
+    {
+        kqt_Handle_set_error(handle, ERROR_RESOURCE, "Path prefix %s exists"
+                             " but is not a directory", path);
+        return PATH_ERROR;
+    }
+    char* last_separator = strrchr(path, '/');
+    if (last_separator != NULL)
+    {
+        *last_separator = '\0';
+        bool ret = create_dir_path(path, handle);
+        *last_separator = '/';
+        if (!ret)
+        {
+            return false;
+        }
+    }
+    return create_dir(path, handle);
+}
+
+
 Path_type path_info(const char* path, kqt_Handle* handle)
 {
     assert(path != NULL);
@@ -250,7 +296,7 @@ bool copy_dir(const char* dest, const char* src, kqt_Handle* handle)
     assert(src != NULL);
     assert(src[0] != '\0');
     assert(!string_eq(dest, src));
-    
+
     Path_type info = path_info(dest, handle);
     if (info == PATH_ERROR)
     {
@@ -617,6 +663,25 @@ bool copy_file(const char* dest, const char* src, kqt_Handle* handle)
         return false;
     }
     notify_modify(dest);
+    if (strrchr(dest, '/') != NULL)
+    {
+        char* dest_dirs = xnalloc(char, strlen(dest) + 1);
+        if (dest_dirs == NULL)
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY, "Couldn't allocate memory"
+                                 " for creating the destination path");
+            return false;
+        }
+        strcpy(dest_dirs, dest);
+        char* dest_dirs_end = strrchr(dest_dirs, '/');
+        *dest_dirs_end = '\0';
+        if (!create_dir_path(dest_dirs, handle))
+        {
+            xfree(dest_dirs);
+            return false;
+        }
+        xfree(dest_dirs);
+    }
     errno = 0;
     FILE* out = fopen(dest, "wb");
     if (out == NULL)

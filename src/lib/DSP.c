@@ -66,6 +66,7 @@ DSP* new_DSP(char* str,
     {
         return NULL;
     }
+    //fprintf(stderr, "New DSP %p\n", (void*)dsp);
     strcpy(dsp->type, type);
     return dsp;
 }
@@ -87,8 +88,18 @@ bool DSP_init(DSP* dsp,
     {
         return false;
     }
+    Device_set_reset(&dsp->parent, DSP_reset);
     Device_set_process(&dsp->parent, process);
     return true;
+}
+
+
+void DSP_reset(Device* device)
+{
+    assert(device != NULL);
+    DSP* dsp = (DSP*)device;
+    Device_params_reset(dsp->conf->params);
+    return;
 }
 
 

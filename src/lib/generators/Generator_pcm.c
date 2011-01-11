@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -155,6 +155,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
             state->active = false;
             return offset;
         }
+        //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
         const Sample_entry* entry = Sample_map_get_entry(map,
                                             log2(state->pitch / 440) * 1200,
                                             state->force,

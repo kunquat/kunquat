@@ -108,6 +108,14 @@ Voice* Voice_pool_get_voice(Voice_pool* pool,
 
 
 /**
+ * Prepares the Voice pool for a new mixing cycle.
+ *
+ * \param pool   The Voice pool -- must not be \c NULL.
+ */
+void Voice_pool_prepare(Voice_pool* pool);
+
+
+/**
  * Mixes the background Voices in the Voice pool.
  *
  * \param pool     The Voice pool -- must not be \c NULL.

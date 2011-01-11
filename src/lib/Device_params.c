@@ -88,12 +88,13 @@ static void del_Slow_sync_info(Slow_sync_info* info)
 
 struct Device_params
 {
-    AAtree* implement;      ///< The implementation part of the generator.
-    AAtree* config;         ///< The configuration part of the generator.
-    AAtree* event_data;     ///< The playback state of the parameters.
-    AAtree* slow_sync;      ///< Keys that require explicit synchronisation.
-    AAiter* slow_sync_iter; ///< Iterator for slow_sync.
-    bool slow_sync_needed;  ///< Whether any slow-sync keys have changed.
+    AAtree* implement;       ///< The implementation part of the generator.
+    AAtree* config;          ///< The configuration part of the generator.
+    AAtree* event_data;      ///< The playback state of the parameters.
+    AAiter* event_data_iter; ///< Iterator used by Device_params_reset.
+    AAtree* slow_sync;       ///< Keys that require explicit synchronisation.
+    AAiter* slow_sync_iter;  ///< Iterator for slow_sync.
+    bool slow_sync_needed;   ///< Whether any slow-sync keys have changed.
     bool slow_sync_keys_requested;
 //    AAtree* event_names;    ///< A mapping from event names to parameters.
 };
@@ -140,6 +141,7 @@ Device_params* new_Device_params(void)
     params->implement = NULL;
     params->config = NULL;
     params->event_data = NULL;
+    params->event_data_iter = NULL;
     params->slow_sync = NULL;
     params->slow_sync_iter = NULL;
     params->slow_sync_needed = false;
@@ -151,13 +153,14 @@ Device_params* new_Device_params(void)
                                 (void (*)(void*))del_Device_field);
     params->event_data = new_AAtree((int (*)(const void*, const void*))strcmp,
                                     (void (*)(void*))del_Device_field);
+    params->event_data_iter = new_AAiter(params->event_data);
     params->slow_sync = new_AAtree((int (*)(const void*, const void*))strcmp,
                                    (void (*)(void*))del_Slow_sync_info);
     params->slow_sync_iter = new_AAiter(params->slow_sync);
 //    params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
 //                                     free);
     if (params->implement == NULL || params->config == NULL ||
-            params->event_data == NULL ||
+            params->event_data == NULL || params->event_data_iter == NULL ||
             params->slow_sync == NULL || params->slow_sync_iter == NULL)
 //             || params->event_names == NULL)
     {
@@ -262,17 +265,19 @@ void Device_params_synchronised(Device_params* params)
 }
 
 
-#define clean_if_fail()                      \
-    if (true)                                \
-    {                                        \
-        if (state->error)                    \
-        {                                    \
-            del_AAtree(params->event_data);  \
-            params->event_data = old_data;   \
-/*            del_AAtree(params->event_names); \
-            params->event_names = old_names; */ \
-            return false;                    \
-        }                                    \
+#define clean_if_fail()                                 \
+    if (true)                                           \
+    {                                                   \
+        if (state->error)                               \
+        {                                               \
+            del_AAtree(params->event_data);             \
+            params->event_data = old_data;              \
+            AAiter_change_tree(params->event_data_iter, \
+                               params->event_data);     \
+/*            del_AAtree(params->event_names);            \
+            params->event_names = old_names; */           \
+            return false;                               \
+        }                                               \
     } else (void)0
 
 bool Device_params_parse_events(Device_params* params,
@@ -297,6 +302,7 @@ bool Device_params_parse_events(Device_params* params,
         params->event_data = old_data;
         return false;
     }
+    AAiter_change_tree(params->event_data_iter, params->event_data);
 #if 0
     AAtree* old_names = params->event_names;
     params->event_names = new_AAtree((int (*)(const void*, const void*))strcmp,
@@ -368,6 +374,8 @@ bool Device_params_parse_events(Device_params* params,
 //                params->event_names = old_names;
                 del_AAtree(params->event_data);
                 params->event_data = old_data;
+                AAiter_change_tree(params->event_data_iter,
+                                   params->event_data);
                 return false;
             }
         }
@@ -387,6 +395,8 @@ bool Device_params_parse_events(Device_params* params,
 //                    params->event_names = old_names;
                     del_AAtree(params->event_data);
                     params->event_data = old_data;
+                    AAiter_change_tree(params->event_data_iter,
+                                       params->event_data);
                     return false;
                 }
             }
@@ -498,6 +508,20 @@ bool Device_params_modify_value(Device_params* params,
         return false;
     }
     return Device_field_modify(field, str);
+}
+
+
+void Device_params_reset(Device_params* params)
+{
+    assert(params != NULL);
+    AAiter_change_tree(params->event_data_iter, params->event_data);
+    Device_field* field = AAiter_get(params->event_data_iter, "");
+    while (field != NULL)
+    {
+        Device_field_set_empty(field, true);
+        field = AAiter_get_next(params->event_data_iter);
+    }
+    return;
 }
 
 
@@ -639,6 +663,7 @@ void del_Device_params(Device_params* params)
     del_AAtree(params->implement);
     del_AAtree(params->config);
     del_AAtree(params->event_data);
+    del_AAiter(params->event_data_iter);
     del_AAtree(params->slow_sync);
     del_AAiter(params->slow_sync_iter);
 #if 0

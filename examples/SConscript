@@ -28,13 +28,13 @@ files = [
     'example_scale.kqts.bz2',
 ]
 
-env_demo.Command(files[0], 'kunquatc00', tar_cmd,
+env_demo.Command(files[0], 'kqtc00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
-env_demo.Command(files[1], 'kunquati00', tar_cmd,
+env_demo.Command(files[1], 'kqti00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
-env_demo.Command(files[2], 'kunquats00', tar_cmd,
+env_demo.Command(files[2], 'kqts00', tar_cmd,
                  chdir=1, source_scanner=DirScanner)
 
 

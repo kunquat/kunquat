@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,9 @@
 
 #include <Reltime.h>
 #include <Event_pg.h>
-#include <Event_global_set_tempo.h>
+#include <Event_global_jump.h>
+//#include <Event_global_set_tempo.h>
+#include <Event_names.h>
 #include <Column.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -218,6 +220,13 @@ void del_Column_iter(Column_iter* iter)
 }
 
 
+static bool Column_parse(Column* col,
+                         char* str,
+                         bool is_global,
+                         Event_names* event_names,
+                         Read_state* state);
+
+
 Column* new_Column(Reltime* len)
 {
     Column* col = xalloc(Column);
@@ -332,9 +341,15 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 Column* new_Column_from_string(Reltime* len,
                                char* str,
                                bool is_global,
+                               AAtree* locations,
+                               AAiter* locations_iter,
+                               Event_names* event_names,
                                Read_state* state)
 {
+    assert(event_names != NULL);
     assert(state != NULL);
+    assert(!is_global || locations != NULL);
+    assert(locations == NULL || locations_iter != NULL);
     if (state->error)
     {
         return false;
@@ -344,7 +359,12 @@ Column* new_Column_from_string(Reltime* len,
     {
         return NULL;
     }
-    if (!Column_parse(col, str, is_global, state))
+    if (!Column_parse(col, str, is_global, event_names, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    if (is_global && !Column_update_locations(col, locations, locations_iter))
     {
         del_Column(col);
         return NULL;
@@ -362,7 +382,11 @@ Column* new_Column_from_string(Reltime* len,
         }                 \
     } else (void)0
 
-bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
+static bool Column_parse(Column* col,
+                         char* str,
+                         bool is_global,
+                         Event_names* event_names,
+                         Read_state* state)
 {
     assert(col != NULL);
     assert(state != NULL);
@@ -395,15 +419,24 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
         break_if(state->error);
 
         str = read_const_char(str, ',', state);
+        str = read_const_char(str, '[', state);
         break_if(state->error);
 
-        int64_t type = 0;
-        str = read_int(str, &type, state);
+        char type_str[EVENT_NAME_MAX + 2] = { '\0' };
+        str = read_string(str, type_str, EVENT_NAME_MAX + 2, state);
+//        str = read_int(str, &type, state);
         break_if(state->error);
-        if (!EVENT_IS_VALID(type))
+        Event_type type = Event_names_get(event_names, type_str);
+        if (EVENT_IS_CONTROL(type))
         {
-            Read_state_set_error(state, "Invalid Event type: %" PRId64
-                                        "\n", type);
+            Read_state_set_error(state, "Control events are not supported"
+                                        " inside patterns");
+            return false;
+        }
+        if (!EVENT_IS_TRIGGER(type))
+        {
+            Read_state_set_error(state, "Invalid or unsupported event type:"
+                                        " \"%s\"", type_str);
             return false;
         }
         if (((is_global && EVENT_IS_CHANNEL(type)) ||
@@ -411,13 +444,13 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
                 && !EVENT_IS_GENERAL(type))
         {
             Read_state_set_error(state,
-                     "Incorrect Event type for %s column",
+                     "Incorrect event type for %s column",
                      is_global ? "global" : "note");
             return false;
         }
         if (!Event_type_is_supported(type))
         {
-            Read_state_set_error(state, "Unsupported Event type: %" PRId64
+            Read_state_set_error(state, "Unsupported event type: %" PRId64
                                         "\n", type);
             return false;
         }
@@ -425,9 +458,10 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
         Event* event = new_Event(type, pos);
         if (event == NULL)
         {
-            Read_state_set_error(state, "Couldn't allocate memory for Event");
+            Read_state_set_error(state, "Couldn't allocate memory for event");
             return false;
         }
+        str = read_const_char(str, ',', state);
         str = Event_read(event, str, state);
         if (state->error)
         {
@@ -436,11 +470,12 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
         }
         if (!Column_ins(col, event))
         {
-            Read_state_set_error(state, "Couldn't insert Event");
+            Read_state_set_error(state, "Couldn't insert event");
             del_Event(event);
             return false;
         }
-        
+
+        str = read_const_char(str, ']', state);
         str = read_const_char(str, ']', state);
         break_if(state->error);
 
@@ -456,6 +491,33 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 }
 
 #undef break_if
+
+
+bool Column_update_locations(Column* col,
+                             AAtree* locations,
+                             AAiter* locations_iter)
+{
+    assert(col != NULL);
+    assert(locations != NULL);
+    assert(locations_iter != NULL);
+    Column_iter_change_col(col->edit_iter, col);
+    Event* event = Column_iter_get(col->edit_iter,
+                                   Reltime_init(RELTIME_AUTO));
+    while (event != NULL)
+    {
+        Event_type type = Event_get_type(event);
+        assert(!EVENT_IS_CHANNEL(type));
+        if (type == EVENT_GLOBAL_JUMP &&
+                !Trigger_global_jump_set_locations((Event_global_jump*)event,
+                                                   locations,
+                                                   locations_iter))
+        {
+            return false;
+        }
+        event = Column_iter_get_next(col->edit_iter);
+    }
+    return true;
+}
 
 
 bool Column_ins(Column* col, Event* event)

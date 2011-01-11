@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <Channel_gen_state.h>
+#include <General_state.h>
 #include <LFO.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
@@ -34,6 +35,7 @@
  */
 typedef struct Channel_state
 {
+    General_state parent;
     int num;                       ///< Channel number.
     Voice_params vp;               ///< Voice parameters.
     bool* mute;                    ///< Channel mute.

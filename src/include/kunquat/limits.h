@@ -36,7 +36,7 @@ extern "C" {
 /**
  * Maximum length of a key inside a Kunquat composition.
  */
-#define KQT_KEY_LENGTH_MAX (69)
+#define KQT_KEY_LENGTH_MAX (73)
 
 
 /**

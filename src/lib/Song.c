@@ -31,6 +31,14 @@
 
 
 /**
+ * Resets the Song.
+ *
+ * \param device   The Song Device -- must not be \c NULL.
+ */
+static void Song_reset(Device* device);
+
+
+/**
  * Sets the mixing rate of the Song.
  *
  * This function sets the mixing rate for all the Instruments and DSPs.
@@ -84,6 +92,7 @@ Song* new_Song(uint32_t buf_size)
         xfree(song);
         return NULL;
     }
+    Device_set_reset(&song->parent, Song_reset);
     Device_set_mix_rate_changer(&song->parent, Song_set_mix_rate);
     Device_set_buffer_size_changer(&song->parent, Song_set_buffer_size);
     Device_set_sync(&song->parent, Song_sync);
@@ -163,17 +172,18 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     Read_state* conn_state = READ_STATE_AUTO;
-    song->connections = new_Connections_from_string(NULL, false, conn_state);
+    song->connections = new_Connections_from_string(NULL, false,
+                                                    song->insts,
+                                                    song->dsps,
+                                                    &song->parent,
+                                                    conn_state);
     if (song->connections == NULL)
     {
         assert(!conn_state->error);
         del_Song(song);
         return NULL;
     }
-    if (!Connections_prepare(song->connections,
-                             &song->parent,
-                             song->insts,
-                             song->dsps))
+    if (!Connections_prepare(song->connections))
     {
         del_Song(song);
         return NULL;
@@ -336,9 +346,13 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         nframes = Device_get_buffer_size((Device*)song);
     }
-    if (!play->silent && song->connections != NULL)
+    if (!play->silent)
     {
-        Connections_clear_buffers(song->connections, 0, nframes);
+        if (song->connections != NULL)
+        {
+            Connections_clear_buffers(song->connections, 0, nframes);
+        }
+        Voice_pool_prepare(play->voice_pool);
     }
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
@@ -361,7 +375,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         {
             pat = Pat_table_get(song->pats, play->pattern);
         }
-        if (pat == NULL && play->mode != PLAY_EVENT)
+        if (pat == NULL && !play->parent.pause /*&& play->mode != PLAY_EVENT*/)
         {
             if (play->mode < PLAY_SONG)
             {
@@ -418,7 +432,10 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             }
         }
     }
-    play->play_frames += mixed;
+    if (!play->parent.pause)
+    {
+        play->play_frames += mixed;
+    }
 #if 0
     fprintf(stderr, "%3d  \r", play->active_voices);
     play->active_voices = 0;
@@ -585,6 +602,36 @@ void Song_remove_scale(Song* song, int index)
 }
 
 
+static void Song_reset(Device* device)
+{
+    assert(device != NULL);
+    Song* song = (Song*)device;
+    for (int i = 0; i < KQT_INSTRUMENTS_MAX; ++i)
+    {
+        Instrument* ins = Ins_table_get(song->insts, i);
+        if (ins != NULL)
+        {
+            Device_reset((Device*)ins);
+        }
+    }
+    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    {
+        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
+        if (dsp != NULL)
+        {
+            Device_reset((Device*)dsp);
+        }
+    }
+    Playdata_reset(song->play_state);
+    Playdata_reset(song->skip_state);
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_reset(song->channels[i]);
+    }
+    return;
+}
+
+
 static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
 {
     assert(device != NULL);
@@ -665,9 +712,9 @@ void del_Song(Song* song)
     }
     del_Subsong_table(song->subsongs);
     del_Pat_table(song->pats);
+    del_Connections(song->connections);
     del_Ins_table(song->insts);
     del_DSP_table(song->dsps);
-    del_Connections(song->connections);
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         del_Scale(song->scales[i]);

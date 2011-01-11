@@ -36,7 +36,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->reset = NULL;
     device->sync = NULL;
     device->process = NULL;
-    
+
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         for (Device_port_type type = DEVICE_PORT_TYPE_RECEIVE;
@@ -45,6 +45,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
             device->reg[type][port] = false;
             device->buffers[type][port] = NULL;
         }
+        device->direct_receive[port] = NULL;
         device->direct_send[port] = NULL;
     }
     return true;
@@ -156,16 +157,20 @@ void Device_set_direct_receive(Device* device, int port)
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
     assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
+#if 0
     if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL &&
             device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=
                 device->buffers[DEVICE_PORT_TYPE_SEND][port] &&
             device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=
                 device->direct_send[port])
     {
+        //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
         del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
     }
-    device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] =
-            Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port);
+#endif
+    device->direct_receive[port] = Device_get_buffer(device,
+                                                     DEVICE_PORT_TYPE_SEND,
+                                                     port);
 //    fprintf(stderr, "Set direct receive %p in device %p\n",
 //            (void*)device->buffers[DEVICE_PORT_TYPE_RECEIVE][port],
 //            (void*)device);
@@ -189,10 +194,9 @@ void Device_set_direct_send(Device* device,
 void Device_remove_direct_buffers(Device* device)
 {
     assert(device != NULL);
+#if 0
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        // If this is an Instrument Device, the input buffer of a port number
-        // may be the same as the output with the same port number.
         Audio_buffer* in = device->buffers[DEVICE_PORT_TYPE_RECEIVE][port];
         if (in != NULL &&
                 (in == device->buffers[DEVICE_PORT_TYPE_SEND][port] ||
@@ -201,8 +205,10 @@ void Device_remove_direct_buffers(Device* device)
             device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
         }
     }
+#endif
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
+        device->direct_receive[port] = NULL;
         device->direct_send[port] = NULL;
     }
 //    fprintf(stderr, "Removed direct buffers in %p \n", (void*)device);
@@ -280,10 +286,15 @@ Audio_buffer* Device_get_buffer(Device* device,
     }
     if (type == DEVICE_PORT_TYPE_RECEIVE)
     {
+        if (device->direct_receive[port] != NULL)
+        {
+            return device->direct_receive[port];
+        }
         return device->buffers[type][port];
     }
     if (device->direct_send[port] != NULL)
     {
+        //fprintf(stderr, "Return direct send %p\n", (void*)device->direct_send[port]);
         return device->direct_send[port];
     }
     return device->buffers[type][port];
@@ -293,6 +304,7 @@ Audio_buffer* Device_get_buffer(Device* device,
 void Device_clear_buffers(Device* device, uint32_t start, uint32_t until)
 {
     assert(device != NULL);
+    //fprintf(stderr, "Accessing device %p\n", (void*)device);
     assert(start < device->buffer_size);
     assert(until <= device->buffer_size);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -410,15 +422,19 @@ void Device_uninit(Device* device)
     {
         return;
     }
+    //fprintf(stderr, "Destroying device %p\n", (void*)device);
     Device_remove_direct_buffers(device);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
+        //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
         del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_RECEIVE][port]);
         device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] = NULL;
+        //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
         del_Audio_buffer(device->buffers[DEVICE_PORT_TYPE_SEND][port]);
         device->buffers[DEVICE_PORT_TYPE_SEND][port] = NULL;
         device->reg[DEVICE_PORT_TYPE_RECEIVE][port] = false;
         device->reg[DEVICE_PORT_TYPE_SEND][port] = false;
+        device->direct_receive[port] = NULL;
         device->direct_send[port] = NULL;
     }
     return;

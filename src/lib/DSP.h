@@ -77,6 +77,16 @@ bool DSP_init(DSP* dsp,
 
 
 /**
+ * Resets the playback parameters of the DSP.
+ *
+ * If you override this function, call this inside the overriding function.
+ *
+ * \param dsp   The DSP Device -- must not be \c NULL.
+ */
+void DSP_reset(Device* device);
+
+
+/**
  * Sets the configuration of the DSP.
  *
  * \param dsp    The DSP -- must not be \c NULL.
