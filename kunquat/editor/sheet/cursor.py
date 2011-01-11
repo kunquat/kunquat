@@ -497,6 +497,8 @@ class Cursor(QtCore.QObject):
     def set_length(self, length):
         assert length >= 0
         self.length = length
+        if self.length < self.ts:
+            self.set_pos(self.length)
 
     def set_path(self, path):
         self.pattern_path = path
