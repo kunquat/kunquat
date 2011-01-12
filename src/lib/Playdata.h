@@ -87,6 +87,7 @@ typedef struct Playdata
     Reltime delay_left;               ///< The amount of pattern delay left.
     int delay_event_index;            ///< Position of the delay event.
 
+    uint16_t orig_subsong;            ///< Subsong at the start of playback.
     uint16_t subsong;                 ///< Current subsong -- used when \a play == \c PLAY_SONG.
     uint16_t section;                 ///< Current section -- used when \a play == \c PLAY_SONG.
     int16_t pattern;                  ///< Current pattern.
@@ -141,6 +142,9 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
 
 /**
  * Sets the subsong in the Playdata.
+ *
+ * This should only be called when starting playback of a subsong, i.e. it
+ * should not be used by events that jump between subsongs.
  *
  * \param play      The Playdata -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.

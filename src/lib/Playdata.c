@@ -91,6 +91,7 @@ Playdata* new_Playdata(Ins_table* insts,
     Reltime_init(&play->delay_left);
     play->delay_event_index = -1;
 
+    play->orig_subsong = 0;
     play->subsong = 0;
     play->section = 0;
     play->pattern = 0;
@@ -159,6 +160,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     Reltime_init(&play->delay_left);
     play->delay_event_index = -1;
 
+    play->orig_subsong = 0;
     play->subsong = 0;
     play->section = 0;
     play->pattern = 0;
@@ -186,7 +188,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
     assert(play != NULL);
     assert(subsong >= 0);
     assert(subsong < KQT_SUBSONGS_MAX);
-    play->subsong = subsong;
+    play->orig_subsong = play->subsong = subsong;
     play->section = 0;
     if (!play->silent)
     {
