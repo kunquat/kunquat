@@ -388,13 +388,13 @@ class KqtEditor(QtGui.QMainWindow):
         play.setText('Play')
         play.setAutoRaise(True)
         QtCore.QObject.connect(play, QtCore.SIGNAL('clicked()'),
-                               self.play)
+                               lambda: self._play_subsong(None))
 
         stop = QtGui.QToolButton()
         stop.setText('Stop')
         stop.setAutoRaise(True)
         QtCore.QObject.connect(stop, QtCore.SIGNAL('clicked()'),
-                               self.stop)
+                               lambda: self._stop(None))
 
         seek_back = QtGui.QToolButton()
         seek_back.setText('Seek backwards')
