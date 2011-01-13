@@ -105,13 +105,31 @@ extern "C" {
 
 
 /**
- * Maximum number of DSP effects in a Kunquat composition.
+ * Maximum number of Effects in the global Connections.
+ */
+#define KQT_EFFECTS_MAX 256
+
+
+/**
+ * Maximum number of Effects in a Kunquat instrument.
+ */
+#define KQT_INST_EFFECTS_MAX 16
+
+
+/**
+ * Maximum number of DSPs inside an Effect.
+ */
+#define KQT_DSPS_MAX 256
+
+
+/**
+ * Maximum number of DSP effects in a Kunquat composition. FIXME: remove
  */
 #define KQT_DSP_EFFECTS_MAX (256)
 
 
 /**
- * Maximum number of DSP effects in a Kunquat instrument.
+ * Maximum number of DSP effects in a Kunquat instrument. FIXME: remove
  */
 #define KQT_INSTRUMENT_DSPS_MAX 16
 

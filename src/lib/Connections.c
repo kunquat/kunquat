@@ -542,14 +542,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "eXX/"))
+        if (!string_has_prefix(str, "/" MAGIC_ID "dXX/"))
         {
             Read_state_set_error(state,
                     "Missing DSP header after the DSP number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "eXX/");
+        str += strlen("/" MAGIC_ID "dXX/");
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,

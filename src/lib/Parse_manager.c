@@ -830,8 +830,8 @@ static bool parse_dsp_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (!string_has_prefix(subkey, MAGIC_ID "eXX/") &&
-            !string_has_prefix(subkey, MAGIC_ID "e" KQT_FORMAT_VERSION "/"))
+    if (!string_has_prefix(subkey, MAGIC_ID "dXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "d" KQT_FORMAT_VERSION "/"))
     {
         return true;
     }
