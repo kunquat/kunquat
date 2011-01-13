@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -100,6 +100,7 @@ Song* new_Song(uint32_t buf_size)
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
+    song->effects = NULL;
     song->dsps = NULL;
     song->connections = NULL;
     song->play_state = NULL;
@@ -131,6 +132,12 @@ Song* new_Song(uint32_t buf_size)
     }
     song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
     if (song->insts == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
+    song->effects = new_Effect_table(KQT_EFFECTS_MAX);
+    if (song->effects == NULL)
     {
         del_Song(song);
         return NULL;
@@ -174,6 +181,7 @@ Song* new_Song(uint32_t buf_size)
     Read_state* conn_state = READ_STATE_AUTO;
     song->connections = new_Connections_from_string(NULL, false,
                                                     song->insts,
+                                                    song->effects,
                                                     song->dsps,
                                                     &song->parent,
                                                     conn_state);
@@ -522,6 +530,13 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
+Effect_table* Song_get_effects(Song* song)
+{
+    assert(song != NULL);
+    return song->effects;
+}
+
+
 DSP_table* Song_get_dsps(Song* song)
 {
     assert(song != NULL);
@@ -714,6 +729,7 @@ void del_Song(Song* song)
     del_Pat_table(song->pats);
     del_Connections(song->connections);
     del_Ins_table(song->insts);
+    del_Effect_table(song->effects);
     del_DSP_table(song->dsps);
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {

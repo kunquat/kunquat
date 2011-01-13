@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -86,28 +86,6 @@ void Connections_mix(Connections* graph,
                      uint32_t until,
                      uint32_t freq,
                      double tempo);
-
-
-/**
- * Disconnects a Device from the Connections.
- *
- * \param graph    The Connections -- must not be \c NULL.
- * \param device   The Device -- must not be \c NULL.
- */
-//void Connections_disconnect(Connections* graph, Device* device);
-
-
-/**
- * Replaces a Device with another in the Connections.
- *
- * \param graph        The Connections -- must not be \c NULL.
- * \param old_device   The old Device -- must not be \c NULL.
- * \param new_device   The new Device -- must not be \c NULL, equal to
- *                     \a old_device or already connected in \a graph.
- */
-//void Connections_replace(Connections* graph,
-//                         Device* old_device,
-//                         Device* new_device);
 
 
 /**

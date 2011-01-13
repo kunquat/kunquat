@@ -51,6 +51,7 @@ struct Device_node
 
     // These fields are required for adaptation to changes
     Ins_table* insts;
+    Effect_table* effects;
     DSP_table* dsps;
     Device* master; ///< The global or Instrument master
 
@@ -64,28 +65,18 @@ struct Device_node
 };
 
 
-/**
- * Internal device setter.
- */
-#if 0
-void Device_node_set_devices_(Device_node* node,
-                              Device* master,
-                              Ins_table* insts,
-                              Instrument* ins,
-                              DSP_table* dsps);
-#endif
-
-
 static Device_node* Device_node_get_ins_dual(Device_node* node);
 
 
 Device_node* new_Device_node(const char* name,
                              Ins_table* insts,
+                             Effect_table* effects,
                              DSP_table* dsps,
                              Device* master)
 {
     assert(name != NULL);
     assert(insts != NULL);
+    assert(effects != NULL);
     assert(dsps != NULL);
     assert(master != NULL);
     Device_node* node = xalloc(Device_node);
@@ -127,6 +118,7 @@ Device_node* new_Device_node(const char* name,
     }
     //node->ins_dual = NULL;
     node->insts = insts;
+    node->effects = effects;
     node->dsps = dsps;
     node->master = master;
     //node->device = NULL;

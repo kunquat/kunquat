@@ -263,10 +263,11 @@ static bool parse_song_level(kqt_Handle* handle,
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Connections* graph = new_Connections_from_string(data, false,
-                                                 Song_get_insts(handle->song),
-                                                 Song_get_dsps(handle->song),
-                                                 (Device*)handle->song,
-                                                 state);
+                                            Song_get_insts(handle->song),
+                                            Song_get_effects(handle->song),
+                                            Song_get_dsps(handle->song),
+                                            (Device*)handle->song,
+                                            state);
         if (graph == NULL)
         {
             if (state->error)
@@ -479,6 +480,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             Read_state* state = Read_state_init(READ_STATE_AUTO, key);
             Connections* graph = new_Connections_from_string(data, true,
                                                  Song_get_insts(handle->song),
+                                                 Instrument_get_effects(ins),
                                                  Instrument_get_dsps(ins),
                                                  (Device*)ins,
                                                  state);

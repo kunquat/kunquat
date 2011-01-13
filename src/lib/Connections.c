@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 #include <Connections_search.h>
 #include <Device_node.h>
 #include <DSP_table.h>
+#include <Effect_table.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -92,11 +93,13 @@ static int validate_connection_path(char* str,
 Connections* new_Connections_from_string(char* str,
                                          bool ins_level,
                                          Ins_table* insts,
+                                         Effect_table* effects,
                                          DSP_table* dsps,
                                          Device* master,
                                          Read_state* state)
 {
     assert(insts != NULL);
+    assert(effects != NULL);
     assert(dsps != NULL);
     assert(master != NULL);
     assert(state != NULL);
@@ -117,7 +120,7 @@ Connections* new_Connections_from_string(char* str,
     graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    Device_node* master_node = new_Device_node("", insts, dsps, master);
+    Device_node* master_node = new_Device_node("", insts, effects, dsps, master);
     clean_if(master_node == NULL, graph, NULL);
     clean_if(!AAtree_ins(graph->nodes, master_node), graph, master_node);
 
@@ -161,7 +164,7 @@ Connections* new_Connections_from_string(char* str,
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
             Device_node* new_src = new_Device_node(src_name,
-                                                   insts, dsps, master);
+                                                   insts, effects, dsps, master);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
@@ -170,7 +173,7 @@ Connections* new_Connections_from_string(char* str,
         if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
             Device_node* new_dest = new_Device_node(dest_name,
-                                                    insts, dsps, master);
+                                                    insts, effects, dsps, master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }

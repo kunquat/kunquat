@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,8 @@
 #include <Device.h>
 #include <DSP.h>
 #include <DSP_table.h>
+#include <Effect.h>
+#include <Effect_table.h>
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
@@ -45,7 +47,7 @@ struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
     Gen_table* gens;
-
+    Effect_table* effects;
     DSP_table* dsps;
 };
 
@@ -82,6 +84,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     ins->connections = NULL;
     ins->gens = NULL;
     ins->dsps = NULL;
+    ins->effects = NULL;
 
     if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
@@ -108,6 +111,12 @@ Instrument* new_Instrument(uint32_t buf_len,
     }
     ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
     if (ins->dsps == NULL)
+    {
+        del_Instrument(ins);
+        return NULL;
+    }
+    ins->effects = new_Effect_table(KQT_INST_EFFECTS_MAX);
+    if (ins->effects == NULL)
     {
         del_Instrument(ins);
         return NULL;
@@ -283,6 +292,22 @@ Gen_table* Instrument_get_gens(Instrument* ins)
 {
     assert(ins != NULL);
     return ins->gens;
+}
+
+
+Effect* Instrument_get_effect(Instrument* ins, int index)
+{
+    assert(ins != NULL);
+    assert(ins->effects != NULL);
+    return Effect_table_get(ins->effects, index);
+}
+
+
+Effect_table* Instrument_get_effects(Instrument* ins)
+{
+    assert(ins != NULL);
+    assert(ins->effects != NULL);
+    return ins->effects;
 }
 
 
@@ -470,6 +495,7 @@ void del_Instrument(Instrument* ins)
     del_Connections(ins->connections);
     del_Gen_table(ins->gens);
     del_DSP_table(ins->dsps);
+    del_Effect_table(ins->effects);
     Device_uninit(&ins->parent);
     xfree(ins);
     return;

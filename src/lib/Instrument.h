@@ -21,6 +21,8 @@
 #include <Connections.h>
 #include <DSP.h>
 #include <DSP_table.h>
+#include <Effect.h>
+#include <Effect_table.h>
 #include <Instrument_params.h>
 #include <Gen_table.h>
 #include <Generator.h>
@@ -133,6 +135,28 @@ Gen_table* Instrument_get_gens(Instrument* ins);
  *                < \c KQT_GENERATORS_MAX.
  */
 //void Instrument_del_gen(Instrument* ins, int index);
+
+
+/**
+ * Gets an Effect of the Instrument.
+ *
+ * \param ins     The Instrument -- must not be \c NULL.
+ * \param index   The index of the Effect -- must be >= \c 0 and
+ *                < \c KQT_INSTRUMENT_DSPS_MAX.
+ *
+ * \return   The Effect if one exists, otherwise \c NULL.
+ */
+Effect* Instrument_get_effect(Instrument* ins, int index);
+
+
+/**
+ * Gets the Effect table of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Effect table.
+ */
+Effect_table* Instrument_get_effects(Instrument* ins);
 
 
 /**
