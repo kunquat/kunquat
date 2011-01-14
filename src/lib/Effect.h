@@ -16,6 +16,7 @@
 #define K_EFFECT_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <Connections.h>
@@ -83,6 +84,39 @@ DSP_table* Effect_get_dsps(Effect* eff);
  * \param graph   The Connections, or \c NULL.
  */
 void Effect_set_connections(Effect* eff, Connections* graph);
+
+
+/**
+ * Prepares the Connections of the Effect.
+ *
+ * This function assumes that the outer input and output buffers of the Effect
+ * have been allocated.
+ *
+ * \param eff   The Effect -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Effect_prepare_connections(Effect* eff);
+
+
+/**
+ * Gets the input interface of the Effect.
+ *
+ * \param eff   The Effect -- must not be \c NULL.
+ *
+ * \return   The input interface.
+ */
+Device* Effect_get_input_interface(Effect* eff);
+
+
+/**
+ * Gets the output interface of the Effect.
+ *
+ * \param eff   The Effect -- must not be \c NULL.
+ *
+ * \return   The output interface.
+ */
+Device* Effect_get_output_interface(Effect* eff);
 
 
 /**

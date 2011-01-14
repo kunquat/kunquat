@@ -25,6 +25,7 @@
 #include <Connections_search.h>
 #include <Device_node.h>
 #include <DSP_table.h>
+#include <Effect.h>
 #include <Effect_table.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -163,10 +164,25 @@ Connections* new_Connections_from_string(char* str,
                                                  state);
         clean_if(state->error, graph, NULL);
 
+        if ((level & CONNECTION_LEVEL_EFFECT))
+        {
+            if (string_eq(src_name, ""))
+            {
+                strcpy(src_name, "Iin");
+            }
+        }
+
         if (AAtree_get_exact(graph->nodes, src_name) == NULL)
         {
+            Device* actual_master = master;
+            if ((level & CONNECTION_LEVEL_EFFECT) &&
+                    string_eq(src_name, "Iin"))
+            {
+                actual_master = Effect_get_input_interface((Effect*)master);
+            }
             Device_node* new_src = new_Device_node(src_name,
-                                                   insts, effects, dsps, master);
+                                                   insts, effects, dsps,
+                                                   actual_master);
             clean_if(new_src == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_src), graph, new_src);
         }
@@ -174,8 +190,15 @@ Connections* new_Connections_from_string(char* str,
 
         if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
+            Device* actual_master = master;
+            if ((level & CONNECTION_LEVEL_EFFECT) &&
+                    string_eq(dest_name, ""))
+            {
+                actual_master = Effect_get_output_interface((Effect*)master);
+            }
             Device_node* new_dest = new_Device_node(dest_name,
-                                                    insts, effects, dsps, master);
+                                                    insts, effects, dsps,
+                                                    actual_master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
@@ -250,6 +273,11 @@ bool Connections_init_buffers(Connections* graph)
 
     Device_node_reset(master);
     if (!Device_node_init_buffers_by_suggestion(master, 0, NULL))
+    {
+        return false;
+    }
+    Device_node_reset(master);
+    if (!Device_node_init_effect_buffers(master))
     {
         return false;
     }
@@ -472,6 +500,14 @@ static int validate_connection_path(char* str,
             Read_state_set_error(state,
                     "Generator directory in a root-level connection:"
                     " \"%s\"", path);
+            return -1;
+        }
+        if ((level & CONNECTION_LEVEL_EFFECT))
+        {
+            Read_state_set_error(state,
+                    "Generator directory in an effect-level connection:"
+                    " \"%s\"", path);
+            return -1;
         }
         root = false;
         generator = true;
@@ -542,7 +578,8 @@ static int validate_connection_path(char* str,
                     " or generators: \"%s\"", path);
             return -1;
         }
-        if (string_has_prefix(str, "in_") && root)
+        if (string_has_prefix(str, "in_") && root &&
+                level != CONNECTION_LEVEL_EFFECT)
         {
             Read_state_set_error(state,
                     "Input ports are not allowed for master: \"%s\"", path);
@@ -550,7 +587,7 @@ static int validate_connection_path(char* str,
         }
         if (type == DEVICE_PORT_TYPE_RECEIVE)
         {
-            bool can_receive = string_has_prefix(str, "in_") ||
+            bool can_receive = (!root && string_has_prefix(str, "in_")) ||
                                (root && string_has_prefix(str, "out_"));
             if (!can_receive)
             {
@@ -563,7 +600,8 @@ static int validate_connection_path(char* str,
         else
         {
             assert(type == DEVICE_PORT_TYPE_SEND);
-            bool can_send = string_has_prefix(str, "out_") && !root;
+            bool can_send = (string_has_prefix(str, "out_") && !root) ||
+                            (string_has_prefix(str, "in_") && root);
             if (!can_send)
             {
                 Read_state_set_error(state,

@@ -915,8 +915,8 @@ static bool parse_effect_level(kqt_Handle* handle,
             Connections* graph = new_Connections_from_string(data, level,
                                                  Song_get_insts(handle->song),
                                                  Instrument_get_effects(ins),
-                                                 Instrument_get_dsps(ins),
-                                                 eff,
+                                                 Effect_get_dsps(eff),
+                                                 (Device*)eff,
                                                  state);
             if (graph == NULL)
             {

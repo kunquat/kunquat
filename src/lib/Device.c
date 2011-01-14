@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -156,7 +156,7 @@ void Device_set_direct_receive(Device* device, int port)
     assert(device != NULL);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
-    assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
+    //assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
 #if 0
     if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL &&
             device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=

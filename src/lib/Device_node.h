@@ -142,6 +142,16 @@ bool Device_node_init_buffers_by_suggestion(Device_node* node,
 
 
 /**
+ * Initialises the graphs of the Effects in the subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_effect_buffers(Device_node* node);
+
+
+/**
  * Clears the audio buffers in the Device node and its subgraph.
  *
  * \param node    The Device node -- must not be \c NULL.

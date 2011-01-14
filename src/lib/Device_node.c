@@ -53,7 +53,7 @@ struct Device_node
     Ins_table* insts;
     Effect_table* effects;
     DSP_table* dsps;
-    Device* master; ///< The global or Instrument master
+    Device* master; ///< The global, Instrument or Effect master
 
     Device_type type;
     int index;
@@ -479,6 +479,75 @@ bool Device_node_init_buffers_by_suggestion(Device_node* node,
             }
             if (!Device_node_init_buffers_by_suggestion(edge->node,
                         edge->port, suggestion))
+            {
+                return false;
+            }
+            edge = edge->next;
+        }
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+    return true;
+}
+
+
+bool Device_node_init_effect_buffers(Device_node* node)
+{
+    assert(node != NULL);
+    if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
+    {
+        assert(Device_node_get_state(node) != DEVICE_NODE_STATE_REACHED);
+        return true;
+    }
+    Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
+    if (Device_node_get_device(node) == NULL)
+    {
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        return true;
+    }
+    if (node->type == DEVICE_TYPE_INSTRUMENT)
+    {
+        Instrument* ins = Ins_table_get(node->insts, node->index);
+        if (ins == NULL)
+        {
+            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+            return true;
+        }
+        Connections* ins_graph = Instrument_get_connections(ins);
+        Device_node* ins_node = NULL;
+        if (ins_graph == NULL ||
+                (ins_node = Connections_get_master(ins_graph)) == NULL)
+        {
+            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+            return true;
+        }
+        Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+        Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
+        node = ins_node;
+    }
+    else if (node->type == DEVICE_TYPE_EFFECT)
+    {
+        Effect* eff = Effect_table_get(node->effects, node->index);
+        if (eff == NULL)
+        {
+            Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
+            return true;
+        }
+        if (!Effect_prepare_connections(eff))
+        {
+            return false;
+        }
+    }
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+    {
+        Connection* edge = node->receive[port];
+        while (edge != NULL)
+        {
+            if (Device_node_get_device(edge->node) == NULL)
+            {
+                edge = edge->next;
+                continue;
+            }
+            if (!Device_node_init_effect_buffers(edge->node))
             {
                 return false;
             }
