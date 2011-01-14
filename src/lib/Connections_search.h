@@ -29,6 +29,19 @@
 
 
 /**
+ * Where the connection is located.
+ *
+ * Instrument and effect levels can be combined by bitwise OR.
+ */
+typedef enum
+{
+    CONNECTION_LEVEL_GLOBAL = 0,
+    CONNECTION_LEVEL_INSTRUMENT = 1,
+    CONNECTION_LEVEL_EFFECT = 2,
+} Connection_level;
+
+
+/**
  * Creates new Connections from a string.
  *
  * \param str         The textual description.
@@ -44,7 +57,7 @@
  *           will not be modified if memory allocation failed.
  */
 Connections* new_Connections_from_string(char* str,
-                                         bool ins_level,
+                                         Connection_level level,
                                          Ins_table* insts,
                                          Effect_table* effects,
                                          DSP_table* dsps,

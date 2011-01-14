@@ -104,6 +104,13 @@ Device_node* new_Device_node(const char* name,
         assert(node->index >= 0);
         assert(node->index < KQT_GENERATORS_MAX);
     }
+    else if (string_has_prefix(node->name, "eff_"))
+    {
+        node->type = DEVICE_TYPE_EFFECT;
+        node->index = string_extract_index(node->name, "eff_", 2, "/");
+        assert(node->index >= 0);
+        // TODO: upper bound
+    }
     else if (string_has_prefix(node->name, "dsp_"))
     {
         node->type = DEVICE_TYPE_DSP;

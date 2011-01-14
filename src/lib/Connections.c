@@ -63,15 +63,15 @@ static bool Connections_is_cyclic(Connections* graph);
  *
  * This function also strips the port directory off the path.
  *
- * \param str         The path -- must not be \c NULL.
- * \param ins_level   Whether this connection is in the Instrument level or not.
- * \param type        The type of the path -- must be valid.
- * \param state       The Read state -- must not be \c NULL.
+ * \param str     The path -- must not be \c NULL.
+ * \param level   The connection level -- must be valid.
+ * \param type    The type of the path -- must be valid.
+ * \param state   The Read state -- must not be \c NULL.
  *
  * \return   The port number if the path is valid, otherwise \c -1.
  */
 static int validate_connection_path(char* str,
-                                    bool ins_level,
+                                    Connection_level level,
                                     Device_port_type type,
                                     Read_state* state);
 
@@ -91,13 +91,15 @@ static int validate_connection_path(char* str,
     } else (void)0
 
 Connections* new_Connections_from_string(char* str,
-                                         bool ins_level,
+                                         Connection_level level,
                                          Ins_table* insts,
                                          Effect_table* effects,
                                          DSP_table* dsps,
                                          Device* master,
                                          Read_state* state)
 {
+    assert((level & ~(CONNECTION_LEVEL_INSTRUMENT |
+                     CONNECTION_LEVEL_EFFECT)) == 0);
     assert(insts != NULL);
     assert(effects != NULL);
     assert(dsps != NULL);
@@ -152,11 +154,11 @@ Connections* new_Connections_from_string(char* str,
         str = read_const_char(str, ']', state);
 
         int src_port = validate_connection_path(src_name,
-                                                ins_level,
+                                                level,
                                                 DEVICE_PORT_TYPE_SEND,
                                                 state);
         int dest_port = validate_connection_path(dest_name,
-                                                 ins_level,
+                                                 level,
                                                  DEVICE_PORT_TYPE_RECEIVE,
                                                  state);
         clean_if(state->error, graph, NULL);
@@ -212,32 +214,8 @@ Device_node* Connections_get_master(Connections* graph)
 bool Connections_prepare(Connections* graph)
 {
     assert(graph != NULL);
-    //assert(master != NULL);
-    //assert(insts != NULL);
-    //assert(dsps != NULL);
-    //Connections_set_devices(graph, master, insts, dsps);
     return Connections_init_buffers(graph);
 }
-
-
-#if 0
-void Connections_set_devices(Connections* graph,
-                             Device* master,
-                             Ins_table* insts,
-                             DSP_table* dsps)
-{
-    assert(graph != NULL);
-    assert(master != NULL);
-    assert(insts != NULL);
-    assert(dsps != NULL);
-//    Connections_reset(graph);
-    Device_node* master_node = AAtree_get_exact(graph->nodes, "");
-    assert(master_node != NULL);
-    Device_node_reset(master_node);
-    Device_node_set_devices(master_node, master, insts, dsps);
-    return;
-}
-#endif
 
 
 bool Connections_init_buffers_simple(Connections* graph)
@@ -331,51 +309,6 @@ void Connections_mix(Connections* graph,
 }
 
 
-#if 0
-void Connections_disconnect(Connections* graph, Device* device)
-{
-    assert(graph != NULL);
-    assert(device != NULL);
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
-    assert(Device_node_get_device(master) != device);
-    (void)master;
-    const char* name = "";
-    Device_node* node = AAiter_get(graph->iter, name);
-    while (node != NULL)
-    {
-        Device_node_disconnect(node, device);
-        node = AAiter_get_next(graph->iter);
-    }
-    return;
-}
-
-
-void Connections_replace(Connections* graph,
-                         Device* old_device,
-                         Device* new_device)
-{
-    assert(graph != NULL);
-    assert(old_device != NULL);
-    assert(new_device != NULL);
-    assert(new_device != old_device);
-    Device_node* master = AAtree_get_exact(graph->nodes, "");
-    assert(master != NULL);
-    assert(Device_node_get_device(master) != old_device);
-    assert(Device_node_get_device(master) != new_device);
-    (void)master;
-    const char* name = "";
-    Device_node* node = AAiter_get(graph->iter, name);
-    while (node != NULL)
-    {
-        Device_node_replace(node, old_device, new_device);
-        node = AAiter_get_next(graph->iter);
-    }
-    return;
-}
-#endif
-
-
 static void Connections_reset(Connections* graph)
 {
     assert(graph != NULL);
@@ -449,7 +382,7 @@ static int read_index(char* str)
 
 
 static int validate_connection_path(char* str,
-                                    bool ins_level,
+                                    Connection_level level,
                                     Device_port_type type,
                                     Read_state* state)
 {
@@ -462,13 +395,14 @@ static int validate_connection_path(char* str,
     }
     bool instrument = false;
     bool generator = false;
+    bool effect = false;
     bool dsp = false;
     bool root = true;
     char* path = str;
     char* trim_point = str;
     if (string_has_prefix(str, "ins_"))
     {
-        if (ins_level)
+        if ((level & CONNECTION_LEVEL_INSTRUMENT))
         {
             Read_state_set_error(state,
                     "Instrument directory in an instrument-level connection:"
@@ -496,9 +430,38 @@ static int validate_connection_path(char* str,
         str += strlen("/" MAGIC_ID "iXX/");
         trim_point = str - 1;
     }
+    else if (string_has_prefix(str, "eff_"))
+    {
+        // TODO: check effect level
+        effect = true;
+        root = false;
+        str += strlen("eff_");
+        int max = KQT_EFFECTS_MAX;
+        if ((level & CONNECTION_LEVEL_INSTRUMENT))
+        {
+            max = KQT_INST_EFFECTS_MAX;
+        }
+        if (read_index(str) >= max)
+        {
+            Read_state_set_error(state,
+                    "Invalid effect number in the connection:"
+                    " \"%s\"", path);
+            return -1;
+        }
+        str += 2;
+        if (!string_has_prefix(str, "/" MAGIC_ID "eXX/"))
+        {
+            Read_state_set_error(state,
+                    "Missing effect header after the effect number in"
+                    " the connection: \"%s\"", path);
+            return -1;
+        }
+        str += strlen("/" MAGIC_ID "eXX/");
+        trim_point = str - 1;
+    }
     else if (string_has_prefix(str, "gen_"))
     {
-        if (!ins_level)
+        if (!(level & CONNECTION_LEVEL_INSTRUMENT))
         {
             Read_state_set_error(state,
                     "Generator directory in a root-level connection:"
@@ -565,6 +528,7 @@ static int validate_connection_path(char* str,
     }
     if (string_has_prefix(str, "in_") || string_has_prefix(str, "out_"))
     {
+        // TODO: check effect connections
         if (string_has_prefix(str, "in_") && (instrument || generator))
         {
             Read_state_set_error(state,
@@ -576,6 +540,7 @@ static int validate_connection_path(char* str,
         {
             Read_state_set_error(state,
                     "Input ports are not allowed for master: \"%s\"", path);
+            return -1;
         }
         if (type == DEVICE_PORT_TYPE_RECEIVE)
         {
