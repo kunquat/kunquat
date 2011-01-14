@@ -44,6 +44,15 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                    int index);
 
 
+static bool parse_effect_level(kqt_Handle* handle,
+                               Instrument* ins,
+                               const char* key,
+                               const char* subkey,
+                               void* data,
+                               long length,
+                               int eff_index);
+
+
 static bool parse_generator_level(kqt_Handle* handle,
                                   const char* key,
                                   const char* subkey,
@@ -173,6 +182,25 @@ bool parse_data(kqt_Handle* handle,
             }
             //fprintf(stderr, "line: %d\n", __LINE__);
             //Connections_print(graph, stderr);
+        }
+    }
+    else if ((index = string_extract_index(key, "eff_", 2, "/")) >= 0)
+    {
+        Effect* eff = Effect_table_get(Song_get_effects(handle->song), index);
+        bool changed = eff != NULL;
+        success = parse_effect_level(handle, NULL, key, second_element,
+                                     data, length, index);
+        changed ^= Effect_table_get(Song_get_effects(handle->song),
+                                                     index) != NULL;
+        Connections* graph = handle->song->connections;
+        if (changed && graph != NULL)
+        {
+            if (!Connections_prepare(graph))
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+                return false;
+            }
         }
     }
     else if ((index = string_extract_index(key, "dsp_", 2, "/")) >= 0)
@@ -812,6 +840,118 @@ static bool parse_generator_level(kqt_Handle* handle,
                 "Couldn't allocate memory");
         del_Instrument(ins);
         return false;
+    }
+    return true;
+}
+
+
+static bool parse_effect_level(kqt_Handle* handle,
+                               Instrument* ins,
+                               const char* key,
+                               const char* subkey,
+                               void* data,
+                               long length,
+                               int eff_index)
+{
+    assert(handle_is_valid(handle));
+    assert(key != NULL);
+    assert(subkey != NULL);
+    assert((data == NULL) == (length == 0));
+    assert(length >= 0);
+    int max_index = KQT_EFFECTS_MAX;
+    if (ins != NULL)
+    {
+        max_index = KQT_INST_EFFECTS_MAX;
+    }
+    if (eff_index < 0 || eff_index >= max_index)
+    {
+        return true;
+    }
+    if (!string_has_prefix(subkey, MAGIC_ID "eXX/") &&
+            !string_has_prefix(subkey, MAGIC_ID "e" KQT_FORMAT_VERSION "/"))
+    {
+        return true;
+    }
+    subkey = strchr(subkey, '/') + 1;
+    if (string_eq(subkey, "p_connections.json"))
+    {
+        bool reconnect = false;
+        Effect* eff = Effect_table_get(Song_get_effects(handle->song),
+                                       eff_index);
+        if (data == NULL)
+        {
+            if (eff != NULL)
+            {
+                Effect_set_connections(eff, NULL);
+                reconnect = true;
+            }
+        }
+        else
+        {
+            bool new_eff = eff == NULL;
+            if (new_eff)
+            {
+                eff = new_Effect(Device_get_buffer_size(
+                                        (Device*)handle->song),
+                                 Device_get_mix_rate(
+                                        (Device*)handle->song));
+                if (eff == NULL ||
+                        !Effect_table_set(Song_get_effects(handle->song),
+                                          eff_index, eff))
+                {
+                    del_Effect(eff);
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
+                    return false;
+                }
+            }
+            assert(eff != NULL);
+            Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+            Connection_level level = CONNECTION_LEVEL_EFFECT;
+            if (ins != NULL)
+            {
+                level |= CONNECTION_LEVEL_INSTRUMENT;
+            }
+            Connections* graph = new_Connections_from_string(data, level,
+                                                 Song_get_insts(handle->song),
+                                                 Instrument_get_effects(ins),
+                                                 Instrument_get_dsps(ins),
+                                                 eff,
+                                                 state);
+            if (graph == NULL)
+            {
+                if (new_eff)
+                {
+                    Effect_table_remove(Song_get_effects(handle->song),
+                                        eff_index);
+                }
+                if (state->error)
+                {
+                    set_parse_error(handle, state);
+                }
+                else
+                {
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
+                }
+                return false;
+            }
+            Effect_set_connections(eff, graph);
+            reconnect = true;
+        }
+        if (reconnect)
+        {
+            Connections* global_graph = handle->song->connections;
+            if (global_graph != NULL)
+            {
+                if (!Connections_prepare(global_graph))
+                {
+                    kqt_Handle_set_error(handle, ERROR_MEMORY,
+                            "Couldn't allocate memory");
+                    return false;
+                }
+            }
+        }
     }
     return true;
 }

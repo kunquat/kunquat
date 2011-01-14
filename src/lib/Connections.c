@@ -402,10 +402,10 @@ static int validate_connection_path(char* str,
     char* trim_point = str;
     if (string_has_prefix(str, "ins_"))
     {
-        if ((level & CONNECTION_LEVEL_INSTRUMENT))
+        if (level != CONNECTION_LEVEL_GLOBAL)
         {
             Read_state_set_error(state,
-                    "Instrument directory in an instrument-level connection:"
+                    "Instrument directory in a deep-level connection:"
                     " \"%s\"", path);
             return -1;
         }
@@ -432,7 +432,13 @@ static int validate_connection_path(char* str,
     }
     else if (string_has_prefix(str, "eff_"))
     {
-        // TODO: check effect level
+        if ((level & CONNECTION_LEVEL_EFFECT))
+        {
+            Read_state_set_error(state,
+                    "Effect directory in an effect-level connection:"
+                    " \"%s\"", path);
+            return -1;
+        }
         effect = true;
         root = false;
         str += strlen("eff_");
