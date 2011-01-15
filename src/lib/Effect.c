@@ -265,8 +265,23 @@ static void Effect_process(Device* device,
     assert(freq > 0);
     assert(isfinite(tempo));
     Effect* eff = (Effect*)device;
+    // TODO: scaling of dry out
     Connections_clear_buffers(eff->connections, start, until);
     Connections_mix(eff->connections, start, until, freq, tempo);
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; port += 2)
+    {
+        Audio_buffer* dry = Device_get_buffer(&eff->out_iface->parent,
+                                              DEVICE_PORT_TYPE_RECEIVE,
+                                              port);
+        Audio_buffer* wet = Device_get_buffer(&eff->out_iface->parent,
+                                              DEVICE_PORT_TYPE_RECEIVE,
+                                              port + 1);
+        if (dry == NULL || wet == NULL)
+        {
+            continue;
+        }
+        Audio_buffer_mix(dry, wet, start, until);
+    }
     return;
 }
 
