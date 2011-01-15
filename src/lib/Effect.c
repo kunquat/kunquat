@@ -96,8 +96,7 @@ Effect* new_Effect(uint32_t buf_len,
     }
     Device_register_port(&eff->out_iface->parent,
                          DEVICE_PORT_TYPE_RECEIVE, 0);
-    Device_register_port(&eff->out_iface->parent,
-                         DEVICE_PORT_TYPE_RECEIVE, 1);
+    //fprintf(stderr, "New effect %p\n", (void*)eff);
     return eff;
 }
 
@@ -152,23 +151,42 @@ bool Effect_prepare_connections(Effect* eff)
         return true;
     }
     Device_remove_direct_buffers(&eff->out_iface->parent);
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; port += 2)
+    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Device_set_direct_send(&eff->out_iface->parent, port,
-                               Device_get_buffer(&eff->parent,
-                                                 DEVICE_PORT_TYPE_SEND,
-                                                 port / 2));
+        Audio_buffer* buf = Device_get_buffer(&eff->parent,
+                                              DEVICE_PORT_TYPE_SEND,
+                                              port);
+        if (buf == NULL)
+        {
+            continue;
+        }
+        Device_set_direct_send(&eff->out_iface->parent, port, buf);
         Device_set_direct_receive(&eff->out_iface->parent, port);
     }
     Device_remove_direct_buffers(&eff->in_iface->parent);
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
-        Device_set_direct_send(&eff->in_iface->parent, port,
-                               Device_get_buffer(&eff->parent,
-                                                 DEVICE_PORT_TYPE_RECEIVE,
-                                                 port));
+        Audio_buffer* buf = Device_get_buffer(&eff->parent,
+                                              DEVICE_PORT_TYPE_RECEIVE, port);
+        if (buf == NULL)
+        {
+            continue;
+        }
+        Device_set_direct_send(&eff->in_iface->parent, port, buf);
     }
-    return Connections_prepare(eff->connections);
+    if (!Connections_prepare(eff->connections))
+    {
+        return false;
+    }
+#if 0
+    fprintf(stderr, "\n::::::::Connections::::::::\n\n");
+    fprintf(stderr, "Effect input buffer: %p\n",
+            (void*)Device_get_buffer(&eff->parent, DEVICE_PORT_TYPE_RECEIVE, 0));
+    fprintf(stderr, "Effect output buffer: %p\n",
+            (void*)Device_get_buffer(&eff->parent, DEVICE_PORT_TYPE_SEND, 0));
+    Connections_print(eff->connections, stderr);
+#endif
+    return true;
 }
 
 
@@ -265,23 +283,13 @@ static void Effect_process(Device* device,
     assert(freq > 0);
     assert(isfinite(tempo));
     Effect* eff = (Effect*)device;
-    // TODO: scaling of dry out
+    static bool in_effect = false;
+    assert(!in_effect);
+    in_effect = true;
     Connections_clear_buffers(eff->connections, start, until);
     Connections_mix(eff->connections, start, until, freq, tempo);
-    for (int port = 0; port < KQT_DEVICE_PORTS_MAX; port += 2)
-    {
-        Audio_buffer* dry = Device_get_buffer(&eff->out_iface->parent,
-                                              DEVICE_PORT_TYPE_RECEIVE,
-                                              port);
-        Audio_buffer* wet = Device_get_buffer(&eff->out_iface->parent,
-                                              DEVICE_PORT_TYPE_RECEIVE,
-                                              port + 1);
-        if (dry == NULL || wet == NULL)
-        {
-            continue;
-        }
-        Audio_buffer_mix(dry, wet, start, until);
-    }
+    in_effect = false;
+    // TODO: mixing dry out
     return;
 }
 

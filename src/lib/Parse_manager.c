@@ -978,9 +978,7 @@ static bool parse_effect_level(kqt_Handle* handle,
                                         (Device*)handle->song),
                                  Device_get_mix_rate(
                                         (Device*)handle->song));
-                if (eff == NULL ||
-                        !Effect_table_set(Song_get_effects(handle->song),
-                                          eff_index, eff))
+                if (eff == NULL || !Effect_table_set(table, eff_index, eff))
                 {
                     del_Effect(eff);
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -997,7 +995,7 @@ static bool parse_effect_level(kqt_Handle* handle,
             }
             Connections* graph = new_Connections_from_string(data, level,
                                                  Song_get_insts(handle->song),
-                                                 Instrument_get_effects(ins),
+                                                 table,
                                                  Effect_get_dsps(eff),
                                                  (Device*)eff,
                                                  state);
@@ -1005,8 +1003,7 @@ static bool parse_effect_level(kqt_Handle* handle,
             {
                 if (new_eff)
                 {
-                    Effect_table_remove(Song_get_effects(handle->song),
-                                        eff_index);
+                    Effect_table_remove(table, eff_index);
                 }
                 if (state->error)
                 {

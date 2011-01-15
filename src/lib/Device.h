@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -133,6 +133,21 @@ void Device_register_port(Device* device, Device_port_type type, int port);
  *                 the function does nothing.
  */
 void Device_unregister_port(Device* device, Device_port_type type, int port);
+
+
+/**
+ * Finds out whether a port is registered in the Device.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param type     The type of the port -- must be a valid type.
+ * \param port     The port number -- must be >= \c 0 and
+ *                 < \c KQT_DEVICE_PORTS_MAX.
+ *
+ * \return   \c true if the port is registered, otherwise \c false.
+ */
+bool Device_port_is_registered(Device* device,
+                               Device_port_type type,
+                               int port);
 
 
 /**

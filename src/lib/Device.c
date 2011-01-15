@@ -121,6 +121,18 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
 }
 
 
+bool Device_port_is_registered(Device* device,
+                               Device_port_type type,
+                               int port)
+{
+    assert(device != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+    return device->reg[type][port];
+}
+
+
 bool Device_init_buffer(Device* device, Device_port_type type, int port)
 {
     assert(device != NULL);

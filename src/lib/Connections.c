@@ -123,7 +123,16 @@ Connections* new_Connections_from_string(char* str,
     graph->iter = new_AAiter(graph->nodes);
     clean_if(graph->iter == NULL, graph, NULL);
 
-    Device_node* master_node = new_Device_node("", insts, effects, dsps, master);
+    Device_node* master_node = NULL;
+    if ((level & CONNECTION_LEVEL_EFFECT))
+    {
+        Device* iface = Effect_get_output_interface((Effect*)master);
+        master_node = new_Device_node("", insts, effects, dsps, iface);
+    }
+    else
+    {
+        master_node = new_Device_node("", insts, effects, dsps, master);
+    }
     clean_if(master_node == NULL, graph, NULL);
     clean_if(!AAtree_ins(graph->nodes, master_node), graph, master_node);
 
@@ -190,15 +199,17 @@ Connections* new_Connections_from_string(char* str,
 
         if (AAtree_get_exact(graph->nodes, dest_name) == NULL)
         {
+#if 0
             Device* actual_master = master;
             if ((level & CONNECTION_LEVEL_EFFECT) &&
                     string_eq(dest_name, ""))
             {
                 actual_master = Effect_get_output_interface((Effect*)master);
             }
+#endif
             Device_node* new_dest = new_Device_node(dest_name,
                                                     insts, effects, dsps,
-                                                    actual_master);
+                                                    master);
             clean_if(new_dest == NULL, graph, NULL);
             clean_if(!AAtree_ins(graph->nodes, new_dest), graph, new_dest);
         }
@@ -247,7 +258,11 @@ bool Connections_init_buffers_simple(Connections* graph)
     Device_node* master = AAtree_get_exact(graph->nodes, "");
     assert(master != NULL);
     Device_node_reset(master);
-    return Device_node_init_buffers_simple(master);
+    if (!Device_node_init_buffers_simple(master))
+    {
+        return false;
+    }
+    return Device_node_init_effect_buffers(master);
 }
 
 

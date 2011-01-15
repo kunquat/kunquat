@@ -111,6 +111,11 @@ Device_node* new_Device_node(const char* name,
         assert(node->index >= 0);
         // TODO: upper bound
     }
+    else if (string_eq(node->name, "Iin"))
+    {
+        node->type = DEVICE_TYPE_MASTER;
+        node->index = -1;
+    }
     else if (string_has_prefix(node->name, "dsp_"))
     {
         node->type = DEVICE_TYPE_DSP;
@@ -279,6 +284,7 @@ void Device_node_remove_direct_buffers(Device_node* node)
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return;
     }
+    bool ignore_ports = false;
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Device_node* ins_node = Device_node_get_ins_dual(node);
@@ -291,6 +297,16 @@ void Device_node_remove_direct_buffers(Device_node* node)
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
     }
+    else if (node->type == DEVICE_TYPE_MASTER)
+    {
+        Device* device = Device_node_get_device(node);
+        assert(device != NULL);
+        if (string_eq(node->name, "Iin") ||
+                Device_port_is_registered(device, DEVICE_PORT_TYPE_SEND, 0))
+        {
+            ignore_ports = true;
+        }
+    }
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
         Connection* edge = node->receive[port];
@@ -300,7 +316,10 @@ void Device_node_remove_direct_buffers(Device_node* node)
             edge = edge->next;
         }
     }
-    Device_remove_direct_buffers(Device_node_get_device(node));
+    if (!ignore_ports)
+    {
+        Device_remove_direct_buffers(Device_node_get_device(node));
+    }
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;
 }
@@ -320,7 +339,7 @@ bool Device_node_init_input_buffers(Device_node* node)
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
     }
-    bool instrument_master = false;
+    bool ignore_ports = false;
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         Instrument* ins = Ins_table_get(node->insts, node->index);
@@ -340,7 +359,17 @@ bool Device_node_init_input_buffers(Device_node* node)
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         Device_node_set_state(ins_node, DEVICE_NODE_STATE_REACHED);
         node = ins_node;
-        instrument_master = true;
+        ignore_ports = true;
+    }
+    else if (node->type == DEVICE_TYPE_MASTER)
+    {
+        Device* device = Device_node_get_device(node);
+        assert(device != NULL);
+        if (string_eq(node->name, "Iin") ||
+                Device_port_is_registered(device, DEVICE_PORT_TYPE_SEND, 0))
+        {
+            ignore_ports = true;
+        }
     }
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
     {
@@ -352,7 +381,7 @@ bool Device_node_init_input_buffers(Device_node* node)
                 edge = edge->next;
                 continue;
             }
-            if (!instrument_master &&
+            if (!ignore_ports &&
                     !Device_init_buffer(Device_node_get_device(node),
                                           DEVICE_PORT_TYPE_RECEIVE, port))
             {
@@ -402,15 +431,29 @@ bool Device_node_init_buffers_by_suggestion(Device_node* node,
 //    {
 //        return true;
 //    }
-    if (suggestion != NULL && node->send[send_port]->next == NULL)
+    bool ignore_port = false;
+    if (node->type == DEVICE_TYPE_MASTER)
     {
-        Device_set_direct_send(node_device, send_port, suggestion);
+        Device* device = Device_node_get_device(node);
+        assert(device != NULL);
+        if (string_eq(node->name, "Iin") ||
+                Device_port_is_registered(device, DEVICE_PORT_TYPE_SEND, 0))
+        {
+            ignore_port = true;
+        }
     }
-    else if (!Device_init_buffer(node_device,
-                                 DEVICE_PORT_TYPE_SEND,
-                                 send_port))
+    if (!ignore_port)
     {
-        return false;
+        if (suggestion != NULL && node->send[send_port]->next == NULL)
+        {
+            Device_set_direct_send(node_device, send_port, suggestion);
+        }
+        else if (!Device_init_buffer(node_device,
+                                     DEVICE_PORT_TYPE_SEND,
+                                     send_port))
+        {
+            return false;
+        }
     }
     if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
@@ -715,6 +758,10 @@ Device* Device_node_get_device(Device_node* node)
     else if (node->type == DEVICE_TYPE_INSTRUMENT)
     {
         return (Device*)Ins_table_get(node->insts, node->index);
+    }
+    else if (node->type == DEVICE_TYPE_EFFECT)
+    {
+        return (Device*)Effect_table_get(node->effects, node->index);
     }
     else if (node->type == DEVICE_TYPE_GENERATOR)
     {
