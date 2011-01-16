@@ -44,6 +44,7 @@
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
 #include <Event_channel_set_effect.h>
+#include <Event_channel_set_global_effects.h>
 #include <Event_channel_set_instrument_effects.h>
 #include <Event_channel_set_dsp.h>
 #include <Event_channel_set_dsp_context.h>
@@ -129,6 +130,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
     [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
     [EVENT_CHANNEL_SET_EFFECT] = new_Event_channel_set_effect,
+    [EVENT_CHANNEL_SET_GLOBAL_EFFECTS] = new_Event_channel_set_global_effects,
     [EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS] =
             new_Event_channel_set_instrument_effects,
     [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,

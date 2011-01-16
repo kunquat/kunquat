@@ -55,6 +55,7 @@
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
 #include <Event_channel_set_effect.h>
+#include <Event_channel_set_global_effects.h>
 #include <Event_channel_set_instrument_effects.h>
 #include <Event_channel_set_dsp.h>
 #include <Event_channel_set_dsp_context.h>
@@ -217,6 +218,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_set_generator_process);
     Event_handler_set_ch_process(eh, "c.e", EVENT_CHANNEL_SET_EFFECT,
                                  Event_channel_set_effect_process);
+    Event_handler_set_ch_process(eh, "c.ge", EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
+                                 Event_channel_set_global_effects_process);
     Event_handler_set_ch_process(eh, "c.ie",
                                  EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
                                  Event_channel_set_instrument_effects_process);

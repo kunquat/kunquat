@@ -18,14 +18,14 @@
 #include <Channel.h>
 #include <Channel_state.h>
 #include <Event_common.h>
-#include <Event_channel_set_instrument_effects.h>
+#include <Event_channel_set_global_effects.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_instrument_effects_desc[] =
+static Event_field_desc set_global_effects_desc[] =
 {
     {
         .type = EVENT_FIELD_NONE
@@ -34,16 +34,16 @@ static Event_field_desc set_instrument_effects_desc[] =
 
 
 Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
-                         set_instrument_effects);
+                         EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
+                         set_global_effects);
 
 
-bool Event_channel_set_instrument_effects_process(Channel_state* ch_state,
-                                                  char* fields)
+bool Event_channel_set_global_effects_process(Channel_state* ch_state,
+                                              char* fields)
 {
     assert(ch_state != NULL);
     (void)fields;
-    ch_state->inst_effects = true;
+    ch_state->inst_effects = false;
     return true;
 }
 
