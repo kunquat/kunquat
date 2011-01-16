@@ -49,9 +49,8 @@ typedef struct Channel_state
     int instrument;                ///< Currently active Instrument.
     int generator;                 ///< Currently active Generator.
     int effect;                    ///< Currently active Effect.
-    bool inst_effects;             ///< Instrument effects enabled.
+    bool inst_effects;             ///< Instrument effect control enabled.
     int dsp;                       ///< Currently active DSP.
-    int dsp_context;               ///< Currently active DSP context. TODO: remove
     Ins_table* insts;
     uint32_t* freq;
     double* tempo;

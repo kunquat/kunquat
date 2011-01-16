@@ -47,7 +47,6 @@
 #include <Event_channel_set_global_effects.h>
 #include <Event_channel_set_instrument_effects.h>
 #include <Event_channel_set_dsp.h>
-#include <Event_channel_set_dsp_context.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -134,7 +133,6 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS] =
             new_Event_channel_set_instrument_effects,
     [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,
-    [EVENT_CHANNEL_SET_DSP_CONTEXT] = new_Event_channel_set_dsp_context,
 
     [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
     [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,

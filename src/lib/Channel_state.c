@@ -40,7 +40,6 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     state->effect = 0;
     state->inst_effects = false;
     state->dsp = 0;
-    state->dsp_context = -1;
     state->mute = mute;
 
     state->volume = 1;
