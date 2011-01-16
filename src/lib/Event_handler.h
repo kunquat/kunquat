@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -41,6 +41,7 @@ typedef struct Event_handler Event_handler;
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
+                                 Effect_table* effects,
                                  DSP_table* dsps);
 
 

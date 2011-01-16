@@ -114,6 +114,7 @@ struct Event_handler
     bool mute; // FIXME: this is just to make the stupid Channel_state_init happy
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Ins_table* insts;
+    Effect_table* effects;
     DSP_table* dsps;
     Playdata* global_state;
     Event_names* event_names;
@@ -129,11 +130,13 @@ struct Event_handler
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
+                                 Effect_table* effects,
                                  DSP_table* dsps)
 {
     assert(global_state != NULL);
     assert(ch_states != NULL);
     assert(insts != NULL);
+    assert(effects != NULL);
     assert(dsps != NULL);
     Event_handler* eh = xalloc(Event_handler);
     if (eh == NULL)
@@ -158,6 +161,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
 //        Channel_state_init(&eh->ch_states[i], i, &eh->mute);
     }
     eh->insts = insts;
+    eh->effects = effects;
     eh->dsps = dsps;
 
     Event_handler_set_control_process(eh, ">pause", EVENT_CONTROL_PAUSE,
@@ -501,7 +505,32 @@ bool Event_handler_handle(Event_handler* eh,
     {
         assert(index >= 0);
         assert(index < KQT_DSP_EFFECTS_MAX);
-        DSP_table* dsps = eh->dsps;
+        Effect_table* effects = eh->effects;
+        if (eh->ch_states[index]->inst_effects)
+        {
+            if (eh->ch_states[index]->effect >= KQT_INST_EFFECTS_MAX)
+            {
+                return false;
+            }
+            Instrument* ins = Ins_table_get(eh->insts,
+                                            eh->ch_states[index]->instrument);
+            if (ins == NULL)
+            {
+                return false;
+            }
+            effects = Instrument_get_effects(ins);
+        }
+        if (effects == NULL)
+        {
+            return false;
+        }
+        Effect* eff = Effect_table_get(effects, eh->ch_states[index]->effect);
+        if (eff == NULL)
+        {
+            return false;
+        }
+        DSP_table* dsps = Effect_get_dsps(eff);
+#if 0
         if (eh->ch_states[index]->dsp_context >= 0)
         {
             Instrument* ins = Ins_table_get(eh->insts,
@@ -516,6 +545,7 @@ bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
+#endif
         DSP_conf* conf = DSP_table_get_conf(dsps, eh->ch_states[index]->dsp);
         if (conf == NULL)
         {
