@@ -12,6 +12,7 @@
  */
 
 
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <Connections.h>
@@ -31,6 +32,8 @@ struct Effect
     Effect_interface* in_iface;
     Connections* connections;
     DSP_table* dsps;
+    bool init_enabled;
+    bool enabled;
 };
 
 
@@ -97,6 +100,7 @@ Effect* new_Effect(uint32_t buf_len,
     Device_register_port(&eff->out_iface->parent,
                          DEVICE_PORT_TYPE_RECEIVE, 0);
     //fprintf(stderr, "New effect %p\n", (void*)eff);
+    eff->init_enabled = eff->enabled = true;
     return eff;
 }
 
@@ -216,6 +220,7 @@ static void Effect_reset(Device* device)
             Device_reset((Device*)dsp);
         }
     }
+    eff->enabled = eff->init_enabled;
     return;
 }
 
@@ -283,13 +288,39 @@ static void Effect_process(Device* device,
     assert(freq > 0);
     assert(isfinite(tempo));
     Effect* eff = (Effect*)device;
-    static bool in_effect = false;
-    assert(!in_effect);
-    in_effect = true;
-    Connections_clear_buffers(eff->connections, start, until);
-    Connections_mix(eff->connections, start, until, freq, tempo);
-    in_effect = false;
-    // TODO: mixing dry out
+    if (eff->enabled)
+    {
+        static bool in_effect = false;
+        assert(!in_effect);
+        in_effect = true;
+        Connections_clear_buffers(eff->connections, start, until);
+        Connections_mix(eff->connections, start, until, freq, tempo);
+        in_effect = false;
+    }
+    else
+    {
+        for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
+        {
+            Audio_buffer* out = Device_get_buffer(device,
+                                                  DEVICE_PORT_TYPE_SEND,
+                                                  port);
+            Audio_buffer* in = Device_get_buffer(device,
+                                                 DEVICE_PORT_TYPE_RECEIVE,
+                                                 port);
+            if (in != NULL && out != NULL)
+            {
+                Audio_buffer_mix(out, in, start, until);
+            }
+        }
+    }
+    return;
+}
+
+
+void Effect_set_enabled(Effect* eff, bool enabled)
+{
+    assert(eff != NULL);
+    eff->enabled = enabled;
     return;
 }
 

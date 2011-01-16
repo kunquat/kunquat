@@ -120,6 +120,15 @@ Device* Effect_get_output_interface(Effect* eff);
 
 
 /**
+ * Enables or disables an Effect.
+ *
+ * \param eff       The Effect -- must not be \c NULL.
+ * \param enabled   Whether or not the Effect is to be enabled.
+ */
+void Effect_set_enabled(Effect* eff, bool enabled);
+
+
+/**
  * Destroys an existing Effect.
  *
  * \param eff   The Effect, or \c NULL.

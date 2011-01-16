@@ -17,6 +17,7 @@
 
 #include <DSP_conf.h>
 #include <DSP_table.h>
+#include <Effect.h>
 #include <Event_handler.h>
 #include <Event_names.h>
 #include <Event_type.h>
@@ -100,6 +101,9 @@
 #include <Event_generator_set_float.h>
 #include <Event_generator_set_reltime.h>
 
+#include <Event_effect_enable.h>
+#include <Event_effect_disable.h>
+
 #include <Event_dsp_set_bool.h>
 #include <Event_dsp_set_int.h>
 #include <Event_dsp_set_float.h>
@@ -123,6 +127,7 @@ struct Event_handler
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
     bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
     bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*, char*);
+    bool (*effect_process[EVENT_EFFECT_UPPER])(Effect*, char*);
     bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, char*);
 };
 
@@ -295,6 +300,11 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_generator_process(eh, "g.T", EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
+    Event_handler_set_effect_process(eh, "e+", EVENT_EFFECT_ENABLE,
+                                     Event_effect_enable_process);
+    Event_handler_set_effect_process(eh, "e-", EVENT_EFFECT_DISABLE,
+                                     Event_effect_disable_process);
+
     Event_handler_set_dsp_process(eh, "d.B", EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
     Event_handler_set_dsp_process(eh, "d.I", EVENT_DSP_SET_INT,
@@ -422,6 +432,26 @@ bool Event_handler_set_generator_process(Event_handler* eh,
 }
 
 
+bool Event_handler_set_effect_process(Event_handler* eh,
+                                      const char* name,
+                                      Event_type type,
+                                      bool (*effect_process)(Effect*, char*))
+{
+    assert(eh != NULL);
+    assert(name != NULL);
+    assert(strlen(name) > 0);
+    assert(strlen(name) < EVENT_NAME_MAX);
+    assert(EVENT_IS_EFFECT(type));
+    assert(effect_process != NULL);
+    if (!Event_names_add(eh->event_names, name, type))
+    {
+        return false;
+    }
+    eh->effect_process[type] = effect_process;
+    return true;
+}
+
+
 bool Event_handler_set_dsp_process(Event_handler* eh,
                                    const char* name,
                                    Event_type type,
@@ -501,10 +531,40 @@ bool Event_handler_handle(Event_handler* eh,
         }
         return eh->generator_process[type](gen, fields);
     }
+    else if (EVENT_IS_EFFECT(type))
+    {
+        assert(index >= 0);
+        assert(index < KQT_EFFECTS_MAX);
+        Effect_table* effects = eh->effects;
+        if (eh->ch_states[index]->inst_effects)
+        {
+            if (eh->ch_states[index]->effect >= KQT_INST_EFFECTS_MAX)
+            {
+                return false;
+            }
+            Instrument* ins = Ins_table_get(eh->insts,
+                                            eh->ch_states[index]->instrument);
+            if (ins == NULL)
+            {
+                return false;
+            }
+            effects = Instrument_get_effects(ins);
+        }
+        if (effects == NULL)
+        {
+            return false;
+        }
+        Effect* eff = Effect_table_get(effects, eh->ch_states[index]->effect);
+        if (eff == NULL)
+        {
+            return false;
+        }
+        return eh->effect_process[type](eff, fields);
+    }
     else if (EVENT_IS_DSP(type))
     {
         assert(index >= 0);
-        assert(index < KQT_DSP_EFFECTS_MAX);
+        assert(index < KQT_DSPS_MAX);
         Effect_table* effects = eh->effects;
         if (eh->ch_states[index]->inst_effects)
         {
