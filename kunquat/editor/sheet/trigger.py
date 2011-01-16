@@ -303,8 +303,10 @@ global_triggers = {
 channel_triggers = {
         'c.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
         'c.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
-        'c.d': [(int, lambda x: x >= 0 and x < lim.DSP_EFFECTS_MAX, 0)],
-        'c.dc': [(int, lambda x: x >= -1 and x < lim.INSTRUMENTS_MAX, -1)],
+        'c.e': [(int, lambda x: x >= 0 and x < lim.EFFECTS_MAX, 0)],
+        'c.ge': [],
+        'c.ie': [],
+        'c.d': [(int, lambda x: x >= 0 and x < lim.DSPS_MAX, 0)],
 
         'cn+': [pitch],
         'cn-': [],
@@ -352,6 +354,9 @@ channel_triggers = {
         'g.I': [key, any_int],
         'g.F': [key, any_float],
         'g.T': [key, any_ts],
+
+        'e+': [],
+        'e-': [],
 
         'd.B': [key, any_bool],
         'd.I': [key, any_int],
