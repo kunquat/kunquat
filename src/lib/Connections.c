@@ -103,7 +103,8 @@ Connections* new_Connections_from_string(char* str,
                      CONNECTION_LEVEL_EFFECT)) == 0);
     assert(insts != NULL);
     assert(effects != NULL);
-    assert(dsps != NULL);
+    assert(!(level & CONNECTION_LEVEL_EFFECT) || (dsps != NULL));
+    assert((dsps == NULL) || (level & CONNECTION_LEVEL_EFFECT));
     assert(master != NULL);
     assert(state != NULL);
     if (state->error)
@@ -564,7 +565,7 @@ static int validate_connection_path(char* str,
         root = false;
         dsp = true;
         str += strlen("dsp_");
-        if (read_index(str) >= KQT_DSP_EFFECTS_MAX)
+        if (read_index(str) >= KQT_DSPS_MAX)
         {
             Read_state_set_error(state,
                     "Invalid DSP number in the connection: \"%s\"", path);

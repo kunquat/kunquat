@@ -26,7 +26,6 @@
 #include <Pat_table.h>
 #include <Effect_table.h>
 #include <Ins_table.h>
-#include <DSP_table.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -42,7 +41,6 @@ typedef struct Song
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
     Effect_table* effects;              ///< The global Effects.
-    DSP_table* dsps;                    ///< The DSPs. FIXME: remove
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -190,16 +188,6 @@ Ins_table* Song_get_insts(Song* song);
  * \return   The Effect table.
  */
 Effect_table* Song_get_effects(Song* song);
-
-
-/**
- * Gets the DSPs of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The DSP table.
- */
-DSP_table* Song_get_dsps(Song* song);
 
 
 /**

@@ -77,7 +77,6 @@ Device_node* new_Device_node(const char* name,
     assert(name != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
-    assert(dsps != NULL);
     assert(master != NULL);
     Device_node* node = xalloc(Device_node);
     if (node == NULL)
@@ -113,6 +112,7 @@ Device_node* new_Device_node(const char* name,
     }
     else if (string_eq(node->name, "Iin"))
     {
+        assert(dsps != NULL);
         node->type = DEVICE_TYPE_MASTER;
         node->index = -1;
     }

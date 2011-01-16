@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -30,7 +30,7 @@ static Event_field_desc set_dsp_desc[] =
     {
         .type = EVENT_FIELD_INT,
         .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_DSP_EFFECTS_MAX - 1
+        .max.field.integral_type = KQT_DSPS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE

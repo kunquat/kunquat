@@ -20,7 +20,6 @@
 
 #include <Channel_state.h>
 #include <DSP_conf.h>
-#include <DSP_table.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
@@ -41,8 +40,7 @@ typedef struct Event_handler Event_handler;
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
-                                 Effect_table* effects,
-                                 DSP_table* dsps);
+                                 Effect_table* effects);
 
 
 /**

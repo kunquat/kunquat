@@ -16,7 +16,6 @@
 #include <string.h>
 
 #include <DSP_conf.h>
-#include <DSP_table.h>
 #include <Effect.h>
 #include <Event_handler.h>
 #include <Event_names.h>
@@ -120,7 +119,6 @@ struct Event_handler
     Channel_state* ch_states[KQT_COLUMNS_MAX];
     Ins_table* insts;
     Effect_table* effects;
-    DSP_table* dsps;
     Playdata* global_state;
     Event_names* event_names;
     bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
@@ -136,14 +134,12 @@ struct Event_handler
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
-                                 Effect_table* effects,
-                                 DSP_table* dsps)
+                                 Effect_table* effects)
 {
     assert(global_state != NULL);
     assert(ch_states != NULL);
     assert(insts != NULL);
     assert(effects != NULL);
-    assert(dsps != NULL);
     Event_handler* eh = xalloc(Event_handler);
     if (eh == NULL)
     {
@@ -168,7 +164,6 @@ Event_handler* new_Event_handler(Playdata* global_state,
     }
     eh->insts = insts;
     eh->effects = effects;
-    eh->dsps = dsps;
 
     Event_handler_set_control_process(eh, ">pause", EVENT_CONTROL_PAUSE,
                                       Event_control_pause_process);

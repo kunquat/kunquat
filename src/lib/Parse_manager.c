@@ -63,7 +63,6 @@ static bool parse_generator_level(kqt_Handle* handle,
 
 
 static bool parse_dsp_level(kqt_Handle* handle,
-                            Instrument* ins,
                             Effect* eff,
                             const char* key,
                             const char* subkey,
@@ -297,7 +296,7 @@ static bool parse_song_level(kqt_Handle* handle,
                                             CONNECTION_LEVEL_GLOBAL,
                                             Song_get_insts(handle->song),
                                             Song_get_effects(handle->song),
-                                            Song_get_dsps(handle->song),
+                                            NULL,
                                             (Device*)handle->song,
                                             state);
         if (graph == NULL)
@@ -557,7 +556,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                                  CONNECTION_LEVEL_INSTRUMENT,
                                                  Song_get_insts(handle->song),
                                                  Instrument_get_effects(ins),
-                                                 Instrument_get_dsps(ins),
+                                                 NULL,
                                                  (Device*)ins,
                                                  state);
             if (graph == NULL)
@@ -944,7 +943,7 @@ static bool parse_effect_level(kqt_Handle* handle,
                 return false;
             }
         }
-        bool success = parse_dsp_level(handle, ins, eff, key, subkey,
+        bool success = parse_dsp_level(handle, eff, key, subkey,
                                        data, length, dsp_index);
         changed ^= eff != NULL && Effect_get_dsp(eff, dsp_index) != NULL;
         Connections* graph = handle->song->connections;
@@ -1040,7 +1039,6 @@ static bool parse_effect_level(kqt_Handle* handle,
 
 
 static bool parse_dsp_level(kqt_Handle* handle,
-                            Instrument* ins,
                             Effect* eff,
                             const char* key,
                             const char* subkey,
@@ -1049,11 +1047,12 @@ static bool parse_dsp_level(kqt_Handle* handle,
                             int dsp_index)
 {
     assert(handle_is_valid(handle));
+    assert(eff != NULL);
     assert(key != NULL);
     assert(subkey != NULL);
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
-    if (dsp_index < 0 || dsp_index >= KQT_DSP_EFFECTS_MAX)
+    if (dsp_index < 0 || dsp_index >= KQT_DSPS_MAX)
     {
         return true;
     }
@@ -1063,14 +1062,7 @@ static bool parse_dsp_level(kqt_Handle* handle,
         return true;
     }
     subkey = strchr(subkey, '/') + 1;
-    Device* container = (Device*)ins;
-    DSP_table* dsp_table = ins != NULL ? Instrument_get_dsps(ins) :
-                                         Song_get_dsps(handle->song);
-    if (eff != NULL)
-    {
-        container = (Device*)eff;
-        dsp_table = Effect_get_dsps(eff);
-    }
+    DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
     if (string_eq(subkey, "p_dsp_type.json"))
     {

@@ -19,8 +19,6 @@
 #include <stdbool.h>
 
 #include <Connections.h>
-#include <DSP.h>
-#include <DSP_table.h>
 #include <Effect.h>
 #include <Effect_table.h>
 #include <Instrument_params.h>
@@ -142,7 +140,7 @@ Gen_table* Instrument_get_gens(Instrument* ins);
  *
  * \param ins     The Instrument -- must not be \c NULL.
  * \param index   The index of the Effect -- must be >= \c 0 and
- *                < \c KQT_INSTRUMENT_DSPS_MAX.
+ *                < \c KQT_INST_EFFECTS_MAX.
  *
  * \return   The Effect if one exists, otherwise \c NULL.
  */
@@ -157,28 +155,6 @@ Effect* Instrument_get_effect(Instrument* ins, int index);
  * \return   The Effect table.
  */
 Effect_table* Instrument_get_effects(Instrument* ins);
-
-
-/**
- * Gets a DSP of the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the DSP -- must be >= \c 0 and
- *                < \c KQT_INSTRUMENT_DSPS_MAX.
- *
- * \return   The DSP if one exists, otherwise \c NULL.
- */
-DSP* Instrument_get_dsp(Instrument* ins, int index);
-
-
-/**
- * Gets the DSP table of the Instrument.
- *
- * \param ins   The Instrument -- must not be \c NULL.
- *
- * \return   The DSP table.
- */
-DSP_table* Instrument_get_dsps(Instrument* ins);
 
 
 /**
