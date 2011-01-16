@@ -322,6 +322,17 @@ void Effect_set_enabled(Effect* eff, bool enabled)
 {
     assert(eff != NULL);
     eff->enabled = enabled;
+    if (!enabled)
+    {
+        for (int i = 0; i < KQT_DSPS_MAX; ++i)
+        {
+            DSP* dsp = DSP_table_get_dsp(eff->dsps, i);
+            if (dsp != NULL)
+            {
+                DSP_clear_history(dsp);
+            }
+        }
+    }
     return;
 }
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -83,6 +83,7 @@ bool DSP_init(DSP* dsp,
     assert(process != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    dsp->clear_history = NULL;
     dsp->destroy = destroy;
     if (!Device_init(&dsp->parent, buffer_size, mix_rate))
     {
@@ -94,11 +95,31 @@ bool DSP_init(DSP* dsp,
 }
 
 
+void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*))
+{
+    assert(dsp != NULL);
+    assert(func != NULL);
+    dsp->clear_history = func;
+    return;
+}
+
+
 void DSP_reset(Device* device)
 {
     assert(device != NULL);
     DSP* dsp = (DSP*)device;
     Device_params_reset(dsp->conf->params);
+    return;
+}
+
+
+void DSP_clear_history(DSP* dsp)
+{
+    assert(dsp != NULL);
+    if (dsp->clear_history != NULL)
+    {
+        dsp->clear_history(dsp);
+    }
     return;
 }
 
