@@ -555,6 +555,12 @@ static int validate_connection_path(char* str,
     }
     else if (string_has_prefix(str, "dsp_"))
     {
+        if (!(level & CONNECTION_LEVEL_EFFECT))
+        {
+            Read_state_set_error(state,
+                    "DSP directory outside an effect: \"%s\"", path);
+            return -1;
+        }
         root = false;
         dsp = true;
         str += strlen("dsp_");

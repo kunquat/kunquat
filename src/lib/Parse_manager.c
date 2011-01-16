@@ -204,6 +204,7 @@ bool parse_data(kqt_Handle* handle,
             }
         }
     }
+#if 0
     else if ((index = string_extract_index(key, "dsp_", 2, "/")) >= 0)
     {
         DSP* dsp = DSP_table_get_dsp(Song_get_dsps(handle->song), index);
@@ -221,6 +222,7 @@ bool parse_data(kqt_Handle* handle,
             }
         }
     }
+#endif
     else if ((index = string_extract_index(key, "pat_", 3, "/")) >= 0)
     {
         Pattern* pat = Pat_table_get(Song_get_pats(handle->song), index);
@@ -358,7 +360,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     ++subkey;
     int gen_index = -1;
     int eff_index = -1;
-    int dsp_index = -1;
+    //int dsp_index = -1;
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
@@ -429,6 +431,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
+#if 0
     else if ((dsp_index = string_extract_index(subkey, "dsp_", 2, "/")) >= 0)
     {
         subkey = strchr(subkey, '/');
@@ -477,6 +480,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
         }
         return success;
     }
+#endif
     if (string_eq(subkey, "p_instrument.json"))
     {
         Instrument* ins = Ins_table_get(Song_get_insts(handle->song), index);
