@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -43,6 +43,8 @@
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
+#include <Event_channel_set_effect.h>
+#include <Event_channel_set_instrument_effects.h>
 #include <Event_channel_set_dsp.h>
 #include <Event_channel_set_dsp_context.h>
 
@@ -123,6 +125,9 @@ static const Event_cons cons[EVENT_LAST] =
 
     [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
     [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
+    [EVENT_CHANNEL_SET_EFFECT] = new_Event_channel_set_effect,
+    [EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS] =
+            new_Event_channel_set_instrument_effects,
     [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,
     [EVENT_CHANNEL_SET_DSP_CONTEXT] = new_Event_channel_set_dsp_context,
 
@@ -135,14 +140,14 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_TREMOLO_SPEED] = new_Event_channel_tremolo_speed,
     [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
     [EVENT_CHANNEL_TREMOLO_DELAY] = new_Event_channel_tremolo_delay,
-    
+
     [EVENT_CHANNEL_SLIDE_PITCH] = new_Event_channel_slide_pitch,
     [EVENT_CHANNEL_SLIDE_PITCH_LENGTH] = new_Event_channel_slide_pitch_length,
     [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
     [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,
     [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
     [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
-   
+
     [EVENT_CHANNEL_SET_LOWPASS] = new_Event_channel_set_lowpass,
     [EVENT_CHANNEL_SLIDE_LOWPASS] = new_Event_channel_slide_lowpass,
     [EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH] = new_Event_channel_slide_lowpass_length,
@@ -151,7 +156,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
 
     [EVENT_CHANNEL_SET_RESONANCE] = new_Event_channel_set_resonance,
-    
+
     [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
     [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
     [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,

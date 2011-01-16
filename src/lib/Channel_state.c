@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -37,6 +37,8 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     state->num = num;
     state->instrument = 0;
     state->generator = 0;
+    state->effect = 0;
+    state->inst_effects = false;
     state->dsp = 0;
     state->dsp_context = -1;
     state->mute = mute;
