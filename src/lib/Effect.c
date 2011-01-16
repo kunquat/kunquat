@@ -138,6 +138,7 @@ DSP_table* Effect_get_dsps(Effect* eff)
 void Effect_set_connections(Effect* eff, Connections* graph)
 {
     assert(eff != NULL);
+    //fprintf(stderr, "Set new connections for %p: %p\n", (void*)eff, (void*)graph);
     if (eff->connections != NULL)
     {
         del_Connections(eff->connections);

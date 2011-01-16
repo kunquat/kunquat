@@ -936,9 +936,7 @@ static bool parse_effect_level(kqt_Handle* handle,
         {
             eff = new_Effect(Device_get_buffer_size((Device*)handle->song),
                              Device_get_mix_rate((Device*)handle->song));
-            if (eff == NULL ||
-                    !Effect_table_set(Song_get_effects(handle->song),
-                                      eff_index, eff))
+            if (eff == NULL || !Effect_table_set(table, eff_index, eff))
             {
                 del_Effect(eff);
                 kqt_Handle_set_error(handle, ERROR_MEMORY,

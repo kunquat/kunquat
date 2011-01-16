@@ -600,7 +600,7 @@ static int validate_connection_path(char* str,
             return -1;
         }
         if (string_has_prefix(str, "in_") && root &&
-                level != CONNECTION_LEVEL_EFFECT)
+                !(level & CONNECTION_LEVEL_EFFECT))
         {
             Read_state_set_error(state,
                     "Input ports are not allowed for master: \"%s\"", path);
