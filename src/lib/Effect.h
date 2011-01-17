@@ -120,12 +120,12 @@ Device* Effect_get_output_interface(Effect* eff);
 
 
 /**
- * Enables or disables an Effect.
+ * Sets the bypass of an Effect.
  *
- * \param eff       The Effect -- must not be \c NULL.
- * \param enabled   Whether or not the Effect is to be enabled.
+ * \param eff      The Effect -- must not be \c NULL.
+ * \param bypass   Whether or not the Effect is to be bypassed.
  */
-void Effect_set_enabled(Effect* eff, bool enabled);
+void Effect_set_bypass(Effect* eff, bool bypass);
 
 
 /**

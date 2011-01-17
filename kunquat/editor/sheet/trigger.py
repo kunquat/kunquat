@@ -355,8 +355,8 @@ channel_triggers = {
         'g.F': [key, any_float],
         'g.T': [key, any_ts],
 
-        'e+': [],
-        'e-': [],
+        'ebp+': [],
+        'ebp-': [],
 
         'd.B': [key, any_bool],
         'd.I': [key, any_int],

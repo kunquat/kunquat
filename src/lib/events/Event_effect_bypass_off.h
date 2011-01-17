@@ -12,20 +12,20 @@
  */
 
 
-#ifndef K_EVENT_EFFECT_ENABLE_H
-#define K_EVENT_EFFECT_ENABLE_H
+#ifndef K_EVENT_EFFECT_BYPASS_OFF_H
+#define K_EVENT_EFFECT_BYPASS_OFF_H
 
 
 #include <Event_effect.h>
 #include <Reltime.h>
 
 
-Event* new_Event_effect_enable(Reltime* pos);
+Event* new_Event_effect_bypass_off(Reltime* pos);
 
 
-bool Event_effect_enable_process(Effect* eff, char* fields);
+bool Event_effect_bypass_off_process(Effect* eff, char* fields);
 
 
-#endif // K_EVENT_EFFECT_ENABLE_H
+#endif // K_EVENT_EFFECT_BYPASS_OFF_H
 
 

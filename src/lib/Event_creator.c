@@ -88,8 +88,8 @@
 #include <Event_generator_set_float.h>
 #include <Event_generator_set_reltime.h>
 
-#include <Event_effect_enable.h>
-#include <Event_effect_disable.h>
+#include <Event_effect_bypass_on.h>
+#include <Event_effect_bypass_off.h>
 
 #include <Event_dsp_set_bool.h>
 #include <Event_dsp_set_int.h>
@@ -174,8 +174,8 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
     [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
 
-    [EVENT_EFFECT_ENABLE] = new_Event_effect_enable,
-    [EVENT_EFFECT_DISABLE] = new_Event_effect_disable,
+    [EVENT_EFFECT_BYPASS_ON] = new_Event_effect_bypass_on,
+    [EVENT_EFFECT_BYPASS_OFF] = new_Event_effect_bypass_off,
 
     [EVENT_DSP_SET_BOOL] = new_Event_dsp_set_bool,
     [EVENT_DSP_SET_INT] = new_Event_dsp_set_int,

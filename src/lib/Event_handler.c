@@ -100,8 +100,8 @@
 #include <Event_generator_set_float.h>
 #include <Event_generator_set_reltime.h>
 
-#include <Event_effect_enable.h>
-#include <Event_effect_disable.h>
+#include <Event_effect_bypass_on.h>
+#include <Event_effect_bypass_off.h>
 
 #include <Event_dsp_set_bool.h>
 #include <Event_dsp_set_int.h>
@@ -295,10 +295,10 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_generator_process(eh, "g.T", EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
-    Event_handler_set_effect_process(eh, "e+", EVENT_EFFECT_ENABLE,
-                                     Event_effect_enable_process);
-    Event_handler_set_effect_process(eh, "e-", EVENT_EFFECT_DISABLE,
-                                     Event_effect_disable_process);
+    Event_handler_set_effect_process(eh, "ebp+", EVENT_EFFECT_BYPASS_ON,
+                                     Event_effect_bypass_on_process);
+    Event_handler_set_effect_process(eh, "ebp-", EVENT_EFFECT_BYPASS_OFF,
+                                     Event_effect_bypass_off_process);
 
     Event_handler_set_dsp_process(eh, "d.B", EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);

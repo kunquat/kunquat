@@ -17,12 +17,12 @@
 
 #include <Effect.h>
 #include <Event_common.h>
-#include <Event_effect_enable.h>
+#include <Event_effect_bypass_off.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc enable_desc[] =
+static Event_field_desc bypass_off_desc[] =
 {
     {
         .type = EVENT_FIELD_NONE
@@ -31,15 +31,15 @@ static Event_field_desc enable_desc[] =
 
 
 Event_create_constructor(Event_effect,
-                         EVENT_EFFECT_ENABLE,
-                         enable);
+                         EVENT_EFFECT_BYPASS_OFF,
+                         bypass_off);
 
 
-bool Event_effect_enable_process(Effect* eff, char* fields)
+bool Event_effect_bypass_off_process(Effect* eff, char* fields)
 {
     assert(eff != NULL);
     (void)fields;
-    Effect_set_enabled(eff, true);
+    Effect_set_bypass(eff, false);
     return true;
 }
 

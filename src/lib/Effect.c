@@ -32,8 +32,8 @@ struct Effect
     Effect_interface* in_iface;
     Connections* connections;
     DSP_table* dsps;
-    bool init_enabled;
-    bool enabled;
+    bool init_bypass;
+    bool bypass;
 };
 
 
@@ -100,7 +100,7 @@ Effect* new_Effect(uint32_t buf_len,
     Device_register_port(&eff->out_iface->parent,
                          DEVICE_PORT_TYPE_RECEIVE, 0);
     //fprintf(stderr, "New effect %p\n", (void*)eff);
-    eff->init_enabled = eff->enabled = true;
+    eff->init_bypass = eff->bypass = false;
     return eff;
 }
 
@@ -221,7 +221,7 @@ static void Effect_reset(Device* device)
             Device_reset((Device*)dsp);
         }
     }
-    eff->enabled = eff->init_enabled;
+    eff->bypass = eff->init_bypass;
     return;
 }
 
@@ -289,16 +289,7 @@ static void Effect_process(Device* device,
     assert(freq > 0);
     assert(isfinite(tempo));
     Effect* eff = (Effect*)device;
-    if (eff->enabled)
-    {
-        static bool in_effect = false;
-        assert(!in_effect);
-        in_effect = true;
-        Connections_clear_buffers(eff->connections, start, until);
-        Connections_mix(eff->connections, start, until, freq, tempo);
-        in_effect = false;
-    }
-    else
+    if (eff->bypass)
     {
         for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
         {
@@ -314,15 +305,24 @@ static void Effect_process(Device* device,
             }
         }
     }
+    else
+    {
+        static bool in_effect = false;
+        assert(!in_effect);
+        in_effect = true;
+        Connections_clear_buffers(eff->connections, start, until);
+        Connections_mix(eff->connections, start, until, freq, tempo);
+        in_effect = false;
+    }
     return;
 }
 
 
-void Effect_set_enabled(Effect* eff, bool enabled)
+void Effect_set_bypass(Effect* eff, bool bypass)
 {
     assert(eff != NULL);
-    eff->enabled = enabled;
-    if (!enabled)
+    eff->bypass = bypass;
+    if (bypass)
     {
         for (int i = 0; i < KQT_DSPS_MAX; ++i)
         {
