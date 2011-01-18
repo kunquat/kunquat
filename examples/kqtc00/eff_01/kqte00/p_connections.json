@@ -3,7 +3,8 @@
 [
     ["in_00", "out_00"],
     ["in_00", "dsp_00/kqtdXX/C/in_00"],
-    ["dsp_00/kqtdXX/C/out_00", "out_00"]
+    ["dsp_00/kqtdXX/C/out_00", "dsp_01/kqtdXX/C/in_00"],
+    ["dsp_01/kqtdXX/C/out_00", "out_00"]
 ]
 
 

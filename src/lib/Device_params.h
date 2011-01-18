@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -137,6 +137,8 @@ const char* Device_params_get_slow_sync_key(Device_params* params);
 
 /**
  * Sets the Device parameters synchronised.
+ *
+ * A slow-syncing Device should call this after synchronisation.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  */
