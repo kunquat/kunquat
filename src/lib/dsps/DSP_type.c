@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include <DSP_type.h>
+#include <DSP_delay.h>
 #include <DSP_freeverb.h>
 #include <DSP_volume.h>
 #include <string_common.h>
@@ -31,6 +32,7 @@ struct DSP_type
 
 const DSP_type dsp_types[] =
 {
+    { "delay", new_DSP_delay, NULL },
     { "freeverb", new_DSP_freeverb, NULL },
     { "volume", new_DSP_volume, NULL },
     { NULL, NULL, NULL }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -72,6 +72,10 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
     assert(buffer != NULL);
     assert(size > 0);
     assert(size <= KQT_BUFFER_SIZE_MAX);
+    if (buffer->size == size)
+    {
+        return true;
+    }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         kqt_frame* new_buf = xrealloc(kqt_frame, size, buffer->bufs[i]);
