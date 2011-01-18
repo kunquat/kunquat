@@ -133,7 +133,7 @@ static bool DSP_delay_sync(Device* device)
     const char* ss_key = Device_params_get_slow_sync_key(params);
     while (ss_key != NULL)
     {
-        if (string_eq(ss_key, "max_delay.jsonf"))
+        if (string_eq(ss_key, "p_max_delay.jsonf"))
         {
             double* delay_param = Device_params_get_float(params, ss_key);
             assert(delay_param != NULL);
