@@ -373,7 +373,6 @@ bool Device_update_key(Device* device, const char* key)
 {
     assert(device != NULL);
     assert(key != NULL);
-    fprintf(stderr, "device update: %s\n", key);
     if (device->update_key != NULL)
     {
         return device->update_key(device, key);
