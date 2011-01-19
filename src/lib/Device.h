@@ -41,6 +41,7 @@ typedef struct Device
     bool (*set_buffer_size)(struct Device*, uint32_t);
     void (*reset)(struct Device*);
     bool (*sync)(struct Device*);
+    bool (*update_key)(struct Device*, const char*);
     void (*process)(struct Device*, uint32_t, uint32_t, uint32_t, double);
     bool reg[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
     Audio_buffer* buffers[DEVICE_PORT_TYPES][KQT_DEVICE_PORTS_MAX];
@@ -98,6 +99,17 @@ void Device_set_reset(Device* device, void (*reset)(Device*));
  * \param sync     The synchronisation function -- must not be \c NULL.
  */
 void Device_set_sync(Device* device, bool (*sync)(Device*));
+
+
+/**
+ * Sets the update notification function of the Device.
+ *
+ * \param device       The Device -- must not be \c NULL.
+ * \param update_key   The update notification function
+ *                     -- must not be \c NULL.
+ */
+void Device_set_update_key(Device* device,
+                           bool (*update_key)(struct Device*, const char*));
 
 
 /**
@@ -301,6 +313,17 @@ void Device_reset(Device* device);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_sync(Device* device);
+
+
+/**
+ * Notifies the Device of a key change and updates the internal state.
+ *
+ * \param device   The Device -- must not be \c NULL.
+ * \param key      The key that changed -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if a fatal error occurred.
+ */
+bool Device_update_key(Device* device, const char* key);
 
 
 /**

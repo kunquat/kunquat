@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -43,6 +43,7 @@ bool DSP_conf_parse(DSP_conf* conf,
                     const char* key,
                     void* data,
                     long length,
+                    Device* device,
                     Read_state* state)
 {
     assert(conf != NULL);
@@ -57,9 +58,17 @@ bool DSP_conf_parse(DSP_conf* conf,
     if ((string_has_prefix(key, "i/") || string_has_prefix(key, "c/")) &&
             key_is_device_param(key))
     {
-        return Device_params_parse_value(conf->params, key,
-                                         data, length,
-                                         state);
+        if (!Device_params_parse_value(conf->params, key,
+                                       data, length,
+                                       state))
+        {
+            return false;
+        }
+        if (device != NULL)
+        {
+            return Device_update_key(device, key + 2);
+        }
+        return true;
     }
     return true;
 }

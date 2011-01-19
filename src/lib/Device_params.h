@@ -92,6 +92,11 @@ bool Device_params_set_key(Device_params* params, const char* key);
 /**
  * Marks a key to require explicit synchronisation on update.
  *
+ * This is used for keys that are too slow to be updated in the Device
+ * automatically (e.g. the update may take hundreds of milliseconds or more).
+ * This is different from keys that cannot be updated in real time but still
+ * update quickly in terms of user interaction smoothness.
+ *
  * If the function succeeds, it also sets the Device parameters to require
  * synchronisation.
  *

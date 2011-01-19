@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -72,6 +72,7 @@ bool DSP_table_set_conf(DSP_table* table, int index, DSP_conf* conf)
     if (dsp != NULL)
     {
         DSP_set_conf(dsp, conf);
+        return Device_sync((Device*)dsp);
     }
     return true;
 }
@@ -126,7 +127,7 @@ bool DSP_table_set_dsp(DSP_table* table, int index, DSP* dsp)
         return false;
     }
     DSP_set_conf(dsp, conf);
-    return true;
+    return Device_sync((Device*)dsp);
 }
 
 

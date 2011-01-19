@@ -52,6 +52,7 @@ typedef struct DSP_delay
 static void DSP_delay_reset(Device* device);
 static void DSP_delay_clear_history(DSP* dsp);
 static bool DSP_delay_sync(Device* device);
+static bool DSP_delay_update_key(Device* device, const char* key);
 static bool DSP_delay_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_delay_check_params(DSP_delay* delay);
@@ -85,6 +86,7 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
     DSP_set_clear_history(&delay->parent, DSP_delay_clear_history);
     Device_set_reset(&delay->parent.parent, DSP_delay_reset);
     Device_set_sync(&delay->parent.parent, DSP_delay_sync);
+    Device_set_update_key(&delay->parent.parent, DSP_delay_update_key);
     delay->buf = NULL;
     delay->buf_pos = 0;
     delay->max_delay = 2;
@@ -128,24 +130,30 @@ static void DSP_delay_clear_history(DSP* dsp)
 static bool DSP_delay_sync(Device* device)
 {
     assert(device != NULL);
+    if (!DSP_delay_update_key(device, "p_max_delay.jsonf"))
+    {
+        return false;
+    }
+    return true;
+}
+
+
+static bool DSP_delay_update_key(Device* device, const char* key)
+{
+    assert(device != NULL);
+    assert(key != NULL);
     DSP_delay* delay = (DSP_delay*)device;
     Device_params* params = delay->parent.conf->params;
-    const char* ss_key = Device_params_get_slow_sync_key(params);
-    while (ss_key != NULL)
+    if (string_eq(key, "p_max_delay.jsonf"))
     {
-        if (string_eq(ss_key, "p_max_delay.jsonf"))
+        double* delay_param = Device_params_get_float(params, key);
+        assert(delay_param != NULL);
+        delay->max_delay = *delay_param;
+        if (!DSP_delay_set_mix_rate(device, Device_get_mix_rate(device)))
         {
-            double* delay_param = Device_params_get_float(params, ss_key);
-            assert(delay_param != NULL);
-            delay->max_delay = *delay_param;
-            if (!DSP_delay_set_mix_rate(device, Device_get_mix_rate(device)))
-            {
-                return false;
-            }
+            return false;
         }
-        ss_key = Device_params_get_slow_sync_key(params);
     }
-    Device_params_synchronised(params);
     return true;
 }
 

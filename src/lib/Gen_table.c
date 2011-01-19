@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -72,6 +72,7 @@ bool Gen_table_set_conf(Gen_table* table, int index, Gen_conf* conf)
     if (gen != NULL)
     {
         Generator_set_conf(gen, conf);
+        return Device_sync((Device*)gen);
     }
     return true;
 }
@@ -117,7 +118,7 @@ bool Gen_table_set_gen(Gen_table* table, int index, Generator* gen)
         return false;
     }
     Generator_set_conf(gen, conf);
-    return true;
+    return Device_sync((Device*)gen);
 }
 
 

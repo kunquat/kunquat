@@ -860,8 +860,9 @@ static bool parse_generator_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             return false;
         }
+        Generator* gen = Gen_table_get_gen(table, gen_index);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!Gen_conf_parse(conf, subkey, data, length, state))
+        if (!Gen_conf_parse(conf, subkey, data, length, (Device*)gen, state))
         {
             if (!state->error)
             {
@@ -1112,8 +1113,9 @@ static bool parse_dsp_level(kqt_Handle* handle,
                     "Couldn't allocate memory");
             return false;
         }
+        DSP* dsp = DSP_table_get_dsp(dsp_table, dsp_index);
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        if (!DSP_conf_parse(conf, subkey, data, length, state))
+        if (!DSP_conf_parse(conf, subkey, data, length, (Device*)dsp, state))
         {
             if (!state->error)
             {

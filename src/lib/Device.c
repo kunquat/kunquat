@@ -35,6 +35,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->set_buffer_size = NULL;
     device->reset = NULL;
     device->sync = NULL;
+    device->update_key = NULL;
     device->process = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -84,6 +85,16 @@ void Device_set_sync(Device* device, bool (*sync)(Device*))
     assert(device != NULL);
     assert(sync != NULL);
     device->sync = sync;
+    return;
+}
+
+
+void Device_set_update_key(Device* device,
+                           bool (*update_key)(struct Device*, const char*))
+{
+    assert(device != NULL);
+    assert(update_key != NULL);
+    device->update_key = update_key;
     return;
 }
 
@@ -353,6 +364,19 @@ bool Device_sync(Device* device)
     if (device->sync != NULL)
     {
         return device->sync(device);
+    }
+    return true;
+}
+
+
+bool Device_update_key(Device* device, const char* key)
+{
+    assert(device != NULL);
+    assert(key != NULL);
+    fprintf(stderr, "device update: %s\n", key);
+    if (device->update_key != NULL)
+    {
+        return device->update_key(device, key);
     }
     return true;
 }
