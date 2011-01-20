@@ -45,6 +45,7 @@ typedef struct DSP_conv
 static void DSP_conv_set_ir(DSP_conv* conv);
 
 static void DSP_conv_reset(Device* device);
+static bool DSP_conv_sync(Device* device);
 static void DSP_conv_clear_history(DSP* dsp);
 static bool DSP_conv_update_key(Device* device, const char* key);
 static bool DSP_conv_set_mix_rate(Device* device, uint32_t mix_rate);
@@ -78,6 +79,7 @@ DSP* new_DSP_conv(uint32_t buffer_size, uint32_t mix_rate)
     }
     DSP_set_clear_history(&conv->parent, DSP_conv_clear_history);
     Device_set_reset(&conv->parent.parent, DSP_conv_reset);
+    Device_set_sync(&conv->parent.parent, DSP_conv_sync);
     Device_set_update_key(&conv->parent.parent, DSP_conv_update_key);
     conv->ir = NULL;
     conv->history = NULL;
@@ -103,6 +105,18 @@ static void DSP_conv_reset(Device* device)
     DSP_conv* conv = (DSP_conv*)device;
     DSP_conv_clear_history(&conv->parent);
     return;
+}
+
+
+static bool DSP_conv_sync(Device* device)
+{
+    assert(device != NULL);
+    if (!DSP_conv_update_key(device, "p_max_ir_len.jsonf") ||
+            !DSP_conv_update_key(device, "p_ir.wv"))
+    {
+        return false;
+    }
+    return true;
 }
 
 
@@ -310,8 +324,8 @@ static void DSP_conv_process(Device* device,
                 history_pos = conv->actual_ir_len - 1;
             }
         }
-        out_data[0][out_pos] = out_l;
-        out_data[1][out_pos] = out_r;
+        out_data[0][out_pos] += out_l;
+        out_data[1][out_pos] += out_r;
         ++conv->history_pos;
         if (conv->history_pos >= conv->actual_ir_len)
         {

@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include <Device_params.h>
+#include <DSP.h>
 #include <DSP_conf.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -58,6 +59,10 @@ bool DSP_conf_parse(DSP_conf* conf,
     if ((string_has_prefix(key, "i/") || string_has_prefix(key, "c/")) &&
             key_is_device_param(key))
     {
+        if (device != NULL)
+        {
+            DSP_set_conf((DSP*)device, conf);
+        }
         if (!Device_params_parse_value(conf->params, key,
                                        data, length,
                                        state))

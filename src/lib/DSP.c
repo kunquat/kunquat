@@ -129,6 +129,7 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf)
 {
     assert(dsp != NULL);
     assert(conf != NULL);
+    assert(dsp->conf == NULL || dsp->conf == conf);
     dsp->conf = conf;
     return;
 }

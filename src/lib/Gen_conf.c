@@ -18,6 +18,7 @@
 
 #include <Device_params.h>
 #include <Gen_conf.h>
+#include <Generator.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -78,6 +79,10 @@ bool Gen_conf_parse(Gen_conf* conf,
     if ((string_has_prefix(key, "i/") || string_has_prefix(key, "c/")) &&
             key_is_device_param(key))
     {
+        if (device != NULL)
+        {
+            Generator_set_conf((Generator*)device, conf);
+        }
         if (!Device_params_parse_value(conf->params, key,
                                        data, length,
                                        state))
