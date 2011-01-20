@@ -23,6 +23,7 @@
 #include <DSP_delay.h>
 #include <math_common.h>
 #include <string_common.h>
+#include <xassert.h>
 #include <xmemory.h>
 
 
@@ -62,7 +63,6 @@ static void DSP_delay_process(Device* device,
                               uint32_t until,
                               uint32_t freq,
                               double tempo);
-
 
 static void del_DSP_delay(DSP* dsp);
 
@@ -147,8 +147,14 @@ static bool DSP_delay_update_key(Device* device, const char* key)
     if (string_eq(key, "p_max_delay.jsonf"))
     {
         double* delay_param = Device_params_get_float(params, key);
-        assert(delay_param != NULL);
-        delay->max_delay = *delay_param;
+        if (delay_param != NULL)
+        {
+            delay->max_delay = *delay_param;
+        }
+        else
+        {
+            delay->max_delay = 2;
+        }
         if (!DSP_delay_set_mix_rate(device, Device_get_mix_rate(device)))
         {
             return false;

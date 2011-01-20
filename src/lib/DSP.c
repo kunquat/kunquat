@@ -85,6 +85,7 @@ bool DSP_init(DSP* dsp,
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     dsp->clear_history = NULL;
     dsp->destroy = destroy;
+    dsp->conf = NULL;
     if (!Device_init(&dsp->parent, buffer_size, mix_rate))
     {
         return false;
