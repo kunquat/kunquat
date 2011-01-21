@@ -153,7 +153,7 @@ static bool DSP_conv_update_key(Device* device, const char* key)
             return false;
         }
     }
-    else if (string_eq(key, "p_ir.wv"))
+    else if (string_eq(key, "p_ir.wv") || string_eq(key, "p_volume.jsonf"))
     {
         if (!DSP_conv_set_mix_rate(device, Device_get_mix_rate(device)))
         {
@@ -207,6 +207,28 @@ static bool DSP_conv_set_mix_rate(Device* device, uint32_t mix_rate)
 }
 
 
+#define get_values(type, divisor)                                 \
+    if (true)                                                     \
+    {                                                             \
+        val_r = val_l = ((type*)sample->data[0])[sample_pos];     \
+        if (sample->channels > 1)                                 \
+        {                                                         \
+            val_r = ((type*)sample->data[1])[sample_pos];         \
+        }                                                         \
+        if (next_pos < (int32_t)sample->len)                      \
+        {                                                         \
+            next_r = next_l = ((type*)sample->data[0])[next_pos]; \
+            if (sample->channels > 1)                             \
+            {                                                     \
+                next_r = ((type*)sample->data[1])[next_pos];      \
+            }                                                     \
+        }                                                         \
+        val_l /= divisor;                                         \
+        val_r /= divisor;                                         \
+        next_l /= divisor;                                        \
+        next_r /= divisor;                                        \
+    } else (void)0
+
 static void DSP_conv_set_ir(DSP_conv* conv)
 {
     assert(conv != NULL);
@@ -223,6 +245,12 @@ static void DSP_conv_set_ir(DSP_conv* conv)
         conv->actual_ir_len = 0;
         return;
     }
+    double scale = 1;
+    double* dB_param = Device_params_get_float(params, "p_volume.jsonf");
+    if (dB_param != NULL)
+    {
+        scale = exp2(*dB_param / 6);
+    }
     conv->ir_rate = 48000; // FIXME
     double mix_rate = Device_get_mix_rate((Device*)conv);
     int32_t ir_size = Audio_buffer_get_size(conv->ir);
@@ -231,59 +259,46 @@ static void DSP_conv_set_ir(DSP_conv* conv)
     int32_t i = 0;
     for (; i < ir_size; ++i)
     {
-        int32_t sample_pos = (double)i * (conv->ir_rate / mix_rate);
+        double ideal_pos = (double)i * (conv->ir_rate / mix_rate);
+        int32_t sample_pos = (int32_t)ideal_pos;
+        int32_t next_pos = sample_pos + 1;
+        double remainder = ideal_pos - sample_pos;
+        assert(remainder >= 0);
+        assert(remainder < 1);
         if (sample_pos >= (int32_t)sample->len)
         {
             break;
         }
         double val_l = 0;
         double val_r = 0;
+        double next_l = 0;
+        double next_r = 0;
         if (sample->is_float)
         {
-            val_l = ((float*)sample->data[0])[sample_pos];
-            val_r = val_l;
-            if (sample->channels > 1)
-            {
-                val_r = ((float*)sample->data[1])[sample_pos];
-            }
+            get_values(float, 1);
         }
         else if (sample->bits == 8)
         {
-            val_l = ((int8_t*)sample->data[0])[sample_pos] / (double)0x80;
-            val_r = val_l;
-            if (sample->channels > 1)
-            {
-                val_r = ((int8_t*)sample->data[1])[sample_pos] / (double)0x80;
-            }
+            get_values(int8_t, 0x80);
         }
         else if (sample->bits == 16)
         {
-            val_l = ((int16_t*)sample->data[0])[sample_pos] / (double)0x8000;
-            val_r = val_l;
-            if (sample->channels > 1)
-            {
-                val_r = ((int16_t*)sample->data[1])[sample_pos] /
-                        (double)0x8000;
-            }
+            get_values(int16_t, 0x8000L);
         }
         else
         {
             assert(sample->bits == 32);
-            val_l = ((int32_t*)sample->data[0])[sample_pos] /
-                    (double)0x80000000;
-            val_r = val_l;
-            if (sample->channels > 1)
-            {
-                val_r = ((int32_t*)sample->data[1])[sample_pos] /
-                        (double)0x80000000;
-            }
+            get_values(int32_t, 0x80000000LL);
         }
-        ir_data[0][i] = val_l;
-        ir_data[1][i] = val_r;
+        // TODO: improve the scaling quality
+        ir_data[0][i] = (val_l + (next_l - val_l) * remainder) * scale;
+        ir_data[1][i] = (val_r + (next_r - val_r) * remainder) * scale;
     }
     conv->actual_ir_len = i;
     return;
 }
+
+#undef get_values
 
 
 static void DSP_conv_process(Device* device,
