@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import math
 
 from PyQt4 import QtCore, QtGui
 
@@ -29,7 +30,7 @@ class Envelope(QtGui.QWidget):
                 'axis': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'curve': QtGui.QColor(0x66, 0x88, 0xaa),
                 'node': QtGui.QColor(0xee, 0xcc, 0xaa),
-                'node_cur': QtGui.QColor(0xcc, 0xff, 0xcc),
+                'node_cur': QtGui.QColor(0xff, 0x77, 0x22),
                 'text': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 }
         self._fonts = {
@@ -54,9 +55,31 @@ class Envelope(QtGui.QWidget):
         self._vaxis = VAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
         self._update_transform()
+        self._hover_node = None
+        self.setMouseTracking(True)
 
     def keyPressEvent(self, ev):
         pass
+
+    def mouseMoveEvent(self, ev):
+        hover_node = self._node_at(ev.x() + 0.5, ev.y() + 0.5)
+        if hover_node != self._hover_node:
+            self._hover_node = hover_node
+            self.update()
+
+    def _node_at(self, x, y):
+        closest = self._nodes[0]
+        closest_dist = math.hypot(self._trans_x(closest[0]) - x,
+                                  self._trans_y(closest[1]) - y)
+        for node in self._nodes:
+            node_dist = math.hypot(self._trans_x(node[0]) - x,
+                                   self._trans_y(node[1]) - y)
+            if node_dist < closest_dist:
+                closest = node
+                closest_dist = node_dist
+        if closest_dist < 5:
+            return closest
+        return None
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()
@@ -85,10 +108,14 @@ class Envelope(QtGui.QWidget):
         paint.setBrush(self._colours['node'])
         rect_size = 5
         for p in self._nodes:
+            if p == self._hover_node:
+                paint.setBrush(self._colours['node_cur'])
             rect_x = self._trans_x(p[0]) - rect_size / 2 + 0.5
             rect_y = self._trans_y(p[1]) - rect_size / 2 + 0.5
             rect = QtCore.QRectF(rect_x, rect_y, rect_size, rect_size)
             paint.fillRect(rect, paint.brush())
+            if p == self._hover_node:
+                paint.setBrush(self._colours['node'])
 
     def _update_transform(self):
         self._trans_x = lambda x: self._vaxis.width + x * \
