@@ -1,10 +1,11 @@
 
 
 [
-    ["ins_00/kqtiXX/out_00", "eff_01/kqteXX/in_00"],
+    ["ins_00/kqtiXX/out_00", "eff_02/kqteXX/in_00"],
+    ["eff_02/kqteXX/out_00", "eff_01/kqteXX/in_00"],
     ["ins_01/kqtiXX/out_00", "eff_00/kqteXX/in_00"],
     ["eff_01/kqteXX/out_00", "out_00"],
-    ["eff_00/kqteXX/out_00", "out_00"]
+    ["eff_00/kqteXX/out_00", "eff_01/kqteXX/in_00"]
 ]
 
 

@@ -277,6 +277,18 @@ Reltime* Device_params_get_reltime(Device_params* params, const char* key);
 
 
 /**
+ * Retrieves an Envelope value from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsone".
+ *
+ * \return   The Envelope value, or \c NULL if \a key doesn't exist.
+ */
+Envelope* Device_params_get_envelope(Device_params* params, const char* key);
+
+
+/**
  * Retrieves a Sample from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.

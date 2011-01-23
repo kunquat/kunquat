@@ -67,16 +67,6 @@ DSP* new_DSP_gc(uint32_t buffer_size, uint32_t mix_rate)
     Device_set_sync(&gc->parent.parent, DSP_gc_sync);
     Device_set_update_key(&gc->parent.parent, DSP_gc_update_key);
     gc->map = NULL;
-    gc->map = new_Envelope(4, 0, 1, 0, 0, 1, 0);
-    if (gc->map == NULL)
-    {
-        del_DSP_gc(&gc->parent);
-        return NULL;
-    }
-    Envelope_set_node(gc->map, 0, 0);
-    Envelope_set_node(gc->map, 1, 1);
-    Envelope_set_first_lock(gc->map, true, false);
-    Envelope_set_last_lock(gc->map, true, false);
     Device_register_port(&gc->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&gc->parent.parent, DEVICE_PORT_TYPE_SEND, 0);
     //fprintf(stderr, "Created gaincomp %p\n", (void*)gc);
@@ -103,8 +93,35 @@ static bool DSP_gc_update_key(Device* device, const char* key)
     Device_params* params = gc->parent.conf->params;
     if (string_eq(key, "p_map.jsone"))
     {
-        (void)params;
-        // TODO: update envelope
+        Envelope* env = Device_params_get_envelope(params, key);
+        bool valid = true;
+        if (env != NULL && Envelope_node_count(env) > 1)
+        {
+            double* node = Envelope_get_node(env, 0);
+            if (node[0] != 0)
+            {
+                valid = false;
+            }
+            node = Envelope_get_node(env, Envelope_node_count(env) - 1);
+            if (node[0] != 1)
+            {
+                valid = false;
+            }
+            for (int i = 0; i < Envelope_node_count(env); ++i)
+            {
+                node = Envelope_get_node(env, i);
+                if (node[1] < 0 || node[1] > 1)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            valid = false;
+        }
+        gc->map = valid ? env : NULL;
     }
     return true;
 }
@@ -127,24 +144,35 @@ static void DSP_gc_process(Device* device,
     kqt_frame* out_data[] = { NULL, NULL };
     DSP_get_raw_input(device, 0, in_data);
     DSP_get_raw_output(device, 0, out_data);
-    for (uint32_t i = start; i < until; ++i)
+    if (gc->map != NULL)
     {
-        kqt_frame val_l = fabs(in_data[0][i]);
-        kqt_frame val_r = fabs(in_data[1][i]);
-        val_l = Envelope_get_value(gc->map, MIN(val_l, 1));
-        val_r = Envelope_get_value(gc->map, MIN(val_r, 1));
-        if (in_data[0][i] < 0)
+        for (uint32_t i = start; i < until; ++i)
         {
-            val_l = -val_l;
+            kqt_frame val_l = fabs(in_data[0][i]);
+            kqt_frame val_r = fabs(in_data[1][i]);
+            val_l = Envelope_get_value(gc->map, MIN(val_l, 1));
+            val_r = Envelope_get_value(gc->map, MIN(val_r, 1));
+            if (in_data[0][i] < 0)
+            {
+                val_l = -val_l;
+            }
+            if (in_data[1][i] < 0)
+            {
+                val_r = -val_r;
+            }
+            out_data[0][i] += val_l;
+            out_data[1][i] += val_r;
+            assert(!isnan(out_data[0][i]) || isnan(in_data[0][i]));
+            assert(!isnan(out_data[0][i]) || isnan(in_data[1][i]));
         }
-        if (in_data[1][i] < 0)
+    }
+    else
+    {
+        for (uint32_t i = start; i < until; ++i)
         {
-            val_r = -val_r;
+            out_data[0][i] += in_data[0][i];
+            out_data[1][i] += in_data[1][i];
         }
-        out_data[0][i] += val_l;
-        out_data[1][i] += val_r;
-        assert(!isnan(out_data[0][i]) || isnan(in_data[0][i]));
-        assert(!isnan(out_data[0][i]) || isnan(in_data[1][i]));
     }
     return;
 }
@@ -158,7 +186,6 @@ static void del_DSP_gc(DSP* dsp)
     }
     assert(string_eq(dsp->type, "gaincomp"));
     DSP_gc* gc = (DSP_gc*)dsp;
-    del_Envelope(gc->map);
     xfree(gc);
     return;
 }
