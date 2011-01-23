@@ -110,7 +110,7 @@ static bool DSP_gc_update_key(Device* device, const char* key)
             for (int i = 0; i < Envelope_node_count(env); ++i)
             {
                 node = Envelope_get_node(env, i);
-                if (node[1] < 0 || node[1] > 1)
+                if (node[1] < 0)
                 {
                     valid = false;
                     break;
