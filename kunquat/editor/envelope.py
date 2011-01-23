@@ -64,9 +64,26 @@ class Envelope(QtGui.QWidget):
 
     def mouseMoveEvent(self, ev):
         if self._drag:
+            keep_margin = 200
+            keep_top_left = \
+                    QtCore.QPointF(self._view_x(self._min[0]) - keep_margin,
+                                   self._view_y(self._max[1]) - keep_margin)
+            keep_bottom_right = \
+                    QtCore.QPointF(self._view_x(self._max[0]) + keep_margin,
+                                   self._view_y(self._min[1]) + keep_margin)
+            keep_rect = QtCore.QRectF(keep_top_left, keep_bottom_right)
+            if not keep_rect.contains(ev.x(), ev.y()) and \
+                    0 < self._focus_index < len(self._nodes) - 1:
+                self._focus_node = None
+                self._nodes[self._focus_index:self._focus_index + 1] = []
+                self._focus_index = -1
+                self._drag = False
+                self.update()
+                return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
+            self._focus_node = self._nodes[self._focus_index]
             self.update()
             return
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
@@ -77,15 +94,30 @@ class Envelope(QtGui.QWidget):
 
     def mousePressEvent(self, ev):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
-        if focus_node:
-            self._focus_node = focus_node
-            self._focus_index = index
-            self._drag = True
-            self._drag_offset = (self._view_x(focus_node[0]) - ev.x(),
-                                 self._view_y(focus_node[1]) - ev.y())
-            self.update()
-        else:
-            pass
+        if not focus_node:
+            focus_node = (self._val_x(ev.x() - 0.5),
+                          self._val_y(ev.y() - 0.5))
+            index = sum(1 for n in self._nodes if n[0] < focus_node[0])
+            for i, x in ((index, focus_node[0]),
+                         (index + 1, focus_node[0] + self._step[0]),
+                         (index - 1, focus_node[0] - self._step[0])):
+                if not 0 <= i < len(self._nodes) or \
+                        abs(x - self._nodes[i][0]) >= self._step[0]:
+                    index = i
+                    focus_node = (x, focus_node[1])
+                    break
+            else:
+                return
+            if not self._min[0] <= focus_node[0] <= self._max[0] or \
+                    not self._min[1] <= focus_node[1] <= self._max[1]:
+                return
+            self._nodes[index:index] = [focus_node]
+        self._focus_node = focus_node
+        self._focus_index = index
+        self._drag = True
+        self._drag_offset = (self._view_x(focus_node[0]) - ev.x(),
+                             self._view_y(focus_node[1]) - ev.y())
+        self.update()
 
     def mouseReleaseEvent(self, ev):
         if self._drag:
@@ -158,7 +190,9 @@ class Envelope(QtGui.QWidget):
         paint.setPen(QtCore.Qt.NoPen)
         paint.setBrush(self._colours['node'])
         rect_size = 5
-        for p in self._nodes:
+        for p in self._nodes + [self._focus_node]:
+            if not p:
+                continue
             if p == self._focus_node:
                 paint.setBrush(self._colours['node_focus'])
             rect_x = self._view_x(p[0]) - rect_size / 2 + 0.5
