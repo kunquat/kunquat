@@ -95,8 +95,7 @@ class Envelope(QtGui.QWidget):
     def mousePressEvent(self, ev):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if not focus_node:
-            focus_node = (self._val_x(ev.x() - 0.5),
-                          self._val_y(ev.y() - 0.5))
+            focus_node = self._val_x(ev.x()), self._val_y(ev.y())
             index = sum(1 for n in self._nodes if n[0] < focus_node[0])
             for i, x in ((index, focus_node[0]),
                          (index + 1, focus_node[0] + self._step[0]),
