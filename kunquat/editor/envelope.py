@@ -30,7 +30,7 @@ class Envelope(QtGui.QWidget):
                 'axis': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'curve': QtGui.QColor(0x66, 0x88, 0xaa),
                 'node': QtGui.QColor(0xee, 0xcc, 0xaa),
-                'node_cur': QtGui.QColor(0xff, 0x77, 0x22),
+                'node_focus': QtGui.QColor(0xff, 0x77, 0x22),
                 'text': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 }
         self._fonts = {
@@ -49,37 +49,45 @@ class Envelope(QtGui.QWidget):
         self._marks = []
         self._nodes = [(0, 0), (0.4, 0.8), (1, 1)]
         self._smooth = False
-
         self._haxis = HAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
         self._vaxis = VAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
-        self._update_transform()
-        self._hover_node = None
+        self._focus_node = None
+        self._focus_index = -1
         self.setMouseTracking(True)
 
     def keyPressEvent(self, ev):
         pass
 
     def mouseMoveEvent(self, ev):
-        hover_node = self._node_at(ev.x() + 0.5, ev.y() + 0.5)
-        if hover_node != self._hover_node:
-            self._hover_node = hover_node
+        focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        if focus_node != self._focus_node:
+            self._focus_node = focus_node
+            self._focus_index = index
             self.update()
+
+    def mousePressEvent(self, ev):
+        pass
+
+    def mouseReleaseEvent(self, ev):
+        pass
 
     def _node_at(self, x, y):
         closest = self._nodes[0]
-        closest_dist = math.hypot(self._trans_x(closest[0]) - x,
-                                  self._trans_y(closest[1]) - y)
-        for node in self._nodes:
-            node_dist = math.hypot(self._trans_x(node[0]) - x,
-                                   self._trans_y(node[1]) - y)
+        closest_dist = math.hypot(self._view_x(closest[0]) - x,
+                                  self._view_y(closest[1]) - y)
+        closest_index = 0
+        for i, node in enumerate(self._nodes):
+            node_dist = math.hypot(self._view_x(node[0]) - x,
+                                   self._view_y(node[1]) - y)
             if node_dist < closest_dist:
                 closest = node
                 closest_dist = node_dist
-        if closest_dist < 5:
-            return closest
-        return None
+                closest_index = i
+        if closest_dist < 4:
+            return closest, i
+        return None, -1
 
     def paintEvent(self, ev):
         paint = QtGui.QPainter()
@@ -97,10 +105,10 @@ class Envelope(QtGui.QWidget):
     def _paint_linear_curve(self, paint):
         paint.setPen(self._colours['curve'])
         for p1, p2 in zip(self._nodes[:-1], self._nodes[1:]):
-            start = QtCore.QPointF(self._trans_x(p1[0]) + 0.5,
-                                   self._trans_y(p1[1]) + 0.5)
-            end = QtCore.QPointF(self._trans_x(p2[0]) + 0.5,
-                                 self._trans_y(p2[1]) + 0.5)
+            start = QtCore.QPointF(self._view_x(p1[0]) + 0.5,
+                                   self._view_y(p1[1]) + 0.5)
+            end = QtCore.QPointF(self._view_x(p2[0]) + 0.5,
+                                 self._view_y(p2[1]) + 0.5)
             paint.drawLine(start, end)
 
     def _paint_nodes(self, paint):
@@ -108,20 +116,28 @@ class Envelope(QtGui.QWidget):
         paint.setBrush(self._colours['node'])
         rect_size = 5
         for p in self._nodes:
-            if p == self._hover_node:
-                paint.setBrush(self._colours['node_cur'])
-            rect_x = self._trans_x(p[0]) - rect_size / 2 + 0.5
-            rect_y = self._trans_y(p[1]) - rect_size / 2 + 0.5
+            if p == self._focus_node:
+                paint.setBrush(self._colours['node_focus'])
+            rect_x = self._view_x(p[0]) - rect_size / 2 + 0.5
+            rect_y = self._view_y(p[1]) - rect_size / 2 + 0.5
             rect = QtCore.QRectF(rect_x, rect_y, rect_size, rect_size)
             paint.fillRect(rect, paint.brush())
-            if p == self._hover_node:
+            if p == self._focus_node:
                 paint.setBrush(self._colours['node'])
 
-    def _update_transform(self):
-        self._trans_x = lambda x: self._vaxis.width + x * \
-                                  self._layout['zoom'][0]
-        self._trans_y = lambda y: self._layout['padding'] + \
-                                  self._layout['zoom'][1] * (self._max[1] - y)
+    def _val_x(self, x):
+        return (x - self._vaxis.width) / self._layout['zoom'][0]
+
+    def _val_y(self, y):
+        return self._max[1] - ((y - self._layout['padding']) /
+                               self._layout['zoom'][1])
+
+    def _view_x(self, x):
+        return self._vaxis.width + x * self._layout['zoom'][0]
+
+    def _view_y(self, y):
+        return self._layout['padding'] + \
+               self._layout['zoom'][1] * (self._max[1] - y)
 
     def resizeEvent(self, ev):
         pass
