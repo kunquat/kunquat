@@ -201,7 +201,7 @@ class Envelope(QtGui.QWidget):
         for pos in xrange(curve_width + 1):
             x, y = nurbs.get_point(pos / curve_width)
             x, y = self._view_x(x), self._view_y(y)
-            line.append(QtCore.QPointF(x, y))
+            line.append(QtCore.QPointF(x + 0.5, y + 0.5))
         paint.drawPolyline(line)
 
     def _paint_nodes(self, paint):
@@ -245,8 +245,8 @@ class Nurbs(object):
         self._degree = degree
         self._order = self._degree + 1
         self._knots = [0] * self._order
-        self._knots.extend(xrange(1, len(self._controls)))
-        self._knots.extend([len(self._controls) - 1] * self._degree)
+        self._knots.extend(xrange(1, len(self._controls) - 1))
+        self._knots.extend([len(self._controls) - 2] * (self._order + 1))
 
     def get_point(self, pos):
         u = pos * self._knots[-1]
