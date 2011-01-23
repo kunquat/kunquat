@@ -172,19 +172,18 @@ class Envelope(QtGui.QWidget):
         paint.eraseRect(ev.rect())
         self._haxis.paint(paint)
         self._vaxis.paint(paint)
-        if not self._smooth:
+        if not self._smooth or len(self._nodes) <= 2:
             self._paint_linear_curve(paint)
         self._paint_nodes(paint)
         paint.end()
 
     def _paint_linear_curve(self, paint):
         paint.setPen(self._colours['curve'])
-        for p1, p2 in zip(self._nodes[:-1], self._nodes[1:]):
-            start = QtCore.QPointF(self._view_x(p1[0]) + 0.5,
-                                   self._view_y(p1[1]) + 0.5)
-            end = QtCore.QPointF(self._view_x(p2[0]) + 0.5,
-                                 self._view_y(p2[1]) + 0.5)
-            paint.drawLine(start, end)
+        line = QtGui.QPolygonF()
+        for p in self._nodes:
+            line.append(QtCore.QPointF(self._view_x(p[0]) + 0.5,
+                                       self._view_y(p[1]) + 0.5))
+        paint.drawPolyline(line)
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
