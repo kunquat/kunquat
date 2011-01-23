@@ -55,12 +55,20 @@ class Envelope(QtGui.QWidget):
                             self._min, self._max, self._layout)
         self._focus_node = None
         self._focus_index = -1
+        self._drag = False
+        self._drag_offset = (0, 0)
         self.setMouseTracking(True)
 
     def keyPressEvent(self, ev):
         pass
 
     def mouseMoveEvent(self, ev):
+        if self._drag:
+            pos = (self._val_x(ev.x() + self._drag_offset[0]),
+                   self._val_y(ev.y() + self._drag_offset[1]))
+            self._move_node(self._focus_index, pos)
+            self.update()
+            return
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if focus_node != self._focus_node:
             self._focus_node = focus_node
@@ -68,10 +76,45 @@ class Envelope(QtGui.QWidget):
             self.update()
 
     def mousePressEvent(self, ev):
-        pass
+        focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        if focus_node:
+            self._focus_node = focus_node
+            self._focus_index = index
+            self._drag = True
+            self._drag_offset = (self._view_x(focus_node[0]) - ev.x(),
+                                 self._view_y(focus_node[1]) - ev.y())
+            self.update()
+        else:
+            pass
 
     def mouseReleaseEvent(self, ev):
-        pass
+        if self._drag:
+            pos = (self._val_x(ev.x() + self._drag_offset[0]),
+                   self._val_y(ev.y() + self._drag_offset[1]))
+            self._move_node(self._focus_index, pos)
+            self._drag = False
+            self.update()
+
+    def _move_node(self, index, pos):
+        min_x, min_y = self._min
+        max_x, max_y = self._max
+        if index > 0:
+            min_x = self._nodes[index - 1][0] + self._step[0]
+        if index < len(self._nodes) - 1:
+            max_x = self._nodes[index + 1][0] - self._step[1]
+        if index == 0:
+            if self._first_locked[0]:
+                min_x = max_x = self._nodes[0][0]
+            if self._first_locked[1]:
+                min_y = max_y = self._nodes[0][1]
+        elif index == len(self._nodes) - 1:
+            if self._last_locked[0]:
+                min_x = max_x = self._nodes[-1][0]
+            if self._last_locked[1]:
+                min_y = max_y = self._nodes[-1][1]
+        pos = (max(min_x, min(max_x, pos[0])),
+               max(min_y, min(max_y, pos[1])))
+        self._nodes[index] = pos
 
     def _node_at(self, x, y):
         closest = self._nodes[0]
@@ -86,7 +129,7 @@ class Envelope(QtGui.QWidget):
                 closest_dist = node_dist
                 closest_index = i
         if closest_dist < 4:
-            return closest, i
+            return closest, closest_index
         return None, -1
 
     def paintEvent(self, ev):
