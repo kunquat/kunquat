@@ -250,17 +250,20 @@ class Nurbs(object):
 
     def get_point(self, pos):
         u = pos * self._knots[-1]
-        point = (0, 0)
+        point_x, point_y = (0, 0)
         contrib_sum = 0
         for i, control in enumerate(self._controls):
             contrib = self._basis(i, self._degree, u)
             contrib_sum += contrib
-            val = (x * contrib for x in control)
-            point = (a + b for a, b in zip(point, val))
+            val_x = control[0] * contrib
+            val_y = control[1] * contrib
+            point_x += val_x
+            point_y += val_y
         if contrib_sum < 1:
-            last = self._controls[-1]
-            point = (a + (1 - contrib_sum) * b for a, b in zip(point, last))
-        return point
+            last_x, last_y = self._controls[-1]
+            point_x += (1 - contrib_sum) * last_x
+            point_y += (1 - contrib_sum) * last_y
+        return point_x, point_y
 
     def get_y(self, x):
         ci = sum(1 for _ in takewhile(lambda n: n[0] < x, self._controls))
