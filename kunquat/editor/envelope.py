@@ -102,7 +102,10 @@ class Envelope(QtGui.QWidget):
                          (index - 1, focus_node[0] - self._step[0])):
                 if not 0 <= i < len(self._nodes) or \
                         abs(x - self._nodes[i][0]) >= self._step[0]:
-                    index = i
+                    index = max(i, index)
+                    assert index != 0 or not self._first_locked[0]
+                    assert index != len(self._nodes) or \
+                            not self._last_locked[0]
                     focus_node = (x, focus_node[1])
                     break
             else:
