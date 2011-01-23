@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+from itertools import takewhile
 import math
 
 from PyQt4 import QtCore, QtGui
@@ -48,7 +49,7 @@ class Envelope(QtGui.QWidget):
         self._nodes_max = 16
         self._marks = []
         self._nodes = [(0, 0), (0.4, 0.8), (1, 1)]
-        self._smooth = False
+        self._smooth = True
         self._haxis = HAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
         self._vaxis = VAxis(self._colours, self._fonts,
@@ -96,7 +97,8 @@ class Envelope(QtGui.QWidget):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if not focus_node:
             focus_node = self._val_x(ev.x()), self._val_y(ev.y())
-            index = sum(1 for n in self._nodes if n[0] < focus_node[0])
+            index = sum(1 for _ in takewhile(lambda n: n[0] < focus_node[0],
+                                             self._nodes))
             for i, x in ((index, focus_node[0]),
                          (index + 1, focus_node[0] + self._step[0]),
                          (index - 1, focus_node[0] - self._step[0])):
@@ -176,6 +178,8 @@ class Envelope(QtGui.QWidget):
         self._vaxis.paint(paint)
         if not self._smooth or len(self._nodes) <= 2:
             self._paint_linear_curve(paint)
+        else:
+            self._paint_nurbs_curve(paint)
         self._paint_nodes(paint)
         paint.end()
 
@@ -185,6 +189,19 @@ class Envelope(QtGui.QWidget):
         for p in self._nodes:
             line.append(QtCore.QPointF(self._view_x(p[0]) + 0.5,
                                        self._view_y(p[1]) + 0.5))
+        paint.drawPolyline(line)
+
+    def _paint_nurbs_curve(self, paint):
+        paint.setPen(self._colours['curve'])
+        nurbs = Nurbs(2, self._nodes)
+        start_x = int(self._view_x(self._nodes[0][0]))
+        end_x = int(self._view_x(self._nodes[-1][0]))
+        curve_width = end_x - start_x
+        line = QtGui.QPolygonF()
+        for pos in xrange(curve_width + 1):
+            x, y = nurbs.get_point(pos / curve_width)
+            x, y = self._view_x(x), self._view_y(y)
+            line.append(QtCore.QPointF(x, y))
         paint.drawPolyline(line)
 
     def _paint_nodes(self, paint):
@@ -219,6 +236,73 @@ class Envelope(QtGui.QWidget):
 
     def resizeEvent(self, ev):
         pass
+
+
+class Nurbs(object):
+
+    def __init__(self, degree, controls):
+        self._controls = controls
+        self._degree = degree
+        self._order = self._degree + 1
+        self._knots = [0] * self._order
+        self._knots.extend(xrange(1, len(self._controls)))
+        self._knots.extend([len(self._controls) - 1] * self._degree)
+
+    def get_point(self, pos):
+        u = pos * self._knots[-1]
+        point = (0, 0)
+        contrib_sum = 0
+        for i, control in enumerate(self._controls):
+            contrib = self._basis(i, self._degree, u)
+            contrib_sum += contrib
+            val = (x * contrib for x in control)
+            point = (a + b for a, b in zip(point, val))
+        if contrib_sum < 1:
+            last = self._controls[-1]
+            point = (a + (1 - contrib_sum) * b for a, b in zip(point, last))
+        return point
+
+    def get_y(self, x):
+        ci = sum(1 for _ in takewhile(lambda n: n[0] < x, self._controls))
+        ci = max(0, ci - 1)
+        if ci >= len(self._controls) - 1:
+            u = self._knots[-1]
+        else:
+            remainder = (x - self._controls[ci][0]) / \
+                    (self._controls[ci + 1][0] - self._controls[ci][0])
+            u = ci + remainder
+        u = self._knots[-1] * (x - self._controls[0][0]) / \
+                              (self._controls[-1][0] - self._controls[0][0])
+        y = 0
+        contrib_sum = 0
+        for i, control in enumerate(self._controls):
+            contrib = self._basis(i, self._degree, u)
+            contrib_sum += contrib
+            val = control[1] * contrib
+            y += val
+        if contrib_sum < 1:
+            y += (1 - contrib_sum) * self._controls[-1][1]
+        return y
+
+    def _basis(self, ci, deg, u):
+        if not deg:
+            return 1 if self._knots[ci] <= u < self._knots[ci + 1] else 0
+        return self._ramp_up(ci, deg, u) * self._basis(ci, deg - 1, u) + \
+            self._ramp_down(ci + 1, deg, u) * self._basis(ci + 1, deg - 1, u)
+
+    def _ramp_up(self, ci, deg, u):
+        if ci + deg >= len(self._knots) or \
+                self._knots[ci] == self._knots[ci + deg]:
+            return 0
+        return (u - self._knots[ci]) / (self._knots[ci + deg] -
+                                        self._knots[ci])
+
+    def _ramp_down(self, ci, deg, u):
+        if ci + deg >= len(self._knots) or \
+                self._knots[ci] == self._knots[ci + deg]:
+            return 0
+        return (self._knots[ci + deg] - u) / (self._knots[ci + deg] -
+                                              self._knots[ci])
 
 
 class Axis(object):
