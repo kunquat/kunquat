@@ -61,6 +61,7 @@ class Envelope(QtGui.QWidget):
     def paintEvent(self, ev):
         paint = QtGui.QPainter()
         paint.begin(self)
+        paint.setRenderHint(QtGui.QPainter.Antialiasing)
         paint.setBackground(self._colours['bg'])
         paint.eraseRect(ev.rect())
         self._haxis.paint(paint)
@@ -73,18 +74,21 @@ class Envelope(QtGui.QWidget):
     def _paint_linear_curve(self, paint):
         paint.setPen(self._colours['curve'])
         for p1, p2 in zip(self._nodes[:-1], self._nodes[1:]):
-            paint.drawLine(self._trans_x(p1[0]), self._trans_y(p1[1]),
-                           self._trans_x(p2[0]), self._trans_y(p2[1]))
+            start = QtCore.QPointF(self._trans_x(p1[0]) + 0.5,
+                                   self._trans_y(p1[1]) + 0.5)
+            end = QtCore.QPointF(self._trans_x(p2[0]) + 0.5,
+                                 self._trans_y(p2[1]) + 0.5)
+            paint.drawLine(start, end)
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
         paint.setBrush(self._colours['node'])
         rect_size = 5
         for p in self._nodes:
-            rect_x = self._trans_x(p[0]) - rect_size // 2
-            rect_y = self._trans_y(p[1]) - rect_size // 2
-            paint.fillRect(rect_x, rect_y, rect_size, rect_size,
-                           paint.brush())
+            rect_x = self._trans_x(p[0]) - rect_size / 2 + 0.5
+            rect_y = self._trans_y(p[1]) - rect_size / 2 + 0.5
+            rect = QtCore.QRectF(rect_x, rect_y, rect_size, rect_size)
+            paint.fillRect(rect, paint.brush())
 
     def _update_transform(self):
         self._trans_x = lambda x: self._vaxis.width + x * \
@@ -122,10 +126,11 @@ class HAxis(Axis):
     def paint(self, paint):
         paint.setPen(self._colours['axis'])
         y_pos = self._layout['padding'] + \
-                self._max[1] * self._layout['zoom'][1]
-        paint.drawLine(self._x_zero_offset, y_pos,
-                       self._x_zero_offset + self._max[0] *
-                               self._layout['zoom'][0], y_pos)
+                self._max[1] * self._layout['zoom'][1] + 0.5
+        start = QtCore.QPointF(self._x_zero_offset + 0.5, y_pos)
+        end = QtCore.QPointF(self._x_zero_offset + self._max[0] *
+                             self._layout['zoom'][0] + 0.5, y_pos)
+        paint.drawLine(start, end)
 
     @property
     def height(self):
@@ -140,10 +145,12 @@ class VAxis(Axis):
 
     def paint(self, paint):
         paint.setPen(self._colours['axis'])
-        paint.drawLine(self._x_zero_offset, self._layout['padding'],
-                       self._x_zero_offset,
-                       self._layout['padding'] + self._max[1] *
-                               self._layout['zoom'][1])
+        start = QtCore.QPointF(self._x_zero_offset + 0.5,
+                               self._layout['padding'] + 0.5)
+        end = QtCore.QPointF(self._x_zero_offset + 0.5,
+                             self._layout['padding'] + self._max[1] *
+                                     self._layout['zoom'][1] + 0.5)
+        paint.drawLine(start, end)
 
     @property
     def width(self):
