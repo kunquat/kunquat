@@ -135,8 +135,7 @@ class Column(object):
         trigger_height = QtGui.QFontMetrics(self.fonts['trigger']).height() - 1
         visible_triggers = [p for p in self.triggers
                             if view_start < p <= min(view_end, self.length)]
-        visible_triggers.sort(lambda x, y: (y - x)[0] * ts.TIMESTAMP_BEAT +
-                                           (y - x)[1])
+        visible_triggers.sort(lambda x, y: (y - x).signum())
         next_pos = None
         if visible_triggers:
             for pos in visible_triggers:
