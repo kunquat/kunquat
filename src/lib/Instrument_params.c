@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -186,7 +186,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (string_eq(key, "nodes"))
+                else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -257,7 +257,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                 {
                     str = read_bool(str, &enabled, state);
                 }
-                else if (string_eq(key, "nodes"))
+                else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -344,7 +344,7 @@ Envelope* parse_env_time(char* str,
                 {
                     str = read_double(str, scale_center, state);
                 }
-                else if (string_eq(key, "nodes"))
+                else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
                 }
@@ -352,6 +352,7 @@ Envelope* parse_env_time(char* str,
                 {
                     str = read_bool(str, carry, state);
                 }
+#if 0
                 else if (!release && string_eq(key, "loop"))
                 {
                     str = read_bool(str, &loop, state);
@@ -364,6 +365,7 @@ Envelope* parse_env_time(char* str,
                 {
                     str = read_int(str, &loop_end, state);
                 }
+#endif
                 else
                 {
                     Read_state_set_error(state,

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <float.h>
 
 #include <Envelope.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -41,6 +42,9 @@ struct Envelope
     int marks[ENVELOPE_MARKS_MAX];
     double* nodes;
 };
+
+
+static char* Envelope_read_nodes(Envelope* env, char* str, Read_state* state);
 
 
 Envelope* new_Envelope(int nodes_max,
@@ -88,6 +92,90 @@ Envelope* new_Envelope(int nodes_max,
 
 
 char* Envelope_read(Envelope* env, char* str, Read_state* state)
+{
+    assert(env != NULL);
+    assert(str != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return str;
+    }
+    str = read_const_char(str, '{', state);
+    if (state->error)
+    {
+        return str;
+    }
+    bool smooth = false;
+    str = read_const_char(str, '}', state);
+    if (state->error)
+    {
+        Read_state_clear_error(state);
+        bool expect_key = true;
+        while (expect_key)
+        {
+            char key[128] = { '\0' };
+            str = read_string(str, key, 128, state);
+            str = read_const_char(str, ':', state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (string_eq(key, "nodes"))
+            {
+                str = Envelope_read_nodes(env, str, state);
+            }
+            else if (string_eq(key, "marks"))
+            {
+                str = read_const_char(str, '[', state);
+                if (state->error)
+                {
+                    return str;
+                }
+                str = read_const_char(str, ']', state);
+                if (state->error)
+                {
+                    Read_state_clear_error(state);
+                    bool expect_mark = true;
+                    for (int i = 0; i < ENVELOPE_MARKS_MAX &&
+                                    expect_mark; ++i)
+                    {
+                        int64_t value = -1;
+                        str = read_int(str, &value, state);
+                        if (state->error)
+                        {
+                            return str;
+                        }
+                        Envelope_set_mark(env, i, value);
+                        check_next(str, state, expect_mark);
+                    }
+                    str = read_const_char(str, ']', state);
+                }
+            }
+            else if (string_eq(key, "smooth"))
+            {
+                str = read_bool(str, &smooth, state);
+            }
+            else
+            {
+                Read_state_set_error(state,
+                        "Unrecognised key in the envelope: %s", key);
+                return str;
+            }
+            if (state->error)
+            {
+                return str;
+            }
+            check_next(str, state, expect_key);
+        }
+        str = read_const_char(str, '}', state);
+    }
+    Envelope_set_interp(env, smooth ? ENVELOPE_INT_CURVE :
+                                      ENVELOPE_INT_LINEAR);
+    return str;
+}
+
+
+static char* Envelope_read_nodes(Envelope* env, char* str, Read_state* state)
 {
     assert(env != NULL);
     assert(str != NULL);
