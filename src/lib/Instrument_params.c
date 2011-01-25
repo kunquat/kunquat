@@ -306,9 +306,6 @@ Envelope* parse_env_time(char* str,
     {
         return NULL;
     }
-    bool loop = false;
-    int64_t loop_start = -1;
-    int64_t loop_end = -1;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -393,7 +390,14 @@ Envelope* parse_env_time(char* str,
         *enabled = false;
         return env;
     }
-    if (!release && loop)
+    int loop_start = Envelope_get_mark(env, 0);
+    int loop_end = Envelope_get_mark(env, 1);
+    if (release)
+    {
+        Envelope_set_mark(env, 0, -1);
+        Envelope_set_mark(env, 1, -1);
+    }
+    else if (loop_start >= 0 || loop_end >= 0)
     {
         if (loop_start == -1)
         {
