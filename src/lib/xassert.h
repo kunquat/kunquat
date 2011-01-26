@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -14,6 +14,9 @@
 
 #ifndef K_XASSERT_H
 #define K_XASSERT_H
+
+
+#include <stdlib.h>
 
 
 #ifdef ENABLE_KUNQUAT_ASSERT

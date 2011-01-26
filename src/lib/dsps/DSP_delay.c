@@ -95,6 +95,7 @@ DSP* new_DSP_delay(uint32_t buffer_size, uint32_t mix_rate)
         delay->taps[i].delay = INFINITY;
         delay->taps[i].scale = 1;
         delay->taps[i].buf_pos = 0;
+        delay->taps[i].frames_left = 0;
     }
     Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&delay->parent.parent, DEVICE_PORT_TYPE_SEND, 0);

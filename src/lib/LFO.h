@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -112,6 +112,9 @@ void LFO_set_speed_delay(LFO* lfo, Reltime* delay);
 
 /**
  * Sets the depth in the LFO.
+ *
+ * After the depth delay, the LFO will return values in the range
+ * [-depth, depth].
  *
  * \param lfo     The LFO -- must not be \c NULL.
  * \param depth   The depth -- must be finite and >= \c 0.
