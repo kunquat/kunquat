@@ -44,7 +44,7 @@ class Envelope(QtGui.QWidget):
         self._min = (0, 0)
         self._max = (1, 1)
         self._first_locked = (True, False)
-        self._last_locked = (False, False)
+        self._last_locked = (True, False)
         self._step = (0.001, 0.001)
         self._nodes_max = 16
         self._marks = []
@@ -107,13 +107,17 @@ class Envelope(QtGui.QWidget):
                          (index - 1, focus_node[0] - self._step[0])):
                 if not 0 <= i < len(self._nodes) or \
                         abs(x - self._nodes[i][0]) >= self._step[0]:
-                    index = max(i, index)
-                    assert index != 0 or not self._first_locked[0]
-                    assert index != len(self._nodes) or \
-                            not self._last_locked[0]
+                    ic = max(i, index)
+                    if ic == 0 and self._first_locked[0]:
+                        continue
+                    if ic == len(self._nodes) and self._last_locked[0]:
+                        continue
+                    index = ic
                     focus_node = (x, focus_node[1])
                     break
             else:
+                return
+            if not self._min[0] <= focus_node[0] <= self._max[0]:
                 return
             self._nodes[index:index] = [focus_node]
         self._focus_node = focus_node
