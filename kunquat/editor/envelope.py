@@ -97,6 +97,9 @@ class Envelope(QtGui.QWidget):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if not focus_node:
             focus_node = self._val_x(ev.x()), self._val_y(ev.y())
+            if not self._min[0] <= focus_node[0] <= self._max[0] or \
+                    not self._min[1] <= focus_node[1] <= self._max[1]:
+                return
             index = sum(1 for _ in takewhile(lambda n: n[0] < focus_node[0],
                                              self._nodes))
             for i, x in ((index, focus_node[0]),
@@ -111,9 +114,6 @@ class Envelope(QtGui.QWidget):
                     focus_node = (x, focus_node[1])
                     break
             else:
-                return
-            if not self._min[0] <= focus_node[0] <= self._max[0] or \
-                    not self._min[1] <= focus_node[1] <= self._max[1]:
                 return
             self._nodes[index:index] = [focus_node]
         self._focus_node = focus_node
