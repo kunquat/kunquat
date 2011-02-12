@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -215,7 +215,7 @@ uint32_t Sample_mix(Sample* sample,
             state->active = false;
             break;
         }
-        
+
         Generator_common_handle_pitch(gen, state);
 
         bool next_exists = false;
