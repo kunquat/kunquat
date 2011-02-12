@@ -201,7 +201,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
     Sample_set_loop_end(sample, pcm_state->params.loop_end);
     Sample_set_loop(sample, pcm_state->params.loop);
     return Sample_mix(sample, gen, state, nframes, offset, freq, tempo, bufs,
-                      pcm_state->middle_tone, pcm_state->freq);
+                      pcm_state->middle_tone, pcm_state->freq,
+                      pcm_state->volume);
 }
 
 

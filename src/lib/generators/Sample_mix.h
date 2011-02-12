@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -41,6 +41,7 @@
  *                      Sample -- must be > \c 0.
  * \param middle_freq   The mixing speed of the Sample used for playing
  *                      \a middle_tone -- must be > \c 0.
+ * \param vol_scale     Volume scaling for this sample -- must be >= \c 0.
  */
 uint32_t Sample_mix(Sample* sample,
                     Generator* gen,
@@ -52,7 +53,8 @@ uint32_t Sample_mix(Sample* sample,
 //                    int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,
-                    double middle_freq);
+                    double middle_freq,
+                    double vol_scale);
 
 
 #endif // K_SAMPLE_MIX_H

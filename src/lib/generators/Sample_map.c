@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -178,8 +178,8 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
             double sample_freq = NAN;
             str = read_double(str, &sample_freq, state);
             str = read_const_char(str, ',', state);
-            double vol_scale = NAN;
-            str = read_double(str, &vol_scale, state);
+            double volume = NAN;
+            str = read_double(str, &volume, state);
             str = read_const_char(str, ',', state);
             int64_t sample = -1;
             str = read_int(str, &sample, state);
@@ -191,25 +191,28 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
             }
             if (!(sample_freq > 0))
             {
-                Read_state_set_error(state, "Sample frequency is not positive");
+                Read_state_set_error(state,
+                        "Sample frequency is not positive");
                 del_Sample_map(map);
                 return NULL;
             }
-            if (!(vol_scale >= 0))
+            if (!isfinite(volume))
             {
-                Read_state_set_error(state, "Volume scale is not positive or zero");
+                Read_state_set_error(state,
+                        "Volume adjustment is not finite");
                 del_Sample_map(map);
                 return NULL;
             }
             if (sample < 0)
             {
-                Read_state_set_error(state, "Sample number must be non-negative");
+                Read_state_set_error(state,
+                        "Sample number must be non-negative");
                 del_Sample_map(map);
                 return NULL;
             }
             list->entries[list->entry_count].ref_freq = list->freq;
             list->entries[list->entry_count].freq = sample_freq;
-            list->entries[list->entry_count].vol_scale = vol_scale;
+            list->entries[list->entry_count].vol_scale = exp2(volume / 6);
             list->entries[list->entry_count].sample = sample;
             ++list->entry_count;
             check_next(str, state, expect_entry);
