@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -122,7 +122,7 @@ uint32_t Generator_pulse_mix(Generator* gen,
     if (state->note_on)
     {
         double* pulse_width_arg = Channel_gen_state_get_float(state->cgstate,
-                                                        "pulse_width.jsonf");
+                                                        "p_pw.jsonf");
         if (pulse_width_arg != NULL)
         {
             pulse_state->pulse_width = *pulse_width_arg;

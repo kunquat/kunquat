@@ -367,7 +367,7 @@ static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
     assert(freeverb->parent.conf != NULL);
     assert(freeverb->parent.conf->params != NULL);
     double* reflect = Device_params_get_float(freeverb->parent.conf->params,
-                                              "p_reflectivity.jsonf");
+                                              "p_refl.jsonf");
     if (reflect == NULL && freeverb->reflect_setting != initial_reflect)
     {
         DSP_freeverb_set_reflectivity(freeverb, initial_reflect);

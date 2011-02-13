@@ -124,7 +124,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         int expression = 0;
         int source = 0;
         int64_t* expression_arg = Channel_gen_state_get_int(state->cgstate,
-                                                            "expression.jsoni");
+                                                            "p_exp.jsoni");
         if (expression_arg != NULL)
         {
             if (*expression_arg < 0 || *expression_arg >= PCM_EXPRESSIONS_MAX)
@@ -135,7 +135,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
             expression = *expression_arg;
         }
         int64_t* source_arg = Channel_gen_state_get_int(state->cgstate,
-                                                        "source.jsoni");
+                                                        "p_src.jsoni");
         if (source_arg != NULL)
         {
             if (*source_arg < 0 || *source_arg >= PCM_SOURCES_MAX)
