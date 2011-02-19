@@ -327,8 +327,8 @@ channel_triggers = {
         'cVdd': [nonneg_ts],
         'cArp': [pos_float, finite_float, finite_float, finite_float],
 
-        'c.l': [(float, isfinite, 0.0)],
-        'c/l': [(float, isfinite, 0.0)],
+        'c.l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
+        'c/l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
         'c/=l': [nonneg_ts],
         'cAs': [nonneg_float],
         #'cAsd': [nonneg_ts],

@@ -251,7 +251,8 @@ class Cursor(QtCore.QObject):
                         not isinstance(info, trigger.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
-                elif isinstance(info, ts.Timestamp):
+                elif isinstance(info, ts.Timestamp) and \
+                        ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
                 elif isinstance(info, str) and trig[0] != 'cn-' and ev.text():
                     direct = True
