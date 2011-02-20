@@ -197,7 +197,7 @@ class Cursor(QtCore.QObject):
         elif self.ts in tr:
             row = tr[self.ts]
             tindex, findex = row.get_slot(self)
-            if tindex < len(row) and findex == 0:
+            if tindex < len(row): #and findex == 0:
                 play_note_off = False
                 if row[tindex][0] == 'cn+':
                     play_note_off = True
@@ -212,6 +212,7 @@ class Cursor(QtCore.QObject):
                         else:
                             self.index += 1
                 del row[tindex]
+                self.index = max(0, self.index - findex)
                 if row == []:
                     del tr[self.ts]
                 self.project[self.col_path] = self.col.flatten()
