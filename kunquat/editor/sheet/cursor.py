@@ -201,6 +201,16 @@ class Cursor(QtCore.QObject):
                 play_note_off = False
                 if row[tindex][0] == 'cn+':
                     play_note_off = True
+                    if self.inst_auto and tindex > 0:
+                        assert self.index > 0
+                        self.index -= 1
+                        ptindex, _ = row.get_slot(self)
+                        if row[ptindex][0] == 'c.i':
+                            del row[tindex - 1]
+                            tindex -= 1
+                            self.index -= 1
+                        else:
+                            self.index += 1
                 del row[tindex]
                 if row == []:
                     del tr[self.ts]
