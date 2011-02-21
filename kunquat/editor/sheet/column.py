@@ -69,7 +69,7 @@ class Column(object):
         l = []
         for row, trigs in self.triggers.iteritems():
             for trig in trigs:
-                l.append([list(row), trig])
+                l.append([list(row), trig.flatten()])
         return l
 
     def get_num(self):
