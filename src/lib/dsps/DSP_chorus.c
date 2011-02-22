@@ -135,6 +135,7 @@ static void DSP_chorus_reset(Device* device)
     DSP_reset(device);
     DSP_chorus* chorus = (DSP_chorus*)device;
     DSP_chorus_clear_history(&chorus->parent);
+    chorus->buf_pos = 0;
     uint32_t buf_size = Audio_buffer_get_size(chorus->buf);
     for (int i = 0; i < CHORUS_VOICES_MAX; ++i)
     {
@@ -145,16 +146,38 @@ static void DSP_chorus_reset(Device* device)
             continue;
         }
         voice->offset = 0;
+        voice->delay = voice->init_delay;
+        voice->range_changed = voice->range != voice->init_range;
         voice->range = voice->init_range;
-        voice->range_changed = true;
+        voice->speed_changed = voice->speed != voice->init_speed;
         voice->speed = voice->init_speed;
         voice->scale = voice->init_scale;
         double buf_pos = voice->delay * Device_get_mix_rate(device);
         assert(buf_pos >= 0);
         assert(buf_pos < buf_size - 1);
         voice->buf_pos = fmod((buf_size - buf_pos), buf_size);
+#if 0
+        if (i == 0)
+            fprintf(stderr, "%p voice->buf_pos: %d -- %p: %d\n", (void*)voice,
+                    (int)voice->buf_pos,
+                    (void*)&chorus->voices[0], (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
+#endif
         assert(voice->buf_pos >= 0);
     }
+#if 0
+    if (chorus->voices[0].buf_pos > chorus->buf_pos)
+    {
+        fprintf(stderr, "%p + %f %d\n", (void*)&chorus->voices[0],
+                chorus->voices[0].delay,
+                (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
+    }
+    else
+    {
+        fprintf(stderr, "%p - %f %d\n", (void*)&chorus->voices[0],
+                chorus->voices[0].delay,
+                (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
+    }
+#endif
     return;
 }
 
@@ -212,9 +235,13 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
             double buf_pos = chorus->voices[vi].delay *
                                  Device_get_mix_rate(device);
             assert(buf_pos >= 0);
-            uint32_t buf_size = Device_get_buffer_size(device);
+            uint32_t buf_size = Audio_buffer_get_size(chorus->buf);
             assert(buf_pos < buf_size - 1);
             chorus->voices[vi].buf_pos = fmod((buf_size - buf_pos), buf_size);
+#if 0
+            if (vi == 0)
+                fprintf(stderr, "voice.buf_pos: %d\n", (int)chorus->voices[0].buf_pos);
+#endif
             assert(chorus->voices[vi].buf_pos >= 0);
         }
         else
@@ -264,6 +291,23 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
             chorus->voices[vi].scale = chorus->voices[vi].init_scale = 1;
         }
     }
+#if 0
+    if (vi == 0)
+    {
+        if (chorus->voices[0].buf_pos > chorus->buf_pos)
+        {
+            fprintf(stderr, "%p 魚+ %f %d\n", (void*)&chorus->voices[0],
+                    chorus->voices[0].delay,
+                    (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
+        }
+        else
+        {
+            fprintf(stderr, "%p 魚- %f %d\n", (void*)&chorus->voices[0],
+                    chorus->voices[0].delay,
+                    (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
+        }
+    }
+#endif
     return true;
 }
 
@@ -292,7 +336,7 @@ static bool DSP_chorus_set_mix_rate(Device* device, uint32_t mix_rate)
     {
         Chorus_voice* voice = &chorus->voices[i];
         LFO_set_mix_rate(&voice->delay_variance, mix_rate);
-        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME)
+        if (voice->delay < 0 || voice->delay >= CHORUS_BUF_TIME / 2)
         {
             continue;
         }
@@ -411,6 +455,18 @@ static void DSP_chorus_check_params(DSP_chorus* chorus)
             LFO_set_speed(&voice->delay_variance, voice->speed);
         }
     }
+#if 0
+    if (chorus->voices[0].buf_pos > chorus->buf_pos)
+    {
+        fprintf(stderr, "+ %f %d\n", chorus->voices[0].delay,
+                (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
+    }
+    else
+    {
+        fprintf(stderr, "- %f %d\n", chorus->voices[0].delay,
+                (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
+    }
+#endif
     return;
 }
 
