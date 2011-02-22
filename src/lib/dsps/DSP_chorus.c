@@ -156,28 +156,8 @@ static void DSP_chorus_reset(Device* device)
         assert(buf_pos >= 0);
         assert(buf_pos < buf_size - 1);
         voice->buf_pos = fmod((buf_size - buf_pos), buf_size);
-#if 0
-        if (i == 0)
-            fprintf(stderr, "%p voice->buf_pos: %d -- %p: %d\n", (void*)voice,
-                    (int)voice->buf_pos,
-                    (void*)&chorus->voices[0], (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
-#endif
         assert(voice->buf_pos >= 0);
     }
-#if 0
-    if (chorus->voices[0].buf_pos > chorus->buf_pos)
-    {
-        fprintf(stderr, "%p + %f %d\n", (void*)&chorus->voices[0],
-                chorus->voices[0].delay,
-                (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
-    }
-    else
-    {
-        fprintf(stderr, "%p - %f %d\n", (void*)&chorus->voices[0],
-                chorus->voices[0].delay,
-                (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
-    }
-#endif
     return;
 }
 
@@ -238,10 +218,6 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
             uint32_t buf_size = Audio_buffer_get_size(chorus->buf);
             assert(buf_pos < buf_size - 1);
             chorus->voices[vi].buf_pos = fmod((buf_size - buf_pos), buf_size);
-#if 0
-            if (vi == 0)
-                fprintf(stderr, "voice.buf_pos: %d\n", (int)chorus->voices[0].buf_pos);
-#endif
             assert(chorus->voices[vi].buf_pos >= 0);
         }
         else
@@ -291,23 +267,6 @@ static bool DSP_chorus_update_key(Device* device, const char* key)
             chorus->voices[vi].scale = chorus->voices[vi].init_scale = 1;
         }
     }
-#if 0
-    if (vi == 0)
-    {
-        if (chorus->voices[0].buf_pos > chorus->buf_pos)
-        {
-            fprintf(stderr, "%p 魚+ %f %d\n", (void*)&chorus->voices[0],
-                    chorus->voices[0].delay,
-                    (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
-        }
-        else
-        {
-            fprintf(stderr, "%p 魚- %f %d\n", (void*)&chorus->voices[0],
-                    chorus->voices[0].delay,
-                    (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
-        }
-    }
-#endif
     return true;
 }
 
@@ -455,18 +414,6 @@ static void DSP_chorus_check_params(DSP_chorus* chorus)
             LFO_set_speed(&voice->delay_variance, voice->speed);
         }
     }
-#if 0
-    if (chorus->voices[0].buf_pos > chorus->buf_pos)
-    {
-        fprintf(stderr, "+ %f %d\n", chorus->voices[0].delay,
-                (int)(chorus->voices[0].buf_pos - chorus->buf_pos));
-    }
-    else
-    {
-        fprintf(stderr, "- %f %d\n", chorus->voices[0].delay,
-                (int)(chorus->buf_pos - chorus->voices[0].buf_pos));
-    }
-#endif
     return;
 }
 
