@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,8 @@
 #include <stdio.h>
 
 #include <Device.h>
-#include <DSP.h>
-#include <DSP_table.h>
+#include <Effect.h>
+#include <Effect_table.h>
 #include <Gen_table.h>
 #include <Generator.h>
 #include <Instrument.h>
@@ -45,8 +45,7 @@ struct Instrument
     Instrument_params params;   ///< All the Instrument parameters that Generators need.
 
     Gen_table* gens;
-
-    DSP_table* dsps;
+    Effect_table* effects;
 };
 
 
@@ -81,7 +80,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     //fprintf(stderr, "New Instrument %p\n", (void*)ins);
     ins->connections = NULL;
     ins->gens = NULL;
-    ins->dsps = NULL;
+    ins->effects = NULL;
 
     if (Instrument_params_init(&ins->params, default_scale) == NULL)
     {
@@ -101,13 +100,8 @@ Instrument* new_Instrument(uint32_t buf_len,
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_RECEIVE, 0);
     Device_register_port(&ins->parent, DEVICE_PORT_TYPE_SEND, 0);
     ins->gens = new_Gen_table(KQT_GENERATORS_MAX);
-    if (ins->gens == NULL)
-    {
-        del_Instrument(ins);
-        return NULL;
-    }
-    ins->dsps = new_DSP_table(KQT_INSTRUMENT_DSPS_MAX);
-    if (ins->dsps == NULL)
+    ins->effects = new_Effect_table(KQT_INST_EFFECTS_MAX);
+    if (ins->gens == NULL || ins->effects == NULL)
     {
         del_Instrument(ins);
         return NULL;
@@ -286,19 +280,21 @@ Gen_table* Instrument_get_gens(Instrument* ins)
 }
 
 
-DSP* Instrument_get_dsp(Instrument* ins, int index)
+Effect* Instrument_get_effect(Instrument* ins, int index)
 {
     assert(ins != NULL);
-    assert(ins->dsps != NULL);
-    return DSP_table_get_dsp(ins->dsps, index);
+    assert(ins->effects != NULL);
+    assert(index >= 0);
+    assert(index < KQT_INST_EFFECTS_MAX);
+    return Effect_table_get(ins->effects, index);
 }
 
 
-DSP_table* Instrument_get_dsps(Instrument* ins)
+Effect_table* Instrument_get_effects(Instrument* ins)
 {
     assert(ins != NULL);
-    assert(ins->dsps != NULL);
-    return ins->dsps;
+    assert(ins->effects != NULL);
+    return ins->effects;
 }
 
 
@@ -372,12 +368,12 @@ static void Instrument_reset(Device* device)
             Device_reset((Device*)gen);
         }
     }
-    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
-        if (dsp != NULL)
+        Effect* eff = Effect_table_get(ins->effects, i);
+        if (eff != NULL)
         {
-            Device_reset((Device*)dsp);
+            Device_reset((Device*)eff);
         }
     }
     Instrument_params_reset(&ins->params);
@@ -398,10 +394,10 @@ static bool Instrument_set_mix_rate(Device* device, uint32_t mix_rate)
             return false;
         }
     }
-    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
-        if (dsp != NULL && !Device_set_mix_rate((Device*)dsp, mix_rate))
+        Effect* eff = Effect_table_get(ins->effects, i);
+        if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
         {
             return false;
         }
@@ -424,10 +420,10 @@ static bool Instrument_set_buffer_size(Device* device, uint32_t size)
             return false;
         }
     }
-    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
-        if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        Effect* eff = Effect_table_get(ins->effects, i);
+        if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
         {
             return false;
         }
@@ -448,10 +444,10 @@ static bool Instrument_sync(Device* device)
             return false;
         }
     }
-    for (int i = 0; i < KQT_INSTRUMENT_DSPS_MAX; ++i)
+    for (int i = 0; i < KQT_INST_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(ins->dsps, i);
-        if (dsp != NULL && !Device_sync((Device*)dsp))
+        Effect* eff = Effect_table_get(ins->effects, i);
+        if (eff != NULL && !Device_sync((Device*)eff))
         {
             return false;
         }
@@ -469,7 +465,7 @@ void del_Instrument(Instrument* ins)
     Instrument_params_uninit(&ins->params);
     del_Connections(ins->connections);
     del_Gen_table(ins->gens);
-    del_DSP_table(ins->dsps);
+    del_Effect_table(ins->effects);
     Device_uninit(&ins->parent);
     xfree(ins);
     return;

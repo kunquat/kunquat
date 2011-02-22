@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -193,7 +193,8 @@ uint32_t Sample_mix(Sample* sample,
 //                    int buf_count,
                     kqt_frame** bufs,
                     double middle_tone,
-                    double middle_freq)
+                    double middle_freq,
+                    double vol_scale)
 {
     assert(sample != NULL);
     assert(gen != NULL);
@@ -205,6 +206,7 @@ uint32_t Sample_mix(Sample* sample,
     assert(bufs != NULL);
     assert(bufs[0] != NULL);
     assert(bufs[1] != NULL);
+    assert(vol_scale >= 0);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
     uint32_t mixed = offset;
@@ -215,7 +217,7 @@ uint32_t Sample_mix(Sample* sample,
             state->active = false;
             break;
         }
-        
+
         Generator_common_handle_pitch(gen, state);
 
         bool next_exists = false;
@@ -356,8 +358,8 @@ uint32_t Sample_mix(Sample* sample,
         state->pos_rem += adv_rem;
 //        Generator_common_handle_note_off(gen, state, vals, 2, freq);
         Generator_common_handle_panning(gen, state, vals, 2);
-        bufs[0][mixed] += vals[0];
-        bufs[1][mixed] += vals[1];
+        bufs[0][mixed] += vals[0] * vol_scale;
+        bufs[1][mixed] += vals[1] * vol_scale;
         if (state->pos_rem >= 1)
         {
             state->pos += floor(state->pos_rem);

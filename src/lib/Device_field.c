@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -30,6 +30,7 @@ typedef union
     double float_type;
     Real Real_type;
     Reltime Reltime_type;
+    Envelope* Envelope_type;
     Sample* Sample_type;
     Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
@@ -74,6 +75,11 @@ Device_field* new_Device_field(const char* key, void* data)
     {
         type = DEVICE_FIELD_RELTIME;
         data_size = sizeof(Reltime);
+    }
+    else if (string_has_suffix(key, ".jsone"))
+    {
+        type = DEVICE_FIELD_ENVELOPE;
+        data_size = sizeof(Envelope*);
     }
     else if (string_has_suffix(key, ".wv"))
     {
@@ -198,6 +204,32 @@ bool Device_field_change(Device_field* field,
                 read_reltime(str, &field->data.Reltime_type, state);
             }
         } break;
+        case DEVICE_FIELD_ENVELOPE:
+        {
+            Envelope* env = NULL;
+            if (data != NULL)
+            {
+                env = new_Envelope(32, -INFINITY, INFINITY, 0,
+                                       -INFINITY, INFINITY, 0);
+                if (env == NULL)
+                {
+                    return false;
+                }
+                char* str = data;
+                Envelope_read(env, str, state);
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+            }
+            assert(!state->error);
+            if (field->data.Envelope_type != NULL)
+            {
+                del_Envelope(field->data.Envelope_type);
+            }
+            field->data.Envelope_type = env;
+        } break;
         case DEVICE_FIELD_WAVPACK:
         {
             Sample* sample = NULL;
@@ -282,6 +314,7 @@ bool Device_field_get_empty(Device_field* field)
 bool Device_field_modify(Device_field* field, char* str)
 {
     assert(field != NULL);
+    assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
     assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
     Read_state* state = READ_STATE_AUTO;
@@ -355,6 +388,14 @@ Reltime* Device_field_get_reltime(Device_field* field)
 }
 
 
+Envelope* Device_field_get_envelope(Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_ENVELOPE);
+    return field->data.Envelope_type;
+}
+
+
 Sample* Device_field_get_sample(Device_field* field)
 {
     assert(field != NULL);
@@ -384,6 +425,10 @@ void del_Device_field(Device_field* field)
     if (field == NULL)
     {
         return;
+    }
+    if (field->type == DEVICE_FIELD_ENVELOPE)
+    {
+        del_Envelope(field->data.Envelope_type);
     }
     if (field->type == DEVICE_FIELD_WAVPACK)
     {

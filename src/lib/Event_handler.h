@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 
 #include <Channel_state.h>
 #include <DSP_conf.h>
-#include <DSP_table.h>
 #include <General_state.h>
 #include <Generator.h>
 #include <Ins_table.h>
@@ -41,7 +40,7 @@ typedef struct Event_handler Event_handler;
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
-                                 DSP_table* dsps);
+                                 Effect_table* effects);
 
 
 /**
@@ -133,6 +132,23 @@ bool Event_handler_set_generator_process(Event_handler* eh,
                                          const char* name,
                                          Event_type type,
                                          bool (*gen_process)(Generator*, char*));
+
+
+/**
+ * Registers an Effect Event processor.
+ *
+ * \param eh        The Event handler -- must not be \c NULL.
+ * \param name      The name of the Event -- must not be \c NULL, empty string
+ *                  or longer than EVENT_NAME_MAX characters.
+ * \param type      The type of the Event -- must be an Effect Event.
+ * \param process   The process function -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Event_handler_set_effect_process(Event_handler* eh,
+                                      const char* name,
+                                      Event_type type,
+                                      bool (*effect_process)(Effect*, char*));
 
 
 /**

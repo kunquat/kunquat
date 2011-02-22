@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,7 @@ typedef struct DSP
     Device parent;
     char type[DSP_TYPE_LENGTH_MAX];
     DSP_conf* conf;
+    void (*clear_history)(struct DSP*);
     void (*destroy)(struct DSP*);
 } DSP;
 
@@ -77,6 +78,15 @@ bool DSP_init(DSP* dsp,
 
 
 /**
+ * Sets a function that clears the internal buffers of the DSP.
+ *
+ * \param dsp    The DSP -- must not be \c NULL.
+ * \param func   The function -- must not be \c NULL.
+ */
+void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*));
+
+
+/**
  * Resets the playback parameters of the DSP.
  *
  * If you override this function, call this inside the overriding function.
@@ -84,6 +94,14 @@ bool DSP_init(DSP* dsp,
  * \param dsp   The DSP Device -- must not be \c NULL.
  */
 void DSP_reset(Device* device);
+
+
+/**
+ * Clears the internal buffers (if any) of the DSP.
+ *
+ * \param dsp   The DSP -- must not be \c NULL.
+ */
+void DSP_clear_history(DSP* dsp);
 
 
 /**

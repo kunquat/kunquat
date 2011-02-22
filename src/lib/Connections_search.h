@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -29,11 +29,25 @@
 
 
 /**
+ * Where the connection is located.
+ *
+ * Instrument and effect levels can be combined by bitwise OR.
+ */
+typedef enum
+{
+    CONNECTION_LEVEL_GLOBAL = 0,
+    CONNECTION_LEVEL_INSTRUMENT = 1,
+    CONNECTION_LEVEL_EFFECT = 2,
+} Connection_level;
+
+
+/**
  * Creates new Connections from a string.
  *
  * \param str         The textual description.
  * \param ins_level   Whether this is an instrument-level graph or not.
  * \param insts       The Instrument table -- must not be \c NULL.
+ * \param effects     The Effect table -- must not be \c NULL.
  * \param dsps        The DSP table -- must not be \c NULL.
  * \param master      The global or Instrument master node
  *                    -- must not be \c NULL.
@@ -43,8 +57,9 @@
  *           will not be modified if memory allocation failed.
  */
 Connections* new_Connections_from_string(char* str,
-                                         bool ins_level,
+                                         Connection_level level,
                                          Ins_table* insts,
+                                         Effect_table* effects,
                                          DSP_table* dsps,
                                          Device* master,
                                          Read_state* state);
@@ -68,22 +83,6 @@ Device_node* Connections_get_master(Connections* graph);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Connections_prepare(Connections* graph);
-
-
-/**
- * Sets the appropriate Devices for the Connections.
- *
- * \param graph    The Connections -- must not be \c NULL.
- * \param master   The master Device -- must not be \c NULL.
- * \param insts    The Instrument table -- must not be \c NULL.
- * \param dsps     The DSP table -- must not be \c NULL.
- */
-#if 0
-void Connections_set_devices(Connections* graph,
-                             Device* master,
-                             Ins_table* insts,
-                             DSP_table* dsps);
-#endif
 
 
 #endif // K_CONNECTIONS_SEARCH_H

@@ -23,6 +23,8 @@ import time
 from kunquat.extras import pulseaudio
 from PyQt4 import QtCore, QtGui
 
+from connections import Connections
+from effects import Effects
 from instruments import Instruments
 import keymap
 import kqt_limits as lim
@@ -283,6 +285,8 @@ class KqtEditor(QtGui.QMainWindow):
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
+        self._effects.sync()
+        self._connections.sync()
 
     def busy(self, busy_set):
         if busy_set:
@@ -317,6 +321,10 @@ class KqtEditor(QtGui.QMainWindow):
         self._instruments = Instruments(self.project,
                                         self._instrument)
         self._tabs.addTab(self._instruments, 'Instruments')
+        self._effects = Effects(self.project, '')
+        self._tabs.addTab(self._effects, 'Effects')
+        self._connections = Connections(self.project, 'p_connections.json')
+        self._tabs.addTab(self._connections, 'Connections')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 

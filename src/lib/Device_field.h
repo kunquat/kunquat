@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Envelope.h>
 #include <File_base.h>
 #include <Real.h>
 #include <Reltime.h>
@@ -50,8 +51,15 @@ typedef struct Device_field Device_field;
  * Creates a new Device field.
  *
  * \param key    The key -- must be a valid key. A valid Device field key
- *               has the suffix .jsonb (boolean), .jsoni (int),
- *               .jsonf (float), .jsont (Reltime) or .wv (WavPack).
+ *               has one of the following suffixes:
+ *                  .jsonb (boolean)
+ *                  .jsoni (int)
+ *                  .jsonf (float)
+ *                  .jsont (Reltime)
+ *                  .jsone (Envelope)
+ *                  .jsonsh (Sample params)
+ *                  .jsonsm (Sample map)
+ *                  .wv (WavPack).
  * \param data   Pointer to the data that must have a type matching the key,
  *               or \c NULL.
  *
@@ -137,7 +145,7 @@ bool Device_field_get_empty(Device_field* field);
  * Modifies Device field data.
  *
  * \param field   The Device field -- must not be \c NULL and must not
- *                contain a Sample.
+ *                contain an Envelope or a Sample.
  * \param str     The new data as a string.
  *
  * \return   \c true if the Device field was successfully modified,
@@ -199,6 +207,17 @@ Real* Device_field_get_real(Device_field* field);
  * \return   The Reltime value.
  */
 Reltime* Device_field_get_reltime(Device_field* field);
+
+
+/**
+ * Gets an Envelope value from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                an Envelope value.
+ *
+ * \return   The Envelope value.
+ */
+Envelope* Device_field_get_envelope(Device_field* field);
 
 
 /**

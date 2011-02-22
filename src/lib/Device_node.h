@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,13 +21,14 @@
 #include <stdio.h>
 
 #include <Device.h>
+#include <Effect_table.h>
 #include <Ins_table.h>
 #include <math_common.h>
 
 
 /**
  * The state of a Device node during a search. These are sometimes referred to
- * as the colours white, gray and black.
+ * as the colours white, grey and black.
  */
 typedef enum
 {
@@ -52,17 +53,19 @@ typedef struct Device_node Device_node;
 /**
  * Creates a new Device node.
  *
- * \param name     The name of the node -- must not be \c NULL.
- * \param insts    The Instrument table -- must not be \c NULL.
- * \param dsps     The DSP table -- must not be \c NULL.
- * \param master   The global or Instrumet master Device
- *                 -- must not be \c NULL.
+ * \param name      The name of the node -- must not be \c NULL.
+ * \param insts     The Instrument table -- must not be \c NULL.
+ * \param effects   The Effect table -- must not be \c NULL.
+ * \param dsps      The DSP table -- must not be \c NULL.
+ * \param master    The global or Instrumet master Device
+ *                  -- must not be \c NULL.
  *
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
 Device_node* new_Device_node(const char* name,
                              Ins_table* insts,
+                             Effect_table* effects,
                              DSP_table* dsps,
                              Device* master);
 
@@ -89,22 +92,6 @@ int Device_node_cmp(const Device_node* n1, const Device_node* n2);
  * \param node   The Device node -- must not be \c NULL.
  */
 void Device_node_reset(Device_node* node);
-
-
-/**
- * Sets the devices starting from the given Device node.
- *
- * \param node     The Device node -- must not be \c NULL.
- * \param master   The master Device -- must not be \c NULL.
- * \param insts    The Instrument table -- must not be \c NULL.
- * \param dsps     The DSP table -- must not be \c NULL.
- */
-#if 0
-void Device_node_set_devices(Device_node* node,
-                             Device* master,
-                             Ins_table* insts,
-                             DSP_table* dsps);
-#endif
 
 
 /**
@@ -152,6 +139,16 @@ bool Device_node_init_input_buffers(Device_node* node);
 bool Device_node_init_buffers_by_suggestion(Device_node* node,
                                             int send_port,
                                             Audio_buffer* suggestion);
+
+
+/**
+ * Initialises the graphs of the Effects in the subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_effect_buffers(Device_node* node);
 
 
 /**

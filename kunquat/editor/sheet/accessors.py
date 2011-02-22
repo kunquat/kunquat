@@ -153,8 +153,11 @@ class TimestampEdit(StringEdit):
         self.setValidator(FuncValidator(self._ts_validate))
 
     def set_value(self, value):
-        int_val = int(value)
-        float_val = float(value)
+        try:
+            int_val = int(value)
+            float_val = float(value)
+        except ValueError:
+            return
         self.setText(str(int_val if int_val == float_val else float_val))
 
     def get_value(self):

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -33,8 +33,8 @@
  *                      <= \c KQT_BUFFER_SIZE_MAX.
  * \param mix_rate      The mixing rate -- must be > \c 0.
  *
- * \return   The new volume DSP if successful, or \c NULL if memory allocation
- *           failed.
+ * \return   The new Freeverb DSP if successful, or \c NULL if memory
+ *           allocation failed.
  */
 DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate);
 

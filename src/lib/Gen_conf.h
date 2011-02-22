@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 
+#include <Device.h>
 #include <Device_params.h>
 #include <File_base.h>
 #include <pitch_t.h>
@@ -58,6 +59,7 @@ Gen_conf* new_Gen_conf(void);
  * \param data     The data -- must not be \c NULL if it has a non-zero
  *                 length.
  * \param length   The length of the data -- must be >= \c 0.
+ * \param device   The Generator Device if it exists, otherwise \c NULL.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false. \a state will not be
@@ -67,6 +69,7 @@ bool Gen_conf_parse(Gen_conf* conf,
                     const char* key,
                     void* data,
                     long length,
+                    Device* device,
                     Read_state* state);
 
 

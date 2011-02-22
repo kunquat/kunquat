@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -24,8 +24,8 @@
 #include <frame.h>
 #include <Subsong_table.h>
 #include <Pat_table.h>
+#include <Effect_table.h>
 #include <Ins_table.h>
-#include <DSP_table.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -40,7 +40,7 @@ typedef struct Song
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    DSP_table* dsps;                    ///< The DSPs.
+    Effect_table* effects;              ///< The global Effects.
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -181,13 +181,13 @@ Ins_table* Song_get_insts(Song* song);
 
 
 /**
- * Gets the DSPs of the Song.
+ * Gets the Effects of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
- * \return   The DSP table.
+ * \return   The Effect table.
  */
-DSP_table* Song_get_dsps(Song* song);
+Effect_table* Song_get_effects(Song* song);
 
 
 /**

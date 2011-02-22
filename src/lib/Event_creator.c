@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -43,8 +43,10 @@
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
+#include <Event_channel_set_effect.h>
+#include <Event_channel_set_global_effects.h>
+#include <Event_channel_set_instrument_effects.h>
 #include <Event_channel_set_dsp.h>
-#include <Event_channel_set_dsp_context.h>
 
 #include <Event_channel_note_on.h>
 #include <Event_channel_note_off.h>
@@ -86,6 +88,9 @@
 #include <Event_generator_set_float.h>
 #include <Event_generator_set_reltime.h>
 
+#include <Event_effect_bypass_on.h>
+#include <Event_effect_bypass_off.h>
+
 #include <Event_dsp_set_bool.h>
 #include <Event_dsp_set_int.h>
 #include <Event_dsp_set_float.h>
@@ -123,8 +128,11 @@ static const Event_cons cons[EVENT_LAST] =
 
     [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
     [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
+    [EVENT_CHANNEL_SET_EFFECT] = new_Event_channel_set_effect,
+    [EVENT_CHANNEL_SET_GLOBAL_EFFECTS] = new_Event_channel_set_global_effects,
+    [EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS] =
+            new_Event_channel_set_instrument_effects,
     [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,
-    [EVENT_CHANNEL_SET_DSP_CONTEXT] = new_Event_channel_set_dsp_context,
 
     [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
     [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
@@ -135,14 +143,14 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_TREMOLO_SPEED] = new_Event_channel_tremolo_speed,
     [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
     [EVENT_CHANNEL_TREMOLO_DELAY] = new_Event_channel_tremolo_delay,
-    
+
     [EVENT_CHANNEL_SLIDE_PITCH] = new_Event_channel_slide_pitch,
     [EVENT_CHANNEL_SLIDE_PITCH_LENGTH] = new_Event_channel_slide_pitch_length,
     [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
     [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,
     [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
     [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
-   
+
     [EVENT_CHANNEL_SET_LOWPASS] = new_Event_channel_set_lowpass,
     [EVENT_CHANNEL_SLIDE_LOWPASS] = new_Event_channel_slide_lowpass,
     [EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH] = new_Event_channel_slide_lowpass_length,
@@ -151,7 +159,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
 
     [EVENT_CHANNEL_SET_RESONANCE] = new_Event_channel_set_resonance,
-    
+
     [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
     [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
     [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
@@ -165,6 +173,9 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GENERATOR_SET_INT] = new_Event_generator_set_int,
     [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
     [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
+
+    [EVENT_EFFECT_BYPASS_ON] = new_Event_effect_bypass_on,
+    [EVENT_EFFECT_BYPASS_OFF] = new_Event_effect_bypass_off,
 
     [EVENT_DSP_SET_BOOL] = new_Event_dsp_set_bool,
     [EVENT_DSP_SET_INT] = new_Event_dsp_set_int,

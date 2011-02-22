@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,8 +19,8 @@
 #include <stdbool.h>
 
 #include <Connections.h>
-#include <DSP.h>
-#include <DSP_table.h>
+#include <Effect.h>
+#include <Effect_table.h>
 #include <Instrument_params.h>
 #include <Gen_table.h>
 #include <Generator.h>
@@ -136,25 +136,25 @@ Gen_table* Instrument_get_gens(Instrument* ins);
 
 
 /**
- * Gets a DSP of the Instrument.
+ * Gets an Effect of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the DSP -- must be >= \c 0 and
- *                < \c KQT_INSTRUMENT_DSPS_MAX.
+ * \param index   The index of the Effect -- must be >= \c 0 and
+ *                < \c KQT_INST_EFFECTS_MAX.
  *
- * \return   The DSP if one exists, otherwise \c NULL.
+ * \return   The Effect if one exists, otherwise \c NULL.
  */
-DSP* Instrument_get_dsp(Instrument* ins, int index);
+Effect* Instrument_get_effect(Instrument* ins, int index);
 
 
 /**
- * Gets the DSP table of the Instrument.
+ * Gets the Effect table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
- * \return   The DSP table.
+ * \return   The Effect table.
  */
-DSP_table* Instrument_get_dsps(Instrument* ins);
+Effect_table* Instrument_get_effects(Instrument* ins);
 
 
 /**
@@ -209,7 +209,7 @@ void Instrument_mix(Instrument* ins,
 /**
  * Destroys an existing Instrument.
  *
- * \param   The Instrument, or \c NULL.
+ * \param ins   The Instrument, or \c NULL.
  */
 void del_Instrument(Instrument* ins);
 

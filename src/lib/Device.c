@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -35,6 +35,7 @@ bool Device_init(Device* device, uint32_t buffer_size, uint32_t mix_rate)
     device->set_buffer_size = NULL;
     device->reset = NULL;
     device->sync = NULL;
+    device->update_key = NULL;
     device->process = NULL;
 
     for (int port = 0; port < KQT_DEVICE_PORTS_MAX; ++port)
@@ -88,6 +89,16 @@ void Device_set_sync(Device* device, bool (*sync)(Device*))
 }
 
 
+void Device_set_update_key(Device* device,
+                           bool (*update_key)(struct Device*, const char*))
+{
+    assert(device != NULL);
+    assert(update_key != NULL);
+    device->update_key = update_key;
+    return;
+}
+
+
 void Device_set_process(Device* device,
                         void (*process)(Device*, uint32_t, uint32_t,
                                                  uint32_t, double))
@@ -118,6 +129,18 @@ void Device_unregister_port(Device* device, Device_port_type type, int port)
     assert(port < KQT_DEVICE_PORTS_MAX);
     device->reg[type][port] = false;
     return;
+}
+
+
+bool Device_port_is_registered(Device* device,
+                               Device_port_type type,
+                               int port)
+{
+    assert(device != NULL);
+    assert(type < DEVICE_PORT_TYPES);
+    assert(port >= 0);
+    assert(port < KQT_DEVICE_PORTS_MAX);
+    return device->reg[type][port];
 }
 
 
@@ -156,7 +179,7 @@ void Device_set_direct_receive(Device* device, int port)
     assert(device != NULL);
     assert(port >= 0);
     assert(port < KQT_DEVICE_PORTS_MAX);
-    assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
+    //assert(Device_get_buffer(device, DEVICE_PORT_TYPE_SEND, port) != NULL);
 #if 0
     if (device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] != NULL &&
             device->buffers[DEVICE_PORT_TYPE_RECEIVE][port] !=
@@ -341,6 +364,18 @@ bool Device_sync(Device* device)
     if (device->sync != NULL)
     {
         return device->sync(device);
+    }
+    return true;
+}
+
+
+bool Device_update_key(Device* device, const char* key)
+{
+    assert(device != NULL);
+    assert(key != NULL);
+    if (device->update_key != NULL)
+    {
+        return device->update_key(device, key);
     }
     return true;
 }

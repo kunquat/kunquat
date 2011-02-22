@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -41,7 +41,7 @@ static void Song_reset(Device* device);
 /**
  * Sets the mixing rate of the Song.
  *
- * This function sets the mixing rate for all the Instruments and DSPs.
+ * This function sets the mixing rate for all the Instruments and Effects.
  *
  * \param device     The Song Device -- must not be \c NULL.
  * \param mix_rate   The mixing frequency -- must be > \c 0.
@@ -54,7 +54,7 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate);
 /**
  * Sets the buffer size of the Song.
  *
- * This function sets the buffer size for all the Instruments and DSPs.
+ * This function sets the buffer size for all the Instruments and Effects.
  *
  * \param device   The Song Device -- must not be \c NULL.
  * \param size     The new buffer size -- must be > \c 0 and
@@ -100,7 +100,7 @@ Song* new_Song(uint32_t buf_size)
     song->subsongs = NULL;
     song->pats = NULL;
     song->insts = NULL;
-    song->dsps = NULL;
+    song->effects = NULL;
     song->connections = NULL;
     song->play_state = NULL;
     song->event_handler = NULL;
@@ -112,31 +112,15 @@ Song* new_Song(uint32_t buf_size)
         song->scales[i] = NULL;
     }
     song->random = new_Random();
-    if (song->random == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
     song->subsongs = new_Subsong_table();
-    if (song->subsongs == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
     song->pats = new_Pat_table(KQT_PATTERNS_MAX);
-    if (song->pats == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
     song->insts = new_Ins_table(KQT_INSTRUMENTS_MAX);
-    if (song->insts == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
-    song->dsps = new_DSP_table(KQT_DSP_EFFECTS_MAX);
-    if (song->dsps == NULL)
+    song->effects = new_Effect_table(KQT_EFFECTS_MAX);
+    if (song->random == NULL       ||
+            song->subsongs == NULL ||
+            song->pats == NULL     ||
+            song->insts == NULL    ||
+            song->effects == NULL)
     {
         del_Song(song);
         return NULL;
@@ -174,7 +158,8 @@ Song* new_Song(uint32_t buf_size)
     Read_state* conn_state = READ_STATE_AUTO;
     song->connections = new_Connections_from_string(NULL, false,
                                                     song->insts,
-                                                    song->dsps,
+                                                    song->effects,
+                                                    NULL,
                                                     &song->parent,
                                                     conn_state);
     if (song->connections == NULL)
@@ -210,17 +195,12 @@ Song* new_Song(uint32_t buf_size)
     song->event_handler = new_Event_handler(song->play_state,
                                             ch_states,
                                             song->insts,
-                                            song->dsps);
-    if (song->event_handler == NULL)
-    {
-        del_Song(song);
-        return NULL;
-    }
+                                            song->effects);
     song->skip_handler = new_Event_handler(song->skip_state,
                                            ch_states,
                                            song->insts,
-                                           song->dsps);
-    if (song->skip_handler == NULL)
+                                           song->effects);
+    if (song->event_handler == NULL || song->skip_handler == NULL)
     {
         del_Song(song);
         return NULL;
@@ -522,10 +502,10 @@ Ins_table* Song_get_insts(Song* song)
 }
 
 
-DSP_table* Song_get_dsps(Song* song)
+Effect_table* Song_get_effects(Song* song)
 {
     assert(song != NULL);
-    return song->dsps;
+    return song->effects;
 }
 
 
@@ -614,12 +594,12 @@ static void Song_reset(Device* device)
             Device_reset((Device*)ins);
         }
     }
-    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
-        if (dsp != NULL)
+        Effect* eff = Effect_table_get(song->effects, i);
+        if (eff != NULL)
         {
-            Device_reset((Device*)dsp);
+            Device_reset((Device*)eff);
         }
     }
     Playdata_reset(song->play_state);
@@ -644,10 +624,10 @@ static bool Song_set_mix_rate(Device* device, uint32_t mix_rate)
             return false;
         }
     }
-    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
-        if (dsp != NULL && !Device_set_mix_rate((Device*)dsp, mix_rate))
+        Effect* eff = Effect_table_get(song->effects, i);
+        if (eff != NULL && !Device_set_mix_rate((Device*)eff, mix_rate))
         {
             return false;
         }
@@ -668,10 +648,10 @@ static bool Song_set_buffer_size(Device* device, uint32_t size)
             return false;
         }
     }
-    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
-        if (dsp != NULL && !Device_set_buffer_size((Device*)dsp, size))
+        Effect* eff = Effect_table_get(song->effects, i);
+        if (eff != NULL && !Device_set_buffer_size((Device*)eff, size))
         {
             return false;
         }
@@ -692,10 +672,10 @@ static bool Song_sync(Device* device)
             return false;
         }
     }
-    for (int i = 0; i < KQT_DSP_EFFECTS_MAX; ++i)
+    for (int i = 0; i < KQT_EFFECTS_MAX; ++i)
     {
-        DSP* dsp = DSP_table_get_dsp(song->dsps, i);
-        if (dsp != NULL && !Device_sync((Device*)dsp))
+        Effect* eff = Effect_table_get(song->effects, i);
+        if (eff != NULL && !Device_sync((Device*)eff))
         {
             return false;
         }
@@ -714,7 +694,7 @@ void del_Song(Song* song)
     del_Pat_table(song->pats);
     del_Connections(song->connections);
     del_Ins_table(song->insts);
-    del_DSP_table(song->dsps);
+    del_Effect_table(song->effects);
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         del_Scale(song->scales[i]);

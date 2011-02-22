@@ -21,6 +21,7 @@ if '--disable-editor' not in sys.argv:
     req_list.append('PyQt4')
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
             'kunquat.editor',
+            'kunquat.editor.effects',
             'kunquat.editor.instruments',
             'kunquat.editor.sheet',
             ]

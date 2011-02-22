@@ -464,6 +464,84 @@ class Project(QtCore.QObject):
             self._history.end_group()
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
+    def import_kqte(self, base, index, src):
+        """Imports a Kunquat effect into the Project.
+
+        NOTE: this function returns immediately. Do not access the
+              Project again until it emits the endTask() signal.
+
+        Arguments:
+        base  -- The base key path of the effect.
+        index -- The index of the new effect. Any existing effect data
+                 will be removed before loading.
+        src   -- The source file name.
+
+        """
+        self._process.process(self._import_kqte, base, index, src)
+
+    def _import_kqte(self, base, index, src):
+        max_index = lim.INST_EFFECTS_MAX if base.startswith('ins') \
+                                         else lim.EFFECTS_MAX
+        assert index >= 0
+        assert index < max_index
+        base = base if not base else base + '/'
+        eff_path = '{0}eff_{1:02x}'.format(base, index)
+        tfile = None
+        if base:
+            ins_num = int(base[4:6], 16)
+            self._history.start_group(
+                    'Load {0} into effect {1:d} of instrument {2:d}'.format(
+                            src, index, ins_num))
+        else:
+            self._history.start_group(
+                    'Load {0} into effect {1:d}'.format(src, index))
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
+        try:
+            self._remove_dir(eff_path)
+            if os.path.isdir(src):
+                if not src or src[-1] != '/':
+                    src = src + '/'
+                key_base = '/'.join((eff_path, 'kqte' + lim.FORMAT_VERSION))
+                for dir_spec in os.walk(src):
+                    for fname in dir_spec[2]:
+                        full_path = os.path.join(dir_spec[0], fname)
+                        eff_key = '/'.join((key_base, full_path[len(src):]))
+                        with open(full_path) as f:
+                            QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('step(QString)'),
+                                    'Importing effect {0} ...'.format(
+                                        full_path))
+                            if eff_key[eff_key.index('.'):].startswith(
+                                                                '.json'):
+                                self[eff_key] = json.loads(f.read())
+                            else:
+                                self[eff_key] = f.read()
+            else:
+                tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
+                entry = tfile.next()
+                while entry:
+                    #print(entry.name)
+                    if not entry.name.startswith('kqte'):
+                        raise kunquat.KunquatFormatError(
+                                'The file is not a Kunquat effect')
+                    if entry.isfile():
+                        key_path = '/'.join((eff_path, entry.name))
+                        QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('step(QString)'),
+                                'Importing effect {0}:{1} ...'.format(src,
+                                    key_path))
+                        data = tfile.extractfile(entry).read()
+                        if key_path[key_path.index('.'):].startswith('.json'):
+                            self[key_path] = json.loads(data)
+                        else:
+                            self[key_path] = data
+                    entry = tfile.next()
+        finally:
+            if tfile:
+                tfile.close()
+            self._history.end_group()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+
     def save(self):
         """Saves the Project data.
 

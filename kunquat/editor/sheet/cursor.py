@@ -197,11 +197,22 @@ class Cursor(QtCore.QObject):
         elif self.ts in tr:
             row = tr[self.ts]
             tindex, findex = row.get_slot(self)
-            if tindex < len(row) and findex == 0:
+            if tindex < len(row): #and findex == 0:
                 play_note_off = False
                 if row[tindex][0] == 'cn+':
                     play_note_off = True
+                    if self.inst_auto and tindex > 0:
+                        assert self.index > 0
+                        self.index -= 1
+                        ptindex, _ = row.get_slot(self)
+                        if row[ptindex][0] == 'c.i':
+                            del row[tindex - 1]
+                            tindex -= 1
+                            self.index -= 1
+                        else:
+                            self.index += 1
                 del row[tindex]
+                self.index = max(0, self.index - findex)
                 if row == []:
                     del tr[self.ts]
                 self.project[self.col_path] = self.col.flatten()
@@ -251,7 +262,8 @@ class Cursor(QtCore.QObject):
                         not isinstance(info, trigger.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
-                elif isinstance(info, ts.Timestamp):
+                elif isinstance(info, ts.Timestamp) and \
+                        ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
                 elif isinstance(info, str) and trig[0] != 'cn-' and ev.text():
                     direct = True

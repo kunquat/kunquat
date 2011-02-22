@@ -1,7 +1,7 @@
 
 
 /*
- * Authors: Tomi Jylhä-Ollila, Finland 2010
+ * Authors: Tomi Jylhä-Ollila, Finland 2010-2011
  *          Ossi Saresoja, Finland 2010
  *
  * This file is part of Kunquat.
@@ -115,7 +115,7 @@ uint32_t Generator_noise_mix(Generator* gen,
     if (state->note_on)
     {
         int64_t* order_arg = Channel_gen_state_get_int(state->cgstate,
-                                                      "order.jsoni");
+                                                      "p_order.jsoni");
         if (order_arg != NULL)
         {
             noise->order = *order_arg;
@@ -128,7 +128,7 @@ uint32_t Generator_noise_mix(Generator* gen,
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
-        Generator_common_handle_pitch(gen, state);        
+        Generator_common_handle_pitch(gen, state);
         double vals[KQT_BUFFERS_MAX] = { 0 };
         if(noise->order < 0)
         {

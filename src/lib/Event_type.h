@@ -72,8 +72,10 @@ typedef enum
 
     EVENT_CHANNEL_SET_INSTRUMENT,
     EVENT_CHANNEL_SET_GENERATOR,
+    EVENT_CHANNEL_SET_EFFECT,
+    EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
+    EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
     EVENT_CHANNEL_SET_DSP,
-    EVENT_CHANNEL_SET_DSP_CONTEXT,
 
     EVENT_CHANNEL_NOTE_ON,
     EVENT_CHANNEL_NOTE_OFF,
@@ -137,6 +139,13 @@ typedef enum
 
     EVENT_GENERATOR_UPPER,
 
+    EVENT_EFFECT_LOWER, ///< Effect Events
+
+    EVENT_EFFECT_BYPASS_ON,
+    EVENT_EFFECT_BYPASS_OFF,
+
+    EVENT_EFFECT_UPPER,
+
     EVENT_DSP_LOWER, ///< DSP Events
 
     EVENT_DSP_SET_BOOL,
@@ -163,14 +172,17 @@ typedef enum
                                   (type) < EVENT_INS_UPPER)
 #define EVENT_IS_GENERATOR(type) ((type) > EVENT_GENERATOR_LOWER && \
                                   (type) < EVENT_GENERATOR_UPPER)
+#define EVENT_IS_EFFECT(type)    ((type) > EVENT_EFFECT_LOWER && \
+                                  (type) < EVENT_EFFECT_UPPER)
 #define EVENT_IS_DSP(type)       ((type) > EVENT_DSP_LOWER && \
                                   (type) < EVENT_DSP_UPPER)
-#define EVENT_IS_PG(type)        (EVENT_IS_INS((type)) || \
+#define EVENT_IS_PG(type)        (EVENT_IS_INS((type))       || \
                                   EVENT_IS_GENERATOR((type)) || \
+                                  EVENT_IS_EFFECT((type))    || \
                                   EVENT_IS_DSP((type)))
-#define EVENT_IS_TRIGGER(type)   (EVENT_IS_GENERAL((type))   || \
-                                  EVENT_IS_GLOBAL((type))    || \
-                                  EVENT_IS_PG((type))        || \
+#define EVENT_IS_TRIGGER(type)   (EVENT_IS_GENERAL((type)) || \
+                                  EVENT_IS_GLOBAL((type))  || \
+                                  EVENT_IS_PG((type))      || \
                                   EVENT_IS_CHANNEL((type)))
 #define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
                                   EVENT_IS_CONTROL((type)))

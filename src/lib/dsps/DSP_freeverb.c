@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -64,6 +64,7 @@ typedef struct DSP_freeverb
 
 
 static void DSP_freeverb_reset(Device* device);
+static void DSP_freeverb_clear_history(DSP* dsp);
 static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate);
 
 static void DSP_freeverb_update(DSP_freeverb* freeverb);
@@ -103,6 +104,7 @@ DSP* new_DSP_freeverb(uint32_t buffer_size, uint32_t mix_rate)
         xfree(freeverb);
         return NULL;
     }
+    DSP_set_clear_history(&freeverb->parent, DSP_freeverb_clear_history);
     Device_set_mix_rate_changer(&freeverb->parent.parent,
                                 DSP_freeverb_set_mix_rate);
     Device_set_reset(&freeverb->parent.parent, DSP_freeverb_reset);
@@ -154,6 +156,16 @@ static void DSP_freeverb_reset(Device* device)
     assert(device != NULL);
     DSP_reset(device);
     DSP_freeverb* freeverb = (DSP_freeverb*)device;
+    DSP_freeverb_clear_history(&freeverb->parent);
+    return;
+}
+
+
+static void DSP_freeverb_clear_history(DSP* dsp)
+{
+    assert(dsp != NULL);
+    assert(string_eq(dsp->type, "freeverb"));
+    DSP_freeverb* freeverb = (DSP_freeverb*)dsp;
     if (freeverb->comb_left[0] == NULL)
     {
         return;
@@ -230,7 +242,7 @@ static bool DSP_freeverb_set_mix_rate(Device* device, uint32_t mix_rate)
             return false;
         }
     }
-    
+
     for (int i = 0; i < FREEVERB_ALLPASSES; ++i)
     {
         uint32_t left_size = MAX(1, allpass_tuning[i] * mix_rate);
@@ -355,7 +367,7 @@ static void DSP_freeverb_check_params(DSP_freeverb* freeverb)
     assert(freeverb->parent.conf != NULL);
     assert(freeverb->parent.conf->params != NULL);
     double* reflect = Device_params_get_float(freeverb->parent.conf->params,
-                                              "p_reflectivity.jsonf");
+                                              "p_refl.jsonf");
     if (reflect == NULL && freeverb->reflect_setting != initial_reflect)
     {
         DSP_freeverb_set_reflectivity(freeverb, initial_reflect);

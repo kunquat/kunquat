@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -418,7 +418,7 @@ bool Device_params_parse_events(Device_params* params,
     }
     str = read_const_char(str, ']', state);
     clean_if_fail();
-    
+
     del_AAtree(old_data);
 //    del_AAtree(old_names);
     return true;
@@ -607,6 +607,19 @@ Reltime* Device_params_get_reltime(Device_params* params, const char* key)
         return NULL;
     }
     get_of_type(params, key, reltime);
+    return NULL;
+}
+
+
+Envelope* Device_params_get_envelope(Device_params* params, const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    if (!string_has_suffix(key, ".jsone"))
+    {
+        return NULL;
+    }
+    get_of_type(params, key, envelope);
     return NULL;
 }
 

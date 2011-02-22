@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -92,6 +92,11 @@ bool Device_params_set_key(Device_params* params, const char* key);
 /**
  * Marks a key to require explicit synchronisation on update.
  *
+ * This is used for keys that are too slow to be updated in the Device
+ * automatically (e.g. the update may take hundreds of milliseconds or more).
+ * This is different from keys that cannot be updated in real time but still
+ * update quickly in terms of user interaction smoothness.
+ *
  * If the function succeeds, it also sets the Device parameters to require
  * synchronisation.
  *
@@ -137,6 +142,8 @@ const char* Device_params_get_slow_sync_key(Device_params* params);
 
 /**
  * Sets the Device parameters synchronised.
+ *
+ * A slow-syncing Device should call this after synchronisation.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  */
@@ -267,6 +274,18 @@ Real* Device_params_get_real(Device_params* params, const char* key);
  * \return   The Reltime value, or \c NULL if \a key doesn't exist.
  */
 Reltime* Device_params_get_reltime(Device_params* params, const char* key);
+
+
+/**
+ * Retrieves an Envelope value from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsone".
+ *
+ * \return   The Envelope value, or \c NULL if \a key doesn't exist.
+ */
+Envelope* Device_params_get_envelope(Device_params* params, const char* key);
 
 
 /**

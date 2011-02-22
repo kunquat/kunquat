@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -374,12 +374,22 @@ bool Sample_parse_wavpack(Sample* sample,
             {
                 float* buf_l = sample->data[0];
                 float* buf_r = NULL;
+                float* buf_float = (float*)buf;
+                for (uint32_t i = 0; i < read; ++i)
+                {
+                    buf_l[written + i] = buf_float[i * sample->channels];
+                }
                 if (sample->channels == 2)
                 {
                     buf_r = sample->data[1];
+                    for (uint32_t i = 0; i < read; ++i)
+                    {
+                        buf_r[written + i] =
+                                buf_float[i * sample->channels + 1];
+                    }
                 }
-                read_wp_samples(read, written, buf_l, buf_r, buf,
-                        sample->channels, 0);
+                //read_wp_samples(read, written, buf_l, buf_r, buf_float,
+                //        sample->channels, 0);
             }
             else
             {

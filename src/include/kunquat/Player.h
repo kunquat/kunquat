@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -195,10 +195,11 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
  * \param handle    The Handle -- should not be \c NULL.
  * \param channel   The channel where the event takes place -- should be
  *                  >= \c 0 and < \c KQT_COLUMNS_MAX for regular channels, or
- *                  \c -1 for the global channel.
- * \param event     The event description in JSON format. The description is a
- *                  pair (list with two elements) with the event name as the
- *                  first element and its argument list as the second element.
+ *                  \c -1 for the global level.
+ * \param event     The event description in JSON format -- should not be
+ *                  \c NULL. The description is a pair (list with two
+ *                  elements) with the event name as the first element and its
+ *                  argument list as the second element.
  *
  * \return   \c 1 if the event was successfully triggered, otherwise \c 0.
  */

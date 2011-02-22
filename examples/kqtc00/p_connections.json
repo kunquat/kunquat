@@ -1,11 +1,11 @@
 
 
 [
-    ["ins_00/kqtiXX/out_00", "dsp_01/kqteXX/C/in_00"],
-    ["ins_00/kqtiXX/out_00", "out_00"],
-    ["ins_01/kqtiXX/out_00", "dsp_00/kqteXX/C/in_00"],
-    ["dsp_01/kqteXX/C/out_00", "out_00"],
-    ["dsp_00/kqteXX/C/out_00", "out_00"]
+    ["ins_00/kqtiXX/out_00", "eff_02/kqteXX/in_00"],
+    ["eff_02/kqteXX/out_00", "eff_01/kqteXX/in_00"],
+    ["ins_01/kqtiXX/out_00", "eff_00/kqteXX/in_00"],
+    ["eff_01/kqteXX/out_00", "out_00"],
+    ["eff_00/kqteXX/out_00", "eff_01/kqteXX/in_00"]
 ]
 
 

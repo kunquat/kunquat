@@ -56,10 +56,10 @@ bool File_dir_open(Handle_rw* handle_rw, const char* path)
         {
             file_type = "generator";
         }
-        else if (other_header = MAGIC_ID "e" KQT_FORMAT_VERSION,
+        else if (other_header = MAGIC_ID "d" KQT_FORMAT_VERSION,
                 string_has_suffix(abs_path, other_header))
         {
-            file_type = "DSP effect";
+            file_type = "DSP";
         }
         else if (other_header = MAGIC_ID "s" KQT_FORMAT_VERSION,
                 string_has_suffix(abs_path, other_header))

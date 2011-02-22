@@ -28,6 +28,13 @@ class Timestamp(tuple):
                    rem % TIMESTAMP_BEAT)
         return tuple.__new__(cls, (_beats, _rem))
 
+    def signum(self):
+        if self > 0:
+            return 1
+        elif self < 0:
+            return -1
+        return 0
+
     def __lt__(self, other):
         if not isinstance(other, Timestamp):
             other = Timestamp(other)

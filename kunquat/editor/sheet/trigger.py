@@ -60,8 +60,31 @@ class Trigger(list):
                         self[1].append(default)
                 except TypeError:
                     self[1].append(default)
+            if self[0] in ('c.gB', 'g.B', 'd.B'):
+                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonb')
+            elif self[0] in ('c.gI', 'g.I', 'd.I'):
+                self[1][0] = key_to_param(self[1][0], 'p_', '.jsoni')
+            elif self[0] in ('c.gF', 'g.F', 'd.F'):
+                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonf')
+            elif self[0] in ('c.gT', 'g.T', 'd.T'):
+                self[1][0] = key_to_param(self[1][0], 'p_', '.jsont')
         else:
             self[1] = list(fields)
+
+    def flatten(self):
+        if self[0] in ('c.gB', 'g.B', 'd.B'):
+            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonb')] +
+                              self[1][1:]]
+        elif self[0] in ('c.gI', 'g.I', 'd.I'):
+            return [self[0], [param_to_key(self[1][0], 'p_', '.jsoni')] +
+                              self[1][1:]]
+        elif self[0] in ('c.gF', 'g.F', 'd.F'):
+            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonf')] +
+                              self[1][1:]]
+        elif self[0] in ('c.gT', 'g.T', 'd.T'):
+            return [self[0], [param_to_key(self[1][0], 'p_', '.jsont')] +
+                              self[1][1:]]
+        return self
 
     def set_value(self, cursor_pos, value):
         if self[0] != 'cn+':
@@ -241,6 +264,25 @@ default_scale = scale.Scale({
     })
 
 
+def key_to_param(key, prefix, suffix):
+    last_index = key.index('/') + 1 if '/' in key else 0
+    last_part = key[last_index:]
+    if last_part.startswith(prefix) and last_part.endswith(suffix):
+        last_part = last_part[len(prefix):-len(suffix)]
+        return key[:last_index] + last_part
+    return key
+
+
+def param_to_key(param, prefix, suffix):
+    last_index = param.index('/') + 1 if '/' in param else 0
+    last_part = param[last_index:]
+    if not last_part.startswith(prefix):
+        last_part = 'p_' + last_part
+    if not last_part.endswith(suffix):
+        last_part = last_part + suffix
+    return param[:last_index] + last_part
+
+
 class Note(float):
     pass
 
@@ -303,8 +345,10 @@ global_triggers = {
 channel_triggers = {
         'c.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
         'c.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
-        'c.d': [(int, lambda x: x >= 0 and x < lim.DSP_EFFECTS_MAX, 0)],
-        'c.dc': [(int, lambda x: x >= -1 and x < lim.INSTRUMENTS_MAX, -1)],
+        'c.e': [(int, lambda x: x >= 0 and x < lim.EFFECTS_MAX, 0)],
+        'c.ge': [],
+        'c.ie': [],
+        'c.d': [(int, lambda x: x >= 0 and x < lim.DSPS_MAX, 0)],
 
         'cn+': [pitch],
         'cn-': [],
@@ -325,8 +369,8 @@ channel_triggers = {
         'cVdd': [nonneg_ts],
         'cArp': [pos_float, finite_float, finite_float, finite_float],
 
-        'c.l': [(float, isfinite, 0.0)],
-        'c/l': [(float, isfinite, 0.0)],
+        'c.l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
+        'c/l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
         'c/=l': [nonneg_ts],
         'cAs': [nonneg_float],
         #'cAsd': [nonneg_ts],
@@ -352,6 +396,9 @@ channel_triggers = {
         'g.I': [key, any_int],
         'g.F': [key, any_float],
         'g.T': [key, any_ts],
+
+        'ebp+': [],
+        'ebp-': [],
 
         'd.B': [key, any_bool],
         'd.I': [key, any_int],

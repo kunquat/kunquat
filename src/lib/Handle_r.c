@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -62,6 +62,12 @@ kqt_Handle* kqt_new_Handle_r(char* path)
     handle_r->handle.destroy = del_Handle_r;
     if (!File_kqt_open(handle_r, path))
     {
+        kqt_del_Handle(&handle_r->handle);
+        return NULL;
+    }
+    if (!Device_sync((Device*)handle_r->handle.song))
+    {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         kqt_del_Handle(&handle_r->handle);
         return NULL;
     }
