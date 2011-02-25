@@ -16,7 +16,7 @@ from __future__ import print_function
 from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
-import kunquat.editor.envelope as envelope
+#import kunquat.editor.envelope as envelope
 
 
 class InstEditor(QtGui.QWidget):
@@ -43,7 +43,7 @@ class InstEditor(QtGui.QWidget):
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
 
-        layout.addWidget(envelope.Envelope(project), 0) # XXX: remove
+        #layout.addWidget(envelope.Envelope(project), 0) # XXX: remove
 
         QtCore.QObject.connect(instrument_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
