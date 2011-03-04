@@ -22,6 +22,8 @@
 #include <Generator_common.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <Sample.h>
+#include <Sample_mix.h>
 #include <string_common.h>
 #include <Voice_state.h>
 #include <Voice_state_add.h>
@@ -32,7 +34,7 @@
 typedef double (*Base_func)(double phase, double modifier);
 
 
-#define BASE_FUNC_SIZE 2048
+#define BASE_FUNC_SIZE 4096
 
 
 typedef enum
@@ -45,12 +47,21 @@ typedef enum
 } Base_func_id;
 
 
+typedef struct Add_tone
+{
+    double pitch_factor;
+    double volume_factor;
+} Add_tone;
+
+
 typedef struct Generator_add
 {
     Generator parent;
+    Sample* default_base;
+    Sample* base;
     Base_func base_func;
-    double bandwidth;
-    double tones[HARMONICS_MAX];
+    double detune;
+    Add_tone tones[HARMONICS_MAX];
 } Generator_add;
 
 
@@ -63,6 +74,15 @@ static double triangle(double phase, double modifier);
 
 static bool Generator_add_sync(Device* device);
 static bool Generator_add_update_key(Device* device, const char* key);
+
+static uint32_t Generator_add_mix(Generator* gen,
+                                  Voice_state* state,
+                                  uint32_t nframes,
+                                  uint32_t offset,
+                                  uint32_t freq,
+                                  double tempo);
+
+static void del_Generator_add(Generator* gen);
 
 
 Generator* new_Generator_add(uint32_t buffer_size,
@@ -88,7 +108,29 @@ Generator* new_Generator_add(uint32_t buffer_size,
     }
     Device_set_sync(&add->parent.parent, Generator_add_sync);
     Device_set_update_key(&add->parent.parent, Generator_add_update_key);
+    add->default_base = NULL;
+    add->base = NULL;
     add->base_func = sine;
+    add->detune = 1;
+    float* buf = xnalloc(float, BASE_FUNC_SIZE);
+    if (buf == NULL)
+    {
+        del_Generator(&add->parent);
+        return NULL;
+    }
+    add->default_base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE);
+    if (add->default_base == NULL)
+    {
+        del_Generator(&add->parent);
+        return NULL;
+    }
+    Sample_set_loop_start(add->default_base, 0);
+    Sample_set_loop_end(add->default_base, BASE_FUNC_SIZE);
+    Sample_set_loop(add->default_base, SAMPLE_LOOP_UNI);
+    for (int i = 0; i < BASE_FUNC_SIZE; ++i)
+    {
+        buf[i] = add->base_func((double)i / BASE_FUNC_SIZE, 0);
+    }
     return &add->parent;
 }
 
@@ -124,12 +166,12 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
 }
 
 
-uint32_t Generator_add_mix(Generator* gen,
-                           Voice_state* state,
-                           uint32_t nframes,
-                           uint32_t offset,
-                           uint32_t freq,
-                           double tempo)
+static uint32_t Generator_add_mix(Generator* gen,
+                                  Voice_state* state,
+                                  uint32_t nframes,
+                                  uint32_t offset,
+                                  uint32_t freq,
+                                  double tempo)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "add"));
@@ -141,7 +183,13 @@ uint32_t Generator_add_mix(Generator* gen,
     Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
-    Voice_state_add* add_state = (Voice_state_add*)state;
+    //Voice_state_add* add_state = (Voice_state_add*)state;
+    return Sample_mix(add->default_base, gen, state, nframes, offset, freq,
+                      tempo, bufs,
+                      1 /* * harmonic */,
+                      BASE_FUNC_SIZE,
+                      1 /* volume */);
+#if 0
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
     {
@@ -166,19 +214,7 @@ uint32_t Generator_add_mix(Generator* gen,
         bufs[1][mixed] += vals[1];
     }
     return mixed;
-}
-
-
-void del_Generator_add(Generator* gen)
-{
-    if (gen == NULL)
-    {
-        return;
-    }
-    assert(string_eq(gen->type, "add"));
-    Generator_add* add = (Generator_add*)gen;
-    xfree(add);
-    return;
+#endif
 }
 
 
@@ -252,6 +288,20 @@ static bool Generator_add_update_key(Device* device, const char* key)
         }
     }
     return true;
+}
+
+
+static void del_Generator_add(Generator* gen)
+{
+    if (gen == NULL)
+    {
+        return;
+    }
+    assert(string_eq(gen->type, "add"));
+    Generator_add* add = (Generator_add*)gen;
+    del_Sample(add->default_base);
+    xfree(add);
+    return;
 }
 
 

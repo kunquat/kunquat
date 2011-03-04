@@ -22,17 +22,17 @@
 #define HARMONICS_MAX 32
 
 
-typedef struct Add_tone
+typedef struct Add_tone_state
 {
     double phase;
-} Add_tone;
+} Add_tone_state;
 
 
 typedef struct Voice_state_add
 {
     Voice_state parent;
     double phase;
-    Add_tone tones[HARMONICS_MAX];
+    Add_tone_state tones[HARMONICS_MAX];
 } Voice_state_add;
 
 

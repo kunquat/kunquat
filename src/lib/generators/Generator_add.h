@@ -48,22 +48,6 @@ Generator* new_Generator_add(uint32_t buffer_size,
 char* Generator_add_property(Generator* gen, const char* property_type);
 
 
-uint32_t Generator_add_mix(Generator* gen,
-                           Voice_state* state,
-                           uint32_t nframes,
-                           uint32_t offset,
-                           uint32_t freq,
-                           double tempo);
-
-
-/**
- * Destroys an existing additive Generator.
- *
- * \param gen   The additive Generator, or \c NULL.
- */
-void del_Generator_add(Generator* gen);
-
-
 #endif // K_GENERATOR_ADD_H
 
 
