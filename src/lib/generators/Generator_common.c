@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -51,7 +51,7 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->arpeggio_frames *= (double)freq / state->freq;
             state->arpeggio_frames *= state->tempo / tempo;
         }
-        
+
         Slider_set_mix_rate(&state->force_slider, freq);
         Slider_set_tempo(&state->force_slider, tempo);
         LFO_set_mix_rate(&state->tremolo, freq);
