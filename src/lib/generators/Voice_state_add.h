@@ -24,14 +24,17 @@
 
 typedef struct Add_tone_state
 {
-    double phase;
+    uint64_t pos;
+    double pos_rem;
+    uint64_t rel_pos;
+    double rel_pos_rem;
+    Filter_state lowpass_state[2];
 } Add_tone_state;
 
 
 typedef struct Voice_state_add
 {
     Voice_state parent;
-    double phase;
     Add_tone_state tones[HARMONICS_MAX];
 } Voice_state_add;
 

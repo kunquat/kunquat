@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 
 #include <Generator.h>
@@ -131,6 +132,15 @@ Generator* new_Generator_add(uint32_t buffer_size,
     {
         buf[i] = add->base_func((double)i / BASE_FUNC_SIZE, 0);
     }
+    for (int h = 0; h < HARMONICS_MAX; ++h)
+    {
+        add->tones[h].pitch_factor = 0;
+        add->tones[h].volume_factor = 0;
+    }
+    add->tones[0].pitch_factor = 1;  // TODO: remove
+    add->tones[0].volume_factor = 0.5; // TODO: remove
+    add->tones[1].pitch_factor = 2;
+    add->tones[1].volume_factor = 0.3;
     return &add->parent;
 }
 
@@ -161,7 +171,25 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
     (void)gen;
     assert(state != NULL);
     Voice_state_add* add_state = (Voice_state_add*)state;
-    add_state->phase = 0;
+    for (int h = 0; h < HARMONICS_MAX; ++h)
+    {
+        add_state->tones[h].pos = 0;
+        add_state->tones[h].pos_rem = 0;
+        add_state->tones[h].rel_pos = 0;
+        add_state->tones[h].rel_pos_rem = 0;
+        for (int i = 0; i < FILTER_ORDER; ++i)
+        {
+            add_state->tones[h].lowpass_state[0].coeffs[i] = 0;
+            add_state->tones[h].lowpass_state[1].coeffs[i] = 0;
+            for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
+            {
+                add_state->tones[h].lowpass_state[0].history1[k][i] = 0;
+                add_state->tones[h].lowpass_state[0].history2[k][i] = 0;
+                add_state->tones[h].lowpass_state[1].history1[k][i] = 0;
+                add_state->tones[h].lowpass_state[1].history2[k][i] = 0;
+            }
+        }
+    }
     return;
 }
 
@@ -183,12 +211,49 @@ static uint32_t Generator_add_mix(Generator* gen,
     Generator_common_get_buffers(gen, state, offset, bufs);
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
-    //Voice_state_add* add_state = (Voice_state_add*)state;
-    return Sample_mix(add->default_base, gen, state, nframes, offset, freq,
-                      tempo, bufs,
-                      1 /* * harmonic */,
-                      BASE_FUNC_SIZE,
-                      1 /* volume */);
+    Voice_state_add* add_state = (Voice_state_add*)state;
+    Voice_state* hstate = &(Voice_state){ .active = false };
+    uint32_t mixed = 0;
+    bool active = true;
+    bool hfound = false;
+    for (int h = 0; h < HARMONICS_MAX; ++h)
+    {
+        if (add->tones[h].pitch_factor <= 0 ||
+                add->tones[h].volume_factor <= 0)
+        {
+            continue;
+        }
+        hfound = true;
+        memcpy(hstate, state, sizeof(Voice_state));
+        hstate->pos = add_state->tones[h].pos;
+        hstate->pos_rem = add_state->tones[h].pos_rem;
+        hstate->rel_pos = add_state->tones[h].rel_pos;
+        hstate->rel_pos_rem = add_state->tones[h].rel_pos_rem;
+        memcpy(hstate->lowpass_state, add_state->tones[h].lowpass_state,
+                2 * sizeof(Filter_state));
+        uint32_t hmixed = Sample_mix(add->default_base, gen, hstate, nframes,
+                                     offset, freq, tempo, bufs,
+                                     1.0 / add->tones[h].pitch_factor,
+                                     BASE_FUNC_SIZE,
+                                     add->tones[h].volume_factor);
+        active &= hstate->active;
+        add_state->tones[h].pos = hstate->pos;
+        add_state->tones[h].pos_rem = hstate->pos_rem;
+        add_state->tones[h].rel_pos = hstate->rel_pos;
+        add_state->tones[h].rel_pos_rem = hstate->rel_pos_rem;
+        memcpy(add_state->tones[h].lowpass_state, hstate->lowpass_state,
+                2 * sizeof(Filter_state));
+        if (hmixed > mixed)
+        {
+            mixed = hmixed;
+        }
+    }
+    if (hfound)
+    {
+        memcpy(state, hstate, sizeof(Voice_state));
+    }
+    add_state->parent.active = active;
+    return mixed;
 #if 0
     uint32_t mixed = offset;
     for (; mixed < nframes && state->active; ++mixed)
