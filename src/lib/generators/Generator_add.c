@@ -23,6 +23,7 @@
 #include <Generator_common.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <Num_list.h>
 #include <Sample.h>
 #include <Sample_mix.h>
 #include <string_common.h>
@@ -58,7 +59,6 @@ typedef struct Add_tone
 typedef struct Generator_add
 {
     Generator parent;
-    Sample* default_base;
     Sample* base;
     Base_func base_func;
     double detune;
@@ -109,7 +109,7 @@ Generator* new_Generator_add(uint32_t buffer_size,
     }
     Device_set_sync(&add->parent.parent, Generator_add_sync);
     Device_set_update_key(&add->parent.parent, Generator_add_update_key);
-    add->default_base = NULL;
+    add->base = NULL;
     add->base = NULL;
     add->base_func = sine;
     add->detune = 1;
@@ -119,15 +119,16 @@ Generator* new_Generator_add(uint32_t buffer_size,
         del_Generator(&add->parent);
         return NULL;
     }
-    add->default_base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE);
-    if (add->default_base == NULL)
+    add->base = new_Sample_from_buffers(&buf, 1, BASE_FUNC_SIZE);
+    if (add->base == NULL)
     {
+        xfree(buf);
         del_Generator(&add->parent);
         return NULL;
     }
-    Sample_set_loop_start(add->default_base, 0);
-    Sample_set_loop_end(add->default_base, BASE_FUNC_SIZE);
-    Sample_set_loop(add->default_base, SAMPLE_LOOP_UNI);
+    Sample_set_loop_start(add->base, 0);
+    Sample_set_loop_end(add->base, BASE_FUNC_SIZE);
+    Sample_set_loop(add->base, SAMPLE_LOOP_UNI);
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
     {
         buf[i] = add->base_func((double)i / BASE_FUNC_SIZE, 0);
@@ -137,10 +138,8 @@ Generator* new_Generator_add(uint32_t buffer_size,
         add->tones[h].pitch_factor = 0;
         add->tones[h].volume_factor = 0;
     }
-    add->tones[0].pitch_factor = 1;  // TODO: remove
-    add->tones[0].volume_factor = 0.5; // TODO: remove
-    add->tones[1].pitch_factor = 2;
-    add->tones[1].volume_factor = 0.3;
+    //add->tones[0].pitch_factor = 1;  // TODO: remove
+    //add->tones[0].volume_factor = 0.5; // TODO: remove
     return &add->parent;
 }
 
@@ -231,7 +230,7 @@ static uint32_t Generator_add_mix(Generator* gen,
         hstate->rel_pos_rem = add_state->tones[h].rel_pos_rem;
         memcpy(hstate->lowpass_state, add_state->tones[h].lowpass_state,
                 2 * sizeof(Filter_state));
-        uint32_t hmixed = Sample_mix(add->default_base, gen, hstate, nframes,
+        uint32_t hmixed = Sample_mix(add->base, gen, hstate, nframes,
                                      offset, freq, tempo, bufs,
                                      1.0 / add->tones[h].pitch_factor,
                                      BASE_FUNC_SIZE,
@@ -322,6 +321,18 @@ static bool Generator_add_sync(Device* device)
 {
     assert(device != NULL);
     Generator_add_update_key(device, "p_bfunc.jsoni");
+    Generator_add_update_key(device, "p_base.jsonln");
+    char pitch_key[] = "tone_XX/p_pitch.jsonf";
+    int pitch_key_bytes = strlen(pitch_key) + 1;
+    char volume_key[] = "tone_XX/p_volume.jsonf";
+    int volume_key_bytes = strlen(volume_key) + 1;
+    for (int i = 0; i < HARMONICS_MAX; ++i)
+    {
+        snprintf(pitch_key, pitch_key_bytes, "tone_%02x/p_pitch.jsonf", i);
+        Generator_add_update_key(device, pitch_key);
+        snprintf(volume_key, volume_key_bytes, "tone_%02x/p_volume.jsonf", i);
+        Generator_add_update_key(device, volume_key);
+    }
     return true;
 }
 
@@ -332,6 +343,7 @@ static bool Generator_add_update_key(Device* device, const char* key)
     assert(key != NULL);
     Generator_add* add = (Generator_add*)device;
     Device_params* params = add->parent.conf->params;
+    int ti = -1;
     if (string_eq(key, "p_bfunc.jsoni"))
     {
         static const Base_func base_funcs[BASE_FUNC_ID_LIMIT] =
@@ -352,6 +364,59 @@ static bool Generator_add_update_key(Device* device, const char* key)
             add->base_func = sine;
         }
     }
+    else if (string_eq(key, "p_base.jsonln"))
+    {
+        Num_list* nl = Device_params_get_num_list(params, key);
+        float* buf = Sample_get_buffer(add->base, 0);
+        assert(buf != NULL);
+        if (nl != NULL)
+        {
+            int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
+            for (int i = 0; i < available; ++i)
+            {
+                buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
+            }
+            for (int i = available; i < BASE_FUNC_SIZE; ++i)
+            {
+                buf[i] = 0;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < BASE_FUNC_SIZE; ++i)
+            {
+                buf[i] = add->base_func((double)i / BASE_FUNC_SIZE, 0);
+            }
+        }
+    }
+    else if ((ti = string_extract_index(key, "tone_", 2,
+                                        "/p_pitch.jsonf")) >= 0
+             && ti < HARMONICS_MAX)
+    {
+        double* pitch = Device_params_get_float(params, key);
+        if (pitch != NULL && *pitch > 0 && isfinite(*pitch))
+        {
+            add->tones[ti].pitch_factor = *pitch;
+        }
+        else
+        {
+            add->tones[ti].pitch_factor = ti == 0 ? 1 : 0;
+        }
+    }
+    else if ((ti = string_extract_index(key, "tone_", 2,
+                                        "/p_volume.jsonf")) >= 0
+            && ti < HARMONICS_MAX)
+    {
+        double* volume_dB = Device_params_get_float(params, key);
+        if (volume_dB != NULL && isfinite(*volume_dB))
+        {
+            add->tones[ti].volume_factor = exp2(*volume_dB / 6);
+        }
+        else
+        {
+            add->tones[ti].volume_factor = ti == 0 ? 1 : 0;
+        }
+    }
     return true;
 }
 
@@ -364,7 +429,7 @@ static void del_Generator_add(Generator* gen)
     }
     assert(string_eq(gen->type, "add"));
     Generator_add* add = (Generator_add*)gen;
-    del_Sample(add->default_base);
+    del_Sample(add->base);
     xfree(add);
     return;
 }

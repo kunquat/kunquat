@@ -21,6 +21,7 @@
 
 #include <Envelope.h>
 #include <File_base.h>
+#include <Num_list.h>
 #include <Real.h>
 #include <Reltime.h>
 #include <Sample.h>
@@ -41,6 +42,7 @@ typedef enum
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
     DEVICE_FIELD_SAMPLE_MAP,
+    DEVICE_FIELD_NUM_LIST,
 } Device_field_type;
 
 
@@ -59,6 +61,7 @@ typedef struct Device_field Device_field;
  *                  .jsone (Envelope)
  *                  .jsonsh (Sample params)
  *                  .jsonsm (Sample map)
+ *                  .jsonln (Number list)
  *                  .wv (WavPack).
  * \param data   Pointer to the data that must have a type matching the key,
  *               or \c NULL.
@@ -144,8 +147,8 @@ bool Device_field_get_empty(Device_field* field);
 /**
  * Modifies Device field data.
  *
- * \param field   The Device field -- must not be \c NULL and must not
- *                contain an Envelope or a Sample.
+ * \param field   The Device field -- must not be \c NULL and must
+ *                contain a value that is modifiable in real time.
  * \param str     The new data as a string.
  *
  * \return   \c true if the Device field was successfully modified,
@@ -246,11 +249,22 @@ Sample_params* Device_field_get_sample_params(Device_field* field);
  * Gets a Sample map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
- *                a Sample.
+ *                a Sample map.
  *
  * \return   The Sample map.
  */
 Sample_map* Device_field_get_sample_map(Device_field* field);
+
+
+/**
+ * Gets a Number list from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                a Number list.
+ *
+ * \return   The Number list.
+ */
+Num_list* Device_field_get_num_list(Device_field* field);
 
 
 /**

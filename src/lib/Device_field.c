@@ -34,6 +34,7 @@ typedef union
     Sample* Sample_type;
     Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
+    Num_list* Num_list_type;
 } Dev_fields;
 
 
@@ -95,6 +96,11 @@ Device_field* new_Device_field(const char* key, void* data)
     {
         type = DEVICE_FIELD_SAMPLE_MAP;
         data_size = sizeof(Sample_map*);
+    }
+    else if (string_has_suffix(key, ".jsonln"))
+    {
+        type = DEVICE_FIELD_NUM_LIST;
+        data_size = sizeof(Num_list*);
     }
     else
     {
@@ -270,6 +276,15 @@ bool Device_field_change(Device_field* field,
             }
             field->data.Sample_map_type = map;
         } break;
+        case DEVICE_FIELD_NUM_LIST:
+        {
+            Num_list* nl = new_Num_list_from_string(data, state);
+            if (nl == NULL)
+            {
+                return false;
+            }
+            field->data.Num_list_type = nl;
+        } break;
         default:
             assert(false);
     }
@@ -420,6 +435,14 @@ Sample_map* Device_field_get_sample_map(Device_field* field)
 }
 
 
+Num_list* Device_field_get_num_list(Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_NUM_LIST);
+    return field->data.Num_list_type;
+}
+
+
 void del_Device_field(Device_field* field)
 {
     if (field == NULL)
@@ -430,13 +453,17 @@ void del_Device_field(Device_field* field)
     {
         del_Envelope(field->data.Envelope_type);
     }
-    if (field->type == DEVICE_FIELD_WAVPACK)
+    else if (field->type == DEVICE_FIELD_WAVPACK)
     {
         del_Sample(field->data.Sample_type);
     }
-    if (field->type == DEVICE_FIELD_SAMPLE_MAP)
+    else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
     {
         del_Sample_map(field->data.Sample_map_type);
+    }
+    else if (field->type == DEVICE_FIELD_NUM_LIST)
+    {
+        del_Num_list(field->data.Num_list_type);
     }
     xfree(field);
     return;

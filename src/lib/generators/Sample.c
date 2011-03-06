@@ -184,6 +184,15 @@ uint64_t Sample_get_loop_end(Sample* sample)
 }
 
 
+void* Sample_get_buffer(Sample* sample, int ch)
+{
+    assert(sample != NULL);
+    assert(ch >= 0);
+    assert(ch < sample->channels);
+    return sample->data[ch];
+}
+
+
 uint32_t Sample_mix(Sample* sample,
                     Generator* gen,
                     Voice_state* state,
