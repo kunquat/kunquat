@@ -138,8 +138,6 @@ Generator* new_Generator_add(uint32_t buffer_size,
         add->tones[h].pitch_factor = 0;
         add->tones[h].volume_factor = 0;
     }
-    //add->tones[0].pitch_factor = 1;  // TODO: remove
-    //add->tones[0].volume_factor = 0.5; // TODO: remove
     return &add->parent;
 }
 
