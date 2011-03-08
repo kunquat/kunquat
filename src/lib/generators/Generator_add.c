@@ -146,11 +146,19 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
 {
     assert(gen != NULL);
     assert(string_eq(gen->type, "add"));
-    (void)gen;
     assert(state != NULL);
+    Generator_add* add = (Generator_add*)gen;
     Voice_state_add* add_state = (Voice_state_add*)state;
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
+        if (add->tones[h].pitch_factor <= 0 ||
+                add->tones[h].volume_factor <= 0)
+        {
+            continue;
+        }
+        add_state->tone_limit = h + 1;
+        add_state->tones[h].phase = 0;
+#if 0
         add_state->tones[h].pos = 0;
         add_state->tones[h].pos_rem = 0;
         add_state->tones[h].rel_pos = 0;
@@ -167,6 +175,7 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
                 add_state->tones[h].lowpass_state[1].history2[k][i] = 0;
             }
         }
+#endif
     }
     return;
 }
@@ -190,6 +199,48 @@ static uint32_t Generator_add_mix(Generator* gen,
     Generator_common_check_active(gen, state, offset);
     Generator_common_check_relative_lengths(gen, state, freq, tempo);
     Voice_state_add* add_state = (Voice_state_add*)state;
+    uint32_t mixed = offset;
+    assert(is_p2(BASE_FUNC_SIZE));
+    for (; mixed < nframes && state->active; ++mixed)
+    {
+        Generator_common_handle_pitch(gen, state);
+        double vals[KQT_BUFFERS_MAX] = { 0 };
+        vals[0] = 0;
+        float* base_buf = Sample_get_buffer(add->base, 0);
+        for (int h = 0; h < add_state->tone_limit; ++h)
+        {
+            if (add->tones[h].pitch_factor <= 0 ||
+                    add->tones[h].volume_factor <= 0)
+            {
+                continue;
+            }
+            double actual_phase = add_state->tones[h].phase;
+            double pos = actual_phase * BASE_FUNC_SIZE;
+            int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
+            int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
+            float frame = base_buf[pos1];
+            float frame_diff = base_buf[pos2] - frame;
+            double remainder = pos - floor(pos);
+            vals[0] += (frame + remainder * frame_diff) *
+                       add->tones[h].volume_factor;
+            add_state->tones[h].phase += state->actual_pitch *
+                                         add->tones[h].pitch_factor / freq;
+            if (add_state->tones[h].phase >= 1)
+            {
+                add_state->tones[h].phase -= floor(add_state->tones[h].phase);
+            }
+        }
+        Generator_common_handle_force(gen, state, vals, 1, freq);
+        Generator_common_handle_filter(gen, state, vals, 1, freq);
+        Generator_common_ramp_attack(gen, state, vals, 1, freq);
+        state->pos = 1; // XXX: hackish
+        vals[1] = vals[0];
+        Generator_common_handle_panning(gen, state, vals, 2);
+        bufs[0][mixed] += vals[0];
+        bufs[1][mixed] += vals[1];
+    }
+    return mixed;
+#if 0
     Voice_state* hstate = &(Voice_state){ .active = false };
     uint32_t mixed = 0;
     bool active = true;
@@ -232,6 +283,7 @@ static uint32_t Generator_add_mix(Generator* gen,
     }
     add_state->parent.active = active;
     return mixed;
+#endif
 }
 
 
