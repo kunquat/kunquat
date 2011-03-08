@@ -40,7 +40,9 @@ typedef struct Voice_state_add
     Voice_state parent;
 //    double phase;
     int tone_limit;
+    int mod_tone_limit;
     Add_tone_state tones[HARMONICS_MAX];
+    Add_tone_state mod_tones[HARMONICS_MAX];
 } Voice_state_add;
 
 

@@ -43,12 +43,24 @@ typedef struct Add_tone
 } Add_tone;
 
 
+typedef enum
+{
+    MOD_DISABLED = 0,
+    MOD_PHASE,
+    MOD_LIMIT
+} Mod_mode;
+
+
 typedef struct Generator_add
 {
     Generator parent;
     Sample* base;
+    Sample* mod;
+    Mod_mode mod_mode;
+    double mod_volume;
     double detune;
     Add_tone tones[HARMONICS_MAX];
+    Add_tone mod_tones[HARMONICS_MAX];
 } Generator_add;
 
 
@@ -93,10 +105,16 @@ Generator* new_Generator_add(uint32_t buffer_size,
     Device_set_sync(&add->parent.parent, Generator_add_sync);
     Device_set_update_key(&add->parent.parent, Generator_add_update_key);
     add->base = NULL;
+    add->mod = NULL;
+    add->mod_mode = MOD_DISABLED;
+    add->mod_volume = 1;
     add->detune = 1;
     float* buf = xnalloc(float, BASE_FUNC_SIZE);
-    if (buf == NULL)
+    float* mod_buf = xnalloc(float, BASE_FUNC_SIZE);
+    if (buf == NULL || mod_buf == NULL)
     {
+        xfree(buf);
+        xfree(mod_buf);
         del_Generator(&add->parent);
         return NULL;
     }
@@ -104,6 +122,14 @@ Generator* new_Generator_add(uint32_t buffer_size,
     if (add->base == NULL)
     {
         xfree(buf);
+        xfree(mod_buf);
+        del_Generator(&add->parent);
+        return NULL;
+    }
+    add->mod = new_Sample_from_buffers(&mod_buf, 1, BASE_FUNC_SIZE);
+    if (add->mod == NULL)
+    {
+        xfree(mod_buf);
         del_Generator(&add->parent);
         return NULL;
     }
@@ -113,11 +139,14 @@ Generator* new_Generator_add(uint32_t buffer_size,
     for (int i = 0; i < BASE_FUNC_SIZE; ++i)
     {
         buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
+        mod_buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
     }
     for (int h = 0; h < HARMONICS_MAX; ++h)
     {
         add->tones[h].pitch_factor = 0;
         add->tones[h].volume_factor = 0;
+        add->mod_tones[h].pitch_factor = 0;
+        add->mod_tones[h].volume_factor = 0;
     }
     return &add->parent;
 }
@@ -158,24 +187,16 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
         }
         add_state->tone_limit = h + 1;
         add_state->tones[h].phase = 0;
-#if 0
-        add_state->tones[h].pos = 0;
-        add_state->tones[h].pos_rem = 0;
-        add_state->tones[h].rel_pos = 0;
-        add_state->tones[h].rel_pos_rem = 0;
-        for (int i = 0; i < FILTER_ORDER; ++i)
+    }
+    for (int h = 0; h < HARMONICS_MAX; ++h)
+    {
+        if (add->mod_tones[h].pitch_factor <= 0 ||
+                add->mod_tones[h].volume_factor <= 0)
         {
-            add_state->tones[h].lowpass_state[0].coeffs[i] = 0;
-            add_state->tones[h].lowpass_state[1].coeffs[i] = 0;
-            for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
-            {
-                add_state->tones[h].lowpass_state[0].history1[k][i] = 0;
-                add_state->tones[h].lowpass_state[0].history2[k][i] = 0;
-                add_state->tones[h].lowpass_state[1].history1[k][i] = 0;
-                add_state->tones[h].lowpass_state[1].history2[k][i] = 0;
-            }
+            continue;
         }
-#endif
+        add_state->mod_tone_limit = h + 1;
+        add_state->mod_tones[h].phase = 0;
     }
     return;
 }
@@ -206,7 +227,41 @@ static uint32_t Generator_add_mix(Generator* gen,
         Generator_common_handle_pitch(gen, state);
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = 0;
+        double mod_val = 0;
+        if (add->mod_mode)
+        {
+            float* mod_buf = Sample_get_buffer(add->mod, 0);
+            assert(mod_buf != NULL);
+            for (int h = 0; h < add_state->mod_tone_limit; ++h)
+            {
+                if (add->mod_tones[h].pitch_factor <= 0 ||
+                        add->mod_tones[h].volume_factor <= 0)
+                {
+                    continue;
+                }
+                double pos = add_state->mod_tones[h].phase * BASE_FUNC_SIZE;
+                int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
+                int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
+                float frame = mod_buf[pos1];
+                float frame_diff = mod_buf[pos2] - frame;
+                double remainder = pos - floor(pos);
+                mod_val += (frame + remainder * frame_diff) *
+                           add->mod_tones[h].volume_factor * add->mod_volume;
+                add_state->mod_tones[h].phase += state->actual_pitch *
+                                        add->mod_tones[h].pitch_factor / freq;
+                if (add_state->mod_tones[h].phase >= 1)
+                {
+                    add_state->mod_tones[h].phase -=
+                            floor(add_state->mod_tones[h].phase);
+                }
+            }
+            if (mod_val < 0)
+            {
+                mod_val += floor(mod_val);
+            }
+        }
         float* base_buf = Sample_get_buffer(add->base, 0);
+        assert(base_buf);
         for (int h = 0; h < add_state->tone_limit; ++h)
         {
             if (add->tones[h].pitch_factor <= 0 ||
@@ -214,7 +269,8 @@ static uint32_t Generator_add_mix(Generator* gen,
             {
                 continue;
             }
-            double actual_phase = add_state->tones[h].phase;
+            // FIXME: + mod_val is specifically phase modulation
+            double actual_phase = add_state->tones[h].phase + mod_val;
             double pos = actual_phase * BASE_FUNC_SIZE;
             int32_t pos1 = (int)pos & (BASE_FUNC_SIZE - 1);
             int32_t pos2 = (pos1 + 1) & (BASE_FUNC_SIZE - 1);
@@ -240,50 +296,6 @@ static uint32_t Generator_add_mix(Generator* gen,
         bufs[1][mixed] += vals[1];
     }
     return mixed;
-#if 0
-    Voice_state* hstate = &(Voice_state){ .active = false };
-    uint32_t mixed = 0;
-    bool active = true;
-    bool hfound = false;
-    for (int h = 0; h < HARMONICS_MAX; ++h)
-    {
-        if (add->tones[h].pitch_factor <= 0 ||
-                add->tones[h].volume_factor <= 0)
-        {
-            continue;
-        }
-        hfound = true;
-        memcpy(hstate, state, sizeof(Voice_state));
-        hstate->pos = add_state->tones[h].pos;
-        hstate->pos_rem = add_state->tones[h].pos_rem;
-        hstate->rel_pos = add_state->tones[h].rel_pos;
-        hstate->rel_pos_rem = add_state->tones[h].rel_pos_rem;
-        memcpy(hstate->lowpass_state, add_state->tones[h].lowpass_state,
-                2 * sizeof(Filter_state));
-        uint32_t hmixed = Sample_mix(add->base, gen, hstate, nframes,
-                                     offset, freq, tempo, bufs,
-                                     1.0 / add->tones[h].pitch_factor,
-                                     BASE_FUNC_SIZE,
-                                     add->tones[h].volume_factor);
-        active &= hstate->active;
-        add_state->tones[h].pos = hstate->pos;
-        add_state->tones[h].pos_rem = hstate->pos_rem;
-        add_state->tones[h].rel_pos = hstate->rel_pos;
-        add_state->tones[h].rel_pos_rem = hstate->rel_pos_rem;
-        memcpy(add_state->tones[h].lowpass_state, hstate->lowpass_state,
-                2 * sizeof(Filter_state));
-        if (hmixed > mixed)
-        {
-            mixed = hmixed;
-        }
-    }
-    if (hfound)
-    {
-        memcpy(state, hstate, sizeof(Voice_state));
-    }
-    add_state->parent.active = active;
-    return mixed;
-#endif
 }
 
 
@@ -299,16 +311,28 @@ static bool Generator_add_sync(Device* device)
     assert(device != NULL);
     Generator_add_update_key(device, "p_bfunc.jsoni");
     Generator_add_update_key(device, "p_base.jsonln");
+    Generator_add_update_key(device, "p_mod.jsoni");
+    Generator_add_update_key(device, "p_mod_volume.jsonf");
     char pitch_key[] = "tone_XX/p_pitch.jsonf";
     int pitch_key_bytes = strlen(pitch_key) + 1;
     char volume_key[] = "tone_XX/p_volume.jsonf";
     int volume_key_bytes = strlen(volume_key) + 1;
+    char mod_pitch_key[] = "mod_XX/p_pitch.jsonf";
+    int mod_pitch_key_bytes = strlen(mod_pitch_key) + 1;
+    char mod_volume_key[] = "mod_XX/p_volume.jsonf";
+    int mod_volume_key_bytes = strlen(mod_volume_key) + 1;
     for (int i = 0; i < HARMONICS_MAX; ++i)
     {
         snprintf(pitch_key, pitch_key_bytes, "tone_%02x/p_pitch.jsonf", i);
         Generator_add_update_key(device, pitch_key);
         snprintf(volume_key, volume_key_bytes, "tone_%02x/p_volume.jsonf", i);
         Generator_add_update_key(device, volume_key);
+        snprintf(mod_pitch_key, mod_pitch_key_bytes,
+                 "mod_%02x/p_pitch.jsonf", i);
+        Generator_add_update_key(device, mod_pitch_key);
+        snprintf(mod_volume_key, mod_volume_key_bytes,
+                 "mod_%02x/p_volume.jsonf", i);
+        Generator_add_update_key(device, mod_volume_key);
     }
     return true;
 }
@@ -346,9 +370,58 @@ static bool Generator_add_update_key(Device* device, const char* key)
             }
         }
     }
+    else if (string_eq(key, "p_mod_base.jsonln"))
+    {
+        Num_list* nl = Device_params_get_num_list(params, key);
+        float* buf = Sample_get_buffer(add->mod, 0);
+        assert(buf != NULL);
+        if (nl != NULL)
+        {
+            int32_t available = MIN(Num_list_length(nl), BASE_FUNC_SIZE);
+            for (int i = 0; i < available; ++i)
+            {
+                buf[i] = MAX(-1.0, MIN(1.0, Num_list_get_num(nl, i)));
+            }
+            for (int i = available; i < BASE_FUNC_SIZE; ++i)
+            {
+                buf[i] = 0;
+            }
+        }
+        else
+        {
+            for (int i = 0; i < BASE_FUNC_SIZE; ++i)
+            {
+                buf[i] = sine((double)i / BASE_FUNC_SIZE, 0);
+            }
+        }
+    }
+    else if (string_eq(key, "p_mod.jsoni"))
+    {
+        int64_t* mode = Device_params_get_int(params, key);
+        if (mode != NULL && *mode >= MOD_DISABLED && *mode < MOD_LIMIT)
+        {
+            add->mod_mode = *mode;
+        }
+        else
+        {
+            add->mod_mode = MOD_DISABLED;
+        }
+    }
+    else if (string_eq(key, "p_mod_volume.jsonf"))
+    {
+        double* volume_dB = Device_params_get_float(params, key);
+        if (volume_dB != NULL && isfinite(*volume_dB))
+        {
+            add->mod_volume = exp2(*volume_dB / 6);
+        }
+        else
+        {
+            add->mod_volume = 1;
+        }
+    }
     else if ((ti = string_extract_index(key, "tone_", 2,
-                                        "/p_pitch.jsonf")) >= 0
-             && ti < HARMONICS_MAX)
+                                        "/p_pitch.jsonf")) >= 0 &&
+             ti < HARMONICS_MAX)
     {
         double* pitch = Device_params_get_float(params, key);
         if (pitch != NULL && *pitch > 0 && isfinite(*pitch))
@@ -361,8 +434,8 @@ static bool Generator_add_update_key(Device* device, const char* key)
         }
     }
     else if ((ti = string_extract_index(key, "tone_", 2,
-                                        "/p_volume.jsonf")) >= 0
-            && ti < HARMONICS_MAX)
+                                        "/p_volume.jsonf")) >= 0 &&
+             ti < HARMONICS_MAX)
     {
         double* volume_dB = Device_params_get_float(params, key);
         if (volume_dB != NULL && isfinite(*volume_dB))
@@ -372,6 +445,34 @@ static bool Generator_add_update_key(Device* device, const char* key)
         else
         {
             add->tones[ti].volume_factor = ti == 0 ? 1 : 0;
+        }
+    }
+    else if ((ti = string_extract_index(key, "mod_", 2,
+                                        "/p_pitch.jsonf")) >= 0 &&
+             ti < HARMONICS_MAX)
+    {
+        double* pitch = Device_params_get_float(params, key);
+        if (pitch != NULL && *pitch > 0 && isfinite(*pitch))
+        {
+            add->mod_tones[ti].pitch_factor = *pitch;
+        }
+        else
+        {
+            add->mod_tones[ti].pitch_factor = ti == 0 ? 1 : 0;
+        }
+    }
+    else if ((ti = string_extract_index(key, "mod_", 2,
+                                        "/p_volume.jsonf")) >= 0 &&
+             ti < HARMONICS_MAX)
+    {
+        double* volume_dB = Device_params_get_float(params, key);
+        if (volume_dB != NULL && isfinite(*volume_dB))
+        {
+            add->mod_tones[ti].volume_factor = exp2(*volume_dB / 6);
+        }
+        else
+        {
+            add->mod_tones[ti].volume_factor = ti == 0 ? 1 : 0;
         }
     }
     return true;
@@ -387,6 +488,7 @@ static void del_Generator_add(Generator* gen)
     assert(string_eq(gen->type, "add"));
     Generator_add* add = (Generator_add*)gen;
     del_Sample(add->base);
+    del_Sample(add->mod);
     xfree(add);
     return;
 }
