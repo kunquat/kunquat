@@ -41,6 +41,14 @@ typedef struct Voice_state_add
 //    double phase;
     int tone_limit;
     int mod_tone_limit;
+
+    bool mod_active;
+    double mod_env_pos;
+    int mod_env_next_node;
+    double mod_env_value;
+    double mod_env_update;
+    double mod_env_scale;
+
     Add_tone_state tones[HARMONICS_MAX];
     Add_tone_state mod_tones[HARMONICS_MAX];
 } Voice_state_add;

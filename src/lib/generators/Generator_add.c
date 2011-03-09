@@ -25,7 +25,6 @@
 #include <math_common.h>
 #include <Num_list.h>
 #include <Sample.h>
-#include <Sample_mix.h>
 #include <string_common.h>
 #include <Voice_state.h>
 #include <Voice_state_add.h>
@@ -58,6 +57,7 @@ typedef struct Generator_add
     Sample* mod;
     Mod_mode mod_mode;
     double mod_volume;
+    Envelope* mod_env;
     double detune;
     Add_tone tones[HARMONICS_MAX];
     Add_tone mod_tones[HARMONICS_MAX];
@@ -108,6 +108,7 @@ Generator* new_Generator_add(uint32_t buffer_size,
     add->mod = NULL;
     add->mod_mode = MOD_DISABLED;
     add->mod_volume = 1;
+    add->mod_env = NULL;
     add->detune = 1;
     float* buf = xnalloc(float, BASE_FUNC_SIZE);
     float* mod_buf = xnalloc(float, BASE_FUNC_SIZE);
@@ -198,6 +199,12 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
         add_state->mod_tone_limit = h + 1;
         add_state->mod_tones[h].phase = 0;
     }
+    add_state->mod_active = add->mod_mode != MOD_DISABLED;
+    add_state->mod_env_pos = 0;
+    add_state->mod_env_next_node = 0;
+    add_state->mod_env_value = NAN;
+    add_state->mod_env_update = 0;
+    add_state->mod_env_scale = 1;
     return;
 }
 
@@ -228,7 +235,7 @@ static uint32_t Generator_add_mix(Generator* gen,
         double vals[KQT_BUFFERS_MAX] = { 0 };
         vals[0] = 0;
         double mod_val = 0;
-        if (add->mod_mode)
+        if (add_state->mod_active)
         {
             float* mod_buf = Sample_get_buffer(add->mod, 0);
             assert(mod_buf != NULL);
@@ -254,6 +261,46 @@ static uint32_t Generator_add_mix(Generator* gen,
                     add_state->mod_tones[h].phase -=
                             floor(add_state->mod_tones[h].phase);
                 }
+            }
+            if (add->mod_env != NULL)
+            {
+                double* next_node = Envelope_get_node(add->mod_env,
+                                                add_state->mod_env_next_node);
+                assert(next_node != NULL);
+                double scale = NAN;
+                if (add_state->mod_env_pos >= next_node[0])
+                {
+                    ++add_state->mod_env_next_node;
+                    scale = Envelope_get_value(add->mod_env,
+                                               add_state->mod_env_pos);
+                    if (!isfinite(scale))
+                    {
+                        add_state->mod_active = false;
+                        mod_val = 0;
+                        scale = 0;
+                    }
+                    else
+                    {
+                        double next_scale = Envelope_get_value(add->mod_env,
+                                                    add_state->mod_env_pos +
+                                                    1.0 / freq);
+                        add_state->mod_env_value = scale;
+                        add_state->mod_env_update = next_scale - scale;
+                    }
+                }
+                else
+                {
+                    assert(isfinite(add_state->mod_env_update));
+                    add_state->mod_env_value += add_state->mod_env_update *
+                                                add_state->mod_env_scale;
+                    scale = add_state->mod_env_value;
+                    if (scale < 0)
+                    {
+                        scale = 0;
+                    }
+                }
+                add_state->mod_env_pos += add_state->mod_env_scale / freq;
+                mod_val *= scale;
             }
             if (mod_val < 0)
             {
@@ -313,6 +360,7 @@ static bool Generator_add_sync(Device* device)
     Generator_add_update_key(device, "p_base.jsonln");
     Generator_add_update_key(device, "p_mod.jsoni");
     Generator_add_update_key(device, "p_mod_volume.jsonf");
+    Generator_add_update_key(device, "p_mod_env.jsone");
     char pitch_key[] = "tone_XX/p_pitch.jsonf";
     int pitch_key_bytes = strlen(pitch_key) + 1;
     char volume_key[] = "tone_XX/p_volume.jsonf";
@@ -418,6 +466,39 @@ static bool Generator_add_update_key(Device* device, const char* key)
         {
             add->mod_volume = 1;
         }
+    }
+    else if (string_eq(key, "p_mod_env.jsone"))
+    {
+        add->mod_env = Device_params_get_envelope(params, key);
+        bool valid = true;
+        if (add->mod_env != NULL && Envelope_node_count(add->mod_env) > 1)
+        {
+            double* node = Envelope_get_node(add->mod_env, 0);
+            if (node[0] != 0)
+            {
+                valid = false;
+            }
+            node = Envelope_get_node(add->mod_env,
+                                     Envelope_node_count(add->mod_env) - 1);
+            if (node[1] != 0)
+            {
+                valid = false;
+            }
+            for (int i = 0; i < Envelope_node_count(add->mod_env); ++i)
+            {
+                node = Envelope_get_node(add->mod_env, i);
+                if (node[1] < 0)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            valid = false;
+        }
+        add->mod_env = valid ? add->mod_env : NULL;
     }
     else if ((ti = string_extract_index(key, "tone_", 2,
                                         "/p_pitch.jsonf")) >= 0 &&
