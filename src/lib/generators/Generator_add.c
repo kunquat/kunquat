@@ -58,6 +58,8 @@ typedef struct Generator_add
     Mod_mode mod_mode;
     double mod_volume;
     Envelope* mod_env;
+    double mod_env_scale_amount;
+    double mod_env_center;
     double detune;
     Add_tone tones[HARMONICS_MAX];
     Add_tone mod_tones[HARMONICS_MAX];
@@ -109,6 +111,8 @@ Generator* new_Generator_add(uint32_t buffer_size,
     add->mod_mode = MOD_DISABLED;
     add->mod_volume = 1;
     add->mod_env = NULL;
+    add->mod_env_scale_amount = 0;
+    add->mod_env_center = 440;
     add->detune = 1;
     float* buf = xnalloc(float, BASE_FUNC_SIZE);
     float* mod_buf = xnalloc(float, BASE_FUNC_SIZE);
@@ -204,7 +208,7 @@ static void Generator_add_init_state(Generator* gen, Voice_state* state)
     add_state->mod_env_next_node = 0;
     add_state->mod_env_value = NAN;
     add_state->mod_env_update = 0;
-    add_state->mod_env_scale = 1;
+    add_state->mod_env_scale = NAN;
     return;
 }
 
@@ -264,6 +268,18 @@ static uint32_t Generator_add_mix(Generator* gen,
             }
             if (add->mod_env != NULL)
             {
+                if (add->mod_env_scale_amount != 0 &&
+                        (state->actual_pitch != state->prev_actual_pitch ||
+                         isnan(add_state->mod_env_scale)))
+                {
+                    add_state->mod_env_scale = pow(state->actual_pitch /
+                                                   add->mod_env_center,
+                                                   add->mod_env_scale_amount);
+                }
+                else if (isnan(add_state->mod_env_scale))
+                {
+                    add_state->mod_env_scale = 1;
+                }
                 double* next_node = Envelope_get_node(add->mod_env,
                                                 add_state->mod_env_next_node);
                 assert(next_node != NULL);
@@ -361,6 +377,8 @@ static bool Generator_add_sync(Device* device)
     Generator_add_update_key(device, "p_mod.jsoni");
     Generator_add_update_key(device, "p_mod_volume.jsonf");
     Generator_add_update_key(device, "p_mod_env.jsone");
+    Generator_add_update_key(device, "p_mod_env_scale_amount.jsonf");
+    Generator_add_update_key(device, "p_mod_env_scale_center.jsonf");
     char pitch_key[] = "tone_XX/p_pitch.jsonf";
     int pitch_key_bytes = strlen(pitch_key) + 1;
     char volume_key[] = "tone_XX/p_volume.jsonf";
@@ -499,6 +517,30 @@ static bool Generator_add_update_key(Device* device, const char* key)
             valid = false;
         }
         add->mod_env = valid ? add->mod_env : NULL;
+    }
+    else if (string_eq(key, "p_mod_env_scale_amount.jsonf"))
+    {
+        double* scale_amount = Device_params_get_float(params, key);
+        if (scale_amount != NULL && isfinite(*scale_amount))
+        {
+            add->mod_env_scale_amount = *scale_amount;
+        }
+        else
+        {
+            add->mod_env_scale_amount = 0;
+        }
+    }
+    else if (string_eq(key, "p_mod_env_scale_center.jsonf"))
+    {
+        double* scale_center = Device_params_get_float(params, key);
+        if (scale_center != NULL && isfinite(*scale_center))
+        {
+            add->mod_env_center = exp2(*scale_center / 1200) * 440;
+        }
+        else
+        {
+            add->mod_env_center = 440;
+        }
     }
     else if ((ti = string_extract_index(key, "tone_", 2,
                                         "/p_pitch.jsonf")) >= 0 &&
