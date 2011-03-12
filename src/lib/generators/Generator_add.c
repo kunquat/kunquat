@@ -60,6 +60,7 @@ typedef struct Generator_add
     Envelope* mod_env;
     double mod_env_scale_amount;
     double mod_env_center;
+    Envelope* force_mod_env;
     double detune;
     Add_tone tones[HARMONICS_MAX];
     Add_tone mod_tones[HARMONICS_MAX];
@@ -113,6 +114,7 @@ Generator* new_Generator_add(uint32_t buffer_size,
     add->mod_env = NULL;
     add->mod_env_scale_amount = 0;
     add->mod_env_center = 440;
+    add->force_mod_env = NULL;
     add->detune = 1;
     float* buf = xnalloc(float, BASE_FUNC_SIZE);
     float* mod_buf = xnalloc(float, BASE_FUNC_SIZE);
@@ -266,6 +268,13 @@ static uint32_t Generator_add_mix(Generator* gen,
                             floor(add_state->mod_tones[h].phase);
                 }
             }
+            if (add->force_mod_env != NULL)
+            {
+                double force = MIN(1, state->actual_force);
+                double factor = Envelope_get_value(add->force_mod_env, force);
+                assert(isfinite(factor));
+                mod_val *= factor;
+            }
             if (add->mod_env != NULL)
             {
                 if (add->mod_env_scale_amount != 0 &&
@@ -291,9 +300,12 @@ static uint32_t Generator_add_mix(Generator* gen,
                                                add_state->mod_env_pos);
                     if (!isfinite(scale))
                     {
-                        add_state->mod_active = false;
-                        mod_val = 0;
-                        scale = 0;
+                        scale = Envelope_get_node(add->mod_env,
+                                Envelope_node_count(add->mod_env) - 1)[1];
+                        if (scale == 0)
+                        {
+                            add_state->mod_active = false;
+                        }
                     }
                     else
                     {
@@ -379,6 +391,7 @@ static bool Generator_add_sync(Device* device)
     Generator_add_update_key(device, "p_mod_env.jsone");
     Generator_add_update_key(device, "p_mod_env_scale_amount.jsonf");
     Generator_add_update_key(device, "p_mod_env_scale_center.jsonf");
+    Generator_add_update_key(device, "p_force_mod_env.jsone");
     char pitch_key[] = "tone_XX/p_pitch.jsonf";
     int pitch_key_bytes = strlen(pitch_key) + 1;
     char volume_key[] = "tone_XX/p_volume.jsonf";
@@ -540,6 +553,43 @@ static bool Generator_add_update_key(Device* device, const char* key)
         else
         {
             add->mod_env_center = 440;
+        }
+    }
+    else if (string_eq(key, "p_force_mod_env.jsone"))
+    {
+        add->force_mod_env = Device_params_get_envelope(params, key);
+        bool valid = true;
+        if (add->force_mod_env != NULL &&
+                Envelope_node_count(add->force_mod_env) > 1)
+        {
+            double* node = Envelope_get_node(add->force_mod_env, 0);
+            if (node[0] != 0)
+            {
+                valid = false;
+            }
+            node = Envelope_get_node(add->force_mod_env,
+                                 Envelope_node_count(add->force_mod_env) - 1);
+            if (node[0] != 1)
+            {
+                valid = false;
+            }
+            for (int i = 0; i < Envelope_node_count(add->force_mod_env); ++i)
+            {
+                node = Envelope_get_node(add->force_mod_env, i);
+                if (node[1] < 0)
+                {
+                    valid = false;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            valid = false;
+        }
+        if (!valid)
+        {
+            add->force_mod_env = NULL;
         }
     }
     else if ((ti = string_extract_index(key, "tone_", 2,
