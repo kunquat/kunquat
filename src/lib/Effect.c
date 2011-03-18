@@ -113,6 +113,7 @@ bool Effect_parse_header(Effect* eff, char* str, Read_state* state)
     {
         return false;
     }
+    (void)eff;
     (void)str;
     assert(false);
     return false;

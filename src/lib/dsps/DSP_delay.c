@@ -214,6 +214,7 @@ static void DSP_delay_process(Device* device,
     assert(device != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
     (void)tempo;
     DSP_delay* delay = (DSP_delay*)device;
     assert(string_eq(delay->parent.type, "delay"));

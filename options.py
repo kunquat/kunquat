@@ -4,7 +4,7 @@
 prefix = '/usr/local'
 
 # Build in debug mode.
-enable_debug = True
+enable_debug = False
 
 # Build profiling code.
 enable_profiling = False
