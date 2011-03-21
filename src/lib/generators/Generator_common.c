@@ -633,7 +633,7 @@ void Generator_common_handle_filter(Generator* gen,
 				   state->filter_resonance,
 				   0,
 				   state->filter_state[new_state].coeffs,
-				   &state->filter_state[new_state].a0);
+				   &state->filter_state[new_state].mul);
             for (int i = 0; i < gen->ins_params->buf_count; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
@@ -675,7 +675,7 @@ void Generator_common_handle_filter(Generator* gen,
                                                       fst->coeffs,
                                                       fst->history2[i],
                                                       result[i]);
-                result[i] /= fst->a0;
+                result[i] *= fst->mul;
             }
         }
         else
@@ -710,7 +710,7 @@ void Generator_common_handle_filter(Generator* gen,
                                                                fst->coeffs,
                                                                fst->history2[i],
                                                                fade_result[i]);
-                    fade_result[i] /= fst->a0;
+                    fade_result[i] *= fst->mul;
                 }
             }
             else
