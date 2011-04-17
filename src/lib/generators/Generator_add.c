@@ -39,6 +39,7 @@ typedef struct Add_tone
 {
     double pitch_factor;
     double volume_factor;
+    double panning;
 } Add_tone;
 
 
@@ -152,8 +153,10 @@ Generator* new_Generator_add(uint32_t buffer_size,
     {
         add->tones[h].pitch_factor = 0;
         add->tones[h].volume_factor = 0;
+        add->tones[h].panning = 0;
         add->mod_tones[h].pitch_factor = 0;
         add->mod_tones[h].volume_factor = 0;
+        add->mod_tones[h].panning = 0;
     }
     return &add->parent;
 }
@@ -336,7 +339,7 @@ static uint32_t Generator_add_mix(Generator* gen,
             }
         }
         float* base_buf = Sample_get_buffer(add->base, 0);
-        assert(base_buf);
+        assert(base_buf != NULL);
         for (int h = 0; h < add_state->tone_limit; ++h)
         {
             if (add->tones[h].pitch_factor <= 0 ||
@@ -352,8 +355,10 @@ static uint32_t Generator_add_mix(Generator* gen,
             float frame = base_buf[pos1];
             float frame_diff = base_buf[pos2] - frame;
             double remainder = pos - floor(pos);
-            vals[0] += (frame + remainder * frame_diff) *
-                       add->tones[h].volume_factor;
+            double val = (frame + remainder * frame_diff) *
+                         add->tones[h].volume_factor;
+            vals[0] += val * (1 - add->tones[h].panning);
+            vals[1] += val * (1 + add->tones[h].panning);
             add_state->tones[h].phase += state->actual_pitch *
                                          add->tones[h].pitch_factor / freq;
             if (add_state->tones[h].phase >= 1)
@@ -361,11 +366,10 @@ static uint32_t Generator_add_mix(Generator* gen,
                 add_state->tones[h].phase -= floor(add_state->tones[h].phase);
             }
         }
-        Generator_common_handle_force(gen, state, vals, 1, freq);
-        Generator_common_handle_filter(gen, state, vals, 1, freq);
-        Generator_common_ramp_attack(gen, state, vals, 1, freq);
+        Generator_common_handle_force(gen, state, vals, 2, freq);
+        Generator_common_handle_filter(gen, state, vals, 2, freq);
+        Generator_common_ramp_attack(gen, state, vals, 2, freq);
         state->pos = 1; // XXX: hackish
-        vals[1] = vals[0];
         Generator_common_handle_panning(gen, state, vals, 2);
         bufs[0][mixed] += vals[0];
         bufs[1][mixed] += vals[1];
@@ -396,6 +400,8 @@ static bool Generator_add_sync(Device* device)
     int pitch_key_bytes = strlen(pitch_key) + 1;
     char volume_key[] = "tone_XX/p_volume.jsonf";
     int volume_key_bytes = strlen(volume_key) + 1;
+    char pan_key[] = "tone_XX/p_pan.jsonf";
+    int pan_key_bytes = strlen(pan_key) + 1;
     char mod_pitch_key[] = "mod_XX/p_pitch.jsonf";
     int mod_pitch_key_bytes = strlen(mod_pitch_key) + 1;
     char mod_volume_key[] = "mod_XX/p_volume.jsonf";
@@ -406,6 +412,8 @@ static bool Generator_add_sync(Device* device)
         Generator_add_update_key(device, pitch_key);
         snprintf(volume_key, volume_key_bytes, "tone_%02x/p_volume.jsonf", i);
         Generator_add_update_key(device, volume_key);
+        snprintf(pan_key, pan_key_bytes, "tone_%02x/p_pan.jsonf", i);
+        Generator_add_update_key(device, pan_key);
         snprintf(mod_pitch_key, mod_pitch_key_bytes,
                  "mod_%02x/p_pitch.jsonf", i);
         Generator_add_update_key(device, mod_pitch_key);
@@ -618,6 +626,20 @@ static bool Generator_add_update_key(Device* device, const char* key)
         else
         {
             add->tones[ti].volume_factor = ti == 0 ? 1 : 0;
+        }
+    }
+    else if ((ti = string_extract_index(key, "tone_", 2,
+                                        "/p_pan.jsonf")) >= 0 &&
+            ti < HARMONICS_MAX)
+    {
+        double* pan = Device_params_get_float(params, key);
+        if (pan != NULL && *pan >= -1 && *pan <= 1)
+        {
+            add->tones[ti].panning = *pan;
+        }
+        else
+        {
+            add->tones[ti].panning = 0;
         }
     }
     else if ((ti = string_extract_index(key, "mod_", 2,
