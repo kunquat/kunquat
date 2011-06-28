@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
@@ -180,6 +181,15 @@ uint64_t Sample_get_loop_end(Sample* sample)
 {
     assert(sample != NULL);
     return sample->params.loop_end;
+}
+
+
+void* Sample_get_buffer(Sample* sample, int ch)
+{
+    assert(sample != NULL);
+    assert(ch >= 0);
+    assert(ch < sample->channels);
+    return sample->data[ch];
 }
 
 

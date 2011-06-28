@@ -327,6 +327,18 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 
 
 /**
+ * Retrieves a Number list from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsonln".
+ *
+ * \return   The Number list, or \c NULL if \a key doesn't exist.
+ */
+Num_list* Device_params_get_num_list(Device_params* params, const char* key);
+
+
+/**
  * Destroys existing Device parameters.
  *
  * \param params   The Device parameters, or \c NULL.

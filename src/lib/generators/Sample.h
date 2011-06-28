@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -214,6 +214,18 @@ void Sample_set_loop_end(Sample* sample, uint64_t end);
  * \return   The loop start.
  */
 uint64_t Sample_get_loop_end(Sample* sample);
+
+
+/**
+ * Gets a buffer from the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param ch       The channel number -- must be >= \c 0 and less than the
+ *                 number of channels in the Sample.
+ *
+ * \return   The buffer.
+ */
+void* Sample_get_buffer(Sample* sample, int ch);
 
 
 /**

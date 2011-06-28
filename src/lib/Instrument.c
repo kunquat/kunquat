@@ -72,6 +72,7 @@ Instrument* new_Instrument(uint32_t buf_len,
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
     assert(random != NULL);
+    (void)random;
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {

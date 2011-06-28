@@ -16,6 +16,7 @@
 
 #include <Gen_type.h>
 #include <Generator_debug.h>
+#include <Generator_add.h>
 #include <Generator_noise.h>
 #include <Generator_pcm.h>
 #include <Generator_pulse.h>
@@ -38,6 +39,7 @@ struct Gen_type
 const Gen_type gen_types[] =
 {
     { "debug", new_Generator_debug, NULL },
+    { "add", new_Generator_add, Generator_add_property },
     { "noise", new_Generator_noise, Generator_noise_property },
     { "pcm", new_Generator_pcm, Generator_pcm_property },
     { "pulse", new_Generator_pulse, Generator_pulse_property },

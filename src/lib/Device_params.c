@@ -127,7 +127,8 @@ bool key_is_text_device_param(const char* key)
     return key_is_real_time_device_param(key) ||
            string_has_suffix(key, ".jsone") ||
            string_has_suffix(key, ".jsonsm") ||
-           string_has_suffix(key, ".jsonsh");
+           string_has_suffix(key, ".jsonsh") ||
+           string_has_suffix(key, ".jsonln");
 }
 
 
@@ -661,6 +662,19 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
         return NULL;
     }
     get_of_type(params, key, sample_map);
+    return NULL;
+}
+
+
+Num_list* Device_params_get_num_list(Device_params* params, const char* key)
+{
+    assert(params != NULL);
+    assert(key != NULL);
+    if (!string_has_suffix(key, ".jsonln"))
+    {
+        return NULL;
+    }
+    get_of_type(params, key, num_list);
     return NULL;
 }
 

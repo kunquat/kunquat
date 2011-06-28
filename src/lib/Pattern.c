@@ -628,6 +628,7 @@ static void Pattern_evaluate_global_row(Pattern* pat,
     assert(play != NULL);
     assert(next_global != NULL);
     assert(next_global_pos != NULL);
+    (void)pat;
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
     int event_index = 0;
     while (*next_global != NULL

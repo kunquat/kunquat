@@ -310,6 +310,7 @@ static void DSP_conv_process(Device* device,
     assert(device != NULL);
     assert(freq > 0);
     assert(tempo > 0);
+    (void)freq;
     (void)tempo;
     DSP_conv* conv = (DSP_conv*)device;
     assert(string_eq(conv->parent.type, "convolution"));
@@ -355,6 +356,7 @@ static void DSP_conv_check_params(DSP_conv* conv)
 {
     assert(conv != NULL);
     assert(conv->parent.conf != NULL);
+    (void)conv;
     return;
 }
 
