@@ -24,8 +24,8 @@ from column import Column
 from cursor import Cursor
 import kunquat.editor.keymap as keymap
 import kunquat.editor.kqt_limits as lim
-import note_input as ni
-import scale
+import kunquat.editor.note_input as ni
+import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
 import trigger
 

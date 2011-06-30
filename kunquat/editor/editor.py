@@ -28,8 +28,10 @@ from effects import Effects
 from instruments import Instruments
 import keymap
 import kqt_limits as lim
+import note_input as ni
 from peak_meter import PeakMeter
 import project
+import scale
 from sheet import Sheet
 import timestamp as ts
 
@@ -99,6 +101,14 @@ class KqtEditor(QtGui.QMainWindow):
                                self.play_from, self.play_event, self.stop)
         self.project = project.Project(0)
         self.handle = self.project.handle
+        self._note_input = ni.NoteInput()
+        self._scale = scale.Scale({
+                          'ref_pitch': 440 * 2**(3/12),
+                          'octave_ratio': ['/', [2, 1]],
+                          'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
+                                             'F#', 'G', 'G#', 'A', 'A#', 'B'),
+                              (['c', cents] for cents in range(0, 1200, 100))))
+                          })
         self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
                 (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier):
@@ -319,7 +329,10 @@ class KqtEditor(QtGui.QMainWindow):
                             self._octave, self._instrument)
         self._tabs.addTab(self._sheet, 'Sheet')
         self._instruments = Instruments(self.project,
-                                        self._instrument)
+                                        self._instrument,
+                                        self._playback,
+                                        self._note_input,
+                                        self._scale)
         self._tabs.addTab(self._instruments, 'Instruments')
         self._effects = Effects(self.project, '')
         self._tabs.addTab(self._effects, 'Effects')
