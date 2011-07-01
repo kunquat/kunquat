@@ -332,7 +332,8 @@ class KqtEditor(QtGui.QMainWindow):
                                         self._instrument,
                                         self._playback,
                                         self._note_input,
-                                        self._scale)
+                                        self._scale,
+                                        self._octave)
         self._tabs.addTab(self._instruments, 'Instruments')
         self._effects = Effects(self.project, '')
         self._tabs.addTab(self._effects, 'Effects')
