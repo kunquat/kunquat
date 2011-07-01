@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -22,6 +22,7 @@ class NoteInput(object):
 
     def __init__(self):
         self.base_octave = 4
+        self.random_key = QtCore.Qt.Key_section
         self.keys = {
                 QtCore.Qt.Key_Z: (0, 0),
                 QtCore.Qt.Key_S: (1, 0),
@@ -55,7 +56,7 @@ class NoteInput(object):
             }
 
     def get_note(self, key):
-        if key == QtCore.Qt.Key_section:
+        if key == self.random_key:
             note_indices = [x[0] for x in self.keys.itervalues() if x[1] == 0]
             note_indices.sort()
             value = int(random.gauss(len(note_indices) / 2,
