@@ -36,8 +36,11 @@ class InstEditor(QtGui.QWidget):
 
         layout.addWidget(test, 0)
         QtCore.QObject.connect(test,
-                               QtCore.SIGNAL('clicked()'),
-                               self.test)
+                               QtCore.SIGNAL('pressed()'),
+                               self.test_note_on)
+        QtCore.QObject.connect(test,
+                               QtCore.SIGNAL('released()'),
+                               self.test_note_off)
         layout.addWidget(load, 0)
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
@@ -56,8 +59,14 @@ class InstEditor(QtGui.QWidget):
     def inst_changed(self, num):
         self._cur_inst = num
 
-    def test(self):
+    def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                             QtCore.Qt.Key_section,
+                             QtCore.Qt.NoModifier)
+        QtCore.QCoreApplication.postEvent(self, ev)
+
+    def test_note_off(self):
+        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyRelease,
                              QtCore.Qt.Key_section,
                              QtCore.Qt.NoModifier)
         QtCore.QCoreApplication.postEvent(self, ev)
