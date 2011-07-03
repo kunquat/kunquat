@@ -30,10 +30,14 @@ class InstEditor(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
 
+        test = QtGui.QPushButton('Test')
         load = QtGui.QPushButton('Load')
-
         remove = QtGui.QPushButton('Remove')
 
+        layout.addWidget(test, 0)
+        QtCore.QObject.connect(test,
+                               QtCore.SIGNAL('clicked()'),
+                               self.test)
         layout.addWidget(load, 0)
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
@@ -51,6 +55,12 @@ class InstEditor(QtGui.QWidget):
 
     def inst_changed(self, num):
         self._cur_inst = num
+
+    def test(self):
+        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
+                             QtCore.Qt.Key_section,
+                             QtCore.Qt.NoModifier)
+        QtCore.QCoreApplication.postEvent(self, ev)
 
     def load(self):
         slot = self._cur_inst
