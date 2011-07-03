@@ -37,6 +37,9 @@ class InstList(QtGui.QTableWidget):
         QtCore.QObject.connect(self,
                     QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
                                self.cell_changed)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self.name_changed)
         self._signal = False
 
     def inst_changed(self, num):
@@ -52,6 +55,16 @@ class InstList(QtGui.QTableWidget):
         self._signal = True
         self._instrument_spin.setValue(cur_row)
         self._signal = False
+
+    def name_changed(self, num, col):
+        assert num >= 0
+        assert num < lim.INSTRUMENTS_MAX
+        item = self.item(num, 0)
+        key = 'ins_{0:02x}/kqti00/m_name.json'.format(num)
+        if item:
+            self._project[key] = str(item.text())
+        else:
+            self._project[key] = None
 
     def sync(self):
         for i in xrange(lim.INSTRUMENTS_MAX):
