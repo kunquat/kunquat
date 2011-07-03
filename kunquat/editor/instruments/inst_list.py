@@ -54,7 +54,18 @@ class InstList(QtGui.QTableWidget):
         self._signal = False
 
     def sync(self):
-        # TODO
-        pass
+        for i in xrange(lim.INSTRUMENTS_MAX):
+            name = self._project['ins_{0:02x}/kqti00/m_name.json'.format(i)]
+            if name:
+                item = self.item(i, 0)
+                if not item:
+                    item = QtGui.QTableWidgetItem(name)
+                    self.setItem(i, 0, item)
+                else:
+                    item.setText(name)
+            else:
+                item = self.item(i, 0)
+                if item:
+                    item.setText('')
 
 
