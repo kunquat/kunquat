@@ -180,8 +180,18 @@ PA_STREAM_CREATING = 1
 PA_STREAM_READY = 2
 PA_STREAM_FAILED = 3
 PA_STREAM_TERMINATED = 4
+PA_STREAM_ADJUST_LATENCY = 0x2000
 
 PA_SEEK_RELATIVE = 0
+
+
+class _BufferAttr(ctypes.Structure):
+    _fields_ = [('maxlength', ctypes.c_uint32),
+                ('tlength', ctypes.c_uint32),
+                ('prebuf', ctypes.c_uint32),
+                ('minreq', ctypes.c_uint32),
+                ('fragsize', ctypes.c_uint32),
+               ]
 
 
 class Poll(object):
@@ -247,10 +257,16 @@ class Poll(object):
         if not self._stream:
             self._cleanup()
             raise PulseAudioError('Could not create PulseAudio stream')
+        buffering = _BufferAttr(ctypes.c_uint32(-1),
+                                _pulse.pa_usec_to_bytes(100000,
+                                                        ctypes.byref(ss)),
+                                ctypes.c_uint32(-1),
+                                ctypes.c_uint32(-1),
+                                ctypes.c_uint32(-1))
         if _pulse.pa_stream_connect_playback(self._stream,
                                              None,
-                                             None,
-                                             0,
+                                             ctypes.byref(buffering),
+                                             PA_STREAM_ADJUST_LATENCY,
                                              None,
                                              None) < 0:
             self._cleanup()
@@ -262,6 +278,7 @@ class Poll(object):
             self._file_out.setsampwidth(2)
             self._file_out.setframerate(rate)
             self._file_out.setnchannels(channels)
+        self._last_write = None
 
     def context_state(self):
         return _pulse.pa_context_get_state(self._context)
@@ -286,6 +303,8 @@ class Poll(object):
         if not self.ready() or frame_count > self.writable_size():
             self.iterate()
             return False
+        #print(time.time() - self._last_write if self._last_write else '')
+        #self._last_write = time.time()
         self.write(*data)
         self.iterate()
         return True
@@ -453,5 +472,9 @@ _pulse.pa_stream_write.argtypes = [ctypes.c_void_p,
 _pulse.pa_stream_write.restype = ctypes.c_int
 _pulse.pa_stream_writable_size.argtypes = [ctypes.c_void_p]
 _pulse.pa_stream_writable_size.restype = ctypes.c_size_t
+
+_pulse.pa_usec_to_bytes.argtypes = [ctypes.c_uint64, # pa_usec_t t
+                                    ctypes.POINTER(_SampleSpec)]
+_pulse.pa_usec_to_bytes.restype = ctypes.c_size_t
 
 
