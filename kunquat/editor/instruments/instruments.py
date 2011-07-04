@@ -60,7 +60,8 @@ class Instruments(QtGui.QSplitter):
         self._note_input.base_octave = num
 
     def keyPressEvent(self, ev):
-        if ev.isAutoRepeat():
+        if ev.isAutoRepeat() or ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
             return
         try:
             note, octave = self._note_input.get_note(ev.key())
