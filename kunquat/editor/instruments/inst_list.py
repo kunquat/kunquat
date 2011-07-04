@@ -59,6 +59,8 @@ class InstList(QtGui.QTableWidget):
     def name_changed(self, num, col):
         assert num >= 0
         assert num < lim.INSTRUMENTS_MAX
+        if self._signal:
+            return
         item = self.item(num, 0)
         key = 'ins_{0:02x}/kqti00/m_name.json'.format(num)
         if item:
@@ -67,6 +69,7 @@ class InstList(QtGui.QTableWidget):
             self._project[key] = None
 
     def sync(self):
+        self._signal = True
         for i in xrange(lim.INSTRUMENTS_MAX):
             name = self._project['ins_{0:02x}/kqti00/m_name.json'.format(i)]
             if name:
@@ -80,5 +83,6 @@ class InstList(QtGui.QTableWidget):
                 item = self.item(i, 0)
                 if item:
                     item.setText('')
+        self._signal = False
 
 
