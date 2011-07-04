@@ -137,7 +137,7 @@ class PeakMeter(QtGui.QWidget):
         #print(self._prev_level)
         #if self._level[0].qsize() < 10:
         #    wait *= 1.5
-        if self._level[0].qsize() > 15:
+        if self._level[0].qsize() > 10:
             self._level[0].get()
             self._level[1].get()
         if nframes:
@@ -156,6 +156,7 @@ class PeakMeter(QtGui.QWidget):
                            self.width() - width, self._thickness, clip_colour)
 
         paint.end()
+        #print(self._level[0].qsize())
 
     def resizeEvent(self, ev):
         self.update()
@@ -166,12 +167,14 @@ class PeakMeter(QtGui.QWidget):
 
     def set_peaks(self, dB_l, dB_r, abs_l, abs_r, nframes):
         #print(dB_l, dB_r)
-        self._level[0].put((dB_l, nframes))
-        self._level[1].put((dB_r, nframes))
         if abs_l > 1:
             self._clipped[0] = True
         if abs_r > 1:
             self._clipped[1] = True
         self._updating = True
+        if self._level[0].qsize() > 20:
+            return
+        self._level[0].put((dB_l, nframes))
+        self._level[1].put((dB_r, nframes))
 
 
