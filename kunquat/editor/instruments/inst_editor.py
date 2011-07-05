@@ -26,7 +26,10 @@ class InstEditor(QtGui.QWidget):
 
         self._project = project
         self._cur_inst = instrument_spin.value()
-        layout = QtGui.QVBoxLayout(self)
+        top_layout = QtGui.QVBoxLayout(self)
+        top_layout.setMargin(0)
+        top_layout.setSpacing(0)
+        layout = QtGui.QHBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(0)
 
@@ -55,11 +58,20 @@ class InstEditor(QtGui.QWidget):
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
 
-        #layout.addWidget(envelope.Envelope(project), 0) # XXX: remove
-
         QtCore.QObject.connect(instrument_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.inst_changed)
+
+        top_layout.addLayout(layout)
+
+        tabs = QtGui.QTabWidget()
+        tabs.addTab(QtGui.QWidget(), 'Force')
+        tabs.addTab(QtGui.QWidget(), 'Panning')
+        tabs.addTab(QtGui.QWidget(), 'Filter')
+        tabs.addTab(QtGui.QWidget(), 'Generators')
+        tabs.addTab(QtGui.QWidget(), 'Effects')
+        tabs.addTab(QtGui.QWidget(), 'Connections')
+        top_layout.addWidget(tabs)
 
     def inst_changed(self, num):
         self._cur_inst = num
