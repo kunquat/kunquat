@@ -13,7 +13,7 @@
 
 from __future__ import division
 from __future__ import print_function
-from Queue import Queue
+#from Queue import Queue
 
 from PyQt4 import QtCore, QtGui
 
@@ -39,25 +39,28 @@ class PeakMeter(QtGui.QWidget):
         self._clip_width = 20
         self._lowest = lowest
         self._highest = highest
-        self._level = [Queue(), Queue()]
-        self._prev_level = [float('-inf'), float('-inf')]
-        self._update_timer = QtCore.QTimer(self)
-        QtCore.QObject.connect(self._update_timer, QtCore.SIGNAL('timeout()'),
-                               self.update)
-        self._update_timer.setSingleShot(True)
-        self._updating_ = False
+        self._level = [float('-inf'), float('-inf')]
+        #self._prev_level = [float('-inf'), float('-inf')]
+        #self._update_timer = QtCore.QTimer(self)
+        #QtCore.QObject.connect(self._update_timer, QtCore.SIGNAL('timeout()'),
+        #                       self.update)
+        #self._update_timer.setSingleShot(True)
+        #self._updating_ = False
         #self._update_timer.start(10)
         self._clipped = [False, False]
         self._hold_limit = mix_rate
         self._holds = [[PeakMeter.SILENCE, self._hold_limit],
                        [PeakMeter.SILENCE, self._hold_limit]]
+        self._nframes = 0
 
     @property
     def _updating(self):
+        return False
         return self._updating_
 
     @_updating.setter
     def _updating(self, value):
+        return
         if value:
             if not self._updating_:
                 self._updating_ = True
@@ -98,16 +101,16 @@ class PeakMeter(QtGui.QWidget):
         for y in (left_start, right_start):
             paint.fillRect(0, y, width, self._thickness, grad)
 
-        nframes = 0
-        for ch in (0, 1):
-            if self._level[ch].empty():
-                level = self._prev_level[ch]
-                self._updating = False
-            else:
-                level, nframes = self._level[ch].get()
-                self._prev_level[ch] = level
-            if not nframes:
-                level = float('-inf')
+        #nframes = 0
+        for ch, level in enumerate(self._level):
+            #if self._level[ch].empty():
+            #    level = self._prev_level[ch]
+            #    self._updating = False
+            #else:
+            #    level, nframes = self._level[ch].get()
+            #    self._prev_level[ch] = level
+            #if not nframes:
+            #    level = float('-inf')
             y_offset = ch * (self._thickness + self._padding)
             grad.setColorAt(0, self._colours['low'])
             grad.setColorAt(mid_point, self._colours['mid'])
@@ -118,6 +121,20 @@ class PeakMeter(QtGui.QWidget):
                           (self._highest - self._lowest))
                 paint.fillRect(0, y_offset,
                                width * filled, self._thickness, grad)
+            hold = self._holds[ch]
+            if hold[0] <= level or self._nframes - hold[1] >= self._hold_limit:
+                hold[0] = level
+                hold[1] = self._nframes
+            peak_pos = ((hold[0] - self._lowest) /
+                        (self._highest - self._lowest)) * width
+            if peak_pos > 0:
+                peak_width = self._thickness * 2
+                peak_pos -= peak_width
+                peak_width += min(0, peak_pos)
+                peak_pos = max(0, peak_pos)
+                paint.fillRect(peak_pos, y_offset, peak_width,
+                               self._thickness, grad)
+            """
             if nframes:
                 hold = self._holds[ch]
                 if hold[1] >= self._hold_limit or hold[0] <= level:
@@ -133,19 +150,20 @@ class PeakMeter(QtGui.QWidget):
                     paint.fillRect(peak_pos, y_offset, peak_width,
                                    self._thickness, grad)
                 hold[1] += nframes
-        wait = (nframes / self._mix_rate) * 950
+            """
+        #wait = (nframes / self._mix_rate) * 950
         #print(self._prev_level)
         #if self._level[0].qsize() < 10:
         #    wait *= 1.5
-        if self._level[0].qsize() > 10:
-            self._level[0].get()
-            self._level[1].get()
-        if nframes:
-            assert self._update_timer.isSingleShot()
-            QtCore.QTimer.singleShot(wait, self, QtCore.SLOT('update()'))
-            #self._update_timer.start((nframes / self._mix_rate) * 950)
-        else:
-            self._updating = False
+        #if self._level[0].qsize() > 10:
+        #    self._level[0].get()
+        #    self._level[1].get()
+        #if nframes:
+        #    assert self._update_timer.isSingleShot()
+        #    QtCore.QTimer.singleShot(wait, self, QtCore.SLOT('update()'))
+        #    #self._update_timer.start((nframes / self._mix_rate) * 950)
+        #else:
+        #    self._updating = False
 
         for ch in (0, 1):
             if self._clipped[ch]:
@@ -172,9 +190,13 @@ class PeakMeter(QtGui.QWidget):
         if abs_r > 1:
             self._clipped[1] = True
         self._updating = True
-        if self._level[0].qsize() > 20:
-            return
-        self._level[0].put((dB_l, nframes))
-        self._level[1].put((dB_r, nframes))
+        self._level[0] = dB_l
+        self._level[1] = dB_r
+        self._nframes += nframes
+        self.update()
+        #if self._level[0].qsize() > 20:
+        #    return
+        #self._level[0].put((dB_l, nframes))
+        #self._level[1].put((dB_r, nframes))
 
 
