@@ -242,7 +242,7 @@ class Project(QtCore.QObject):
     def clear(self):
         """Removes all composition data (but not the history).
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         """
@@ -258,7 +258,7 @@ class Project(QtCore.QObject):
     def remove_dir(self, directory):
         """Removes a directory inside a composition.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         """
@@ -281,7 +281,7 @@ class Project(QtCore.QObject):
     def export_kqt(self, dest):
         """Exports the composition in the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         Arguments:
@@ -319,10 +319,61 @@ class Project(QtCore.QObject):
                 tfile.close()
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
+    def export_kqti(self, index, dest):
+        """Exports an instrument in the Project.
+
+        NOTE: this function returns immediately.  Do not access the
+              Project again until it emits the endTask() signal.
+
+        Arguments:
+        index -- The instrument number -- must be >= 0 and
+                 < lim.INSTRUMENTS_MAX.
+        dest  -- The destination file name.  If the name contains '.gz'
+                 or '.bz2' as a suffix, the file will be compressed
+                 using, respectively, gzip or bzip2.
+
+        """
+        self._process.process(self._export_kqti, index, dest)
+
+    def _export_kqti(self, index, dest):
+        root = 'kqtc{0}/'.format(lim.FORMAT_VERSION)
+        ins_root = 'ins_{0:02x}/'.format(index)
+        compression = ''
+        if dest.endswith('.gz'):
+            compression = 'gz'
+        elif dest.endswith('.bz2'):
+            compression = 'bz2'
+        tfile = None
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
+                            len(self._keys))
+        try:
+            tfile = tarfile.open(dest, 'w:' + compression,
+                                 format=tarfile.USTAR_FORMAT)
+            keys = [k for k in self._keys if k.startswith(ins_root)]
+            for key in keys:
+                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
+                        'Exporting instrument {0} ({1}) ...'.format(index, key))
+                name = key[len(ins_root):]
+                kfile = KeyFile(name, self._handle[key])
+                info = tarfile.TarInfo()
+                info.name = name
+                info.size = kfile.size
+                info.mtime = int(time.mktime(time.localtime(time.time())))
+                tfile.addfile(info, fileobj=kfile)
+            if not keys:
+                info = tarfile.TarInfo('kqti{0}'.format(lim.FORMAT_VERSION))
+                info.type = tarfile.DIRTYPE
+                info.mtime = int(time.mktime(time.localtime(time.time())))
+                tfile.addfile(info)
+        finally:
+            if tfile:
+                tfile.close()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+
     def import_kqt(self, src):
         """Imports a composition into the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         This function will replace any composition data the Project
@@ -389,11 +440,11 @@ class Project(QtCore.QObject):
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         Arguments:
-        index -- The index of the new instrument. Any existing
+        index -- The index of the new instrument.  Any existing
                  instrument data will be removed before loading.
         src   -- The source file name.
 
@@ -467,12 +518,12 @@ class Project(QtCore.QObject):
     def import_kqte(self, base, index, src):
         """Imports a Kunquat effect into the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         Arguments:
         base  -- The base key path of the effect.
-        index -- The index of the new effect. Any existing effect data
+        index -- The index of the new effect.  Any existing effect data
                  will be removed before loading.
         src   -- The source file name.
 
@@ -566,7 +617,7 @@ class Project(QtCore.QObject):
     def undo(self):
         """Undoes a change made in the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         """
@@ -579,11 +630,11 @@ class Project(QtCore.QObject):
     def redo(self, branch=None):
         """Redoes a change made in the Project.
 
-        NOTE: this function returns immediately. Do not access the
+        NOTE: this function returns immediately.  Do not access the
               Project again until it emits the endTask() signal.
 
         Optional arguments:
-        branch -- The branch of changes to follow. The default is
+        branch -- The branch of changes to follow.  The default is
                   None, in which case the last change used will be
                   selected.
 
@@ -804,7 +855,7 @@ class Step(object):
         """Return the name of the step.
 
         Return value:
-        The name of the step. The default name is generated based on
+        The name of the step.  The default name is generated based on
         the modified keys.
 
         """
