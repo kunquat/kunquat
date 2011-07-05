@@ -242,17 +242,20 @@ class KqtEditor(QtGui.QMainWindow):
         self.bufs = (None, None)
 
     def play_subsong(self, subsong):
+        self._peak_meter.reset()
         self.handle.nanoseconds = 0
         self.handle.subsong = subsong
         self.playing = True
 
     def play_pattern(self, pattern):
+        self._peak_meter.reset()
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
 
     def play_from(self, subsong, section, beats, rem):
+        self._peak_meter.reset()
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
