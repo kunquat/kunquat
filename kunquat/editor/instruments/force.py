@@ -51,7 +51,10 @@ class Force(QtGui.QWidget):
         layout.addWidget(self._force)
         layout.addWidget(self._force_var)
         layout.addWidget(self._env_force_rel, 1)
-        self._widgets = [self._force, self._force_var]
+        self._widgets = [self._force,
+                         self._force_var,
+                         self._env_force_rel,
+                        ]
 
     def inst_changed(self, num):
         self._cur_inst = num
