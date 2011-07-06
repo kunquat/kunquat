@@ -186,6 +186,10 @@ class Pattern(QtGui.QWidget):
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.2
 
+        self.setAutoFillBackground(False)
+        self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
+        self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+
     def autoinst_changed(self, value):
         if value:
             self.cursor.inst_auto = True
