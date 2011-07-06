@@ -36,7 +36,7 @@ struct Instrument
 
     Connections* connections;
 
-    double default_force;       ///< Default force.
+//    double default_force;       ///< Default force.
 
     Scale** scales;             ///< The Scales of the Song.
     Scale*** default_scale;     ///< The default Scale of the Song.
@@ -108,7 +108,7 @@ Instrument* new_Instrument(uint32_t buf_len,
         return NULL;
     }
 
-    ins->default_force = INS_DEFAULT_FORCE;
+//    ins->default_force = INS_DEFAULT_FORCE;
     ins->params.force_variation = INS_DEFAULT_FORCE_VAR;
 
     ins->scales = scales;
@@ -206,7 +206,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
             }
         }
     }
-    ins->default_force = default_force;
+    ins->params.force = default_force;
     ins->params.force_variation = force_variation;
 #if 0
     ins->params.pitch_lock_enabled = pitch_lock_enabled;

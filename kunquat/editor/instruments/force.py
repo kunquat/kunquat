@@ -28,6 +28,15 @@ class Force(QtGui.QWidget):
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
+        self._force = ParamSlider(project,
+                                  'Default force:',
+                                  (-96, 8),
+                                  0,
+                                  'ins_00/kqti{0}/p_instrument.json'.format(
+                                          lim.FORMAT_VERSION),
+                                  'force',
+                                  decimals=1,
+                                  unit='dB')
         self._force_var = ParamSlider(project,
                                       'Force variation:',
                                       (0, 48),
@@ -37,14 +46,18 @@ class Force(QtGui.QWidget):
                                       'force_variation',
                                       decimals=1,
                                       unit='dB')
+        layout.addWidget(self._force)
         layout.addWidget(self._force_var)
+        self._widgets = [self._force, self._force_var]
 
     def inst_changed(self, num):
         self._cur_inst = num
-        self._force_var.set_key('ins_{0:02x}/kqti{1}/p_instrument.json'.format(
-                                self._cur_inst, lim.FORMAT_VERSION))
+        for widget in self._widgets:
+            widget.set_key('ins_{0:02x}/kqti{1}/p_instrument.json'.format(
+                           self._cur_inst, lim.FORMAT_VERSION))
 
     def sync(self):
-        self._force_var.sync()
+        for widget in self._widgets:
+            widget.sync()
 
 

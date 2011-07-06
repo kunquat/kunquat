@@ -132,6 +132,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         vs->orig_cents = data[0].field.double_type;
 
         vs->pedal = &voice->gen->ins_params->pedal;
+        vs->force = exp2(voice->gen->ins_params->force / 6);
         if (voice->gen->ins_params->force_variation != 0)
         {
             if (isnan(force_var))

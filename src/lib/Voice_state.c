@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -98,7 +98,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
-    
+
     state->pedal = NULL;
     state->fe_pos = 0;
     state->fe_next_node = 0;

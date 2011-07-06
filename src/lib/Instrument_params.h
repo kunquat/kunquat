@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -39,7 +39,7 @@ typedef struct Instrument_params
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
-//    double force;                  ///< Force.
+    double force;                  ///< Force.
     double force_variation;        ///< Force variation.
 
     Pitch_lock pitch_locks[KQT_GENERATORS_MAX];
