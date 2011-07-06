@@ -23,7 +23,9 @@ import kunquat
 
 class Envelope(QtGui.QWidget):
 
-    def __init__(self, project, parent=None):
+    def __init__(self,
+                 project,
+                 parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._colours = {
@@ -49,7 +51,7 @@ class Envelope(QtGui.QWidget):
         self._nodes_max = 16
         self._marks = []
         self._nodes = [(0, 0), (0.4, 0.8), (1, 1)]
-        self._smooth = True
+        self._smooth = False
         self._haxis = HAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
         self._vaxis = VAxis(self._colours, self._fonts,
@@ -59,6 +61,9 @@ class Envelope(QtGui.QWidget):
         self._drag = False
         self._drag_offset = (0, 0)
         self.setMouseTracking(True)
+        self.setAutoFillBackground(False)
+        self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
+        self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
     def keyPressEvent(self, ev):
         pass
@@ -79,19 +84,19 @@ class Envelope(QtGui.QWidget):
                 self._nodes[self._focus_index:self._focus_index + 1] = []
                 self._focus_index = -1
                 self._drag = False
-                self.update()
+                self._slow_update()
                 return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
             self._focus_node = self._nodes[self._focus_index]
-            self.update()
+            self._slow_update()
             return
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if focus_node != self._focus_node:
             self._focus_node = focus_node
             self._focus_index = index
-            self.update()
+            self._slow_update()
 
     def mousePressEvent(self, ev):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
@@ -200,7 +205,7 @@ class Envelope(QtGui.QWidget):
         nurbs = Nurbs(2, self._nodes)
         start_x = int(self._view_x(self._nodes[0][0]))
         end_x = int(self._view_x(self._nodes[-1][0]))
-        curve_width = end_x - start_x
+        curve_width = min(end_x - start_x, 100)
         line = QtGui.QPolygonF()
         for pos in xrange(curve_width + 1):
             x, y = nurbs.get_point(pos / curve_width)
@@ -224,6 +229,9 @@ class Envelope(QtGui.QWidget):
             if p == self._focus_node:
                 paint.setBrush(self._colours['node'])
 
+    def _slow_update(self):
+        self.update()
+
     def _val_x(self, x):
         return (x - self._vaxis.width) / self._layout['zoom'][0]
 
@@ -239,7 +247,10 @@ class Envelope(QtGui.QWidget):
                self._layout['zoom'][1] * (self._max[1] - y)
 
     def resizeEvent(self, ev):
-        pass
+        x_space = self.width() - self._vaxis.width - self._layout['padding']
+        y_space = self.height() - self._haxis.height - self._layout['padding']
+        self._layout['zoom'] = (x_space / (self._max[0] - self._min[0]),
+                                y_space / (self._max[1] - self._min[1]))
 
 
 class Nurbs(object):
