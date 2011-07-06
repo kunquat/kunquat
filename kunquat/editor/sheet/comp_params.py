@@ -14,7 +14,7 @@
 from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.kqt_limits as lim
-from param_slider import ParamSlider
+from kunquat.editor.param_slider import ParamSlider
 
 
 class CompParams(QtGui.QWidget):

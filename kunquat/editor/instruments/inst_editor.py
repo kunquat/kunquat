@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
+import force
 import kunquat.editor.kqt_limits as lim
 #import kunquat.editor.envelope as envelope
 
@@ -65,7 +66,8 @@ class InstEditor(QtGui.QWidget):
         top_layout.addLayout(layout)
 
         tabs = QtGui.QTabWidget()
-        tabs.addTab(QtGui.QWidget(), 'Force')
+        self._force = force.Force(project)
+        tabs.addTab(self._force, 'Force')
         tabs.addTab(QtGui.QWidget(), 'Panning')
         tabs.addTab(QtGui.QWidget(), 'Filter')
         tabs.addTab(QtGui.QWidget(), 'Generators')
@@ -75,6 +77,7 @@ class InstEditor(QtGui.QWidget):
 
     def inst_changed(self, num):
         self._cur_inst = num
+        self._force.inst_changed(num)
 
     def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
@@ -108,7 +111,6 @@ class InstEditor(QtGui.QWidget):
         self._project.remove_dir('ins_{0:02x}'.format(self._cur_inst))
 
     def sync(self):
-        # TODO
-        pass
+        self._force.sync()
 
 
