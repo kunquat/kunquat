@@ -17,6 +17,7 @@ from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
 from kunquat.editor.envelope import Envelope
+from kunquat.editor.param_check import ParamCheck
 from kunquat.editor.param_slider import ParamSlider
 
 
@@ -35,7 +36,12 @@ class EnvForceRel(QtGui.QWidget):
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
         label = QtGui.QLabel('Force release envelope')
-        self._enabled = QtGui.QCheckBox('Enabled')
+        self._enabled = ParamCheck(project,
+                                   'Enabled',
+                                   False,
+                                   self._key_base.format(self._cur_inst,
+                                                         lim.FORMAT_VERSION),
+                                   'enabled')
         self._scale_amount = ParamSlider(project,
                                          'Scale amount:',
                                          (-16, 16),
@@ -61,7 +67,8 @@ class EnvForceRel(QtGui.QWidget):
         layout.addLayout(top_layout)
         layout.addWidget(self._env, 1)
 
-        self._widgets = [self._scale_amount,
+        self._widgets = [self._enabled,
+                         self._scale_amount,
                          self._scale_center]
 
     def inst_changed(self, num):

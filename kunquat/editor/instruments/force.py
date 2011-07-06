@@ -51,19 +51,20 @@ class Force(QtGui.QWidget):
         layout.addWidget(self._force)
         layout.addWidget(self._force_var)
         layout.addWidget(self._env_force_rel, 1)
-        self._widgets = [self._force,
+        self._sliders = [self._force,
                          self._force_var,
-                         self._env_force_rel,
                         ]
 
     def inst_changed(self, num):
         self._cur_inst = num
-        for widget in self._widgets:
+        for widget in self._sliders:
             widget.set_key('ins_{0:02x}/kqti{1}/p_instrument.json'.format(
                            self._cur_inst, lim.FORMAT_VERSION))
+        self._env_force_rel.inst_changed(num)
 
     def sync(self):
-        for widget in self._widgets:
+        for widget in self._sliders:
             widget.sync()
+        self._env_force_rel.sync()
 
 
