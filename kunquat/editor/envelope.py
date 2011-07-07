@@ -130,6 +130,8 @@ class Envelope(QtGui.QWidget):
     def mousePressEvent(self, ev):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if not focus_node:
+            if len(self._nodes) == self._nodes_max:
+                return
             focus_node = self._val_x(ev.x()), self._val_y(ev.y())
             if not self._min[0] <= focus_node[0] <= self._max[0] or \
                     not self._min[1] <= focus_node[1] <= self._max[1]:
@@ -214,9 +216,9 @@ class Envelope(QtGui.QWidget):
             resize = False
             threshold = min_x + 0.5 * (max_x - min_x)
             downscale = 1 / upscale
-            if pos[0] < threshold:
+            if pos[0] < threshold and max_x > 1:
                 resize = True
-                max_x = min_x + (max_x - min_x) * downscale
+                max_x = max(min_x + (max_x - min_x) * downscale, 1)
             if resize:
                 self._visible_max = max_x, max_y
                 self.resizeEvent(None)
@@ -415,6 +417,8 @@ class HAxis(Axis):
         start = QtCore.QPointF(self._x_zero_offset + 0.5, y_pos)
         end = QtCore.QPointF(self._x_zero_offset + self._max[0] *
                              self._layout['zoom'][0] + 0.5, y_pos)
+        if end.x() == float('inf'):
+            end.setX(50000)
         paint.drawLine(start, end)
 
     @property

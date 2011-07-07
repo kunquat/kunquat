@@ -64,7 +64,7 @@ class EnvForceRel(QtGui.QWidget):
         top_layout.addWidget(self._scale_amount)
         top_layout.addWidget(self._scale_center)
         self._env = Envelope(project,
-                             (0, 10),
+                             (0, float('inf')),
                              (0, 1),
                              (True, False),
                              (False, True),
