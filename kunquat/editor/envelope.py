@@ -25,7 +25,34 @@ class Envelope(QtGui.QWidget):
 
     def __init__(self,
                  project,
+                 x_range,
+                 y_range,
+                 x_lock,
+                 y_lock,
+                 default_val,
+                 nodes_max,
+                 key,
+                 dict_key=None,
+                 step=(0.0001, 0.0001),
+                 init_x_view=None,
+                 init_y_view=None,
                  parent=None):
+        assert x_range[0] < x_range[1]
+        assert y_range[0] < y_range[1]
+        assert len(x_lock) == 2
+        assert len(y_lock) == 2
+        assert len(default_val) >= 2
+        assert all(x_range[0] <= n[0] <= x_range[1] and
+                   y_range[0] <= n[1] <= y_range[1]
+                   for n in default_val)
+        assert step[0] > 0
+        assert step[1] > 0
+        if not init_x_view:
+            init_x_view = default_val[0][0], default_val[-1][0]
+        if not init_y_view:
+            y_min = min(n[1] for n in default_val)
+            y_max = max(n[1] for n in default_val)
+            init_y_view = y_min, y_max
         QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._colours = {
@@ -43,14 +70,16 @@ class Envelope(QtGui.QWidget):
                 'padding': 8,
                 'zoom': (200, 200),
                 }
-        self._min = (0, 0)
-        self._max = (1, 1)
-        self._first_locked = (True, False)
-        self._last_locked = (True, False)
-        self._step = (0.001, 0.001)
-        self._nodes_max = 16
+        self._visible_min = init_x_view[0], init_y_view[0]
+        self._visible_max = init_x_view[1], init_y_view[1]
+        self._min = x_range[0], y_range[0]
+        self._max = x_range[1], y_range[1]
+        self._first_locked = x_lock[0], y_lock[0]
+        self._last_locked = x_lock[1], y_lock[1]
+        self._step = step
+        self._nodes_max = nodes_max
         self._marks = []
-        self._nodes = [(0, 0), (0.4, 0.8), (1, 1)]
+        self._nodes = default_val
         self._smooth = False
         self._haxis = HAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
@@ -161,6 +190,37 @@ class Envelope(QtGui.QWidget):
                max(min_y, min(max_y, pos[1])))
         self._nodes[index] = pos
 
+        resize = False
+        min_x, min_y = self._visible_min
+        max_x, max_y = self._visible_max
+        upscale = 1.05
+        if pos[0] < min_x:
+            resize = True
+            min_x = pos[0] * upscale
+        if pos[0] > max_x:
+            resize = True
+            max_x = pos[0] * upscale
+        if pos[1] < min_y:
+            resize = True
+            min_y = pos[1] * upscale
+        if pos[1] > max_y:
+            resize = True
+            max_y = pos[1] * upscale
+        if resize:
+            self._visible_min = min_x, min_y
+            self._visible_max = max_x, max_y
+            self.resizeEvent(None)
+        if index == len(self._nodes) - 1:
+            resize = False
+            threshold = min_x + 0.5 * (max_x - min_x)
+            downscale = 1 / upscale
+            if pos[0] < threshold:
+                resize = True
+                max_x = min_x + (max_x - min_x) * downscale
+            if resize:
+                self._visible_max = max_x, max_y
+                self.resizeEvent(None)
+
     def _node_at(self, x, y):
         closest = self._nodes[0]
         closest_dist = math.hypot(self._view_x(closest[0]) - x,
@@ -249,8 +309,10 @@ class Envelope(QtGui.QWidget):
     def resizeEvent(self, ev):
         x_space = self.width() - self._vaxis.width - self._layout['padding']
         y_space = self.height() - self._haxis.height - self._layout['padding']
-        self._layout['zoom'] = (x_space / (self._max[0] - self._min[0]),
-                                y_space / (self._max[1] - self._min[1]))
+        self._layout['zoom'] = (x_space / (self._visible_max[0] -
+                                           self._visible_min[0]),
+                                y_space / (self._visible_max[1] -
+                                           self._visible_min[1]))
 
 
 class Nurbs(object):

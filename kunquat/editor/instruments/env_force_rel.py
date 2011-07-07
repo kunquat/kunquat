@@ -35,7 +35,7 @@ class EnvForceRel(QtGui.QWidget):
         top_layout = QtGui.QHBoxLayout()
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
-        label = QtGui.QLabel('Force release envelope')
+        label = QtGui.QLabel('Force release envelope:')
         self._enabled = ParamCheck(project,
                                    'Enabled',
                                    False,
@@ -63,7 +63,16 @@ class EnvForceRel(QtGui.QWidget):
         top_layout.addWidget(self._enabled)
         top_layout.addWidget(self._scale_amount)
         top_layout.addWidget(self._scale_center)
-        self._env = Envelope(project)
+        self._env = Envelope(project,
+                             (0, 10),
+                             (0, 1),
+                             (True, False),
+                             (False, True),
+                             [(0, 1), (1, 0)],
+                             32,
+                             self._key_base.format(self._cur_inst,
+                                                   lim.FORMAT_VERSION),
+                             'envelope')
         layout.addLayout(top_layout)
         layout.addWidget(self._env, 1)
 
