@@ -78,7 +78,8 @@ class EnvForceRel(QtGui.QWidget):
 
         self._widgets = [self._enabled,
                          self._scale_amount,
-                         self._scale_center]
+                         self._scale_center,
+                         self._env]
 
     def inst_changed(self, num):
         self._cur_inst = num

@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import copy
 from itertools import takewhile
 import math
 
@@ -55,6 +56,8 @@ class Envelope(QtGui.QWidget):
             init_y_view = y_min, y_max
         QtGui.QWidget.__init__(self, parent)
         self._project = project
+        self._key = key
+        self._dict_key = dict_key
         self._colours = {
                 'bg': QtGui.QColor(0, 0, 0),
                 'axis': QtGui.QColor(0xaa, 0xaa, 0xaa),
@@ -79,6 +82,7 @@ class Envelope(QtGui.QWidget):
         self._step = step
         self._nodes_max = nodes_max
         self._marks = []
+        self._default_val = default_val
         self._nodes = default_val
         self._smooth = False
         self._haxis = HAxis(self._colours, self._fonts,
@@ -87,6 +91,7 @@ class Envelope(QtGui.QWidget):
                             self._min, self._max, self._layout)
         self._focus_node = None
         self._focus_index = -1
+        self._focus_old_node = None
         self._drag = False
         self._drag_offset = (0, 0)
         self.setMouseTracking(True)
@@ -94,12 +99,30 @@ class Envelope(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
+    def set_key(self, key):
+        value = {}
+        if self._dict_key:
+            d = self._project[key]
+            if d and self._dict_key in d:
+                value = self._project[key][self._dict_key]
+        else:
+            actual = self._project[key]
+            if actual != None:
+                value = actual
+        self._nodes = value['nodes'] if 'nodes' in value else self._default_val
+        self._marks = value['marks'] if 'marks' in value else []
+        self.resizeEvent(None)
+        self.update()
+
+    def sync(self):
+        self.set_key(self._key)
+
     def keyPressEvent(self, ev):
         pass
 
     def mouseMoveEvent(self, ev):
         if self._drag:
-            keep_margin = 200
+            keep_margin = 150
             keep_top_left = \
                     QtCore.QPointF(self._view_x(self._min[0]) - keep_margin,
                                    self._view_y(self._max[1]) - keep_margin)
@@ -156,6 +179,8 @@ class Envelope(QtGui.QWidget):
             if not self._min[0] <= focus_node[0] <= self._max[0]:
                 return
             self._nodes[index:index] = [focus_node]
+        else:
+            self._focus_old_node = focus_node
         self._focus_node = focus_node
         self._focus_index = index
         self._drag = True
@@ -169,6 +194,8 @@ class Envelope(QtGui.QWidget):
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
             self._drag = False
+            self._finished()
+            self._focus_old_node = None
             self.update()
 
     def _move_node(self, index, pos):
@@ -191,7 +218,49 @@ class Envelope(QtGui.QWidget):
         pos = (max(min_x, min(max_x, pos[0])),
                max(min_y, min(max_y, pos[1])))
         self._nodes[index] = pos
+        self._value_changed()
+        self._adjust_view(pos)
 
+    def _value_changed(self):
+        value = { 'nodes': self._nodes }
+        if self._marks:
+            value['marks'] = self._marks
+        if self._dict_key:
+            d = self._project[self._key]
+            if d == None:
+                d = {}
+            d[self._dict_key] = value
+            self._project.set(self._key, d)
+        else:
+            self._project.set(self._key, value)
+
+    def _finished(self):
+        value = { 'nodes': self._nodes }
+        if self._marks:
+            value['marks'] = self._marks
+        if self._dict_key:
+            d = self._project[self._key]
+            if d == None:
+                d = {}
+            d[self._dict_key] = value
+            old_d = copy.deepcopy(d)
+            if self._focus_old_node:
+                old_d[self._dict_key]['nodes'][self._focus_index] = \
+                        self._focus_old_node
+            else:
+                old_d[self._dict_key]['nodes'][self._focus_index:
+                                               self._focus_index + 1] = []
+            self._project.set(self._key, d, old_d)
+        else:
+            old_value = copy.deepcopy(value)
+            if self._focus_old_node:
+                old_value['nodes'][self._focus_index] = self._focus_old_node
+            else:
+                old_value['nodes'][self._focus_index:
+                                   self._focus_index + 1] = []
+            self._project.set(self._key, value, old_value)
+
+    def _adjust_view(self, pos):
         resize = False
         min_x, min_y = self._visible_min
         max_x, max_y = self._visible_max
@@ -212,7 +281,7 @@ class Envelope(QtGui.QWidget):
             self._visible_min = min_x, min_y
             self._visible_max = max_x, max_y
             self.resizeEvent(None)
-        if index == len(self._nodes) - 1:
+        if pos == self._nodes[-1]:
             resize = False
             threshold = min_x + 0.5 * (max_x - min_x)
             downscale = 1 / upscale
