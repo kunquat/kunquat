@@ -258,7 +258,13 @@ void Generator_common_handle_force(Generator* gen,
             }
             Envelope* env = gen->ins_params->env_force_rel;
             double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
-            assert(next_node != NULL);
+            if (next_node == NULL)
+            {
+                // This may occur if the user removes nodes during playback
+                next_node = Envelope_get_node(env,
+                                              Envelope_node_count(env) - 1);
+                assert(next_node != NULL);
+            }
             double scale = NAN;
             if (state->rel_fe_pos >= next_node[0])
             {
