@@ -137,7 +137,7 @@ void Generator_common_handle_force(Generator* gen,
     {
         state->force = Slider_step(&state->force_slider);
     }
-    state->actual_force = state->force;
+    state->actual_force = state->force * gen->ins_params->global_force;
     if (LFO_active(&state->tremolo))
     {
         state->actual_force *= LFO_step(&state->tremolo);

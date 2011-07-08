@@ -39,7 +39,8 @@ typedef struct Instrument_params
 
     double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
 
-    double force;                  ///< Force.
+    double global_force;           ///< Global force.
+    double force;                  ///< Default force.
     double force_variation;        ///< Force variation.
 
     Pitch_lock pitch_locks[KQT_GENERATORS_MAX];

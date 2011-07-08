@@ -26,15 +26,24 @@ class Force(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self._cur_inst = 0
         self._project = project
+        self._inst_key = 'ins_{{0:02x}}/kqti{0}/p_instrument.json'.format(
+                                 lim.FORMAT_VERSION)
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
+        self._gforce = ParamSlider(project,
+                                   'Global force:',
+                                   (-96, 8),
+                                   0,
+                                   self._inst_key.format(self._cur_inst),
+                                   'global_force',
+                                   decimals=1,
+                                   unit='dB')
         self._force = ParamSlider(project,
                                   'Default force:',
                                   (-96, 8),
                                   0,
-                                  'ins_00/kqti{0}/p_instrument.json'.format(
-                                          lim.FORMAT_VERSION),
+                                  self._inst_key.format(self._cur_inst),
                                   'force',
                                   decimals=1,
                                   unit='dB')
@@ -42,24 +51,24 @@ class Force(QtGui.QWidget):
                                       'Force variation:',
                                       (0, 48),
                                       0,
-                                      'ins_00/kqti{0}/p_instrument.json'.format(
-                                              lim.FORMAT_VERSION),
+                                      self._inst_key.format(self._cur_inst),
                                       'force_variation',
                                       decimals=1,
                                       unit='dB')
         self._env_force_rel = EnvForceRel(project)
+        layout.addWidget(self._gforce)
         layout.addWidget(self._force)
         layout.addWidget(self._force_var)
         layout.addWidget(self._env_force_rel, 1)
-        self._sliders = [self._force,
+        self._sliders = [self._gforce,
+                         self._force,
                          self._force_var,
                         ]
 
     def inst_changed(self, num):
         self._cur_inst = num
         for widget in self._sliders:
-            widget.set_key('ins_{0:02x}/kqti{1}/p_instrument.json'.format(
-                           self._cur_inst, lim.FORMAT_VERSION))
+            widget.set_key(self._inst_key.format(self._cur_inst))
         self._env_force_rel.inst_changed(num)
 
     def sync(self):

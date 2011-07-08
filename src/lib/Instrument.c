@@ -127,6 +127,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     {
         return false;
     }
+    double global_force = 1;
     double default_force = INS_DEFAULT_FORCE;
     double force_variation = INS_DEFAULT_FORCE_VAR;
 #if 0
@@ -162,6 +163,10 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
                 else if (string_eq(key, "force_variation"))
                 {
                     str = read_double(str, &force_variation, state);
+                }
+                else if (string_eq(key, "global_force"))
+                {
+                    str = read_double(str, &global_force, state);
                 }
 #if 0
                 else if (string_eq(key, "pitch_lock"))
@@ -208,6 +213,7 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state)
     }
     ins->params.force = default_force;
     ins->params.force_variation = force_variation;
+    ins->params.global_force = exp2(global_force / 6);
 #if 0
     ins->params.pitch_lock_enabled = pitch_lock_enabled;
     ins->params.pitch_lock_cents = pitch_lock_cents;

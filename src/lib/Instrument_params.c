@@ -52,6 +52,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
     ip->pedal = 0;
     ip->volume = 1;
+    ip->global_force = 1;
     ip->force = 0;
     ip->force_variation = 0;
 
