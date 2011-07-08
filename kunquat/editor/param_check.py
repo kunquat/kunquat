@@ -64,9 +64,9 @@ class ParamCheck(QtGui.QCheckBox):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project.set(self._key, d)
+            self._project[self._key] = d
         else:
-            self._project.set(self._key, value)
+            self._project[self._key] = value
         self._value = value
 
 
