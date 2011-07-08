@@ -27,7 +27,8 @@ class EnvForceRel(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self._cur_inst = 0
         self._project = project
-        self._key_base = 'ins_{0:02x}/kqti{1}/p_envelope_force_release.json'
+        self._key_base = 'ins_{{0:02x}}/kqti{0}/p_envelope_force_release.json'.format(
+                                 lim.FORMAT_VERSION)
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -39,23 +40,20 @@ class EnvForceRel(QtGui.QWidget):
         self._enabled = ParamCheck(project,
                                    'Enabled',
                                    False,
-                                   self._key_base.format(self._cur_inst,
-                                                         lim.FORMAT_VERSION),
+                                   self._key_base.format(self._cur_inst),
                                    'enabled')
         self._scale_amount = ParamSlider(project,
                                          'Scale amount:',
                                          (-16, 16),
                                          0,
-                                         self._key_base.format(self._cur_inst,
-                                                        lim.FORMAT_VERSION),
+                                         self._key_base.format(self._cur_inst),
                                          'scale_amount',
                                          decimals=2)
         self._scale_center = ParamSlider(project,
                                          'Scale center:',
                                          (-4800, 4800),
                                          0,
-                                         self._key_base.format(self._cur_inst,
-                                                        lim.FORMAT_VERSION),
+                                         self._key_base.format(self._cur_inst),
                                          'scale_center')
         top_layout.addSpacing(10)
         top_layout.addWidget(label)
@@ -70,8 +68,7 @@ class EnvForceRel(QtGui.QWidget):
                              (False, True),
                              [(0, 1), (1, 0)],
                              32,
-                             self._key_base.format(self._cur_inst,
-                                                   lim.FORMAT_VERSION),
+                             self._key_base.format(self._cur_inst),
                              'envelope')
         layout.addLayout(top_layout)
         layout.addWidget(self._env, 1)
@@ -84,8 +81,7 @@ class EnvForceRel(QtGui.QWidget):
     def inst_changed(self, num):
         self._cur_inst = num
         for widget in self._widgets:
-            widget.set_key(self._key_base.format(self._cur_inst,
-                                                 lim.FORMAT_VERSION))
+            widget.set_key(self._key_base.format(self._cur_inst))
 
     def sync(self):
         for widget in self._widgets:

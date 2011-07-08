@@ -100,6 +100,7 @@ class Envelope(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
     def set_key(self, key):
+        self._key = key
         value = {}
         if self._dict_key:
             d = self._project[key]
