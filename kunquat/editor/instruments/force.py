@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
+from env_force import EnvForce
 from env_force_rel import EnvForceRel
 import kunquat.editor.kqt_limits as lim
 from kunquat.editor.param_slider import ParamSlider
@@ -55,10 +56,12 @@ class Force(QtGui.QWidget):
                                       'force_variation',
                                       decimals=1,
                                       unit='dB')
+        self._env_force = EnvForce(project)
         self._env_force_rel = EnvForceRel(project)
         layout.addWidget(self._gforce)
         layout.addWidget(self._force)
         layout.addWidget(self._force_var)
+        layout.addWidget(self._env_force, 1)
         layout.addWidget(self._env_force_rel, 1)
         self._sliders = [self._gforce,
                          self._force,
@@ -69,11 +72,13 @@ class Force(QtGui.QWidget):
         self._cur_inst = num
         for widget in self._sliders:
             widget.set_key(self._inst_key.format(self._cur_inst))
+        self._env_force.inst_changed(num)
         self._env_force_rel.inst_changed(num)
 
     def sync(self):
         for widget in self._sliders:
             widget.sync()
+        self._env_force.sync()
         self._env_force_rel.sync()
 
 

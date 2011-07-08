@@ -49,11 +49,17 @@ class Envelope(QtGui.QWidget):
         assert step[0] > 0
         assert step[1] > 0
         if not init_x_view:
-            init_x_view = default_val[0][0], default_val[-1][0]
+            if x_range[0] >= -1 and x_range[1] <= 1:
+                init_x_view = x_range
+            else:
+                init_x_view = default_val[0][0], default_val[-1][0]
         if not init_y_view:
-            y_min = min(n[1] for n in default_val)
-            y_max = max(n[1] for n in default_val)
-            init_y_view = y_min, y_max
+            if y_range[0] >= -1 and y_range[1] <= 1:
+                init_y_view = y_range
+            else:
+                y_min = min(n[1] for n in default_val)
+                y_max = max(n[1] for n in default_val)
+                init_y_view = y_min, y_max
         QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._key = key
@@ -82,7 +88,7 @@ class Envelope(QtGui.QWidget):
         self._step = step
         self._nodes_max = nodes_max
         self._marks = []
-        self._default_val = default_val
+        self._default_val = copy.deepcopy(default_val)
         self._nodes = default_val
         self._smooth = False
         self._haxis = HAxis(self._colours, self._fonts,
@@ -110,8 +116,19 @@ class Envelope(QtGui.QWidget):
             actual = self._project[key]
             if actual != None:
                 value = actual
-        self._nodes = value['nodes'] if 'nodes' in value else self._default_val
+        self._nodes = value['nodes'] if 'nodes' in value \
+                                     else copy.deepcopy(self._default_val)
         self._marks = value['marks'] if 'marks' in value else []
+        x_range = self._min[0], self._max[0]
+        if x_range[0] < -1 or x_range[1] > 1:
+            x_range = (min(n[0] for n in self._nodes),
+                       max(n[0] for n in self._nodes))
+        y_range = self._min[1], self._max[1]
+        if y_range[0] < -1 or y_range[1] > 1:
+            y_range = (min(n[1] for n in self._nodes),
+                       max(n[1] for n in self._nodes))
+        self._visible_min = x_range[0], y_range[0]
+        self._visible_max = x_range[1], y_range[1]
         self.resizeEvent(None)
         self.update()
 
@@ -137,6 +154,8 @@ class Envelope(QtGui.QWidget):
                 self._nodes[self._focus_index:self._focus_index + 1] = []
                 self._focus_index = -1
                 self._drag = False
+                self._finished()
+                self._focus_old_node = None
                 self._slow_update()
                 return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
