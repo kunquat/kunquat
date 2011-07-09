@@ -169,25 +169,8 @@ class Project(QtCore.QObject):
         key   -- The key of the data in the composition.
         value -- The data to be set.
         """
-        if value == None:
-            self.set_raw(key, '')
-            #self._handle[key] = ''
-            #self._keys.discard(key)
-        elif key[key.index('.'):].startswith('.json'):
-            self.set_raw(key, json.dumps(value))
-            #js = json.dumps(value)
-            #self._handle[key] = js
-            #if js:
-            #    self._keys.add(key)
-            #else:
-            #    self._keys.discard(key)
-        else:
-            self.set_raw(key, value)
-            #self._handle[key] = value # FIXME: conversion
-            #if value:
-            #    self._keys.add(key)
-            #else:
-            #    self._keys.discard(key)
+        immed = old_value != types.NoneType
+        """
         if old_value != types.NoneType:
             if old_value == None:
                 old_value = ''
@@ -198,6 +181,30 @@ class Project(QtCore.QObject):
             elif key[key.index('.'):].startswith('.json'):
                 value = json.dumps(value)
             self._history.step(key, old_value, value)
+        """
+        if value == None:
+            self._history.step(key, '', immediate=immed)
+            self.set_raw(key, '')
+            #self._handle[key] = ''
+            #self._keys.discard(key)
+        elif key[key.index('.'):].startswith('.json'):
+            jvalue = json.dumps(value)
+            self._history.step(key, jvalue, immediate=immed)
+            self.set_raw(key, jvalue)
+            #js = json.dumps(value)
+            #self._handle[key] = js
+            #if js:
+            #    self._keys.add(key)
+            #else:
+            #    self._keys.discard(key)
+        else:
+            self._history.step(key, value, immediate=immed)
+            self.set_raw(key, value)
+            #self._handle[key] = value # FIXME: conversion
+            #if value:
+            #    self._keys.add(key)
+            #else:
+            #    self._keys.discard(key)
         self._changed = True
         #self._history.show_latest_branch()
 
@@ -213,6 +220,9 @@ class Project(QtCore.QObject):
             self._keys.add(key)
         else:
             self._keys.discard(key)
+
+    def flush(self, key):
+        self._history.flush(key)
 
     @property
     def mixing_rate(self):
@@ -690,6 +700,7 @@ class History(object):
         self._current = self._root
         self._commit = self._root
         self._group = 0
+        self._pending = {}
 
     def at_commit(self):
         assert not self._group
@@ -738,16 +749,96 @@ class History(object):
             yield node
             node = node.parent
 
-    def step(self, key, old_data, new_data, name=''):
+    def step(self, key, new_data, name='', immediate=True):
+        """
+        if not immediate:
+            if key in self._pending:
+                old_data = self._pending[key][1]
+                del self._pending[key]
+            else:
+                old_data = self._project[key]
+            if self._pending:
+                pending = self._pending
+                self._pending = []
+                for k, v in pending.iteritems():
+                    pdata, pold, pname = v
+                    if not self._group:
+                        self._current = Step(self._current, pname)
+                    self._current.add_change(Change(k, pold, pdata))
+            self._pending[key] = new_data, old_data, name
+            return
+        """
+        if not immediate:
+            if key in self._pending:
+                old_value = self._pending[key][1]
+            else:
+                old_value = self._project[key]
+                if old_value == None:
+                    old_value = ''
+                elif key[key.index('.'):].startswith('.json'):
+                    old_value = json.dumps(old_value)
+            self._pending[key] = new_data, old_value, name
+            #print('added pending change', key, '-',
+            #      new_data if len(new_data) < 100 else new_data[:97] + '...')
+            return
+
+        old_value = self._project[key]
+        if old_value == None:
+            old_value = ''
+        elif key[key.index('.'):].startswith('.json'):
+            old_value = json.dumps(old_value)
+
+        if self._pending:
+            for k, value in self._pending.iteritems():
+                if k == key:
+                    continue
+                pdata, pold, pname = value
+                self._step(k, pdata, pold, pname)
+                #if not self._group:
+                #    self._current = Step(self._current, pname)
+                #self._current.add_change(Change(k, pold, pdata))
+                #print('changed pending', k, '-',
+                #      pdata if len(pdata) < 100 else pdata[:97] + '...')
+            if key in self._pending:
+                old_value = self._pending[key][1]
+            self._pending = {}
+        self._step(key, new_data, old_value, name)
+        #if not self._group:
+        #    self._current = Step(self._current, name)
+        #self._current.add_change(Change(key, old_value, new_data))
+        #print('added immediate change', key, '-',
+        #      new_data if len(new_data) < 100 else new_data[:97] + '...')
+        #for p in self.parents():
+        #    print(p.name)
+
+    def _step(self, key, new_data, old_data, name=''):
         if not self._group:
             self._current = Step(self._current, name)
         self._current.add_change(Change(key, old_data, new_data))
-        #for p in self.parents():
-        #    print(p.name)
+
+    def flush(self, key):
+        if key not in self._pending:
+            return
+        new_data, old_data, name = self._pending.pop(key)
+        self._step(key, new_data, old_data, name)
 
     def undo(self, step_signaller=None):
         """Undoes a step."""
         assert not self._group
+        if self._pending:
+            k, value = self._pending.popitem()
+            assert not self._pending
+            pdata, pold, pname = value
+            self._step(k, pdata, pold, pname)
+            #if not self._group:
+            #    self._current = Step(self._current, pname)
+            #self._current.add_change(Change(k, pold, pdata))
+            #print('added pending change before undo', k, '-',
+            #      pdata if len(pdata) < 100 else pdata[:97] + '...',
+            #      '-- old data:',
+            #      pold if len(pold) < 100 else pold[:97] + '...')
+            self.undo(step_signaller)
+            return
         if not self._current.parent:
             return
             #raise RuntimeError('Nothing to undo')
@@ -781,6 +872,9 @@ class History(object):
 
         """
         assert not self._group
+        if self._pending:
+            # XXX: should we step() here?
+            return
         child = self._current.child(branch)
         if not child:
             return

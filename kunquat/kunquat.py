@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -31,6 +31,7 @@ KunquatResourceError -- An error for resource access errors.
 
 """
 
+from __future__ import print_function
 import ctypes
 import json
 
@@ -324,6 +325,7 @@ class RWHandle(RHandle):
                                 validated.
 
         """
+        #print(key, value if len(value) < 200 else value[:197] + '...')
         data = buffer(value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]

@@ -255,6 +255,8 @@ class Envelope(QtGui.QWidget):
             self._project.set(self._key, value)
 
     def _finished(self):
+        self._project.flush(self._key)
+        """
         value = { 'nodes': self._nodes }
         if self._marks:
             value['marks'] = self._marks
@@ -279,6 +281,7 @@ class Envelope(QtGui.QWidget):
                 old_value['nodes'][self._focus_index:
                                    self._focus_index + 1] = []
             self._project.set(self._key, value, old_value)
+        """
 
     def _adjust_view(self, pos):
         resize = False

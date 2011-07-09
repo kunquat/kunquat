@@ -104,7 +104,9 @@ class ParamSlider(QtGui.QWidget):
         self._value_display.setText(str(value) + self._suffix)
 
     def finished(self):
-        value = self._slider.value() / self._factor
+        self._value = self._slider.value() / self._factor
+        self._project.flush(self._key)
+        """
         if value == self._value:
             return
         if self._factor == 1:
@@ -122,6 +124,7 @@ class ParamSlider(QtGui.QWidget):
             self._project.set(self._key, value, self._value)
         self._value_display.setText(str(value) + self._suffix)
         self._value = value
+        """
 
 
 class KSlider(QtGui.QSlider):
