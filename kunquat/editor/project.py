@@ -157,9 +157,9 @@ class Project(QtCore.QObject):
         value -- The data to be set.
 
         """
-        self.set(key, value, self[key])
+        self.set(key, value)
 
-    def set(self, key, value, old_value=types.NoneType):
+    def set(self, key, value, immediate=True):
         """Set data in the Kunquat Handle.
 
         For JSON keys, this function converts the given Python object
@@ -168,43 +168,23 @@ class Project(QtCore.QObject):
         Arguments:
         key   -- The key of the data in the composition.
         value -- The data to be set.
+
+        Optional arguments:
+        immediate -- If True, the data is immediately stored in the
+                     project history. Otherwise, the data is delayed
+                     until another call of set() or flush().
         """
-        immed = old_value != types.NoneType
-        """
-        if old_value != types.NoneType:
-            if old_value == None:
-                old_value = ''
-            elif key[key.index('.'):].startswith('.json'):
-                old_value = json.dumps(old_value)
-            if value == None:
-                value = ''
-            elif key[key.index('.'):].startswith('.json'):
-                value = json.dumps(value)
-            self._history.step(key, old_value, value)
-        """
+        assert immediate in (True, False)
         if value == None:
-            self._history.step(key, '', immediate=immed)
+            self._history.step(key, '', immediate=immediate)
             self.set_raw(key, '')
-            #self._handle[key] = ''
-            #self._keys.discard(key)
         elif key[key.index('.'):].startswith('.json'):
             jvalue = json.dumps(value)
-            self._history.step(key, jvalue, immediate=immed)
+            self._history.step(key, jvalue, immediate=immediate)
             self.set_raw(key, jvalue)
-            #js = json.dumps(value)
-            #self._handle[key] = js
-            #if js:
-            #    self._keys.add(key)
-            #else:
-            #    self._keys.discard(key)
         else:
-            self._history.step(key, value, immediate=immed)
+            self._history.step(key, value, immediate=immediate)
             self.set_raw(key, value)
-            #self._handle[key] = value # FIXME: conversion
-            #if value:
-            #    self._keys.add(key)
-            #else:
-            #    self._keys.discard(key)
         self._changed = True
         #self._history.show_latest_branch()
 
@@ -222,6 +202,12 @@ class Project(QtCore.QObject):
             self._keys.discard(key)
 
     def flush(self, key):
+        """Flushes a previous store of a data value in the history.
+
+        Arguments:
+        key -- The key of the value.
+
+        """
         self._history.flush(key)
 
     @property
@@ -750,24 +736,6 @@ class History(object):
             node = node.parent
 
     def step(self, key, new_data, name='', immediate=True):
-        """
-        if not immediate:
-            if key in self._pending:
-                old_data = self._pending[key][1]
-                del self._pending[key]
-            else:
-                old_data = self._project[key]
-            if self._pending:
-                pending = self._pending
-                self._pending = []
-                for k, v in pending.iteritems():
-                    pdata, pold, pname = v
-                    if not self._group:
-                        self._current = Step(self._current, pname)
-                    self._current.add_change(Change(k, pold, pdata))
-            self._pending[key] = new_data, old_data, name
-            return
-        """
         if not immediate:
             if key in self._pending:
                 old_value = self._pending[key][1]
@@ -794,18 +762,12 @@ class History(object):
                     continue
                 pdata, pold, pname = value
                 self._step(k, pdata, pold, pname)
-                #if not self._group:
-                #    self._current = Step(self._current, pname)
-                #self._current.add_change(Change(k, pold, pdata))
                 #print('changed pending', k, '-',
                 #      pdata if len(pdata) < 100 else pdata[:97] + '...')
             if key in self._pending:
                 old_value = self._pending[key][1]
             self._pending = {}
         self._step(key, new_data, old_value, name)
-        #if not self._group:
-        #    self._current = Step(self._current, name)
-        #self._current.add_change(Change(key, old_value, new_data))
         #print('added immediate change', key, '-',
         #      new_data if len(new_data) < 100 else new_data[:97] + '...')
         #for p in self.parents():
@@ -830,13 +792,6 @@ class History(object):
             assert not self._pending
             pdata, pold, pname = value
             self._step(k, pdata, pold, pname)
-            #if not self._group:
-            #    self._current = Step(self._current, pname)
-            #self._current.add_change(Change(k, pold, pdata))
-            #print('added pending change before undo', k, '-',
-            #      pdata if len(pdata) < 100 else pdata[:97] + '...',
-            #      '-- old data:',
-            #      pold if len(pold) < 100 else pold[:97] + '...')
             self.undo(step_signaller)
             return
         if not self._current.parent:

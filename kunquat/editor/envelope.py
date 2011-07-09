@@ -250,9 +250,9 @@ class Envelope(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project.set(self._key, d)
+            self._project.set(self._key, d, immediate=False)
         else:
-            self._project.set(self._key, value)
+            self._project.set(self._key, value, immediate=False)
 
     def _finished(self):
         self._project.flush(self._key)

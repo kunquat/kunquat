@@ -81,27 +81,15 @@ class TimestampSpin(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project.set(self._key, d)
+            self._project.set(self._key, d, immediate=False)
         else:
-            self._project.set(self._key, value)
+            self._project.set(self._key, value, immediate=False)
         QtCore.QObject.emit(self, QtCore.SIGNAL('tsChanged(int, int)'),
                                                 value[0], value[1])
 
     def finished(self):
-        value = list(ts.Timestamp(self._spin.value()))
-        if value == self._value:
-            return
-        if self._dict_key:
-            d = self._project[self._key]
-            if d == None:
-                d = {}
-            d[self._dict_key] = value
-            old_d = dict(d)
-            old_d[self._dict_key] = self._value
-            self._project.set(self._key, d, old_d)
-        else:
-            self._project.set(self._key, value, self._value)
-        self._value = value
+        self._value = list(ts.Timestamp(self._spin.value()))
+        self._project.flush(self._key)
 
     def sync(self):
         self.set_key(self._key)

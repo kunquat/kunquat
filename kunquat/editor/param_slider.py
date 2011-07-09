@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -98,33 +98,14 @@ class ParamSlider(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project.set(self._key, d)
+            self._project.set(self._key, d, immediate=False)
         else:
-            self._project.set(self._key, value)
+            self._project.set(self._key, value, immediate=False)
         self._value_display.setText(str(value) + self._suffix)
 
     def finished(self):
         self._value = self._slider.value() / self._factor
         self._project.flush(self._key)
-        """
-        if value == self._value:
-            return
-        if self._factor == 1:
-            assert value == int(value)
-            value = int(value)
-        if self._dict_key:
-            d = self._project[self._key]
-            if d == None:
-                d = {}
-            d[self._dict_key] = value
-            old_d = dict(d)
-            old_d[self._dict_key] = self._value
-            self._project.set(self._key, d, old_d)
-        else:
-            self._project.set(self._key, value, self._value)
-        self._value_display.setText(str(value) + self._suffix)
-        self._value = value
-        """
 
 
 class KSlider(QtGui.QSlider):
