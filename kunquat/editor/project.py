@@ -202,13 +202,22 @@ class Project(QtCore.QObject):
             self._keys.discard(key)
 
     def flush(self, key):
-        """Flushes a previous store of a data value in the history.
+        """Flush a previous store of a data value in the history.
 
         Arguments:
         key -- The key of the value.
 
         """
         self._history.flush(key)
+
+    def cancel(self, key):
+        """Cancel the storage of a pending data value in the history.
+
+        Arguments:
+        key -- The key of the value.
+
+        """
+        self._history.cancel(key)
 
     @property
     def mixing_rate(self):
@@ -783,6 +792,10 @@ class History(object):
             return
         new_data, old_data, name = self._pending.pop(key)
         self._step(key, new_data, old_data, name)
+
+    def cancel(self, key):
+        if key in self._pending:
+            del self._pending[key]
 
     def undo(self, step_signaller=None):
         """Undoes a step."""

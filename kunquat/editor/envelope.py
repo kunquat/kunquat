@@ -98,6 +98,7 @@ class Envelope(QtGui.QWidget):
         self._focus_node = None
         self._focus_index = -1
         self._focus_old_node = None
+        self._new_node = False
         self._drag = False
         self._drag_offset = (0, 0)
         self.setMouseTracking(True)
@@ -154,7 +155,12 @@ class Envelope(QtGui.QWidget):
                 self._nodes[self._focus_index:self._focus_index + 1] = []
                 self._focus_index = -1
                 self._drag = False
-                self._finished()
+                if self._new_node:
+                    self._project.cancel(self._key)
+                else:
+                    self._value_changed()
+                    self._finished()
+                self._new_node = False
                 self._focus_old_node = None
                 self._slow_update()
                 return
@@ -199,6 +205,7 @@ class Envelope(QtGui.QWidget):
             if not self._min[0] <= focus_node[0] <= self._max[0]:
                 return
             self._nodes[index:index] = [focus_node]
+            self._new_node = True
         else:
             self._focus_old_node = focus_node
         self._focus_node = focus_node
@@ -214,6 +221,7 @@ class Envelope(QtGui.QWidget):
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
             self._drag = False
+            self._new_node = False
             self._finished()
             self._focus_old_node = None
             self.update()
