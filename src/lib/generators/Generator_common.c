@@ -170,7 +170,7 @@ void Generator_common_handle_force(Generator* gen,
                                         Envelope_node_count(env) - 1);
             scale = last_node[1];
         }
-        else if (state->fe_pos >= next_node[0])
+        else if (state->fe_pos >= next_node[0] || isnan(state->fe_update))
         {
             ++state->fe_next_node;
             if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
@@ -179,11 +179,18 @@ void Generator_common_handle_force(Generator* gen,
                 state->fe_next_node = loop_start_index;
             }
             scale = Envelope_get_value(env, state->fe_pos);
-            assert(isfinite(scale));
-            double next_scale = Envelope_get_value(env, state->fe_pos +
-                                                        1.0 / freq);
-            state->fe_value = scale;
-            state->fe_update = next_scale - scale;
+            if (isfinite(scale))
+            {
+                double next_scale = Envelope_get_value(env, state->fe_pos +
+                                                            1.0 / freq);
+                state->fe_value = scale;
+                state->fe_update = next_scale - scale;
+            }
+            else
+            {
+                scale = Envelope_get_node(env,
+                                          Envelope_node_count(env) - 1)[1];
+            }
         }
         else
         {
