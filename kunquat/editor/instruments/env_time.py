@@ -49,7 +49,7 @@ class EnvTime(QtGui.QWidget):
                                    'enabled')
         self._scale_amount = ParamSlider(project,
                                          'Scale amount:',
-                                         (-16, 16),
+                                         (-3, 3),
                                          0,
                                          self._key_base.format(self._cur_inst),
                                          'scale_amount',
