@@ -131,7 +131,7 @@ class Envelope(QtGui.QWidget):
         old_node_count = self.node_count()
         self._nodes = value['nodes'] if 'nodes' in value \
                                      else copy.deepcopy(self._default_val)
-        if old_node_count != self._node_count():
+        if old_node_count != self.node_count():
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('nodeCountChanged(int)'),
                                 self.node_count())
@@ -153,10 +153,15 @@ class Envelope(QtGui.QWidget):
         self.set_key(self._key)
 
     def set_mark(self, index, value):
-        assert 0 <= index < len(self._marks)
         assert value == None or 0 <= value < len(self._nodes)
+        self._marks.extend([None] * (index - len(self._marks) + 1))
         self._marks[index] = value
         self._value_changed()
+        self.update()
+
+    def set_mark_display(self, index, value):
+        assert 0 <= index < len(self._mark_visible)
+        self._mark_visible[index] = value
         self.update()
 
     def node_count(self):
@@ -384,7 +389,7 @@ class Envelope(QtGui.QWidget):
 
     def _paint_marks(self, paint):
         for i, mark in enumerate(self._marks):
-            if mark != None:
+            if mark != None and self._mark_visible[i]:
                 if self._mark_modes[i] == 'x_dashed':
                     pen = QtGui.QPen(self._colours['mark'])
                     pen.setDashPattern([4, 4])

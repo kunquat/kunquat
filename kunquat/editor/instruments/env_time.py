@@ -84,6 +84,9 @@ class EnvTime(QtGui.QWidget):
                                             False,
                                             self._key_base.format(self._cur_inst),
                                             'loop')
+            QtCore.QObject.connect(self._loop_enabled,
+                                   QtCore.SIGNAL('stateChanged(int)'),
+                                   self._set_loop_display)
             self._loop_start = LoopBound(project,
                                          'Loop start:',
                                          self._key_base.format(self._cur_inst),
@@ -105,6 +108,11 @@ class EnvTime(QtGui.QWidget):
             self._widgets.extend([self._loop_enabled,
                                   self._loop_start,
                                   self._loop_end])
+
+    def _set_loop_display(self, state):
+        checked = state == QtCore.Qt.Checked
+        self._env.set_mark_display(0, checked)
+        self._env.set_mark_display(1, checked)
 
     def inst_changed(self, num):
         self._cur_inst = num
@@ -167,7 +175,7 @@ class LoopBound(QtGui.QWidget):
             if actual != None:
                 dvalue = actual
         if 'marks' in dvalue:
-            marks = value['marks']
+            marks = dvalue['marks']
             if len(marks) > self._mark_index:
                 value = marks[self._mark_index]
         self._lock_update = True
