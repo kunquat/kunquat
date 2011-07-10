@@ -164,8 +164,8 @@ void Generator_common_handle_force(Generator* gen,
         double scale = NAN;
         if (next_node == NULL)
         {
-            assert(loop_start == NULL);
-            assert(loop_end == NULL);
+            //assert(loop_start == NULL);
+            //assert(loop_end == NULL);
             double* last_node = Envelope_get_node(env,
                                         Envelope_node_count(env) - 1);
             scale = last_node[1];
