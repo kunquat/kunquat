@@ -93,12 +93,20 @@ class EnvTime(QtGui.QWidget):
                                          0,
                                          envelope,
                                          'envelope')
+            self._loop_start.set_upper_bound(0)
             self._loop_end = LoopBound(project,
                                        'Loop end:',
                                        self._key_base.format(self._cur_inst),
                                        1,
                                        envelope,
                                        'envelope')
+            self._loop_end.set_lower_bound(0)
+            QtCore.QObject.connect(self._loop_start,
+                                   QtCore.SIGNAL('valueChanged(int)'),
+                                   self._loop_end.set_lower_bound)
+            QtCore.QObject.connect(self._loop_end,
+                                   QtCore.SIGNAL('valueChanged(int)'),
+                                   self._loop_start.set_upper_bound)
             loop_layout.addWidget(self._loop_enabled)
             loop_layout.addSpacing(10)
             loop_layout.addWidget(self._loop_start)
@@ -126,6 +134,8 @@ class EnvTime(QtGui.QWidget):
 
 class LoopBound(QtGui.QWidget):
 
+    valueChanged = QtCore.pyqtSignal(int, name='valueChanged')
+
     def __init__(self,
                  project,
                  label,
@@ -148,6 +158,9 @@ class LoopBound(QtGui.QWidget):
         layout.setMargin(0)
         lab = QtGui.QLabel(label)
 
+        self._lower_bound = 0
+        self._upper_bound = float('inf')
+        self._max_node = self._envelope.node_count() - 1
         self._spin = QtGui.QSpinBox()
         self._spin.setMinimum(0)
         self._spin.setMaximum(self._envelope.node_count() - 1)
@@ -186,13 +199,24 @@ class LoopBound(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
+    def set_lower_bound(self, bound):
+        self._lower_bound = bound
+        self._spin.setMinimum(bound)
+
+    def set_upper_bound(self, bound):
+        self._upper_bound = bound
+        self._spin.setMaximum(min(bound, self._max_node))
+
     def _node_count_changed(self, count):
-        self._spin.setMaximum(count - 1)
+        self._max_node = count - 1
+        self._spin.setMaximum(min(self._upper_bound, self._max_node))
 
     def _value_changed(self, value):
         if self._lock_update:
             return
         self._envelope.set_mark(self._mark_index, value)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('valueChanged(int)'),
+                            value)
         """
         dvalue = {}
         if self._dict_key:
