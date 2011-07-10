@@ -37,7 +37,9 @@ class EnvForce(EnvTime):
                                   [(0, 1), (1, 1)],
                                   32,
                                   key_base.format(0),
-                                  'envelope'),
-                         parent)
+                                  'envelope',
+                                  mark_modes=['x_dashed', 'x_dashed']),
+                         support_loop=True,
+                         parent=parent)
 
 

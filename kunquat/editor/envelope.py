@@ -24,6 +24,8 @@ import kunquat
 
 class Envelope(QtGui.QWidget):
 
+    ncchanged = QtCore.pyqtSignal(int, name='nodeCountChanged')
+
     def __init__(self,
                  project,
                  x_range,
@@ -37,6 +39,7 @@ class Envelope(QtGui.QWidget):
                  step=(0.0001, 0.0001),
                  init_x_view=None,
                  init_y_view=None,
+                 mark_modes=None,
                  parent=None):
         assert x_range[0] < x_range[1]
         assert y_range[0] < y_range[1]
@@ -48,6 +51,9 @@ class Envelope(QtGui.QWidget):
                    for n in default_val)
         assert step[0] > 0
         assert step[1] > 0
+        assert not mark_modes or all(mode in ('x_dashed',)
+                                     for mode in mark_modes)
+        QtGui.QWidget.__init__(self, parent)
         if not init_x_view:
             if x_range[0] >= -1 and x_range[1] <= 1:
                 init_x_view = x_range
@@ -60,7 +66,6 @@ class Envelope(QtGui.QWidget):
                 y_min = min(n[1] for n in default_val)
                 y_max = max(n[1] for n in default_val)
                 init_y_view = y_min, y_max
-        QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._key = key
         self._dict_key = dict_key
@@ -70,6 +75,7 @@ class Envelope(QtGui.QWidget):
                 'curve': QtGui.QColor(0x66, 0x88, 0xaa),
                 'node': QtGui.QColor(0xee, 0xcc, 0xaa),
                 'node_focus': QtGui.QColor(0xff, 0x77, 0x22),
+                'mark': QtGui.QColor(0x77, 0x99, 0xbb),
                 'text': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 }
         self._fonts = {
@@ -87,7 +93,12 @@ class Envelope(QtGui.QWidget):
         self._last_locked = x_lock[1], y_lock[1]
         self._step = step
         self._nodes_max = nodes_max
-        self._marks = []
+
+        self._mark_modes = mark_modes
+        mark_count = min(len(mark_modes), 4) if mark_modes else 0
+        self._marks = [None] * mark_count
+        self._mark_visible = [False] * mark_count
+
         self._default_val = copy.deepcopy(default_val)
         self._nodes = default_val
         self._smooth = False
@@ -117,8 +128,13 @@ class Envelope(QtGui.QWidget):
             actual = self._project[key]
             if actual != None:
                 value = actual
+        old_node_count = self.node_count()
         self._nodes = value['nodes'] if 'nodes' in value \
                                      else copy.deepcopy(self._default_val)
+        if old_node_count != self._node_count():
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('nodeCountChanged(int)'),
+                                self.node_count())
         self._marks = value['marks'] if 'marks' in value else []
         x_range = self._min[0], self._max[0]
         if x_range[0] < -1 or x_range[1] > 1:
@@ -135,6 +151,16 @@ class Envelope(QtGui.QWidget):
 
     def sync(self):
         self.set_key(self._key)
+
+    def set_mark(self, index, value):
+        assert 0 <= index < len(self._marks)
+        assert value == None or 0 <= value < len(self._nodes)
+        self._marks[index] = value
+        self._value_changed()
+        self.update()
+
+    def node_count(self):
+        return len(self._nodes)
 
     def keyPressEvent(self, ev):
         pass
@@ -163,6 +189,9 @@ class Envelope(QtGui.QWidget):
                 self._new_node = False
                 self._focus_old_node = None
                 self._slow_update()
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('nodeCountChanged(int)'),
+                                    self.node_count())
                 return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
                    self._val_y(ev.y() + self._drag_offset[1]))
@@ -206,6 +235,9 @@ class Envelope(QtGui.QWidget):
                 return
             self._nodes[index:index] = [focus_node]
             self._new_node = True
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('nodeCountChanged(int)'),
+                                self.node_count())
         else:
             self._focus_old_node = focus_node
         self._focus_node = focus_node
@@ -252,7 +284,7 @@ class Envelope(QtGui.QWidget):
     def _value_changed(self):
         value = { 'nodes': self._nodes }
         if self._marks:
-            value['marks'] = self._marks
+            value['marks'] = [(i if i != None else -1) for i in self._marks]
         if self._dict_key:
             d = self._project[self._key]
             if d == None:
@@ -264,32 +296,6 @@ class Envelope(QtGui.QWidget):
 
     def _finished(self):
         self._project.flush(self._key)
-        """
-        value = { 'nodes': self._nodes }
-        if self._marks:
-            value['marks'] = self._marks
-        if self._dict_key:
-            d = self._project[self._key]
-            if d == None:
-                d = {}
-            d[self._dict_key] = value
-            old_d = copy.deepcopy(d)
-            if self._focus_old_node:
-                old_d[self._dict_key]['nodes'][self._focus_index] = \
-                        self._focus_old_node
-            else:
-                old_d[self._dict_key]['nodes'][self._focus_index:
-                                               self._focus_index + 1] = []
-            self._project.set(self._key, d, old_d)
-        else:
-            old_value = copy.deepcopy(value)
-            if self._focus_old_node:
-                old_value['nodes'][self._focus_index] = self._focus_old_node
-            else:
-                old_value['nodes'][self._focus_index:
-                                   self._focus_index + 1] = []
-            self._project.set(self._key, value, old_value)
-        """
 
     def _adjust_view(self, pos):
         resize = False
@@ -351,6 +357,7 @@ class Envelope(QtGui.QWidget):
             self._paint_linear_curve(paint)
         else:
             self._paint_nurbs_curve(paint)
+        self._paint_marks(paint)
         self._paint_nodes(paint)
         paint.end()
 
@@ -374,6 +381,20 @@ class Envelope(QtGui.QWidget):
             x, y = self._view_x(x), self._view_y(y)
             line.append(QtCore.QPointF(x + 0.5, y + 0.5))
         paint.drawPolyline(line)
+
+    def _paint_marks(self, paint):
+        for i, mark in enumerate(self._marks):
+            if mark != None:
+                if self._mark_modes[i] == 'x_dashed':
+                    pen = QtGui.QPen(self._colours['mark'])
+                    pen.setDashPattern([4, 4])
+                    paint.setPen(pen)
+                    node = self._nodes[mark]
+                    node_x = self._view_x(node[0]) + 0.5
+                    node_y = self._view_y(node[1]) + 0.5
+                    axis_y = self._view_y(0) + 0.5
+                    paint.drawLine(QtCore.QPointF(node_x, axis_y),
+                                   QtCore.QPointF(node_x, node_y))
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
