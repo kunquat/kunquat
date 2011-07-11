@@ -396,10 +396,12 @@ class Envelope(QtGui.QWidget):
                     paint.setPen(pen)
                     node = self._nodes[mark]
                     node_x = self._view_x(node[0]) + 0.5
-                    node_y = self._view_y(node[1]) + 0.5
+                    max_y = self._view_y(self._max[1]) + 0.5
+                    if max_y == float('inf'):
+                        max_y = 10000
                     axis_y = self._view_y(0) + 0.5
                     paint.drawLine(QtCore.QPointF(node_x, axis_y),
-                                   QtCore.QPointF(node_x, node_y))
+                                   QtCore.QPointF(node_x, max_y))
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
