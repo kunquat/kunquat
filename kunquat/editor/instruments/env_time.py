@@ -151,8 +151,14 @@ class LoopBound(QtGui.QWidget):
         self._dict_key = dict_key
         self._lock_update = False
         QtCore.QObject.connect(self._envelope,
-                               QtCore.SIGNAL('nodeCountChanged(int)'),
-                               self._node_count_changed)
+                               QtCore.SIGNAL('nodeAdded(int)'),
+                               self._node_added)
+        QtCore.QObject.connect(self._envelope,
+                               QtCore.SIGNAL('nodeRemoved(int)'),
+                               self._node_removed)
+        QtCore.QObject.connect(self._envelope,
+                               QtCore.SIGNAL('nodesChanged(int)'),
+                               self._nodes_changed)
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -207,7 +213,21 @@ class LoopBound(QtGui.QWidget):
         self._upper_bound = bound
         self._spin.setMaximum(min(bound, self._max_node))
 
-    def _node_count_changed(self, count):
+    def _node_added(self, index):
+        self._nodes_changed(self._max_node + 2)
+        if index <= self._spin.value():
+            new_index = self._spin.value() + 1
+            self._spin.setValue(new_index)
+            #self._value_changed(new_index)
+
+    def _node_removed(self, index):
+        if index <= self._spin.value():
+            new_index = self._spin.value() - 1
+            self._spin.setValue(new_index)
+            #self._value_changed(new_index)
+        self._nodes_changed(self._max_node)
+
+    def _nodes_changed(self, count):
         self._max_node = count - 1
         self._spin.setMaximum(min(self._upper_bound, self._max_node))
 

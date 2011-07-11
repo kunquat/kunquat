@@ -24,7 +24,9 @@ import kunquat
 
 class Envelope(QtGui.QWidget):
 
-    ncchanged = QtCore.pyqtSignal(int, name='nodeCountChanged')
+    nodes_changed = QtCore.pyqtSignal(int, name='nodesChanged')
+    node_added = QtCore.pyqtSignal(int, name='nodeAdded')
+    node_removed = QtCore.pyqtSignal(int, name='nodeRemoved')
 
     def __init__(self,
                  project,
@@ -133,7 +135,7 @@ class Envelope(QtGui.QWidget):
                                      else copy.deepcopy(self._default_val)
         if old_node_count != self.node_count():
             QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('nodeCountChanged(int)'),
+                                QtCore.SIGNAL('nodesChanged(int)'),
                                 self.node_count())
         self._marks = value['marks'] if 'marks' in value else []
         x_range = self._min[0], self._max[0]
@@ -184,6 +186,9 @@ class Envelope(QtGui.QWidget):
                     0 < self._focus_index < len(self._nodes) - 1:
                 self._focus_node = None
                 self._nodes[self._focus_index:self._focus_index + 1] = []
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('nodeRemoved(int)'),
+                                    self._focus_index)
                 self._focus_index = -1
                 self._drag = False
                 if self._new_node:
@@ -194,9 +199,6 @@ class Envelope(QtGui.QWidget):
                 self._new_node = False
                 self._focus_old_node = None
                 self._slow_update()
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('nodeCountChanged(int)'),
-                                    self.node_count())
                 return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
                    self._val_y(ev.y() + self._drag_offset[1]))
@@ -241,8 +243,8 @@ class Envelope(QtGui.QWidget):
             self._nodes[index:index] = [focus_node]
             self._new_node = True
             QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('nodeCountChanged(int)'),
-                                self.node_count())
+                                QtCore.SIGNAL('nodeAdded(int)'),
+                                index)
         else:
             self._focus_old_node = focus_node
         self._focus_node = focus_node
