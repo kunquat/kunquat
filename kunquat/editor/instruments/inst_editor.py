@@ -17,6 +17,7 @@ from PyQt4 import QtCore, QtGui
 
 import filter_opts
 import force
+import generators
 import panning
 import kunquat.editor.kqt_limits as lim
 #import kunquat.editor.envelope as envelope
@@ -71,10 +72,11 @@ class InstEditor(QtGui.QWidget):
         self._force = force.Force(project)
         self._panning = panning.Panning(project)
         self._filter = filter_opts.Filter(project)
+        self._generators = generators.Generators(project)
         tabs.addTab(self._force, 'Force')
         tabs.addTab(self._panning, 'Panning')
         tabs.addTab(self._filter, 'Filter')
-        tabs.addTab(QtGui.QWidget(), 'Generators')
+        tabs.addTab(self._generators, 'Generators')
         tabs.addTab(QtGui.QWidget(), 'Effects')
         tabs.addTab(QtGui.QWidget(), 'Connections')
         top_layout.addWidget(tabs)
@@ -84,6 +86,7 @@ class InstEditor(QtGui.QWidget):
         self._force.inst_changed(num)
         self._panning.inst_changed(num)
         self._filter.inst_changed(num)
+        self._generators.inst_changed(num)
 
     def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
@@ -120,5 +123,6 @@ class InstEditor(QtGui.QWidget):
         self._force.sync()
         self._panning.sync()
         self._filter.sync()
+        self._generators.sync()
 
 

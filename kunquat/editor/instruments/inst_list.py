@@ -62,7 +62,8 @@ class InstList(QtGui.QTableWidget):
         if self._signal:
             return
         item = self.item(num, 0)
-        key = 'ins_{0:02x}/kqti00/m_name.json'.format(num)
+        key = 'ins_{0:02x}/kqti{1}/m_name.json'.format(num,
+                                                       lim.FORMAT_VERSION)
         if item:
             self._project[key] = str(item.text())
         else:
@@ -71,7 +72,8 @@ class InstList(QtGui.QTableWidget):
     def sync(self):
         self._signal = True
         for i in xrange(lim.INSTRUMENTS_MAX):
-            name = self._project['ins_{0:02x}/kqti00/m_name.json'.format(i)]
+            name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
+                                                        lim.FORMAT_VERSION)]
             if name:
                 item = self.item(i, 0)
                 if not item:
