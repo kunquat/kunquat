@@ -16,6 +16,7 @@ from __future__ import print_function
 from PyQt4 import QtCore, QtGui
 
 import force
+import panning
 import kunquat.editor.kqt_limits as lim
 #import kunquat.editor.envelope as envelope
 
@@ -67,8 +68,9 @@ class InstEditor(QtGui.QWidget):
 
         tabs = QtGui.QTabWidget()
         self._force = force.Force(project)
+        self._panning = panning.Panning(project)
         tabs.addTab(self._force, 'Force')
-        tabs.addTab(QtGui.QWidget(), 'Panning')
+        tabs.addTab(self._panning, 'Panning')
         tabs.addTab(QtGui.QWidget(), 'Filter')
         tabs.addTab(QtGui.QWidget(), 'Generators')
         tabs.addTab(QtGui.QWidget(), 'Effects')

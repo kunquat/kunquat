@@ -83,12 +83,15 @@ class Envelope(QtGui.QWidget):
         self._fonts = {
                 'axis': QtGui.QFont('Decorative', 8),
                 }
+        self._visible_min = [init_x_view[0], init_y_view[0]]
+        self._visible_max = [init_x_view[1], init_y_view[1]]
         self._layout = {
                 'padding': 8,
                 'zoom': (200, 200),
+                'offset': [0, 0],
+                'visible_min': self._visible_min,
+                'visible_max': self._visible_max,
                 }
-        self._visible_min = init_x_view[0], init_y_view[0]
-        self._visible_max = init_x_view[1], init_y_view[1]
         self._min = x_range[0], y_range[0]
         self._max = x_range[1], y_range[1]
         self._first_locked = x_lock[0], y_lock[0]
@@ -138,6 +141,7 @@ class Envelope(QtGui.QWidget):
                                 QtCore.SIGNAL('nodesChanged(int)'),
                                 self.node_count())
         self._marks = value['marks'] if 'marks' in value else []
+        """
         x_range = self._min[0], self._max[0]
         if x_range[0] < -1 or x_range[1] > 1:
             x_range = (min(n[0] for n in self._nodes),
@@ -148,6 +152,8 @@ class Envelope(QtGui.QWidget):
                        max(n[1] for n in self._nodes))
         self._visible_min = x_range[0], y_range[0]
         self._visible_max = x_range[1], y_range[1]
+        """
+        self._set_view()
         self.resizeEvent(None)
         self.update()
 
@@ -286,7 +292,8 @@ class Envelope(QtGui.QWidget):
                max(min_y, min(max_y, pos[1])))
         self._nodes[index] = pos
         self._value_changed()
-        self._adjust_view(pos)
+        #self._adjust_view(pos)
+        self._set_view()
 
     def _value_changed(self):
         value = { 'nodes': self._nodes }
@@ -304,6 +311,7 @@ class Envelope(QtGui.QWidget):
     def _finished(self):
         self._project.flush(self._key)
 
+    """
     def _adjust_view(self, pos):
         resize = False
         min_x, min_y = self._visible_min
@@ -335,6 +343,7 @@ class Envelope(QtGui.QWidget):
             if resize:
                 self._visible_max = max_x, max_y
                 self.resizeEvent(None)
+    """
 
     def _node_at(self, x, y):
         closest = self._nodes[0]
@@ -425,22 +434,69 @@ class Envelope(QtGui.QWidget):
         self.update()
 
     def _val_x(self, x):
-        return (x - self._vaxis.width) / self._layout['zoom'][0]
+        dist = (x - self._vaxis.width) / self._layout['zoom'][0]
+        return dist + self._visible_min[0]
 
     def _val_y(self, y):
-        return self._max[1] - ((y - self._layout['padding']) /
+        #return self._max[1] - ((y - self._layout['padding']) /
+        return self._max[1] - ((y - self._haxis.height) /
                                self._layout['zoom'][1])
 
     def _view_x(self, x):
-        return self._vaxis.width + x * self._layout['zoom'][0]
+        return self._vaxis.width + ((x - self._visible_min[0]) *
+                                    self._layout['zoom'][0])
 
     def _view_y(self, y):
-        return self._layout['padding'] + \
+        #return self._layout['padding'] + \
+        return self._haxis.height + \
                self._layout['zoom'][1] * (self._max[1] - y)
 
+    def _set_view(self):
+        step_factor = 1.03
+        if self._min[0] >= -1 and self._max[0] <= 1:
+            if (self._min[0], self._max[0]) == (self._min[1], self._max[1]):
+                self._aspect = 1
+            self._visible_min[0] = self._min[0]
+            self._visible_max[0] = self._max[0]
+        else:
+            negative = max(0, -self._nodes[0][0])
+            positive = max(0, self._nodes[-1][0])
+            if negative > 0:
+                negative = step_factor**math.ceil(
+                                   math.log(negative, step_factor))
+            if positive > 0:
+                positive = step_factor**math.ceil(
+                                   math.log(positive, step_factor))
+            if not negative and not positive:
+                positive += 1
+            self._visible_min[0] = -negative
+            self._visible_max[0] = positive
+        if self._min[1] >= -1 and self._max[1] <= 1:
+            self._visible_min[1] = self._min[1]
+            self._visible_max[1] = self._max[1]
+        else:
+            negative = max(0, -min(n[1] for n in self._nodes))
+            positive = max(0, max(n[1] for n in self._nodes))
+            if negative > 0:
+                negative = step_factor**math.ceil(
+                                   math.log(negative, step_factor))
+            if positive > 0:
+                positive = step_factor**math.ceil(
+                                   math.log(positive, step_factor))
+            if not negative and not positive:
+                positive += 1
+            self._visible_min[1] = -negative
+            self._visible_max[1] = positive
+        #print(self._visible_min, self._visible_max)
+        self._layout['offset'][0] = (-self._visible_min[0] /
+                                (self._visible_max[0] - self._visible_min[0]))
+        self._layout['offset'][1] = (-self._visible_min[1] /
+                                (self._visible_max[1] - self._visible_min[1]))
+        self.resizeEvent(None)
+
     def resizeEvent(self, ev):
-        x_space = self.width() - self._vaxis.width - self._layout['padding']
-        y_space = self.height() - self._haxis.height - self._layout['padding']
+        x_space = self.width() - self._vaxis.width * 2 # - self._layout['padding']
+        y_space = self.height() - self._haxis.height * 2 # - self._layout['padding']
         self._layout['zoom'] = (x_space / (self._visible_max[0] -
                                            self._visible_min[0]),
                                 y_space / (self._visible_max[1] -
@@ -542,11 +598,17 @@ class HAxis(Axis):
 
     def paint(self, paint):
         paint.setPen(self._colours['axis'])
-        y_pos = self._layout['padding'] + \
-                self._max[1] * self._layout['zoom'][1] + 0.5
-        start = QtCore.QPointF(self._x_zero_offset + 0.5, y_pos)
-        end = QtCore.QPointF(self._x_zero_offset + self._max[0] *
+        #y_pos = self._layout['padding'] + \
+        y_pos = self.height + \
+                self._layout['visible_max'][1] * self._layout['zoom'][1] + 0.5
+        start = QtCore.QPointF(self._x_zero_offset + 0.5 +
+                               (self._min[0] - self._layout['visible_min'][0]) *
+                               self._layout['zoom'][0], y_pos)
+        end = QtCore.QPointF(self._x_zero_offset +
+                             (self._max[0] - self._layout['visible_min'][0]) *
                              self._layout['zoom'][0] + 0.5, y_pos)
+        if start.x() < 0:
+            start.setX(0)
         if end.x() == float('inf'):
             end.setX(50000)
         paint.drawLine(start, end)
@@ -564,10 +626,13 @@ class VAxis(Axis):
 
     def paint(self, paint):
         paint.setPen(self._colours['axis'])
-        start = QtCore.QPointF(self._x_zero_offset + 0.5,
-                               self._layout['padding'] + 0.5)
-        end = QtCore.QPointF(self._x_zero_offset + 0.5,
-                             self._layout['padding'] + self._max[1] *
+        x_pos = self._x_zero_offset + 0.5 - \
+                self._layout['visible_min'][0] * self._layout['zoom'][0]
+        start = QtCore.QPointF(x_pos, self._hspace + 0.5 +
+                               (self._layout['visible_max'][1] - self._min[1]) *
+                               self._layout['zoom'][1])
+        end = QtCore.QPointF(x_pos, self._hspace +
+                             (self._layout['visible_max'][1] - self._max[1]) *
                                      self._layout['zoom'][1] + 0.5)
         paint.drawLine(start, end)
 
