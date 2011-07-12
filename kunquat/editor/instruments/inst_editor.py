@@ -80,6 +80,7 @@ class InstEditor(QtGui.QWidget):
     def inst_changed(self, num):
         self._cur_inst = num
         self._force.inst_changed(num)
+        self._panning.inst_changed(num)
 
     def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
@@ -114,5 +115,6 @@ class InstEditor(QtGui.QWidget):
 
     def sync(self):
         self._force.sync()
+        self._panning.sync()
 
 

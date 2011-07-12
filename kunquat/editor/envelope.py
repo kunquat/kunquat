@@ -121,6 +121,7 @@ class Envelope(QtGui.QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+        self._set_view()
 
     def set_key(self, key):
         self._key = key
