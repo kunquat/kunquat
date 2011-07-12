@@ -161,6 +161,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
     {
         return false;
     }
+    bool nodes_found = false;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -191,6 +192,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                 else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
+                    nodes_found = true;
                 }
                 else
                 {
@@ -212,6 +214,15 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
     Envelope* old_env = ip->env_force_filter;
     ip->env_force_filter = env;
     del_Envelope(old_env);
+    if (!nodes_found)
+    {
+        assert(Envelope_node_count(env) == 0);
+        int index = Envelope_set_node(env, 0, 1);
+        assert(index == 0);
+        index = Envelope_set_node(env, 1, 1);
+        assert(index == 1);
+        (void)index;
+    }
     return true;
 }
 

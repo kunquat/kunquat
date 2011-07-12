@@ -85,6 +85,7 @@ class Envelope(QtGui.QWidget):
                 }
         self._visible_min = [init_x_view[0], init_y_view[0]]
         self._visible_max = [init_x_view[1], init_y_view[1]]
+        self._aspect = None
         self._layout = {
                 'padding': 8,
                 'zoom': (200, 200),
@@ -502,6 +503,9 @@ class Envelope(QtGui.QWidget):
                                            self._visible_min[0]),
                                 y_space / (self._visible_max[1] -
                                            self._visible_min[1]))
+        if self._aspect == 1:
+            min_zoom = min(self._layout['zoom'])
+            self._layout['zoom'] = (min_zoom, min_zoom)
 
 
 class Nurbs(object):
