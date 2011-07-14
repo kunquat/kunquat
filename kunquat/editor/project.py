@@ -127,6 +127,18 @@ class Project(QtCore.QObject):
         """The Kunquat Handle associated with the Project."""
         return self._handle
 
+    def subtree(self, prefix):
+        """Return a sequence of all the keys inside a project subtree.
+
+        Arguments:
+        prefix -- The path of the subtree.
+
+        Return value:
+        The sequence of keys.
+
+        """
+        return (key for key in self._keys if key.startswith(prefix))
+
     def __getitem__(self, key):
         """Get data from the Kunquat Handle.
 
