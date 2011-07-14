@@ -32,6 +32,9 @@ class Generators(QtGui.QSplitter):
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([160, 1])
+        QtCore.QObject.connect(self._gen_list,
+                               QtCore.SIGNAL('genChanged(int)'),
+                               self._gen_editor.gen_changed)
 
     def inst_changed(self, num):
         self._gen_list.inst_changed(num)
