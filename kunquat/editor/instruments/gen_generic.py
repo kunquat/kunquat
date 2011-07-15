@@ -55,27 +55,99 @@ class GenGeneric(QtGui.QSplitter):
 
 class KeyList(QtGui.QTableWidget):
 
+    keyChanged = QtCore.pyqtSignal(str, name='keyChanged')
+
     def __init__(self, project, key, parent=None):
         QtGui.QTableWidget.__init__(self, 1, 1, parent)
         self._project = project
+        self._current = ''
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('itemChanged(QTableWidgetItem*)'),
+                               self._item_changed)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('currentItemChanged('
+                                             'QTableWidgetItem*,'
+                                             'QTableWidgetItem*)'),
+                               self._set_current)
+        self._lock_update = False
         self.set_key(key)
+
+    def _set_current(self, item, old):
+        prev_current = self._current
+        if item:
+            self._current = str(item.text())
+        else:
+            self._current = ''
+        if self._current != prev_current:
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('keyChanged(str)'),
+                                self._current)
+
+    def _item_changed(self, item):
+        if self._lock_update:
+            return
+        self._lock_update = True
+        if item:
+            new_text = str(item.text())
+            if new_text:
+                if not lim.valid_key(new_text):
+                    item.setText(self._current)
+                    self._lock_update = False
+                    return
+                for row in xrange(self.rowCount()):
+                    if row == self.currentRow():
+                        if self._current == new_text:
+                            self._lock_update = False
+                            return
+                        continue
+                    i = self.item(row, 0)
+                    if i and i.text() == new_text:
+                        item.setText(self._current)
+                        self._lock_update = False
+                        return
+        prev_current = self._current
+
+        if self._current:
+            key = self._key + self._current
+            self._project[key] = None
+        else:
+            assert self.currentRow() == self.rowCount() - 1
+            self.insertRow(self.rowCount())
+
+        new_text = str(item.text()) if item else ''
+        if new_text:
+            self._current = new_text
+        else:
+            self.removeRow(self.currentRow())
+            item = self.currentItem()
+            self._current = str(item.text()) if item else ''
+        self._lock_update = False
+
+        if self._current != prev_current:
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('keyChanged(str)'),
+                                self._current)
 
     def set_key(self, key):
         self._key = key
+        self._lock_update = True
         while self.rowCount() > 0:
             self.removeRow(0)
         self.setItem(0, 0, QtGui.QTableWidgetItem())
         for key in self._project.subtree(self._key):
             key_trunc = key[len(self._key):]
+            if not key_trunc.split('/')[-1].startswith('p_'):
+                continue
             item = QtGui.QTableWidgetItem(key_trunc)
             self.insertRow(self.rowCount())
             self.setItem(self.rowCount() - 1, 0, item)
         self.sortItems(0)
         self.insertRow(self.rowCount())
+        self._lock_update = False
 
     def sync(self):
         self.set_key(self._key)

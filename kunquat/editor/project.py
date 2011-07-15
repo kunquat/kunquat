@@ -171,6 +171,18 @@ class Project(QtCore.QObject):
         """
         self.set(key, value)
 
+    def __delitem__(self, key):
+        """Remove data from the Kunquat Handle.
+
+        Removing a key from a project is equivalent to setting the
+        corresponding value to None.
+
+        Arguments:
+        key -- The key of the data in the composition.
+
+        """
+        self[key] = None
+
     def set(self, key, value, immediate=True):
         """Set data in the Kunquat Handle.
 
@@ -208,7 +220,7 @@ class Project(QtCore.QObject):
 
         """
         self._handle[key] = value
-        if value:
+        if value != None:
             self._keys.add(key)
         else:
             self._keys.discard(key)
