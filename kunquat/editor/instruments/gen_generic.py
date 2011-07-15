@@ -16,6 +16,7 @@ from __future__ import division, print_function
 from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
+from kunquat.editor.param_slider import ParamSlider
 
 
 class GenGeneric(QtGui.QSplitter):
@@ -30,7 +31,10 @@ class GenGeneric(QtGui.QSplitter):
         self._key_base = self._key_temp.format(self._cur_inst, self._cur_gen)
         self._key_list = KeyList(project,
                                  self._key_base + 'c/')
-        self._key_editor = QtGui.QLabel('[key editor]')
+        self._key_editor = KeyEditor(project)
+        QtCore.QObject.connect(self._key_list,
+                               QtCore.SIGNAL('keyChanged(QString)'),
+                               self._key_editor.set_key)
         self.addWidget(self._key_list)
         self.addWidget(self._key_editor)
         self.setStretchFactor(0, 0)
@@ -55,7 +59,7 @@ class GenGeneric(QtGui.QSplitter):
 
 class KeyList(QtGui.QTableWidget):
 
-    keyChanged = QtCore.pyqtSignal(str, name='keyChanged')
+    keyChanged = QtCore.pyqtSignal(QtCore.QString, name='keyChanged')
 
     def __init__(self, project, key, parent=None):
         QtGui.QTableWidget.__init__(self, 1, 1, parent)
@@ -84,8 +88,8 @@ class KeyList(QtGui.QTableWidget):
             self._current = ''
         if self._current != prev_current:
             QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('keyChanged(str)'),
-                                self._current)
+                                QtCore.SIGNAL('keyChanged(QString)'),
+                                self._key + self._current)
 
     def _item_changed(self, item):
         if self._lock_update:
@@ -129,8 +133,8 @@ class KeyList(QtGui.QTableWidget):
 
         if self._current != prev_current:
             QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('keyChanged(str)'),
-                                self._current)
+                                QtCore.SIGNAL('keyChanged(QString)'),
+                                self._key + self._current)
 
     def set_key(self, key):
         self._key = key
@@ -148,6 +152,45 @@ class KeyList(QtGui.QTableWidget):
         self.sortItems(0)
         self.insertRow(self.rowCount())
         self._lock_update = False
+
+    def sync(self):
+        self.set_key(self._key)
+
+
+class KeyEditor(QtGui.QStackedWidget):
+
+    def __init__(self, project, parent=None):
+        QtGui.QStackedWidget.__init__(self)
+        self._project = project
+        self._key = ''
+        self._slider = ParamSlider(project,
+                                   '',
+                                   (-100, 100),
+                                   0,
+                                   '',
+                                   decimals=2)
+        self._default = QtGui.QWidget()
+        self.addWidget(self._default)
+        self.addWidget(self._slider)
+        self._map = {
+                        'jsonf': self._slider,
+                    }
+
+    def set_key(self, key):
+        self._key = str(key)
+        if not lim.valid_key(key):
+            self.setCurrentWidget(self._default)
+            return
+        suffix = self._key.split('.')[-1]
+        if suffix in self._map:
+            components = self._key.split('/')
+            components[-1] = 'c' + components[-1][1:]
+            constraints = '/'.join(components)
+            current = self._map[suffix]
+            current.set_key(self._key)
+            self.setCurrentWidget(current)
+        else:
+            self.setCurrentWidget(self._default)
 
     def sync(self):
         self.set_key(self._key)
