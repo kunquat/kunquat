@@ -176,6 +176,7 @@ class KeyEditor(QtGui.QStackedWidget):
         self.addWidget(self._slider)
         self._map = {
                         'jsonf': self._slider,
+                        'jsoni': self._slider,
                     }
 
     def set_key(self, key):
@@ -189,6 +190,8 @@ class KeyEditor(QtGui.QStackedWidget):
             current = self._map[suffix]
             constraints = self.get_constraints(key)
             if constraints:
+                if suffix == 'jsoni' and 'decimals' in constraints:
+                    constraints['decimals'] = 0
                 current.set_constraints(constraints)
             current.set_key(self._key)
             self.setCurrentWidget(current)
