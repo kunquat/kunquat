@@ -71,6 +71,7 @@ class KeyList(QtGui.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
+        self.setTabKeyNavigation(False)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('itemChanged(QTableWidgetItem*)'),
                                self._item_changed)
@@ -141,18 +142,27 @@ class KeyList(QtGui.QTableWidget):
     def set_key(self, key):
         self._key = key
         self._lock_update = True
-        while self.rowCount() > 0:
-            self.removeRow(0)
-        self.setItem(0, 0, QtGui.QTableWidgetItem())
-        for key in list(self._project.subtree(self._key)):
-            key_trunc = key[len(self._key):]
-            if not key_trunc.split('/')[-1].startswith('p_'):
-                continue
-            item = QtGui.QTableWidgetItem(key_trunc)
+        subtree = filter(lambda k: k[len(key):].split('/')[-1].startswith('p_'),
+                         self._project.subtree(self._key))
+        if not subtree:
+            while self.rowCount() > 1:
+                self.removeRow(0)
+            if self.rowCount() == 0:
+                self.insertRow(0)
+            self.setItem(0, 0, QtGui.QTableWidgetItem())
+            return
+        new_rows = len(subtree) - self.rowCount()
+        for _ in xrange(new_rows):
             self.insertRow(self.rowCount())
-            self.setItem(self.rowCount() - 1, 0, item)
+        for _ in xrange(-new_rows):
+            self.removeRow(self.rowCount() - 1)
+        for i, k in enumerate(subtree):
+            key_trunc = k[len(self._key):]
+            item = QtGui.QTableWidgetItem(key_trunc)
+            self.setItem(i, 0, item)
         self.sortItems(0)
         self.insertRow(self.rowCount())
+        self.setItem(self.rowCount() - 1, 0, QtGui.QTableWidgetItem())
         self._lock_update = False
 
     def sync(self):

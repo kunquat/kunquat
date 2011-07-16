@@ -220,7 +220,7 @@ class Project(QtCore.QObject):
 
         """
         self._handle[key] = value
-        if value != None:
+        if value:
             self._keys.add(key)
         else:
             self._keys.discard(key)
