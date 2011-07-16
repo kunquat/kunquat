@@ -33,9 +33,7 @@ class ParamSlider(QtGui.QWidget):
         assert orientation in (QtCore.Qt.Horizontal, QtCore.Qt.Vertical)
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._factor = 10**decimals
         self._dict_key = dict_key
-        self._default_val = default_val
         self._suffix = ' ' + unit if unit else ''
 
         if orientation == QtCore.Qt.Horizontal:
@@ -46,25 +44,53 @@ class ParamSlider(QtGui.QWidget):
         layout.addWidget(lab, 0)
 
         self._slider = KSlider(orientation)
-        self._slider.setRange(val_range[0] * self._factor,
-                              val_range[1] * self._factor)
+
+        self._value_display = QtGui.QLabel()
+        self.set_constraints({
+                                'range': val_range,
+                                'default': default_val,
+                                'decimals': decimals
+                             })
         layout.addWidget(self._slider, 1)
+        layout.addWidget(self._value_display)
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('editingFinished()'),
                                self.finished)
+        self.set_key(key)
 
-        self._value_display = QtGui.QLabel()
-        metrics = QtGui.QFontMetrics(QtGui.QFont())
+    def set_constraints(self, constraints):
+        self._lock_update = True
+        try:
+            decimals = int(constraints['decimals'])
+            if decimals < 0:
+                decimals = 0
+        except (KeyError, TypeError, ValueError):
+            decimals = 0
+        self._factor = 10**decimals
+        try:
+            r = constraints['range']
+            val_range = float(r[0]), float(r[1])
+            if val_range[0] > val_range[1]:
+                raise ValueError
+        except (IndexError, KeyError, TypeError, ValueError):
+            val_range = -100, 100
+        try:
+            self._default_val = float(constraints['default']) if decimals \
+                                else int(constraints['default'])
+        except (KeyError, TypeError, ValueError):
+            self._default_val = val_range[0]
+        self._slider.setRange(val_range[0] * self._factor,
+                              val_range[1] * self._factor)
         min_str = '{0:.{1}f}'.format(val_range[0], decimals) + self._suffix
         max_str = '{0:.{1}f}'.format(val_range[1], decimals) + self._suffix
+        metrics = QtGui.QFontMetrics(QtGui.QFont())
         width = max(metrics.width(min_str),
                     metrics.width(max_str))
         self._value_display.setFixedWidth(width)
-        layout.addWidget(self._value_display)
-        self.set_key(key)
+        self._lock_update = False
 
     def set_key(self, key):
         self._key = key

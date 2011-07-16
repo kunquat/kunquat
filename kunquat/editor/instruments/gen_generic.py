@@ -12,6 +12,8 @@
 #
 
 from __future__ import division, print_function
+from itertools import takewhile
+import re
 
 from PyQt4 import QtCore, QtGui
 
@@ -142,7 +144,7 @@ class KeyList(QtGui.QTableWidget):
         while self.rowCount() > 0:
             self.removeRow(0)
         self.setItem(0, 0, QtGui.QTableWidgetItem())
-        for key in self._project.subtree(self._key):
+        for key in list(self._project.subtree(self._key)):
             key_trunc = key[len(self._key):]
             if not key_trunc.split('/')[-1].startswith('p_'):
                 continue
@@ -177,16 +179,17 @@ class KeyEditor(QtGui.QStackedWidget):
                     }
 
     def set_key(self, key):
-        self._key = str(key)
+        key = str(key)
+        self._key = key
         if not lim.valid_key(key):
             self.setCurrentWidget(self._default)
             return
         suffix = self._key.split('.')[-1]
         if suffix in self._map:
-            components = self._key.split('/')
-            components[-1] = 'c' + components[-1][1:]
-            constraints = '/'.join(components)
             current = self._map[suffix]
+            constraints = self.get_constraints(key)
+            if constraints:
+                current.set_constraints(constraints)
             current.set_key(self._key)
             self.setCurrentWidget(current)
         else:
@@ -194,5 +197,18 @@ class KeyEditor(QtGui.QStackedWidget):
 
     def sync(self):
         self.set_key(self._key)
+
+    def get_constraints(self, key):
+        if not lim.valid_key(key):
+            return None
+        components = key.split('/')
+        gen_components = takewhile(lambda x: x != 'c', components)
+        const_key = '/'.join(gen_components) + '/i_constraints.json'
+        d = self._project[const_key]
+        if isinstance(d, dict):
+            for k in d.iterkeys():
+                if re.match(k, components[-1]):
+                    return d[k]
+        return None
 
 
