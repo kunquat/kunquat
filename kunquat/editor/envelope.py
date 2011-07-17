@@ -311,6 +311,8 @@ class Envelope(QtGui.QWidget):
                 return
             if not self._min[0] <= focus_node[0] <= self._max[0]:
                 return
+            if focus_node[0] > self._nodes[-1][0] and self._last_locked[1]:
+                focus_node = focus_node[0], self._nodes[-1][1]
             self._nodes[index:index] = [focus_node]
             self._new_node = True
             QtCore.QObject.emit(self,

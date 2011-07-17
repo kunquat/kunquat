@@ -18,6 +18,7 @@ import re
 from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
+from kunquat.editor.envelope import Envelope
 from kunquat.editor.param_slider import ParamSlider
 
 
@@ -181,10 +182,20 @@ class KeyEditor(QtGui.QStackedWidget):
                                    0,
                                    '',
                                    decimals=2)
+        self._env = Envelope(project,
+                             (0, 1),
+                             (0, 1),
+                             (False, False),
+                             (False, False),
+                             [[0, 1], [1, 0]],
+                             16,
+                             '')
         self._default = QtGui.QWidget()
         self.addWidget(self._default)
+        self.addWidget(self._env)
         self.addWidget(self._slider)
         self._map = {
+                        'jsone': self._env,
                         'jsonf': self._slider,
                         'jsoni': self._slider,
                     }
