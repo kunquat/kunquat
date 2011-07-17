@@ -11,8 +11,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import division
-from __future__ import print_function
+from __future__ import division, print_function
 
 from PyQt4 import QtGui, QtCore
 
