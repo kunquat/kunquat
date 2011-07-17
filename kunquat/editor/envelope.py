@@ -39,8 +39,8 @@ class Envelope(QtGui.QWidget):
                  key,
                  dict_key=None,
                  step=(0.0001, 0.0001),
-                 init_x_view=None,
-                 init_y_view=None,
+                 #init_x_view=None,
+                 #init_y_view=None,
                  mark_modes=None,
                  parent=None):
         assert x_range[0] < x_range[1]
@@ -56,6 +56,7 @@ class Envelope(QtGui.QWidget):
         assert not mark_modes or all(mode in ('x_dashed',)
                                      for mode in mark_modes)
         QtGui.QWidget.__init__(self, parent)
+        """
         if not init_x_view:
             if x_range[0] >= -1 and x_range[1] <= 1:
                 init_x_view = x_range
@@ -68,6 +69,7 @@ class Envelope(QtGui.QWidget):
                 y_min = min(n[1] for n in default_val)
                 y_max = max(n[1] for n in default_val)
                 init_y_view = y_min, y_max
+        """
         self._project = project
         self._key = key
         self._dict_key = dict_key
@@ -83,8 +85,8 @@ class Envelope(QtGui.QWidget):
         self._fonts = {
                 'axis': QtGui.QFont('Decorative', 8),
                 }
-        self._visible_min = [init_x_view[0], init_y_view[0]]
-        self._visible_max = [init_x_view[1], init_y_view[1]]
+        self._visible_min = [0, 0]
+        self._visible_max = [1, 1]
         self._aspect = None
         self._layout = {
                 'padding': 8,
@@ -93,25 +95,34 @@ class Envelope(QtGui.QWidget):
                 'visible_min': self._visible_min,
                 'visible_max': self._visible_max,
                 }
-        self._min = x_range[0], y_range[0]
-        self._max = x_range[1], y_range[1]
-        self._first_locked = x_lock[0], y_lock[0]
-        self._last_locked = x_lock[1], y_lock[1]
+        self.set_constraints({
+                                'x_range': x_range,
+                                'y_range': y_range,
+                                'first_locked': (x_lock[0], y_lock[0]),
+                                'last_locked': (x_lock[1], y_lock[1]),
+                                'nodes_max': nodes_max,
+                                'default': { 'nodes':
+                                        copy.deepcopy(default_val) },
+                             })
+        #self._min = x_range[0], y_range[0]
+        #self._max = x_range[1], y_range[1]
+        #self._first_locked = x_lock[0], y_lock[0]
+        #self._last_locked = x_lock[1], y_lock[1]
         self._step = step
-        self._nodes_max = nodes_max
+        #self._nodes_max = nodes_max
 
         self._mark_modes = mark_modes
         mark_count = min(len(mark_modes), 4) if mark_modes else 0
         self._marks = [None] * mark_count
         self._mark_visible = [False] * mark_count
 
-        self._default_val = copy.deepcopy(default_val)
-        self._nodes = default_val
-        self._smooth = False
-        self._haxis = HAxis(self._colours, self._fonts,
-                            self._min, self._max, self._layout)
-        self._vaxis = VAxis(self._colours, self._fonts,
-                            self._min, self._max, self._layout)
+        #self._default_val = copy.deepcopy(default_val)
+        #self._nodes = default_val
+        #self._smooth = False
+        #self._haxis = HAxis(self._colours, self._fonts,
+        #                    self._min, self._max, self._layout)
+        #self._vaxis = VAxis(self._colours, self._fonts,
+        #                    self._min, self._max, self._layout)
         self._focus_node = None
         self._focus_index = -1
         self._focus_old_node = None
@@ -161,6 +172,58 @@ class Envelope(QtGui.QWidget):
 
     def sync(self):
         self.set_key(self._key)
+
+    def set_constraints(self, constraints):
+        try:
+            x_range = constraints['x_range']
+            x_min = float(x_range[0])
+            x_max = float(x_range[1])
+            if x_min > x_max:
+                raise ValueError
+        except (IndexError, KeyError, TypeError, ValueError):
+            x_min, x_max = 0, 1
+        try:
+            y_range = constraints['y_range']
+            y_min = float(y_range[0])
+            y_max = float(y_range[1])
+            if y_min > y_max:
+                raise ValueError
+        except (IndexError, KeyError, TypeError, ValueError):
+            y_min, y_max = 0, 1
+        self._min = x_min, y_min
+        self._max = x_max, y_max
+        try:
+            first_locked = constraints['first_locked']
+            self._first_locked = bool(first_locked[0]), bool(first_locked[1])
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._first_locked = False, False
+        try:
+            last_locked = constraints['last_locked']
+            self._last_locked = bool(last_locked[0]), bool(last_locked[1])
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._last_locked = False, False
+        try:
+            env = constraints['default']
+            self._default_val = [(float(x), float(y))
+                                 for x, y in env['nodes']]
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._default_val = [[0, 1], [1, 0]]
+        self._nodes = self._default_val
+        try:
+            env = constraints['default']
+            self._smooth = bool(env['smooth'])
+        except (KeyError, TypeError, ValueError):
+            self._smooth = False
+        try:
+            self._nodes_max = int(constraints['nodes_max'])
+            if self._nodes_max < 2:
+                self._nodes_max = 16
+        except (KeyError, TypeError, ValueError):
+            self._nodes_max = 16
+        self._haxis = HAxis(self._colours, self._fonts,
+                            self._min, self._max, self._layout)
+        self._vaxis = VAxis(self._colours, self._fonts,
+                            self._min, self._max, self._layout)
 
     def set_mark(self, index, value):
         assert value == None or 0 <= value < len(self._nodes)
