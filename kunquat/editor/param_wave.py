@@ -13,20 +13,22 @@
 
 from __future__ import division, print_function
 from collections import defaultdict
+from itertools import count, izip
 import math
 
 from PyQt4 import QtGui, QtCore
 
+from param_slider import KSlider
 from waveform import Waveform
 
 
 def sine(x):
-    x = math.fmod(x, 1)
+    x %= 1
     return math.sin(x * 2 * math.pi)
 
 
 def triangle(x):
-    x = math.fmod(x, 1)
+    x %= 1
     if x < 0.25:
         return x * 4
     elif x > 0.75:
@@ -35,17 +37,34 @@ def triangle(x):
 
 
 def pulse(x):
-    x = math.fmod(x, 1)
+    x %= 1
     if x < 0.5:
         return 1
     return -1
 
 
 def saw(x):
-    x = math.fmod(x, 1)
-    if x < 0.5:
-        return x * 2
-    return x * 2 - 2
+    x %= 1
+    return x * 2 - 1
+
+
+def identity(x, amount):
+    return x
+
+
+def shift(x, amount):
+    amount /= 2
+    return (x + amount) % 1
+
+
+def stretch(x, amount):
+    amount *= 2
+    nx = x * 2 - 1
+    if nx < 0:
+        nx = -((-nx)**(4**(amount)))
+    else:
+        nx = nx**(4**(amount))
+    return (nx + 1) / 2
 
 
 class ParamWave(QtGui.QWidget):
@@ -62,6 +81,14 @@ class ParamWave(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
 
+        prewarp_options = [('None', identity),
+                           ('Shift', shift),
+                           ('Stretch', stretch),
+                          ]
+        self._prewarp_funcs = dict(prewarp_options)
+        self._prewarp_select = [PrewarpSelect([o[0] for o in prewarp_options])]
+        self._prewarp_options = [identity]
+        self._prewarp_params = [0]
         base_options = [('Sine', sine),
                         ('Triangle', triangle),
                         ('Pulse', pulse),
@@ -70,13 +97,25 @@ class ParamWave(QtGui.QWidget):
         self._base_funcs = dict(base_options)
         self._base_select = BaseSelect([o[0] for o in base_options])
         self._waveform = Waveform()
+        for ps in self._prewarp_select:
+            layout.addWidget(ps)
         layout.addWidget(self._base_select)
-        layout.addWidget(self._waveform)
+        layout.addWidget(self._waveform, 1)
         self.set_constraints({
                                 'length': length,
                                 'range': val_range,
                              })
         self._lock_update = False
+        for ps in self._prewarp_select:
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('funcChanged(int, QString)'),
+                                   self._set_prewarp)
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('paramChanged(int, float)'),
+                                   self._prewarp_param_changed)
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('paramFinished(int)'),
+                                   self._prewarp_param_finished)
         QtCore.QObject.connect(self._base_select,
                                QtCore.SIGNAL('currentIndexChanged(QString)'),
                                self._set_base)
@@ -129,6 +168,22 @@ class ParamWave(QtGui.QWidget):
         except (KeyError, TypeError, ValueError):
             self._stretch = 0
 
+    def _set_prewarp(self, ident, prewarp):
+        prewarp = str(prewarp)
+        if prewarp in self._prewarp_funcs:
+            func = self._prewarp_funcs[prewarp]
+        else:
+            func = identity
+        self._prewarp_options[ident] = func
+        self._set_wave()
+
+    def _prewarp_param_changed(self, ident, value):
+        self._prewarp_params[ident] = value
+        self._set_wave(False)
+
+    def _prewarp_param_finished(self, ident):
+        self._set_wave()
+
     def _set_base(self, base):
         base = str(base)
         if base in self._base_funcs:
@@ -139,14 +194,79 @@ class ParamWave(QtGui.QWidget):
         self._base_option = base
         self._set_wave()
 
-    def _set_wave(self):
-        waveform = self._base
-        self._project[self._aux_key] = {
-                                           'base_option': self._base_option,
-                                           'stretch': self._stretch,
-                                       }
-        self._project[self._key] = waveform
+    def _set_wave(self, immediate=True):
+        prewarps = []
+        for func, value in izip(self._prewarp_options, self._prewarp_params):
+            name = None
+            for (n, f) in self._prewarp_funcs.iteritems():
+                if f == func:
+                    name = n
+            assert name
+            prewarps.extend([(name, value)])
+        self._project.set(self._aux_key,
+                          {
+                              'base_option': self._base_option,
+                              'prewarps': prewarps,
+                          },
+                          immediate)
+        waveform = [0] * len(self._base)
+        base_func = self._base_funcs[self._base_option]
+        for i in xrange(len(self._base)):
+            value = i / len(self._base)
+            for (f, p) in izip(self._prewarp_options, self._prewarp_params):
+                value = f(value, p)
+            waveform[i] = base_func(value)
+        self._project.set(self._key, waveform, immediate)
         self._waveform.set_data(waveform)
+
+
+prewarp_count = count()
+
+
+class PrewarpSelect(QtGui.QWidget):
+
+    funcChanged = QtCore.pyqtSignal(int, QtCore.QString, name='funcChanged')
+    paramChanged = QtCore.pyqtSignal(int, float, name='paramChanged')
+    paramFinished = QtCore.pyqtSignal(int, name='paramFinished')
+
+    def __init__(self, prewarp_options, parent=None):
+        QtGui.QWidget.__init__(self, parent)
+        self._id = prewarp_count.next()
+        layout = QtGui.QHBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        self._func_select = QtGui.QComboBox()
+        for option in prewarp_options:
+            self._func_select.addItem(option)
+        self._param = KSlider(QtCore.Qt.Horizontal)
+        self._param.setRange(-100, 100)
+        self._value_display = QtGui.QLabel()
+        layout.addWidget(self._func_select, 1)
+        layout.addWidget(self._param, 1)
+        layout.addWidget(self._value_display)
+        metrics = QtGui.QFontMetrics(QtGui.QFont())
+        width = metrics.width('-0.00')
+        self._value_display.setFixedWidth(width)
+        QtCore.QObject.connect(self._func_select,
+                               QtCore.SIGNAL('currentIndexChanged(QString)'),
+                               self._func_changed)
+        QtCore.QObject.connect(self._param,
+                               QtCore.SIGNAL('valueChanged(int)'),
+                               self._param_changed)
+        QtCore.QObject.connect(self._param,
+                               QtCore.SIGNAL('editingFinished()'),
+                               self._param_finished)
+
+    def _func_changed(self, name):
+        self.emit(QtCore.SIGNAL('funcChanged(int, QString)'), self._id, name)
+
+    def _param_changed(self, value):
+        self._value_display.setText(str(value / 100))
+        self.emit(QtCore.SIGNAL('paramChanged(int, float)'),
+                                self._id, value / 100)
+
+    def _param_finished(self):
+        self.emit(QtCore.SIGNAL('paramFinished(int)'), self._id)
 
 
 class BaseSelect(QtGui.QComboBox):
