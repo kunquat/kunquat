@@ -144,6 +144,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
         self._focus_backup = None
+        self.sync()
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
