@@ -203,6 +203,8 @@ class ParamWave(QtGui.QWidget):
                     name = n
             assert name
             prewarps.extend([(name, value)])
+        if immediate:
+            self._project.start_group()
         self._project.set(self._aux_key,
                           {
                               'base_option': self._base_option,
@@ -217,6 +219,8 @@ class ParamWave(QtGui.QWidget):
                 value = f(value, p)
             waveform[i] = base_func(value)
         self._project.set(self._key, waveform, immediate)
+        if immediate:
+            self._project.end_group()
         self._waveform.set_data(waveform)
 
 

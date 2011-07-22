@@ -14,12 +14,13 @@
 from __future__ import print_function
 
 import errno
+from itertools import izip, takewhile
 import json
+import os
 import re
 import tarfile
 import time
 import types
-import os
 
 from PyQt4 import QtCore
 
@@ -636,6 +637,9 @@ class Project(QtCore.QObject):
         Every call of start_group must always have a corresponding
         call of end_group, including exceptional circumstances.
 
+        Optional arguments:
+        name -- The name of the change.
+
         """
         self._history.start_group(name)
 
@@ -789,6 +793,10 @@ class History(object):
         elif key[key.index('.'):].startswith('.json'):
             old_value = json.dumps(old_value)
 
+        if key in self._pending:
+            old_value = self._pending[key][1]
+            del self._pending[key]
+        """
         if self._pending:
             for k, value in self._pending.iteritems():
                 if k == key:
@@ -800,6 +808,7 @@ class History(object):
             if key in self._pending:
                 old_value = self._pending[key][1]
             self._pending = {}
+        """
         self._step(key, new_data, old_value, name)
         #print('added immediate change', key, '-',
         #      new_data if len(new_data) < 100 else new_data[:97] + '...')
@@ -825,10 +834,14 @@ class History(object):
         """Undoes a step."""
         assert not self._group
         if self._pending:
-            k, value = self._pending.popitem()
-            assert not self._pending
-            pdata, pold, pname = value
-            self._step(k, pdata, pold, pname)
+            if len(self._pending) > 1:
+                self.start_group()
+            while self._pending:
+                k, value = self._pending.popitem()
+                pdata, pold, pname = value
+                self._step(k, pdata, pold, pname)
+            if self._group:
+                self.end_group()
             self.undo(step_signaller)
             return
         if not self._current.parent:
@@ -950,11 +963,16 @@ class Step(object):
         if not self._changes:
             return 'No change'
         prefix = self._changes[0].key
-        for key in self._changes[1:]:
+        for change in self._changes[1:]:
+            common_len = sum(1 for _ in takewhile(lambda x: x[0] == x[1],
+                                                  izip(prefix, change.key)))
+            prefix = prefix[:common_len]
+            """
             for i, ch in enumerate(prefix):
                 if ch != key[i]:
                     prefix = prefix[:i]
                     break
+            """
         if len(prefix) < len(self._changes[0].key):
             prefix = prefix + '*'
         return prefix
