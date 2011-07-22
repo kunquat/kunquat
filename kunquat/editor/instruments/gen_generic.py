@@ -83,6 +83,7 @@ class KeyList(QtGui.QTableWidget):
                                              'QTableWidgetItem*)'),
                                self._set_current)
         self._lock_update = False
+        self._key = ''
         self.set_key(key)
 
     def _set_current(self, item, old):
@@ -141,7 +142,9 @@ class KeyList(QtGui.QTableWidget):
                                 QtCore.SIGNAL('keyChanged(QString)'),
                                 self._key + self._current)
 
-    def set_key(self, key):
+    def set_key(self, key, force=False):
+        prev_key = self._key
+        prev_current = self._current
         self._key = key
         self._lock_update = True
         subtree = filter(lambda k: k[len(key):].split('/')[-1].startswith('p_'),
@@ -166,9 +169,14 @@ class KeyList(QtGui.QTableWidget):
         self.insertRow(self.rowCount())
         self.setItem(self.rowCount() - 1, 0, QtGui.QTableWidgetItem())
         self._lock_update = False
+        self._set_current(self.currentItem(), None)
+        if prev_key != self._key or prev_current != self._current or force:
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('keyChanged(QString)'),
+                                self._key + self._current)
 
     def sync(self):
-        self.set_key(self._key)
+        self.set_key(self._key, True)
 
 
 class KeyEditor(QtGui.QStackedWidget):
