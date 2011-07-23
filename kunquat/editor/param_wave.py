@@ -186,6 +186,8 @@ class ParamWave(QtGui.QWidget):
         self._prewarp_params = list(params)
         for ps, prewarp in izip(self._prewarp_select, preopts):
             ps.set_state(*prewarp)
+        for ps in self._prewarp_select:
+            ps.setEnabled(self._base_option != 'Custom')
 
     def _set_prewarp(self, ident, prewarp):
         prewarp = str(prewarp)
@@ -209,9 +211,12 @@ class ParamWave(QtGui.QWidget):
         if base in self._base_funcs:
             func = self._base_funcs[base]
         else:
+            base = 'Custom'
             func = lambda x: 0
         #self._base = [func(x / self._length) for x in xrange(self._length)]
         self._base_option = base
+        for ps in self._prewarp_select:
+            ps.setEnabled(self._base_option != 'Custom')
         self._set_wave()
 
     def _set_wave(self, immediate=True):
@@ -314,6 +319,10 @@ class BaseSelect(QtGui.QComboBox):
     def set_selection(self, text):
         self.blockSignals(True)
         if text in self._base_waves:
+            if self._custom:
+                assert self.itemText(0) == 'Custom'
+                self.removeItem(0)
+                self._custom = False
             self.setCurrentIndex(self.findText(text))
         else:
             if not self._custom:
