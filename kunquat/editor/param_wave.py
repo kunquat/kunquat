@@ -86,9 +86,13 @@ class ParamWave(QtGui.QWidget):
                            ('Stretch', stretch),
                           ]
         self._prewarp_funcs = dict(prewarp_options)
-        self._prewarp_select = [PrewarpSelect([o[0] for o in prewarp_options])]
-        self._prewarp_options = [identity]
-        self._prewarp_params = [0]
+        self._prewarp_count = 1
+        self._prewarp_select = []
+        for _ in xrange(self._prewarp_count):
+            self._prewarp_select.extend([PrewarpSelect([o[0] for o in
+                                         prewarp_options])])
+        self._prewarp_options = [identity] * self._prewarp_count
+        self._prewarp_params = [0] * self._prewarp_count
         base_options = [('Sine', sine),
                         ('Triangle', triangle),
                         ('Pulse', pulse),
@@ -162,11 +166,26 @@ class ParamWave(QtGui.QWidget):
             self._base_option = 'Custom'
         self._base_select.set_selection(self._base_option)
         try:
-            self._stretch = float(aux_data['stretch'])
-            if abs(self._stretch) > 1:
-                raise ValueError
+            preopts = []
+            pw = aux_data['prewarps']
+            for i in xrange(min(len(self._prewarp_options), len(pw))):
+                name = str(pw[i][0])
+                if name not in self._prewarp_funcs:
+                    name = 'None'
+                value = float(pw[i][1])
+                if abs(value) > 1:
+                    raise ValueError
+                preopts.extend([(name, value)])
         except (KeyError, TypeError, ValueError):
-            self._stretch = 0
+            preopts = []
+        preopts.extend([('None', 0)] *
+                       (len(self._prewarp_options) - len(preopts)))
+        prewarps = [(self._prewarp_funcs[n[0]], n[1]) for n in preopts]
+        options, params = zip(*prewarps)
+        self._prewarp_options = list(options)
+        self._prewarp_params = list(params)
+        for ps, prewarp in izip(self._prewarp_select, preopts):
+            ps.set_state(*prewarp)
 
     def _set_prewarp(self, ident, prewarp):
         prewarp = str(prewarp)
@@ -182,7 +201,8 @@ class ParamWave(QtGui.QWidget):
         self._set_wave(False)
 
     def _prewarp_param_finished(self, ident):
-        self._set_wave()
+        self._project.flush(self._key)
+        self._project.flush(self._aux_key)
 
     def _set_base(self, base):
         base = str(base)
@@ -190,7 +210,7 @@ class ParamWave(QtGui.QWidget):
             func = self._base_funcs[base]
         else:
             func = lambda x: 0
-        self._base = [func(x / self._length) for x in xrange(self._length)]
+        #self._base = [func(x / self._length) for x in xrange(self._length)]
         self._base_option = base
         self._set_wave()
 
@@ -211,10 +231,10 @@ class ParamWave(QtGui.QWidget):
                               'prewarps': prewarps,
                           },
                           immediate)
-        waveform = [0] * len(self._base)
+        waveform = [0] * self._length # len(self._base)
         base_func = self._base_funcs[self._base_option]
-        for i in xrange(len(self._base)):
-            value = i / len(self._base)
+        for i in xrange(self._length):
+            value = i / self._length # len(self._base)
             for (f, p) in izip(self._prewarp_options, self._prewarp_params):
                 value = f(value, p)
             waveform[i] = base_func(value)
@@ -260,6 +280,12 @@ class PrewarpSelect(QtGui.QWidget):
         QtCore.QObject.connect(self._param,
                                QtCore.SIGNAL('editingFinished()'),
                                self._param_finished)
+
+    def set_state(self, name, value):
+        self.blockSignals(True)
+        self._param.setValue(round(value * 100))
+        self._value_display.setText(str(round(value, 2)))
+        self.blockSignals(False)
 
     def _func_changed(self, name):
         self.emit(QtCore.SIGNAL('funcChanged(int, QString)'), self._id, name)
