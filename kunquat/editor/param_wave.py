@@ -53,11 +53,13 @@ def identity(x, amount):
 
 
 def shift(x, amount):
+    x %= 1
     amount /= 2
     return (x + amount) % 1
 
 
 def stretch(x, amount):
+    x %= 1
     amount *= 2
     nx = x * 2 - 1
     if nx < 0:
@@ -65,6 +67,13 @@ def stretch(x, amount):
     else:
         nx = nx**(4**(amount))
     return (nx + 1) / 2
+
+
+def scale_x(x, amount):
+    x %= 1
+    x -= 0.5
+    x *= 8**amount
+    return x + 0.5
 
 
 class ParamWave(QtGui.QWidget):
@@ -82,11 +91,12 @@ class ParamWave(QtGui.QWidget):
         layout.setSpacing(0)
 
         prewarp_options = [('None', identity),
+                           ('Scale', scale_x),
                            ('Shift', shift),
                            ('Stretch', stretch),
                           ]
         self._prewarp_funcs = dict(prewarp_options)
-        self._prewarp_count = 1
+        self._prewarp_count = 4
         self._prewarp_select = []
         for _ in xrange(self._prewarp_count):
             self._prewarp_select.extend([PrewarpSelect([o[0] for o in
