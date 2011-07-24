@@ -22,30 +22,33 @@ from param_slider import KSlider
 from waveform import Waveform
 
 
+def normalise(x):
+    return (x + 1) % 2 - 1
+
+
 def sine(x):
-    x %= 1
-    return math.sin(x * 2 * math.pi)
+    x = normalise(x)
+    return math.sin(x * math.pi)
 
 
 def triangle(x):
-    x %= 1
-    if x < 0.25:
-        return x * 4
-    elif x > 0.75:
-        return (x - 1) * 4
-    return (0.5 - x) * 4
+    x = normalise(x)
+    if x < -0.5:
+        return -x * 2 - 2
+    elif x > 0.5:
+        return -x * 2 + 2
+    return x * 2
 
 
 def pulse(x):
-    x %= 1
-    if x < 0.5:
-        return 1
-    return -1
+    x = normalise(x)
+    if x < 0:
+        return -1
+    return 1
 
 
 def saw(x):
-    x %= 1
-    return x * 2 - 1
+    return normalise(x)
 
 
 def identity(x, amount):
@@ -53,27 +56,20 @@ def identity(x, amount):
 
 
 def shift(x, amount):
-    x %= 1
-    amount /= 2
-    return (x + amount) % 1
+    return normalise(x + amount)
 
 
 def stretch(x, amount):
-    x %= 1
+    x = normalise(x)
     amount *= 2
-    nx = x * 2 - 1
-    if nx < 0:
-        nx = -((-nx)**(4**(amount)))
-    else:
-        nx = nx**(4**(amount))
-    return (nx + 1) / 2
+    if x < 0:
+        return -((-x)**(4**(amount)))
+    return x**(4**(amount))
 
 
-def scale_x(x, amount):
-    x %= 1
-    x -= 0.5
-    x *= 8**amount
-    return x + 0.5
+def scale(x, amount):
+    x = normalise(x)
+    return x * 8**amount
 
 
 class ParamWave(QtGui.QWidget):
@@ -91,7 +87,7 @@ class ParamWave(QtGui.QWidget):
         layout.setSpacing(0)
 
         prewarp_options = [('None', identity),
-                           ('Scale', scale_x),
+                           ('Scale', scale),
                            ('Shift', shift),
                            ('Stretch', stretch),
                           ]
@@ -246,10 +242,10 @@ class ParamWave(QtGui.QWidget):
                               'prewarps': prewarps,
                           },
                           immediate)
-        waveform = [0] * self._length # len(self._base)
+        waveform = [0] * self._length
         base_func = self._base_funcs[self._base_option]
         for i in xrange(self._length):
-            value = i / self._length # len(self._base)
+            value = i * 2 / self._length - 1
             for (f, p) in izip(self._prewarp_options, self._prewarp_params):
                 value = f(value, p)
             waveform[i] = base_func(value)
@@ -271,6 +267,7 @@ class WarpSelect(QtGui.QWidget):
     def __init__(self, prewarp_options, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._id = prewarp_count.next()
+        self._factor = 1000
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -278,13 +275,13 @@ class WarpSelect(QtGui.QWidget):
         for option in prewarp_options:
             self._func_select.addItem(option)
         self._param = KSlider(QtCore.Qt.Horizontal)
-        self._param.setRange(-100, 100)
+        self._param.setRange(-self._factor, self._factor)
         self._value_display = QtGui.QLabel()
         layout.addWidget(self._func_select, 1)
         layout.addWidget(self._param, 1)
         layout.addWidget(self._value_display)
         metrics = QtGui.QFontMetrics(QtGui.QFont())
-        width = metrics.width('-0.00')
+        width = metrics.width('-0.000')
         self._value_display.setFixedWidth(width)
         QtCore.QObject.connect(self._func_select,
                                QtCore.SIGNAL('currentIndexChanged(QString)'),
@@ -299,7 +296,7 @@ class WarpSelect(QtGui.QWidget):
     def set_state(self, name, value):
         self.blockSignals(True)
         self._func_select.setCurrentIndex(self._func_select.findText(name))
-        self._param.setValue(round(value * 100))
+        self._param.setValue(round(value * self._factor))
         self._value_display.setText(str(round(value, 2)))
         self.blockSignals(False)
 
@@ -307,9 +304,9 @@ class WarpSelect(QtGui.QWidget):
         self.emit(QtCore.SIGNAL('funcChanged(int, QString)'), self._id, name)
 
     def _param_changed(self, value):
-        self._value_display.setText(str(value / 100))
+        self._value_display.setText(str(value / self._factor))
         self.emit(QtCore.SIGNAL('paramChanged(int, float)'),
-                                self._id, value / 100)
+                                self._id, value / self._factor)
 
     def _param_finished(self):
         self.emit(QtCore.SIGNAL('paramFinished(int)'), self._id)
