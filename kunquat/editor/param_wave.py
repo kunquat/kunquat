@@ -72,6 +72,29 @@ def scale(x, amount):
     return x * 8**amount
 
 
+def mod_y(y):
+    y += 1
+    if y > 2 or y < 0:
+        y -= 2 * math.floor(y / 2)
+    return y - 1
+
+
+def clip(y, amount):
+    y *= 8**amount
+    return mod_y(y)
+
+
+def shift_y(y, amount):
+    return mod_y(y + amount)
+
+
+def stretch_y(y, amount):
+    amount *= 4
+    if y < 0:
+        return -((-y)**(4**(amount)))
+    return y**(4**(amount))
+
+
 class ParamWave(QtGui.QWidget):
 
     def __init__(self,
@@ -94,11 +117,12 @@ class ParamWave(QtGui.QWidget):
         self._prewarp_funcs = dict(prewarp_options)
         self._prewarp_count = 4
         self._prewarp_select = []
-        for _ in xrange(self._prewarp_count):
+        for i in xrange(self._prewarp_count):
             self._prewarp_select.extend([WarpSelect([o[0] for o in
-                                         prewarp_options])])
+                                         prewarp_options], i)])
         self._prewarp_options = [identity] * self._prewarp_count
         self._prewarp_params = [0] * self._prewarp_count
+
         base_options = [('Sine', sine),
                         ('Triangle', triangle),
                         ('Pulse', pulse),
@@ -106,10 +130,27 @@ class ParamWave(QtGui.QWidget):
                        ]
         self._base_funcs = dict(base_options)
         self._base_select = BaseSelect([o[0] for o in base_options])
+
+        postwarp_options = [('None', identity),
+                            ('Clip', clip),
+                            ('Shift', shift_y),
+                            ('Stretch', stretch_y),
+                           ]
+        self._postwarp_funcs = dict(postwarp_options)
+        self._postwarp_count = 1
+        self._postwarp_select = []
+        for i in xrange(self._postwarp_count):
+            self._postwarp_select.extend([WarpSelect([o[0] for o in
+                                          postwarp_options], i)])
+        self._postwarp_options = [identity] * self._postwarp_count
+        self._postwarp_params = [0] * self._postwarp_count
+
         self._waveform = Waveform()
         for ps in self._prewarp_select:
             layout.addWidget(ps)
         layout.addWidget(self._base_select)
+        for ps in self._postwarp_select:
+            layout.addWidget(ps)
         layout.addWidget(self._waveform, 1)
         self.set_constraints({
                                 'length': length,
@@ -129,6 +170,16 @@ class ParamWave(QtGui.QWidget):
         QtCore.QObject.connect(self._base_select,
                                QtCore.SIGNAL('currentIndexChanged(QString)'),
                                self._set_base)
+        for ps in self._postwarp_select:
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('funcChanged(int, QString)'),
+                                   self._set_postwarp)
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('paramChanged(int, float)'),
+                                   self._postwarp_param_changed)
+            QtCore.QObject.connect(ps,
+                                   QtCore.SIGNAL('paramFinished(int)'),
+                                   self._postwarp_param_finished)
         self.set_key(key)
 
     def set_constraints(self, constraints):
@@ -165,12 +216,13 @@ class ParamWave(QtGui.QWidget):
         components[-1] = 'i_' + last[2:last.index('.')] + '.json'
         self._aux_key = '/'.join(components)
         aux_data = self._project[self._aux_key]
-        self._base = []
+
         try:
             self._base_option = str(aux_data['base_option'])
         except (KeyError, TypeError, ValueError):
             self._base_option = 'Custom'
         self._base_select.set_selection(self._base_option)
+
         try:
             preopts = []
             pw = aux_data['prewarps']
@@ -195,6 +247,28 @@ class ParamWave(QtGui.QWidget):
         for ps in self._prewarp_select:
             ps.setEnabled(self._base_option != 'Custom')
 
+        try:
+            postopts = []
+            pw = aux_data['postwarps']
+            for i in xrange(min(len(self._postwarp_options), len(pw))):
+                name = str(pw[i][0])
+                if name not in self._postwarp_funcs:
+                    name = 'None'
+                value = float(pw[i][1])
+                if abs(value) > 1:
+                    raise ValueError
+                postopts.extend([(name, value)])
+        except (KeyError, TypeError, ValueError):
+            postopts = []
+        postopts.extend([('None', 0)] *
+                        (len(self._postwarp_options) - len(postopts)))
+        postwarps = [(self._postwarp_funcs[n[0]], n[1]) for n in postopts]
+        options, params = zip(*postwarps)
+        self._postwarp_options = list(options)
+        self._postwarp_params = list(params)
+        for ps, postwarp in izip(self._postwarp_select, postopts):
+            ps.set_state(*postwarp)
+
     def _set_prewarp(self, ident, prewarp):
         prewarp = str(prewarp)
         if prewarp in self._prewarp_funcs:
@@ -214,16 +288,29 @@ class ParamWave(QtGui.QWidget):
 
     def _set_base(self, base):
         base = str(base)
-        if base in self._base_funcs:
-            func = self._base_funcs[base]
-        else:
+        if base not in self._base_funcs:
             base = 'Custom'
-            func = lambda x: 0
-        #self._base = [func(x / self._length) for x in xrange(self._length)]
         self._base_option = base
         for ps in self._prewarp_select:
             ps.setEnabled(self._base_option != 'Custom')
         self._set_wave()
+
+    def _set_postwarp(self, ident, postwarp):
+        postwarp = str(postwarp)
+        if postwarp in self._postwarp_funcs:
+            func = self._postwarp_funcs[postwarp]
+        else:
+            func = identity
+        self._postwarp_options[ident] = func
+        self._set_wave()
+
+    def _postwarp_param_changed(self, ident, value):
+        self._postwarp_params[ident] = value
+        self._set_wave(False)
+
+    def _postwarp_param_finished(self, ident):
+        self._project.flush(self._key)
+        self._project.flush(self._aux_key)
 
     def _set_wave(self, immediate=True):
         prewarps = []
@@ -232,14 +319,25 @@ class ParamWave(QtGui.QWidget):
             for (n, f) in self._prewarp_funcs.iteritems():
                 if f == func:
                     name = n
+                    break
             assert name
             prewarps.extend([(name, value)])
+        postwarps = []
+        for func, value in izip(self._postwarp_options, self._postwarp_params):
+            name = None
+            for (n, f) in self._postwarp_funcs.iteritems():
+                if f == func:
+                    name = n
+                    break
+            assert name
+            postwarps.extend([(name, value)])
         if immediate:
             self._project.start_group()
         self._project.set(self._aux_key,
                           {
                               'base_option': self._base_option,
                               'prewarps': prewarps,
+                              'postwarps': postwarps,
                           },
                           immediate)
         waveform = [0] * self._length
@@ -248,14 +346,14 @@ class ParamWave(QtGui.QWidget):
             value = i * 2 / self._length - 1
             for (f, p) in izip(self._prewarp_options, self._prewarp_params):
                 value = f(value, p)
-            waveform[i] = base_func(value)
+            value = base_func(value)
+            for (f, p) in izip(self._postwarp_options, self._postwarp_params):
+                value = f(value, p)
+            waveform[i] = value
         self._project.set(self._key, waveform, immediate)
         if immediate:
             self._project.end_group()
         self._waveform.set_data(waveform)
-
-
-prewarp_count = count()
 
 
 class WarpSelect(QtGui.QWidget):
@@ -264,9 +362,9 @@ class WarpSelect(QtGui.QWidget):
     paramChanged = QtCore.pyqtSignal(int, float, name='paramChanged')
     paramFinished = QtCore.pyqtSignal(int, name='paramFinished')
 
-    def __init__(self, prewarp_options, parent=None):
+    def __init__(self, prewarp_options, ident, parent=None):
         QtGui.QWidget.__init__(self, parent)
-        self._id = prewarp_count.next()
+        self._id = ident
         self._factor = 1000
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
