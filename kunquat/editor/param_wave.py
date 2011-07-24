@@ -99,7 +99,7 @@ class ParamWave(QtGui.QWidget):
         self._prewarp_count = 4
         self._prewarp_select = []
         for _ in xrange(self._prewarp_count):
-            self._prewarp_select.extend([PrewarpSelect([o[0] for o in
+            self._prewarp_select.extend([WarpSelect([o[0] for o in
                                          prewarp_options])])
         self._prewarp_options = [identity] * self._prewarp_count
         self._prewarp_params = [0] * self._prewarp_count
@@ -262,7 +262,7 @@ class ParamWave(QtGui.QWidget):
 prewarp_count = count()
 
 
-class PrewarpSelect(QtGui.QWidget):
+class WarpSelect(QtGui.QWidget):
 
     funcChanged = QtCore.pyqtSignal(int, QtCore.QString, name='funcChanged')
     paramChanged = QtCore.pyqtSignal(int, float, name='paramChanged')
@@ -298,6 +298,7 @@ class PrewarpSelect(QtGui.QWidget):
 
     def set_state(self, name, value):
         self.blockSignals(True)
+        self._func_select.setCurrentIndex(self._func_select.findText(name))
         self._param.setValue(round(value * 100))
         self._value_display.setText(str(round(value, 2)))
         self.blockSignals(False)
