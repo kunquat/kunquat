@@ -243,6 +243,14 @@ class ParamWave(QtGui.QWidget):
         self._base_select.set_selection(self._base_option)
 
         try:
+            base_wave = aux_data['base']
+            if len(base_wave) != self._length:
+                raise ValueError
+            self._base_wave = [float(x) for x in base_wave]
+        except (KeyError, TypeError, ValueError):
+            self._base_wave = None
+
+        try:
             preopts = []
             pw = aux_data['prewarps']
             for i in xrange(min(len(self._prewarp_options), len(pw))):
@@ -352,20 +360,29 @@ class ParamWave(QtGui.QWidget):
             postwarps.extend([(name, value)])
         if immediate:
             self._project.start_group()
-        self._project.set(self._aux_key,
-                          {
-                              'base_option': self._base_option,
-                              'prewarps': prewarps,
-                              'postwarps': postwarps,
-                          },
-                          immediate)
+        custom = self._base_option not in self._base_funcs
         waveform = [0] * self._length
-        base_func = self._base_funcs[self._base_option]
+        if not custom:
+            base_func = self._base_funcs[self._base_option]
+        else:
+            if not self._base_wave:
+                self._base_wave = self._project[self._key]
+        d = {
+                'base_option': self._base_option,
+                'prewarps': prewarps,
+                'postwarps': postwarps,
+            }
+        if custom:
+            d['base_wave'] = self._base_wave
+        self._project.set(self._aux_key, d, immediate)
         for i in xrange(self._length):
-            value = i * 2 / self._length - 1
-            for (f, p) in izip(self._prewarp_options, self._prewarp_params):
-                value = normalise(f(value, p))
-            value = base_func(value)
+            if custom:
+                value = self._base_wave[i]
+            else:
+                value = i * 2 / self._length - 1
+                for (f, p) in izip(self._prewarp_options, self._prewarp_params):
+                    value = normalise(f(value, p))
+                value = base_func(value)
             for (f, p) in izip(self._postwarp_options, self._postwarp_params):
                 value = f(value, p)
             waveform[i] = value
