@@ -156,7 +156,7 @@ class ParamWave(QtGui.QWidget):
                             ('Stretch asym', stretch_y_asym),
                            ]
         self._postwarp_funcs = dict(postwarp_options)
-        self._postwarp_count = 1
+        self._postwarp_count = 4
         self._postwarp_select = []
         for i in xrange(self._postwarp_count):
             self._postwarp_select.extend([WarpSelect([o[0] for o in
