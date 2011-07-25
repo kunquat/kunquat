@@ -27,12 +27,10 @@ def normalise(x):
 
 
 def sine(x):
-    x = normalise(x)
     return math.sin(x * math.pi)
 
 
 def triangle(x):
-    x = normalise(x)
     if x < -0.5:
         return -x * 2 - 2
     elif x > 0.5:
@@ -41,14 +39,13 @@ def triangle(x):
 
 
 def pulse(x):
-    x = normalise(x)
     if x < 0:
         return -1
     return 1
 
 
 def saw(x):
-    return normalise(x)
+    return x
 
 
 def identity(x, amount):
@@ -56,20 +53,29 @@ def identity(x, amount):
 
 
 def shift(x, amount):
-    return normalise(x + amount)
+    return x + amount
 
 
 def stretch(x, amount):
-    x = normalise(x)
     amount *= 2
     if x < 0:
         return -((-x)**(4**(amount)))
     return x**(4**(amount))
 
 
+def stretch_asym(x, amount):
+    amount *= 2
+    x = (x + 1) / 2
+    x = x**(4**(amount))
+    return x * 2 - 1
+
+
 def scale(x, amount):
-    x = normalise(x)
     return x * 8**amount
+
+
+def sine_shift(x, amount):
+    return math.sin(x * 6**(amount + 0.5))
 
 
 def mod_y(y):
@@ -89,10 +95,18 @@ def shift_y(y, amount):
 
 
 def stretch_y(y, amount):
-    amount *= 4
-    if y < 0:
-        return -((-y)**(4**(amount)))
-    return y**(4**(amount))
+    return stretch(y, amount * 2)
+
+
+def stretch_y_asym(y, amount):
+    return stretch_asym(y, amount * 2)
+
+
+def quantise(y, amount):
+    amount = 2**(-(amount - 1.3) * 4)
+    y *= amount - 1
+    y = math.floor(y) + 0.5
+    return y / amount
 
 
 class ParamWave(QtGui.QWidget):
@@ -112,7 +126,9 @@ class ParamWave(QtGui.QWidget):
         prewarp_options = [('None', identity),
                            ('Scale', scale),
                            ('Shift', shift),
+                           ('Sine', sine_shift),
                            ('Stretch', stretch),
+                           ('Stretch asym', stretch_asym),
                           ]
         self._prewarp_funcs = dict(prewarp_options)
         self._prewarp_count = 4
@@ -133,8 +149,11 @@ class ParamWave(QtGui.QWidget):
 
         postwarp_options = [('None', identity),
                             ('Clip', clip),
+                            ('Quantise', quantise),
                             ('Shift', shift_y),
+                            ('Sine', sine_shift),
                             ('Stretch', stretch_y),
+                            ('Stretch asym', stretch_y_asym),
                            ]
         self._postwarp_funcs = dict(postwarp_options)
         self._postwarp_count = 1
@@ -345,7 +364,7 @@ class ParamWave(QtGui.QWidget):
         for i in xrange(self._length):
             value = i * 2 / self._length - 1
             for (f, p) in izip(self._prewarp_options, self._prewarp_params):
-                value = f(value, p)
+                value = normalise(f(value, p))
             value = base_func(value)
             for (f, p) in izip(self._postwarp_options, self._postwarp_params):
                 value = f(value, p)
