@@ -89,9 +89,9 @@ class Waveform(QtGui.QWidget):
             min_sample, max_sample = min(area), max(area)
             min_sample_y = max_y * (-min_sample / 2) + center
             max_sample_y = max_y * (-max_sample / 2) + center
-            if min_sample_y < last_max_y:
+            if min_sample_y < last_max_y - 1:
                 min_sample_y = last_max_y - 1
-            elif max_sample_y > last_min_y:
+            elif max_sample_y > last_min_y + 1:
                 max_sample_y = last_min_y + 1
             start = QtCore.QPointF(x, min_sample_y)
             end = QtCore.QPointF(x, max_sample_y)
