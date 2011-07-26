@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+from itertools import islice
 import math
 
 from PyQt4 import QtCore, QtGui
@@ -70,7 +71,7 @@ class Waveform(QtGui.QWidget):
         line = QtGui.QPolygonF()
         if len(self._data) > self.width() * 2:
             step = int(len(self._data) // self.width())
-            view = self._data[::step]
+            view = islice(self._data, 0, None, step)
         else:
             step = 1
             view = self._data
