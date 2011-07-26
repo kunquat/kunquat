@@ -165,6 +165,7 @@ class ParamWave(QtGui.QWidget):
         self._postwarp_params = [0] * self._postwarp_count
 
         self._waveform = Waveform()
+        self._waveform.fast = True
         for ps in self._prewarp_select:
             layout.addWidget(ps)
         layout.addWidget(self._base_select)

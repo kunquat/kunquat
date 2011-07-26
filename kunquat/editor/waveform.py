@@ -31,6 +31,7 @@ class Waveform(QtGui.QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+        self.fast = False
 
     def set_data(self, data):
         self._data = data if data else [0]
@@ -56,7 +57,7 @@ class Waveform(QtGui.QWidget):
 
     def _paint_wave(self, paint):
         paint.setPen(self._colours['wave'])
-        if len(self._data) <= self.width():
+        if len(self._data) <= self.width() or self.fast:
             self._paint_wave_in(paint)
         else:
             self._paint_wave_out(paint)
@@ -67,7 +68,14 @@ class Waveform(QtGui.QWidget):
         max_y = self.height() - 1
         center = max_y / 2
         line = QtGui.QPolygonF()
-        for x, sample in enumerate(self._data):
+        if len(self._data) > self.width() * 2:
+            step = int(len(self._data) // self.width())
+            view = self._data[::step]
+        else:
+            step = 1
+            view = self._data
+        for x, sample in enumerate(view):
+            x *= step
             x = max_x * x / max_sample
             y = max_y * (-sample / 2) + center
             line.append(QtCore.QPointF(x, y))
