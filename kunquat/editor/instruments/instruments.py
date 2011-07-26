@@ -15,6 +15,8 @@ from PyQt4 import QtCore, QtGui
 
 from inst_editor import InstEditor
 from inst_list import InstList
+from itertools import cycle
+import kunquat.editor.kqt_limits as lim
 
 
 class Instruments(QtGui.QSplitter):
@@ -45,6 +47,8 @@ class Instruments(QtGui.QSplitter):
         self.setSizes([240, 1])
 
         self._inst_num = 0
+        self._channel = cycle(xrange(lim.COLUMNS_MAX))
+        self._pressed = {}
 
         QtCore.QObject.connect(instrument_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
@@ -69,9 +73,13 @@ class Instruments(QtGui.QSplitter):
         except KeyError:
             ev.ignore()
             return
-        self._playback_manager.play_event(0,
+        ch = self._channel.next()
+        if ev.key() in self._pressed:
+            return
+        self._pressed[ev.key()] = ch
+        self._playback_manager.play_event(ch,
                 '["c.i", [{0}]]'.format(self._inst_num))
-        self._playback_manager.play_event(0, '["cn+", [{0}]]'.format(cents))
+        self._playback_manager.play_event(ch, '["cn+", [{0}]]'.format(cents))
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
@@ -82,7 +90,10 @@ class Instruments(QtGui.QSplitter):
         except KeyError:
             ev.ignore()
             return
-        self._playback_manager.play_event(0, '["cn-", []]')
+        if ev.key() not in self._pressed:
+            return
+        ch = self._pressed.pop(ev.key())
+        self._playback_manager.play_event(ch, '["cn-", []]')
 
     def sync(self):
         self._inst_list.sync()
