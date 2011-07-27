@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 from PyQt4 import QtCore, QtGui
 
+
 class ParamCheck(QtGui.QCheckBox):
 
     def __init__(self,

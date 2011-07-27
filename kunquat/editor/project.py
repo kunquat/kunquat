@@ -428,7 +428,7 @@ class Project(QtCore.QObject):
                     for fname in dir_spec[2]:
                         full_path = os.path.join(dir_spec[0], fname)
                         key = full_path[len(src):]
-                        with open(full_path) as f:
+                        with open(full_path, 'rb') as f:
                             QtCore.QObject.emit(self,
                                     QtCore.SIGNAL('step(QString)'),
                                     'Importing {0} ...'.format(full_path))

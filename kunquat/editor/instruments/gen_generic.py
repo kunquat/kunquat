@@ -19,6 +19,7 @@ from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
 from kunquat.editor.envelope import Envelope
+from kunquat.editor.param_sample_file import ParamSampleFile
 from kunquat.editor.param_slider import ParamSlider
 from kunquat.editor.param_wave import ParamWave
 
@@ -203,16 +204,19 @@ class KeyEditor(QtGui.QStackedWidget):
                                (-1, 1),
                                128,
                                '')
+        self._sample_file = ParamSampleFile(project, '')
         self._default = QtGui.QWidget()
         self.addWidget(self._default)
         self.addWidget(self._env)
         self.addWidget(self._slider)
         self.addWidget(self._wave)
+        self.addWidget(self._sample_file)
         self._map = {
                         'jsone': self._env,
                         'jsonf': self._slider,
                         'jsoni': self._slider,
                         'jsonln': self._wave,
+                        'wv': self._sample_file,
                     }
 
     def set_key(self, key):
