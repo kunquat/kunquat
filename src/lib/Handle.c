@@ -143,7 +143,7 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
     strcat(err_str, "\", ");
 
     sprintf(&err_str[strlen(err_str)], "\"line\": %d, ", line);
-    
+
     strcat(err_str, "\"function\": \"");
     strcat(err_str, func);
     strcat(err_str, "\", ");
