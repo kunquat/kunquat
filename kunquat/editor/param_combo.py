@@ -52,6 +52,9 @@ class ParamCombo(QtGui.QComboBox):
             QtGui.QComboBox.addItem(self, text)
 
     def set_key(self, key):
+        self._key = key
+        if not key:
+            return
         value = filter(lambda i: i[0] == self._default_text,
                        self._items)[0][1]
         if self._dict_key:
@@ -69,7 +72,6 @@ class ParamCombo(QtGui.QComboBox):
         else:
             self.setCurrentIndex(self.findText(self._default_text))
         self._lock_update = False
-        self._key = key
 
     def sync(self):
         self.set_key(self._key)
