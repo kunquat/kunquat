@@ -24,17 +24,17 @@ class PlaneView(QtGui.QWidget):
     def resizeEvent(self, ev):
         x_space = self.width() - self._vaxis.width * 2 # - self._layout['padding']
         y_space = self.height() - self._haxis.height * 2 # - self._layout['padding']
-        self._layout['zoom'] = (x_space / (self._visible_max[0] -
-                                           self._visible_min[0]),
-                                y_space / (self._visible_max[1] -
-                                           self._visible_min[1]))
+        self._layout['zoom'] = (x_space / (self._layout['visible_max'][0] -
+                                           self._layout['visible_min'][0]),
+                                y_space / (self._layout['visible_max'][1] -
+                                           self._layout['visible_min'][1]))
         if self._aspect == 1:
             min_zoom = min(self._layout['zoom'])
             self._layout['zoom'] = (min_zoom, min_zoom)
 
     def _val_x(self, x):
         dist = (x - self._vaxis.width) / self._layout['zoom'][0]
-        return dist + self._visible_min[0]
+        return dist + self._layout['visible_min'][0]
 
     def _val_y(self, y):
         #return self._max[1] - ((y - self._layout['padding']) /
@@ -42,7 +42,7 @@ class PlaneView(QtGui.QWidget):
                                self._layout['zoom'][1])
 
     def _view_x(self, x):
-        return self._vaxis.width + ((x - self._visible_min[0]) *
+        return self._vaxis.width + ((x - self._layout['visible_min'][0]) *
                                     self._layout['zoom'][0])
 
     def _view_y(self, y):
