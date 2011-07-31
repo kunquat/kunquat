@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import math
 
 from PyQt4 import QtGui, QtCore
 
@@ -81,6 +82,8 @@ class MapView(PlaneView):
     def __init__(self, parent=None):
         PlaneView.__init__(self, parent)
         self._map = {}
+        self._active = None
+        self._focused = None
         self._aspect = None
         self._colours = {
                             'bg': QtGui.QColor(0, 0, 0),
@@ -124,16 +127,62 @@ class MapView(PlaneView):
 
     def set_data(self, data):
         self._map = data
+        self._active = None
+
+    def mouseMoveEvent(self, ev):
+        node = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        if node != self._focused:
+            self._focused = node
+            self.update()
+
+    def mousePressEvent(self, ev):
+        node = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        if node != self._active:
+            self._active = node
+            x, y = node if node else (float('-inf'), float('-inf'))
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('activeChanged(float, float)'),
+                                y, x)
+            self.update()
+
+    def _node_at(self, x, y):
+        closest = None
+        closest_dist = float('inf')
+        for ny, nx in self._map.iterkeys():
+            dist = math.hypot(self._view_x(nx) - x,
+                              self._view_y(ny) - y)
+            if dist < closest_dist:
+                closest = nx, ny
+                closest_dist = dist
+        if closest_dist < 5:
+            return closest
+        return None
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
         paint.setBrush(self._colours['node'])
-        diameter = 5
+        diameter = 6
         for y, x in self._map.iterkeys():
             rect_x = self._view_x(x) - diameter / 2 + 0.5
             rect_y = self._view_y(y) - diameter / 2 + 0.5
+            if (y, x) == self._active:
+                colour = 'node_focus' if (y, x) == self._focused else 'node'
+                paint.setPen(self._colours[colour])
+                paint.setBrush(QtCore.Qt.NoBrush)
+                sur_diameter = diameter + 4
+                sur_rect_x = self._view_x(x) - sur_diameter / 2 + 0.5
+                sur_rect_y = self._view_y(y) - sur_diameter / 2 + 0.5
+                sur_rect = QtCore.QRectF(sur_rect_x, sur_rect_y,
+                                         sur_diameter, sur_diameter)
+                paint.drawEllipse(sur_rect)
+                paint.setPen(QtCore.Qt.NoPen)
+                paint.setBrush(self._colours[colour])
+            elif (y, x) == self._focused:
+                paint.setBrush(self._colours['node_focus'])
             rect = QtCore.QRectF(rect_x, rect_y, diameter, diameter)
             paint.drawEllipse(rect)
+            if (y, x) == self._focused:
+                paint.setBrush(self._colours['node'])
 
     def _set_view(self):
         self._layout['offset'][0] = (-self._layout['visible_min'][0] /
