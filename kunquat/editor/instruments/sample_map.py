@@ -12,7 +12,7 @@
 #
 
 from __future__ import division, print_function
-from itertools import izip
+from itertools import islice, izip_longest
 import math
 
 from PyQt4 import QtGui, QtCore
@@ -32,21 +32,31 @@ class SampleMap(QtGui.QWidget):
         self._project = project
         self._key = key
         self._map = {}
+        self._active = float('-inf'), float('-inf')
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
         self._map_view = MapView()
         random_layout = QtGui.QVBoxLayout()
         self._entries = []
-        for _ in xrange(RANDOMS_MAX):
-            entry = Entry()
+        for i in xrange(RANDOMS_MAX):
+            entry = Entry(i)
             self._entries.extend([entry])
             random_layout.addWidget(entry)
+            QtCore.QObject.connect(entry,
+                                   QtCore.SIGNAL('removed(int)'),
+                                   self._remove_entry)
+        self._add_entry = QtGui.QPushButton('+')
+        self._add_entry.hide()
+        random_layout.addWidget(self._add_entry)
         layout.addWidget(self._map_view, 1)
         layout.addLayout(random_layout)
         QtCore.QObject.connect(self._map_view,
                                QtCore.SIGNAL('activeChanged(float, float)'),
                                self._active_changed)
+        QtCore.QObject.connect(self._add_entry,
+                               QtCore.SIGNAL('clicked()'),
+                               self._new_entry)
 
     def set_key(self, key):
         self._key = key
@@ -62,24 +72,51 @@ class SampleMap(QtGui.QWidget):
         self.set_key(self._key)
 
     def _active_changed(self, pitch, volume):
+        self._active = pitch, volume
         if (pitch, volume) not in self._map:
             for entry in self._entries:
                 entry.set_data(None)
+            self._add_entry.hide()
             return
         rand_list = self._map[(pitch, volume)]
-        rand_list.extend([None] * (RANDOMS_MAX - len(rand_list)))
-        for entry, data in izip(self._entries, rand_list):
+        for entry, data in izip_longest(self._entries, rand_list):
+            entry.set_data(data)
+        if len(rand_list) < RANDOMS_MAX:
+            self._add_entry.show()
+        else:
+            self._add_entry.hide()
+
+    def _new_entry(self):
+        assert self._active in self._map
+        rand_list = self._map[self._active]
+        assert len(rand_list) < RANDOMS_MAX
+        values = 48000, 0, 0
+        self._entries[len(rand_list)].set_data(values)
+        rand_list.extend([values])
+        # TODO: write
+        if len(rand_list) == RANDOMS_MAX:
+            self._add_entry.hide()
+
+    def _remove_entry(self, index):
+        assert self._active in self._map
+        rand_list = self._map[self._active]
+        assert len(rand_list) > index
+        rand_list[index:index + 1] = []
+        for entry, data in izip_longest(islice(self._entries, index, None),
+                                        islice(rand_list, index, None)):
             entry.set_data(data)
 
 
 class Entry(QtGui.QWidget):
 
-    def __init__(self, parent=None):
+    entryRemoved = QtCore.pyqtSignal(int, name='removed')
+
+    def __init__(self, ident, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self._id = ident
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
-        self._enabled = QtGui.QCheckBox()
         self._freq = QtGui.QSpinBox()
         self._freq.setMinimum(1)
         self._freq.setMaximum(2**24)
@@ -88,30 +125,32 @@ class Entry(QtGui.QWidget):
         self._volume.setMinimum(-48)
         self._volume.setMaximum(48)
         self._sample = QtGui.QSpinBox()
+        self._sample.setMinimum(0)
         self._sample.setMaximum(SAMPLES_MAX - 1)
-        layout.addWidget(self._enabled)
+        self._remove = QtGui.QPushButton('Remove')
         layout.addWidget(self._freq, 1)
         layout.addWidget(self._volume, 1)
         layout.addWidget(self._sample, 1)
-        for widget in (self._freq, self._volume, self._sample):
-            widget.setEnabled(False)
+        layout.addWidget(self._remove, 0)
+        QtCore.QObject.connect(self._remove,
+                               QtCore.SIGNAL('clicked()'),
+                               self._removed)
 
     def set_data(self, data):
         self.blockSignals(True)
         widgets = self._freq, self._volume, self._sample
         if data:
-            self._enabled.setCheckState(QtCore.Qt.Checked)
             for i, widget in enumerate(widgets):
-                widget.setEnabled(True)
                 widget.setValue(data[i])
+            self.show()
         else:
-            self._enabled.setCheckState(QtCore.Qt.Unchecked)
-            for widget in widgets:
-                widget.setEnabled(False)
-            self._freq.setValue(48000)
-            self._volume.setValue(0)
-            self._sample.setValue(0)
+            self.hide()
         self.blockSignals(False)
+
+    def _removed(self):
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('removed(int)'),
+                            self._id)
 
 
 class MapView(PlaneView):
