@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+from itertools import izip
 import math
 
 from PyQt4 import QtGui, QtCore
@@ -36,10 +37,16 @@ class SampleMap(QtGui.QWidget):
         layout.setSpacing(0)
         self._map_view = MapView()
         random_layout = QtGui.QVBoxLayout()
+        self._entries = []
         for _ in xrange(RANDOMS_MAX):
-            random_layout.addWidget(Entry())
-        layout.addWidget(self._map_view)
+            entry = Entry()
+            self._entries.extend([entry])
+            random_layout.addWidget(entry)
+        layout.addWidget(self._map_view, 1)
         layout.addLayout(random_layout)
+        QtCore.QObject.connect(self._map_view,
+                               QtCore.SIGNAL('activeChanged(float, float)'),
+                               self._active_changed)
 
     def set_key(self, key):
         self._key = key
@@ -54,6 +61,16 @@ class SampleMap(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
+    def _active_changed(self, pitch, volume):
+        if (pitch, volume) not in self._map:
+            for entry in self._entries:
+                entry.set_data(None)
+            return
+        rand_list = self._map[(pitch, volume)]
+        rand_list.extend([None] * (RANDOMS_MAX - len(rand_list)))
+        for entry, data in izip(self._entries, rand_list):
+            entry.set_data(data)
+
 
 class Entry(QtGui.QWidget):
 
@@ -62,17 +79,39 @@ class Entry(QtGui.QWidget):
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
+        self._enabled = QtGui.QCheckBox()
         self._freq = QtGui.QSpinBox()
+        self._freq.setMinimum(1)
+        self._freq.setMaximum(2**24)
         self._volume = QtGui.QDoubleSpinBox()
         self._volume.setDecimals(2)
+        self._volume.setMinimum(-48)
+        self._volume.setMaximum(48)
         self._sample = QtGui.QSpinBox()
         self._sample.setMaximum(SAMPLES_MAX - 1)
-        layout.addWidget(self._freq)
-        layout.addWidget(self._volume)
-        layout.addWidget(self._sample)
+        layout.addWidget(self._enabled)
+        layout.addWidget(self._freq, 1)
+        layout.addWidget(self._volume, 1)
+        layout.addWidget(self._sample, 1)
+        for widget in (self._freq, self._volume, self._sample):
+            widget.setEnabled(False)
 
     def set_data(self, data):
-        pass
+        self.blockSignals(True)
+        widgets = self._freq, self._volume, self._sample
+        if data:
+            self._enabled.setCheckState(QtCore.Qt.Checked)
+            for i, widget in enumerate(widgets):
+                widget.setEnabled(True)
+                widget.setValue(data[i])
+        else:
+            self._enabled.setCheckState(QtCore.Qt.Unchecked)
+            for widget in widgets:
+                widget.setEnabled(False)
+            self._freq.setValue(48000)
+            self._volume.setValue(0)
+            self._sample.setValue(0)
+        self.blockSignals(False)
 
 
 class MapView(PlaneView):
@@ -128,31 +167,35 @@ class MapView(PlaneView):
     def set_data(self, data):
         self._map = data
         self._active = None
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('activeChanged(float, float)'),
+                            float('-inf'), float('-inf'))
+        self.update()
 
     def mouseMoveEvent(self, ev):
-        node = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
         if node != self._focused:
             self._focused = node
             self.update()
 
     def mousePressEvent(self, ev):
-        node = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
+        node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
         if node != self._active:
             self._active = node
-            x, y = node if node else (float('-inf'), float('-inf'))
+            y, x = node if node else (float('-inf'), float('-inf'))
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('activeChanged(float, float)'),
                                 y, x)
             self.update()
 
-    def _node_at(self, x, y):
+    def _node_at(self, y, x):
         closest = None
         closest_dist = float('inf')
         for ny, nx in self._map.iterkeys():
             dist = math.hypot(self._view_x(nx) - x,
                               self._view_y(ny) - y)
             if dist < closest_dist:
-                closest = nx, ny
+                closest = ny, nx
                 closest_dist = dist
         if closest_dist < 5:
             return closest
