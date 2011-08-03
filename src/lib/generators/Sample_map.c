@@ -175,8 +175,8 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
         while (expect_entry && list->entry_count < SAMPLE_MAP_RANDOMS_MAX)
         {
             str = read_const_char(str, '[', state);
-            double sample_freq = NAN;
-            str = read_double(str, &sample_freq, state);
+            double sample_cents = NAN;
+            str = read_double(str, &sample_cents, state);
             str = read_const_char(str, ',', state);
             double volume = NAN;
             str = read_double(str, &volume, state);
@@ -189,10 +189,10 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
                 del_Sample_map(map);
                 return NULL;
             }
-            if (!(sample_freq > 0))
+            if (!isfinite(sample_cents))
             {
                 Read_state_set_error(state,
-                        "Sample frequency is not positive");
+                        "Sample cent offset is not finite");
                 del_Sample_map(map);
                 return NULL;
             }
@@ -211,7 +211,7 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
                 return NULL;
             }
             list->entries[list->entry_count].ref_freq = list->freq;
-            list->entries[list->entry_count].freq = sample_freq;
+            list->entries[list->entry_count].cents = sample_cents;
             list->entries[list->entry_count].vol_scale = exp2(volume / 6);
             list->entries[list->entry_count].sample = sample;
             ++list->entry_count;
@@ -268,7 +268,7 @@ bool Sample_map_add_entry(Sample_map* map,
         return false;
     }
     list->entries[list->entry_count].ref_freq = list->freq;
-    list->entries[list->entry_count].freq = entry->freq;
+    list->entries[list->entry_count].cents = entry->cents;
     list->entries[list->entry_count].vol_scale = entry->vol_scale;
     list->entries[list->entry_count].sample = entry->sample;
     ++list->entry_count;

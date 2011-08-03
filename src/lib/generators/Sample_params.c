@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -86,7 +86,7 @@ bool Sample_params_parse(Sample_params* params,
                         }
                     }
                 }
-                else if (string_eq(key, "mid_freq"))
+                else if (string_eq(key, "freq"))
                 {
                     str = read_double(str, &input->mid_freq, state);
                     if (!(input->mid_freq > 0))

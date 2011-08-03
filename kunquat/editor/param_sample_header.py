@@ -34,6 +34,12 @@ class ParamSampleHeader(QtGui.QWidget):
                                   [('WavPack', 'WavPack')],
                                   'WavPack',
                                   key, 'format')
+        self._freq = ParamSpin(project, 'Middle frequency',
+                               (1, 2**24),
+                               48000,
+                               key,
+                               'freq',
+                               0)
         loop_layout = QtGui.QHBoxLayout()
         self._loop_mode = ParamCombo(project, '',
                                      [('No loop', 'off'),
@@ -57,9 +63,10 @@ class ParamSampleHeader(QtGui.QWidget):
         loop_layout.addWidget(self._loop_start)
         loop_layout.addWidget(self._loop_end)
         layout.addWidget(self._format)
+        layout.addWidget(self._freq)
         layout.addLayout(loop_layout)
         self._key = key
-        self._widgets = [self._format, self._loop_mode,
+        self._widgets = [self._format, self._freq, self._loop_mode,
                          self._loop_start, self._loop_end]
 
     def set_key(self, key):

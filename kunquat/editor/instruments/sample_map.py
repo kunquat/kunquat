@@ -90,7 +90,7 @@ class SampleMap(QtGui.QWidget):
         assert self._active in self._map
         rand_list = self._map[self._active]
         assert len(rand_list) < RANDOMS_MAX
-        values = 48000, 0, 0
+        values = 0, 0, 0
         self._entries[len(rand_list)].set_data(values)
         rand_list.extend([values])
         # TODO: write
@@ -117,9 +117,9 @@ class Entry(QtGui.QWidget):
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
-        self._freq = QtGui.QSpinBox()
-        self._freq.setMinimum(1)
-        self._freq.setMaximum(2**24)
+        self._cents = QtGui.QSpinBox()
+        self._cents.setMinimum(-6000)
+        self._cents.setMaximum(6000)
         self._volume = QtGui.QDoubleSpinBox()
         self._volume.setDecimals(2)
         self._volume.setMinimum(-48)
@@ -128,7 +128,7 @@ class Entry(QtGui.QWidget):
         self._sample.setMinimum(0)
         self._sample.setMaximum(SAMPLES_MAX - 1)
         self._remove = QtGui.QPushButton('Remove')
-        layout.addWidget(self._freq, 1)
+        layout.addWidget(self._cents, 1)
         layout.addWidget(self._volume, 1)
         layout.addWidget(self._sample, 1)
         layout.addWidget(self._remove, 0)
@@ -138,7 +138,7 @@ class Entry(QtGui.QWidget):
 
     def set_data(self, data):
         self.blockSignals(True)
-        widgets = self._freq, self._volume, self._sample
+        widgets = self._cents, self._volume, self._sample
         if data:
             for i, widget in enumerate(widgets):
                 widget.setValue(data[i])
