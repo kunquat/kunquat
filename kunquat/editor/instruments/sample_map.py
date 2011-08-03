@@ -44,6 +44,13 @@ class SampleMap(QtGui.QWidget):
             self._entries.extend([entry])
             random_layout.addWidget(entry)
             QtCore.QObject.connect(entry,
+                                   QtCore.SIGNAL('modified(int, float, '
+                                                 'float, int)'),
+                                   self._modified)
+            QtCore.QObject.connect(entry,
+                                   QtCore.SIGNAL('finished(int)'),
+                                   self._finished)
+            QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('removed(int)'),
                                    self._remove_entry)
         self._add_entry = QtGui.QPushButton('+')
@@ -71,6 +78,14 @@ class SampleMap(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
+    def _modified(self, index, cents, volume, sample):
+        rand_list = self._map[self._active]
+        rand_list[index] = cents, volume, sample
+        self._project.set(self._key, self._map.items(), immediate=False)
+
+    def _finished(self, index):
+        self._project.flush(self._key)
+
     def _active_changed(self, pitch, volume):
         self._active = pitch, volume
         if (pitch, volume) not in self._map:
@@ -93,23 +108,27 @@ class SampleMap(QtGui.QWidget):
         values = 0, 0, 0
         self._entries[len(rand_list)].set_data(values)
         rand_list.extend([values])
-        # TODO: write
+        self._project[self._key] = self._map.items()
         if len(rand_list) == RANDOMS_MAX:
             self._add_entry.hide()
 
     def _remove_entry(self, index):
         assert self._active in self._map
         rand_list = self._map[self._active]
-        assert len(rand_list) > index
+        assert index < len(rand_list)
         rand_list[index:index + 1] = []
         for entry, data in izip_longest(islice(self._entries, index, None),
                                         islice(rand_list, index, None)):
             entry.set_data(data)
+        self._project[self._key] = self._map.items()
+        self._add_entry.show()
 
 
 class Entry(QtGui.QWidget):
 
-    entryRemoved = QtCore.pyqtSignal(int, name='removed')
+    removed = QtCore.pyqtSignal(int, name='removed')
+    modified = QtCore.pyqtSignal(int, float, float, int, name='modified')
+    finished = QtCore.pyqtSignal(int, name='finished')
 
     def __init__(self, ident, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -117,9 +136,10 @@ class Entry(QtGui.QWidget):
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
-        self._cents = QtGui.QSpinBox()
+        self._cents = QtGui.QDoubleSpinBox()
         self._cents.setMinimum(-6000)
         self._cents.setMaximum(6000)
+        self._cents.setDecimals(0)
         self._volume = QtGui.QDoubleSpinBox()
         self._volume.setDecimals(2)
         self._volume.setMinimum(-48)
@@ -132,6 +152,17 @@ class Entry(QtGui.QWidget):
         layout.addWidget(self._volume, 1)
         layout.addWidget(self._sample, 1)
         layout.addWidget(self._remove, 0)
+        for widget in (self._cents, self._volume):
+            QtCore.QObject.connect(widget,
+                                   QtCore.SIGNAL('valueChanged(double)'),
+                                   self._modified)
+        QtCore.QObject.connect(self._sample,
+                               QtCore.SIGNAL('valueChanged(int)'),
+                               self._modified)
+        for widget in (self._cents, self._volume, self._sample):
+            QtCore.QObject.connect(widget,
+                                   QtCore.SIGNAL('editingFinished()'),
+                                   self._finished)
         QtCore.QObject.connect(self._remove,
                                QtCore.SIGNAL('clicked()'),
                                self._removed)
@@ -146,6 +177,17 @@ class Entry(QtGui.QWidget):
         else:
             self.hide()
         self.blockSignals(False)
+
+    def _modified(self, value):
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('modified(int, float, float, int)'),
+                            self._id, self._cents.value(),
+                            self._volume.value(), self._sample.value())
+
+    def _finished(self):
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('finished(int)'),
+                            self._id)
 
     def _removed(self):
         QtCore.QObject.emit(self,
