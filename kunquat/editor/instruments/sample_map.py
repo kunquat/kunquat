@@ -198,6 +198,8 @@ class Entry(QtGui.QWidget):
 class MapView(PlaneView):
 
     activeChanged = QtCore.pyqtSignal(float, float, name='activeChanged')
+    moved = QtCore.pyqtSignal(float, float, float, float, name='moved')
+    finished = QtCore.pyqtSignal(name='finished')
 
     def __init__(self, parent=None):
         PlaneView.__init__(self, parent)
@@ -205,6 +207,7 @@ class MapView(PlaneView):
         self._active = None
         self._focused = None
         self._aspect = None
+        self._orig_pos = None
         self._colours = {
                             'bg': QtGui.QColor(0, 0, 0),
                             'axis': QtGui.QColor(0xaa, 0xaa, 0xaa),
@@ -254,12 +257,37 @@ class MapView(PlaneView):
         self.update()
 
     def mouseMoveEvent(self, ev):
-        node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
+        if self._focused and ev.buttons() & QtCore.Qt.LeftButton:
+            node = self._focused
+        else:
+            node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
         if node != self._focused:
-            self._focused = node
-            self.update()
+            if node or not ev.buttons() & QtCore.Qt.LeftButton:
+                self._focused = node
+                self.update()
+        if node and ev.buttons() & QtCore.Qt.LeftButton:
+            if self._orig_pos:
+                ovx = self._view_x(self._orig_pos[1])
+                ovy = self._view_y(self._orig_pos[0])
+                snap = 5
+                if math.hypot(ovx - ev.x(), ovy - ev.y()) > snap:
+                    self._orig_pos = None
+            if not self._orig_pos:
+                x, y = self._val_x(ev.x()), self._val_y(ev.y())
+                x = max(-36, min(x, 0))
+                y = max(-6000, min(y, 6000))
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('moved(float, float,'
+                                                        'float, float)'),
+                                    y, x, self._focused[1], self._focused[0])
+                data = self._map.pop(self._focused)
+                self._focused = y, x
+                self._active = self._focused
+                self._map[self._focused] = data
+                self.update()
 
     def mousePressEvent(self, ev):
+        assert not self._orig_pos
         node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
         if node != self._active:
             self._active = node
@@ -268,6 +296,14 @@ class MapView(PlaneView):
                                 QtCore.SIGNAL('activeChanged(float, float)'),
                                 y, x)
             self.update()
+        if node:
+            self._orig_pos = node
+
+    def mouseReleaseEvent(self, ev):
+        node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
+        if node and not self._orig_pos:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('finished()'))
+        self._orig_pos = None
 
     def _node_at(self, y, x):
         closest = None
