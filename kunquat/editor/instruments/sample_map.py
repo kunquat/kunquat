@@ -46,10 +46,10 @@ class SampleMap(QtGui.QWidget):
             QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('modified(int, float, '
                                                  'float, int)'),
-                                   self._modified)
+                                   self._entry_modified)
             QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('finished(int)'),
-                                   self._finished)
+                                   self._entry_finished)
             QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('removed(int)'),
                                    self._remove_entry)
@@ -61,6 +61,12 @@ class SampleMap(QtGui.QWidget):
         QtCore.QObject.connect(self._map_view,
                                QtCore.SIGNAL('activeChanged(float, float)'),
                                self._active_changed)
+        QtCore.QObject.connect(self._map_view,
+                               QtCore.SIGNAL('modified()'),
+                               self._map_modified)
+        QtCore.QObject.connect(self._map_view,
+                               QtCore.SIGNAL('finished()'),
+                               self._map_finished)
         QtCore.QObject.connect(self._add_entry,
                                QtCore.SIGNAL('clicked()'),
                                self._new_entry)
@@ -78,12 +84,18 @@ class SampleMap(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
-    def _modified(self, index, cents, volume, sample):
+    def _entry_modified(self, index, cents, volume, sample):
         rand_list = self._map[self._active]
         rand_list[index] = cents, volume, sample
         self._project.set(self._key, self._map.items(), immediate=False)
 
-    def _finished(self, index):
+    def _entry_finished(self, index):
+        self._project.flush(self._key)
+
+    def _map_modified(self):
+        self._project.set(self._key, self._map.items(), immediate=False)
+
+    def _map_finished(self):
         self._project.flush(self._key)
 
     def _active_changed(self, pitch, volume):
@@ -276,12 +288,13 @@ class MapView(PlaneView):
                 x, y = self._val_x(ev.x()), self._val_y(ev.y())
                 x = max(-36, min(x, 0))
                 y = max(-6000, min(y, 6000))
-                data = self._map.pop(self._focused)
-                self._focused = y, x
-                self._active = self._focused
-                self._map[self._focused] = data
-                QtCore.QObject.emit(self, QtCore.SIGNAL('modified()'))
-                self.update()
+                if (y, x) not in self._map:
+                    data = self._map.pop(self._focused)
+                    self._focused = y, x
+                    self._active = self._focused
+                    self._map[self._focused] = data
+                    QtCore.QObject.emit(self, QtCore.SIGNAL('modified()'))
+                    self.update()
 
     def mousePressEvent(self, ev):
         assert not self._orig_pos
