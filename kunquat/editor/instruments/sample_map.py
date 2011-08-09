@@ -57,7 +57,7 @@ class SampleMap(QtGui.QWidget):
         self._add_entry.hide()
         random_layout.addWidget(self._add_entry)
         layout.addWidget(self._map_view, 1)
-        layout.addLayout(random_layout)
+        layout.addLayout(random_layout, 1)
         QtCore.QObject.connect(self._map_view,
                                QtCore.SIGNAL('activeChanged(float, float)'),
                                self._active_changed)
