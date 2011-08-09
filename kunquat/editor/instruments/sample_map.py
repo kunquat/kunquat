@@ -236,6 +236,8 @@ class MapView(PlaneView):
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
         self._min = -36, -6000
         self._max = 0, 6000
+        self._step_x = 0.125
+        self._step_y = 100
         self._layout = {
                            'padding': 8,
                            'zoom': (200, 200),
@@ -288,6 +290,7 @@ class MapView(PlaneView):
                 x, y = self._val_x(ev.x()), self._val_y(ev.y())
                 x = max(-36, min(x, 0))
                 y = max(-6000, min(y, 6000))
+                y, x = self._round_node(y, x)
                 if (y, x) not in self._map:
                     data = self._map.pop(self._focused)
                     self._focused = y, x
@@ -314,6 +317,11 @@ class MapView(PlaneView):
         if node and not self._orig_pos:
             QtCore.QObject.emit(self, QtCore.SIGNAL('finished()'))
         self._orig_pos = None
+
+    def _round_node(self, y, x):
+        y = round(y / self._step_y) * self._step_y
+        x = round(x / self._step_x) * self._step_x
+        return y, x
 
     def _node_at(self, y, x):
         closest = None
