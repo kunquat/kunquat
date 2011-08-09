@@ -36,7 +36,7 @@ class SampleMap(QtGui.QWidget):
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
-        self._map_view = MapView()
+        self._map_view = MapView(self._map)
         random_layout = QtGui.QVBoxLayout()
         self._entries = []
         for i in xrange(RANDOMS_MAX):
@@ -198,12 +198,12 @@ class Entry(QtGui.QWidget):
 class MapView(PlaneView):
 
     activeChanged = QtCore.pyqtSignal(float, float, name='activeChanged')
-    moved = QtCore.pyqtSignal(float, float, float, float, name='moved')
+    modified = QtCore.pyqtSignal(name='modified')
     finished = QtCore.pyqtSignal(name='finished')
 
-    def __init__(self, parent=None):
+    def __init__(self, mapping, parent=None):
         PlaneView.__init__(self, parent)
-        self._map = {}
+        self._map = mapping
         self._active = None
         self._focused = None
         self._aspect = None
@@ -276,14 +276,11 @@ class MapView(PlaneView):
                 x, y = self._val_x(ev.x()), self._val_y(ev.y())
                 x = max(-36, min(x, 0))
                 y = max(-6000, min(y, 6000))
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('moved(float, float,'
-                                                        'float, float)'),
-                                    y, x, self._focused[1], self._focused[0])
                 data = self._map.pop(self._focused)
                 self._focused = y, x
                 self._active = self._focused
                 self._map[self._focused] = data
+                QtCore.QObject.emit(self, QtCore.SIGNAL('modified()'))
                 self.update()
 
     def mousePressEvent(self, ev):
