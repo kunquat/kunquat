@@ -23,7 +23,7 @@
 Sample_params* Sample_params_init(Sample_params* params)
 {
     assert(params != NULL);
-    params->format = SAMPLE_FORMAT_NONE;
+    params->format = SAMPLE_FORMAT_WAVPACK;
     params->mid_freq = 48000;
     params->loop = SAMPLE_LOOP_OFF;
     params->loop_start = 0;
