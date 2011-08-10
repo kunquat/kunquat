@@ -319,11 +319,22 @@ class MapView(PlaneView):
                     self._active = self._focused
                     self._map[self._focused] = data
                     QtCore.QObject.emit(self, QtCore.SIGNAL('modified()'))
+                    QtCore.QObject.emit(self,
+                                        QtCore.SIGNAL('activeChanged(float,'
+                                                      'float)'),
+                                        self._active[0], self._active[1])
                     self.update()
 
     def mousePressEvent(self, ev):
         assert not self._orig_pos
         node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
+        if not node:
+            x, y = self._val_x(ev.x()), self._val_y(ev.y())
+            x = max(self._min[0], min(x, self._max[0]))
+            y = max(self._min[1], min(y, self._max[1]))
+            y, x = self._round_node(y, x)
+            node = y, x
+            self._map[node] = [[0, 0, 0]]
         if node != self._active:
             self._active = node
             y, x = node if node else (float('-inf'), float('-inf'))
@@ -331,8 +342,7 @@ class MapView(PlaneView):
                                 QtCore.SIGNAL('activeChanged(float, float)'),
                                 y, x)
             self.update()
-        if node:
-            self._orig_pos = node
+        self._orig_pos = node
 
     def mouseReleaseEvent(self, ev):
         node = self._node_at(ev.y() - 0.5, ev.x() - 0.5)
