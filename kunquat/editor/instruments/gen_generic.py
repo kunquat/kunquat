@@ -158,6 +158,7 @@ class KeyList(QtGui.QTableWidget):
             if self.rowCount() == 0:
                 self.insertRow(0)
             self.setItem(0, 0, QtGui.QTableWidgetItem())
+            self._lock_update = False
             return
         new_rows = len(subtree) - self.rowCount()
         for _ in xrange(new_rows):

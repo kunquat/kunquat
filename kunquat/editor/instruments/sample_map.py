@@ -80,8 +80,9 @@ class SampleMap(QtGui.QWidget):
         if not key:
             return
         map_list = self._project[key]
-        for point, rand_list in map_list:
-            self._map[tuple(point)] = rand_list
+        if map_list:
+            for point, rand_list in map_list:
+                self._map[tuple(point)] = rand_list
         self._map_view.set_data(self._map)
 
     def sync(self):
