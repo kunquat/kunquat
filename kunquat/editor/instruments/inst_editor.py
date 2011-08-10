@@ -19,6 +19,7 @@ import filter_opts
 import force
 import generators
 import panning
+import kunquat.editor.connections as connections
 import kunquat.editor.kqt_limits as lim
 #import kunquat.editor.envelope as envelope
 
@@ -30,6 +31,8 @@ class InstEditor(QtGui.QWidget):
 
         self._project = project
         self._cur_inst = instrument_spin.value()
+        self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(
+                                                      lim.FORMAT_VERSION)
         top_layout = QtGui.QVBoxLayout(self)
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
@@ -73,12 +76,15 @@ class InstEditor(QtGui.QWidget):
         self._panning = panning.Panning(project)
         self._filter = filter_opts.Filter(project)
         self._generators = generators.Generators(project)
+        self._connections = connections.Connections(project,
+                                self._ins_key_base.format(self._cur_inst) +
+                                'p_connections.json')
         tabs.addTab(self._force, 'Force')
         tabs.addTab(self._panning, 'Panning')
         tabs.addTab(self._filter, 'Filter')
         tabs.addTab(self._generators, 'Generators')
         tabs.addTab(QtGui.QWidget(), 'Effects')
-        tabs.addTab(QtGui.QWidget(), 'Connections')
+        tabs.addTab(self._connections, 'Connections')
         top_layout.addWidget(tabs)
 
     def inst_changed(self, num):
@@ -87,6 +93,8 @@ class InstEditor(QtGui.QWidget):
         self._panning.inst_changed(num)
         self._filter.inst_changed(num)
         self._generators.inst_changed(num)
+        ins_key = self._ins_key_base.format(self._cur_inst)
+        self._connections.set_key(ins_key + 'p_connections.json')
 
     def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
@@ -124,5 +132,6 @@ class InstEditor(QtGui.QWidget):
         self._panning.sync()
         self._filter.sync()
         self._generators.sync()
+        self._connections.sync()
 
 
