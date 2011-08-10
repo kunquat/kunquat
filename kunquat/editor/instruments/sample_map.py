@@ -65,6 +65,9 @@ class SampleMap(QtGui.QWidget):
                                QtCore.SIGNAL('modified()'),
                                self._map_modified)
         QtCore.QObject.connect(self._map_view,
+                               QtCore.SIGNAL('removed()'),
+                               self._map_index_removed)
+        QtCore.QObject.connect(self._map_view,
                                QtCore.SIGNAL('finished()'),
                                self._map_finished)
         QtCore.QObject.connect(self._add_entry,
@@ -94,6 +97,10 @@ class SampleMap(QtGui.QWidget):
 
     def _map_modified(self):
         self._project.set(self._key, self._map.items(), immediate=False)
+
+    def _map_index_removed(self):
+        self._active_changed(float('-inf'), float('-inf'))
+        self._map_modified()
 
     def _map_finished(self):
         self._project.flush(self._key)
@@ -211,6 +218,7 @@ class MapView(PlaneView):
 
     activeChanged = QtCore.pyqtSignal(float, float, name='activeChanged')
     modified = QtCore.pyqtSignal(name='modified')
+    removed = QtCore.pyqtSignal(name='removed')
     finished = QtCore.pyqtSignal(name='finished')
 
     def __init__(self, mapping, parent=None):
@@ -287,9 +295,23 @@ class MapView(PlaneView):
                 if math.hypot(ovx - ev.x(), ovy - ev.y()) > snap:
                     self._orig_pos = None
             if not self._orig_pos:
+                keep_margin = 150
+                keep_top_left = \
+                        QtCore.QPointF(self._view_x(self._min[0]) - keep_margin,
+                                       self._view_y(self._max[1]) - keep_margin)
+                keep_bottom_right = \
+                        QtCore.QPointF(self._view_x(self._max[0]) + keep_margin,
+                                       self._view_y(self._min[1]) + keep_margin)
+                keep_rect = QtCore.QRectF(keep_top_left, keep_bottom_right)
+                if not keep_rect.contains(ev.x(), ev.y()):
+                    del self._map[self._focused]
+                    self._focused = self._active = None
+                    QtCore.QObject.emit(self, QtCore.SIGNAL('removed()'))
+                    self.update()
+                    return
                 x, y = self._val_x(ev.x()), self._val_y(ev.y())
-                x = max(-36, min(x, 0))
-                y = max(-6000, min(y, 6000))
+                x = max(self._min[0], min(x, self._max[0]))
+                y = max(self._min[1], min(y, self._max[1]))
                 y, x = self._round_node(y, x)
                 if (y, x) not in self._map:
                     data = self._map.pop(self._focused)
