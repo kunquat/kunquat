@@ -55,6 +55,9 @@ class GenEditor(QtGui.QWidget):
         self._generic = GenGeneric(project)
         layout.addLayout(common_layout)
         layout.addWidget(self._generic, 1)
+        QtCore.QObject.connect(self._type,
+                               QtCore.SIGNAL('currentIndexChanged(int)'),
+                               self._type_changed)
 
     def inst_changed(self, num):
         self._cur_inst = num
@@ -65,6 +68,9 @@ class GenEditor(QtGui.QWidget):
         self._cur_gen = num
         self._update_keys()
         self._generic.gen_changed(self._cur_gen)
+
+    def _type_changed(self, dummy):
+        self._generic.sync()
 
     def _update_keys(self):
         key_base = self._ins_key_base.format(self._cur_inst) + \

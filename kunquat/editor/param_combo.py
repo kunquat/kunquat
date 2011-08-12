@@ -36,7 +36,6 @@ class ParamCombo(QtGui.QComboBox):
         for text, value in values:
             self.addItem(text, value)
         self._default_text = default_text
-        self._lock_update = False
         self.set_key(key)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
@@ -66,19 +65,17 @@ class ParamCombo(QtGui.QComboBox):
             if actual != None:
                 value = actual
         matches = filter(lambda i: i[1] == value, self._items)
-        self._lock_update = True
+        self.blockSignals(True)
         if matches:
             self.setCurrentIndex(self.findText(matches[0][0]))
         else:
             self.setCurrentIndex(self.findText(self._default_text))
-        self._lock_update = False
+        self.blockSignals(False)
 
     def sync(self):
         self.set_key(self._key)
 
     def _index_changed(self, index):
-        if self._lock_update:
-            return
         value = self._items[self.currentIndex()][1]
         if self._dict_key:
             d = self._project[self._key]

@@ -17,6 +17,7 @@ import re
 
 from PyQt4 import QtCore, QtGui
 
+from gen_constraints import constraints
 import kunquat.editor.kqt_limits as lim
 from kunquat.editor.envelope import Envelope
 from kunquat.editor.param_sample_header import ParamSampleHeader
@@ -237,11 +238,11 @@ class KeyEditor(QtGui.QStackedWidget):
         suffix = self._key.split('.')[-1]
         if suffix in self._map:
             current = self._map[suffix]
-            constraints = self.get_constraints(key)
-            if constraints:
-                if suffix == 'jsoni' and 'decimals' in constraints:
-                    constraints['decimals'] = 0
-                current.set_constraints(constraints)
+            constr = self.get_constraints(key)
+            if constr:
+                if suffix == 'jsoni' and 'decimals' in constr:
+                    constr['decimals'] = 0
+                current.set_constraints(constr)
             current.set_key(self._key)
             self.setCurrentWidget(current)
         else:
@@ -255,8 +256,12 @@ class KeyEditor(QtGui.QStackedWidget):
             return None
         components = key.split('/')
         gen_components = takewhile(lambda x: x != 'c', components)
-        const_key = '/'.join(gen_components) + '/i_constraints.json'
-        d = self._project[const_key]
+        gen_path = '/'.join(gen_components)
+        type_key = gen_path + '/p_gen_type.json'
+        d = constraints[self._project[type_key]]
+        if d == None:
+            const_key = gen_path + '/i_constraints.json'
+            d = self._project[const_key]
         if isinstance(d, dict):
             for k in d.iterkeys():
                 if re.match(k, components[-1]):
