@@ -55,8 +55,8 @@ class EffEditor(QtGui.QWidget):
             self._project.import_kqte(self._base, slot, str(fname))
 
     def remove(self):
-        base = self._base if not self._base else self._base + '/'
-        self._project.remove_dir('{0}eff_{1:02x}'.format(base, self._cur_eff))
+        self._project.remove_dir('{0}eff_{1:02x}'.format(self._base,
+                                                         self._cur_eff))
 
     def set_base(self, base):
         self._base = base

@@ -20,6 +20,7 @@ import force
 import generators
 import panning
 import kunquat.editor.connections as connections
+import kunquat.editor.effects.effects as effects
 import kunquat.editor.kqt_limits as lim
 #import kunquat.editor.envelope as envelope
 
@@ -76,6 +77,8 @@ class InstEditor(QtGui.QWidget):
         self._panning = panning.Panning(project)
         self._filter = filter_opts.Filter(project)
         self._generators = generators.Generators(project)
+        self._effects = effects.Effects(project,
+                                self._ins_key_base.format(self._cur_inst))
         self._connections = connections.Connections(project,
                                 self._ins_key_base.format(self._cur_inst) +
                                 'p_connections.json')
@@ -83,7 +86,7 @@ class InstEditor(QtGui.QWidget):
         tabs.addTab(self._panning, 'Panning')
         tabs.addTab(self._filter, 'Filter')
         tabs.addTab(self._generators, 'Generators')
-        tabs.addTab(QtGui.QWidget(), 'Effects')
+        tabs.addTab(self._effects, 'Effects')
         tabs.addTab(self._connections, 'Connections')
         top_layout.addWidget(tabs)
 
@@ -94,6 +97,7 @@ class InstEditor(QtGui.QWidget):
         self._filter.inst_changed(num)
         self._generators.inst_changed(num)
         ins_key = self._ins_key_base.format(self._cur_inst)
+        self._effects.set_base(ins_key)
         self._connections.set_key(ins_key + 'p_connections.json')
 
     def test_note_on(self):
@@ -132,6 +136,7 @@ class InstEditor(QtGui.QWidget):
         self._panning.sync()
         self._filter.sync()
         self._generators.sync()
+        self._effects.sync()
         self._connections.sync()
 
 

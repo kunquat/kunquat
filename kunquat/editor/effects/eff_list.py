@@ -67,8 +67,7 @@ class EffList(QtGui.QTableWidget):
     def set_base(self, base):
         assert base.startswith('ins') == self._base.startswith('ins')
         self._base = base
-        base = base if not base else base + '/'
-        self._key_base = '{0}eff_{{0:02x}}/kqte{1}/'.format(base,
+        self._key_base = '{0}eff_{{0:02x}}/kqte{1}/'.format(self._base,
                                                      lim.FORMAT_VERSION)
         self.blockSignals(True)
         for i in xrange(self._max):

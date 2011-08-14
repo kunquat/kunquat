@@ -565,7 +565,6 @@ class Project(QtCore.QObject):
                                          else lim.EFFECTS_MAX
         assert index >= 0
         assert index < max_index
-        base = base if not base else base + '/'
         eff_path = '{0}eff_{1:02x}'.format(base, index)
         tfile = None
         if base:
