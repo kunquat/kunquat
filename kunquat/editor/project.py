@@ -184,7 +184,7 @@ class Project(QtCore.QObject):
         """
         self[key] = None
 
-    def set(self, key, value, immediate=True):
+    def set(self, key, value, immediate=True, autoconnect=True):
         """Set data in the Kunquat Handle.
 
         For JSON keys, this function converts the given Python object
@@ -195,23 +195,97 @@ class Project(QtCore.QObject):
         value -- The data to be set.
 
         Optional arguments:
-        immediate -- If True, the data is immediately stored in the
-                     project history. Otherwise, the data is delayed
-                     until another call of set() or flush().
+        immediate   -- If True, the data is immediately stored in the
+                       project history. Otherwise, the data is delayed
+                       until another call of set() or flush().
+        autoconnect -- If True, create a simple connection path to
+                       master output if the key implies creation of a
+                       new instrument or generator.
         """
         assert immediate in (True, False)
         if value == None:
-            self._history.step(key, '', immediate=immediate)
-            self.set_raw(key, '')
-        elif key[key.index('.'):].startswith('.json'):
-            jvalue = json.dumps(value)
-            self._history.step(key, jvalue, immediate=immediate)
-            self.set_raw(key, jvalue)
-        else:
-            self._history.step(key, value, immediate=immediate)
-            self.set_raw(key, value)
+            autoconnect = False
+        if autoconnect:
+            autoconnect = self._autoconnect(key, immediate)
+        try:
+            if value == None:
+                self._history.step(key, '', immediate=immediate)
+                self.set_raw(key, '')
+            elif key[key.index('.'):].startswith('.json'):
+                jvalue = json.dumps(value)
+                self._history.step(key, jvalue, immediate=immediate)
+                self.set_raw(key, jvalue)
+            else:
+                self._history.step(key, value, immediate=immediate)
+                self.set_raw(key, value)
+        finally:
+            if autoconnect:
+                self._autoconnect_finish()
         self._changed = True
         #self._history.show_latest_branch()
+
+    def _autoconnect(self, key, immediate):
+        new_ins = -1
+        new_gen = -1
+        ins_conn_base = 'ins_{0:02x}/kqtiXX/'
+        gen_conn_base = 'gen_{0:02x}/kqtgXX/C/'
+        ins_prefix_base = 'ins_{{0:02x}}/kqti{0}/'.format(lim.FORMAT_VERSION)
+        gen_prefix_base = '{0}gen_{{1:02x}}/kqtg{1}/'.format(ins_prefix_base,
+                                                        lim.FORMAT_VERSION)
+        ins_pattern = 'ins_([0-9a-f]{{2}})/kqti{0}/'.format(lim.FORMAT_VERSION)
+        gen_pattern = '{0}gen_([0-9a-f]{{2}})/kqtg{1}/'.format(ins_pattern,
+                                                        lim.FORMAT_VERSION)
+        ins_mo = re.match(ins_pattern, key)
+        if not ins_mo:
+            return False
+        new_ins = int(ins_mo.group(1), 16)
+        ins_prefix = ins_prefix_base.format(new_ins)
+        gen_mo = re.match(gen_pattern, key)
+        if gen_mo:
+            new_gen = int(gen_mo.group(2), 16)
+            gen_prefix = gen_prefix_base.format(new_ins, new_gen)
+            if not list(izip((1,), self.subtree(gen_prefix))):
+                ins_connections = self[ins_prefix + 'p_connections.json']
+                if not ins_connections:
+                    ins_connections = []
+                gen_conn_prefix = gen_conn_base.format(new_gen)
+                for conn in ins_connections:
+                    if conn[0].startswith(gen_conn_prefix) or \
+                            conn[1].startswith(gen_conn_prefix):
+                        new_gen = -1
+                        break
+                else:
+                    ins_connections.extend([[gen_conn_prefix + 'out_00',
+                                             'out_00']])
+            else:
+                new_gen = -1
+        connections = self['p_connections.json']
+        if not connections:
+            connections = []
+        ins_conn_prefix = ins_conn_base.format(new_ins)
+        if not list(izip((1,), self.subtree(ins_prefix))):
+            for conn in connections:
+                if conn[0].startswith(ins_conn_prefix) or \
+                        conn[1].startswith(ins_conn_prefix):
+                    new_ins = -1
+                    break
+            else:
+                connections.extend([[ins_conn_prefix + 'out_00', 'out_00']])
+        else:
+            new_ins = -1
+        if new_ins < 0 and new_gen < 0:
+            return False
+        self._history.start_group('{0} + autoconnect'.format(key))
+        if new_ins >= 0:
+            self.set('p_connections.json', connections, immediate=immediate,
+                     autoconnect=False)
+        if new_gen >= 0:
+            self.set(ins_prefix + 'p_connections.json', ins_connections,
+                     immediate=immediate, autoconnect=False)
+        return True
+
+    def _autoconnect_finish(self):
+        self._history.end_group()
 
     def set_raw(self, key, value):
         """Set raw data in the Project.
@@ -303,10 +377,10 @@ class Project(QtCore.QObject):
             for key in target_keys:
                 QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
                                     'Removing {0} ...'.format(key))
-                self[key] = None
+                self.set(key, None, autoconnect=False)
         finally:
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
             self._history.end_group()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def export_kqt(self, dest):
         """Exports the composition in the Project.
@@ -433,9 +507,10 @@ class Project(QtCore.QObject):
                                     QtCore.SIGNAL('step(QString)'),
                                     'Importing {0} ...'.format(full_path))
                             if key[key.index('.'):].startswith('.json'):
-                                self[key] = json.loads(f.read())
+                                self.set(key, json.loads(f.read()),
+                                         autoconnect=False)
                             else:
-                                self[key] = f.read()
+                                self.set(key, f.read(), autoconnect=False)
             else:
                 tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
                 entry = tfile.next()
@@ -457,9 +532,9 @@ class Project(QtCore.QObject):
                                 'Importing {0}:{1} ...'.format(src, key))
                         data = tfile.extractfile(entry).read()
                         if key[key.index('.'):].startswith('.json'):
-                            self[key] = json.loads(data)
+                            self.set(key, json.loads(data), autoconnect=False)
                         else:
-                            self[key] = data
+                            self.set(key, data, autoconnect=False)
                     entry = tfile.next()
         finally:
             if tfile:
@@ -506,9 +581,10 @@ class Project(QtCore.QObject):
                                         full_path))
                             if ins_key[ins_key.index('.'):].startswith(
                                                                 '.json'):
-                                self[ins_key] = json.loads(f.read())
+                                self.set(ins_key, json.loads(f.read()),
+                                         autoconnect=False)
                             else:
-                                self[ins_key] = f.read()
+                                self.set(ins_key, f.read(), autoconnect=False)
             else:
                 tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
                 entry = tfile.next()
@@ -525,9 +601,10 @@ class Project(QtCore.QObject):
                                     key_path))
                         data = tfile.extractfile(entry).read()
                         if key_path[key_path.index('.'):].startswith('.json'):
-                            self[key_path] = json.loads(data)
+                            self.set(key_path, json.loads(data),
+                                     autoconnect=False)
                         else:
-                            self[key_path] = data
+                            self.set(key_path, data, autoconnect=False)
                     entry = tfile.next()
             connections = self['p_connections.json']
             if not connections:
@@ -538,7 +615,7 @@ class Project(QtCore.QObject):
                     break
             else:
                 connections.append([ins_out, 'out_00'])
-            self['p_connections.json'] = connections
+            self.set('p_connections.json', connections, autoconnect=False)
         finally:
             if tfile:
                 tfile.close()
@@ -593,9 +670,10 @@ class Project(QtCore.QObject):
                                         full_path))
                             if eff_key[eff_key.index('.'):].startswith(
                                                                 '.json'):
-                                self[eff_key] = json.loads(f.read())
+                                self.set(eff_key, json.loads(f.read()),
+                                         autoconnect=False)
                             else:
-                                self[eff_key] = f.read()
+                                self.set(eff_key, f.read(), autoconnect=False)
             else:
                 tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
                 entry = tfile.next()
@@ -612,9 +690,10 @@ class Project(QtCore.QObject):
                                     key_path))
                         data = tfile.extractfile(entry).read()
                         if key_path[key_path.index('.'):].startswith('.json'):
-                            self[key_path] = json.loads(data)
+                            self.set(key_path, json.loads(data),
+                                     autoconnect=False)
                         else:
-                            self[key_path] = data
+                            self.set(key_path, data, autoconnect=False)
                     entry = tfile.next()
         finally:
             if tfile:
@@ -634,7 +713,7 @@ class Project(QtCore.QObject):
         """Marks the start of a group of modifications.
 
         Every call of start_group must always have a corresponding
-        call of end_group, including exceptional circumstances.
+        call of end_group, even in exceptional circumstances.
 
         Optional arguments:
         name -- The name of the change.
@@ -824,10 +903,17 @@ class History(object):
             return
         new_data, old_data, name = self._pending.pop(key)
         self._step(key, new_data, old_data, name)
+        for k in [c for c in self._pending.iterkeys()
+                          if c.endswith('p_connections.json')]:
+            new_data, old_data, name = self._pending.pop(k)
+            self._step(k, new_data, old_data, name)
 
     def cancel(self, key):
         if key in self._pending:
             del self._pending[key]
+        for k in [c for c in self._pending.iterkeys()
+                          if c.endswith('p_connections.json')]:
+            del self._pending[k]
 
     def undo(self, step_signaller=None):
         """Undoes a step."""
