@@ -37,7 +37,11 @@ class EffList(QtGui.QTableWidget):
 
         QtCore.QObject.connect(self,
                     QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
-                               self.cell_changed)
+                               self._cell_changed)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self._name_changed)
+        self.set_base(base)
 
     def eff_changed(self, num):
         index = self.model().index(num, 0)
@@ -46,12 +50,43 @@ class EffList(QtGui.QTableWidget):
         select.select(index, QtGui.QItemSelectionModel.Select)
         select.setCurrentIndex(index, QtGui.QItemSelectionModel.Select)
 
-    def cell_changed(self, cur_row, cur_col, prev_row, prev_col):
+    def _cell_changed(self, cur_row, cur_col, prev_row, prev_col):
         QtCore.QObject.emit(self, QtCore.SIGNAL('effectChanged(int)'),
                             cur_row)
 
+    def _name_changed(self, num, col):
+        assert num >= 0
+        assert num < self._max
+        item = self.item(num, 0)
+        key = self._key_base.format(num) + 'm_name.json'
+        if item:
+            self._project[key] = str(item.text())
+        else:
+            self._project[key] = None
+
+    def set_base(self, base):
+        assert base.startswith('ins') == self._base.startswith('ins')
+        self._base = base
+        base = base if not base else base + '/'
+        self._key_base = '{0}eff_{{0:02x}}/kqte{1}/'.format(base,
+                                                     lim.FORMAT_VERSION)
+        self.blockSignals(True)
+        for i in xrange(self._max):
+            name = self._project[self._key_base.format(i) + 'm_name.json']
+            if name:
+                item = self.item(i, 0)
+                if not item:
+                    item = QtGui.QTableWidgetItem(name)
+                    self.setItem(i, 0, item)
+                else:
+                    item.setText(name)
+            else:
+                item = self.item(i, 0)
+                if item:
+                    item.setText('')
+        self.blockSignals(False)
+
     def sync(self):
-        # TODO
-        pass
+        self.set_base(self._base)
 
 

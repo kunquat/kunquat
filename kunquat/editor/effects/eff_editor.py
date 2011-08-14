@@ -58,8 +58,10 @@ class EffEditor(QtGui.QWidget):
         base = self._base if not self._base else self._base + '/'
         self._project.remove_dir('{0}eff_{1:02x}'.format(base, self._cur_eff))
 
+    def set_base(self, base):
+        self._base = base
+
     def sync(self):
-        # TODO
-        pass
+        self.set_base(self._base)
 
 
