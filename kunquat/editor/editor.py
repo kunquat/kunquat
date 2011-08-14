@@ -145,6 +145,8 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_pattern = 0
         self._focus_backup = None
         self.sync()
+        QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
+                               self.sync)
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)

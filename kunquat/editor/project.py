@@ -65,6 +65,7 @@ class Project(QtCore.QObject):
     _start_task = QtCore.pyqtSignal(int, name='startTask')
     _step = QtCore.pyqtSignal(QtCore.QString, name='step')
     _end_task = QtCore.pyqtSignal(name='endTask')
+    _sync = QtCore.pyqtSignal(name='sync')
 
     def __init__(self, proj_id, mixing_rate=48000, parent=None):
         """Create a new Project.
@@ -286,6 +287,7 @@ class Project(QtCore.QObject):
 
     def _autoconnect_finish(self):
         self._history.end_group()
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def set_raw(self, key, value):
         """Set raw data in the Project.
