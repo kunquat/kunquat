@@ -40,8 +40,6 @@ class Envelope(PlaneView):
                  key,
                  dict_key=None,
                  step=(0.0001, 0.0001),
-                 #init_x_view=None,
-                 #init_y_view=None,
                  mark_modes=None,
                  parent=None):
         assert x_range[0] < x_range[1]
@@ -57,20 +55,6 @@ class Envelope(PlaneView):
         assert not mark_modes or all(mode in ('x_dashed',)
                                      for mode in mark_modes)
         PlaneView.__init__(self, parent)
-        """
-        if not init_x_view:
-            if x_range[0] >= -1 and x_range[1] <= 1:
-                init_x_view = x_range
-            else:
-                init_x_view = default_val[0][0], default_val[-1][0]
-        if not init_y_view:
-            if y_range[0] >= -1 and y_range[1] <= 1:
-                init_y_view = y_range
-            else:
-                y_min = min(n[1] for n in default_val)
-                y_max = max(n[1] for n in default_val)
-                init_y_view = y_min, y_max
-        """
         self._project = project
         self._key = key
         self._dict_key = dict_key
@@ -261,6 +245,8 @@ class Envelope(PlaneView):
                 QtCore.QObject.emit(self,
                                     QtCore.SIGNAL('nodeRemoved(int)'),
                                     self._focus_index)
+                self._marks = [m if m == None or m < self._focus_index
+                                 else m - 1 for m in self._marks]
                 self._focus_index = -1
                 self._drag = False
                 if self._new_node:
@@ -316,6 +302,8 @@ class Envelope(PlaneView):
                 focus_node = focus_node[0], self._nodes[-1][1]
             self._nodes[index:index] = [focus_node]
             self._new_node = True
+            self._marks = [m if m == None or m < index else m + 1
+                           for m in self._marks]
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('nodeAdded(int)'),
                                 index)
@@ -378,40 +366,6 @@ class Envelope(PlaneView):
 
     def _finished(self):
         self._project.flush(self._key)
-
-    """
-    def _adjust_view(self, pos):
-        resize = False
-        min_x, min_y = self._visible_min
-        max_x, max_y = self._visible_max
-        upscale = 1.05
-        if pos[0] < min_x:
-            resize = True
-            min_x = pos[0] * upscale
-        if pos[0] > max_x:
-            resize = True
-            max_x = pos[0] * upscale
-        if pos[1] < min_y:
-            resize = True
-            min_y = pos[1] * upscale
-        if pos[1] > max_y:
-            resize = True
-            max_y = pos[1] * upscale
-        if resize:
-            self._visible_min = min_x, min_y
-            self._visible_max = max_x, max_y
-            self.resizeEvent(None)
-        if pos == self._nodes[-1]:
-            resize = False
-            threshold = min_x + 0.5 * (max_x - min_x)
-            downscale = 1 / upscale
-            if pos[0] < threshold and max_x > 1:
-                resize = True
-                max_x = max(min_x + (max_x - min_x) * downscale, 1)
-            if resize:
-                self._visible_max = max_x, max_y
-                self.resizeEvent(None)
-    """
 
     def _node_at(self, x, y):
         closest = self._nodes[0]

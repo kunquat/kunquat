@@ -149,7 +149,6 @@ class LoopBound(QtGui.QWidget):
         self._mark_index = mark_index
         self._envelope = envelope
         self._dict_key = dict_key
-        self._lock_update = False
         QtCore.QObject.connect(self._envelope,
                                QtCore.SIGNAL('nodeAdded(int)'),
                                self._node_added)
@@ -197,9 +196,9 @@ class LoopBound(QtGui.QWidget):
             marks = dvalue['marks']
             if len(marks) > self._mark_index:
                 value = marks[self._mark_index]
-        self._lock_update = True
+        self._spin.blockSignals(True)
         self._spin.setValue(int(value))
-        self._lock_update = False
+        self._spin.blockSignals(False)
         self._key = key
 
     def sync(self):
@@ -207,59 +206,44 @@ class LoopBound(QtGui.QWidget):
 
     def set_lower_bound(self, bound):
         self._lower_bound = bound
+        self._spin.blockSignals(True)
         self._spin.setMinimum(bound)
+        self._spin.blockSignals(False)
 
     def set_upper_bound(self, bound):
         self._upper_bound = bound
+        self._spin.blockSignals(True)
         self._spin.setMaximum(min(bound, self._max_node))
+        self._spin.blockSignals(False)
 
     def _node_added(self, index):
         self._nodes_changed(self._max_node + 2)
         if index <= self._spin.value():
             new_index = self._spin.value() + 1
+            self._spin.blockSignals(True)
             self._spin.setValue(new_index)
+            self._spin.blockSignals(False)
             #self._value_changed(new_index)
 
     def _node_removed(self, index):
         if index <= self._spin.value():
             new_index = self._spin.value() - 1
+            self._spin.blockSignals(True)
             self._spin.setValue(new_index)
+            self._spin.blockSignals(False)
             #self._value_changed(new_index)
         self._nodes_changed(self._max_node)
 
     def _nodes_changed(self, count):
         self._max_node = count - 1
+        self._spin.blockSignals(True)
         self._spin.setMaximum(min(self._upper_bound, self._max_node))
+        self._spin.blockSignals(False)
 
     def _value_changed(self, value):
-        if self._lock_update:
-            return
         self._envelope.set_mark(self._mark_index, value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('valueChanged(int)'),
                             value)
-        """
-        dvalue = {}
-        if self._dict_key:
-            d = self._project[self._key]
-            if not d:
-                d = {}
-            if self._dict_key in d:
-                dvalue = d[self._dict_key]
-            marks = dvalue.get('marks', [])
-            marks.extend([-1] * (self._mark_index - len(marks) + 1))
-            marks[self._mark_index] = value
-            dvalue['marks'] = marks
-            d[self._dict_key] = dvalue
-            self._project.set(self._key, d, immediate=False)
-        else:
-            if self._project[self._key]:
-                dvalue = self._project[self._key]
-            marks = dvalue.get('marks', [])
-            marks.extend([-1] * (self._mark_index - len(marks) + 1))
-            marks[self._mark_index] = value
-            dvalue['marks'] = marks
-            self._project.set(self._key, dvalue, immediate=False)
-        """
 
     def _finished(self):
         self._project.flush(self._key)
