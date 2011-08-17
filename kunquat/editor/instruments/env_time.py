@@ -124,12 +124,28 @@ class EnvTime(QtGui.QWidget):
 
     def inst_changed(self, num):
         self._cur_inst = num
+        key = self._key_base.format(self._cur_inst)
+        if self._support_loop:
+            d = self._project[key]
+            try:
+                length = len(d['envelope']['nodes'])
+                length = max(length, 2)
+            except (KeyError, TypeError):
+                length = 2
+            try:
+                marks = d['envelope']['marks']
+                if len(marks) != 2:
+                    marks = [0, 0]
+            except (KeyError, TypeError):
+                marks = [0, 0]
+            self._loop_end.set_upper_bound(length - 1)
+            self._loop_end.set_lower_bound(marks[0])
+            self._loop_start.set_upper_bound(marks[1])
         for widget in self._widgets:
-            widget.set_key(self._key_base.format(self._cur_inst))
+            widget.set_key(key)
 
     def sync(self):
-        for widget in self._widgets:
-            widget.sync()
+        self.inst_changed(self._cur_inst)
 
 
 class LoopBound(QtGui.QWidget):
