@@ -168,10 +168,12 @@ class EnvTime(QtGui.QWidget):
     def _loop_start_changed(self, value):
         assert self._support_loop
         self._loop_end.set_lower_bound(value)
+        self._env.set_mark(0, value)
 
     def _loop_end_changed(self, value):
         assert self._support_loop
         self._loop_start.set_upper_bound(value)
+        self._env.set_mark(1, value)
 
 
 class LoopBound(QtGui.QWidget):
