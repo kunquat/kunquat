@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -10,6 +10,9 @@
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
 #
+
+import re
+
 
 FORMAT_VERSION = "00"
 
@@ -41,5 +44,11 @@ SCALE_MIDDLE_OCTAVE = SCALE_MIDDLE_OCTAVE_UNBIASED + SCALE_OCTAVE_BIAS
 SCALE_OCTAVE_LAST = SCALE_OCTAVES - 1 + SCALE_OCTAVE_BIAS
 
 ARPEGGIO_NOTES_MAX = 3
+
+key_format = re.compile('([0-9a-z_]+/)*[mp]_[0-9a-z_]+\\.[a-z]+')
+
+
+def valid_key(s):
+    return key_format.match(s)
 
 

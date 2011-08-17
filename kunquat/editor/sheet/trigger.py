@@ -19,7 +19,7 @@ import math
 from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.kqt_limits as lim
-import scale
+import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
 
 

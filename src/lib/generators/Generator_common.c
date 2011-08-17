@@ -137,7 +137,7 @@ void Generator_common_handle_force(Generator* gen,
     {
         state->force = Slider_step(&state->force_slider);
     }
-    state->actual_force = state->force;
+    state->actual_force = state->force * gen->ins_params->global_force;
     if (LFO_active(&state->tremolo))
     {
         state->actual_force *= LFO_step(&state->tremolo);
@@ -164,13 +164,13 @@ void Generator_common_handle_force(Generator* gen,
         double scale = NAN;
         if (next_node == NULL)
         {
-            assert(loop_start == NULL);
-            assert(loop_end == NULL);
+            //assert(loop_start == NULL);
+            //assert(loop_end == NULL);
             double* last_node = Envelope_get_node(env,
                                         Envelope_node_count(env) - 1);
             scale = last_node[1];
         }
-        else if (state->fe_pos >= next_node[0])
+        else if (state->fe_pos >= next_node[0] || isnan(state->fe_update))
         {
             ++state->fe_next_node;
             if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
@@ -179,11 +179,18 @@ void Generator_common_handle_force(Generator* gen,
                 state->fe_next_node = loop_start_index;
             }
             scale = Envelope_get_value(env, state->fe_pos);
-            assert(isfinite(scale));
-            double next_scale = Envelope_get_value(env, state->fe_pos +
-                                                        1.0 / freq);
-            state->fe_value = scale;
-            state->fe_update = next_scale - scale;
+            if (isfinite(scale))
+            {
+                double next_scale = Envelope_get_value(env, state->fe_pos +
+                                                            1.0 / freq);
+                state->fe_value = scale;
+                state->fe_update = next_scale - scale;
+            }
+            else
+            {
+                scale = Envelope_get_node(env,
+                                          Envelope_node_count(env) - 1)[1];
+            }
         }
         else
         {
@@ -258,7 +265,13 @@ void Generator_common_handle_force(Generator* gen,
             }
             Envelope* env = gen->ins_params->env_force_rel;
             double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
-            assert(next_node != NULL);
+            if (next_node == NULL)
+            {
+                // This may occur if the user removes nodes during playback
+                next_node = Envelope_get_node(env,
+                                              Envelope_node_count(env) - 1);
+                assert(next_node != NULL);
+            }
             double scale = NAN;
             if (state->rel_fe_pos >= next_node[0])
             {

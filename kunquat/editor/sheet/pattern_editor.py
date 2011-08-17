@@ -16,7 +16,7 @@ from PyQt4 import QtGui, QtCore
 import kunquat.editor.kqt_limits as lim
 from pattern import Pattern
 import kunquat.editor.timestamp as ts
-from timestamp_spin import TimestampSpin
+from kunquat.editor.timestamp_spin import TimestampSpin
 
 
 class PatternEditor(QtGui.QWidget):

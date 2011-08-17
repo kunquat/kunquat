@@ -16,76 +16,80 @@ from PyQt4 import QtCore, QtGui
 import kunquat.editor.kqt_limits as lim
 
 
-class EffList(QtGui.QTableWidget):
+class GenList(QtGui.QTableWidget):
 
-    eff_changed = QtCore.pyqtSignal(int, name='effectChanged')
+    genChanged = QtCore.pyqtSignal(int, name='genChanged')
 
-    def __init__(self, project, base, parent=None):
-        self._max = lim.INST_EFFECTS_MAX if base.startswith('ins') \
-                                         else lim.EFFECTS_MAX
-        QtGui.QTableWidget.__init__(self, self._max, 1, parent)
+    def __init__(self, project, parent=None):
+        QtGui.QTableWidget.__init__(self, lim.GENERATORS_MAX, 1, parent)
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
-
         self._project = project
-        self._base = base
+        self._cur_inst = 0
+        self._cur_gen = 0
+        self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(lim.FORMAT_VERSION)
+        self._gen_key_base = 'gen_{{0:02x}}/kqtg{0}/'.format(lim.FORMAT_VERSION)
         self.setVerticalHeaderLabels([str(num) for num in
-                                      xrange(self._max)])
+                                      xrange(lim.GENERATORS_MAX)])
         self.setCornerButtonEnabled(False)
         self.setTabKeyNavigation(False)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
-
+        self._lock_update = False
         QtCore.QObject.connect(self,
-                    QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
-                               self._cell_changed)
+                QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
+                self._cell_changed)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._name_changed)
-        self.set_base(base)
 
-    def eff_changed(self, num):
+    def inst_changed(self, num):
+        self._cur_inst = num
+        self.sync()
+        """
         index = self.model().index(num, 0)
         select = self.selectionModel()
         select.clear()
         select.select(index, QtGui.QItemSelectionModel.Select)
         select.setCurrentIndex(index, QtGui.QItemSelectionModel.Select)
+        """
 
     def _cell_changed(self, cur_row, cur_col, prev_row, prev_col):
-        QtCore.QObject.emit(self, QtCore.SIGNAL('effectChanged(int)'),
-                            cur_row)
+        if cur_row == self._cur_gen:
+            return
+        self._cur_gen = cur_row
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('genChanged(int)'),
+                            self._cur_gen)
 
     def _name_changed(self, num, col):
         assert num >= 0
-        assert num < self._max
+        assert num < lim.GENERATORS_MAX
+        if self._lock_update:
+            return
         item = self.item(num, 0)
-        key = self._key_base.format(num) + 'm_name.json'
+        gen_name_key = self._gen_key_base.format(num) + 'm_name.json'
+        key = self._ins_key_base.format(self._cur_inst) + gen_name_key
         if item:
             self._project[key] = str(item.text())
         else:
             self._project[key] = None
 
-    def set_base(self, base):
-        assert base.startswith('ins') == self._base.startswith('ins')
-        self._base = base
-        self._key_base = '{0}eff_{{0:02x}}/kqte{1}/'.format(self._base,
-                                                     lim.FORMAT_VERSION)
-        self.blockSignals(True)
-        for i in xrange(self._max):
-            name = self._project[self._key_base.format(i) + 'm_name.json']
+    def sync(self):
+        self._lock_update = True
+        ins_key = self._ins_key_base.format(self._cur_inst)
+        for i in xrange(lim.GENERATORS_MAX):
+            gen_name_key = self._gen_key_base.format(i) + 'm_name.json'
+            key = ins_key + gen_name_key
+            name = self._project[key]
+            item = self.item(i, 0)
             if name:
-                item = self.item(i, 0)
                 if not item:
                     item = QtGui.QTableWidgetItem(name)
                     self.setItem(i, 0, item)
                 else:
                     item.setText(name)
-            else:
-                item = self.item(i, 0)
-                if item:
-                    item.setText('')
-        self.blockSignals(False)
-
-    def sync(self):
-        self.set_base(self._base)
+            elif item:
+                item.setText('')
+        self._lock_update = False
 
 

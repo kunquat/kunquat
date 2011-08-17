@@ -24,8 +24,8 @@ from column import Column
 from cursor import Cursor
 import kunquat.editor.keymap as keymap
 import kunquat.editor.kqt_limits as lim
-import note_input as ni
-import scale
+import kunquat.editor.note_input as ni
+import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
 import trigger
 
@@ -185,6 +185,10 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.2
+
+        self.setAutoFillBackground(False)
+        self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
+        self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
     def autoinst_changed(self, value):
         if value:

@@ -166,7 +166,6 @@ uint32_t Generator_pcm_mix(Generator* gen,
             return offset;
         }
         pcm_state->sample = entry->sample;
-        pcm_state->freq = entry->freq;
         pcm_state->volume = entry->vol_scale;
         pcm_state->middle_tone = entry->ref_freq;
         char header_key[] = "smp_XXX/p_sample.jsonsh";
@@ -179,6 +178,8 @@ uint32_t Generator_pcm_mix(Generator* gen,
             state->active = false;
             return offset;
         }
+        assert(header->mid_freq > 0);
+        pcm_state->freq = header->mid_freq * exp2(entry->cents / 1200);
         Sample_params_copy(&pcm_state->params, header);
     }
     assert(pcm_state->sample < PCM_SAMPLES_MAX);

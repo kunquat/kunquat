@@ -52,6 +52,8 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 
     ip->pedal = 0;
     ip->volume = 1;
+    ip->global_force = 1;
+    ip->force = 0;
     ip->force_variation = 0;
 
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
@@ -159,6 +161,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
     {
         return false;
     }
+    bool nodes_found = false;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -189,6 +192,7 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
                 else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
+                    nodes_found = true;
                 }
                 else
                 {
@@ -210,6 +214,15 @@ bool Instrument_params_parse_env_force_filter(Instrument_params* ip,
     Envelope* old_env = ip->env_force_filter;
     ip->env_force_filter = env;
     del_Envelope(old_env);
+    if (!nodes_found)
+    {
+        assert(Envelope_node_count(env) == 0);
+        int index = Envelope_set_node(env, 0, 1);
+        assert(index == 0);
+        index = Envelope_set_node(env, 1, 1);
+        assert(index == 1);
+        (void)index;
+    }
     return true;
 }
 
@@ -230,6 +243,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
     {
         return false;
     }
+    bool nodes_found = false;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -260,6 +274,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
                 else if (string_eq(key, "envelope"))
                 {
                     str = Envelope_read(env, str, state);
+                    nodes_found = true;
                 }
                 else
                 {
@@ -281,6 +296,15 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
     Envelope* old_env = ip->env_pitch_pan;
     ip->env_pitch_pan = env;
     del_Envelope(old_env);
+    if (!nodes_found)
+    {
+        assert(Envelope_node_count(env) == 0);
+        int index = Envelope_set_node(env, -6000, 0);
+        assert(index == 0);
+        index = Envelope_set_node(env, 6000, 0);
+        assert(index == 1);
+        (void)index;
+    }
     return true;
 }
 
@@ -306,6 +330,7 @@ Envelope* parse_env_time(char* str,
     {
         return NULL;
     }
+    bool loop = false;
     if (str != NULL)
     {
         str = read_const_char(str, '{', state);
@@ -349,11 +374,11 @@ Envelope* parse_env_time(char* str,
                 {
                     str = read_bool(str, carry, state);
                 }
-#if 0
                 else if (!release && string_eq(key, "loop"))
                 {
                     str = read_bool(str, &loop, state);
                 }
+#if 0
                 else if (!release && string_eq(key, "loop_start"))
                 {
                     str = read_int(str, &loop_start, state);
@@ -392,7 +417,7 @@ Envelope* parse_env_time(char* str,
     }
     int loop_start = Envelope_get_mark(env, 0);
     int loop_end = Envelope_get_mark(env, 1);
-    if (release)
+    if (release || !loop)
     {
         Envelope_set_mark(env, 0, -1);
         Envelope_set_mark(env, 1, -1);

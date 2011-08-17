@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -32,7 +32,9 @@ typedef struct Sample_map Sample_map;
 typedef struct Sample_entry
 {
     double ref_freq;  ///< The reference frequency in the mapping.
-    double freq;      ///< The playback frequency of this sample in the reference frequency.
+    /// The pitch offset of the middle frequency of this sample
+    /// in the reference frequency.
+    double cents;
     double vol_scale;
     uint16_t sample;
 } Sample_entry;

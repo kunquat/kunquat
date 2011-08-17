@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,7 @@
 Sample_params* Sample_params_init(Sample_params* params)
 {
     assert(params != NULL);
-    params->format = SAMPLE_FORMAT_NONE;
+    params->format = SAMPLE_FORMAT_WAVPACK;
     params->mid_freq = 48000;
     params->loop = SAMPLE_LOOP_OFF;
     params->loop_start = 0;
@@ -86,7 +86,7 @@ bool Sample_params_parse(Sample_params* params,
                         }
                     }
                 }
-                else if (string_eq(key, "mid_freq"))
+                else if (string_eq(key, "freq"))
                 {
                     str = read_double(str, &input->mid_freq, state);
                     if (!(input->mid_freq > 0))

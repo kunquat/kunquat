@@ -12,6 +12,7 @@
 #
 
 from __future__ import division, print_function
+import copy
 from itertools import takewhile
 import math
 
@@ -19,53 +20,214 @@ from PyQt4 import QtCore, QtGui
 
 import kqt_limits as lim
 import kunquat
+from plane_view import PlaneView, HAxis, VAxis
 
 
-class Envelope(QtGui.QWidget):
+class Envelope(PlaneView):
 
-    def __init__(self, project, parent=None):
-        QtGui.QWidget.__init__(self, parent)
+    nodesChanged = QtCore.pyqtSignal(name='nodesChanged')
+
+    def __init__(self,
+                 project,
+                 x_range,
+                 y_range,
+                 x_lock,
+                 y_lock,
+                 default_val,
+                 nodes_max,
+                 key,
+                 dict_key=None,
+                 step=(0.0001, 0.0001),
+                 mark_modes=None,
+                 parent=None):
+        assert x_range[0] < x_range[1]
+        assert y_range[0] < y_range[1]
+        assert len(x_lock) == 2
+        assert len(y_lock) == 2
+        assert len(default_val) >= 2
+        assert all(x_range[0] <= n[0] <= x_range[1] and
+                   y_range[0] <= n[1] <= y_range[1]
+                   for n in default_val)
+        assert step[0] > 0
+        assert step[1] > 0
+        assert not mark_modes or all(mode in ('x_dashed',)
+                                     for mode in mark_modes)
+        PlaneView.__init__(self, parent)
         self._project = project
+        self._key = key
+        self._dict_key = dict_key
         self._colours = {
                 'bg': QtGui.QColor(0, 0, 0),
                 'axis': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'curve': QtGui.QColor(0x66, 0x88, 0xaa),
                 'node': QtGui.QColor(0xee, 0xcc, 0xaa),
                 'node_focus': QtGui.QColor(0xff, 0x77, 0x22),
+                'mark': QtGui.QColor(0x77, 0x99, 0xbb),
                 'text': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 }
         self._fonts = {
                 'axis': QtGui.QFont('Decorative', 8),
                 }
+        self._visible_min = [0, 0]
+        self._visible_max = [1, 1]
+        self._aspect = None
         self._layout = {
                 'padding': 8,
                 'zoom': (200, 200),
+                'offset': [0, 0],
+                'visible_min': self._visible_min,
+                'visible_max': self._visible_max,
                 }
-        self._min = (0, 0)
-        self._max = (1, 1)
-        self._first_locked = (True, False)
-        self._last_locked = (True, False)
-        self._step = (0.001, 0.001)
-        self._nodes_max = 16
-        self._marks = []
-        self._nodes = [(0, 0), (0.4, 0.8), (1, 1)]
-        self._smooth = True
+        self.set_constraints({
+                                'x_range': x_range,
+                                'y_range': y_range,
+                                'first_locked': (x_lock[0], y_lock[0]),
+                                'last_locked': (x_lock[1], y_lock[1]),
+                                'nodes_max': nodes_max,
+                                'default': { 'nodes':
+                                        copy.deepcopy(default_val) },
+                             })
+        #self._min = x_range[0], y_range[0]
+        #self._max = x_range[1], y_range[1]
+        #self._first_locked = x_lock[0], y_lock[0]
+        #self._last_locked = x_lock[1], y_lock[1]
+        self._step = step
+        #self._nodes_max = nodes_max
+
+        self._mark_modes = mark_modes
+        mark_count = min(len(mark_modes), 4) if mark_modes else 0
+        self._marks = [None] * mark_count
+        self._mark_visible = [False] * mark_count
+
+        #self._default_val = copy.deepcopy(default_val)
+        #self._nodes = default_val
+        #self._smooth = False
+        #self._haxis = HAxis(self._colours, self._fonts,
+        #                    self._min, self._max, self._layout)
+        #self._vaxis = VAxis(self._colours, self._fonts,
+        #                    self._min, self._max, self._layout)
+        self._focus_node = None
+        self._focus_index = -1
+        self._focus_old_node = None
+        self._new_node = False
+        self._drag = False
+        self._drag_offset = (0, 0)
+        self.setMouseTracking(True)
+        self.setAutoFillBackground(False)
+        self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
+        self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+        self._set_view()
+
+    def set_key(self, key):
+        self._key = key
+        value = {}
+        if self._dict_key:
+            d = self._project[key]
+            if d and self._dict_key in d:
+                value = self._project[key][self._dict_key]
+        else:
+            actual = self._project[key]
+            if actual != None:
+                value = actual
+        old_node_count = self.node_count()
+        self._nodes = value['nodes'] if 'nodes' in value \
+                                     else copy.deepcopy(self._default_val)
+        if old_node_count != self.node_count():
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('nodesChanged()'))
+        self._marks = value['marks'] if 'marks' in value else []
+        """
+        x_range = self._min[0], self._max[0]
+        if x_range[0] < -1 or x_range[1] > 1:
+            x_range = (min(n[0] for n in self._nodes),
+                       max(n[0] for n in self._nodes))
+        y_range = self._min[1], self._max[1]
+        if y_range[0] < -1 or y_range[1] > 1:
+            y_range = (min(n[1] for n in self._nodes),
+                       max(n[1] for n in self._nodes))
+        self._visible_min = x_range[0], y_range[0]
+        self._visible_max = x_range[1], y_range[1]
+        """
+        self._set_view()
+        self.resizeEvent(None)
+        self.update()
+
+    def sync(self):
+        self.set_key(self._key)
+
+    def set_constraints(self, constraints):
+        try:
+            x_range = constraints['x_range']
+            x_min = float(x_range[0])
+            x_max = float(x_range[1])
+            if x_min > x_max:
+                raise ValueError
+        except (IndexError, KeyError, TypeError, ValueError):
+            x_min, x_max = 0, 1
+        try:
+            y_range = constraints['y_range']
+            y_min = float(y_range[0])
+            y_max = float(y_range[1])
+            if y_min > y_max:
+                raise ValueError
+        except (IndexError, KeyError, TypeError, ValueError):
+            y_min, y_max = 0, 1
+        self._min = x_min, y_min
+        self._max = x_max, y_max
+        try:
+            first_locked = constraints['first_locked']
+            self._first_locked = bool(first_locked[0]), bool(first_locked[1])
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._first_locked = False, False
+        try:
+            last_locked = constraints['last_locked']
+            self._last_locked = bool(last_locked[0]), bool(last_locked[1])
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._last_locked = False, False
+        try:
+            env = constraints['default']
+            self._default_val = [(float(x), float(y))
+                                 for x, y in env['nodes']]
+        except (IndexError, KeyError, TypeError, ValueError):
+            self._default_val = [[0, 1], [1, 0]]
+        self._nodes = self._default_val
+        try:
+            env = constraints['default']
+            self._smooth = bool(env['smooth'])
+        except (KeyError, TypeError, ValueError):
+            self._smooth = False
+        try:
+            self._nodes_max = int(constraints['nodes_max'])
+            if self._nodes_max < 2:
+                self._nodes_max = 16
+        except (KeyError, TypeError, ValueError):
+            self._nodes_max = 16
         self._haxis = HAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
         self._vaxis = VAxis(self._colours, self._fonts,
                             self._min, self._max, self._layout)
-        self._focus_node = None
-        self._focus_index = -1
-        self._drag = False
-        self._drag_offset = (0, 0)
-        self.setMouseTracking(True)
+
+    def set_mark(self, index, value):
+        assert value == None or 0 <= value < len(self._nodes)
+        self._marks.extend([None] * (index - len(self._marks) + 1))
+        self._marks[index] = value
+        self._value_changed()
+        self.update()
+
+    def set_mark_display(self, index, value):
+        assert 0 <= index < len(self._mark_visible)
+        self._mark_visible[index] = value
+        self.update()
+
+    def node_count(self):
+        return len(self._nodes)
 
     def keyPressEvent(self, ev):
         pass
 
     def mouseMoveEvent(self, ev):
         if self._drag:
-            keep_margin = 200
+            keep_margin = 150
             keep_top_left = \
                     QtCore.QPointF(self._view_x(self._min[0]) - keep_margin,
                                    self._view_y(self._max[1]) - keep_margin)
@@ -77,25 +239,37 @@ class Envelope(QtGui.QWidget):
                     0 < self._focus_index < len(self._nodes) - 1:
                 self._focus_node = None
                 self._nodes[self._focus_index:self._focus_index + 1] = []
+                self._marks = [m if m == None or m < self._focus_index
+                                 else m - 1 for m in self._marks]
                 self._focus_index = -1
                 self._drag = False
-                self.update()
+                if self._new_node:
+                    self._project.cancel(self._key)
+                else:
+                    self._value_changed()
+                    self.finished()
+                QtCore.QObject.emit(self, QtCore.SIGNAL('nodesChanged()'))
+                self._new_node = False
+                self._focus_old_node = None
+                self._slow_update()
                 return
             pos = (self._val_x(ev.x() + self._drag_offset[0]),
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
             self._focus_node = self._nodes[self._focus_index]
-            self.update()
+            self._slow_update()
             return
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if focus_node != self._focus_node:
             self._focus_node = focus_node
             self._focus_index = index
-            self.update()
+            self._slow_update()
 
     def mousePressEvent(self, ev):
         focus_node, index = self._node_at(ev.x() - 0.5, ev.y() - 0.5)
         if not focus_node:
+            if len(self._nodes) == self._nodes_max:
+                return
             focus_node = self._val_x(ev.x()), self._val_y(ev.y())
             if not self._min[0] <= focus_node[0] <= self._max[0] or \
                     not self._min[1] <= focus_node[1] <= self._max[1]:
@@ -119,7 +293,16 @@ class Envelope(QtGui.QWidget):
                 return
             if not self._min[0] <= focus_node[0] <= self._max[0]:
                 return
+            if focus_node[0] > self._nodes[-1][0] and self._last_locked[1]:
+                focus_node = focus_node[0], self._nodes[-1][1]
             self._nodes[index:index] = [focus_node]
+            self._new_node = True
+            self._marks = [m if m == None or m < index else m + 1
+                           for m in self._marks]
+            self._value_changed()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nodesChanged()'))
+        else:
+            self._focus_old_node = focus_node
         self._focus_node = focus_node
         self._focus_index = index
         self._drag = True
@@ -133,6 +316,9 @@ class Envelope(QtGui.QWidget):
                    self._val_y(ev.y() + self._drag_offset[1]))
             self._move_node(self._focus_index, pos)
             self._drag = False
+            self._new_node = False
+            self.finished()
+            self._focus_old_node = None
             self.update()
 
     def _move_node(self, index, pos):
@@ -155,6 +341,25 @@ class Envelope(QtGui.QWidget):
         pos = (max(min_x, min(max_x, pos[0])),
                max(min_y, min(max_y, pos[1])))
         self._nodes[index] = pos
+        self._value_changed()
+        #self._adjust_view(pos)
+        self._set_view()
+
+    def _value_changed(self):
+        value = { 'nodes': self._nodes }
+        if self._marks:
+            value['marks'] = [(i if i != None else -1) for i in self._marks]
+        if self._dict_key:
+            d = self._project[self._key]
+            if d == None:
+                d = {}
+            d[self._dict_key] = value
+            self._project.set(self._key, d, immediate=False)
+        else:
+            self._project.set(self._key, value, immediate=False)
+
+    def finished(self):
+        self._project.flush(self._key)
 
     def _node_at(self, x, y):
         closest = self._nodes[0]
@@ -184,6 +389,7 @@ class Envelope(QtGui.QWidget):
             self._paint_linear_curve(paint)
         else:
             self._paint_nurbs_curve(paint)
+        self._paint_marks(paint)
         self._paint_nodes(paint)
         paint.end()
 
@@ -200,13 +406,29 @@ class Envelope(QtGui.QWidget):
         nurbs = Nurbs(2, self._nodes)
         start_x = int(self._view_x(self._nodes[0][0]))
         end_x = int(self._view_x(self._nodes[-1][0]))
-        curve_width = end_x - start_x
+        curve_width = min(end_x - start_x, 100)
         line = QtGui.QPolygonF()
         for pos in xrange(curve_width + 1):
             x, y = nurbs.get_point(pos / curve_width)
             x, y = self._view_x(x), self._view_y(y)
             line.append(QtCore.QPointF(x + 0.5, y + 0.5))
         paint.drawPolyline(line)
+
+    def _paint_marks(self, paint):
+        for i, mark in enumerate(self._marks):
+            if mark != None and self._mark_visible[i]:
+                if self._mark_modes[i] == 'x_dashed':
+                    pen = QtGui.QPen(self._colours['mark'])
+                    pen.setDashPattern([4, 4])
+                    paint.setPen(pen)
+                    node = self._nodes[mark]
+                    node_x = self._view_x(node[0]) + 0.5
+                    max_y = self._view_y(self._max[1]) + 0.5
+                    if max_y == float('inf'):
+                        max_y = 10000
+                    axis_y = self._view_y(0) + 0.5
+                    paint.drawLine(QtCore.QPointF(node_x, axis_y),
+                                   QtCore.QPointF(node_x, max_y))
 
     def _paint_nodes(self, paint):
         paint.setPen(QtCore.Qt.NoPen)
@@ -224,22 +446,51 @@ class Envelope(QtGui.QWidget):
             if p == self._focus_node:
                 paint.setBrush(self._colours['node'])
 
-    def _val_x(self, x):
-        return (x - self._vaxis.width) / self._layout['zoom'][0]
+    def _slow_update(self):
+        self.update()
 
-    def _val_y(self, y):
-        return self._max[1] - ((y - self._layout['padding']) /
-                               self._layout['zoom'][1])
-
-    def _view_x(self, x):
-        return self._vaxis.width + x * self._layout['zoom'][0]
-
-    def _view_y(self, y):
-        return self._layout['padding'] + \
-               self._layout['zoom'][1] * (self._max[1] - y)
-
-    def resizeEvent(self, ev):
-        pass
+    def _set_view(self):
+        step_factor = 1.03
+        if self._min[0] >= -1 and self._max[0] <= 1:
+            if (self._min[0], self._max[0]) == (self._min[1], self._max[1]):
+                self._aspect = 1
+            self._visible_min[0] = self._min[0]
+            self._visible_max[0] = self._max[0]
+        else:
+            negative = max(0, -self._nodes[0][0])
+            positive = max(0, self._nodes[-1][0])
+            if negative > 0:
+                negative = step_factor**math.ceil(
+                                   math.log(negative, step_factor))
+            if positive > 0:
+                positive = step_factor**math.ceil(
+                                   math.log(positive, step_factor))
+            if not negative and not positive:
+                positive += 1
+            self._visible_min[0] = -negative
+            self._visible_max[0] = positive
+        if self._min[1] >= -1 and self._max[1] <= 1:
+            self._visible_min[1] = self._min[1]
+            self._visible_max[1] = self._max[1]
+        else:
+            negative = max(0, -min(n[1] for n in self._nodes))
+            positive = max(0, max(n[1] for n in self._nodes))
+            if negative > 0:
+                negative = step_factor**math.ceil(
+                                   math.log(negative, step_factor))
+            if positive > 0:
+                positive = step_factor**math.ceil(
+                                   math.log(positive, step_factor))
+            if not negative and not positive:
+                positive += 1
+            self._visible_min[1] = -negative
+            self._visible_max[1] = positive
+        #print(self._visible_min, self._visible_max)
+        self._layout['offset'][0] = (-self._visible_min[0] /
+                                (self._visible_max[0] - self._visible_min[0]))
+        self._layout['offset'][1] = (-self._visible_min[1] /
+                                (self._visible_max[1] - self._visible_min[1]))
+        self.resizeEvent(None)
 
 
 class Nurbs(object):
@@ -310,62 +561,5 @@ class Nurbs(object):
             return 0
         return (self._knots[ci + deg] - u) / (self._knots[ci + deg] -
                                               self._knots[ci])
-
-
-class Axis(object):
-
-    def __init__(self, colours, fonts, min_point, max_point, layout):
-        self._colours = colours
-        self._fonts = fonts
-        self._min = min_point
-        self._max = max_point
-        self._layout = layout
-        self._mark_len = 5
-        space = QtGui.QFontMetrics(
-                self._fonts['axis']).boundingRect('00.000')
-        self._x_zero_offset = space.width() + self._layout['padding'] + \
-                self._mark_len
-        self._hspace = space.height() + self._layout['padding'] + \
-                self._mark_len
-
-
-class HAxis(Axis):
-
-    def __init__(self, colours, fonts, min_point, max_point, layout):
-        super(HAxis, self).__init__(colours, fonts,
-                                    min_point, max_point, layout)
-
-    def paint(self, paint):
-        paint.setPen(self._colours['axis'])
-        y_pos = self._layout['padding'] + \
-                self._max[1] * self._layout['zoom'][1] + 0.5
-        start = QtCore.QPointF(self._x_zero_offset + 0.5, y_pos)
-        end = QtCore.QPointF(self._x_zero_offset + self._max[0] *
-                             self._layout['zoom'][0] + 0.5, y_pos)
-        paint.drawLine(start, end)
-
-    @property
-    def height(self):
-        return self._hspace
-
-
-class VAxis(Axis):
-
-    def __init__(self, colours, fonts, min_point, max_point, layout):
-        super(VAxis, self).__init__(colours, fonts,
-                                    min_point, max_point, layout)
-
-    def paint(self, paint):
-        paint.setPen(self._colours['axis'])
-        start = QtCore.QPointF(self._x_zero_offset + 0.5,
-                               self._layout['padding'] + 0.5)
-        end = QtCore.QPointF(self._x_zero_offset + 0.5,
-                             self._layout['padding'] + self._max[1] *
-                                     self._layout['zoom'][1] + 0.5)
-        paint.drawLine(start, end)
-
-    @property
-    def width(self):
-        return self._x_zero_offset
 
 

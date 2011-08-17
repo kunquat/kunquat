@@ -23,9 +23,9 @@ class Effects(QtGui.QSplitter):
         QtGui.QSplitter.__init__(self, parent)
 
         self._project = project
+        self._base = base
 
         self._eff_list = EffList(project, base)
-
         self._eff_editor = EffEditor(project, base)
 
         QtCore.QObject.connect(self._eff_list,
@@ -38,8 +38,12 @@ class Effects(QtGui.QSplitter):
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
 
+    def set_base(self, base):
+        self._base = base
+        self._eff_list.set_base(base)
+        self._eff_editor.set_base(base)
+
     def sync(self):
-        self._eff_list.sync()
-        self._eff_editor.sync()
+        self.set_base(self._base)
 
 

@@ -66,12 +66,16 @@ class Connections(QtGui.QWidget):
                     conns.append([str(src), str(dest)])
         return conns
 
-    def sync(self):
+    def set_key(self, key):
+        self._key = key
         self._sync = True
         try:
-            self._list.sync()
+            self._list.set_key(key)
         finally:
             self._sync = False
+
+    def sync(self):
+        self.set_key(self._key)
 
 
 class CList(QtGui.QTableWidget):
@@ -85,13 +89,16 @@ class CList(QtGui.QTableWidget):
         self.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
 
-    def sync(self):
+    def set_key(self, key):
+        self._key = key
         conns = self._project[self._key]
         if not conns:
-            for col, row in ((a, b) for a in xrange(self.columnCount())
-                                    for b in xrange(self.rowCount())):
-                item = QtGui.QTableWidgetItem()
-                self.setItem(row, col, item)
+            while self.rowCount() > 1:
+                self.removeRow(0)
+            if self.rowCount() == 0:
+                self.insertRow(0)
+            self.setItem(0, 0, QtGui.QTableWidgetItem())
+            self.setItem(0, 1, QtGui.QTableWidgetItem())
             return
         new_rows = len(conns) + 1 - self.rowCount()
         for _ in xrange(new_rows):
@@ -104,5 +111,8 @@ class CList(QtGui.QTableWidget):
             self.setItem(i, 1, QtGui.QTableWidgetItem(dest))
         self.setItem(self.rowCount() - 1, 0, QtGui.QTableWidgetItem(''))
         self.setItem(self.rowCount() - 1, 1, QtGui.QTableWidgetItem(''))
+
+    def sync(self):
+        self.set_key(self._key)
 
 
