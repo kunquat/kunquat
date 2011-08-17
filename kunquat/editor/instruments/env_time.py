@@ -101,22 +101,18 @@ class EnvTime(QtGui.QWidget):
                                        #envelope,
                                        'envelope')
             self._loop_end.set_lower_bound(0)
-            """
-            QtCore.QObject.connect(self._loop_start,
-                                   QtCore.SIGNAL('valueChanged(int)'),
-                                   self._loop_end.set_lower_bound)
-            """
             QtCore.QObject.connect(self._loop_start,
                                    QtCore.SIGNAL('valueChanged(int)'),
                                    self._loop_start_changed)
-            """
-            QtCore.QObject.connect(self._loop_end,
-                                   QtCore.SIGNAL('valueChanged(int)'),
-                                   self._loop_start.set_upper_bound)
-            """
             QtCore.QObject.connect(self._loop_end,
                                    QtCore.SIGNAL('valueChanged(int)'),
                                    self._loop_end_changed)
+            QtCore.QObject.connect(self._loop_start,
+                                   QtCore.SIGNAL('valueFinished()'),
+                                   self._loop_point_finished)
+            QtCore.QObject.connect(self._loop_end,
+                                   QtCore.SIGNAL('valueFinished()'),
+                                   self._loop_point_finished)
             loop_layout.addWidget(self._loop_enabled)
             loop_layout.addSpacing(10)
             loop_layout.addWidget(self._loop_start)
@@ -175,6 +171,10 @@ class EnvTime(QtGui.QWidget):
         self._loop_start.set_upper_bound(value)
         self._env.set_mark(1, value)
 
+    def _loop_point_finished(self):
+        assert self._support_loop
+        self._env.finished()
+
 
 class LoopBound(QtGui.QWidget):
 
@@ -185,20 +185,11 @@ class LoopBound(QtGui.QWidget):
                  project,
                  label,
                  key,
-                 #mark_index,
-                 #envelope,
                  dict_key=None,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        #self._mark_index = mark_index
-        #self._envelope = envelope
         self._dict_key = dict_key
-        """
-        QtCore.QObject.connect(self._envelope,
-                               QtCore.SIGNAL('nodesChanged(int)'),
-                               self._nodes_changed)
-        """
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -206,10 +197,9 @@ class LoopBound(QtGui.QWidget):
 
         self._lower_bound = 0
         self._upper_bound = float('inf')
-        #self._max_node = self._envelope.node_count() - 1
         self._spin = QtGui.QSpinBox()
         self._spin.setMinimum(0)
-        self._spin.setMaximum(9999) # XXX: ugly
+        self._spin.setMaximum(99999) # XXX: ugly
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self._value_changed)
@@ -219,33 +209,6 @@ class LoopBound(QtGui.QWidget):
 
         layout.addWidget(lab)
         layout.addWidget(self._spin)
-
-        #self.set_key(key)
-
-    """
-    def set_key(self, key):
-        value = 0
-        dvalue = {}
-        if self._dict_key:
-            d = self._project[key]
-            if d and self._dict_key in d:
-                dvalue = self._project[key][self._dict_key]
-        else:
-            actual = self._project[key]
-            if actual != None:
-                dvalue = actual
-        if 'marks' in dvalue:
-            marks = dvalue['marks']
-            if len(marks) > self._mark_index:
-                value = marks[self._mark_index]
-        self._spin.blockSignals(True)
-        self._spin.setValue(int(value))
-        self._spin.blockSignals(False)
-        self._key = key
-
-    def sync(self):
-        self.set_key(self._key)
-    """
 
     def set_lower_bound(self, bound):
         self._lower_bound = bound
@@ -264,38 +227,10 @@ class LoopBound(QtGui.QWidget):
         self._spin.setValue(value)
         self._spin.blockSignals(False)
 
-    """
-    def _node_added(self, index):
-        self._nodes_changed(self._max_node + 2)
-        if index <= self._spin.value():
-            new_index = self._spin.value() + 1
-            self._spin.blockSignals(True)
-            self._spin.setValue(new_index)
-            self._spin.blockSignals(False)
-            #self._value_changed(new_index)
-
-    def _node_removed(self, index):
-        if index <= self._spin.value():
-            new_index = self._spin.value() - 1
-            self._spin.blockSignals(True)
-            self._spin.setValue(new_index)
-            self._spin.blockSignals(False)
-            #self._value_changed(new_index)
-        self._nodes_changed(self._max_node)
-
-    def _nodes_changed(self, count):
-        self._max_node = count - 1
-        self._spin.blockSignals(True)
-        self._spin.setMaximum(min(self._upper_bound, self._max_node))
-        self._spin.blockSignals(False)
-    """
-
     def _value_changed(self, value):
-        #self._envelope.set_mark(self._mark_index, value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('valueChanged(int)'), value)
 
     def _finished(self):
-        #self._project.flush(self._key)
         QtCore.QObject.emit(self, QtCore.SIGNAL('valueFinished()'))
 
 
