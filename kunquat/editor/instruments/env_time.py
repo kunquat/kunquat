@@ -90,32 +90,43 @@ class EnvTime(QtGui.QWidget):
             self._loop_start = LoopBound(project,
                                          'Loop start:',
                                          self._key_base.format(self._cur_inst),
-                                         0,
-                                         envelope,
+                                         #0,
+                                         #envelope,
                                          'envelope')
             self._loop_start.set_upper_bound(0)
             self._loop_end = LoopBound(project,
                                        'Loop end:',
                                        self._key_base.format(self._cur_inst),
-                                       1,
-                                       envelope,
+                                       #1,
+                                       #envelope,
                                        'envelope')
             self._loop_end.set_lower_bound(0)
+            """
             QtCore.QObject.connect(self._loop_start,
                                    QtCore.SIGNAL('valueChanged(int)'),
                                    self._loop_end.set_lower_bound)
+            """
+            QtCore.QObject.connect(self._loop_start,
+                                   QtCore.SIGNAL('valueChanged(int)'),
+                                   self._loop_start_changed)
+            """
             QtCore.QObject.connect(self._loop_end,
                                    QtCore.SIGNAL('valueChanged(int)'),
                                    self._loop_start.set_upper_bound)
+            """
+            QtCore.QObject.connect(self._loop_end,
+                                   QtCore.SIGNAL('valueChanged(int)'),
+                                   self._loop_end_changed)
             loop_layout.addWidget(self._loop_enabled)
             loop_layout.addSpacing(10)
             loop_layout.addWidget(self._loop_start)
             loop_layout.addSpacing(10)
             loop_layout.addWidget(self._loop_end)
             layout.addLayout(loop_layout)
-            self._widgets.extend([self._loop_enabled,
-                                  self._loop_start,
-                                  self._loop_end])
+            self._widgets.extend([self._loop_enabled])
+            QtCore.QObject.connect(self._env,
+                                   QtCore.SIGNAL('nodesChanged()'),
+                                   self._fix_loop)
 
     def _set_loop_display(self, state):
         checked = state == QtCore.Qt.Checked
@@ -125,55 +136,67 @@ class EnvTime(QtGui.QWidget):
     def inst_changed(self, num):
         self._cur_inst = num
         key = self._key_base.format(self._cur_inst)
-        if self._support_loop:
-            d = self._project[key]
-            try:
-                length = len(d['envelope']['nodes'])
-                length = max(length, 2)
-            except (KeyError, TypeError):
-                length = 2
-            try:
-                marks = d['envelope']['marks']
-                if len(marks) != 2:
-                    marks = [0, 0]
-            except (KeyError, TypeError):
-                marks = [0, 0]
-            self._loop_end.set_upper_bound(length - 1)
-            self._loop_end.set_lower_bound(marks[0])
-            self._loop_start.set_upper_bound(marks[1])
+        self._fix_loop()
         for widget in self._widgets:
             widget.set_key(key)
 
     def sync(self):
         self.inst_changed(self._cur_inst)
 
+    def _fix_loop(self):
+        if not self._support_loop:
+            return
+        key = self._key_base.format(self._cur_inst)
+        d = self._project[key]
+        try:
+            length = len(d['envelope']['nodes'])
+            length = max(length, 2)
+        except (KeyError, TypeError):
+            length = 2
+        try:
+            marks = d['envelope']['marks']
+            if len(marks) != 2:
+                marks = [0, 0]
+        except (KeyError, TypeError):
+            marks = [0, 0]
+        self._loop_end.set_upper_bound(length - 1)
+        self._loop_end.set_lower_bound(marks[0])
+        self._loop_end.set_value(marks[1])
+        self._loop_start.set_upper_bound(marks[1])
+        self._loop_start.set_value(marks[0])
+
+    def _loop_start_changed(self, value):
+        assert self._support_loop
+        self._loop_end.set_lower_bound(value)
+
+    def _loop_end_changed(self, value):
+        assert self._support_loop
+        self._loop_start.set_upper_bound(value)
+
 
 class LoopBound(QtGui.QWidget):
 
     valueChanged = QtCore.pyqtSignal(int, name='valueChanged')
+    valueFinished = QtCore.pyqtSignal(name='valueFinished')
 
     def __init__(self,
                  project,
                  label,
                  key,
-                 mark_index,
-                 envelope,
+                 #mark_index,
+                 #envelope,
                  dict_key=None,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._mark_index = mark_index
-        self._envelope = envelope
+        #self._mark_index = mark_index
+        #self._envelope = envelope
         self._dict_key = dict_key
-        QtCore.QObject.connect(self._envelope,
-                               QtCore.SIGNAL('nodeAdded(int)'),
-                               self._node_added)
-        QtCore.QObject.connect(self._envelope,
-                               QtCore.SIGNAL('nodeRemoved(int)'),
-                               self._node_removed)
+        """
         QtCore.QObject.connect(self._envelope,
                                QtCore.SIGNAL('nodesChanged(int)'),
                                self._nodes_changed)
+        """
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -181,10 +204,10 @@ class LoopBound(QtGui.QWidget):
 
         self._lower_bound = 0
         self._upper_bound = float('inf')
-        self._max_node = self._envelope.node_count() - 1
+        #self._max_node = self._envelope.node_count() - 1
         self._spin = QtGui.QSpinBox()
         self._spin.setMinimum(0)
-        self._spin.setMaximum(self._envelope.node_count() - 1)
+        self._spin.setMaximum(9999) # XXX: ugly
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self._value_changed)
@@ -195,8 +218,9 @@ class LoopBound(QtGui.QWidget):
         layout.addWidget(lab)
         layout.addWidget(self._spin)
 
-        self.set_key(key)
+        #self.set_key(key)
 
+    """
     def set_key(self, key):
         value = 0
         dvalue = {}
@@ -219,6 +243,7 @@ class LoopBound(QtGui.QWidget):
 
     def sync(self):
         self.set_key(self._key)
+    """
 
     def set_lower_bound(self, bound):
         self._lower_bound = bound
@@ -229,9 +254,15 @@ class LoopBound(QtGui.QWidget):
     def set_upper_bound(self, bound):
         self._upper_bound = bound
         self._spin.blockSignals(True)
-        self._spin.setMaximum(min(bound, self._max_node))
+        self._spin.setMaximum(bound)
         self._spin.blockSignals(False)
 
+    def set_value(self, value):
+        self._spin.blockSignals(True)
+        self._spin.setValue(value)
+        self._spin.blockSignals(False)
+
+    """
     def _node_added(self, index):
         self._nodes_changed(self._max_node + 2)
         if index <= self._spin.value():
@@ -255,13 +286,14 @@ class LoopBound(QtGui.QWidget):
         self._spin.blockSignals(True)
         self._spin.setMaximum(min(self._upper_bound, self._max_node))
         self._spin.blockSignals(False)
+    """
 
     def _value_changed(self, value):
-        self._envelope.set_mark(self._mark_index, value)
-        QtCore.QObject.emit(self, QtCore.SIGNAL('valueChanged(int)'),
-                            value)
+        #self._envelope.set_mark(self._mark_index, value)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('valueChanged(int)'), value)
 
     def _finished(self):
-        self._project.flush(self._key)
+        #self._project.flush(self._key)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('valueFinished()'))
 
 

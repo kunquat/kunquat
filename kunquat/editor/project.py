@@ -318,7 +318,8 @@ class Project(QtCore.QObject):
         key -- The key of the value.
 
         """
-        self._history.cancel(key)
+        old_data = self._history.cancel(key)
+        self.set_raw(key, old_data)
 
     @property
     def mixing_rate(self):
@@ -911,11 +912,13 @@ class History(object):
             self._step(k, new_data, old_data, name)
 
     def cancel(self, key):
+        old_data = ''
         if key in self._pending:
-            del self._pending[key]
+            new_data, old_data, name = self._pending.pop(key)
         for k in [c for c in self._pending.iterkeys()
                           if c.endswith('p_connections.json')]:
             del self._pending[k]
+        return old_data
 
     def undo(self, step_signaller=None):
         """Undoes a step."""

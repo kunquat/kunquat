@@ -25,9 +25,7 @@ from plane_view import PlaneView, HAxis, VAxis
 
 class Envelope(PlaneView):
 
-    nodes_changed = QtCore.pyqtSignal(int, name='nodesChanged')
-    node_added = QtCore.pyqtSignal(int, name='nodeAdded')
-    node_removed = QtCore.pyqtSignal(int, name='nodeRemoved')
+    nodesChanged = QtCore.pyqtSignal(name='nodesChanged')
 
     def __init__(self,
                  project,
@@ -136,8 +134,7 @@ class Envelope(PlaneView):
                                      else copy.deepcopy(self._default_val)
         if old_node_count != self.node_count():
             QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('nodesChanged(int)'),
-                                self.node_count())
+                                QtCore.SIGNAL('nodesChanged()'))
         self._marks = value['marks'] if 'marks' in value else []
         """
         x_range = self._min[0], self._max[0]
@@ -242,9 +239,6 @@ class Envelope(PlaneView):
                     0 < self._focus_index < len(self._nodes) - 1:
                 self._focus_node = None
                 self._nodes[self._focus_index:self._focus_index + 1] = []
-                QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('nodeRemoved(int)'),
-                                    self._focus_index)
                 self._marks = [m if m == None or m < self._focus_index
                                  else m - 1 for m in self._marks]
                 self._focus_index = -1
@@ -253,7 +247,8 @@ class Envelope(PlaneView):
                     self._project.cancel(self._key)
                 else:
                     self._value_changed()
-                    self._finished()
+                    self.finished()
+                QtCore.QObject.emit(self, QtCore.SIGNAL('nodesChanged()'))
                 self._new_node = False
                 self._focus_old_node = None
                 self._slow_update()
@@ -304,9 +299,8 @@ class Envelope(PlaneView):
             self._new_node = True
             self._marks = [m if m == None or m < index else m + 1
                            for m in self._marks]
-            QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('nodeAdded(int)'),
-                                index)
+            self._value_changed()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nodesChanged()'))
         else:
             self._focus_old_node = focus_node
         self._focus_node = focus_node
@@ -323,7 +317,7 @@ class Envelope(PlaneView):
             self._move_node(self._focus_index, pos)
             self._drag = False
             self._new_node = False
-            self._finished()
+            self.finished()
             self._focus_old_node = None
             self.update()
 
@@ -364,7 +358,7 @@ class Envelope(PlaneView):
         else:
             self._project.set(self._key, value, immediate=False)
 
-    def _finished(self):
+    def finished(self):
         self._project.flush(self._key)
 
     def _node_at(self, x, y):
