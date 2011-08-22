@@ -22,6 +22,9 @@
 
 static void add_length(unsigned char* p, uint64_t len);
 
+static void prepare_X(uint32_t* X, unsigned char* p);
+static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
+                       uint32_t* cc, uint32_t* dd);
 static uint32_t F(uint32_t x, uint32_t y, uint32_t z);
 static uint32_t G(uint32_t x, uint32_t y, uint32_t z);
 static uint32_t H(uint32_t x, uint32_t y, uint32_t z);
@@ -54,23 +57,57 @@ static const uint32_t T[] =
 };
 
 
+#define CHUNK_BITS 512
+#define CHUNK_BYTES ((CHUNK_BITS) / 8)
+#define LENGTH_POS ((CHUNK_BYTES) - 8)
+
+
 void md5(char* str, uint64_t* lower, uint64_t* upper)
 {
     assert(str != NULL);
     assert(lower != NULL);
     assert(upper != NULL);
     int len = strlen(str);
-    assert(len <= MSG_LEN_MAX);
-    unsigned char padded[PADDED_LEN] = "";
-    strcpy((char*)padded, str);
-    padded[len] = (char)0x80;
-    add_length(padded + MSG_LEN_MAX + 1, len);
+    int cur_len = len;
     uint32_t a = 0x67452301UL;
     uint32_t b = 0xefcdab89UL;
     uint32_t c = 0x98badcfeUL;
     uint32_t d = 0x10325476UL;
+    unsigned char padded[CHUNK_BYTES] = { 0 };
     uint32_t X[16] = { 0 };
-    unsigned char* p = padded;
+    for (; cur_len >= 0; cur_len -= CHUNK_BYTES, str += CHUNK_BYTES)
+    {
+        unsigned char* p = (unsigned char*)str;
+        if (cur_len < CHUNK_BYTES)
+        {
+            strncpy((char*)padded, str, CHUNK_BYTES);
+            p = padded;
+            p[cur_len] = 0x80;
+            if (cur_len < LENGTH_POS)
+            {
+                add_length(p + LENGTH_POS, len);
+            }
+        }
+        prepare_X(X, p);
+        md5_rounds(X, &a, &b, &c, &d);
+    }
+    if (cur_len >= LENGTH_POS - CHUNK_BYTES)
+    {
+        memset((char*)padded, 0, CHUNK_BYTES);
+        add_length(padded + LENGTH_POS, len);
+        prepare_X(X, padded);
+        md5_rounds(X, &a, &b, &c, &d);
+    }
+    *lower = a | ((uint64_t)b << 32);
+    *upper = c | ((uint64_t)d << 32);
+    return;
+}
+
+
+static void prepare_X(uint32_t* X, unsigned char* p)
+{
+    assert(X != NULL);
+    assert(p != NULL);
     for (int i = 0; i < 16; ++i)
     {
         X[i] = *p++;
@@ -78,10 +115,22 @@ void md5(char* str, uint64_t* lower, uint64_t* upper)
         X[i] |= (uint32_t)*p++ << 16;
         X[i] |= (uint32_t)*p++ << 24;
     }
-    uint32_t aa = a;
-    uint32_t bb = b;
-    uint32_t cc = c;
-    uint32_t dd = d;
+    return;
+}
+
+
+static void md5_rounds(uint32_t* X, uint32_t* aa, uint32_t* bb,
+                       uint32_t* cc, uint32_t* dd)
+{
+    assert(X != NULL);
+    assert(aa != NULL);
+    assert(bb != NULL);
+    assert(cc != NULL);
+    assert(dd != NULL);
+    uint32_t a = *aa;
+    uint32_t b = *bb;
+    uint32_t c = *cc;
+    uint32_t d = *dd;
 
 #define op4(r, k1, s1, i1, k2, s2, i2, k3, s3, i3, k4, s4, i4) \
         r(a, b, c, d, k1, s1, i1 - 1); r(d, a, b, c, k2, s2, i2 - 1); \
@@ -121,13 +170,10 @@ void md5(char* str, uint64_t* lower, uint64_t* upper)
 
 #undef op4
 
-    a += aa;
-    b += bb;
-    c += cc;
-    d += dd;
-
-    *lower = a | ((uint64_t)b << 32);
-    *upper = c | ((uint64_t)d << 32);
+    *aa += a;
+    *bb += b;
+    *cc += c;
+    *dd += d;
     return;
 }
 
@@ -135,7 +181,6 @@ void md5(char* str, uint64_t* lower, uint64_t* upper)
 static void add_length(unsigned char* p, uint64_t len)
 {
     assert(p != NULL);
-    assert(len <= MSG_LEN_MAX);
     len *= 8;
     for (int i = 0; i < 8; ++i)
     {
