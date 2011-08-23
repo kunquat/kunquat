@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -68,12 +69,13 @@ void md5_str(char* str, uint64_t* lower, uint64_t* upper)
     assert(str != NULL);
     assert(lower != NULL);
     assert(upper != NULL);
-    md5(str, strlen(str), lower, upper);
+    md5(str, strlen(str), lower, upper, true);
     return;
 }
 
 
-void md5(char* seq, int len, uint64_t* lower, uint64_t* upper)
+void md5(char* seq, int len, uint64_t* lower, uint64_t* upper,
+         bool complete)
 {
     assert(seq != NULL);
     assert(len >= 0);
@@ -85,19 +87,24 @@ void md5(char* seq, int len, uint64_t* lower, uint64_t* upper)
     uint64_t d = 0x10325476ULL;
     uint64_t lower_init = a | (b << 32);
     uint64_t upper_init = c | (d << 32);
-    md5_with_state(seq, len, lower, upper, lower_init, upper_init);
+    md5_with_state(seq, len, lower, upper, lower_init, upper_init,
+                   complete, 0);
     return;
 }
 
 
 void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
-                    uint64_t lower_init, uint64_t upper_init)
+                    uint64_t lower_init, uint64_t upper_init,
+                    bool last, int prev_len)
 {
     assert(seq != NULL);
     assert(len >= 0);
     assert(lower != NULL);
     assert(upper != NULL);
+    assert(last || len % 64 == 0);
+    assert(prev_len >= 0);
     int cur_len = len;
+    len += prev_len;
     uint32_t a = lower_init;
     uint32_t b = lower_init >> 32;
     uint32_t c = upper_init;
@@ -109,6 +116,10 @@ void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
         unsigned char* p = (unsigned char*)seq;
         if (cur_len < CHUNK_BYTES)
         {
+            if (!last && cur_len == 0)
+            {
+                break;
+            }
             memcpy((char*)padded, seq, cur_len);
             p = padded;
             p[cur_len] = 0x80;
@@ -120,7 +131,7 @@ void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
         prepare_X(X, p);
         md5_rounds(X, &a, &b, &c, &d);
     }
-    if (cur_len >= LENGTH_POS - CHUNK_BYTES)
+    if (last && cur_len >= LENGTH_POS - CHUNK_BYTES)
     {
         memset((char*)padded, 0, CHUNK_BYTES);
         add_length(padded + LENGTH_POS, len);

@@ -16,20 +16,23 @@
 #define K_MD5_H
 
 
+#include <stdbool.h>
 #include <stdint.h>
 
 
 /**
  * Calculates the MD5 sum of a given byte sequence.
  *
- * \param seq     The sequence -- must not be \c NULL.
- * \param len     The length of \a seq -- must be >= \c 0.
- * \param lower   The storage location for the least significant half of the
- *                digest -- must not be \c NULL.
- * \param upper   The storage location for the most significant half of the
- *                digest -- must not be \c NULL.
+ * \param seq        The sequence -- must not be \c NULL.
+ * \param len        The length of \a seq -- must be >= \c 0.
+ * \param lower      The storage location for the least significant half of
+ *                   the digest -- must not be \c NULL.
+ * \param upper      The storage location for the most significant half of the
+ *                   digest -- must not be \c NULL.
+ * \param complete   Whether or not \a seq is the complete stream.
  */
-void md5(char* seq, int len, uint64_t* lower, uint64_t* upper);
+void md5(char* seq, int len, uint64_t* lower, uint64_t* upper,
+         bool complete);
 
 
 /**
@@ -43,9 +46,14 @@ void md5(char* seq, int len, uint64_t* lower, uint64_t* upper);
  *                     the digest -- must not be \c NULL.
  * \param lower_init   The initial lower part of the state.
  * \param upper_init   The initial upper part of the state.
+ * \param last         Whether or not \a seq is the last section of data to be
+ *                     processed. If \c false, \a len must be divisible by 64.
+ * \param prev_len     The length of previous parts of the processed data
+ *                     -- must be >= \c 0.
  */
 void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
-                    uint64_t lower_init, uint64_t upper_init);
+                    uint64_t lower_init, uint64_t upper_init,
+                    bool last, int prev_len);
 
 
 /**
