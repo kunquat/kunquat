@@ -19,20 +19,29 @@
 #include <stdint.h>
 
 
-#define MSG_LEN_MAX 55
-
-
 /**
- * Calculates the MD5 sum of a given string.
+ * Calculates the MD5 sum of a given byte sequence.
  *
- * \param str     The string -- must not be \c NULL or longer than
- *                \c MSG_LEN_MAX bytes.
+ * \param seq     The sequence -- must not be \c NULL.
+ * \param len     The length of \a seq -- must be >= \c 0.
  * \param lower   The storage location for the least significant half of the
  *                digest -- must not be \c NULL.
  * \param upper   The storage location for the most significant half of the
  *                digest -- must not be \c NULL.
  */
-void md5(char* str, uint64_t* lower, uint64_t* upper);
+void md5(char* seq, int len, uint64_t* lower, uint64_t* upper);
+
+
+/**
+ * Calculates the MD5 sum of a given string.
+ *
+ * \param str     The string -- must not be \c NULL.
+ * \param lower   The storage location for the least significant half of the
+ *                digest -- must not be \c NULL.
+ * \param upper   The storage location for the most significant half of the
+ *                digest -- must not be \c NULL.
+ */
+void md5_str(char* str, uint64_t* lower, uint64_t* upper);
 
 
 #endif // K_MD5_H

@@ -16,6 +16,7 @@
 #include <stdint.h>
 #include <string.h>
 
+#include <math_common.h>
 #include <md5.h>
 #include <xassert.h>
 
@@ -62,12 +63,22 @@ static const uint32_t T[] =
 #define LENGTH_POS ((CHUNK_BYTES) - 8)
 
 
-void md5(char* str, uint64_t* lower, uint64_t* upper)
+void md5_str(char* str, uint64_t* lower, uint64_t* upper)
 {
     assert(str != NULL);
     assert(lower != NULL);
     assert(upper != NULL);
-    int len = strlen(str);
+    md5(str, strlen(str), lower, upper);
+    return;
+}
+
+
+void md5(char* seq, int len, uint64_t* lower, uint64_t* upper)
+{
+    assert(seq != NULL);
+    assert(len >= 0);
+    assert(lower != NULL);
+    assert(upper != NULL);
     int cur_len = len;
     uint32_t a = 0x67452301UL;
     uint32_t b = 0xefcdab89UL;
@@ -75,12 +86,12 @@ void md5(char* str, uint64_t* lower, uint64_t* upper)
     uint32_t d = 0x10325476UL;
     unsigned char padded[CHUNK_BYTES] = { 0 };
     uint32_t X[16] = { 0 };
-    for (; cur_len >= 0; cur_len -= CHUNK_BYTES, str += CHUNK_BYTES)
+    for (; cur_len >= 0; cur_len -= CHUNK_BYTES, seq += CHUNK_BYTES)
     {
-        unsigned char* p = (unsigned char*)str;
+        unsigned char* p = (unsigned char*)seq;
         if (cur_len < CHUNK_BYTES)
         {
-            strncpy((char*)padded, str, CHUNK_BYTES);
+            memcpy((char*)padded, seq, cur_len);
             p = padded;
             p[cur_len] = 0x80;
             if (cur_len < LENGTH_POS)
