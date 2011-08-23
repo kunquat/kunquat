@@ -79,11 +79,29 @@ void md5(char* seq, int len, uint64_t* lower, uint64_t* upper)
     assert(len >= 0);
     assert(lower != NULL);
     assert(upper != NULL);
+    uint64_t a = 0x67452301ULL;
+    uint64_t b = 0xefcdab89ULL;
+    uint64_t c = 0x98badcfeULL;
+    uint64_t d = 0x10325476ULL;
+    uint64_t lower_init = a | (b << 32);
+    uint64_t upper_init = c | (d << 32);
+    md5_with_state(seq, len, lower, upper, lower_init, upper_init);
+    return;
+}
+
+
+void md5_with_state(char* seq, int len, uint64_t* lower, uint64_t* upper,
+                    uint64_t lower_init, uint64_t upper_init)
+{
+    assert(seq != NULL);
+    assert(len >= 0);
+    assert(lower != NULL);
+    assert(upper != NULL);
     int cur_len = len;
-    uint32_t a = 0x67452301UL;
-    uint32_t b = 0xefcdab89UL;
-    uint32_t c = 0x98badcfeUL;
-    uint32_t d = 0x10325476UL;
+    uint32_t a = lower_init;
+    uint32_t b = lower_init >> 32;
+    uint32_t c = upper_init;
+    uint32_t d = upper_init >> 32;
     unsigned char padded[CHUNK_BYTES] = { 0 };
     uint32_t X[16] = { 0 };
     for (; cur_len >= 0; cur_len -= CHUNK_BYTES, seq += CHUNK_BYTES)
