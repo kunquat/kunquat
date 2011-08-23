@@ -36,6 +36,7 @@
 typedef struct Song
 {
     Device parent;
+    uint64_t random_seed;               ///< The master random seed of the composition.
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
@@ -85,6 +86,18 @@ Song* new_Song(uint32_t buf_size);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Song_parse_composition(Song* song, char* str, Read_state* state);
+
+
+/**
+ * Parses the random seed of the composition.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Song_parse_random_seed(Song* song, char* str, Read_state* state);
 
 
 /**

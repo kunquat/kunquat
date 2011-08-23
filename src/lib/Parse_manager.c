@@ -328,6 +328,15 @@ static bool parse_song_level(kqt_Handle* handle,
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
+    else if (string_eq(key, "p_random_seed.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Song_parse_random_seed(handle->song, data, state))
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+    }
     return true;
 }
 

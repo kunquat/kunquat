@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -14,7 +14,9 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
+#include <hmac.h>
 #include <Random.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -22,6 +24,7 @@
 
 struct Random
 {
+    char context[CONTEXT_LEN_MAX + 1];
     uint64_t seed;
     uint64_t state;
 };
@@ -34,15 +37,29 @@ Random* new_Random(void)
     {
         return NULL;
     }
-    random->seed = random->state = 1;
+    random->context[0] = '\0';
+    Random_set_seed(random, 1);
     return random;
+}
+
+
+void Random_set_context(Random* random, char* context)
+{
+    assert(random != NULL);
+    assert(context != NULL);
+    assert(strlen(context) <= CONTEXT_LEN_MAX);
+    strcpy(random->context, context);
+    return;
 }
 
 
 void Random_set_seed(Random* random, uint64_t seed)
 {
     assert(random != NULL);
-    random->seed = random->state = seed;
+    uint64_t cseed = 0;
+    uint64_t dummy = 0;
+    hmac_md5(seed, random->context, &cseed, &dummy);
+    random->seed = random->state = cseed;
     return;
 }
 
@@ -59,7 +76,8 @@ uint64_t Random_get_uint64(Random* random)
 {
     assert(random != NULL);
     // multiplier and increment from Knuth
-    random->state = 6364136223846793005ULL * random->state + 1442695040888963407ULL;
+    random->state = 6364136223846793005ULL * random->state +
+                    1442695040888963407ULL;
     return random->state;
 }
 

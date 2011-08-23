@@ -39,6 +39,15 @@ static void Song_reset(Device* device);
 
 
 /**
+ * Sets the master random seed of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param seed   The random seed.
+ */
+static void Song_set_random_seed(Song* song, uint64_t seed);
+
+
+/**
  * Sets the mixing rate of the Song.
  *
  * This function sets the mixing rate for all the Instruments and Effects.
@@ -223,6 +232,7 @@ Song* new_Song(uint32_t buf_size)
     song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     song->init_subsong = SONG_DEFAULT_INIT_SUBSONG;
+    Song_set_random_seed(song, 0);
     return song;
 }
 
@@ -309,6 +319,33 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
     song->mix_vol_dB = mix_vol;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
     Song_set_subsong(song, init_subsong);
+    return true;
+}
+
+
+bool Song_parse_random_seed(Song* song, char* str, Read_state* state)
+{
+    assert(song != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    int64_t seed = 0;
+    if (str != NULL)
+    {
+        str = read_int(str, &seed, state);
+        if (state->error)
+        {
+            return false;
+        }
+        if (seed < 0)
+        {
+            Read_state_set_error(state, "Random seed must be positive");
+            return false;
+        }
+    }
+    Song_set_random_seed(song, seed);
     return true;
 }
 
@@ -608,6 +645,17 @@ static void Song_reset(Device* device)
     {
         Channel_reset(song->channels[i]);
     }
+    Random_reset(song->random);
+    return;
+}
+
+
+static void Song_set_random_seed(Song* song, uint64_t seed)
+{
+    assert(song != NULL);
+    song->random_seed = seed;
+    Random_set_seed(song->random, seed);
+    // TODO
     return;
 }
 
