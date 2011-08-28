@@ -61,8 +61,7 @@ static bool Instrument_sync(Device* device);
 Instrument* new_Instrument(uint32_t buf_len,
                            uint32_t mix_rate,
                            Scale** scales,
-                           Scale*** default_scale,
-                           Random* random)
+                           Scale*** default_scale)
 {
     assert(buf_len > 0);
     assert(mix_rate > 0);
@@ -71,8 +70,6 @@ Instrument* new_Instrument(uint32_t buf_len,
     assert(*default_scale != NULL);
     assert(*default_scale >= &scales[0]);
     assert(*default_scale <= &scales[KQT_SCALES_MAX - 1]);
-    assert(random != NULL);
-    (void)random;
     Instrument* ins = xalloc(Instrument);
     if (ins == NULL)
     {

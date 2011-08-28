@@ -655,7 +655,10 @@ static void Song_set_random_seed(Song* song, uint64_t seed)
     assert(song != NULL);
     song->random_seed = seed;
     Random_set_seed(song->random, seed);
-    // TODO
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_set_random_seed(song->channels[i], seed);
+    }
     return;
 }
 

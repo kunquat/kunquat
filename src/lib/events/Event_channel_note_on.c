@@ -92,6 +92,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
                    Instrument_get_gen(ins, i),
                    &ch_state->vp,
                    ch_state->cgstate,
+                   Random_get_uint64(ch_state->rand),
                    *ch_state->freq,
                    *ch_state->tempo);
         Voice_pool_fix_priority(ch_state->pool, ch_state->fg[i]);
@@ -137,7 +138,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
         {
             if (isnan(force_var))
             {
-                double var_dB = Random_get_float_scale(voice->gen->random) *
+                double var_dB = Random_get_float_scale(ch_state->rand) *
                                 voice->gen->ins_params->force_variation;
                 var_dB -= voice->gen->ins_params->force_variation / 2;
                 force_var = exp2(var_dB / 6);

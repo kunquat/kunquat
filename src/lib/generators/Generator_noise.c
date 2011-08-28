@@ -133,16 +133,16 @@ uint32_t Generator_noise_mix(Generator* gen,
         if(noise->order < 0)
         {
             vals[0] = dc_pole_filter(-noise->order, noise_state->buf[0],
-                                     Random_get_float_signal(gen->random));
+                                     Random_get_float_signal(state->rand_s));
             vals[1] = dc_pole_filter(-noise->order, noise_state->buf[1],
-                                     Random_get_float_signal(gen->random));
+                                     Random_get_float_signal(state->rand_s));
         }
         else 
         {
             vals[0] = dc_zero_filter(noise->order, noise_state->buf[0],
-                                     Random_get_float_signal(gen->random));
+                                     Random_get_float_signal(state->rand_s));
             vals[1] = dc_zero_filter(noise->order, noise_state->buf[1],
-                                     Random_get_float_signal(gen->random));
+                                     Random_get_float_signal(state->rand_s));
         }
         Generator_common_handle_force(gen, state, vals, 2, freq);
         Generator_common_handle_filter(gen, state, vals, 2, freq);

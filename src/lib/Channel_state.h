@@ -22,6 +22,7 @@
 #include <Channel_gen_state.h>
 #include <General_state.h>
 #include <LFO.h>
+#include <Random.h>
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <Voice_params.h>
@@ -40,6 +41,7 @@ typedef struct Channel_state
     Voice_params vp;               ///< Voice parameters.
     bool* mute;                    ///< Channel mute.
     Channel_gen_state* cgstate;    ///< Channel-specific generator state.
+    Random* rand;                  ///< Random source for this channel.
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
@@ -98,7 +100,24 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute);
 
 
 /**
- * Copies the Channel state.
+ * Sets the Channel random seed.
+ *
+ * \param state   The Channel state -- must not be \c NULL.
+ * \param seed    The random seed.
+ */
+void Channel_state_set_random_seed(Channel_state* state, uint64_t seed);
+
+
+/**
+ * Resets the Channel state.
+ *
+ * \param state   The Channel state -- must not be \c NULL.
+ */
+void Channel_state_reset(Channel_state* state);
+
+
+/**
+ * Makes a shallow copy of the Channel state.
  *
  * \param dest   The destination Channel state -- must not be \c NULL.
  * \param src    The source Channel state -- must not be \c NULL.

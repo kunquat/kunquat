@@ -22,7 +22,6 @@
 #include <Device_params.h>
 #include <File_base.h>
 #include <pitch_t.h>
-#include <Random.h>
 
 
 /**
@@ -38,7 +37,6 @@ typedef struct Gen_conf
     bool pitch_lock_enabled;
     double pitch_lock_cents;
     pitch_t pitch_lock_freq;
-    Random* random;
 } Gen_conf;
 
 

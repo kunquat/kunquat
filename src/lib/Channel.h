@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -105,6 +105,15 @@ void Channel_set_voices(Channel* ch,
  * \param mixed   Number of frames mixed.
  */
 void Channel_update_state(Channel* ch, uint32_t mixed);
+
+
+/**
+ * Sets the random seed of the Channel.
+ *
+ * \param ch     The Channel -- must not be \c NULL.
+ * \param seed   The seed.
+ */
+void Channel_set_random_seed(Channel* ch, uint64_t seed);
 
 
 /**

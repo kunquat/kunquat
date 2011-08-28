@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -25,7 +25,6 @@
 #include <Instrument_params.h>
 #include <kunquat/limits.h>
 #include <pitch_t.h>
-#include <Random.h>
 #include <Voice_state.h>
 #include <File_base.h>
 
@@ -41,7 +40,6 @@ typedef struct Generator
 {
     Device parent;
     char type[GEN_TYPE_LENGTH_MAX];
-    Random* random;
     Gen_conf* conf;
     void (*init_state)(struct Generator*, Voice_state*);
     void (*destroy)(struct Generator*);
@@ -60,7 +58,6 @@ typedef struct Generator
  * \param buffer_size   The mixing buffer size -- must be > \c 0 and
  *                      <= \c KQT_BUFFER_SIZE_MAX.
  * \param mix_rate      The mixing rate -- must be > \c 0.
- * \param random        The Random source -- must not be \c NULL.
  * \param state         The Read state -- must not be \c NULL.
  *
  * \return   The new Generator if successful, or \c NULL if memory allocation
@@ -70,7 +67,6 @@ Generator* new_Generator(char* str,
                          Instrument_params* ins_params,
                          uint32_t buffer_size,
                          uint32_t mix_rate,
-                         Random* random,
                          Read_state* state);
 
 

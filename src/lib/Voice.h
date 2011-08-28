@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 
 #include <Channel_gen_state.h>
 #include <Generator.h>
+#include <Random.h>
 #include <Voice_params.h>
 #include <Voice_state.h>
 
@@ -48,6 +49,8 @@ typedef struct Voice
     Generator* gen;        ///< The Generator.
     size_t state_size;     ///< The amount bytes allocated for the Voice state.
     Voice_state* state;    ///< The current playback state.
+    Random* rand_p;        ///< Parameter random source.
+    Random* rand_s;        ///< Signal random source.
 } Voice;
 
 
@@ -102,16 +105,20 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice    The Voice -- must not be \c NULL.
- * \param gen      The Generator used -- must not be \c NULL.
- * \param params   The Voice parameters -- must not be \c NULL.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The current tempo -- must be > \c 0.
+ * \param voice     The Voice -- must not be \c NULL.
+ * \param gen       The Generator used -- must not be \c NULL.
+ * \param params    The Voice parameters -- must not be \c NULL.
+ * \param cgstate   The Channel-specific Generator state -- must not be
+ *                  \c NULL.
+ * \param seed      The random seed.
+ * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The current tempo -- must be > \c 0.
  */
 void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
                 Channel_gen_state* cgstate,
+                uint64_t seed,
                 uint32_t freq,
                 double tempo);
 
