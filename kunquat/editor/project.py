@@ -227,15 +227,16 @@ class Project(QtCore.QObject):
 
     def update_random(self):
         """Update the automatic random seed."""
-        auto = self['i_random_seed_auto.json']
-        if auto == False:
+        custom = self['i_custom_random_seed.json']
+        if custom:
             return
         value = self['p_random_seed.json']
         if not value:
             value = 0
         value += 1
         value = json.dumps(value)
-        self._handle['p_random_seed.json'] = value
+        self.set_raw('p_random_seed.json', value)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _autoconnect(self, key, immediate):
         new_ins = -1
