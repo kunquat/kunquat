@@ -295,7 +295,7 @@ void Generator_common_handle_force(Generator* gen,
             {
                 assert(isfinite(state->rel_fe_update));
                 state->rel_fe_value += state->rel_fe_update *
-                                       state->rel_fe_scale * (1.0 - *state->pedal);
+                                       state->rel_fe_scale * (1.0 - *state->sustain);
                 scale = state->rel_fe_value;
                 if (scale < 0)
                 {
@@ -315,10 +315,10 @@ void Generator_common_handle_force(Generator* gen,
                 return;
             }
 #endif
-            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->pedal) / freq;
+            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->sustain) / freq;
             state->actual_force *= scale;
         }
-        else if (*state->pedal < 0.5)
+        else if (*state->sustain < 0.5)
         {
             if (state->ramp_release < 1)
             {

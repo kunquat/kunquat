@@ -93,7 +93,7 @@
 #include <Event_channel_set_gen_float.h>
 #include <Event_channel_set_gen_reltime.h>
 
-#include <Event_ins_set_pedal.h>
+#include <Event_ins_set_sustain.h>
 
 #include <Event_generator_set_bool.h>
 #include <Event_generator_set_int.h>
@@ -283,8 +283,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, "c.gT", EVENT_CHANNEL_SET_GEN_RELTIME,
                                  Event_channel_set_gen_reltime_process);
 
-    Event_handler_set_ins_process(eh, "i.ped", EVENT_INS_SET_PEDAL,
-                                  Event_ins_set_pedal_process);
+    Event_handler_set_ins_process(eh, "i.sus", EVENT_INS_SET_SUSTAIN,
+                                  Event_ins_set_sustain_process);
 
     Event_handler_set_generator_process(eh, "g.B", EVENT_GENERATOR_SET_BOOL,
                                         Event_generator_set_bool_process);

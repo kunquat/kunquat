@@ -50,7 +50,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
     ip->filter_off_env = NULL;
     ip->scale = scale;
 
-    ip->pedal = 0;
+    ip->sustain = 0;
     ip->volume = 1;
     ip->global_force = 1;
     ip->force = 0;
@@ -140,7 +140,7 @@ Instrument_params* Instrument_params_init(Instrument_params* ip,
 void Instrument_params_reset(Instrument_params* ip)
 {
     assert(ip != NULL);
-    ip->pedal = 0;
+    ip->sustain = 0;
     return;
 }
 

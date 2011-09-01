@@ -37,7 +37,7 @@ typedef struct Instrument_params
 {
     Scale*** scale;    ///< An indirect reference to the current Scale used.
 
-    double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
+    double sustain; ///< Sustain setting (0 = no sustain, 1.0 = full sustain).
 
     double global_force;           ///< Global force.
     double force;                  ///< Default force.

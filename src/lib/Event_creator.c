@@ -39,7 +39,7 @@
 #include <Event_global_jump.h>
 
 
-#include <Event_ins_set_pedal.h>
+#include <Event_ins_set_sustain.h>
 
 #include <Event_channel_set_instrument.h>
 #include <Event_channel_set_generator.h>
@@ -124,7 +124,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter,
     [EVENT_GLOBAL_JUMP] = new_Event_global_jump,
 
-    [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
+    [EVENT_INS_SET_SUSTAIN] = new_Event_ins_set_sustain,
 
     [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
     [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
