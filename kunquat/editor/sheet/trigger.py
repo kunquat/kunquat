@@ -390,7 +390,7 @@ channel_triggers = {
         'c.gF': [key, any_float],
         'c.gT': [key, any_ts],
 
-        'i.ped': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
+        'i.sus': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
 
         'g.B': [key, any_bool],
         'g.I': [key, any_int],

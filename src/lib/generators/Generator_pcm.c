@@ -159,7 +159,7 @@ uint32_t Generator_pcm_mix(Generator* gen,
         const Sample_entry* entry = Sample_map_get_entry(map,
                                             log2(state->pitch / 440) * 1200,
                                             state->force,
-                                            gen->random);
+                                            state->rand_p);
         if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
         {
             state->active = false;

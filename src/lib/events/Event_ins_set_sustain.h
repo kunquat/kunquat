@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -12,20 +12,20 @@
  */
 
 
-#ifndef K_EVENT_INS_SET_PEDAL_H
-#define K_EVENT_INS_SET_PEDAL_H
+#ifndef K_EVENT_INS_SET_SUSTAIN_H
+#define K_EVENT_INS_SET_SUSTAIN_H
 
 
 #include <Event_ins.h>
 #include <Reltime.h>
 
 
-Event* new_Event_ins_set_pedal(Reltime* pos);
+Event* new_Event_ins_set_sustain(Reltime* pos);
 
 
-bool Event_ins_set_pedal_process(Instrument_params* state, char* fields);
+bool Event_ins_set_sustain_process(Instrument_params* state, char* fields);
 
 
-#endif // K_EVENT_INS_SET_PEDAL_H
+#endif // K_EVENT_INS_SET_SUSTAIN_H
 
 

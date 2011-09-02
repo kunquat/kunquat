@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <inttypes.h>
 
 #include <math_common.h>
+#include <Random.h>
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
@@ -43,11 +44,16 @@ Voice* new_Voice(void)
 
     voice->state_size = sizeof(Voice_state);
     voice->state = xalloc(Voice_state);
-    if (voice->state == NULL)
+    voice->rand_p = new_Random();
+    voice->rand_s = new_Random();
+    if (voice->state == NULL || voice->rand_p == NULL ||
+            voice->rand_s == NULL)
     {
         del_Voice(voice);
         return NULL;
     }
+    Random_set_context(voice->rand_p, "vp");
+    Random_set_context(voice->rand_s, "vs");
     Voice_state_clear(voice->state);
     return voice;
 }
@@ -90,6 +96,7 @@ void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
                 Channel_gen_state* cgstate,
+                uint64_t seed,
                 uint32_t freq,
                 double tempo)
 {
@@ -103,9 +110,13 @@ void Voice_init(Voice* voice,
     voice->was_fg = true;
     voice->fg_mixed = 0;
     voice->gen = gen;
+    Random_set_seed(voice->rand_p, seed);
+    Random_set_seed(voice->rand_s, seed);
     Voice_state_init(voice->state,
                      params,
                      cgstate,
+                     voice->rand_p,
+                     voice->rand_s,
                      freq,
                      tempo);
     if (gen->init_state != NULL)
@@ -125,6 +136,8 @@ void Voice_reset(Voice* voice)
     voice->fg_mixed = 0;
     Voice_state_clear(voice->state);
     voice->gen = NULL;
+    Random_reset(voice->rand_p);
+    Random_reset(voice->rand_s);
     return;
 }
 
@@ -192,6 +205,8 @@ void del_Voice(Voice* voice)
     {
         return;
     }
+    del_Random(voice->rand_p);
+    del_Random(voice->rand_s);
     xfree(voice->state);
     xfree(voice);
     return;

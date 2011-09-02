@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,13 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_ins_set_pedal.h>
+#include <Event_ins_set_sustain.h>
 #include <Instrument_params.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_pedal_desc[] =
+static Event_field_desc set_sustain_desc[] =
 {
     {
         .type = EVENT_FIELD_DOUBLE,
@@ -36,11 +36,11 @@ static Event_field_desc set_pedal_desc[] =
 
 
 Event_create_constructor(Event_ins,
-                         EVENT_INS_SET_PEDAL,
-                         set_pedal);
+                         EVENT_INS_SET_SUSTAIN,
+                         set_sustain);
 
 
-bool Event_ins_set_pedal_process(Instrument_params* ins_state, char* fields)
+bool Event_ins_set_sustain_process(Instrument_params* ins_state, char* fields)
 {
     assert(ins_state != NULL);
     if (fields == NULL)
@@ -49,12 +49,12 @@ bool Event_ins_set_pedal_process(Instrument_params* ins_state, char* fields)
     }
     Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_pedal_desc, data, state);
+    Event_type_get_fields(fields, set_sustain_desc, data, state);
     if (state->error)
     {
         return false;
     }
-    ins_state->pedal = data[0].field.double_type;
+    ins_state->sustain = data[0].field.double_type;
     return true;
 }
 

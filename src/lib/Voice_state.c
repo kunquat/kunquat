@@ -27,11 +27,16 @@
 Voice_state* Voice_state_init(Voice_state* state,
                               Voice_params* params,
                               Channel_gen_state* cgstate,
+                              Random* rand_p,
+                              Random* rand_s,
                               uint32_t freq,
                               double tempo)
 {
     assert(state != NULL);
     assert(params != NULL);
+    assert(cgstate != NULL);
+    assert(rand_p != NULL);
+    assert(rand_s != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
@@ -40,6 +45,8 @@ Voice_state* Voice_state_init(Voice_state* state,
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
+    state->rand_p = rand_p;
+    state->rand_s = rand_s;
 
     Slider_set_mix_rate(&state->pitch_slider, freq);
     Slider_set_tempo(&state->pitch_slider, tempo);
@@ -99,7 +106,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
 
-    state->pedal = NULL;
+    state->sustain = NULL;
     state->fe_pos = 0;
     state->fe_next_node = 0;
     state->fe_value = NAN;

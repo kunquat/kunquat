@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -20,7 +20,6 @@
 
 #include <Channel.h>
 #include <Channel_state.h>
-
 #include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
@@ -225,9 +224,18 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
 }
 
 
+void Channel_set_random_seed(Channel* ch, uint64_t seed)
+{
+    assert(ch != NULL);
+    Channel_state_set_random_seed(&ch->init_state, seed);
+    return;
+}
+
+
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
+    Channel_state_reset(&ch->init_state);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
 //    Channel_state_copy(&ch->new_state, &ch->init_state);
     Channel_gen_state_clear(ch->cur_state.cgstate);

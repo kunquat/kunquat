@@ -21,6 +21,7 @@
 
 #include <Channel_gen_state.h>
 #include <LFO.h>
+#include <Random.h>
 #include <Reltime.h>
 #include <Slider.h>
 #include <frame.h>
@@ -48,6 +49,8 @@ typedef struct Voice_state
     double tempo;                  ///< The last tempo setting used.
     Voice_params params;
     Channel_gen_state* cgstate;    ///< Channel-specific Generator parameters.
+    Random* rand_p;                ///< Parameter random source.
+    Random* rand_s;                ///< Signal random source.
 
     double ramp_attack;            ///< The current state of volume ramp during attack.
     double ramp_release;           ///< The current state of volume ramp during release.
@@ -74,7 +77,7 @@ typedef struct Voice_state
     uint64_t noff_pos;             ///< Note Off position.
     double noff_pos_rem;           ///< Note Off position remainder.
 
-    double* pedal;                 ///< Instrument pedal state.
+    double* sustain;               ///< Instrument sustain state.
 
     double fe_pos;                 ///< Force envelope position.
     int fe_next_node;              ///< Next force envelope node.
@@ -117,16 +120,22 @@ typedef struct Voice_state
 /**
  * Initialises a Voice state.
  *
- * \param state    The Voice state -- must not be \c NULL.
- * \param params   The Voice parameters -- must not be \c NULL.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The current tempo -- must be > \c 0.
+ * \param state     The Voice state -- must not be \c NULL.
+ * \param params    The Voice parameters -- must not be \c NULL.
+ * \param cgstate   The Channel-specific Generator state -- must not be
+ *                  \c NULL.
+ * \param rand_p    The parameter Random source -- must not be \c NULL.
+ * \param rand_s    The signal Random source -- must not be \c NULL.
+ * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The current tempo -- must be > \c 0.
  *
  * \return   The parameter \a state.
  */
 Voice_state* Voice_state_init(Voice_state* state,
                               Voice_params* params,
                               Channel_gen_state* cgstate,
+                              Random* rand_p,
+                              Random* rand_s,
                               uint32_t freq,
                               double tempo);
 

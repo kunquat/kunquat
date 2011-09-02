@@ -239,6 +239,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.playing = True
 
     def stop(self):
+        if self.playing:
+            self.project.update_random()
         self.playing = False
         self.handle.nanoseconds = 0
         self._peak_meter.set_peaks(float('-inf'), float('-inf'), 0, 0, 0)
@@ -246,12 +248,16 @@ class KqtEditor(QtGui.QMainWindow):
 
     def play_subsong(self, subsong):
         self._peak_meter.reset()
+        if self.playing:
+            self.project.update_random()
         self.handle.nanoseconds = 0
         self.handle.subsong = subsong
         self.playing = True
 
     def play_pattern(self, pattern):
         self._peak_meter.reset()
+        if self.playing:
+            self.project.update_random()
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
@@ -259,6 +265,8 @@ class KqtEditor(QtGui.QMainWindow):
 
     def play_from(self, subsong, section, beats, rem):
         self._peak_meter.reset()
+        if self.playing:
+            self.project.update_random()
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True

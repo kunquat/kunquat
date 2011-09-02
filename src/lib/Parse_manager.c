@@ -328,6 +328,15 @@ static bool parse_song_level(kqt_Handle* handle,
         //fprintf(stderr, "line: %d\n", __LINE__);
         //Connections_print(graph, stderr);
     }
+    else if (string_eq(key, "p_random_seed.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Song_parse_random_seed(handle->song, data, state))
+        {
+            set_parse_error(handle, state);
+            return false;
+        }
+    }
     return true;
 }
 
@@ -403,8 +412,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song),
-                                 handle->song->random);
+                                 Song_get_active_scale(handle->song));
             if (ins == NULL ||
                     !Ins_table_set(Song_get_insts(handle->song), index, ins))
             {
@@ -489,8 +497,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song),
-                                 handle->song->random);
+                                 Song_get_active_scale(handle->song));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -538,8 +545,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                                      Device_get_mix_rate(
                                             (Device*)handle->song),
                                      Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song),
-                                     handle->song->random);
+                                     Song_get_active_scale(handle->song));
                 if (ins == NULL ||
                         !Ins_table_set(Song_get_insts(handle->song),
                                        index, ins))
@@ -605,8 +611,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
             ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                  Device_get_mix_rate((Device*)handle->song),
                                  Song_get_scales(handle->song),
-                                 Song_get_active_scale(handle->song),
-                                 handle->song->random);
+                                 Song_get_active_scale(handle->song));
             if (ins == NULL)
             {
                 kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -656,8 +661,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
                 ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                                      Device_get_mix_rate((Device*)handle->song),
                                      Song_get_scales(handle->song),
-                                     Song_get_active_scale(handle->song),
-                                     handle->song->random);
+                                     Song_get_active_scale(handle->song));
                 if (ins == NULL)
                 {
                     kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -730,8 +734,7 @@ static bool parse_generator_level(kqt_Handle* handle,
         ins = new_Instrument(Device_get_buffer_size((Device*)handle->song),
                              Device_get_mix_rate((Device*)handle->song),
                              Song_get_scales(handle->song),
-                             Song_get_active_scale(handle->song),
-                             handle->song->random);
+                             Song_get_active_scale(handle->song));
         if (ins == NULL)
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
@@ -759,7 +762,6 @@ static bool parse_generator_level(kqt_Handle* handle,
             Generator* gen = new_Generator(data, Instrument_get_params(ins),
                                 Device_get_buffer_size((Device*)handle->song),
                                 Device_get_mix_rate((Device*)handle->song),
-                                handle->song->random,
                                 state);
             if (gen == NULL)
             {

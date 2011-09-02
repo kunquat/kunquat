@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,6 @@
 #include <Filter.h>
 #include <Event_ins.h>
 #include <pitch_t.h>
-#include <Random.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -32,7 +31,6 @@ Generator* new_Generator(char* str,
                          Instrument_params* ins_params,
                          uint32_t buffer_size,
                          uint32_t mix_rate,
-                         Random* random,
                          Read_state* state)
 {
     assert(str != NULL);
@@ -40,7 +38,6 @@ Generator* new_Generator(char* str,
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
     assert(mix_rate > 0);
-    assert(random != NULL);
     assert(state != NULL);
     if (state->error)
     {
@@ -67,7 +64,6 @@ Generator* new_Generator(char* str,
     strcpy(gen->type, type);
     gen->ins_params = ins_params;
     gen->conf = NULL;
-    gen->random = random;
     return gen;
 }
 

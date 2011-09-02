@@ -125,7 +125,7 @@ typedef enum
 
     EVENT_INS_LOWER, ///< Instrument Events
 
-    EVENT_INS_SET_PEDAL,
+    EVENT_INS_SET_SUSTAIN,
 
     EVENT_INS_UPPER,
 

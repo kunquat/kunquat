@@ -30,17 +30,39 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     General_state_init(&state->parent, false);
 
     state->cgstate = new_Channel_gen_state();
-    if (state->cgstate == NULL)
+    state->rand = new_Random();
+    if (state->cgstate == NULL || state->rand == NULL)
     {
+        del_Channel_gen_state(state->cgstate);
+        del_Random(state->rand);
         return false;
     }
+    char context[] = "chXX";
+    snprintf(context, strlen(context) + 1, "ch%02x", num);
+    Random_set_context(state->rand, context);
+    state->mute = mute;
     state->num = num;
+    Channel_state_reset(state);
+    return true;
+}
+
+
+void Channel_state_set_random_seed(Channel_state* state, uint64_t seed)
+{
+    assert(state != NULL);
+    Random_set_seed(state->rand, seed);
+    return;
+}
+
+
+void Channel_state_reset(Channel_state* state)
+{
+    assert(state != NULL);
     state->instrument = 0;
     state->generator = 0;
     state->effect = 0;
     state->inst_effects = false;
     state->dsp = 0;
-    state->mute = mute;
 
     state->volume = 1;
 
@@ -68,7 +90,8 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
-    return true;
+    Random_reset(state->rand);
+    return;
 }
 
 
@@ -88,6 +111,7 @@ void Channel_state_uninit(Channel_state* state)
         return;
     }
     del_Channel_gen_state(state->cgstate);
+    del_Random(state->rand);
     state->cgstate = NULL;
     return;
 }
