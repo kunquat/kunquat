@@ -23,7 +23,7 @@ from param_sample_header import ParamSampleHeader
 from param_sample_file import ParamSampleFile
 from param_slider import ParamSlider
 from param_wave import ParamWave
-from instruments.sample_map import SampleMap
+from sample_map import SampleMap
 
 
 class DevEditor(QtGui.QSplitter):

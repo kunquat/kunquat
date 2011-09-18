@@ -51,7 +51,9 @@ class EffEditor(QtGui.QWidget):
         top_layout.addLayout(layout)
 
         tabs = QtGui.QTabWidget()
-        self._dsps = DSPs(project, self._base)
+        self._dsps = DSPs(project, self._base +
+                'eff_{0:02x}/kqte{1}/'.format(self._cur_eff,
+                                              lim.FORMAT_VERSION))
         self._connections = Connections(project,
                                         self._base + 'p_connections.json')
         tabs.addTab(self._dsps, 'DSPs')
