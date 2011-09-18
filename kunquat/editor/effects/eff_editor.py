@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
+from kunquat.editor.connections import Connections
 import kunquat.editor.kqt_limits as lim
 
 
@@ -26,7 +27,10 @@ class EffEditor(QtGui.QWidget):
         self._project = project
         self._base = base
         self._cur_eff = 0
-        layout = QtGui.QVBoxLayout(self)
+        top_layout = QtGui.QVBoxLayout(self)
+        top_layout.setMargin(0)
+        top_layout.setSpacing(0)
+        layout = QtGui.QHBoxLayout()
         layout.setMargin(0)
         layout.setSpacing(0)
 
@@ -43,8 +47,17 @@ class EffEditor(QtGui.QWidget):
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
 
+        top_layout.addLayout(layout)
+
+        tabs = QtGui.QTabWidget()
+        self._connections = Connections(project,
+                                        self._base + 'p_connections.json')
+        tabs.addTab(self._connections, 'Connections')
+        top_layout.addWidget(tabs)
+
     def eff_changed(self, num):
         self._cur_eff = num
+        self.set_base(self._base)
 
     def load(self):
         slot = self._cur_eff
@@ -60,6 +73,9 @@ class EffEditor(QtGui.QWidget):
 
     def set_base(self, base):
         self._base = base
+        eff_key = self._base + 'eff_{0:02x}/kqte{1}/'.format(
+                self._cur_eff, lim.FORMAT_VERSION)
+        self._connections.set_key(eff_key + 'p_connections.json')
 
     def sync(self):
         self.set_base(self._base)
