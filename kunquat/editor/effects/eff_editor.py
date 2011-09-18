@@ -36,13 +36,17 @@ class EffEditor(QtGui.QWidget):
         layout.setSpacing(0)
 
         load = QtGui.QPushButton('Load')
-
+        save = QtGui.QPushButton('Save')
         remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(load, 0)
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
                                self.load)
+        layout.addWidget(save, 0)
+        QtCore.QObject.connect(save,
+                               QtCore.SIGNAL('clicked()'),
+                               self.save)
         layout.addWidget(remove, 0)
         QtCore.QObject.connect(remove,
                                QtCore.SIGNAL('clicked()'),
@@ -71,6 +75,14 @@ class EffEditor(QtGui.QWidget):
                 filter='Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
         if fname:
             self._project.import_kqte(self._base, slot, str(fname))
+
+    def save(self):
+        slot = self._cur_eff
+        fname = QtGui.QFileDialog.getSaveFileName(
+                caption='Save Kunquat effect (of index {0})'.format(slot),
+                filter='Kunquat effects (*.kqte *.kqte.gz *.kqte.bz2)')
+        if fname:
+            self._project.export_kqte(self._base, slot, str(fname))
 
     def remove(self):
         self._project.remove_dir('{0}eff_{1:02x}'.format(self._base,
