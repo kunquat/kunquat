@@ -16,7 +16,7 @@ from __future__ import division, print_function
 from PyQt4 import QtCore, QtGui
 
 import kunquat.editor.kqt_limits as lim
-from dsp_generic import DSPGeneric
+from dsp_editor import DSPEditor
 from dsp_list import DSPList
 
 
@@ -26,7 +26,7 @@ class DSPs(QtGui.QSplitter):
         QtGui.QSplitter.__init__(self, parent)
         self._project = project
         self._dsp_list = DSPList(project, base)
-        self._dsp_editor = DSPGeneric(project, base)
+        self._dsp_editor = DSPEditor(project, base)
         self.addWidget(self._dsp_list)
         self.addWidget(self._dsp_editor)
         self.setStretchFactor(0, 0)
