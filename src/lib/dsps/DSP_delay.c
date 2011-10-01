@@ -329,7 +329,8 @@ static void DSP_delay_check_params(DSP_delay* delay)
                     int32_t delay_frames = tap->delay * mix_rate;
                     assert(delay_frames >= 0);
                     assert((uint32_t)delay_frames <= buf_size);
-                    tap->buf_pos = (buf_size - delay_frames) % buf_size;
+                    tap->buf_pos = (buf_size + delay->buf_pos -
+                                    delay_frames) % buf_size;
                     assert(tap->buf_pos >= 0);
                 }
             }
