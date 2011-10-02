@@ -458,6 +458,35 @@ class Project(QtCore.QObject):
     def _export_kqti(self, index, dest):
         root = 'kqtc{0}/'.format(lim.FORMAT_VERSION)
         ins_root = 'ins_{0:02x}/'.format(index)
+        self._export_subtree(ins_root, dest,
+                             'Exporting instrument {0}'.format(index), 'i')
+
+    def export_kqte(self, base, index, dest):
+        """Exports an effect in the Project.
+
+        NOTE: this function returns immediately.  Do not access the
+              Project again until it emits the endTask() signal.
+
+        Arguments:
+        index -- The effect number -- must be >= 0 and
+                 < lim.EFFECTS_MAX (global effect) or
+                 < lim.INST_EFFECTS_MAX (instrument effect).
+        dest  -- The destination file name.  If the name contains '.gz'
+                 or '.bz2' as a suffix, the file will be compressed
+                 using, respectively, gzip or bzip2.
+
+        """
+        self._process.process(self._export_kqte, base, index, dest)
+
+    def _export_kqte(self, base, index, dest):
+        eff_root = 'eff_{0:02x}/'.format(index)
+        self._export_subtree(base + eff_root, dest,
+                             'Exporting effect {0}'.format(index), 'e')
+
+    def _export_subtree(self, prefix, dest, msg, ftype):
+        assert not prefix or prefix.endswith('/')
+        assert len(ftype) == 1
+        assert ftype in 'ei'
         compression = ''
         if dest.endswith('.gz'):
             compression = 'gz'
@@ -469,11 +498,11 @@ class Project(QtCore.QObject):
         try:
             tfile = tarfile.open(dest, 'w:' + compression,
                                  format=tarfile.USTAR_FORMAT)
-            keys = [k for k in self._keys if k.startswith(ins_root)]
+            keys = [k for k in self._keys if k.startswith(prefix)]
             for key in keys:
                 QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
-                        'Exporting instrument {0} ({1}) ...'.format(index, key))
-                name = key[len(ins_root):]
+                        '{0} ({1}) ...'.format(msg, key))
+                name = key[len(prefix):]
                 kfile = KeyFile(name, self._handle[key])
                 info = tarfile.TarInfo()
                 info.name = name
@@ -481,7 +510,8 @@ class Project(QtCore.QObject):
                 info.mtime = int(time.mktime(time.localtime(time.time())))
                 tfile.addfile(info, fileobj=kfile)
             if not keys:
-                info = tarfile.TarInfo('kqti{0}'.format(lim.FORMAT_VERSION))
+                info = tarfile.TarInfo('kqt{0}{1}'.format(ftype,
+                                                          lim.FORMAT_VERSION))
                 info.type = tarfile.DIRTYPE
                 info.mtime = int(time.mktime(time.localtime(time.time())))
                 tfile.addfile(info)

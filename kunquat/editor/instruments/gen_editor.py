@@ -42,10 +42,10 @@ class GenEditor(QtGui.QWidget):
                                    'enabled')
         self._type = ParamCombo(project,
                                 'Generator type',
-                                [('Select the generator type', ''),
+                                [('No generator', None),
                                     ('Additive', 'add'),
                                     ('Sample', 'pcm')],
-                                'Select the generator type',
+                                'No generator',
                                 key_base + 'p_gen_type.json')
         common_layout.addWidget(self._enabled)
         common_layout.addWidget(self._type)
