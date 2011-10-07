@@ -18,6 +18,7 @@
 #include <Event_common.h>
 #include <Event_channel_hit.h>
 #include <Event_channel_note_off.h>
+#include <note_setup.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <kunquat/limits.h>
@@ -70,8 +71,20 @@ bool Event_channel_hit_process(Channel_state* ch_state, char* fields)
     {
         return true;
     }
-    assert(false);
-    return false;
+    double force_var = NAN;
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        if (Instrument_get_gen(ins, i) == NULL)
+        {
+            continue;
+        }
+        reserve_voice(ch_state, ins, i);
+        Voice* voice = ch_state->fg[i];
+        Voice_state* vs = voice->state;
+        vs->hit_index = data[0].field.integral_type;
+        set_instrument_properties(voice, vs, ch_state, &force_var);
+    }
+    return true;
 }
 
 
