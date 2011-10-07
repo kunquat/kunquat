@@ -49,6 +49,7 @@
 #include <Event_channel_set_dsp.h>
 
 #include <Event_channel_note_on.h>
+#include <Event_channel_hit.h>
 #include <Event_channel_note_off.h>
 
 #include <Event_channel_set_force.h>
@@ -135,6 +136,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_SET_DSP] = new_Event_channel_set_dsp,
 
     [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
+    [EVENT_CHANNEL_HIT] = new_Event_channel_hit,
     [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
 
     [EVENT_CHANNEL_SET_FORCE] = new_Event_channel_set_force,
