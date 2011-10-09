@@ -87,7 +87,7 @@ class Trigger(list):
         return self
 
     def set_value(self, cursor_pos, value):
-        if self[0] != 'cn+':
+        if self[0] not in ('cn+', 'ch'):
             if cursor_pos == 0:
                 self.set_type(value)
                 return
@@ -97,13 +97,14 @@ class Trigger(list):
 
     def cursor_area(self, index):
         start = self.margin
-        if self[0] != 'cn+':
+        if self[0] not in ('cn+', 'ch'):
             hw = self.metrics.width(self[0])
             if index == 0:
                 return start, hw
             start += hw
             index -= 1
         else:
+            # compensate for removal of trigger name
             start -= self.padding
         for field in self[1]:
             fw = self.field_width(field)
@@ -115,7 +116,8 @@ class Trigger(list):
         return start + self.margin, 0
 
     def get_field_info(self, cursor_pos):
-        if self[0] != 'cn+':
+        if self[0] not in ('cn+', 'ch'):
+            # ignore the trigger name
             if cursor_pos == 0:
                 return self[0], None
             cursor_pos -= 1
@@ -131,7 +133,8 @@ class Trigger(list):
         opt.setAlignment(QtCore.Qt.AlignRight)
 
         offset += self.margin
-        if self[0] != 'cn+':
+        # paint the trigger type name
+        if self[0] not in ('cn+', 'ch'):
             head_rect = QtCore.QRectF(rect)
             head_rect.moveLeft(head_rect.left() + offset)
             if self[0] == 'cn-':
@@ -155,6 +158,7 @@ class Trigger(list):
         else:
             offset -= self.padding
 
+        # paint the fields
         for field in self[1]:
             field_rect = QtCore.QRectF(rect)
             field_rect.moveLeft(rect.left() + offset + self.padding)
@@ -174,6 +178,8 @@ class Trigger(list):
         if offset > 0:
             if self[0] == 'cn+':
                 paint.setPen(self.colours['trigger_note_on_fg'])
+            elif self[0] == 'ch':
+                paint.setPen(self.colours['trigger_hit_fg'])
             elif self[0] == 'cn-':
                 paint.setPen(self.colours['trigger_note_off_fg'])
             else:
@@ -194,6 +200,8 @@ class Trigger(list):
         back = self.colours['bg']
         if self[0] == 'cn+':
             fore = self.colours['trigger_note_on_fg']
+        elif self[0] == 'ch':
+            fore = self.colours['trigger_hit_fg']
         else:
             fore = self.colours['trigger_fg']
         if cursor:
@@ -209,6 +217,8 @@ class Trigger(list):
             if c == 0:
                 return '{0}{1}'.format(n, o)
             return '{0}{1}{2:+d}'.format(n, o, c)
+        if isinstance(field, HitIndex):
+            return str(field)
         if isinstance(field, int):
             return str(field)
         elif isinstance(field, float):
@@ -221,7 +231,7 @@ class Trigger(list):
         return self.padding + self.metrics.width(self.field_str(field))
 
     def slots(self):
-        if self[0] == 'cn+':
+        if self[0] in ('cn+', 'ch'):
             return len(self[1])
         return 1 + len(self[1])
 
@@ -230,7 +240,7 @@ class Trigger(list):
         type_width = -self.padding
         if self[0] == 'cn-':
             type_width = self.metrics.width(note_off_str)
-        elif self[0] != 'cn+':
+        elif self[0] not in ('cn+', 'ch'):
             type_width = self.metrics.width(self[0])
         return type_width + fields_width + 2 * self.margin
 
@@ -284,6 +294,10 @@ def param_to_key(param, prefix, suffix):
 
 
 class Note(float):
+    pass
+
+
+class HitIndex(int):
     pass
 
 
@@ -351,6 +365,7 @@ channel_triggers = {
         'c.d': [(int, lambda x: x >= 0 and x < lim.DSPS_MAX, 0)],
 
         'cn+': [pitch],
+        'ch': [(HitIndex, lambda x: 0 <= x < lim.HITS_MAX, 0)],
         'cn-': [],
 
         'c.f': [force],

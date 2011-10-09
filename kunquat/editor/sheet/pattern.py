@@ -76,6 +76,7 @@ class Pattern(QtGui.QWidget):
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
                 'trigger_fg': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'trigger_note_on_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
+                'trigger_hit_fg': QtGui.QColor(0xaa, 0xee, 0xaa),
                 'trigger_note_off_fg': QtGui.QColor(0xaa, 0x88, 0x66),
                 'trigger_type_fg': QtGui.QColor(0xcc, 0xcc, 0xaa),
                 'trigger_invalid_fg': QtGui.QColor(0xff, 0x33, 0x11),
