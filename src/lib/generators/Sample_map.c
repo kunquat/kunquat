@@ -125,7 +125,6 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
         Random_list* list = xalloc(Random_list);
         if (list == NULL)
         {
-            Read_state_set_error(state, "Couldn't allocate memory for sample point");
             del_Sample_map(map);
             return NULL;
         }

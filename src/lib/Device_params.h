@@ -327,6 +327,19 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 
 
 /**
+ * Retrieves a Hit map from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsonhm".
+ *
+ * \return   The Hit map, or \c NULL if \a key doesn't exist.
+ */
+Hit_map* Device_params_get_hit_map(Device_params* params,
+                                   const char* key);
+
+
+/**
  * Retrieves a Number list from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.

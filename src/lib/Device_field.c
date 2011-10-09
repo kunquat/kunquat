@@ -34,6 +34,7 @@ typedef union
     Sample* Sample_type;
     Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
+    Hit_map* Hit_map_type;
     Num_list* Num_list_type;
 } Dev_fields;
 
@@ -96,6 +97,11 @@ Device_field* new_Device_field(const char* key, void* data)
     {
         type = DEVICE_FIELD_SAMPLE_MAP;
         data_size = sizeof(Sample_map*);
+    }
+    else if (string_has_suffix(key, ".jsonhm"))
+    {
+        type = DEVICE_FIELD_HIT_MAP;
+        data_size = sizeof(Hit_map*);
     }
     else if (string_has_suffix(key, ".jsonln"))
     {
@@ -274,7 +280,18 @@ bool Device_field_change(Device_field* field,
             {
                 return false;
             }
+            del_Sample_map(field->data.Sample_map_type);
             field->data.Sample_map_type = map;
+        } break;
+        case DEVICE_FIELD_HIT_MAP:
+        {
+            Hit_map* map = new_Hit_map_from_string(data, state);
+            if (map == NULL)
+            {
+                return false;
+            }
+            del_Hit_map(field->data.Hit_map_type);
+            field->data.Hit_map_type = map;
         } break;
         case DEVICE_FIELD_NUM_LIST:
         {
@@ -283,6 +300,7 @@ bool Device_field_change(Device_field* field,
             {
                 return false;
             }
+            del_Num_list(field->data.Num_list_type);
             field->data.Num_list_type = nl;
         } break;
         default:
@@ -332,6 +350,7 @@ bool Device_field_modify(Device_field* field, char* str)
     assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
     assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
+    assert(field->type != DEVICE_FIELD_HIT_MAP);
     Read_state* state = READ_STATE_AUTO;
     switch (field->type)
     {
@@ -435,6 +454,14 @@ Sample_map* Device_field_get_sample_map(Device_field* field)
 }
 
 
+Hit_map* Device_field_get_hit_map(Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_HIT_MAP);
+    return field->data.Hit_map_type;
+}
+
+
 Num_list* Device_field_get_num_list(Device_field* field)
 {
     assert(field != NULL);
@@ -460,6 +487,10 @@ void del_Device_field(Device_field* field)
     else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
     {
         del_Sample_map(field->data.Sample_map_type);
+    }
+    else if (field->type == DEVICE_FIELD_HIT_MAP)
+    {
+        del_Hit_map(field->data.Hit_map_type);
     }
     else if (field->type == DEVICE_FIELD_NUM_LIST)
     {
