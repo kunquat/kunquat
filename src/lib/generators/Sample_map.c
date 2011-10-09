@@ -174,46 +174,14 @@ Sample_map* new_Sample_map_from_string(char* str, Read_state* state)
         bool expect_entry = true;
         while (expect_entry && list->entry_count < SAMPLE_MAP_RANDOMS_MAX)
         {
-            str = read_const_char(str, '[', state);
-            double sample_cents = NAN;
-            str = read_double(str, &sample_cents, state);
-            str = read_const_char(str, ',', state);
-            double volume = NAN;
-            str = read_double(str, &volume, state);
-            str = read_const_char(str, ',', state);
-            int64_t sample = -1;
-            str = read_int(str, &sample, state);
-            str = read_const_char(str, ']', state);
+            str = Sample_entry_parse(&list->entries[list->entry_count],
+                                     str, state);
             if (state->error)
             {
                 del_Sample_map(map);
                 return NULL;
             }
-            if (!isfinite(sample_cents))
-            {
-                Read_state_set_error(state,
-                        "Sample cent offset is not finite");
-                del_Sample_map(map);
-                return NULL;
-            }
-            if (!isfinite(volume))
-            {
-                Read_state_set_error(state,
-                        "Volume adjustment is not finite");
-                del_Sample_map(map);
-                return NULL;
-            }
-            if (sample < 0)
-            {
-                Read_state_set_error(state,
-                        "Sample number must be non-negative");
-                del_Sample_map(map);
-                return NULL;
-            }
             list->entries[list->entry_count].ref_freq = list->freq;
-            list->entries[list->entry_count].cents = sample_cents;
-            list->entries[list->entry_count].vol_scale = exp2(volume / 6);
-            list->entries[list->entry_count].sample = sample;
             ++list->entry_count;
             check_next(str, state, expect_entry);
         }
