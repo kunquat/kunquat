@@ -129,6 +129,7 @@ class Pattern(QtGui.QWidget):
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
                 trigger.Note: acc.NoteEdit(self),
+                trigger.HitIndex: acc.HitIndexEdit(self),
                 bool: acc.BoolEdit(self),
                 float: acc.FloatEdit(self),
                 int: acc.IntEdit(self),

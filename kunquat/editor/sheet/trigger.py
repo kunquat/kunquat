@@ -25,6 +25,8 @@ import kunquat.editor.timestamp as ts
 
 note_off_str = u'══'
 
+hidden_types = ('cn+', 'ch')
+
 
 class Trigger(list):
 
@@ -87,7 +89,7 @@ class Trigger(list):
         return self
 
     def set_value(self, cursor_pos, value):
-        if self[0] not in ('cn+', 'ch'):
+        if self[0] not in hidden_types:
             if cursor_pos == 0:
                 self.set_type(value)
                 return
@@ -97,7 +99,7 @@ class Trigger(list):
 
     def cursor_area(self, index):
         start = self.margin
-        if self[0] not in ('cn+', 'ch'):
+        if self[0] not in hidden_types:
             hw = self.metrics.width(self[0])
             if index == 0:
                 return start, hw
@@ -116,7 +118,7 @@ class Trigger(list):
         return start + self.margin, 0
 
     def get_field_info(self, cursor_pos):
-        if self[0] not in ('cn+', 'ch'):
+        if self[0] not in hidden_types:
             # ignore the trigger name
             if cursor_pos == 0:
                 return self[0], None
@@ -134,7 +136,7 @@ class Trigger(list):
 
         offset += self.margin
         # paint the trigger type name
-        if self[0] not in ('cn+', 'ch'):
+        if self[0] not in hidden_types:
             head_rect = QtCore.QRectF(rect)
             head_rect.moveLeft(head_rect.left() + offset)
             if self[0] == 'cn-':
@@ -231,7 +233,7 @@ class Trigger(list):
         return self.padding + self.metrics.width(self.field_str(field))
 
     def slots(self):
-        if self[0] in ('cn+', 'ch'):
+        if self[0] in hidden_types:
             return len(self[1])
         return 1 + len(self[1])
 
@@ -240,7 +242,7 @@ class Trigger(list):
         type_width = -self.padding
         if self[0] == 'cn-':
             type_width = self.metrics.width(note_off_str)
-        elif self[0] not in ('cn+', 'ch'):
+        elif self[0] not in hidden_types:
             type_width = self.metrics.width(self[0])
         return type_width + fields_width + 2 * self.margin
 
@@ -365,7 +367,7 @@ channel_triggers = {
         'c.d': [(int, lambda x: x >= 0 and x < lim.DSPS_MAX, 0)],
 
         'cn+': [pitch],
-        'ch': [(HitIndex, lambda x: 0 <= x < lim.HITS_MAX, 0)],
+        'ch': [(HitIndex, lambda x: 0 <= x < lim.HITS_MAX, HitIndex(0))],
         'cn-': [],
 
         'c.f': [force],
