@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <math.h>
 
 #include <AAtree.h>
@@ -179,10 +180,29 @@ const Sample_entry* Hit_map_get_entry(Hit_map* map,
     AAtree* forces = map->hits[hit_index];
     if (forces == NULL)
     {
+        fprintf(stderr, "no forces\n");
         return NULL;
     }
     Random_list* key = &(Random_list){ .force = force };
-    Random_list* list = AAtree_get(forces, key);
+    Random_list* greater = AAtree_get(forces, key);
+    Random_list* smaller = AAtree_get_at_most(forces, key);
+    Random_list* list = NULL;
+    if (greater == NULL)
+    {
+        list = smaller;
+    }
+    else if (smaller == NULL)
+    {
+        list = greater;
+    }
+    else if (fabs(greater->force - force) < fabs(smaller->force - force))
+    {
+        list = greater;
+    }
+    else
+    {
+        list = smaller;
+    }
     if (list == NULL)
     {
         return NULL;
