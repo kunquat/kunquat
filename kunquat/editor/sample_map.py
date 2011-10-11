@@ -27,16 +27,18 @@ SAMPLES_MAX = 512
 
 class SampleMap(QtGui.QWidget):
 
-    def __init__(self, project, key, parent=None):
+    def __init__(self, project, key, map_type, parent=None):
+        assert map_type in ('pitch', 'hit')
         QtGui.QWidget.__init__(self, parent)
         self._project = project
         self._key = key
         self._map = {}
+        self._map_type = map_type
         self._active = float('-inf'), float('-inf')
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
-        self._map_view = MapView(self._map)
+        self._map_view = MapView(self._map, map_type)
         random_layout = QtGui.QVBoxLayout()
         self._entries = []
         for i in xrange(RANDOMS_MAX):
@@ -222,9 +224,11 @@ class MapView(PlaneView):
     removed = QtCore.pyqtSignal(name='removed')
     finished = QtCore.pyqtSignal(name='finished')
 
-    def __init__(self, mapping, parent=None):
+    def __init__(self, mapping, map_type, parent=None):
+        assert map_type in ('pitch', 'hit')
         PlaneView.__init__(self, parent)
         self._map = mapping
+        self._map_type = map_type
         self._active = None
         self._focused = None
         self._aspect = None
@@ -243,10 +247,16 @@ class MapView(PlaneView):
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
-        self._min = -36, -6000
-        self._max = 0, 6000
-        self._step_x = 0.125
-        self._step_y = 100
+        if map_type == 'pitch':
+            self._min = -36, -6000
+            self._max = 0, 6000
+            self._step_x = 0.125
+            self._step_y = 100
+        elif map_type == 'hit':
+            self._min = -36, 0
+            self._max = 0, lim.HITS_MAX - 1
+            self._step_x = 0.125
+            self._step_y = 1
         self._layout = {
                            'padding': 8,
                            'zoom': (200, 200),
@@ -266,7 +276,8 @@ class MapView(PlaneView):
         paint.setRenderHint(QtGui.QPainter.Antialiasing)
         paint.setBackground(self._colours['bg'])
         paint.eraseRect(ev.rect())
-        self._haxis.paint(paint)
+        if self._map_type == 'pitch':
+            self._haxis.paint(paint)
         self._vaxis.paint(paint)
         self._paint_nodes(paint)
         paint.end()
@@ -314,6 +325,8 @@ class MapView(PlaneView):
                 x = max(self._min[0], min(x, self._max[0]))
                 y = max(self._min[1], min(y, self._max[1]))
                 y, x = self._round_node(y, x)
+                if self._map_type == 'hit':
+                    y = int(y)
                 if (y, x) not in self._map:
                     data = self._map.pop(self._focused)
                     self._focused = y, x
@@ -323,7 +336,7 @@ class MapView(PlaneView):
                     QtCore.QObject.emit(self,
                                         QtCore.SIGNAL('activeChanged(float,'
                                                       'float)'),
-                                        self._active[0], self._active[1])
+                                        y, x)
                     self.update()
 
     def mousePressEvent(self, ev):
