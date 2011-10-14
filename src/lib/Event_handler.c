@@ -59,6 +59,7 @@
 #include <Event_channel_set_dsp.h>
 
 #include <Event_channel_note_on.h>
+#include <Event_channel_hit.h>
 #include <Event_channel_note_off.h>
 
 #include <Event_channel_set_force.h>
@@ -222,6 +223,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_ch_process(eh, "cn+", EVENT_CHANNEL_NOTE_ON,
                                  Event_channel_note_on_process);
+    Event_handler_set_ch_process(eh, "ch", EVENT_CHANNEL_HIT,
+                                 Event_channel_hit_process);
     Event_handler_set_ch_process(eh, "cn-", EVENT_CHANNEL_NOTE_OFF,
                                  Event_channel_note_off_process);
 

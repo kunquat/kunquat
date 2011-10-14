@@ -140,6 +140,12 @@ class IntEdit(StringEdit):
         return int(self.text())
 
 
+class HitIndexEdit(IntEdit):
+
+    def get_value(self):
+        return trigger.HitIndex(self.text())
+
+
 class TimestampEdit(StringEdit):
 
     def _ts_validate(self, value):

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011
  *
  * This file is part of Kunquat.
  *
@@ -14,28 +14,24 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdio.h>
-#include <float.h>
 
 #include <Event_common.h>
-#include <Event_channel_note_on.h>
+#include <Event_channel_hit.h>
 #include <Event_channel_note_off.h>
 #include <note_setup.h>
-#include <Random.h>
 #include <Reltime.h>
 #include <Voice.h>
-#include <Scale.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc note_on_desc[] =
+static Event_field_desc hit_desc[] =
 {
     {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
+        .type = EVENT_FIELD_INT,
+        .min.field.integral_type = 0,
+        .max.field.integral_type = KQT_HITS_MAX - 1
     },
     {
         .type = EVENT_FIELD_NONE
@@ -44,11 +40,11 @@ static Event_field_desc note_on_desc[] =
 
 
 Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_NOTE_ON,
-                         note_on);
+                         EVENT_CHANNEL_HIT,
+                         hit);
 
 
-bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
+bool Event_channel_hit_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
     assert(ch_state->freq != NULL);
@@ -59,7 +55,7 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     }
     Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, note_on_desc, data, state);
+    Event_type_get_fields(fields, hit_desc, data, state);
     if (state->error)
     {
         return false;
@@ -75,8 +71,6 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
     {
         return true;
     }
-    // allocate new Voices
-//    ch_state->panning_slide = 0;
     double force_var = NAN;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
@@ -85,37 +79,9 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
             continue;
         }
         reserve_voice(ch_state, ins, i);
-
         Voice* voice = ch_state->fg[i];
         Voice_state* vs = voice->state;
-
-        if (voice->gen->ins_params->pitch_locks[i].enabled)
-        {
-            vs->pitch = voice->gen->ins_params->pitch_locks[i].freq;
-        }
-        else if (voice->gen->ins_params->scale == NULL ||
-                 *voice->gen->ins_params->scale == NULL ||
-                 **voice->gen->ins_params->scale == NULL)
-        {
-            vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
-        }
-        else
-        {
-            pitch_t pitch = Scale_get_pitch_from_cents(
-                                    **voice->gen->ins_params->scale,
-                                    data[0].field.double_type);
-            if (pitch > 0)
-            {
-                vs->pitch = pitch;
-            }
-            else
-            {
-                vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
-            }
-        }
-        //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
-        vs->orig_cents = data[0].field.double_type;
-
+        vs->hit_index = data[0].field.integral_type;
         set_instrument_properties(voice, vs, ch_state, &force_var);
     }
     return true;

@@ -129,6 +129,12 @@ extern "C" {
 
 
 /**
+ * Maximum number of distinct hit values in a Kunquat instrument.
+ */
+#define KQT_HITS_MAX 128
+
+
+/**
  * Maximum number of Scales in a Kunquat Handle.
  */
 #define KQT_SCALES_MAX 16

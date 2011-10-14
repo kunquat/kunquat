@@ -19,11 +19,12 @@ from PyQt4 import QtCore, QtGui
 
 import kqt_limits as lim
 from envelope import Envelope
+from hit_map import HitMap
 from param_sample_header import ParamSampleHeader
 from param_sample_file import ParamSampleFile
 from param_slider import ParamSlider
 from param_wave import ParamWave
-from sample_map import SampleMap
+from pitch_map import PitchMap
 
 
 class DevEditor(QtGui.QSplitter):
@@ -208,7 +209,8 @@ class KeyEditor(QtGui.QStackedWidget):
                                '')
         self._sample_header = ParamSampleHeader(project, '')
         self._sample_file = ParamSampleFile(project, '')
-        self._sample_map = SampleMap(project, '')
+        self._pitch_map = PitchMap(project, '')
+        self._hit_map = HitMap(project, '')
         self._default = QtGui.QWidget()
         self.addWidget(self._default)
         self.addWidget(self._env)
@@ -216,14 +218,16 @@ class KeyEditor(QtGui.QStackedWidget):
         self.addWidget(self._wave)
         self.addWidget(self._sample_header)
         self.addWidget(self._sample_file)
-        self.addWidget(self._sample_map)
+        self.addWidget(self._pitch_map)
+        self.addWidget(self._hit_map)
         self._map = {
                         'jsone': self._env,
                         'jsonf': self._slider,
                         'jsoni': self._slider,
                         'jsonln': self._wave,
                         'jsonsh': self._sample_header,
-                        'jsonsm': self._sample_map,
+                        'jsonsm': self._pitch_map,
+                        'jsonhm': self._hit_map,
                         'wv': self._sample_file,
                     }
 

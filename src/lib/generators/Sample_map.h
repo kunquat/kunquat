@@ -21,23 +21,13 @@
 #include <AAtree.h>
 #include <File_base.h>
 #include <Random.h>
+#include <Sample_entry.h>
 
 
 #define SAMPLE_MAP_RANDOMS_MAX (8)
 
 
 typedef struct Sample_map Sample_map;
-
-
-typedef struct Sample_entry
-{
-    double ref_freq;  ///< The reference frequency in the mapping.
-    /// The pitch offset of the middle frequency of this sample
-    /// in the reference frequency.
-    double cents;
-    double vol_scale;
-    uint16_t sample;
-} Sample_entry;
 
 
 /**

@@ -21,6 +21,7 @@
 
 #include <Envelope.h>
 #include <File_base.h>
+#include <Hit_map.h>
 #include <Num_list.h>
 #include <Real.h>
 #include <Reltime.h>
@@ -42,6 +43,7 @@ typedef enum
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
     DEVICE_FIELD_SAMPLE_MAP,
+    DEVICE_FIELD_HIT_MAP,
     DEVICE_FIELD_NUM_LIST,
 } Device_field_type;
 
@@ -61,6 +63,7 @@ typedef struct Device_field Device_field;
  *                  .jsone (Envelope)
  *                  .jsonsh (Sample params)
  *                  .jsonsm (Sample map)
+ *                  .jsonhm (Hit map)
  *                  .jsonln (Number list)
  *                  .wv (WavPack).
  * \param data   Pointer to the data that must have a type matching the key,
@@ -254,6 +257,17 @@ Sample_params* Device_field_get_sample_params(Device_field* field);
  * \return   The Sample map.
  */
 Sample_map* Device_field_get_sample_map(Device_field* field);
+
+
+/**
+ * Gets a Hit map from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                a Hit map.
+ *
+ * \return   The Hit map.
+ */
+Hit_map* Device_field_get_hit_map(Device_field* field);
 
 
 /**

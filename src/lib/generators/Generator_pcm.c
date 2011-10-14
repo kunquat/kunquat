@@ -22,6 +22,7 @@
 #include <Generator_common.h>
 #include <Device_params.h>
 #include <Generator_pcm.h>
+#include <Hit_map.h>
 #include <Voice_state_pcm.h>
 #include <Sample.h>
 #include <Sample_mix.h>
@@ -145,21 +146,43 @@ uint32_t Generator_pcm_mix(Generator* gen,
             }
             source = *source_arg;
         }
-        char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
-        snprintf(map_key, strlen(map_key) + 1,
-                 "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
-        Sample_map* map = Device_params_get_sample_map(gen->conf->params,
-                                                       map_key);
-        if (map == NULL)
+        const Sample_entry* entry = NULL;
+        if (state->hit_index >= 0)
         {
-            state->active = false;
-            return offset;
+            assert(state->hit_index < KQT_HITS_MAX);
+            char map_key[] = "exp_X/src_X/p_hit_map.jsonhm";
+            snprintf(map_key, strlen(map_key) + 1,
+                     "exp_%01x/src_%01x/p_hit_map.jsonhm", expression, source);
+            Hit_map* map = Device_params_get_hit_map(gen->conf->params,
+                                                     map_key);
+            if (map == NULL)
+            {
+                state->active = false;
+                return offset;
+            }
+            state->pitch = 440;
+            entry = Hit_map_get_entry(map, state->hit_index,
+                                      state->force, state->rand_p);
         }
-        //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
-        const Sample_entry* entry = Sample_map_get_entry(map,
-                                            log2(state->pitch / 440) * 1200,
-                                            state->force,
-                                            state->rand_p);
+        else
+        {
+            char map_key[] = "exp_X/src_X/p_sample_map.jsonsm";
+            snprintf(map_key, strlen(map_key) + 1,
+                     "exp_%01x/src_%01x/p_sample_map.jsonsm", expression, source);
+            Sample_map* map = Device_params_get_sample_map(gen->conf->params,
+                                                           map_key);
+            if (map == NULL)
+            {
+                state->active = false;
+                return offset;
+            }
+            //fprintf(stderr, "pitch @ %p: %f\n", (void*)&state->pitch, state->pitch);
+            entry = Sample_map_get_entry(map,
+                                         log2(state->pitch / 440) * 1200,
+                                         state->force,
+                                         state->rand_p);
+            pcm_state->middle_tone = entry->ref_freq;
+        }
         if (entry == NULL || entry->sample >= PCM_SAMPLES_MAX)
         {
             state->active = false;
@@ -167,7 +190,6 @@ uint32_t Generator_pcm_mix(Generator* gen,
         }
         pcm_state->sample = entry->sample;
         pcm_state->volume = entry->vol_scale;
-        pcm_state->middle_tone = entry->ref_freq;
         char header_key[] = "smp_XXX/p_sample.jsonsh";
         snprintf(header_key, strlen(header_key) + 1,
                  "smp_%03x/p_sample.jsonsh", pcm_state->sample);
@@ -179,6 +201,10 @@ uint32_t Generator_pcm_mix(Generator* gen,
             return offset;
         }
         assert(header->mid_freq > 0);
+        if (state->hit_index >= 0)
+        {
+            pcm_state->middle_tone = 440;
+        }
         pcm_state->freq = header->mid_freq * exp2(entry->cents / 1200);
         Sample_params_copy(&pcm_state->params, header);
     }

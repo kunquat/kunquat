@@ -26,6 +26,9 @@ import trigger
 import trigger_row
 
 
+voice_starters = ('cn+', 'ch')
+
+
 class Cursor(QtCore.QObject):
 
     field_edit = QtCore.pyqtSignal(bool, name='fieldEdit')
@@ -199,7 +202,7 @@ class Cursor(QtCore.QObject):
             tindex, findex = row.get_slot(self)
             if tindex < len(row): #and findex == 0:
                 play_note_off = False
-                if row[tindex][0] == 'cn+':
+                if row[tindex][0] in voice_starters:
                     play_note_off = True
                     if self.inst_auto and tindex > 0:
                         assert self.index > 0
@@ -306,7 +309,7 @@ class Cursor(QtCore.QObject):
             tindex, findex = row.get_slot(self)
             if tindex < len(row):
                 trig = row[tindex]
-                if trig[0] in ('cn+', 'cn-'): # replace existing Note On/Off
+                if trig[0] in ('cn+', 'ch', 'cn-'): # replace existing Note On/Off
                     del row[tindex]
                     self.insert = True
                     self.col.set_value(self, trigger.TriggerType('cn-'))
@@ -356,7 +359,7 @@ class Cursor(QtCore.QObject):
             tindex, findex = row.get_slot(self)
             if tindex < len(row):
                 trig = row[tindex]
-                if trig[0] == 'cn+': # replace existing Note On
+                if trig[0] in voice_starters: # replace existing Note On
                     self.col.set_value(self, cents)
                     if self.inst_auto:
                         use_existing_trig = False

@@ -56,6 +56,7 @@ typedef struct Voice_state
     double ramp_release;           ///< The current state of volume ramp during release.
     double orig_cents;             ///< The pitch in cents used at the beginning.
 
+    int hit_index;                 ///< The hit index (negative for normal notes).
     pitch_t pitch;                 ///< The frequency at which the note is played.
     pitch_t prev_pitch;            ///< The frequency in the previous mixing cycle.
     pitch_t actual_pitch;          ///< The actual frequency (includes vibrato).

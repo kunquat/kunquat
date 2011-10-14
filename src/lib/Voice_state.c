@@ -80,6 +80,7 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->ramp_release = 0;
     state->orig_cents = 0;
 
+    state->hit_index = -1;
     state->pitch = 0;
     state->prev_pitch = 0;
     state->actual_pitch = 0;
