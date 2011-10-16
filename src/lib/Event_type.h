@@ -37,8 +37,10 @@ typedef enum
 
     EVENT_GENERAL_COMMENT, ///< A comment.
 
-    EVENT_GENERAL_IF,
-    EVENT_GENERAL_END_IF,
+    EVENT_GENERAL_IF,           ///< Evaluate a conditional expression.
+    EVENT_GENERAL_COND_TRUE,    ///< Handle events if last if was true.
+    EVENT_GENERAL_COND_FALSE,   ///< Handle events if last if was false.
+    EVENT_GENERAL_END_COND,     ///< End conditional event handling.
 
     EVENT_GENERAL_UPPER,
 
@@ -214,6 +216,7 @@ typedef struct Event_field
         double double_type;
         Real Real_type;
         Reltime Reltime_type;
+        char* string_type;
     } field;
 } Event_field;
 

@@ -156,10 +156,15 @@ char* Event_type_get_fields(char* str,
             break;
             case EVENT_FIELD_STRING:
             {
+                char* str_pos = str;
                 str = read_string(str, NULL, 0, state);
                 if (state->error)
                 {
                     return str;
+                }
+                if (fields != NULL)
+                {
+                    fields[i].field.string_type = str_pos;
                 }
             }
             break;

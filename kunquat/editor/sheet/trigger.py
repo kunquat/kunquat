@@ -336,6 +336,7 @@ any_int = (int, lambda x: True, 0)
 key = (str, is_key, '')
 pitch = (Note, isfinite, Note(0))
 note_entry = (int, lambda x: x >= 0, 0) # FIXME
+any_str = (str, lambda x: x != None, '')
 
 global_triggers = {
         'wpd': [nonneg_ts],
@@ -424,6 +425,7 @@ channel_triggers = {
 }
 
 general_triggers = {
+        '#': [any_str],
 }
 
 

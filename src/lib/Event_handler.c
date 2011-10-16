@@ -32,6 +32,8 @@
 #include <Event_control_resume.h>
 #include <Event_control_play_pattern.h>
 
+#include <Event_general_comment.h>
+
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_set_jump_row.h>
@@ -122,6 +124,7 @@ struct Event_handler
     Playdata* global_state;
     Event_names* event_names;
     bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
+    bool (*general_process[EVENT_GENERAL_UPPER])(General_state*, char*);
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
     bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
@@ -171,6 +174,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_control_resume_process);
     Event_handler_set_control_process(eh, ">pattern", EVENT_CONTROL_PLAY_PATTERN,
                                       Event_control_play_pattern_process);
+
+    Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
+                                      Event_general_comment_process);
 
     Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
@@ -344,6 +350,27 @@ bool Event_handler_set_ch_process(Event_handler* eh,
         return false;
     }
     eh->ch_process[type] = ch_process;
+    return true;
+}
+
+
+bool Event_handler_set_general_process(Event_handler* eh,
+                                       const char* name,
+                                       Event_type type,
+                                       bool (*general_process)(General_state*,
+                                                               char*))
+{
+    assert(eh != NULL);
+    assert(name != NULL);
+    assert(strlen(name) > 0);
+    assert(strlen(name) < EVENT_NAME_MAX);
+    assert(EVENT_IS_GENERAL(type));
+    assert(general_process != NULL);
+    if (!Event_names_add(eh->event_names, name, type))
+    {
+        return false;
+    }
+    eh->general_process[type] = general_process;
     return true;
 }
 
@@ -614,6 +641,17 @@ bool Event_handler_handle(Event_handler* eh,
     else if (EVENT_IS_CONTROL(type))
     {
         return eh->control_process[type](&eh->global_state->parent, fields);
+    }
+    else if (EVENT_IS_GENERAL(type))
+    {
+        assert(index >= -1);
+        assert(index < KQT_COLUMNS_MAX);
+        General_state* gstate = (General_state*)eh->global_state;
+        if (index >= 0)
+        {
+            gstate = (General_state*)eh->ch_states[index];
+        }
+        return eh->general_process[type](gstate, fields);
     }
     return false;
 }
