@@ -1,0 +1,154 @@
+
+
+/*
+ * Author: Tomi Jylhä-Ollila, Finland 2011
+ *
+ * This file is part of Kunquat.
+ *
+ * CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+ *
+ * To the extent possible under law, Kunquat Affirmers have waived all
+ * copyright and related or neighboring rights to Kunquat.
+ */
+
+
+#include <stdlib.h>
+#include <string.h>
+
+#include <AAtree.h>
+#include <Env_var.h>
+#include <Environment.h>
+#include <File_base.h>
+#include <xassert.h>
+#include <xmemory.h>
+
+
+struct Environment
+{
+    AAtree* vars;
+    AAiter* iter;
+};
+
+
+Environment* new_Environment(void)
+{
+    Environment* env = xalloc(Environment);
+    if (env == NULL)
+    {
+        return NULL;
+    }
+    env->vars = NULL;
+    env->iter = NULL;
+    env->vars = new_AAtree((int (*)(const void*, const void*))strcmp,
+                           (void (*)(void*))del_Env_var);
+    env->iter = new_AAiter(env->vars);
+    if (env->vars == NULL || env->iter == NULL)
+    {
+        del_Environment(env);
+        return NULL;
+    }
+    return env;
+}
+
+
+bool Environment_parse(Environment* env, char* str, Read_state* state)
+{
+    assert(env != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (str == NULL)
+    {
+        AAtree_clear(env->vars);
+        AAiter_change_tree(env->iter, env->vars);
+        return true;
+    }
+    str = read_const_char(str, '[', state);
+    if (state->error)
+    {
+        return false;
+    }
+    str = read_const_char(str, ']', state);
+    if (!state->error)
+    {
+        AAtree_clear(env->vars);
+        AAiter_change_tree(env->iter, env->vars);
+        return true;
+    }
+    Read_state_clear_error(state);
+    AAtree* new_vars = new_AAtree((int (*)(const void*, const void*))strcmp,
+                                  (void (*)(void*))del_Env_var);
+    if (new_vars == NULL)
+    {
+        return false;
+    }
+    bool expect_var = true;
+    while (expect_var)
+    {
+        Env_var* var = new_Env_var_from_string(&str, state);
+        if (var == NULL)
+        {
+            del_AAtree(new_vars);
+            return false;
+        }
+        if (AAtree_get(new_vars, Env_var_get_name(var)) != NULL)
+        {
+            Read_state_set_error(state, "Variable name %s is not unique",
+                                        Env_var_get_name(var));
+            del_Env_var(var);
+            del_AAtree(new_vars);
+            return false;
+        }
+        if (!AAtree_ins(new_vars, var))
+        {
+            del_Env_var(var);
+            del_AAtree(new_vars);
+            return false;
+        }
+        check_next(str, state, expect_var);
+    }
+    AAiter_change_tree(env->iter, new_vars);
+    AAtree* old_vars = env->vars;
+    env->vars = new_vars;
+    del_AAtree(old_vars);
+    return true;
+}
+
+
+void Environment_reset(Environment* env)
+{
+    assert(env != NULL);
+    AAiter_change_tree(env->iter, env->vars);
+    Env_var* var = AAiter_get(env->iter, "");
+    while (var != NULL)
+    {
+        Env_var_reset(var);
+        var = AAiter_get_next(env->iter);
+    }
+    return;
+}
+
+
+Env_var* Environment_get(Environment* env, char* name)
+{
+    assert(env != NULL);
+    assert(name != NULL);
+    return AAtree_get(env->vars, name);
+}
+
+
+void del_Environment(Environment* env)
+{
+    if (env == NULL)
+    {
+        return;
+    }
+    del_AAiter(env->iter);
+    del_AAtree(env->vars);
+    xfree(env);
+    return;
+}
+
+

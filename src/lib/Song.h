@@ -20,6 +20,7 @@
 
 #include <Connections.h>
 #include <Device.h>
+#include <Environment.h>
 #include <kunquat/limits.h>
 #include <frame.h>
 #include <Subsong_table.h>
@@ -52,6 +53,7 @@ typedef struct Song
     Playdata* skip_state;               ///< Skip state (used for length calculation).
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
+    Environment* env;                   ///< Environment variables.
 } Song;
 
 

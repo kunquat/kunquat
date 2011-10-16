@@ -116,6 +116,7 @@ Song* new_Song(uint32_t buf_size)
     song->skip_state = NULL;
     song->skip_handler = NULL;
     song->random = NULL;
+    song->env = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -228,6 +229,12 @@ Song* new_Song(uint32_t buf_size)
             del_Song(song);
             return NULL;
         }
+    }
+    song->env = new_Environment();
+    if (song->env == NULL)
+    {
+        del_Song(song);
+        return NULL;
     }
     song->mix_vol_dB = SONG_DEFAULT_MIX_VOL;
     song->mix_vol = exp2(song->mix_vol_dB / 6);
@@ -741,6 +748,7 @@ void del_Song(Song* song)
     {
         return;
     }
+    del_Environment(song->env);
     del_Subsong_table(song->subsongs);
     del_Pat_table(song->pats);
     del_Connections(song->connections);

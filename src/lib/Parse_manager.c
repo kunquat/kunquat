@@ -20,6 +20,7 @@
 
 #include <Connections.h>
 #include <Connections_search.h>
+#include <Environment.h>
 #include <File_base.h>
 #include <Device_event_keys.h>
 #include <Device_params.h>
@@ -334,6 +335,23 @@ static bool parse_song_level(kqt_Handle* handle,
         if (!Song_parse_random_seed(handle->song, data, state))
         {
             set_parse_error(handle, state);
+            return false;
+        }
+    }
+    else if (string_eq(key, "p_environment.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        if (!Environment_parse(handle->song->env, data, state))
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
             return false;
         }
     }
