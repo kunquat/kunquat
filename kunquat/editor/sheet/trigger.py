@@ -426,6 +426,9 @@ channel_triggers = {
 
 general_triggers = {
         '#': [any_str],
+
+        '!if': [any_bool],
+        '!endif': [],
 }
 
 

@@ -20,6 +20,9 @@
 
 #include <Event_general_comment.h>
 
+#include <Event_general_if.h>
+#include <Event_general_end_if.h>
+
 #include <Event_global_set_tempo.h>
 #include <Event_global_slide_tempo.h>
 #include <Event_global_slide_tempo_length.h>
@@ -107,6 +110,9 @@ typedef Event* (*Event_cons)(Reltime* pos);
 static const Event_cons cons[EVENT_LAST] =
 {
     [EVENT_GENERAL_COMMENT] = new_Event_general_comment,
+
+    [EVENT_GENERAL_IF] = new_Event_general_if,
+    [EVENT_GENERAL_END_IF] = new_Event_general_end_if,
 
     [EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo,
     [EVENT_GLOBAL_SLIDE_TEMPO] = new_Event_global_slide_tempo,

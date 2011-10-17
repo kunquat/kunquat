@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,9 @@ typedef struct General_state
 {
     bool global;
     bool pause;
+    bool cond_exec_enabled;
+    bool cond_for_exec;
+    bool evaluated_cond;
 } General_state;
 
 
@@ -34,6 +37,16 @@ typedef struct General_state
  * \return   The parameter \a state.
  */
 General_state* General_state_init(General_state* state, bool global);
+
+
+/**
+ * Tells whether events connected to the General state should be processed.
+ *
+ * \param state   The General state -- must not be \c NULL.
+ *
+ * \return   \c true if events should be processed, otherwise \c false.
+ */
+bool General_state_events_enabled(General_state* state);
 
 
 #endif // K_GENERAL_STATE_H

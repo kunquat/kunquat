@@ -37,10 +37,9 @@ typedef enum
 
     EVENT_GENERAL_COMMENT, ///< A comment.
 
-    EVENT_GENERAL_IF,           ///< Evaluate a conditional expression.
-    EVENT_GENERAL_COND_TRUE,    ///< Handle events if last if was true.
-    EVENT_GENERAL_COND_FALSE,   ///< Handle events if last if was false.
-    EVENT_GENERAL_END_COND,     ///< End conditional event handling.
+    EVENT_GENERAL_COND,         ///< Evaluate a conditional expression.
+    EVENT_GENERAL_IF,           ///< Start conditional event handling.
+    EVENT_GENERAL_END_IF,       ///< End conditional event handling.
 
     EVENT_GENERAL_UPPER,
 

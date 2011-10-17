@@ -34,6 +34,9 @@
 
 #include <Event_general_comment.h>
 
+#include <Event_general_if.h>
+#include <Event_general_end_if.h>
+
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_set_jump_row.h>
@@ -177,6 +180,11 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);
+
+    Event_handler_set_general_process(eh, "!if", EVENT_GENERAL_IF,
+                                      Event_general_if_process);
+    Event_handler_set_general_process(eh, "!endif", EVENT_GENERAL_END_IF,
+                                      Event_general_end_if_process);
 
     Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
