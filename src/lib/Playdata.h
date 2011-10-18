@@ -85,6 +85,7 @@ typedef struct Playdata
     double old_tempo;                 ///< Old tempo (used to detect tempo change).
 
     Reltime delay_left;               ///< The amount of pattern delay left.
+    int event_index;                  ///< Current event index.
     int delay_event_index;            ///< Position of the delay event.
 
     uint16_t orig_subsong;            ///< Subsong at the start of playback.

@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <stdbool.h>
 #include <limits.h>
 
@@ -56,6 +57,7 @@ bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)
     {
         return false;
     }
+    global_state->delay_event_index = global_state->event_index;
     Reltime_copy(&global_state->delay_left, &delay[0].field.Reltime_type);
     return true;
 }

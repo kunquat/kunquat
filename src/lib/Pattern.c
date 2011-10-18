@@ -630,7 +630,7 @@ static void Pattern_evaluate_global_row(Pattern* pat,
     assert(next_global_pos != NULL);
     (void)pat;
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
-    int event_index = 0;
+    play->event_index = 0;
     while (*next_global != NULL
             && Reltime_cmp(*next_global_pos, &play->pos) == 0
             && Reltime_cmp(&play->delay_left, zero_time) <= 0
@@ -643,7 +643,7 @@ static void Pattern_evaluate_global_row(Pattern* pat,
             for (int i = 0; i <= play->delay_event_index; ++i)
             {
                 *next_global = Column_iter_get_next(play->citer);
-                ++event_index;
+                ++play->event_index;
             }
             if (*next_global != NULL)
             {
@@ -658,9 +658,12 @@ static void Pattern_evaluate_global_row(Pattern* pat,
         }
         if (Event_get_type((Event*)*next_global) == EVENT_GLOBAL_JUMP)
         {
-            // Jump events inside Patterns contain mutable state data, so
-            // they need to be handled as a special case here.
-            Trigger_global_jump_process((Event_global*)*next_global, play);
+            if (General_state_events_enabled((General_state*)play))
+            {
+                // Jump events inside Patterns contain mutable state data, so
+                // they need to be handled as a special case here.
+                Trigger_global_jump_process((Event_global*)*next_global, play);
+            }
         }
         else
         {
@@ -672,11 +675,7 @@ static void Pattern_evaluate_global_row(Pattern* pat,
                 assert(false);
             }
         }
-        if ((*next_global)->type == EVENT_GLOBAL_PATTERN_DELAY)
-        {
-            play->delay_event_index = event_index;
-        }
-        ++event_index;
+        ++play->event_index;
         *next_global = Column_iter_get_next(play->citer);
         if (*next_global != NULL)
         {

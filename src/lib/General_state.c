@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <General_state.h>
 #include <xassert.h>
@@ -33,6 +34,13 @@ General_state* General_state_init(General_state* state, bool global)
 bool General_state_events_enabled(General_state* state)
 {
     assert(state != NULL);
+#if 0
+    if (state->global)
+        fprintf(stderr, "enabled: %d, exec: %d, evaluated: %d\n",
+                        (int)state->cond_exec_enabled,
+                        (int)state->cond_for_exec,
+                        (int)state->evaluated_cond);
+#endif
     return !state->cond_exec_enabled ||
            (state->cond_for_exec == state->evaluated_cond);
 }

@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <Event_common.h>
 #include <Event_general.h>

@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <DSP_conf.h>
@@ -511,11 +512,22 @@ bool Event_handler_handle(Event_handler* eh,
                           char* fields)
 {
     assert(eh != NULL);
+    assert(index >= -1);
+    assert(index < KQT_COLUMNS_MAX);
     assert(EVENT_IS_VALID(type));
+    General_state* gstate = (General_state*)eh->global_state;
+    if (index >= 0)
+    {
+        gstate = (General_state*)eh->ch_states[index];
+    }
+    if (!General_state_events_enabled(gstate) &&
+            type != EVENT_GENERAL_IF && type != EVENT_GENERAL_END_IF)
+    {
+        return true;
+    }
     if (EVENT_IS_CHANNEL(type))
     {
         assert(index >= 0);
-        assert(index < KQT_COLUMNS_MAX);
         if (eh->ch_process[type] == NULL)
         {
             return false;
@@ -525,7 +537,6 @@ bool Event_handler_handle(Event_handler* eh,
     else if (EVENT_IS_INS(type))
     {
         assert(index >= 0);
-        assert(index < KQT_COLUMNS_MAX);
 //        Instrument* ins = Ins_table_get(eh->insts, index);
         Instrument* ins = Ins_table_get(eh->insts,
                                         eh->ch_states[index]->instrument);
@@ -549,7 +560,6 @@ bool Event_handler_handle(Event_handler* eh,
     else if (EVENT_IS_GENERATOR(type))
     {
         assert(index >= 0);
-        assert(index < KQT_COLUMNS_MAX);
         Instrument* ins = Ins_table_get(eh->insts,
                                         eh->ch_states[index]->instrument);
         if (ins == NULL)
@@ -567,7 +577,6 @@ bool Event_handler_handle(Event_handler* eh,
     else if (EVENT_IS_EFFECT(type))
     {
         assert(index >= 0);
-        assert(index < KQT_EFFECTS_MAX);
         Effect_table* effects = eh->effects;
         if (eh->ch_states[index]->inst_effects)
         {
@@ -597,7 +606,6 @@ bool Event_handler_handle(Event_handler* eh,
     else if (EVENT_IS_DSP(type))
     {
         assert(index >= 0);
-        assert(index < KQT_DSPS_MAX);
         Effect_table* effects = eh->effects;
         if (eh->ch_states[index]->inst_effects)
         {
@@ -648,12 +656,12 @@ bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_CONTROL(type))
     {
-        return eh->control_process[type](&eh->global_state->parent, fields);
+        assert(index == -1);
+        return eh->control_process[type]((General_state*)eh->global_state,
+                                         fields);
     }
     else if (EVENT_IS_GENERAL(type))
     {
-        assert(index >= -1);
-        assert(index < KQT_COLUMNS_MAX);
         General_state* gstate = (General_state*)eh->global_state;
         if (index >= 0)
         {
