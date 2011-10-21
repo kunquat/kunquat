@@ -17,7 +17,7 @@ if '--disable-player' not in sys.argv:
                    )
 else:
     sys.argv.remove('--disable-player')
-if '--disable-editor' not in sys.argv:
+if '--disable-tracker' not in sys.argv:
     req_list.append('PyQt4')
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
             'kunquat.editor',
@@ -25,12 +25,12 @@ if '--disable-editor' not in sys.argv:
             'kunquat.editor.instruments',
             'kunquat.editor.sheet',
             ]
-    inc_scripts.append('editor/kunquat-editor')
+    inc_scripts.append('tracker/kunquat-tracker')
 else:
-    sys.argv.remove('--disable-editor')
+    sys.argv.remove('--disable-tracker')
 
 setup(name='kunquat',
-      version='0.3.1',
+      version='0.4.2',
       author='Tomi Jylhä-Ollila',
       author_email='tomi.jylha-ollila@iki.fi',
       url='http://launchpad.net/kunquat/',
