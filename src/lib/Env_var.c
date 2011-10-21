@@ -26,6 +26,10 @@
 #include <xmemory.h>
 
 
+#define INIT_NAME_CHARS "abcdefghijklmnopqrstuvwxyz_"
+#define NAME_CHARS INIT_NAME_CHARS "0123456789"
+
+
 typedef union
 {
     bool bool_type;
@@ -116,6 +120,16 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     *str = read_const_char(*str, ',', state);
     if (state->error)
     {
+        return NULL;
+    }
+    if (strspn(name, NAME_CHARS) != strlen(name) ||
+            strchr(INIT_NAME_CHARS, name[0]) == NULL)
+    {
+        Read_state_set_error(state, "Illegal variable name %s"
+                             " (Variable names may only contain"
+                             " lower-case letters and underscores"
+                             " (and digits as other than first characters))",
+                             name);
         return NULL;
     }
     if (string_eq(type_name, "bool"))
