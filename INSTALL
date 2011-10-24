@@ -4,11 +4,11 @@ sudo apt-get install build-essential scons libarchive-dev libwavpack-dev libpuls
 scons
 scons prefix=~/kunquat install
 export LD_LIBRARY_PATH=~/kunquat/lib
-export PYTHONPATH=~/kunquat/lib/python2.6/site-packages
+export PYTHONPATH=~/kunquat/lib/python2.7/site-packages
 ~/kunquat/bin/kunquat-player ~/kunquat/share/doc/kunquat/examples/example.kqt.bz2
 
-If you get sound through kunquat-player, you may also want to try out the editor:
+If you get sound through kunquat-player, you may also want to try out the tracker:
 
-~/kunquat/bin/kunquat-editor
+~/kunquat/bin/kunquat-tracker
 
 NOTE: Kunquat is in an early development stage. Don't expect it to do anything useful.

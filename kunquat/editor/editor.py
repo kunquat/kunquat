@@ -36,8 +36,8 @@ from sheet import Sheet
 import timestamp as ts
 
 
-PROGRAM_NAME = 'Kunquat'
-PROGRAM_VERSION = '0.0.0'
+PROGRAM_NAME = 'Kunquat Tracker'
+PROGRAM_VERSION = '0.4.2'
 
 
 def sine():
