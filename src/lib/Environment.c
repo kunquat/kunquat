@@ -93,7 +93,7 @@ bool Environment_parse(Environment* env, char* str, Read_state* state)
             del_AAtree(new_vars);
             return false;
         }
-        if (AAtree_get(new_vars, Env_var_get_name(var)) != NULL)
+        if (AAtree_contains(new_vars, Env_var_get_name(var)))
         {
             Read_state_set_error(state, "Variable name %s is not unique",
                                         Env_var_get_name(var));
