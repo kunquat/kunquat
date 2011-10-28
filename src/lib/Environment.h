@@ -23,7 +23,7 @@
 
 
 /**
- * A collection of state information.
+ * A collection of externally modifiable state information.
  */
 typedef struct Environment Environment;
 

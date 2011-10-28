@@ -25,6 +25,7 @@ from PyQt4 import QtCore, QtGui
 
 from connections import Connections
 from effects import Effects
+from env import Env
 from instruments import Instruments
 import keymap
 import kqt_limits as lim
@@ -311,6 +312,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._instruments.sync()
         self._effects.sync()
         self._connections.sync()
+        self._env.sync()
 
     def busy(self, busy_set):
         if busy_set:
@@ -353,6 +355,8 @@ class KqtEditor(QtGui.QMainWindow):
         self._tabs.addTab(self._effects, 'Effects')
         self._connections = Connections(self.project, 'p_connections.json')
         self._tabs.addTab(self._connections, 'Connections')
+        self._env = Env(self.project, 'p_environment.json')
+        self._tabs.addTab(self._env, 'Environment')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
