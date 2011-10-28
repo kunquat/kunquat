@@ -72,7 +72,7 @@ bool Event_control_env_set_timestamp_process(General_state* gstate,
     {
         return false;
     }
-    Env_var_set_value(var, &data[1].field.Reltime_type);
+    Env_var_modify_value(var, &data[1].field.Reltime_type);
     return true;
 }
 

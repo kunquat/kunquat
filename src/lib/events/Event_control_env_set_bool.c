@@ -66,7 +66,7 @@ bool Event_control_env_set_bool_process(General_state* gstate, char* fields)
     {
         return false;
     }
-    Env_var_set_value(var, &data[1].field.bool_type);
+    Env_var_modify_value(var, &data[1].field.bool_type);
     return true;
 }
 

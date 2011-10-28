@@ -69,7 +69,7 @@ bool Event_control_env_set_int_process(General_state* gstate, char* fields)
     {
         return false;
     }
-    Env_var_set_value(var, &data[1].field.integral_type);
+    Env_var_modify_value(var, &data[1].field.integral_type);
     return true;
 }
 
