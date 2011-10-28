@@ -22,6 +22,7 @@
 #include <Subsong_table.h>
 //#include <Channel.h>
 #include <Column.h>
+#include <Environment.h>
 #include <General_state.h>
 #include <Random.h>
 #include <Slider.h>
@@ -57,6 +58,8 @@ typedef struct Playdata
     Reltime play_time;                ///< The number of beats played since the start of playback.
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
+
+    Environment* env;                 ///< The interactivity environment.
 
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
@@ -109,12 +112,14 @@ typedef struct Playdata
  * del_Playdata().
  *
  * \param insts       The Instrument table -- must not be \c NULL.
+ * \param env         The Environment -- must not be \c NULL.
  * \param random      The Random source -- must not be \c NULL.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
 Playdata* new_Playdata(Ins_table* insts,
+                       Environment* env,
                        Random* random);
 
 
@@ -124,12 +129,13 @@ Playdata* new_Playdata(Ins_table* insts,
  * The caller shall eventually destroy the created object using
  * del_Playdata().
  *
+ * \param env     The Environment -- must not be \c NULL.
  * \param freq    The mixing frequency -- must be > \c 0.
  *
  * \return   The new Playdata object if successful, or \c NULL if memory
  *           allocation failed.
  */
-Playdata* new_Playdata_silent(uint32_t freq);
+Playdata* new_Playdata_silent(Environment* env, uint32_t freq);
 
 
 /**

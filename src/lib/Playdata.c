@@ -19,6 +19,7 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
+#include <Environment.h>
 #include <Random.h>
 #include <Reltime.h>
 #include <Slider.h>
@@ -28,9 +29,11 @@
 
 
 Playdata* new_Playdata(Ins_table* insts,
+                       Environment* env,
                        Random* random)
 {
     assert(insts != NULL);
+    assert(env != NULL);
     (void)insts; // FIXME: remove?
     assert(random != NULL);
     Playdata* play = xalloc(Playdata);
@@ -40,6 +43,7 @@ Playdata* new_Playdata(Ins_table* insts,
     }
     General_state_init(&play->parent, true);
     play->random = random;
+    play->env = env;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -105,8 +109,9 @@ Playdata* new_Playdata(Ins_table* insts,
 }
 
 
-Playdata* new_Playdata_silent(uint32_t freq)
+Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
 {
+    assert(env != NULL);
     assert(freq > 0);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
@@ -115,6 +120,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     }
     General_state_init(&play->parent, true);
     play->random = NULL;
+    play->env = env;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -228,6 +234,7 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
+    Environment_reset(play->env);
     play->scale = 0;
 
     play->jump_set_counter = 0;

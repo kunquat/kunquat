@@ -152,7 +152,7 @@ class Env(QtGui.QTableWidget):
             except ValueError:
                 continue
             var_list.extend([[var_type, var_name, var_init]])
-        print(var_list)
+        self._project[self._key] = var_list
 
 
 class TypeSelect(QtGui.QComboBox):
@@ -200,53 +200,5 @@ class TypeSelect(QtGui.QComboBox):
                             QtCore.SIGNAL('typeChanged(int, QString*)'),
                             self.index,
                             TypeSelect.index_to_type[index])
-
-
-class EnvVar(QtCore.QObject):
-
-    removed = QtCore.pyqtSignal(int, name='removed')
-    modified = QtCore.pyqtSignal(int, name='modified')
-    finished = QtCore.pyqtSignal(int, name='finished')
-
-    def __init__(self, index, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self.index = index
-        #self._layout = QtGui.QHBoxLayout(self)
-        self.typew = QtGui.QComboBox()
-        for t in ('Boolean', 'Integer', 'Floating', 'Timestamp'):
-            self.typew.addItem(t)
-        #self._layout.addWidget(self._type)
-        self.namew = QtGui.QLineEdit()
-        #self._layout.addWidget(self._name)
-        self.init_valuew = QtGui.QLineEdit()
-        #self._layout.addWidget(self._init_value)
-        self.cur_valuew = QtGui.QLineEdit()
-        #self._layout.addWidget(self._cur_value)
-        self.removew = QtGui.QPushButton('Remove')
-        #self._layout.addWidget(self._remove)
-
-    @property
-    def index(self):
-        return self._index
-
-    @index.setter
-    def index(self, idx):
-        self._index = idx
-
-    @property
-    def type(self):
-        return self.typew.itemText(self.var_type.currentIndex())
-
-    @property
-    def name(self):
-        return self.namew.text()
-
-    @property
-    def init_value(self):
-        return self.init_valuew.text()
-
-    @property
-    def cur_value(self):
-        return self.cur_valuew.text()
 
 

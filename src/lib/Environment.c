@@ -135,7 +135,7 @@ Env_var* Environment_get(Environment* env, char* name)
 {
     assert(env != NULL);
     assert(name != NULL);
-    return AAtree_get(env->vars, name);
+    return AAtree_get_exact(env->vars, name);
 }
 
 
