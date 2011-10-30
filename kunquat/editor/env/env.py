@@ -164,7 +164,7 @@ class TypeSelect(QtGui.QComboBox):
                 'bool': 1,
                 'int': 2,
                 'float': 3,
-                'timestamp': 4,
+                #'timestamp': 4,
             }
 
     index_to_type = dict((y, x) for (x, y) in
@@ -173,7 +173,7 @@ class TypeSelect(QtGui.QComboBox):
     def __init__(self, index, parent=None):
         QtGui.QComboBox.__init__(self, parent)
         self._index = index
-        for item in ('None', 'Boolean', 'Integer', 'Floating', 'Timestamp'):
+        for item in ('None', 'Boolean', 'Integer', 'Floating'):
             self.addItem(item)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('currentIndexChanged(int)'),

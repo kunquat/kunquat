@@ -72,10 +72,10 @@ typedef struct Value
 
 static bool Value_from_token(Value* val, char* token, Environment* env);
 
-static void Value_print(Value* val);
+//static void Value_print(Value* val);
 
 
-typedef bool (*Op_func)(Value* op1, Value* op2, Value* res);
+typedef bool (*Op_func)(Value* op1, Value* op2, Value* res, Read_state* state);
 
 
 typedef struct Operator
@@ -91,24 +91,23 @@ typedef struct Operator
 
 static bool Operator_from_token(Operator* op, char* token);
 
-static void Operator_print(Operator* op);
+//static void Operator_print(Operator* op);
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res);
-static bool op_leq(Value* op1, Value* op2, Value* res);
-static bool op_geq(Value* op1, Value* op2, Value* res);
-static bool op_or(Value* op1, Value* op2, Value* res);
-static bool op_and(Value* op1, Value* op2, Value* res);
-static bool op_eq(Value* op1, Value* op2, Value* res);
-//static bool op_not(Value* op1, Value* op2, Value* res);
-static bool op_lt(Value* op1, Value* op2, Value* res);
-static bool op_gt(Value* op1, Value* op2, Value* res);
-static bool op_add(Value* op1, Value* op2, Value* res);
-static bool op_sub(Value* op1, Value* op2, Value* res);
-static bool op_mul(Value* op1, Value* op2, Value* res);
-static bool op_div(Value* op1, Value* op2, Value* res);
-static bool op_mod(Value* op1, Value* op2, Value* res);
-static bool op_pow(Value* op1, Value* op2, Value* res);
+static bool op_neq(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_leq(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_geq(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_or(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_and(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_gt(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state);
+static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state);
 
 
 static Operator operators[] =
@@ -166,7 +165,7 @@ bool Event_general_cond_process(General_state* gstate, char* fields)
     bool cond = evaluate_cond(data[0].field.string_type, gstate->env, state);
     if (!state->error)
     {
-        fprintf(stderr, "success!\n");
+        //fprintf(stderr, "success!\n");
         gstate->evaluated_cond = cond;
     }
     return true;
@@ -176,10 +175,10 @@ bool Event_general_cond_process(General_state* gstate, char* fields)
 #define STACK_SIZE 32
 
 
-static bool evaluate_expr(char* str, Environment* env, Read_state* state,
-                          Value* val_stack, int vsi,
-                          Operator* op_stack, int osi,
-                          Value* res, int depth);
+static char* evaluate_expr(char* str, Environment* env, Read_state* state,
+                           Value* val_stack, int vsi,
+                           Operator* op_stack, int osi,
+                           Value* res, int depth);
 
 
 static bool evaluate_cond(char* str, Environment* env, Read_state* state)
@@ -191,23 +190,20 @@ static bool evaluate_cond(char* str, Environment* env, Read_state* state)
     Value val_stack[STACK_SIZE] = { { .type = VALUE_TYPE_NONE } };
     Operator op_stack[STACK_SIZE] = { { .name = NULL } };
     Value* result = VALUE_AUTO;
-    if (!evaluate_expr(str, env, state, val_stack, 0, op_stack, 0, result, 0))
+    evaluate_expr(str, env, state, val_stack, 0, op_stack, 0, result, 0);
+    if (state->error)
     {
-        fprintf(stderr, "\n");
-        if (!state->error)
-        {
-            Read_state_set_error(state, "Evaluation failed.");
-        }
+        //fprintf(stderr, "%s\n", state->message);
         return false;
     }
-    fprintf(stderr, "\n");
+    //fprintf(stderr, "\n");
     if (result->type != VALUE_TYPE_BOOL)
     {
         Read_state_set_error(state, "Expression is not of boolean type.");
         return false;
     }
-    Value_print(result);
-    fprintf(stderr, "\n");
+    //Value_print(result);
+    //fprintf(stderr, "\n");
     return result->value.bool_type;
 }
 
@@ -226,10 +222,10 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus,
         }                                                   \
     } else (void)0
 
-static bool evaluate_expr(char* str, Environment* env, Read_state* state,
-                          Value* val_stack, int vsi,
-                          Operator* op_stack, int osi,
-                          Value* res, int depth)
+static char* evaluate_expr(char* str, Environment* env, Read_state* state,
+                           Value* val_stack, int vsi,
+                           Operator* op_stack, int osi,
+                           Value* res, int depth)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -244,12 +240,12 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
     assert(depth >= 0);
     if (state->error)
     {
-        return false;
+        return str;
     }
     if (depth >= STACK_SIZE)
     {
         Read_state_set_error(state, "Maximum recursion depth exceeded");
-        return false;
+        return str;
     }
     int orig_vsi = vsi;
     int orig_osi = osi;
@@ -263,39 +259,24 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
     {
         Value* operand = VALUE_AUTO;
         Operator* op = OPERATOR_AUTO;
-        if (string_eq(token, "\"") || string_eq(token, ")"))
-        {
-            if (orig_vsi >= vsi)
-            {
-                assert(orig_vsi == vsi);
-                Read_state_set_error(state, "Empty parentheses");
-                return false;
-            }
-            if ((depth == 0) != string_eq(token, "\""))
-            {
-                Read_state_set_error(state, "Unmatched %s parenthesis",
-                                     depth == 0 ? "left" : "right");
-                return false;
-            }
-            break;
-        }
-        else if (string_eq(token, "("))
+        if (string_eq(token, "("))
         {
             if (!expect_operand)
             {
                 Read_state_set_error(state, "Unexpected operand");
-                return false;
+                return str;
             }
             check_stack(vsi);
-            if (!evaluate_expr(str, env, state, val_stack, vsi,
-                               op_stack, osi, operand, depth + 1))
+            str = evaluate_expr(str, env, state, val_stack, vsi,
+                                op_stack, osi, operand, depth + 1);
+            if (state->error)
             {
-                return false;
+                return str;
             }
             assert(operand->type != VALUE_TYPE_NONE);
             if (!handle_unary(operand, found_not, found_minus, state))
             {
-                return false;
+                return str;
             }
             found_not = found_minus = false;
             memcpy(&val_stack[vsi], operand, sizeof(Value));
@@ -307,19 +288,19 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
             if (!expect_operand)
             {
                 Read_state_set_error(state, "Unexpected operand");
-                return false;
+                return str;
             }
             assert(operand->type != VALUE_TYPE_NONE);
             if (!handle_unary(operand, found_not, found_minus, state))
             {
-                return false;
+                return str;
             }
             found_not = found_minus = false;
             check_stack(vsi);
             memcpy(&val_stack[vsi], operand, sizeof(Value));
             ++vsi;
             expect_operand = false;
-            Value_print(operand);
+            //Value_print(operand);
         }
         else if (Operator_from_token(op, token))
         {
@@ -337,7 +318,7 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
                 else
                 {
                     Read_state_set_error(state, "Unexpected binary operator");
-                    return false;
+                    return str;
                 }
                 str = get_token(str, token, state);
                 continue;
@@ -345,7 +326,7 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
             if (string_eq(op->name, "!"))
             {
                 Read_state_set_error(state, "Unexpected boolean not");
-                return false;
+                return str;
             }
             while (osi > orig_osi && op->preced <= op_stack[osi - 1].preced)
             {
@@ -355,16 +336,16 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
                 if (vsi < 2)
                 {
                     Read_state_set_error(state, "Not enough operands");
-                    return false;
+                    return str;
                 }
                 Value* result = VALUE_AUTO;
                 if (!top->func(&val_stack[vsi - 2], &val_stack[vsi - 1],
-                               result))
+                               result, state))
                 {
-                    Read_state_set_error(state, "Operator error");
-                    return false;
+                    assert(state->error);
+                    return str;
                 }
-                Operator_print(top);
+                //Operator_print(top);
                 assert(result->type != VALUE_TYPE_NONE);
                 val_stack[vsi - 2].type = VALUE_TYPE_NONE;
                 val_stack[vsi - 1].type = VALUE_TYPE_NONE;
@@ -381,13 +362,26 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
         else
         {
             Read_state_set_error(state, "Unrecognised token");
-            return false;
+            return str;
         }
         str = get_token(str, token, state);
     }
     if (state->error)
     {
-        return false;
+        return str;
+    }
+    assert(string_eq(token, "") || string_eq(token, ")"));
+    if (vsi <= orig_vsi)
+    {
+        assert(vsi == orig_vsi);
+        Read_state_set_error(state, "Empty expression");
+        return str;
+    }
+    if ((depth == 0) != string_eq(token, ""))
+    {
+        Read_state_set_error(state, "Unmatched %s parenthesis",
+                             depth == 0 ? "right" : "left");
+        return str;
     }
     while (osi > orig_osi)
     {
@@ -397,16 +391,16 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
         if (vsi < 2)
         {
             Read_state_set_error(state, "Not enough operands");
-            return false;
+            return str;
         }
         Value* result = VALUE_AUTO;
         if (!top->func(&val_stack[vsi - 2], &val_stack[vsi - 1],
-                       result))
+                       result, state))
         {
-            Read_state_set_error(state, "Operator error");
-            return false;
+            assert(state->error);
+            return str;
         }
-        Operator_print(top);
+        //Operator_print(top);
         assert(result->type != VALUE_TYPE_NONE);
         val_stack[vsi - 2].type = val_stack[vsi - 1].type = VALUE_TYPE_NONE;
         --vsi;
@@ -417,7 +411,7 @@ static bool evaluate_expr(char* str, Environment* env, Read_state* state,
     assert(vsi > orig_vsi);
     memcpy(res, &val_stack[vsi - 1], sizeof(Value));
     assert(res->type != VALUE_TYPE_NONE);
-    return true;
+    return str;
 }
 
 #undef check_stack
@@ -457,8 +451,12 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus,
     {
         val->value.float_type = -val->value.float_type;
     }
-    Read_state_set_error(state, "Non-number operand for unary minus");
-    return false;
+    else
+    {
+        Read_state_set_error(state, "Non-number operand for unary minus");
+        return false;
+    }
+    return true;
 }
 
 
@@ -537,6 +535,7 @@ static bool Value_from_token(Value* val, char* token, Environment* env)
 }
 
 
+#if 0
 static void Value_print(Value* val)
 {
     assert(val != NULL);
@@ -560,6 +559,7 @@ static void Value_print(Value* val)
     fprintf(stderr, " ");
     return;
 }
+#endif
 
 
 static bool Operator_from_token(Operator* op, char* token)
@@ -578,6 +578,7 @@ static bool Operator_from_token(Operator* op, char* token)
 }
 
 
+#if 0
 static void Operator_print(Operator* op)
 {
     assert(op != NULL);
@@ -585,6 +586,7 @@ static void Operator_print(Operator* op)
     fprintf(stderr, "%s ", op->name);
     return;
 }
+#endif
 
 
 static char* get_token(char* str, char* result, Read_state* state)
@@ -685,83 +687,15 @@ static char* get_op_token(char* str, char* result, Read_state* state)
 }
 
 
-static bool op_neq(Value* op1, Value* op2, Value* res)
+static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    if (op_eq(op1, op2, res))
-    {
-        assert(res->type == VALUE_TYPE_BOOL);
-        res->value.bool_type = !res->value.bool_type;
-        return true;
-    }
-    return false;
-}
-
-
-static bool op_leq(Value* op1, Value* op2, Value* res)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    if (!op_lt(op1, op2, res))
-    {
-        return false;
-    }
-    if (res->value.bool_type)
-    {
-        return true;
-    }
-    return op_eq(op1, op2, res);
-}
-
-
-static bool op_geq(Value* op1, Value* op2, Value* res)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    return op_leq(op2, op1, res);
-}
-
-
-static bool op_or(Value* op1, Value* op2, Value* res)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
-    {
-        return false;
-    }
-    res->type = VALUE_TYPE_BOOL;
-    res->value.bool_type = op1->value.bool_type || op2->value.bool_type;
-    return true;
-}
-
-
-static bool op_and(Value* op1, Value* op2, Value* res)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
-    {
-        return false;
-    }
-    res->type = VALUE_TYPE_BOOL;
-    res->value.bool_type = op1->value.bool_type && op2->value.bool_type;
-    return true;
-}
-
-
-static bool op_eq(Value* op1, Value* op2, Value* res)
-{
-    assert(op1 != NULL);
-    assert(op2 != NULL);
-    assert(res != NULL);
-    if (op1->type == VALUE_TYPE_NONE || op2->type == VALUE_TYPE_NONE)
+    assert(state != NULL);
+    assert(op1->type > VALUE_TYPE_NONE);
+    assert(op2->type > VALUE_TYPE_NONE);
+    if (state->error)
     {
         return false;
     }
@@ -799,8 +733,8 @@ static bool op_eq(Value* op1, Value* op2, Value* res)
     res->type = VALUE_TYPE_BOOL;
     if (op1->type == VALUE_TYPE_BOOL)
     {
-        res->value.bool_type = false;
-        return true;
+        Read_state_set_error(state, "Comparison between boolean and number");
+        return false;
     }
     assert(op1->type == VALUE_TYPE_INT);
     assert(op2->type == VALUE_TYPE_FLOAT);
@@ -809,20 +743,105 @@ static bool op_eq(Value* op1, Value* op2, Value* res)
 }
 
 
-#if 0
-static bool op_not(Value* op1, Value* op2, Value* res)
-{
-}
-#endif
-
-
-static bool op_lt(Value* op1, Value* op2, Value* res)
+static bool op_neq(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (op_eq(op1, op2, res, state))
+    {
+        assert(res->type == VALUE_TYPE_BOOL);
+        res->value.bool_type = !res->value.bool_type;
+        return true;
+    }
+    return false;
+}
+
+
+static bool op_leq(Value* op1, Value* op2, Value* res, Read_state* state)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    if (!op_lt(op1, op2, res, state))
+    {
+        return false;
+    }
+    if (res->value.bool_type)
+    {
+        return true;
+    }
+    return op_eq(op1, op2, res, state);
+}
+
+
+static bool op_geq(Value* op1, Value* op2, Value* res, Read_state* state)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    return op_leq(op2, op1, res, state);
+}
+
+
+static bool op_or(Value* op1, Value* op2, Value* res, Read_state* state)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
+    {
+        Read_state_set_error(state, "Boolean OR with non-booleans");
+        return false;
+    }
+    res->type = VALUE_TYPE_BOOL;
+    res->value.bool_type = op1->value.bool_type || op2->value.bool_type;
+    return true;
+}
+
+
+static bool op_and(Value* op1, Value* op2, Value* res, Read_state* state)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    if (op1->type != VALUE_TYPE_BOOL || op2->type != VALUE_TYPE_BOOL)
+    {
+        Read_state_set_error(state, "Boolean AND with non-booleans");
+        return false;
+    }
+    res->type = VALUE_TYPE_BOOL;
+    res->value.bool_type = op1->value.bool_type && op2->value.bool_type;
+    return true;
+}
+
+
+static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state)
+{
+    assert(op1 != NULL);
+    assert(op2 != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Ordinal comparison between non-numbers");
         return false;
     }
     if (op1->type == op2->type)
@@ -861,22 +880,29 @@ static bool op_lt(Value* op1, Value* op2, Value* res)
 }
 
 
-static bool op_gt(Value* op1, Value* op2, Value* res)
+static bool op_gt(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
-    return op_lt(op2, op1, res);
+    assert(state != NULL);
+    return op_lt(op2, op1, res, state);
 }
 
 
-static bool op_add(Value* op1, Value* op2, Value* res)
+static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Addition with non-numbers");
         return false;
     }
     if (op1->type == op2->type)
@@ -914,13 +940,19 @@ static bool op_add(Value* op1, Value* op2, Value* res)
 }
 
 
-static bool op_sub(Value* op1, Value* op2, Value* res)
+static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Subtraction with non-numbers");
         return false;
     }
     if (op2->type == VALUE_TYPE_INT)
@@ -935,17 +967,23 @@ static bool op_sub(Value* op1, Value* op2, Value* res)
     {
         assert(false);
     }
-    return op_add(op1, op2, res);
+    return op_add(op1, op2, res, state);
 }
 
 
-static bool op_mul(Value* op1, Value* op2, Value* res)
+static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Multiplication with non-numbers");
         return false;
     }
     if (op1->type == op2->type)
@@ -983,18 +1021,25 @@ static bool op_mul(Value* op1, Value* op2, Value* res)
 }
 
 
-static bool op_div(Value* op1, Value* op2, Value* res)
+static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Division with non-numbers");
         return false;
     }
     if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
             (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
     {
+        Read_state_set_error(state, "Division by zero");
         return false;
     }
     if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT &&
@@ -1010,25 +1055,33 @@ static bool op_div(Value* op1, Value* op2, Value* res)
         op2->value.float_type = op2->value.int_type;
     }
     op2->value.float_type = 1.0 / op2->value.float_type;
-    return op_mul(op1, op2, res);
+    return op_mul(op1, op2, res, state);
 }
 
 
-static bool op_mod(Value* op1, Value* op2, Value* res)
+static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Modulo with non-numbers");
+        return false;
+    }
+    if ((op2->type == VALUE_TYPE_INT && op2->value.int_type == 0) ||
+            (op2->type == VALUE_TYPE_FLOAT && op2->value.float_type == 0))
+    {
+        Read_state_set_error(state, "Modulo by zero");
         return false;
     }
     if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT)
     {
-        if (op2->value.int_type == 0)
-        {
-            return false;
-        }
         res->type = VALUE_TYPE_INT;
         res->value.int_type = op1->value.int_type % op2->value.int_type;
         if (res->value.int_type < 0)
@@ -1057,10 +1110,6 @@ static bool op_mod(Value* op1, Value* op2, Value* res)
         assert(op2->type == VALUE_TYPE_FLOAT);
         divisor = op2->value.float_type;
     }
-    if (divisor == 0)
-    {
-        return false;
-    }
     res->type = VALUE_TYPE_FLOAT;
     res->value.float_type = fmod(dividend, divisor);
     if (res->value.float_type < 0)
@@ -1071,13 +1120,19 @@ static bool op_mod(Value* op1, Value* op2, Value* res)
 }
 
 
-static bool op_pow(Value* op1, Value* op2, Value* res)
+static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
 {
     assert(op1 != NULL);
     assert(op2 != NULL);
     assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
     if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
     {
+        Read_state_set_error(state, "Power with non-numbers");
         return false;
     }
     if (op1->type == VALUE_TYPE_INT && op2->type == VALUE_TYPE_INT &&
@@ -1094,8 +1149,8 @@ static bool op_pow(Value* op1, Value* op2, Value* res)
     }
     else
     {
-        base = op1->value.float_type;
         assert(op1->type == VALUE_TYPE_FLOAT);
+        base = op1->value.float_type;
     }
     double exp = NAN;
     if (op2->type == VALUE_TYPE_INT)
@@ -1104,8 +1159,8 @@ static bool op_pow(Value* op1, Value* op2, Value* res)
     }
     else
     {
-        exp = op2->value.float_type;
         assert(op2->type == VALUE_TYPE_FLOAT);
+        exp = op2->value.float_type;
     }
     res->type = VALUE_TYPE_FLOAT;
     res->value.float_type = pow(base, exp);
