@@ -20,6 +20,7 @@
 
 #include <Channel.h>
 #include <Channel_state.h>
+#include <Environment.h>
 #include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
@@ -36,6 +37,7 @@
 Channel* new_Channel(Ins_table* insts,
                      int num,
                      Voice_pool* pool,
+                     Environment* env,
                      double* tempo,
                      uint32_t* freq)
 {
@@ -43,6 +45,7 @@ Channel* new_Channel(Ins_table* insts,
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(pool != NULL);
+    assert(env != NULL);
     assert(tempo != NULL);
     assert(freq != NULL);
     Channel* ch = xalloc(Channel);
@@ -65,7 +68,7 @@ Channel* new_Channel(Ins_table* insts,
         return NULL;
     } */
 //    ch->single = NULL;
-    if (!Channel_state_init(&ch->init_state, num, &ch->mute))
+    if (!Channel_state_init(&ch->init_state, num, &ch->mute, env))
     {
         xfree(ch);
         return NULL;

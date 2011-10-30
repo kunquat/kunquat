@@ -41,9 +41,8 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
-    General_state_init(&play->parent, true);
+    General_state_init(&play->parent, true, env);
     play->random = random;
-    play->env = env;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -118,9 +117,8 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     {
         return NULL;
     }
-    General_state_init(&play->parent, true);
+    General_state_init(&play->parent, true, env);
     play->random = NULL;
-    play->env = env;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -217,7 +215,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 void Playdata_reset(Playdata* play)
 {
     assert(play != NULL);
-    General_state_init(&play->parent, true);
+    General_state_reset(&play->parent);
     ++play->play_id;
     if (!play->silent)
     {
@@ -234,7 +232,6 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
-    Environment_reset(play->env);
     play->scale = 0;
 
     play->jump_set_counter = 0;

@@ -195,6 +195,7 @@ Song* new_Song(uint32_t buf_size)
     {
         song->channels[i] = new_Channel(song->insts, i,
                                         song->play_state->voice_pool,
+                                        song->env,
                                         &song->play_state->tempo,
                                         &song->play_state->freq);
         if (song->channels[i] == NULL)

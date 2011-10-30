@@ -17,17 +17,20 @@
 #include <string.h>
 
 #include <Channel_state.h>
+#include <Environment.h>
 #include <Reltime.h>
 #include <xassert.h>
 
 
-bool Channel_state_init(Channel_state* state, int num, bool* mute)
+bool Channel_state_init(Channel_state* state, int num, bool* mute,
+                        Environment* env)
 {
     assert(state != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(mute != NULL);
-    General_state_init(&state->parent, false);
+    assert(env != NULL);
+    General_state_init(&state->parent, false, env);
 
     state->cgstate = new_Channel_gen_state();
     state->rand = new_Random();
@@ -58,6 +61,7 @@ void Channel_state_set_random_seed(Channel_state* state, uint64_t seed)
 void Channel_state_reset(Channel_state* state)
 {
     assert(state != NULL);
+    General_state_reset(&state->parent);
     state->instrument = 0;
     state->generator = 0;
     state->effect = 0;

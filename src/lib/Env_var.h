@@ -47,6 +47,8 @@ typedef struct Env_var Env_var;
 
 
 #define ENV_VAR_NAME_MAX 32
+#define ENV_VAR_INIT_CHARS "abcdefghijklmnopqrstuvwxyz_"
+#define ENV_VAR_CHARS ENV_VAR_INIT_CHARS "0123456789"
 
 
 /**

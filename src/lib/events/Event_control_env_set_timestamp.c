@@ -18,11 +18,12 @@
 
 #include <Env_var.h>
 #include <Environment.h>
+#include <Event.h>
 #include <Event_control_env_set_timestamp.h>
 #include <Event_type.h>
 #include <File_base.h>
+#include <General_state.h>
 #include <kunquat/limits.h>
-#include <Playdata.h>
 #include <Reltime.h>
 #include <xassert.h>
 
@@ -65,9 +66,7 @@ bool Event_control_env_set_timestamp_process(General_state* gstate,
     {
         return false;
     }
-    Playdata* global_state = (Playdata*)gstate;
-    Environment* env = global_state->env;
-    Env_var* var = Environment_get(env, var_name);
+    Env_var* var = Environment_get(gstate->env, var_name);
     if (var == NULL || Env_var_get_type(var) != ENV_VAR_RELTIME)
     {
         return false;

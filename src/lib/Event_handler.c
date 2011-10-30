@@ -40,6 +40,7 @@
 
 #include <Event_general_comment.h>
 
+#include <Event_general_cond.h>
 #include <Event_general_if.h>
 #include <Event_general_end_if.h>
 
@@ -196,6 +197,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);
 
+    Event_handler_set_general_process(eh, "#?", EVENT_GENERAL_COND,
+                                      Event_general_cond_process);
     Event_handler_set_general_process(eh, "#if", EVENT_GENERAL_IF,
                                       Event_general_if_process);
     Event_handler_set_general_process(eh, "#endif", EVENT_GENERAL_END_IF,

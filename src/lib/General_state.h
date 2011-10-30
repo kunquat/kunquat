@@ -18,6 +18,8 @@
 
 #include <stdbool.h>
 
+#include <Environment.h>
+
 
 typedef struct General_state
 {
@@ -26,17 +28,22 @@ typedef struct General_state
     bool cond_exec_enabled;
     bool cond_for_exec;
     bool evaluated_cond;
+    Environment* env;
 } General_state;
 
 
 /**
  * Initialises the General state.
  *
- * \param state   The General state -- must not be \c NULL.
+ * \param state    The General state -- must not be \c NULL.
+ * \param global   \c true if and only if \a state is global.
+ * \param env      The Environment -- must not be \c NULL.
  *
  * \return   The parameter \a state.
  */
-General_state* General_state_init(General_state* state, bool global);
+General_state* General_state_init(General_state* state,
+                                  bool global,
+                                  Environment* env);
 
 
 /**
@@ -47,6 +54,14 @@ General_state* General_state_init(General_state* state, bool global);
  * \return   \c true if events should be processed, otherwise \c false.
  */
 bool General_state_events_enabled(General_state* state);
+
+
+/**
+ * Resets the General state.
+ *
+ * \param state    The General state -- must not be \c NULL.
+ */
+void General_state_reset(General_state* state);
 
 
 #endif // K_GENERAL_STATE_H

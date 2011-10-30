@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include <Channel_gen_state.h>
+#include <Environment.h>
 #include <General_state.h>
 #include <LFO.h>
 #include <Random.h>
@@ -93,10 +94,12 @@ typedef struct Channel_state
  *                < \c KQT_COLUMNS_MAX.
  * \param mute    A reference to the channel mute state -- must not be
  *                \c NULL.
+ * \param env     The Environment -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_state_init(Channel_state* state, int num, bool* mute);
+bool Channel_state_init(Channel_state* state, int num, bool* mute,
+                        Environment* env);
 
 
 /**

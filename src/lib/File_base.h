@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -82,6 +82,19 @@ void Read_state_set_error(Read_state* state, const char* message, ...);
  * \param state   The Read state -- must not be \c NULL.
  */
 void Read_state_clear_error(Read_state* state);
+
+
+/**
+ * Skips whitespace.
+ *
+ * This function is not needed for reading JSON data.
+ *
+ * \param str     The input string -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The position of \a str after parsing.
+ */
+char* skip_whitespace(char* str, Read_state* state);
 
 
 /**

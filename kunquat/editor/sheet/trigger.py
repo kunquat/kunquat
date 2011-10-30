@@ -15,6 +15,7 @@ from __future__ import division
 from __future__ import print_function
 from itertools import izip_longest, takewhile
 import math
+import string
 
 from PyQt4 import QtGui, QtCore
 
@@ -323,6 +324,12 @@ def is_key(value):
     return all(x in '_./' or x.isalpha() for x in str(value))
 
 
+def is_cond_char(c):
+    return (c in string.ascii_lowercase or
+            c in string.digits or
+            c in '_() ' '!=<>+-*/%^|&')
+
+
 nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
 any_ts = (ts.Timestamp, lambda x: True, ts.Timestamp(0))
 finite_float = (float, isfinite, 0.0)
@@ -337,6 +344,8 @@ key = (str, is_key, '')
 pitch = (Note, isfinite, Note(0))
 note_entry = (int, lambda x: x >= 0, 0) # FIXME
 any_str = (str, lambda x: x != None, '')
+cond_str = (str, lambda x: all(is_cond_char(c) for c in str(x)), '')
+
 
 global_triggers = {
         'wpd': [nonneg_ts],
@@ -427,6 +436,7 @@ channel_triggers = {
 general_triggers = {
         '#': [any_str],
 
+        '#?': [cond_str],
         '#if': [any_bool],
         '#endif': [],
 }

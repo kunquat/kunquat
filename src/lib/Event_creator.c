@@ -20,6 +20,7 @@
 
 #include <Event_general_comment.h>
 
+#include <Event_general_cond.h>
 #include <Event_general_if.h>
 #include <Event_general_end_if.h>
 
@@ -111,6 +112,7 @@ static const Event_cons cons[EVENT_LAST] =
 {
     [EVENT_GENERAL_COMMENT] = new_Event_general_comment,
 
+    [EVENT_GENERAL_COND] = new_Event_general_cond,
     [EVENT_GENERAL_IF] = new_Event_general_if,
     [EVENT_GENERAL_END_IF] = new_Event_general_end_if,
 

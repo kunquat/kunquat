@@ -26,10 +26,6 @@
 #include <xmemory.h>
 
 
-#define INIT_NAME_CHARS "abcdefghijklmnopqrstuvwxyz_"
-#define NAME_CHARS INIT_NAME_CHARS "0123456789"
-
-
 typedef union
 {
     bool bool_type;
@@ -122,8 +118,8 @@ Env_var* new_Env_var_from_string(char** str, Read_state* state)
     {
         return NULL;
     }
-    if (strspn(name, NAME_CHARS) != strlen(name) ||
-            strchr(INIT_NAME_CHARS, name[0]) == NULL)
+    if (strspn(name, ENV_VAR_CHARS) != strlen(name) ||
+            strchr(ENV_VAR_INIT_CHARS, name[0]) == NULL)
     {
         Read_state_set_error(state, "Illegal variable name %s"
                              " (Variable names may only contain"

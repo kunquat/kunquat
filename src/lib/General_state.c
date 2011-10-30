@@ -19,14 +19,15 @@
 #include <xassert.h>
 
 
-General_state* General_state_init(General_state* state, bool global)
+General_state* General_state_init(General_state* state,
+                                  bool global,
+                                  Environment* env)
 {
     assert(state != NULL);
+    assert(env != NULL);
     state->global = global;
-    state->pause = false;
-    state->cond_exec_enabled = false;
-    state->cond_for_exec = false;
-    state->evaluated_cond = false;
+    state->env = env;
+    General_state_reset(state);
     return state;
 }
 
@@ -43,6 +44,24 @@ bool General_state_events_enabled(General_state* state)
 #endif
     return !state->cond_exec_enabled ||
            (state->cond_for_exec == state->evaluated_cond);
+}
+
+
+void General_state_reset(General_state* state)
+{
+    assert(state != NULL);
+    state->pause = false;
+    state->cond_exec_enabled = false;
+    state->cond_for_exec = false;
+    state->evaluated_cond = false;
+    if (state->global)
+    {
+        // All states contain the same environment
+        // and all states should be reset together,
+        // so let's reset the environment only once.
+        Environment_reset(state->env);
+    }
+    return;
 }
 
 

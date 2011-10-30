@@ -55,8 +55,10 @@ typedef struct Channel
  * \param insts        The Instrument table of the Song -- must not be \c NULL.
  * \param num          The Channel number -- must be >= \c 0 and
  *                     < \c KQT_COLUMNS_MAX.
- * \param ins_events   The Instrument event queue -- must not be \c NULL.
  * \param pool         The Voice pool -- must not be \c NULL.
+ * \param env          The Environment -- must not be \c NULL.
+ * \param tempo        A reference to the tempo -- must not be \c NULL.
+ * \param freq         A reference to the mix rate -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
@@ -64,6 +66,7 @@ typedef struct Channel
 Channel* new_Channel(Ins_table* insts,
                      int num,
                      Voice_pool* pool,
+                     Environment* env,
                      double* tempo,
                      uint32_t* freq);
 
