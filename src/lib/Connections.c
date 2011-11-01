@@ -439,8 +439,8 @@ static int validate_connection_path(char* str,
     }
     bool instrument = false;
     bool generator = false;
-    bool effect = false;
-    bool dsp = false;
+    //bool effect = false;
+    //bool dsp = false;
     bool root = true;
     char* path = str;
     char* trim_point = str;
@@ -483,7 +483,7 @@ static int validate_connection_path(char* str,
                     " \"%s\"", path);
             return -1;
         }
-        effect = true;
+        //effect = true;
         root = false;
         str += strlen("eff_");
         int max = KQT_EFFECTS_MAX;
@@ -563,7 +563,7 @@ static int validate_connection_path(char* str,
             return -1;
         }
         root = false;
-        dsp = true;
+        //dsp = true;
         str += strlen("dsp_");
         if (read_index(str) >= KQT_DSPS_MAX)
         {
