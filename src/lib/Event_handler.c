@@ -38,6 +38,11 @@
 #include <Event_control_env_set_float.h>
 #include <Event_control_env_set_timestamp.h>
 
+#include <Event_control_set_goto_row.h>
+#include <Event_control_set_goto_section.h>
+#include <Event_control_set_goto_subsong.h>
+#include <Event_control_goto.h>
+
 #include <Event_general_comment.h>
 
 #include <Event_general_cond.h>
@@ -49,7 +54,7 @@
 #include <Event_global_set_jump_row.h>
 #include <Event_global_set_jump_section.h>
 #include <Event_global_set_jump_subsong.h>
-#include <Event_global_jump.h>
+//#include <Event_global_jump.h>
 
 #include <Event_global_set_scale.h>
 #include <Event_global_set_scale_offset.h>
@@ -194,6 +199,15 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_control_process(eh, ">.T", EVENT_CONTROL_ENV_SET_TIMESTAMP,
                                       Event_control_env_set_timestamp_process);
 
+    Event_handler_set_control_process(eh, ">.gr", EVENT_CONTROL_SET_GOTO_ROW,
+                                      Event_control_set_goto_row_process);
+    Event_handler_set_control_process(eh, ">.gs", EVENT_CONTROL_SET_GOTO_SECTION,
+                                      Event_control_set_goto_section_process);
+    Event_handler_set_control_process(eh, ">.gss", EVENT_CONTROL_SET_GOTO_SUBSONG,
+                                      Event_control_set_goto_subsong_process);
+    Event_handler_set_control_process(eh, ">g", EVENT_CONTROL_GOTO,
+                                      Event_control_goto_process);
+
     Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);
 
@@ -214,8 +228,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_jump_section_process);
     Event_handler_set_global_process(eh, "w.jss", EVENT_GLOBAL_SET_JUMP_SUBSONG,
                                      Event_global_set_jump_subsong_process);
-    Event_handler_set_global_process(eh, "wj", EVENT_GLOBAL_JUMP,
-                                     Event_global_jump_process);
+    //Event_handler_set_global_process(eh, "wj", EVENT_GLOBAL_JUMP,
+    //                                 Event_global_jump_process);
 
     Event_handler_set_global_process(eh, "w.s", EVENT_GLOBAL_SET_SCALE,
                                      Event_global_set_scale_process);

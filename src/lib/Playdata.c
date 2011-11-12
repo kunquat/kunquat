@@ -77,6 +77,14 @@ Playdata* new_Playdata(Ins_table* insts,
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
 
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
+
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
     Slider_set_mix_rate(&play->volume_slider, 48000);
@@ -147,6 +155,14 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->jump_subsong = -1;
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
+
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
@@ -242,6 +258,14 @@ void Playdata_reset(Playdata* play)
     play->jump_subsong = -1;
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
+
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);

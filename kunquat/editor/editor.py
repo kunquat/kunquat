@@ -271,10 +271,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.trigger(-1, '["w.js", [{0}]]'.format(section))
-        self.handle.trigger(-1, '["w.jr", [[{0}, {1}]]]'.format(beats, rem))
-        self.handle.trigger(-1, '["w.jc", [1]]')
-        self.handle.trigger(-1, '["wj", []]')
+        self.handle.trigger(-1, '[">.gs", [{0}]]'.format(section))
+        self.handle.trigger(-1, '[">.gr", [[{0}, {1}]]]'.format(beats, rem))
+        self.handle.trigger(-1, '[">g", []]')
 
     def play_event(self, *args):
         channel, event = args

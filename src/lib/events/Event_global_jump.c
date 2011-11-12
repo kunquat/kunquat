@@ -98,18 +98,6 @@ Event* new_Event_global_jump(Reltime* pos)
 }
 
 
-bool Event_global_jump_process(Playdata* global_state, char* fields)
-{
-    assert(global_state != NULL);
-    (void)fields;
-    global_state->jump = true;
-    global_state->jump_subsong = global_state->jump_set_subsong;
-    global_state->jump_section = global_state->jump_set_section;
-    Reltime_copy(&global_state->jump_row, &global_state->jump_set_row);
-    return true;
-}
-
-
 void Trigger_global_jump_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);

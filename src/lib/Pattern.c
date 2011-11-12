@@ -301,62 +301,6 @@ uint32_t Pattern_mix(Pattern* pat,
             Pattern_evaluate_global_row(pat, play, eh, &next_global,
                                         &next_global_pos);
         }
-#if 0
-        int event_index = 0;
-        // - Evaluate global events
-        while (next_global != NULL
-                && Reltime_cmp(next_global_pos, &play->pos) == 0
-                && Reltime_cmp(&play->delay_left, zero_time) <= 0
-                && !play->jump)
-        {
-            // FIXME: conditional event handling must be processed here
-            //        instead of Song_mix.
-            if (play->delay_event_index >= 0)
-            {
-                for (int i = 0; i <= play->delay_event_index; ++i)
-                {
-                    next_global = Column_iter_get_next(play->citer);
-                    ++event_index;
-                }
-                if (next_global != NULL)
-                {
-                    next_global_pos = Event_get_pos(next_global);
-                }
-                play->delay_event_index = -1;
-                if (next_global == NULL
-                        || Reltime_cmp(next_global_pos, &play->pos) != 0)
-                {
-                    break;
-                }
-            }
-            if (Event_get_type((Event*)next_global) == EVENT_GLOBAL_JUMP)
-            {
-                // Jump events inside Patterns contain mutable state data, so
-                // they need to be handled as a special case here.
-                Trigger_global_jump_process((Event_global*)next_global, play);
-            }
-            else
-            {
-                if (!Event_handler_handle(eh, -1,
-                                     Event_get_type(next_global),
-                                     Event_get_fields(next_global)))
-                {
-                    // An internal Event was skipped due to invalid data
-                    assert(false);
-                }
-            }
-            if (next_global->type == EVENT_GLOBAL_PATTERN_DELAY)
-            {
-                play->delay_event_index = event_index;
-            }
-            ++event_index;
-            next_global = Column_iter_get_next(play->citer);
-            if (next_global != NULL)
-            {
-                next_global_pos = Event_get_pos(next_global);
-            }
-        }
-#endif
         if (play->old_tempo != play->tempo || play->old_freq != play->freq)
         {
             Slider_set_mix_rate(&play->volume_slider, play->freq);
@@ -365,15 +309,36 @@ uint32_t Pattern_mix(Pattern* pat,
             play->old_tempo = play->tempo;
         }
         bool delay = Reltime_cmp(&play->delay_left, zero_time) > 0;
-        assert(!(delay && play->jump));
-        if (!delay && !play->parent.pause && play->jump)
+        assert(!(delay && (play->jump || play->goto_trigger)));
+        if (!delay && !play->parent.pause &&
+                (play->jump || play->goto_trigger))
         {
-            play->jump = false;
+            int16_t* target_subsong = NULL;
+            int16_t* target_section = NULL;
+            Reltime* target_row = NULL;
+            if (play->jump)
+            {
+                play->jump = false;
+                target_subsong = &play->jump_subsong;
+                target_section = &play->jump_section;
+                target_row = &play->jump_row;
+            }
+            else
+            {
+                assert(play->goto_trigger);
+                play->goto_trigger = false;
+                target_subsong = &play->goto_subsong;
+                target_section = &play->goto_section;
+                target_row = &play->goto_row;
+            }
+            assert(target_subsong != NULL);
+            assert(target_section != NULL);
+            assert(target_row != NULL);
             if (play->mode == PLAY_PATTERN)
             {
-                if (play->jump_subsong < 0 && play->jump_section < 0)
+                if (*target_subsong < 0 && *target_section < 0)
                 {
-                    Reltime_copy(&play->pos, &play->jump_row);
+                    Reltime_copy(&play->pos, target_row);
                 }
                 else
                 {
@@ -381,15 +346,15 @@ uint32_t Pattern_mix(Pattern* pat,
                 }
                 break;
             }
-            if (play->jump_subsong >= 0)
+            if (*target_subsong >= 0)
             {
-                play->subsong = play->jump_subsong;
+                play->subsong = *target_subsong;
             }
-            if (play->jump_section >= 0)
+            if (*target_section >= 0)
             {
-                play->section = play->jump_section;
+                play->section = *target_section;
             }
-            Reltime_copy(&play->pos, &play->jump_row);
+            Reltime_copy(&play->pos, target_row);
             break;
         }
         if (!delay && !play->parent.pause && pat != NULL &&
@@ -634,7 +599,7 @@ static void Pattern_evaluate_global_row(Pattern* pat,
     while (*next_global != NULL
             && Reltime_cmp(*next_global_pos, &play->pos) == 0
             && Reltime_cmp(&play->delay_left, zero_time) <= 0
-            && !play->jump)
+            && !(play->jump || play->goto_trigger))
     {
         // FIXME: conditional event handling must be processed here
         //        instead of Song_mix.

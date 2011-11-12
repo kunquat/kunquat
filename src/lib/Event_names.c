@@ -20,6 +20,7 @@
 #include <Event.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -102,6 +103,10 @@ Event_type Event_names_get(Event_names* names, const char* name)
     Name_info* info = AAtree_get_exact(names->names, name);
     if (info == NULL)
     {
+        if (string_eq(name, "wj"))
+        {
+            return EVENT_GLOBAL_JUMP;
+        }
         return EVENT_NONE;
     }
     return info->type;

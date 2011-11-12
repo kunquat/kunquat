@@ -41,9 +41,6 @@ typedef struct Event_global_jump
 Event* new_Event_global_jump(Reltime* pos);
 
 
-bool Event_global_jump_process(Playdata* global_state, char* fields);
-
-
 void Trigger_global_jump_process(Event_global* event, Playdata* play);
 
 

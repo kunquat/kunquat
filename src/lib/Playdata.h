@@ -72,6 +72,14 @@ typedef struct Playdata
     int16_t jump_section;             ///< Jump target section (-1 = no change).
     Reltime jump_row;                 ///< Jump target pattern position.
 
+    int16_t goto_set_subsong;         ///< Subsong number setting passed to a goto event.
+    int16_t goto_set_section;         ///< Section number setting passed to a goto event.
+    Reltime goto_set_row;             ///< Pattern position passed to a goto event.
+    bool goto_trigger;                ///< Goto trigger.
+    int16_t goto_subsong;             ///< Goto target subsong (-1 = no change).
+    int16_t goto_section;             ///< Goto target section (-1 = no change).
+    Reltime goto_row;                 ///< Goto target pattern position.
+
     double volume;                    ///< Current global volume.
     Slider volume_slider;
 
