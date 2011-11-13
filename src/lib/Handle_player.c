@@ -155,7 +155,8 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_handler, UINT64_MAX);
+    return Song_skip(handle->song, handle->song->skip_handler,
+                     KQT_MAX_CALC_DURATION);
 }
 
 

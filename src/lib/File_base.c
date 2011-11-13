@@ -546,7 +546,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
         Read_state_set_error(state, "Expected a valid Reltime stamp");
         return str;
     }
-    if (rem < 0 || rem > KQT_RELTIME_BEAT)
+    if (rem < 0 || rem >= KQT_RELTIME_BEAT)
     {
         Read_state_set_error(state,
                 "Reltime stamp remainder out of range [0..%ld)", KQT_RELTIME_BEAT);

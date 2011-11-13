@@ -1,10 +1,12 @@
-.TH kunquat\-player\-interface 3 "2011\-01\-16" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2011\-11\-13" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
 
 .SH SYNOPSIS
 .B #include <kunquat/Player.h>
+.br
+.B #include <kunquat/limits.h>
 
 .BI "long kqt_Handle_mix(kqt_Handle* " handle ", long " nframes );
 
@@ -88,10 +90,10 @@ Returns the buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 .SH "DURATION AND SEEKING"
 
 .IP "\fBlong long kqt_Handle_get_duration(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsubsong\fR\fB);\fR"
-Calculates the duration of \fIsubsong\fR of \fIhandle\fR in nanoseconds. If
-\fIsubsong\fR is -1, the function will calculate the total length of all
-subsongs. The return value is the length in nanoseconds, or -1 in case of an
-error.
+Estimates the duration of \fIsubsong\fR of \fIhandle\fR. If \fIsubsong\fR is
+-1, the function estimates the total length of all subsongs. The return value
+is the length in nanoseconds, or KQT_MAX_CALC_DURATION if the length is 30
+days or longer, or -1 in case of an error.
 
 .IP "\fBint kqt_Handle_set_position(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsubsong\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
 Seeks to a position inside \fIsubsong\fR in \fIhandle\fR. \fInanoseconds\fR
@@ -101,7 +103,7 @@ and therefore mixing may produce somewhat unexpected results. The function
 returns 1 on success, 0 on failure.
 
 .IP "\fBlong long kqt_Handle_get_position(kqt_Handle*\fR \fIhandle\fR\fB);\fR"
-Returns the current offset of playback in nanoseconds. The function return 0
+Returns the current offset of playback in nanoseconds. The function returns 0
 if \fIhandle\fR is invalid.
 
 .SH "TRIGGERING EVENTS"

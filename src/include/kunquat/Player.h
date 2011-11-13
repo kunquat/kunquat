@@ -151,13 +151,17 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Gets the duration of a Subsong of the Kunquat Handle in nanoseconds.
+ * Estimates the duration of a Subsong in the Kunquat Handle.
+ *
+ * This function will not calculate the length of a Subsong further
+ * than 30 days.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param subsong   The Subsong number -- should be >= \c -1 and
  *                  < \c KQT_SUBSONGS_MAX (\c -1 indicates all Subsongs).
  *
- * \return   The length in nanoseconds, or \c -1 if failed.
+ * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
+ *           length is 30 days or longer, or \c -1 if failed.
  */
 long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong);
 

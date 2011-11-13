@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2011
 #          Toni Ruottu, Finland 2010
 #
 # This file is part of Kunquat.
@@ -30,13 +30,13 @@ from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.3.1'
+PROGRAM_VERSION = '0.4.3'
 AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 
 
 def author_list(authors):
     s = 's' if len(authors) > 1 else ''
-    head = 'Author%s:' % s
+    head = 'Author{0}:'.format(s)
     space = cycle([len(head)*' '])
     left = chain([head],space)
     right = authors
@@ -73,7 +73,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         else:
             handle = kunquat.RHandle(file_name, options.frequency)
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'%s\': %s' % (file_name, e), end='')
+        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
     handle.buffer_size = options.buffer_size
     handle.subsong = options.subsong
@@ -141,7 +141,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     handle.subsong = None
                     duration = handle.get_duration(handle.subsong)
                 elif key in string.digits:
-                    if handle['subs_%02x/p_subsong.json' % int(key)]:
+                    if handle['subs_{0:02x}/p_subsong.json'.format(int(key))]:
                         handle.subsong = int(key)
                         duration = handle.get_duration(handle.subsong)
                 elif key == 'p':
@@ -155,8 +155,8 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     if handle.subsong is None:
                         handle.subsong = 0
                         duration = handle.get_duration(handle.subsong)
-                    elif handle['subs_%02x/p_subsong.json' %
-                                (handle.subsong + 1)] and handle.subsong < 255:
+                    elif handle['subs_{0:02x}/p_subsong.json'.format(
+                              (handle.subsong + 1))] and handle.subsong < 255:
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
                 """
@@ -351,22 +351,25 @@ class Status(object):
         seconds = seconds - 0.05
         if seconds < 0:
             seconds = 0
-        return '%02d:%04.1f' % (seconds // 60, seconds % 60)
+        return '{0:02d}:{1:04.1f}'.format(int(seconds // 60), seconds % 60)
 
     def get_status_line(self, handle, duration, bufs, mix_load):
         components = []
         if handle.subsong is None:
             components.append('All subsongs')
         else:
-            components.append('Subsong: %d' % handle.subsong)
-        elapsed = 'Time: %s' % self.dur_to_str(handle.nanoseconds)
+            components.append('Subsong: {0}'.format(handle.subsong))
+        elapsed = 'Time: {0}'.format(self.dur_to_str(handle.nanoseconds))
         if handle.nanoseconds <= duration:
-            elapsed += ' [%s] of %s' % (
-                       self.dur_to_str(duration - handle.nanoseconds),
-                       self.dur_to_str(duration))
+            if duration == 2592000000000000:
+                elapsed += ' of >= 30 days'
+            else:
+                elapsed += ' [{0}] of {1}'.format(
+                           self.dur_to_str(duration - handle.nanoseconds),
+                           self.dur_to_str(duration))
         components.append(elapsed)
         if mix_load > 0:
-            components.append('Load: %.0f %%' % (mix_load * 100))
+            components.append('Load: {0:.0f} %'.format(mix_load * 100))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
