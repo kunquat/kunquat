@@ -59,6 +59,8 @@ typedef struct Playdata
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
 
+    bool turing;                      ///< Turing mode enabled.
+
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
     int scale;                        ///< Currently active Scale index.

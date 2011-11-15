@@ -630,7 +630,8 @@ static void Pattern_evaluate_global_row(Pattern* pat,
                 Trigger_global_jump_process((Event_global*)*next_global, play);
             }
         }
-        else
+        else if (!EVENT_IS_CONTROL(Event_get_type((Event*)*next_global)) ||
+                 play->turing)
         {
             if (!Event_handler_handle(eh, -1,
                                  Event_get_type(*next_global),

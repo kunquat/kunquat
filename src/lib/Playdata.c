@@ -43,6 +43,7 @@ Playdata* new_Playdata(Ins_table* insts,
     }
     General_state_init(&play->parent, true, env);
     play->random = random;
+    play->turing = false;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -127,6 +128,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     }
     General_state_init(&play->parent, true, env);
     play->random = NULL;
+    play->turing = false;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -248,6 +250,7 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
+    play->turing = false;
     play->scale = 0;
 
     play->jump_set_counter = 0;
