@@ -145,6 +145,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
         self._focus_backup = None
+        self._turing = False
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
                                self.sync)
@@ -236,9 +237,6 @@ class KqtEditor(QtGui.QMainWindow):
                   self.pa.context_state(), self.pa.stream_state(),
                   self.pa.error()), end='\r')
 
-    def play(self):
-        self.playing = True
-
     def stop(self):
         if self.playing:
             self.project.update_random()
@@ -254,6 +252,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.nanoseconds = 0
         self.handle.subsong = subsong
         self.playing = True
+        self._set_turing(self._turing)
 
     def play_pattern(self, pattern):
         self._peak_meter.reset()
@@ -263,6 +262,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
+        self._set_turing(self._turing)
 
     def play_from(self, subsong, section, beats, rem):
         self._peak_meter.reset()
@@ -274,6 +274,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.trigger(-1, '[">.gs", [{0}]]'.format(section))
         self.handle.trigger(-1, '[">.gr", [[{0}, {1}]]]'.format(beats, rem))
         self.handle.trigger(-1, '[">g", []]')
+        self._set_turing(self._turing)
 
     def play_event(self, *args):
         channel, event = args
@@ -321,6 +322,11 @@ class KqtEditor(QtGui.QMainWindow):
         if not busy_set:
             if self._focus_backup:
                 self._focus_backup.setFocus()
+
+    def _set_turing(self, x):
+        self._turing = x
+        self.handle.trigger(-1, '[">Turing", [{0}]'.format(
+                                'true' if self._turing else 'false'))
 
     def set_appearance(self):
         # FIXME: size and title
@@ -461,6 +467,13 @@ class KqtEditor(QtGui.QMainWindow):
         self._octave.setValue(4)
         self._octave.setToolTip('Base octave')
 
+        turing = QtGui.QCheckBox('Turing')
+        turing.setCheckState(QtCore.Qt.Unchecked)
+        #turing.setToolTip('Turing mode')
+        QtCore.QObject.connect(turing, QtCore.SIGNAL('stateChanged(int)'),
+                               lambda x: self._set_turing(x ==
+                                                    QtCore.Qt.Checked))
+
         layout.addWidget(new_project)
         layout.addWidget(open_project)
         layout.addWidget(save_project)
@@ -480,6 +493,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         layout.addWidget(self._instrument)
         layout.addWidget(self._octave)
+        layout.addWidget(turing)
         return top_control
 
     def create_bottom_control(self):
