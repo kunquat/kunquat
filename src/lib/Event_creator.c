@@ -32,6 +32,8 @@
 #include <Event_control_set_goto_subsong.h>
 #include <Event_control_goto.h>
 
+#include <Event_control_turing.h>
+
 #include <Event_general_comment.h>
 
 #include <Event_general_cond.h>
@@ -137,6 +139,8 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CONTROL_SET_GOTO_SECTION] = new_Event_control_set_goto_section,
     [EVENT_CONTROL_SET_GOTO_SUBSONG] = new_Event_control_set_goto_subsong,
     [EVENT_CONTROL_GOTO] = new_Event_control_goto,
+
+    [EVENT_CONTROL_TURING] = new_Event_control_turing,
 
     [EVENT_GENERAL_COMMENT] = new_Event_general_comment,
 

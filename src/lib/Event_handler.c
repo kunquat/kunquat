@@ -43,6 +43,8 @@
 #include <Event_control_set_goto_subsong.h>
 #include <Event_control_goto.h>
 
+#include <Event_control_turing.h>
+
 #include <Event_general_comment.h>
 
 #include <Event_general_cond.h>
@@ -207,6 +209,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_control_set_goto_subsong_process);
     Event_handler_set_control_process(eh, ">g", EVENT_CONTROL_GOTO,
                                       Event_control_goto_process);
+
+    Event_handler_set_control_process(eh, ">Turing", EVENT_CONTROL_TURING,
+                                      Event_control_turing_process);
 
     Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);

@@ -380,6 +380,8 @@ global_triggers = {
         '>.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, -1)],
         '>.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, -1)],
         '>g': [],
+
+        '>Turing': [any_bool],
 }
 
 channel_triggers = {
