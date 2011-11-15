@@ -389,12 +389,10 @@ class KqtEditor(QtGui.QMainWindow):
         layout = QtGui.QHBoxLayout(top_control)
         layout.setMargin(5)
         layout.setSpacing(5)
-        icon_prefix = ':/trolltech/styles/commonstyle/images/'
 
         new_project = QtGui.QToolButton()
         new_project.setText('Clear Project')
-        new_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                                      'file-32.png')))
+        new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
         new_project.setAutoRaise(True)
         QtCore.QObject.connect(new_project,
                                QtCore.SIGNAL('clicked()'),
@@ -402,8 +400,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         open_project = QtGui.QToolButton()
         open_project.setText('Import Composition')
-        open_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                             'standardbutton-open-32.png')))
+        open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))
         open_project.setAutoRaise(True)
         QtCore.QObject.connect(open_project,
                                QtCore.SIGNAL('clicked()'),
@@ -411,8 +408,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         save_project = QtGui.QToolButton()
         save_project.setText('Save Project')
-        save_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                             'standardbutton-save-32.png')))
+        save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
         save_project.setAutoRaise(True)
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
                                self.save)
@@ -425,22 +421,26 @@ class KqtEditor(QtGui.QMainWindow):
 
         play = QtGui.QToolButton()
         play.setText('Play')
+        play.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
         play.setAutoRaise(True)
         QtCore.QObject.connect(play, QtCore.SIGNAL('clicked()'),
                                lambda: self._play_subsong(None))
 
         stop = QtGui.QToolButton()
         stop.setText('Stop')
+        stop.setIcon(QtGui.QIcon.fromTheme('media-playback-stop'))
         stop.setAutoRaise(True)
         QtCore.QObject.connect(stop, QtCore.SIGNAL('clicked()'),
                                lambda: self._stop(None))
 
         seek_back = QtGui.QToolButton()
         seek_back.setText('Seek backwards')
+        seek_back.setIcon(QtGui.QIcon.fromTheme('media-seek-backward'))
         seek_back.setAutoRaise(True)
 
         seek_for = QtGui.QToolButton()
         seek_for.setText('Seek forwards')
+        seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
         pos_display = QtGui.QLabel('[position display]')
