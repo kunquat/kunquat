@@ -19,6 +19,10 @@
 #include <stdbool.h>
 
 #include <General_state.h>
+#include <Reltime.h>
+
+
+Event* new_Event_control_env_set_bool(Reltime* pos);
 
 
 bool Event_control_env_set_bool_process(General_state* gstate, char* fields);

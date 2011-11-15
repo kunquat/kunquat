@@ -19,6 +19,10 @@
 #include <stdbool.h>
 
 #include <General_state.h>
+#include <Reltime.h>
+
+
+Event* new_Event_control_env_set_timestamp(Reltime* pos);
 
 
 bool Event_control_env_set_timestamp_process(General_state* gstate,

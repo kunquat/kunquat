@@ -366,6 +366,20 @@ global_triggers = {
         'w.v': [volume],
         'w/v': [volume],
         'w/=v': [nonneg_ts],
+
+        '>pause': [],
+        '>resume': [],
+        '>pattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, 0)],
+
+        '>.B': [key, any_bool],
+        '>.I': [key, any_int],
+        '>.F': [key, any_float],
+        '>.T': [key, any_ts],
+
+        '>.gr': [nonneg_ts],
+        '>.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, -1)],
+        '>.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, -1)],
+        '>g': [],
 }
 
 channel_triggers = {

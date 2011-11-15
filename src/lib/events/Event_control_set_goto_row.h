@@ -19,6 +19,10 @@
 #include <stdbool.h>
 
 #include <General_state.h>
+#include <Reltime.h>
+
+
+Event* new_Event_control_set_goto_row(Reltime* pos);
 
 
 bool Event_control_set_goto_row_process(General_state* gstate, char* fields);

@@ -19,6 +19,8 @@
 #include <Env_var.h>
 #include <Environment.h>
 #include <Event.h>
+#include <Event_common.h>
+#include <Event_control.h>
 #include <Event_control_env_set_timestamp.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -34,7 +36,7 @@ static Event_field_desc env_set_timestamp_desc[] =
         .type = EVENT_FIELD_STRING
     },
     {
-        .type = EVENT_FIELD_DOUBLE,
+        .type = EVENT_FIELD_RELTIME,
         .min.field.Reltime_type = { INT64_MIN, 0 },
         .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
     },
@@ -42,6 +44,11 @@ static Event_field_desc env_set_timestamp_desc[] =
         .type = EVENT_FIELD_NONE
     }
 };
+
+
+Event_create_constructor(Event_control,
+                         EVENT_CONTROL_ENV_SET_TIMESTAMP,
+                         env_set_timestamp);
 
 
 bool Event_control_env_set_timestamp_process(General_state* gstate,
@@ -64,12 +71,12 @@ bool Event_control_env_set_timestamp_process(General_state* gstate,
     read_string(data[0].field.string_type, var_name, ENV_VAR_NAME_MAX, state);
     if (state->error)
     {
-        return false;
+        return true;
     }
     Env_var* var = Environment_get(gstate->env, var_name);
     if (var == NULL || Env_var_get_type(var) != ENV_VAR_RELTIME)
     {
-        return false;
+        return true;
     }
     Env_var_modify_value(var, &data[1].field.Reltime_type);
     return true;

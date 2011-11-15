@@ -427,12 +427,14 @@ static bool Column_parse(Column* col,
 //        str = read_int(str, &type, state);
         break_if(state->error);
         Event_type type = Event_names_get(event_names, type_str);
+#if 0
         if (EVENT_IS_CONTROL(type))
         {
             Read_state_set_error(state, "Control events are not supported"
                                         " inside patterns");
             return false;
         }
+#endif
         if (!EVENT_IS_TRIGGER(type))
         {
             Read_state_set_error(state, "Invalid or unsupported event type:"
@@ -450,8 +452,8 @@ static bool Column_parse(Column* col,
         }
         if (!Event_type_is_supported(type))
         {
-            Read_state_set_error(state, "Unsupported event type: %" PRId64
-                                        "\n", type);
+            Read_state_set_error(state, "Unsupported event type: \"%s\"\n",
+                                        type_str);
             return false;
         }
 

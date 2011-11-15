@@ -18,6 +18,8 @@
 #include <Env_var.h>
 #include <Environment.h>
 #include <Event.h>
+#include <Event_common.h>
+#include <Event_control.h>
 #include <Event_control_env_set_bool.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -39,6 +41,11 @@ static Event_field_desc env_set_bool_desc[] =
 };
 
 
+Event_create_constructor(Event_control,
+                         EVENT_CONTROL_ENV_SET_BOOL,
+                         env_set_bool);
+
+
 bool Event_control_env_set_bool_process(General_state* gstate, char* fields)
 {
     assert(gstate != NULL);
@@ -58,12 +65,12 @@ bool Event_control_env_set_bool_process(General_state* gstate, char* fields)
     read_string(data[0].field.string_type, var_name, ENV_VAR_NAME_MAX, state);
     if (state->error)
     {
-        return false;
+        return true;
     }
     Env_var* var = Environment_get(gstate->env, var_name);
     if (var == NULL || Env_var_get_type(var) != ENV_VAR_BOOL)
     {
-        return false;
+        return true;
     }
     Env_var_modify_value(var, &data[1].field.bool_type);
     return true;

@@ -18,6 +18,20 @@
 #include <Event.h>
 #include <Event_type.h>
 
+#include <Event_control_pause.h>
+#include <Event_control_resume.h>
+#include <Event_control_play_pattern.h>
+
+#include <Event_control_env_set_bool.h>
+#include <Event_control_env_set_int.h>
+#include <Event_control_env_set_float.h>
+#include <Event_control_env_set_timestamp.h>
+
+#include <Event_control_set_goto_row.h>
+#include <Event_control_set_goto_section.h>
+#include <Event_control_set_goto_subsong.h>
+#include <Event_control_goto.h>
+
 #include <Event_general_comment.h>
 
 #include <Event_general_cond.h>
@@ -110,6 +124,20 @@ typedef Event* (*Event_cons)(Reltime* pos);
 
 static const Event_cons cons[EVENT_LAST] =
 {
+    [EVENT_CONTROL_PAUSE] = new_Event_control_pause,
+    [EVENT_CONTROL_RESUME] = new_Event_control_resume,
+    [EVENT_CONTROL_PLAY_PATTERN] = new_Event_control_play_pattern,
+
+    [EVENT_CONTROL_ENV_SET_BOOL] = new_Event_control_env_set_bool,
+    [EVENT_CONTROL_ENV_SET_INT] = new_Event_control_env_set_int,
+    [EVENT_CONTROL_ENV_SET_FLOAT] = new_Event_control_env_set_float,
+    [EVENT_CONTROL_ENV_SET_TIMESTAMP] = new_Event_control_env_set_timestamp,
+
+    [EVENT_CONTROL_SET_GOTO_ROW] = new_Event_control_set_goto_row,
+    [EVENT_CONTROL_SET_GOTO_SECTION] = new_Event_control_set_goto_section,
+    [EVENT_CONTROL_SET_GOTO_SUBSONG] = new_Event_control_set_goto_subsong,
+    [EVENT_CONTROL_GOTO] = new_Event_control_goto,
+
     [EVENT_GENERAL_COMMENT] = new_Event_general_comment,
 
     [EVENT_GENERAL_COND] = new_Event_general_cond,

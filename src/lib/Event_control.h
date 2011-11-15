@@ -12,22 +12,22 @@
  */
 
 
-#ifndef K_EVENT_CONTROL_GOTO_H
-#define K_EVENT_CONTROL_GOTO_H
+#ifndef K_EVENT_CONTROL_H
+#define K_EVENT_CONTROL_H
 
 
-#include <stdbool.h>
-
-#include <General_state.h>
-#include <Reltime.h>
+#include <Event.h>
 
 
-Event* new_Event_control_goto(Reltime* pos);
+/**
+ * Events only triggered from outside or in Turing mode.
+ */
+typedef struct Event_control
+{
+    Event parent;
+} Event_control;
 
 
-bool Event_control_goto_process(General_state* gstate, char* fields);
-
-
-#endif // K_EVENT_CONTROL_GOTO_H
+#endif // K_EVENT_CONTROL_H
 
 

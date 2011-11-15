@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,8 @@
 #include <stdbool.h>
 
 #include <Event.h>
+#include <Event_common.h>
+#include <Event_control.h>
 #include <Event_control_play_pattern.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -35,6 +37,11 @@ static Event_field_desc play_pattern_desc[] =
         .type = EVENT_FIELD_NONE
     }
 };
+
+
+Event_create_constructor(Event_control,
+                         EVENT_CONTROL_PLAY_PATTERN,
+                         play_pattern);
 
 
 bool Event_control_play_pattern_process(General_state* gstate, char* fields)

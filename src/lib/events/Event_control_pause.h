@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,10 @@
 #include <stdbool.h>
 
 #include <General_state.h>
+#include <Reltime.h>
+
+
+Event* new_Event_control_pause(Reltime* pos);
 
 
 bool Event_control_pause_process(General_state* gstate, char* fields);
