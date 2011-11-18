@@ -83,13 +83,14 @@ class Env(QtGui.QTableWidget):
         self.setItem(index, 1, QtGui.QTableWidgetItem(var_name))
         if var_type == 'bool':
             cb_init = QtGui.QCheckBox()
-            cb_cur = QtGui.QCheckBox()
+            cb_cur = BoolMod(self._project)
             QtCore.QObject.connect(cb_init,
                                    QtCore.SIGNAL('clicked()'),
                                    self._flatten)
             if var_init:
                 cb_init.setCheckState(QtCore.Qt.Checked)
-                cb_cur.setCheckState(QtCore.Qt.Checked)
+            cb_cur.name = var_name
+            cb_cur.value = var_init
             self.setCellWidget(index, 2, cb_init)
             self.setCellWidget(index, 3, cb_cur)
         else:
@@ -123,7 +124,40 @@ class Env(QtGui.QTableWidget):
         self.blockSignals(False)
 
     def _data_changed(self, row, col):
-        self._flatten()
+        if col == 1:
+            self._type_changed(row, self.cellWidget(row, 0).type_format)
+            return
+        if col < 3:
+            self._flatten()
+            return
+        assert col == 3
+        var_type = self.cellWidget(row, 0).type_format
+        if not var_type:
+            return
+        name_item = self.item(row, 1)
+        name = name_item.text() if name_item else ''
+        if var_type == 'bool':
+            pass
+        elif var_type == 'int':
+            value_item = self.item(row, 3)
+            if not value_item:
+                return
+            try:
+                value = int(value_item.text())
+            except ValueError:
+                return
+            self._project.handle.trigger(-1,
+                    '[">.I", ["{0}", {1:d}]]'.format(name, value))
+        elif var_type == 'float':
+            value_item = self.item(row, 3)
+            if not value_item:
+                return
+            try:
+                value = float(value_item.text())
+            except ValueError:
+                return
+            self._project.handle.trigger(-1,
+                    '[">.F", ["{0}", {1:.17f}]]'.format(name, value))
 
     def _flatten(self):
         var_list = []
@@ -200,5 +234,35 @@ class TypeSelect(QtGui.QComboBox):
                             QtCore.SIGNAL('typeChanged(int, QString*)'),
                             self.index,
                             TypeSelect.index_to_type[index])
+
+
+class BoolMod(QtGui.QCheckBox):
+
+    def __init__(self, project, parent=None):
+        QtGui.QCheckBox.__init__(self, parent)
+        self._project = project
+        self.name = ''
+        self.setCheckState(QtCore.Qt.Unchecked)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._changed)
+
+    @property
+    def value(self):
+        return self.checkState() == QtCore.Qt.Checked
+
+    @value.setter
+    def value(self, value):
+        self.blockSignals(True)
+        self.setCheckState(QtCore.Qt.Checked if value
+                           else QtCore.Qt.Unchecked)
+        self.blockSignals(False)
+
+    def _changed(self, value):
+        if not self.name:
+            return
+        self._project.handle.trigger(-1,
+                '[">.B", ["{0}", {1}]]'.format(self.name,
+                    'true' if self.isChecked() else 'false'))
 
 
