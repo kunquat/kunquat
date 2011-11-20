@@ -16,6 +16,7 @@
 from __future__ import print_function
 import collections
 from itertools import cycle, chain
+import json
 import math
 from optparse import OptionParser, OptionGroup
 import os.path
@@ -37,8 +38,8 @@ AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 def author_list(authors):
     s = 's' if len(authors) > 1 else ''
     head = 'Author{0}:'.format(s)
-    space = cycle([len(head)*' '])
-    left = chain([head],space)
+    space = cycle([len(head) * ' '])
+    left = chain([head], space)
     right = authors
     rows = (' '.join(r) for r in zip(left, right))
     return '\n'.join(rows)
@@ -66,6 +67,28 @@ def print_interactive_help():
     print('\n'.join(help))
 
 
+def print_meta(handle):
+    fields = []
+    values = []
+    title = handle['m_title.json']
+    if title:
+        fields.extend(['Title:'])
+        values.extend([json.loads(title)])
+    authors = handle['m_authors.json']
+    if authors:
+        authors = json.loads(authors)
+        if authors:
+            fields.extend(['Author{}:'.format('s' if len(authors) != 1
+                                                  else '')])
+            values.extend([', '.join(authors)])
+    if not fields:
+        return
+    field_width = max(len(f) for f in fields)
+    fields = (f + ' ' * (field_width - len(f)) for f in fields)
+    rows = (' '.join(r) for r in zip(fields, values))
+    print('\n'.join(rows))
+
+
 def play(options, file_name, pa_handle, key_handler, list_pos):
     try:
         if os.path.basename(os.path.realpath(file_name)) == 'kqtc00':
@@ -81,9 +104,10 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     duration = handle.get_duration(options.subsong)
     if options.interactive:
         print('Playing', file_name)
+        print_meta(handle)
     return_key = KeyHandler.RETURN
     status_len_max = 0
-    pause = False
+    #pause = False
     #handle.trigger(-1, '[">pause", []]')
     bufs = handle.mix()
     rt_cycle_len = float(options.buffer_size) / options.frequency
