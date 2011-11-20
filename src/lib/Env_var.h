@@ -138,6 +138,19 @@ void* Env_var_get_value(Env_var* var);
 
 
 /**
+ * Gets a JSON representation of a value of the Environment variable.
+ *
+ * \param var    The Environment variable -- must not be \c NULL.
+ * \param dest   The destination buffer -- must not be \c NULL.
+ * \param size   The size of the destination buffer -- must be
+ *               positive.
+ */
+void Env_var_get_value_json(Env_var* var,
+                            char* dest,
+                            int size);
+
+
+/**
  * Destroys an existing Environment variable.
  *
  * \param var   The Environment variable, or \c NULL.

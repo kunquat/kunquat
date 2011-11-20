@@ -14,14 +14,17 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <Audio_buffer.h>
+#include <Env_var.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
 #include <Event_handler.h>
+#include <string_common.h>
 #include <Voice_pool.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -205,6 +208,45 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event)
         return 0;
     }
     return Event_handler_trigger(handle->song->event_handler, channel, event);
+}
+
+
+int kqt_Handle_get_state(kqt_Handle* handle,
+                         char* key,
+                         char* dest,
+                         int size)
+{
+    check_handle(handle, 0);
+    if (key == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "key must not be NULL");
+        return 0;
+    }
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    if (string_has_prefix(key, "env/"))
+    {
+        Env_var* var = Environment_get(handle->song->env,
+                                       key + strlen("env/"));
+        if (var == NULL)
+        {
+            return 0;
+        }
+        Env_var_get_value_json(var, dest, size);
+        return 1;
+    }
+    return 0;
 }
 
 
