@@ -246,7 +246,8 @@ int kqt_Handle_get_state(kqt_Handle* handle,
         Env_var_get_value_json(var, dest, size);
         return 1;
     }
-    return 0;
+    return Playdata_get_state_value(handle->song->play_state,
+                                    key, dest, size);
 }
 
 

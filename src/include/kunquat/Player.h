@@ -225,7 +225,8 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
  *                 floats, fractions and timestamps). JSON strings longer than
  *                 \a size - 1 bytes are truncated and thus may be invalid.
  *
- * \return   \c 1 if successful, otherwise \c 0.
+ * \return   \c 1 if successful, or \c 0 if the key does not exist or an
+ *           error occurred.
  */
 int kqt_Handle_get_state(kqt_Handle* handle,
                          char* key,

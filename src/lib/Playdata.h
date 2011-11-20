@@ -184,6 +184,21 @@ void Playdata_reset_stats(Playdata* play);
 
 
 /**
+ * Gets state information from the Playdata.
+ *
+ * \param play   The Playdata object -- must not be \c NULL.
+ * \param key    The key of the state variable -- must not be \c NULL.
+ * \param dest   The destination buffer -- must not be \c NULL.
+ * \param size   The size of the destination buffer -- must be
+ *               positive.
+ */
+bool Playdata_get_state_value(Playdata* play,
+                              char* key,
+                              char* dest,
+                              int size);
+
+
+/**
  * Deletes a Playdata object.
  *
  * \param play   The Playdata object, or \c NULL.

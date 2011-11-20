@@ -370,6 +370,8 @@ class Status(object):
         components.append(elapsed)
         if mix_load > 0:
             components.append('Load: {0:.0f} %'.format(mix_load * 100))
+        components.append('Voices: {0:d}'.format(
+                          handle.get_state('active_voices')))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
@@ -387,8 +389,8 @@ class Status(object):
                                           right_vol_linear, self.right_hold)
         self.left_hold[1] += len(bufs[0])
         self.right_hold[1] += len(bufs[0])
-        return '[%s]%s' % (self.combine_meters(left_bar, right_bar),
-                Status.clip_map[self.left_clipped, self.right_clipped])
+        return u'[{0}]{1}'.format(self.combine_meters(left_bar, right_bar),
+                Status.clip_map[(self.left_clipped, self.right_clipped)])
 
     def get_single_meter(self, length, lower, upper, vol_linear, hold):
         if vol_linear <= 0:

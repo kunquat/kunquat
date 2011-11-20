@@ -22,7 +22,9 @@
 #include <Environment.h>
 #include <Random.h>
 #include <Reltime.h>
+#include <serialise.h>
 #include <Slider.h>
+#include <string_common.h>
 #include <Playdata.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -299,6 +301,25 @@ void Playdata_reset_stats(Playdata* play)
         play->clipped[i] = 0;
     }
     return;
+}
+
+
+bool Playdata_get_state_value(Playdata* play,
+                              char* key,
+                              char* dest,
+                              int size)
+{
+    assert(play != NULL);
+    assert(key != NULL);
+    assert(dest != NULL);
+    assert(size > 0);
+    if (string_eq(key, "active_voices"))
+    {
+        serialise_int(dest, size, play->active_voices);
+        play->active_voices = 0;
+        return true;
+    }
+    return false;
 }
 
 
