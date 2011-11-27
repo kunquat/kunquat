@@ -18,6 +18,7 @@
 
 #include <DSP_conf.h>
 #include <Effect.h>
+#include <Event_buffer.h>
 #include <Event_handler.h>
 #include <Event_names.h>
 #include <Event_type.h>
@@ -140,6 +141,7 @@ struct Event_handler
     Effect_table* effects;
     Playdata* global_state;
     Event_names* event_names;
+    Event_buffer* event_buffer;
     bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
     bool (*general_process[EVENT_GENERAL_UPPER])(General_state*, char*);
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
@@ -165,8 +167,15 @@ Event_handler* new_Event_handler(Playdata* global_state,
     {
         return NULL;
     }
+    eh->event_buffer = NULL;
     eh->event_names = new_Event_names();
     if (eh->event_names == NULL)
+    {
+        del_Event_handler(eh);
+        return NULL;
+    }
+    eh->event_buffer = new_Event_buffer(16384);
+    if (eh->event_buffer == NULL)
     {
         del_Event_handler(eh);
         return NULL;
@@ -771,6 +780,7 @@ void del_Event_handler(Event_handler* eh)
         return;
     }
     del_Event_names(eh->event_names);
+    del_Event_buffer(eh->event_buffer);
 //    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
     xfree(eh);
     return;
