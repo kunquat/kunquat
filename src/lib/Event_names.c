@@ -29,6 +29,7 @@ typedef struct Name_info
 {
     char name[EVENT_NAME_MAX + 1];
     Event_type type;
+    bool pass;
 } Name_info;
 
 
@@ -79,6 +80,7 @@ bool Event_names_add(Event_names* names, const char* name, Event_type type)
     strncpy(info->name, name, EVENT_NAME_MAX);
     info->name[EVENT_NAME_MAX] = '\0';
     info->type = type;
+    info->pass = false;
     if (!AAtree_ins(names->names, info))
     {
         xfree(info);
@@ -110,6 +112,33 @@ Event_type Event_names_get(Event_names* names, const char* name)
         return EVENT_NONE;
     }
     return info->type;
+}
+
+
+bool Event_names_set_pass(Event_names* names, const char* name, bool pass)
+{
+    assert(names != NULL);
+    assert(name != NULL);
+    Name_info* info = AAtree_get_exact(names->names, name);
+    if (info == NULL)
+    {
+        return false;
+    }
+    info->pass = pass;
+    return true;
+}
+
+
+bool Event_names_get_pass(Event_names* names, const char* name)
+{
+    assert(names != NULL);
+    assert(name != NULL);
+    Name_info* info = AAtree_get_exact(names->names, name);
+    if (info == NULL)
+    {
+        return false;
+    }
+    return info->pass;
 }
 
 
