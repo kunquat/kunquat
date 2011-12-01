@@ -18,6 +18,7 @@
 
 #include <stdbool.h>
 
+#include <Active_names.h>
 #include <Environment.h>
 
 
@@ -29,6 +30,7 @@ typedef struct General_state
     bool cond_for_exec;
     bool evaluated_cond;
     Environment* env;
+    Active_names* active_names;
 } General_state;
 
 
@@ -39,7 +41,10 @@ typedef struct General_state
  * \param global   \c true if and only if \a state is global.
  * \param env      The Environment -- must not be \c NULL.
  *
- * \return   The parameter \a state.
+ * \return   The parameter \a state if successful, or \c NULL if
+ *           memory allocation failed. The function
+ *           General_state_uninit should be called even if this
+ *           function fails.
  */
 General_state* General_state_init(General_state* state,
                                   bool global,
@@ -62,6 +67,14 @@ bool General_state_events_enabled(General_state* state);
  * \param state    The General state -- must not be \c NULL.
  */
 void General_state_reset(General_state* state);
+
+
+/**
+ * Uninitialises the General state.
+ *
+ * \param state    The General state -- must not be \c NULL.
+ */
+void General_state_uninit(General_state* state);
 
 
 #endif // K_GENERAL_STATE_H

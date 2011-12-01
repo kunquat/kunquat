@@ -43,23 +43,19 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
-    General_state_init(&play->parent, true, env);
     play->random = random;
     play->turing = false;
     play->event_filter = NULL;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
-    if (play->citer == NULL)
-    {
-        xfree(play);
-        return NULL;
-    }
     play->voice_pool = new_Voice_pool(256, 64);
-    if (play->voice_pool == NULL)
+    play->active_names = new_Active_names();
+    if (play->citer == NULL || play->voice_pool == NULL ||
+            play->active_names == NULL ||
+            !General_state_init(&play->parent, true, env))
     {
-        del_Column_iter(play->citer);
-        xfree(play);
+        del_Playdata(play);
         return NULL;
     }
     play->mode = PLAY_SONG;
@@ -129,20 +125,21 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     {
         return NULL;
     }
-    General_state_init(&play->parent, true, env);
     play->random = NULL;
     play->turing = false;
     play->event_filter = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
-    if (play->citer == NULL)
+    play->voice_pool = NULL;
+    play->active_names = new_Active_names();
+    if (play->citer == NULL || play->active_names == NULL ||
+            !General_state_init(&play->parent, true, env))
     {
         xfree(play);
         return NULL;
     }
 //    play->ins_events = NULL;
-    play->voice_pool = NULL;
     play->mode = PLAY_SONG;
     play->freq = freq;
     play->old_freq = play->freq;
@@ -254,6 +251,7 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
+    Active_names_reset(play->active_names);
     play->turing = false;
     play->scale = 0;
 
@@ -343,6 +341,8 @@ void del_Playdata(Playdata* play)
     }
     del_Voice_pool(play->voice_pool);
     del_Column_iter(play->citer);
+    del_Active_names(play->active_names);
+    General_state_uninit(&play->parent);
     xfree(play);
     return;
 }

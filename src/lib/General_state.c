@@ -27,6 +27,11 @@ General_state* General_state_init(General_state* state,
     assert(env != NULL);
     state->global = global;
     state->env = env;
+    state->active_names = new_Active_names();
+    if (state->active_names == NULL)
+    {
+        return NULL;
+    }
     General_state_reset(state);
     return state;
 }
@@ -61,6 +66,16 @@ void General_state_reset(General_state* state)
         // so let's reset the environment only once.
         Environment_reset(state->env);
     }
+    Active_names_reset(state->active_names);
+    return;
+}
+
+
+void General_state_uninit(General_state* state)
+{
+    assert(state != NULL);
+    del_Active_names(state->active_names);
+    state->active_names = NULL;
     return;
 }
 

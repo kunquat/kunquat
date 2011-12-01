@@ -34,6 +34,7 @@ typedef enum
     ENV_VAR_FLOAT,      ///< double
     ENV_VAR_REAL,       ///< Real
     ENV_VAR_RELTIME,    ///< Reltime
+    ENV_VAR_LAST        ///< sentinel
 } Env_var_type;
 
 

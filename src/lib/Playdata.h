@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Active_names.h>
 #include <Reltime.h>
 #include <Subsong_table.h>
 //#include <Channel.h>
@@ -63,6 +64,8 @@ typedef struct Playdata
     bool turing;                      ///< Turing mode enabled.
 
     Event_names* event_filter;        ///< Event filter.
+
+    Active_names* active_names;       ///< Active names.
 
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
