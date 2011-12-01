@@ -411,6 +411,23 @@ static bool Column_parse(Column* col,
     bool expect_event = true;
     while (expect_event)
     {
+        Event* event = new_Event_from_string(&str, state, event_names);
+        if (event == NULL)
+        {
+            return false;
+        }
+        Event_type type = Event_get_type(event);
+        if (((is_global && EVENT_IS_CHANNEL(type)) ||
+                (!is_global && EVENT_IS_GLOBAL(type)))
+                && !EVENT_IS_GENERAL(type))
+        {
+            del_Event(event);
+            Read_state_set_error(state,
+                     "Incorrect event type for %s column",
+                     is_global ? "global" : "note");
+            return false;
+        }
+#if 0
         str = read_const_char(str, '[', state);
         break_if(state->error);
 
@@ -470,16 +487,19 @@ static bool Column_parse(Column* col,
             del_Event(event);
             return false;
         }
+#endif
         if (!Column_ins(col, event))
         {
-            Read_state_set_error(state, "Couldn't insert event");
+            //Read_state_set_error(state, "Couldn't insert event");
             del_Event(event);
             return false;
         }
 
+#if 0
         str = read_const_char(str, ']', state);
         str = read_const_char(str, ']', state);
         break_if(state->error);
+#endif
 
         check_next(str, state, expect_event);
     }

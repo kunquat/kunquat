@@ -44,6 +44,8 @@ typedef enum
 
     EVENT_CONTROL_TURING,
 
+    EVENT_CONTROL_RECEIVE_EVENT,
+
     EVENT_CONTROL_UPPER,
 
     EVENT_GENERAL_LOWER, ///< General Events.

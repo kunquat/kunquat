@@ -237,6 +237,13 @@ Event_type Event_get_type(Event* event)
 }
 
 
+char* Event_get_desc(Event* event)
+{
+    assert(event != NULL);
+    return event->desc;
+}
+
+
 char* Event_get_fields(Event* event)
 {
     assert(event != NULL);

@@ -46,6 +46,7 @@ Playdata* new_Playdata(Ins_table* insts,
     General_state_init(&play->parent, true, env);
     play->random = random;
     play->turing = false;
+    play->event_filter = NULL;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -131,6 +132,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     General_state_init(&play->parent, true, env);
     play->random = NULL;
     play->turing = false;
+    play->event_filter = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
@@ -320,6 +322,16 @@ bool Playdata_get_state_value(Playdata* play,
         return true;
     }
     return false;
+}
+
+
+void Playdata_set_event_filter(Playdata* play,
+                               Event_names* filter)
+{
+    assert(play != NULL);
+    assert(filter != NULL);
+    play->event_filter = filter;
+    return;
 }
 
 

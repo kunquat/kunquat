@@ -23,6 +23,7 @@
 //#include <Channel.h>
 #include <Column.h>
 #include <Environment.h>
+#include <Event_names.h>
 #include <General_state.h>
 #include <Random.h>
 #include <Slider.h>
@@ -60,6 +61,8 @@ typedef struct Playdata
     Random* random;                   ///< Random source.
 
     bool turing;                      ///< Turing mode enabled.
+
+    Event_names* event_filter;        ///< Event filter.
 
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
@@ -196,6 +199,16 @@ bool Playdata_get_state_value(Playdata* play,
                               char* key,
                               char* dest,
                               int size);
+
+
+/**
+ * Sets an event filter for the Playdata.
+ *
+ * \param play     The Playdata object -- must not be \c NULL.
+ * \param filter   The event filter -- must not be \c NULL.
+ */
+void Playdata_set_event_filter(Playdata* play,
+                               Event_names* filter);
 
 
 /**

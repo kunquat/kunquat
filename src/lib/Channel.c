@@ -179,9 +179,8 @@ void Channel_set_voices(Channel* ch,
         assert(next != NULL);
         if (EVENT_IS_TRIGGER(Event_get_type(next)))
         {
-            Event_handler_handle(eh, ch->init_state.num,
-                                 Event_get_type(next),
-                                 Event_get_fields(next));
+            Event_handler_trigger(eh, ch->init_state.num,
+                                  Event_get_desc(next), false);
         }
         next = NULL;
         if (citer != NULL)

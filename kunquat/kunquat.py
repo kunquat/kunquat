@@ -262,6 +262,25 @@ class RHandle(object):
         """
         _kunquat.kqt_Handle_trigger(self._handle, channel, event)
 
+    def receive(self):
+        """Receive outgoing events.
+
+        Return value:
+        A list containing all requested outgoing events fired during or
+        after the latest call of mix.
+
+        """
+        el = []
+        sb = ctypes.create_string_buffer('\000' * 128)
+        received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
+        while received:
+            try:
+                el.extend([json.loads(sb.value)])
+            except ValueError:
+                pass
+            received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
+        return el
+
     def get_state(self, key):
         """Get playback state information.
 
@@ -535,6 +554,12 @@ _kunquat.kqt_Handle_trigger.argtypes = [ctypes.c_void_p,
                                         ctypes.c_char_p]
 _kunquat.kqt_Handle_trigger.restype = ctypes.c_int
 _kunquat.kqt_Handle_trigger.errcheck = _error_check
+
+_kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
+                                        ctypes.c_char_p,
+                                        ctypes.c_int]
+_kunquat.kqt_Handle_receive.restype = ctypes.c_int
+_kunquat.kqt_Handle_receive.errcheck = _error_check
 
 _kunquat.kqt_Handle_get_state.argtypes = [ctypes.c_void_p,
                                           ctypes.c_char_p,

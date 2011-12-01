@@ -200,27 +200,42 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
  * \return   \c true if the Event was handled, or \c false if arguments were
  *           invalid.
  */
-bool Event_handler_handle(Event_handler* eh,
-                          int index,
-                          Event_type type,
-                          char* fields);
+//bool Event_handler_handle(Event_handler* eh,
+//                          int index,
+//                          Event_type type,
+//                          char* fields);
 
 
 /**
  * Triggers an Event outside the mixing context.
  *
- * \param eh      The Event handler -- must not be \c NULL.
- * \param index   The index number -- must be >= \c -1 and
- *                < \c KQT_COLUMNS_MAX. This should match the channel where
- *                the Event is triggered. \c -1 is used for global Column.
- * \param desc    The Event description in JSON format -- must not be \c NULL.
+ * \param eh       The Event handler -- must not be \c NULL.
+ * \param index    The index number -- must be >= \c -1 and
+ *                 < \c KQT_COLUMNS_MAX. This should match the channel where
+ *                 the Event is triggered. \c -1 is used for global Column.
+ * \param desc     The Event description in JSON format -- must not be \c NULL.
+ * \param silent   Silent mode indicator.
  *
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
  */
 bool Event_handler_trigger(Event_handler* eh,
                            int index,
-                           char* desc); // FIXME: this should be const
+                           char* desc, // FIXME: this should be const
+                           bool silent);
+
+
+/**
+ * Receives an event from the Event handler.
+ *
+ * \param eh     The Event handler -- must not be \c NULL.
+ * \param dest   The destination buffer -- must not be \c NULL.
+ * \param size   The size of the destination buffer including the
+ *               terminating byte -- must be positive.
+ *
+ * \return   \c true if an event was found, otherwise \c false.
+ */
+bool Event_handler_receive(Event_handler* eh, char* dest, int size);
 
 
 /**
@@ -231,6 +246,14 @@ bool Event_handler_trigger(Event_handler* eh,
  * \return   The global state.
  */
 Playdata* Event_handler_get_global_state(Event_handler* eh);
+
+
+/**
+ * Clears the buffer of the event filter.
+ *
+ * \param eh   The Event handler -- must not be \c NULL.
+ */
+void Event_handler_clear_buffer(Event_handler* eh);
 
 
 /**

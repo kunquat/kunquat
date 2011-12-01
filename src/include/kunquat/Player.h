@@ -211,6 +211,29 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
 
 
 /**
+ * Receives an event.
+ *
+ * This function only receives events of types that are explicitly
+ * requested through the ">receive" event, and fired during or after
+ * the latest call of kqt_Handle_mix.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param dest     The memory location where the result shall be stored
+ *                 -- should not be \c NULL. Upon successful completion,
+ *                 this memory location contains the received event
+ *                 description as a JSON string.
+ * \param size     The size of the memory area pointed to by \a dest --
+ *                 should be positive. A size of at least 65 bytes is
+ *                 recommended. JSON strings longer than \a size - 1
+ *                 bytes are truncated and thus may be invalid.
+ *
+ * \return   \c 1 if an event was successfully retrieved, \c 0 if the
+ *           event buffer is empty or an error occurred.
+ */
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size);
+
+
+/**
  * Gets playback state information.
  *
  * \param handle   The Handle -- should not be \c NULL.
@@ -219,7 +242,7 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
  *                 -- should not be \c NULL. Upon successful completion,
  *                 this memory location contains the requested state
  *                 information as a JSON string.
- * \param size     The size of the memory area pointed to by \a value_dest
+ * \param size     The size of the memory area pointed to by \a dest
  *                 -- should be positive. A size of at least 51 bytes is
  *                 recommended (this is enough for all possible integers,
  *                 floats, fractions and timestamps). JSON strings longer than

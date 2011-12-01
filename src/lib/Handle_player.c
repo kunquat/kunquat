@@ -207,7 +207,27 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event)
                 "No event description given.");
         return 0;
     }
-    return Event_handler_trigger(handle->song->event_handler, channel, event);
+    return Event_handler_trigger(handle->song->event_handler, channel, event,
+                                 false);
+}
+
+
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_receive(handle->song->event_handler, dest, size);
 }
 
 

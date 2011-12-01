@@ -46,6 +46,8 @@
 
 #include <Event_control_turing.h>
 
+#include <Event_control_receive_event.h>
+
 #include <Event_general_comment.h>
 
 #include <Event_general_cond.h>
@@ -153,6 +155,12 @@ struct Event_handler
 };
 
 
+static bool Event_handler_handle(Event_handler* eh,
+                                 int index,
+                                 Event_type type,
+                                 char* fields);
+
+
 Event_handler* new_Event_handler(Playdata* global_state,
                                  Channel_state** ch_states,
                                  Ins_table* insts,
@@ -221,6 +229,9 @@ Event_handler* new_Event_handler(Playdata* global_state,
 
     Event_handler_set_control_process(eh, ">Turing", EVENT_CONTROL_TURING,
                                       Event_control_turing_process);
+
+    Event_handler_set_control_process(eh, ">receive", EVENT_CONTROL_RECEIVE_EVENT,
+                                      Event_control_receive_event);
 
     Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);
@@ -377,6 +388,7 @@ Event_handler* new_Event_handler(Playdata* global_state,
         del_Event_handler(eh);
         return NULL;
     }
+    Playdata_set_event_filter(global_state, eh->event_names);
     return eh;
 }
 
@@ -551,10 +563,10 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
 }
 
 
-bool Event_handler_handle(Event_handler* eh,
-                          int index,
-                          Event_type type,
-                          char* fields)
+static bool Event_handler_handle(Event_handler* eh,
+                                 int index,
+                                 Event_type type,
+                                 char* fields)
 {
     assert(eh != NULL);
     assert(index >= -1);
@@ -720,17 +732,18 @@ bool Event_handler_handle(Event_handler* eh,
 
 bool Event_handler_trigger(Event_handler* eh,
                            int index,
-                           char* desc)
+                           char* desc,
+                           bool silent)
 {
     assert(eh != NULL);
     assert(index >= -1);
     assert(index < KQT_COLUMNS_MAX);
     assert(desc != NULL);
     Read_state* state = READ_STATE_AUTO;
-    desc = read_const_char(desc, '[', state);
+    char* str = read_const_char(desc, '[', state);
     char event_name[EVENT_NAME_MAX + 2] = { '\0' };
-    desc = read_string(desc, event_name, EVENT_NAME_MAX + 2, state);
-    desc = read_const_char(desc, ',', state);
+    str = read_string(str, event_name, EVENT_NAME_MAX + 2, state);
+    str = read_const_char(str, ',', state);
     if (state->error)
     {
         return false;
@@ -746,7 +759,24 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         return false;
     }
-    return Event_handler_handle(eh, index, type, desc);
+    if (!Event_handler_handle(eh, index, type, str))
+    {
+        return false;
+    }
+    if (!silent && Event_names_get_pass(eh->event_names, event_name))
+    {
+        Event_buffer_add(eh->event_buffer, desc);
+    }
+    return true;
+}
+
+
+bool Event_handler_receive(Event_handler* eh, char* dest, int size)
+{
+    assert(eh != NULL);
+    assert(dest != NULL);
+    assert(size > 0);
+    return Event_buffer_get(eh->event_buffer, dest, size);
 }
 
 
@@ -754,6 +784,14 @@ Playdata* Event_handler_get_global_state(Event_handler* eh)
 {
     assert(eh != NULL);
     return eh->global_state;
+}
+
+
+void Event_handler_clear_buffer(Event_handler* eh)
+{
+    assert(eh != NULL);
+    Event_buffer_clear(eh->event_buffer);
+    return;
 }
 
 

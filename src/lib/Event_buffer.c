@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <string.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <Event_buffer.h>
 #include <math_common.h>
@@ -103,7 +104,7 @@ bool Event_buffer_get(Event_buffer* buf, char* dest, int size)
     assert(buf != NULL);
     if (buf->read_pos == buf->write_pos)
     {
-        assert(buf->read_pos == '\0');
+        assert(buf->buf[buf->read_pos] == '\0');
         return false;
     }
     char cont = buf->buf[buf->read_pos];

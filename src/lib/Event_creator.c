@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <Event.h>
 #include <Event_type.h>
@@ -33,6 +34,8 @@
 #include <Event_control_goto.h>
 
 #include <Event_control_turing.h>
+
+#include <Event_control_receive_event.h>
 
 #include <Event_general_comment.h>
 
@@ -119,6 +122,7 @@
 #include <Event_dsp_set_reltime.h>
 
 #include <xassert.h>
+#include <xmemory.h>
 
 
 typedef Event* (*Event_cons)(Reltime* pos);
@@ -141,6 +145,8 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CONTROL_GOTO] = new_Event_control_goto,
 
     [EVENT_CONTROL_TURING] = new_Event_control_turing,
+
+    [EVENT_CONTROL_RECEIVE_EVENT] = new_Event_control_receive_event,
 
     [EVENT_GENERAL_COMMENT] = new_Event_general_comment,
 
@@ -242,6 +248,83 @@ Event* new_Event(Event_type type, Reltime* pos)
     assert(pos != NULL);
     assert(cons[type] != NULL);
     return cons[type](pos);
+}
+
+
+Event* new_Event_from_string(char** str, Read_state* state,
+                             Event_names* names)
+{
+    assert(str != NULL);
+    assert(*str != NULL);
+    assert(state != NULL);
+    assert(names != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+    *str = read_const_char(*str, '[', state);
+    Reltime* pos = Reltime_init(RELTIME_AUTO);
+    *str = read_reltime(*str, pos, state);
+    *str = read_const_char(*str, ',', state);
+    *str = read_const_char(*str, '[', state);
+    char* event_desc = *str - 1;
+    char type_str[EVENT_NAME_MAX + 2] = "";
+    *str = read_string(*str, type_str, EVENT_NAME_MAX + 2, state);
+    *str = read_const_char(*str, ',', state);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Event_type type = Event_names_get(names, type_str);
+    if (!EVENT_IS_TRIGGER(type))
+    {
+        Read_state_set_error(state, "Invalid or unsupported event type:"
+                                    " \"%s\"", type_str);
+        return NULL;
+    }
+    if (!Event_type_is_supported(type))
+    {
+        Read_state_set_error(state, "Unsupported event type: \"%s\"",
+                                    type_str);
+        return NULL;
+    }
+    assert(cons[type] != NULL);
+    Event* event = cons[type](pos);
+    if (event == NULL)
+    {
+        return NULL;
+    }
+    char* fields_start = *str;
+    *str = Event_type_get_fields(fields_start, event->field_types,
+                                 NULL, state);
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    assert(*str != NULL);
+    assert(*str > fields_start);
+    *str = read_const_char(*str, ']', state);
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    event->desc = xcalloc(char, *str - event_desc + 1);
+    if (event->desc == NULL)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    strncpy(event->desc, event_desc, *str - event_desc);
+    event->fields = event->desc + (fields_start - event_desc);
+    *str = read_const_char(*str, ']', state);
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    return event;
 }
 
 

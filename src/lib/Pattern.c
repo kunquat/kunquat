@@ -633,9 +633,8 @@ static void Pattern_evaluate_global_row(Pattern* pat,
         else if (!EVENT_IS_CONTROL(Event_get_type((Event*)*next_global)) ||
                  play->turing)
         {
-            if (!Event_handler_handle(eh, -1,
-                                 Event_get_type(*next_global),
-                                 Event_get_fields(*next_global)))
+            if (!Event_handler_trigger(eh, -1, Event_get_desc(*next_global),
+                                       play->silent))
             {
                 // An internal Event was skipped due to invalid data
                 assert(false);
