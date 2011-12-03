@@ -371,10 +371,14 @@ global_triggers = {
         '>resume': [],
         '>pattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, 0)],
 
-        '>.B': [key, any_bool],
-        '>.I': [key, any_int],
-        '>.F': [key, any_float],
-        '>.T': [key, any_ts],
+        '>.Bn': [key],
+        '>.B': [any_bool],
+        '>.In': [key],
+        '>.I': [any_int],
+        '>.Fn': [key],
+        '>.F': [any_float],
+        '>.Tn': [key],
+        '>.T': [any_ts],
 
         '>.gr': [nonneg_ts],
         '>.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, -1)],

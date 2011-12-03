@@ -34,9 +34,13 @@
 #include <Event_control_resume.h>
 #include <Event_control_play_pattern.h>
 
+#include <Event_control_env_set_bool_name.h>
 #include <Event_control_env_set_bool.h>
+#include <Event_control_env_set_int_name.h>
 #include <Event_control_env_set_int.h>
+#include <Event_control_env_set_float_name.h>
 #include <Event_control_env_set_float.h>
+#include <Event_control_env_set_timestamp_name.h>
 #include <Event_control_env_set_timestamp.h>
 
 #include <Event_control_set_goto_row.h>
@@ -209,12 +213,20 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_control_process(eh, ">pattern", EVENT_CONTROL_PLAY_PATTERN,
                                       Event_control_play_pattern_process);
 
+    Event_handler_set_control_process(eh, ">.Bn", EVENT_CONTROL_ENV_SET_BOOL_NAME,
+                                      Event_control_env_set_bool_name_process);
     Event_handler_set_control_process(eh, ">.B", EVENT_CONTROL_ENV_SET_BOOL,
                                       Event_control_env_set_bool_process);
+    Event_handler_set_control_process(eh, ">.In", EVENT_CONTROL_ENV_SET_INT_NAME,
+                                      Event_control_env_set_int_name_process);
     Event_handler_set_control_process(eh, ">.I", EVENT_CONTROL_ENV_SET_INT,
                                       Event_control_env_set_int_process);
+    Event_handler_set_control_process(eh, ">.Fn", EVENT_CONTROL_ENV_SET_FLOAT_NAME,
+                                      Event_control_env_set_float_name_process);
     Event_handler_set_control_process(eh, ">.F", EVENT_CONTROL_ENV_SET_FLOAT,
                                       Event_control_env_set_float_process);
+    Event_handler_set_control_process(eh, ">.Tn", EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME,
+                                      Event_control_env_set_timestamp_name_process);
     Event_handler_set_control_process(eh, ">.T", EVENT_CONTROL_ENV_SET_TIMESTAMP,
                                       Event_control_env_set_timestamp_process);
 

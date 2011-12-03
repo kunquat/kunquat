@@ -23,9 +23,13 @@
 #include <Event_control_resume.h>
 #include <Event_control_play_pattern.h>
 
+#include <Event_control_env_set_bool_name.h>
 #include <Event_control_env_set_bool.h>
+#include <Event_control_env_set_int_name.h>
 #include <Event_control_env_set_int.h>
+#include <Event_control_env_set_float_name.h>
 #include <Event_control_env_set_float.h>
+#include <Event_control_env_set_timestamp_name.h>
 #include <Event_control_env_set_timestamp.h>
 
 #include <Event_control_set_goto_row.h>
@@ -134,9 +138,14 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CONTROL_RESUME] = new_Event_control_resume,
     [EVENT_CONTROL_PLAY_PATTERN] = new_Event_control_play_pattern,
 
+    [EVENT_CONTROL_ENV_SET_BOOL_NAME] = new_Event_control_env_set_bool_name,
     [EVENT_CONTROL_ENV_SET_BOOL] = new_Event_control_env_set_bool,
+    [EVENT_CONTROL_ENV_SET_INT_NAME] = new_Event_control_env_set_int_name,
     [EVENT_CONTROL_ENV_SET_INT] = new_Event_control_env_set_int,
+    [EVENT_CONTROL_ENV_SET_FLOAT_NAME] = new_Event_control_env_set_float_name,
     [EVENT_CONTROL_ENV_SET_FLOAT] = new_Event_control_env_set_float,
+    [EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME] =
+            new_Event_control_env_set_timestamp_name,
     [EVENT_CONTROL_ENV_SET_TIMESTAMP] = new_Event_control_env_set_timestamp,
 
     [EVENT_CONTROL_SET_GOTO_ROW] = new_Event_control_set_goto_row,
