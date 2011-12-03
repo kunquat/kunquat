@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
 #include <Event_common.h>
 #include <Event_channel_set_gen_int.h>
 #include <string_common.h>
@@ -25,9 +26,6 @@
 
 static Event_field_desc set_gen_int_desc[] =
 {
-    {
-        .type = EVENT_FIELD_STRING
-    },
     {
         .type = EVENT_FIELD_INT,
         .min.field.integral_type = INT64_MIN,
@@ -53,12 +51,16 @@ bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields)
     }
     Read_state* state = READ_STATE_AUTO;
     fields = read_const_char(fields, '[', state);
-    char key[100] = { '\0' };
-    fields = read_string(fields, key, 99, state);
-    fields = read_const_char(fields, ',', state);
-    if (state->error || !string_has_suffix(key, ".jsoni"))
+    if (state->error)
     {
         return false;
+    }
+    char* key = Active_names_get(ch_state->parent.active_names,
+                                 ACTIVE_CAT_CH_GEN,
+                                 ACTIVE_TYPE_INT);
+    if (!string_has_suffix(key, ".jsoni"))
+    {
+        return true;
     }
     return Channel_gen_state_modify_value(ch_state->cgstate, key, fields);
 }

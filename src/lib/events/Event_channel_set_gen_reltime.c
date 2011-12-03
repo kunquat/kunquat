@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
 #include <Event_common.h>
 #include <Event_channel_set_gen_reltime.h>
 #include <kunquat/limits.h>
@@ -26,9 +27,6 @@
 
 static Event_field_desc set_gen_reltime_desc[] =
 {
-    {
-        .type = EVENT_FIELD_STRING
-    },
     {
         .type = EVENT_FIELD_RELTIME,
         .min.field.Reltime_type = { INT64_MIN, 0 },
@@ -54,12 +52,16 @@ bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields
     }
     Read_state* state = READ_STATE_AUTO;
     fields = read_const_char(fields, '[', state);
-    char key[100] = { '\0' };
-    fields = read_string(fields, key, 99, state);
-    fields = read_const_char(fields, ',', state);
-    if (state->error || !string_has_suffix(key, ".jsont"))
+    if (state->error)
     {
         return false;
+    }
+    char* key = Active_names_get(ch_state->parent.active_names,
+                                 ACTIVE_CAT_CH_GEN,
+                                 ACTIVE_TYPE_TIMESTAMP);
+    if (!string_has_suffix(key, ".jsont"))
+    {
+        return true;
     }
     return Channel_gen_state_modify_value(ch_state->cgstate, key, fields);
 }

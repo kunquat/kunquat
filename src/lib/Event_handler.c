@@ -115,9 +115,13 @@
 #include <Event_channel_slide_panning.h>
 #include <Event_channel_slide_panning_length.h>
 
+#include <Event_channel_set_gen_bool_name.h>
 #include <Event_channel_set_gen_bool.h>
+#include <Event_channel_set_gen_int_name.h>
 #include <Event_channel_set_gen_int.h>
+#include <Event_channel_set_gen_float_name.h>
 #include <Event_channel_set_gen_float.h>
+#include <Event_channel_set_gen_reltime_name.h>
 #include <Event_channel_set_gen_reltime.h>
 
 #include <Event_ins_set_sustain.h>
@@ -360,12 +364,20 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ch_process(eh, "c/=P", EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
+    Event_handler_set_ch_process(eh, "c.gBn", EVENT_CHANNEL_SET_GEN_BOOL_NAME,
+                                 Event_channel_set_gen_bool_name_process);
     Event_handler_set_ch_process(eh, "c.gB", EVENT_CHANNEL_SET_GEN_BOOL,
                                  Event_channel_set_gen_bool_process);
+    Event_handler_set_ch_process(eh, "c.gIn", EVENT_CHANNEL_SET_GEN_INT_NAME,
+                                 Event_channel_set_gen_int_name_process);
     Event_handler_set_ch_process(eh, "c.gI", EVENT_CHANNEL_SET_GEN_INT,
                                  Event_channel_set_gen_int_process);
+    Event_handler_set_ch_process(eh, "c.gFn", EVENT_CHANNEL_SET_GEN_FLOAT_NAME,
+                                 Event_channel_set_gen_float_name_process);
     Event_handler_set_ch_process(eh, "c.gF", EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
+    Event_handler_set_ch_process(eh, "c.gTn", EVENT_CHANNEL_SET_GEN_RELTIME_NAME,
+                                 Event_channel_set_gen_reltime_name_process);
     Event_handler_set_ch_process(eh, "c.gT", EVENT_CHANNEL_SET_GEN_RELTIME,
                                  Event_channel_set_gen_reltime_process);
 

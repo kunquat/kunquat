@@ -63,28 +63,28 @@ class Trigger(list):
                         self[1].append(default)
                 except TypeError:
                     self[1].append(default)
-            if self[0] in ('c.gB', 'g.B', 'd.B'):
+            if self[0] in ('c.gBn', 'g.B', 'd.B'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsonb')
-            elif self[0] in ('c.gI', 'g.I', 'd.I'):
+            elif self[0] in ('c.gIn', 'g.I', 'd.I'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsoni')
-            elif self[0] in ('c.gF', 'g.F', 'd.F'):
+            elif self[0] in ('c.gFn', 'g.F', 'd.F'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsonf')
-            elif self[0] in ('c.gT', 'g.T', 'd.T'):
+            elif self[0] in ('c.gTn', 'g.T', 'd.T'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsont')
         else:
             self[1] = list(fields)
 
     def flatten(self):
-        if self[0] in ('c.gB', 'g.B', 'd.B'):
+        if self[0] in ('c.gBn', 'g.B', 'd.B'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsonb')] +
                               self[1][1:]]
-        elif self[0] in ('c.gI', 'g.I', 'd.I'):
+        elif self[0] in ('c.gIn', 'g.I', 'd.I'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsoni')] +
                               self[1][1:]]
-        elif self[0] in ('c.gF', 'g.F', 'd.F'):
+        elif self[0] in ('c.gFn', 'g.F', 'd.F'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsonf')] +
                               self[1][1:]]
-        elif self[0] in ('c.gT', 'g.T', 'd.T'):
+        elif self[0] in ('c.gTn', 'g.T', 'd.T'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsont')] +
                               self[1][1:]]
         return self
@@ -432,10 +432,14 @@ channel_triggers = {
         'c/P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
         'c/=P': [nonneg_ts],
 
-        'c.gB': [key, any_bool],
-        'c.gI': [key, any_int],
-        'c.gF': [key, any_float],
-        'c.gT': [key, any_ts],
+        'c.gBn': [key],
+        'c.gB': [any_bool],
+        'c.gIn': [key],
+        'c.gI': [any_int],
+        'c.gFn': [key],
+        'c.gF': [any_float],
+        'c.gTn': [key],
+        'c.gT': [any_ts],
 
         'i.sus': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
 

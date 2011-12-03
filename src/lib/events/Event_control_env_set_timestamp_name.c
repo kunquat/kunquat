@@ -23,7 +23,7 @@
 #include <xassert.h>
 
 
-Event_field_desc* env_set_timestamp_name_desc = set_name_desc;
+static Event_field_desc* env_set_timestamp_name_desc = set_name_desc;
 
 
 Event_create_constructor(Event_control,
