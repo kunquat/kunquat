@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_EVENT_GENERATOR_SET_INT_H
 
 
+#include <Channel_state.h>
 #include <Event_generator.h>
 #include <Generator.h>
 #include <Reltime.h>
@@ -24,7 +25,9 @@
 Event* new_Event_generator_set_int(Reltime* pos);
 
 
-bool Event_generator_set_int_process(Generator* gen, char* fields);
+bool Event_generator_set_int_process(Generator* gen,
+                                     Channel_state* ch_state,
+                                     char* fields);
 
 
 #endif // K_EVENT_GENERATOR_SET_INT_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
 #include <Event_common.h>
 #include <Event_generator_set_bool.h>
 #include <File_base.h>
@@ -26,9 +27,6 @@
 
 static Event_field_desc set_bool_desc[] =
 {
-    {
-        .type = EVENT_FIELD_STRING
-    },
     {
         .type = EVENT_FIELD_BOOL
     },
@@ -43,7 +41,9 @@ Event_create_constructor(Event_generator,
                          set_bool);
 
 
-bool Event_generator_set_bool_process(Generator* gen, char* fields)
+bool Event_generator_set_bool_process(Generator* gen,
+                                      Channel_state* ch_state,
+                                      char* fields)
 {
     assert(gen != NULL);
     if (fields == NULL)
@@ -52,12 +52,16 @@ bool Event_generator_set_bool_process(Generator* gen, char* fields)
     }
     Read_state* state = READ_STATE_AUTO;
     fields = read_const_char(fields, '[', state);
-    char key[100] = { '\0' };
-    fields = read_string(fields, key, 99, state);
-    fields = read_const_char(fields, ',', state);
-    if (state->error || !string_has_suffix(key, ".jsonb"))
+    if (state->error)
     {
         return false;
+    }
+    char* key = Active_names_get(ch_state->parent.active_names,
+                                 ACTIVE_CAT_GEN,
+                                 ACTIVE_TYPE_BOOL);
+    if (!string_has_suffix(key, ".jsonb"))
+    {
+        return true;
     }
     return Device_params_modify_value(gen->conf->params, key, fields);
 }

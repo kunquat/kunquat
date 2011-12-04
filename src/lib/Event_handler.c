@@ -126,9 +126,13 @@
 
 #include <Event_ins_set_sustain.h>
 
+#include <Event_generator_set_bool_name.h>
 #include <Event_generator_set_bool.h>
+#include <Event_generator_set_int_name.h>
 #include <Event_generator_set_int.h>
+#include <Event_generator_set_float_name.h>
 #include <Event_generator_set_float.h>
+#include <Event_generator_set_reltime_name.h>
 #include <Event_generator_set_reltime.h>
 
 #include <Event_effect_bypass_on.h>
@@ -157,7 +161,8 @@ struct Event_handler
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
     bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
     bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
-    bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*, char*);
+    bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*,
+                                                     Channel_state*, char*);
     bool (*effect_process[EVENT_EFFECT_UPPER])(Effect*, char*);
     bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, char*);
 };
@@ -384,12 +389,20 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_ins_process(eh, "i.sus", EVENT_INS_SET_SUSTAIN,
                                   Event_ins_set_sustain_process);
 
+    Event_handler_set_generator_process(eh, "g.Bn", EVENT_GENERATOR_SET_BOOL_NAME,
+                                        Event_generator_set_bool_name_process);
     Event_handler_set_generator_process(eh, "g.B", EVENT_GENERATOR_SET_BOOL,
                                         Event_generator_set_bool_process);
+    Event_handler_set_generator_process(eh, "g.In", EVENT_GENERATOR_SET_INT_NAME,
+                                        Event_generator_set_int_name_process);
     Event_handler_set_generator_process(eh, "g.I", EVENT_GENERATOR_SET_INT,
                                         Event_generator_set_int_process);
+    Event_handler_set_generator_process(eh, "g.Fn", EVENT_GENERATOR_SET_FLOAT_NAME,
+                                        Event_generator_set_float_name_process);
     Event_handler_set_generator_process(eh, "g.F", EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
+    Event_handler_set_generator_process(eh, "g.Tn", EVENT_GENERATOR_SET_RELTIME_NAME,
+                                        Event_generator_set_reltime_name_process);
     Event_handler_set_generator_process(eh, "g.T", EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
@@ -530,7 +543,9 @@ bool Event_handler_set_ins_process(Event_handler* eh,
 bool Event_handler_set_generator_process(Event_handler* eh,
                                          const char* name,
                                          Event_type type,
-                                         bool (*gen_process)(Generator*, char*))
+                                         bool (*gen_process)(Generator*,
+                                                             Channel_state*,
+                                                             char*))
 {
     assert(eh != NULL);
     assert(name != NULL);
@@ -653,7 +668,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->generator_process[type](gen, fields);
+        return eh->generator_process[type](gen, eh->ch_states[index], fields);
     }
     else if (EVENT_IS_EFFECT(type))
     {

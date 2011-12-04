@@ -116,9 +116,13 @@
 #include <Event_channel_set_gen_reltime_name.h>
 #include <Event_channel_set_gen_reltime.h>
 
+#include <Event_generator_set_bool_name.h>
 #include <Event_generator_set_bool.h>
+#include <Event_generator_set_int_name.h>
 #include <Event_generator_set_int.h>
+#include <Event_generator_set_float_name.h>
 #include <Event_generator_set_float.h>
+#include <Event_generator_set_reltime_name.h>
 #include <Event_generator_set_reltime.h>
 
 #include <Event_effect_bypass_on.h>
@@ -237,9 +241,13 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_SET_GEN_RELTIME_NAME] = new_Event_channel_set_gen_reltime_name,
     [EVENT_CHANNEL_SET_GEN_RELTIME] = new_Event_channel_set_gen_reltime,
 
+    [EVENT_GENERATOR_SET_BOOL_NAME] = new_Event_generator_set_bool_name,
     [EVENT_GENERATOR_SET_BOOL] = new_Event_generator_set_bool,
+    [EVENT_GENERATOR_SET_INT_NAME] = new_Event_generator_set_int_name,
     [EVENT_GENERATOR_SET_INT] = new_Event_generator_set_int,
+    [EVENT_GENERATOR_SET_FLOAT_NAME] = new_Event_generator_set_float_name,
     [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
+    [EVENT_GENERATOR_SET_RELTIME_NAME] = new_Event_generator_set_reltime_name,
     [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
 
     [EVENT_EFFECT_BYPASS_ON] = new_Event_effect_bypass_on,

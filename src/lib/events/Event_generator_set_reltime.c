@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
 #include <Event_common.h>
 #include <Event_generator_set_reltime.h>
 #include <File_base.h>
@@ -28,9 +29,6 @@
 
 static Event_field_desc set_reltime_desc[] =
 {
-    {
-        .type = EVENT_FIELD_STRING
-    },
     {
         .type = EVENT_FIELD_RELTIME,
         .min.field.Reltime_type = { INT64_MIN, 0 },
@@ -47,7 +45,9 @@ Event_create_constructor(Event_generator,
                          set_reltime);
 
 
-bool Event_generator_set_reltime_process(Generator* gen, char* fields)
+bool Event_generator_set_reltime_process(Generator* gen,
+                                         Channel_state* ch_state,
+                                         char* fields)
 {
     assert(gen != NULL);
     if (fields == NULL)
@@ -56,12 +56,16 @@ bool Event_generator_set_reltime_process(Generator* gen, char* fields)
     }
     Read_state* state = READ_STATE_AUTO;
     fields = read_const_char(fields, '[', state);
-    char key[100] = { '\0' };
-    fields = read_string(fields, key, 99, state);
-    fields = read_const_char(fields, ',', state);
-    if (state->error || !string_has_suffix(key, ".jsont"))
+    if (state->error)
     {
         return false;
+    }
+    char* key = Active_names_get(ch_state->parent.active_names,
+                                 ACTIVE_CAT_GEN,
+                                 ACTIVE_TYPE_TIMESTAMP);
+    if (!string_has_suffix(key, ".jsont"))
+    {
+        return true;
     }
     return Device_params_modify_value(gen->conf->params, key, fields);
 }

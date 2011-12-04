@@ -149,7 +149,9 @@ bool Event_handler_set_ins_process(Event_handler* eh,
 bool Event_handler_set_generator_process(Event_handler* eh,
                                          const char* name,
                                          Event_type type,
-                                         bool (*gen_process)(Generator*, char*));
+                                         bool (*gen_process)(Generator*,
+                                                             Channel_state*,
+                                                             char*));
 
 
 /**
