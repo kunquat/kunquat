@@ -63,28 +63,28 @@ class Trigger(list):
                         self[1].append(default)
                 except TypeError:
                     self[1].append(default)
-            if self[0] in ('c.gBn', 'g.Bn', 'd.B'):
+            if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsonb')
-            elif self[0] in ('c.gIn', 'g.In', 'd.I'):
+            elif self[0] in ('c.gIn', 'g.In', 'd.In'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsoni')
-            elif self[0] in ('c.gFn', 'g.Fn', 'd.F'):
+            elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsonf')
-            elif self[0] in ('c.gTn', 'g.Tn', 'd.T'):
+            elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
                 self[1][0] = key_to_param(self[1][0], 'p_', '.jsont')
         else:
             self[1] = list(fields)
 
     def flatten(self):
-        if self[0] in ('c.gBn', 'g.Bn', 'd.B'):
+        if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsonb')] +
                               self[1][1:]]
-        elif self[0] in ('c.gIn', 'g.In', 'd.I'):
+        elif self[0] in ('c.gIn', 'g.In', 'd.In'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsoni')] +
                               self[1][1:]]
-        elif self[0] in ('c.gFn', 'g.Fn', 'd.F'):
+        elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsonf')] +
                               self[1][1:]]
-        elif self[0] in ('c.gTn', 'g.Tn', 'd.T'):
+        elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
             return [self[0], [param_to_key(self[1][0], 'p_', '.jsont')] +
                               self[1][1:]]
         return self
@@ -455,10 +455,14 @@ channel_triggers = {
         'ebp+': [],
         'ebp-': [],
 
-        'd.B': [key, any_bool],
-        'd.I': [key, any_int],
-        'd.F': [key, any_float],
-        'd.T': [key, any_ts],
+        'd.Bn': [key],
+        'd.B': [any_bool],
+        'd.In': [key],
+        'd.I': [any_int],
+        'd.Fn': [key],
+        'd.F': [any_float],
+        'd.Tn': [key],
+        'd.T': [any_ts],
 }
 
 general_triggers = {

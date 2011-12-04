@@ -138,9 +138,13 @@
 #include <Event_effect_bypass_on.h>
 #include <Event_effect_bypass_off.h>
 
+#include <Event_dsp_set_bool_name.h>
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_int_name.h>
 #include <Event_dsp_set_int.h>
+#include <Event_dsp_set_float_name.h>
 #include <Event_dsp_set_float.h>
+#include <Event_dsp_set_reltime_name.h>
 #include <Event_dsp_set_reltime.h>
 
 #include <xassert.h>
@@ -164,7 +168,7 @@ struct Event_handler
     bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*,
                                                      Channel_state*, char*);
     bool (*effect_process[EVENT_EFFECT_UPPER])(Effect*, char*);
-    bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, char*);
+    bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, Channel_state*, char*);
 };
 
 
@@ -411,12 +415,20 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_effect_process(eh, "ebp-", EVENT_EFFECT_BYPASS_OFF,
                                      Event_effect_bypass_off_process);
 
+    Event_handler_set_dsp_process(eh, "d.Bn", EVENT_DSP_SET_BOOL_NAME,
+                                  Event_dsp_set_bool_name_process);
     Event_handler_set_dsp_process(eh, "d.B", EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
+    Event_handler_set_dsp_process(eh, "d.In", EVENT_DSP_SET_INT_NAME,
+                                  Event_dsp_set_int_name_process);
     Event_handler_set_dsp_process(eh, "d.I", EVENT_DSP_SET_INT,
                                   Event_dsp_set_int_process);
+    Event_handler_set_dsp_process(eh, "d.Fn", EVENT_DSP_SET_FLOAT_NAME,
+                                  Event_dsp_set_float_name_process);
     Event_handler_set_dsp_process(eh, "d.F", EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
+    Event_handler_set_dsp_process(eh, "d.Tn", EVENT_DSP_SET_RELTIME_NAME,
+                                  Event_dsp_set_reltime_name_process);
     Event_handler_set_dsp_process(eh, "d.T", EVENT_DSP_SET_RELTIME,
                                   Event_dsp_set_reltime_process);
 
@@ -585,7 +597,9 @@ bool Event_handler_set_effect_process(Event_handler* eh,
 bool Event_handler_set_dsp_process(Event_handler* eh,
                                    const char* name,
                                    Event_type type,
-                                   bool (*dsp_process)(DSP_conf*, char*))
+                                   bool (*dsp_process)(DSP_conf*,
+                                                       Channel_state*,
+                                                       char*))
 {
     assert(eh != NULL);
     assert(name != NULL);
@@ -748,7 +762,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->dsp_process[type](conf, fields);
+        return eh->dsp_process[type](conf, eh->ch_states[index], fields);
     }
     else if (EVENT_IS_CONTROL(type))
     {

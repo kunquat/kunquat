@@ -50,6 +50,7 @@ bool Event_generator_set_reltime_process(Generator* gen,
                                          char* fields)
 {
     assert(gen != NULL);
+    assert(ch_state != NULL);
     if (fields == NULL)
     {
         return false;

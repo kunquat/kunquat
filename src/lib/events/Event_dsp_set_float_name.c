@@ -15,11 +15,11 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <Active_names.h>
+#include <Channel_state.h>
+#include <DSP_conf.h>
 #include <Event_common.h>
-#include <Event_generator_set_float_name.h>
+#include <Event_dsp_set_float_name.h>
 #include <File_base.h>
-#include <Generator.h>
 #include <set_active_name.h>
 #include <string_common.h>
 #include <xassert.h>
@@ -29,23 +29,23 @@
 static Event_field_desc* set_float_name_desc = set_name_desc;
 
 
-Event_create_constructor(Event_generator,
-                         EVENT_GENERATOR_SET_FLOAT_NAME,
+Event_create_constructor(Event_dsp,
+                         EVENT_DSP_SET_FLOAT_NAME,
                          set_float_name);
 
 
-bool Event_generator_set_float_name_process(Generator* gen,
-                                            Channel_state* ch_state,
-                                            char* fields)
+bool Event_dsp_set_float_name_process(DSP_conf* dsp_conf,
+                                      Channel_state* ch_state,
+                                      char* fields)
 {
-    assert(gen != NULL);
+    assert(dsp_conf != NULL);
     assert(ch_state != NULL);
-    (void)gen;
+    (void)dsp_conf;
     if (fields == NULL)
     {
         return false;
     }
-    return set_active_name(&ch_state->parent, ACTIVE_CAT_GEN,
+    return set_active_name(&ch_state->parent, ACTIVE_CAT_DSP,
                            ACTIVE_TYPE_FLOAT, fields);
 }
 

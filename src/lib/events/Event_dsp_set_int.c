@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,8 @@
 #include <limits.h>
 #include <stdbool.h>
 
+#include <Active_names.h>
+#include <Channel_state.h>
 #include <DSP_conf.h>
 #include <Event_common.h>
 #include <Event_dsp_set_int.h>
@@ -27,9 +29,6 @@
 
 static Event_field_desc set_int_desc[] =
 {
-    {
-        .type = EVENT_FIELD_STRING
-    },
     {
         .type = EVENT_FIELD_INT,
         .min.field.integral_type = INT64_MIN,
@@ -46,21 +45,28 @@ Event_create_constructor(Event_dsp,
                          set_int);
 
 
-bool Event_dsp_set_int_process(DSP_conf* dsp_conf, char* fields)
+bool Event_dsp_set_int_process(DSP_conf* dsp_conf,
+                               Channel_state* ch_state,
+                               char* fields)
 {
     assert(dsp_conf != NULL);
+    assert(ch_state != NULL);
     if (fields == NULL)
     {
         return false;
     }
     Read_state* state = READ_STATE_AUTO;
     fields = read_const_char(fields, '[', state);
-    char key[100] = { '\0' };
-    fields = read_string(fields, key, 99, state);
-    fields = read_const_char(fields, ',', state);
-    if (state->error || !string_has_suffix(key, ".jsoni"))
+    if (state->error)
     {
         return false;
+    }
+    char* key = Active_names_get(ch_state->parent.active_names,
+                                 ACTIVE_CAT_DSP,
+                                 ACTIVE_TYPE_INT);
+    if (!string_has_suffix(key, ".jsoni"))
+    {
+        return true;
     }
     return Device_params_modify_value(dsp_conf->params, key, fields);
 }

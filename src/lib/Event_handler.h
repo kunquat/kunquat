@@ -185,7 +185,9 @@ bool Event_handler_set_effect_process(Event_handler* eh,
 bool Event_handler_set_dsp_process(Event_handler* eh,
                                    const char* name,
                                    Event_type type,
-                                   bool (*dsp_process)(DSP_conf*, char*));
+                                   bool (*dsp_process)(DSP_conf*,
+                                                       Channel_state*,
+                                                       char*));
 
 
 /**

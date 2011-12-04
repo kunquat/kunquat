@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,7 @@
 #define K_EVENT_DSP_SET_BOOL_H
 
 
+#include <Channel_state.h>
 #include <Event_dsp.h>
 #include <DSP_conf.h>
 #include <Reltime.h>
@@ -24,7 +25,9 @@
 Event* new_Event_dsp_set_bool(Reltime* pos);
 
 
-bool Event_dsp_set_bool_process(DSP_conf* dsp_conf, char* fields);
+bool Event_dsp_set_bool_process(DSP_conf* dsp_conf,
+                                Channel_state* ch_state,
+                                char* fields);
 
 
 #endif // K_EVENT_DSP_SET_BOOL_H

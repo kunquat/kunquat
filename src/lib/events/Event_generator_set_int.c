@@ -49,6 +49,7 @@ bool Event_generator_set_int_process(Generator* gen,
                                      char* fields)
 {
     assert(gen != NULL);
+    assert(ch_state != NULL);
     if (fields == NULL)
     {
         return false;

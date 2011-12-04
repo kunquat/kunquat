@@ -128,9 +128,13 @@
 #include <Event_effect_bypass_on.h>
 #include <Event_effect_bypass_off.h>
 
+#include <Event_dsp_set_bool_name.h>
 #include <Event_dsp_set_bool.h>
+#include <Event_dsp_set_int_name.h>
 #include <Event_dsp_set_int.h>
+#include <Event_dsp_set_float_name.h>
 #include <Event_dsp_set_float.h>
+#include <Event_dsp_set_reltime_name.h>
 #include <Event_dsp_set_reltime.h>
 
 #include <xassert.h>
@@ -253,9 +257,13 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_EFFECT_BYPASS_ON] = new_Event_effect_bypass_on,
     [EVENT_EFFECT_BYPASS_OFF] = new_Event_effect_bypass_off,
 
+    [EVENT_DSP_SET_BOOL_NAME] = new_Event_dsp_set_bool_name,
     [EVENT_DSP_SET_BOOL] = new_Event_dsp_set_bool,
+    [EVENT_DSP_SET_INT_NAME] = new_Event_dsp_set_int_name,
     [EVENT_DSP_SET_INT] = new_Event_dsp_set_int,
+    [EVENT_DSP_SET_FLOAT_NAME] = new_Event_dsp_set_float_name,
     [EVENT_DSP_SET_FLOAT] = new_Event_dsp_set_float,
+    [EVENT_DSP_SET_RELTIME_NAME] = new_Event_dsp_set_reltime_name,
     [EVENT_DSP_SET_RELTIME] = new_Event_dsp_set_reltime,
 };
 
