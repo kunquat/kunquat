@@ -70,6 +70,7 @@ typedef struct Playdata
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete
     int scale;                        ///< Currently active Scale index.
+    int scale_fixed_point;            ///< Current fixed point in interval shifts.
 
     int16_t jump_set_counter;         ///< Jump counter passed to a jump event.
     int16_t jump_set_subsong;         ///< Subsong number setting passed to a jump event.

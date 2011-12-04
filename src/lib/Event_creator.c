@@ -59,6 +59,7 @@
 #include <Event_global_set_scale.h>
 #include <Event_global_set_scale_offset.h>
 #include <Event_global_mimic_scale.h>
+#include <Event_global_set_scale_fixed_point.h>
 #include <Event_global_shift_scale_intervals.h>
 
 #include <Event_global_set_jump_subsong.h>
@@ -187,6 +188,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GLOBAL_SET_SCALE] = new_Event_global_set_scale,
     [EVENT_GLOBAL_SET_SCALE_OFFSET] = new_Event_global_set_scale_offset,
     [EVENT_GLOBAL_MIMIC_SCALE] = new_Event_global_mimic_scale,
+    [EVENT_GLOBAL_SET_SCALE_FIXED_POINT] = new_Event_global_set_scale_fixed_point,
     [EVENT_GLOBAL_SHIFT_SCALE_INTERVALS] = new_Event_global_shift_scale_intervals,
 
     [EVENT_GLOBAL_SET_JUMP_SUBSONG] = new_Event_global_set_jump_subsong,

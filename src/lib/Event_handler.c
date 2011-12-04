@@ -68,6 +68,7 @@
 #include <Event_global_set_scale.h>
 #include <Event_global_set_scale_offset.h>
 #include <Event_global_mimic_scale.h>
+#include <Event_global_set_scale_fixed_point.h>
 #include <Event_global_shift_scale_intervals.h>
 
 #include <Event_global_set_tempo.h>
@@ -287,6 +288,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_scale_offset_process);
     Event_handler_set_global_process(eh, "wms", EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
+    Event_handler_set_global_process(eh, "w.sfp", EVENT_GLOBAL_SET_SCALE_FIXED_POINT,
+                                     Event_global_set_scale_fixed_point_process);
     Event_handler_set_global_process(eh, "wssi", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
                                      Event_global_shift_scale_intervals_process);
 

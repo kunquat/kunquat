@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -31,11 +31,6 @@ static Event_field_desc shift_scale_intervals_desc[] =
         .max.field.integral_type = KQT_SCALE_NOTES - 1
     },
     {
-        .type = EVENT_FIELD_NOTE,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_SCALE_NOTES - 1
-    },
-    {
         .type = EVENT_FIELD_NONE
     }
 };
@@ -53,7 +48,7 @@ bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fi
     {
         return false;
     }
-    Event_field data[2];
+    Event_field data[1];
     Read_state* state = READ_STATE_AUTO;
     Event_type_get_fields(fields, shift_scale_intervals_desc, data, state);
     if (state->error)
@@ -67,12 +62,12 @@ bool Event_global_shift_scale_intervals_process(Playdata* global_state, char* fi
     Scale* scale = global_state->scales[global_state->scale];
     if (scale == NULL ||
             Scale_get_note_count(scale) <= data[0].field.integral_type ||
-            Scale_get_note_count(scale) <= data[1].field.integral_type)
+            Scale_get_note_count(scale) <= global_state->scale_fixed_point)
     {
         return true;
     }
     Scale_retune(scale, data[0].field.integral_type,
-                 data[1].field.integral_type);
+                 global_state->scale_fixed_point);
     return true;
 }
 

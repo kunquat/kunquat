@@ -358,7 +358,8 @@ global_triggers = {
         'w.s': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
         'w.so': [finite_float],
         'wms': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
-        'wssi': [note_entry, note_entry],
+        'w.sfp': [note_entry],
+        'wssi': [note_entry],
 
         'w.t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
         'w/t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
