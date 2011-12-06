@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <Filter.h>
 #include <Generator_common.h>
@@ -94,29 +95,43 @@ void Generator_common_handle_pitch(Generator* gen,
     }
     else
     {
-        if (LFO_active(&state->vibrato))
-        {
-            state->actual_pitch *= LFO_step(&state->vibrato);
-        }
         if (state->arpeggio)
         {
+            assert(!isnan(state->arpeggio_tones[0]));
+            double diff = exp2((state->arpeggio_tones[state->arpeggio_note] -
+                                state->arpeggio_ref) / 1200);
+            state->actual_pitch *= diff;
+#if 0
             if (state->arpeggio_note > 0)
             {
                 state->actual_pitch *= state->arpeggio_factors[
                                        state->arpeggio_note - 1];
             }
+#endif
             state->arpeggio_frames += 1;
             if (state->arpeggio_frames >= state->arpeggio_length)
             {
                 state->arpeggio_frames -= state->arpeggio_length;
                 ++state->arpeggio_note;
-                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
-                        || state->arpeggio_factors[
-                                state->arpeggio_note - 1] <= 0)
+                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
+                        isnan(state->arpeggio_tones[state->arpeggio_note]))
                 {
                     state->arpeggio_note = 0;
                 }
             }
+#if 0
+            if (state->arpeggio_note > 0)
+            {
+                fprintf(stderr, "%f %f %f %f\n", state->arpeggio_ref,
+                        state->arpeggio_tones[0],
+                        state->arpeggio_tones[state->arpeggio_note],
+                        diff);
+            }
+#endif
+        }
+        if (LFO_active(&state->vibrato))
+        {
+            state->actual_pitch *= LFO_step(&state->vibrato);
         }
     }
     return;

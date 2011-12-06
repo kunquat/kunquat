@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <Channel_state.h>
 #include <Environment.h>
@@ -93,6 +94,11 @@ void Channel_state_reset(Channel_state* state)
 
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
+
+    state->arpeggio_ref = NAN;
+    state->arpeggio_speed = 24;
+    state->arpeggio_edit_pos = 1;
+    state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
 
     Random_reset(state->rand);
     return;

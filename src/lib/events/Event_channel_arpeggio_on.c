@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -14,10 +14,11 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 #include <math.h>
 
 #include <Event_common.h>
-#include <Event_channel_arpeggio.h>
+#include <Event_channel_arpeggio_on.h>
 #include <Reltime.h>
 #include <Voice.h>
 #include <Scale.h>
@@ -26,28 +27,8 @@
 #include <xmemory.h>
 
 
-static Event_field_desc arpeggio_desc[] =
+static Event_field_desc arpeggio_on_desc[] =
 {
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = DBL_MIN,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
     {
         .type = EVENT_FIELD_NONE
     }
@@ -55,34 +36,25 @@ static Event_field_desc arpeggio_desc[] =
 
 
 Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_ARPEGGIO,
-                         arpeggio);
+                         EVENT_CHANNEL_ARPEGGIO_ON,
+                         arpeggio_on);
 
 
-bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
+bool Event_channel_arpeggio_on_process(Channel_state* ch_state, char* fields)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[4];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, arpeggio_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
+    (void)fields;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
         Voice* voice = ch_state->fg[i];
         Voice_state* vs = voice->state;
-        pitch_t orig_pitch = -1;
-        if (voice->gen->ins_params->pitch_locks[i].enabled)
+        //pitch_t orig_pitch = -1;
+        if (vs->arpeggio || voice->gen->ins_params->pitch_locks[i].enabled)
         {
             continue;
         }
+#if 0
         if (voice->gen->ins_params->scale != NULL &&
                 *voice->gen->ins_params->scale != NULL &&
                 **voice->gen->ins_params->scale != NULL)
@@ -99,6 +71,19 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
             vs->arpeggio = false;
             continue;
         }
+#endif
+        if (isnan(ch_state->arpeggio_ref))
+        {
+            ch_state->arpeggio_ref = vs->orig_cents;
+        }
+        if (isnan(ch_state->arpeggio_tones[0]))
+        {
+            ch_state->arpeggio_tones[0] = ch_state->arpeggio_ref;
+        }
+        vs->arpeggio_ref = ch_state->arpeggio_ref;
+        memcpy(vs->arpeggio_tones, ch_state->arpeggio_tones,
+                KQT_ARPEGGIO_NOTES_MAX * sizeof(double));
+#if 0
         int last_nonzero = -1;
         for (int k = 0; k < KQT_ARPEGGIO_NOTES_MAX; ++k)
         {
@@ -138,10 +123,11 @@ bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields)
         {
             vs->arpeggio_factors[last_nonzero + 1] = -1;
         }
+#endif
         double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
                                            *ch_state->tempo,
                                            *ch_state->freq);
-        vs->arpeggio_length = unit_len / data[0].field.double_type;
+        vs->arpeggio_length = unit_len / ch_state->arpeggio_speed;
         vs->arpeggio_frames = 0;
         vs->arpeggio_note = 0;
         vs->arpeggio = true;

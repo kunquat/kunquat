@@ -93,7 +93,13 @@
 #include <Event_channel_vibrato_speed.h>
 #include <Event_channel_vibrato_depth.h>
 #include <Event_channel_vibrato_delay.h>
-#include <Event_channel_arpeggio.h>
+
+#include <Event_channel_reset_arpeggio.h>
+#include <Event_channel_set_arpeggio_note.h>
+#include <Event_channel_set_arpeggio_index.h>
+#include <Event_channel_set_arpeggio_speed.h>
+#include <Event_channel_arpeggio_on.h>
+#include <Event_channel_arpeggio_off.h>
 
 #include <Event_channel_set_lowpass.h>
 #include <Event_channel_slide_lowpass.h>
@@ -223,7 +229,13 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
     [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,
     [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
-    [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
+
+    [EVENT_CHANNEL_RESET_ARPEGGIO] = new_Event_channel_reset_arpeggio,
+    [EVENT_CHANNEL_SET_ARPEGGIO_NOTE] = new_Event_channel_set_arpeggio_note,
+    [EVENT_CHANNEL_SET_ARPEGGIO_INDEX] = new_Event_channel_set_arpeggio_index,
+    [EVENT_CHANNEL_SET_ARPEGGIO_SPEED] = new_Event_channel_set_arpeggio_speed,
+    [EVENT_CHANNEL_ARPEGGIO_ON] = new_Event_channel_arpeggio_on,
+    [EVENT_CHANNEL_ARPEGGIO_OFF] = new_Event_channel_arpeggio_off,
 
     [EVENT_CHANNEL_SET_LOWPASS] = new_Event_channel_set_lowpass,
     [EVENT_CHANNEL_SLIDE_LOWPASS] = new_Event_channel_slide_lowpass,

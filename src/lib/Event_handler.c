@@ -101,7 +101,13 @@
 #include <Event_channel_vibrato_speed.h>
 #include <Event_channel_vibrato_depth.h>
 #include <Event_channel_vibrato_delay.h>
-#include <Event_channel_arpeggio.h>
+
+#include <Event_channel_reset_arpeggio.h>
+#include <Event_channel_set_arpeggio_note.h>
+#include <Event_channel_set_arpeggio_index.h>
+#include <Event_channel_set_arpeggio_speed.h>
+#include <Event_channel_arpeggio_on.h>
+#include <Event_channel_arpeggio_off.h>
 
 #include <Event_channel_set_lowpass.h>
 #include <Event_channel_slide_lowpass.h>
@@ -350,8 +356,19 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                  Event_channel_vibrato_depth_process);
     Event_handler_set_ch_process(eh, "cVdd", EVENT_CHANNEL_VIBRATO_DELAY,
                                  Event_channel_vibrato_delay_process);
-    Event_handler_set_ch_process(eh, "cArp", EVENT_CHANNEL_ARPEGGIO,
-                                 Event_channel_arpeggio_process);
+
+    Event_handler_set_ch_process(eh, "c<Arp", EVENT_CHANNEL_RESET_ARPEGGIO,
+                                 Event_channel_reset_arpeggio_process);
+    Event_handler_set_ch_process(eh, "c.Arpn", EVENT_CHANNEL_SET_ARPEGGIO_NOTE,
+                                 Event_channel_set_arpeggio_note_process);
+    Event_handler_set_ch_process(eh, "c.Arpi", EVENT_CHANNEL_SET_ARPEGGIO_INDEX,
+                                 Event_channel_set_arpeggio_index_process);
+    Event_handler_set_ch_process(eh, "c.Arps", EVENT_CHANNEL_SET_ARPEGGIO_SPEED,
+                                 Event_channel_set_arpeggio_speed_process);
+    Event_handler_set_ch_process(eh, "cArp+", EVENT_CHANNEL_ARPEGGIO_ON,
+                                 Event_channel_arpeggio_on_process);
+    Event_handler_set_ch_process(eh, "cArp-", EVENT_CHANNEL_ARPEGGIO_OFF,
+                                 Event_channel_arpeggio_off_process);
 
     Event_handler_set_ch_process(eh, "c.l", EVENT_CHANNEL_SET_LOWPASS,
                                  Event_channel_set_lowpass_process);

@@ -158,9 +158,9 @@ extern "C" {
 
 
 /**
- * Maximum number of notes in the arpeggio event.
+ * Maximum number of notes in the arpeggio.
  */
-#define KQT_ARPEGGIO_NOTES_MAX 3
+#define KQT_ARPEGGIO_NOTES_MAX 64
 
 
 #ifdef __cplusplus

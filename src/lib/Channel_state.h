@@ -83,6 +83,11 @@ typedef struct Channel_state
 
     double panning;                ///< The current panning.
     Slider panning_slider;
+
+    double arpeggio_ref;
+    double arpeggio_speed;
+    int arpeggio_edit_pos;
+    double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX];
 } Channel_state;
 
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2011
  *
  * This file is part of Kunquat.
  *
@@ -12,21 +12,20 @@
  */
 
 
-#ifndef K_EVENT_CHANNEL_ARPEGGIO_H
-#define K_EVENT_CHANNEL_ARPEGGIO_H
+#ifndef K_EVENT_CHANNEL_ARPEGGIO_OFF_H
+#define K_EVENT_CHANNEL_ARPEGGIO_OFF_H
 
 
 #include <Event_channel.h>
 #include <Reltime.h>
-#include <kunquat/limits.h>
 
 
-Event* new_Event_channel_arpeggio(Reltime* pos);
+Event* new_Event_channel_arpeggio_off(Reltime* pos);
 
 
-bool Event_channel_arpeggio_process(Channel_state* ch_state, char* fields);
+bool Event_channel_arpeggio_off_process(Channel_state* ch_state, char* fields);
 
 
-#endif // K_EVENT_CHANNEL_ARPEGGIO_H
+#endif // K_EVENT_CHANNEL_ARPEGGIO_OFF_H
 
 

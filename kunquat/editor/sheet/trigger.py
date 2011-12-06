@@ -415,7 +415,13 @@ channel_triggers = {
         #'cVsd': [nonneg_ts],
         'cVd': [nonneg_float],
         'cVdd': [nonneg_ts],
-        'cArp': [pos_float, finite_float, finite_float, finite_float],
+
+        'c<Arp': [],
+        'c.Arpn': [pitch],
+        'c.Arpi': [(int, lambda x: 0 <= x < lim.ARPEGGIO_NOTES_MAX, 1)],
+        'c.Arps': [(float, lambda x: x > 0 and isfinite(x), 24.0)],
+        'cArp+': [],
+        'cArp-': [],
 
         'c.l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
         'c/l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
