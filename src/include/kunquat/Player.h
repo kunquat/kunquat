@@ -194,7 +194,7 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
 
 
 /**
- * Triggers an event.
+ * Fires an event.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param channel   The channel where the event takes place -- should be
@@ -205,9 +205,9 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
  *                  elements) with the event name as the first element and its
  *                  argument list as the second element.
  *
- * \return   \c 1 if the event was successfully triggered, otherwise \c 0.
+ * \return   \c 1 if the event was successfully fired, otherwise \c 0.
  */
-int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
+int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
 
 
 /**

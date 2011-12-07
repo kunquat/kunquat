@@ -108,7 +108,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     return_key = KeyHandler.RETURN
     status_len_max = 0
     #pause = False
-    #handle.trigger(-1, '[">pause", []]')
+    #handle.fire(-1, '[">pause", []]')
     bufs = handle.mix()
     rt_cycle_len = float(options.buffer_size) / options.frequency
     mix_cycle_start = 0
@@ -185,13 +185,13 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                         duration = handle.get_duration(handle.subsong)
                 """
                 elif key == '§':
-                    #handle.trigger(63, '["c.i", [1]]')
-                    handle.trigger(63, '["cn+", [%f]]' % random.gauss(0, 1000))
+                    #handle.fire(63, '["c.i", [1]]')
+                    handle.fire(63, '["cn+", [%f]]' % random.gauss(0, 1000))
                 elif key == '½':
                     if not pause:
-                        handle.trigger(-1, '[">pause", []]')
+                        handle.fire(-1, '[">pause", []]')
                     else:
-                        handle.trigger(-1, '[">resume", []]')
+                        handle.fire(-1, '[">resume", []]')
                     pause = not pause
                 """
         mix_cycle_start = time.time()

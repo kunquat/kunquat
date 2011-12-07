@@ -54,7 +54,7 @@ class RHandle(object):
     __getitem__  -- Dictionary-like composition data retrieval.
     get_duration -- Calculate the length of a subsong.
     mix          -- Mix audio data.
-    trigger      -- Trigger an event.
+    fire         -- Fire an event.
 
     Public instance variables:
     buffer_size -- Mixing buffer size.
@@ -245,8 +245,8 @@ class RHandle(object):
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
         return cbuf_left[:mixed], cbuf_right[:mixed]
 
-    def trigger(self, channel, event):
-        """Trigger an event.
+    def fire(self, channel, event):
+        """Fire an event.
 
         Arguments:
         channel -- The channel where the event takes place. The channel
@@ -260,7 +260,7 @@ class RHandle(object):
                  Temperament).
 
         """
-        _kunquat.kqt_Handle_trigger(self._handle, channel, event)
+        _kunquat.kqt_Handle_fire(self._handle, channel, event)
 
     def receive(self):
         """Receive outgoing events.
@@ -549,11 +549,11 @@ _kunquat.kqt_Handle_get_position.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
 
-_kunquat.kqt_Handle_trigger.argtypes = [ctypes.c_void_p,
-                                        ctypes.c_int,
-                                        ctypes.c_char_p]
-_kunquat.kqt_Handle_trigger.restype = ctypes.c_int
-_kunquat.kqt_Handle_trigger.errcheck = _error_check
+_kunquat.kqt_Handle_fire.argtypes = [ctypes.c_void_p,
+                                     ctypes.c_int,
+                                     ctypes.c_char_p]
+_kunquat.kqt_Handle_fire.restype = ctypes.c_int
+_kunquat.kqt_Handle_fire.errcheck = _error_check
 
 _kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
                                         ctypes.c_char_p,
