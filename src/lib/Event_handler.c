@@ -58,6 +58,10 @@
 #include <Event_general_if.h>
 #include <Event_general_end_if.h>
 
+#include <Event_general_call_bool.h>
+#include <Event_general_call_int.h>
+#include <Event_general_call_float.h>
+
 #include <Event_global_pattern_delay.h>
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_set_jump_row.h>
@@ -274,6 +278,21 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_general_if_process);
     Event_handler_set_general_process(eh, "#endif", EVENT_GENERAL_END_IF,
                                       Event_general_end_if_process);
+
+    Event_handler_set_general_process(eh, "#signal", EVENT_GENERAL_SIGNAL,
+                                      Event_general_comment_process);
+    Event_handler_set_general_process(eh, "#callBn", EVENT_GENERAL_CALL_BOOL_NAME,
+                                      Event_general_comment_process);
+    Event_handler_set_general_process(eh, "#callB", EVENT_GENERAL_CALL_BOOL,
+                                      Event_general_call_bool_process);
+    Event_handler_set_general_process(eh, "#callIn", EVENT_GENERAL_CALL_INT_NAME,
+                                      Event_general_comment_process);
+    Event_handler_set_general_process(eh, "#callI", EVENT_GENERAL_CALL_INT,
+                                      Event_general_call_int_process);
+    Event_handler_set_general_process(eh, "#callFn", EVENT_GENERAL_CALL_FLOAT_NAME,
+                                      Event_general_comment_process);
+    Event_handler_set_general_process(eh, "#callF", EVENT_GENERAL_CALL_FLOAT,
+                                      Event_general_call_float_process);
 
     Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);

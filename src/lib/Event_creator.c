@@ -47,6 +47,10 @@
 #include <Event_general_if.h>
 #include <Event_general_end_if.h>
 
+#include <Event_general_call_bool.h>
+#include <Event_general_call_int.h>
+#include <Event_general_call_float.h>
+
 #include <Event_global_set_tempo.h>
 #include <Event_global_slide_tempo.h>
 #include <Event_global_slide_tempo_length.h>
@@ -181,6 +185,14 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_GENERAL_COND] = new_Event_general_cond,
     [EVENT_GENERAL_IF] = new_Event_general_if,
     [EVENT_GENERAL_END_IF] = new_Event_general_end_if,
+
+    [EVENT_GENERAL_SIGNAL] = new_Event_general_comment,
+    [EVENT_GENERAL_CALL_BOOL_NAME] = new_Event_general_comment,
+    [EVENT_GENERAL_CALL_BOOL] = new_Event_general_call_bool,
+    [EVENT_GENERAL_CALL_INT_NAME] = new_Event_general_comment,
+    [EVENT_GENERAL_CALL_INT] = new_Event_general_call_int,
+    [EVENT_GENERAL_CALL_FLOAT_NAME] = new_Event_general_comment,
+    [EVENT_GENERAL_CALL_FLOAT] = new_Event_general_call_float,
 
     [EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo,
     [EVENT_GLOBAL_SLIDE_TEMPO] = new_Event_global_slide_tempo,

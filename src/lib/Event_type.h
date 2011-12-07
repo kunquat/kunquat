@@ -61,6 +61,14 @@ typedef enum
     EVENT_GENERAL_IF,           ///< Start conditional event handling.
     EVENT_GENERAL_END_IF,       ///< End conditional event handling.
 
+    EVENT_GENERAL_SIGNAL,
+    EVENT_GENERAL_CALL_BOOL_NAME,
+    EVENT_GENERAL_CALL_BOOL,
+    EVENT_GENERAL_CALL_INT_NAME,
+    EVENT_GENERAL_CALL_INT,
+    EVENT_GENERAL_CALL_FLOAT_NAME,
+    EVENT_GENERAL_CALL_FLOAT,
+
     EVENT_GENERAL_UPPER,
 
     EVENT_GLOBAL_LOWER, ///< Global Events.

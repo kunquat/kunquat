@@ -478,6 +478,14 @@ general_triggers = {
         '#?': [cond_str],
         '#if': [any_bool],
         '#endif': [],
+
+        '#signal': [any_str],
+        '#callBn': [any_str],
+        '#callB': [any_bool],
+        '#callIn': [any_str],
+        '#callI': [any_int],
+        '#callFn': [any_str],
+        '#callF': [any_float],
 }
 
 
