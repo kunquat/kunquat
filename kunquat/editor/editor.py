@@ -202,6 +202,8 @@ class KqtEditor(QtGui.QMainWindow):
                 if not self.bufs[0]:
                     self.stop()
                     return
+            for ch, event in self.handle.treceive():
+                self.project.tfire(ch, event)
             if self.pa.try_write(*self.bufs):
                 dB = [float('-inf')] * 2
                 abs_max = [0] * 2

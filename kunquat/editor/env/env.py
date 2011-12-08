@@ -29,6 +29,17 @@ class Env(QtGui.QTableWidget):
                  parent=None):
         QtGui.QTableWidget.__init__(self, 0, 4, parent)
         self._project = project
+        self._update_names = {
+                    'bool': '',
+                    'int': '',
+                    'float': '',
+                }
+        self._project.set_callback('>.Bn', self._update_bool_name)
+        self._project.set_callback('>.In', self._update_int_name)
+        self._project.set_callback('>.Fn', self._update_float_name)
+        self._project.set_callback('>.B', self._update_bool)
+        self._project.set_callback('>.I', self._update_int)
+        self._project.set_callback('>.F', self._update_float)
         self.setHorizontalHeaderLabels(['Type',
                                         'Name',
                                         'Initial value',
@@ -187,6 +198,37 @@ class Env(QtGui.QTableWidget):
                 continue
             var_list.extend([[var_type, var_name, var_init]])
         self._project[self._key] = var_list
+
+    def _update_bool_name(self, ch, event):
+        self._update_names['bool'] = event[1][0]
+
+    def _update_int_name(self, ch, event):
+        self._update_names['int'] = event[1][0]
+
+    def _update_float_name(self, ch, event):
+        self._update_names['float'] = event[1][0]
+
+    def _update_value(self, ch, event, type_desc):
+        for i in xrange(self.rowCount()):
+            if self.cellWidget(i, 0).type_format == type_desc and \
+                    self.item(i, 1).text() == self._update_names[type_desc]:
+                if type_desc == 'bool':
+                    self.cellWidget(i, 3).setCheckState(QtCore.Qt.Checked if
+                                        event[1][0] else QtCore.Qt.Unchecked)
+                elif type_desc in ('int', 'float'):
+                    self.blockSignals(True)
+                    self.item(i, 3).setText(str(event[1][0]))
+                    self.blockSignals(False)
+
+
+    def _update_bool(self, ch, event):
+        self._update_value(ch, event, 'bool')
+
+    def _update_int(self, ch, event):
+        self._update_value(ch, event, 'int')
+
+    def _update_float(self, ch, event):
+        self._update_value(ch, event, 'float')
 
 
 class TypeSelect(QtGui.QComboBox):

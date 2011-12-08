@@ -13,6 +13,7 @@
 
 from __future__ import print_function
 
+from collections import defaultdict
 import errno
 from itertools import izip, takewhile
 import json
@@ -97,6 +98,7 @@ class Project(QtCore.QObject):
         self._changed = False
         self._history = History(self)
         self.status_view = None
+        self._callbacks = defaultdict(list)
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.
@@ -237,6 +239,15 @@ class Project(QtCore.QObject):
         value = json.dumps(value)
         self.set_raw('p_random_seed.json', value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
+
+    def set_callback(self, event_name, func, *args):
+        """Set a callback function for an event type."""
+        self._callbacks[event_name].extend([(func, args)])
+
+    def tfire(self, ch, event):
+        """Mark an event fired."""
+        for func, args in self._callbacks[event[0]]:
+            func(ch, event, *args)
 
     def _autoconnect(self, key, immediate):
         new_ins = -1
