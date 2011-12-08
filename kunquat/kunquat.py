@@ -266,8 +266,8 @@ class RHandle(object):
         """Receive outgoing events.
 
         Return value:
-        A list containing all requested outgoing events fired during or
-        after the latest call of mix.
+        A list containing all requested outgoing events fired after
+        the last call of receive.
 
         """
         el = []

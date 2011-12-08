@@ -19,6 +19,7 @@
 #include <stdio.h>
 
 #include <Event_buffer.h>
+#include <kunquat/limits.h>
 #include <math_common.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -56,10 +57,13 @@ Event_buffer* new_Event_buffer(int size)
 }
 
 
-bool Event_buffer_add(Event_buffer* buf, char* event)
+bool Event_buffer_add(Event_buffer* buf, int index, char* event)
 {
     assert(buf != NULL);
+    assert(index >= -1);
+    assert(index < KQT_COLUMNS_MAX);
     assert(event != NULL);
+    int index_len = index < 0 || index >= 10 ? 2 : 1;
     int len = strlen(event);
     assert(len < buf->size / 2); // FIXME
     bool dropped = false;
@@ -72,7 +76,16 @@ bool Event_buffer_add(Event_buffer* buf, char* event)
                 buf->read_pos > buf->write_pos + 3);
     }
     // 4: comma + length + trailing null
-    if (buf->write_pos + len + 4 >= buf->size)
+    int desc_len = 1 /* "[" */ +
+                   index_len +
+                   2 /* ", " */ +
+                   len +
+                   1 /* "]" */;
+    int total_len = 1 /* comma */ +
+                    sizeof(int16_t) /* length */ +
+                    desc_len +
+                    1 /* "\0" */;
+    if (buf->write_pos + total_len >= buf->size)
     {
         while (buf->read_pos > buf->write_pos)
         {
@@ -82,19 +95,21 @@ bool Event_buffer_add(Event_buffer* buf, char* event)
         buf->write_pos = 0;
     }
     while (buf->write_pos < buf->read_pos &&
-            buf->read_pos < buf->write_pos + len + 4)
+            buf->read_pos < buf->write_pos + total_len)
     {
         dropped = true;
         Event_buffer_get(buf, NULL, 0);
     }
     buf->buf[buf->write_pos] = ',';
     ++buf->write_pos;
-    *(int16_t*)&buf->buf[buf->write_pos] = len;
+    *(int16_t*)&buf->buf[buf->write_pos] = desc_len;
     buf->write_pos += 2;
-    assert(buf->write_pos + len < buf->size);
-    strcpy(&buf->buf[buf->write_pos], event);
-    buf->write_pos += len;
-    buf->buf[buf->write_pos] = '\0';
+    assert(buf->write_pos + desc_len < buf->size);
+    snprintf(&buf->buf[buf->write_pos], desc_len + 1, "[%d, %s]",
+                                                      index, event);
+//    strcpy(&buf->buf[buf->write_pos], event);
+    buf->write_pos += desc_len;
+    assert(buf->buf[buf->write_pos] == '\0');
     return dropped;
 }
 

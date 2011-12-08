@@ -380,7 +380,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         }
         Voice_pool_prepare(play->voice_pool);
     }
-    Event_handler_clear_buffer(song->event_handler);
+    //Event_handler_clear_buffer(song->event_handler);
     uint32_t mixed = 0;
     while (mixed < nframes && play->mode)
     {

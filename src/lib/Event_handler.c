@@ -857,7 +857,7 @@ bool Event_handler_trigger(Event_handler* eh,
     }
     if (!silent && Event_names_get_pass(eh->event_names, event_name))
     {
-        Event_buffer_add(eh->event_buffer, desc);
+        Event_buffer_add(eh->event_buffer, index, desc);
     }
     return true;
 }

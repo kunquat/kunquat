@@ -41,13 +41,15 @@ Event_buffer* new_Event_buffer(int size);
  * Adds an event to the Event buffer.
  *
  * \param buf     The Event buffer -- must not be \c NULL.
+ * \param index   The channel number -- must be >= \c 1 and
+ *                < \c KQT_COLUMNS_MAX.
  * \param event   The event description -- must not be \c NULL and
  *                must fit inside the buffer.
  *
  * \return   \c true if unread events were dropped off the buffer,
  *           otherwise \c false.
  */
-bool Event_buffer_add(Event_buffer* buf, char* event);
+bool Event_buffer_add(Event_buffer* buf, int index, char* event);
 
 
 /**

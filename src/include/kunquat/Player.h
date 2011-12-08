@@ -213,9 +213,8 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
 /**
  * Receives an event.
  *
- * This function only receives events of types that are explicitly
- * requested through the ">receive" event, and fired during or after
- * the latest call of kqt_Handle_mix.
+ * This function only returns events of types that are explicitly
+ * requested through the ">receive" event.
  *
  * \param handle   The Handle -- should not be \c NULL.
  * \param dest     The memory location where the result shall be stored
