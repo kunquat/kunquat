@@ -231,6 +231,25 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
 }
 
 
+int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_treceive(handle->song->event_handler, dest, size);
+}
+
+
 int kqt_Handle_get_state(kqt_Handle* handle,
                          char* key,
                          char* dest,

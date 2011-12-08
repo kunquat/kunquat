@@ -243,6 +243,19 @@ bool Event_handler_receive(Event_handler* eh, char* dest, int size);
 
 
 /**
+ * Receives a tracker-specific event from the Event handler.
+ *
+ * \param eh     The Event handler -- must not be \c NULL.
+ * \param dest   The destination buffer -- must not be \c NULL.
+ * \param size   The size of the destination buffer including the
+ *               terminating byte -- must be positive.
+ *
+ * \return   \c true if an event was found, otherwise \c false.
+ */
+bool Event_handler_treceive(Event_handler* eh, char* dest, int size);
+
+
+/**
  * Returns the global state inside the Event handler.
  *
  * \param eh   The Event handler -- must not be \c NULL.
@@ -257,7 +270,7 @@ Playdata* Event_handler_get_global_state(Event_handler* eh);
  *
  * \param eh   The Event handler -- must not be \c NULL.
  */
-void Event_handler_clear_buffer(Event_handler* eh);
+void Event_handler_clear_buffers(Event_handler* eh);
 
 
 /**

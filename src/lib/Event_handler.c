@@ -171,6 +171,7 @@ struct Event_handler
     Playdata* global_state;
     Event_names* event_names;
     Event_buffer* event_buffer;
+    Event_buffer* tracker_buffer;
     bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
     bool (*general_process[EVENT_GENERAL_UPPER])(General_state*, char*);
     bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
@@ -203,15 +204,12 @@ Event_handler* new_Event_handler(Playdata* global_state,
     {
         return NULL;
     }
-    eh->event_buffer = NULL;
-    eh->event_names = new_Event_names();
-    if (eh->event_names == NULL)
-    {
-        del_Event_handler(eh);
-        return NULL;
-    }
     eh->event_buffer = new_Event_buffer(16384);
-    if (eh->event_buffer == NULL)
+    eh->tracker_buffer = new_Event_buffer(16384);
+    eh->event_names = new_Event_names();
+    if (eh->event_buffer == NULL ||
+            eh->tracker_buffer == NULL ||
+            eh->event_names == NULL)
     {
         del_Event_handler(eh);
         return NULL;
@@ -855,9 +853,17 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         return false;
     }
-    if (!silent && Event_names_get_pass(eh->event_names, event_name))
+    if (!silent)
     {
-        Event_buffer_add(eh->event_buffer, index, desc);
+        if (Event_names_get_pass(eh->event_names, event_name))
+        {
+            Event_buffer_add(eh->event_buffer, index, desc);
+        }
+        if (type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
+                type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
+        {
+            Event_buffer_add(eh->tracker_buffer, index, desc);
+        }
     }
     return true;
 }
@@ -872,6 +878,15 @@ bool Event_handler_receive(Event_handler* eh, char* dest, int size)
 }
 
 
+bool Event_handler_treceive(Event_handler* eh, char* dest, int size)
+{
+    assert(eh != NULL);
+    assert(dest != NULL);
+    assert(size > 0);
+    return Event_buffer_get(eh->tracker_buffer, dest, size);
+}
+
+
 Playdata* Event_handler_get_global_state(Event_handler* eh)
 {
     assert(eh != NULL);
@@ -879,10 +894,11 @@ Playdata* Event_handler_get_global_state(Event_handler* eh)
 }
 
 
-void Event_handler_clear_buffer(Event_handler* eh)
+void Event_handler_clear_buffers(Event_handler* eh)
 {
     assert(eh != NULL);
     Event_buffer_clear(eh->event_buffer);
+    Event_buffer_clear(eh->tracker_buffer);
     return;
 }
 
@@ -911,6 +927,7 @@ void del_Event_handler(Event_handler* eh)
     }
     del_Event_names(eh->event_names);
     del_Event_buffer(eh->event_buffer);
+    del_Event_buffer(eh->tracker_buffer);
 //    del_Playdata(eh->global_state); // TODO: enable if Playdata becomes private
     xfree(eh);
     return;

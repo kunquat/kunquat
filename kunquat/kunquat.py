@@ -281,6 +281,28 @@ class RHandle(object):
             received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
         return el
 
+    def treceive(self):
+        """Receive outgoing events specific to tracker integration.
+
+        Currently, this function returns environment variable setter
+        events.
+
+        Return value:
+        A list containing all requested outgoing events fired after
+        the last call of receive.
+
+        """
+        el = []
+        sb = ctypes.create_string_buffer('\000' * 128)
+        received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
+        while received:
+            try:
+                el.extend([json.loads(sb.value)])
+            except ValueError:
+                pass
+            received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
+        return el
+
     def get_state(self, key):
         """Get playback state information.
 
@@ -560,6 +582,12 @@ _kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
                                         ctypes.c_int]
 _kunquat.kqt_Handle_receive.restype = ctypes.c_int
 _kunquat.kqt_Handle_receive.errcheck = _error_check
+
+_kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
+                                         ctypes.c_char_p,
+                                         ctypes.c_int]
+_kunquat.kqt_Handle_treceive.restype = ctypes.c_int
+_kunquat.kqt_Handle_treceive.errcheck = _error_check
 
 _kunquat.kqt_Handle_get_state.argtypes = [ctypes.c_void_p,
                                           ctypes.c_char_p,
