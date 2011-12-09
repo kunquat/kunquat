@@ -40,7 +40,18 @@ bool Event_general_end_if_process(General_state* gstate, char* fields)
 {
     assert(gstate != NULL);
     (void)fields;
+    if (gstate->cond_level_index >= 0)
+    {
+        --gstate->cond_level_index;
+    }
+    if (gstate->cond_level_index < gstate->last_cond_match)
+    {
+        --gstate->last_cond_match;
+        assert(gstate->cond_level_index == gstate->last_cond_match);
+    }
+#if 0
     gstate->cond_exec_enabled = false;
+#endif
     return true;
 }
 

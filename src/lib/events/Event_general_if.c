@@ -52,8 +52,25 @@ bool Event_general_if_process(General_state* gstate, char* fields)
     {
         return false;
     }
+    ++gstate->cond_level_index;
+    assert(gstate->cond_level_index >= 0);
+    if (gstate->cond_level_index < COND_LEVELS_MAX)
+    {
+        gstate->cond_levels[gstate->cond_level_index].cond_for_exec =
+            data[0].field.bool_type;
+        if (gstate->last_cond_match + 1 == gstate->cond_level_index &&
+                gstate->cond_levels[gstate->cond_level_index].cond_for_exec ==
+                gstate->cond_levels[gstate->cond_level_index].evaluated_cond)
+        {
+            ++gstate->last_cond_match;
+        }
+    }
+    //fprintf(stderr, "%d %d\n", gstate->cond_level_index,
+    //                           gstate->last_cond_match);
+#if 0
     gstate->cond_exec_enabled = true;
     gstate->cond_for_exec = data[0].field.bool_type;
+#endif
     return true;
 }
 

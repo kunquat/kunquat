@@ -22,13 +22,28 @@
 #include <Environment.h>
 
 
+#define COND_LEVELS_MAX 32
+
+
+typedef struct Cond_level
+{
+    bool cond_for_exec;
+    bool evaluated_cond;
+} Cond_level;
+
+
 typedef struct General_state
 {
     bool global;
     bool pause;
+    int cond_level_index;
+    int last_cond_match;
+    Cond_level cond_levels[COND_LEVELS_MAX];
+#if 0
     bool cond_exec_enabled;
     bool cond_for_exec;
     bool evaluated_cond;
+#endif
     Environment* env;
     Active_names* active_names;
 } General_state;

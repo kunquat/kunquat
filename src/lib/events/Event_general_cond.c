@@ -161,12 +161,16 @@ bool Event_general_cond_process(General_state* gstate, char* fields)
     {
         return false;
     }
+    if (gstate->cond_level_index >= COND_LEVELS_MAX - 1)
+    {
+        return true;
+    }
     state = READ_STATE_AUTO;
     bool cond = evaluate_cond(data[0].field.string_type, gstate->env, state);
     if (!state->error)
     {
         //fprintf(stderr, "success!\n");
-        gstate->evaluated_cond = cond;
+        gstate->cond_levels[gstate->cond_level_index + 1].evaluated_cond = cond;
     }
     return true;
 }

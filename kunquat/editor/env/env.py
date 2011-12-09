@@ -158,7 +158,9 @@ class Env(QtGui.QTableWidget):
             except ValueError:
                 return
             self._project.handle.fire(-1,
-                    '[">.I", ["{0}", {1:d}]]'.format(name, value))
+                    '[">.In", ["{}"]]'.format(name))
+            self._project.handle.fire(-1,
+                    '[">.I", [{:d}]]'.format(value))
         elif var_type == 'float':
             value_item = self.item(row, 3)
             if not value_item:
@@ -168,7 +170,9 @@ class Env(QtGui.QTableWidget):
             except ValueError:
                 return
             self._project.handle.fire(-1,
-                    '[">.F", ["{0}", {1:.17f}]]'.format(name, value))
+                    '[">.Fn", ["{}"]]'.format(name))
+            self._project.handle.fire(-1,
+                    '[">.F", [{:.17f}]]'.format(value))
 
     def _flatten(self):
         var_list = []
@@ -213,7 +217,7 @@ class Env(QtGui.QTableWidget):
             if self.cellWidget(i, 0).type_format == type_desc and \
                     self.item(i, 1).text() == self._update_names[type_desc]:
                 if type_desc == 'bool':
-                    self.cellWidget(i, 3).setCheckState(QtCore.Qt.Checked if
+                    self.cellWidget(i, 3).value = (QtCore.Qt.Checked if
                                         event[1][0] else QtCore.Qt.Unchecked)
                 elif type_desc in ('int', 'float'):
                     self.blockSignals(True)
@@ -304,7 +308,9 @@ class BoolMod(QtGui.QCheckBox):
         if not self.name:
             return
         self._project.handle.fire(-1,
-                '[">.B", ["{0}", {1}]]'.format(self.name,
-                    'true' if self.isChecked() else 'false'))
+                '[">.Bn", ["{}"]]'.format(self.name))
+        self._project.handle.fire(-1,
+                '[">.B", [{}]]'.format('true' if self.isChecked()
+                                              else 'false'))
 
 

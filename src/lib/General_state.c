@@ -47,8 +47,11 @@ bool General_state_events_enabled(General_state* state)
                         (int)state->cond_for_exec,
                         (int)state->evaluated_cond);
 #endif
-    return !state->cond_exec_enabled ||
-           (state->cond_for_exec == state->evaluated_cond);
+    return state->cond_level_index == state->last_cond_match;
+#if 0
+    return state->cond_levels[state->cond_level_index].cond_for_exec ==
+            state->cond_levels[state->cond_level_index].evaluated_cond;
+#endif
 }
 
 
@@ -56,9 +59,18 @@ void General_state_reset(General_state* state)
 {
     assert(state != NULL);
     state->pause = false;
+    state->cond_level_index = -1;
+    state->last_cond_match = -1;
+    for (int i = 0; i < COND_LEVELS_MAX; ++i)
+    {
+        state->cond_levels[i].cond_for_exec = false;
+        state->cond_levels[i].evaluated_cond = true;
+    }
+#if 0
     state->cond_exec_enabled = false;
     state->cond_for_exec = false;
     state->evaluated_cond = false;
+#endif
     if (state->global)
     {
         // All states contain the same environment

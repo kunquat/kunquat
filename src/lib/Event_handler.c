@@ -662,16 +662,6 @@ static bool Event_handler_handle(Event_handler* eh,
     assert(index >= -1);
     assert(index < KQT_COLUMNS_MAX);
     assert(EVENT_IS_VALID(type));
-    General_state* gstate = (General_state*)eh->global_state;
-    if (index >= 0)
-    {
-        gstate = (General_state*)eh->ch_states[index];
-    }
-    if (!General_state_events_enabled(gstate) &&
-            type != EVENT_GENERAL_IF && type != EVENT_GENERAL_END_IF)
-    {
-        return true;
-    }
     if (EVENT_IS_CHANNEL(type))
     {
         assert(index >= 0);
@@ -848,6 +838,16 @@ bool Event_handler_trigger(Event_handler* eh,
             !EVENT_IS_GENERAL(type) && !EVENT_IS_CONTROL(type))
     {
         return false;
+    }
+    General_state* gstate = (General_state*)eh->global_state;
+    if (index >= 0)
+    {
+        gstate = (General_state*)eh->ch_states[index];
+    }
+    if (!General_state_events_enabled(gstate) &&
+            type != EVENT_GENERAL_IF && type != EVENT_GENERAL_END_IF)
+    {
+        return true;
     }
     if (!Event_handler_handle(eh, index, type, str))
     {
