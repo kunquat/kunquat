@@ -59,7 +59,7 @@ Event_names* Event_handler_get_names(Event_handler* eh);
  * \param eh   The Event handler -- must not be \c NULL.
  */
 bool Event_handler_set_control_process(Event_handler* eh,
-                                       const char* name,
+//                                       const char* name,
                                        Event_type type,
                                        bool (*control_process)(General_state*,
                                                                char*));
@@ -77,7 +77,7 @@ bool Event_handler_set_control_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_general_process(Event_handler* eh,
-                                       const char* name,
+//                                       const char* name,
                                        Event_type type,
                                        bool (*general_process)(General_state*,
                                                                char*));
@@ -95,7 +95,7 @@ bool Event_handler_set_general_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_ch_process(Event_handler* eh,
-                                  const char* name,
+//                                  const char* name,
                                   Event_type type,
                                   bool (*ch_process)(Channel_state*, char*));
 
@@ -112,7 +112,7 @@ bool Event_handler_set_ch_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_global_process(Event_handler* eh,
-                                      const char* name,
+//                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
                                                              char*));
@@ -130,7 +130,7 @@ bool Event_handler_set_global_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_ins_process(Event_handler* eh,
-                                   const char* name,
+//                                   const char* name,
                                    Event_type type,
                                    bool (*ins_process)(Instrument_params*, char*));
 
@@ -147,7 +147,7 @@ bool Event_handler_set_ins_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_generator_process(Event_handler* eh,
-                                         const char* name,
+//                                         const char* name,
                                          Event_type type,
                                          bool (*gen_process)(Generator*,
                                                              Channel_state*,
@@ -166,7 +166,7 @@ bool Event_handler_set_generator_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_effect_process(Event_handler* eh,
-                                      const char* name,
+//                                      const char* name,
                                       Event_type type,
                                       bool (*effect_process)(Effect*, char*));
 
@@ -183,7 +183,7 @@ bool Event_handler_set_effect_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_dsp_process(Event_handler* eh,
-                                   const char* name,
+//                                   const char* name,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*,
                                                        Channel_state*,

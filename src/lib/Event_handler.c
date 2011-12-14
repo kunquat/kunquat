@@ -228,252 +228,253 @@ Event_handler* new_Event_handler(Playdata* global_state,
     eh->insts = insts;
     eh->effects = effects;
 
-    Event_handler_set_control_process(eh, ">pause", EVENT_CONTROL_PAUSE,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_PAUSE,
                                       Event_control_pause_process);
-    Event_handler_set_control_process(eh, ">resume", EVENT_CONTROL_RESUME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_RESUME,
                                       Event_control_resume_process);
-    Event_handler_set_control_process(eh, ">pattern", EVENT_CONTROL_PLAY_PATTERN,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_PLAY_PATTERN,
                                       Event_control_play_pattern_process);
 
-    Event_handler_set_control_process(eh, ">.Bn", EVENT_CONTROL_ENV_SET_BOOL_NAME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_BOOL_NAME,
                                       Event_control_env_set_bool_name_process);
-    Event_handler_set_control_process(eh, ">.B", EVENT_CONTROL_ENV_SET_BOOL,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_BOOL,
                                       Event_control_env_set_bool_process);
-    Event_handler_set_control_process(eh, ">.In", EVENT_CONTROL_ENV_SET_INT_NAME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_INT_NAME,
                                       Event_control_env_set_int_name_process);
-    Event_handler_set_control_process(eh, ">.I", EVENT_CONTROL_ENV_SET_INT,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_INT,
                                       Event_control_env_set_int_process);
-    Event_handler_set_control_process(eh, ">.Fn", EVENT_CONTROL_ENV_SET_FLOAT_NAME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_FLOAT_NAME,
                                       Event_control_env_set_float_name_process);
-    Event_handler_set_control_process(eh, ">.F", EVENT_CONTROL_ENV_SET_FLOAT,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_FLOAT,
                                       Event_control_env_set_float_process);
-    Event_handler_set_control_process(eh, ">.Tn", EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TIMESTAMP_NAME,
                                       Event_control_env_set_timestamp_name_process);
-    Event_handler_set_control_process(eh, ">.T", EVENT_CONTROL_ENV_SET_TIMESTAMP,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_ENV_SET_TIMESTAMP,
                                       Event_control_env_set_timestamp_process);
 
-    Event_handler_set_control_process(eh, ">.gr", EVENT_CONTROL_SET_GOTO_ROW,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_ROW,
                                       Event_control_set_goto_row_process);
-    Event_handler_set_control_process(eh, ">.gs", EVENT_CONTROL_SET_GOTO_SECTION,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_SECTION,
                                       Event_control_set_goto_section_process);
-    Event_handler_set_control_process(eh, ">.gss", EVENT_CONTROL_SET_GOTO_SUBSONG,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_SUBSONG,
                                       Event_control_set_goto_subsong_process);
-    Event_handler_set_control_process(eh, ">g", EVENT_CONTROL_GOTO,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_GOTO,
                                       Event_control_goto_process);
 
-    Event_handler_set_control_process(eh, ">Turing", EVENT_CONTROL_TURING,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_TURING,
                                       Event_control_turing_process);
 
-    Event_handler_set_control_process(eh, ">receive", EVENT_CONTROL_RECEIVE_EVENT,
+    Event_handler_set_control_process(eh, EVENT_CONTROL_RECEIVE_EVENT,
                                       Event_control_receive_event);
 
-    Event_handler_set_general_process(eh, "#", EVENT_GENERAL_COMMENT,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_COMMENT,
                                       Event_general_comment_process);
 
-    Event_handler_set_general_process(eh, "#?", EVENT_GENERAL_COND,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_COND,
                                       Event_general_cond_process);
-    Event_handler_set_general_process(eh, "#if", EVENT_GENERAL_IF,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_IF,
                                       Event_general_if_process);
-    Event_handler_set_general_process(eh, "#endif", EVENT_GENERAL_END_IF,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_END_IF,
                                       Event_general_end_if_process);
 
-    Event_handler_set_general_process(eh, "#signal", EVENT_GENERAL_SIGNAL,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_SIGNAL,
                                       Event_general_comment_process);
-    Event_handler_set_general_process(eh, "#callBn", EVENT_GENERAL_CALL_BOOL_NAME,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_BOOL_NAME,
                                       Event_general_comment_process);
-    Event_handler_set_general_process(eh, "#callB", EVENT_GENERAL_CALL_BOOL,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_BOOL,
                                       Event_general_call_bool_process);
-    Event_handler_set_general_process(eh, "#callIn", EVENT_GENERAL_CALL_INT_NAME,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_INT_NAME,
                                       Event_general_comment_process);
-    Event_handler_set_general_process(eh, "#callI", EVENT_GENERAL_CALL_INT,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_INT,
                                       Event_general_call_int_process);
-    Event_handler_set_general_process(eh, "#callFn", EVENT_GENERAL_CALL_FLOAT_NAME,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_FLOAT_NAME,
                                       Event_general_comment_process);
-    Event_handler_set_general_process(eh, "#callF", EVENT_GENERAL_CALL_FLOAT,
+    Event_handler_set_general_process(eh, EVENT_GENERAL_CALL_FLOAT,
                                       Event_general_call_float_process);
 
-    Event_handler_set_global_process(eh, "wpd", EVENT_GLOBAL_PATTERN_DELAY,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_PATTERN_DELAY,
                                      Event_global_pattern_delay_process);
-    Event_handler_set_global_process(eh, "w.jc", EVENT_GLOBAL_SET_JUMP_COUNTER,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_COUNTER,
                                      Event_global_set_jump_counter_process);
-    Event_handler_set_global_process(eh, "w.jr", EVENT_GLOBAL_SET_JUMP_ROW,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_ROW,
                                      Event_global_set_jump_row_process);
-    Event_handler_set_global_process(eh, "w.js", EVENT_GLOBAL_SET_JUMP_SECTION,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SECTION,
                                      Event_global_set_jump_section_process);
-    Event_handler_set_global_process(eh, "w.jss", EVENT_GLOBAL_SET_JUMP_SUBSONG,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SUBSONG,
                                      Event_global_set_jump_subsong_process);
-    //Event_handler_set_global_process(eh, "wj", EVENT_GLOBAL_JUMP,
+    //Event_handler_set_global_process(eh, EVENT_GLOBAL_JUMP,
     //                                 Event_global_jump_process);
 
-    Event_handler_set_global_process(eh, "w.s", EVENT_GLOBAL_SET_SCALE,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE,
                                      Event_global_set_scale_process);
-    Event_handler_set_global_process(eh, "w.so", EVENT_GLOBAL_SET_SCALE_OFFSET,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE_OFFSET,
                                      Event_global_set_scale_offset_process);
-    Event_handler_set_global_process(eh, "wms", EVENT_GLOBAL_MIMIC_SCALE,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_MIMIC_SCALE,
                                      Event_global_mimic_scale_process);
-    Event_handler_set_global_process(eh, "w.sfp", EVENT_GLOBAL_SET_SCALE_FIXED_POINT,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_SCALE_FIXED_POINT,
                                      Event_global_set_scale_fixed_point_process);
-    Event_handler_set_global_process(eh, "wssi", EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SHIFT_SCALE_INTERVALS,
                                      Event_global_shift_scale_intervals_process);
 
-    Event_handler_set_global_process(eh, "w.t", EVENT_GLOBAL_SET_TEMPO,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_TEMPO,
                                      Event_global_set_tempo_process);
-    Event_handler_set_global_process(eh, "w.v", EVENT_GLOBAL_SET_VOLUME,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_VOLUME,
                                      Event_global_set_volume_process);
-    Event_handler_set_global_process(eh, "w/t", EVENT_GLOBAL_SLIDE_TEMPO,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_TEMPO,
                                      Event_global_slide_tempo_process);
-    Event_handler_set_global_process(eh, "w/=t", EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
                                      Event_global_slide_tempo_length_process);
-    Event_handler_set_global_process(eh, "w/v", EVENT_GLOBAL_SLIDE_VOLUME,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_VOLUME,
                                      Event_global_slide_volume_process);
-    Event_handler_set_global_process(eh, "w/=v", EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SLIDE_VOLUME_LENGTH,
                                      Event_global_slide_volume_length_process);
 
-    Event_handler_set_ch_process(eh, "c.i", EVENT_CHANNEL_SET_INSTRUMENT,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INSTRUMENT,
                                  Event_channel_set_instrument_process);
-    Event_handler_set_ch_process(eh, "c.g", EVENT_CHANNEL_SET_GENERATOR,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GENERATOR,
                                  Event_channel_set_generator_process);
-    Event_handler_set_ch_process(eh, "c.e", EVENT_CHANNEL_SET_EFFECT,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_EFFECT,
                                  Event_channel_set_effect_process);
-    Event_handler_set_ch_process(eh, "c.ge", EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
                                  Event_channel_set_global_effects_process);
-    Event_handler_set_ch_process(eh, "c.ie",
-                                 EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
                                  Event_channel_set_instrument_effects_process);
-    Event_handler_set_ch_process(eh, "c.d", EVENT_CHANNEL_SET_DSP,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_DSP,
                                  Event_channel_set_dsp_process);
 
-    Event_handler_set_ch_process(eh, "cn+", EVENT_CHANNEL_NOTE_ON,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_ON,
                                  Event_channel_note_on_process);
-    Event_handler_set_ch_process(eh, "ch", EVENT_CHANNEL_HIT,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_HIT,
                                  Event_channel_hit_process);
-    Event_handler_set_ch_process(eh, "cn-", EVENT_CHANNEL_NOTE_OFF,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_NOTE_OFF,
                                  Event_channel_note_off_process);
 
-    Event_handler_set_ch_process(eh, "c.f", EVENT_CHANNEL_SET_FORCE,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_FORCE,
                                  Event_channel_set_force_process);
-    Event_handler_set_ch_process(eh, "c/f", EVENT_CHANNEL_SLIDE_FORCE,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE,
                                  Event_channel_slide_force_process);
-    Event_handler_set_ch_process(eh, "c/=f", EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_FORCE_LENGTH,
                                  Event_channel_slide_force_length_process);
-    Event_handler_set_ch_process(eh, "cTs", EVENT_CHANNEL_TREMOLO_SPEED,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_SPEED,
                                  Event_channel_tremolo_speed_process);
-    Event_handler_set_ch_process(eh, "cTd", EVENT_CHANNEL_TREMOLO_DEPTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DEPTH,
                                  Event_channel_tremolo_depth_process);
-    Event_handler_set_ch_process(eh, "cTdd", EVENT_CHANNEL_TREMOLO_DELAY,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_TREMOLO_DELAY,
                                  Event_channel_tremolo_delay_process);
 
-    Event_handler_set_ch_process(eh, "c/p", EVENT_CHANNEL_SLIDE_PITCH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH,
                                  Event_channel_slide_pitch_process);
-    Event_handler_set_ch_process(eh, "c/=p", EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
                                  Event_channel_slide_pitch_length_process);
-    Event_handler_set_ch_process(eh, "cVs", EVENT_CHANNEL_VIBRATO_SPEED,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_SPEED,
                                  Event_channel_vibrato_speed_process);
-    Event_handler_set_ch_process(eh, "cVd", EVENT_CHANNEL_VIBRATO_DEPTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DEPTH,
                                  Event_channel_vibrato_depth_process);
-    Event_handler_set_ch_process(eh, "cVdd", EVENT_CHANNEL_VIBRATO_DELAY,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_VIBRATO_DELAY,
                                  Event_channel_vibrato_delay_process);
 
-    Event_handler_set_ch_process(eh, "c<Arp", EVENT_CHANNEL_RESET_ARPEGGIO,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_RESET_ARPEGGIO,
                                  Event_channel_reset_arpeggio_process);
-    Event_handler_set_ch_process(eh, "c.Arpn", EVENT_CHANNEL_SET_ARPEGGIO_NOTE,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_ARPEGGIO_NOTE,
                                  Event_channel_set_arpeggio_note_process);
-    Event_handler_set_ch_process(eh, "c.Arpi", EVENT_CHANNEL_SET_ARPEGGIO_INDEX,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_ARPEGGIO_INDEX,
                                  Event_channel_set_arpeggio_index_process);
-    Event_handler_set_ch_process(eh, "c.Arps", EVENT_CHANNEL_SET_ARPEGGIO_SPEED,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_ARPEGGIO_SPEED,
                                  Event_channel_set_arpeggio_speed_process);
-    Event_handler_set_ch_process(eh, "cArp+", EVENT_CHANNEL_ARPEGGIO_ON,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_ARPEGGIO_ON,
                                  Event_channel_arpeggio_on_process);
-    Event_handler_set_ch_process(eh, "cArp-", EVENT_CHANNEL_ARPEGGIO_OFF,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_ARPEGGIO_OFF,
                                  Event_channel_arpeggio_off_process);
 
-    Event_handler_set_ch_process(eh, "c.l", EVENT_CHANNEL_SET_LOWPASS,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_LOWPASS,
                                  Event_channel_set_lowpass_process);
-    Event_handler_set_ch_process(eh, "c/l", EVENT_CHANNEL_SLIDE_LOWPASS,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_LOWPASS,
                                  Event_channel_slide_lowpass_process);
-    Event_handler_set_ch_process(eh, "c/=l", EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_LOWPASS_LENGTH,
                                  Event_channel_slide_lowpass_length_process);
-    Event_handler_set_ch_process(eh, "cAs", EVENT_CHANNEL_AUTOWAH_SPEED,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_SPEED,
                                  Event_channel_autowah_speed_process);
-    Event_handler_set_ch_process(eh, "cAd", EVENT_CHANNEL_AUTOWAH_DEPTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DEPTH,
                                  Event_channel_autowah_depth_process);
-    Event_handler_set_ch_process(eh, "cAdd", EVENT_CHANNEL_AUTOWAH_DELAY,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_AUTOWAH_DELAY,
                                  Event_channel_autowah_delay_process);
 
-    Event_handler_set_ch_process(eh, "c.r", EVENT_CHANNEL_SET_RESONANCE,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_RESONANCE,
                                  Event_channel_set_resonance_process);
 
-    Event_handler_set_ch_process(eh, "c.P", EVENT_CHANNEL_SET_PANNING,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_PANNING,
                                  Event_channel_set_panning_process);
-    Event_handler_set_ch_process(eh, "c/P", EVENT_CHANNEL_SLIDE_PANNING,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING,
                                  Event_channel_slide_panning_process);
-    Event_handler_set_ch_process(eh, "c/=P", EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SLIDE_PANNING_LENGTH,
                                  Event_channel_slide_panning_length_process);
 
-    Event_handler_set_ch_process(eh, "c.gBn", EVENT_CHANNEL_SET_GEN_BOOL_NAME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_BOOL_NAME,
                                  Event_channel_set_gen_bool_name_process);
-    Event_handler_set_ch_process(eh, "c.gB", EVENT_CHANNEL_SET_GEN_BOOL,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_BOOL,
                                  Event_channel_set_gen_bool_process);
-    Event_handler_set_ch_process(eh, "c.gIn", EVENT_CHANNEL_SET_GEN_INT_NAME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_INT_NAME,
                                  Event_channel_set_gen_int_name_process);
-    Event_handler_set_ch_process(eh, "c.gI", EVENT_CHANNEL_SET_GEN_INT,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_INT,
                                  Event_channel_set_gen_int_process);
-    Event_handler_set_ch_process(eh, "c.gFn", EVENT_CHANNEL_SET_GEN_FLOAT_NAME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT_NAME,
                                  Event_channel_set_gen_float_name_process);
-    Event_handler_set_ch_process(eh, "c.gF", EVENT_CHANNEL_SET_GEN_FLOAT,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_FLOAT,
                                  Event_channel_set_gen_float_process);
-    Event_handler_set_ch_process(eh, "c.gTn", EVENT_CHANNEL_SET_GEN_RELTIME_NAME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME_NAME,
                                  Event_channel_set_gen_reltime_name_process);
-    Event_handler_set_ch_process(eh, "c.gT", EVENT_CHANNEL_SET_GEN_RELTIME,
+    Event_handler_set_ch_process(eh, EVENT_CHANNEL_SET_GEN_RELTIME,
                                  Event_channel_set_gen_reltime_process);
 
-    Event_handler_set_ins_process(eh, "i.sus", EVENT_INS_SET_SUSTAIN,
+    Event_handler_set_ins_process(eh, EVENT_INS_SET_SUSTAIN,
                                   Event_ins_set_sustain_process);
 
-    Event_handler_set_generator_process(eh, "g.Bn", EVENT_GENERATOR_SET_BOOL_NAME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_BOOL_NAME,
                                         Event_generator_set_bool_name_process);
-    Event_handler_set_generator_process(eh, "g.B", EVENT_GENERATOR_SET_BOOL,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_BOOL,
                                         Event_generator_set_bool_process);
-    Event_handler_set_generator_process(eh, "g.In", EVENT_GENERATOR_SET_INT_NAME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_INT_NAME,
                                         Event_generator_set_int_name_process);
-    Event_handler_set_generator_process(eh, "g.I", EVENT_GENERATOR_SET_INT,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_INT,
                                         Event_generator_set_int_process);
-    Event_handler_set_generator_process(eh, "g.Fn", EVENT_GENERATOR_SET_FLOAT_NAME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT_NAME,
                                         Event_generator_set_float_name_process);
-    Event_handler_set_generator_process(eh, "g.F", EVENT_GENERATOR_SET_FLOAT,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_FLOAT,
                                         Event_generator_set_float_process);
-    Event_handler_set_generator_process(eh, "g.Tn", EVENT_GENERATOR_SET_RELTIME_NAME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME_NAME,
                                         Event_generator_set_reltime_name_process);
-    Event_handler_set_generator_process(eh, "g.T", EVENT_GENERATOR_SET_RELTIME,
+    Event_handler_set_generator_process(eh, EVENT_GENERATOR_SET_RELTIME,
                                         Event_generator_set_reltime_process);
 
-    Event_handler_set_effect_process(eh, "ebp+", EVENT_EFFECT_BYPASS_ON,
+    Event_handler_set_effect_process(eh, EVENT_EFFECT_BYPASS_ON,
                                      Event_effect_bypass_on_process);
-    Event_handler_set_effect_process(eh, "ebp-", EVENT_EFFECT_BYPASS_OFF,
+    Event_handler_set_effect_process(eh, EVENT_EFFECT_BYPASS_OFF,
                                      Event_effect_bypass_off_process);
 
-    Event_handler_set_dsp_process(eh, "d.Bn", EVENT_DSP_SET_BOOL_NAME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_BOOL_NAME,
                                   Event_dsp_set_bool_name_process);
-    Event_handler_set_dsp_process(eh, "d.B", EVENT_DSP_SET_BOOL,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_BOOL,
                                   Event_dsp_set_bool_process);
-    Event_handler_set_dsp_process(eh, "d.In", EVENT_DSP_SET_INT_NAME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_INT_NAME,
                                   Event_dsp_set_int_name_process);
-    Event_handler_set_dsp_process(eh, "d.I", EVENT_DSP_SET_INT,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_INT,
                                   Event_dsp_set_int_process);
-    Event_handler_set_dsp_process(eh, "d.Fn", EVENT_DSP_SET_FLOAT_NAME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT_NAME,
                                   Event_dsp_set_float_name_process);
-    Event_handler_set_dsp_process(eh, "d.F", EVENT_DSP_SET_FLOAT,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_FLOAT,
                                   Event_dsp_set_float_process);
-    Event_handler_set_dsp_process(eh, "d.Tn", EVENT_DSP_SET_RELTIME_NAME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_RELTIME_NAME,
                                   Event_dsp_set_reltime_name_process);
-    Event_handler_set_dsp_process(eh, "d.T", EVENT_DSP_SET_RELTIME,
+    Event_handler_set_dsp_process(eh, EVENT_DSP_SET_RELTIME,
                                   Event_dsp_set_reltime_process);
 
+#if 0
     if (Event_names_error(eh->event_names))
     {
         del_Event_handler(eh);
         return NULL;
     }
+#endif
     Playdata_set_event_filter(global_state, eh->event_names);
     return eh;
 }
@@ -487,167 +488,199 @@ Event_names* Event_handler_get_names(Event_handler* eh)
 
 
 bool Event_handler_set_ch_process(Event_handler* eh,
-                                  const char* name,
+//                                  const char* name,
                                   Event_type type,
                                   bool (*ch_process)(Channel_state*, char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_CHANNEL(type));
     assert(ch_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->ch_process[type] = ch_process;
     return true;
 }
 
 
 bool Event_handler_set_general_process(Event_handler* eh,
-                                       const char* name,
+//                                       const char* name,
                                        Event_type type,
                                        bool (*general_process)(General_state*,
                                                                char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_GENERAL(type));
     assert(general_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->general_process[type] = general_process;
     return true;
 }
 
 
 bool Event_handler_set_control_process(Event_handler* eh,
-                                       const char* name,
+//                                       const char* name,
                                        Event_type type,
                                        bool (*control_process)(General_state*,
                                                                char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_CONTROL(type));
     assert(control_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->control_process[type] = control_process;
     return true;
 }
 
 
 bool Event_handler_set_global_process(Event_handler* eh,
-                                      const char* name,
+//                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
                                                              char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_GLOBAL(type));
     assert(global_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->global_process[type] = global_process;
     return true;
 }
 
 
 bool Event_handler_set_ins_process(Event_handler* eh,
-                                   const char* name,
+//                                   const char* name,
                                    Event_type type,
                                    bool (*ins_process)(Instrument_params*, char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_INS(type));
     assert(ins_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->ins_process[type] = ins_process;
     return true;
 }
 
 
 bool Event_handler_set_generator_process(Event_handler* eh,
-                                         const char* name,
+//                                         const char* name,
                                          Event_type type,
                                          bool (*gen_process)(Generator*,
                                                              Channel_state*,
                                                              char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_GENERATOR(type));
     assert(gen_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->generator_process[type] = gen_process;
     return true;
 }
 
 
 bool Event_handler_set_effect_process(Event_handler* eh,
-                                      const char* name,
+//                                      const char* name,
                                       Event_type type,
                                       bool (*effect_process)(Effect*, char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_EFFECT(type));
     assert(effect_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->effect_process[type] = effect_process;
     return true;
 }
 
 
 bool Event_handler_set_dsp_process(Event_handler* eh,
-                                   const char* name,
+//                                   const char* name,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*,
                                                        Channel_state*,
                                                        char*))
 {
     assert(eh != NULL);
+#if 0
     assert(name != NULL);
     assert(strlen(name) > 0);
     assert(strlen(name) < EVENT_NAME_MAX);
+#endif
     assert(EVENT_IS_DSP(type));
     assert(dsp_process != NULL);
+#if 0
     if (!Event_names_add(eh->event_names, name, type))
     {
         return false;
     }
+#endif
     eh->dsp_process[type] = dsp_process;
     return true;
 }

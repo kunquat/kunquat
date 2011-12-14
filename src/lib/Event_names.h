@@ -47,7 +47,7 @@ Event_names* new_Event_names(void);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_names_add(Event_names* names, const char* name, Event_type type);
+//bool Event_names_add(Event_names* names, const char* name, Event_type type);
 
 
 /**
@@ -70,6 +70,18 @@ bool Event_names_error(Event_names* names);
  *           correspond to an Event type.
  */
 Event_type Event_names_get(Event_names* names, const char* name);
+
+
+/**
+ * Retrieves the parameter type for the given event name.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must be a supported name.
+ *
+ * \return   The parameter type.
+ */
+Event_field_type Event_names_get_param_type(Event_names* names,
+                                            const char* name);
 
 
 /**
