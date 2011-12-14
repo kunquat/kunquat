@@ -355,6 +355,28 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
     }
+    else if (string_eq(key, "p_set_map.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Set_map* map = new_Set_map_from_string(data,
+                        Event_handler_get_names(handle->song->event_handler),
+                        state);
+        if (map == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                        "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+        del_Set_map(handle->song->set_map);
+        handle->song->set_map = map;
+    }
     return true;
 }
 

@@ -32,6 +32,7 @@
 #include <Playdata.h>
 #include <File_base.h>
 #include <Event_handler.h>
+#include <Set_map.h>
 
 
 typedef struct Song
@@ -54,6 +55,7 @@ typedef struct Song
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
+    Set_map* set_map;
 } Song;
 
 

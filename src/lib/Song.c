@@ -117,6 +117,7 @@ Song* new_Song(uint32_t buf_size)
     song->skip_handler = NULL;
     song->random = NULL;
     song->env = NULL;
+    song->set_map = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -220,6 +221,16 @@ Song* new_Song(uint32_t buf_size)
                                            song->effects);
     if (song->event_handler == NULL || song->skip_handler == NULL)
     {
+        del_Song(song);
+        return NULL;
+    }
+    Read_state* state = READ_STATE_AUTO;
+    song->set_map = new_Set_map_from_string(NULL,
+                            Event_handler_get_names(song->event_handler),
+                            state);
+    if (song->set_map == NULL)
+    {
+        assert(!state->error);
         del_Song(song);
         return NULL;
     }
@@ -770,6 +781,7 @@ void del_Song(Song* song)
     del_Event_handler(song->event_handler);
     del_Event_handler(song->skip_handler);
     del_Random(song->random);
+    del_Set_map(song->set_map);
     Device_uninit(&song->parent);
     xfree(song);
     return;
