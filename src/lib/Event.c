@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -81,8 +81,8 @@ char* Event_type_get_fields(char* str,
             }
             break;
             case EVENT_FIELD_INT:
-            case EVENT_FIELD_NOTE:
-            case EVENT_FIELD_NOTE_MOD:
+            //case EVENT_FIELD_NOTE:
+            //case EVENT_FIELD_NOTE_MOD:
             {
                 int64_t num = 0;
                 str = read_int(str, &num, state);

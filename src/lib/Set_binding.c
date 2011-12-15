@@ -17,21 +17,29 @@
 
 #include <Env_var.h>
 #include <Event_names.h>
+#include <File_base.h>
 #include <Real.h>
 #include <Reltime.h>
+#include <serialise.h>
 #include <Set_binding.h>
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-typedef union Interval
+typedef union Value
 {
-    bool bool_type[2];
-    int64_t int_type[2];
-    double float_type[2];
-    Real Real_type[2];
-    Reltime Reltime_type[2];
+    bool bool_type;
+    int64_t int_type;
+    double float_type;
+    Real Real_type;
+    Reltime Reltime_type;
+} Value;
+
+
+typedef struct Interval
+{
+    Value range[2];
 } Interval;
 
 
@@ -52,6 +60,8 @@ struct Set_binding
     char name[ENV_VAR_NAME_MAX];
     Env_var_type type;
     Target* first;
+    Target* cur_target;
+    Value cur_value;
 };
 
 
@@ -75,6 +85,7 @@ Set_binding* new_Set_binding_from_string(char** str,
         return NULL;
     }
     sb->first = NULL;
+    sb->cur_target = NULL;
     *str = read_const_char(*str, '[', state);
     char type_name[16] = "";
     *str = read_string(*str, type_name, 16, state);
@@ -149,7 +160,7 @@ Set_binding* new_Set_binding_from_string(char** str,
             last->next = t;
             last = t;
         }
-        Interval_parse(str, &t->src, sb->type, state);
+        bool swap = Interval_parse(str, &t->src, sb->type, state);
         if (state->error)
         {
             del_Set_binding(sb);
@@ -189,6 +200,15 @@ Set_binding* new_Set_binding_from_string(char** str,
             return NULL;
         }
         t->channel = channel;
+        if (swap)
+        {
+            Value tmp = t->src.range[0];
+            t->src.range[0] = t->src.range[1];
+            t->src.range[1] = tmp;
+            tmp = t->dest.range[0];
+            t->dest.range[0] = t->dest.range[1];
+            t->dest.range[1] = tmp;
+        }
         check_next(*str, state, expect_entry);
     }
     *str = read_const_char(*str, ']', state);
@@ -198,6 +218,61 @@ Set_binding* new_Set_binding_from_string(char** str,
         return NULL;
     }
     return sb;
+}
+
+
+bool Set_binding_get_first(Set_binding* sb,
+                           char* field,
+                           char* dest_event,
+                           int dest_size)
+{
+    assert(sb != NULL);
+    assert(field != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    Read_state* state = READ_STATE_AUTO;
+    switch (sb->type)
+    {
+        case ENV_VAR_BOOL:
+        {
+            read_bool(field, &sb->cur_value.bool_type, state);
+        } break;
+        case ENV_VAR_INT:
+        {
+            read_int(field, &sb->cur_value.int_type, state);
+        } break;
+        case ENV_VAR_FLOAT:
+        {
+            read_double(field, &sb->cur_value.float_type, state);
+        } break;
+        case ENV_VAR_REAL:
+        {
+            read_tuning(field, &sb->cur_value.Real_type, NULL, state);
+        } break;
+        case ENV_VAR_RELTIME:
+        {
+            read_reltime(field, &sb->cur_value.Reltime_type, state);
+        } break;
+        default:
+            assert(false);
+    }
+    assert(!state->error);
+    sb->cur_target = sb->first;
+    return Set_binding_get_next(sb, dest_event, dest_size);
+}
+
+
+bool Set_binding_get_next(Set_binding* sb,
+                          char* dest_event,
+                          int dest_size)
+{
+    assert(sb != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    if (sb->cur_target == NULL)
+    {
+        return false;
+    }
 }
 
 
@@ -229,67 +304,106 @@ static bool Interval_parse(char** str,
     assert(in != NULL);
     assert(type < ENV_VAR_LAST);
     assert(state != NULL);
+    bool swap = false;
     const char* range_error = "Range endpoints must differ";
     *str = read_const_char(*str, '[', state);
     switch (type)
     {
         case ENV_VAR_BOOL:
         {
-            *str = read_bool(*str, &in->bool_type[0], state);
+            *str = read_bool(*str, &in->range[0].bool_type, state);
             *str = read_const_char(*str, ',', state);
-            *str = read_bool(*str, &in->bool_type[1], state);
-            if (!state->error && in->bool_type[0] == in->bool_type[1])
+            *str = read_bool(*str, &in->range[1].bool_type, state);
+            if (!state->error)
             {
-                Read_state_set_error(state, range_error);
+                if (in->range[0].bool_type == in->range[1].bool_type)
+                {
+                    Read_state_set_error(state, range_error);
+                }
+                else
+                {
+                    swap = in->range[0].bool_type > in->range[1].bool_type;
+                }
             }
         } break;
         case ENV_VAR_INT:
         {
-            *str = read_int(*str, &in->int_type[0], state);
+            *str = read_int(*str, &in->range[0].int_type, state);
             *str = read_const_char(*str, ',', state);
-            *str = read_int(*str, &in->int_type[1], state);
-            if (!state->error && in->int_type[0] == in->int_type[1])
+            *str = read_int(*str, &in->range[1].int_type, state);
+            if (!state->error)
             {
-                Read_state_set_error(state, range_error);
+                if (in->range[0].int_type == in->range[1].int_type)
+                {
+                    Read_state_set_error(state, range_error);
+                }
+                else
+                {
+                    swap = in->range[0].int_type > in->range[1].int_type;
+                }
             }
         } break;
         case ENV_VAR_FLOAT:
         {
-            *str = read_double(*str, &in->float_type[0], state);
+            *str = read_double(*str, &in->range[0].float_type, state);
             *str = read_const_char(*str, ',', state);
-            *str = read_double(*str, &in->float_type[1], state);
-            if (!state->error && in->float_type[0] == in->float_type[1])
+            *str = read_double(*str, &in->range[1].float_type, state);
+            if (!state->error)
             {
-                Read_state_set_error(state, range_error);
+                if (in->range[0].float_type == in->range[1].float_type)
+                {
+                    Read_state_set_error(state, range_error);
+                }
+                else
+                {
+                    swap = in->range[0].float_type > in->range[1].float_type;
+                }
             }
         } break;
         case ENV_VAR_REAL:
         {
-            *str = read_tuning(*str, &in->Real_type[0], NULL, state);
+            *str = read_tuning(*str, &in->range[0].Real_type, NULL, state);
             *str = read_const_char(*str, ',', state);
-            *str = read_tuning(*str, &in->Real_type[1], NULL, state);
-            if (!state->error && Real_cmp(&in->Real_type[0],
-                                          &in->Real_type[1]) == 0)
+            *str = read_tuning(*str, &in->range[1].Real_type, NULL, state);
+            if (!state->error)
             {
-                Read_state_set_error(state, range_error);
+                if (Real_cmp(&in->range[0].Real_type,
+                             &in->range[1].Real_type) == 0)
+                {
+                    Read_state_set_error(state, range_error);
+                }
+                else
+                {
+                    swap = Real_cmp(&in->range[0].Real_type,
+                                    &in->range[1].Real_type) > 0;
+                }
             }
         } break;
         case ENV_VAR_RELTIME:
         {
-            *str = read_reltime(*str, &in->Reltime_type[0], state);
+            *str = read_reltime(*str, &in->range[0].Reltime_type, state);
             *str = read_const_char(*str, ',', state);
-            *str = read_reltime(*str, &in->Reltime_type[1], state);
-            if (!state->error && Reltime_cmp(&in->Reltime_type[0],
-                                             &in->Reltime_type[1]) == 0)
+            *str = read_reltime(*str, &in->range[1].Reltime_type, state);
+            if (!state->error && Reltime_cmp(&in->range[0].Reltime_type,
+                                             &in->range[1].Reltime_type) == 0)
             {
-                Read_state_set_error(state, range_error);
+                if (Reltime_cmp(&in->range[0].Reltime_type,
+                                &in->range[1].Reltime_type) == 0)
+                {
+                    Read_state_set_error(state, range_error);
+                }
+                else
+                {
+                    swap = Reltime_cmp(&in->range[0].Reltime_type,
+                                       &in->range[1].Reltime_type) > 0;
+                }
             }
         } break;
         default:
             assert(false);
     }
     *str = read_const_char(*str, ']', state);
-    return !state->error;
+    return swap;
 }
 
 

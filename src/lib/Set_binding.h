@@ -48,6 +48,45 @@ Set_binding* new_Set_binding_from_string(char** str,
 
 
 /**
+ * Retrieves the first event from the binding.
+ *
+ * \param sb           The Set binding -- must not be \c NULL.
+ * \param field        The source event field as an unparsed JSON string --
+ *                     must be valid.
+ * \param dest_event   The storage location for the destination event --
+ *                     must not be \c NULL.
+ * \param dest_size    The amount of bytes reserved for \a dest_event --
+ *                     must be positive. A size of at least 65 bytes is
+ *                     recommended. JSON strings longer than \a dest_size - 1
+ *                     bytes are truncated and thus may be invalid.
+ *
+ * \return   \c true if an event was bound and stored, otherwise \c false.
+ */
+bool Set_binding_get_first(Set_binding* sb,
+                           char* field,
+                           char* dest_event,
+                           int dest_size);
+
+
+/**
+ * Retrieves the next event from the binding.
+ *
+ * \param sb           The Set binding -- must not be \c NULL.
+ * \param dest_event   The storage location for the destination event --
+ *                     must not be \c NULL.
+ * \param dest_size    The amount of bytes reserved for \a dest_event --
+ *                     must be positive. A size of at least 65 bytes is
+ *                     recommended. JSON strings longer than \a dest_size - 1
+ *                     bytes are truncated and thus may be invalid.
+ *
+ * \return   \c true if an event was bound and stored, otherwise \c false.
+ */
+bool Set_binding_get_next(Set_binding* sb,
+                          char* dest_event,
+                          int dest_size);
+
+
+/**
  * Destroys an existing Set binding.
  *
  * \param sb   The Set binding, or \c NULL.

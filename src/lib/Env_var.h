@@ -29,6 +29,7 @@
  */
 typedef enum
 {
+    ENV_VAR_NONE,
     ENV_VAR_BOOL,       ///< bool
     ENV_VAR_INT,        ///< int64_t
     ENV_VAR_FLOAT,      ///< double

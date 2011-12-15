@@ -26,7 +26,7 @@
 static Event_field_desc set_scale_fixed_point_desc[] =
 {
     {
-        .type = EVENT_FIELD_NOTE,
+        .type = EVENT_FIELD_INT,
         .min.field.integral_type = 0,
         .max.field.integral_type = KQT_SCALE_NOTES - 1
     },

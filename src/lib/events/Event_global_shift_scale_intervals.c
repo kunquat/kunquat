@@ -26,7 +26,7 @@
 static Event_field_desc shift_scale_intervals_desc[] =
 {
     {
-        .type = EVENT_FIELD_NOTE,
+        .type = EVENT_FIELD_INT,
         .min.field.integral_type = -1,
         .max.field.integral_type = KQT_SCALE_NOTES - 1
     },

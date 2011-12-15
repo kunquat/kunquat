@@ -16,6 +16,7 @@
 #define K_SET_MAP_H
 
 
+#include <Active_names.h>
 #include <Event_names.h>
 #include <File_base.h>
 
@@ -39,6 +40,44 @@ typedef struct Set_map Set_map;
 Set_map* new_Set_map_from_string(char* str,
                                  Event_names* names,
                                  Read_state* state);
+
+
+/**
+ * Gets the first event mapped from a value.
+ *
+ * \param map          The Set map -- must not be \c NULL.
+ * \param names        The active names -- must not be \c NULL.
+ * \param src_event    The source (set) event -- must not be \c NULL.
+ * \param dest_event   The storage location for the destination event --
+ *                     must not be \c NULL.
+ * \param dest_size    The amount of bytes reserved for \a dest_event --
+ *                     must be positive. A size of at least 65 bytes is
+ *                     recommended. JSON strings longer than \a dest_size - 1
+ *                     bytes are truncated and thus may be invalid.
+ *
+ * \return   \c true if an event was bound and stored, otherwise \c false.
+ */
+bool Set_map_get_first(Set_map* map,
+                       Active_names* names,
+                       char* src_event,
+                       char* dest_event,
+                       int dest_size);
+
+
+/**
+ * Gets the next event mapped from a previously given value.
+ *
+ * \param map          The Set map -- must not be \c NULL.
+ * \param dest_event   The storage location for the destination event --
+ *                     must not be \c NULL.
+ * \param dest_size    The amount of bytes reserved for \a dest_event --
+ *                     must be positive. A size of at least 65 bytes is
+ *                     recommended. JSON strings longer than \a dest_size - 1
+ *                     bytes are truncated and thus may be invalid.
+ *
+ * \return   \c true if an event was bound and stored, otherwise \c false.
+ */
+bool Set_map_get_next(Set_map* map, char* dest_event, int dest_size);
 
 
 /**
