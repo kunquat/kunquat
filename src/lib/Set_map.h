@@ -54,6 +54,8 @@ Set_map* new_Set_map_from_string(char* str,
  *                     must be positive. A size of at least 65 bytes is
  *                     recommended. JSON strings longer than \a dest_size - 1
  *                     bytes are truncated and thus may be invalid.
+ * \param channel      Storage for the channel number where the event is to be
+ *                     executed -- must not be \c NULL.
  *
  * \return   \c true if an event was bound and stored, otherwise \c false.
  */
@@ -61,7 +63,8 @@ bool Set_map_get_first(Set_map* map,
                        Active_names* names,
                        char* src_event,
                        char* dest_event,
-                       int dest_size);
+                       int dest_size,
+                       int* channel);
 
 
 /**
@@ -74,10 +77,15 @@ bool Set_map_get_first(Set_map* map,
  *                     must be positive. A size of at least 65 bytes is
  *                     recommended. JSON strings longer than \a dest_size - 1
  *                     bytes are truncated and thus may be invalid.
+ * \param channel      Storage for the channel number where the event is to be
+ *                     executed -- must not be \c NULL.
  *
  * \return   \c true if an event was bound and stored, otherwise \c false.
  */
-bool Set_map_get_next(Set_map* map, char* dest_event, int dest_size);
+bool Set_map_get_next(Set_map* map,
+                      char* dest_event,
+                      int dest_size,
+                      int* channel);
 
 
 /**

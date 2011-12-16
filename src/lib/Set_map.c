@@ -15,6 +15,7 @@
 #include <stdlib.h>
 
 #include <AAtree.h>
+#include <Env_var.h>
 #include <Set_binding.h>
 #include <Set_map.h>
 #include <string_common.h>
@@ -35,7 +36,7 @@ static const int to_active[] =
     [ENV_VAR_BOOL]    = ACTIVE_TYPE_BOOL,
     [ENV_VAR_INT]     = ACTIVE_TYPE_INT,
     [ENV_VAR_FLOAT]   = ACTIVE_TYPE_FLOAT,
-    [ENV_VAR_REAL]    = -1
+    [ENV_VAR_REAL]    = -1,
     [ENV_VAR_RELTIME] = ACTIVE_TYPE_TIMESTAMP,
 };
 
@@ -95,13 +96,15 @@ bool Set_map_get_first(Set_map* map,
                        Active_names* names,
                        char* src_event,
                        char* dest_event,
-                       int dest_size)
+                       int dest_size,
+                       int* channel)
 {
     assert(map != NULL);
     assert(names != NULL);
     assert(src_event != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
+    assert(channel != NULL);
     Read_state* state = READ_STATE_AUTO;
     char* str = read_const_char(src_event, '[', state);
     char type_str[EVENT_NAME_MAX + 1] = "";
@@ -138,18 +141,25 @@ bool Set_map_get_first(Set_map* map,
     {
         return false;
     }
+    return Set_binding_get_first(map->cur, str, dest_event, dest_size,
+                                 channel);
 }
 
 
-bool Set_map_get_next(Set_map* map, char* dest_event, int dest_size)
+bool Set_map_get_next(Set_map* map,
+                      char* dest_event,
+                      int dest_size,
+                      int* channel)
 {
     assert(map != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
+    assert(channel != NULL);
     if (map->cur == NULL)
     {
         return false;
     }
+    return Set_binding_get_next(map->cur, dest_event, dest_size, channel);
 }
 
 

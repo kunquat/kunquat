@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <Env_var.h>
 #include <Event_names.h>
@@ -69,6 +70,12 @@ static bool Interval_parse(char** str,
                            Interval* in,
                            Env_var_type type,
                            Read_state* state);
+
+
+static int print_value(Env_var_type type,
+                       Value* value,
+                       char* dest_event,
+                       int dest_size);
 
 
 Set_binding* new_Set_binding_from_string(char** str,
@@ -224,12 +231,14 @@ Set_binding* new_Set_binding_from_string(char** str,
 bool Set_binding_get_first(Set_binding* sb,
                            char* field,
                            char* dest_event,
-                           int dest_size)
+                           int dest_size,
+                           int* channel)
 {
     assert(sb != NULL);
     assert(field != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
+    assert(channel != NULL);
     Read_state* state = READ_STATE_AUTO;
     switch (sb->type)
     {
@@ -258,21 +267,59 @@ bool Set_binding_get_first(Set_binding* sb,
     }
     assert(!state->error);
     sb->cur_target = sb->first;
-    return Set_binding_get_next(sb, dest_event, dest_size);
+    return Set_binding_get_next(sb, dest_event, dest_size, channel);
 }
 
 
 bool Set_binding_get_next(Set_binding* sb,
                           char* dest_event,
-                          int dest_size)
+                          int dest_size,
+                          int* channel)
 {
     assert(sb != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
+    assert(channel != NULL);
     if (sb->cur_target == NULL)
     {
         return false;
     }
+    Target* t = sb->cur_target;
+    *channel = t->channel;
+    int printed = snprintf(dest_event, dest_size, "[\"%s\", [",
+                           t->dest_name);
+    assert(printed < dest_size);
+    dest_size -= printed;
+    dest_event += printed;
+    switch (sb->type)
+    {
+        case ENV_VAR_BOOL:
+        {
+            printed = print_value(t->dest_type,
+                                  &t->dest.range[sb->cur_value.bool_type],
+                                  dest_event, dest_size);
+        } break;
+        case ENV_VAR_INT:
+        {
+        } break;
+        case ENV_VAR_FLOAT:
+        {
+        } break;
+        case ENV_VAR_REAL:
+        {
+        } break;
+        case ENV_VAR_RELTIME:
+        {
+        } break;
+        default:
+            assert(false);
+    }
+    assert(printed < dest_size);
+    dest_size -= printed;
+    dest_event += printed;
+    snprintf(dest_event, dest_size, "]]");
+    sb->cur_target = sb->cur_target->next;
+    return true;
 }
 
 
@@ -291,6 +338,47 @@ void del_Set_binding(Set_binding* sb)
     }
     xfree(sb);
     return;
+}
+
+
+static int print_value(Env_var_type type,
+                       Value* value,
+                       char* dest_event,
+                       int dest_size)
+{
+    assert(type > ENV_VAR_NONE);
+    assert(type < ENV_VAR_LAST);
+    assert(value != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    switch (type)
+    {
+        case ENV_VAR_BOOL:
+        {
+            return serialise_bool(dest_event, dest_size, value->bool_type);
+        } break;
+        case ENV_VAR_INT:
+        {
+            return serialise_int(dest_event, dest_size, value->int_type);
+        } break;
+        case ENV_VAR_FLOAT:
+        {
+            return serialise_float(dest_event, dest_size, value->float_type);
+        } break;
+        case ENV_VAR_REAL:
+        {
+            return serialise_Real(dest_event, dest_size, &value->Real_type);
+        } break;
+        case ENV_VAR_RELTIME:
+        {
+            return serialise_Timestamp(dest_event, dest_size,
+                                       &value->Reltime_type);
+        } break;
+        default:
+            assert(false);
+    }
+    assert(false);
+    return 0;
 }
 
 
