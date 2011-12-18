@@ -897,6 +897,32 @@ bool Event_handler_trigger(Event_handler* eh,
         {
             Event_buffer_add(eh->tracker_buffer, index, desc);
         }
+        char dest_event[128] = "";
+        if (type == EVENT_CONTROL_ENV_SET_BOOL ||
+                type == EVENT_CONTROL_ENV_SET_INT ||
+                type == EVENT_CONTROL_ENV_SET_FLOAT ||
+                type == EVENT_CONTROL_ENV_SET_REAL ||
+                type == EVENT_CONTROL_ENV_SET_TIMESTAMP)
+        {
+            Active_names* active_names =
+                    eh->global_state->parent.active_names;
+            if (index >= 0)
+            {
+                active_names = eh->ch_states[index]->parent.active_names;
+            }
+            int channel = -2;
+            bool found = Set_map_get_first(eh->global_state->set_map,
+                                           active_names,
+                                           desc,
+                                           dest_event, 128, &channel);
+            while (found)
+            {
+                //fprintf(stderr, "Found: %s\n", dest_event);
+                Event_handler_trigger(eh, channel, dest_event, silent);
+                found = Set_map_get_next(eh->global_state->set_map,
+                                         dest_event, 128, &channel);
+            }
+        }
     }
     return true;
 }

@@ -234,6 +234,7 @@ Song* new_Song(uint32_t buf_size)
         del_Song(song);
         return NULL;
     }
+    song->play_state->set_map = song->skip_state->set_map = song->set_map;
 
     if (Scale_ins_note(song->scales[0], 0,
                        Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
@@ -563,6 +564,18 @@ Effect_table* Song_get_effects(Song* song)
 {
     assert(song != NULL);
     return song->effects;
+}
+
+
+void Song_set_set_map(Song* song, Set_map* map)
+{
+    assert(song != NULL);
+    assert(map != NULL);
+    assert(song->set_map == song->play_state->set_map);
+    assert(song->set_map == song->skip_state->set_map);
+    song->set_map = song->play_state->set_map =
+                    song->skip_state->set_map = map;
+    return;
 }
 
 

@@ -208,6 +208,15 @@ Effect_table* Song_get_effects(Song* song);
 
 
 /**
+ * Sets a Set map of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param map    The Set map -- must not be \c NULL.
+ */
+void Song_set_set_map(Song* song, Set_map* map);
+
+
+/**
  * Gets the array of Scales of the Song.
  *
  * \param song   The Song -- must not be \c NULL.

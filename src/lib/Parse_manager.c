@@ -375,7 +375,7 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
         del_Set_map(handle->song->set_map);
-        handle->song->set_map = map;
+        Song_set_set_map(handle->song, map);
     }
     return true;
 }
