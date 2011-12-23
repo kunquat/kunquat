@@ -15,10 +15,12 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <math.h>
 
 #include <Env_var.h>
 #include <Event_names.h>
 #include <File_base.h>
+#include <math_common.h>
 #include <Real.h>
 #include <Reltime.h>
 #include <serialise.h>
@@ -76,6 +78,14 @@ static int print_value(Env_var_type type,
                        Value* value,
                        char* dest_event,
                        int dest_size);
+
+
+static int scale_from_float(double src_value,
+                            Value* src_range,
+                            Env_var_type dest_type,
+                            Value* dest_range,
+                            char* dest_event,
+                            int dest_size);
 
 
 Set_binding* new_Set_binding_from_string(char** str,
@@ -301,15 +311,32 @@ bool Set_binding_get_next(Set_binding* sb,
         } break;
         case ENV_VAR_INT:
         {
+            Value range[2];
+            range[0].float_type = t->src.range[0].int_type;
+            range[1].float_type = t->src.range[1].int_type;
+            printed = scale_from_float(sb->cur_value.int_type,
+                                       range,
+                                       t->dest_type,
+                                       t->dest.range,
+                                       dest_event,
+                                       dest_size);
         } break;
         case ENV_VAR_FLOAT:
         {
+            printed = scale_from_float(sb->cur_value.float_type,
+                                       t->src.range,
+                                       t->dest_type,
+                                       t->dest.range,
+                                       dest_event,
+                                       dest_size);
         } break;
         case ENV_VAR_REAL:
         {
+            assert(false);
         } break;
         case ENV_VAR_RELTIME:
         {
+            assert(false);
         } break;
         default:
             assert(false);
@@ -373,6 +400,77 @@ static int print_value(Env_var_type type,
         {
             return serialise_Timestamp(dest_event, dest_size,
                                        &value->Reltime_type);
+        } break;
+        default:
+            assert(false);
+    }
+    assert(false);
+    return 0;
+}
+
+
+static int scale_from_float(double src_value,
+                            Value* src_range,
+                            Env_var_type dest_type,
+                            Value* dest_range,
+                            char* dest_event,
+                            int dest_size)
+{
+    assert(isfinite(src_value));
+    assert(src_range != NULL);
+    assert(dest_type < ENV_VAR_LAST);
+    assert(dest_range != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    if (dest_type == ENV_VAR_BOOL)
+    {
+        return serialise_bool(dest_event, dest_size,
+                    dest_range[fabs(src_value - src_range[0].float_type) <
+                    fabs(src_value - src_range[1].float_type)].bool_type);
+    }
+    src_value = MAX(src_value, src_range[0].float_type);
+    src_value = MIN(src_value, src_range[1].float_type);
+    double dest_value = (src_value - src_range[0].float_type) /
+                        (src_range[1].float_type - src_range[0].float_type);
+    switch (dest_type)
+    {
+        case ENV_VAR_INT:
+        {
+            dest_value = dest_value *
+                    (dest_range[1].int_type - dest_range[0].int_type) +
+                    dest_range[0].int_type;
+            return serialise_int(dest_event, dest_size, round(dest_value));
+        } break;
+        case ENV_VAR_FLOAT:
+        {
+            dest_value = dest_value *
+                    (dest_range[1].float_type - dest_range[0].float_type) +
+                    dest_range[0].float_type;
+            return serialise_float(dest_event, dest_size, dest_value);
+        } break;
+        case ENV_VAR_REAL:
+        {
+            double dr0 = Real_get_double(&dest_range[0].Real_type);
+            double dr1 = Real_get_double(&dest_range[1].Real_type);
+            dest_value = dest_value * (dr1 - dr0) + dr0;
+            Real* result = Real_init_as_double(REAL_AUTO, dest_value);
+            return serialise_Real(dest_event, dest_size, result);
+        } break;
+        case ENV_VAR_RELTIME:
+        {
+            Reltime* rdiff = Reltime_sub(RELTIME_AUTO,
+                                         &dest_range[1].Reltime_type,
+                                         &dest_range[0].Reltime_type);
+            double rdiffd = Reltime_get_beats(rdiff) +
+                            Reltime_get_rem(rdiff) / (double)KQT_RELTIME_BEAT;
+            double dr0 = Reltime_get_beats(&dest_range[0].Reltime_type) +
+                         Reltime_get_rem(&dest_range[0].Reltime_type) /
+                         (double)KQT_RELTIME_BEAT;
+            dest_value = dest_value * rdiffd + dr0;
+            Reltime* result = Reltime_set(RELTIME_AUTO, floor(dest_value),
+                                          (dest_value - floor(dest_value)) *
+                                          KQT_RELTIME_BEAT);
+            return serialise_Timestamp(dest_event, dest_size, result);
         } break;
         default:
             assert(false);
