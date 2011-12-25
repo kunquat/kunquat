@@ -122,8 +122,9 @@ class Env(QtGui.QTableWidget):
     def _type_changed(self, index, value):
         self.blockSignals(True)
         #print('changed', index, value)
-        if value:
-            self._set_row(index, str(value))
+        name = self.item(index, 1).text()
+        if value or name:
+            self._set_row(index, str(value) if value else None, name)
             if index == self.rowCount() - 1:
                 self._resize_table(self.rowCount() + 1)
                 self._set_row(self.rowCount() - 1)
