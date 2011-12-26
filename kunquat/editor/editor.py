@@ -362,7 +362,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._tabs.addTab(self._effects, 'Effects')
         self._connections = Connections(self.project, 'p_connections.json')
         self._tabs.addTab(self._connections, 'Connections')
-        self._env = Env(self.project, 'p_environment.json')
+        self._env = Env(self.project)
         self._tabs.addTab(self._env, 'Environment')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
