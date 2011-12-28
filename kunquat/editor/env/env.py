@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
+from setmap import SetMap
 from variables import Variables
 
 
@@ -39,12 +40,15 @@ class Env(QtGui.QWidget):
         set_map_layout = QtGui.QVBoxLayout()
         set_map_layout.setMargin(0)
         set_map_layout.setSpacing(0)
-        set_map_layout.addWidget(QtGui.QLabel('[Set map]'))
+        set_map_layout.addWidget(QtGui.QLabel('Set map'))
+        self._set_map = SetMap(project)
+        set_map_layout.addWidget(self._set_map)
 
         layout.addLayout(vars_layout)
         layout.addLayout(set_map_layout)
 
     def sync(self):
         self._vars.sync()
+        self._set_map.sync()
 
 
