@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from itertools import islice
 
 from PyQt4 import QtGui, QtCore
 
+import kunquat.editor.trigtypes as ttypes
 import trigger
 
 
@@ -57,8 +58,8 @@ class Trigger_row(list):
         return index, 0
 
     def get_field_info(self, cursor):
-        type_validator = (trigger.is_global if cursor.col.get_num() == -1
-                          else trigger.is_channel)
+        type_validator = (ttypes.is_global if cursor.col.get_num() == -1
+                          else ttypes.is_channel)
         if cursor.insert:
             return trigger.TriggerType(''), type_validator
         index, pos = self.get_slot(cursor)

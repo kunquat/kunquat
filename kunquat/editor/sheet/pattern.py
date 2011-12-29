@@ -27,6 +27,7 @@ import kunquat.editor.kqt_limits as lim
 import kunquat.editor.note_input as ni
 import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
+import kunquat.editor.trigtypes as ttypes
 import trigger
 
 
@@ -128,8 +129,8 @@ class Pattern(QtGui.QWidget):
 
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
-                trigger.Note: acc.NoteEdit(self),
-                trigger.HitIndex: acc.HitIndexEdit(self),
+                ttypes.Note: acc.NoteEdit(self),
+                ttypes.HitIndex: acc.HitIndexEdit(self),
                 bool: acc.BoolEdit(self),
                 float: acc.FloatEdit(self),
                 int: acc.IntEdit(self),

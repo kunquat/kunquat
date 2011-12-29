@@ -22,6 +22,7 @@ import accessors as acc
 import kunquat.editor.keymap as keymap
 import kunquat.editor.kqt_limits as lim
 import kunquat.editor.timestamp as ts
+import kunquat.editor.trigtypes as ttypes
 import trigger
 import trigger_row
 
@@ -235,12 +236,12 @@ class Cursor(QtCore.QObject):
                 valid_func = None
                 self.index = 0
             if not valid_func:
-                valid_func = (trigger.is_global
+                valid_func = (ttypes.is_global
                               if self.col.get_num() == -1
-                              else trigger.is_channel)
+                              else ttypes.is_channel)
             self.active_accessor = self.accessors[type(field)]
             self.active_accessor.set_validator_func(valid_func)
-            if type(field) == trigger.Note:
+            if type(field) == ttypes.Note:
                 field = '{0:.1f}'.format(field)
             self.active_accessor.set_value(field)
             self.active_accessor.show()
@@ -262,7 +263,7 @@ class Cursor(QtCore.QObject):
                         ev.key() < 256 and chr(ev.key()) in int_keys:
                     direct = True
                 elif isinstance(info, float) and \
-                        not isinstance(info, trigger.Note) and \
+                        not isinstance(info, ttypes.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
                 elif isinstance(info, ts.Timestamp) and \
@@ -284,9 +285,9 @@ class Cursor(QtCore.QObject):
                     self.active_accessor = self.accessors[type(field)]
                     if not valid_func:
                         assert type(info) == trigger.TriggerType
-                        valid_func = (trigger.is_global
+                        valid_func = (ttypes.is_global
                                       if self.col.get_num() == -1
-                                      else trigger.is_channel)
+                                      else ttypes.is_channel)
                     self.active_accessor.set_validator_func(valid_func)
                     self.active_accessor.set_value(ev.text())
                     self.active_accessor.show()
@@ -407,7 +408,7 @@ class Cursor(QtCore.QObject):
                     play_note_on = True
                     note_on_entered = True
                 elif isinstance(trig.get_field_info(findex)[0],
-                                trigger.Note): # modify field
+                                ttypes.Note): # modify field
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
                     # TODO: should we play?
@@ -502,7 +503,7 @@ class Cursor(QtCore.QObject):
         h += padding * 2
         self.geom = QtCore.QRect(x, y, w, h)
         for a in self.accessors:
-            if a == trigger.Note:
+            if a == ttypes.Note:
                 extra_pad = 30
                 cents_geom = QtCore.QRect(x, y, w + extra_pad, h)
                 self.accessors[a].setGeometry(cents_geom)
