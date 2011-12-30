@@ -42,7 +42,7 @@ class Env(QtGui.QWidget):
         set_map_layout.setSpacing(0)
         set_map_layout.addWidget(QtGui.QLabel('Set map'))
         self._set_map = SetMap(project)
-        set_map_layout.addWidget(self._set_map)
+        set_map_layout.addWidget(self._set_map, 1)
 
         layout.addLayout(vars_layout)
         layout.addLayout(set_map_layout)

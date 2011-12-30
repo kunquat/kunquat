@@ -184,10 +184,20 @@ Set_binding* new_Set_binding_from_string(char** str,
             return NULL;
         }
         *str = read_const_char(*str, ',', state);
+        int64_t channel = -2;
+        *str = read_int(*str, &channel, state);
+        *str = read_const_char(*str, ',', state);
         *str = read_string(*str, t->dest_name, EVENT_NAME_MAX, state);
         *str = read_const_char(*str, ',', state);
         if (state->error)
         {
+            del_Set_binding(sb);
+            return NULL;
+        }
+        if (channel < -1 || channel >= KQT_COLUMNS_MAX)
+        {
+            Read_state_set_error(state, "Invalid channel number: %d",
+                                        (int)channel);
             del_Set_binding(sb);
             return NULL;
         }
@@ -200,19 +210,9 @@ Set_binding* new_Set_binding_from_string(char** str,
         }
         t->dest_type = Event_names_get_param_type(names, t->dest_name);
         Interval_parse(str, &t->dest, t->dest_type, state);
-        *str = read_const_char(*str, ',', state);
-        int64_t channel = -2;
-        *str = read_int(*str, &channel, state);
         *str = read_const_char(*str, ']', state);
         if (state->error)
         {
-            del_Set_binding(sb);
-            return NULL;
-        }
-        if (channel < -1 || channel >= KQT_COLUMNS_MAX)
-        {
-            Read_state_set_error(state, "Invalid channel number: %d",
-                                        (int)channel);
             del_Set_binding(sb);
             return NULL;
         }

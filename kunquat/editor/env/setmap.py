@@ -29,6 +29,8 @@ class SetMap(QtGui.QWidget):
         layout.setSpacing(0)
         self._source = SetSource()
         layout.addWidget(self._source)
+        self._targets = Targets()
+        layout.addWidget(self._targets)
         self.set_key('p_set_map.json')
 
     def set_key(self, key):
@@ -79,5 +81,18 @@ class SetSource(QtGui.QTableWidget):
         select.type_format = var_type
         self.setItem(index, 1, QtGui.QTableWidgetItem(var_name))
         #QtCore.QObject.connect(
+
+
+class Targets(QtGui.QTableWidget):
+
+    def __init__(self, parent=None):
+        QtGui.QTableWidget.__init__(self, 0, 4, parent)
+        self.setHorizontalHeaderLabels(['Source range',
+                                        'Channel',
+                                        'Event',
+                                        'Target range'])
+        for i in (1, 2, 3):
+            self.horizontalHeader().setResizeMode(i, QtGui.QHeaderView.Stretch)
+        self.verticalHeader().hide()
 
 
