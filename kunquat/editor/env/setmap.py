@@ -28,6 +28,9 @@ class SetMap(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
         self._source = SetSource()
+        QtCore.QObject.connect(self._source,
+                               QtCore.SIGNAL('sourceChanged(int)'),
+                               self._source_changed)
         layout.addWidget(self._source)
         self._targets = Targets()
         layout.addWidget(self._targets)
@@ -46,14 +49,30 @@ class SetMap(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
+    def _source_changed(self, num):
+        targets = []
+        if num >= 0:
+            try:
+                data = self._project[self._key]
+                targets = data[num][2]
+            except IndexError:
+                targets = []
+        self._targets.set_targets(targets)
+
 
 class SetSource(QtGui.QTableWidget):
+
+    sourceChanged = QtCore.pyqtSignal(int, name='sourceChanged')
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
         self.setHorizontalHeaderLabels(['Type', 'Name'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('currentCellChanged('
+                                             'int, int, int, int)'),
+                               self._cell_changed)
 
     def set_sources(self, sources):
         self.blockSignals(True)
@@ -73,6 +92,12 @@ class SetSource(QtGui.QTableWidget):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
+
+    def _cell_changed(self, row, col, prow, pcol):
+        if row != prow:
+            QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('sourceChanged(int)'),
+                                row)
 
     def _set_row(self, index, var_type, var_name):
         select = self.cellWidget(index, 0)
@@ -94,5 +119,26 @@ class Targets(QtGui.QTableWidget):
         for i in (1, 2, 3):
             self.horizontalHeader().setResizeMode(i, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+
+    def set_targets(self, targets):
+        self.blockSignals(True)
+        try:
+            index = 0
+            for sr, ch, event, tr in targets:
+                if index >= self.rowCount():
+                    self.insertRow(index)
+                self._set_row(index, sr, ch, event, tr)
+                index += 1
+            if index >= self.rowCount():
+                self.insertRow(index)
+            self._set_row(index, '', '', '', '')
+            for i in xrange(index + 1, self.rowCount()):
+                self.removeRow(self.rowCount() - 1)
+        finally:
+            self.blockSignals(False)
+
+    def _set_row(self, index, source_range, ch, event, target_range):
+        for i, e in enumerate((source_range, ch, event, target_range)):
+            self.setItem(index, i, QtGui.QTableWidgetItem(str(e)))
 
 
