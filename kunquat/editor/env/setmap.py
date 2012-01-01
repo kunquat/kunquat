@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 from PyQt4 import QtCore, QtGui
 
+from chselect import ChSelect
 import kunquat.editor.kqt_limits as lim
 from typeselect import TypeSelect
 
@@ -127,18 +128,22 @@ class Targets(QtGui.QTableWidget):
             for sr, ch, event, tr in targets:
                 if index >= self.rowCount():
                     self.insertRow(index)
+                    self.setCellWidget(index, 1, ChSelect(index))
                 self._set_row(index, sr, ch, event, tr)
                 index += 1
             if index >= self.rowCount():
                 self.insertRow(index)
-            self._set_row(index, '', '', '', '')
+                self.setCellWidget(index, 1, ChSelect(index))
+            self._set_row(index, '', -1, '', '')
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
 
     def _set_row(self, index, source_range, ch, event, target_range):
-        for i, e in enumerate((source_range, ch, event, target_range)):
-            self.setItem(index, i, QtGui.QTableWidgetItem(str(e)))
+        self.setItem(index, 0, QtGui.QTableWidgetItem(str(source_range)))
+        self.cellWidget(index, 1).ch = ch
+        self.setItem(index, 2, QtGui.QTableWidgetItem(str(event)))
+        self.setItem(index, 3, QtGui.QTableWidgetItem(str(target_range)))
 
 
