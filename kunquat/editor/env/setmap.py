@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 from PyQt4 import QtCore, QtGui
 
+from boolrange import BoolRange
 from chselect import ChSelect
 import kunquat.editor.kqt_limits as lim
 from typeselect import TypeSelect
@@ -52,13 +53,15 @@ class SetMap(QtGui.QWidget):
 
     def _source_changed(self, num):
         targets = []
+        source_type = None
         if num >= 0:
             try:
                 data = self._project[self._key]
                 targets = data[num][2]
+                source_type = data[num][0]
             except IndexError:
                 targets = []
-        self._targets.set_targets(targets)
+        self._targets.set_targets(source_type, targets)
 
 
 class SetSource(QtGui.QTableWidget):
@@ -121,27 +124,34 @@ class Targets(QtGui.QTableWidget):
             self.horizontalHeader().setResizeMode(i, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
 
-    def set_targets(self, targets):
+    def set_targets(self, source_type, targets):
         self.blockSignals(True)
         try:
             index = 0
             for sr, ch, event, tr in targets:
                 if index >= self.rowCount():
                     self.insertRow(index)
+                    if source_type == 'bool':
+                        self.setCellWidget(index, 0, BoolRange(index, False))
                     self.setCellWidget(index, 1, ChSelect(index))
                 self._set_row(index, sr, ch, event, tr)
                 index += 1
             if index >= self.rowCount():
                 self.insertRow(index)
+                if source_type == 'bool':
+                    self.setCellWidget(index, 0, BoolRange(index, False))
                 self.setCellWidget(index, 1, ChSelect(index))
-            self._set_row(index, '', -1, '', '')
+            self._set_row(index, [], -1, '', '')
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
 
     def _set_row(self, index, source_range, ch, event, target_range):
-        self.setItem(index, 0, QtGui.QTableWidgetItem(str(source_range)))
+        if isinstance(self.cellWidget(index, 0), BoolRange):
+            self.cellWidget(index, 0).range = source_range
+        else:
+            self.setItem(index, 0, QtGui.QTableWidgetItem(str(source_range)))
         self.cellWidget(index, 1).ch = ch
         self.setItem(index, 2, QtGui.QTableWidgetItem(str(event)))
         self.setItem(index, 3, QtGui.QTableWidgetItem(str(target_range)))
