@@ -23,6 +23,8 @@ class BoolRange(QtGui.QWidget):
         self.index = index
         self._allow_degen = allow_degen
         layout = QtGui.QHBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
         self._begin = QtGui.QCheckBox()
         self._end = QtGui.QCheckBox()
         layout.addWidget(self._begin)
