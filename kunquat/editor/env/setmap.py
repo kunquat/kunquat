@@ -18,6 +18,7 @@ from PyQt4 import QtCore, QtGui
 from boolrange import BoolRange
 from chselect import ChSelect
 from floatrange import FloatRange
+from intrange import IntRange
 import kunquat.editor.kqt_limits as lim
 import kunquat.editor.trigtypes as ttypes
 from typeselect import TypeSelect
@@ -116,6 +117,15 @@ class SetSource(QtGui.QTableWidget):
 
 class Targets(QtGui.QTableWidget):
 
+    ranges = { None: None,
+               'bool': BoolRange,
+               bool: BoolRange,
+               'float': FloatRange,
+               float: FloatRange,
+               'int': IntRange,
+               int: IntRange,
+             }
+
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 4, parent)
         self.setHorizontalHeaderLabels(['Source range',
@@ -133,17 +143,17 @@ class Targets(QtGui.QTableWidget):
             for sr, ch, event, tr in targets:
                 if index >= self.rowCount():
                     self.insertRow(index)
-                    if source_type == 'bool':
-                        self.setCellWidget(index, 0, BoolRange(index, False))
+                    if Targets.ranges[source_type]:
+                        self.setCellWidget(index, 0,
+                                Targets.ranges[source_type](index, False))
                     self.setCellWidget(index, 1, ChSelect(index))
                 self._set_row(index, sr, ch, event, tr)
                 index += 1
             if index >= self.rowCount():
                 self.insertRow(index)
-                if source_type == 'bool':
-                    self.setCellWidget(index, 0, BoolRange(index, False))
-                elif source_type == 'float':
-                    self.setCellWidget(index, 0, FloatRange(index, False))
+                if Targets.ranges[source_type]:
+                    self.setCellWidget(index, 0,
+                            Targets.ranges[source_type](index, False))
                 self.setCellWidget(index, 1, ChSelect(index))
             self._set_row(index, [], -1, '', '')
             for i in xrange(index + 1, self.rowCount()):
@@ -169,12 +179,8 @@ class Targets(QtGui.QTableWidget):
                 target_type = ttypes.general_triggers[event][0][0]
         except IndexError:
             pass
-        if target_type == bool:
-            r = BoolRange(index)
-            r.range = target_range
-            self.setCellWidget(index, 3, r)
-        elif target_type == float:
-            r = FloatRange(index)
+        if Targets.ranges[target_type]:
+            r = Targets.ranges[target_type](index)
             r.range = target_range
             self.setCellWidget(index, 3, r)
         else:
