@@ -20,7 +20,9 @@ from chselect import ChSelect
 from floatrange import FloatRange
 from intrange import IntRange
 import kunquat.editor.kqt_limits as lim
+import kunquat.editor.timestamp as ts
 import kunquat.editor.trigtypes as ttypes
+from tsrange import TsRange
 from typeselect import TypeSelect
 
 
@@ -124,6 +126,8 @@ class Targets(QtGui.QTableWidget):
                float: FloatRange,
                'int': IntRange,
                int: IntRange,
+               'timestamp': TsRange,
+               ts.Timestamp: TsRange,
              }
 
     def __init__(self, parent=None):
