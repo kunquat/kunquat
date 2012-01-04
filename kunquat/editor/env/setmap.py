@@ -35,9 +35,9 @@ class SetMap(QtGui.QWidget):
         QtCore.QObject.connect(self._source,
                                QtCore.SIGNAL('sourceChanged(int)'),
                                self._source_changed)
-        layout.addWidget(self._source)
+        layout.addWidget(self._source, 0)
         self._targets = Targets()
-        layout.addWidget(self._targets)
+        layout.addWidget(self._targets, 1)
         self.set_key('p_set_map.json')
 
     def set_key(self, key):

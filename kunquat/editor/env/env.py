@@ -44,8 +44,8 @@ class Env(QtGui.QWidget):
         self._set_map = SetMap(project)
         set_map_layout.addWidget(self._set_map, 1)
 
-        layout.addLayout(vars_layout)
-        layout.addLayout(set_map_layout)
+        layout.addLayout(vars_layout, 1)
+        layout.addLayout(set_map_layout, 2)
 
     def sync(self):
         self._vars.sync()
