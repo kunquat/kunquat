@@ -48,7 +48,10 @@ class SetMap(QtGui.QWidget):
         self._key = key
         try:
             data = self._project[key]
-            sources = (m[:2] for m in data)
+            if data:
+                sources = (m[:2] for m in data)
+            else:
+                sources = []
             self._source.set_sources(sources)
         finally:
             self.blockSignals(False)
