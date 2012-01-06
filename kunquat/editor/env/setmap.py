@@ -49,10 +49,12 @@ class SetMap(QtGui.QWidget):
         try:
             data = self._project[key]
             if data:
-                sources = (m[:2] for m in data)
+                sources = [m[:2] for m in data]
             else:
                 sources = []
             self._source.set_sources(sources)
+            self._source_changed(max(0, min(len(sources),
+                                            self._source.currentRow())))
         finally:
             self.blockSignals(False)
 
@@ -150,29 +152,29 @@ class Targets(QtGui.QTableWidget):
             for sr, ch, event, tr in targets:
                 if index >= self.rowCount():
                     self.insertRow(index)
-                    if Targets.ranges[source_type]:
-                        self.setCellWidget(index, 0,
-                                Targets.ranges[source_type](index, False))
                     self.setCellWidget(index, 1, ChSelect(index))
-                self._set_row(index, sr, ch, event, tr)
+                self._set_row(index, source_type, sr, ch, event, tr)
                 index += 1
             if index >= self.rowCount():
                 self.insertRow(index)
-                if Targets.ranges[source_type]:
-                    self.setCellWidget(index, 0,
-                            Targets.ranges[source_type](index, False))
                 self.setCellWidget(index, 1, ChSelect(index))
-            self._set_row(index, [], -1, '', '')
+            self._set_row(index, source_type, [], -1, '', '')
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
 
-    def _set_row(self, index, source_range, ch, event, target_range):
-        if isinstance(self.cellWidget(index, 0), BoolRange) or \
-                isinstance(self.cellWidget(index, 0), FloatRange):
+    def _set_row(self, index,
+                 source_type, source_range,
+                 ch, event, target_range):
+        cons = Targets.ranges[source_type]
+        if cons:
+            self.takeItem(index, 0)
+            if not isinstance(self.cellWidget(index, 0), cons):
+                self.setCellWidget(index, 0, cons(index, False))
             self.cellWidget(index, 0).range = source_range
         else:
+            self.removeCellWidget(index, 0)
             self.setItem(index, 0, QtGui.QTableWidgetItem(str(source_range)))
         self.cellWidget(index, 1).ch = ch
         self.setItem(index, 2, QtGui.QTableWidgetItem(event))
@@ -187,10 +189,12 @@ class Targets(QtGui.QTableWidget):
         except IndexError:
             pass
         if Targets.ranges[target_type]:
+            self.takeItem(index, 3)
             r = Targets.ranges[target_type](index)
             r.range = target_range
             self.setCellWidget(index, 3, r)
         else:
+            self.removeCellWidget(index, 3)
             self.setItem(index, 3, QtGui.QTableWidgetItem(str(target_range)))
 
 
