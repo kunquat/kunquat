@@ -67,7 +67,7 @@ class SetMap(QtGui.QWidget):
                 data = self._project[self._key]
                 targets = data[num][2]
                 source_type = data[num][0]
-            except IndexError:
+            except (IndexError, TypeError):
                 targets = []
         self._targets.set_targets(source_type, targets)
 
