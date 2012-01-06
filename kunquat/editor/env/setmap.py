@@ -38,6 +38,9 @@ class SetMap(QtGui.QWidget):
         QtCore.QObject.connect(self._source,
                                QtCore.SIGNAL('sourceChanged(int)'),
                                self._source_changed)
+        QtCore.QObject.connect(self._source,
+                               QtCore.SIGNAL('nameChanged(int, QString*)'),
+                               self._source_name_changed)
         layout.addWidget(self._source, 0)
         self._targets = Targets()
         layout.addWidget(self._targets, 1)
@@ -73,10 +76,19 @@ class SetMap(QtGui.QWidget):
                 targets = []
         self._targets.set_targets(source_type, targets)
 
+    def _source_name_changed(self, index, name):
+        assert index >= 0
+        name = str(name)
+        m = self._project[self._key]
+        if index < len(m):
+            m[index][1] = name
+            self._project[self._key] = m
+
 
 class SetSource(QtGui.QTableWidget):
 
     sourceChanged = QtCore.pyqtSignal(int, name='sourceChanged')
+    nameChanged = QtCore.pyqtSignal(int, str, name='nameChanged')
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
@@ -87,6 +99,9 @@ class SetSource(QtGui.QTableWidget):
                                QtCore.SIGNAL('currentCellChanged('
                                              'int, int, int, int)'),
                                self._cell_changed)
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self._changed)
 
     def set_sources(self, sources):
         self.blockSignals(True)
@@ -115,11 +130,28 @@ class SetSource(QtGui.QTableWidget):
 
     def _set_row(self, index, var_type, var_name):
         select = self.cellWidget(index, 0)
-        #QtCore.QObject.disconnect(
+        QtCore.QObject.disconnect(select,
+                                  QtCore.SIGNAL('typeChanged(int, QString*)'),
+                                  self._type_changed)
         select.index = index
         select.type_format = var_type
         self.setItem(index, 1, QtGui.QTableWidgetItem(var_name))
-        #QtCore.QObject.connect(
+        QtCore.QObject.connect(select,
+                               QtCore.SIGNAL('typeChanged(int, QString*)'),
+                               self._type_changed)
+
+    def _changed(self, row, col):
+        if col == 1:
+            item = self.item(row, col)
+            self._name_changed(row, item.text() if item else '')
+
+    def _name_changed(self, index, name):
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('nameChanged(int, QString*)'),
+                            index, name)
+
+    def _type_changed(self, index, var_type):
+        print(index, var_type)
 
 
 class Targets(QtGui.QTableWidget):
