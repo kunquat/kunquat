@@ -41,6 +41,9 @@ class SetMap(QtGui.QWidget):
         QtCore.QObject.connect(self._source,
                                QtCore.SIGNAL('nameChanged(int, QString*)'),
                                self._source_name_changed)
+        QtCore.QObject.connect(self._source,
+                               QtCore.SIGNAL('typeChanged(int, QString*)'),
+                               self._source_type_changed)
         layout.addWidget(self._source, 0)
         self._targets = Targets()
         layout.addWidget(self._targets, 1)
@@ -50,10 +53,11 @@ class SetMap(QtGui.QWidget):
         self.blockSignals(True)
         self._key = key
         try:
-            data = self._project[key]
-            if data:
-                sources = [m[:2] for m in data]
+            self._data = self._project[key]
+            if self._data:
+                sources = [m[:2] for m in self._data]
             else:
+                self._data = []
                 sources = []
             self._source.set_sources(sources)
             self._source_changed(max(0, min(len(sources),
@@ -64,14 +68,25 @@ class SetMap(QtGui.QWidget):
     def sync(self):
         self.set_key(self._key)
 
+    def _flatten(self, immediate=True):
+        m = []
+        last_is_valid = False
+        for binding in self._data:
+            last_is_valid = False
+            if binding[0] and binding[1]:
+                m.extend([binding])
+                last_is_valid = True
+        self._project.set(self._key, m, immediate)
+        if last_is_valid:
+            self.sync()
+
     def _source_changed(self, num):
         targets = []
         source_type = None
         if num >= 0:
             try:
-                data = self._project[self._key]
-                targets = data[num][2]
-                source_type = data[num][0]
+                targets = self._data[num][2]
+                source_type = self._data[num][0]
             except (IndexError, TypeError):
                 targets = []
         self._targets.set_targets(source_type, targets)
@@ -79,16 +94,32 @@ class SetMap(QtGui.QWidget):
     def _source_name_changed(self, index, name):
         assert index >= 0
         name = str(name)
-        m = self._project[self._key]
-        if index < len(m):
-            m[index][1] = name
-            self._project[self._key] = m
+        if index < len(self._data):
+            self._data[index][1] = name
+        else:
+            self._data.extend([['', name, []]])
+        self._flatten()
+
+    def _source_type_changed(self, index, var_type):
+        if var_type:
+            var_type = str(var_type)
+        if index < len(self._data):
+            self._data[index][0] = var_type
+            cons = { 'bool': bool, 'int': int, 'float': float }[var_type]
+            for mapping in self._data[index][2]:
+                mapping[0] = [cons(val) for val in mapping[0]]
+        else:
+            self._data.extend([[var_type, name, []]])
+        self._flatten()
+        if self._source.currentRow() == index:
+            self._targets.set_targets(var_type, self._data[index][2])
 
 
 class SetSource(QtGui.QTableWidget):
 
     sourceChanged = QtCore.pyqtSignal(int, name='sourceChanged')
     nameChanged = QtCore.pyqtSignal(int, str, name='nameChanged')
+    typeChanged = QtCore.pyqtSignal(int, str, name='typeChanged')
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
@@ -151,7 +182,9 @@ class SetSource(QtGui.QTableWidget):
                             index, name)
 
     def _type_changed(self, index, var_type):
-        print(index, var_type)
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('typeChanged(int, QString*)'),
+                            index, var_type)
 
 
 class Targets(QtGui.QTableWidget):
