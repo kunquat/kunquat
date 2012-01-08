@@ -320,6 +320,18 @@ class Targets(QtGui.QTableWidget):
                             immediate)
 
     def _target_range_changed(self, index):
-        print('target', index, self.cellWidget(index, 3).range)
+        assert index >= 0
+        assert self.item(index, 2).text()
+        immediate = isinstance(self.cellWidget(index, 3), BoolRange)
+        if index < len(self._data):
+            self._data[index][3] = self.cellWidget(index, 3).range
+        else:
+            self._data.extend([[self.cellWidget(index, 0).range,
+                                self.cellWidget(index, 1).ch,
+                                str(self.item(index, 2).text()),
+                                self.cellWidget(index, 3).range]])
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('targetChanged(bool)'),
+                            immediate)
 
 
