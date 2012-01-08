@@ -76,14 +76,11 @@ class SetMap(QtGui.QWidget):
         m = []
         for i, binding in enumerate(self._data):
             if binding[0] and binding[1]:
-                if i == self._targets.index:
-                    b = [binding[0], binding[1], []]
-                    for row in self._targets.data:
-                        if row[2]:
-                            b[2].extend([row])
-                    m.extend([b])
-                else:
-                    m.extend([binding])
+                b = [binding[0], binding[1], []]
+                for row in self._targets.data:
+                    if row[2]:
+                        b[2].extend([row])
+                m.extend([b])
         self._project.set(self._key, m, immediate)
 
     def _source_changed(self, num):
@@ -111,7 +108,8 @@ class SetMap(QtGui.QWidget):
             var_type = str(var_type)
         if index < len(self._data):
             self._data[index][0] = var_type
-            cons = { 'bool': bool, 'int': int, 'float': float }[var_type]
+            cons = { None: EmptyRange, 'bool': bool,
+                     'int': int, 'float': float }[var_type]
             for mapping in self._data[index][2]:
                 mapping[0] = [cons(val) for val in mapping[0]]
         else:
@@ -354,7 +352,13 @@ class Targets(QtGui.QTableWidget):
         assert index >= 0
         desc = str(self.item(index, 2).text())
         if not desc:
-            self.cellWidget(index, 1).allow(True, True)
+            if index < len(self._data):
+                self.cellWidget(index, 1).allow(True, True)
+                self.setCellWidget(index, 3, EmptyRange(index))
+                self._data[index][2] = ''
+                QtCore.QObject.emit(self,
+                                    QtCore.SIGNAL('targetChanged(bool)'),
+                                    True)
             return
         glob = False
         ch = False
@@ -386,6 +390,16 @@ class Targets(QtGui.QTableWidget):
                                    QtCore.SIGNAL('rangeChanged(int)'),
                                    self._target_range_changed)
             self.setCellWidget(index, 3, r)
+        if index < len(self._data):
+            self._data[index][2] = str(self.item(index, 2).text())
+        else:
+            self._data.extend([[self.cellWidget(index, 0).range,
+                                self.cellWidget(index, 1).ch,
+                                str(self.item(index, 2).text()),
+                                self.cellWidget(index, 3).range]])
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('targetChanged(bool)'),
+                            True)
 
     def _target_range_changed(self, index):
         assert index >= 0
