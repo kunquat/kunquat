@@ -71,6 +71,7 @@ struct Set_binding
 static bool Interval_parse(char** str,
                            Interval* in,
                            Env_var_type type,
+                           bool allow_degen,
                            Read_state* state);
 
 
@@ -177,7 +178,7 @@ Set_binding* new_Set_binding_from_string(char** str,
             last->next = t;
             last = t;
         }
-        bool swap = Interval_parse(str, &t->src, sb->type, state);
+        bool swap = Interval_parse(str, &t->src, sb->type, false, state);
         if (state->error)
         {
             del_Set_binding(sb);
@@ -209,7 +210,7 @@ Set_binding* new_Set_binding_from_string(char** str,
             return NULL;
         }
         t->dest_type = Event_names_get_param_type(names, t->dest_name);
-        Interval_parse(str, &t->dest, t->dest_type, state);
+        Interval_parse(str, &t->dest, t->dest_type, true, state);
         *str = read_const_char(*str, ']', state);
         if (state->error)
         {
@@ -483,6 +484,7 @@ static int scale_from_float(double src_value,
 static bool Interval_parse(char** str,
                            Interval* in,
                            Env_var_type type,
+                           bool allow_degen,
                            Read_state* state)
 {
     assert(str != NULL);
@@ -502,7 +504,8 @@ static bool Interval_parse(char** str,
             *str = read_bool(*str, &in->range[1].bool_type, state);
             if (!state->error)
             {
-                if (in->range[0].bool_type == in->range[1].bool_type)
+                if (!allow_degen &&
+                        in->range[0].bool_type == in->range[1].bool_type)
                 {
                     Read_state_set_error(state, range_error);
                 }
@@ -519,7 +522,8 @@ static bool Interval_parse(char** str,
             *str = read_int(*str, &in->range[1].int_type, state);
             if (!state->error)
             {
-                if (in->range[0].int_type == in->range[1].int_type)
+                if (!allow_degen &&
+                        in->range[0].int_type == in->range[1].int_type)
                 {
                     Read_state_set_error(state, range_error);
                 }
@@ -536,7 +540,8 @@ static bool Interval_parse(char** str,
             *str = read_double(*str, &in->range[1].float_type, state);
             if (!state->error)
             {
-                if (in->range[0].float_type == in->range[1].float_type)
+                if (!allow_degen &&
+                        in->range[0].float_type == in->range[1].float_type)
                 {
                     Read_state_set_error(state, range_error);
                 }
@@ -553,8 +558,8 @@ static bool Interval_parse(char** str,
             *str = read_tuning(*str, &in->range[1].Real_type, NULL, state);
             if (!state->error)
             {
-                if (Real_cmp(&in->range[0].Real_type,
-                             &in->range[1].Real_type) == 0)
+                if (!allow_degen && Real_cmp(&in->range[0].Real_type,
+                                             &in->range[1].Real_type) == 0)
                 {
                     Read_state_set_error(state, range_error);
                 }
@@ -570,11 +575,10 @@ static bool Interval_parse(char** str,
             *str = read_reltime(*str, &in->range[0].Reltime_type, state);
             *str = read_const_char(*str, ',', state);
             *str = read_reltime(*str, &in->range[1].Reltime_type, state);
-            if (!state->error && Reltime_cmp(&in->range[0].Reltime_type,
-                                             &in->range[1].Reltime_type) == 0)
+            if (!state->error)
             {
-                if (Reltime_cmp(&in->range[0].Reltime_type,
-                                &in->range[1].Reltime_type) == 0)
+                if (!allow_degen && Reltime_cmp(&in->range[0].Reltime_type,
+                                            &in->range[1].Reltime_type) == 0)
                 {
                     Read_state_set_error(state, range_error);
                 }

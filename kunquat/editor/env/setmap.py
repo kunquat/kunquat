@@ -17,6 +17,7 @@ from PyQt4 import QtCore, QtGui
 
 from boolrange import BoolRange
 from chselect import ChSelect
+from emptyrange import EmptyRange
 from floatrange import FloatRange
 from intrange import IntRange
 import kunquat.editor.kqt_limits as lim
@@ -83,7 +84,6 @@ class SetMap(QtGui.QWidget):
                     m.extend([b])
                 else:
                     m.extend([binding])
-        print(immediate, m)
         self._project.set(self._key, m, immediate)
 
     def _source_changed(self, num):
@@ -208,11 +208,12 @@ class Targets(QtGui.QTableWidget):
 
     changed = QtCore.pyqtSignal(bool, name='targetChanged')
 
-    ranges = { None: None,
+    ranges = { None: EmptyRange,
                'bool': BoolRange,
                bool: BoolRange,
                'float': FloatRange,
                float: FloatRange,
+               ttypes.Note: FloatRange,
                'int': IntRange,
                int: IntRange,
                'timestamp': TsRange,
@@ -230,6 +231,9 @@ class Targets(QtGui.QTableWidget):
         self.verticalHeader().hide()
         self._data = []
         self._index = 0
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self._changed)
 
     @property
     def data(self):
@@ -307,6 +311,10 @@ class Targets(QtGui.QTableWidget):
             self.removeCellWidget(index, 3)
             self.setItem(index, 3, QtGui.QTableWidgetItem(str(target_range)))
 
+    def _changed(self, row, col):
+        if col == 2:
+            self._event_changed(row)
+
     def _source_range_changed(self, index):
         assert index >= 0
         immediate = isinstance(self.cellWidget(index, 0), BoolRange)
@@ -341,6 +349,43 @@ class Targets(QtGui.QTableWidget):
         QtCore.QObject.emit(self,
                             QtCore.SIGNAL('targetChanged(bool)'),
                             False)
+
+    def _event_changed(self, index):
+        assert index >= 0
+        desc = str(self.item(index, 2).text())
+        if not desc:
+            self.cellWidget(index, 1).allow(True, True)
+            return
+        glob = False
+        ch = False
+        if desc in ttypes.global_triggers:
+            info = ttypes.global_triggers[desc]
+            glob = True
+        elif desc in ttypes.channel_triggers:
+            info = ttypes.channel_triggers[desc]
+            ch = True
+        elif desc in ttypes.general_triggers:
+            info = ttypes.general_triggers[desc]
+            glob = ch = True
+        if (not glob and not ch) or desc == 'wj' or \
+                (info and info[0][0] not in
+                        (bool, int, float, ttypes.Note, ts.Timestamp)):
+            self.blockSignals(True)
+            desc = ''
+            if index < len(self._data):
+                desc = self._data[index][2]
+            self.item(index, 2).setText(desc)
+            self.blockSignals(False)
+            return
+        self.cellWidget(index, 1).allow(glob, ch)
+        cons = Targets.ranges[info[0][0]]
+        assert cons
+        if not isinstance(self.cellWidget(index, 3), cons):
+            r = cons(index)
+            QtCore.QObject.connect(r,
+                                   QtCore.SIGNAL('rangeChanged(int)'),
+                                   self._target_range_changed)
+            self.setCellWidget(index, 3, r)
 
     def _target_range_changed(self, index):
         assert index >= 0
