@@ -247,18 +247,25 @@ class Targets(QtGui.QTableWidget):
             index = 0
             for sr, ch, event, tr in targets:
                 if index >= self.rowCount():
-                    self.insertRow(index)
-                    self.setCellWidget(index, 1, ChSelect(index))
+                    self._append_row()
                 self._set_row(index, source_type, sr, ch, event, tr)
                 index += 1
             if index >= self.rowCount():
-                self.insertRow(index)
-                self.setCellWidget(index, 1, ChSelect(index))
+                self._append_row()
             self._set_row(index, source_type, [], -1, '', '')
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
+
+    def _append_row(self):
+        index = self.rowCount()
+        self.insertRow(index)
+        ch = ChSelect(index)
+        QtCore.QObject.connect(ch,
+                               QtCore.SIGNAL('chChanged(int)'),
+                               self._channel_changed)
+        self.setCellWidget(index, 1, ch)
 
     def _set_row(self, index,
                  source_type, source_range,
@@ -318,6 +325,22 @@ class Targets(QtGui.QTableWidget):
         QtCore.QObject.emit(self,
                             QtCore.SIGNAL('targetChanged(bool)'),
                             immediate)
+
+    def _channel_changed(self, index):
+        assert index >= 0
+        if index < len(self._data):
+            self._data[index][1] = self.cellWidget(index, 1).ch
+        else:
+            tr_widget = self.cellWidget(index, 3)
+            tr = tr_widget.range if tr_widget else []
+            etext = str(self.item(index, 2).text())
+            self._data.extend([[self.cellWidget(index, 0).range,
+                                self.cellWidget(index, 1).ch,
+                                etext,
+                                tr]])
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('targetChanged(bool)'),
+                            False)
 
     def _target_range_changed(self, index):
         assert index >= 0

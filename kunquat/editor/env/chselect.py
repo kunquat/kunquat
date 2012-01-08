@@ -18,7 +18,7 @@ import kunquat.editor.kqt_limits as lim
 
 class ChSelect(QtGui.QSpinBox):
 
-    chChanged = QtCore.pyqtSignal(int, int, name='chChanged')
+    chChanged = QtCore.pyqtSignal(int, name='chChanged')
 
     def __init__(self, index, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
@@ -50,7 +50,7 @@ class ChSelect(QtGui.QSpinBox):
 
     def _changed(self, value):
         QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('chChanged(int, int)'),
-                            self.index, value)
+                            QtCore.SIGNAL('chChanged(int)'),
+                            self.index)
 
 
