@@ -16,7 +16,7 @@ from PyQt4 import QtCore, QtGui
 
 class IntRange(QtGui.QWidget):
 
-    rangeChanged = QtCore.pyqtSignal(int, int, int, name='rangeChanged')
+    rangeChanged = QtCore.pyqtSignal(int, name='rangeChanged')
 
     def __init__(self, index, allow_degen=True, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -26,7 +26,11 @@ class IntRange(QtGui.QWidget):
         layout.setMargin(0)
         layout.setSpacing(0)
         self._begin = QtGui.QSpinBox()
+        self._begin.setMinimum(-2**31)
+        self._begin.setMaximum(2**31 - 1)
         self._end = QtGui.QSpinBox()
+        self._end.setMinimum(-2**31)
+        self._end.setMaximum(2**31 - 1)
         layout.addWidget(self._begin)
         layout.addWidget(self._end)
         QtCore.QObject.connect(self._begin,
@@ -45,7 +49,8 @@ class IntRange(QtGui.QWidget):
     def range(self, r):
         if not r:
             r = [0, 1]
-        assert self._allow_degen or r[0] != r[1]
+        if not self._allow_degen and r[0] == r[1]:
+            r[1] += 1
         self._begin.blockSignals(True)
         self._end.blockSignals(True)
         try:
@@ -90,7 +95,7 @@ class IntRange(QtGui.QWidget):
                 self._degen_fix = None
         r = self.range
         QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('rangeChanged(int, int, int)'),
-                            self.index, r[0], r[1])
+                            QtCore.SIGNAL('rangeChanged(int)'),
+                            self.index)
 
 

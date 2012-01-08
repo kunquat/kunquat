@@ -46,6 +46,9 @@ class SetMap(QtGui.QWidget):
                                self._source_type_changed)
         layout.addWidget(self._source, 0)
         self._targets = Targets()
+        QtCore.QObject.connect(self._targets,
+                               QtCore.SIGNAL('targetChanged(bool)'),
+                               self._target_changed)
         layout.addWidget(self._targets, 1)
         self.set_key('p_set_map.json')
 
@@ -70,15 +73,18 @@ class SetMap(QtGui.QWidget):
 
     def _flatten(self, immediate=True):
         m = []
-        last_is_valid = False
-        for binding in self._data:
-            last_is_valid = False
+        for i, binding in enumerate(self._data):
             if binding[0] and binding[1]:
-                m.extend([binding])
-                last_is_valid = True
+                if i == self._targets.index:
+                    b = [binding[0], binding[1], []]
+                    for row in self._targets.data:
+                        if row[2]:
+                            b[2].extend([row])
+                    m.extend([b])
+                else:
+                    m.extend([binding])
+        print(immediate, m)
         self._project.set(self._key, m, immediate)
-        if last_is_valid:
-            self.sync()
 
     def _source_changed(self, num):
         targets = []
@@ -89,7 +95,7 @@ class SetMap(QtGui.QWidget):
                 source_type = self._data[num][0]
             except (IndexError, TypeError):
                 targets = []
-        self._targets.set_targets(source_type, targets)
+        self._targets.set_targets(num, source_type, targets)
 
     def _source_name_changed(self, index, name):
         assert index >= 0
@@ -109,10 +115,13 @@ class SetMap(QtGui.QWidget):
             for mapping in self._data[index][2]:
                 mapping[0] = [cons(val) for val in mapping[0]]
         else:
-            self._data.extend([[var_type, name, []]])
+            self._data.extend([[var_type, '', []]])
         self._flatten()
         if self._source.currentRow() == index:
-            self._targets.set_targets(var_type, self._data[index][2])
+            self._targets.set_targets(index, var_type, self._data[index][2])
+
+    def _target_changed(self, immediate):
+        self._flatten(immediate)
 
 
 class SetSource(QtGui.QTableWidget):
@@ -140,18 +149,21 @@ class SetSource(QtGui.QTableWidget):
             index = 0
             for var_type, var_name in sources:
                 if index >= self.rowCount():
-                    self.insertRow(index)
-                    self.setCellWidget(index, 0, TypeSelect(index))
+                    self._append_row()
                 self._set_row(index, var_type, var_name)
                 index += 1
             if index >= self.rowCount():
-                self.insertRow(index)
-                self.setCellWidget(index, 0, TypeSelect(index))
-            self._set_row(index, None, '')
+                self._append_row()
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
+
+    def _append_row(self):
+        pos = self.rowCount()
+        self.insertRow(pos)
+        self.setCellWidget(pos, 0, TypeSelect(pos))
+        self._set_row(pos, None, '')
 
     def _cell_changed(self, row, col, prow, pcol):
         if row != prow:
@@ -173,8 +185,11 @@ class SetSource(QtGui.QTableWidget):
 
     def _changed(self, row, col):
         if col == 1:
-            item = self.item(row, col)
-            self._name_changed(row, item.text() if item else '')
+            text = self.item(row, col).text()
+            self._name_changed(row, text)
+            if row == self.rowCount() - 1 and text and \
+                    self.cellWidget(row, 0).type_format:
+                self._append_row()
 
     def _name_changed(self, index, name):
         QtCore.QObject.emit(self,
@@ -185,9 +200,13 @@ class SetSource(QtGui.QTableWidget):
         QtCore.QObject.emit(self,
                             QtCore.SIGNAL('typeChanged(int, QString*)'),
                             index, var_type)
+        if index == self.rowCount() - 1 and self.item(index, 1).text():
+            self._append_row()
 
 
 class Targets(QtGui.QTableWidget):
+
+    changed = QtCore.pyqtSignal(bool, name='targetChanged')
 
     ranges = { None: None,
                'bool': BoolRange,
@@ -209,8 +228,20 @@ class Targets(QtGui.QTableWidget):
         for i in (1, 2, 3):
             self.horizontalHeader().setResizeMode(i, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+        self._data = []
+        self._index = 0
 
-    def set_targets(self, source_type, targets):
+    @property
+    def data(self):
+        return self._data
+
+    @property
+    def index(self):
+        return self._index
+
+    def set_targets(self, index, source_type, targets):
+        self._index = index
+        self._data = targets
         self.blockSignals(True)
         try:
             index = 0
@@ -236,7 +267,11 @@ class Targets(QtGui.QTableWidget):
         if cons:
             self.takeItem(index, 0)
             if not isinstance(self.cellWidget(index, 0), cons):
-                self.setCellWidget(index, 0, cons(index, False))
+                sr = cons(index, False)
+                QtCore.QObject.connect(sr,
+                                       QtCore.SIGNAL('rangeChanged(int)'),
+                                       self._source_range_changed)
+                self.setCellWidget(index, 0, sr)
             self.cellWidget(index, 0).range = source_range
         else:
             self.removeCellWidget(index, 0)
@@ -257,9 +292,34 @@ class Targets(QtGui.QTableWidget):
             self.takeItem(index, 3)
             r = Targets.ranges[target_type](index)
             r.range = target_range
+            QtCore.QObject.connect(r,
+                                   QtCore.SIGNAL('rangeChanged(int)'),
+                                   self._target_range_changed)
             self.setCellWidget(index, 3, r)
         else:
             self.removeCellWidget(index, 3)
             self.setItem(index, 3, QtGui.QTableWidgetItem(str(target_range)))
+
+    def _source_range_changed(self, index):
+        assert index >= 0
+        immediate = isinstance(self.cellWidget(index, 0), BoolRange)
+        if index < len(self._data):
+            self._data[index][0] = self.cellWidget(index, 0).range
+        else:
+            tr_widget = self.cellWidget(index, 3)
+            tr = tr_widget.range if tr_widget else []
+            etext = str(self.item(index, 2).text())
+            self._data.extend([[self.cellWidget(index, 0).range,
+                                self.cellWidget(index, 1).ch,
+                                etext,
+                                tr]])
+            if not etext or not tr_widget:
+                immediate = False
+        QtCore.QObject.emit(self,
+                            QtCore.SIGNAL('targetChanged(bool)'),
+                            immediate)
+
+    def _target_range_changed(self, index):
+        print('target', index, self.cellWidget(index, 3).range)
 
 

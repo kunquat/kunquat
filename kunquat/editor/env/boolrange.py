@@ -16,7 +16,7 @@ from PyQt4 import QtCore, QtGui
 
 class BoolRange(QtGui.QWidget):
 
-    rangeChanged = QtCore.pyqtSignal(int, bool, bool, name='rangeChanged')
+    rangeChanged = QtCore.pyqtSignal(int, name='rangeChanged')
 
     def __init__(self, index, allow_degen=True, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -71,7 +71,7 @@ class BoolRange(QtGui.QWidget):
             other.blockSignals(False)
         r = self.range
         QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('rangeChanged(int, bool, bool)'),
-                            self.index, r[0], r[1])
+                            QtCore.SIGNAL('rangeChanged(int)'),
+                            self.index)
 
 

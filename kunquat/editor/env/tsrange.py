@@ -18,8 +18,7 @@ import kunquat.editor.timestamp as ts
 
 class TsRange(QtGui.QWidget):
 
-    rangeChanged = QtCore.pyqtSignal(int, int, int, int, int,
-                                     name='rangeChanged')
+    rangeChanged = QtCore.pyqtSignal(int, name='rangeChanged')
 
     def __init__(self, index, allow_degen=True, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -102,7 +101,7 @@ class TsRange(QtGui.QWidget):
         bt = ts.Timestamp(r[0])
         et = ts.Timestamp(r[1])
         QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('rangeChanged(int, int, int, int, int)'),
-                            self.index, bt[0], bt[1], et[0], et[1])
+                            QtCore.SIGNAL('rangeChanged(int)'),
+                            self.index)
 
 
