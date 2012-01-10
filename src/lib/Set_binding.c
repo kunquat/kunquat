@@ -42,6 +42,7 @@ typedef union Value
 
 typedef struct Interval
 {
+    int points;
     Value range[2];
 } Interval;
 
@@ -302,49 +303,52 @@ bool Set_binding_get_next(Set_binding* sb,
     assert(printed < dest_size);
     dest_size -= printed;
     dest_event += printed;
-    switch (sb->type)
+    if (t->dest_type > ENV_VAR_NONE)
     {
-        case ENV_VAR_BOOL:
+        switch (sb->type)
         {
-            printed = print_value(t->dest_type,
-                                  &t->dest.range[sb->cur_value.bool_type],
-                                  dest_event, dest_size);
-        } break;
-        case ENV_VAR_INT:
-        {
-            Value range[2];
-            range[0].float_type = t->src.range[0].int_type;
-            range[1].float_type = t->src.range[1].int_type;
-            printed = scale_from_float(sb->cur_value.int_type,
-                                       range,
-                                       t->dest_type,
-                                       t->dest.range,
-                                       dest_event,
-                                       dest_size);
-        } break;
-        case ENV_VAR_FLOAT:
-        {
-            printed = scale_from_float(sb->cur_value.float_type,
-                                       t->src.range,
-                                       t->dest_type,
-                                       t->dest.range,
-                                       dest_event,
-                                       dest_size);
-        } break;
-        case ENV_VAR_REAL:
-        {
-            assert(false);
-        } break;
-        case ENV_VAR_RELTIME:
-        {
-            assert(false);
-        } break;
-        default:
-            assert(false);
+            case ENV_VAR_BOOL:
+            {
+                printed = print_value(t->dest_type,
+                                      &t->dest.range[sb->cur_value.bool_type],
+                                      dest_event, dest_size);
+            } break;
+            case ENV_VAR_INT:
+            {
+                Value range[2];
+                range[0].float_type = t->src.range[0].int_type;
+                range[1].float_type = t->src.range[1].int_type;
+                printed = scale_from_float(sb->cur_value.int_type,
+                                           range,
+                                           t->dest_type,
+                                           t->dest.range,
+                                           dest_event,
+                                           dest_size);
+            } break;
+            case ENV_VAR_FLOAT:
+            {
+                printed = scale_from_float(sb->cur_value.float_type,
+                                           t->src.range,
+                                           t->dest_type,
+                                           t->dest.range,
+                                           dest_event,
+                                           dest_size);
+            } break;
+            case ENV_VAR_REAL:
+            {
+                assert(false);
+            } break;
+            case ENV_VAR_RELTIME:
+            {
+                assert(false);
+            } break;
+            default:
+                assert(false);
+        }
+        assert(printed < dest_size);
+        dest_size -= printed;
+        dest_event += printed;
     }
-    assert(printed < dest_size);
-    dest_size -= printed;
-    dest_event += printed;
     snprintf(dest_event, dest_size, "]]");
     sb->cur_target = sb->cur_target->next;
     return true;
@@ -495,11 +499,33 @@ static bool Interval_parse(char** str,
     bool swap = false;
     const char* range_error = "Range endpoints must differ";
     *str = read_const_char(*str, '[', state);
+    if (state->error)
+    {
+        return false;
+    }
+    *str = read_const_char(*str, ']', state);
+    if (!state->error)
+    {
+        in->points = 0;
+        return false;
+    }
+    Read_state_clear_error(state);
     switch (type)
     {
         case ENV_VAR_BOOL:
         {
             *str = read_bool(*str, &in->range[0].bool_type, state);
+            if (state->error)
+            {
+                return false;
+            }
+            *str = read_const_char(*str, ']', state);
+            if (!state->error)
+            {
+                in->points = 1;
+                return false;
+            }
+            Read_state_clear_error(state);
             *str = read_const_char(*str, ',', state);
             *str = read_bool(*str, &in->range[1].bool_type, state);
             if (!state->error)
@@ -518,6 +544,17 @@ static bool Interval_parse(char** str,
         case ENV_VAR_INT:
         {
             *str = read_int(*str, &in->range[0].int_type, state);
+            if (state->error)
+            {
+                return false;
+            }
+            *str = read_const_char(*str, ']', state);
+            if (!state->error)
+            {
+                in->points = 1;
+                return false;
+            }
+            Read_state_clear_error(state);
             *str = read_const_char(*str, ',', state);
             *str = read_int(*str, &in->range[1].int_type, state);
             if (!state->error)
@@ -536,6 +573,17 @@ static bool Interval_parse(char** str,
         case ENV_VAR_FLOAT:
         {
             *str = read_double(*str, &in->range[0].float_type, state);
+            if (state->error)
+            {
+                return false;
+            }
+            *str = read_const_char(*str, ']', state);
+            if (!state->error)
+            {
+                in->points = 1;
+                return false;
+            }
+            Read_state_clear_error(state);
             *str = read_const_char(*str, ',', state);
             *str = read_double(*str, &in->range[1].float_type, state);
             if (!state->error)
@@ -554,6 +602,17 @@ static bool Interval_parse(char** str,
         case ENV_VAR_REAL:
         {
             *str = read_tuning(*str, &in->range[0].Real_type, NULL, state);
+            if (state->error)
+            {
+                return false;
+            }
+            *str = read_const_char(*str, ']', state);
+            if (!state->error)
+            {
+                in->points = 1;
+                return false;
+            }
+            Read_state_clear_error(state);
             *str = read_const_char(*str, ',', state);
             *str = read_tuning(*str, &in->range[1].Real_type, NULL, state);
             if (!state->error)
@@ -573,6 +632,17 @@ static bool Interval_parse(char** str,
         case ENV_VAR_RELTIME:
         {
             *str = read_reltime(*str, &in->range[0].Reltime_type, state);
+            if (state->error)
+            {
+                return false;
+            }
+            *str = read_const_char(*str, ']', state);
+            if (!state->error)
+            {
+                in->points = 1;
+                return false;
+            }
+            Read_state_clear_error(state);
             *str = read_const_char(*str, ',', state);
             *str = read_reltime(*str, &in->range[1].Reltime_type, state);
             if (!state->error)
@@ -593,6 +663,7 @@ static bool Interval_parse(char** str,
             assert(false);
     }
     *str = read_const_char(*str, ']', state);
+    in->points = 2;
     return swap;
 }
 
