@@ -207,6 +207,7 @@ class Targets(QtGui.QTableWidget):
     changed = QtCore.pyqtSignal(bool, name='targetChanged')
 
     ranges = { None: EmptyRange,
+               '': EmptyRange,
                'bool': BoolRange,
                bool: BoolRange,
                'float': FloatRange,
@@ -382,7 +383,9 @@ class Targets(QtGui.QTableWidget):
             self.blockSignals(False)
             return
         self.cellWidget(index, 1).allow(glob, ch)
-        cons = Targets.ranges[info[0][0]]
+        cons = EmptyRange
+        if info:
+            cons = Targets.ranges[info[0][0]]
         assert cons
         if not isinstance(self.cellWidget(index, 3), cons):
             r = cons(index)
