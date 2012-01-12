@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -826,7 +826,6 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_CONTROL(type))
     {
-        assert(index == -1);
         return eh->control_process[type]((General_state*)eh->global_state,
                                          fields);
     }

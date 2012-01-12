@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,7 +16,7 @@
 #define K_EVENT_CONTROL_H
 
 
-#include <Event.h>
+#include <Event_pg.h>
 
 
 /**
@@ -24,7 +24,7 @@
  */
 typedef struct Event_control
 {
-    Event parent;
+    Event_pg parent;
 } Event_control;
 
 

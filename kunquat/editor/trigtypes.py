@@ -89,26 +89,6 @@ global_triggers = {
         'w.v': [volume],
         'w/v': [volume],
         'w/=v': [nonneg_ts],
-
-        '>pause': [],
-        '>resume': [],
-        '>pattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, 0)],
-
-        '>.Bn': [key],
-        '>.B': [any_bool],
-        '>.In': [key],
-        '>.I': [any_int],
-        '>.Fn': [key],
-        '>.F': [any_float],
-        '>.Tn': [key],
-        '>.T': [any_ts],
-
-        '>.gr': [nonneg_ts],
-        '>.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, -1)],
-        '>.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, -1)],
-        '>g': [],
-
-        '>Turing': [any_bool],
 }
 
 channel_triggers = {
@@ -208,6 +188,26 @@ general_triggers = {
         '#callI': [any_int],
         '#callFn': [any_str],
         '#callF': [any_float],
+
+        '>pause': [],
+        '>resume': [],
+        '>pattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, 0)],
+
+        '>.Bn': [key],
+        '>.B': [any_bool],
+        '>.In': [key],
+        '>.I': [any_int],
+        '>.Fn': [key],
+        '>.F': [any_float],
+        '>.Tn': [key],
+        '>.T': [any_ts],
+
+        '>.gr': [nonneg_ts],
+        '>.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, -1)],
+        '>.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, -1)],
+        '>g': [],
+
+        '>Turing': [any_bool],
 }
 
 
