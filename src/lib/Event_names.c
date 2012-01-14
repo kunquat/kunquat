@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -73,6 +73,14 @@ static Name_info event_specs[] =
     { "#?",    EVENT_GENERAL_COND,            EVENT_FIELD_STRING, v_cond, false },
     { "#if",   EVENT_GENERAL_IF,              EVENT_FIELD_BOOL, v_any_bool, false },
     { "#endif", EVENT_GENERAL_END_IF,         EVENT_FIELD_NONE, NULL, false },
+
+    { "#signal", EVENT_GENERAL_SIGNAL,        EVENT_FIELD_STRING, v_any_str, false },
+    { "#callBn", EVENT_GENERAL_CALL_BOOL_NAME, EVENT_FIELD_STRING, v_any_str, false },
+    { "#callB", EVENT_GENERAL_CALL_BOOL,      EVENT_FIELD_BOOL, v_any_bool, false },
+    { "#callIn", EVENT_GENERAL_CALL_INT_NAME, EVENT_FIELD_STRING, v_any_str, false },
+    { "#callI", EVENT_GENERAL_CALL_INT,       EVENT_FIELD_INT, v_any_int, false },
+    { "#callFn", EVENT_GENERAL_CALL_FLOAT_NAME, EVENT_FIELD_STRING, v_any_str, false },
+    { "#callF", EVENT_GENERAL_CALL_FLOAT,     EVENT_FIELD_DOUBLE, v_any_float, false },
 
     { "wpd",   EVENT_GLOBAL_PATTERN_DELAY,    EVENT_FIELD_RELTIME, v_nonneg_ts, false },
     { "w.jc",  EVENT_GLOBAL_SET_JUMP_COUNTER, EVENT_FIELD_INT, v_counter, false },

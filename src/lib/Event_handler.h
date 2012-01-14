@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -211,7 +211,7 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
 
 
 /**
- * Triggers an Event outside the mixing context.
+ * Triggers an Event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param index    The index number -- must be >= \c -1 and
