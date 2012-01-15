@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -325,7 +325,7 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
     {
         *result = '\0';
     }
-    while (*str != '\"')
+    while (!(*str == '\"' && str[-1] != '\\'))
     {
         if (*str == '\0')
         {

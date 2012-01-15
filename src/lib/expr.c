@@ -19,6 +19,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <math.h>
+#include <stdio.h>
 
 #include <expr.h>
 #include <File_base.h>
@@ -52,6 +53,7 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus,
 
 
 static char* get_token(char* str, char* result, Read_state* state);
+static char* get_str_token(char* str, char* result, Read_state* state);
 static char* get_num_token(char* str, char* result, Read_state* state);
 static char* get_var_token(char* str, char* result, Read_state* state);
 static char* get_op_token(char* str, char* result, Read_state* state);
@@ -163,7 +165,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     }
     int orig_vsi = vsi;
     int orig_osi = osi;
-    char token[ENV_VAR_NAME_MAX] = "";
+    char token[ENV_VAR_NAME_MAX + 4] = ""; // + 4 for delimiting \"s
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
@@ -404,6 +406,29 @@ static bool Value_from_token(Value* val, char* token, Environment* env)
         val->value.int_type = num;
         return true;
     }
+    else if (token[0] == '\'' || string_has_prefix(token, "\\\""))
+    {
+        char* end_str = "'";
+        ++token;
+        if (string_has_prefix(token, "\\\""))
+        {
+            end_str = "\\\"";
+            ++token;
+        }
+        int i = 0;
+        while (!string_has_prefix(&token[i], end_str))
+        {
+            if (i >= ENV_VAR_NAME_MAX - 1)
+            {
+                return false;
+            }
+            val->value.string_type[i] = token[i];
+            ++i;
+        }
+        val->type = VALUE_TYPE_STRING;
+        val->value.string_type[i] = '\0';
+        return true;
+    }
     else if (string_eq(token, "true") || string_eq(token, "false"))
     {
         val->type = VALUE_TYPE_BOOL;
@@ -517,6 +542,10 @@ static char* get_token(char* str, char* result, Read_state* state)
     {
         return get_num_token(str, result, state);
     }
+    else if (str[0] == '\'' || string_has_prefix(str, "\\\""))
+    {
+        return get_str_token(str, result, state);
+    }
     else if (strchr(ENV_VAR_INIT_CHARS, *str) != NULL)
     {
         return get_var_token(str, result, state);
@@ -562,6 +591,34 @@ static char* get_num_token(char* str, char* result, Read_state* state)
         Read_state_set_error(state, "Leading zeros found");
         return str;
     }
+    return str;
+}
+
+
+static char* get_str_token(char* str, char* result, Read_state* state)
+{
+    assert(str != NULL);
+    assert(result != NULL);
+    assert(state != NULL);
+    char* end_str = "'";
+    if (string_has_prefix(str, "\\\""))
+    {
+        end_str = "\\\"";
+    }
+    result[0] = *str++;
+    int i = 1;
+    while (!string_has_prefix(str, end_str))
+    {
+        if (i >= ENV_VAR_NAME_MAX + 1) // + 1 includes compensation for \"
+        {
+            Read_state_set_error(state, "Exceeded maximum token length");
+            return str;
+        }
+        result[i] = *str++;
+        ++i;
+    }
+    strcpy(&result[i], end_str);
+    str += strlen(end_str);
     return str;
 }
 
@@ -633,6 +690,11 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
                 res->value.bool_type = op1->value.float_type ==
                                        op2->value.float_type;
             } break;
+            case VALUE_TYPE_STRING:
+            {
+                res->value.bool_type = string_eq(op1->value.string_type,
+                                                 op2->value.string_type);
+            } break;
             default:
                 assert(false);
         }
@@ -648,6 +710,11 @@ static bool op_eq(Value* op1, Value* op2, Value* res, Read_state* state)
     if (op1->type == VALUE_TYPE_BOOL)
     {
         Read_state_set_error(state, "Comparison between boolean and number");
+        return false;
+    }
+    else if (op2->type == VALUE_TYPE_STRING)
+    {
+        Read_state_set_error(state, "Comparison between string and non-string");
         return false;
     }
     assert(op1->type == VALUE_TYPE_INT);
@@ -753,7 +820,8 @@ static bool op_lt(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Ordinal comparison between non-numbers");
         return false;
@@ -814,7 +882,8 @@ static bool op_add(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Addition with non-numbers");
         return false;
@@ -864,7 +933,8 @@ static bool op_sub(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Subtraction with non-numbers");
         return false;
@@ -895,7 +965,8 @@ static bool op_mul(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Multiplication with non-numbers");
         return false;
@@ -945,7 +1016,8 @@ static bool op_div(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Division with non-numbers");
         return false;
@@ -983,7 +1055,8 @@ static bool op_mod(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Modulo with non-numbers");
         return false;
@@ -1044,7 +1117,8 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
     {
         return false;
     }
-    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL)
+    if (op1->type <= VALUE_TYPE_BOOL || op2->type <= VALUE_TYPE_BOOL ||
+            op1->type >= VALUE_TYPE_STRING || op2->type >= VALUE_TYPE_STRING)
     {
         Read_state_set_error(state, "Power with non-numbers");
         return false;

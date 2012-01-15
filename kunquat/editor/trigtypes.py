@@ -49,7 +49,7 @@ def is_key(value):
 def is_cond_char(c):
     return (c in string.ascii_lowercase or
             c in string.digits or
-            c in '_(). ' '!=<>+-*/%^|&')
+            c in '_(). ' '!=<>+-*/%^|&\'"')
 
 
 nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))

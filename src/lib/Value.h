@@ -19,6 +19,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Env_var.h>
 #include <Real.h>
 #include <Reltime.h>
 
@@ -31,6 +32,7 @@ typedef enum
     VALUE_TYPE_FLOAT,
     VALUE_TYPE_REAL,
     VALUE_TYPE_TIMESTAMP,
+    VALUE_TYPE_STRING,
 } Value_type;
 
 
@@ -44,6 +46,7 @@ typedef struct Value
         double float_type;
         Real Real_type;
         Reltime Timestamp_type;
+        char string_type[ENV_VAR_NAME_MAX];
     } value;
 } Value;
 
