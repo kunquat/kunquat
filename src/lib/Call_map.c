@@ -139,8 +139,7 @@ Call_map* new_Call_map(char* str,
     str = read_const_char(str, ']', state);
     if (!state->error)
     {
-        del_Call_map(map);
-        return NULL;
+        return map;
     }
     Read_state_clear_error(state);
     bool expect_entry = true;
@@ -197,6 +196,12 @@ Call_map* new_Call_map(char* str,
         }
         check_next(str, state, expect_entry);
     }
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        del_Call_map(map);
+        return NULL;
+    }
     return map;
 }
 
@@ -232,6 +237,7 @@ static bool read_constraints(char** str,
             item->constraints = constraint;
             check_next(*str, state, expect_entry);
         }
+        *str = read_const_char(*str, ']', state);
     }
     return !state->error;
 }
@@ -268,6 +274,7 @@ static bool read_events(char** str,
             item->events = event;
             check_next(*str, state, expect_entry);
         }
+        *str = read_const_char(*str, ']', state);
     }
     return !state->error;
 }
@@ -320,6 +327,7 @@ static Cblist* new_Cblist(char* event_name)
     {
         return NULL;
     }
+    list->first = list->last = NULL;
     strncpy(list->event_name, event_name, EVENT_NAME_MAX);
     list->event_name[EVENT_NAME_MAX] = '\0';
     return list;
