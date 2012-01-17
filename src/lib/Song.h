@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <stdint.h>
 
+#include <Call_map.h>
 #include <Connections.h>
 #include <Device.h>
 #include <Environment.h>
@@ -55,6 +56,7 @@ typedef struct Song
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
+    Call_map* call_map;
     Set_map* set_map;
 } Song;
 
@@ -205,6 +207,15 @@ Ins_table* Song_get_insts(Song* song);
  * \return   The Effect table.
  */
 Effect_table* Song_get_effects(Song* song);
+
+
+/**
+ * Sets a Call map of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param map    The Call map -- must not be \c NULL.
+ */
+void Song_set_call_map(Song* song, Call_map* map);
 
 
 /**

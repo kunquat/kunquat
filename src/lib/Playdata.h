@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Active_names.h>
 #include <Reltime.h>
 #include <Subsong_table.h>
+#include <Call_map.h>
 //#include <Channel.h>
 #include <Column.h>
 #include <Environment.h>
@@ -65,6 +66,7 @@ typedef struct Playdata
     bool turing;                      ///< Turing mode enabled.
 
     Event_names* event_filter;        ///< Event filter.
+    Call_map* call_map;
     Set_map* set_map;
 
     Scale** scales;                   ///< The Scales.

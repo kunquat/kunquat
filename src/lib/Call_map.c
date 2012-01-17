@@ -18,6 +18,7 @@
 #include <AAtree.h>
 #include <Call_map.h>
 #include <Event_names.h>
+#include <Event_type.h>
 #include <File_base.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -51,7 +52,9 @@ typedef struct Target_event
 } Target_event;
 
 
-static Target_event* new_Target_event(char** str, Read_state* state);
+static Target_event* new_Target_event(char** str,
+                                      Read_state* state,
+                                      Event_names* names);
 
 
 static void del_Target_event(Target_event* event);
@@ -92,6 +95,12 @@ static bool read_constraints(char** str,
                              Read_state* state,
                              Call_map* map,
                              Cblist_item* item);
+
+
+static bool read_events(char** str,
+                        Read_state* state,
+                        Cblist_item* item,
+                        Event_names* names);
 
 
 Call_map* new_Call_map(char* str,
@@ -175,7 +184,11 @@ Call_map* new_Call_map(char* str,
             return NULL;
         }
         str = read_const_char(str, ',', state);
-        // TODO: read events to be fired
+        if (!read_events(&str, state, item, names))
+        {
+            del_Call_map(map);
+            return NULL;
+        }
         str = read_const_char(str, ']', state);
         if (state->error)
         {
@@ -217,6 +230,42 @@ static bool read_constraints(char** str,
             }
             constraint->next = item->constraints;
             item->constraints = constraint;
+            check_next(*str, state, expect_entry);
+        }
+    }
+    return !state->error;
+}
+
+
+static bool read_events(char** str,
+                        Read_state* state,
+                        Cblist_item* item,
+                        Event_names* names)
+{
+    assert(str != NULL);
+    assert(*str != NULL);
+    assert(state != NULL);
+    assert(item != NULL);
+    assert(names != NULL);
+    *str = read_const_char(*str, '[', state);
+    if (state->error)
+    {
+        return false;
+    }
+    *str = read_const_char(*str, ']', state);
+    if (state->error)
+    {
+        Read_state_clear_error(state);
+        bool expect_entry = true;
+        while (expect_entry)
+        {
+            Target_event* event = new_Target_event(str, state, names);
+            if (event == NULL)
+            {
+                return false;
+            }
+            event->next = item->events;
+            item->events = event;
             check_next(*str, state, expect_entry);
         }
     }
@@ -400,15 +449,92 @@ static void del_Constraint(Constraint* constraint)
 }
 
 
-static Target_event* new_Target_event(char** str, Read_state* state)
+static Target_event* new_Target_event(char** str,
+                                      Read_state* state,
+                                      Event_names* names)
 {
     assert(str != NULL);
     assert(*str != NULL);
     assert(state != NULL);
+    assert(names != NULL);
     if (state->error)
     {
         return NULL;
     }
+    Target_event* event = xalloc(Target_event);
+    if (event == NULL)
+    {
+        return NULL;
+    }
+    event->desc = NULL;
+    event->next = NULL;
+    char* desc = read_const_char(*str, '[', state);
+    char event_name[EVENT_NAME_MAX + 1] = "";
+    desc = read_string(desc, event_name, EVENT_NAME_MAX + 1, state);
+    desc = read_const_char(desc, ',', state);
+    desc = read_const_char(desc, '[', state);
+    if (state->error)
+    {
+        del_Target_event(event);
+        return NULL;
+    }
+    if (Event_names_get(names, event_name) == EVENT_NONE)
+    {
+        Read_state_set_error(state, "Unsupported event type: %s", event_name);
+        del_Target_event(event);
+        return NULL;
+    }
+    switch (Event_names_get_param_type(names, event_name))
+    {
+        case EVENT_FIELD_NONE:
+        {
+        } break;
+        case EVENT_FIELD_BOOL:
+        {
+            desc = read_bool(desc, NULL, state);
+        } break;
+        case EVENT_FIELD_INT:
+        {
+            desc = read_int(desc, NULL, state);
+        } break;
+        case EVENT_FIELD_DOUBLE:
+        {
+            desc = read_double(desc, NULL, state);
+        } break;
+        case EVENT_FIELD_REAL:
+        {
+            desc = read_tuning(desc, NULL, NULL, state);
+        } break;
+        case EVENT_FIELD_RELTIME:
+        {
+            desc = read_reltime(desc, NULL, state);
+        } break;
+        case EVENT_FIELD_STRING:
+        {
+            desc = read_string(desc, NULL, 0, state);
+        } break;
+        default:
+            assert(false);
+    }
+    desc = read_const_char(desc, ']', state);
+    desc = read_const_char(desc, ']', state);
+    if (state->error)
+    {
+        del_Target_event(event);
+        return NULL;
+    }
+    int len = desc - *str;
+    assert(len > 0);
+    event->desc = xnalloc(char, len + 1);
+    if (event->desc == NULL)
+    {
+        del_Target_event(event);
+        return NULL;
+    }
+    memcpy(event->desc, *str, len);
+    event->desc[len] = '\0';
+    *str = desc;
+    return event;
 }
 
 

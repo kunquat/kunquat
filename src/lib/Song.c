@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -117,6 +117,7 @@ Song* new_Song(uint32_t buf_size)
     song->skip_handler = NULL;
     song->random = NULL;
     song->env = NULL;
+    song->call_map = NULL;
     song->set_map = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
@@ -225,6 +226,16 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     Read_state* state = READ_STATE_AUTO;
+    Call_map* call_map = new_Call_map(NULL,
+                            Event_handler_get_names(song->event_handler),
+                            state);
+    if (call_map == NULL)
+    {
+        assert(!state->error);
+        del_Song(song);
+        return NULL;
+    }
+    Song_set_call_map(song, call_map);
     song->set_map = new_Set_map_from_string(NULL,
                             Event_handler_get_names(song->event_handler),
                             state);
@@ -564,6 +575,19 @@ Effect_table* Song_get_effects(Song* song)
 {
     assert(song != NULL);
     return song->effects;
+}
+
+
+void Song_set_call_map(Song* song, Call_map* map)
+{
+    assert(song != NULL);
+    assert(map != NULL);
+    assert(song->call_map == song->play_state->call_map);
+    assert(song->call_map == song->skip_state->call_map);
+    del_Call_map(song->call_map);
+    song->call_map = song->play_state->call_map =
+                     song->skip_state->call_map = map;
+    return;
 }
 
 

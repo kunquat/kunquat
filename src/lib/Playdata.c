@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -46,6 +46,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->random = random;
     play->turing = false;
     play->event_filter = NULL;
+    play->call_map = NULL;
     play->set_map = NULL;
     play->play_id = 1;
     play->silent = false;
@@ -128,6 +129,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->random = NULL;
     play->turing = false;
     play->event_filter = NULL;
+    play->call_map = NULL;
     play->set_map = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;

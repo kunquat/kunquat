@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
+#include <Call_map.h>
 #include <Connections.h>
 #include <Connections_search.h>
 #include <Environment.h>
@@ -376,6 +377,27 @@ static bool parse_song_level(kqt_Handle* handle,
         }
         del_Set_map(handle->song->set_map);
         Song_set_set_map(handle->song, map);
+    }
+    else if (string_eq(key, "p_call_map.json"))
+    {
+        Read_state* state = Read_state_init(READ_STATE_AUTO, key);
+        Call_map* map = new_Call_map(data,
+                        Event_handler_get_names(handle->song->event_handler),
+                        state);
+        if (map == NULL)
+        {
+            if (!state->error)
+            {
+                kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                     "Couldn't allocate memory");
+            }
+            else
+            {
+                set_parse_error(handle, state);
+            }
+            return false;
+        }
+        Song_set_call_map(handle->song, map);
     }
     return true;
 }
