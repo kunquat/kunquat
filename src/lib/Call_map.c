@@ -20,6 +20,7 @@
 #include <Event_names.h>
 #include <Event_type.h>
 #include <File_base.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -29,6 +30,19 @@ struct Call_map
     AAtree* cache;
     AAtree* cblists;
 };
+
+
+typedef struct Event_state
+{
+    char event_name[EVENT_NAME_MAX + 1];
+    Value value;
+} Event_state;
+
+
+static Event_state* new_Event_state(char* event_name);
+
+
+static void del_Event_state(Event_state* es);
 
 
 typedef struct Constraint
@@ -118,10 +132,11 @@ Call_map* new_Call_map(char* str,
     {
         return NULL;
     }
-    map->cache = NULL;
+    map->cache = new_AAtree((int (*)(const void*, const void*))strcmp,
+                            (void (*)(void*))del_Event_state);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
-    if (map->cblists == NULL)
+    if (map->cache == NULL || map->cblists == NULL)
     {
         del_Call_map(map);
         return NULL;
@@ -233,6 +248,14 @@ static bool read_constraints(char** str,
             {
                 return false;
             }
+            Event_state* es = new_Event_state(constraint->event_name);
+            if (es == NULL || (AAtree_get_exact(map->cache, es) == NULL &&
+                               !AAtree_ins(map->cache, es)))
+            {
+                del_Event_state(es);
+                del_Constraint(constraint);
+                return false;
+            }
             constraint->next = item->constraints;
             item->constraints = constraint;
             check_next(*str, state, expect_entry);
@@ -240,6 +263,32 @@ static bool read_constraints(char** str,
         *str = read_const_char(*str, ']', state);
     }
     return !state->error;
+}
+
+
+static Event_state* new_Event_state(char* event_name)
+{
+    assert(event_name != NULL);
+    assert(strlen(event_name) <= EVENT_NAME_MAX);
+    Event_state* es = xalloc(Event_state);
+    if (es == NULL)
+    {
+        return NULL;
+    }
+    strcpy(es->event_name, event_name);
+    es->value.type = VALUE_TYPE_NONE;
+    return es;
+}
+
+
+static void del_Event_state(Event_state* es)
+{
+    if (es == NULL)
+    {
+        return;
+    }
+    xfree(es);
+    return;
 }
 
 

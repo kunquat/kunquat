@@ -818,6 +818,7 @@ void del_Song(Song* song)
     del_Event_handler(song->event_handler);
     del_Event_handler(song->skip_handler);
     del_Random(song->random);
+    del_Call_map(song->call_map);
     del_Set_map(song->set_map);
     Device_uninit(&song->parent);
     xfree(song);
