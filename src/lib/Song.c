@@ -704,6 +704,7 @@ static void Song_reset(Device* device)
         Channel_reset(song->channels[i]);
     }
     Random_reset(song->random);
+    Call_map_reset(song->call_map);
     return;
 }
 

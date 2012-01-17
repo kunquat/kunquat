@@ -27,6 +27,7 @@
 
 struct Call_map
 {
+    AAiter* iter;
     AAtree* cache;
     AAtree* cblists;
 };
@@ -40,6 +41,9 @@ typedef struct Event_state
 
 
 static Event_state* new_Event_state(char* event_name);
+
+
+static void Event_state_reset(Event_state* es);
 
 
 static void del_Event_state(Event_state* es);
@@ -132,11 +136,12 @@ Call_map* new_Call_map(char* str,
     {
         return NULL;
     }
+    map->iter = new_AAiter(NULL);
     map->cache = new_AAtree((int (*)(const void*, const void*))strcmp,
                             (void (*)(void*))del_Event_state);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
-    if (map->cache == NULL || map->cblists == NULL)
+    if (map->iter == NULL || map->cache == NULL || map->cblists == NULL)
     {
         del_Call_map(map);
         return NULL;
@@ -221,6 +226,60 @@ Call_map* new_Call_map(char* str,
 }
 
 
+void Call_map_reset(Call_map* map)
+{
+    assert(map != NULL);
+    AAiter_change_tree(map->iter, map->cache);
+    Event_state* es = AAiter_get(map->iter, "");
+    while (es != NULL)
+    {
+        Event_state_reset(es);
+        es = AAiter_get_next(map->iter);
+    }
+    return;
+}
+
+
+bool Call_map_get_first(Call_map* map,
+                        char* src_event,
+                        char* dest_event,
+                        int dest_size)
+{
+    assert(map != NULL);
+    assert(src_event != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    // TODO
+    return false;
+}
+
+
+bool Call_map_get_next(Call_map* map,
+                       char* dest_event,
+                       int dest_size)
+{
+    assert(map != NULL);
+    assert(dest_event != NULL);
+    assert(dest_size > 0);
+    // TODO
+    return false;
+}
+
+
+void del_Call_map(Call_map* map)
+{
+    if (map == NULL)
+    {
+        return;
+    }
+    del_AAiter(map->iter);
+    del_AAtree(map->cache);
+    del_AAtree(map->cblists);
+    xfree(map);
+    return;
+}
+
+
 static bool read_constraints(char** str,
                              Read_state* state,
                              Call_map* map,
@@ -281,6 +340,14 @@ static Event_state* new_Event_state(char* event_name)
 }
 
 
+static void Event_state_reset(Event_state* es)
+{
+    assert(es != NULL);
+    es->value.type = VALUE_TYPE_NONE;
+    return;
+}
+
+
 static void del_Event_state(Event_state* es)
 {
     if (es == NULL)
@@ -326,45 +393,6 @@ static bool read_events(char** str,
         *str = read_const_char(*str, ']', state);
     }
     return !state->error;
-}
-
-
-bool Call_map_get_first(Call_map* map,
-                        char* src_event,
-                        char* dest_event,
-                        int dest_size)
-{
-    assert(map != NULL);
-    assert(src_event != NULL);
-    assert(dest_event != NULL);
-    assert(dest_size > 0);
-    // TODO
-    return false;
-}
-
-
-bool Call_map_get_next(Call_map* map,
-                       char* dest_event,
-                       int dest_size)
-{
-    assert(map != NULL);
-    assert(dest_event != NULL);
-    assert(dest_size > 0);
-    // TODO
-    return false;
-}
-
-
-void del_Call_map(Call_map* map)
-{
-    if (map == NULL)
-    {
-        return;
-    }
-    del_AAtree(map->cache);
-    del_AAtree(map->cblists);
-    xfree(map);
-    return;
 }
 
 

@@ -43,6 +43,14 @@ Call_map* new_Call_map(char* str,
 
 
 /**
+ * Resets the Call map.
+ *
+ * \param map   The Call map -- must not be \c NULL.
+ */
+void Call_map_reset(Call_map* map);
+
+
+/**
  * Gets the first (call or signal) event that is a result from call mapping.
  *
  * \param map          The Call map -- must not be \c NULL.
