@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -17,6 +17,7 @@ from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.timestamp as ts
 import trigger
+import kunquat.editor.trigtypes as ttypes
 
 
 class FuncValidator(QtGui.QValidator):
@@ -118,7 +119,7 @@ class FloatEdit(StringEdit):
 class NoteEdit(FloatEdit):
 
     def get_value(self):
-        return trigger.Note(self.text())
+        return ttypes.Note(self.text())
 
 
 class IntEdit(StringEdit):
