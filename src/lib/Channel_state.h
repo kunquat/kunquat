@@ -21,6 +21,7 @@
 
 #include <Channel_gen_state.h>
 #include <Environment.h>
+#include <Event_cache.h>
 #include <General_state.h>
 #include <LFO.h>
 #include <Random.h>
@@ -43,6 +44,7 @@ typedef struct Channel_state
     bool* mute;                    ///< Channel mute.
     Channel_gen_state* cgstate;    ///< Channel-specific generator state.
     Random* rand;                  ///< Random source for this channel.
+    Event_cache* event_cache;
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
@@ -114,6 +116,15 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute,
  * \param seed    The random seed.
  */
 void Channel_state_set_random_seed(Channel_state* state, uint64_t seed);
+
+
+/**
+ * Sets the Event cache of the Channel state.
+ *
+ * \param state   The Channel state -- must not be \c NULL.
+ * \param cache   The Event cache -- must not be \c NULL.
+ */
+void Channel_state_set_event_cache(Channel_state* state, Event_cache* cache);
 
 
 /**

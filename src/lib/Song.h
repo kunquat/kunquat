@@ -214,8 +214,10 @@ Effect_table* Song_get_effects(Song* song);
  *
  * \param song   The Song -- must not be \c NULL.
  * \param map    The Call map -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
  */
-void Song_set_call_map(Song* song, Call_map* map);
+bool Song_set_call_map(Song* song, Call_map* map);
 
 
 /**

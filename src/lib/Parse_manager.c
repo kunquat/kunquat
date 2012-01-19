@@ -397,7 +397,12 @@ static bool parse_song_level(kqt_Handle* handle,
             }
             return false;
         }
-        Song_set_call_map(handle->song, map);
+        if (!Song_set_call_map(handle->song, map))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                                 "Couldn't allocate memory");
+            return false;
+        }
     }
     return true;
 }

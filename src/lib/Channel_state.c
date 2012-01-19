@@ -44,6 +44,7 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute,
     char context[] = "chXX";
     snprintf(context, strlen(context) + 1, "ch%02x", num);
     Random_set_context(state->rand, context);
+    state->event_cache = NULL;
     state->mute = mute;
     state->num = num;
     Channel_state_reset(state);
@@ -55,6 +56,16 @@ void Channel_state_set_random_seed(Channel_state* state, uint64_t seed)
 {
     assert(state != NULL);
     Random_set_seed(state->rand, seed);
+    return;
+}
+
+
+void Channel_state_set_event_cache(Channel_state* state, Event_cache* cache)
+{
+    assert(state != NULL);
+    assert(cache != NULL);
+    del_Event_cache(state->event_cache);
+    state->event_cache = cache;
     return;
 }
 
@@ -101,6 +112,10 @@ void Channel_state_reset(Channel_state* state)
     state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
 
     Random_reset(state->rand);
+    if (state->event_cache != NULL)
+    {
+        Event_cache_reset(state->event_cache);
+    }
     return;
 }
 
@@ -120,6 +135,7 @@ void Channel_state_uninit(Channel_state* state)
     {
         return;
     }
+    del_Event_cache(state->event_cache);
     del_Channel_gen_state(state->cgstate);
     del_Random(state->rand);
     General_state_uninit(&state->parent);

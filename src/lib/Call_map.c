@@ -17,6 +17,7 @@
 
 #include <AAtree.h>
 #include <Call_map.h>
+#include <Event_cache.h>
 #include <Event_names.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -28,25 +29,9 @@
 struct Call_map
 {
     AAiter* iter;
-    AAtree* cache;
+//    AAtree* cache;
     AAtree* cblists;
 };
-
-
-typedef struct Event_state
-{
-    char event_name[EVENT_NAME_MAX + 1];
-    Value value;
-} Event_state;
-
-
-static Event_state* new_Event_state(char* event_name);
-
-
-static void Event_state_reset(Event_state* es);
-
-
-static void del_Event_state(Event_state* es);
 
 
 typedef struct Constraint
@@ -137,11 +122,9 @@ Call_map* new_Call_map(char* str,
         return NULL;
     }
     map->iter = new_AAiter(NULL);
-    map->cache = new_AAtree((int (*)(const void*, const void*))strcmp,
-                            (void (*)(void*))del_Event_state);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
-    if (map->iter == NULL || map->cache == NULL || map->cblists == NULL)
+    if (map->iter == NULL || map->cblists == NULL)
     {
         del_Call_map(map);
         return NULL;
@@ -226,6 +209,7 @@ Call_map* new_Call_map(char* str,
 }
 
 
+#if 0
 void Call_map_reset(Call_map* map)
 {
     assert(map != NULL);
@@ -237,6 +221,40 @@ void Call_map_reset(Call_map* map)
         es = AAiter_get_next(map->iter);
     }
     return;
+}
+#endif
+
+
+Event_cache* Call_map_create_cache(Call_map* map)
+{
+    assert(map != NULL);
+    Event_cache* cache = new_Event_cache();
+    if (cache == NULL)
+    {
+        return NULL;
+    }
+    AAiter_change_tree(map->iter, map->cblists);
+    Cblist* cblist = AAiter_get(map->iter, "");
+    while (cblist != NULL)
+    {
+        Cblist_item* item = cblist->first;
+        while (item != NULL)
+        {
+            Constraint* constraint = item->constraints;
+            while (constraint != NULL)
+            {
+                if (!Event_cache_add_event(cache, constraint->event_name))
+                {
+                    del_Event_cache(cache);
+                    return NULL;
+                }
+                constraint = constraint->next;
+            }
+            item = item->next;
+        }
+        cblist = AAiter_get_next(map->iter);
+    }
+    return cache;
 }
 
 
@@ -273,7 +291,6 @@ void del_Call_map(Call_map* map)
         return;
     }
     del_AAiter(map->iter);
-    del_AAtree(map->cache);
     del_AAtree(map->cblists);
     xfree(map);
     return;
@@ -307,6 +324,7 @@ static bool read_constraints(char** str,
             {
                 return false;
             }
+#if 0
             Event_state* es = new_Event_state(constraint->event_name);
             if (es == NULL || (AAtree_get_exact(map->cache, es) == NULL &&
                                !AAtree_ins(map->cache, es)))
@@ -315,6 +333,7 @@ static bool read_constraints(char** str,
                 del_Constraint(constraint);
                 return false;
             }
+#endif
             constraint->next = item->constraints;
             item->constraints = constraint;
             check_next(*str, state, expect_entry);
@@ -322,40 +341,6 @@ static bool read_constraints(char** str,
         *str = read_const_char(*str, ']', state);
     }
     return !state->error;
-}
-
-
-static Event_state* new_Event_state(char* event_name)
-{
-    assert(event_name != NULL);
-    assert(strlen(event_name) <= EVENT_NAME_MAX);
-    Event_state* es = xalloc(Event_state);
-    if (es == NULL)
-    {
-        return NULL;
-    }
-    strcpy(es->event_name, event_name);
-    es->value.type = VALUE_TYPE_NONE;
-    return es;
-}
-
-
-static void Event_state_reset(Event_state* es)
-{
-    assert(es != NULL);
-    es->value.type = VALUE_TYPE_NONE;
-    return;
-}
-
-
-static void del_Event_state(Event_state* es)
-{
-    if (es == NULL)
-    {
-        return;
-    }
-    xfree(es);
-    return;
 }
 
 

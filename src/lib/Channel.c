@@ -234,6 +234,16 @@ void Channel_set_random_seed(Channel* ch, uint64_t seed)
 }
 
 
+void Channel_set_event_cache(Channel* ch, Event_cache* cache)
+{
+    assert(ch != NULL);
+    assert(cache != NULL);
+    Channel_state_set_event_cache(&ch->init_state, cache);
+    ch->cur_state.event_cache = ch->init_state.event_cache;
+    return;
+}
+
+
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);

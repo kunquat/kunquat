@@ -16,6 +16,7 @@
 #define K_CALL_MAP_H
 
 
+#include <Event_cache.h>
 #include <Event_names.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
@@ -47,7 +48,18 @@ Call_map* new_Call_map(char* str,
  *
  * \param map   The Call map -- must not be \c NULL.
  */
-void Call_map_reset(Call_map* map);
+//void Call_map_reset(Call_map* map);
+
+
+/**
+ * Creates an Event cache for the Call map.
+ *
+ * \param map   The Call map -- must not be \c NULL.
+ *
+ * \return   The new Event cache if successful, or \c NULL if memory
+ *           allocation failed.
+ */
+Event_cache* Call_map_create_cache(Call_map* map);
 
 
 /**

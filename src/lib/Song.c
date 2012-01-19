@@ -578,16 +578,33 @@ Effect_table* Song_get_effects(Song* song)
 }
 
 
-void Song_set_call_map(Song* song, Call_map* map)
+bool Song_set_call_map(Song* song, Call_map* map)
 {
     assert(song != NULL);
     assert(map != NULL);
     assert(song->call_map == song->play_state->call_map);
     assert(song->call_map == song->skip_state->call_map);
+    Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        caches[i] = Call_map_create_cache(map);
+        if (caches[i] == NULL)
+        {
+            for (int k = i - 1; k >= 0; --k)
+            {
+                del_Event_cache(caches[k]);
+                return false;
+            }
+        }
+    }
     del_Call_map(song->call_map);
     song->call_map = song->play_state->call_map =
                      song->skip_state->call_map = map;
-    return;
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_set_event_cache(song->channels[i], caches[i]);
+    }
+    return true;
 }
 
 
@@ -704,7 +721,6 @@ static void Song_reset(Device* device)
         Channel_reset(song->channels[i]);
     }
     Random_reset(song->random);
-    Call_map_reset(song->call_map);
     return;
 }
 

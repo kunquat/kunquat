@@ -21,6 +21,7 @@
 #include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
+#include <Event_cache.h>
 #include <Event_handler.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -117,6 +118,15 @@ void Channel_update_state(Channel* ch, uint32_t mixed);
  * \param seed   The seed.
  */
 void Channel_set_random_seed(Channel* ch, uint64_t seed);
+
+
+/**
+ * Sets the Event cache of the Channel.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param cache   The Event cache -- must not be \c NULL.
+ */
+void Channel_set_event_cache(Channel* ch, Event_cache* cache);
 
 
 /**
