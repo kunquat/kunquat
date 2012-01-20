@@ -66,7 +66,8 @@ Event_cache* Call_map_create_cache(Call_map* map);
  * Gets the first (call or signal) event that is a result from call mapping.
  *
  * \param map          The Call map -- must not be \c NULL.
- * \param src_event    The fired event -- must not be \c NULL.
+ * \param cache        The Event cache -- must not be \c NULL.
+ * \param src_event    The fired event -- must be a valid event description.
  * \param dest_event   The storage location for the destination event --
  *                     must not be \c NULL.
  * \param dest_size    The amount of bytes reserved for \a dest_event --
@@ -78,6 +79,7 @@ Event_cache* Call_map_create_cache(Call_map* map);
  *           otherwise \c false.
  */
 bool Call_map_get_first(Call_map* map,
+                        Event_cache* cache,
                         char* src_event,
                         char* dest_event,
                         int dest_size);
@@ -85,6 +87,9 @@ bool Call_map_get_first(Call_map* map,
 
 /**
  * Gets the next event mapped from a previously given event.
+ *
+ * A call of this function must follow a successful call of
+ * \a Call_map_get_first.
  *
  * \param map          The Call map -- must not be \c NULL.
  * \param dest_event   The storage location for the destination event --

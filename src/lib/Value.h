@@ -54,6 +54,17 @@ typedef struct Value
 #define VALUE_AUTO (&(Value){ .type = VALUE_TYPE_NONE })
 
 
+/**
+ * Makes a copy of a Value.
+ *
+ * \param dest   The destination Value -- must not be \c NULL.
+ * \param src    The source Value -- must not be \c NULL or \a dest.
+ *
+ * \return   The parameter \a dest.
+ */
+Value* Value_copy(Value* dest, const Value* src);
+
+
 #endif // K_VALUE_H
 
 

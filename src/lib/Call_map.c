@@ -29,8 +29,9 @@
 struct Call_map
 {
     AAiter* iter;
-//    AAtree* cache;
     AAtree* cblists;
+    Event_cache* cur_cache;
+    Value cur_value;
 };
 
 
@@ -124,6 +125,8 @@ Call_map* new_Call_map(char* str,
     map->iter = new_AAiter(NULL);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
+    map->cur_cache = NULL;
+    map->cur_value.type = VALUE_TYPE_NONE;
     if (map->iter == NULL || map->cblists == NULL)
     {
         del_Call_map(map);
@@ -209,22 +212,6 @@ Call_map* new_Call_map(char* str,
 }
 
 
-#if 0
-void Call_map_reset(Call_map* map)
-{
-    assert(map != NULL);
-    AAiter_change_tree(map->iter, map->cache);
-    Event_state* es = AAiter_get(map->iter, "");
-    while (es != NULL)
-    {
-        Event_state_reset(es);
-        es = AAiter_get_next(map->iter);
-    }
-    return;
-}
-#endif
-
-
 Event_cache* Call_map_create_cache(Call_map* map)
 {
     assert(map != NULL);
@@ -259,16 +246,25 @@ Event_cache* Call_map_create_cache(Call_map* map)
 
 
 bool Call_map_get_first(Call_map* map,
+                        Event_cache* cache,
                         char* src_event,
                         char* dest_event,
                         int dest_size)
 {
     assert(map != NULL);
+    assert(cache != NULL);
     assert(src_event != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
-    // TODO
-    return false;
+#if 0
+    Cblist* list = AAtree_get_exact(map->cblists, event_name);
+    if (list == NULL)
+    {
+        return false;
+    }
+#endif
+    map->cur_cache = cache;
+    return Call_map_get_next(map, dest_event, dest_size);
 }
 
 
@@ -279,7 +275,7 @@ bool Call_map_get_next(Call_map* map,
     assert(map != NULL);
     assert(dest_event != NULL);
     assert(dest_size > 0);
-    // TODO
+    assert(map->cur_cache != NULL);
     return false;
 }
 
