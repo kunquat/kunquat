@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,7 @@
 #include <Generator.h>
 #include <set_active_name.h>
 #include <string_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -36,17 +37,18 @@ Event_create_constructor(Event_generator,
 
 bool Event_generator_set_reltime_name_process(Generator* gen,
                                               Channel_state* ch_state,
-                                              char* fields)
+                                              Value* value)
 {
     assert(gen != NULL);
     assert(ch_state != NULL);
+    assert(value != NULL);
     (void)gen;
-    if (fields == NULL)
+    if (value->type != VALUE_TYPE_STRING)
     {
         return false;
     }
     return set_active_name(&ch_state->parent, ACTIVE_CAT_GEN,
-                           ACTIVE_TYPE_TIMESTAMP, fields);
+                           ACTIVE_TYPE_TIMESTAMP, value);
 }
 
 

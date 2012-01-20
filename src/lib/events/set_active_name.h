@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Active_names.h>
 #include <Event_type.h>
 #include <General_state.h>
+#include <Value.h>
 
 
 extern Event_field_desc set_name_desc[];
@@ -39,7 +40,7 @@ extern Event_field_desc set_name_desc[];
 bool set_active_name(General_state* gstate,
                      Active_cat cat,
                      Active_type type,
-                     char* fields);
+                     Value* value);
 
 
 #endif // K_SET_ACTIVE_NAME_H

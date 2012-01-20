@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <Effect.h>
 #include <Event_common.h>
 #include <Event_effect_bypass_off.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -35,10 +36,10 @@ Event_create_constructor(Event_effect,
                          bypass_off);
 
 
-bool Event_effect_bypass_off_process(Effect* eff, char* fields)
+bool Event_effect_bypass_off_process(Effect* eff, Value* value)
 {
     assert(eff != NULL);
-    (void)fields;
+    (void)value;
     Effect_set_bypass(eff, false);
     return true;
 }

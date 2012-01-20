@@ -53,17 +53,11 @@ Event_create_constructor(Event_general,
 static bool evaluate_cond(char* str, Environment* env, Read_state* state);
 
 
-bool Event_general_cond_process(General_state* gstate, char* fields)
+bool Event_general_cond_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, cond_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_STRING)
     {
         return false;
     }
@@ -71,8 +65,8 @@ bool Event_general_cond_process(General_state* gstate, char* fields)
     {
         return true;
     }
-    state = READ_STATE_AUTO;
-    bool cond = evaluate_cond(data[0].field.string_type, gstate->env, state);
+    Read_state* state = READ_STATE_AUTO;
+    bool cond = evaluate_cond(value->value.string_type, gstate->env, state);
     if (!state->error)
     {
         //fprintf(stderr, "success!\n");

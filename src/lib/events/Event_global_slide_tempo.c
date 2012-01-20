@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Event_common.h>
 #include <Event_global_slide_tempo.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -41,17 +42,11 @@ Event_create_constructor(Event_global,
                          slide_tempo);
 
 
-bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)
+bool Event_global_slide_tempo_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_tempo_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
@@ -63,9 +58,9 @@ bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)
                     KQT_RELTIME_BEAT +
                     Reltime_get_rem(&global_state->tempo_slide_length);
     double slices = rems_total / 36756720; // slide updated 24 times per beat
-    global_state->tempo_slide_update = (data[0].field.double_type -
+    global_state->tempo_slide_update = (value->value.float_type -
                                         global_state->tempo) / slices;
-    global_state->tempo_slide_target = data[0].field.double_type;
+    global_state->tempo_slide_target = value->value.float_type;
     if (global_state->tempo_slide_update < 0)
     {
         global_state->tempo_slide = -1;
@@ -77,7 +72,7 @@ bool Event_global_slide_tempo_process(Playdata* global_state, char* fields)
     else
     {
         global_state->tempo_slide = 0;
-        global_state->tempo = data[0].field.double_type;
+        global_state->tempo = value->value.float_type;
     }
     return true;
 }

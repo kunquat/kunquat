@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -344,38 +344,34 @@ bool Device_field_get_empty(Device_field* field)
 }
 
 
-bool Device_field_modify(Device_field* field, char* str)
+bool Device_field_modify(Device_field* field, void* data)
 {
     assert(field != NULL);
     assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
     assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
     assert(field->type != DEVICE_FIELD_HIT_MAP);
-    Read_state* state = READ_STATE_AUTO;
+    assert(data != NULL);
     switch (field->type)
     {
         case DEVICE_FIELD_BOOL:
         {
-            read_bool(str, &field->data.bool_type, state);
+            memcpy(&field->data.bool_type, data, sizeof(bool));
         } break;
         case DEVICE_FIELD_INT:
         {
-            read_int(str, &field->data.int_type, state);
+            memcpy(&field->data.int_type, data, sizeof(int64_t));
         } break;
         case DEVICE_FIELD_FLOAT:
         {
-            read_double(str, &field->data.float_type, state);
+            memcpy(&field->data.float_type, data, sizeof(double));
         } break;
         case DEVICE_FIELD_RELTIME:
         {
-            read_reltime(str, &field->data.Reltime_type, state);
+            memcpy(&field->data.Reltime_type, data, sizeof(Reltime));
         } break;
         default:
             assert(false);
-    }
-    if (state->error)
-    {
-        return false;
     }
     Device_field_set_empty(field, false);
     return true;

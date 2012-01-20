@@ -26,6 +26,7 @@
 #include <Playdata.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <Value.h>
 
 
 typedef struct Event_handler Event_handler;
@@ -62,7 +63,7 @@ bool Event_handler_set_control_process(Event_handler* eh,
 //                                       const char* name,
                                        Event_type type,
                                        bool (*control_process)(General_state*,
-                                                               char*));
+                                                               Value*));
 
 
 /**
@@ -80,7 +81,7 @@ bool Event_handler_set_general_process(Event_handler* eh,
 //                                       const char* name,
                                        Event_type type,
                                        bool (*general_process)(General_state*,
-                                                               char*));
+                                                               Value*));
 
 
 /**
@@ -97,7 +98,7 @@ bool Event_handler_set_general_process(Event_handler* eh,
 bool Event_handler_set_ch_process(Event_handler* eh,
 //                                  const char* name,
                                   Event_type type,
-                                  bool (*ch_process)(Channel_state*, char*));
+                                  bool (*ch_process)(Channel_state*, Value*));
 
 
 /**
@@ -115,7 +116,7 @@ bool Event_handler_set_global_process(Event_handler* eh,
 //                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
-                                                             char*));
+                                                             Value*));
 
 
 /**
@@ -132,7 +133,8 @@ bool Event_handler_set_global_process(Event_handler* eh,
 bool Event_handler_set_ins_process(Event_handler* eh,
 //                                   const char* name,
                                    Event_type type,
-                                   bool (*ins_process)(Instrument_params*, char*));
+                                   bool (*ins_process)(Instrument_params*,
+                                                       Value*));
 
 
 /**
@@ -151,7 +153,7 @@ bool Event_handler_set_generator_process(Event_handler* eh,
                                          Event_type type,
                                          bool (*gen_process)(Generator*,
                                                              Channel_state*,
-                                                             char*));
+                                                             Value*));
 
 
 /**
@@ -168,7 +170,8 @@ bool Event_handler_set_generator_process(Event_handler* eh,
 bool Event_handler_set_effect_process(Event_handler* eh,
 //                                      const char* name,
                                       Event_type type,
-                                      bool (*effect_process)(Effect*, char*));
+                                      bool (*effect_process)(Effect*,
+                                                             Value*));
 
 
 /**
@@ -187,7 +190,7 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*,
                                                        Channel_state*,
-                                                       char*));
+                                                       Value*));
 
 
 /**

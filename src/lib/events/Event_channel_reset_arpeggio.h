@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,13 +20,14 @@
 
 #include <Event_channel.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_channel_reset_arpeggio(Reltime* pos);
 
 
 bool Event_channel_reset_arpeggio_process(Channel_state* ch_state,
-                                          char* fields);
+                                          Value* value);
 
 
 #endif // K_EVENT_CHANNEL_RESET_ARPEGGIO_H

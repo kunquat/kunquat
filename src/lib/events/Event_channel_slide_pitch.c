@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -23,6 +23,7 @@
 #include <Voice.h>
 #include <Scale.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -45,17 +46,11 @@ Event_create_constructor(Event_channel,
                          slide_pitch);
 
 
-bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_pitch_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_pitch_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
@@ -73,12 +68,12 @@ bool Event_channel_slide_pitch_process(Channel_state* ch_state, char* fields)
                 *voice->gen->ins_params->scale == NULL ||
                 **voice->gen->ins_params->scale == NULL)
         {
-            pitch = data[0].field.double_type;
+            pitch = value->value.float_type;
         }
         else
         {
             pitch = Scale_get_pitch_from_cents(**voice->gen->ins_params->scale,
-                                               data[0].field.double_type);
+                                               value->value.float_type);
         }
         if (pitch <= 0)
         {

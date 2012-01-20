@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Event_channel_set_gen_reltime.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -43,16 +44,12 @@ Event_create_constructor(Event_channel,
                          set_gen_reltime);
 
 
-bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_gen_reltime_process(Channel_state* ch_state,
+                                           Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Read_state* state = READ_STATE_AUTO;
-    fields = read_const_char(fields, '[', state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TIMESTAMP)
     {
         return false;
     }
@@ -63,7 +60,8 @@ bool Event_channel_set_gen_reltime_process(Channel_state* ch_state, char* fields
     {
         return true;
     }
-    return Channel_gen_state_modify_value(ch_state->cgstate, key, fields);
+    return Channel_gen_state_modify_value(ch_state->cgstate, key,
+                                          &value->value.Timestamp_type);
 }
 
 

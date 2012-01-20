@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,13 +20,14 @@
 
 #include <General_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_control_env_set_int_name(Reltime* pos);
 
 
 bool Event_control_env_set_int_name_process(General_state* gstate,
-                                            char* fields);
+                                            Value* value);
 
 
 #endif // K_EVENT_CONTROL_ENV_SET_INT_NAME_H

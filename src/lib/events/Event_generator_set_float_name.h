@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <Event_generator.h>
 #include <Generator.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_generator_set_float_name(Reltime* pos);
@@ -27,7 +28,7 @@ Event* new_Event_generator_set_float_name(Reltime* pos);
 
 bool Event_generator_set_float_name_process(Generator* gen,
                                             Channel_state* ch_state,
-                                            char* fields);
+                                            Value* value);
 
 
 #endif // K_EVENT_GENERATOR_SET_FLOAT_NAME_H

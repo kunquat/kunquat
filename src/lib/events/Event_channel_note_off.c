@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <Event_common.h>
 #include <Event_channel_note_off.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -35,10 +36,10 @@ Event_create_constructor(Event_channel,
                          note_off);
 
 
-bool Event_channel_note_off_process(Channel_state* ch_state, char* fields)
+bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    (void)fields;
+    (void)value;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         if (ch_state->fg[i] != NULL)

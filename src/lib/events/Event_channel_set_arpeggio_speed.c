@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <Event_common.h>
 #include <Event_channel_set_arpeggio_speed.h>
 #include <File_base.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -43,21 +44,15 @@ Event_create_constructor(Event_channel,
 
 
 bool Event_channel_set_arpeggio_speed_process(Channel_state* ch_state,
-                                              char* fields)
+                                              Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_arpeggio_speed_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    ch_state->arpeggio_speed = data[0].field.double_type;
+    ch_state->arpeggio_speed = value->value.float_type;
     double unit_len = Reltime_toframes(Reltime_set(RELTIME_AUTO, 1, 0),
                                        *ch_state->tempo,
                                        *ch_state->freq);
@@ -65,7 +60,7 @@ bool Event_channel_set_arpeggio_speed_process(Channel_state* ch_state,
     {
         Event_check_voice(ch_state, i);
         Voice_state* vs = ch_state->fg[i]->state;
-        vs->arpeggio_length = unit_len / data[0].field.double_type;
+        vs->arpeggio_length = unit_len / value->value.float_type;
     }
     return true;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,13 +19,14 @@
 #include <Event_global.h>
 #include <Reltime.h>
 #include <Playdata.h>
+#include <Value.h>
 
 
 Event* new_Event_global_set_jump_counter(Reltime* pos);
 
 
 bool Event_global_set_jump_counter_process(Playdata* global_state,
-                                           char* fields);
+                                           Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_COUNTER_H

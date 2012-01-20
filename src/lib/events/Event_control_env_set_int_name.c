@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <Event_control_env_set_int_name.h>
 #include <Event_type.h>
 #include <set_active_name.h>
+#include <Value.h>
 #include <xassert.h>
 
 
@@ -32,14 +33,15 @@ Event_create_constructor(Event_control,
 
 
 bool Event_control_env_set_int_name_process(General_state* gstate,
-                                            char* fields)
+                                            Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL || !gstate->global)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
         return false;
     }
-    return set_active_name(gstate, ACTIVE_CAT_ENV, ACTIVE_TYPE_INT, fields);
+    return set_active_name(gstate, ACTIVE_CAT_ENV, ACTIVE_TYPE_INT, value);
 }
 
 

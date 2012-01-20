@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <Event_general.h>
 #include <Event_general_if.h>
 #include <General_state.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -38,17 +39,11 @@ Event_create_constructor(Event_general,
                          if);
 
 
-bool Event_general_if_process(General_state* gstate, char* fields)
+bool Event_general_if_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, if_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_BOOL)
     {
         return false;
     }
@@ -57,7 +52,7 @@ bool Event_general_if_process(General_state* gstate, char* fields)
     if (gstate->cond_level_index < COND_LEVELS_MAX)
     {
         gstate->cond_levels[gstate->cond_level_index].cond_for_exec =
-            data[0].field.bool_type;
+                value->value.bool_type;
         if (gstate->last_cond_match + 1 == gstate->cond_level_index &&
                 gstate->cond_levels[gstate->cond_level_index].cond_for_exec ==
                 gstate->cond_levels[gstate->cond_level_index].evaluated_cond)

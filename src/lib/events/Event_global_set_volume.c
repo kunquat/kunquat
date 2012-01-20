@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 
 #include <Event_common.h>
 #include <Event_global_set_volume.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -40,21 +41,15 @@ Event_create_constructor(Event_global,
                          set_volume);
 
 
-bool Event_global_set_volume_process(Playdata* global_state, char* fields)
+bool Event_global_set_volume_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_volume_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    global_state->volume = exp2(data[0].field.double_type / 6);
+    global_state->volume = exp2(value->value.float_type / 6);
     Slider_break(&global_state->volume_slider);
 //    global_state->volume_slide = 0;
     return true;

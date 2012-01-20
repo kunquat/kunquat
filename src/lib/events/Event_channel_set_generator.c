@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Event_channel_set_generator.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -43,21 +44,15 @@ Event_create_constructor(Event_channel,
                          set_generator);
 
 
-bool Event_channel_set_generator_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_generator_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_generator_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    ch_state->generator = data[0].field.integral_type;
+    ch_state->generator = value->value.int_type;
     return true;
 }
 

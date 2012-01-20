@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <Event_channel_note_off.h>
 #include <note_setup.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <Voice.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
@@ -44,19 +45,13 @@ Event_create_constructor(Event_channel,
                          hit);
 
 
-bool Event_channel_hit_process(Channel_state* ch_state, char* fields)
+bool Event_channel_hit_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
     assert(ch_state->freq != NULL);
     assert(ch_state->tempo != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, hit_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
@@ -81,7 +76,7 @@ bool Event_channel_hit_process(Channel_state* ch_state, char* fields)
         reserve_voice(ch_state, ins, i);
         Voice* voice = ch_state->fg[i];
         Voice_state* vs = voice->state;
-        vs->hit_index = data[0].field.integral_type;
+        vs->hit_index = value->value.int_type;
         set_instrument_properties(voice, vs, ch_state, &force_var);
     }
     return true;

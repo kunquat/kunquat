@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,14 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <float.h>
 
 #include <Event_common.h>
 #include <Event_channel_arpeggio_on.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <Voice.h>
 #include <Scale.h>
-#include <float.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -40,10 +41,10 @@ Event_create_constructor(Event_channel,
                          arpeggio_on);
 
 
-bool Event_channel_arpeggio_on_process(Channel_state* ch_state, char* fields)
+bool Event_channel_arpeggio_on_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    (void)fields;
+    (void)value;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);

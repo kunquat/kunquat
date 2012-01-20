@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -26,6 +26,7 @@
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
+#include <Value.h>
 #include <xassert.h>
 
 
@@ -47,17 +48,11 @@ Event_create_constructor(Event_control,
                          env_set_int);
 
 
-bool Event_control_env_set_int_process(General_state* gstate, char* fields)
+bool Event_control_env_set_int_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL || !gstate->global)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, env_set_int_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
     }
@@ -69,7 +64,7 @@ bool Event_control_env_set_int_process(General_state* gstate, char* fields)
     {
         return true;
     }
-    Env_var_modify_value(var, &data[0].field.integral_type);
+    Env_var_modify_value(var, &value->value.int_type);
     return true;
 }
 

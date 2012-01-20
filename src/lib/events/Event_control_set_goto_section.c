@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 #include <Event_control_set_goto_section.h>
 #include <General_state.h>
 #include <Playdata.h>
+#include <Value.h>
 #include <xassert.h>
 
 
@@ -42,22 +43,16 @@ Event_create_constructor(Event_control,
 
 
 bool Event_control_set_goto_section_process(General_state* gstate,
-                                            char* fields)
+                                            Value* value)
 {
     assert(gstate != NULL);
-    if (!gstate->global)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
     }
     Playdata* global_state = (Playdata*)gstate;
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_goto_section_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    global_state->goto_set_section = data[0].field.integral_type;
+    global_state->goto_set_section = value->value.int_type;
     return true;
 }
 

@@ -54,13 +54,13 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key);
  * \param state   The Channel gen state -- must not be \c NULL.
  * \param key     The key -- must not be \c NULL and must end with one of
  *                Generator parameter suffixes.
- * \param str     The new value as a string.
+ * \param data    The new value -- must not be \c NULL.
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
 bool Channel_gen_state_modify_value(Channel_gen_state* state,
                                     const char* key,
-                                    char* str);
+                                    void* data);
 
 
 /**

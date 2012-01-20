@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Event_control.h>
 #include <Event_control_resume.h>
 #include <General_state.h>
+#include <Value.h>
 #include <xassert.h>
 
 
@@ -35,10 +36,10 @@ Event_create_constructor(Event_control,
                          resume);
 
 
-bool Event_control_resume_process(General_state* gstate, char* fields)
+bool Event_control_resume_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    (void)fields;
+    (void)value;
     if (!gstate->global)
     {
         return false;

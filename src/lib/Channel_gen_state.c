@@ -80,17 +80,17 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key)
 
 bool Channel_gen_state_modify_value(Channel_gen_state* state,
                                     const char* key,
-                                    char* str)
+                                    void* data)
 {
     assert(state != NULL);
     assert(key != NULL);
-    assert(str != NULL);
+    assert(data != NULL);
     Device_field* field = AAtree_get_exact(state->tree, key);
     if (field == NULL)
     {
         return false;
     }
-    return Device_field_modify(field, str);
+    return Device_field_modify(field, data);
 }
 
 

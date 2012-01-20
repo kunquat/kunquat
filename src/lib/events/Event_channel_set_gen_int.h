@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,11 +20,13 @@
 
 #include <Event_channel.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_channel_set_gen_int(Reltime* pos);
 
-bool Event_channel_set_gen_int_process(Channel_state* ch_state, char* fields);
+
+bool Event_channel_set_gen_int_process(Channel_state* ch_state, Value* value);
 
 
 #endif // K_EVENT_CHANNEL_SET_GEN_INT_H

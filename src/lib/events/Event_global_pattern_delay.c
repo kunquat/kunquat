@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Event_global_pattern_delay.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -43,22 +44,16 @@ Event_create_constructor(Event_global,
                          pattern_delay);
 
 
-bool Event_global_pattern_delay_process(Playdata* global_state, char* fields)
+bool Event_global_pattern_delay_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field delay[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, pattern_delay_desc, delay, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TIMESTAMP)
     {
         return false;
     }
     global_state->delay_event_index = global_state->event_index;
-    Reltime_copy(&global_state->delay_left, &delay[0].field.Reltime_type);
+    Reltime_copy(&global_state->delay_left, &value->value.Timestamp_type);
     return true;
 }
 

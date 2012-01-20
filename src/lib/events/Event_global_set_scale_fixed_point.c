@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Event_global_set_scale_fixed_point.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -42,21 +43,15 @@ Event_create_constructor(Event_global,
 
 
 bool Event_global_set_scale_fixed_point_process(Playdata* global_state,
-                                                char* fields)
+                                                Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_scale_fixed_point_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    global_state->scale_fixed_point = data[0].field.integral_type;
+    global_state->scale_fixed_point = value->value.int_type;
     return true;
 }
 

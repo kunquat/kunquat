@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <File_base.h>
 #include <Generator.h>
 #include <string_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -45,17 +46,12 @@ Event_create_constructor(Event_generator,
 
 bool Event_generator_set_float_process(Generator* gen,
                                        Channel_state* ch_state,
-                                       char* fields)
+                                       Value* value)
 {
     assert(gen != NULL);
     assert(ch_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Read_state* state = READ_STATE_AUTO;
-    fields = read_const_char(fields, '[', state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
@@ -66,7 +62,8 @@ bool Event_generator_set_float_process(Generator* gen,
     {
         return true;
     }
-    return Device_params_modify_value(gen->conf->params, key, fields);
+    return Device_params_modify_value(gen->conf->params, key,
+                                      &value->value.float_type);
 }
 
 

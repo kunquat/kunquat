@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Event_general.h>
 #include <Event_general_call_int.h>
 #include <General_state.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -41,16 +42,11 @@ Event_create_constructor(Event_general,
                          call_int);
 
 
-bool Event_general_call_int_process(General_state* gstate, char* fields)
+bool Event_general_call_int_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, call_int_desc, NULL, state);
-    return !state->error;
+    assert(value != NULL);
+    return value->type == VALUE_TYPE_INT;
 }
 
 

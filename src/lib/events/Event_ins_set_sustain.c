@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,6 +18,7 @@
 #include <Event_common.h>
 #include <Event_ins_set_sustain.h>
 #include <Instrument_params.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -40,21 +41,15 @@ Event_create_constructor(Event_ins,
                          set_sustain);
 
 
-bool Event_ins_set_sustain_process(Instrument_params* ins_state, char* fields)
+bool Event_ins_set_sustain_process(Instrument_params* ins_state, Value* value)
 {
     assert(ins_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_sustain_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    ins_state->sustain = data[0].field.double_type;
+    ins_state->sustain = value->value.float_type;
     return true;
 }
 

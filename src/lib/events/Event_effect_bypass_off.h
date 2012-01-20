@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,12 +18,13 @@
 
 #include <Event_effect.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_effect_bypass_off(Reltime* pos);
 
 
-bool Event_effect_bypass_off_process(Effect* eff, char* fields);
+bool Event_effect_bypass_off_process(Effect* eff, Value* value);
 
 
 #endif // K_EVENT_EFFECT_BYPASS_OFF_H

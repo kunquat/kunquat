@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <File_base.h>
 #include <General_state.h>
 #include <Playdata.h>
+#include <Value.h>
 #include <xassert.h>
 
 
@@ -43,32 +44,19 @@ Event_create_constructor(Event_control,
                          receive_event);
 
 
-bool Event_control_receive_event(General_state* gstate, char* fields)
+bool Event_control_receive_event(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL || !gstate->global)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, receive_event_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    char event_name[EVENT_NAME_MAX + 1] = "";
-    state = READ_STATE_AUTO;
-    read_string(data[0].field.string_type, event_name,
-                EVENT_NAME_MAX + 1, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_STRING || !gstate->global)
     {
         return false;
     }
     Playdata* global_state = (Playdata*)gstate;
     if (global_state->event_filter != NULL)
     {
-        Event_names_set_pass(global_state->event_filter, event_name, true);
+        Event_names_set_pass(global_state->event_filter,
+                             value->value.string_type, true);
     }
     return true;
 }

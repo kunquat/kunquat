@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Event_common.h>
 #include <Event_global_set_jump_row.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -41,21 +42,15 @@ Event_create_constructor(Event_global,
                          set_jump_row);
 
 
-bool Event_global_set_jump_row_process(Playdata* global_state, char* fields)
+bool Event_global_set_jump_row_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TIMESTAMP)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_jump_row_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    Reltime_copy(&global_state->jump_set_row, &data[0].field.Reltime_type);
+    Reltime_copy(&global_state->jump_set_row, &value->value.Timestamp_type);
     return true;
 }
 

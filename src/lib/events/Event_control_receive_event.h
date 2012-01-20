@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,13 @@
 
 #include <General_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
 Event* new_Event_control_receive_event(Reltime* pos);
 
 
-bool Event_control_receive_event(General_state* gstate, char* fields);
+bool Event_control_receive_event(General_state* gstate, Value* value);
 
 
 #endif // K_EVENT_CONTROL_RECEIVE_EVENT_H

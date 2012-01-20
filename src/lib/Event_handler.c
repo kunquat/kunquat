@@ -29,6 +29,7 @@
 #include <Ins_table.h>
 #include <Playdata.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 
 #include <Event_control_pause.h>
 #include <Event_control_resume.h>
@@ -172,22 +173,22 @@ struct Event_handler
     Event_names* event_names;
     Event_buffer* event_buffer;
     Event_buffer* tracker_buffer;
-    bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, char*);
-    bool (*general_process[EVENT_GENERAL_UPPER])(General_state*, char*);
-    bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, char*);
-    bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, char*);
-    bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, char*);
+    bool (*control_process[EVENT_CONTROL_UPPER])(General_state*, Value*);
+    bool (*general_process[EVENT_GENERAL_UPPER])(General_state*, Value*);
+    bool (*ch_process[EVENT_CHANNEL_UPPER])(Channel_state*, Value*);
+    bool (*global_process[EVENT_GLOBAL_UPPER])(Playdata*, Value*);
+    bool (*ins_process[EVENT_INS_UPPER])(Instrument_params*, Value*);
     bool (*generator_process[EVENT_GENERATOR_UPPER])(Generator*,
-                                                     Channel_state*, char*);
-    bool (*effect_process[EVENT_EFFECT_UPPER])(Effect*, char*);
-    bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, Channel_state*, char*);
+                                                     Channel_state*, Value*);
+    bool (*effect_process[EVENT_EFFECT_UPPER])(Effect*, Value*);
+    bool (*dsp_process[EVENT_DSP_UPPER])(DSP_conf*, Channel_state*, Value*);
 };
 
 
 static bool Event_handler_handle(Event_handler* eh,
                                  int index,
                                  Event_type type,
-                                 char* fields);
+                                 Value* value);
 
 
 Event_handler* new_Event_handler(Playdata* global_state,
@@ -490,7 +491,7 @@ Event_names* Event_handler_get_names(Event_handler* eh)
 bool Event_handler_set_ch_process(Event_handler* eh,
 //                                  const char* name,
                                   Event_type type,
-                                  bool (*ch_process)(Channel_state*, char*))
+                                  bool (*ch_process)(Channel_state*, Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -515,7 +516,7 @@ bool Event_handler_set_general_process(Event_handler* eh,
 //                                       const char* name,
                                        Event_type type,
                                        bool (*general_process)(General_state*,
-                                                               char*))
+                                                               Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -540,7 +541,7 @@ bool Event_handler_set_control_process(Event_handler* eh,
 //                                       const char* name,
                                        Event_type type,
                                        bool (*control_process)(General_state*,
-                                                               char*))
+                                                               Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -565,7 +566,7 @@ bool Event_handler_set_global_process(Event_handler* eh,
 //                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
-                                                             char*))
+                                                             Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -589,7 +590,8 @@ bool Event_handler_set_global_process(Event_handler* eh,
 bool Event_handler_set_ins_process(Event_handler* eh,
 //                                   const char* name,
                                    Event_type type,
-                                   bool (*ins_process)(Instrument_params*, char*))
+                                   bool (*ins_process)(Instrument_params*,
+                                                       Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -615,7 +617,7 @@ bool Event_handler_set_generator_process(Event_handler* eh,
                                          Event_type type,
                                          bool (*gen_process)(Generator*,
                                                              Channel_state*,
-                                                             char*))
+                                                             Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -639,7 +641,7 @@ bool Event_handler_set_generator_process(Event_handler* eh,
 bool Event_handler_set_effect_process(Event_handler* eh,
 //                                      const char* name,
                                       Event_type type,
-                                      bool (*effect_process)(Effect*, char*))
+                                      bool (*effect_process)(Effect*, Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -665,7 +667,7 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*,
                                                        Channel_state*,
-                                                       char*))
+                                                       Value*))
 {
     assert(eh != NULL);
 #if 0
@@ -689,7 +691,7 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
 static bool Event_handler_handle(Event_handler* eh,
                                  int index,
                                  Event_type type,
-                                 char* fields)
+                                 Value* value)
 {
     assert(eh != NULL);
     assert(index >= -1);
@@ -702,7 +704,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->ch_process[type](eh->ch_states[index], fields);
+        return eh->ch_process[type](eh->ch_states[index], value);
     }
     else if (EVENT_IS_INS(type))
     {
@@ -716,7 +718,7 @@ static bool Event_handler_handle(Event_handler* eh,
         }
         Instrument_params* ins_params = Instrument_get_params(ins);
         assert(ins_params != NULL);
-        return eh->ins_process[type](ins_params, fields);
+        return eh->ins_process[type](ins_params, value);
     }
     else if (EVENT_IS_GLOBAL(type))
     {
@@ -725,7 +727,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->global_process[type](eh->global_state, fields);
+        return eh->global_process[type](eh->global_state, value);
     }
     else if (EVENT_IS_GENERATOR(type))
     {
@@ -742,7 +744,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->generator_process[type](gen, eh->ch_states[index], fields);
+        return eh->generator_process[type](gen, eh->ch_states[index], value);
     }
     else if (EVENT_IS_EFFECT(type))
     {
@@ -771,7 +773,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->effect_process[type](eff, fields);
+        return eh->effect_process[type](eff, value);
     }
     else if (EVENT_IS_DSP(type))
     {
@@ -822,12 +824,12 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             return false;
         }
-        return eh->dsp_process[type](conf, eh->ch_states[index], fields);
+        return eh->dsp_process[type](conf, eh->ch_states[index], value);
     }
     else if (EVENT_IS_CONTROL(type))
     {
         return eh->control_process[type]((General_state*)eh->global_state,
-                                         fields);
+                                         value);
     }
     else if (EVENT_IS_GENERAL(type))
     {
@@ -836,7 +838,7 @@ static bool Event_handler_handle(Event_handler* eh,
         {
             gstate = (General_state*)eh->ch_states[index];
         }
-        return eh->general_process[type](gstate, fields);
+        return eh->general_process[type](gstate, value);
     }
     return false;
 }
@@ -881,7 +883,59 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         return true;
     }
-    if (!Event_handler_handle(eh, index, type, str))
+    Value* value = VALUE_AUTO;
+    Event_field_type field_type = Event_names_get_param_type(eh->event_names,
+                                                             event_name);
+    str = read_const_char(str, '[', state);
+    if (state->error)
+    {
+        return false;
+    }
+    switch (field_type)
+    {
+        case EVENT_FIELD_NONE:
+        {
+        } break;
+        case EVENT_FIELD_BOOL:
+        {
+            value->type = VALUE_TYPE_BOOL;
+            str = read_bool(str, &value->value.bool_type, state);
+        } break;
+        case EVENT_FIELD_INT:
+        {
+            value->type = VALUE_TYPE_INT;
+            str = read_int(str, &value->value.int_type, state);
+        } break;
+        case EVENT_FIELD_DOUBLE:
+        {
+            value->type = VALUE_TYPE_FLOAT;
+            str = read_double(str, &value->value.float_type, state);
+        } break;
+        case EVENT_FIELD_REAL:
+        {
+            value->type = VALUE_TYPE_REAL;
+            str = read_tuning(str, &value->value.Real_type, NULL, state);
+        } break;
+        case EVENT_FIELD_RELTIME:
+        {
+            value->type = VALUE_TYPE_TIMESTAMP;
+            str = read_reltime(str, &value->value.Timestamp_type, state);
+        } break;
+        case EVENT_FIELD_STRING:
+        {
+            value->type = VALUE_TYPE_STRING;
+            str = read_string(str, value->value.string_type,
+                              ENV_VAR_NAME_MAX, state);
+        } break;
+        default:
+            assert(false);
+    }
+    str = read_const_char(str, ']', state);
+    if (state->error)
+    {
+        return false;
+    }
+    if (!Event_handler_handle(eh, index, type, value))
     {
         return false;
     }

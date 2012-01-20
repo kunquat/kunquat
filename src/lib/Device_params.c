@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -494,12 +494,12 @@ bool Device_params_parse_value(Device_params* params,
 
 bool Device_params_modify_value(Device_params* params,
                                 const char* key,
-                                char* str)
+                                void* data)
 {
     assert(params != NULL);
     assert(key != NULL);
     assert(key_is_real_time_device_param(key));
-    assert(str != NULL);
+    assert(data != NULL);
     if (AAtree_contains(params->slow_sync, key))
     {
         return false;
@@ -509,7 +509,7 @@ bool Device_params_modify_value(Device_params* params,
     {
         return false;
     }
-    return Device_field_modify(field, str);
+    return Device_field_modify(field, data);
 }
 
 

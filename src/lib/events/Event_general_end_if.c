@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -36,10 +36,10 @@ Event_create_constructor(Event_general,
                          end_if);
 
 
-bool Event_general_end_if_process(General_state* gstate, char* fields)
+bool Event_general_end_if_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    (void)fields;
+    (void)value;
     if (gstate->cond_level_index >= 0)
     {
         --gstate->cond_level_index;

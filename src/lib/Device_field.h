@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -152,12 +152,12 @@ bool Device_field_get_empty(Device_field* field);
  *
  * \param field   The Device field -- must not be \c NULL and must
  *                contain a value that is modifiable in real time.
- * \param str     The new data as a string.
+ * \param str     The new data -- must not be \c NULL.
  *
  * \return   \c true if the Device field was successfully modified,
  *           otherwise \c false.
  */
-bool Device_field_modify(Device_field* field, char* str);
+bool Device_field_modify(Device_field* field, void* data);
 
 
 /**

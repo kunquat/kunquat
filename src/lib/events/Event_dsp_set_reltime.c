@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -24,6 +24,7 @@
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <string_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -48,17 +49,12 @@ Event_create_constructor(Event_dsp,
 
 bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf,
                                    Channel_state* ch_state,
-                                   char* fields)
+                                   Value* value)
 {
     assert(dsp_conf != NULL);
     assert(ch_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Read_state* state = READ_STATE_AUTO;
-    fields = read_const_char(fields, '[', state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_TIMESTAMP)
     {
         return false;
     }
@@ -69,7 +65,8 @@ bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf,
     {
         return false;
     }
-    return Device_params_modify_value(dsp_conf->params, key, fields);
+    return Device_params_modify_value(dsp_conf->params, key,
+                                      &value->value.Timestamp_type);
 }
 
 
