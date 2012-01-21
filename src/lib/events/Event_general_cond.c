@@ -83,7 +83,7 @@ static bool evaluate_cond(char* str, Environment* env, Read_state* state)
     assert(env != NULL);
     ++str;
     Value* result = VALUE_AUTO;
-    evaluate_expr(str, env, state, result);
+    evaluate_expr(str, env, state, NULL, result);
     if (state->error)
     {
         //fprintf(stderr, "%s\n", state->message);

@@ -83,6 +83,32 @@ bool Event_cache_add_event(Event_cache* cache, char* event_name)
 }
 
 
+void Event_cache_update(Event_cache* cache, char* event_name,
+                        Value* value)
+{
+    assert(cache != NULL);
+    assert(event_name != NULL);
+    assert(value != NULL);
+    Event_state* state = AAtree_get_exact(cache->cache, event_name);
+    if (state == NULL)
+    {
+        return;
+    }
+    Value_copy(&state->value, value);
+    return;
+}
+
+
+Value* Event_cache_get_value(Event_cache* cache, char* event_name)
+{
+    assert(cache != NULL);
+    assert(event_name != NULL);
+    Event_state* state = AAtree_get_exact(cache->cache, event_name);
+    assert(state != NULL);
+    return &state->value;
+}
+
+
 void Event_cache_reset(Event_cache* cache)
 {
     assert(cache != NULL);

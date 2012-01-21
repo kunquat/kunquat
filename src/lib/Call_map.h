@@ -16,16 +16,28 @@
 #define K_CALL_MAP_H
 
 
+#include <Environment.h>
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 
 
 /**
  * A collection of conditions for automatic call and signal events.
  */
 typedef struct Call_map Call_map;
+
+
+/**
+ * A list node returned by the Call map.
+ */
+typedef struct Target_event
+{
+    char* desc;
+    struct Target_event* next;
+} Target_event;
 
 
 /**
@@ -67,22 +79,18 @@ Event_cache* Call_map_create_cache(Call_map* map);
  *
  * \param map          The Call map -- must not be \c NULL.
  * \param cache        The Event cache -- must not be \c NULL.
- * \param src_event    The fired event -- must be a valid event description.
- * \param dest_event   The storage location for the destination event --
- *                     must not be \c NULL.
- * \param dest_size    The amount of bytes reserved for \a dest_event --
- *                     must be positive. A size of at least 65 bytes is
- *                     recommended. JSON strings longer than \a dest_size - 1
- *                     bytes are truncated and thus may be invalid.
+ * \param env          The Environment -- must not be \c NULL.
+ * \param event_name   The name of the fired event -- must not be \c NULL.
+ * \param value        The event parameter -- must not be \c NULL.
  *
- * \return   \c true if an event was stored to \a dest_event,
- *           otherwise \c false.
+ * \return   The first Target event if any calls are triggered,
+ *           otherwise \c NULL.
  */
-bool Call_map_get_first(Call_map* map,
-                        Event_cache* cache,
-                        char* src_event,
-                        char* dest_event,
-                        int dest_size);
+Target_event* Call_map_get_first(Call_map* map,
+                                 Event_cache* cache,
+                                 Environment* env,
+                                 char* event_name,
+                                 Value* value);
 
 
 /**
@@ -101,9 +109,9 @@ bool Call_map_get_first(Call_map* map,
  *
  * \return   \c true if an event was stored, otherwise \c false.
  */
-bool Call_map_get_next(Call_map* map,
-                       char* dest_event,
-                       int dest_size);
+//bool Call_map_get_next(Call_map* map,
+//                       char* dest_event,
+//                       int dest_size);
 
 
 /**

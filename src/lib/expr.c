@@ -45,7 +45,7 @@ typedef struct Operator
 static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
-                            Value* res, int depth);
+                            Value* meta, Value* res, int depth);
 
 
 static bool handle_unary(Value* val, bool found_not, bool found_minus,
@@ -59,7 +59,8 @@ static char* get_var_token(char* str, char* result, Read_state* state);
 static char* get_op_token(char* str, char* result, Read_state* state);
 
 
-static bool Value_from_token(Value* val, char* token, Environment* env);
+static bool Value_from_token(Value* val, char* token,
+                             Environment* env, Value* meta);
 
 //static void Value_print(Value* val);
 
@@ -112,6 +113,7 @@ static Operator operators[] =
 char* evaluate_expr(char* str,
                     Environment* env,
                     Read_state* state,
+                    Value* meta,
                     Value* res)
 {
     assert(str != NULL);
@@ -124,7 +126,12 @@ char* evaluate_expr(char* str,
     }
     Value val_stack[STACK_SIZE] = { { .type = VALUE_TYPE_NONE } };
     Operator op_stack[STACK_SIZE] = { { .name = NULL } };
-    return evaluate_expr_(str, env, state, val_stack, 0, op_stack, 0, res, 0);
+    if (meta == NULL)
+    {
+        meta = VALUE_AUTO;
+    }
+    return evaluate_expr_(str, env, state, val_stack, 0, op_stack, 0,
+                          meta, res, 0);
 }
 
 
@@ -141,7 +148,7 @@ char* evaluate_expr(char* str,
 static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
-                            Value* res, int depth)
+                            Value* meta, Value* res, int depth)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -152,6 +159,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     assert(op_stack != NULL);
     assert(osi >= 0);
     assert(osi <= STACK_SIZE);
+    assert(meta != NULL);
     assert(res != NULL);
     assert(depth >= 0);
     if (state->error)
@@ -184,7 +192,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             }
             check_stack(vsi);
             str = evaluate_expr_(str, env, state, val_stack, vsi,
-                                 op_stack, osi, operand, depth + 1);
+                                 op_stack, osi, meta, operand, depth + 1);
             if (state->error)
             {
                 return str;
@@ -199,7 +207,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             ++vsi;
             expect_operand = false;
         }
-        else if (Value_from_token(operand, token, env))
+        else if (Value_from_token(operand, token, env, meta))
         {
             if (!expect_operand)
             {
@@ -376,11 +384,13 @@ static bool handle_unary(Value* val, bool found_not, bool found_minus,
 }
 
 
-static bool Value_from_token(Value* val, char* token, Environment* env)
+static bool Value_from_token(Value* val, char* token,
+                             Environment* env, Value* meta)
 {
     assert(val != NULL);
     assert(token != NULL);
     assert(env != NULL);
+    assert(meta != NULL);
     if (isdigit(token[0]) || token[0] == '.')
     {
         char* endptr = NULL;
@@ -433,6 +443,11 @@ static bool Value_from_token(Value* val, char* token, Environment* env)
     {
         val->type = VALUE_TYPE_BOOL;
         val->value.bool_type = string_eq(token, "true");
+        return true;
+    }
+    else if (string_eq(token, "$"))
+    {
+        Value_copy(val, meta);
         return true;
     }
     else if (strchr(ENV_VAR_INIT_CHARS, token[0]) != NULL)
@@ -545,6 +560,11 @@ static char* get_token(char* str, char* result, Read_state* state)
     else if (str[0] == '\'' || string_has_prefix(str, "\\\""))
     {
         return get_str_token(str, result, state);
+    }
+    else if (str[0] == '$')
+    {
+        strcpy(result, "$");
+        return str + 1;
     }
     else if (strchr(ENV_VAR_INIT_CHARS, *str) != NULL)
     {

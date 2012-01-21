@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <Value.h>
+
 
 /**
  * A collection of event history in a Channel.
@@ -44,6 +46,29 @@ Event_cache* new_Event_cache(void);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_cache_add_event(Event_cache* cache, char* event_name);
+
+
+/**
+ * Updates the Event cache.
+ *
+ * \param cache        The Event cache -- must not be \c NULL.
+ * \param event_name   The name of the Event -- must not be \c NULL.
+ * \param value        The Event parameter -- must not be \c NULL.
+ */
+void Event_cache_update(Event_cache* cache, char* event_name,
+                        Value* value);
+
+
+/**
+ * Gets a value from the Event cache.
+ *
+ * \param cache        The Event cache -- must not be \c NULL.
+ * \param event_name   The name of the Event -- must not be \c NULL and
+ *                     must be an event name found in \a cache.
+ *
+ * \return   The value associated with \a event_name. This is never \c NULL.
+ */
+Value* Event_cache_get_value(Event_cache* cache, char* event_name);
 
 
 /**

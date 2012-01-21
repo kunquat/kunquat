@@ -17,9 +17,11 @@
 
 #include <AAtree.h>
 #include <Call_map.h>
+#include <Environment.h>
 #include <Event_cache.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <expr.h>
 #include <File_base.h>
 #include <Value.h>
 #include <xassert.h>
@@ -30,8 +32,6 @@ struct Call_map
 {
     AAiter* iter;
     AAtree* cblists;
-    Event_cache* cur_cache;
-    Value cur_value;
 };
 
 
@@ -46,14 +46,11 @@ typedef struct Constraint
 static Constraint* new_Constraint(char** str, Read_state* state);
 
 
+static bool Constraint_match(Constraint* constraint, Event_cache* cache,
+                             Environment* env);
+
+
 static void del_Constraint(Constraint* constraint);
-
-
-typedef struct Target_event
-{
-    char* desc;
-    struct Target_event* next;
-} Target_event;
 
 
 static Target_event* new_Target_event(char** str,
@@ -125,8 +122,6 @@ Call_map* new_Call_map(char* str,
     map->iter = new_AAiter(NULL);
     map->cblists = new_AAtree((int (*)(const void*, const void*))strcmp,
                               (void (*)(void*))del_Cblist);
-    map->cur_cache = NULL;
-    map->cur_value.type = VALUE_TYPE_NONE;
     if (map->iter == NULL || map->cblists == NULL)
     {
         del_Call_map(map);
@@ -245,29 +240,45 @@ Event_cache* Call_map_create_cache(Call_map* map)
 }
 
 
-bool Call_map_get_first(Call_map* map,
-                        Event_cache* cache,
-                        char* src_event,
-                        char* dest_event,
-                        int dest_size)
+Target_event* Call_map_get_first(Call_map* map,
+                                 Event_cache* cache,
+                                 Environment* env,
+                                 char* event_name,
+                                 Value* value)
 {
     assert(map != NULL);
     assert(cache != NULL);
-    assert(src_event != NULL);
-    assert(dest_event != NULL);
-    assert(dest_size > 0);
-#if 0
+    assert(event_name != NULL);
+    assert(value != NULL);
+    Event_cache_update(cache, event_name, value);
     Cblist* list = AAtree_get_exact(map->cblists, event_name);
     if (list == NULL)
     {
-        return false;
+        return NULL;
     }
-#endif
-    map->cur_cache = cache;
-    return Call_map_get_next(map, dest_event, dest_size);
+    Cblist_item* item = list->first;
+    while (item != NULL)
+    {
+        Constraint* constraint = item->constraints;
+        while (constraint != NULL)
+        {
+            if (!Constraint_match(constraint, cache, env))
+            {
+                break;
+            }
+            constraint = constraint->next;
+        }
+        if (constraint == NULL)
+        {
+            return item->events;
+        }
+        item = item->next;
+    }
+    return NULL;
 }
 
 
+#if 0
 bool Call_map_get_next(Call_map* map,
                        char* dest_event,
                        int dest_size)
@@ -278,6 +289,7 @@ bool Call_map_get_next(Call_map* map,
     assert(map->cur_cache != NULL);
     return false;
 }
+#endif
 
 
 void del_Call_map(Call_map* map)
@@ -500,6 +512,20 @@ static Constraint* new_Constraint(char** str, Read_state* state)
     }
     strcpy(c->expr, expr);
     return c;
+}
+
+
+static bool Constraint_match(Constraint* constraint, Event_cache* cache,
+                             Environment* env)
+{
+    assert(constraint != NULL);
+    assert(cache != NULL);
+    Value* value = Event_cache_get_value(cache, constraint->event_name);
+    assert(value != NULL);
+    Value* result = VALUE_AUTO;
+    Read_state* state = READ_STATE_AUTO;
+    evaluate_expr(constraint->expr, env, state, value, result);
+    return result->type == VALUE_TYPE_BOOL && result->value.bool_type;
 }
 
 
