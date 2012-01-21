@@ -79,9 +79,7 @@ bool Event_general_cond_process(General_state* gstate, Value* value)
 static bool evaluate_cond(char* str, Environment* env, Read_state* state)
 {
     assert(str != NULL);
-    assert(str[0] == '"');
     assert(env != NULL);
-    ++str;
     Value* result = VALUE_AUTO;
     evaluate_expr(str, env, state, NULL, result);
     if (state->error)

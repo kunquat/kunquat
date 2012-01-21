@@ -560,6 +560,7 @@ static Target_event* new_Target_event(char** str,
     }
     event->desc = NULL;
     event->next = NULL;
+    *str = skip_whitespace(*str, state);
     char* desc = read_const_char(*str, '[', state);
     char event_name[EVENT_NAME_MAX + 1] = "";
     desc = read_string(desc, event_name, EVENT_NAME_MAX + 1, state);

@@ -935,6 +935,20 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         return false;
     }
+    Target_event* call = NULL;
+    if (index >= 0)
+    {
+        call = Call_map_get_first(eh->global_state->call_map,
+                                  eh->ch_states[index]->event_cache,
+                                  eh->global_state->parent.env,
+                                  event_name,
+                                  value);
+        while (call != NULL)
+        {
+            Event_handler_trigger(eh, index, call->desc, silent);
+            call = call->next;
+        }
+    }
     if (!Event_handler_handle(eh, index, type, value))
     {
         return false;
