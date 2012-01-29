@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -70,6 +70,24 @@ Channel* new_Channel(Ins_table* insts,
                      Environment* env,
                      double* tempo,
                      uint32_t* freq);
+
+
+/**
+ * Mixes the foreground of the Channel.
+ *
+ * \param ch        The Channel -- must not be \c NULL.
+ * \param pool      The Voice pool -- must not be \c NULL.
+ * \param nframes   Upper limit in the buffer to be mixed.
+ * \param offset    Buffer offset -- must be <= \a nframes.
+ * \param tempo     The tempo -- must be > \c 0.
+ * \param freq      The mixing rate -- must be > \c 0.
+ */
+void Channel_mix(Channel* ch,
+                 Voice_pool* pool,
+                 uint32_t nframes,
+                 uint32_t offset,
+                 double tempo,
+                 uint32_t freq);
 
 
 /**

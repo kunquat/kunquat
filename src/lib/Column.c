@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -222,7 +222,7 @@ void del_Column_iter(Column_iter* iter)
 
 static bool Column_parse(Column* col,
                          char* str,
-                         bool is_global,
+//                         bool is_global,
                          Event_names* event_names,
                          Read_state* state);
 
@@ -340,7 +340,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 
 Column* new_Column_from_string(Reltime* len,
                                char* str,
-                               bool is_global,
+//                               bool is_global,
                                AAtree* locations,
                                AAiter* locations_iter,
                                Event_names* event_names,
@@ -348,8 +348,10 @@ Column* new_Column_from_string(Reltime* len,
 {
     assert(event_names != NULL);
     assert(state != NULL);
-    assert(!is_global || locations != NULL);
-    assert(locations == NULL || locations_iter != NULL);
+//    assert(!is_global || locations != NULL);
+//    assert(locations == NULL || locations_iter != NULL);
+    assert(locations != NULL);
+    assert(locations_iter != NULL);
     if (state->error)
     {
         return false;
@@ -359,12 +361,12 @@ Column* new_Column_from_string(Reltime* len,
     {
         return NULL;
     }
-    if (!Column_parse(col, str, is_global, event_names, state))
+    if (!Column_parse(col, str, event_names, state))
     {
         del_Column(col);
         return NULL;
     }
-    if (is_global && !Column_update_locations(col, locations, locations_iter))
+    if (!Column_update_locations(col, locations, locations_iter))
     {
         del_Column(col);
         return NULL;
@@ -384,7 +386,7 @@ Column* new_Column_from_string(Reltime* len,
 
 static bool Column_parse(Column* col,
                          char* str,
-                         bool is_global,
+//                         bool is_global,
                          Event_names* event_names,
                          Read_state* state)
 {
@@ -416,7 +418,8 @@ static bool Column_parse(Column* col,
         {
             return false;
         }
-        Event_type type = Event_get_type(event);
+//        Event_type type = Event_get_type(event);
+#if 0
         if (((is_global && EVENT_IS_CHANNEL(type)) ||
                 (!is_global && EVENT_IS_GLOBAL(type)))
                 && !EVENT_IS_GENERAL(type))
@@ -427,6 +430,7 @@ static bool Column_parse(Column* col,
                      is_global ? "global" : "note");
             return false;
         }
+#endif
 #if 0
         str = read_const_char(str, '[', state);
         break_if(state->error);
@@ -528,7 +532,7 @@ bool Column_update_locations(Column* col,
     while (event != NULL)
     {
         Event_type type = Event_get_type(event);
-        assert(!EVENT_IS_CHANNEL(type));
+        //assert(!EVENT_IS_CHANNEL(type));
         if (type == EVENT_GLOBAL_JUMP &&
                 !Trigger_global_jump_set_locations((Event_global_jump*)event,
                                                    locations,

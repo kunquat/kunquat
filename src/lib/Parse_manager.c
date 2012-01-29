@@ -1279,18 +1279,20 @@ static bool parse_pattern_level(kqt_Handle* handle,
     {
         return true;
     }
-    bool global_column = string_eq(subkey, "gcol/p_global_events.json");
+//    bool global_column = string_eq(subkey, "gcol/p_global_events.json");
     int col_index = 0;
     ++second_element;
-    if (((col_index = string_extract_index(subkey, "ccol_", 2, "/")) >= 0
-                    && string_eq(second_element, "p_channel_events.json"))
-                || global_column)
+    if ((col_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
+                string_eq(second_element, "p_events.json"))
+//                || global_column)
     {
+#if 0
         if (global_column)
         {
             col_index = -1;
         }
-        if (col_index < -1 || col_index >= KQT_COLUMNS_MAX)
+#endif
+        if (col_index >= KQT_COLUMNS_MAX)
         {
             return true;
         }
@@ -1313,7 +1315,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
                 Event_handler_get_names(handle->song->event_handler);
         Column* col = new_Column_from_string(Pattern_get_length(pat),
                                              data,
-                                             global_column,
+//                                             global_column,
                                              locations,
                                              locations_iter,
                                              event_names,
@@ -1335,23 +1337,27 @@ static bool parse_pattern_level(kqt_Handle* handle,
             }
             return false;
         }
+#if 0
         if (global_column)
         {
             Pattern_set_global(pat, col);
         }
         else
         {
-            if (!Pattern_set_col(pat, col_index, col))
+#endif
+        if (!Pattern_set_col(pat, col_index, col))
+        {
+            kqt_Handle_set_error(handle, ERROR_MEMORY,
+                    "Couldn't allocate memory");
+            if (new_pattern)
             {
-                kqt_Handle_set_error(handle, ERROR_MEMORY,
-                        "Couldn't allocate memory");
-                if (new_pattern)
-                {
-                    del_Pattern(pat);
-                }
-                return false;
+                del_Pattern(pat);
             }
+            return false;
         }
+#if 0
+        }
+#endif
         if (new_pattern)
         {
             if (!Pat_table_set(Song_get_pats(handle->song), index, pat))

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -120,11 +120,9 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
  * \param len              The length of the column. If this is \c NULL, the
  *                         length is set to INT64_MAX beats.
  * \param str              The textual description -- must not be \c NULL.
- * \param is_global        \c true if and only if the Column is to be global.
- * \param locations        Pattern location info -- must not be \c NULL if the
- *                         Column is global.
+ * \param locations        Pattern location info -- must not be \c NULL.
  * \param locations_iter   The iterator for \a locations -- must not be
- *                         \c NULL if \a locations != \c NULL.
+ *                         \c NULL.
  * \param event_names      The Event names -- must not be \c NULL.
  * \param state            The Read state -- must not be \c NULL.
  *
@@ -133,7 +131,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
  */
 Column* new_Column_from_string(Reltime* len,
                                char* str,
-                               bool is_global,
+//                               bool is_global,
                                AAtree* locations,
                                AAiter* locations_iter,
                                Event_names* event_names,
@@ -141,14 +139,12 @@ Column* new_Column_from_string(Reltime* len,
 
 
 /**
- * Updates location info in the global Column.
+ * Updates location info in the Column.
  *
- * \param col              The Column -- must not be \c NULL and must be
- *                         global.
- * \param locations        Pattern location info -- must not be \c NULL if the
- *                         Column is global.
+ * \param col              The Column -- must not be \c NULL.
+ * \param locations        Pattern location info -- must not be \c NULL.
  * \param locations_iter   The iterator for \a locations -- must not be
- *                         \c NULL if \a locations != \c NULL.
+ *                         \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */

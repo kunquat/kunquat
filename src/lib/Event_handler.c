@@ -694,12 +694,12 @@ static bool Event_handler_handle(Event_handler* eh,
                                  Value* value)
 {
     assert(eh != NULL);
-    assert(index >= -1);
+    assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(EVENT_IS_VALID(type));
     if (EVENT_IS_CHANNEL(type))
     {
-        assert(index >= 0);
+//        assert(index >= 0);
         if (eh->ch_process[type] == NULL)
         {
             return false;
@@ -708,7 +708,7 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_INS(type))
     {
-        assert(index >= 0);
+//        assert(index >= 0);
 //        Instrument* ins = Ins_table_get(eh->insts, index);
         Instrument* ins = Ins_table_get(eh->insts,
                                         eh->ch_states[index]->instrument);
@@ -722,7 +722,7 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_GLOBAL(type))
     {
-        assert(index == -1);
+//        assert(index == -1);
         if (eh->global_process[type] == NULL)
         {
             return false;
@@ -731,7 +731,7 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_GENERATOR(type))
     {
-        assert(index >= 0);
+//        assert(index >= 0);
         Instrument* ins = Ins_table_get(eh->insts,
                                         eh->ch_states[index]->instrument);
         if (ins == NULL)
@@ -748,7 +748,7 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_EFFECT(type))
     {
-        assert(index >= 0);
+//        assert(index >= 0);
         Effect_table* effects = eh->effects;
         if (eh->ch_states[index]->inst_effects)
         {
@@ -777,7 +777,7 @@ static bool Event_handler_handle(Event_handler* eh,
     }
     else if (EVENT_IS_DSP(type))
     {
-        assert(index >= 0);
+//        assert(index >= 0);
         Effect_table* effects = eh->effects;
         if (eh->ch_states[index]->inst_effects)
         {
@@ -868,11 +868,13 @@ bool Event_handler_trigger(Event_handler* eh,
         return false;
     }
     assert(Event_type_is_supported(type));
+#if 0
     if ((EVENT_IS_GLOBAL(type) != (index == -1)) &&
             !EVENT_IS_GENERAL(type) && !EVENT_IS_CONTROL(type))
     {
         return false;
     }
+#endif
     General_state* gstate = (General_state*)eh->global_state;
     if (index >= 0)
     {

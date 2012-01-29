@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -36,8 +36,8 @@ Voice* new_Voice(void)
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
+//    voice->was_fg = true;
+//    voice->fg_mixed = 0;
     voice->gen = NULL;
     voice->state_size = 0;
     voice->state = NULL;
@@ -107,8 +107,8 @@ void Voice_init(Voice* voice,
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
+//    voice->was_fg = true;
+//    voice->fg_mixed = 0;
     voice->gen = gen;
     Random_set_seed(voice->rand_p, seed);
     Random_set_seed(voice->rand_s, seed);
@@ -132,8 +132,8 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
+//    voice->was_fg = true;
+//    voice->fg_mixed = 0;
     Voice_state_clear(voice->state);
     voice->gen = NULL;
     Random_reset(voice->rand_p);
@@ -145,7 +145,7 @@ void Voice_reset(Voice* voice)
 void Voice_prepare(Voice* voice)
 {
     assert(voice != NULL);
-    voice->was_fg = voice->prio >= VOICE_PRIO_FG;
+//    voice->was_fg = voice->prio >= VOICE_PRIO_FG;
     return;
 }
 
@@ -163,8 +163,9 @@ void Voice_mix(Voice* voice,
     {
         return;
     }
-    bool initially_fg = voice->prio >= VOICE_PRIO_FG;
+//    bool initially_fg = voice->prio >= VOICE_PRIO_FG;
     uint32_t mixed = offset;
+#if 0
     if (voice->prio <= VOICE_PRIO_BG)
     {
         if (voice->was_fg)
@@ -177,6 +178,7 @@ void Voice_mix(Voice* voice,
             voice->fg_mixed = 0;
         }
     }
+#endif
 //    fprintf(stderr, "mix %p from %" PRIu32 " to %" PRIu32 "\n", (void*)voice, mixed, nframes);
     Generator_mix(voice->gen, voice->state, nframes, mixed, freq, tempo);
 //    fprintf(stderr, "mixed\n");
@@ -191,10 +193,12 @@ void Voice_mix(Voice* voice,
     {
         voice->prio = VOICE_PRIO_BG;
     }
+#if 0
     if (initially_fg)
     {
         voice->fg_mixed = nframes;
     }
+#endif
     return;
 }
 

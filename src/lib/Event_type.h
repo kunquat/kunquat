@@ -231,14 +231,14 @@ typedef enum
 #define EVENT_IS_DSP(type)       ((type) > EVENT_DSP_LOWER && \
                                   (type) < EVENT_DSP_UPPER)
 #define EVENT_IS_PG(type)        (EVENT_IS_INS((type))       || \
+                                  EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GENERATOR((type)) || \
+                                  EVENT_IS_GLOBAL((type))    || \
                                   EVENT_IS_EFFECT((type))    || \
                                   EVENT_IS_DSP((type))       || \
+                                  EVENT_IS_CHANNEL((type))   || \
                                   EVENT_IS_CONTROL((type)))
-#define EVENT_IS_TRIGGER(type)   (EVENT_IS_GENERAL((type)) || \
-                                  EVENT_IS_GLOBAL((type))  || \
-                                  EVENT_IS_PG((type))      || \
-                                  EVENT_IS_CHANNEL((type)))
+#define EVENT_IS_TRIGGER(type)   EVENT_IS_PG((type))
 #define EVENT_IS_VALID(type)     EVENT_IS_TRIGGER((type))
 
 

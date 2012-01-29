@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -85,6 +85,52 @@ Channel* new_Channel(Ins_table* insts,
     }
     Channel_state_copy(&ch->cur_state, &ch->init_state);
     return ch;
+}
+
+
+void Channel_mix(Channel* ch,
+                 Voice_pool* pool,
+                 uint32_t nframes,
+                 uint32_t offset,
+                 double tempo,
+                 uint32_t freq)
+{
+    assert(ch != NULL);
+    assert(pool != NULL);
+    assert(offset <= nframes);
+    assert(tempo > 0);
+    assert(freq > 0);
+    if (offset >= nframes)
+    {
+        return;
+    }
+    LFO_set_mix_rate(&ch->cur_state.vibrato, freq);
+    LFO_set_tempo(&ch->cur_state.vibrato, tempo);
+    LFO_set_mix_rate(&ch->cur_state.tremolo, freq);
+    LFO_set_tempo(&ch->cur_state.tremolo, tempo);
+    Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
+    Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
+    LFO_set_mix_rate(&ch->cur_state.autowah, freq);
+    LFO_set_tempo(&ch->cur_state.autowah, tempo);
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
+    {
+        if (ch->cur_state.fg[i] != NULL)
+        {
+            ch->cur_state.fg[i] = Voice_pool_get_voice(pool,
+                                          ch->cur_state.fg[i],
+                                          ch->cur_state.fg_id[i]);
+            if (ch->cur_state.fg[i] != NULL)
+            {
+                assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
+                Voice_mix(ch->cur_state.fg[i], nframes, offset, freq, tempo);
+            }
+        }
+    }
+    if (Slider_in_progress(&ch->cur_state.panning_slider))
+    {
+        Slider_skip(&ch->cur_state.panning_slider, nframes - offset);
+    }
+    return;
 }
 
 

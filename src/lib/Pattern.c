@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -32,11 +32,11 @@
 #include <xmemory.h>
 
 
-static void Pattern_evaluate_global_row(Pattern* pat,
-                                        Playdata* play,
-                                        Event_handler* eh,
-                                        Event** next_global,
-                                        Reltime** next_global_pos);
+static void evaluate_row(Pattern* pat,
+                         Playdata* play,
+                         Event_handler* eh,
+                         Event** next,
+                         Reltime** next_pos);
 
 
 Pattern* new_Pattern(void)
@@ -139,10 +139,13 @@ bool Pattern_set_location(Pattern* pat, int subsong, int section)
         xfree(key);
         return false;
     }
-    if (!Column_update_locations(pat->global,
-                                 pat->locations, pat->locations_iter))
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        return false;
+        if (!Column_update_locations(pat->cols[i],
+                                     pat->locations, pat->locations_iter))
+        {
+            return false;
+        }
     }
     return true;
 }
@@ -285,21 +288,20 @@ uint32_t Pattern_mix(Pattern* pat,
             // TODO: and we still want to mix this pattern
             && (pat == NULL || Reltime_cmp(&play->pos, &pat->length) <= 0))
     {
-        Event* next_global = NULL;
+        Event* next = NULL;
         if (pat != NULL && !play->parent.pause)
         {
-            Column_iter_change_col(play->citer, pat->global);
-            next_global = Column_iter_get(play->citer, &play->pos);
+            Column_iter_change_col(play->citer, pat->aux);
+            next = Column_iter_get(play->citer, &play->pos);
         }
-        Reltime* next_global_pos = NULL;
-        if (next_global != NULL)
+        Reltime* next_pos = NULL;
+        if (next != NULL)
         {
-            next_global_pos = Event_get_pos(next_global);
+            next_pos = Event_get_pos(next);
         }
         if (pat != NULL)
         {
-            Pattern_evaluate_global_row(pat, play, eh, &next_global,
-                                        &next_global_pos);
+            evaluate_row(pat, play, eh, &next, &next_pos);
         }
         if (play->old_tempo != play->tempo || play->old_freq != play->freq)
         {
@@ -384,7 +386,7 @@ uint32_t Pattern_mix(Pattern* pat,
             }
             break;
         }
-        assert(next_global == NULL || next_global_pos != NULL);
+        assert(next == NULL || next_pos != NULL);
         uint32_t to_be_mixed = nframes - mixed;
         if (play->tempo_slide != 0)
         {
@@ -414,6 +416,7 @@ uint32_t Pattern_mix(Pattern* pat,
         }
 
         // - Find out if we need to process aux events
+#if 0
         Event* next_aux = NULL;
         if (pat != NULL && !play->parent.pause)
         {
@@ -430,6 +433,7 @@ uint32_t Pattern_mix(Pattern* pat,
                 aux_process = true;
             }
         }
+#endif
 
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,
@@ -455,16 +459,17 @@ uint32_t Pattern_mix(Pattern* pat,
                                            play->tempo,
                                            play->freq);
         }
-        // - Check first upcoming (pseudo)global event position to figure out
+        // - Check first upcoming event position to figure out
         //   how much we can mix for now
-        if (!delay && next_global != NULL && Reltime_cmp(next_global_pos, limit) < 0)
+        if (!delay && next != NULL && Reltime_cmp(next_pos, limit) < 0)
         {
-            Reltime_copy(limit, next_global_pos);
+            Reltime_copy(limit, next_pos);
             to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
                                                        limit, &play->pos),
                                            play->tempo,
                                            play->freq);
         }
+#if 0
         if (!delay && next_aux != NULL && Reltime_cmp(next_aux_pos, limit) < 0)
         {
             Reltime_copy(limit, next_aux_pos);
@@ -477,6 +482,7 @@ uint32_t Pattern_mix(Pattern* pat,
         {
             Reltime_add(limit, &play->pos, Reltime_set(RELTIME_AUTO, 0, 1));
         }
+#endif
         // - Calculate the number of frames to be mixed
         assert(Reltime_cmp(&play->pos, limit) <= 0);
         if (to_be_mixed > nframes - mixed)
@@ -495,6 +501,10 @@ uint32_t Pattern_mix(Pattern* pat,
                 {
                     Column_iter_change_col(play->citer, pat->cols[i]);
                 }
+                Channel_mix(channels[i], play->voice_pool,
+                            mix_until, mixed,
+                            play->tempo, play->freq);
+#if 0
                 Channel_set_voices(channels[i],
                                    play->voice_pool,
                                    play->parent.pause || pat == NULL ?
@@ -507,6 +517,7 @@ uint32_t Pattern_mix(Pattern* pat,
                                    play->tempo,
                                    play->freq,
                                    eh);
+#endif
             }
             uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                     mix_until, mixed, play->freq, play->tempo);
@@ -583,68 +594,64 @@ uint32_t Pattern_mix(Pattern* pat,
 }
 
 
-static void Pattern_evaluate_global_row(Pattern* pat,
-                                        Playdata* play,
-                                        Event_handler* eh,
-                                        Event** next_global,
-                                        Reltime** next_global_pos)
+static void evaluate_row(Pattern* pat,
+                         Playdata* play,
+                         Event_handler* eh,
+                         Event** next,
+                         Reltime** next_pos)
 {
     assert(pat != NULL);
     assert(play != NULL);
-    assert(next_global != NULL);
-    assert(next_global_pos != NULL);
+    assert(next != NULL);
+    assert(next_pos != NULL);
     (void)pat;
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
     play->event_index = 0;
-    while (*next_global != NULL
-            && Reltime_cmp(*next_global_pos, &play->pos) == 0
+    while (*next != NULL
+            && Reltime_cmp(*next_pos, &play->pos) == 0
             && Reltime_cmp(&play->delay_left, zero_time) <= 0
             && !(play->jump || play->goto_trigger))
     {
-        // FIXME: conditional event handling must be processed here
-        //        instead of Song_mix.
+        Event_type type = Event_get_type((Event*)*next);
         if (play->delay_event_index >= 0)
         {
             for (int i = 0; i <= play->delay_event_index; ++i)
             {
-                *next_global = Column_iter_get_next(play->citer);
+                *next = Column_iter_get_next(play->citer);
                 ++play->event_index;
             }
-            if (*next_global != NULL)
+            if (*next != NULL)
             {
-                *next_global_pos = Event_get_pos(*next_global);
+                *next_pos = Event_get_pos(*next);
             }
             play->delay_event_index = -1;
-            if (*next_global == NULL
-                    || Reltime_cmp(*next_global_pos, &play->pos) != 0)
+            if (*next == NULL || Reltime_cmp(*next_pos, &play->pos) != 0)
             {
                 break;
             }
         }
-        if (Event_get_type((Event*)*next_global) == EVENT_GLOBAL_JUMP)
+        if (Event_get_type((Event*)*next) == EVENT_GLOBAL_JUMP)
         {
             if (General_state_events_enabled((General_state*)play))
             {
                 // Jump events inside Patterns contain mutable state data, so
                 // they need to be handled as a special case here.
-                Trigger_global_jump_process((Event_global*)*next_global, play);
+                Trigger_global_jump_process((Event_global*)*next, play);
             }
         }
-        else if (!EVENT_IS_CONTROL(Event_get_type((Event*)*next_global)) ||
-                 play->turing)
+        else if ((!EVENT_IS_CONTROL(type) || play->turing) &&
+                 (!play->silent || EVENT_IS_GLOBAL(type) ||
+                                   EVENT_IS_GENERAL(type)))
         {
-            if (!Event_handler_trigger(eh, -1, Event_get_desc(*next_global),
-                                       play->silent))
-            {
-                // An internal Event was skipped due to invalid data
-                assert(false);
-            }
+            Event_pg* pg = (Event_pg*)*next;
+            Event_handler_trigger(eh, pg->ch_index, Event_get_desc(*next),
+                                  play->silent);
         }
         ++play->event_index;
-        *next_global = Column_iter_get_next(play->citer);
-        if (*next_global != NULL)
+        *next = Column_iter_get_next(play->citer);
+        if (*next != NULL)
         {
-            *next_global_pos = Event_get_pos(*next_global);
+            *next_pos = Event_get_pos(*next);
         }
     }
     return;

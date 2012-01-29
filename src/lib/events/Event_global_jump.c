@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -80,13 +80,13 @@ Event* new_Event_global_jump(Reltime* pos)
     Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP, jump_desc);
     event->counters = NULL;
     event->counters_iter = NULL;
-    event->parent.parent.destroy = del_Event_global_jump;
+    event->parent.parent.parent.destroy = del_Event_global_jump;
     event->counters = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp, free);
     event->counters_iter = new_AAiter(event->counters);
     if (event->counters == NULL || event->counters_iter == NULL)
     {
-        del_Event_global_jump(&event->parent.parent);
+        del_Event_global_jump(&event->parent.parent.parent);
         return NULL;
     }
     //event->play_id = 0;
@@ -101,7 +101,7 @@ Event* new_Event_global_jump(Reltime* pos)
 void Trigger_global_jump_process(Event_global* event, Playdata* play)
 {
     assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_JUMP);
+    assert(event->parent.parent.type == EVENT_GLOBAL_JUMP);
     assert(play != NULL);
     Event_global_jump* jump = (Event_global_jump*)event;
     Pattern_location* key = PATTERN_LOCATION_AUTO;

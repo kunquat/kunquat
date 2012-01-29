@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,13 +16,13 @@
 #define K_EVENT_GLOBAL_H
 
 
-#include <Event.h>
+#include <Event_pg.h>
 #include <Playdata.h>
 
 
 typedef struct Event_global
 {
-    Event parent;
+    Event_pg parent;
 //    void (*process)(struct Event_global* event, Playdata* play);
 } Event_global;
 
