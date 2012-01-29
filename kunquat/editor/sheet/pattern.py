@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -63,7 +63,7 @@ class Pattern(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.first_column = -1
+        self.first_column = 0
         self.colours = {
                 'bg': QtGui.QColor(0, 0, 0),
                 'column_border': QtGui.QColor(0xcc, 0xcc, 0xcc),
@@ -121,7 +121,7 @@ class Pattern(QtGui.QWidget):
         self.beat_len = 96
         self.view_start = ts.Timestamp(0)
         self.columns = [Column(num, (self.colours, self.fonts))
-                        for num in xrange(-1, lim.COLUMNS_MAX)]
+                        for num in xrange(0, lim.COLUMNS_MAX)]
         for col in self.columns:
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
@@ -181,7 +181,7 @@ class Pattern(QtGui.QWidget):
                                self.inst_changed)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
-        self.cursor_col = -1
+        self.cursor_col = 0
         self.orig_cursor_col = None
         self.view_columns = []
         self.width = 0
@@ -234,11 +234,11 @@ class Pattern(QtGui.QWidget):
         self.cursor.set_path(self.path)
         for col in self.columns:
             col.set_length(self.length)
-        self.columns[0].arrange_triggers(self.project['/'.join(
-                        (self.path, 'gcol', 'p_global_events.json'))])
-        for col in self.columns[1:]:
-            col_dir = 'ccol_{0:02x}'.format(col.get_num())
-            path = '/'.join((self.path, col_dir, 'p_channel_events.json'))
+        #self.columns[0].arrange_triggers(self.project['/'.join(
+        #                (self.path, 'gcol', 'p_global_events.json'))])
+        for col in self.columns:
+            col_dir = 'col_{0:02x}'.format(col.get_num())
+            path = '/'.join((self.path, col_dir, 'p_events.json'))
             col.arrange_triggers(self.project[path])
         if self.number != num:
             QtCore.QObject.emit(self, QtCore.SIGNAL('patternChanged(int)'),
@@ -383,10 +383,10 @@ class Pattern(QtGui.QWidget):
         if direction > 0:
             self.cursor.clear_delay()
         shift = self.cursor.get_pos() - shift_pos
-        self.columns[self.cursor_col + 1].shift(shift_pos, shift * direction)
+        self.columns[self.cursor_col].shift(shift_pos, shift * direction)
         self.cursor.set_pos(shift_pos)
         self.project[self.cursor.col_path] = \
-                self.columns[self.cursor_col + 1].flatten()
+                self.columns[self.cursor_col].flatten()
         self.update()
 
     def _shift_down(self, ev):
@@ -400,19 +400,19 @@ class Pattern(QtGui.QWidget):
         self.cursor.set_direction()
 
     def _prev_column(self, ev):
-        if self.cursor_col > -1:
-            self.columns[self.cursor_col + 1].set_cursor()
-            self.columns[self.cursor_col].set_cursor(self.cursor)
-            self.cursor.set_col(self.columns[self.cursor_col])
+        if self.cursor_col > 0:
+            self.columns[self.cursor_col].set_cursor()
+            self.columns[self.cursor_col - 1].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col - 1])
             self.cursor_col -= 1
             self.follow_cursor_horizontal()
             self.update()
 
     def _next_column(self, ev):
         if self.cursor_col < lim.COLUMNS_MAX - 1:
-            self.columns[self.cursor_col + 1].set_cursor()
-            self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-            self.cursor.set_col(self.columns[self.cursor_col + 2])
+            self.columns[self.cursor_col].set_cursor()
+            self.columns[self.cursor_col + 1].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col + 1])
             self.cursor_col += 1
             self.follow_cursor_horizontal()
             self.update()
@@ -421,18 +421,18 @@ class Pattern(QtGui.QWidget):
         self.cursor.key_press(ev)
         if not ev.isAccepted():
             ev.accept()
-            if self.cursor_col > -1:
+            if self.cursor_col > 0:
                 if (self.cursor.get_pos() not in
-                        self.columns[self.cursor_col].get_triggers()):
+                        self.columns[self.cursor_col - 1].get_triggers()):
                     self.cursor.set_index(0)
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col])
+                self.columns[self.cursor_col].set_cursor()
+                self.columns[self.cursor_col - 1].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col - 1])
                 self.cursor_col -= 1
                 self.follow_cursor_horizontal()
                 self.update()
             else:
-                assert self.cursor_col == -1
+                assert self.cursor_col == 0
                 self.cursor.set_index(0)
         else:
             self.update()
@@ -442,9 +442,9 @@ class Pattern(QtGui.QWidget):
         if not ev.isAccepted():
             ev.accept()
             if self.cursor_col < lim.COLUMNS_MAX - 1:
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col + 2])
+                self.columns[self.cursor_col].set_cursor()
+                self.columns[self.cursor_col + 1].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col + 1])
                 self.cursor_col += 1
                 self.follow_cursor_horizontal()
                 self.update()
@@ -481,7 +481,7 @@ class Pattern(QtGui.QWidget):
         assert direction in (1, -1)
         used = self.ruler.width()
         for (width, column) in ((c.width(), c) for c in \
-                           self.columns[start + 1::direction]):
+                           self.columns[start::direction]):
             used += width
             if used > total_width:
                 break

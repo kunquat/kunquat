@@ -290,12 +290,8 @@ class Targets(QtGui.QTableWidget):
         self.setItem(index, 2, QtGui.QTableWidgetItem(event))
         target_type = None
         try:
-            if event in ttypes.global_triggers and event != 'wj':
-                target_type = ttypes.global_triggers[event][0][0]
-            elif event in ttypes.channel_triggers:
-                target_type = ttypes.channel_triggers[event][0][0]
-            elif event in ttypes.general_triggers:
-                target_type = ttypes.general_triggers[event][0][0]
+            if event in ttypes.triggers and event != 'wj':
+                target_type = ttypes.triggers[event][0][0]
         except IndexError:
             pass
         if Targets.ranges[target_type]:
@@ -354,27 +350,18 @@ class Targets(QtGui.QTableWidget):
         desc = str(self.item(index, 2).text())
         if not desc:
             if index < len(self._data):
-                self.cellWidget(index, 1).allow(True, True)
+                #self.cellWidget(index, 1).allow(True, True)
                 self.setCellWidget(index, 3, EmptyRange(index))
                 self._data[index][2] = ''
                 QtCore.QObject.emit(self,
                                     QtCore.SIGNAL('targetChanged(bool)'),
                                     True)
             return
-        glob = False
-        ch = False
-        if desc in ttypes.global_triggers:
-            info = ttypes.global_triggers[desc]
-            glob = True
-        elif desc in ttypes.channel_triggers:
-            info = ttypes.channel_triggers[desc]
-            ch = True
-        elif desc in ttypes.general_triggers:
-            info = ttypes.general_triggers[desc]
-            glob = ch = True
-        if (not glob and not ch) or desc == 'wj' or \
-                (info and info[0][0] not in
-                        (bool, int, float, ttypes.Note, ts.Timestamp)):
+        info = None
+        if desc in ttypes.triggers:
+            info = ttypes.triggers[desc]
+        if not info or desc == 'wj' or \
+                info[0][0] not in (bool, int, float, ttypes.Note, ts.Timestamp):
             self.blockSignals(True)
             desc = ''
             if index < len(self._data):
@@ -382,7 +369,7 @@ class Targets(QtGui.QTableWidget):
             self.item(index, 2).setText(desc)
             self.blockSignals(False)
             return
-        self.cellWidget(index, 1).allow(glob, ch)
+        #self.cellWidget(index, 1).allow(glob, ch)
         cons = EmptyRange
         if info:
             cons = Targets.ranges[info[0][0]]

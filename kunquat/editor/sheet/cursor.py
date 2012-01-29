@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -236,9 +236,7 @@ class Cursor(QtCore.QObject):
                 valid_func = None
                 self.index = 0
             if not valid_func:
-                valid_func = (ttypes.is_global
-                              if self.col.get_num() == -1
-                              else ttypes.is_channel)
+                valid_func = lambda x: str(x) in ttypes.triggers
             self.active_accessor = self.accessors[type(field)]
             self.active_accessor.set_validator_func(valid_func)
             if type(field) == ttypes.Note:
@@ -285,9 +283,7 @@ class Cursor(QtCore.QObject):
                     self.active_accessor = self.accessors[type(field)]
                     if not valid_func:
                         assert type(info) == trigger.TriggerType
-                        valid_func = (ttypes.is_global
-                                      if self.col.get_num() == -1
-                                      else ttypes.is_channel)
+                        valid_func = lambda x: str(x) in ttypes.triggers
                     self.active_accessor.set_validator_func(valid_func)
                     self.active_accessor.set_value(ev.text())
                     self.active_accessor.show()
@@ -296,9 +292,11 @@ class Cursor(QtCore.QObject):
         ev.ignore()
 
     def note_off_key(self, ev):
+        """
         if self.col.get_num() < 0:
             ev.ignore()
             return
+        """
         if ev.modifiers() != QtCore.Qt.NoModifier:
             ev.ignore()
             return
@@ -332,15 +330,14 @@ class Cursor(QtCore.QObject):
             play_note_off = True
             note_off_entered = True
         if play_note_off:
-            self.playback_manager.play_event(
-                    self.col.get_num(), '["cn-", []]')
+            self.playback_manager.play_event(self.col.get_num(),
+                                             '["cn-", []]')
         if note_off_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False
 
     def note_on_key(self, ev):
-        if not (self.note_input and self.scale and
-                self.col.get_num() >= 0):
+        if not (self.note_input and self.scale):
             ev.ignore()
             return
         if ev.modifiers() != QtCore.Qt.NoModifier:
@@ -487,13 +484,9 @@ class Cursor(QtCore.QObject):
 
     def set_col_path(self):
         if self.col:
-            if self.col.get_num() == -1:
-                self.col_path = '/'.join((self.pattern_path, 'gcol',
-                                          'p_global_events.json'))
-            else:
-                col_dir = 'ccol_{0:02x}'.format(self.col.get_num())
-                self.col_path = '/'.join((self.pattern_path, col_dir,
-                                          'p_channel_events.json'))
+            col_dir = 'col_{0:02x}'.format(self.col.get_num())
+            self.col_path = '/'.join((self.pattern_path, col_dir,
+                                      'p_events.json'))
 
     def set_geometry(self, x, y, w, h):
         padding = 4

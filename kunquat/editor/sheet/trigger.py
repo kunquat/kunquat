@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -46,12 +46,7 @@ class Trigger(list):
         self[0] = TriggerType(ttype)
         self.type_info = None
         if self[0].valid:
-            if self[0] in ttypes.channel_triggers:
-                self.type_info = ttypes.channel_triggers[self[0]]
-            elif self[0] in ttypes.global_triggers:
-                self.type_info = ttypes.global_triggers[self[0]]
-            else:
-                self.type_info = ttypes.general_triggers[self[0]]
+            self.type_info = ttypes.triggers[self[0]]
             lv = takewhile(lambda x: x[0],
                            izip_longest(self.type_info, self[1]))
             self[1] = []
@@ -252,7 +247,7 @@ class Trigger(list):
 class TriggerType(str):
 
     def __init__(self, name):
-        self.valid = ttypes.is_channel(name) or ttypes.is_global(name) # FIXME
+        self.valid = lambda x: str(x) in ttypes.triggers
 
     def paint(self, colours, paint, rect, opt, cursor):
         if self == 'cn-':

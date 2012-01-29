@@ -23,9 +23,9 @@ class ChSelect(QtGui.QSpinBox):
     def __init__(self, index, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         self._index = index
-        self.setMinimum(-1)
+        self.setMinimum(0)
         self.setMaximum(lim.COLUMNS_MAX - 1)
-        self.setValue(-1)
+        self.setValue(0)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self._changed)
@@ -48,6 +48,7 @@ class ChSelect(QtGui.QSpinBox):
         self.setValue(value)
         self.blockSignals(False)
 
+    """
     def allow(self, glob, ch):
         assert glob or ch
         self.blockSignals(True)
@@ -58,6 +59,7 @@ class ChSelect(QtGui.QSpinBox):
         if not ch:
             self.setMaximum(-1)
         self.blockSignals(False)
+    """
 
     def _changed(self, value):
         QtCore.QObject.emit(self,

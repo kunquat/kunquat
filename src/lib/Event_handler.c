@@ -850,7 +850,7 @@ bool Event_handler_trigger(Event_handler* eh,
                            bool silent)
 {
     assert(eh != NULL);
-    assert(index >= -1);
+    assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(desc != NULL);
     Read_state* state = READ_STATE_AUTO;
@@ -875,12 +875,7 @@ bool Event_handler_trigger(Event_handler* eh,
         return false;
     }
 #endif
-    General_state* gstate = (General_state*)eh->global_state;
-    if (index >= 0)
-    {
-        gstate = (General_state*)eh->ch_states[index];
-    }
-    if (!General_state_events_enabled(gstate) &&
+    if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
             type != EVENT_GENERAL_IF && type != EVENT_GENERAL_END_IF)
     {
         return true;
@@ -937,23 +932,20 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         return false;
     }
-    Target_event* call = NULL;
-    if (index >= 0)
-    {
-        call = Call_map_get_first(eh->global_state->call_map,
-                                  eh->ch_states[index]->event_cache,
-                                  eh->global_state->parent.env,
-                                  event_name,
-                                  value);
-        while (call != NULL)
-        {
-            Event_handler_trigger(eh, index, call->desc, silent);
-            call = call->next;
-        }
-    }
     if (!Event_handler_handle(eh, index, type, value))
     {
         return false;
+    }
+    Target_event* call = NULL;
+    call = Call_map_get_first(eh->global_state->call_map,
+                              eh->ch_states[index]->event_cache,
+                              eh->global_state->parent.env,
+                              event_name,
+                              value);
+    while (call != NULL)
+    {
+        Event_handler_trigger(eh, index, call->desc, silent);
+        call = call->next;
     }
     if (!silent)
     {
@@ -974,12 +966,8 @@ bool Event_handler_trigger(Event_handler* eh,
                 type == EVENT_CONTROL_ENV_SET_TIMESTAMP)
         {
             Active_names* active_names =
-                    eh->global_state->parent.active_names;
-            if (index >= 0)
-            {
-                active_names = eh->ch_states[index]->parent.active_names;
-            }
-            int channel = -2;
+                    eh->ch_states[index]->parent.active_names;
+            int channel = -1;
             bool found = Set_map_get_first(eh->global_state->set_map,
                                            active_names,
                                            desc,

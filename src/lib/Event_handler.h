@@ -217,9 +217,9 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
  * Triggers an Event.
  *
  * \param eh       The Event handler -- must not be \c NULL.
- * \param index    The index number -- must be >= \c -1 and
+ * \param index    The index number -- must be >= \c 0 and
  *                 < \c KQT_COLUMNS_MAX. This should match the channel where
- *                 the Event is triggered. \c -1 is used for global Column.
+ *                 the Event is triggered.
  * \param desc     The Event description in JSON format -- must not be \c NULL.
  * \param silent   Silent mode indicator.
  *

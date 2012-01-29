@@ -30,6 +30,7 @@ def isfinite(x):
     return not (math.isinf(x) or math.isnan(x))
 
 
+"""
 def is_global(ttype):
     ttype = str(ttype)
     return ttype in global_triggers or ttype in general_triggers
@@ -38,6 +39,7 @@ def is_global(ttype):
 def is_channel(ttype):
     ttype = str(ttype)
     return ttype in channel_triggers or ttype in general_triggers
+"""
 
 
 def is_key(value):
@@ -69,7 +71,7 @@ any_str = (str, lambda x: x != None, '')
 cond_str = (str, lambda x: all(is_cond_char(c) for c in str(x)), '')
 
 
-global_triggers = {
+triggers = {
         'wpd': [nonneg_ts],
         'w.jc': [(int, lambda x: x >= 0 and x < 65536, 0)],
         'w.jr': [nonneg_ts],
@@ -89,9 +91,7 @@ global_triggers = {
         'w.v': [volume],
         'w/v': [volume],
         'w/=v': [nonneg_ts],
-}
 
-channel_triggers = {
         'c.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
         'c.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
         'c.e': [(int, lambda x: x >= 0 and x < lim.EFFECTS_MAX, 0)],
@@ -172,9 +172,7 @@ channel_triggers = {
         'd.F': [any_float],
         'd.Tn': [key],
         'd.T': [any_ts],
-}
 
-general_triggers = {
         '#': [any_str],
 
         '#?': [cond_str],

@@ -250,8 +250,7 @@ class RHandle(object):
 
         Arguments:
         channel -- The channel where the event takes place. The channel
-                   number is >= 0 and < 64 for regular channels, and -1
-                   for the global channel.
+                   number is >= 0 and < 64.
         event -- The event description in JSON format.  The description
                  is a pair (list with two elements) with the event name
                  as the first element and its argument list as the

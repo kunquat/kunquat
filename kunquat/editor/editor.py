@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -263,7 +263,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(-1, '[">pattern", [{0}]'.format(pattern))
+        self.handle.fire(0, '[">pattern", [{0}]'.format(pattern))
         self._set_turing(self._turing)
 
     def play_from(self, subsong, section, beats, rem):
@@ -273,9 +273,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(-1, '[">.gs", [{0}]]'.format(section))
-        self.handle.fire(-1, '[">.gr", [[{0}, {1}]]]'.format(beats, rem))
-        self.handle.fire(-1, '[">g", []]')
+        self.handle.fire(0, '[">.gs", [{0}]]'.format(section))
+        self.handle.fire(0, '[">.gr", [[{0}, {1}]]]'.format(beats, rem))
+        self.handle.fire(0, '[">g", []]')
         self._set_turing(self._turing)
 
     def play_event(self, *args):
@@ -283,7 +283,7 @@ class KqtEditor(QtGui.QMainWindow):
         event = str(event)
         if not self.playing:
             self.playing = True
-            self.handle.fire(-1, '[">pause", []]')
+            self.handle.fire(0, '[">pause", []]')
         self.handle.fire(channel, event)
 
     def save(self):
@@ -327,8 +327,8 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _set_turing(self, x):
         self._turing = x
-        self.handle.fire(-1, '[">Turing", [{0}]'.format(
-                             'true' if self._turing else 'false'))
+        self.handle.fire(0, '[">Turing", [{0}]'.format(
+                            'true' if self._turing else 'false'))
 
     def set_appearance(self):
         # FIXME: size and title

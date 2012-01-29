@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -159,9 +159,9 @@ class Variables(QtGui.QTableWidget):
                 value = int(value_item.text())
             except ValueError:
                 return
-            self._project.handle.fire(-1,
+            self._project.handle.fire(0,
                     '[">.In", ["{}"]]'.format(name))
-            self._project.handle.fire(-1,
+            self._project.handle.fire(0,
                     '[">.I", [{:d}]]'.format(value))
         elif var_type == 'float':
             value_item = self.item(row, 3)
@@ -171,9 +171,9 @@ class Variables(QtGui.QTableWidget):
                 value = float(value_item.text())
             except ValueError:
                 return
-            self._project.handle.fire(-1,
+            self._project.handle.fire(0,
                     '[">.Fn", ["{}"]]'.format(name))
-            self._project.handle.fire(-1,
+            self._project.handle.fire(0,
                     '[">.F", [{:.17f}]]'.format(value))
 
     def _flatten(self):
@@ -262,9 +262,9 @@ class BoolMod(QtGui.QCheckBox):
     def _changed(self, value):
         if not self.name:
             return
-        self._project.handle.fire(-1,
+        self._project.handle.fire(0,
                 '[">.Bn", ["{}"]]'.format(self.name))
-        self._project.handle.fire(-1,
+        self._project.handle.fire(0,
                 '[">.B", [{}]]'.format('true' if self.isChecked()
                                               else 'false'))
 
