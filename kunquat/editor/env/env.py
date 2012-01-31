@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@ from __future__ import print_function
 
 from PyQt4 import QtCore, QtGui
 
+from callmap import CallMap
 from setmap import SetMap
 from variables import Variables
 
@@ -37,18 +38,22 @@ class Env(QtGui.QWidget):
         self._vars = Variables(project, 'p_environment.json')
         vars_layout.addWidget(self._vars)
 
-        set_map_layout = QtGui.QVBoxLayout()
-        set_map_layout.setMargin(0)
-        set_map_layout.setSpacing(0)
-        set_map_layout.addWidget(QtGui.QLabel('Set map'))
+        map_layout = QtGui.QVBoxLayout()
+        map_layout.setMargin(0)
+        map_layout.setSpacing(0)
+        map_layout.addWidget(QtGui.QLabel('Set map'))
         self._set_map = SetMap(project)
-        set_map_layout.addWidget(self._set_map, 1)
+        map_layout.addWidget(self._set_map, 1)
+        map_layout.addWidget(QtGui.QLabel('Call map'))
+        self._call_map = CallMap(project)
+        map_layout.addWidget(self._call_map, 1)
 
         layout.addLayout(vars_layout, 1)
-        layout.addLayout(set_map_layout, 2)
+        layout.addLayout(map_layout, 2)
 
     def sync(self):
         self._vars.sync()
         self._set_map.sync()
+        self._call_map.sync()
 
 
