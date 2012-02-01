@@ -36,6 +36,9 @@ class CallMap(QtGui.QWidget):
         QtCore.QObject.connect(self._fe,
                                QtCore.SIGNAL('nameChanged(int, QString*)'),
                                self._fe_name_changed)
+        QtCore.QObject.connect(self._bindspec,
+                               QtCore.SIGNAL('bindChanged()'),
+                               self._bind_changed)
         self.set_key('p_call_map.json')
 
     def set_key(self, key):
@@ -68,6 +71,9 @@ class CallMap(QtGui.QWidget):
             self._data.extend([[name, [], []]])
         else:
             self._data[index][0] = name
+        self._flatten()
+
+    def _bind_changed(self):
         self._flatten()
 
     def _flatten(self):
@@ -154,6 +160,8 @@ class FiringEvents(QtGui.QTableWidget):
 
 class BindSpec(QtGui.QWidget):
 
+    bindChanged = QtCore.pyqtSignal(name='bindChanged')
+
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
         layout = QtGui.QHBoxLayout(self)
@@ -163,6 +171,12 @@ class BindSpec(QtGui.QWidget):
         self._actions = BindActions()
         layout.addWidget(self._conds)
         layout.addWidget(self._actions)
+        QtCore.QObject.connect(self._conds,
+                               QtCore.SIGNAL('changed()'),
+                               self._modified)
+        QtCore.QObject.connect(self._actions,
+                               QtCore.SIGNAL('changed()'),
+                               self._modified)
 
     def set_spec(self, conditions, actions):
         self.blockSignals(True)
@@ -172,14 +186,22 @@ class BindSpec(QtGui.QWidget):
         finally:
             self.blockSignals(False)
 
+    def _modified(self):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('bindChanged()'))
+
 
 class BindConditions(QtGui.QTableWidget):
+
+    changed = QtCore.pyqtSignal(name='changed')
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
         self.setHorizontalHeaderLabels(['Event', 'Condition'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self._changed)
 
     def set_conditions(self, conditions):
         self.blockSignals(True)
@@ -199,9 +221,23 @@ class BindConditions(QtGui.QTableWidget):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
+        self._conditions = conditions
 
     def _append_row(self):
         self.insertRow(self.rowCount())
+
+    def _changed(self, row, col):
+        text = str(self.item(row, col).text())
+        if row >= len(self._conditions):
+            assert row == len(self._conditions)
+            cond = ['', '']
+            cond[col] = text
+            self._conditions.extend([cond])
+        else:
+            self._conditions[row][col] = text
+        QtCore.QObject.emit(self, QtCore.SIGNAL('changed()'))
+        if row == self.rowCount() - 1 and text:
+            self._append_row()
 
 
 class BindActions(QtGui.QTableWidget):
@@ -230,6 +266,7 @@ class BindActions(QtGui.QTableWidget):
                 self.removeRow(self.rowCount() - 1)
         finally:
             self.blockSignals(False)
+        self._actions = actions
 
     def _append_row(self):
         self.insertRow(self.rowCount())
