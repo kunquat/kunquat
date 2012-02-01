@@ -242,11 +242,16 @@ class BindConditions(QtGui.QTableWidget):
 
 class BindActions(QtGui.QTableWidget):
 
+    changed = QtCore.pyqtSignal(name='changed')
+
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
         self.setHorizontalHeaderLabels(['Event', 'Argument'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+        QtCore.QObject.connect(self,
+                               QtCore.SIGNAL('cellChanged(int, int)'),
+                               self._changed)
 
     def set_actions(self, actions):
         self.blockSignals(True)
@@ -270,5 +275,20 @@ class BindActions(QtGui.QTableWidget):
 
     def _append_row(self):
         self.insertRow(self.rowCount())
+
+    def _changed(self, row, col):
+        text = str(self.item(row, col).text())
+        if col == 1:
+            text = [text]
+        if row >= len(self._actions):
+            assert row == len(self._actions)
+            action = ['', ['']]
+            action[col] = text
+            self._actions.extend([action])
+        else:
+            self._actions[row][col] = text
+        QtCore.QObject.emit(self, QtCore.SIGNAL('changed()'))
+        if row == self.rowCount() - 1 and text and text[0]:
+            self._append_row()
 
 
