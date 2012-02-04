@@ -883,7 +883,7 @@ bool Event_handler_trigger(Event_handler* eh,
     Value* value = VALUE_AUTO;
     Event_field_type field_type = Event_names_get_param_type(eh->event_names,
                                                              event_name);
-    str = read_const_char(str, '[', state);
+    //str = read_const_char(str, '[', state);
     if (state->error)
     {
         return false;
@@ -892,6 +892,8 @@ bool Event_handler_trigger(Event_handler* eh,
     {
         case EVENT_FIELD_NONE:
         {
+            value->type = VALUE_TYPE_NONE;
+            str = read_null(str, state);
         } break;
         case EVENT_FIELD_BOOL:
         {
@@ -927,7 +929,7 @@ bool Event_handler_trigger(Event_handler* eh,
         default:
             assert(false);
     }
-    str = read_const_char(str, ']', state);
+    //str = read_const_char(str, ']', state);
     if (state->error)
     {
         return false;

@@ -90,7 +90,7 @@ class CallMap(QtGui.QWidget):
             a = []
             for action in binding[2]:
                 if action[0] not in ttypes.triggers or action[0] == 'wj' or \
-                        not action[1][0]:
+                        not action[1]:
                     continue
                 a.extend([[action[0], action[1]]])
             m.extend([[binding[0], c, a]])
@@ -261,7 +261,7 @@ class BindActions(QtGui.QTableWidget):
                 if index >= self.rowCount():
                     self._append_row()
                 self.setItem(index, 0, QtGui.QTableWidgetItem(action[0]))
-                self.setItem(index, 1, QtGui.QTableWidgetItem(str(action[1][0])))
+                self.setItem(index, 1, QtGui.QTableWidgetItem(str(action[1])))
                 index += 1
             if index >= self.rowCount():
                 self._append_row()
@@ -278,17 +278,15 @@ class BindActions(QtGui.QTableWidget):
 
     def _changed(self, row, col):
         text = str(self.item(row, col).text())
-        if col == 1:
-            text = [text]
         if row >= len(self._actions):
             assert row == len(self._actions)
-            action = ['', ['']]
+            action = ['', '']
             action[col] = text
             self._actions.extend([action])
         else:
             self._actions[row][col] = text
         QtCore.QObject.emit(self, QtCore.SIGNAL('changed()'))
-        if row == self.rowCount() - 1 and text and text[0]:
+        if row == self.rowCount() - 1 and text:
             self._append_row()
 
 

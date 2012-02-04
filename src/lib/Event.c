@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -55,11 +55,113 @@ char* Event_type_get_fields(char* str,
     assert(str != NULL);
     assert(field_descs != NULL);
     assert(state != NULL);
-    str = read_const_char(str, '[', state);
+    //str = read_const_char(str, '[', state);
     if (state->error)
     {
         return str;
     }
+    const char* error_message = "Event argument is not inside valid range";
+    switch (field_descs[0].type)
+    {
+        case EVENT_FIELD_NONE:
+        {
+            str = read_null(str, state);
+        } break;
+        case EVENT_FIELD_BOOL:
+        {
+            bool* value = fields != NULL ?
+                              &fields[0].field.bool_type : NULL;
+            str = read_bool(str, value, state);
+            if (state->error)
+            {
+                return str;
+            }
+        } break;
+        case EVENT_FIELD_INT:
+        {
+            int64_t num = 0;
+            str = read_int(str, &num, state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (num < field_descs[0].min.field.integral_type ||
+                    num > field_descs[0].max.field.integral_type)
+            {
+                Read_state_set_error(state, error_message);
+                return str;
+            }
+            if (fields != NULL)
+            {
+                fields[0].field.integral_type = num;
+            }
+        } break;
+        case EVENT_FIELD_DOUBLE:
+        {
+            double num = NAN;
+            str = read_double(str, &num, state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (num < field_descs[0].min.field.double_type ||
+                    num > field_descs[0].max.field.double_type)
+            {
+                Read_state_set_error(state, error_message);
+                return str;
+            }
+            if (fields != NULL)
+            {
+                fields[0].field.double_type = num;
+            }
+        } break;
+        case EVENT_FIELD_REAL:
+        {
+            Real* value = fields != NULL ?
+                              &fields[0].field.Real_type : NULL;
+            double numd = NAN;
+            str = read_tuning(str, value, &numd, state);
+            if (state->error)
+            {
+                return str;
+            }
+        } break;
+        case EVENT_FIELD_RELTIME:
+        {
+            Reltime* rt = RELTIME_AUTO;
+            str = read_reltime(str, rt, state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (Reltime_cmp(rt, &field_descs[0].min.field.Reltime_type) < 0 ||
+                    Reltime_cmp(rt, &field_descs[0].max.field.Reltime_type) > 0)
+            {
+                Read_state_set_error(state, error_message);
+                return str;
+            }
+            if (fields != NULL)
+            {
+                Reltime_copy(&fields[0].field.Reltime_type, rt);
+            }
+        } break;
+        case EVENT_FIELD_STRING:
+        {
+            char* str_pos = str;
+            str = read_string(str, NULL, 0, state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (fields != NULL)
+            {
+                fields[0].field.string_type = str_pos;
+            }
+        } break;
+        default:
+            assert(false);
+    }
+#if 0
     for (int i = 0; field_descs[i].type != EVENT_FIELD_NONE; ++i)
     {
         if (i > 0)
@@ -175,7 +277,8 @@ char* Event_type_get_fields(char* str,
             break;
         }
     }
-    str = read_const_char(str, ']', state);
+#endif
+    //str = read_const_char(str, ']', state);
     return str;
 }
 

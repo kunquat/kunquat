@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -46,11 +46,15 @@ class Timestamp(tuple):
         return tuple(self) <= tuple(other)
 
     def __eq__(self, other):
+        if other == None:
+            return False
         if not isinstance(other, Timestamp):
             other = Timestamp(other)
         return tuple(self) == tuple(other)
 
     def __ne__(self, other):
+        if other == None:
+            return True
         if not isinstance(other, Timestamp):
             other = Timestamp(other)
         return tuple(self) != tuple(other)

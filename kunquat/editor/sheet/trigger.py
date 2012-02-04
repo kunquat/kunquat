@@ -49,50 +49,50 @@ class Trigger(list):
             self.type_info = ttypes.triggers[self[0]]
             lv = takewhile(lambda x: x[0],
                            izip_longest(self.type_info, self[1]))
-            self[1] = []
+            self[1] = None
             for limits, value in lv:
                 cons, valid, default = limits
                 try:
                     if valid(value):
-                        self[1].append(cons(value))
+                        self[1] = cons(value)
                     else:
-                        self[1].append(default)
+                        self[1] = default
                 except TypeError:
-                    self[1].append(default)
+                    self[1] = default
             if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonb')
+                self[1] = key_to_param(self[1], 'p_', '.jsonb')
             elif self[0] in ('c.gIn', 'g.In', 'd.In'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsoni')
+                self[1] = key_to_param(self[1], 'p_', '.jsoni')
             elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonf')
+                self[1] = key_to_param(self[1], 'p_', '.jsonf')
             elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsont')
-        else:
-            self[1] = list(fields)
+                self[1] = key_to_param(self[1], 'p_', '.jsont')
+        #else:
+        #    self[1] = list(fields)
 
     def flatten(self):
         if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonb')] +
-                              self[1][1:]]
+            return [self[0], param_to_key(self[1], 'p_', '.jsonb')]
         elif self[0] in ('c.gIn', 'g.In', 'd.In'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsoni')] +
-                              self[1][1:]]
+            return [self[0], param_to_key(self[1], 'p_', '.jsoni')]
         elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonf')] +
-                              self[1][1:]]
+            return [self[0], param_to_key(self[1], 'p_', '.jsonf')]
         elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsont')] +
-                              self[1][1:]]
+            return [self[0], param_to_key(self[1], 'p_', '.jsont')]
         return self
 
     def set_value(self, cursor_pos, value):
+        assert cursor_pos < 2
         if self[0] not in hidden_types:
             if cursor_pos == 0:
                 self.set_type(value)
                 return
-            cursor_pos -= 1
-        cons, valid, default = self.type_info[cursor_pos]
-        self[1][cursor_pos] = cons(value)
+            #cursor_pos -= 1
+        else:
+            assert cursor_pos == 0
+            cursor_pos = 1
+        cons, valid, default = self.type_info[0]
+        self[1] = cons(value)
 
     def cursor_area(self, index):
         start = self.margin
@@ -105,7 +105,8 @@ class Trigger(list):
         else:
             # compensate for removal of trigger name
             start -= self.padding
-        for field in self[1]:
+        if self[1] != None:
+            field = self[1]
             fw = self.field_width(field)
             if index == 0:
                 return start + self.padding, fw - self.padding
@@ -115,13 +116,17 @@ class Trigger(list):
         return start + self.margin, 0
 
     def get_field_info(self, cursor_pos):
+        assert cursor_pos < 2
         if self[0] not in hidden_types:
             # ignore the trigger name
             if cursor_pos == 0:
                 return self[0], None
-            cursor_pos -= 1
-        if cursor_pos >= 0 and cursor_pos < len(self[1]):
-            return self[1][cursor_pos], self.type_info[cursor_pos][1]
+            #cursor_pos -= 1
+        else:
+            assert cursor_pos == 0
+            cursor_pos = 1
+        if 0 <= cursor_pos < 2:
+            return self[cursor_pos], self.type_info[0][1]
         return None
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
@@ -158,7 +163,8 @@ class Trigger(list):
             offset -= self.padding
 
         # paint the fields
-        for field in self[1]:
+        if self[1] != None:
+            field = self[1]
             field_rect = QtCore.QRectF(rect)
             field_rect.moveLeft(rect.left() + offset + self.padding)
             field_width = self.field_width(field)
@@ -231,17 +237,17 @@ class Trigger(list):
 
     def slots(self):
         if self[0] in hidden_types:
-            return len(self[1])
-        return 1 + len(self[1])
+            return 1
+        return 2 if self[1] != None else 1
 
     def width(self):
-        fields_width = sum(self.field_width(f) for f in self[1])
+        field_width = self.field_width(self[1]) if self[1] != None else 0
         type_width = -self.padding
         if self[0] == 'cn-':
             type_width = self.metrics.width(note_off_str)
         elif self[0] not in hidden_types:
             type_width = self.metrics.width(self[0])
-        return type_width + fields_width + 2 * self.margin
+        return type_width + field_width + 2 * self.margin
 
 
 class TriggerType(str):
