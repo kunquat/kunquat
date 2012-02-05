@@ -45,7 +45,8 @@ typedef struct Operator
 static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
-                            Value* meta, Value* res, int depth);
+                            Value* meta, Value* res, int depth,
+                            bool func_arg);
 
 
 static bool handle_unary(Value* val, bool found_not, bool found_minus,
@@ -110,6 +111,32 @@ static Operator operators[] =
 };
 
 
+typedef bool (*Func)(Value* args, Value* res, Read_state* state);
+
+
+#define FUNC_ARGS_MAX 4
+
+
+static bool token_is_func(char* token, Func* res);
+
+
+typedef struct Func_desc
+{
+    char* name;
+    Func func;
+} Func_desc;
+
+
+static bool func_ts(Value* args, Value* res, Read_state* state);
+
+
+static Func_desc funcs[] =
+{
+    { .name = "ts", .func = func_ts },
+    { .name = NULL, .func = NULL }
+};
+
+
 char* evaluate_expr(char* str,
                     Environment* env,
                     Read_state* state,
@@ -131,7 +158,7 @@ char* evaluate_expr(char* str,
         meta = VALUE_AUTO;
     }
     return evaluate_expr_(str, env, state, val_stack, 0, op_stack, 0,
-                          meta, res, 0);
+                          meta, res, 0, false);
 }
 
 
@@ -148,7 +175,8 @@ char* evaluate_expr(char* str,
 static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
-                            Value* meta, Value* res, int depth)
+                            Value* meta, Value* res, int depth,
+                            bool func_arg)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -177,12 +205,14 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     bool expect_operand = true;
     bool found_not = false;
     bool found_minus = false;
+    char* prev_pos = str;
     str = get_token(str, token, state);
     while (!state->error && !string_eq(token, "") &&
-            !string_eq(token, ")"))
+            !string_eq(token, ")") && (!func_arg || !string_eq(token, ",")))
     {
         Value* operand = VALUE_AUTO;
         Operator* op = OPERATOR_AUTO;
+        Func func = NULL;
         if (string_eq(token, "("))
         {
             if (!expect_operand)
@@ -192,7 +222,8 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             }
             check_stack(vsi);
             str = evaluate_expr_(str, env, state, val_stack, vsi,
-                                 op_stack, osi, meta, operand, depth + 1);
+                                 op_stack, osi, meta, operand, depth + 1,
+                                 false);
             if (state->error)
             {
                 return str;
@@ -202,6 +233,64 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             {
                 return str;
             }
+            found_not = found_minus = false;
+            memcpy(&val_stack[vsi], operand, sizeof(Value));
+            ++vsi;
+            expect_operand = false;
+        }
+        else if (token_is_func(token, &func))
+        {
+            if (!expect_operand)
+            {
+                Read_state_set_error(state, "Unexpected function");
+                return str;
+            }
+            check_stack(vsi);
+            assert(func != NULL);
+            Value func_args[FUNC_ARGS_MAX] = { { .type = VALUE_TYPE_NONE } };
+            str = read_const_char(str, '(', state);
+            if (state->error)
+            {
+                return str;
+            }
+            int i = 0;
+            str = read_const_char(str, ')', state);
+            if (state->error)
+            {
+                Read_state_clear_error(state);
+                for (i = 0; i < FUNC_ARGS_MAX; ++i)
+                {
+                    str = evaluate_expr_(str, env, state, val_stack, vsi,
+                                         op_stack, osi, meta, &func_args[i],
+                                         depth + 1, true);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                    assert(func_args[i].type != VALUE_TYPE_NONE);
+                    str = read_const_char(str, ')', state);
+                    if (!state->error)
+                    {
+                        break;
+                    }
+                    Read_state_clear_error(state);
+                    str = read_const_char(str, ',', state);
+                    if (state->error)
+                    {
+                        return str;
+                    }
+                }
+            }
+            if (i < FUNC_ARGS_MAX)
+            {
+                func_args[i].type = VALUE_TYPE_NONE;
+            }
+            if (!func(func_args, operand, state))
+            {
+                assert(state->error);
+                return str;
+            }
+            assert(operand->type != VALUE_TYPE_NONE);
             found_not = found_minus = false;
             memcpy(&val_stack[vsi], operand, sizeof(Value));
             ++vsi;
@@ -244,6 +333,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                     Read_state_set_error(state, "Unexpected binary operator");
                     return str;
                 }
+                prev_pos = str;
                 str = get_token(str, token, state);
                 continue;
             }
@@ -288,6 +378,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             Read_state_set_error(state, "Unrecognised token");
             return str;
         }
+        prev_pos = str;
         str = get_token(str, token, state);
     }
     if (state->error)
@@ -335,10 +426,30 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     assert(vsi > orig_vsi);
     memcpy(res, &val_stack[vsi - 1], sizeof(Value));
     assert(res->type != VALUE_TYPE_NONE);
+    if (func_arg)
+    {
+        str = prev_pos;
+    }
     return str;
 }
 
 #undef check_stack
+
+
+static bool token_is_func(char* token, Func* res)
+{
+    assert(token != NULL);
+    assert(res != NULL);
+    for (int i = 0; funcs[i].name != NULL; ++i)
+    {
+        if (string_eq(funcs[i].name, token))
+        {
+            *res = funcs[i].func;
+            return true;
+        }
+    }
+    return false;
+}
 
 
 static bool handle_unary(Value* val, bool found_not, bool found_minus,
@@ -561,9 +672,10 @@ static char* get_token(char* str, char* result, Read_state* state)
     {
         return get_str_token(str, result, state);
     }
-    else if (str[0] == '$')
+    else if (strchr("$,", str[0]) != NULL)
     {
-        strcpy(result, "$");
+        result[0] = str[0];
+        result[1] = '\0';
         return str + 1;
     }
     else if (strchr(ENV_VAR_INIT_CHARS, *str) != NULL)
@@ -1172,6 +1284,80 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
     }
     res->type = VALUE_TYPE_FLOAT;
     res->value.float_type = pow(base, exp);
+    return true;
+}
+
+
+static bool func_ts(Value* args, Value* res, Read_state* state)
+{
+    assert(args != NULL);
+    assert(res != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    res->type = VALUE_TYPE_TIMESTAMP;
+    Reltime_init(&res->value.Timestamp_type);
+    if (args[0].type == VALUE_TYPE_NONE)
+    {
+        return true;
+    }
+    else if (args[0].type == VALUE_TYPE_TIMESTAMP)
+    {
+        Value_copy(res, &args[0]);
+        return true;
+    }
+    else if (args[0].type == VALUE_TYPE_INT)
+    {
+        Reltime_set(&res->value.Timestamp_type, args[0].value.int_type, 0);
+    }
+    else if (args[0].type == VALUE_TYPE_FLOAT)
+    {
+        double beats = floor(args[0].value.float_type);
+        Reltime_set(&res->value.Timestamp_type, beats,
+                    (args[0].value.float_type - beats) * KQT_RELTIME_BEAT);
+    }
+    else
+    {
+        res->type = VALUE_TYPE_NONE;
+        Read_state_set_error(state, "Invalid beat type");
+        return false;
+    }
+    if (args[1].type == VALUE_TYPE_NONE)
+    {
+        return true;
+    }
+    else if (args[1].type == VALUE_TYPE_INT)
+    {
+        if (args[1].value.int_type < 0 ||
+                args[1].value.int_type >= KQT_RELTIME_BEAT)
+        {
+            res->type = VALUE_TYPE_NONE;
+            Read_state_set_error(state, "Invalid beat value");
+            return false;
+        }
+        Reltime_add(&res->value.Timestamp_type, &res->value.Timestamp_type,
+                    Reltime_set(RELTIME_AUTO, 0, args[1].value.int_type));
+    }
+    else if (args[1].type == VALUE_TYPE_FLOAT)
+    {
+        if (args[1].value.float_type < 0 ||
+                args[1].value.float_type >= KQT_RELTIME_BEAT)
+        {
+            res->type = VALUE_TYPE_NONE;
+            Read_state_set_error(state, "Invalid beat value");
+            return false;
+        }
+        Reltime_add(&res->value.Timestamp_type, &res->value.Timestamp_type,
+                    Reltime_set(RELTIME_AUTO, 0, args[1].value.float_type));
+    }
+    else
+    {
+        res->type = VALUE_TYPE_NONE;
+        Read_state_set_error(state, "Invalid remainder type");
+        return false;
+    }
     return true;
 }
 
