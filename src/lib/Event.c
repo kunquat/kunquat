@@ -60,13 +60,32 @@ char* Event_type_get_fields(char* str,
     {
         return str;
     }
-    const char* error_message = "Event argument is not inside valid range";
+    //const char* error_message = "Event argument is not inside valid range";
     switch (field_descs[0].type)
     {
         case EVENT_FIELD_NONE:
         {
             str = read_null(str, state);
         } break;
+        case EVENT_FIELD_BOOL:
+        case EVENT_FIELD_INT:
+        case EVENT_FIELD_DOUBLE:
+        case EVENT_FIELD_REAL:
+        case EVENT_FIELD_RELTIME:
+        case EVENT_FIELD_STRING:
+        {
+            char* str_pos = str;
+            str = read_string(str, NULL, 0, state);
+            if (state->error)
+            {
+                return str;
+            }
+            if (fields != NULL)
+            {
+                fields[0].field.string_type = str_pos;
+            }
+        } break;
+#if 0
         case EVENT_FIELD_BOOL:
         {
             bool* value = fields != NULL ?
@@ -158,6 +177,7 @@ char* Event_type_get_fields(char* str,
                 fields[0].field.string_type = str_pos;
             }
         } break;
+#endif
         default:
             assert(false);
     }

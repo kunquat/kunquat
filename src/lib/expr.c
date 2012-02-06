@@ -147,6 +147,7 @@ char* evaluate_expr(char* str,
     assert(env != NULL);
     assert(state != NULL);
     assert(res != NULL);
+    str = read_const_char(str, '"', state);
     if (state->error)
     {
         return str;
@@ -271,6 +272,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                     str = read_const_char(str, ')', state);
                     if (!state->error)
                     {
+                        ++i;
                         break;
                     }
                     Read_state_clear_error(state);
@@ -385,7 +387,8 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     {
         return str;
     }
-    assert(string_eq(token, "") || string_eq(token, ")"));
+    assert(string_eq(token, "") || string_eq(token, ")") ||
+            (func_arg && string_eq(token, ",")));
     if (vsi <= orig_vsi)
     {
         assert(vsi == orig_vsi);
@@ -531,7 +534,7 @@ static bool Value_from_token(Value* val, char* token,
     {
         char* end_str = "'";
         ++token;
-        if (string_has_prefix(token, "\\\""))
+        if (token[0] == '"')
         {
             end_str = "\\\"";
             ++token;

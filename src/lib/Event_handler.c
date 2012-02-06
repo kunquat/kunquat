@@ -22,6 +22,7 @@
 #include <Event_handler.h>
 #include <Event_names.h>
 #include <Event_type.h>
+#include <expr.h>
 #include <File_base.h>
 #include <Channel_state.h>
 #include <General_state.h>
@@ -884,56 +885,102 @@ bool Event_handler_trigger(Event_handler* eh,
     Event_field_type field_type = Event_names_get_param_type(eh->event_names,
                                                              event_name);
     //str = read_const_char(str, '[', state);
-    if (state->error)
+    //if (state->error)
+    //{
+    //    return false;
+    //}
+    if (field_type == EVENT_FIELD_NONE)
     {
-        return false;
+        value->type = VALUE_TYPE_NONE;
+        str = read_null(str, state);
     }
-    switch (field_type)
+    else
     {
-        case EVENT_FIELD_NONE:
+        str = evaluate_expr(str, eh->global_state->parent.env, state,
+                            NULL, value);
+        if (state->error)
         {
-            value->type = VALUE_TYPE_NONE;
-            str = read_null(str, state);
-        } break;
-        case EVENT_FIELD_BOOL:
+            return false;
+        }
+        switch (field_type)
         {
-            value->type = VALUE_TYPE_BOOL;
-            str = read_bool(str, &value->value.bool_type, state);
-        } break;
-        case EVENT_FIELD_INT:
-        {
-            value->type = VALUE_TYPE_INT;
-            str = read_int(str, &value->value.int_type, state);
-        } break;
-        case EVENT_FIELD_DOUBLE:
-        {
-            value->type = VALUE_TYPE_FLOAT;
-            str = read_double(str, &value->value.float_type, state);
-        } break;
-        case EVENT_FIELD_REAL:
-        {
-            value->type = VALUE_TYPE_REAL;
-            str = read_tuning(str, &value->value.Real_type, NULL, state);
-        } break;
-        case EVENT_FIELD_RELTIME:
-        {
-            value->type = VALUE_TYPE_TIMESTAMP;
-            str = read_reltime(str, &value->value.Timestamp_type, state);
-        } break;
-        case EVENT_FIELD_STRING:
-        {
-            value->type = VALUE_TYPE_STRING;
-            str = read_string(str, value->value.string_type,
-                              ENV_VAR_NAME_MAX, state);
-        } break;
-        default:
-            assert(false);
+            case EVENT_FIELD_BOOL:
+            {
+                if (value->type != VALUE_TYPE_BOOL)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_INT:
+            {
+                if (value->type == VALUE_TYPE_FLOAT)
+                {
+                    value->type = VALUE_TYPE_INT;
+                    value->value.int_type = value->value.float_type;
+                }
+                else if (value->type != VALUE_TYPE_INT)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_DOUBLE:
+            {
+                if (value->type == VALUE_TYPE_INT)
+                {
+                    value->type = VALUE_TYPE_FLOAT;
+                    value->value.float_type = value->value.int_type;
+                }
+                else if (value->type != VALUE_TYPE_FLOAT)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_REAL:
+            {
+                assert(false);
+            } break;
+            case EVENT_FIELD_RELTIME:
+            {
+                if (value->type == VALUE_TYPE_INT)
+                {
+                    value->type = VALUE_TYPE_TIMESTAMP;
+                    Reltime_set(&value->value.Timestamp_type,
+                                value->value.int_type, 0);
+                }
+                else if (value->type == VALUE_TYPE_FLOAT)
+                {
+                    value->type = VALUE_TYPE_TIMESTAMP;
+                    double beats = floor(value->value.float_type);
+                    Reltime_set(&value->value.Timestamp_type, beats,
+                                (value->value.float_type - beats) *
+                                    KQT_RELTIME_BEAT);
+                }
+                else if (value->type != VALUE_TYPE_TIMESTAMP)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_STRING:
+            {
+                if (value->type != VALUE_TYPE_STRING)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            default:
+                assert(false);
+        }
     }
     //str = read_const_char(str, ']', state);
-    if (state->error)
-    {
-        return false;
-    }
+    //if (state->error)
+    //{
+    //    return false;
+    //}
     if (!Event_handler_handle(eh, index, type, value))
     {
         return false;
