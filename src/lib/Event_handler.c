@@ -30,6 +30,7 @@
 #include <Ins_table.h>
 #include <Playdata.h>
 #include <kunquat/limits.h>
+#include <string_common.h>
 #include <Value.h>
 
 #include <Event_control_pause.h>
@@ -856,7 +857,7 @@ bool Event_handler_trigger(Event_handler* eh,
     assert(desc != NULL);
     Read_state* state = READ_STATE_AUTO;
     char* str = read_const_char(desc, '[', state);
-    char event_name[EVENT_NAME_MAX + 2] = { '\0' };
+    char event_name[EVENT_NAME_MAX + 2] = "";
     str = read_string(str, event_name, EVENT_NAME_MAX + 2, state);
     str = read_const_char(str, ',', state);
     if (state->error)
@@ -896,8 +897,18 @@ bool Event_handler_trigger(Event_handler* eh,
     }
     else
     {
-        str = evaluate_expr(str, eh->global_state->parent.env, state,
-                            NULL, value);
+        char* quote_pos = strrchr(event_name, '"');
+        if (quote_pos != NULL && string_eq(quote_pos, "\""))
+        {
+            value->type = VALUE_TYPE_STRING;
+            str = read_string(str, value->value.string_type,
+                              ENV_VAR_NAME_MAX, state);
+        }
+        else
+        {
+            str = evaluate_expr(str, eh->global_state->parent.env, state,
+                                NULL, value);
+        }
         if (state->error)
         {
             return false;

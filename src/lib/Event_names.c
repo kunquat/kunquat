@@ -188,6 +188,9 @@ struct Event_names
 };
 
 
+static int event_name_cmp(const char* e1, const char* e2);
+
+
 Event_names* new_Event_names(void)
 {
     Event_names* names = xalloc(Event_names);
@@ -196,7 +199,7 @@ Event_names* new_Event_names(void)
         return NULL;
     }
     names->error = false;
-    names->names = new_AAtree((int (*)(const void*, const void*))strcmp,
+    names->names = new_AAtree((int (*)(const void*, const void*))event_name_cmp,
                               (void (*)(void*))del_Name_info);
     if (names->names == NULL)
     {
@@ -215,6 +218,35 @@ Event_names* new_Event_names(void)
         }
     }
     return names;
+}
+
+
+static int event_name_cmp(const char* e1, const char* e2)
+{
+    assert(e1 != NULL);
+    assert(e2 != NULL);
+    int i = 0;
+    for (i = 0; e1[i] != '\0' && e1[i] != '"' &&
+                e2[i] != '\0' && e1[i] != '"'; ++i)
+    {
+        if (e1[i] < e2[i])
+        {
+            return -1;
+        }
+        else if (e1[i] > e2[i])
+        {
+            return 1;
+        }
+    }
+    if (e2[i] != '\0' && e2[i] != '"')
+    {
+        return -1;
+    }
+    if (e1[i] != '\0' && e1[i] != '"')
+    {
+        return 1;
+    }
+    return 0;
 }
 
 

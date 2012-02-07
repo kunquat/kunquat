@@ -21,7 +21,7 @@
 #include <Event_type.h>
 
 
-#define EVENT_NAME_MAX 11
+#define EVENT_NAME_MAX 12
 
 
 typedef struct Event_names Event_names;
