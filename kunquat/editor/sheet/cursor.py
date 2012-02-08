@@ -257,7 +257,8 @@ class Cursor(QtCore.QObject):
                 float_keys = int_keys + '.'
                 direct = False
                 info = trig.get_field_info(findex)[0]
-                event_type = ttypes.triggers[trig[0]]
+                name = trig[0][:-1] if trig[0].endswith('"') else trig[0]
+                event_type = ttypes.triggers[name]
                 field_type = event_type[0][0] if event_type else None
                 if field_type == int and \
                         ev.key() < 256 and chr(ev.key()) in int_keys:
@@ -269,7 +270,7 @@ class Cursor(QtCore.QObject):
                 elif field_type == ts.Timestamp and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
-                elif field_type == str and trig[0] != 'cn-' and ev.text():
+                elif field_type == str and name != 'cn-' and ev.text():
                     direct = True
                 elif field_type == bool and ev.text() in ('y', 't', 'n', 'f'):
                     direct = True

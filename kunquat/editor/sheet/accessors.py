@@ -92,7 +92,13 @@ class TypeEdit(StringEdit):
 
     def __init__(self, parent=None):
         super(TypeEdit, self).__init__(parent)
-        self.set_validator_func(lambda x: str(x) in ttypes.triggers)
+        self.set_validator_func(self.check_type)
+
+    def check_type(self, t):
+        t = str(t)
+        if t.endswith('"'):
+            t = t[:-1]
+        return t in ttypes.triggers
 
     def get_value(self):
         return trigger.TriggerType(self.text())

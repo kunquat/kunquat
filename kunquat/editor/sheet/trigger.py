@@ -46,7 +46,10 @@ class Trigger(list):
         self[0] = TriggerType(ttype)
         self.type_info = None
         if self[0].valid:
-            self.type_info = ttypes.triggers[self[0]]
+            name = self[0]
+            if name.endswith('"'):
+                name = name[:-1]
+            self.type_info = ttypes.triggers[name]
             #lv = takewhile(lambda x: x[0],
             #               izip_longest(self.type_info, [self[1]]))
             #self[1] = None
@@ -220,7 +223,10 @@ class Trigger(list):
         paint.drawText(rect, s, opt)
 
     def field_str(self, field):
-        event_type = ttypes.triggers[self[0]]
+        event_name = self[0]
+        if event_name.endswith('"'):
+            event_name = event_name[:-1]
+        event_type = ttypes.triggers[event_name]
         field_type = event_type[0][0] if event_type else None
         if field_type == ttypes.Note:
             try:
@@ -255,7 +261,13 @@ class Trigger(list):
 class TriggerType(str):
 
     def __init__(self, name):
-        self.valid = lambda x: str(x) in ttypes.triggers
+        pass
+
+    def valid(self, x):
+        x = str(x)
+        if x.endswith('"'):
+            x = x[:-1]
+        return x in ttypes.triggers
 
     def paint(self, colours, paint, rect, opt, cursor):
         if self == 'cn-':
