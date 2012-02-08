@@ -22,7 +22,7 @@ import kunquat.editor.trigtypes as ttypes
 
 class FuncValidator(QtGui.QValidator):
 
-    def __init__(self, func=lambda x: False):
+    def __init__(self, func=lambda x: True):
         super(FuncValidator, self).__init__()
         self.isvalid = func
 
@@ -77,7 +77,7 @@ class StringEdit(QtGui.QLineEdit):
         if ev.key() != QtCore.Qt.Key_Escape:
             ev.accept()
 
-    def set_validator_func(self, func):
+    def set_validator_func(self, func=lambda x: True):
         assert func
         self.setValidator(FuncValidator(func))
 
@@ -92,6 +92,7 @@ class TypeEdit(StringEdit):
 
     def __init__(self, parent=None):
         super(TypeEdit, self).__init__(parent)
+        self.set_validator_func(lambda x: str(x) in ttypes.triggers)
 
     def get_value(self):
         return trigger.TriggerType(self.text())

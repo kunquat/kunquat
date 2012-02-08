@@ -47,9 +47,12 @@ class Trigger(list):
         self.type_info = None
         if self[0].valid:
             self.type_info = ttypes.triggers[self[0]]
-            lv = takewhile(lambda x: x[0],
-                           izip_longest(self.type_info, self[1]))
-            self[1] = None
+            #lv = takewhile(lambda x: x[0],
+            #               izip_longest(self.type_info, [self[1]]))
+            #self[1] = None
+            if self.type_info and not self[1]:
+                self[1] = self.type_info[0][2]
+            """
             for limits, value in lv:
                 cons, valid, default = limits
                 try:
@@ -59,25 +62,26 @@ class Trigger(list):
                         self[1] = default
                 except TypeError:
                     self[1] = default
-            if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
+            """
+            if self[0] in ('c.gBn"', 'g.Bn"', 'd.Bn"'):
                 self[1] = key_to_param(self[1], 'p_', '.jsonb')
-            elif self[0] in ('c.gIn', 'g.In', 'd.In'):
+            elif self[0] in ('c.gIn"', 'g.In"', 'd.In"'):
                 self[1] = key_to_param(self[1], 'p_', '.jsoni')
-            elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
+            elif self[0] in ('c.gFn"', 'g.Fn"', 'd.Fn"'):
                 self[1] = key_to_param(self[1], 'p_', '.jsonf')
-            elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
+            elif self[0] in ('c.gTn"', 'g.Tn"', 'd.Tn"'):
                 self[1] = key_to_param(self[1], 'p_', '.jsont')
         #else:
         #    self[1] = list(fields)
 
     def flatten(self):
-        if self[0] in ('c.gBn', 'g.Bn', 'd.Bn'):
+        if self[0] in ('c.gBn"', 'g.Bn"', 'd.Bn"'):
             return [self[0], param_to_key(self[1], 'p_', '.jsonb')]
-        elif self[0] in ('c.gIn', 'g.In', 'd.In'):
+        elif self[0] in ('c.gIn"', 'g.In"', 'd.In"'):
             return [self[0], param_to_key(self[1], 'p_', '.jsoni')]
-        elif self[0] in ('c.gFn', 'g.Fn', 'd.Fn'):
+        elif self[0] in ('c.gFn"', 'g.Fn"', 'd.Fn"'):
             return [self[0], param_to_key(self[1], 'p_', '.jsonf')]
-        elif self[0] in ('c.gTn', 'g.Tn', 'd.Tn'):
+        elif self[0] in ('c.gTn"', 'g.Tn"', 'd.Tn"'):
             return [self[0], param_to_key(self[1], 'p_', '.jsont')]
         return self
 
@@ -92,7 +96,7 @@ class Trigger(list):
             assert cursor_pos == 0
             cursor_pos = 1
         cons, valid, default = self.type_info[0]
-        self[1] = cons(value)
+        self[1] = value
 
     def cursor_area(self, index):
         start = self.margin
@@ -120,7 +124,7 @@ class Trigger(list):
         if self[0] not in hidden_types:
             # ignore the trigger name
             if cursor_pos == 0:
-                return self[0], None
+                return self[0], lambda x: str(x) in ttypes.triggers
             #cursor_pos -= 1
         else:
             assert cursor_pos == 0
@@ -216,21 +220,19 @@ class Trigger(list):
         paint.drawText(rect, s, opt)
 
     def field_str(self, field):
-        if isinstance(field, ttypes.Note):
-            n, o, c = default_scale.get_display_info(field)
+        event_type = ttypes.triggers[self[0]]
+        field_type = event_type[0][0] if event_type else None
+        if field_type == ttypes.Note:
+            try:
+                cents = float(field)
+            except ValueError:
+                return field if field else "''"
+            n, o, c = default_scale.get_display_info(cents)
             c = int(round(c))
             if c == 0:
                 return '{0}{1}'.format(n, o)
             return '{0}{1}{2:+d}'.format(n, o, c)
-        if isinstance(field, ttypes.HitIndex):
-            return str(field)
-        if isinstance(field, int):
-            return str(field)
-        elif isinstance(field, float):
-            return '{0:.1f}'.format(field)
-        elif isinstance(field, ts.Timestamp):
-            return '{0:.2f}'.format(float(field))
-        return repr(field)
+        return field if field else "''"
 
     def field_width(self, field):
         return self.padding + self.metrics.width(self.field_str(field))

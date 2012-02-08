@@ -238,7 +238,7 @@ class Cursor(QtCore.QObject):
             if not valid_func:
                 valid_func = lambda x: str(x) in ttypes.triggers
             self.active_accessor = self.accessors[type(field)]
-            self.active_accessor.set_validator_func(valid_func)
+            #self.active_accessor.set_validator_func(valid_func)
             if type(field) == ttypes.Note:
                 field = '{0:.1f}'.format(field)
             self.active_accessor.set_value(field)
@@ -257,24 +257,25 @@ class Cursor(QtCore.QObject):
                 float_keys = int_keys + '.'
                 direct = False
                 info = trig.get_field_info(findex)[0]
-                if isinstance(info, int) and \
+                event_type = ttypes.triggers[trig[0]]
+                field_type = event_type[0][0] if event_type else None
+                if field_type == int and \
                         ev.key() < 256 and chr(ev.key()) in int_keys:
                     direct = True
-                elif isinstance(info, float) and \
+                elif field_type == float and \
                         not isinstance(info, ttypes.Note) and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
-                elif isinstance(info, ts.Timestamp) and \
+                elif field_type == ts.Timestamp and \
                         ev.key() < 256 and chr(ev.key()) in float_keys:
                     direct = True
-                elif isinstance(info, str) and trig[0] != 'cn-' and ev.text():
+                elif field_type == str and trig[0] != 'cn-' and ev.text():
                     direct = True
-                elif isinstance(info, bool) and \
-                        ev.text() in ('y', 't', 'n', 'f'):
+                elif field_type == bool and ev.text() in ('y', 't', 'n', 'f'):
                     direct = True
                     text = ''
                     if ev.text() not in ('y', 't'): # not reverses acc getter
-                        text = 'True'
+                        text = 'true'
                     ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress, 0,
                                          QtCore.Qt.NoModifier, text)
                 if direct:
@@ -284,7 +285,9 @@ class Cursor(QtCore.QObject):
                     if not valid_func:
                         assert type(info) == trigger.TriggerType
                         valid_func = lambda x: str(x) in ttypes.triggers
-                    self.active_accessor.set_validator_func(valid_func)
+                        #self.active_accessor.set_validator_func(valid_func)
+                    else:
+                        self.active_accessor.set_validator_func()
                     self.active_accessor.set_value(ev.text())
                     self.active_accessor.show()
                     self.active_accessor.setFocus()
@@ -345,7 +348,7 @@ class Cursor(QtCore.QObject):
             return
         try:
             note, octave = self.note_input.get_note(ev.key())
-            cents = self.scale.get_cents(note, octave)
+            cents = str(self.scale.get_cents(note, octave))
         except KeyError:
             ev.ignore()
             return
@@ -375,7 +378,7 @@ class Cursor(QtCore.QObject):
                                                trigger.TriggerType('c.i'))
                             self.insert = False
                             self.index += 1
-                        self.col.set_value(self, self.inst_num)
+                        self.col.set_value(self, str(self.inst_num))
                         self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
@@ -399,7 +402,7 @@ class Cursor(QtCore.QObject):
                                                trigger.TriggerType('c.i'))
                             self.insert = False
                             self.index += 1
-                        self.col.set_value(self, self.inst_num)
+                        self.col.set_value(self, str(self.inst_num))
                         self.index += 1
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
@@ -429,7 +432,7 @@ class Cursor(QtCore.QObject):
                                            trigger.TriggerType('c.i'))
                         self.insert = False
                         self.index += 1
-                    self.col.set_value(self, self.inst_num)
+                    self.col.set_value(self, str(self.inst_num))
                     self.index += 1
                 self.project[self.col_path] = self.col.flatten()
                 play_note_on = True
@@ -456,16 +459,16 @@ class Cursor(QtCore.QObject):
                     self.col.set_value(self, trigger.TriggerType('c.i'))
                     self.insert = False
                     self.index += 1
-                self.col.set_value(self, self.inst_num)
+                self.col.set_value(self, str(self.inst_num))
                 self.index += 1
             self.project[self.col_path] = self.col.flatten()
             play_note_on = True
             note_on_entered = True
         if play_note_on:
             self.playback_manager.play_event(self.col.get_num(),
-                                '["c.i", {0}]'.format(self.inst_num))
+                                '["c.i", "{0}"]'.format(self.inst_num))
             self.playback_manager.play_event(self.col.get_num(),
-                                        '["cn+", {0}]'.format(cents))
+                                        '["cn+", "{0}"]'.format(cents))
         if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False

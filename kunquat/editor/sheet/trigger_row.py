@@ -72,7 +72,7 @@ class Trigger_row(list):
             assert isinstance(value, trigger.TriggerType)
             index, _ = self.get_slot(cursor)
             theme = self.colours, self.fonts
-            t = trigger.Trigger([value, []], theme)
+            t = trigger.Trigger([value, None], theme)
             self.insert(index, t)
         else:
             trig, field = self.get_slot(cursor)

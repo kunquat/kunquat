@@ -136,6 +136,7 @@ class Pattern(QtGui.QWidget):
                 int: acc.IntEdit(self),
                 ts.Timestamp: acc.TimestampEdit(self),
                 str: acc.StringEdit(self),
+                unicode: acc.StringEdit(self),
                 }
         acc_palette = QtGui.QPalette(self.colours['trigger_fg'],
                                      self.colours['bg'],

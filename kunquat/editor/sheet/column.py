@@ -112,7 +112,7 @@ class Column(object):
             assert isinstance(value, trigger.TriggerType)
             theme = self.colours, self.fonts
             row = tr.Trigger_row(theme)
-            row.append(trigger.Trigger([value, []], theme))
+            row.append(trigger.Trigger([value, None], theme))
             self.triggers[cursor.get_pos()] = row
 
     def set_view_start(self, start):
