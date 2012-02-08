@@ -361,7 +361,12 @@ class Cursor(QtCore.QObject):
             tindex, findex = row.get_slot(self)
             if tindex < len(row):
                 trig = row[tindex]
-                if trig[0] in voice_starters: # replace existing Note On
+                event_name = trig[0]
+                if event_name.endswith('"'):
+                    event_name = event_name[:-1]
+                field_type = ttypes.triggers[event_name]
+                field_type = field_type[0][0] if field_type else None
+                if event_name in voice_starters: # replace existing Note On
                     self.col.set_value(self, cents)
                     if self.inst_auto:
                         use_existing_trig = False
@@ -384,7 +389,7 @@ class Cursor(QtCore.QObject):
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
                     note_on_entered = True
-                elif trig[0] == 'cn-': # replace existing Note Off
+                elif event_name == 'cn-': # replace existing Note Off
                     self.col.set_value(self, trigger.TriggerType('cn+'))
                     self.col.set_value(self, cents)
                     if self.inst_auto:
@@ -408,8 +413,7 @@ class Cursor(QtCore.QObject):
                     self.project[self.col_path] = self.col.flatten()
                     play_note_on = True
                     note_on_entered = True
-                elif isinstance(trig.get_field_info(findex)[0],
-                                ttypes.Note): # modify field
+                elif field_type == ttypes.Note: # modify field
                     self.col.set_value(self, cents)
                     self.project[self.col_path] = self.col.flatten()
                     # TODO: should we play?
