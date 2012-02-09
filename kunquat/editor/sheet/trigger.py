@@ -55,6 +55,8 @@ class Trigger(list):
             #self[1] = None
             if self.type_info and not self[1]:
                 self[1] = self.type_info[0][2]
+            elif not self.type_info:
+                self[1] = None
             """
             for limits, value in lv:
                 cons, valid, default = limits
