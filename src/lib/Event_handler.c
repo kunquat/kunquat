@@ -846,10 +846,18 @@ static bool Event_handler_handle(Event_handler* eh,
 }
 
 
-bool Event_handler_trigger(Event_handler* eh,
-                           int index,
-                           char* desc,
-                           bool silent)
+static bool Event_handler_trigger_with_meta(Event_handler* eh,
+                                            int index,
+                                            char* desc,
+                                            bool silent,
+                                            Value* meta);
+
+
+static bool Event_handler_trigger_with_meta(Event_handler* eh,
+                                            int index,
+                                            char* desc,
+                                            bool silent,
+                                            Value* meta)
 {
     assert(eh != NULL);
     assert(index >= 0);
@@ -907,7 +915,7 @@ bool Event_handler_trigger(Event_handler* eh,
         else
         {
             str = evaluate_expr(str, eh->global_state->parent.env, state,
-                                NULL, value);
+                                meta, value);
         }
         if (state->error)
         {
@@ -1004,7 +1012,7 @@ bool Event_handler_trigger(Event_handler* eh,
                               value);
     while (call != NULL)
     {
-        Event_handler_trigger(eh, index, call->desc, silent);
+        Event_handler_trigger_with_meta(eh, index, call->desc, silent, value);
         call = call->next;
     }
     if (!silent)
@@ -1042,6 +1050,19 @@ bool Event_handler_trigger(Event_handler* eh,
         }
     }
     return true;
+}
+
+
+bool Event_handler_trigger(Event_handler* eh,
+                           int index,
+                           char* desc,
+                           bool silent)
+{
+    assert(eh != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(desc != NULL);
+    return Event_handler_trigger_with_meta(eh, index, desc, silent, NULL);
 }
 
 

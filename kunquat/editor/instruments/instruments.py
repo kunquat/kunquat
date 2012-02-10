@@ -78,8 +78,8 @@ class Instruments(QtGui.QSplitter):
             return
         self._pressed[ev.key()] = ch
         self._playback_manager.play_event(ch,
-                '["c.i", {0}]'.format(self._inst_num))
-        self._playback_manager.play_event(ch, '["cn+", {0}]'.format(cents))
+                '["c.i", "{0}"]'.format(self._inst_num))
+        self._playback_manager.play_event(ch, '["cn+", "{0}"]'.format(cents))
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():

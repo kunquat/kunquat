@@ -14,6 +14,7 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 #include <AAtree.h>
 #include <Call_map.h>
@@ -64,7 +65,8 @@ static void del_Target_event(Target_event* event);
 typedef struct Cblist_item
 {
     Constraint* constraints;
-    Target_event* events;
+    Target_event* first_event;
+    Target_event* last_event;
     struct Cblist_item* next;
 } Cblist_item;
 
@@ -259,6 +261,7 @@ Target_event* Call_map_get_first(Call_map* map,
     Cblist_item* item = list->first;
     while (item != NULL)
     {
+        //fprintf(stderr, "%d\n", __LINE__);
         Constraint* constraint = item->constraints;
         while (constraint != NULL)
         {
@@ -268,10 +271,13 @@ Target_event* Call_map_get_first(Call_map* map,
             }
             constraint = constraint->next;
         }
+        //fprintf(stderr, "%d\n", __LINE__);
         if (constraint == NULL)
         {
-            return item->events;
+            //fprintf(stderr, "item->events: %s\n", item->events->desc);
+            return item->first_event;
         }
+        //fprintf(stderr, "%d\n", __LINE__);
         item = item->next;
     }
     return NULL;
@@ -379,8 +385,17 @@ static bool read_events(char** str,
             {
                 return false;
             }
-            event->next = item->events;
-            item->events = event;
+            if (item->last_event == NULL)
+            {
+                assert(item->first_event == NULL);
+                item->first_event = item->last_event = event;
+            }
+            else
+            {
+                assert(item->first_event != NULL);
+                item->last_event->next = event;
+                item->last_event = event;
+            }
             check_next(*str, state, expect_entry);
         }
         *str = read_const_char(*str, ']', state);
@@ -446,7 +461,8 @@ static Cblist_item* new_Cblist_item(void)
         return NULL;
     }
     item->constraints = NULL;
-    item->events = NULL;
+    item->first_event = NULL;
+    item->last_event = NULL;
     item->next = NULL;
     return item;
 }
@@ -465,7 +481,7 @@ static void del_Cblist_item(Cblist_item* item)
         del_Constraint(curc);
         curc = nextc;
     }
-    Target_event* curt = item->events;
+    Target_event* curt = item->first_event;
     while (curt != NULL)
     {
         Target_event* nextt = curt->next;
@@ -496,21 +512,29 @@ static Constraint* new_Constraint(char** str, Read_state* state)
     *str = read_const_char(*str, '[', state);
     *str = read_string(*str, c->event_name, EVENT_NAME_MAX + 1, state);
     *str = read_const_char(*str, ',', state);
-    char expr[1024] = "";
-    *str = read_string(*str, expr, 1024, state);
+    char* expr = skip_whitespace(*str, state);
+    *str = read_string(expr, NULL, 0, state);
+    if (state->error)
+    {
+        del_Constraint(c);
+        return NULL;
+    }
+    assert(expr < *str);
+    int len = *str - expr;
     *str = read_const_char(*str, ']', state);
     if (state->error)
     {
         del_Constraint(c);
         return NULL;
     }
-    c->expr = xcalloc(char, strlen(expr) + 1);
+    c->expr = xcalloc(char, len + 1);
     if (c->expr == NULL)
     {
         del_Constraint(c);
         return NULL;
     }
-    strcpy(c->expr, expr);
+    strncpy(c->expr, expr, len);
+    c->expr[len] = '\0';
     return c;
 }
 
@@ -524,7 +548,11 @@ static bool Constraint_match(Constraint* constraint, Event_cache* cache,
     assert(value != NULL);
     Value* result = VALUE_AUTO;
     Read_state* state = READ_STATE_AUTO;
+    //fprintf(stderr, "%s, %s", constraint->event_name, constraint->expr);
     evaluate_expr(constraint->expr, env, state, value, result);
+    //fprintf(stderr, ", %s", state->message);
+    //fprintf(stderr, " -> %d %s\n", (int)result->type,
+    //                               result->value.bool_type ? "true" : "false");
     return result->type == VALUE_TYPE_BOOL && result->value.bool_type;
 }
 
@@ -565,7 +593,6 @@ static Target_event* new_Target_event(char** str,
     char event_name[EVENT_NAME_MAX + 1] = "";
     desc = read_string(desc, event_name, EVENT_NAME_MAX + 1, state);
     desc = read_const_char(desc, ',', state);
-    desc = read_const_char(desc, '[', state);
     if (state->error)
     {
         del_Target_event(event);
@@ -577,39 +604,15 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
-    switch (Event_names_get_param_type(names, event_name))
+    Event_field_type type = Event_names_get_param_type(names, event_name);
+    if (type == EVENT_FIELD_NONE)
     {
-        case EVENT_FIELD_NONE:
-        {
-        } break;
-        case EVENT_FIELD_BOOL:
-        {
-            desc = read_bool(desc, NULL, state);
-        } break;
-        case EVENT_FIELD_INT:
-        {
-            desc = read_int(desc, NULL, state);
-        } break;
-        case EVENT_FIELD_DOUBLE:
-        {
-            desc = read_double(desc, NULL, state);
-        } break;
-        case EVENT_FIELD_REAL:
-        {
-            desc = read_tuning(desc, NULL, NULL, state);
-        } break;
-        case EVENT_FIELD_RELTIME:
-        {
-            desc = read_reltime(desc, NULL, state);
-        } break;
-        case EVENT_FIELD_STRING:
-        {
-            desc = read_string(desc, NULL, 0, state);
-        } break;
-        default:
-            assert(false);
+        desc = read_null(desc, state);
     }
-    desc = read_const_char(desc, ']', state);
+    else
+    {
+        desc = read_string(desc, NULL, 0, state);
+    }
     desc = read_const_char(desc, ']', state);
     if (state->error)
     {
