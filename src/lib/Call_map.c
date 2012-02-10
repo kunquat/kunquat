@@ -77,9 +77,18 @@ static Cblist_item* new_Cblist_item(void);
 static void del_Cblist_item(Cblist_item* item);
 
 
+typedef enum
+{
+    SOURCE_STATE_NEW = 0,
+    SOURCE_STATE_REACHED,
+    SOURCE_STATE_VISITED
+} Source_state;
+
+
 typedef struct Cblist
 {
     char event_name[EVENT_NAME_MAX + 1];
+    Source_state source_state;
     Cblist_item* first;
     Cblist_item* last;
 } Cblist;
@@ -104,6 +113,9 @@ static bool read_events(char** str,
                         Read_state* state,
                         Cblist_item* item,
                         Event_names* names);
+
+
+static bool Call_map_is_cyclic(Call_map* map);
 
 
 Call_map* new_Call_map(char* str,
@@ -202,6 +214,12 @@ Call_map* new_Call_map(char* str,
     str = read_const_char(str, ']', state);
     if (state->error)
     {
+        del_Call_map(map);
+        return NULL;
+    }
+    if (Call_map_is_cyclic(map))
+    {
+        Read_state_set_error(state, "Call map contains a cycle");
         del_Call_map(map);
         return NULL;
     }
@@ -311,6 +329,71 @@ void del_Call_map(Call_map* map)
 }
 
 
+static bool Call_map_dfs(Call_map* map, char* name);
+
+
+static bool Call_map_is_cyclic(Call_map* map)
+{
+    assert(map != NULL);
+    AAiter_change_tree(map->iter, map->cblists);
+    Cblist* cblist = AAiter_get(map->iter, "");
+    while (cblist != NULL)
+    {
+        assert(cblist->source_state != SOURCE_STATE_REACHED);
+        if (cblist->source_state == SOURCE_STATE_VISITED)
+        {
+            cblist = AAiter_get_next(map->iter);
+            continue;
+        }
+        assert(cblist->source_state == SOURCE_STATE_NEW);
+        if (Call_map_dfs(map, cblist->event_name))
+        {
+            return true;
+        }
+        cblist = AAiter_get_next(map->iter);
+    }
+    return false;
+}
+
+
+static bool Call_map_dfs(Call_map* map, char* name)
+{
+    assert(map != NULL);
+    assert(name != NULL);
+    Cblist* cblist = AAtree_get_exact(map->cblists, name);
+    if (cblist == NULL || cblist->source_state == SOURCE_STATE_VISITED)
+    {
+        return false;
+    }
+    if (cblist->source_state == SOURCE_STATE_REACHED)
+    {
+        return true;
+    }
+    assert(cblist->source_state == SOURCE_STATE_NEW);
+    cblist->source_state = SOURCE_STATE_REACHED;
+    Cblist_item* item = cblist->first;
+    while (item != NULL)
+    {
+        Target_event* event = item->first_event;
+        while (event != NULL)
+        {
+            Read_state* state = READ_STATE_AUTO;
+            char next_name[EVENT_NAME_MAX + 1] = "";
+            char* str = read_const_char(event->desc, '[', state);
+            read_string(str, next_name, EVENT_NAME_MAX, state);
+            assert(!state->error);
+            if (Call_map_dfs(map, next_name))
+            {
+                return true;
+            }
+            event = event->next;
+        }
+        item = item->next;
+    }
+    return false;
+}
+
+
 static bool read_constraints(char** str,
                              Read_state* state,
                              Call_map* map,
@@ -412,6 +495,7 @@ static Cblist* new_Cblist(char* event_name)
     {
         return NULL;
     }
+    list->source_state = SOURCE_STATE_NEW;
     list->first = list->last = NULL;
     strncpy(list->event_name, event_name, EVENT_NAME_MAX);
     list->event_name[EVENT_NAME_MAX] = '\0';
