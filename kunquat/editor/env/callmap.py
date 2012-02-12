@@ -61,8 +61,10 @@ class CallMap(QtGui.QWidget):
             conditions = self._data[index][1]
             actions = self._data[index][2]
         except IndexError:
-            conditions = []
-            actions = []
+            assert index == len(self._data)
+            self._data.extend([['', [], []]])
+            conditions = self._data[index][1]
+            actions = self._data[index][2]
         self._bindspec.set_spec(conditions, actions)
 
     def _fe_name_changed(self, index, name):
@@ -106,6 +108,7 @@ class FiringEvents(QtGui.QTableWidget):
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 1, parent)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.setHorizontalHeaderLabels(['Event'])
         self.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
@@ -183,10 +186,18 @@ class BindSpec(QtGui.QWidget):
     def set_spec(self, conditions, actions):
         self.blockSignals(True)
         try:
-            self._conds.set_conditions(conditions)
-            self._actions.set_actions(actions)
+            self._conds.conditions = conditions
+            self._actions.actions = actions
         finally:
             self.blockSignals(False)
+
+    @property
+    def conditions(self):
+        return self._conds.conditions
+
+    @property
+    def actions(self):
+        return self._actions.actions
 
     def _modified(self, immediate):
         QtCore.QObject.emit(self, QtCore.SIGNAL('bindChanged(bool)'),
@@ -199,6 +210,7 @@ class BindConditions(QtGui.QTableWidget):
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.setHorizontalHeaderLabels(['Event', 'Condition'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
@@ -206,7 +218,12 @@ class BindConditions(QtGui.QTableWidget):
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._changed)
 
-    def set_conditions(self, conditions):
+    @property
+    def conditions(self):
+        return self._conditions
+
+    @conditions.setter
+    def conditions(self, conditions):
         self.blockSignals(True)
         try:
             index = 0
@@ -249,6 +266,7 @@ class BindActions(QtGui.QTableWidget):
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 3, parent)
+        self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.setHorizontalHeaderLabels(['Ch. offset', 'Event', 'Argument'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
@@ -256,7 +274,12 @@ class BindActions(QtGui.QTableWidget):
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._event_changed)
 
-    def set_actions(self, actions):
+    @property
+    def actions(self):
+        return self._actions
+
+    @actions.setter
+    def actions(self, actions):
         self.blockSignals(True)
         try:
             index = 0
