@@ -70,8 +70,9 @@ static Name_info event_specs[] =
 
     { "#",     EVENT_GENERAL_COMMENT,         EVENT_FIELD_STRING, v_any_str, false },
 
-    { "#?",    EVENT_GENERAL_COND,            EVENT_FIELD_STRING, v_cond, false },
-    { "#if",   EVENT_GENERAL_IF,              EVENT_FIELD_BOOL, v_any_bool, false },
+    { "#?",    EVENT_GENERAL_COND,            EVENT_FIELD_BOOL, v_any_bool, false },
+    { "#if",   EVENT_GENERAL_IF,              EVENT_FIELD_NONE, NULL, false },
+    { "#else", EVENT_GENERAL_ELSE,            EVENT_FIELD_NONE, NULL, false },
     { "#endif", EVENT_GENERAL_END_IF,         EVENT_FIELD_NONE, NULL, false },
 
     { "#signal", EVENT_GENERAL_SIGNAL,        EVENT_FIELD_STRING, v_any_str, false },

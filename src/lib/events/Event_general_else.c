@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011-2012
+ * Author: Tomi Jylhä-Ollila, Finland 2012
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,14 @@
 
 #include <Event_common.h>
 #include <Event_general.h>
-#include <Event_general_if.h>
+#include <Event_general_else.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc if_desc[] =
+static Event_field_desc else_desc[] =
 {
     {
         .type = EVENT_FIELD_NONE
@@ -32,11 +32,11 @@ static Event_field_desc if_desc[] =
 
 
 Event_create_constructor(Event_general,
-                         EVENT_GENERAL_IF,
-                         if);
+                         EVENT_GENERAL_ELSE,
+                         else);
 
 
-bool Event_general_if_process(General_state* gstate, Value* value)
+bool Event_general_else_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
     (void)value;
@@ -44,7 +44,7 @@ bool Event_general_if_process(General_state* gstate, Value* value)
     assert(gstate->cond_level_index >= 0);
     if (gstate->cond_level_index < COND_LEVELS_MAX)
     {
-        gstate->cond_levels[gstate->cond_level_index].cond_for_exec = true;
+        gstate->cond_levels[gstate->cond_level_index].cond_for_exec = false;
         if (gstate->last_cond_match + 1 == gstate->cond_level_index &&
                 gstate->cond_levels[gstate->cond_level_index].cond_for_exec ==
                 gstate->cond_levels[gstate->cond_level_index].evaluated_cond)
@@ -52,8 +52,6 @@ bool Event_general_if_process(General_state* gstate, Value* value)
             ++gstate->last_cond_match;
         }
     }
-    //fprintf(stderr, "if: %d %d\n", gstate->cond_level_index,
-    //                               gstate->last_cond_match);
     return true;
 }
 

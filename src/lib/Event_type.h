@@ -59,6 +59,7 @@ typedef enum
 
     EVENT_GENERAL_COND,         ///< Evaluate a conditional expression.
     EVENT_GENERAL_IF,           ///< Start conditional event handling.
+    EVENT_GENERAL_ELSE,
     EVENT_GENERAL_END_IF,       ///< End conditional event handling.
 
     EVENT_GENERAL_SIGNAL,

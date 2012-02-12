@@ -59,6 +59,7 @@
 
 #include <Event_general_cond.h>
 #include <Event_general_if.h>
+#include <Event_general_else.h>
 #include <Event_general_end_if.h>
 
 #include <Event_general_call_bool.h>
@@ -277,6 +278,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_general_cond_process);
     Event_handler_set_general_process(eh, EVENT_GENERAL_IF,
                                       Event_general_if_process);
+    Event_handler_set_general_process(eh, EVENT_GENERAL_ELSE,
+                                      Event_general_else_process);
     Event_handler_set_general_process(eh, EVENT_GENERAL_END_IF,
                                       Event_general_end_if_process);
 
@@ -886,7 +889,8 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
     }
 #endif
     if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
-            type != EVENT_GENERAL_IF && type != EVENT_GENERAL_END_IF)
+            type != EVENT_GENERAL_IF && type != EVENT_GENERAL_ELSE &&
+            type != EVENT_GENERAL_END_IF)
     {
         return true;
     }

@@ -45,6 +45,7 @@
 
 #include <Event_general_cond.h>
 #include <Event_general_if.h>
+#include <Event_general_else.h>
 #include <Event_general_end_if.h>
 
 #include <Event_general_call_bool.h>
@@ -184,6 +185,7 @@ static const Event_cons cons[EVENT_LAST] =
 
     [EVENT_GENERAL_COND] = new_Event_general_cond,
     [EVENT_GENERAL_IF] = new_Event_general_if,
+    [EVENT_GENERAL_ELSE] = new_Event_general_else,
     [EVENT_GENERAL_END_IF] = new_Event_general_end_if,
 
     [EVENT_GENERAL_SIGNAL] = new_Event_general_comment,
