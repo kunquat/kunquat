@@ -254,7 +254,7 @@ class RHandle(object):
         event -- The event description in JSON format.  The description
                  is a pair (list with two elements) with the event name
                  as the first element and its argument list as the
-                 second element.  Example: '["Cn+", [300]]' (Note On at
+                 second element.  Example: '["cn+", [300]]' (Note On at
                  300 cents above A4, i.e. C5 in 12-tone Equal
                  Temperament).
 
@@ -378,6 +378,7 @@ class RWHandle(RHandle):
         KunquatFormatError   -- The data is not valid.  Only the data
                                 that audibly affects mixing is
                                 validated.
+        KunquatResourceError -- File system access failed.
 
         """
         #print(key, value if len(value) < 200 else value[:197] + '...')

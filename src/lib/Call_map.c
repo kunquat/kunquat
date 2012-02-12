@@ -670,8 +670,13 @@ static Target_event* new_Target_event(char** str,
     {
         return NULL;
     }
+    event->ch_offset = 0;
     event->desc = NULL;
     event->next = NULL;
+    *str = read_const_char(*str, '[', state);
+    int64_t ch_offset = 0;
+    *str = read_int(*str, &ch_offset, state);
+    *str = read_const_char(*str, ',', state);
     *str = skip_whitespace(*str, state);
     char* desc = read_const_char(*str, '[', state);
     char event_name[EVENT_NAME_MAX + 1] = "";
@@ -679,6 +684,12 @@ static Target_event* new_Target_event(char** str,
     desc = read_const_char(desc, ',', state);
     if (state->error)
     {
+        del_Target_event(event);
+        return NULL;
+    }
+    if (ch_offset <= -KQT_COLUMNS_MAX || ch_offset >= KQT_COLUMNS_MAX)
+    {
+        Read_state_set_error(state, "Channel offset out of bounds");
         del_Target_event(event);
         return NULL;
     }
@@ -698,6 +709,7 @@ static Target_event* new_Target_event(char** str,
         desc = read_string(desc, NULL, 0, state);
     }
     desc = read_const_char(desc, ']', state);
+    desc = read_const_char(desc, ']', state);
     if (state->error)
     {
         del_Target_event(event);
@@ -711,6 +723,7 @@ static Target_event* new_Target_event(char** str,
         del_Target_event(event);
         return NULL;
     }
+    event->ch_offset = ch_offset;
     memcpy(event->desc, *str, len);
     event->desc[len] = '\0';
     *str = desc;

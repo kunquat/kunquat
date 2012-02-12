@@ -15,6 +15,7 @@ from __future__ import division, print_function
 
 from PyQt4 import QtCore, QtGui
 
+from chselect import ChSelect
 import kunquat.editor.trigtypes as ttypes
 
 
@@ -37,7 +38,7 @@ class CallMap(QtGui.QWidget):
                                QtCore.SIGNAL('nameChanged(int, QString*)'),
                                self._fe_name_changed)
         QtCore.QObject.connect(self._bindspec,
-                               QtCore.SIGNAL('bindChanged()'),
+                               QtCore.SIGNAL('bindChanged(bool)'),
                                self._bind_changed)
         self.set_key('p_call_map.json')
 
@@ -73,10 +74,10 @@ class CallMap(QtGui.QWidget):
             self._data[index][0] = name
         self._flatten()
 
-    def _bind_changed(self):
-        self._flatten()
+    def _bind_changed(self, immediate):
+        self._flatten(immediate)
 
-    def _flatten(self):
+    def _flatten(self, immediate=True):
         m = []
         for binding in self._data:
             if binding[0] not in ttypes.triggers or binding[0] == 'wj':
@@ -89,12 +90,13 @@ class CallMap(QtGui.QWidget):
                 c.extend([[constraint[0], constraint[1]]])
             a = []
             for action in binding[2]:
-                if action[0] not in ttypes.triggers or action[0] == 'wj' or \
-                        not action[1]:
+                if action[1][0] not in ttypes.triggers or \
+                        action[1][0] == 'wj' or \
+                        not action[1][1]:
                     continue
-                a.extend([[action[0], action[1]]])
+                a.extend([[action[0], [action[1][0], action[1][1]]]])
             m.extend([[binding[0], c, a]])
-        self._project[self._key] = m
+        self._project.set(self._key, m, immediate)
 
 
 class FiringEvents(QtGui.QTableWidget):
@@ -160,7 +162,7 @@ class FiringEvents(QtGui.QTableWidget):
 
 class BindSpec(QtGui.QWidget):
 
-    bindChanged = QtCore.pyqtSignal(name='bindChanged')
+    bindChanged = QtCore.pyqtSignal(bool, name='bindChanged')
 
     def __init__(self, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -172,10 +174,10 @@ class BindSpec(QtGui.QWidget):
         layout.addWidget(self._conds)
         layout.addWidget(self._actions)
         QtCore.QObject.connect(self._conds,
-                               QtCore.SIGNAL('changed()'),
+                               QtCore.SIGNAL('changed(bool)'),
                                self._modified)
         QtCore.QObject.connect(self._actions,
-                               QtCore.SIGNAL('changed()'),
+                               QtCore.SIGNAL('changed(bool)'),
                                self._modified)
 
     def set_spec(self, conditions, actions):
@@ -186,13 +188,14 @@ class BindSpec(QtGui.QWidget):
         finally:
             self.blockSignals(False)
 
-    def _modified(self):
-        QtCore.QObject.emit(self, QtCore.SIGNAL('bindChanged()'))
+    def _modified(self, immediate):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('bindChanged(bool)'),
+                            immediate)
 
 
 class BindConditions(QtGui.QTableWidget):
 
-    changed = QtCore.pyqtSignal(name='changed')
+    changed = QtCore.pyqtSignal(bool, name='changed')
 
     def __init__(self, parent=None):
         QtGui.QTableWidget.__init__(self, 0, 2, parent)
@@ -235,23 +238,23 @@ class BindConditions(QtGui.QTableWidget):
             self._conditions.extend([cond])
         else:
             self._conditions[row][col] = text
-        QtCore.QObject.emit(self, QtCore.SIGNAL('changed()'))
+        QtCore.QObject.emit(self, QtCore.SIGNAL('changed(bool)'), True)
         if row == self.rowCount() - 1 and text:
             self._append_row()
 
 
 class BindActions(QtGui.QTableWidget):
 
-    changed = QtCore.pyqtSignal(name='changed')
+    changed = QtCore.pyqtSignal(bool, name='changed')
 
     def __init__(self, parent=None):
-        QtGui.QTableWidget.__init__(self, 0, 2, parent)
-        self.setHorizontalHeaderLabels(['Event', 'Argument'])
+        QtGui.QTableWidget.__init__(self, 0, 3, parent)
+        self.setHorizontalHeaderLabels(['Ch. offset', 'Event', 'Argument'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
-                               self._changed)
+                               self._event_changed)
 
     def set_actions(self, actions):
         self.blockSignals(True)
@@ -260,13 +263,15 @@ class BindActions(QtGui.QTableWidget):
             for action in actions:
                 if index >= self.rowCount():
                     self._append_row()
-                self.setItem(index, 0, QtGui.QTableWidgetItem(action[0]))
-                self.setItem(index, 1, QtGui.QTableWidgetItem(str(action[1])))
+                self.cellWidget(index, 0).ch = action[0]
+                self.setItem(index, 1, QtGui.QTableWidgetItem(action[1][0]))
+                self.setItem(index, 2, QtGui.QTableWidgetItem(str(action[1][1])))
                 index += 1
             if index >= self.rowCount():
                 self._append_row()
-            self.setItem(index, 0, QtGui.QTableWidgetItem())
+            self.cellWidget(index, 0).ch = 0
             self.setItem(index, 1, QtGui.QTableWidgetItem())
+            self.setItem(index, 2, QtGui.QTableWidgetItem())
             for i in xrange(index + 1, self.rowCount()):
                 self.removeRow(self.rowCount() - 1)
         finally:
@@ -275,17 +280,32 @@ class BindActions(QtGui.QTableWidget):
 
     def _append_row(self):
         self.insertRow(self.rowCount())
+        index = self.rowCount() - 1
+        self.setCellWidget(index, 0, ChSelect(index))
+        QtCore.QObject.connect(self.cellWidget(index, 0),
+                               QtCore.SIGNAL('chChanged(int)'),
+                               self._ch_changed)
 
-    def _changed(self, row, col):
+    def _ch_changed(self, index):
+        if index >= len(self._actions):
+            assert index == len(self._actions)
+            action = [self.cellWidget(index, 0).ch, ['', '']]
+            self._actions.extend([action])
+        else:
+            self._actions[index][0] = self.cellWidget(index, 0).ch
+        QtCore.QObject.emit(self, QtCore.SIGNAL('changed(bool)'), False)
+
+    def _event_changed(self, row, col):
+        assert col > 0
         text = str(self.item(row, col).text())
         if row >= len(self._actions):
             assert row == len(self._actions)
-            action = ['', '']
-            action[col] = text
+            action = [0, ['', '']]
+            action[1][col - 1] = text
             self._actions.extend([action])
         else:
-            self._actions[row][col] = text
-        QtCore.QObject.emit(self, QtCore.SIGNAL('changed()'))
+            self._actions[row][1][col - 1] = text
+        QtCore.QObject.emit(self, QtCore.SIGNAL('changed(bool)'), True)
         if row == self.rowCount() - 1 and text:
             self._append_row()
 

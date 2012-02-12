@@ -35,6 +35,7 @@ typedef struct Call_map Call_map;
  */
 typedef struct Target_event
 {
+    int ch_offset;
     char* desc;
     struct Target_event* next;
 } Target_event;

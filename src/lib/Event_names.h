@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <Event_type.h>
 
 
-#define EVENT_NAME_MAX 12
+#define EVENT_NAME_MAX 12 // includes "
 
 
 typedef struct Event_names Event_names;

@@ -23,7 +23,7 @@ class ChSelect(QtGui.QSpinBox):
     def __init__(self, index, parent=None):
         QtGui.QSpinBox.__init__(self, parent)
         self._index = index
-        self.setMinimum(0)
+        self.setMinimum(-lim.COLUMNS_MAX + 1)
         self.setMaximum(lim.COLUMNS_MAX - 1)
         self.setValue(0)
         QtCore.QObject.connect(self,

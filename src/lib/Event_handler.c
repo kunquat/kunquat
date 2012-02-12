@@ -1012,7 +1012,13 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
                               value);
     while (call != NULL)
     {
-        Event_handler_trigger_with_meta(eh, index, call->desc, silent, value);
+        Event_handler_trigger_with_meta(eh,
+                                        (index + call->ch_offset +
+                                                KQT_COLUMNS_MAX) %
+                                                KQT_COLUMNS_MAX,
+                                        call->desc,
+                                        silent,
+                                        value);
         call = call->next;
     }
     if (!silent)
