@@ -13,8 +13,8 @@
 
 """A library for accessing Kunquat music data.
 
-This module provides interfaces for inspecting, mixing and modifying
-Kunquat compositions.
+This module provides interfaces for inspecting and modifying Kunquat
+compositions and rendering them to digital audio.
 
 Classes:
 RHandle   -- A read-only interface for kqt files.
@@ -249,17 +249,16 @@ class RHandle(object):
         """Fire an event.
 
         Arguments:
-        channel -- The channel where the event takes place. The channel
-                   number is >= 0 and < 64.
-        event -- The event description in JSON format.  The description
-                 is a pair (list with two elements) with the event name
-                 as the first element and its argument list as the
-                 second element.  Example: '["cn+", [300]]' (Note On at
-                 300 cents above A4, i.e. C5 in 12-tone Equal
-                 Temperament).
+        channel -- The channel where the event takes place.  The
+                   channel number is >= 0 and < 64.
+        event -- The event description, which is a pair (either a tuple
+                 or a list) with the event name as the first element
+                 and its argument expression as the second element.
+                 Example: ['cn+', '300'] (Note On at 300 cents above
+                 A4, i.e. C5 in 12-tone Equal Temperament).
 
         """
-        _kunquat.kqt_Handle_fire(self._handle, channel, event)
+        _kunquat.kqt_Handle_fire(self._handle, channel, json.dumps(event))
 
     def receive(self):
         """Receive outgoing events.
@@ -270,7 +269,7 @@ class RHandle(object):
 
         """
         el = []
-        sb = ctypes.create_string_buffer('\000' * 128)
+        sb = ctypes.create_string_buffer('\000' * 256)
         received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
         while received:
             try:

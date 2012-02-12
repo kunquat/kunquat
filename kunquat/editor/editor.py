@@ -15,6 +15,7 @@
 from __future__ import division
 from __future__ import print_function
 from itertools import count
+import json
 import math
 import random
 import sys
@@ -88,7 +89,7 @@ class Playback(QtCore.QObject):
 
     def play_event(self, channel, event):
         """Plays a single event."""
-        self._play_event.emit(channel, event)
+        self._play_event.emit(channel, json.dumps(event))
         #QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
         #                    channel, event)
 
@@ -263,7 +264,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, '[">pattern", "{0}"]'.format(pattern))
+        self.handle.fire(0, ['>pattern', '{0}'.format(pattern)])
         self._set_infinite(self._infinite)
 
     def play_from(self, subsong, section, beats, rem):
@@ -273,9 +274,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, '[">.gs", "{0}"]'.format(section))
-        self.handle.fire(0, '[">.gr", "ts({0}, {1})"]'.format(beats, rem))
-        self.handle.fire(0, '[">g", null]')
+        self.handle.fire(0, ['>.gs', '{0}'.format(section)])
+        self.handle.fire(0, ['>.gr', 'ts({0}, {1})'.format(beats, rem)])
+        self.handle.fire(0, ['>g', None])
         self._set_infinite(self._infinite)
 
     def play_event(self, *args):
@@ -283,8 +284,8 @@ class KqtEditor(QtGui.QMainWindow):
         event = str(event)
         if not self.playing:
             self.playing = True
-            self.handle.fire(0, '[">pause", null]')
-        self.handle.fire(channel, event)
+            self.handle.fire(0, ['>pause', None])
+        self.handle.fire(channel, json.loads(event))
 
     def save(self):
         self.project.save()
@@ -327,8 +328,8 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _set_infinite(self, x):
         self._infinite = x
-        self.handle.fire(0, '[">infinite", "{0}"]'.format(
-                            'true' if self._infinite else 'false'))
+        self.handle.fire(0, ['>infinite',
+                             'true' if self._infinite else 'false'])
 
     def set_appearance(self):
         # FIXME: size and title

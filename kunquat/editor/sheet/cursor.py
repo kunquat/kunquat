@@ -222,7 +222,7 @@ class Cursor(QtCore.QObject):
                 self.project[self.col_path] = self.col.flatten()
                 if play_note_off:
                     self.playback_manager.play_event(
-                            self.col.get_num(), '["cn-", null]')
+                            self.col.get_num(), ['cn-', None])
         self.insert = False
 
     def _enter(self, ev):
@@ -335,7 +335,7 @@ class Cursor(QtCore.QObject):
             note_off_entered = True
         if play_note_off:
             self.playback_manager.play_event(self.col.get_num(),
-                                             '["cn-", null]')
+                                             ['cn-', None])
         if note_off_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False
@@ -471,9 +471,9 @@ class Cursor(QtCore.QObject):
             note_on_entered = True
         if play_note_on:
             self.playback_manager.play_event(self.col.get_num(),
-                                '["c.i", "{0}"]'.format(self.inst_num))
+                                ['c.i', '{0}'.format(self.inst_num)])
             self.playback_manager.play_event(self.col.get_num(),
-                                        '["cn+", "{0}"]'.format(cents))
+                                        ['cn+', '{0}'.format(cents)])
         if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False

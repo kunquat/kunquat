@@ -78,8 +78,8 @@ class Instruments(QtGui.QSplitter):
             return
         self._pressed[ev.key()] = ch
         self._playback_manager.play_event(ch,
-                '["c.i", "{0}"]'.format(self._inst_num))
-        self._playback_manager.play_event(ch, '["cn+", "{0}"]'.format(cents))
+                ['c.i', '{0}'.format(self._inst_num)])
+        self._playback_manager.play_event(ch, ['cn+', '{0}'.format(cents)])
 
     def keyReleaseEvent(self, ev):
         if ev.isAutoRepeat():
@@ -93,7 +93,7 @@ class Instruments(QtGui.QSplitter):
         if ev.key() not in self._pressed:
             return
         ch = self._pressed.pop(ev.key())
-        self._playback_manager.play_event(ch, '["cn-", null]')
+        self._playback_manager.play_event(ch, ['cn-', None])
 
     def sync(self):
         self._inst_list.sync()

@@ -123,7 +123,7 @@ class Variables(QtGui.QTableWidget):
     def _type_changed(self, index, value):
         self.blockSignals(True)
         #print('changed', index, value)
-        name = self.item(index, 1).text()
+        name = str(self.item(index, 1).text())
         if value or name:
             self._set_row(index, str(value) if value else None, name)
             if index == self.rowCount() - 1:
@@ -148,7 +148,7 @@ class Variables(QtGui.QTableWidget):
         if not var_type:
             return
         name_item = self.item(row, 1)
-        name = name_item.text() if name_item else ''
+        name = str(name_item.text()) if name_item else ''
         if var_type == 'bool':
             pass
         elif var_type == 'int':
@@ -159,10 +159,8 @@ class Variables(QtGui.QTableWidget):
                 value = int(value_item.text())
             except ValueError:
                 return
-            self._project.handle.fire(0,
-                    '[">.In", "{}"]'.format(name))
-            self._project.handle.fire(0,
-                    '[">.I", {:d}]'.format(value))
+            self._project.handle.fire(0, ['>.In"', name])
+            self._project.handle.fire(0, ['>.I', '{0:d}'.format(value)])
         elif var_type == 'float':
             value_item = self.item(row, 3)
             if not value_item:
@@ -171,10 +169,8 @@ class Variables(QtGui.QTableWidget):
                 value = float(value_item.text())
             except ValueError:
                 return
-            self._project.handle.fire(0,
-                    '[">.Fn", "{}"]'.format(name))
-            self._project.handle.fire(0,
-                    '[">.F", {:.17f}]'.format(value))
+            self._project.handle.fire(0, ['>.Fn"', name])
+            self._project.handle.fire(0, ['>.F', '{0:.17f}'.format(value)])
 
     def _flatten(self):
         var_list = []
@@ -262,10 +258,8 @@ class BoolMod(QtGui.QCheckBox):
     def _changed(self, value):
         if not self.name:
             return
+        self._project.handle.fire(0, ['>.Bn"', self.name])
         self._project.handle.fire(0,
-                '[">.Bn", "{}"]'.format(self.name))
-        self._project.handle.fire(0,
-                '[">.B", {}]'.format('true' if self.isChecked()
-                                              else 'false'))
+                ['>.B', 'true' if self.isChecked() else 'false'])
 
 
