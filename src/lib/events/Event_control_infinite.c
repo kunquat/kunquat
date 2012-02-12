@@ -17,7 +17,7 @@
 
 #include <Event_common.h>
 #include <Event_control.h>
-#include <Event_control_turing.h>
+#include <Event_control_infinite.h>
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
@@ -26,7 +26,7 @@
 #include <xassert.h>
 
 
-static Event_field_desc turing_desc[] =
+static Event_field_desc infinite_desc[] =
 {
     {
         .type = EVENT_FIELD_BOOL
@@ -38,11 +38,11 @@ static Event_field_desc turing_desc[] =
 
 
 Event_create_constructor(Event_control,
-                         EVENT_CONTROL_TURING,
-                         turing);
+                         EVENT_CONTROL_INFINITE,
+                         infinite);
 
 
-bool Event_control_turing_process(General_state* gstate, Value* value)
+bool Event_control_infinite_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);
@@ -55,7 +55,7 @@ bool Event_control_turing_process(General_state* gstate, Value* value)
         return true;
     }
     Playdata* global_state = (Playdata*)gstate;
-    global_state->turing = value->value.bool_type;
+    global_state->infinite = value->value.bool_type;
     return true;
 }
 

@@ -205,7 +205,7 @@ triggers = {
         '>.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, '-1')],
         '>g': [],
 
-        '>Turing': [any_bool],
+        '>infinite': [any_bool],
 }
 
 

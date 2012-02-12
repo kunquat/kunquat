@@ -20,7 +20,7 @@
 
 
 /**
- * Events only triggered from outside or in Turing mode.
+ * Events only triggered from outside or in infinite mode.
  */
 typedef struct Event_control
 {

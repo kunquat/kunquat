@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CONTROL_TURING_H
-#define K_EVENT_CONTROL_TURING_H
+#ifndef K_EVENT_CONTROL_INFINITE_H
+#define K_EVENT_CONTROL_INFINITE_H
 
 
 #include <stdbool.h>
@@ -23,13 +23,13 @@
 #include <Value.h>
 
 
-Event* new_Event_control_turing(Reltime* pos);
+Event* new_Event_control_infinite(Reltime* pos);
 
 
-bool Event_control_turing_process(General_state* gstate, Value* value);
+bool Event_control_infinite_process(General_state* gstate, Value* value);
 
 
-#endif // K_EVENT_CONTROL_TURING_H
+#endif // K_EVENT_CONTROL_INFINITE_H
 
 
 

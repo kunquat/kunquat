@@ -145,7 +145,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
         self._focus_backup = None
-        self._turing = False
+        self._infinite = False
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
                                self.sync)
@@ -254,7 +254,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.nanoseconds = 0
         self.handle.subsong = subsong
         self.playing = True
-        self._set_turing(self._turing)
+        self._set_infinite(self._infinite)
 
     def play_pattern(self, pattern):
         self._peak_meter.reset()
@@ -264,7 +264,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.fire(0, '[">pattern", "{0}"]'.format(pattern))
-        self._set_turing(self._turing)
+        self._set_infinite(self._infinite)
 
     def play_from(self, subsong, section, beats, rem):
         self._peak_meter.reset()
@@ -276,7 +276,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.fire(0, '[">.gs", "{0}"]'.format(section))
         self.handle.fire(0, '[">.gr", "ts({0}, {1})"]'.format(beats, rem))
         self.handle.fire(0, '[">g", null]')
-        self._set_turing(self._turing)
+        self._set_infinite(self._infinite)
 
     def play_event(self, *args):
         channel, event = args
@@ -325,10 +325,10 @@ class KqtEditor(QtGui.QMainWindow):
             if self._focus_backup:
                 self._focus_backup.setFocus()
 
-    def _set_turing(self, x):
-        self._turing = x
-        self.handle.fire(0, '[">Turing", "{0}"]'.format(
-                            'true' if self._turing else 'false'))
+    def _set_infinite(self, x):
+        self._infinite = x
+        self.handle.fire(0, '[">infinite", "{0}"]'.format(
+                            'true' if self._infinite else 'false'))
 
     def set_appearance(self):
         # FIXME: size and title
@@ -469,11 +469,11 @@ class KqtEditor(QtGui.QMainWindow):
         self._octave.setValue(4)
         self._octave.setToolTip('Base octave')
 
-        turing = QtGui.QCheckBox('Turing')
-        turing.setCheckState(QtCore.Qt.Unchecked)
-        #turing.setToolTip('Turing mode')
-        QtCore.QObject.connect(turing, QtCore.SIGNAL('stateChanged(int)'),
-                               lambda x: self._set_turing(x ==
+        infinite = QtGui.QCheckBox('Infinite')
+        infinite.setCheckState(QtCore.Qt.Unchecked)
+        #infinite.setToolTip('Infinite mode')
+        QtCore.QObject.connect(infinite, QtCore.SIGNAL('stateChanged(int)'),
+                               lambda x: self._set_infinite(x ==
                                                     QtCore.Qt.Checked))
 
         layout.addWidget(new_project)
@@ -495,7 +495,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         layout.addWidget(self._instrument)
         layout.addWidget(self._octave)
-        layout.addWidget(turing)
+        layout.addWidget(infinite)
         return top_control
 
     def create_bottom_control(self):

@@ -51,7 +51,7 @@
 #include <Event_control_set_goto_subsong.h>
 #include <Event_control_goto.h>
 
-#include <Event_control_turing.h>
+#include <Event_control_infinite.h>
 
 #include <Event_control_receive_event.h>
 
@@ -264,8 +264,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
     Event_handler_set_control_process(eh, EVENT_CONTROL_GOTO,
                                       Event_control_goto_process);
 
-    Event_handler_set_control_process(eh, EVENT_CONTROL_TURING,
-                                      Event_control_turing_process);
+    Event_handler_set_control_process(eh, EVENT_CONTROL_INFINITE,
+                                      Event_control_infinite_process);
 
     Event_handler_set_control_process(eh, EVENT_CONTROL_RECEIVE_EVENT,
                                       Event_control_receive_event);

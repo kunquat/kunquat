@@ -66,7 +66,7 @@ static Name_info event_specs[] =
     { ">.gss", EVENT_CONTROL_SET_GOTO_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
     { ">g",   EVENT_CONTROL_GOTO,             EVENT_FIELD_NONE, NULL, false },
 
-    { ">Turing", EVENT_CONTROL_TURING,        EVENT_FIELD_BOOL, v_any_bool, false },
+    { ">infinite", EVENT_CONTROL_INFINITE,    EVENT_FIELD_BOOL, v_any_bool, false },
 
     { "#",     EVENT_GENERAL_COMMENT,         EVENT_FIELD_STRING, v_any_str, false },
 

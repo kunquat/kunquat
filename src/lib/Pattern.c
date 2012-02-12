@@ -639,7 +639,7 @@ static void evaluate_row(Pattern* pat,
                 Trigger_global_jump_process((Event_global*)*next, play);
             }
         }
-        else if ((!EVENT_IS_CONTROL(type) || play->turing) &&
+        else if ((!EVENT_IS_CONTROL(type) || play->infinite) &&
                  (!play->silent || EVENT_IS_GLOBAL(type) ||
                                    EVENT_IS_GENERAL(type)))
         {

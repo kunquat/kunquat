@@ -63,7 +63,7 @@ typedef struct Playdata
     uint64_t play_frames;             ///< The number of frames mixed since the start of playback.
     Random* random;                   ///< Random source.
 
-    bool turing;                      ///< Turing mode enabled.
+    bool infinite;                    ///< Infinite mode enabled.
 
     Event_names* event_filter;        ///< Event filter.
     Call_map* call_map;

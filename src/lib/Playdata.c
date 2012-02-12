@@ -44,7 +44,7 @@ Playdata* new_Playdata(Ins_table* insts,
         return NULL;
     }
     play->random = random;
-    play->turing = false;
+    play->infinite = false;
     play->event_filter = NULL;
     play->call_map = NULL;
     play->set_map = NULL;
@@ -127,7 +127,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
         return NULL;
     }
     play->random = NULL;
-    play->turing = false;
+    play->infinite = false;
     play->event_filter = NULL;
     play->call_map = NULL;
     play->set_map = NULL;
@@ -253,7 +253,7 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
-    play->turing = false;
+    play->infinite = false;
     play->scale = 0;
     play->scale_fixed_point = 0;
 

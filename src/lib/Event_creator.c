@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -37,7 +37,7 @@
 #include <Event_control_set_goto_subsong.h>
 #include <Event_control_goto.h>
 
-#include <Event_control_turing.h>
+#include <Event_control_infinite.h>
 
 #include <Event_control_receive_event.h>
 
@@ -176,7 +176,7 @@ static const Event_cons cons[EVENT_LAST] =
     [EVENT_CONTROL_SET_GOTO_SUBSONG] = new_Event_control_set_goto_subsong,
     [EVENT_CONTROL_GOTO] = new_Event_control_goto,
 
-    [EVENT_CONTROL_TURING] = new_Event_control_turing,
+    [EVENT_CONTROL_INFINITE] = new_Event_control_infinite,
 
     [EVENT_CONTROL_RECEIVE_EVENT] = new_Event_control_receive_event,
 
