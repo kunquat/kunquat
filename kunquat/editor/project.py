@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -14,6 +14,7 @@
 from __future__ import print_function
 
 from collections import defaultdict
+from copy import deepcopy
 import errno
 from itertools import izip, takewhile
 import json
@@ -146,8 +147,6 @@ class Project(QtCore.QObject):
     def __getitem__(self, key):
         """Get data from the Kunquat Handle.
 
-        This function returns JSON keys as Python objects.
-
         Arguments:
         key -- The key of the data in the composition.
 
@@ -155,12 +154,7 @@ class Project(QtCore.QObject):
         The data associated with the key if found, otherwise None.
 
         """
-        if key[key.index('.'):].startswith('.json'):
-            value = self._handle[key]
-            return json.loads(value) if value else None
-        else:
-            # TODO
-            return self._handle[key]
+        return self._handle[key]
 
     def __setitem__(self, key, value):
         """Set data in the Kunquat Handle and History.
@@ -190,9 +184,6 @@ class Project(QtCore.QObject):
     def set(self, key, value, immediate=True, autoconnect=True):
         """Set data in the Kunquat Handle.
 
-        For JSON keys, this function converts the given Python object
-        into a JSON string.
-
         Arguments:
         key   -- The key of the data in the composition.
         value -- The data to be set.
@@ -211,6 +202,9 @@ class Project(QtCore.QObject):
         if autoconnect:
             autoconnect = self._autoconnect(key, immediate)
         try:
+            self._history.step(key, deepcopy(value), immediate=immediate)
+            self.set_raw(key, value)
+            """
             if value == None:
                 self._history.step(key, '', immediate=immediate)
                 self.set_raw(key, '')
@@ -221,6 +215,7 @@ class Project(QtCore.QObject):
             else:
                 self._history.step(key, value, immediate=immediate)
                 self.set_raw(key, value)
+            """
         finally:
             if autoconnect:
                 self._autoconnect_finish()
@@ -316,8 +311,7 @@ class Project(QtCore.QObject):
     def set_raw(self, key, value):
         """Set raw data in the Project.
 
-        This function does not do JSON conversion or update the
-        History.
+        This function does not update the History.
 
         """
         self._handle[key] = value

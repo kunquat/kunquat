@@ -202,7 +202,9 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
  * \param event     The event description in JSON format -- should not be
  *                  \c NULL. The description is a pair (list with two
  *                  elements) with the event name as the first element and its
- *                  argument list as the second element.
+ *                  argument expression as the second element. The expression
+ *                  should be null for events that do not support an argument
+ *                  (e.g. ["cn-", null]).
  *
  * \return   \c 1 if the event was successfully fired, otherwise \c 0.
  */

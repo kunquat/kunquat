@@ -107,7 +107,7 @@ class RHandle(object):
                slashes ('/').  The last element is the only one that
                is allowed and required to contain a period.  Examples:
                'p_composition.json'
-               'pat_000/ccol_00/p_channel_events.json'
+               'pat_000/col_00/p_events.json'
                'ins_01/kqtiXX/p_instrument.json'
                The 'XX' in the last example should be written
                literally.  It is expanded to the file format version
@@ -115,6 +115,7 @@ class RHandle(object):
 
         Return value:
         The data associated with the key if found, otherwise None.
+        The function converts JSON data to Python objects.
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
@@ -129,7 +130,10 @@ class RHandle(object):
         cdata = _kunquat.kqt_Handle_get_data(self._handle, key)
         data = cdata[:length]
         _kunquat.kqt_Handle_free_data(self._handle, cdata)
-        return ''.join(chr(ch) for ch in data)
+        data = ''.join(chr(ch) for ch in data)
+        if key[key.index('.'):].startswith('.json'):
+            return json.loads(data) if data else None
+        return data
 
     @property
     def subsong(self):
@@ -370,7 +374,9 @@ class RWHandle(RHandle):
         key   -- The key of the data in the composition.  This refers
                  to the same data as the key argument of __getitem__
                  and the same formatting rules apply.
-        value -- The data to be set.
+        value -- The data to be set.  For JSON keys, this should be a
+                 Python object -- it is automatically converted to a
+                 JSON string.
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
@@ -380,7 +386,8 @@ class RWHandle(RHandle):
         KunquatResourceError -- File system access failed.
 
         """
-        #print(key, value if len(value) < 200 else value[:197] + '...')
+        if key[key.index('.'):].startswith('.json'):
+            value = json.dumps(value) if value else ''
         data = buffer(value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
