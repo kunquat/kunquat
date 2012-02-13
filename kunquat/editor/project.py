@@ -231,7 +231,6 @@ class Project(QtCore.QObject):
         if not value:
             value = 0
         value += 1
-        value = json.dumps(value)
         self.set_raw('p_random_seed.json', value)
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
