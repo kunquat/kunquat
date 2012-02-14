@@ -413,19 +413,39 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         {
             pat = Pat_table_get(song->pats, play->pattern);
         }
-        if (pat == NULL && !play->parent.pause /*&& play->mode != PLAY_EVENT*/)
+        if (pat == NULL && !play->parent.pause)
         {
-            if (play->mode < PLAY_SONG)
+            if (play->mode == PLAY_PATTERN)
             {
                 play->mode = STOP;
                 break;
+            }
+            else if (play->mode == PLAY_SUBSONG)
+            {
+                if (play->infinite && play->play_frames > 0)
+                {
+                    Playdata_set_subsong(play, play->orig_subsong);
+                    continue;
+                }
+                else
+                {
+                    play->mode = STOP;
+                    break;
+                }
             }
             assert(play->mode == PLAY_SONG);
             if (play->subsong >= KQT_SUBSONGS_MAX - 1)
             {
                 Playdata_set_subsong(play, 0);
-                play->mode = STOP;
-                break;
+                if (play->infinite && play->play_frames > 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    play->mode = STOP;
+                    break;
+                }
             }
             Playdata_set_subsong(play, play->orig_subsong + 1);
             continue;
