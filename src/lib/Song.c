@@ -118,7 +118,6 @@ Song* new_Song(uint32_t buf_size)
     song->random = NULL;
     song->env = NULL;
     song->call_map = NULL;
-    song->set_map = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -236,16 +235,6 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     Song_set_call_map(song, call_map);
-    song->set_map = new_Set_map_from_string(NULL,
-                            Event_handler_get_names(song->event_handler),
-                            state);
-    if (song->set_map == NULL)
-    {
-        assert(!state->error);
-        del_Song(song);
-        return NULL;
-    }
-    song->play_state->set_map = song->skip_state->set_map = song->set_map;
 
     if (Scale_ins_note(song->scales[0], 0,
                        Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
@@ -608,18 +597,6 @@ bool Song_set_call_map(Song* song, Call_map* map)
 }
 
 
-void Song_set_set_map(Song* song, Set_map* map)
-{
-    assert(song != NULL);
-    assert(map != NULL);
-    assert(song->set_map == song->play_state->set_map);
-    assert(song->set_map == song->skip_state->set_map);
-    song->set_map = song->play_state->set_map =
-                    song->skip_state->set_map = map;
-    return;
-}
-
-
 Scale** Song_get_scales(Song* song)
 {
     assert(song != NULL);
@@ -836,7 +813,6 @@ void del_Song(Song* song)
     del_Event_handler(song->skip_handler);
     del_Random(song->random);
     del_Call_map(song->call_map);
-    del_Set_map(song->set_map);
     Device_uninit(&song->parent);
     xfree(song);
     return;

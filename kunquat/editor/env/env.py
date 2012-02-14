@@ -16,7 +16,6 @@ from __future__ import print_function
 from PyQt4 import QtCore, QtGui
 
 from callmap import CallMap
-from setmap import SetMap
 from variables import Variables
 
 
@@ -41,9 +40,6 @@ class Env(QtGui.QWidget):
         map_layout = QtGui.QVBoxLayout()
         map_layout.setMargin(0)
         map_layout.setSpacing(0)
-        map_layout.addWidget(QtGui.QLabel('Set map'))
-        self._set_map = SetMap(project)
-        map_layout.addWidget(self._set_map, 1)
         map_layout.addWidget(QtGui.QLabel('Call map'))
         self._call_map = CallMap(project)
         map_layout.addWidget(self._call_map, 1)
@@ -53,7 +49,6 @@ class Env(QtGui.QWidget):
 
     def sync(self):
         self._vars.sync()
-        self._set_map.sync()
         self._call_map.sync()
 
 

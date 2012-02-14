@@ -28,7 +28,6 @@
 #include <Event_names.h>
 #include <General_state.h>
 #include <Random.h>
-#include <Set_map.h>
 #include <Slider.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -67,7 +66,6 @@ typedef struct Playdata
 
     Event_names* event_filter;        ///< Event filter.
     Call_map* call_map;
-    Set_map* set_map;
 
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete

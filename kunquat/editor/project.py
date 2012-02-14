@@ -240,6 +240,8 @@ class Project(QtCore.QObject):
 
     def tfire(self, ch, event):
         """Mark an event fired."""
+        if event[0].endswith('"'):
+            event[0] = event[0][:-1]
         for func, args in self._callbacks[event[0]]:
             func(ch, event, *args)
 

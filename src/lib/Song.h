@@ -33,7 +33,6 @@
 #include <Playdata.h>
 #include <File_base.h>
 #include <Event_handler.h>
-#include <Set_map.h>
 
 
 typedef struct Song
@@ -57,7 +56,6 @@ typedef struct Song
     Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
     Call_map* call_map;
-    Set_map* set_map;
 } Song;
 
 
@@ -218,15 +216,6 @@ Effect_table* Song_get_effects(Song* song);
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Song_set_call_map(Song* song, Call_map* map);
-
-
-/**
- * Sets a Set map of the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- * \param map    The Set map -- must not be \c NULL.
- */
-void Song_set_set_map(Song* song, Set_map* map);
 
 
 /**

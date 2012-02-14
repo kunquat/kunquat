@@ -1036,6 +1036,7 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
         {
             Event_buffer_add(eh->tracker_buffer, index, desc);
         }
+#if 0
         char dest_event[128] = "";
         if (type == EVENT_CONTROL_ENV_SET_BOOL ||
                 type == EVENT_CONTROL_ENV_SET_INT ||
@@ -1058,6 +1059,7 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
                                          dest_event, 128, &channel);
             }
         }
+#endif
     }
     return true;
 }

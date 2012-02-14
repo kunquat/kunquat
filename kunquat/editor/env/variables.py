@@ -202,13 +202,13 @@ class Variables(QtGui.QTableWidget):
         self._project[self._key] = var_list
 
     def _update_bool_name(self, ch, event):
-        self._update_names['bool'] = event[1][0]
+        self._update_names['bool'] = event[1]
 
     def _update_int_name(self, ch, event):
-        self._update_names['int'] = event[1][0]
+        self._update_names['int'] = event[1]
 
     def _update_float_name(self, ch, event):
-        self._update_names['float'] = event[1][0]
+        self._update_names['float'] = event[1]
 
     def _update_value(self, ch, event, type_desc):
         for i in xrange(self.rowCount()):
@@ -216,10 +216,10 @@ class Variables(QtGui.QTableWidget):
                     self.item(i, 1).text() == self._update_names[type_desc]:
                 if type_desc == 'bool':
                     self.cellWidget(i, 3).value = (QtCore.Qt.Checked if
-                                        event[1][0] else QtCore.Qt.Unchecked)
+                                        event[1] else QtCore.Qt.Unchecked)
                 elif type_desc in ('int', 'float'):
                     self.blockSignals(True)
-                    self.item(i, 3).setText(str(event[1][0]))
+                    self.item(i, 3).setText(str(event[1]))
                     self.blockSignals(False)
 
 
