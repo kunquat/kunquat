@@ -207,8 +207,8 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
                 "No event description given.");
         return 0;
     }
-    return Event_handler_trigger(handle->song->event_handler, channel, event,
-                                 false, NULL);
+    return Event_handler_trigger_const(handle->song->event_handler, channel,
+                                       event, false);
 }
 
 

@@ -277,7 +277,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, ['>pattern', '{0}'.format(pattern)])
+        self.handle.fire(0, ['>pattern', pattern])
         self._set_infinite(infinite)
 
     def play_from(self, subsong, section, beats, rem, infinite=False):
@@ -287,8 +287,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, ['>.gs', '{0}'.format(section)])
-        self.handle.fire(0, ['>.gr', 'ts({0}, {1})'.format(beats, rem)])
+        self.handle.fire(0, ['>.gs', section])
+        self.handle.fire(0, ['>.gr', [beats, rem]])
         self.handle.fire(0, ['>g', None])
         self._set_infinite(infinite)
 
@@ -341,7 +341,7 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _set_infinite(self, x):
         #self._infinite = x
-        self.handle.fire(0, ['>infinite', 'true' if x else 'false'])
+        self.handle.fire(0, ['>infinite', x])
 
     def set_appearance(self):
         # FIXME: size and title

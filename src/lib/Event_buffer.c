@@ -70,9 +70,19 @@ bool Event_buffer_add(Event_buffer* buf, int index,
     assert(event_name != NULL);
     assert(event_arg != NULL);
     char event[SER_LEN_MAX] = ""; // should be enough for all outgoing events...
-    int pref_len = snprintf(event, SER_LEN_MAX, "[\"%s\", ", event_name);
+    int pref_len = snprintf(event, SER_LEN_MAX, "[\"%s", event_name);
     assert(pref_len < SER_LEN_MAX);
-    Value_serialise(event_arg, SER_LEN_MAX - pref_len, event + pref_len);
+    assert(pref_len > 2);
+    if (event[pref_len - 1] == '"')
+    {
+        event[pref_len - 1] = '\0';
+        --pref_len;
+    }
+    pref_len += snprintf(event + pref_len, SER_LEN_MAX - pref_len, "\", ");
+    pref_len += Value_serialise(event_arg, SER_LEN_MAX - pref_len,
+                                event + pref_len);
+    assert(pref_len < SER_LEN_MAX);
+    snprintf(event + pref_len, SER_LEN_MAX - pref_len, "]");
     int index_len = index < 0 || index >= 10 ? 2 : 1;
     int len = strlen(event);
     assert(len < buf->size / 2); // FIXME

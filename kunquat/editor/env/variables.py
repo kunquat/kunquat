@@ -160,7 +160,7 @@ class Variables(QtGui.QTableWidget):
             except ValueError:
                 return
             self._project.handle.fire(0, ['>.In"', name])
-            self._project.handle.fire(0, ['>.I', '{0:d}'.format(value)])
+            self._project.handle.fire(0, ['>.I', value])
         elif var_type == 'float':
             value_item = self.item(row, 3)
             if not value_item:
@@ -170,7 +170,7 @@ class Variables(QtGui.QTableWidget):
             except ValueError:
                 return
             self._project.handle.fire(0, ['>.Fn"', name])
-            self._project.handle.fire(0, ['>.F', '{0:.17f}'.format(value)])
+            self._project.handle.fire(0, ['>.F', value])
 
     def _flatten(self):
         var_list = []
@@ -259,7 +259,6 @@ class BoolMod(QtGui.QCheckBox):
         if not self.name:
             return
         self._project.handle.fire(0, ['>.Bn"', self.name])
-        self._project.handle.fire(0,
-                ['>.B', 'true' if self.isChecked() else 'false'])
+        self._project.handle.fire(0, ['>.B', self.isChecked()])
 
 

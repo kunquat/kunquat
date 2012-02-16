@@ -471,9 +471,9 @@ class Cursor(QtCore.QObject):
             note_on_entered = True
         if play_note_on:
             self.playback_manager.play_event(self.col.get_num(),
-                                ['c.i', '{0}'.format(self.inst_num)])
+                                             ['c.i', self.inst_num])
             self.playback_manager.play_event(self.col.get_num(),
-                                        ['cn+', '{0}'.format(cents)])
+                                             ['cn+', cents])
         if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         self.insert = False
