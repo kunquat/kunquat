@@ -305,21 +305,6 @@ class RHandle(object):
             received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
         return el
 
-    def get_state(self, key):
-        """Get playback state information.
-
-        Arguments:
-        key -- The key of the playback state variable.
-
-        Return value:
-        The value corresponding to the key, or None if the key does not
-        correspond to any piece of playback state information.
-
-        """
-        sb = ctypes.create_string_buffer('\000' * 50)
-        _kunquat.kqt_Handle_get_state(self._handle, key, sb, len(sb))
-        return json.loads(sb.value) if sb.value else None
-
     def __del__(self):
         if self._handle:
             _kunquat.kqt_del_Handle(self._handle)
@@ -594,12 +579,5 @@ _kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
                                          ctypes.c_int]
 _kunquat.kqt_Handle_treceive.restype = ctypes.c_int
 _kunquat.kqt_Handle_treceive.errcheck = _error_check
-
-_kunquat.kqt_Handle_get_state.argtypes = [ctypes.c_void_p,
-                                          ctypes.c_char_p,
-                                          ctypes.c_char_p,
-                                          ctypes.c_int]
-_kunquat.kqt_Handle_get_state.restype = ctypes.c_int
-_kunquat.kqt_Handle_get_state.errcheck = _error_check
 
 

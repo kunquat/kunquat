@@ -254,30 +254,6 @@ int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size);
 int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size);
 
 
-/**
- * Gets playback state information.
- *
- * \param handle   The Handle -- should not be \c NULL.
- * \param key      The key of the state variable -- should not be \c NULL.
- * \param dest     The memory location where the result shall be stored
- *                 -- should not be \c NULL. Upon successful completion,
- *                 this memory location contains the requested state
- *                 information as a JSON string.
- * \param size     The size of the memory area pointed to by \a dest
- *                 -- should be positive. A size of at least 51 bytes is
- *                 recommended (this is enough for all possible integers,
- *                 floats, fractions and timestamps). JSON strings longer than
- *                 \a size - 1 bytes are truncated and thus may be invalid.
- *
- * \return   \c 1 if successful, or \c 0 if the key does not exist or an
- *           error occurred.
- */
-int kqt_Handle_get_state(kqt_Handle* handle,
-                         char* key,
-                         char* dest,
-                         int size);
-
-
 /* \} */
 
 

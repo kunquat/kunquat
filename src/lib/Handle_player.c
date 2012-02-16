@@ -250,6 +250,7 @@ int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
 }
 
 
+#if 0
 int kqt_Handle_get_state(kqt_Handle* handle,
                          char* key,
                          char* dest,
@@ -288,6 +289,7 @@ int kqt_Handle_get_state(kqt_Handle* handle,
     return Playdata_get_state_value(handle->song->play_state,
                                     key, dest, size);
 }
+#endif
 
 
 void kqt_Handle_stop(kqt_Handle* handle)
