@@ -178,6 +178,15 @@ static Name_info event_specs[] =
     { "d.Tn",  EVENT_DSP_SET_RELTIME_NAME,    EVENT_FIELD_STRING, v_key, false },
     { "d.T",   EVENT_DSP_SET_RELTIME,         EVENT_FIELD_RELTIME, v_any_ts, false },
 
+    { "Qlocation", EVENT_QUERY_LOCATION,      EVENT_FIELD_NONE, NULL, false },
+    { "Qvoices", EVENT_QUERY_VOICE_COUNT,     EVENT_FIELD_NONE, NULL, false },
+
+    { "Asubsong", EVENT_AUTO_LOCATION_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
+    { "Asection", EVENT_AUTO_LOCATION_SECTION, EVENT_FIELD_INT, v_section, false },
+    { "Arow",  EVENT_AUTO_LOCATION_ROW,       EVENT_FIELD_RELTIME, v_any_ts, false },
+
+    { "Avoices", EVENT_AUTO_VOICE_COUNT,      EVENT_FIELD_INT, v_any_int, false },
+
     { "", EVENT_FIELD_NONE, EVENT_FIELD_NONE, NULL, false }
 };
 

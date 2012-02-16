@@ -211,6 +211,23 @@ typedef enum
 
     EVENT_DSP_UPPER,
 
+    EVENT_QUERY_LOWER,
+
+    EVENT_QUERY_LOCATION,
+    EVENT_QUERY_VOICE_COUNT,
+
+    EVENT_QUERY_UPPER,
+
+    EVENT_AUTO_LOWER,
+
+    EVENT_AUTO_LOCATION_SUBSONG,
+    EVENT_AUTO_LOCATION_SECTION,
+    EVENT_AUTO_LOCATION_ROW,
+
+    EVENT_AUTO_VOICE_COUNT,
+
+    EVENT_AUTO_UPPER,
+
     EVENT_LAST
 } Event_type;
 
@@ -231,6 +248,10 @@ typedef enum
                                   (type) < EVENT_EFFECT_UPPER)
 #define EVENT_IS_DSP(type)       ((type) > EVENT_DSP_LOWER && \
                                   (type) < EVENT_DSP_UPPER)
+#define EVENT_IS_QUERY(type)     ((type) > EVENT_QUERY_LOWER && \
+                                  (type) < EVENT_QUERY_UPPER)
+#define EVENT_IS_AUTO(type)      ((type) > EVENT_AUTO_LOWER && \
+                                  (type) < EVENT_AUTO_UPPER)
 #define EVENT_IS_PG(type)        (EVENT_IS_INS((type))       || \
                                   EVENT_IS_GENERAL((type))   || \
                                   EVENT_IS_GENERATOR((type)) || \
@@ -238,9 +259,11 @@ typedef enum
                                   EVENT_IS_EFFECT((type))    || \
                                   EVENT_IS_DSP((type))       || \
                                   EVENT_IS_CHANNEL((type))   || \
-                                  EVENT_IS_CONTROL((type)))
+                                  EVENT_IS_CONTROL((type))   || \
+                                  EVENT_IS_QUERY((type)))
 #define EVENT_IS_TRIGGER(type)   EVENT_IS_PG((type))
-#define EVENT_IS_VALID(type)     EVENT_IS_TRIGGER((type))
+#define EVENT_IS_VALID(type)     (EVENT_IS_TRIGGER((type)) || \
+                                  EVENT_IS_AUTO((type)))
 
 
 typedef enum

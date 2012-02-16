@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include <DSP_conf.h>
 #include <Effect.h>
@@ -1011,7 +1012,8 @@ static bool Event_handler_act(Event_handler* eh,
     //{
     //    return false;
     //}
-    if (!Event_handler_handle(eh, index, event_type, value))
+    if (!EVENT_IS_QUERY(event_type) && !EVENT_IS_AUTO(event_type) &&
+            !Event_handler_handle(eh, index, event_type, value))
     {
         return false;
     }
@@ -1021,10 +1023,41 @@ static bool Event_handler_act(Event_handler* eh,
         {
             Event_buffer_add(eh->event_buffer, index, event_name, value);
         }
-        if (event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
-                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
+        if ((event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
+                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP) ||
+            EVENT_IS_AUTO(event_type))
         {
             Event_buffer_add(eh->tracker_buffer, index, event_name, value);
+        }
+    }
+    if (EVENT_IS_QUERY(event_type))
+    {
+        char auto_event[128] = "";
+        switch (event_type)
+        {
+            case EVENT_QUERY_LOCATION:
+            {
+                snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
+                         eh->global_state->subsong);
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+                snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
+                         eh->global_state->section);
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+                snprintf(auto_event, 128,
+                         "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
+                         Reltime_get_beats(&eh->global_state->pos),
+                         Reltime_get_rem(&eh->global_state->pos));
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+            } break;
+            case EVENT_QUERY_VOICE_COUNT:
+            {
+                snprintf(auto_event, 128, "[\"Avoices\", %d]",
+                         eh->global_state->active_voices);
+                eh->global_state->active_voices = 0;
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+            } break;
+            default:
+                assert(false);
         }
     }
     Target_event* call = NULL;
@@ -1078,7 +1111,8 @@ bool Event_handler_process_type(Event_handler* eh,
                                     event_name);
         return false;
     }
-    assert(Event_type_is_supported(*event_type));
+    assert(Event_type_is_supported(*event_type) ||
+           EVENT_IS_QUERY(*event_type) || EVENT_IS_AUTO(*event_type));
     if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
             *event_type != EVENT_GENERAL_IF &&
             *event_type != EVENT_GENERAL_ELSE &&

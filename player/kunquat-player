@@ -15,7 +15,7 @@
 
 from __future__ import print_function
 import collections
-from itertools import cycle, chain
+from itertools import cycle, chain, ifilter
 import json
 import math
 from optparse import OptionParser, OptionGroup
@@ -119,10 +119,20 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                    (len(mix_loads) - 2)
         pa_handle.write(*bufs)
         if options.interactive:
+            voice_count = 0
+            handle.fire(0, ['Qvoices', None])
+            events = handle.treceive()
+            try:
+                vc = ifilter(lambda x: x[1][0] == 'Avoices',
+                             events).next()
+                voice_count = vc[1][1]
+            except StopIteration:
+                pass
             status_line = status.get_status_line(handle,
                                                  duration,
                                                  bufs,
-                                                 mix_load)
+                                                 mix_load,
+                                                 voice_count)
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
@@ -375,7 +385,7 @@ class Status(object):
             seconds = 0
         return '{0:02d}:{1:04.1f}'.format(int(seconds // 60), seconds % 60)
 
-    def get_status_line(self, handle, duration, bufs, mix_load):
+    def get_status_line(self, handle, duration, bufs, mix_load, voice_count):
         components = []
         if handle.subsong is None:
             components.append('All subsongs')
@@ -392,8 +402,7 @@ class Status(object):
         components.append(elapsed)
         if mix_load > 0:
             components.append('Load: {0:.0f} %'.format(mix_load * 100))
-        components.append('Voices: {0:d}'.format(
-                          handle.get_state('active_voices')))
+        components.append('Voices: {0:d}'.format(voice_count))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
