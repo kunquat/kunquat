@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,8 @@
 
 
 #include <stdbool.h>
+
+#include <Value.h>
 
 
 /**
@@ -40,16 +42,17 @@ Event_buffer* new_Event_buffer(int size);
 /**
  * Adds an event to the Event buffer.
  *
- * \param buf     The Event buffer -- must not be \c NULL.
- * \param index   The channel number -- must be >= \c 1 and
- *                < \c KQT_COLUMNS_MAX.
- * \param event   The event description -- must not be \c NULL and
- *                must fit inside the buffer.
+ * \param buf          The Event buffer -- must not be \c NULL.
+ * \param index        The channel number -- must be >= \c 1 and
+ *                     < \c KQT_COLUMNS_MAX.
+ * \param event_name   The Event name -- must not be \c NULL.
+ * \param event_arg    The Event argument -- must not be \c NULL.
  *
  * \return   \c true if unread events were dropped off the buffer,
  *           otherwise \c false.
  */
-bool Event_buffer_add(Event_buffer* buf, int index, char* event);
+bool Event_buffer_add(Event_buffer* buf, int index,
+                      char* event_name, Value* event_arg);
 
 
 /**

@@ -65,6 +65,19 @@ typedef struct Value
 Value* Value_copy(Value* dest, const Value* src);
 
 
+/**
+ * Serialises a Value.
+ *
+ * \param value   The Value -- must not be \c NULL.
+ * \param len     Maximum amount of bytes to be written -- must be positive.
+ * \param str     The output location -- must not be \c NULL.
+ *
+ * \return   The amount of bytes actually written to \a str, not including
+ *           the terminating byte.
+ */
+int Value_serialise(Value* value, int len, char* str);
+
+
 #endif // K_VALUE_H
 
 

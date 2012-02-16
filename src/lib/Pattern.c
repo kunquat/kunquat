@@ -645,7 +645,7 @@ static void evaluate_row(Pattern* pat,
         {
             Event_pg* pg = (Event_pg*)*next;
             Event_handler_trigger(eh, pg->ch_index, Event_get_desc(*next),
-                                  play->silent);
+                                  play->silent, NULL);
         }
         ++play->event_index;
         *next = Column_iter_get_next(play->citer);

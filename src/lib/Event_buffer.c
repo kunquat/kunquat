@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Event_buffer.h>
 #include <kunquat/limits.h>
 #include <math_common.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -57,12 +58,21 @@ Event_buffer* new_Event_buffer(int size)
 }
 
 
-bool Event_buffer_add(Event_buffer* buf, int index, char* event)
+#define SER_LEN_MAX 66
+
+
+bool Event_buffer_add(Event_buffer* buf, int index,
+                      char* event_name, Value* event_arg)
 {
     assert(buf != NULL);
     assert(index >= -1);
     assert(index < KQT_COLUMNS_MAX);
-    assert(event != NULL);
+    assert(event_name != NULL);
+    assert(event_arg != NULL);
+    char event[SER_LEN_MAX] = ""; // should be enough for all outgoing events...
+    int pref_len = snprintf(event, SER_LEN_MAX, "[\"%s\", ", event_name);
+    assert(pref_len < SER_LEN_MAX);
+    Value_serialise(event_arg, SER_LEN_MAX - pref_len, event + pref_len);
     int index_len = index < 0 || index >= 10 ? 2 : 1;
     int len = strlen(event);
     assert(len < buf->size / 2); // FIXME

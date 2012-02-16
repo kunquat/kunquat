@@ -849,23 +849,27 @@ static bool Event_handler_handle(Event_handler* eh,
 }
 
 
-static bool Event_handler_trigger_with_meta(Event_handler* eh,
-                                            int index,
-                                            char* desc,
-                                            bool silent,
-                                            Value* meta);
+static bool Event_handler_act(Event_handler* eh,
+                              bool silent,
+                              int index,
+                              char* event_name,
+                              Event_type event_type,
+                              Value* value);
 
 
-static bool Event_handler_trigger_with_meta(Event_handler* eh,
-                                            int index,
-                                            char* desc,
-                                            bool silent,
-                                            Value* meta)
+static bool Event_handler_act(Event_handler* eh,
+                              bool silent,
+                              int index,
+                              char* event_name,
+                              Event_type event_type,
+                              Value* value)
 {
     assert(eh != NULL);
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
-    assert(desc != NULL);
+    assert(event_name != NULL);
+    assert(value != NULL);
+#if 0
     Read_state* state = READ_STATE_AUTO;
     char* str = read_const_char(desc, '[', state);
     char event_name[EVENT_NAME_MAX + 2] = "";
@@ -894,6 +898,8 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
     {
         return true;
     }
+#endif
+#if 0
     Value* value = VALUE_AUTO;
     Event_field_type field_type = Event_names_get_param_type(eh->event_names,
                                                              event_name);
@@ -999,12 +1005,13 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
                 assert(false);
         }
     }
+#endif
     //str = read_const_char(str, ']', state);
     //if (state->error)
     //{
     //    return false;
     //}
-    if (!Event_handler_handle(eh, index, type, value))
+    if (!Event_handler_handle(eh, index, event_type, value))
     {
         return false;
     }
@@ -1016,25 +1023,25 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
                               value);
     while (call != NULL)
     {
-        Event_handler_trigger_with_meta(eh,
-                                        (index + call->ch_offset +
-                                                KQT_COLUMNS_MAX) %
-                                                KQT_COLUMNS_MAX,
-                                        call->desc,
-                                        silent,
-                                        value);
+        Event_handler_trigger(eh,
+                              (index + call->ch_offset +
+                                      KQT_COLUMNS_MAX) %
+                                      KQT_COLUMNS_MAX,
+                              call->desc,
+                              silent,
+                              value);
         call = call->next;
     }
     if (!silent)
     {
         if (Event_names_get_pass(eh->event_names, event_name))
         {
-            Event_buffer_add(eh->event_buffer, index, desc);
+            Event_buffer_add(eh->event_buffer, index, event_name, value);
         }
-        if (type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
-                type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
+        if (event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
+                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
         {
-            Event_buffer_add(eh->tracker_buffer, index, desc);
+            Event_buffer_add(eh->tracker_buffer, index, event_name, value);
         }
 #if 0
         char dest_event[128] = "";
@@ -1065,16 +1072,242 @@ static bool Event_handler_trigger_with_meta(Event_handler* eh,
 }
 
 
-bool Event_handler_trigger(Event_handler* eh,
-                           int index,
-                           char* desc,
-                           bool silent)
+bool Event_handler_process_type(Event_handler* eh,
+                                int index,
+                                char** desc,
+                                char* event_name,
+                                Event_type* event_type,
+                                Read_state* state)
 {
     assert(eh != NULL);
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(desc != NULL);
-    return Event_handler_trigger_with_meta(eh, index, desc, silent, NULL);
+    assert(*desc != NULL);
+    assert(event_name != NULL);
+    assert(event_type != NULL);
+    assert(state != NULL);
+    assert(!state->error);
+    *desc = read_const_char(*desc, '[', state);
+    *desc = read_string(*desc, event_name, EVENT_NAME_MAX + 2, state);
+    *desc = read_const_char(*desc, ',', state);
+    if (state->error)
+    {
+        return false;
+    }
+    *event_type = Event_names_get(eh->event_names, event_name);
+    if (*event_type == EVENT_NONE)
+    {
+        Read_state_set_error(state, "Unsupported event type: %s",
+                                    event_name);
+        return false;
+    }
+    assert(Event_type_is_supported(*event_type));
+    if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
+            *event_type != EVENT_GENERAL_IF &&
+            *event_type != EVENT_GENERAL_ELSE &&
+            *event_type != EVENT_GENERAL_END_IF)
+    {
+        return false;
+    }
+    return true;
+}
+
+
+bool Event_handler_trigger(Event_handler* eh,
+                           int index,
+                           char* desc,
+                           bool silent,
+                           Value* meta)
+{
+    assert(eh != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(desc != NULL);
+    Read_state* state = READ_STATE_AUTO;
+    char event_name[EVENT_NAME_MAX + 2] = "";
+    Event_type event_type = EVENT_NONE;
+    if (!Event_handler_process_type(eh, index, &desc,
+                                    event_name, &event_type, state))
+    {
+        return !state->error;
+    }
+    assert(!state->error);
+    Value* value = VALUE_AUTO;
+    Event_field_type field_type = Event_names_get_param_type(eh->event_names,
+                                                             event_name);
+    if (field_type == EVENT_FIELD_NONE)
+    {
+        value->type = VALUE_TYPE_NONE;
+        desc = read_null(desc, state);
+    }
+    else
+    {
+        char* quote_pos = strrchr(event_name, '"');
+        if (quote_pos != NULL && string_eq(quote_pos, "\""))
+        {
+            value->type = VALUE_TYPE_STRING;
+            desc = read_string(desc, value->value.string_type,
+                               ENV_VAR_NAME_MAX, state);
+        }
+        else
+        {
+            desc = evaluate_expr(desc, eh->global_state->parent.env, state,
+                                 meta, value);
+            desc = read_const_char(desc, '"', state);
+        }
+        switch (field_type)
+        {
+            case EVENT_FIELD_BOOL:
+            {
+                if (value->type != VALUE_TYPE_BOOL)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_INT:
+            {
+                if (value->type == VALUE_TYPE_FLOAT)
+                {
+                    value->type = VALUE_TYPE_INT;
+                    value->value.int_type = value->value.float_type;
+                }
+                else if (value->type != VALUE_TYPE_INT)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_DOUBLE:
+            {
+                if (value->type == VALUE_TYPE_INT)
+                {
+                    value->type = VALUE_TYPE_FLOAT;
+                    value->value.float_type = value->value.int_type;
+                }
+                else if (value->type != VALUE_TYPE_FLOAT)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_REAL:
+            {
+                assert(false);
+            } break;
+            case EVENT_FIELD_RELTIME:
+            {
+                if (value->type == VALUE_TYPE_INT)
+                {
+                    value->type = VALUE_TYPE_TIMESTAMP;
+                    Reltime_set(&value->value.Timestamp_type,
+                                value->value.int_type, 0);
+                }
+                else if (value->type == VALUE_TYPE_FLOAT)
+                {
+                    value->type = VALUE_TYPE_TIMESTAMP;
+                    double beats = floor(value->value.float_type);
+                    Reltime_set(&value->value.Timestamp_type, beats,
+                                (value->value.float_type - beats) *
+                                    KQT_RELTIME_BEAT);
+                }
+                else if (value->type != VALUE_TYPE_TIMESTAMP)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            case EVENT_FIELD_STRING:
+            {
+                if (value->type != VALUE_TYPE_STRING)
+                {
+                    Read_state_set_error(state, "Type mismatch");
+                    return false;
+                }
+            } break;
+            default:
+                assert(false);
+        }
+    }
+    desc = read_const_char(desc, ']', state);
+    if (state->error)
+    {
+        return false;
+    }
+    return Event_handler_act(eh, silent, index,
+                             event_name, event_type, value);
+}
+
+
+bool Event_handler_trigger_const(Event_handler* eh,
+                                 int index,
+                                 char* desc,
+                                 bool silent)
+{
+    assert(eh != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(desc != NULL);
+    Read_state* state = READ_STATE_AUTO;
+    char event_name[EVENT_NAME_MAX + 2] = "";
+    Event_type event_type = EVENT_NONE;
+    if (!Event_handler_process_type(eh, index, &desc,
+                                    event_name, &event_type, state))
+    {
+        return !state->error;
+    }
+    assert(!state->error);
+    Value* value = VALUE_AUTO;
+    Event_field_type field_type = Event_names_get_param_type(eh->event_names,
+                                                             event_name);
+    switch (field_type)
+    {
+        case EVENT_FIELD_NONE:
+        {
+            value->type = VALUE_TYPE_NONE;
+            desc = read_null(desc, state);
+        } break;
+        case EVENT_FIELD_BOOL:
+        {
+            value->type = VALUE_TYPE_BOOL;
+            desc = read_bool(desc, &value->value.bool_type, state);
+        } break;
+        case EVENT_FIELD_INT:
+        {
+            value->type = VALUE_TYPE_INT;
+            desc = read_int(desc, &value->value.int_type, state);
+        } break;
+        case EVENT_FIELD_DOUBLE:
+        {
+            value->type = VALUE_TYPE_FLOAT;
+            desc = read_double(desc, &value->value.float_type, state);
+        } break;
+        case EVENT_FIELD_REAL:
+        {
+            assert(false);
+        } break;
+        case EVENT_FIELD_RELTIME:
+        {
+            value->type = VALUE_TYPE_TIMESTAMP;
+            desc = read_reltime(desc, &value->value.Timestamp_type, state);
+        } break;
+        case EVENT_FIELD_STRING:
+        {
+            value->type = VALUE_TYPE_STRING;
+            desc = read_string(desc, value->value.string_type,
+                               ENV_VAR_NAME_MAX, state);
+        }
+        default:
+            assert(false);
+    }
+    desc = read_const_char(desc, ']', state);
+    if (state->error)
+    {
+        return false;
+    }
+    return Event_handler_act(eh, silent, index,
+                             event_name, event_type, value);
 }
 
 

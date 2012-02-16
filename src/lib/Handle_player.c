@@ -208,7 +208,7 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
         return 0;
     }
     return Event_handler_trigger(handle->song->event_handler, channel, event,
-                                 false);
+                                 false, NULL);
 }
 
 

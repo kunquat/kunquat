@@ -214,7 +214,28 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
 
 
 /**
- * Triggers an Event.
+ * Triggers an Event with an expression parameter.
+ *
+ * \param eh       The Event handler -- must not be \c NULL.
+ * \param index    The index number -- must be >= \c 0 and
+ *                 < \c KQT_COLUMNS_MAX. This should match the channel where
+ *                 the Event is triggered.
+ * \param desc     The Event description in JSON format -- must not be \c NULL.
+ * \param silent   Silent mode indicator.
+ * \param meta     The meta variable, or \c NULL.
+ *
+ * \return   \c true if the Event was triggered successfully, otherwise
+ *           \c false.
+ */
+bool Event_handler_trigger(Event_handler* eh,
+                           int index,
+                           char* desc, // FIXME: this should be const
+                           bool silent,
+                           Value* meta);
+
+
+/**
+ * Triggers an Event with a const parameter.
  *
  * \param eh       The Event handler -- must not be \c NULL.
  * \param index    The index number -- must be >= \c 0 and
@@ -226,10 +247,10 @@ bool Event_handler_set_dsp_process(Event_handler* eh,
  * \return   \c true if the Event was triggered successfully, otherwise
  *           \c false.
  */
-bool Event_handler_trigger(Event_handler* eh,
-                           int index,
-                           char* desc, // FIXME: this should be const
-                           bool silent);
+bool Event_handler_trigger_const(Event_handler* eh,
+                                 int index,
+                                 char* desc,
+                                 bool silent);
 
 
 /**
