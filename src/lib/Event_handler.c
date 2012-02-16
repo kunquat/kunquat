@@ -1015,6 +1015,18 @@ static bool Event_handler_act(Event_handler* eh,
     {
         return false;
     }
+    if (!silent)
+    {
+        if (Event_names_get_pass(eh->event_names, event_name))
+        {
+            Event_buffer_add(eh->event_buffer, index, event_name, value);
+        }
+        if (event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
+                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
+        {
+            Event_buffer_add(eh->tracker_buffer, index, event_name, value);
+        }
+    }
     Target_event* call = NULL;
     call = Call_map_get_first(eh->global_state->call_map,
                               eh->ch_states[index]->event_cache,
@@ -1031,42 +1043,6 @@ static bool Event_handler_act(Event_handler* eh,
                               silent,
                               value);
         call = call->next;
-    }
-    if (!silent)
-    {
-        if (Event_names_get_pass(eh->event_names, event_name))
-        {
-            Event_buffer_add(eh->event_buffer, index, event_name, value);
-        }
-        if (event_type >= EVENT_CONTROL_ENV_SET_BOOL_NAME &&
-                event_type <= EVENT_CONTROL_ENV_SET_TIMESTAMP)
-        {
-            Event_buffer_add(eh->tracker_buffer, index, event_name, value);
-        }
-#if 0
-        char dest_event[128] = "";
-        if (type == EVENT_CONTROL_ENV_SET_BOOL ||
-                type == EVENT_CONTROL_ENV_SET_INT ||
-                type == EVENT_CONTROL_ENV_SET_FLOAT ||
-                type == EVENT_CONTROL_ENV_SET_REAL ||
-                type == EVENT_CONTROL_ENV_SET_TIMESTAMP)
-        {
-            Active_names* active_names =
-                    eh->ch_states[index]->parent.active_names;
-            int channel = -1;
-            bool found = Set_map_get_first(eh->global_state->set_map,
-                                           active_names,
-                                           desc,
-                                           dest_event, 128, &channel);
-            while (found)
-            {
-                //fprintf(stderr, "Found: %s\n", dest_event);
-                Event_handler_trigger(eh, channel, dest_event, silent);
-                found = Set_map_get_next(eh->global_state->set_map,
-                                         dest_event, 128, &channel);
-            }
-        }
-#endif
     }
     return true;
 }
