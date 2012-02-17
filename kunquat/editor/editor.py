@@ -212,6 +212,7 @@ class KqtEditor(QtGui.QMainWindow):
     def mix(self):
         if self.playing:
             if not self.bufs[0]:
+                self.handle.fire(0, ['Qlocation', None])
                 self.bufs = self.handle.mix()
                 if not self.bufs[0]:
                     self.stop()
@@ -231,6 +232,7 @@ class KqtEditor(QtGui.QMainWindow):
                 self._peak_meter.set_peaks(dB[0], dB[1],
                                            abs_max[0], abs_max[1],
                                            len(self.bufs[0]))
+                self.handle.fire(0, ['Qlocation', None])
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()

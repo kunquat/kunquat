@@ -75,6 +75,7 @@ class Pattern(QtGui.QWidget):
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_cur': QtGui.QColor(0x77, 0x99, 0xbb),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
+                'ruler_play_cur': QtGui.QColor(0xff, 0xaa, 0x77),
                 'trigger_fg': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'trigger_note_on_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
                 'trigger_hit_fg': QtGui.QColor(0xaa, 0xee, 0xaa),
@@ -189,6 +190,11 @@ class Pattern(QtGui.QWidget):
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.2
+
+        self._play_pattern = -1
+        self._play_row = ts.Timestamp(0)
+        self.project.set_callback('Apattern', self._update_play_pattern)
+        self.project.set_callback('Arow', self._update_play_row)
 
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
@@ -460,7 +466,8 @@ class Pattern(QtGui.QWidget):
         paint.begin(self)
         paint.setBackground(self.colours['bg'])
         paint.eraseRect(ev.rect())
-        self.ruler.paint(ev, paint)
+        self.ruler.paint(ev.rect(), paint, self._play_row
+                         if self._play_pattern == self.number else None)
         col_pos = self.ruler.width()
         for column in self.view_columns:
             column.paint(ev, paint, col_pos, self.hasFocus())
@@ -513,6 +520,16 @@ class Pattern(QtGui.QWidget):
             col.set_view_start(self.view_start)
         self.update()
 
+    def _update_play_pattern(self, ch, event):
+        self._play_pattern = event[1]
+        if self._play_pattern != self.number:
+            self.update(0, 0, self.ruler.width(), self.height)
+
+    def _update_play_row(self, ch, event):
+        self._play_row = ts.Timestamp(event[1])
+        if self._play_pattern == self.number:
+            self.update(0, 0, self.ruler.width(), self.height)
+
 
 class Ruler(object):
 
@@ -537,9 +554,9 @@ class Ruler(object):
             yield pos
             pos += interval
 
-    def paint(self, ev, paint):
+    def paint(self, rect, paint, play_row):
         ruler_area = QtCore.QRect(0, 0, self._width, self.height)
-        real_area = ev.rect().intersect(ruler_area)
+        real_area = rect.intersect(ruler_area)
         if real_area.isEmpty() or self.ruler_height <= 0:
             return
 
@@ -589,6 +606,13 @@ class Ruler(object):
         paint.setFont(self.fonts['ruler'])
         for num_pos in self.get_viewable_positions(num_interval):
             self.paint_number(num_pos, paint)
+
+        # paint play cursor
+        if view_start <= play_row <= view_end:
+            paint.setPen(self.colours['ruler_play_cur'])
+            pix_pos = (self.beat_len * float(play_row - self.view_start) +
+                       self.col_head_height)
+            paint.drawLine(0, pix_pos, self._width - 2, pix_pos)
 
         # paint right border
         paint.setPen(self.colours['column_border'])

@@ -850,6 +850,58 @@ static bool Event_handler_handle(Event_handler* eh,
 }
 
 
+static void Event_handler_handle_query(Event_handler* eh,
+                                       int index,
+                                       Event_type event_type,
+                                       Value* event_arg,
+                                       bool silent);
+
+
+static void Event_handler_handle_query(Event_handler* eh,
+                                       int index,
+                                       Event_type event_type,
+                                       Value* event_arg,
+                                       bool silent)
+{
+    assert(eh != NULL);
+    assert(index >= 0);
+    assert(index < KQT_COLUMNS_MAX);
+    assert(EVENT_IS_QUERY(event_type));
+    assert(event_arg != NULL);
+    char auto_event[128] = "";
+    switch (event_type)
+    {
+        case EVENT_QUERY_LOCATION:
+        {
+            snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
+                     eh->global_state->subsong);
+            Event_handler_trigger_const(eh, index, auto_event, silent);
+            snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
+                     eh->global_state->section);
+            Event_handler_trigger_const(eh, index, auto_event, silent);
+            snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",
+                     eh->global_state->pattern);
+            Event_handler_trigger_const(eh, index, auto_event, silent);
+            snprintf(auto_event, 128,
+                     "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
+                     Reltime_get_beats(&eh->global_state->pos),
+                     Reltime_get_rem(&eh->global_state->pos));
+            Event_handler_trigger_const(eh, index, auto_event, silent);
+        } break;
+        case EVENT_QUERY_VOICE_COUNT:
+        {
+            snprintf(auto_event, 128, "[\"Avoices\", %d]",
+                     eh->global_state->active_voices);
+            eh->global_state->active_voices = 0;
+            Event_handler_trigger_const(eh, index, auto_event, silent);
+        } break;
+        default:
+            assert(false);
+    }
+    return;
+}
+
+
 static bool Event_handler_act(Event_handler* eh,
                               bool silent,
                               int index,
@@ -1032,33 +1084,7 @@ static bool Event_handler_act(Event_handler* eh,
     }
     if (EVENT_IS_QUERY(event_type))
     {
-        char auto_event[128] = "";
-        switch (event_type)
-        {
-            case EVENT_QUERY_LOCATION:
-            {
-                snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
-                         eh->global_state->subsong);
-                Event_handler_trigger_const(eh, index, auto_event, silent);
-                snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
-                         eh->global_state->section);
-                Event_handler_trigger_const(eh, index, auto_event, silent);
-                snprintf(auto_event, 128,
-                         "[\"Arow\", [%" PRId64 ", %" PRId32 "]]",
-                         Reltime_get_beats(&eh->global_state->pos),
-                         Reltime_get_rem(&eh->global_state->pos));
-                Event_handler_trigger_const(eh, index, auto_event, silent);
-            } break;
-            case EVENT_QUERY_VOICE_COUNT:
-            {
-                snprintf(auto_event, 128, "[\"Avoices\", %d]",
-                         eh->global_state->active_voices);
-                eh->global_state->active_voices = 0;
-                Event_handler_trigger_const(eh, index, auto_event, silent);
-            } break;
-            default:
-                assert(false);
-        }
+        Event_handler_handle_query(eh, index, event_type, value, silent);
     }
     Target_event* call = NULL;
     call = Call_map_get_first(eh->global_state->call_map,
