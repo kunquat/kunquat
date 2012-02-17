@@ -22,6 +22,7 @@ if '--disable-tracker' not in sys.argv:
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
             'kunquat.editor',
             'kunquat.editor.effects',
+            'kunquat.editor.env',
             'kunquat.editor.instruments',
             'kunquat.editor.sheet',
             ]
