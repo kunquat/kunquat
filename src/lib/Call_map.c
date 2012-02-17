@@ -24,6 +24,7 @@
 #include <Event_type.h>
 #include <expr.h>
 #include <File_base.h>
+#include <Random.h>
 #include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -48,7 +49,7 @@ static Constraint* new_Constraint(char** str, Read_state* state);
 
 
 static bool Constraint_match(Constraint* constraint, Event_cache* cache,
-                             Environment* env);
+                             Environment* env, Random* rand);
 
 
 static void del_Constraint(Constraint* constraint);
@@ -264,7 +265,8 @@ Target_event* Call_map_get_first(Call_map* map,
                                  Event_cache* cache,
                                  Environment* env,
                                  char* event_name,
-                                 Value* value)
+                                 Value* value,
+                                 Random* rand)
 {
     assert(map != NULL);
     assert(cache != NULL);
@@ -283,7 +285,7 @@ Target_event* Call_map_get_first(Call_map* map,
         Constraint* constraint = item->constraints;
         while (constraint != NULL)
         {
-            if (!Constraint_match(constraint, cache, env))
+            if (!Constraint_match(constraint, cache, env, rand))
             {
                 break;
             }
@@ -624,16 +626,18 @@ static Constraint* new_Constraint(char** str, Read_state* state)
 
 
 static bool Constraint_match(Constraint* constraint, Event_cache* cache,
-                             Environment* env)
+                             Environment* env, Random* rand)
 {
     assert(constraint != NULL);
     assert(cache != NULL);
+    assert(env != NULL);
+    assert(rand != NULL);
     Value* value = Event_cache_get_value(cache, constraint->event_name);
     assert(value != NULL);
     Value* result = VALUE_AUTO;
     Read_state* state = READ_STATE_AUTO;
     //fprintf(stderr, "%s, %s", constraint->event_name, constraint->expr);
-    evaluate_expr(constraint->expr, env, state, value, result);
+    evaluate_expr(constraint->expr, env, state, value, result, rand);
     //fprintf(stderr, ", %s", state->message);
     //fprintf(stderr, " -> %d %s\n", (int)result->type,
     //                               result->value.bool_type ? "true" : "false");

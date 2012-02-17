@@ -24,6 +24,7 @@
 #include <expr.h>
 #include <File_base.h>
 #include <math_common.h>
+#include <Random.h>
 #include <string_common.h>
 #include <xassert.h>
 
@@ -46,7 +47,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
                             Value* meta, Value* res, int depth,
-                            bool func_arg);
+                            bool func_arg, Random* rand);
 
 
 static bool handle_unary(Value* val, bool found_not, bool found_minus,
@@ -111,7 +112,8 @@ static Operator operators[] =
 };
 
 
-typedef bool (*Func)(Value* args, Value* res, Read_state* state);
+typedef bool (*Func)(Value* args, Value* res,
+                     Random* rand, Read_state* state);
 
 
 #define FUNC_ARGS_MAX 4
@@ -127,13 +129,18 @@ typedef struct Func_desc
 } Func_desc;
 
 
-static bool func_ts(Value* args, Value* res, Read_state* state);
+static bool func_ts(Value* args, Value* res, Random* rand, Read_state* state);
+
+
+static bool func_rand(Value* args, Value* res, Random* rand,
+                      Read_state* state);
 
 
 static Func_desc funcs[] =
 {
-    { .name = "ts", .func = func_ts },
-    { .name = NULL, .func = NULL }
+    { .name = "ts",   .func = func_ts },
+    { .name = "rand", .func = func_rand },
+    { .name = NULL,   .func = NULL }
 };
 
 
@@ -141,12 +148,14 @@ char* evaluate_expr(char* str,
                     Environment* env,
                     Read_state* state,
                     Value* meta,
-                    Value* res)
+                    Value* res,
+                    Random* rand)
 {
     assert(str != NULL);
     assert(env != NULL);
     assert(state != NULL);
     assert(res != NULL);
+    assert(rand != NULL);
     str = read_const_char(str, '"', state);
     if (state->error)
     {
@@ -159,7 +168,7 @@ char* evaluate_expr(char* str,
         meta = VALUE_AUTO;
     }
     return evaluate_expr_(str, env, state, val_stack, 0, op_stack, 0,
-                          meta, res, 0, false);
+                          meta, res, 0, false, rand);
 }
 
 
@@ -177,7 +186,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                             Value* val_stack, int vsi,
                             Operator* op_stack, int osi,
                             Value* meta, Value* res, int depth,
-                            bool func_arg)
+                            bool func_arg, Random* rand)
 {
     assert(str != NULL);
     assert(env != NULL);
@@ -191,6 +200,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
     assert(meta != NULL);
     assert(res != NULL);
     assert(depth >= 0);
+    assert(rand != NULL);
     if (state->error)
     {
         return str;
@@ -224,7 +234,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             check_stack(vsi);
             str = evaluate_expr_(str, env, state, val_stack, vsi,
                                  op_stack, osi, meta, operand, depth + 1,
-                                 false);
+                                 false, rand);
             if (state->error)
             {
                 return str;
@@ -263,7 +273,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
                 {
                     str = evaluate_expr_(str, env, state, val_stack, vsi,
                                          op_stack, osi, meta, &func_args[i],
-                                         depth + 1, true);
+                                         depth + 1, true, rand);
                     if (state->error)
                     {
                         return str;
@@ -287,7 +297,7 @@ static char* evaluate_expr_(char* str, Environment* env, Read_state* state,
             {
                 func_args[i].type = VALUE_TYPE_NONE;
             }
-            if (!func(func_args, operand, state))
+            if (!func(func_args, operand, rand, state))
             {
                 assert(state->error);
                 return str;
@@ -1291,10 +1301,11 @@ static bool op_pow(Value* op1, Value* op2, Value* res, Read_state* state)
 }
 
 
-static bool func_ts(Value* args, Value* res, Read_state* state)
+static bool func_ts(Value* args, Value* res, Random* rand, Read_state* state)
 {
     assert(args != NULL);
     assert(res != NULL);
+    (void)rand;
     assert(state != NULL);
     if (state->error)
     {
@@ -1359,6 +1370,42 @@ static bool func_ts(Value* args, Value* res, Read_state* state)
     {
         res->type = VALUE_TYPE_NONE;
         Read_state_set_error(state, "Invalid remainder type");
+        return false;
+    }
+    return true;
+}
+
+
+static bool func_rand(Value* args, Value* res, Random* rand,
+                      Read_state* state)
+{
+    assert(args != NULL);
+    assert(res != NULL);
+    assert(rand != NULL);
+    assert(state != NULL);
+    if (state->error)
+    {
+        return false;
+    }
+    res->type = VALUE_TYPE_FLOAT;
+    res->value.float_type = Random_get_float_lb(rand);
+    if (args[0].type == VALUE_TYPE_NONE)
+    {
+    }
+    else if (args[0].type == VALUE_TYPE_FLOAT)
+    {
+        res->value.float_type = res->value.float_type *
+                                args[0].value.float_type;
+    }
+    else if (args[0].type == VALUE_TYPE_INT)
+    {
+        res->value.float_type = res->value.float_type *
+                                args[0].value.int_type;
+    }
+    else
+    {
+        res->type = VALUE_TYPE_NONE;
+        Read_state_set_error(state, "Invalid argument");
         return false;
     }
     return true;

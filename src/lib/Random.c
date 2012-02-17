@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -86,6 +86,13 @@ uint32_t Random_get_uint32(Random* random)
 {
     assert(random != NULL);
     return Random_get_uint64(random) >> 32;
+}
+
+
+double Random_get_float_lb(Random* random)
+{
+    assert(random != NULL);
+    return Random_get_uint64(random) / ((double)KQT_RANDOM64_MAX + 1);
 }
 
 

@@ -19,6 +19,7 @@
 #include <Environment.h>
 #include <File_base.h>
 #include <Value.h>
+#include <Random.h>
 
 
 /**
@@ -30,6 +31,7 @@
  * \param meta    The meta variable, or \c NULL if not used.
  * \param res     A memory location for the result Value --
  *                must not be \c NULL.
+ * \param rand    A Random source -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.
  */
@@ -37,7 +39,8 @@ char* evaluate_expr(char* str,
                     Environment* env,
                     Read_state* state,
                     Value* meta,
-                    Value* res);
+                    Value* res,
+                    Random* rand);
 
 
 #endif // K_EXPR_H

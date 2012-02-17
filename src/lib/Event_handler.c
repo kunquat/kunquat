@@ -1091,7 +1091,8 @@ static bool Event_handler_act(Event_handler* eh,
                               eh->ch_states[index]->event_cache,
                               eh->global_state->parent.env,
                               event_name,
-                              value);
+                              value,
+                              eh->ch_states[index]->rand);
     while (call != NULL)
     {
         Event_handler_trigger(eh,
@@ -1189,7 +1190,7 @@ bool Event_handler_trigger(Event_handler* eh,
         else
         {
             desc = evaluate_expr(desc, eh->global_state->parent.env, state,
-                                 meta, value);
+                                 meta, value, eh->ch_states[index]->rand);
             desc = read_const_char(desc, '"', state);
         }
         switch (field_type)

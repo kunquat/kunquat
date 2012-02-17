@@ -21,6 +21,7 @@
 #include <Event_names.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Random.h>
 #include <Value.h>
 
 
@@ -91,7 +92,8 @@ Target_event* Call_map_get_first(Call_map* map,
                                  Event_cache* cache,
                                  Environment* env,
                                  char* event_name,
-                                 Value* value);
+                                 Value* value,
+                                 Random* rand);
 
 
 /**
