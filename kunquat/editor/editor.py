@@ -32,6 +32,7 @@ import keymap
 import kqt_limits as lim
 import note_input as ni
 from peak_meter import PeakMeter
+from pos_display import PosDisplay
 import project
 import scale
 from sheet import Sheet
@@ -39,7 +40,7 @@ import timestamp as ts
 
 
 PROGRAM_NAME = 'Kunquat Tracker'
-PROGRAM_VERSION = '0.4.2'
+PROGRAM_VERSION = '0.4.3'
 
 
 def sine():
@@ -472,7 +473,7 @@ class KqtEditor(QtGui.QMainWindow):
         seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
-        pos_display = QtGui.QLabel('[position display]')
+        self._pos_display = PosDisplay(self.project)
 
         subsong_select = QtGui.QLabel('[subsong select]')
 
@@ -510,7 +511,7 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(seek_for)
         layout.addWidget(self.create_separator())
 
-        layout.addWidget(pos_display)
+        layout.addWidget(self._pos_display)
         layout.addWidget(subsong_select)
         layout.addWidget(tempo_factor)
         layout.addWidget(self.create_separator())
