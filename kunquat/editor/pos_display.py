@@ -118,6 +118,12 @@ class PosDisplay(QtGui.QWidget):
     def _update_loc(self, ch, event):
         if event[0] == 'Arow':
             self._upcoming[event[0]] = float(ts.Timestamp(event[1]))
+            if self._subsong == self._upcoming['Asubsong'] and \
+                    self._section == self._upcoming['Asection'] and \
+                    self._pattern == self._upcoming['Apattern'] and \
+                    self._row == self._upcoming['Arow']:
+                self._upcoming = defaultdict(lambda: NO_VAL)
+                return
             self._subsong = self._upcoming['Asubsong']
             self._section = self._upcoming['Asection']
             self._pattern = self._upcoming['Apattern']
