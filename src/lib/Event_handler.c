@@ -873,12 +873,15 @@ static void Event_handler_handle_query(Event_handler* eh,
     {
         case EVENT_QUERY_LOCATION:
         {
-            snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
-                     eh->global_state->subsong);
-            Event_handler_trigger_const(eh, index, auto_event, silent);
-            snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
-                     eh->global_state->section);
-            Event_handler_trigger_const(eh, index, auto_event, silent);
+            if (eh->global_state->mode >= PLAY_SUBSONG)
+            {
+                snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
+                         eh->global_state->subsong);
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+                snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",
+                         eh->global_state->section);
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+            }
             snprintf(auto_event, 128, "[\"Apattern\", %" PRId16 "]",
                      eh->global_state->pattern);
             Event_handler_trigger_const(eh, index, auto_event, silent);

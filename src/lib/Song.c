@@ -397,15 +397,14 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = KQT_SECTION_NONE;
             Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
             if (ss != NULL)
             {
-                pat_index = Subsong_get(ss, play->section);
+                play->pattern = Subsong_get(ss, play->section);
             }
-            if (pat_index >= 0)
+            if (play->pattern >= 0)
             {
-                pat = Pat_table_get(song->pats, pat_index);
+                pat = Pat_table_get(song->pats, play->pattern);
             }
         }
         else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
