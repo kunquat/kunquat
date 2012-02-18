@@ -132,7 +132,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                                                  duration,
                                                  bufs,
                                                  mix_load,
-                                                 voice_count)
+                                                 None)
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
@@ -402,7 +402,8 @@ class Status(object):
         components.append(elapsed)
         if mix_load > 0:
             components.append('Load: {0:.0f} %'.format(mix_load * 100))
-        components.append('Voices: {0:d}'.format(voice_count))
+        if voice_count != None:
+            components.append('Voices: {0:d}'.format(voice_count))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
