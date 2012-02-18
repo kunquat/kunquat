@@ -17,7 +17,7 @@
 #include <stdio.h>
 
 #include <AAtree.h>
-#include <Call_map.h>
+#include <Bind.h>
 #include <Environment.h>
 #include <Event_cache.h>
 #include <Event_names.h>
@@ -30,7 +30,7 @@
 #include <xmemory.h>
 
 
-struct Call_map
+struct Bind
 {
     AAiter* iter;
     AAtree* cblists;
@@ -106,7 +106,7 @@ static void del_Cblist(Cblist* list);
 
 static bool read_constraints(char** str,
                              Read_state* state,
-                             Call_map* map,
+                             Bind* map,
                              Cblist_item* item);
 
 
@@ -116,12 +116,10 @@ static bool read_events(char** str,
                         Event_names* names);
 
 
-static bool Call_map_is_cyclic(Call_map* map);
+static bool Bind_is_cyclic(Bind* map);
 
 
-Call_map* new_Call_map(char* str,
-                       Event_names* names,
-                       Read_state* state)
+Bind* new_Bind(char* str, Event_names* names, Read_state* state)
 {
     assert(names != NULL);
     assert(state != NULL);
@@ -129,7 +127,7 @@ Call_map* new_Call_map(char* str,
     {
         return NULL;
     }
-    Call_map* map = xalloc(Call_map);
+    Bind* map = xalloc(Bind);
     if (map == NULL)
     {
         return NULL;
@@ -139,7 +137,7 @@ Call_map* new_Call_map(char* str,
                               (void (*)(void*))del_Cblist);
     if (map->iter == NULL || map->cblists == NULL)
     {
-        del_Call_map(map);
+        del_Bind(map);
         return NULL;
     }
     if (str == NULL)
@@ -149,7 +147,7 @@ Call_map* new_Call_map(char* str,
     str = read_const_char(str, '[', state);
     if (state->error)
     {
-        del_Call_map(map);
+        del_Bind(map);
         return NULL;
     }
     str = read_const_char(str, ']', state);
@@ -166,7 +164,7 @@ Call_map* new_Call_map(char* str,
         str = read_string(str, event_name, EVENT_NAME_MAX + 1, state);
         if (state->error)
         {
-            del_Call_map(map);
+            del_Bind(map);
             return NULL;
         }
         Cblist* cblist = AAtree_get_exact(map->cblists, event_name);
@@ -175,39 +173,39 @@ Call_map* new_Call_map(char* str,
             cblist = new_Cblist(event_name);
             if (cblist == NULL)
             {
-                del_Call_map(map);
+                del_Bind(map);
                 return NULL;
             }
             if (!AAtree_ins(map->cblists, cblist))
             {
                 del_Cblist(cblist);
-                del_Call_map(map);
+                del_Bind(map);
                 return NULL;
             }
         }
         Cblist_item* item = new_Cblist_item();
         if (item == NULL)
         {
-            del_Call_map(map);
+            del_Bind(map);
             return NULL;
         }
         Cblist_append(cblist, item);
         str = read_const_char(str, ',', state);
         if (!read_constraints(&str, state, map, item))
         {
-            del_Call_map(map);
+            del_Bind(map);
             return NULL;
         }
         str = read_const_char(str, ',', state);
         if (!read_events(&str, state, item, names))
         {
-            del_Call_map(map);
+            del_Bind(map);
             return NULL;
         }
         str = read_const_char(str, ']', state);
         if (state->error)
         {
-            del_Call_map(map);
+            del_Bind(map);
             return NULL;
         }
         check_next(str, state, expect_entry);
@@ -215,20 +213,20 @@ Call_map* new_Call_map(char* str,
     str = read_const_char(str, ']', state);
     if (state->error)
     {
-        del_Call_map(map);
+        del_Bind(map);
         return NULL;
     }
-    if (Call_map_is_cyclic(map))
+    if (Bind_is_cyclic(map))
     {
-        Read_state_set_error(state, "Call map contains a cycle");
-        del_Call_map(map);
+        Read_state_set_error(state, "Bind contains a cycle");
+        del_Bind(map);
         return NULL;
     }
     return map;
 }
 
 
-Event_cache* Call_map_create_cache(Call_map* map)
+Event_cache* Bind_create_cache(Bind* map)
 {
     assert(map != NULL);
     Event_cache* cache = new_Event_cache();
@@ -261,12 +259,12 @@ Event_cache* Call_map_create_cache(Call_map* map)
 }
 
 
-Target_event* Call_map_get_first(Call_map* map,
-                                 Event_cache* cache,
-                                 Environment* env,
-                                 char* event_name,
-                                 Value* value,
-                                 Random* rand)
+Target_event* Bind_get_first(Bind* map,
+                             Event_cache* cache,
+                             Environment* env,
+                             char* event_name,
+                             Value* value,
+                             Random* rand)
 {
     assert(map != NULL);
     assert(cache != NULL);
@@ -304,21 +302,7 @@ Target_event* Call_map_get_first(Call_map* map,
 }
 
 
-#if 0
-bool Call_map_get_next(Call_map* map,
-                       char* dest_event,
-                       int dest_size)
-{
-    assert(map != NULL);
-    assert(dest_event != NULL);
-    assert(dest_size > 0);
-    assert(map->cur_cache != NULL);
-    return false;
-}
-#endif
-
-
-void del_Call_map(Call_map* map)
+void del_Bind(Bind* map)
 {
     if (map == NULL)
     {
@@ -331,10 +315,10 @@ void del_Call_map(Call_map* map)
 }
 
 
-static bool Call_map_dfs(Call_map* map, char* name);
+static bool Bind_dfs(Bind* map, char* name);
 
 
-static bool Call_map_is_cyclic(Call_map* map)
+static bool Bind_is_cyclic(Bind* map)
 {
     assert(map != NULL);
     AAiter_change_tree(map->iter, map->cblists);
@@ -348,7 +332,7 @@ static bool Call_map_is_cyclic(Call_map* map)
             continue;
         }
         assert(cblist->source_state == SOURCE_STATE_NEW);
-        if (Call_map_dfs(map, cblist->event_name))
+        if (Bind_dfs(map, cblist->event_name))
         {
             return true;
         }
@@ -358,7 +342,7 @@ static bool Call_map_is_cyclic(Call_map* map)
 }
 
 
-static bool Call_map_dfs(Call_map* map, char* name)
+static bool Bind_dfs(Bind* map, char* name)
 {
     assert(map != NULL);
     assert(name != NULL);
@@ -384,7 +368,7 @@ static bool Call_map_dfs(Call_map* map, char* name)
             char* str = read_const_char(event->desc, '[', state);
             read_string(str, next_name, EVENT_NAME_MAX, state);
             assert(!state->error);
-            if (Call_map_dfs(map, next_name))
+            if (Bind_dfs(map, next_name))
             {
                 return true;
             }
@@ -398,7 +382,7 @@ static bool Call_map_dfs(Call_map* map, char* name)
 
 static bool read_constraints(char** str,
                              Read_state* state,
-                             Call_map* map,
+                             Bind* map,
                              Cblist_item* item)
 {
     assert(str != NULL);

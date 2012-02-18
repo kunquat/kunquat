@@ -117,7 +117,7 @@ Song* new_Song(uint32_t buf_size)
     song->skip_handler = NULL;
     song->random = NULL;
     song->env = NULL;
-    song->call_map = NULL;
+    song->bind = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -225,16 +225,15 @@ Song* new_Song(uint32_t buf_size)
         return NULL;
     }
     Read_state* state = READ_STATE_AUTO;
-    Call_map* call_map = new_Call_map(NULL,
-                            Event_handler_get_names(song->event_handler),
-                            state);
-    if (call_map == NULL)
+    Bind* bind = new_Bind(NULL, Event_handler_get_names(song->event_handler),
+                          state);
+    if (bind == NULL || !Song_set_bind(song, bind))
     {
         assert(!state->error);
+        del_Bind(bind);
         del_Song(song);
         return NULL;
     }
-    Song_set_call_map(song, call_map);
 
     if (Scale_ins_note(song->scales[0], 0,
                        Real_init_as_frac(REAL_AUTO, 1, 1)) < 0)
@@ -587,16 +586,16 @@ Effect_table* Song_get_effects(Song* song)
 }
 
 
-bool Song_set_call_map(Song* song, Call_map* map)
+bool Song_set_bind(Song* song, Bind* bind)
 {
     assert(song != NULL);
-    assert(map != NULL);
-    assert(song->call_map == song->play_state->call_map);
-    assert(song->call_map == song->skip_state->call_map);
+    assert(bind != NULL);
+    assert(song->bind == song->play_state->bind);
+    assert(song->bind == song->skip_state->bind);
     Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
-        caches[i] = Call_map_create_cache(map);
+        caches[i] = Bind_create_cache(bind);
         if (caches[i] == NULL)
         {
             for (int k = i - 1; k >= 0; --k)
@@ -606,9 +605,8 @@ bool Song_set_call_map(Song* song, Call_map* map)
             }
         }
     }
-    del_Call_map(song->call_map);
-    song->call_map = song->play_state->call_map =
-                     song->skip_state->call_map = map;
+    del_Bind(song->bind);
+    song->bind = song->play_state->bind = song->skip_state->bind = bind;
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         Channel_set_event_cache(song->channels[i], caches[i]);
@@ -832,7 +830,7 @@ void del_Song(Song* song)
     del_Event_handler(song->event_handler);
     del_Event_handler(song->skip_handler);
     del_Random(song->random);
-    del_Call_map(song->call_map);
+    del_Bind(song->bind);
     Device_uninit(&song->parent);
     xfree(song);
     return;

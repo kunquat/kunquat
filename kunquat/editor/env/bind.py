@@ -19,7 +19,7 @@ from chselect import ChSelect
 import kunquat.editor.trigtypes as ttypes
 
 
-class CallMap(QtGui.QWidget):
+class Bind(QtGui.QWidget):
 
     def __init__(self, project, parent=None):
         QtGui.QWidget.__init__(self, parent)
@@ -40,7 +40,7 @@ class CallMap(QtGui.QWidget):
         QtCore.QObject.connect(self._bindspec,
                                QtCore.SIGNAL('bindChanged(bool)'),
                                self._bind_changed)
-        self.set_key('p_call_map.json')
+        self.set_key('p_bind.json')
 
     def set_key(self, key):
         self._key = key

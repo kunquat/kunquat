@@ -18,7 +18,7 @@
 #include <ctype.h>
 #include <inttypes.h>
 
-#include <Call_map.h>
+#include <Bind.h>
 #include <Connections.h>
 #include <Connections_search.h>
 #include <Environment.h>
@@ -356,10 +356,10 @@ static bool parse_song_level(kqt_Handle* handle,
             return false;
         }
     }
-    else if (string_eq(key, "p_call_map.json"))
+    else if (string_eq(key, "p_bind.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
-        Call_map* map = new_Call_map(data,
+        Bind* map = new_Bind(data,
                         Event_handler_get_names(handle->song->event_handler),
                         state);
         if (map == NULL)
@@ -375,7 +375,7 @@ static bool parse_song_level(kqt_Handle* handle,
             }
             return false;
         }
-        if (!Song_set_call_map(handle->song, map))
+        if (!Song_set_bind(handle->song, map))
         {
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                                  "Couldn't allocate memory");

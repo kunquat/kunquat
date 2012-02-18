@@ -46,7 +46,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->random = random;
     play->infinite = false;
     play->event_filter = NULL;
-    play->call_map = NULL;
+    play->bind = NULL;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
@@ -128,7 +128,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->random = NULL;
     play->infinite = false;
     play->event_filter = NULL;
-    play->call_map = NULL;
+    play->bind = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);

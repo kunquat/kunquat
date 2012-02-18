@@ -19,9 +19,9 @@
 #include <stdint.h>
 
 #include <Active_names.h>
+#include <Bind.h>
 #include <Reltime.h>
 #include <Subsong_table.h>
-#include <Call_map.h>
 //#include <Channel.h>
 #include <Column.h>
 #include <Environment.h>
@@ -65,7 +65,7 @@ typedef struct Playdata
     bool infinite;                    ///< Infinite mode enabled.
 
     Event_names* event_filter;        ///< Event filter.
-    Call_map* call_map;
+    Bind* bind;
 
     Scale** scales;                   ///< The Scales.
     Scale** active_scale;             ///< A reference to the currently active Scale. FIXME: obsolete

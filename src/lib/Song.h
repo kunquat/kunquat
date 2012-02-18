@@ -18,7 +18,7 @@
 
 #include <stdint.h>
 
-#include <Call_map.h>
+#include <Bind.h>
 #include <Connections.h>
 #include <Device.h>
 #include <Environment.h>
@@ -55,7 +55,7 @@ typedef struct Song
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
     Environment* env;                   ///< Environment variables.
-    Call_map* call_map;
+    Bind* bind;
 } Song;
 
 
@@ -208,14 +208,14 @@ Effect_table* Song_get_effects(Song* song);
 
 
 /**
- * Sets a Call map of the Song.
+ * Sets the Bind of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param map    The Call map -- must not be \c NULL.
+ * \param bind   The Bind -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Song_set_call_map(Song* song, Call_map* map);
+bool Song_set_bind(Song* song, Bind* bind);
 
 
 /**

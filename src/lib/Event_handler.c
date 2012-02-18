@@ -1086,23 +1086,22 @@ static bool Event_handler_act(Event_handler* eh,
     {
         Event_handler_handle_query(eh, index, event_type, value, silent);
     }
-    Target_event* call = NULL;
-    call = Call_map_get_first(eh->global_state->call_map,
-                              eh->ch_states[index]->event_cache,
-                              eh->global_state->parent.env,
-                              event_name,
-                              value,
-                              eh->ch_states[index]->rand);
-    while (call != NULL)
+    Target_event* bound = Bind_get_first(eh->global_state->bind,
+                                         eh->ch_states[index]->event_cache,
+                                         eh->global_state->parent.env,
+                                         event_name,
+                                         value,
+                                         eh->ch_states[index]->rand);
+    while (bound != NULL)
     {
         Event_handler_trigger(eh,
-                              (index + call->ch_offset +
+                              (index + bound->ch_offset +
                                       KQT_COLUMNS_MAX) %
                                       KQT_COLUMNS_MAX,
-                              call->desc,
+                              bound->desc,
                               silent,
                               value);
-        call = call->next;
+        bound = bound->next;
     }
     return true;
 }
