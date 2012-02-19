@@ -284,6 +284,30 @@ uint32_t Pattern_mix(Pattern* pat,
         play->mode = STOP;
         return 0;
     }
+    if (pat != NULL && Reltime_cmp(&play->pos, &pat->length) > 0)
+    {
+        Reltime_set(&play->pos, 0, 0);
+        if (play->mode == PLAY_PATTERN)
+        {
+            return 0;
+        }
+        ++play->section;
+        if (play->section >= KQT_SECTIONS_MAX)
+        {
+            play->section = 0;
+            play->pattern = -1;
+        }
+        else
+        {
+            play->pattern = KQT_SECTION_NONE;
+            Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
+            if (ss != NULL)
+            {
+                play->pattern = Subsong_get(ss, play->section);
+            }
+        }
+        return 0;
+    }
     while (mixed < nframes
             // TODO: and we still want to mix this pattern
             && (pat == NULL || Reltime_cmp(&play->pos, &pat->length) <= 0))
