@@ -24,9 +24,6 @@
 #include <Value.h>
 
 
-extern Event_field_desc set_name_desc[];
-
-
 /**
  * Sets the name of a variable subject to future modification.
  *

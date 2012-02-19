@@ -27,9 +27,6 @@
 #include <xmemory.h>
 
 
-//static Event_field_desc* set_float_name_desc = set_name_desc;
-
-
 Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_FLOAT_NAME,
                          set_float_name);

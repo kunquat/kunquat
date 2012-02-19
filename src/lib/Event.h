@@ -35,9 +35,7 @@ typedef struct Event
 {
     Reltime pos;                   ///< The Event position.
     Event_type type;               ///< The Event type.
-//    Event_field_desc* field_types; ///< The field type description.
     char* desc;                    ///< Event description in JSON format.
-    char* fields;                  ///< Event fields as an unparsed JSON list.
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 
@@ -80,59 +78,6 @@ bool Event_type_is_supported(Event_type type);
 
 
 /**
- * Parses and retrieves all fields from a string.
- *
- * \param str           The string -- must not be \c NULL.
- * \param field_descs   The field descriptions -- must not be \c NULL.
- * \param fields        The fields where the values will be stored, or
- *                      \c NULL for parsing without storage.
- * \param state         The Read state -- must not be \c NULL.
- *
- * \return   The position of \a str after parsing.
- */
-char* Event_type_get_fields(char* str,
-                            Event_field_desc field_descs[],
-                            Event_field fields[],
-                            Read_state* state);
-
-
-/**
- * Parses an Event from a string.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param str     The textual description -- must not be \c NULL.
- * \param state   The Read state object -- must not be \c NULL.
- *
- * \return   The position in the string after the parsing. The caller must
- *           check for errors through \a state.
- */
-//char* Event_read(Event* event, char* str, Read_state* state);
-
-
-/**
- * Gets a field type description of the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- *
- * \return   The type description -- must not be freed. The value is an array
- *           containing a field type description for each field. The array is
- *           terminated with a field type of \c EVENT_NONE. See
- *           Event_type.h for details.
- */
-//Event_field_desc* Event_get_field_types(Event* event);
-
-
-/**
- * Gets the number of fields in the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- *
- * \return   The number of fields.
- */
-//int Event_get_field_count(Event* event);
-
-
-/**
  * Gets the Event position (relative to the containing Pattern).
  *
  * \param event   The Event -- must not be \c NULL.
@@ -169,14 +114,6 @@ Event_type Event_get_type(Event* event);
  * \return   The JSON string.
  */
 char* Event_get_desc(Event* event);
-
-
-/**
- * Gets a textual description of all the fields of the Event.
- * 
- * \param event   The Event -- must not be \c NULL.
- */
-char* Event_get_fields(Event* event);
 
 
 /**

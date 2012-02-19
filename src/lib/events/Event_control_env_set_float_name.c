@@ -24,9 +24,6 @@
 #include <xassert.h>
 
 
-//static Event_field_desc* env_set_float_name_desc = set_name_desc;
-
-
 Event_create_constructor(Event_control,
                          EVENT_CONTROL_ENV_SET_FLOAT_NAME,
                          env_set_float_name);

@@ -91,36 +91,6 @@ void Channel_mix(Channel* ch,
 
 
 /**
- * Set up Voice(s) for events within the interval [start, end).
- *
- * \param ch       The Channel -- must not be \c NULL.
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param citer    The Column iterator -- must not be \c NULL.
- * \param start    The timestamp for first possible Event(s) to be included
- *                 -- must not be \c NULL.
- * \param end      The timestamp at and after which no Events will be
- *                 included, i.e. an Event with precisely or greater than this
- *                 timestamp is left out -- must not be \c NULL.
- * \param delay    Whether Pattern delay is active or not.
- * \param offset   The mixing buffer offset.
- * \param tempo    The tempo -- must be > \c 0.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param eh       The Event handler -- must not be \c NULL.
- */
-void Channel_set_voices(Channel* ch,
-                        Voice_pool* pool,
-                        Column_iter* citer,
-                        Reltime* start,
-                        Reltime* end,
-                        bool delay,
-                        uint32_t nframes,
-                        uint32_t offset,
-                        double tempo,
-                        uint32_t freq,
-                        Event_handler* eh);
-
-
-/**
  * Updates playback state of the Channel.
  *
  * \param ch      The Channel -- must not be \c NULL.

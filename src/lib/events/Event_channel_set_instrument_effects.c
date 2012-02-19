@@ -26,16 +26,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_instrument_effects_desc[] =
-{
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
                          set_instrument_effects);

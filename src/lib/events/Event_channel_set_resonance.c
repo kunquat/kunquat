@@ -25,21 +25,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_resonance_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = 0,
-        .max.field.double_type = 99
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_RESONANCE,
                          set_resonance);

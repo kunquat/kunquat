@@ -28,21 +28,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc slide_pitch_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SLIDE_PITCH,
                          slide_pitch);

@@ -371,10 +371,6 @@ Event* new_Event_from_string(char** str, Read_state* state,
     {
         *str = read_string(*str, NULL, 0, state);
     }
-#if 0
-    *str = Event_type_get_fields(fields_start, event->field_types,
-                                 NULL, state);
-#endif
     if (state->error)
     {
         del_Event(event);
@@ -395,7 +391,6 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     strncpy(event->desc, event_desc, *str - event_desc);
-    event->fields = event->desc + (fields_start - event_desc);
     *str = read_const_char(*str, ']', state);
     if (state->error)
     {

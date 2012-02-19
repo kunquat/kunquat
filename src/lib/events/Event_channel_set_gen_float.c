@@ -24,21 +24,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_gen_float_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -INFINITY,
-        .max.field.double_type = INFINITY
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_FLOAT,
                          set_gen_float);

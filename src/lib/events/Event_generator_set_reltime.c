@@ -28,21 +28,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_reltime_desc[] =
-{
-    {
-        .type = EVENT_FIELD_RELTIME,
-        .min.field.Reltime_type = { INT64_MIN, 0 },
-        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_RELTIME,
                          set_reltime);

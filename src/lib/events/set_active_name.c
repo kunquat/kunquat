@@ -25,17 +25,6 @@
 #include <xassert.h>
 
 
-Event_field_desc set_name_desc[] =
-{
-    {
-        .type = EVENT_FIELD_STRING
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
 bool set_active_name(General_state* gstate,
                      Active_cat cat,
                      Active_type type,

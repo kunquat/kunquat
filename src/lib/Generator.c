@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -126,36 +126,6 @@ char* Generator_get_type(Generator* gen)
     assert(gen != NULL);
     return gen->type;
 }
-
-
-#if 0
-void Generator_process_note(Generator* gen,
-                            Voice_state* state,
-                            double cents)
-{
-    assert(gen != NULL);
-    assert(state != NULL);
-    assert(isfinite(cents));
-    if (gen->ins_params->pitch_lock_enabled)
-    {
-        state->pitch = gen->ins_params->pitch_lock_freq;
-        return;
-    }
-    if (gen->ins_params->scale == NULL ||
-            *gen->ins_params->scale == NULL ||
-            **gen->ins_params->scale == NULL)
-    {
-        state->pitch = cents;
-        return;
-    }
-    pitch_t pitch = Scale_get_pitch_from_cents(**gen->ins_params->scale, cents);
-    if (pitch > 0)
-    {
-        state->pitch = pitch;
-    }
-    return;
-}
-#endif
 
 
 void Generator_mix(Generator* gen,

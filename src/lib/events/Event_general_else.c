@@ -23,16 +23,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc else_desc[] =
-{
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_general,
                          EVENT_GENERAL_ELSE,
                          else);

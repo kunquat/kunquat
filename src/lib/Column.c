@@ -222,7 +222,6 @@ void del_Column_iter(Column_iter* iter)
 
 static bool Column_parse(Column* col,
                          char* str,
-//                         bool is_global,
                          Event_names* event_names,
                          Read_state* state);
 
@@ -340,7 +339,6 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 
 Column* new_Column_from_string(Reltime* len,
                                char* str,
-//                               bool is_global,
                                AAtree* locations,
                                AAiter* locations_iter,
                                Event_names* event_names,
@@ -348,8 +346,6 @@ Column* new_Column_from_string(Reltime* len,
 {
     assert(event_names != NULL);
     assert(state != NULL);
-//    assert(!is_global || locations != NULL);
-//    assert(locations == NULL || locations_iter != NULL);
     assert(locations != NULL);
     assert(locations_iter != NULL);
     if (state->error)
@@ -386,7 +382,6 @@ Column* new_Column_from_string(Reltime* len,
 
 static bool Column_parse(Column* col,
                          char* str,
-//                         bool is_global,
                          Event_names* event_names,
                          Read_state* state)
 {
@@ -418,93 +413,11 @@ static bool Column_parse(Column* col,
         {
             return false;
         }
-//        Event_type type = Event_get_type(event);
-#if 0
-        if (((is_global && EVENT_IS_CHANNEL(type)) ||
-                (!is_global && EVENT_IS_GLOBAL(type)))
-                && !EVENT_IS_GENERAL(type))
-        {
-            del_Event(event);
-            Read_state_set_error(state,
-                     "Incorrect event type for %s column",
-                     is_global ? "global" : "note");
-            return false;
-        }
-#endif
-#if 0
-        str = read_const_char(str, '[', state);
-        break_if(state->error);
-
-        Reltime* pos = Reltime_init(RELTIME_AUTO);
-        str = read_reltime(str, pos, state);
-        break_if(state->error);
-
-        str = read_const_char(str, ',', state);
-        str = read_const_char(str, '[', state);
-        break_if(state->error);
-
-        char type_str[EVENT_NAME_MAX + 2] = { '\0' };
-        str = read_string(str, type_str, EVENT_NAME_MAX + 2, state);
-//        str = read_int(str, &type, state);
-        break_if(state->error);
-        Event_type type = Event_names_get(event_names, type_str);
-#if 0
-        if (EVENT_IS_CONTROL(type))
-        {
-            Read_state_set_error(state, "Control events are not supported"
-                                        " inside patterns");
-            return false;
-        }
-#endif
-        if (!EVENT_IS_TRIGGER(type))
-        {
-            Read_state_set_error(state, "Invalid or unsupported event type:"
-                                        " \"%s\"", type_str);
-            return false;
-        }
-        if (((is_global && EVENT_IS_CHANNEL(type)) ||
-                (!is_global && EVENT_IS_GLOBAL(type)))
-                && !EVENT_IS_GENERAL(type))
-        {
-            Read_state_set_error(state,
-                     "Incorrect event type for %s column",
-                     is_global ? "global" : "note");
-            return false;
-        }
-        if (!Event_type_is_supported(type))
-        {
-            Read_state_set_error(state, "Unsupported event type: \"%s\"\n",
-                                        type_str);
-            return false;
-        }
-
-        Event* event = new_Event(type, pos);
-        if (event == NULL)
-        {
-            Read_state_set_error(state, "Couldn't allocate memory for event");
-            return false;
-        }
-        str = read_const_char(str, ',', state);
-        str = Event_read(event, str, state);
-        if (state->error)
-        {
-            del_Event(event);
-            return false;
-        }
-#endif
         if (!Column_ins(col, event))
         {
-            //Read_state_set_error(state, "Couldn't insert event");
             del_Event(event);
             return false;
         }
-
-#if 0
-        str = read_const_char(str, ']', state);
-        str = read_const_char(str, ']', state);
-        break_if(state->error);
-#endif
-
         check_next(str, state, expect_event);
     }
 
@@ -532,7 +445,6 @@ bool Column_update_locations(Column* col,
     while (event != NULL)
     {
         Event_type type = Event_get_type(event);
-        //assert(!EVENT_IS_CHANNEL(type));
         if (type == EVENT_GLOBAL_JUMP &&
                 !Trigger_global_jump_set_locations((Event_global_jump*)event,
                                                    locations,

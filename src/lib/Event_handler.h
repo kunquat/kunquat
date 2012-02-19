@@ -60,7 +60,6 @@ Event_names* Event_handler_get_names(Event_handler* eh);
  * \param eh   The Event handler -- must not be \c NULL.
  */
 bool Event_handler_set_control_process(Event_handler* eh,
-//                                       const char* name,
                                        Event_type type,
                                        bool (*control_process)(General_state*,
                                                                Value*));
@@ -78,7 +77,6 @@ bool Event_handler_set_control_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_general_process(Event_handler* eh,
-//                                       const char* name,
                                        Event_type type,
                                        bool (*general_process)(General_state*,
                                                                Value*));
@@ -96,7 +94,6 @@ bool Event_handler_set_general_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_ch_process(Event_handler* eh,
-//                                  const char* name,
                                   Event_type type,
                                   bool (*ch_process)(Channel_state*, Value*));
 
@@ -113,7 +110,6 @@ bool Event_handler_set_ch_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_global_process(Event_handler* eh,
-//                                      const char* name,
                                       Event_type type,
                                       bool (*global_process)(Playdata*,
                                                              Value*));
@@ -131,7 +127,6 @@ bool Event_handler_set_global_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_ins_process(Event_handler* eh,
-//                                   const char* name,
                                    Event_type type,
                                    bool (*ins_process)(Instrument_params*,
                                                        Value*));
@@ -149,7 +144,6 @@ bool Event_handler_set_ins_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_generator_process(Event_handler* eh,
-//                                         const char* name,
                                          Event_type type,
                                          bool (*gen_process)(Generator*,
                                                              Channel_state*,
@@ -168,7 +162,6 @@ bool Event_handler_set_generator_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_effect_process(Event_handler* eh,
-//                                      const char* name,
                                       Event_type type,
                                       bool (*effect_process)(Effect*,
                                                              Value*));
@@ -186,31 +179,10 @@ bool Event_handler_set_effect_process(Event_handler* eh,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Event_handler_set_dsp_process(Event_handler* eh,
-//                                   const char* name,
                                    Event_type type,
                                    bool (*dsp_process)(DSP_conf*,
                                                        Channel_state*,
                                                        Value*));
-
-
-/**
- * Handles an Event.
- *
- * \param eh       The Event handler -- must not be \c NULL.
- * \param index    The index number. This must be \c -1 for global Events,
- *                 or >= \c 0 and < \c KQT_COLUMNS_MAX for Channel,
- *                 Instrument, Generator or DSP Events.
- * \param type     The type of the Event -- must be a valid type and
- *                 compatible with \a index.
- * \param fields   Event fields, or \c NULL if not applicable.
- *
- * \return   \c true if the Event was handled, or \c false if arguments were
- *           invalid.
- */
-//bool Event_handler_handle(Event_handler* eh,
-//                          int index,
-//                          Event_type type,
-//                          char* fields);
 
 
 /**

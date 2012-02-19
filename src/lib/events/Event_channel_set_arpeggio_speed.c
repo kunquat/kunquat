@@ -25,21 +25,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_arpeggio_speed_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = DBL_MIN,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_ARPEGGIO_SPEED,
                          set_arpeggio_speed);

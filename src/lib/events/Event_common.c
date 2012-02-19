@@ -22,17 +22,13 @@
 Event* Event_init(Event* event,
                   Reltime* pos,
                   Event_type type)
-//                  Event_field_desc* field_types)
 {
     assert(event != NULL);
     assert(pos != NULL);
     assert(EVENT_IS_VALID(type));
-//    assert(field_types != NULL);
     event->type = type;
     Reltime_copy(&event->pos, pos);
-//    event->field_types = field_types;
     event->desc = NULL;
-    event->fields = NULL;
     event->destroy = del_Event_default;
     return event;
 }

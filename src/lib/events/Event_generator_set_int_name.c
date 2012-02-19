@@ -27,9 +27,6 @@
 #include <xmemory.h>
 
 
-//static Event_field_desc* set_int_name_desc = set_name_desc;
-
-
 Event_create_constructor(Event_generator,
                          EVENT_GENERATOR_SET_INT_NAME,
                          set_int_name);

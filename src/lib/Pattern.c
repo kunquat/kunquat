@@ -240,43 +240,6 @@ uint32_t Pattern_mix(Pattern* pat,
     assert(pat != NULL || play->parent.pause);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
-#if 0
-    if (pat == NULL)
-    {
-        assert(!play->silent);
-        Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
-                                            nframes - mixed,
-                                            play->tempo,
-                                            play->freq);
-        for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
-        {
-            Channel_set_voices(channels[i],
-                               play->voice_pool,
-                               NULL,
-                               &play->pos,
-                               limit,
-                               true,
-                               nframes,
-                               mixed,
-                               play->tempo,
-                               play->freq,
-                               eh);
-        }
-        uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
-                nframes, mixed, play->freq, play->tempo);
-        if (active_voices == 0)
-        {
-            play->active_voices = 0;
-            play->mode = STOP;
-            return nframes;
-        }
-        if (play->active_voices < active_voices)
-        {
-            play->active_voices = active_voices;
-        }
-        return nframes;
-    }
-#endif
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);
     if (pat != NULL && play->mode == PLAY_PATTERN &&
             Reltime_cmp(zero_time, &pat->length) == 0)
@@ -439,26 +402,6 @@ uint32_t Pattern_mix(Pattern* pat,
             }
         }
 
-        // - Find out if we need to process aux events
-#if 0
-        Event* next_aux = NULL;
-        if (pat != NULL && !play->parent.pause)
-        {
-            Column_iter_change_col(play->citer, pat->aux);
-            next_aux = Column_iter_get(play->citer, &play->pos);
-        }
-        Reltime* next_aux_pos = NULL;
-        bool aux_process = false;
-        if (next_aux != NULL)
-        {
-            next_aux_pos = Event_get_pos(next_aux);
-            if (Reltime_cmp(next_aux_pos, &play->pos) == 0)
-            {
-                aux_process = true;
-            }
-        }
-#endif
-
         Reltime* limit = Reltime_fromframes(RELTIME_AUTO,
                                             to_be_mixed,
                                             play->tempo,
@@ -493,20 +436,6 @@ uint32_t Pattern_mix(Pattern* pat,
                                            play->tempo,
                                            play->freq);
         }
-#if 0
-        if (!delay && next_aux != NULL && Reltime_cmp(next_aux_pos, limit) < 0)
-        {
-            Reltime_copy(limit, next_aux_pos);
-            to_be_mixed = Reltime_toframes(Reltime_sub(RELTIME_AUTO,
-                                                       limit, &play->pos),
-                                           play->tempo,
-                                           play->freq);
-        }
-        if (!delay && aux_process)
-        {
-            Reltime_add(limit, &play->pos, Reltime_set(RELTIME_AUTO, 0, 1));
-        }
-#endif
         // - Calculate the number of frames to be mixed
         assert(Reltime_cmp(&play->pos, limit) <= 0);
         if (to_be_mixed > nframes - mixed)
@@ -528,20 +457,6 @@ uint32_t Pattern_mix(Pattern* pat,
                 Channel_mix(channels[i], play->voice_pool,
                             mix_until, mixed,
                             play->tempo, play->freq);
-#if 0
-                Channel_set_voices(channels[i],
-                                   play->voice_pool,
-                                   play->parent.pause || pat == NULL ?
-                                               NULL : play->citer,
-                                   &play->pos,
-                                   limit,
-                                   delay,
-                                   mix_until,
-                                   mixed,
-                                   play->tempo,
-                                   play->freq,
-                                   eh);
-#endif
             }
             uint16_t active_voices = Voice_pool_mix_bg(play->voice_pool,
                     mix_until, mixed, play->freq, play->tempo);

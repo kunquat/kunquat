@@ -27,21 +27,6 @@
 #include <xassert.h>
 
 
-#if 0
-static Event_field_desc play_pattern_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_PATTERNS_MAX - 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_control,
                          EVENT_CONTROL_PLAY_PATTERN,
                          play_pattern);

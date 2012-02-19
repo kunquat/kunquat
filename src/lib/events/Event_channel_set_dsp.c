@@ -26,21 +26,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_dsp_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_DSPS_MAX - 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_DSP,
                          set_dsp);

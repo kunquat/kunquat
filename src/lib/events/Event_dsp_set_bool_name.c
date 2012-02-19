@@ -27,9 +27,6 @@
 #include <xmemory.h>
 
 
-//static Event_field_desc* set_bool_name_desc = set_name_desc;
-
-
 Event_create_constructor(Event_dsp,
                          EVENT_DSP_SET_BOOL_NAME,
                          set_bool_name);

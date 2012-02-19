@@ -407,16 +407,6 @@ static bool read_constraints(char** str,
             {
                 return false;
             }
-#if 0
-            Event_state* es = new_Event_state(constraint->event_name);
-            if (es == NULL || (AAtree_get_exact(map->cache, es) == NULL &&
-                               !AAtree_ins(map->cache, es)))
-            {
-                del_Event_state(es);
-                del_Constraint(constraint);
-                return false;
-            }
-#endif
             constraint->next = item->constraints;
             item->constraints = constraint;
             check_next(*str, state, expect_entry);

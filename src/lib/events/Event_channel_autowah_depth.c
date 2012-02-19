@@ -26,21 +26,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc autowah_depth_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = 0,
-        .max.field.double_type = INFINITY
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_AUTOWAH_DEPTH,
                          autowah_depth);

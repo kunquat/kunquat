@@ -30,21 +30,6 @@
 #include <xassert.h>
 
 
-#if 0
-static Event_field_desc env_set_float_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -INFINITY,
-        .max.field.double_type = INFINITY
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_control,
                          EVENT_CONTROL_ENV_SET_FLOAT,
                          env_set_float);

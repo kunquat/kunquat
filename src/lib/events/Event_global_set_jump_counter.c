@@ -24,21 +24,6 @@
 #include <xmemory.h>
 
 
-#if 0
-static Event_field_desc set_jump_counter_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = 65535
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_global,
                          EVENT_GLOBAL_SET_JUMP_COUNTER,
                          set_jump_counter);

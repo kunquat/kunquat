@@ -25,21 +25,6 @@
 #include <xassert.h>
 
 
-#if 0
-static Event_field_desc set_goto_row_desc[] =
-{
-    {
-        .type = EVENT_FIELD_RELTIME,
-        .min.field.Reltime_type = { 0, 0 },
-        .max.field.Reltime_type = { INT64_MAX, KQT_RELTIME_BEAT - 1 }
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 Event_create_constructor(Event_control,
                          EVENT_CONTROL_SET_GOTO_ROW,
                          set_goto_row);

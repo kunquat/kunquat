@@ -25,9 +25,6 @@
 #include <xmemory.h>
 
 
-//static Event_field_desc* set_gen_bool_name_desc = set_name_desc;
-
-
 Event_create_constructor(Event_channel,
                          EVENT_CHANNEL_SET_GEN_BOOL_NAME,
                          set_gen_bool_name);
