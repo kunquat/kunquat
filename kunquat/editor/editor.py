@@ -257,6 +257,7 @@ class KqtEditor(QtGui.QMainWindow):
                   self.pa.error()), end='\r')
 
     def stop(self):
+        self._pos_display.set_stop()
         if self.playing:
             self.project.update_random()
         self.playing = False
@@ -265,6 +266,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.bufs = (None, None)
 
     def play_subsong(self, subsong, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
@@ -274,6 +276,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._set_infinite(infinite)
 
     def play_pattern(self, pattern, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
@@ -284,6 +287,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._set_infinite(infinite)
 
     def play_from(self, subsong, section, beats, rem, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
