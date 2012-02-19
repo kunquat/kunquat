@@ -31,7 +31,7 @@ from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.4.3'
+PROGRAM_VERSION = '0.5.1'
 AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 
 

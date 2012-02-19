@@ -40,7 +40,7 @@ import timestamp as ts
 
 
 PROGRAM_NAME = 'Kunquat Tracker'
-PROGRAM_VERSION = '0.4.3'
+PROGRAM_VERSION = '0.5.1'
 
 
 def sine():
