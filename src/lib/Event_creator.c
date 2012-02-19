@@ -89,7 +89,6 @@ Event* new_Event_from_string(char** str, Read_state* state,
     {
         return NULL;
     }
-    char* fields_start = *str;
     Event_field_type field_type = EVENT_FIELD_NONE;
     if (!string_eq(type_str, "wj"))
     {
@@ -109,7 +108,6 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     assert(*str != NULL);
-    assert(*str > fields_start);
     *str = read_const_char(*str, ']', state);
     if (state->error)
     {

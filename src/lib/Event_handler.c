@@ -742,6 +742,7 @@ static void Event_handler_handle_query(Event_handler* eh,
     assert(index < KQT_COLUMNS_MAX);
     assert(EVENT_IS_QUERY(event_type));
     assert(event_arg != NULL);
+    (void)event_arg;
     char auto_event[128] = "";
     switch (event_type)
     {

@@ -25,6 +25,7 @@
 bool Event_general_call_int_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
+    (void)gstate;
     assert(value != NULL);
     return value->type == VALUE_TYPE_INT;
 }

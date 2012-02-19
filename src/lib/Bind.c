@@ -389,6 +389,7 @@ static bool read_constraints(char** str,
     assert(*str != NULL);
     assert(state != NULL);
     assert(map != NULL);
+    (void)map;
     assert(item != NULL);
     *str = read_const_char(*str, '[', state);
     if (state->error)
