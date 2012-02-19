@@ -17,13 +17,8 @@
 
 
 #include <Channel_state.h>
-#include <Event_generator.h>
 #include <Generator.h>
-#include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_generator_set_int_name(Reltime* pos);
 
 
 bool Event_generator_set_int_name_process(Generator* gen,

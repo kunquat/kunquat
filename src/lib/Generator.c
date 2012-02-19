@@ -21,7 +21,6 @@
 #include <Generator.h>
 #include <File_base.h>
 #include <Filter.h>
-#include <Event_ins.h>
 #include <pitch_t.h>
 #include <xassert.h>
 #include <xmemory.h>

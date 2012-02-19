@@ -16,12 +16,8 @@
 #define K_EVENT_GLOBAL_SLIDE_TEMPO_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_slide_tempo(Reltime* pos);
 
 
 bool Event_global_slide_tempo_process(Playdata* global_state, Value* value);

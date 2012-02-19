@@ -45,7 +45,7 @@ typedef struct Channel
 //    int fg_count; ///< Number of Voices in the foreground.
 //    Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
 //    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
-    Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
+//    Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
 //    Event* single; ///< An Event used for single note playback control.
 } Channel;
 

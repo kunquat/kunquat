@@ -27,11 +27,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_generator,
-                         EVENT_GENERATOR_SET_INT,
-                         set_int);
-
-
 bool Event_generator_set_int_process(Generator* gen,
                                      Channel_state* ch_state,
                                      Value* value)

@@ -27,11 +27,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_dsp,
-                         EVENT_DSP_SET_FLOAT_NAME,
-                         set_float_name);
-
-
 bool Event_dsp_set_float_name_process(DSP_conf* dsp_conf,
                                       Channel_state* ch_state,
                                       Value* value)

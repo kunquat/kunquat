@@ -28,11 +28,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_PITCH,
-                         slide_pitch);
-
-
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);

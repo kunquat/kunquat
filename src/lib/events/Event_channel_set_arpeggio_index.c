@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_ARPEGGIO_INDEX,
-                         set_arpeggio_index);
-
-
 bool Event_channel_set_arpeggio_index_process(Channel_state* ch_state,
                                               Value* value)
 {

@@ -16,12 +16,8 @@
 #define K_EVENT_CHANNEL_AUTOWAH_DEPTH_H
 
 
-#include <Event_channel.h>
-#include <Reltime.h>
+#include <Channel_state.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_autowah_depth(Reltime* pos);
 
 
 bool Event_channel_autowah_depth_process(Channel_state* ch_state,

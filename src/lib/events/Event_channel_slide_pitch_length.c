@@ -28,11 +28,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_PITCH_LENGTH,
-                         slide_pitch_length);
-
-
 bool Event_channel_slide_pitch_length_process(Channel_state* ch_state,
                                               Value* value)
 {

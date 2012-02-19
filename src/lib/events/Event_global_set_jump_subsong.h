@@ -16,13 +16,8 @@
 #define K_EVENT_GLOBAL_SET_JUMP_SUBSONG_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
 #include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_set_jump_subsong(Reltime* pos);
 
 
 bool Event_global_set_jump_subsong_process(Playdata* global_state,

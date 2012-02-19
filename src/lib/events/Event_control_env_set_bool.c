@@ -20,18 +20,12 @@
 #include <Environment.h>
 #include <Event.h>
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_env_set_bool.h>
 #include <Event_type.h>
 #include <File_base.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_ENV_SET_BOOL,
-                         env_set_bool);
 
 
 bool Event_control_env_set_bool_process(General_state* gstate, Value* value)

@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_AUTOWAH_SPEED,
-                         autowah_speed);
-
-
 bool Event_channel_autowah_speed_process(Channel_state* ch_state,
                                          Value* value)
 {

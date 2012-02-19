@@ -16,17 +16,11 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_goto.h>
 #include <General_state.h>
 #include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_GOTO,
-                         goto);
 
 
 bool Event_control_goto_process(General_state* gstate, Value* value)

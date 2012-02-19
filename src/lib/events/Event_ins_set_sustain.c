@@ -23,11 +23,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_ins,
-                         EVENT_INS_SET_SUSTAIN,
-                         set_sustain);
-
-
 bool Event_ins_set_sustain_process(Instrument_params* ins_state, Value* value)
 {
     assert(ins_state != NULL);

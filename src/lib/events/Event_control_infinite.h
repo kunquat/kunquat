@@ -23,9 +23,6 @@
 #include <Value.h>
 
 
-Event* new_Event_control_infinite(Reltime* pos);
-
-
 bool Event_control_infinite_process(General_state* gstate, Value* value);
 
 

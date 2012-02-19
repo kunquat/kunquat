@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_SLIDE_PITCH_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_slide_pitch(Reltime* pos);
 
 
 bool Event_channel_slide_pitch_process(Channel_state* ch_state, Value* value);

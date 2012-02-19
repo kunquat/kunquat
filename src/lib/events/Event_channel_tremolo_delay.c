@@ -28,11 +28,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_TREMOLO_DELAY,
-                         tremolo_delay);
-
-
 bool Event_channel_tremolo_delay_process(Channel_state* ch_state,
                                          Value* value)
 {

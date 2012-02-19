@@ -58,16 +58,6 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
 }
 
 
-#if 0
-static Event_field_desc jump_desc[] =
-{
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-#endif
-
-
 void del_Event_global_jump(Event* event);
 
 
@@ -82,13 +72,13 @@ Event* new_Event_global_jump(Reltime* pos)
     Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP);
     event->counters = NULL;
     event->counters_iter = NULL;
-    event->parent.parent.parent.destroy = del_Event_global_jump;
+    event->parent.destroy = del_Event_global_jump;
     event->counters = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp, free);
     event->counters_iter = new_AAiter(event->counters);
     if (event->counters == NULL || event->counters_iter == NULL)
     {
-        del_Event_global_jump(&event->parent.parent.parent);
+        del_Event_global_jump(&event->parent);
         return NULL;
     }
     //event->play_id = 0;
@@ -100,10 +90,10 @@ Event* new_Event_global_jump(Reltime* pos)
 }
 
 
-void Trigger_global_jump_process(Event_global* event, Playdata* play)
+void Trigger_global_jump_process(Event* event, Playdata* play)
 {
     assert(event != NULL);
-    assert(event->parent.parent.type == EVENT_GLOBAL_JUMP);
+    assert(event->type == EVENT_GLOBAL_JUMP);
     assert(play != NULL);
     Event_global_jump* jump = (Event_global_jump*)event;
     Pattern_location* key = PATTERN_LOCATION_AUTO;

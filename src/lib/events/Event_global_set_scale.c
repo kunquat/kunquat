@@ -23,11 +23,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_SCALE,
-                         set_scale);
-
-
 bool Event_global_set_scale_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);

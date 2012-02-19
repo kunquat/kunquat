@@ -18,12 +18,9 @@
 
 #include <stdbool.h>
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_hit(Reltime* pos);
 
 
 bool Event_channel_hit_process(Channel_state* ch_state, Value* value);

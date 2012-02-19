@@ -16,13 +16,8 @@
 #define K_EVENT_GLOBAL_SHIFT_SCALE_INTERVALS_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
 #include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_shift_scale_intervals(Reltime* pos);
 
 
 bool Event_global_shift_scale_intervals_process(Playdata* global_state,

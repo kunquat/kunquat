@@ -24,11 +24,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_SCALE_FIXED_POINT,
-                         set_scale_fixed_point);
-
-
 bool Event_global_set_scale_fixed_point_process(Playdata* global_state,
                                                 Value* value)
 {

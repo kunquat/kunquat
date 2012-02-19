@@ -16,12 +16,8 @@
 #define K_EVENT_GLOBAL_SET_JUMP_SECTION_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_set_jump_section(Reltime* pos);
 
 
 bool Event_global_set_jump_section_process(Playdata* global_state,

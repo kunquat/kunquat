@@ -17,13 +17,8 @@
 
 
 #include <Channel_state.h>
-#include <Event_dsp.h>
 #include <DSP_conf.h>
-#include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_dsp_set_reltime_name(Reltime* pos);
 
 
 bool Event_dsp_set_reltime_name_process(DSP_conf* dsp_conf,

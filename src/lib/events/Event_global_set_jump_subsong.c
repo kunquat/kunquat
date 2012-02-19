@@ -24,11 +24,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_JUMP_SUBSONG,
-                         set_jump_subsong);
-
-
 bool Event_global_set_jump_subsong_process(Playdata* global_state,
                                            Value* value)
 {

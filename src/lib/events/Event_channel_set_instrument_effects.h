@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_set_instrument_effects(Reltime* pos);
 
 
 bool Event_channel_set_instrument_effects_process(Channel_state* ch_state,

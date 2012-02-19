@@ -16,12 +16,8 @@
 #define K_EVENT_GLOBAL_SET_SCALE_OFFSET_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_set_scale_offset(Reltime* pos);
 
 
 bool Event_global_set_scale_offset_process(Playdata* global_state,

@@ -18,13 +18,8 @@
 
 #include <stdbool.h>
 
-#include <Event_global.h>
-#include <Reltime.h>
 #include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_set_scale_fixed_point(Reltime* pos);
 
 
 bool Event_global_set_scale_fixed_point_process(Playdata* global_state,

@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_VIBRATO_DELAY_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_vibrato_delay(Reltime* pos);
 
 
 bool Event_channel_vibrato_delay_process(Channel_state* ch_state,

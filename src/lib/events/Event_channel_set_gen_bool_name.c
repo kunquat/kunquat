@@ -25,11 +25,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_GEN_BOOL_NAME,
-                         set_gen_bool_name);
-
-
 bool Event_channel_set_gen_bool_name_process(Channel_state* ch_state,
                                              Value* value)
 {

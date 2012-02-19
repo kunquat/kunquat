@@ -25,11 +25,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_ARPEGGIO_NOTE,
-                         set_arpeggio_note);
-
-
 bool Event_channel_set_arpeggio_note_process(Channel_state* ch_state,
                                              Value* value)
 {

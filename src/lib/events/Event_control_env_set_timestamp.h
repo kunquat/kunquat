@@ -23,9 +23,6 @@
 #include <Value.h>
 
 
-Event* new_Event_control_env_set_timestamp(Reltime* pos);
-
-
 bool Event_control_env_set_timestamp_process(General_state* gstate,
                                              Value* value);
 

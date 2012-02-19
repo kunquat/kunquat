@@ -24,8 +24,6 @@
 #include <Pattern_location.h>
 #include <Playdata.h>
 #include <Event.h>
-#include <Event_global.h>
-#include <Event_ins.h>
 #include <Event_handler.h>
 #include <events/Event_global_jump.h>
 #include <xassert.h>
@@ -551,7 +549,7 @@ static void evaluate_row(Pattern* pat,
             && Reltime_cmp(&play->delay_left, zero_time) <= 0
             && !(play->jump || play->goto_trigger))
     {
-        Event_type type = Event_get_type((Event*)*next);
+        Event_type type = Event_get_type(*next);
         if (play->delay_event_index >= 0)
         {
             for (int i = 0; i <= play->delay_event_index; ++i)
@@ -569,21 +567,21 @@ static void evaluate_row(Pattern* pat,
                 break;
             }
         }
-        if (Event_get_type((Event*)*next) == EVENT_GLOBAL_JUMP)
+        if (Event_get_type(*next) == EVENT_GLOBAL_JUMP)
         {
             if (General_state_events_enabled((General_state*)play))
             {
                 // Jump events inside Patterns contain mutable state data, so
                 // they need to be handled as a special case here.
-                Trigger_global_jump_process((Event_global*)*next, play);
+                Trigger_global_jump_process(*next, play);
             }
         }
         else if ((!EVENT_IS_CONTROL(type) || play->infinite) &&
                  (!play->silent || EVENT_IS_GLOBAL(type) ||
                                    EVENT_IS_GENERAL(type)))
         {
-            Event_pg* pg = (Event_pg*)*next;
-            Event_handler_trigger(eh, pg->ch_index, Event_get_desc(*next),
+            //Event_pg* pg = (Event_pg*)*next;
+            Event_handler_trigger(eh, (*next)->ch_index, Event_get_desc(*next),
                                   play->silent, NULL);
         }
         ++play->event_index;

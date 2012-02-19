@@ -24,11 +24,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SLIDE_TEMPO,
-                         slide_tempo);
-
-
 bool Event_global_slide_tempo_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);

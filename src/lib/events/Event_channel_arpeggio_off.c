@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_ARPEGGIO_OFF,
-                         arpeggio_off);
-
-
 bool Event_channel_arpeggio_off_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);

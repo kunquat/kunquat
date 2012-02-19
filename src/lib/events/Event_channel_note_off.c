@@ -23,11 +23,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_NOTE_OFF,
-                         note_off);
-
-
 bool Event_channel_note_off_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);

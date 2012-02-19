@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_LOWPASS,
-                         slide_lowpass);
-
-
 bool Event_channel_slide_lowpass_process(Channel_state* ch_state,
                                          Value* value)
 {

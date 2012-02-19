@@ -23,9 +23,6 @@
 #include <Value.h>
 
 
-Event* new_Event_control_set_goto_subsong(Reltime* pos);
-
-
 bool Event_control_set_goto_subsong_process(General_state* gstate,
                                             Value* value);
 

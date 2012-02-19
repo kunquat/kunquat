@@ -23,9 +23,6 @@
 #include <Value.h>
 
 
-Event* new_Event_control_env_set_bool_name(Reltime* pos);
-
-
 bool Event_control_env_set_bool_name_process(General_state* gstate,
                                              Value* value);
 

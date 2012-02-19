@@ -29,11 +29,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_dsp,
-                         EVENT_DSP_SET_RELTIME,
-                         set_reltime);
-
-
 bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf,
                                    Channel_state* ch_state,
                                    Value* value)

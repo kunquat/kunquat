@@ -28,11 +28,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_AUTOWAH_DELAY,
-                         autowah_delay);
-
-
 bool Event_channel_autowah_delay_process(Channel_state* ch_state,
                                          Value* value)
 {

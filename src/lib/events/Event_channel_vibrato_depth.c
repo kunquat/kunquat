@@ -27,11 +27,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_VIBRATO_DEPTH,
-                         vibrato_depth);
-
-
 bool Event_channel_vibrato_depth_process(Channel_state* ch_state,
                                          Value* value)
 {

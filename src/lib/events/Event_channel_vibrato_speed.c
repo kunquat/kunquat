@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_VIBRATO_SPEED,
-                         vibrato_speed);
-
-
 bool Event_channel_vibrato_speed_process(Channel_state* ch_state,
                                          Value* value)
 {

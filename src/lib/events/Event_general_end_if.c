@@ -16,16 +16,10 @@
 #include <stdio.h>
 
 #include <Event_common.h>
-#include <Event_general.h>
 #include <Event_general_end_if.h>
 #include <General_state.h>
 #include <xassert.h>
 #include <xmemory.h>
-
-
-Event_create_constructor(Event_general,
-                         EVENT_GENERAL_END_IF,
-                         end_if);
 
 
 bool Event_general_end_if_process(General_state* gstate, Value* value)

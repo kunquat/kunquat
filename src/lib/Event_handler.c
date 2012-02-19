@@ -872,8 +872,7 @@ bool Event_handler_process_type(Event_handler* eh,
                                     event_name);
         return false;
     }
-    assert(Event_type_is_supported(*event_type) ||
-           EVENT_IS_QUERY(*event_type) || EVENT_IS_AUTO(*event_type));
+    assert(EVENT_IS_VALID(*event_type));
     if (!General_state_events_enabled((General_state*)eh->ch_states[index]) &&
             *event_type != EVENT_GENERAL_IF &&
             *event_type != EVENT_GENERAL_ELSE &&

@@ -16,17 +16,11 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_set_goto_subsong.h>
 #include <General_state.h>
 #include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_SET_GOTO_SUBSONG,
-                         set_goto_subsong);
 
 
 bool Event_control_set_goto_subsong_process(General_state* gstate,

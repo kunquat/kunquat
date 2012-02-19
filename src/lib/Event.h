@@ -34,6 +34,7 @@
 typedef struct Event
 {
     Reltime pos;                   ///< The Event position.
+    int ch_index;                  ///< Channel number.
     Event_type type;               ///< The Event type.
     char* desc;                    ///< Event description in JSON format.
     void (*destroy)(struct Event* event);                    ///< Destructor.
@@ -74,7 +75,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
  *
  * \return   \c true if \a type is supported, otherwise \c false.
  */
-bool Event_type_is_supported(Event_type type);
+//bool Event_type_is_supported(Event_type type);
 
 
 /**

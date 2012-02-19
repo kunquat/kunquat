@@ -261,40 +261,6 @@ static int event_name_cmp(const char* e1, const char* e2)
 }
 
 
-#if 0
-bool Event_names_add(Event_names* names, const char* name, Event_type type)
-{
-    assert(names != NULL);
-    assert(name != NULL);
-    assert(strlen(name) > 0);
-    assert(strlen(name) < EVENT_NAME_MAX);
-    assert(!AAtree_contains(names->names, name));
-    assert(Event_type_is_supported(type));
-    if (names->error)
-    {
-        return false;
-    }
-    Name_info* info = xalloc(Name_info);
-    if (info == NULL)
-    {
-        names->error = true;
-        return false;
-    }
-    strncpy(info->name, name, EVENT_NAME_MAX);
-    info->name[EVENT_NAME_MAX] = '\0';
-    info->type = type;
-    info->pass = false;
-    if (!AAtree_ins(names->names, info))
-    {
-        xfree(info);
-        names->error = true;
-        return false;
-    }
-    return true;
-}
-#endif
-
-
 bool Event_names_error(Event_names* names)
 {
     assert(names != NULL);

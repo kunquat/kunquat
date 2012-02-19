@@ -20,14 +20,13 @@
 #include <stdint.h>
 
 #include <AAtree.h>
-#include <Event_global.h>
 #include <Reltime.h>
 #include <Playdata.h>
 
 
 typedef struct Event_global_jump
 {
-    Event_global parent;
+    Event parent;
     AAtree* counters;
     AAiter* counters_iter;
     //uint64_t play_id;
@@ -41,7 +40,7 @@ typedef struct Event_global_jump
 Event* new_Event_global_jump(Reltime* pos);
 
 
-void Trigger_global_jump_process(Event_global* event, Playdata* play);
+void Trigger_global_jump_process(Event* event, Playdata* play);
 
 
 bool Trigger_global_jump_set_locations(Event_global_jump* event,

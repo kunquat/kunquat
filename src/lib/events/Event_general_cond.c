@@ -21,22 +21,10 @@
 
 #include <Env_var.h>
 #include <Event_common.h>
-#include <Event_general.h>
 #include <Event_general_cond.h>
-#include <expr.h>
-#include <File_base.h>
 #include <General_state.h>
-#include <Real.h>
-#include <Reltime.h>
-#include <string_common.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
-
-
-Event_create_constructor(Event_general,
-                         EVENT_GENERAL_COND,
-                         cond);
 
 
 bool Event_general_cond_process(General_state* gstate, Value* value)

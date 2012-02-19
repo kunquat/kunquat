@@ -17,16 +17,10 @@
 #include <stdio.h>
 
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_pause.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_PAUSE,
-                         pause);
 
 
 bool Event_control_pause_process(General_state* gstate, Value* value)

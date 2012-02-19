@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_AUTOWAH_DELAY_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_autowah_delay(Reltime* pos);
 
 
 bool Event_channel_autowah_delay_process(Channel_state* ch_state,

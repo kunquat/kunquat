@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_SET_GEN_BOOL_NAME_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_set_gen_bool_name(Reltime* pos);
 
 
 bool Event_channel_set_gen_bool_name_process(Channel_state* ch_state,

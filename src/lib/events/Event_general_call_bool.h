@@ -19,11 +19,7 @@
 #include <stdbool.h>
 
 #include <General_state.h>
-#include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_general_call_bool(Reltime* pos);
 
 
 bool Event_general_call_bool_process(General_state* gstate, Value* value);

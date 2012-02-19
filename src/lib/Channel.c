@@ -25,9 +25,6 @@
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_handler.h>
-#include <Event_channel.h>
-#include <Event_ins.h>
-#include <Event_channel_note_off.h>
 #include <Column.h>
 #include <math_common.h>
 #include <xassert.h>
@@ -53,13 +50,7 @@ Channel* new_Channel(Ins_table* insts,
     {
         return NULL;
     }
-/*    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
-    if (ch->note_off == NULL)
-    {
-        xfree(ch);
-        return NULL;
-    } */
-    ch->note_off = NULL;
+//    ch->note_off = NULL;
 /*    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
     if (ch->single == NULL)
     {

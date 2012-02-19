@@ -23,9 +23,6 @@
 #include <Value.h>
 
 
-Event* new_Event_control_receive_event(Reltime* pos);
-
-
 bool Event_control_receive_event(General_state* gstate, Value* value);
 
 

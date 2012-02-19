@@ -17,7 +17,6 @@
 
 #include <Event.h>
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_receive_event.h>
 #include <Event_names.h>
 #include <Event_type.h>
@@ -26,11 +25,6 @@
 #include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_RECEIVE_EVENT,
-                         receive_event);
 
 
 bool Event_control_receive_event(General_state* gstate, Value* value)

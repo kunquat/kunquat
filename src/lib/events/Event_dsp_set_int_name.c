@@ -27,11 +27,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_dsp,
-                         EVENT_DSP_SET_INT_NAME,
-                         set_int_name);
-
-
 bool Event_dsp_set_int_name_process(DSP_conf* dsp_conf,
                                     Channel_state* ch_state,
                                     Value* value)

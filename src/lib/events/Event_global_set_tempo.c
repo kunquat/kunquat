@@ -22,11 +22,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_TEMPO,
-                         set_tempo);
-
-
 bool Event_global_set_tempo_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);

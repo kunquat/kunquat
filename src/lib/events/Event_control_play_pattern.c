@@ -17,7 +17,6 @@
 
 #include <Event.h>
 #include <Event_common.h>
-#include <Event_control.h>
 #include <Event_control_play_pattern.h>
 #include <Event_type.h>
 #include <File_base.h>
@@ -25,11 +24,6 @@
 #include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
-
-
-Event_create_constructor(Event_control,
-                         EVENT_CONTROL_PLAY_PATTERN,
-                         play_pattern);
 
 
 bool Event_control_play_pattern_process(General_state* gstate, Value* value)

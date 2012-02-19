@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SLIDE_PANNING,
-                         slide_panning);
-
-
 bool Event_channel_slide_panning_process(Channel_state* ch_state,
                                          Value* value)
 {

@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_GEN_RELTIME,
-                         set_gen_reltime);
-
-
 bool Event_channel_set_gen_reltime_process(Channel_state* ch_state,
                                            Value* value)
 {

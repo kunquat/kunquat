@@ -28,11 +28,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_VIBRATO_DELAY,
-                         vibrato_delay);
-
-
 bool Event_channel_vibrato_delay_process(Channel_state* ch_state,
                                          Value* value)
 {

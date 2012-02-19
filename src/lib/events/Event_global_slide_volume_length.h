@@ -16,12 +16,8 @@
 #define K_EVENT_GLOBAL_SLIDE_VOLUME_LENGTH_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
 #include <Value.h>
-
-
-Event* new_Event_global_slide_volume_length(Reltime* pos);
 
 
 bool Event_global_slide_volume_length_process(Playdata* global_state,

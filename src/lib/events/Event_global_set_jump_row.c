@@ -24,11 +24,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_JUMP_ROW,
-                         set_jump_row);
-
-
 bool Event_global_set_jump_row_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);

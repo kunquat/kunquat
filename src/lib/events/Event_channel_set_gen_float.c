@@ -24,11 +24,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_GEN_FLOAT,
-                         set_gen_float);
-
-
 bool Event_channel_set_gen_float_process(Channel_state* ch_state,
                                          Value* value)
 {

@@ -15,17 +15,10 @@
 #include <stdlib.h>
 
 #include <Event_common.h>
-#include <Event_general.h>
 #include <Event_general_if.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
-
-
-Event_create_constructor(Event_general,
-                         EVENT_GENERAL_IF,
-                         if);
 
 
 bool Event_general_if_process(General_state* gstate, Value* value)

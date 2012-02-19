@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_ARPEGGIO_OFF_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_arpeggio_off(Reltime* pos);
 
 
 bool Event_channel_arpeggio_off_process(Channel_state* ch_state,

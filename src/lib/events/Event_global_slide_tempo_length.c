@@ -25,11 +25,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SLIDE_TEMPO_LENGTH,
-                         slide_tempo_length);
-
-
 bool Event_global_slide_tempo_length_process(Playdata* global_state,
                                              Value* value)
 {

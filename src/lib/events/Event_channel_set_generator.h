@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_SET_GENERATOR_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_set_generator(Reltime* pos);
 
 
 bool Event_channel_set_generator_process(Channel_state* ch_state,

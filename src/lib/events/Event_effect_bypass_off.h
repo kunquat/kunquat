@@ -16,12 +16,8 @@
 #define K_EVENT_EFFECT_BYPASS_OFF_H
 
 
-#include <Event_effect.h>
-#include <Reltime.h>
+#include <Effect.h>
 #include <Value.h>
-
-
-Event* new_Event_effect_bypass_off(Reltime* pos);
 
 
 bool Event_effect_bypass_off_process(Effect* eff, Value* value);

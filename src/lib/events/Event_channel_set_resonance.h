@@ -16,12 +16,9 @@
 #define K_EVENT_CHANNEL_SET_RESONANCE_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
 #include <Value.h>
-
-
-Event* new_Event_channel_set_resonance(Reltime* pos);
 
 
 bool Event_channel_set_resonance_process(Channel_state* ch_state,

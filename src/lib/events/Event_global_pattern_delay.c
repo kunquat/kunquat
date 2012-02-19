@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_PATTERN_DELAY,
-                         pattern_delay);
-
-
 bool Event_global_pattern_delay_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);

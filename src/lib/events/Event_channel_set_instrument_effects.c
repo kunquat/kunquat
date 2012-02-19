@@ -26,11 +26,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_INSTRUMENT_EFFECTS,
-                         set_instrument_effects);
-
-
 bool Event_channel_set_instrument_effects_process(Channel_state* ch_state,
                                                   Value* value)
 {

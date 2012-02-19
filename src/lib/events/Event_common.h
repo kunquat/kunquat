@@ -50,22 +50,6 @@ Event* Event_init(Event* event,
 void del_Event_default(Event* event);
 
 
-#define Event_create_constructor(etype, etype_id, ename) \
-    Event* new_ ## etype ## _ ## ename(Reltime* pos)     \
-    {                                                    \
-        assert(pos != NULL);                             \
-        etype* event = xalloc(etype);                    \
-        if (event == NULL)                               \
-        {                                                \
-            return NULL;                                 \
-        }                                                \
-        Event_init((Event*)event,                        \
-                   pos,                                  \
-                   etype_id);                            \
-        return (Event*)event;                            \
-    } Event* new_ ## ename(Reltime* pos)
-
-
 #define Event_check_voice(ch_state, gen)                        \
     if (true)                                                   \
     {                                                           \

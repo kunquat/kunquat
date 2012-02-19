@@ -23,11 +23,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_effect,
-                         EVENT_EFFECT_BYPASS_OFF,
-                         bypass_off);
-
-
 bool Event_effect_bypass_off_process(Effect* eff, Value* value)
 {
     assert(eff != NULL);

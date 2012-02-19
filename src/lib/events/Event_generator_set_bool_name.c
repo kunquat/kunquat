@@ -27,11 +27,6 @@
 #include <xmemory.h>
 
 
-Event_create_constructor(Event_generator,
-                         EVENT_GENERATOR_SET_BOOL_NAME,
-                         set_bool_name);
-
-
 bool Event_generator_set_bool_name_process(Generator* gen,
                                            Channel_state* ch_state,
                                            Value* value)

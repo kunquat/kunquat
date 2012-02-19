@@ -20,7 +20,6 @@
 #include <inttypes.h>
 
 #include <Reltime.h>
-#include <Event_pg.h>
 #include <Event_global_jump.h>
 //#include <Event_global_set_tempo.h>
 #include <Event_names.h>
@@ -285,7 +284,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
-            if (((Event_pg*)event)->ch_index < index)
+            if (event->ch_index < index)
             {
                 if (!Column_ins(aux, event))
                 {
@@ -303,7 +302,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
     {
         if (EVENT_IS_PG(Event_get_type(event)))
         {
-            ((Event_pg*)event)->ch_index = index;
+            event->ch_index = index;
             if (!Column_ins(aux, event))
             {
                 del_Column(aux);
@@ -320,7 +319,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
-            if (((Event_pg*)event)->ch_index > index)
+            if (event->ch_index > index)
             {
                 if (!Column_ins(aux, event))
                 {

@@ -16,17 +16,10 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_general.h>
 #include <Event_general_call_int.h>
 #include <General_state.h>
 #include <Value.h>
 #include <xassert.h>
-#include <xmemory.h>
-
-
-Event_create_constructor(Event_general,
-                         EVENT_GENERAL_CALL_INT,
-                         call_int);
 
 
 bool Event_general_call_int_process(General_state* gstate, Value* value)
