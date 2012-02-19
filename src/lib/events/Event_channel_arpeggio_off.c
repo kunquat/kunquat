@@ -26,12 +26,14 @@
 #include <xmemory.h>
 
 
+#if 0
 static Event_field_desc arpeggio_off_desc[] =
 {
     {
         .type = EVENT_FIELD_NONE
     }
 };
+#endif
 
 
 Event_create_constructor(Event_channel,

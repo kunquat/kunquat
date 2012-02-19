@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -38,8 +38,8 @@
  */
 Event* Event_init(Event* event,
                   Reltime* pos,
-                  Event_type type,
-                  Event_field_desc* field_types);
+                  Event_type type);
+//                  Event_field_desc* field_types);
 
 
 /**
@@ -67,8 +67,8 @@ void del_Event_default(Event* event);
         }                                                \
         Event_init((Event*)event,                        \
                    pos,                                  \
-                   etype_id,                             \
-                   ename ## _desc);                      \
+                   etype_id);                            \
+                /* ename ## _desc); */                   \
         return (Event*)event;                            \
     } Event* new_ ## ename(Reltime* pos)
 

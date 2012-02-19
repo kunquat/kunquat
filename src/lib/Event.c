@@ -26,14 +26,17 @@
 #include <xmemory.h>
 
 
+#if 0
 Event_field_desc* Event_get_field_types(Event* event)
 {
     assert(event != NULL);
     assert(event->field_types != NULL);
     return event->field_types;
 }
+#endif
 
 
+#if 0
 int Event_get_field_count(Event* event)
 {
     assert(event != NULL);
@@ -45,6 +48,7 @@ int Event_get_field_count(Event* event)
     }
     return count;
 }
+#endif
 
 
 char* Event_type_get_fields(char* str,
@@ -303,6 +307,7 @@ char* Event_type_get_fields(char* str,
 }
 
 
+#if 0
 char* Event_read(Event* event, char* str, Read_state* state)
 {
     assert(event != NULL);
@@ -335,6 +340,7 @@ char* Event_read(Event* event, char* str, Read_state* state)
     }
     return fields_end;
 }
+#endif
 
 
 Reltime* Event_get_pos(Event* event)

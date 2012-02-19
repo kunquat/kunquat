@@ -58,12 +58,14 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
 }
 
 
+#if 0
 static Event_field_desc jump_desc[] =
 {
     {
         .type = EVENT_FIELD_NONE
     }
 };
+#endif
 
 
 void del_Event_global_jump(Event* event);
@@ -77,7 +79,7 @@ Event* new_Event_global_jump(Reltime* pos)
     {
         return NULL;
     }
-    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP, jump_desc);
+    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP);
     event->counters = NULL;
     event->counters_iter = NULL;
     event->parent.parent.parent.destroy = del_Event_global_jump;

@@ -17,6 +17,7 @@
 #include <string.h>
 
 #include <Event.h>
+#include <Event_names.h>
 #include <Event_type.h>
 
 #include <Event_control_pause.h>
@@ -149,6 +150,7 @@
 #include <Event_dsp_set_reltime_name.h>
 #include <Event_dsp_set_reltime.h>
 
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -356,8 +358,23 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     char* fields_start = *str;
+    Event_field_type field_type = EVENT_FIELD_NONE;
+    if (!string_eq(type_str, "wj"))
+    {
+        field_type = Event_names_get_param_type(names, type_str);
+    }
+    if (field_type == EVENT_FIELD_NONE)
+    {
+        *str = read_null(*str, state);
+    }
+    else
+    {
+        *str = read_string(*str, NULL, 0, state);
+    }
+#if 0
     *str = Event_type_get_fields(fields_start, event->field_types,
                                  NULL, state);
+#endif
     if (state->error)
     {
         del_Event(event);

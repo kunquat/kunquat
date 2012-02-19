@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -35,7 +35,7 @@ typedef struct Event
 {
     Reltime pos;                   ///< The Event position.
     Event_type type;               ///< The Event type.
-    Event_field_desc* field_types; ///< The field type description.
+//    Event_field_desc* field_types; ///< The field type description.
     char* desc;                    ///< Event description in JSON format.
     char* fields;                  ///< Event fields as an unparsed JSON list.
     void (*destroy)(struct Event* event);                    ///< Destructor.
@@ -106,7 +106,7 @@ char* Event_type_get_fields(char* str,
  * \return   The position in the string after the parsing. The caller must
  *           check for errors through \a state.
  */
-char* Event_read(Event* event, char* str, Read_state* state);
+//char* Event_read(Event* event, char* str, Read_state* state);
 
 
 /**
@@ -119,7 +119,7 @@ char* Event_read(Event* event, char* str, Read_state* state);
  *           terminated with a field type of \c EVENT_NONE. See
  *           Event_type.h for details.
  */
-Event_field_desc* Event_get_field_types(Event* event);
+//Event_field_desc* Event_get_field_types(Event* event);
 
 
 /**
@@ -129,7 +129,7 @@ Event_field_desc* Event_get_field_types(Event* event);
  *
  * \return   The number of fields.
  */
-int Event_get_field_count(Event* event);
+//int Event_get_field_count(Event* event);
 
 
 /**
