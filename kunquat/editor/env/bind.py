@@ -82,18 +82,18 @@ class Bind(QtGui.QWidget):
     def _flatten(self, immediate=True):
         m = []
         for binding in self._data:
-            if binding[0] not in ttypes.triggers or binding[0] == 'wj':
+            if binding[0] not in ttypes.triggers or binding[0] == 'mj':
                 continue
             c = []
             for constraint in binding[1]:
                 if constraint[0] not in ttypes.triggers or \
-                        constraint[0] == 'wj' or not constraint[1]:
+                        constraint[0] == 'mj' or not constraint[1]:
                     continue
                 c.extend([[constraint[0], constraint[1]]])
             a = []
             for action in binding[2]:
                 if action[1][0] not in ttypes.triggers or \
-                        action[1][0] == 'wj' or \
+                        action[1][0] == 'mj' or \
                         not action[1][1]:
                     continue
                 a.extend([[action[0], [action[1][0], action[1][1]]]])

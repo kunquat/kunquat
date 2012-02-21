@@ -77,7 +77,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     Event* event = NULL;
-    if (string_eq(type_str, "wj"))
+    if (string_eq(type_str, "mj"))
     {
         event = new_Event_global_jump(pos);
     }
@@ -90,7 +90,7 @@ Event* new_Event_from_string(char** str, Read_state* state,
         return NULL;
     }
     Event_field_type field_type = EVENT_FIELD_NONE;
-    if (!string_eq(type_str, "wj"))
+    if (!string_eq(type_str, "mj"))
     {
         field_type = Event_names_get_param_type(names, type_str);
     }

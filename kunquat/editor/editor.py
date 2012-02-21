@@ -213,7 +213,7 @@ class KqtEditor(QtGui.QMainWindow):
     def mix(self):
         if self.playing:
             if not self.bufs[0]:
-                self.handle.fire(0, ['Qlocation', None])
+                self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
                 if not self.bufs[0]:
                     self.stop()
@@ -233,7 +233,7 @@ class KqtEditor(QtGui.QMainWindow):
                 self._peak_meter.set_peaks(dB[0], dB[1],
                                            abs_max[0], abs_max[1],
                                            len(self.bufs[0]))
-                self.handle.fire(0, ['Qlocation', None])
+                self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()
@@ -283,7 +283,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, ['>pattern', pattern])
+        self.handle.fire(0, ['Ipattern', pattern])
         self._set_infinite(infinite)
 
     def play_from(self, subsong, section, beats, rem, infinite=False):
@@ -294,9 +294,9 @@ class KqtEditor(QtGui.QMainWindow):
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.fire(0, ['>.gs', section])
-        self.handle.fire(0, ['>.gr', [beats, rem]])
-        self.handle.fire(0, ['>g', None])
+        self.handle.fire(0, ['I.gs', section])
+        self.handle.fire(0, ['I.gr', [beats, rem]])
+        self.handle.fire(0, ['Ig', None])
         self._set_infinite(infinite)
 
     def play_event(self, *args):
@@ -304,7 +304,7 @@ class KqtEditor(QtGui.QMainWindow):
         event = str(event)
         if not self.playing:
             self.playing = True
-            self.handle.fire(0, ['>pause', None])
+            self.handle.fire(0, ['Ipause', None])
         self.handle.fire(channel, json.loads(event))
 
     def save(self):
@@ -348,7 +348,7 @@ class KqtEditor(QtGui.QMainWindow):
 
     def _set_infinite(self, x):
         #self._infinite = x
-        self.handle.fire(0, ['>infinite', x])
+        self.handle.fire(0, ['I.infinite', x])
 
     def set_appearance(self):
         # FIXME: size and title

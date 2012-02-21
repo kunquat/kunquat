@@ -27,7 +27,7 @@ import kunquat.editor.trigtypes as ttypes
 
 note_off_str = u'══'
 
-hidden_types = ('cn+', 'ch')
+hidden_types = ('n+', 'h')
 
 
 class Trigger(list):
@@ -150,7 +150,7 @@ class Trigger(list):
         if self[0] not in hidden_types:
             head_rect = QtCore.QRectF(rect)
             head_rect.moveLeft(head_rect.left() + offset)
-            if self[0] == 'cn-':
+            if self[0] == 'n-':
                 type_width = self.metrics.width(note_off_str)
             else:
                 type_width = self.metrics.width(self[0])
@@ -190,11 +190,11 @@ class Trigger(list):
 
         offset += self.margin
         if offset > 0:
-            if self[0] == 'cn+':
+            if self[0] == 'n+':
                 paint.setPen(self.colours['trigger_note_on_fg'])
-            elif self[0] == 'ch':
+            elif self[0] == 'h':
                 paint.setPen(self.colours['trigger_hit_fg'])
-            elif self[0] == 'cn-':
+            elif self[0] == 'n-':
                 paint.setPen(self.colours['trigger_note_off_fg'])
             else:
                 paint.setPen(self.colours['trigger_fg'])
@@ -212,9 +212,9 @@ class Trigger(list):
     def paint_field(self, paint, field, rect, opt, cursor):
         s = self.field_str(field)
         back = self.colours['bg']
-        if self[0] == 'cn+':
+        if self[0] == 'n+':
             fore = self.colours['trigger_note_on_fg']
-        elif self[0] == 'ch':
+        elif self[0] == 'h':
             fore = self.colours['trigger_hit_fg']
         else:
             fore = self.colours['trigger_fg']
@@ -253,7 +253,7 @@ class Trigger(list):
     def width(self):
         field_width = self.field_width(self[1]) if self[1] != None else 0
         type_width = -self.padding
-        if self[0] == 'cn-':
+        if self[0] == 'n-':
             type_width = self.metrics.width(note_off_str)
         elif self[0] not in hidden_types:
             type_width = self.metrics.width(self[0])
@@ -272,7 +272,7 @@ class TriggerType(str):
         return x in ttypes.triggers
 
     def paint(self, colours, paint, rect, opt, cursor):
-        if self == 'cn-':
+        if self == 'n-':
             fore = colours['trigger_note_off_fg']
         elif self.valid:
             fore = colours['trigger_type_fg']
@@ -283,7 +283,7 @@ class TriggerType(str):
             fore, back = back, fore
         paint.setBackground(back)
         paint.setPen(fore)
-        paint.drawText(rect, self if self != 'cn-' else note_off_str, opt)
+        paint.drawText(rect, self if self != 'n-' else note_off_str, opt)
 
 
 default_scale = scale.Scale({
