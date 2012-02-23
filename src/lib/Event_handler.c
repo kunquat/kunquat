@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <inttypes.h>
+#include <math.h>
 
 #include <DSP_conf.h>
 #include <Effect.h>
@@ -772,6 +773,19 @@ static void Event_handler_handle_query(Event_handler* eh,
                      eh->global_state->active_voices);
             eh->global_state->active_voices = 0;
             Event_handler_trigger_const(eh, index, auto_event, silent);
+        } break;
+        case EVENT_QUERY_ACTUAL_FORCE:
+        {
+            assert(event_arg->type == VALUE_TYPE_INT);
+            assert(event_arg->value.int_type >= 0);
+            assert(event_arg->value.int_type < KQT_GENERATORS_MAX);
+            double force = Channel_state_get_fg_force(eh->ch_states[index],
+                                                event_arg->value.int_type);
+            if (!isnan(force))
+            {
+                snprintf(auto_event, 128, "[\"Af\", %f]", force);
+                Event_handler_trigger_const(eh, index, auto_event, silent);
+            }
         } break;
         default:
             assert(false);

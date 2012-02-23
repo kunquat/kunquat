@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -144,6 +144,19 @@ void Channel_state_reset(Channel_state* state);
  * \return   The parameter \a dest.
  */
 Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src);
+
+
+/**
+ * Returns an actual force of a current foreground Voice.
+ *
+ * \param state       The Channel state -- must not be \c NULL.
+ * \param gen_index   The Generator index -- must be >= \c 0 and
+ *                    < \c KQT_GENERATORS_MAX.
+ *
+ * \return   The actual force if the active foreground Voice at \a gen_index
+ *           exists, otherwise NAN.
+ */
+double Channel_state_get_fg_force(Channel_state* state, int gen_index);
 
 
 /**

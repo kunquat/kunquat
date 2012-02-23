@@ -190,6 +190,10 @@ triggers = {
         'callFn': [any_str],
         'callF': [any_float],
 
+        'qlocation': [],
+        'qvoices': [],
+        'qf': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, '0')],
+
         'Ipause': [],
         'Iresume': [],
         'Ipattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, '0')],

@@ -17,6 +17,21 @@ from PyQt4 import QtCore, QtGui
 
 from chselect import ChSelect
 import kunquat.editor.trigtypes as ttypes
+import kunquat.editor.kqt_limits as lim
+
+
+auto_events = {
+        'Asubsong': [(int, lambda x: x >= -1 and x < lim.SUBSONGS_MAX, '0')],
+        'Asection': [(int, lambda x: x >= -1 and x < lim.SECTIONS_MAX, '0')],
+        'Apattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, '0')],
+        'Arow': [ttypes.any_ts],
+        'Avoices': [ttypes.any_int],
+        'Af': [ttypes.any_float],
+}
+
+
+bind_events = dict(auto_events.items() + ttypes.triggers.items())
+del bind_events['mj']
 
 
 class Bind(QtGui.QWidget):
@@ -82,19 +97,16 @@ class Bind(QtGui.QWidget):
     def _flatten(self, immediate=True):
         m = []
         for binding in self._data:
-            if binding[0] not in ttypes.triggers or binding[0] == 'mj':
+            if binding[0] not in bind_events:
                 continue
             c = []
             for constraint in binding[1]:
-                if constraint[0] not in ttypes.triggers or \
-                        constraint[0] == 'mj' or not constraint[1]:
+                if constraint[0] not in bind_events or not constraint[1]:
                     continue
                 c.extend([[constraint[0], constraint[1]]])
             a = []
             for action in binding[2]:
-                if action[1][0] not in ttypes.triggers or \
-                        action[1][0] == 'mj' or \
-                        not action[1][1]:
+                if action[1][0] not in bind_events or not action[1][1]:
                     continue
                 a.extend([[action[0], [action[1][0], action[1][1]]]])
             m.extend([[binding[0], c, a]])

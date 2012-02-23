@@ -180,13 +180,14 @@ static Name_info event_specs[] =
 
     { "qlocation", EVENT_QUERY_LOCATION,      EVENT_FIELD_NONE, NULL, false },
     { "qvoices", EVENT_QUERY_VOICE_COUNT,     EVENT_FIELD_NONE, NULL, false },
+    { "qf",    EVENT_QUERY_ACTUAL_FORCE,      EVENT_FIELD_INT, v_gen, false },
 
     { "Asubsong", EVENT_AUTO_LOCATION_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
     { "Asection", EVENT_AUTO_LOCATION_SECTION, EVENT_FIELD_INT, v_section, false },
     { "Apattern", EVENT_AUTO_LOCATION_PATTERN, EVENT_FIELD_INT, v_pattern, false },
     { "Arow",  EVENT_AUTO_LOCATION_ROW,       EVENT_FIELD_RELTIME, v_any_ts, false },
-
     { "Avoices", EVENT_AUTO_VOICE_COUNT,      EVENT_FIELD_INT, v_any_int, false },
+    { "Af",    EVENT_AUTO_ACTUAL_FORCE,       EVENT_FIELD_DOUBLE, v_any_float, false },
 
     { "", EVENT_FIELD_NONE, EVENT_FIELD_NONE, NULL, false }
 };

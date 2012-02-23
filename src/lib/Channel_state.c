@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -126,6 +126,19 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
     assert(src != NULL);
     memcpy(dest, src, sizeof(Channel_state));
     return dest;
+}
+
+
+double Channel_state_get_fg_force(Channel_state* state, int gen_index)
+{
+    assert(state != NULL);
+    assert(gen_index >= 0);
+    assert(gen_index < KQT_GENERATORS_MAX);
+    if (state->fg[gen_index] == NULL)
+    {
+        return NAN;
+    }
+    return Voice_get_actual_force(state->fg[gen_index]);
 }
 
 
