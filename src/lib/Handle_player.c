@@ -149,12 +149,12 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     if (subsong == -1)
     {
         handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->song->skip_state, 0);
+        Playdata_set_subsong(handle->song->skip_state, 0, true);
     }
     else
     {
         handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->song->skip_state, subsong);
+        Playdata_set_subsong(handle->song->skip_state, subsong, true);
     }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;

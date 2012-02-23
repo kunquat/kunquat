@@ -422,7 +422,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             {
                 if (play->infinite && play->play_frames > 0)
                 {
-                    Playdata_set_subsong(play, play->orig_subsong);
+                    Playdata_set_subsong(play, play->orig_subsong, false);
                     continue;
                 }
                 else
@@ -434,7 +434,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             assert(play->mode == PLAY_SONG);
             if (play->subsong >= KQT_SUBSONGS_MAX - 1)
             {
-                Playdata_set_subsong(play, 0);
+                Playdata_set_subsong(play, 0, !play->infinite);
                 if (play->infinite && play->play_frames > 0)
                 {
                     continue;
@@ -445,7 +445,8 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                     break;
                 }
             }
-            Playdata_set_subsong(play, play->orig_subsong + 1);
+            Playdata_set_subsong(play, play->orig_subsong + 1,
+                                 !play->infinite);
             continue;
         }
         mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,

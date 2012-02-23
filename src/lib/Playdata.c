@@ -208,7 +208,7 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 }
 
 
-void Playdata_set_subsong(Playdata* play, int subsong)
+void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
 {
     assert(play != NULL);
     assert(subsong >= 0);
@@ -218,7 +218,10 @@ void Playdata_set_subsong(Playdata* play, int subsong)
     if (!play->silent)
     {
         assert(play->voice_pool != NULL);
-        Voice_pool_reset(play->voice_pool);
+        if (reset)
+        {
+            Voice_pool_reset(play->voice_pool);
+        }
     }
     Subsong* ss = Subsong_table_get(play->subsongs, subsong);
     if (ss == NULL)

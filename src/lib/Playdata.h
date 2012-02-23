@@ -170,8 +170,9 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq);
  *
  * \param play      The Playdata -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and < \c KQT_SUBSONGS_MAX.
+ * \param reset     Reset the Voice pool.
  */
-void Playdata_set_subsong(Playdata* play, int subsong);
+void Playdata_set_subsong(Playdata* play, int subsong, bool reset);
 
 
 /**
