@@ -174,7 +174,7 @@ class Column(object):
         paint.setPen(self.colours['column_head_fg'])
         paint.setFont(self.fonts['column_head'])
         paint.drawText(QtCore.QRectF(x, 0, self._width, self.col_head_height),
-                       '{:02d}'.format(self.num), header_style)
+                       '{0:02d}'.format(self.num), header_style)
 
         paint.setPen(self.colours['column_border'])
         paint.drawLine(x + self._width, 0, x + self._width, self.height - 1)
