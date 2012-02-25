@@ -1082,7 +1082,7 @@ bool Event_handler_trigger_const(Event_handler* eh,
             value->type = VALUE_TYPE_STRING;
             desc = read_string(desc, value->value.string_type,
                                ENV_VAR_NAME_MAX, state);
-        }
+        } break;
         default:
             assert(false);
     }

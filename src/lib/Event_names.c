@@ -51,6 +51,7 @@ static Name_info event_specs[] =
     { "Ipause", EVENT_CONTROL_PAUSE,          EVENT_FIELD_NONE, NULL, false },
     { "Iresume", EVENT_CONTROL_RESUME,        EVENT_FIELD_NONE, NULL, false },
     { "Ipattern", EVENT_CONTROL_PLAY_PATTERN, EVENT_FIELD_INT, v_pattern, false },
+    { "Ireceive", EVENT_CONTROL_RECEIVE_EVENT, EVENT_FIELD_STRING, NULL, false },
 
     { "I.Bn", EVENT_CONTROL_ENV_SET_BOOL_NAME, EVENT_FIELD_STRING, v_key, false },
     { "I.B",  EVENT_CONTROL_ENV_SET_BOOL,     EVENT_FIELD_BOOL, v_any_bool, false },
