@@ -65,6 +65,7 @@ void set_instrument_properties(Voice* voice,
             *force_var = exp2(var_dB / 6);
         }
         vs->force *= *force_var;
+        vs->actual_force = vs->force * voice->gen->ins_params->global_force;
     }
     Slider_set_length(&vs->force_slider, &ch_state->force_slide_length);
 //    LFO_copy(&vs->tremolo, &ch_state->tremolo);
