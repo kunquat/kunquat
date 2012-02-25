@@ -376,6 +376,7 @@ static bool Bind_dfs(Bind* map, char* name)
         }
         item = item->next;
     }
+    cblist->source_state = SOURCE_STATE_VISITED;
     return false;
 }
 
