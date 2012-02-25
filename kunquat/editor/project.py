@@ -816,7 +816,10 @@ class KeyFile(object):
 
     def __init__(self, name, data):
         self.name = name
-        self._data = data
+        if name[name.index('.'):].startswith('.json'):
+            self._data = json.dumps(data)
+        else:
+            self._data = data
         self._cur = 0
 
     def read(self, size=-1):
