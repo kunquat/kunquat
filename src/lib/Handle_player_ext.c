@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -131,7 +131,7 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
         position = "-1";
     }
     char* str = position;
-    
+
     int subsong = -1;
     int section = 0;
     long long beats = 0;
@@ -143,23 +143,23 @@ int kqt_Handle_set_position_desc(kqt_Handle* handle, char* position)
                 "Invalid position indication: %s", position);
         return false;
     }
-    
+
     kqt_Handle_stop(handle);
     Playdata_reset_stats(handle->song->play_state);
     Playdata_reset_stats(handle->song->skip_state);
     if (subsong == -1)
     {
         handle->song->play_state->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->song->play_state, 0);
+        Playdata_set_subsong(handle->song->play_state, 0, true);
         handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->song->skip_state, 0);
+        Playdata_set_subsong(handle->song->skip_state, 0, true);
     }
     else
     {
         handle->song->play_state->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->song->play_state, subsong);
+        Playdata_set_subsong(handle->song->play_state, subsong, true);
         handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->song->skip_state, subsong);
+        Playdata_set_subsong(handle->song->skip_state, subsong, true);
     }
     handle->song->play_state->section = section;
     handle->song->skip_state->section = section;

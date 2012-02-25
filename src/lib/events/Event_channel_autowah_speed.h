@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,13 @@
 #define K_EVENT_CHANNEL_AUTOWAH_SPEED_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
-Event* new_Event_channel_autowah_speed(Reltime* pos);
-
-
-bool Event_channel_autowah_speed_process(Channel_state* ch_state, char* fields);
+bool Event_channel_autowah_speed_process(Channel_state* ch_state,
+                                         Value* value);
 
 
 #endif // K_EVENT_CHANNEL_AUTOWAH_SPEED_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -14,14 +14,17 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <Audio_buffer.h>
+#include <Env_var.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
 #include <Event_handler.h>
+#include <string_common.h>
 #include <Voice_pool.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -146,16 +149,17 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     if (subsong == -1)
     {
         handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->song->skip_state, 0);
+        Playdata_set_subsong(handle->song->skip_state, 0, true);
     }
     else
     {
         handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->song->skip_state, subsong);
+        Playdata_set_subsong(handle->song->skip_state, subsong, true);
     }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_handler, UINT64_MAX);
+    return Song_skip(handle->song, handle->song->skip_handler,
+                     KQT_MAX_CALC_DURATION);
 }
 
 
@@ -188,10 +192,10 @@ long long kqt_Handle_get_position(kqt_Handle* handle)
 }
 
 
-int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event)
+int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
 {
     check_handle(handle, 0);
-    if (channel < -1 || channel >= KQT_COLUMNS_MAX)
+    if (channel < 0 || channel >= KQT_COLUMNS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Invalid channel number: %d", channel);
@@ -203,8 +207,89 @@ int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event)
                 "No event description given.");
         return 0;
     }
-    return Event_handler_trigger(handle->song->event_handler, channel, event);
+    return Event_handler_trigger_const(handle->song->event_handler, channel,
+                                       event, false);
 }
+
+
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_receive(handle->song->event_handler, dest, size);
+}
+
+
+int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_treceive(handle->song->event_handler, dest, size);
+}
+
+
+#if 0
+int kqt_Handle_get_state(kqt_Handle* handle,
+                         char* key,
+                         char* dest,
+                         int size)
+{
+    check_handle(handle, 0);
+    if (key == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "key must not be NULL");
+        return 0;
+    }
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    if (string_has_prefix(key, "env/"))
+    {
+        Env_var* var = Environment_get(handle->song->env,
+                                       key + strlen("env/"));
+        if (var == NULL)
+        {
+            return 0;
+        }
+        Env_var_get_value_json(var, dest, size);
+        return 1;
+    }
+    return Playdata_get_state_value(handle->song->play_state,
+                                    key, dest, size);
+}
+#endif
 
 
 void kqt_Handle_stop(kqt_Handle* handle)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -13,8 +13,8 @@
 
 """A library for accessing Kunquat music data.
 
-This module provides interfaces for inspecting, mixing and modifying
-Kunquat compositions.
+This module provides interfaces for inspecting and modifying Kunquat
+compositions and rendering them to digital audio.
 
 Classes:
 RHandle   -- A read-only interface for kqt files.
@@ -54,7 +54,7 @@ class RHandle(object):
     __getitem__  -- Dictionary-like composition data retrieval.
     get_duration -- Calculate the length of a subsong.
     mix          -- Mix audio data.
-    trigger      -- Trigger an event.
+    fire         -- Fire an event.
 
     Public instance variables:
     buffer_size -- Mixing buffer size.
@@ -107,7 +107,7 @@ class RHandle(object):
                slashes ('/').  The last element is the only one that
                is allowed and required to contain a period.  Examples:
                'p_composition.json'
-               'pat_000/ccol_00/p_channel_events.json'
+               'pat_000/col_00/p_events.json'
                'ins_01/kqtiXX/p_instrument.json'
                The 'XX' in the last example should be written
                literally.  It is expanded to the file format version
@@ -115,6 +115,7 @@ class RHandle(object):
 
         Return value:
         The data associated with the key if found, otherwise None.
+        The function converts JSON data to Python objects.
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
@@ -129,7 +130,10 @@ class RHandle(object):
         cdata = _kunquat.kqt_Handle_get_data(self._handle, key)
         data = cdata[:length]
         _kunquat.kqt_Handle_free_data(self._handle, cdata)
-        return ''.join(chr(ch) for ch in data)
+        data = ''.join(chr(ch) for ch in data)
+        if key[key.index('.'):].startswith('.json'):
+            return json.loads(data) if data else None
+        return data
 
     @property
     def subsong(self):
@@ -245,22 +249,61 @@ class RHandle(object):
         self._nanoseconds = _kunquat.kqt_Handle_get_position(self._handle)
         return cbuf_left[:mixed], cbuf_right[:mixed]
 
-    def trigger(self, channel, event):
-        """Trigger an event.
+    def fire(self, channel, event):
+        """Fire an event.
 
         Arguments:
-        channel -- The channel where the event takes place. The channel
-                   number is >= 0 and < 64 for regular channels, and -1
-                   for the global channel.
-        event -- The event description in JSON format.  The description
-                 is a pair (list with two elements) with the event name
-                 as the first element and its argument list as the
-                 second element.  Example: '["Cn+", [300]]' (Note On at
-                 300 cents above A4, i.e. C5 in 12-tone Equal
-                 Temperament).
+        channel -- The channel where the event takes place.  The
+                   channel number is >= 0 and < 64.
+        event -- The event description, which is a pair (either a tuple
+                 or a list) with the event name as the first element
+                 and its argument expression as the second element.
+                 Example: ['cn+', '300'] (Note On at 300 cents above
+                 A4, i.e. C5 in 12-tone Equal Temperament).
 
         """
-        _kunquat.kqt_Handle_trigger(self._handle, channel, event)
+        _kunquat.kqt_Handle_fire(self._handle, channel, json.dumps(event))
+
+    def receive(self):
+        """Receive outgoing events.
+
+        Return value:
+        A list containing all requested outgoing events fired after
+        the last call of receive.
+
+        """
+        el = []
+        sb = ctypes.create_string_buffer('\000' * 256)
+        received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
+        while received:
+            try:
+                el.extend([json.loads(sb.value)])
+            except ValueError:
+                pass
+            received = _kunquat.kqt_Handle_receive(self._handle, sb, len(sb))
+        return el
+
+    def treceive(self):
+        """Receive outgoing events specific to tracker integration.
+
+        Currently, this function returns environment variable setter
+        events.
+
+        Return value:
+        A list containing all requested outgoing events fired after
+        the last call of receive.
+
+        """
+        el = []
+        sb = ctypes.create_string_buffer('\000' * 128)
+        received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
+        while received:
+            try:
+                el.extend([json.loads(sb.value)])
+            except ValueError:
+                pass
+            received = _kunquat.kqt_Handle_treceive(self._handle, sb, len(sb))
+        return el
 
     def __del__(self):
         if self._handle:
@@ -316,16 +359,20 @@ class RWHandle(RHandle):
         key   -- The key of the data in the composition.  This refers
                  to the same data as the key argument of __getitem__
                  and the same formatting rules apply.
-        value -- The data to be set.
+        value -- The data to be set.  For JSON keys, this should be a
+                 Python object -- it is automatically converted to a
+                 JSON string.
 
         Exceptions:
         KunquatArgumentError -- The key is not valid.
         KunquatFormatError   -- The data is not valid.  Only the data
                                 that audibly affects mixing is
                                 validated.
+        KunquatResourceError -- File system access failed.
 
         """
-        #print(key, value if len(value) < 200 else value[:197] + '...')
+        if key[key.index('.'):].startswith('.json'):
+            value = json.dumps(value) if value else ''
         data = buffer(value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]
@@ -515,10 +562,22 @@ _kunquat.kqt_Handle_get_position.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_get_position.restype = ctypes.c_longlong
 _kunquat.kqt_Handle_get_position.errcheck = _error_check
 
-_kunquat.kqt_Handle_trigger.argtypes = [ctypes.c_void_p,
-                                        ctypes.c_int,
-                                        ctypes.c_char_p]
-_kunquat.kqt_Handle_trigger.restype = ctypes.c_int
-_kunquat.kqt_Handle_trigger.errcheck = _error_check
+_kunquat.kqt_Handle_fire.argtypes = [ctypes.c_void_p,
+                                     ctypes.c_int,
+                                     ctypes.c_char_p]
+_kunquat.kqt_Handle_fire.restype = ctypes.c_int
+_kunquat.kqt_Handle_fire.errcheck = _error_check
+
+_kunquat.kqt_Handle_receive.argtypes = [ctypes.c_void_p,
+                                        ctypes.c_char_p,
+                                        ctypes.c_int]
+_kunquat.kqt_Handle_receive.restype = ctypes.c_int
+_kunquat.kqt_Handle_receive.errcheck = _error_check
+
+_kunquat.kqt_Handle_treceive.argtypes = [ctypes.c_void_p,
+                                         ctypes.c_char_p,
+                                         ctypes.c_int]
+_kunquat.kqt_Handle_treceive.restype = ctypes.c_int
+_kunquat.kqt_Handle_treceive.errcheck = _error_check
 
 

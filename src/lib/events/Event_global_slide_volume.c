@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,43 +20,20 @@
 #include <Event_common.h>
 #include <Event_global_slide_volume.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc slide_volume_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -INFINITY,
-        .max.field.double_type = 0
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SLIDE_VOLUME,
-                         slide_volume);
-
-
-bool Event_global_slide_volume_process(Playdata* global_state, char* fields)
+bool Event_global_slide_volume_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_volume_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    double target = exp2(data[0].field.double_type / 6);
+    double target = exp2(value->value.float_type / 6);
     Slider_set_mix_rate(&global_state->volume_slider, global_state->freq);
     Slider_set_tempo(&global_state->volume_slider, global_state->tempo);
     if (Slider_in_progress(&global_state->volume_slider))

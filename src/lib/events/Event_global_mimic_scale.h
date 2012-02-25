@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,11 @@
 #define K_EVENT_GLOBAL_MIMIC_SCALE_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
+#include <Value.h>
 
 
-Event* new_Event_global_mimic_scale(Reltime* pos);
-
-
-bool Event_global_mimic_scale_process(Playdata* global_state, char* fields);
+bool Event_global_mimic_scale_process(Playdata* global_state, Value* value);
 
 
 #endif // K_EVENT_GLOBAL_MIMIC_SCALE_H

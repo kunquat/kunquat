@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -15,23 +15,27 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include <Channel_state.h>
+#include <Environment.h>
 #include <Reltime.h>
 #include <xassert.h>
 
 
-bool Channel_state_init(Channel_state* state, int num, bool* mute)
+bool Channel_state_init(Channel_state* state, int num, bool* mute,
+                        Environment* env)
 {
     assert(state != NULL);
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(mute != NULL);
-    General_state_init(&state->parent, false);
+    assert(env != NULL);
 
     state->cgstate = new_Channel_gen_state();
     state->rand = new_Random();
-    if (state->cgstate == NULL || state->rand == NULL)
+    if (state->cgstate == NULL || state->rand == NULL ||
+            !General_state_init(&state->parent, false, env))
     {
         del_Channel_gen_state(state->cgstate);
         del_Random(state->rand);
@@ -40,6 +44,7 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute)
     char context[] = "chXX";
     snprintf(context, strlen(context) + 1, "ch%02x", num);
     Random_set_context(state->rand, context);
+    state->event_cache = NULL;
     state->mute = mute;
     state->num = num;
     Channel_state_reset(state);
@@ -55,9 +60,20 @@ void Channel_state_set_random_seed(Channel_state* state, uint64_t seed)
 }
 
 
+void Channel_state_set_event_cache(Channel_state* state, Event_cache* cache)
+{
+    assert(state != NULL);
+    assert(cache != NULL);
+    del_Event_cache(state->event_cache);
+    state->event_cache = cache;
+    return;
+}
+
+
 void Channel_state_reset(Channel_state* state)
 {
     assert(state != NULL);
+    General_state_reset(&state->parent);
     state->instrument = 0;
     state->generator = 0;
     state->effect = 0;
@@ -90,7 +106,16 @@ void Channel_state_reset(Channel_state* state)
     state->panning = 0;
     Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
+    state->arpeggio_ref = NAN;
+    state->arpeggio_speed = 24;
+    state->arpeggio_edit_pos = 1;
+    state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
+
     Random_reset(state->rand);
+    if (state->event_cache != NULL)
+    {
+        Event_cache_reset(state->event_cache);
+    }
     return;
 }
 
@@ -104,14 +129,29 @@ Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src)
 }
 
 
+double Channel_state_get_fg_force(Channel_state* state, int gen_index)
+{
+    assert(state != NULL);
+    assert(gen_index >= 0);
+    assert(gen_index < KQT_GENERATORS_MAX);
+    if (state->fg[gen_index] == NULL)
+    {
+        return NAN;
+    }
+    return Voice_get_actual_force(state->fg[gen_index]);
+}
+
+
 void Channel_state_uninit(Channel_state* state)
 {
     if (state == NULL)
     {
         return;
     }
+    del_Event_cache(state->event_cache);
     del_Channel_gen_state(state->cgstate);
     del_Random(state->rand);
+    General_state_uninit(&state->parent);
     state->cgstate = NULL;
     return;
 }

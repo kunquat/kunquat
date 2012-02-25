@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,7 +21,7 @@
 #include <Event_type.h>
 
 
-#define EVENT_NAME_MAX 11
+#define EVENT_NAME_MAX 12 // includes "
 
 
 typedef struct Event_names Event_names;
@@ -47,7 +47,7 @@ Event_names* new_Event_names(void);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Event_names_add(Event_names* names, const char* name, Event_type type);
+//bool Event_names_add(Event_names* names, const char* name, Event_type type);
 
 
 /**
@@ -70,6 +70,44 @@ bool Event_names_error(Event_names* names);
  *           correspond to an Event type.
  */
 Event_type Event_names_get(Event_names* names, const char* name);
+
+
+/**
+ * Retrieves the parameter type for the given event name.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must be a supported name.
+ *
+ * \return   The parameter type.
+ */
+Event_field_type Event_names_get_param_type(Event_names* names,
+                                            const char* name);
+
+
+/**
+ * Sets filter passing status for an event.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must not be \c NULL.
+ * \param pass    \c true if and only if the events of \a name should pass
+ *                the event filter.
+ *
+ * \return   \c true if successful, or \c false if \a name does not correspond
+ *           to an Event type.
+ */
+bool Event_names_set_pass(Event_names* names, const char* name, bool pass);
+
+
+/**
+ * Gets filter passing status for an event.
+ *
+ * \param names   The Event name collection -- must not be \c NULL.
+ * \param name    The Event name -- must not be \c NULL.
+ *
+ * \return   \c true if \a name is valid and it passes the filter,
+ *           otherwise \c false.
+ */
+bool Event_names_get_pass(Event_names* names, const char* name);
 
 
 /**

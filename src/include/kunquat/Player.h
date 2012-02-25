@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -151,13 +151,17 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Gets the duration of a Subsong of the Kunquat Handle in nanoseconds.
+ * Estimates the duration of a Subsong in the Kunquat Handle.
+ *
+ * This function will not calculate the length of a Subsong further
+ * than 30 days.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param subsong   The Subsong number -- should be >= \c -1 and
  *                  < \c KQT_SUBSONGS_MAX (\c -1 indicates all Subsongs).
  *
- * \return   The length in nanoseconds, or \c -1 if failed.
+ * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
+ *           length is 30 days or longer, or \c -1 if failed.
  */
 long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong);
 
@@ -190,20 +194,64 @@ long long kqt_Handle_get_position(kqt_Handle* handle);
 
 
 /**
- * Triggers an event.
+ * Fires an event.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param channel   The channel where the event takes place -- should be
- *                  >= \c 0 and < \c KQT_COLUMNS_MAX for regular channels, or
- *                  \c -1 for the global level.
+ *                  >= \c 0 and < \c KQT_COLUMNS_MAX.
  * \param event     The event description in JSON format -- should not be
  *                  \c NULL. The description is a pair (list with two
  *                  elements) with the event name as the first element and its
- *                  argument list as the second element.
+ *                  argument expression as the second element. The expression
+ *                  should be null for events that do not support an argument
+ *                  (e.g. ["cn-", null]).
  *
- * \return   \c 1 if the event was successfully triggered, otherwise \c 0.
+ * \return   \c 1 if the event was successfully fired, otherwise \c 0.
  */
-int kqt_Handle_trigger(kqt_Handle* handle, int channel, char* event);
+int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
+
+
+/**
+ * Receives an event.
+ *
+ * This function only returns events of types that are explicitly
+ * requested through the ">receive" event.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param dest     The memory location where the result shall be stored
+ *                 -- should not be \c NULL. Upon successful completion,
+ *                 this memory location contains the received event
+ *                 description as a JSON string.
+ * \param size     The size of the memory area pointed to by \a dest --
+ *                 should be positive. A size of at least 65 bytes is
+ *                 recommended. JSON strings longer than \a size - 1
+ *                 bytes are truncated and thus may be invalid.
+ *
+ * \return   \c 1 if an event was successfully retrieved, \c 0 if the
+ *           event buffer is empty or an error occurred.
+ */
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size);
+
+
+/**
+ * Receives an event specific to tracker integration.
+ *
+ * Currently, this function returns environment variable setter events.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param dest     The memory location where the result shall be stored
+ *                 -- should not be \c NULL. Upon successful completion,
+ *                 this memory location contains the received event
+ *                 description as a JSON string.
+ * \param size     The size of the memory area pointed to by \a dest --
+ *                 should be positive. A size of at least 65 bytes is
+ *                 recommended. JSON strings longer than \a size - 1
+ *                 bytes are truncated and thus may be invalid.
+ *
+ * \return   \c 1 if an event was successfully retrieved, \c 0 if the
+ *           event buffer is empty or an error occurred.
+ */
+int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size);
 
 
 /* \} */

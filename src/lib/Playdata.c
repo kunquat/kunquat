@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,18 +19,23 @@
 
 #include <Voice_pool.h>
 #include <Channel.h>
+#include <Environment.h>
 #include <Random.h>
 #include <Reltime.h>
+#include <serialise.h>
 #include <Slider.h>
+#include <string_common.h>
 #include <Playdata.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
 Playdata* new_Playdata(Ins_table* insts,
+                       Environment* env,
                        Random* random)
 {
     assert(insts != NULL);
+    assert(env != NULL);
     (void)insts; // FIXME: remove?
     assert(random != NULL);
     Playdata* play = xalloc(Playdata);
@@ -38,21 +43,18 @@ Playdata* new_Playdata(Ins_table* insts,
     {
         return NULL;
     }
-    General_state_init(&play->parent, true);
     play->random = random;
+    play->infinite = false;
+    play->event_filter = NULL;
+    play->bind = NULL;
     play->play_id = 1;
     play->silent = false;
     play->citer = new_Column_iter(NULL);
-    if (play->citer == NULL)
-    {
-        xfree(play);
-        return NULL;
-    }
     play->voice_pool = new_Voice_pool(256, 64);
-    if (play->voice_pool == NULL)
+    if (play->citer == NULL || play->voice_pool == NULL ||
+            !General_state_init(&play->parent, true, env))
     {
-        del_Column_iter(play->citer);
-        xfree(play);
+        del_Playdata(play);
         return NULL;
     }
     play->mode = PLAY_SONG;
@@ -64,6 +66,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->scales = NULL;
     play->active_scale = NULL;
     play->scale = 0;
+    play->scale_fixed_point = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -73,6 +76,14 @@ Playdata* new_Playdata(Ins_table* insts,
     play->jump_subsong = -1;
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
+
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
@@ -89,6 +100,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->tempo_slide_update = 0;
 
     Reltime_init(&play->delay_left);
+    play->event_index = 0;
     play->delay_event_index = -1;
 
     play->orig_subsong = 0;
@@ -104,26 +116,29 @@ Playdata* new_Playdata(Ins_table* insts,
 }
 
 
-Playdata* new_Playdata_silent(uint32_t freq)
+Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
 {
+    assert(env != NULL);
     assert(freq > 0);
     Playdata* play = xalloc(Playdata);
     if (play == NULL)
     {
         return NULL;
     }
-    General_state_init(&play->parent, true);
     play->random = NULL;
+    play->infinite = false;
+    play->event_filter = NULL;
+    play->bind = NULL;
     play->play_id = 0x8000000000000001ULL; // prevent conflict with normal state
     play->silent = true;
     play->citer = new_Column_iter(NULL);
-    if (play->citer == NULL)
+    play->voice_pool = NULL;
+    if (play->citer == NULL || !General_state_init(&play->parent, true, env))
     {
         xfree(play);
         return NULL;
     }
 //    play->ins_events = NULL;
-    play->voice_pool = NULL;
     play->mode = PLAY_SONG;
     play->freq = freq;
     play->old_freq = play->freq;
@@ -133,6 +148,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->scales = NULL;
     play->active_scale = NULL;
     play->scale = 0;
+    play->scale_fixed_point = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -142,6 +158,14 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->jump_subsong = -1;
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
+
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
 
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
@@ -158,6 +182,7 @@ Playdata* new_Playdata_silent(uint32_t freq)
     play->tempo_slide_update = 0;
 
     Reltime_init(&play->delay_left);
+    play->event_index = 0;
     play->delay_event_index = -1;
 
     play->orig_subsong = 0;
@@ -183,7 +208,7 @@ void Playdata_set_mix_freq(Playdata* play, uint32_t freq)
 }
 
 
-void Playdata_set_subsong(Playdata* play, int subsong)
+void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
 {
     assert(play != NULL);
     assert(subsong >= 0);
@@ -193,7 +218,10 @@ void Playdata_set_subsong(Playdata* play, int subsong)
     if (!play->silent)
     {
         assert(play->voice_pool != NULL);
-        Voice_pool_reset(play->voice_pool);
+        if (reset)
+        {
+            Voice_pool_reset(play->voice_pool);
+        }
     }
     Subsong* ss = Subsong_table_get(play->subsongs, subsong);
     if (ss == NULL)
@@ -209,7 +237,7 @@ void Playdata_set_subsong(Playdata* play, int subsong)
 void Playdata_reset(Playdata* play)
 {
     assert(play != NULL);
-    General_state_init(&play->parent, true);
+    General_state_reset(&play->parent);
     ++play->play_id;
     if (!play->silent)
     {
@@ -226,7 +254,9 @@ void Playdata_reset(Playdata* play)
     {
         Random_reset(play->random);
     }
+    play->infinite = false;
     play->scale = 0;
+    play->scale_fixed_point = 0;
 
     play->jump_set_counter = 0;
     play->jump_set_subsong = -1;
@@ -237,6 +267,14 @@ void Playdata_reset(Playdata* play)
     play->jump_section = -1;
     Reltime_init(&play->jump_row);
 
+    play->goto_set_subsong = -1;
+    play->goto_set_section = -1;
+    Reltime_init(&play->goto_set_row);
+    play->goto_trigger = false;
+    play->goto_subsong = -1;
+    play->goto_section = -1;
+    Reltime_init(&play->goto_row);
+
     play->volume = 1;
     Slider_init(&play->volume_slider, SLIDE_MODE_EXP);
 //    Slider_set_mix_rate(&play->volume_slider, play->freq);
@@ -244,6 +282,7 @@ void Playdata_reset(Playdata* play)
     play->tempo_slide = 0;
     Reltime_init(&play->tempo_slide_length);
     Reltime_init(&play->delay_left);
+    play->event_index = 0;
     play->delay_event_index = -1;
     play->play_frames = 0;
     play->section = 0;
@@ -268,6 +307,35 @@ void Playdata_reset_stats(Playdata* play)
 }
 
 
+bool Playdata_get_state_value(Playdata* play,
+                              char* key,
+                              char* dest,
+                              int size)
+{
+    assert(play != NULL);
+    assert(key != NULL);
+    assert(dest != NULL);
+    assert(size > 0);
+    if (string_eq(key, "active_voices"))
+    {
+        serialise_int(dest, size, play->active_voices);
+        play->active_voices = 0;
+        return true;
+    }
+    return false;
+}
+
+
+void Playdata_set_event_filter(Playdata* play,
+                               Event_names* filter)
+{
+    assert(play != NULL);
+    assert(filter != NULL);
+    play->event_filter = filter;
+    return;
+}
+
+
 void del_Playdata(Playdata* play)
 {
     if (play == NULL)
@@ -276,6 +344,7 @@ void del_Playdata(Playdata* play)
     }
     del_Voice_pool(play->voice_pool);
     del_Column_iter(play->citer);
+    General_state_uninit(&play->parent);
     xfree(play);
     return;
 }

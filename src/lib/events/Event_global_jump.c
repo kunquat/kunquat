@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -58,14 +58,6 @@ static Jump_context* new_Jump_context(Pattern_location* loc)
 }
 
 
-static Event_field_desc jump_desc[] =
-{
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
 void del_Event_global_jump(Event* event);
 
 
@@ -77,16 +69,16 @@ Event* new_Event_global_jump(Reltime* pos)
     {
         return NULL;
     }
-    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP, jump_desc);
+    Event_init((Event*)event, pos, EVENT_GLOBAL_JUMP);
     event->counters = NULL;
     event->counters_iter = NULL;
-    event->parent.parent.destroy = del_Event_global_jump;
+    event->parent.destroy = del_Event_global_jump;
     event->counters = new_AAtree(
             (int (*)(const void*, const void*))Pattern_location_cmp, free);
     event->counters_iter = new_AAiter(event->counters);
     if (event->counters == NULL || event->counters_iter == NULL)
     {
-        del_Event_global_jump(&event->parent.parent);
+        del_Event_global_jump(&event->parent);
         return NULL;
     }
     //event->play_id = 0;
@@ -98,22 +90,10 @@ Event* new_Event_global_jump(Reltime* pos)
 }
 
 
-bool Event_global_jump_process(Playdata* global_state, char* fields)
-{
-    assert(global_state != NULL);
-    (void)fields;
-    global_state->jump = true;
-    global_state->jump_subsong = global_state->jump_set_subsong;
-    global_state->jump_section = global_state->jump_set_section;
-    Reltime_copy(&global_state->jump_row, &global_state->jump_set_row);
-    return true;
-}
-
-
-void Trigger_global_jump_process(Event_global* event, Playdata* play)
+void Trigger_global_jump_process(Event* event, Playdata* play)
 {
     assert(event != NULL);
-    assert(event->parent.type == EVENT_GLOBAL_JUMP);
+    assert(event->type == EVENT_GLOBAL_JUMP);
     assert(play != NULL);
     Event_global_jump* jump = (Event_global_jump*)event;
     Pattern_location* key = PATTERN_LOCATION_AUTO;

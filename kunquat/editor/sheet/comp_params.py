@@ -15,6 +15,7 @@ from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.kqt_limits as lim
 from kunquat.editor.param_check import ParamCheck
+from kunquat.editor.param_line import ParamLine
 from kunquat.editor.param_slider import ParamSlider
 from kunquat.editor.param_spin import ParamSpin
 
@@ -26,6 +27,14 @@ class CompParams(QtGui.QWidget):
         self._project = project
         self._layout = QtGui.QVBoxLayout(self)
 
+        self._title = ParamLine(project,
+                                'Title:',
+                                '',
+                                'm_title.json')
+        self._authors = ParamLine(project,
+                                  'Author(s):',
+                                  [],
+                                  'm_authors.json')
         self._mix_vol = ParamSlider(project,
                                     'Mixing volume:',
                                     (-48, 0),
@@ -35,10 +44,14 @@ class CompParams(QtGui.QWidget):
                                     decimals=1,
                                     unit='dB')
         self._random_source = RandomSource(project)
+        self._layout.addWidget(self._title)
+        self._layout.addWidget(self._authors)
         self._layout.addWidget(self._mix_vol)
         self._layout.addWidget(self._random_source)
 
     def sync(self):
+        self._title.sync()
+        self._authors.sync()
         self._mix_vol.sync()
         self._random_source.sync()
 

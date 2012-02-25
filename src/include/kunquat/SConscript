@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2011
 #
 # This file is part of Kunquat.
 #
@@ -44,11 +44,14 @@ def InstallManCreatePath(env, path, source):
                   'kunquat-player-interface.3' : [
                         'kqt_Handle_mix.3',
                         'kqt_Handle_get_buffer.3',
+                        'kqt_Handle_set_mixing_rate.3',
+                        'kqt_Handle_get_mixing_rate.3',
                         'kqt_Handle_set_buffer_size.3',
                         'kqt_Handle_get_buffer_size.3',
                         'kqt_Handle_get_duration.3',
                         'kqt_Handle_set_position.3',
-                        'kqt_Handle_get_position.3'],
+                        'kqt_Handle_get_position.3',
+                        'kqt_Handle_fire.3'],
 
                   'kunquat-editor-interface.3' : [
                         'kqt_new_Handle_rwc.3',

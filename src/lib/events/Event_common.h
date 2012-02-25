@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -31,15 +31,12 @@
  * \param event         The Event -- must not be \c NULL.
  * \param pos           The position of the Event -- must not be \c NULL.
  * \param type          The Event type -- must be valid.
- * \param field_types   A description of the Event field types -- must not be
- *                      \c NULL.
  *
  * \return   The parameter \a event.
  */
 Event* Event_init(Event* event,
                   Reltime* pos,
-                  Event_type type,
-                  Event_field_desc* field_types);
+                  Event_type type);
 
 
 /**
@@ -51,26 +48,6 @@ Event* Event_init(Event* event,
  * \param event   The Event, or \c NULL.
  */
 void del_Event_default(Event* event);
-
-
-//#define Event_check_int64_t_range Event_check_integral_range
-
-
-#define Event_create_constructor(etype, etype_id, ename) \
-    Event* new_ ## etype ## _ ## ename(Reltime* pos)     \
-    {                                                    \
-        assert(pos != NULL);                             \
-        etype* event = xalloc(etype);                    \
-        if (event == NULL)                               \
-        {                                                \
-            return NULL;                                 \
-        }                                                \
-        Event_init((Event*)event,                        \
-                   pos,                                  \
-                   etype_id,                             \
-                   ename ## _desc);                      \
-        return (Event*)event;                            \
-    } Event* new_ ## ename(Reltime* pos)
 
 
 #define Event_check_voice(ch_state, gen)                        \

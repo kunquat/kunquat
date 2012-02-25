@@ -18,39 +18,17 @@
 
 #include <Event_common.h>
 #include <Event_global_set_scale_offset.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_scale_offset_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_constructor(Event_global,
-                         EVENT_GLOBAL_SET_SCALE_OFFSET,
-                         set_scale_offset);
-
-
-bool Event_global_set_scale_offset_process(Playdata* global_state, char* fields)
+bool Event_global_set_scale_offset_process(Playdata* global_state,
+                                           Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_scale_offset_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
@@ -63,7 +41,7 @@ bool Event_global_set_scale_offset_process(Playdata* global_state, char* fields)
     {
         return true;
     }
-    Scale_set_pitch_offset(scale, data[0].field.double_type);
+    Scale_set_pitch_offset(scale, value->value.float_type);
     return true;
 }
 

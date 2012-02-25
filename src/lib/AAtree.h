@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ typedef struct AAtree AAtree;
 /**
  * Creates an iterator for the AAtree.
  *
- * \param tree   The AAtree.
+ * \param tree   The AAtree, or \c NULL.
  *
  * \return   The new iterator if successful, or \c NULL if memory allocation
  *           failed.

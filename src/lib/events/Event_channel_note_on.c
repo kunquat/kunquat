@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -26,41 +26,18 @@
 #include <Voice.h>
 #include <Scale.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc note_on_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -DBL_MAX,
-        .max.field.double_type = DBL_MAX
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_NOTE_ON,
-                         note_on);
-
-
-bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
+bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
     assert(ch_state->freq != NULL);
     assert(ch_state->tempo != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, note_on_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
@@ -97,24 +74,24 @@ bool Event_channel_note_on_process(Channel_state* ch_state, char* fields)
                  *voice->gen->ins_params->scale == NULL ||
                  **voice->gen->ins_params->scale == NULL)
         {
-            vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
+            vs->pitch = exp2(value->value.float_type / 1200) * 440;
         }
         else
         {
             pitch_t pitch = Scale_get_pitch_from_cents(
                                     **voice->gen->ins_params->scale,
-                                    data[0].field.double_type);
+                                    value->value.float_type);
             if (pitch > 0)
             {
                 vs->pitch = pitch;
             }
             else
             {
-                vs->pitch = exp2(data[0].field.double_type / 1200) * 440;
+                vs->pitch = exp2(value->value.float_type / 1200) * 440;
             }
         }
         //fprintf(stderr, "Event set pitch @ %p: %f\n", (void*)&vs->pitch, vs->pitch);
-        vs->orig_cents = data[0].field.double_type;
+        vs->orig_cents = value->value.float_type;
 
         set_instrument_properties(voice, vs, ch_state, &force_var);
     }

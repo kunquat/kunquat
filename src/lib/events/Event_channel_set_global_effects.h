@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,15 +16,13 @@
 #define K_EVENT_CHANNEL_SET_GLOBAL_EFFECTS_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
-
-
-Event* new_Event_channel_set_global_effects(Reltime* pos);
+#include <Value.h>
 
 
 bool Event_channel_set_global_effects_process(Channel_state* ch_state,
-                                              char* fields);
+                                              Value* value);
 
 
 #endif // K_EVENT_CHANNEL_SET_GLOBAL_EFFECTS_H

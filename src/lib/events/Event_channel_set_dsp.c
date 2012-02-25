@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,43 +21,20 @@
 #include <Event_channel_set_dsp.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_dsp_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_DSPS_MAX - 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_DSP,
-                         set_dsp);
-
-
-bool Event_channel_set_dsp_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_dsp_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_dsp_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    ch_state->dsp = data[0].field.integral_type;
+    ch_state->dsp = value->value.int_type;
     return true;
 }
 

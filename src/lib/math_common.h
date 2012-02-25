@@ -66,6 +66,19 @@ int64_t next_p2(int64_t x);
 int64_t ceil_p2(int64_t x);
 
 
+/**
+ * Returns the integral power with a non-negative exponent.
+ *
+ * This function evaluates 0^0 to 1.
+ *
+ * \param base   The base.
+ * \param exp    The exponent -- must not be negative.
+ *
+ * \return   The value base^exp.
+ */
+int64_t powi(int64_t base, int64_t exp);
+
+
 #endif // K_MATH_COMMON_H
 
 

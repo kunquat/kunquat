@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,11 @@
 #define K_EVENT_INS_SET_SUSTAIN_H
 
 
-#include <Event_ins.h>
-#include <Reltime.h>
+#include <Instrument_params.h>
+#include <Value.h>
 
 
-Event* new_Event_ins_set_sustain(Reltime* pos);
-
-
-bool Event_ins_set_sustain_process(Instrument_params* state, char* fields);
+bool Event_ins_set_sustain_process(Instrument_params* state, Value* value);
 
 
 #endif // K_EVENT_INS_SET_SUSTAIN_H

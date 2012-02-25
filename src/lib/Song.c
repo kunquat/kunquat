@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -116,6 +116,8 @@ Song* new_Song(uint32_t buf_size)
     song->skip_state = NULL;
     song->skip_handler = NULL;
     song->random = NULL;
+    song->env = NULL;
+    song->bind = NULL;
     for (int i = 0; i < KQT_SCALES_MAX; ++i)
     {
         song->scales[i] = NULL;
@@ -141,7 +143,14 @@ Song* new_Song(uint32_t buf_size)
         del_Song(song);
         return NULL;
     }
+    song->env = new_Environment();
+    if (song->env == NULL)
+    {
+        del_Song(song);
+        return NULL;
+    }
     song->play_state = new_Playdata(song->insts,
+                                    song->env,
                                     song->random);
     if (song->play_state == NULL)
     {
@@ -151,7 +160,7 @@ Song* new_Song(uint32_t buf_size)
     song->play_state->subsongs = Song_get_subsongs(song);
     song->play_state->scales = song->scales;
     song->play_state->active_scale = &song->play_state->scales[0];
-    song->skip_state = new_Playdata_silent(1000000000);
+    song->skip_state = new_Playdata_silent(song->env, 1000000000);
     if (song->skip_state == NULL)
     {
         del_Song(song);
@@ -187,6 +196,7 @@ Song* new_Song(uint32_t buf_size)
     {
         song->channels[i] = new_Channel(song->insts, i,
                                         song->play_state->voice_pool,
+                                        song->env,
                                         &song->play_state->tempo,
                                         &song->play_state->freq);
         if (song->channels[i] == NULL)
@@ -211,6 +221,16 @@ Song* new_Song(uint32_t buf_size)
                                            song->effects);
     if (song->event_handler == NULL || song->skip_handler == NULL)
     {
+        del_Song(song);
+        return NULL;
+    }
+    Read_state* state = READ_STATE_AUTO;
+    Bind* bind = new_Bind(NULL, Event_handler_get_names(song->event_handler),
+                          state);
+    if (bind == NULL || !Song_set_bind(song, bind))
+    {
+        assert(!state->error);
+        del_Bind(bind);
         del_Song(song);
         return NULL;
     }
@@ -377,36 +397,56 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
         Pattern* pat = NULL;
         if (play->mode >= PLAY_SUBSONG)
         {
-            int16_t pat_index = KQT_SECTION_NONE;
             Subsong* ss = Subsong_table_get(song->subsongs, play->subsong);
             if (ss != NULL)
             {
-                pat_index = Subsong_get(ss, play->section);
+                play->pattern = Subsong_get(ss, play->section);
             }
-            if (pat_index >= 0)
+            if (play->pattern >= 0)
             {
-                pat = Pat_table_get(song->pats, pat_index);
+                pat = Pat_table_get(song->pats, play->pattern);
             }
         }
         else if (play->mode == PLAY_PATTERN && play->pattern >= 0)
         {
             pat = Pat_table_get(song->pats, play->pattern);
         }
-        if (pat == NULL && !play->parent.pause /*&& play->mode != PLAY_EVENT*/)
+        if (pat == NULL && !play->parent.pause)
         {
-            if (play->mode < PLAY_SONG)
+            if (play->mode == PLAY_PATTERN)
             {
                 play->mode = STOP;
                 break;
+            }
+            else if (play->mode == PLAY_SUBSONG)
+            {
+                if (play->infinite && play->play_frames > 0)
+                {
+                    Playdata_set_subsong(play, play->orig_subsong, false);
+                    continue;
+                }
+                else
+                {
+                    play->mode = STOP;
+                    break;
+                }
             }
             assert(play->mode == PLAY_SONG);
             if (play->subsong >= KQT_SUBSONGS_MAX - 1)
             {
-                Playdata_set_subsong(play, 0);
-                play->mode = STOP;
-                break;
+                Playdata_set_subsong(play, 0, !play->infinite);
+                if (play->infinite && play->play_frames > 0)
+                {
+                    continue;
+                }
+                else
+                {
+                    play->mode = STOP;
+                    break;
+                }
             }
-            Playdata_set_subsong(play, play->orig_subsong + 1);
+            Playdata_set_subsong(play, play->orig_subsong + 1,
+                                 !play->infinite);
             continue;
         }
         mixed += Pattern_mix(pat, nframes, mixed, eh, song->channels,
@@ -546,6 +586,35 @@ Effect_table* Song_get_effects(Song* song)
 }
 
 
+bool Song_set_bind(Song* song, Bind* bind)
+{
+    assert(song != NULL);
+    assert(bind != NULL);
+    assert(song->bind == song->play_state->bind);
+    assert(song->bind == song->skip_state->bind);
+    Event_cache* caches[KQT_COLUMNS_MAX] = { NULL };
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        caches[i] = Bind_create_cache(bind);
+        if (caches[i] == NULL)
+        {
+            for (int k = i - 1; k >= 0; --k)
+            {
+                del_Event_cache(caches[k]);
+                return false;
+            }
+        }
+    }
+    del_Bind(song->bind);
+    song->bind = song->play_state->bind = song->skip_state->bind = bind;
+    for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
+    {
+        Channel_set_event_cache(song->channels[i], caches[i]);
+    }
+    return true;
+}
+
+
 Scale** Song_get_scales(Song* song)
 {
     assert(song != NULL);
@@ -639,6 +708,7 @@ static void Song_reset(Device* device)
             Device_reset((Device*)eff);
         }
     }
+    Event_handler_clear_buffers(song->event_handler);
     Playdata_reset(song->play_state);
     Playdata_reset(song->skip_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
@@ -741,6 +811,7 @@ void del_Song(Song* song)
     {
         return;
     }
+    del_Environment(song->env);
     del_Subsong_table(song->subsongs);
     del_Pat_table(song->pats);
     del_Connections(song->connections);
@@ -759,6 +830,7 @@ void del_Song(Song* song)
     del_Event_handler(song->event_handler);
     del_Event_handler(song->skip_handler);
     del_Random(song->random);
+    del_Bind(song->bind);
     Device_uninit(&song->parent);
     xfree(song);
     return;

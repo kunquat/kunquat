@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -108,6 +108,16 @@ uint32_t Random_get_uint32(Random* random);
  * \return   A pseudorandom integer in the range [0, KQT_RANDOM64_MAX].
  */
 uint64_t Random_get_uint64(Random* random);
+
+
+/**
+ * Gets a floating point number in the range [0, 1).
+ *
+ * \param random   The Random generator -- must not be \c NULL.
+ *
+ * \return   A pseudorandom floating-point number in the range [0, 1).
+ */
+double Random_get_float_lb(Random* random);
 
 
 /**

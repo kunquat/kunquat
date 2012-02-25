@@ -22,6 +22,7 @@ if '--disable-tracker' not in sys.argv:
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
             'kunquat.editor',
             'kunquat.editor.effects',
+            'kunquat.editor.env',
             'kunquat.editor.instruments',
             'kunquat.editor.sheet',
             ]
@@ -30,10 +31,10 @@ else:
     sys.argv.remove('--disable-tracker')
 
 setup(name='kunquat',
-      version='0.4.2',
+      version='0.5.1',
       author='Tomi Jylhä-Ollila',
       author_email='tomi.jylha-ollila@iki.fi',
-      url='http://launchpad.net/kunquat/',
+      url='http://kunquat.org/',
       description='A music sequencer.',
       license='CC0',
       requires=req_list,

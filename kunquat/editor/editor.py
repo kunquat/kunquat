@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -15,6 +15,7 @@
 from __future__ import division
 from __future__ import print_function
 from itertools import count
+import json
 import math
 import random
 import sys
@@ -25,11 +26,13 @@ from PyQt4 import QtCore, QtGui
 
 from connections import Connections
 from effects import Effects
+from env import Env
 from instruments import Instruments
 import keymap
 import kqt_limits as lim
 import note_input as ni
 from peak_meter import PeakMeter
+from pos_display import PosDisplay
 import project
 import scale
 from sheet import Sheet
@@ -37,7 +40,7 @@ import timestamp as ts
 
 
 PROGRAM_NAME = 'Kunquat Tracker'
-PROGRAM_VERSION = '0.4.2'
+PROGRAM_VERSION = '0.5.1'
 
 
 def sine():
@@ -50,7 +53,7 @@ def sine():
 
 class Playback(QtCore.QObject):
 
-    _play_sub = QtCore.pyqtSignal(int, name='playSubsong')
+    _play_sub = QtCore.pyqtSignal(int, bool, name='playSubsong')
     _play_pat = QtCore.pyqtSignal(int, name='playPattern')
     _play_from = QtCore.pyqtSignal(int, int, int, int, name='playFrom')
     _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
@@ -71,9 +74,10 @@ class Playback(QtCore.QObject):
         """Stops playback."""
         QtCore.QObject.emit(self, QtCore.SIGNAL('stop()'))
 
-    def play_subsong(self, subsong):
+    def play_subsong(self, subsong, infinite=False):
         """Plays a subsong."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playSubsong(int)'), subsong)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('playSubsong(int, bool)'),
+                            subsong, infinite)
 
     def play_pattern(self, pattern):
         """Plays a pattern repeatedly."""
@@ -87,7 +91,7 @@ class Playback(QtCore.QObject):
 
     def play_event(self, channel, event):
         """Plays a single event."""
-        self._play_event.emit(channel, event)
+        self._play_event.emit(channel, json.dumps(event))
         #QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
         #                    channel, event)
 
@@ -121,10 +125,22 @@ class KqtEditor(QtGui.QMainWindow):
                         (self._next_ins, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
                         (self._play_subsong, None),
+                (QtCore.Qt.Key_F5, QtCore.Qt.ShiftModifier):
+                        (lambda x: self.play_subsong(self._cur_subsong, True),
+                            None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
                         (self._play_pattern, None),
+                (QtCore.Qt.Key_F6, QtCore.Qt.ShiftModifier):
+                        (lambda x: self.play_pattern(self._cur_pattern, True),
+                            None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.NoModifier):
                         (self._play_from, None),
+                (QtCore.Qt.Key_F7, QtCore.Qt.ShiftModifier):
+                        (lambda x: self.play_from(self._cur_subsong,
+                                        self._cur_section,
+                                        self._cur_pattern_offset[0],
+                                        self._cur_pattern_offset[1], True),
+                                    None),
                 (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
                         (self._stop, None),
                 (QtCore.Qt.Key_Less, None):
@@ -144,6 +160,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._cur_pattern_offset = ts.Timestamp()
         self._cur_pattern = 0
         self._focus_backup = None
+        #self._infinite = False
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
                                self.sync)
@@ -196,10 +213,13 @@ class KqtEditor(QtGui.QMainWindow):
     def mix(self):
         if self.playing:
             if not self.bufs[0]:
+                self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
                 if not self.bufs[0]:
                     self.stop()
                     return
+            for ch, event in self.handle.treceive():
+                self.project.tfire(ch, event)
             if self.pa.try_write(*self.bufs):
                 dB = [float('-inf')] * 2
                 abs_max = [0] * 2
@@ -213,6 +233,7 @@ class KqtEditor(QtGui.QMainWindow):
                 self._peak_meter.set_peaks(dB[0], dB[1],
                                            abs_max[0], abs_max[1],
                                            len(self.bufs[0]))
+                self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
         else:
             self.pa.iterate()
@@ -235,10 +256,8 @@ class KqtEditor(QtGui.QMainWindow):
                   self.pa.context_state(), self.pa.stream_state(),
                   self.pa.error()), end='\r')
 
-    def play(self):
-        self.playing = True
-
     def stop(self):
+        self._pos_display.set_stop()
         if self.playing:
             self.project.update_random()
         self.playing = False
@@ -246,42 +265,47 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter.set_peaks(float('-inf'), float('-inf'), 0, 0, 0)
         self.bufs = (None, None)
 
-    def play_subsong(self, subsong):
+    def play_subsong(self, subsong, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
         self.handle.nanoseconds = 0
         self.handle.subsong = subsong
         self.playing = True
+        self._set_infinite(infinite)
 
-    def play_pattern(self, pattern):
+    def play_pattern(self, pattern, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
         self.handle.subsong = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.trigger(-1, '[">pattern", [{0}]'.format(pattern))
+        self.handle.fire(0, ['Ipattern', pattern])
+        self._set_infinite(infinite)
 
-    def play_from(self, subsong, section, beats, rem):
+    def play_from(self, subsong, section, beats, rem, infinite=False):
+        self._pos_display.set_play(infinite)
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
         self.handle.subsong = subsong
         self.handle.nanoseconds = 0
         self.playing = True
-        self.handle.trigger(-1, '["w.js", [{0}]]'.format(section))
-        self.handle.trigger(-1, '["w.jr", [[{0}, {1}]]]'.format(beats, rem))
-        self.handle.trigger(-1, '["w.jc", [1]]')
-        self.handle.trigger(-1, '["wj", []]')
+        self.handle.fire(0, ['I.gs', section])
+        self.handle.fire(0, ['I.gr', [beats, rem]])
+        self.handle.fire(0, ['Ig', None])
+        self._set_infinite(infinite)
 
     def play_event(self, *args):
         channel, event = args
         event = str(event)
         if not self.playing:
             self.playing = True
-            self.handle.trigger(-1, '[">pause", []]')
-        self.handle.trigger(channel, event)
+            self.handle.fire(0, ['Ipause', None])
+        self.handle.fire(channel, json.loads(event))
 
     def save(self):
         self.project.save()
@@ -311,6 +335,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._instruments.sync()
         self._effects.sync()
         self._connections.sync()
+        self._env.sync()
 
     def busy(self, busy_set):
         if busy_set:
@@ -320,6 +345,10 @@ class KqtEditor(QtGui.QMainWindow):
         if not busy_set:
             if self._focus_backup:
                 self._focus_backup.setFocus()
+
+    def _set_infinite(self, x):
+        #self._infinite = x
+        self.handle.fire(0, ['I.infinite', x])
 
     def set_appearance(self):
         # FIXME: size and title
@@ -353,6 +382,8 @@ class KqtEditor(QtGui.QMainWindow):
         self._tabs.addTab(self._effects, 'Effects')
         self._connections = Connections(self.project, 'p_connections.json')
         self._tabs.addTab(self._connections, 'Connections')
+        self._env = Env(self.project)
+        self._tabs.addTab(self._env, 'Environment')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
@@ -386,12 +417,10 @@ class KqtEditor(QtGui.QMainWindow):
         layout = QtGui.QHBoxLayout(top_control)
         layout.setMargin(5)
         layout.setSpacing(5)
-        icon_prefix = ':/trolltech/styles/commonstyle/images/'
 
         new_project = QtGui.QToolButton()
         new_project.setText('Clear Project')
-        new_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                                      'file-32.png')))
+        new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
         new_project.setAutoRaise(True)
         QtCore.QObject.connect(new_project,
                                QtCore.SIGNAL('clicked()'),
@@ -399,8 +428,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         open_project = QtGui.QToolButton()
         open_project.setText('Import Composition')
-        open_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                             'standardbutton-open-32.png')))
+        open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))
         open_project.setAutoRaise(True)
         QtCore.QObject.connect(open_project,
                                QtCore.SIGNAL('clicked()'),
@@ -408,8 +436,7 @@ class KqtEditor(QtGui.QMainWindow):
 
         save_project = QtGui.QToolButton()
         save_project.setText('Save Project')
-        save_project.setIcon(QtGui.QIcon(QtGui.QPixmap(icon_prefix +
-                                             'standardbutton-save-32.png')))
+        save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
         save_project.setAutoRaise(True)
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
                                self.save)
@@ -422,25 +449,35 @@ class KqtEditor(QtGui.QMainWindow):
 
         play = QtGui.QToolButton()
         play.setText('Play')
+        play.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
         play.setAutoRaise(True)
         QtCore.QObject.connect(play, QtCore.SIGNAL('clicked()'),
                                lambda: self._play_subsong(None))
 
+        play_inf = QtGui.QToolButton()
+        play_inf.setText('inf')
+        play_inf.setAutoRaise(True)
+        QtCore.QObject.connect(play_inf, QtCore.SIGNAL('clicked()'),
+                lambda: self._playback.play_subsong(self._cur_subsong, True))
+
         stop = QtGui.QToolButton()
         stop.setText('Stop')
+        stop.setIcon(QtGui.QIcon.fromTheme('media-playback-stop'))
         stop.setAutoRaise(True)
         QtCore.QObject.connect(stop, QtCore.SIGNAL('clicked()'),
                                lambda: self._stop(None))
 
         seek_back = QtGui.QToolButton()
         seek_back.setText('Seek backwards')
+        seek_back.setIcon(QtGui.QIcon.fromTheme('media-seek-backward'))
         seek_back.setAutoRaise(True)
 
         seek_for = QtGui.QToolButton()
         seek_for.setText('Seek forwards')
+        seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
-        pos_display = QtGui.QLabel('[position display]')
+        self._pos_display = PosDisplay(self.project)
 
         subsong_select = QtGui.QLabel('[subsong select]')
 
@@ -458,6 +495,13 @@ class KqtEditor(QtGui.QMainWindow):
         self._octave.setValue(4)
         self._octave.setToolTip('Base octave')
 
+        #infinite = QtGui.QCheckBox('Infinite')
+        #infinite.setCheckState(QtCore.Qt.Unchecked)
+        #infinite.setToolTip('Infinite mode')
+        #QtCore.QObject.connect(infinite, QtCore.SIGNAL('stateChanged(int)'),
+        #                       lambda x: self._set_infinite(x ==
+        #                                            QtCore.Qt.Checked))
+
         layout.addWidget(new_project)
         layout.addWidget(open_project)
         layout.addWidget(save_project)
@@ -465,18 +509,20 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self.create_separator())
 
         layout.addWidget(play)
+        layout.addWidget(play_inf)
         layout.addWidget(stop)
         layout.addWidget(seek_back)
         layout.addWidget(seek_for)
         layout.addWidget(self.create_separator())
 
-        layout.addWidget(pos_display)
+        layout.addWidget(self._pos_display)
         layout.addWidget(subsong_select)
         layout.addWidget(tempo_factor)
         layout.addWidget(self.create_separator())
 
         layout.addWidget(self._instrument)
         layout.addWidget(self._octave)
+        #layout.addWidget(infinite)
         return top_control
 
     def create_bottom_control(self):

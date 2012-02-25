@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,8 +18,10 @@
 
 #include <stdint.h>
 
+#include <Bind.h>
 #include <Connections.h>
 #include <Device.h>
+#include <Environment.h>
 #include <kunquat/limits.h>
 #include <frame.h>
 #include <Subsong_table.h>
@@ -52,6 +54,8 @@ typedef struct Song
     Playdata* skip_state;               ///< Skip state (used for length calculation).
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
+    Environment* env;                   ///< Environment variables.
+    Bind* bind;
 } Song;
 
 
@@ -201,6 +205,17 @@ Ins_table* Song_get_insts(Song* song);
  * \return   The Effect table.
  */
 Effect_table* Song_get_effects(Song* song);
+
+
+/**
+ * Sets the Bind of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param bind   The Bind -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Song_set_bind(Song* song, Bind* bind);
 
 
 /**

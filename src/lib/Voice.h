@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -44,8 +44,6 @@ typedef struct Voice
     uint16_t pool_index;   ///< Storage position in the Voice pool.
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
-    bool was_fg;
-    uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Generator* gen;        ///< The Generator.
     size_t state_size;     ///< The amount bytes allocated for the Voice state.
     Voice_state* state;    ///< The current playback state.
@@ -153,6 +151,16 @@ void Voice_mix(Voice* voice,
                uint32_t offset,
                uint32_t freq,
                double tempo);
+
+
+/**
+ * Returns the actual current force of the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL and must be active.
+ *
+ * \return   The actual force.
+ */
+double Voice_get_actual_force(Voice* voice);
 
 
 /**

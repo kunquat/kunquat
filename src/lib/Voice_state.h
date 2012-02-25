@@ -63,11 +63,13 @@ typedef struct Voice_state
     pitch_t prev_actual_pitch;     ///< The actual frequency in the previous mixing cycle.
     Slider pitch_slider;
     LFO vibrato;
+
     bool arpeggio;                 ///< Arpeggio enabled.
+    double arpeggio_ref;           ///< Arpeggio reference note in cents.
     double arpeggio_length;        ///< Length of one note in the arpeggio.
     double arpeggio_frames;        ///< Frames left of the current note in the arpeggio.
     int arpeggio_note;             ///< Current note in the arpeggio.
-    double arpeggio_factors[KQT_ARPEGGIO_NOTES_MAX]; ///< Pitch factors in the arpeggio.
+    double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX]; ///< Tones in the arpeggio.
 
     uint64_t pos;                  ///< The current playback position.
     double pos_rem;                ///< The current playback position remainder.

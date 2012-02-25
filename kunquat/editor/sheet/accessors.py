@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -17,11 +17,12 @@ from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.timestamp as ts
 import trigger
+import kunquat.editor.trigtypes as ttypes
 
 
 class FuncValidator(QtGui.QValidator):
 
-    def __init__(self, func=lambda x: False):
+    def __init__(self, func=lambda x: True):
         super(FuncValidator, self).__init__()
         self.isvalid = func
 
@@ -76,7 +77,7 @@ class StringEdit(QtGui.QLineEdit):
         if ev.key() != QtCore.Qt.Key_Escape:
             ev.accept()
 
-    def set_validator_func(self, func):
+    def set_validator_func(self, func=lambda x: True):
         assert func
         self.setValidator(FuncValidator(func))
 
@@ -91,6 +92,13 @@ class TypeEdit(StringEdit):
 
     def __init__(self, parent=None):
         super(TypeEdit, self).__init__(parent)
+        self.set_validator_func(self.check_type)
+
+    def check_type(self, t):
+        t = str(t)
+        if t.endswith('"'):
+            t = t[:-1]
+        return t in ttypes.triggers
 
     def get_value(self):
         return trigger.TriggerType(self.text())
@@ -118,7 +126,7 @@ class FloatEdit(StringEdit):
 class NoteEdit(FloatEdit):
 
     def get_value(self):
-        return trigger.Note(self.text())
+        return ttypes.Note(self.text())
 
 
 class IntEdit(StringEdit):

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -325,7 +325,7 @@ char* read_string(char* str, char* result, int max_len, Read_state* state)
     {
         *result = '\0';
     }
-    while (*str != '\"')
+    while (!(*str == '\"' && str[-1] != '\\'))
     {
         if (*str == '\0')
         {
@@ -546,7 +546,7 @@ char* read_reltime(char* str, Reltime* result, Read_state* state)
         Read_state_set_error(state, "Expected a valid Reltime stamp");
         return str;
     }
-    if (rem < 0 || rem > KQT_RELTIME_BEAT)
+    if (rem < 0 || rem >= KQT_RELTIME_BEAT)
     {
         Read_state_set_error(state,
                 "Reltime stamp remainder out of range [0..%ld)", KQT_RELTIME_BEAT);

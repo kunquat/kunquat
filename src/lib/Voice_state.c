@@ -87,14 +87,19 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->prev_actual_pitch = 0;
     Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
     LFO_init(&state->vibrato, LFO_MODE_EXP);
+
     state->arpeggio = false;
+    state->arpeggio_ref = NAN;
     state->arpeggio_length = 0;
     state->arpeggio_frames = 0;
     state->arpeggio_note = 0;
+    state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
+#if 0
     for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
     {
-        state->arpeggio_factors[i] = 0;
+        state->arpeggio_offsets[i] = NAN;
     }
+#endif
 
     LFO_init(&state->autowah, LFO_MODE_EXP);
 

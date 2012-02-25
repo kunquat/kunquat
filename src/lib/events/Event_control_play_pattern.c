@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,43 +16,26 @@
 #include <stdbool.h>
 
 #include <Event.h>
+#include <Event_common.h>
 #include <Event_control_play_pattern.h>
 #include <Event_type.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
 #include <Playdata.h>
+#include <Value.h>
 #include <xassert.h>
 
 
-static Event_field_desc play_pattern_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_PATTERNS_MAX - 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-bool Event_control_play_pattern_process(General_state* gstate, char* fields)
+bool Event_control_play_pattern_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    if (fields == NULL || !gstate->global)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, play_pattern_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT || !gstate->global)
     {
         return false;
     }
     Playdata* global_state = (Playdata*)gstate;
-    global_state->pattern = data[0].field.integral_type;
+    global_state->pattern = value->value.int_type;
     global_state->mode = PLAY_PATTERN;
     Reltime_set(&global_state->pos, 0, 0);
     return true;

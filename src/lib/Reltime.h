@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -70,7 +70,7 @@ int Reltime_cmp(const Reltime* r1, const Reltime* r2);
  * \param r       The Reltime object -- must not be \c NULL.
  * \param beats   The number of beats.
  * \param rem     The size of the remaining part -- must be >= \c 0 and
- *                < \c RELTIME_BEAT.
+ *                < \c KQT_RELTIME_BEAT.
  *
  * \return   The parameter \a r.
  */

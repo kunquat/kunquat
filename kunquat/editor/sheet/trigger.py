@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -15,17 +15,19 @@ from __future__ import division
 from __future__ import print_function
 from itertools import izip_longest, takewhile
 import math
+import string
 
 from PyQt4 import QtGui, QtCore
 
 import kunquat.editor.kqt_limits as lim
 import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
+import kunquat.editor.trigtypes as ttypes
 
 
 note_off_str = u'══'
 
-hidden_types = ('cn+', 'ch')
+hidden_types = ('n+', 'h')
 
 
 class Trigger(list):
@@ -44,58 +46,62 @@ class Trigger(list):
         self[0] = TriggerType(ttype)
         self.type_info = None
         if self[0].valid:
-            if self[0] in channel_triggers:
-                self.type_info = channel_triggers[self[0]]
-            elif self[0] in global_triggers:
-                self.type_info = global_triggers[self[0]]
-            else:
-                self.type_info = general_triggers[self[0]]
-            lv = takewhile(lambda x: x[0],
-                           izip_longest(self.type_info, self[1]))
-            self[1] = []
+            name = self[0]
+            if name.endswith('"'):
+                name = name[:-1]
+            self.type_info = ttypes.triggers[name]
+            #lv = takewhile(lambda x: x[0],
+            #               izip_longest(self.type_info, [self[1]]))
+            #self[1] = None
+            if self.type_info and not self[1]:
+                self[1] = self.type_info[0][2]
+            elif not self.type_info:
+                self[1] = None
+            """
             for limits, value in lv:
                 cons, valid, default = limits
                 try:
                     if valid(value):
-                        self[1].append(cons(value))
+                        self[1] = cons(value)
                     else:
-                        self[1].append(default)
+                        self[1] = default
                 except TypeError:
-                    self[1].append(default)
-            if self[0] in ('c.gB', 'g.B', 'd.B'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonb')
-            elif self[0] in ('c.gI', 'g.I', 'd.I'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsoni')
-            elif self[0] in ('c.gF', 'g.F', 'd.F'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsonf')
-            elif self[0] in ('c.gT', 'g.T', 'd.T'):
-                self[1][0] = key_to_param(self[1][0], 'p_', '.jsont')
-        else:
-            self[1] = list(fields)
+                    self[1] = default
+            """
+            if self[0] in ('c.gBn"', 'g.Bn"', 'd.Bn"'):
+                self[1] = key_to_param(self[1], 'p_', '.jsonb')
+            elif self[0] in ('c.gIn"', 'g.In"', 'd.In"'):
+                self[1] = key_to_param(self[1], 'p_', '.jsoni')
+            elif self[0] in ('c.gFn"', 'g.Fn"', 'd.Fn"'):
+                self[1] = key_to_param(self[1], 'p_', '.jsonf')
+            elif self[0] in ('c.gTn"', 'g.Tn"', 'd.Tn"'):
+                self[1] = key_to_param(self[1], 'p_', '.jsont')
+        #else:
+        #    self[1] = list(fields)
 
     def flatten(self):
-        if self[0] in ('c.gB', 'g.B', 'd.B'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonb')] +
-                              self[1][1:]]
-        elif self[0] in ('c.gI', 'g.I', 'd.I'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsoni')] +
-                              self[1][1:]]
-        elif self[0] in ('c.gF', 'g.F', 'd.F'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsonf')] +
-                              self[1][1:]]
-        elif self[0] in ('c.gT', 'g.T', 'd.T'):
-            return [self[0], [param_to_key(self[1][0], 'p_', '.jsont')] +
-                              self[1][1:]]
+        if self[0] in ('c.gBn"', 'g.Bn"', 'd.Bn"'):
+            return [self[0], param_to_key(self[1], 'p_', '.jsonb')]
+        elif self[0] in ('c.gIn"', 'g.In"', 'd.In"'):
+            return [self[0], param_to_key(self[1], 'p_', '.jsoni')]
+        elif self[0] in ('c.gFn"', 'g.Fn"', 'd.Fn"'):
+            return [self[0], param_to_key(self[1], 'p_', '.jsonf')]
+        elif self[0] in ('c.gTn"', 'g.Tn"', 'd.Tn"'):
+            return [self[0], param_to_key(self[1], 'p_', '.jsont')]
         return self
 
     def set_value(self, cursor_pos, value):
+        assert cursor_pos < 2
         if self[0] not in hidden_types:
             if cursor_pos == 0:
                 self.set_type(value)
                 return
-            cursor_pos -= 1
-        cons, valid, default = self.type_info[cursor_pos]
-        self[1][cursor_pos] = cons(value)
+            #cursor_pos -= 1
+        else:
+            assert cursor_pos == 0
+            cursor_pos = 1
+        cons, valid, default = self.type_info[0]
+        self[1] = value
 
     def cursor_area(self, index):
         start = self.margin
@@ -108,7 +114,8 @@ class Trigger(list):
         else:
             # compensate for removal of trigger name
             start -= self.padding
-        for field in self[1]:
+        if self[1] != None:
+            field = self[1]
             fw = self.field_width(field)
             if index == 0:
                 return start + self.padding, fw - self.padding
@@ -118,13 +125,17 @@ class Trigger(list):
         return start + self.margin, 0
 
     def get_field_info(self, cursor_pos):
+        assert cursor_pos < 2
         if self[0] not in hidden_types:
             # ignore the trigger name
             if cursor_pos == 0:
-                return self[0], None
-            cursor_pos -= 1
-        if cursor_pos >= 0 and cursor_pos < len(self[1]):
-            return self[1][cursor_pos], self.type_info[cursor_pos][1]
+                return self[0], lambda x: str(x) in ttypes.triggers
+            #cursor_pos -= 1
+        else:
+            assert cursor_pos == 0
+            cursor_pos = 1
+        if 0 <= cursor_pos < 2:
+            return self[cursor_pos], self.type_info[0][1]
         return None
 
     def paint(self, paint, rect, offset=0, cursor_pos=-1):
@@ -139,7 +150,7 @@ class Trigger(list):
         if self[0] not in hidden_types:
             head_rect = QtCore.QRectF(rect)
             head_rect.moveLeft(head_rect.left() + offset)
-            if self[0] == 'cn-':
+            if self[0] == 'n-':
                 type_width = self.metrics.width(note_off_str)
             else:
                 type_width = self.metrics.width(self[0])
@@ -161,7 +172,8 @@ class Trigger(list):
             offset -= self.padding
 
         # paint the fields
-        for field in self[1]:
+        if self[1] != None:
+            field = self[1]
             field_rect = QtCore.QRectF(rect)
             field_rect.moveLeft(rect.left() + offset + self.padding)
             field_width = self.field_width(field)
@@ -178,11 +190,11 @@ class Trigger(list):
 
         offset += self.margin
         if offset > 0:
-            if self[0] == 'cn+':
+            if self[0] == 'n+':
                 paint.setPen(self.colours['trigger_note_on_fg'])
-            elif self[0] == 'ch':
+            elif self[0] == 'h':
                 paint.setPen(self.colours['trigger_hit_fg'])
-            elif self[0] == 'cn-':
+            elif self[0] == 'n-':
                 paint.setPen(self.colours['trigger_note_off_fg'])
             else:
                 paint.setPen(self.colours['trigger_fg'])
@@ -200,9 +212,9 @@ class Trigger(list):
     def paint_field(self, paint, field, rect, opt, cursor):
         s = self.field_str(field)
         back = self.colours['bg']
-        if self[0] == 'cn+':
+        if self[0] == 'n+':
             fore = self.colours['trigger_note_on_fg']
-        elif self[0] == 'ch':
+        elif self[0] == 'h':
             fore = self.colours['trigger_hit_fg']
         else:
             fore = self.colours['trigger_fg']
@@ -213,47 +225,54 @@ class Trigger(list):
         paint.drawText(rect, s, opt)
 
     def field_str(self, field):
-        if isinstance(field, Note):
-            n, o, c = default_scale.get_display_info(field)
+        event_name = self[0]
+        if event_name.endswith('"'):
+            event_name = event_name[:-1]
+        event_type = ttypes.triggers[event_name]
+        field_type = event_type[0][0] if event_type else None
+        if field_type == ttypes.Note:
+            try:
+                cents = float(field)
+            except ValueError:
+                return field if field else "''"
+            n, o, c = default_scale.get_display_info(cents)
             c = int(round(c))
             if c == 0:
                 return '{0}{1}'.format(n, o)
             return '{0}{1}{2:+d}'.format(n, o, c)
-        if isinstance(field, HitIndex):
-            return str(field)
-        if isinstance(field, int):
-            return str(field)
-        elif isinstance(field, float):
-            return '{0:.1f}'.format(field)
-        elif isinstance(field, ts.Timestamp):
-            return '{0:.2f}'.format(float(field))
-        return repr(field)
+        return field if field else "''"
 
     def field_width(self, field):
         return self.padding + self.metrics.width(self.field_str(field))
 
     def slots(self):
         if self[0] in hidden_types:
-            return len(self[1])
-        return 1 + len(self[1])
+            return 1
+        return 2 if self[1] != None else 1
 
     def width(self):
-        fields_width = sum(self.field_width(f) for f in self[1])
+        field_width = self.field_width(self[1]) if self[1] != None else 0
         type_width = -self.padding
-        if self[0] == 'cn-':
+        if self[0] == 'n-':
             type_width = self.metrics.width(note_off_str)
         elif self[0] not in hidden_types:
             type_width = self.metrics.width(self[0])
-        return type_width + fields_width + 2 * self.margin
+        return type_width + field_width + 2 * self.margin
 
 
 class TriggerType(str):
 
     def __init__(self, name):
-        self.valid = is_channel(name) or is_global(name) # FIXME
+        pass
+
+    def valid(self, x):
+        x = str(x)
+        if x.endswith('"'):
+            x = x[:-1]
+        return x in ttypes.triggers
 
     def paint(self, colours, paint, rect, opt, cursor):
-        if self == 'cn-':
+        if self == 'n-':
             fore = colours['trigger_note_off_fg']
         elif self.valid:
             fore = colours['trigger_type_fg']
@@ -264,7 +283,7 @@ class TriggerType(str):
             fore, back = back, fore
         paint.setBackground(back)
         paint.setPen(fore)
-        paint.drawText(rect, self if self != 'cn-' else note_off_str, opt)
+        paint.drawText(rect, self if self != 'n-' else note_off_str, opt)
 
 
 default_scale = scale.Scale({
@@ -293,137 +312,5 @@ def param_to_key(param, prefix, suffix):
     if not last_part.endswith(suffix):
         last_part = last_part + suffix
     return param[:last_index] + last_part
-
-
-class Note(float):
-    pass
-
-
-class HitIndex(int):
-    pass
-
-
-def isfinite(x):
-    return not (math.isinf(x) or math.isnan(x))
-
-
-def is_global(ttype):
-    ttype = str(ttype)
-    return ttype in global_triggers or ttype in general_triggers
-
-
-def is_channel(ttype):
-    ttype = str(ttype)
-    return ttype in channel_triggers or ttype in general_triggers
-
-
-def is_key(value):
-    if value is None:
-        return False
-    return all(x in '_./' or x.isalpha() for x in str(value))
-
-
-nonneg_ts = (ts.Timestamp, lambda x: x >= 0, ts.Timestamp(0))
-any_ts = (ts.Timestamp, lambda x: True, ts.Timestamp(0))
-finite_float = (float, isfinite, 0.0)
-nonneg_float = (float, lambda x: x >= 0 and isfinite(x), 0.0)
-pos_float = (float, lambda x: x > 0 and isfinite(x), 1.0)
-force = (float, lambda x: x <= 18 and not math.isnan(x), 0.0)
-volume = (float, lambda x: x <= 0 and not math.isnan(x), 0.0)
-any_float = (float, lambda x: True, 0.0)
-any_bool = (bool, lambda x: True, False)
-any_int = (int, lambda x: True, 0)
-key = (str, is_key, '')
-pitch = (Note, isfinite, Note(0))
-note_entry = (int, lambda x: x >= 0, 0) # FIXME
-
-global_triggers = {
-        'wpd': [nonneg_ts],
-        'w.jc': [(int, lambda x: x >= 0 and x < 65536, 0)],
-        'w.jr': [nonneg_ts],
-        'w.js': [(int, lambda x: x >= -1 and x < lim.SECTIONS_MAX, -1)],
-        'w.jss': [(int, lambda x: x >= -1 and x < lim.SUBSONGS_MAX, -1)],
-        'wj': [],
-
-        'w.s': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
-        'w.so': [finite_float],
-        'wms': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, 0)],
-        'wssi': [note_entry, note_entry],
-
-        'w.t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
-        'w/t': [(float, lambda x: x >= 1.0 and x <= 999.0, 120.0)],
-        'w/=t': [nonneg_ts],
-        'w.v': [volume],
-        'w/v': [volume],
-        'w/=v': [nonneg_ts],
-}
-
-channel_triggers = {
-        'c.i': [(int, lambda x: x >= 0 and x < lim.INSTRUMENTS_MAX, 0)],
-        'c.g': [(int, lambda x: x >= 0 and x < lim.GENERATORS_MAX, 0)],
-        'c.e': [(int, lambda x: x >= 0 and x < lim.EFFECTS_MAX, 0)],
-        'c.ge': [],
-        'c.ie': [],
-        'c.d': [(int, lambda x: x >= 0 and x < lim.DSPS_MAX, 0)],
-
-        'cn+': [pitch],
-        'ch': [(HitIndex, lambda x: 0 <= x < lim.HITS_MAX, HitIndex(0))],
-        'cn-': [],
-
-        'c.f': [force],
-        'c/f': [force],
-        'c/=f': [nonneg_ts],
-        'cTs': [nonneg_float],
-        #'cTsd': [nonneg_ts],
-        'cTd': [(float, lambda x: x >= 0.0 and x <= 24.0, 0.0)],
-        'cTdd': [nonneg_ts],
-
-        'c/p': [pitch],
-        'c/=p': [nonneg_ts],
-        'cVs': [nonneg_float],
-        #'cVsd': [nonneg_ts],
-        'cVd': [nonneg_float],
-        'cVdd': [nonneg_ts],
-        'cArp': [pos_float, finite_float, finite_float, finite_float],
-
-        'c.l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
-        'c/l': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
-        'c/=l': [nonneg_ts],
-        'cAs': [nonneg_float],
-        #'cAsd': [nonneg_ts],
-        'cAd': [nonneg_float],
-        'cAdd': [nonneg_ts],
-
-        'c.r': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
-        #'c/r': [(float, lambda x: x >= 0 and x <= 99, 0.0)],
-        #'c/=r': [nonneg_ts],
-
-        'c.P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
-        'c/P': [(float, lambda x: x >= -1 and x <= 1, 0.0)],
-        'c/=P': [nonneg_ts],
-
-        'c.gB': [key, any_bool],
-        'c.gI': [key, any_int],
-        'c.gF': [key, any_float],
-        'c.gT': [key, any_ts],
-
-        'i.sus': [(float, lambda x: x >= 0 and x <= 1, 0.0)],
-
-        'g.B': [key, any_bool],
-        'g.I': [key, any_int],
-        'g.F': [key, any_float],
-        'g.T': [key, any_ts],
-
-        'ebp+': [],
-        'ebp-': [],
-
-        'd.B': [key, any_bool],
-        'd.I': [key, any_int],
-        'd.F': [key, any_float],
-        'd.T': [key, any_ts],
-}
-
-general_triggers = {
-}
 
 

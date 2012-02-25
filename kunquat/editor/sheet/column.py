@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -26,7 +26,7 @@ import trigger
 import trigger_row as tr
 
 
-column_path = re.compile('(pat_[0-9a-f]{3})/(gcol|ccol_[0-9a-f]{2})/')
+column_path = re.compile('(pat_[0-9a-f]{3})/(col_[0-9a-f]{2})/')
 
 
 class Column(object):
@@ -43,7 +43,7 @@ class Column(object):
     """
 
     def __init__(self, num, theme):
-        assert num >= -1
+        assert num >= 0
         self.num = num
         self.colours = theme[0]
         self.fonts = theme[1]
@@ -112,7 +112,7 @@ class Column(object):
             assert isinstance(value, trigger.TriggerType)
             theme = self.colours, self.fonts
             row = tr.Trigger_row(theme)
-            row.append(trigger.Trigger([value, []], theme))
+            row.append(trigger.Trigger([value, None], theme))
             self.triggers[cursor.get_pos()] = row
 
     def set_view_start(self, start):
@@ -174,8 +174,7 @@ class Column(object):
         paint.setPen(self.colours['column_head_fg'])
         paint.setFont(self.fonts['column_head'])
         paint.drawText(QtCore.QRectF(x, 0, self._width, self.col_head_height),
-                       '%02d' % self.num if self.num >= 0 else 'Global',
-                       header_style)
+                       '{0:02d}'.format(self.num), header_style)
 
         paint.setPen(self.colours['column_border'])
         paint.drawLine(x + self._width, 0, x + self._width, self.height - 1)

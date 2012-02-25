@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -197,13 +197,13 @@ bool Device_params_parse_value(Device_params* params,
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ directory.
- * \param str      The new value as a string.
+ * \param data     The new value -- must not be \c NULL.
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
 bool Device_params_modify_value(Device_params* params,
                                 const char* key,
-                                char* str);
+                                void* data);
 
 
 /**

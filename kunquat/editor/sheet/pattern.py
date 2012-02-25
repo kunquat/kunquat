@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -27,6 +27,7 @@ import kunquat.editor.kqt_limits as lim
 import kunquat.editor.note_input as ni
 import kunquat.editor.scale as scale
 import kunquat.editor.timestamp as ts
+import kunquat.editor.trigtypes as ttypes
 import trigger
 
 
@@ -62,7 +63,7 @@ class Pattern(QtGui.QWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
                            QtGui.QSizePolicy.Ignored)
         self.setFocusPolicy(QtCore.Qt.StrongFocus)
-        self.first_column = -1
+        self.first_column = 0
         self.colours = {
                 'bg': QtGui.QColor(0, 0, 0),
                 'column_border': QtGui.QColor(0xcc, 0xcc, 0xcc),
@@ -74,6 +75,7 @@ class Pattern(QtGui.QWidget):
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_cur': QtGui.QColor(0x77, 0x99, 0xbb),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
+                'ruler_play_cur': QtGui.QColor(0xff, 0xaa, 0x77),
                 'trigger_fg': QtGui.QColor(0xaa, 0xaa, 0xaa),
                 'trigger_note_on_fg': QtGui.QColor(0xee, 0xcc, 0xaa),
                 'trigger_hit_fg': QtGui.QColor(0xaa, 0xee, 0xaa),
@@ -120,7 +122,7 @@ class Pattern(QtGui.QWidget):
         self.beat_len = 96
         self.view_start = ts.Timestamp(0)
         self.columns = [Column(num, (self.colours, self.fonts))
-                        for num in xrange(-1, lim.COLUMNS_MAX)]
+                        for num in xrange(0, lim.COLUMNS_MAX)]
         for col in self.columns:
             col.set_length(self.length)
             col.set_beat_len(self.beat_len)
@@ -128,13 +130,14 @@ class Pattern(QtGui.QWidget):
 
         self.accessors = {
                 trigger.TriggerType: acc.TypeEdit(self),
-                trigger.Note: acc.NoteEdit(self),
-                trigger.HitIndex: acc.HitIndexEdit(self),
+                ttypes.Note: acc.NoteEdit(self),
+                ttypes.HitIndex: acc.HitIndexEdit(self),
                 bool: acc.BoolEdit(self),
                 float: acc.FloatEdit(self),
                 int: acc.IntEdit(self),
                 ts.Timestamp: acc.TimestampEdit(self),
                 str: acc.StringEdit(self),
+                unicode: acc.StringEdit(self),
                 }
         acc_palette = QtGui.QPalette(self.colours['trigger_fg'],
                                      self.colours['bg'],
@@ -180,13 +183,18 @@ class Pattern(QtGui.QWidget):
                                self.inst_changed)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
-        self.cursor_col = -1
+        self.cursor_col = 0
         self.orig_cursor_col = None
         self.view_columns = []
         self.width = 0
         self.height = 0
         self.cursor_center_area = 0.3
         self.zoom_factor = 1.2
+
+        self._play_pattern = -1
+        self._play_row = ts.Timestamp(0)
+        self.project.set_callback('Apattern', self._update_play_pattern)
+        self.project.set_callback('Arow', self._update_play_row)
 
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
@@ -233,11 +241,11 @@ class Pattern(QtGui.QWidget):
         self.cursor.set_path(self.path)
         for col in self.columns:
             col.set_length(self.length)
-        self.columns[0].arrange_triggers(self.project['/'.join(
-                        (self.path, 'gcol', 'p_global_events.json'))])
-        for col in self.columns[1:]:
-            col_dir = 'ccol_{0:02x}'.format(col.get_num())
-            path = '/'.join((self.path, col_dir, 'p_channel_events.json'))
+        #self.columns[0].arrange_triggers(self.project['/'.join(
+        #                (self.path, 'gcol', 'p_global_events.json'))])
+        for col in self.columns:
+            col_dir = 'col_{0:02x}'.format(col.get_num())
+            path = '/'.join((self.path, col_dir, 'p_events.json'))
             col.arrange_triggers(self.project[path])
         if self.number != num:
             QtCore.QObject.emit(self, QtCore.SIGNAL('patternChanged(int)'),
@@ -382,10 +390,10 @@ class Pattern(QtGui.QWidget):
         if direction > 0:
             self.cursor.clear_delay()
         shift = self.cursor.get_pos() - shift_pos
-        self.columns[self.cursor_col + 1].shift(shift_pos, shift * direction)
+        self.columns[self.cursor_col].shift(shift_pos, shift * direction)
         self.cursor.set_pos(shift_pos)
         self.project[self.cursor.col_path] = \
-                self.columns[self.cursor_col + 1].flatten()
+                self.columns[self.cursor_col].flatten()
         self.update()
 
     def _shift_down(self, ev):
@@ -399,19 +407,19 @@ class Pattern(QtGui.QWidget):
         self.cursor.set_direction()
 
     def _prev_column(self, ev):
-        if self.cursor_col > -1:
-            self.columns[self.cursor_col + 1].set_cursor()
-            self.columns[self.cursor_col].set_cursor(self.cursor)
-            self.cursor.set_col(self.columns[self.cursor_col])
+        if self.cursor_col > 0:
+            self.columns[self.cursor_col].set_cursor()
+            self.columns[self.cursor_col - 1].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col - 1])
             self.cursor_col -= 1
             self.follow_cursor_horizontal()
             self.update()
 
     def _next_column(self, ev):
         if self.cursor_col < lim.COLUMNS_MAX - 1:
-            self.columns[self.cursor_col + 1].set_cursor()
-            self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-            self.cursor.set_col(self.columns[self.cursor_col + 2])
+            self.columns[self.cursor_col].set_cursor()
+            self.columns[self.cursor_col + 1].set_cursor(self.cursor)
+            self.cursor.set_col(self.columns[self.cursor_col + 1])
             self.cursor_col += 1
             self.follow_cursor_horizontal()
             self.update()
@@ -420,18 +428,18 @@ class Pattern(QtGui.QWidget):
         self.cursor.key_press(ev)
         if not ev.isAccepted():
             ev.accept()
-            if self.cursor_col > -1:
+            if self.cursor_col > 0:
                 if (self.cursor.get_pos() not in
-                        self.columns[self.cursor_col].get_triggers()):
+                        self.columns[self.cursor_col - 1].get_triggers()):
                     self.cursor.set_index(0)
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col])
+                self.columns[self.cursor_col].set_cursor()
+                self.columns[self.cursor_col - 1].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col - 1])
                 self.cursor_col -= 1
                 self.follow_cursor_horizontal()
                 self.update()
             else:
-                assert self.cursor_col == -1
+                assert self.cursor_col == 0
                 self.cursor.set_index(0)
         else:
             self.update()
@@ -441,9 +449,9 @@ class Pattern(QtGui.QWidget):
         if not ev.isAccepted():
             ev.accept()
             if self.cursor_col < lim.COLUMNS_MAX - 1:
-                self.columns[self.cursor_col + 1].set_cursor()
-                self.columns[self.cursor_col + 2].set_cursor(self.cursor)
-                self.cursor.set_col(self.columns[self.cursor_col + 2])
+                self.columns[self.cursor_col].set_cursor()
+                self.columns[self.cursor_col + 1].set_cursor(self.cursor)
+                self.cursor.set_col(self.columns[self.cursor_col + 1])
                 self.cursor_col += 1
                 self.follow_cursor_horizontal()
                 self.update()
@@ -458,7 +466,8 @@ class Pattern(QtGui.QWidget):
         paint.begin(self)
         paint.setBackground(self.colours['bg'])
         paint.eraseRect(ev.rect())
-        self.ruler.paint(ev, paint)
+        self.ruler.paint(ev.rect(), paint, self._play_row
+                         if self._play_pattern == self.number else None)
         col_pos = self.ruler.width()
         for column in self.view_columns:
             column.paint(ev, paint, col_pos, self.hasFocus())
@@ -480,7 +489,7 @@ class Pattern(QtGui.QWidget):
         assert direction in (1, -1)
         used = self.ruler.width()
         for (width, column) in ((c.width(), c) for c in \
-                           self.columns[start + 1::direction]):
+                           self.columns[start::direction]):
             used += width
             if used > total_width:
                 break
@@ -511,6 +520,16 @@ class Pattern(QtGui.QWidget):
             col.set_view_start(self.view_start)
         self.update()
 
+    def _update_play_pattern(self, ch, event):
+        self._play_pattern = event[1]
+        if self._play_pattern != self.number:
+            self.update(0, 0, self.ruler.width(), self.height)
+
+    def _update_play_row(self, ch, event):
+        self._play_row = ts.Timestamp(event[1])
+        if self._play_pattern == self.number:
+            self.update(0, 0, self.ruler.width(), self.height)
+
 
 class Ruler(object):
 
@@ -535,9 +554,9 @@ class Ruler(object):
             yield pos
             pos += interval
 
-    def paint(self, ev, paint):
+    def paint(self, rect, paint, play_row):
         ruler_area = QtCore.QRect(0, 0, self._width, self.height)
-        real_area = ev.rect().intersect(ruler_area)
+        real_area = rect.intersect(ruler_area)
         if real_area.isEmpty() or self.ruler_height <= 0:
             return
 
@@ -587,6 +606,13 @@ class Ruler(object):
         paint.setFont(self.fonts['ruler'])
         for num_pos in self.get_viewable_positions(num_interval):
             self.paint_number(num_pos, paint)
+
+        # paint play cursor
+        if view_start <= play_row <= view_end:
+            paint.setPen(self.colours['ruler_play_cur'])
+            pix_pos = (self.beat_len * float(play_row - self.view_start) +
+                       self.col_head_height)
+            paint.drawLine(0, pix_pos, self._width - 2, pix_pos)
 
         # paint right border
         paint.setPen(self.colours['column_border'])

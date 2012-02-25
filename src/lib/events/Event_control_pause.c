@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,14 +16,21 @@
 #include <stdbool.h>
 #include <stdio.h>
 
+#include <Event_common.h>
+#include <Event_control_pause.h>
 #include <General_state.h>
+#include <Value.h>
 #include <xassert.h>
 
 
-bool Event_control_pause_process(General_state* gstate, char* fields)
+bool Event_control_pause_process(General_state* gstate, Value* value)
 {
     assert(gstate != NULL);
-    (void)fields;
+    (void)value;
+    if (!gstate->global)
+    {
+        return false;
+    }
     gstate->pause = true;
     return true;
 }

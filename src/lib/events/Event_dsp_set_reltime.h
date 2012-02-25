@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,15 +16,14 @@
 #define K_EVENT_DSP_SET_RELTIME_H
 
 
-#include <Event_dsp.h>
+#include <Channel_state.h>
 #include <DSP_conf.h>
-#include <Reltime.h>
+#include <Value.h>
 
 
-Event* new_Event_dsp_set_reltime(Reltime* pos);
-
-
-bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf, char* fields);
+bool Event_dsp_set_reltime_process(DSP_conf* dsp_conf,
+                                   Channel_state* ch_state,
+                                   Value* value);
 
 
 #endif // K_EVENT_DSP_SET_RELTIME_H

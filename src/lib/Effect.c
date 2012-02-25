@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -313,12 +313,16 @@ static void Effect_process(Device* device,
     }
     else
     {
+#ifndef NDEBUG
         static bool in_effect = false;
         assert(!in_effect);
         in_effect = true;
+#endif
         Connections_clear_buffers(eff->connections, start, until);
         Connections_mix(eff->connections, start, until, freq, tempo);
+#ifndef NDEBUG
         in_effect = false;
+#endif
     }
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,8 @@
 #include <stdint.h>
 
 #include <Channel_gen_state.h>
+#include <Environment.h>
+#include <Event_cache.h>
 #include <General_state.h>
 #include <LFO.h>
 #include <Random.h>
@@ -42,6 +44,7 @@ typedef struct Channel_state
     bool* mute;                    ///< Channel mute.
     Channel_gen_state* cgstate;    ///< Channel-specific generator state.
     Random* rand;                  ///< Random source for this channel.
+    Event_cache* event_cache;
 
     Voice_pool* pool;              ///< All Voices.
     Voice* fg[KQT_GENERATORS_MAX]; ///< Foreground Voices.
@@ -82,6 +85,11 @@ typedef struct Channel_state
 
     double panning;                ///< The current panning.
     Slider panning_slider;
+
+    double arpeggio_ref;
+    double arpeggio_speed;
+    int arpeggio_edit_pos;
+    double arpeggio_tones[KQT_ARPEGGIO_NOTES_MAX];
 } Channel_state;
 
 
@@ -93,10 +101,12 @@ typedef struct Channel_state
  *                < \c KQT_COLUMNS_MAX.
  * \param mute    A reference to the channel mute state -- must not be
  *                \c NULL.
+ * \param env     The Environment -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Channel_state_init(Channel_state* state, int num, bool* mute);
+bool Channel_state_init(Channel_state* state, int num, bool* mute,
+                        Environment* env);
 
 
 /**
@@ -106,6 +116,15 @@ bool Channel_state_init(Channel_state* state, int num, bool* mute);
  * \param seed    The random seed.
  */
 void Channel_state_set_random_seed(Channel_state* state, uint64_t seed);
+
+
+/**
+ * Sets the Event cache of the Channel state.
+ *
+ * \param state   The Channel state -- must not be \c NULL.
+ * \param cache   The Event cache -- must not be \c NULL.
+ */
+void Channel_state_set_event_cache(Channel_state* state, Event_cache* cache);
 
 
 /**
@@ -125,6 +144,19 @@ void Channel_state_reset(Channel_state* state);
  * \return   The parameter \a dest.
  */
 Channel_state* Channel_state_copy(Channel_state* dest, const Channel_state* src);
+
+
+/**
+ * Returns an actual force of a current foreground Voice.
+ *
+ * \param state       The Channel state -- must not be \c NULL.
+ * \param gen_index   The Generator index -- must be >= \c 0 and
+ *                    < \c KQT_GENERATORS_MAX.
+ *
+ * \return   The actual force if the active foreground Voice at \a gen_index
+ *           exists, otherwise NAN.
+ */
+double Channel_state_get_fg_force(Channel_state* state, int gen_index);
 
 
 /**

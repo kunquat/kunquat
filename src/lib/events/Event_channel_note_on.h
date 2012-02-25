@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,15 +16,14 @@
 #define K_EVENT_CHANNEL_NOTE_ON_H
 
 
-#include <stdint.h>
+#include <stdbool.h>
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
-Event* new_Event_channel_note_on(Reltime* pos);
-
-bool Event_channel_note_on_process(Channel_state* ch_state, char* fields);
+bool Event_channel_note_on_process(Channel_state* ch_state, Value* value);
 
 
 #endif // K_EVENT_CHANNEL_NOTE_ON_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -130,20 +130,6 @@ Device_params* Generator_get_params(Generator* gen);
  * \return   The type.
  */
 char* Generator_get_type(Generator* gen);
-
-
-/**
- * Handles a given note as appropriate for the Generator.
- *
- * \param gen      The Generator -- must not be \c NULL.
- * \param states   The array of Voice states -- must not be \c NULL.
- * \param cents    The pitch in cents -- must be finite.
- */
-#if 0
-void Generator_process_note(Generator* gen,
-                            Voice_state* states,
-                            double cents);
-#endif
 
 
 /**

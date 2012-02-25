@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,28 +21,16 @@
 #include <Event_channel_set_global_effects.h>
 #include <File_base.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_global_effects_desc[] =
-{
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_constructor(Event_channel,
-                         EVENT_CHANNEL_SET_GLOBAL_EFFECTS,
-                         set_global_effects);
-
-
 bool Event_channel_set_global_effects_process(Channel_state* ch_state,
-                                              char* fields)
+                                              Value* value)
 {
     assert(ch_state != NULL);
-    (void)fields;
+    (void)value;
     ch_state->inst_effects = false;
     return true;
 }

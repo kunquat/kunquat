@@ -55,6 +55,14 @@ extern "C" {
 
 
 /**
+ * Maximum calculated length of a Kunquat composition.
+ *
+ * The constant corresponds to 30 days.
+ */
+#define KQT_MAX_CALC_DURATION 2592000000000000LL
+
+
+/**
  * Maximum number of Voices used for mixing.
  */
 #define KQT_VOICES_MAX 1024
@@ -150,9 +158,9 @@ extern "C" {
 
 
 /**
- * Maximum number of notes in the arpeggio event.
+ * Maximum number of notes in the arpeggio.
  */
-#define KQT_ARPEGGIO_NOTES_MAX 3
+#define KQT_ARPEGGIO_NOTES_MAX 64
 
 
 #ifdef __cplusplus
