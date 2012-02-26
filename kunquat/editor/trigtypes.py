@@ -180,7 +180,7 @@ triggers = {
         '?': [any_bool],
         '?if': [],
         '?else': [],
-        '?endif': [],
+        '?end': [],
 
         'signal': [any_str],
         'callBn': [any_str],
