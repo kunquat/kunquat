@@ -72,6 +72,7 @@ class Pattern(QtGui.QWidget):
                 'cursor_bg': QtGui.QColor(0xff, 0x66, 0x22, 0x77),
                 'cursor_line': QtGui.QColor(0xff, 0xee, 0x88),
                 'cursor_arrow': QtGui.QColor(0xff, 0x44, 0x22),
+                'grid': QtGui.QPen(QtGui.QColor(0x66, 0x66, 0x66)),
                 'ruler_bg': QtGui.QColor(0x11, 0x22, 0x55),
                 'ruler_cur': QtGui.QColor(0x77, 0x99, 0xbb),
                 'ruler_fg': QtGui.QColor(0xaa, 0xcc, 0xff),
@@ -83,6 +84,7 @@ class Pattern(QtGui.QWidget):
                 'trigger_type_fg': QtGui.QColor(0xcc, 0xcc, 0xaa),
                 'trigger_invalid_fg': QtGui.QColor(0xff, 0x33, 0x11),
                 }
+        self.colours['grid'].setStyle(QtCore.Qt.DashLine)
         self.fonts = {
                 'column_head': QtGui.QFont('Decorative', 10),
                 'ruler': QtGui.QFont('Decorative', 8),
@@ -171,6 +173,12 @@ class Pattern(QtGui.QWidget):
         self.ruler.set_length(self.length)
         self.ruler.set_beat_len(self.beat_len)
         self.ruler.set_view_start(self.view_start)
+
+        self._grid = Grid((self.colours, self.fonts), self.ruler.width())
+        self._grid.length = self.length
+        self._grid.beat_len = self.beat_len
+        self._grid.view_start = self.view_start
+
         self.set_project(project)
         self.cursor.set_scale(default_scale)
         self.note_input = default_input
@@ -238,6 +246,7 @@ class Pattern(QtGui.QWidget):
             self.length = ts.Timestamp(16)
         self.cursor.set_length(self.length)
         self.ruler.set_length(self.length)
+        self._grid.length = self.length
         self.cursor.set_path(self.path)
         for col in self.columns:
             col.set_length(self.length)
@@ -310,6 +319,7 @@ class Pattern(QtGui.QWidget):
         if neg_pix_shift < 0 or pos_pix_shift > 0:
             self.view_start = ts.Timestamp(pix_view_start / self.beat_len)
             self.ruler.set_view_start(self.view_start)
+            self._grid.view_start = self.view_start
             for col in self.columns:
                 col.set_view_start(self.view_start)
             return True
@@ -361,6 +371,7 @@ class Pattern(QtGui.QWidget):
             col.set_width(col.width() / self.zoom_factor)
         self.view_columns = list(self.get_viewable_columns(self.width))
         self.follow_cursor_horizontal()
+        self._grid.width = sum(x.width() for x in self.view_columns)
         self.update()
 
     def _expand_columns(self, ev):
@@ -368,6 +379,7 @@ class Pattern(QtGui.QWidget):
             col.set_width(col.width() * self.zoom_factor)
         self.view_columns = list(self.get_viewable_columns(self.width))
         self.follow_cursor_horizontal()
+        self._grid.width = sum(x.width() for x in self.view_columns)
         self.update()
 
     def _next_section(self, ev):
@@ -466,6 +478,7 @@ class Pattern(QtGui.QWidget):
         paint.begin(self)
         paint.setBackground(self.colours['bg'])
         paint.eraseRect(ev.rect())
+        self._grid.paint(ev.rect(), paint)
         self.ruler.paint(ev.rect(), paint, self._play_row
                          if self._play_pattern == self.number else None)
         col_pos = self.ruler.width()
@@ -480,6 +493,8 @@ class Pattern(QtGui.QWidget):
         self.height = ev.size().height()
         self.view_columns = list(self.get_viewable_columns(self.width))
         self.ruler.resize(ev)
+        self._grid.height = ev.size().height()
+        self._grid.width = sum(x.width() for x in self.view_columns)
         for column in self.columns:
             column.resize(self.height)
 
@@ -515,6 +530,8 @@ class Pattern(QtGui.QWidget):
             self.follow_cursor_vertical()
         self.ruler.set_beat_len(self.beat_len)
         self.ruler.set_view_start(self.view_start)
+        self._grid.beat_len = self.beat_len
+        self._grid.view_start = self.view_start
         for col in self.columns:
             col.set_beat_len(self.beat_len)
             col.set_view_start(self.view_start)
@@ -529,6 +546,95 @@ class Pattern(QtGui.QWidget):
         self._play_row = ts.Timestamp(event[1])
         if self._play_pattern == self.number:
             self.update(0, 0, self.ruler.width(), self.height)
+
+
+class Grid(object):
+
+    def __init__(self, theme, ruler_width):
+        self._colours = theme[0]
+        self._fonts = theme[1]
+        self._height = 0
+        self._width = 0
+        self._view_start = ts.Timestamp()
+        self._beat_div_base = 2
+        self.set_dimensions(ruler_width)
+
+    def set_dimensions(self, ruler_width):
+        self._grid_min_dist = QtGui.QFontMetrics(self._fonts['trigger']).height()
+        self._col_head_height = QtGui.QFontMetrics(
+                                    self._fonts['column_head']).height()
+        self._ruler_width = ruler_width
+
+    @property
+    def height(self):
+        return self._height
+
+    @height.setter
+    def height(self, value):
+        self._height = value
+
+    @property
+    def length(self):
+        return self._length
+
+    @length.setter
+    def length(self, value):
+        self._length = value
+
+    @property
+    def beat_len(self):
+        return self._beat_len
+
+    @beat_len.setter
+    def beat_len(self, value):
+        self._beat_len = float(value)
+
+    @property
+    def view_start(self):
+        return self._view_start
+
+    @view_start.setter
+    def view_start(self, value):
+        self._view_start = value
+
+    @property
+    def width(self):
+        return self._width
+
+    @width.setter
+    def width(self, value):
+        self._width = value
+
+    def paint(self, rect, paint):
+        paint.setPen(self._colours['grid'])
+        line_min_time = self._grid_min_dist / self._beat_len
+        line_interval = self._beat_div_base**math.ceil(
+                                math.log(line_min_time, self._beat_div_base))
+        for line_pos in self._get_viewable_positions(line_interval):
+            self._paint_line(line_pos, paint)
+
+    def _paint_line(self, pos, paint):
+        view_start = float(self._view_start)
+        view_end = view_start + self._height / self._beat_len
+        y = self._col_head_height + (pos - view_start) * self._beat_len
+        if not self._col_head_height <= y < self._height:
+            return
+        #if pos == 0 or pos == float(self._length):
+        #    return
+        paint.drawLine(self._ruler_width, y,
+                       self._ruler_width + self._width, y)
+
+    def _get_viewable_positions(self, interval):
+        view_end = float(self._view_start) + self._height / self._beat_len
+        #print(view_end, float(self._length))
+        view_end = min(view_end, float(self._length))
+        error = interval / 2
+        pos = math.ceil(float(self._view_start) / interval) * interval
+        while pos <= view_end:
+            if abs(pos - round(pos)) < error:
+                pos = round(pos)
+            yield pos
+            pos += interval
 
 
 class Ruler(object):
