@@ -71,6 +71,7 @@ class Cursor(QtCore.QObject):
         self.project = None
         self.inst_num = 0
         self.inst_auto = True
+        self.grid = None
         nm = QtCore.Qt.NoModifier
         self._keys = keymap.KeyMap('Cursor movement keys', {
                 (QtCore.Qt.Key_Up, nm): (self._step_up,
@@ -606,14 +607,26 @@ class Cursor(QtCore.QObject):
     def step(self):
         if not self.cur_speed:
             return
-        if self.trigger_delay_left:
+        if self.trigger_delay_left and not self.grid.snap:
             self.trigger_delay_left -= 1
             return
+
         orig_pos = self.ts
-        self.set_pix_pos(self.pix_pos + self.cur_speed)
-        if self.ts == orig_pos:
-            self.set_pos(self.ts + ts.Timestamp(0,
-                                       1 if self.cur_speed > 0 else -1))
+        if self.grid.snap:
+            if self.cur_speed < 0:
+                prev_pos = self.grid.prev_pos(self.ts)
+                assert prev_pos != self.ts
+                self.set_pos(prev_pos)
+            else:
+                assert self.cur_speed > 0
+                next_pos = self.grid.next_pos(self.ts)
+                assert next_pos != self.ts
+                self.set_pos(next_pos)
+        else:
+            self.set_pix_pos(self.pix_pos + self.cur_speed)
+            if self.ts == orig_pos:
+                self.set_pos(self.ts + ts.Timestamp(0,
+                                           1 if self.cur_speed > 0 else -1))
 
         first, second = ((orig_pos, self.ts) if orig_pos < self.ts
                                              else (self.ts, orig_pos))

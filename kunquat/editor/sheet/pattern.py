@@ -178,6 +178,8 @@ class Pattern(QtGui.QWidget):
         self._grid.length = self.length
         self._grid.beat_len = self.beat_len
         self._grid.view_start = self.view_start
+        self.cursor.grid = self._grid
+        self._snap_to_grid = self._grid.snap = True
 
         self.set_project(project)
         self.cursor.set_scale(default_scale)
@@ -557,6 +559,7 @@ class Grid(object):
         self._width = 0
         self._view_start = ts.Timestamp()
         self._beat_div_base = 2
+        self.snap = True
         self.set_dimensions(ruler_width)
 
     def set_dimensions(self, ruler_width):
@@ -564,6 +567,12 @@ class Grid(object):
         self._col_head_height = QtGui.QFontMetrics(
                                     self._fonts['column_head']).height()
         self._ruler_width = ruler_width
+
+    @property
+    def interval(self):
+        line_min_time = self._grid_min_dist / self._beat_len
+        return self._beat_div_base**math.ceil(
+                        math.log(line_min_time, self._beat_div_base))
 
     @property
     def height(self):
@@ -605,12 +614,37 @@ class Grid(object):
     def width(self, value):
         self._width = value
 
+    def prev_pos(self, pos):
+        return self._adjacent(pos, -1)
+
+    def next_pos(self, pos):
+        return self._adjacent(pos, 1)
+
+    def _adjacent(self, pos, direction):
+        assert direction in (-1, 1)
+        round_func = math.floor if direction > 0 else math.ceil
+        beats, rem = pos
+        interval = self.interval
+        if interval >= 1:
+            return ts.Timestamp(round_func(beats / interval + direction) *
+                                interval, 0)
+        rem_interval = interval * ts.TIMESTAMP_BEAT
+        new_index = round_func(rem / rem_interval + direction)
+        new_rem = round(new_index * rem_interval)
+        if new_rem == rem:
+            new_rem = round((new_index + direction) * rem_interval)
+        assert new_rem < rem if direction < 0 else new_rem > rem
+        return ts.Timestamp(beats, new_rem)
+        #print(rem, rem / rem_interval, rem / rem_interval + direction,
+        #        round_func(rem / rem_interval + direction),
+        #        round_func(rem / rem_interval + direction) * rem_interval)
+        #return ts.Timestamp(beats,
+        #        round(round_func(rem / rem_interval + direction) *
+        #              rem_interval))
+
     def paint(self, rect, paint):
         paint.setPen(self._colours['grid'])
-        line_min_time = self._grid_min_dist / self._beat_len
-        line_interval = self._beat_div_base**math.ceil(
-                                math.log(line_min_time, self._beat_div_base))
-        for line_pos in self._get_viewable_positions(line_interval):
+        for line_pos in self._get_viewable_positions(self.interval):
             self._paint_line(line_pos, paint)
 
     def _paint_line(self, pos, paint):
