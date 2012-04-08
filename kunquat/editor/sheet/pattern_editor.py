@@ -42,8 +42,14 @@ class PatternEditor(QtGui.QWidget):
 
         name = QtGui.QLabel('[pattern num/name]')
 
-        autoinst = QtGui.QCheckBox('Explicit inst.')
+        autoinst = QtGui.QCheckBox('Autoinst')
         autoinst.setChecked(True)
+
+        grid = QtGui.QCheckBox('Grid')
+        grid.setChecked(True)
+
+        snap_to_grid = QtGui.QCheckBox('Snap')
+        snap_to_grid.setChecked(True)
 
         self._length = TimestampSpin(project,
                                      'Length:',
@@ -55,6 +61,8 @@ class PatternEditor(QtGui.QWidget):
 
         top_layout.addWidget(name, 1)
         top_layout.addWidget(autoinst, 0)
+        top_layout.addWidget(grid, 0)
+        top_layout.addWidget(snap_to_grid, 0)
         top_layout.addWidget(self._length, 0)
 
         self._pattern = Pattern(project,
@@ -74,6 +82,12 @@ class PatternEditor(QtGui.QWidget):
         QtCore.QObject.connect(autoinst,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._pattern.autoinst_changed)
+        QtCore.QObject.connect(grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern.grid_changed)
+        QtCore.QObject.connect(snap_to_grid,
+                               QtCore.SIGNAL('stateChanged(int)'),
+                               self._pattern.snap_to_grid_changed)
 
     def section_changed(self, subsong, section):
         pattern = self._project.get_pattern(subsong, section)

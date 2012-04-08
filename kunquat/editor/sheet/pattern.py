@@ -179,7 +179,8 @@ class Pattern(QtGui.QWidget):
         self._grid.beat_len = self.beat_len
         self._grid.view_start = self.view_start
         self.cursor.grid = self._grid
-        self._snap_to_grid = self._grid.snap = True
+        self._grid.enabled = True
+        self._grid.snap = True
 
         self.set_project(project)
         self.cursor.set_scale(default_scale)
@@ -211,10 +212,14 @@ class Pattern(QtGui.QWidget):
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
 
     def autoinst_changed(self, value):
-        if value:
-            self.cursor.inst_auto = True
-        else:
-            self.cursor.inst_auto = False
+        self.cursor.inst_auto = bool(value)
+
+    def grid_changed(self, value):
+        self._grid.enabled = bool(value)
+        self.update()
+
+    def snap_to_grid_changed(self, value):
+        self._grid.snap = bool(value)
 
     def field_edit(self, edit):
         if edit:
@@ -559,6 +564,7 @@ class Grid(object):
         self._width = 0
         self._view_start = ts.Timestamp()
         self._beat_div_base = 2
+        self.enabled = True
         self.snap = True
         self.set_dimensions(ruler_width)
 
@@ -643,6 +649,8 @@ class Grid(object):
         #              rem_interval))
 
     def paint(self, rect, paint):
+        if not self.enabled:
+            return
         paint.setPen(self._colours['grid'])
         for line_pos in self._get_viewable_positions(self.interval):
             self._paint_line(line_pos, paint)
