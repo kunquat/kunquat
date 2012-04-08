@@ -641,12 +641,6 @@ class Grid(object):
             new_rem = round((new_index + direction) * rem_interval)
         assert new_rem < rem if direction < 0 else new_rem > rem
         return ts.Timestamp(beats, new_rem)
-        #print(rem, rem / rem_interval, rem / rem_interval + direction,
-        #        round_func(rem / rem_interval + direction),
-        #        round_func(rem / rem_interval + direction) * rem_interval)
-        #return ts.Timestamp(beats,
-        #        round(round_func(rem / rem_interval + direction) *
-        #              rem_interval))
 
     def paint(self, rect, paint):
         if not self.enabled:

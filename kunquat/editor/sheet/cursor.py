@@ -339,6 +339,8 @@ class Cursor(QtCore.QObject):
                                              ['n-', None])
         if note_off_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
+        if self.grid.snap:
+            self._step_down(None)
         self.insert = False
 
     def note_on_key(self, ev):
@@ -477,6 +479,8 @@ class Cursor(QtCore.QObject):
                                              ['n+', cents])
         if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
+        if self.grid.snap:
+            self._step_down(None)
         self.insert = False
 
     def key_release(self, ev):
