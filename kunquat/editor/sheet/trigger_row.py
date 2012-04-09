@@ -105,7 +105,8 @@ class Trigger_row(list):
         insert_pos = None
         if cursor:
             cursor_pos = cursor.get_index()
-            paint.eraseRect(rect)
+            if self:
+                paint.eraseRect(rect)
             cursor_left, cursor_width = self.cursor_area(cursor)
             cursor_right = cursor_left + cursor_width
             offset = -cursor.get_view_start()
@@ -146,6 +147,8 @@ class Trigger_row(list):
             right_arrow = True
         if cursor_pos >= 0 and focus:
             height = self.metrics.height()
+            if not self:
+                offset += self.metrics.width('m') * 0.3
             cursor_rect = QtCore.QRectF(rect.left() + offset, rect.top(),
                                         self.empty_cursor_width, height)
             self.paint_empty_cursor(paint, cursor_rect)
@@ -155,7 +158,12 @@ class Trigger_row(list):
             self.paint_right_arrow(paint, rect)
 
     def paint_empty_cursor(self, paint, rect):
-        paint.fillRect(rect, self.colours['trigger_type_fg'])
+        #colour = QtGui.QColor(self.colours['trigger_type_fg'])
+        #colour.setAlphaF(0.5)
+        #paint.fillRect(rect, colour)
+        paint.setPen(self.colours['trigger_type_fg'])
+        paint.setBrush(QtCore.Qt.NoBrush)
+        paint.drawRect(rect)
 
     def paint_left_arrow(self, paint, rect):
         arrow = self.arrow_left.translated(rect.left(), rect.top() + 1)
