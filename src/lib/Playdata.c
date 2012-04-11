@@ -246,7 +246,8 @@ void Playdata_reset(Playdata* play)
         {
             if (play->scales[i] != NULL)
             {
-                Scale_retune(play->scales[i], -1, 0);
+                Scale_reset(play->scales[i]);
+                //Scale_retune(play->scales[i], -1, 0);
             }
         }
     }
