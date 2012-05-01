@@ -137,6 +137,7 @@ class Column(object):
                             if view_start < p <= min(view_end, self.length)]
         visible_triggers.sort(lambda x, y: (y - x).signum())
         next_pos = None
+        edit_cursor_drawn = False
         if visible_triggers:
             for pos in visible_triggers:
                 pix_pos = float((pos - self.view_start) * self.beat_len +
@@ -148,10 +149,17 @@ class Column(object):
                                          self.beat_len + col_head_height) - 1
                 row_height = next_pix_pos - pix_pos
                 rect = QtCore.QRectF(x, pix_pos, self._width, row_height)
+                draw_edit_cursor = self.cursor and pos == self.cursor.get_pos()
+                edit_cursor_drawn = edit_cursor_drawn or draw_edit_cursor
                 self.triggers[pos].paint(paint, rect, self.cursor
-                             if self.cursor and pos == self.cursor.get_pos()
-                             else None, focus)
+                             if draw_edit_cursor else None, focus)
                 next_pos = pos
+        if self.cursor and not edit_cursor_drawn:
+            pix_pos = float((self.cursor.get_pos() - self.view_start) *
+                            self.beat_len + col_head_height)
+            rect = QtCore.QRectF(x, pix_pos, self._width, trigger_height)
+            tr.Trigger_row((self.colours, self.fonts)).paint(paint, rect,
+                                                       self.cursor, focus)
 
         if focus and self.cursor:
             pix_cur_pos = (self.cursor.get_pix_pos() -

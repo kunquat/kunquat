@@ -133,7 +133,7 @@ class RHandle(object):
         data = ''.join(chr(ch) for ch in data)
         if key[key.index('.'):].startswith('.json'):
             return json.loads(data) if data else None
-        return data
+        return data if data else None
 
     @property
     def subsong(self):
@@ -373,6 +373,8 @@ class RWHandle(RHandle):
         """
         if key[key.index('.'):].startswith('.json'):
             value = json.dumps(value) if value else ''
+        elif value == None:
+            value = ''
         data = buffer(value)
         cdata = (ctypes.c_ubyte * len(data))()
         cdata[:] = [ord(b) for b in data][:]

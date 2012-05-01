@@ -258,7 +258,7 @@ class Poll(object):
             self._cleanup()
             raise PulseAudioError('Could not create PulseAudio stream')
         buffering = _BufferAttr(ctypes.c_uint32(-1),
-                                _pulse.pa_usec_to_bytes(100000,
+                                _pulse.pa_usec_to_bytes(200000,
                                                         ctypes.byref(ss)),
                                 ctypes.c_uint32(-1),
                                 ctypes.c_uint32(-1),
