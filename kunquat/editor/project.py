@@ -1002,7 +1002,13 @@ class History(object):
                                         QtCore.SIGNAL('step(QString)'),
                                         'Undoing {0} ({1}) ...'.format(
                                             self._current.name, change.key))
-                self._project.set_raw(change.key, change.old_data)
+                old_data = None
+                if change.old_data:
+                    if change.key[change.key.index('.'):].startswith('.json'):
+                        old_data = json.loads(change.old_data)
+                    else:
+                        old_data = change.old_data
+                self._project.set_raw(change.key, old_data)
                 #self._project.handle[change.key] = change.old_data
         finally:
             if step_signaller:
