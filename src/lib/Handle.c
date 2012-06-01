@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -59,6 +59,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->destroy = NULL;
     handle->get_data = NULL;
     handle->get_data_length = NULL;
+    handle->set_data = NULL;
     handle->error[0] = handle->error[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
@@ -209,6 +210,12 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, NULL);
     check_key(handle, key, NULL);
+    if (handle->mode == KQT_MEM)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot get data from a write-only Kunquat Handle.");
+        return NULL;
+    }
     assert(handle->get_data != NULL);
     void* data = handle->get_data(handle, key);
     if (data != NULL)
@@ -223,6 +230,39 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
         }
     }
     return data;
+}
+
+
+long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
+{
+    check_handle(handle, -1);
+    check_key(handle, key, -1);
+    if (handle->mode == KQT_MEM)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot get data from a write-only Kunquat Handle.");
+        return -1;
+    }
+    assert(handle->get_data_length != NULL);
+    return handle->get_data_length(handle, key);
+}
+
+
+int kqt_Handle_set_data(kqt_Handle* handle,
+                        const char* key,
+                        void* data,
+                        long length)
+{
+    check_handle(handle, 0);
+    check_key(handle, key, 0);
+    if (handle->mode == KQT_READ)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot set data on a read-only Kunquat Handle.");
+        return 0;
+    }
+    assert(handle->set_data != NULL);
+    return handle->set_data(handle, key, data, length);
 }
 
 
@@ -242,15 +282,6 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data)
     }
     xfree(target);
     return 1;
-}
-
-
-long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
-{
-    check_handle(handle, -1);
-    check_key(handle, key, -1);
-    assert(handle->get_data_length != NULL);
-    return handle->get_data_length(handle, key);
 }
 
 

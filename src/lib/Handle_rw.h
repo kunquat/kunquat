@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -23,10 +23,6 @@ typedef struct Handle_rw
 {
     kqt_Handle handle;
     char* base_path;
-    int (*set_data)(kqt_Handle* handle,
-                    const char* key,
-                    void* data,
-                    long length);
 } Handle_rw;
 
 

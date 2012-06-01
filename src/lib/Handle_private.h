@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -44,6 +44,15 @@ typedef enum
 } Error_type;
 
 
+typedef enum
+{
+    KQT_READ = 0,
+    KQT_READ_WRITE,
+    KQT_READ_WRITE_COMMIT,
+    KQT_MEM,
+} kqt_Access_mode;
+
+
 struct kqt_Handle
 {
     Song* song;
@@ -51,6 +60,7 @@ struct kqt_Handle
     AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
+    int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
     void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_HANDLE_ERROR_LENGTH];
     char position[POSITION_LENGTH];
