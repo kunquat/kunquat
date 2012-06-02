@@ -19,7 +19,10 @@ enable_libkunquat_dev = True
 enable_python_bindings = True
 
 # Build and run libkunquat tests.
-enable_tests = False
+enable_tests = True
+
+# Run tests with memory debugging (requires valgrind, disables assert tests).
+enable_tests_mem_debug = False
 
 # Enable kunquat-player (requires enable_python_bindings).
 enable_player = True
