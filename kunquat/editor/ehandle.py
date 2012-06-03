@@ -31,7 +31,7 @@ __all__ = ['EHandle']
 
 class EHandle(kunquat.MHandle):
 
-    def __init__(self, path, mixing_rate):
+    def __init__(self, store, mixing_rate):
         """Create a new EHandle.
 
         Arguments:
@@ -47,7 +47,7 @@ class EHandle(kunquat.MHandle):
 
         """
         super(EHandle, self).__init__(mixing_rate)
-        self._store = Store(path)
+        self._store = store
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
