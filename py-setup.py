@@ -5,7 +5,7 @@ from distutils.core import setup
 import sys
 
 
-inc_pkgs = ['kunquat', 'kunquat.extras']
+inc_pkgs = ['kunquat', 'kunquat.extras', 'kunquat.storage']
 inc_scripts = []
 inc_data = []
 req_list = []
