@@ -121,7 +121,7 @@ class Pattern(QtGui.QWidget):
                         (self._cursor_right, None),
                 })
         self.length = ts.Timestamp(16)
-        self.beat_len = 96
+        self.beat_len = 80
         self.view_start = ts.Timestamp(0)
         self.columns = [Column(num, (self.colours, self.fonts))
                         for num in xrange(0, lim.COLUMNS_MAX)]
