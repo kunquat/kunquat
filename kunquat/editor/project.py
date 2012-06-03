@@ -26,6 +26,7 @@ import types
 
 from PyQt4 import QtCore
 
+import ehandle
 import kqt_limits as lim
 import kunquat
 
@@ -60,7 +61,7 @@ class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
 
-    A Project combines the functionalities of the Kunquat RWCHandle
+    A Project combines the functionalities of the Kunquat EHandle
     and History.
 
     """
@@ -93,7 +94,7 @@ class Project(QtCore.QObject):
             if err.errno != errno.EEXIST:
                 raise
         self._mixing_rate = mixing_rate
-        self._handle = kunquat.RWCHandle(self._root, mixing_rate)
+        self._handle = ehandle.EHandle(self._root, mixing_rate)
         self._handle.buffer_size = 1024
         self._find_keys()
         self._changed = False
