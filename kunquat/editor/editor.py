@@ -17,6 +17,7 @@ from __future__ import print_function
 from itertools import count
 import json
 import math
+import os.path
 import random
 import sys
 import time
@@ -98,12 +99,18 @@ class Playback(QtCore.QObject):
 
 class KqtEditor(QtGui.QMainWindow):
 
-    def __init__(self):
+    def __init__(self, args):
         QtGui.QMainWindow.__init__(self)
+
+        try:
+            file_path = str(args[1])
+        except IndexError:
+            file_path = ''
+
         self._playback = Playback()
         self._playback.connect(self.play_subsong, self.play_pattern,
                                self.play_from, self.play_event, self.stop)
-        self.project = project.Project(0)
+        self.project = project.Project(file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
         self._scale = scale.Scale({
@@ -171,6 +178,9 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
+        # XXX: remove after store works
+        if os.path.isfile(file_path):
+            self.project.import_kqt(file_path)
 
     def _undo(self, ev):
         self.project.undo()
@@ -418,6 +428,7 @@ class KqtEditor(QtGui.QMainWindow):
         layout.setMargin(5)
         layout.setSpacing(5)
 
+        """
         new_project = QtGui.QToolButton()
         new_project.setText('Clear Project')
         new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
@@ -433,19 +444,22 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(open_project,
                                QtCore.SIGNAL('clicked()'),
                                self.import_composition)
+        """
 
         save_project = QtGui.QToolButton()
-        save_project.setText('Save Project')
+        save_project.setText('Export Composition')
         save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
         save_project.setAutoRaise(True)
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
-                               self.save)
+                               self.export_composition)
 
+        """
         export = QtGui.QToolButton()
         export.setText('Export')
         export.setAutoRaise(True)
         QtCore.QObject.connect(export, QtCore.SIGNAL('clicked()'),
                                self.export_composition)
+        """
 
         play = QtGui.QToolButton()
         play.setText('Play')
@@ -502,10 +516,10 @@ class KqtEditor(QtGui.QMainWindow):
         #                       lambda x: self._set_infinite(x ==
         #                                            QtCore.Qt.Checked))
 
-        layout.addWidget(new_project)
-        layout.addWidget(open_project)
+        #layout.addWidget(new_project)
+        #layout.addWidget(open_project)
         layout.addWidget(save_project)
-        layout.addWidget(export)
+        #layout.addWidget(export)
         layout.addWidget(self.create_separator())
 
         layout.addWidget(play)
@@ -605,7 +619,7 @@ class Status(QtGui.QWidget):
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    editor = KqtEditor()
+    editor = KqtEditor(app.arguments())
     editor.show()
     sys.exit(app.exec_())
 

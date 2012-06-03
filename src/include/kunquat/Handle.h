@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -56,22 +56,15 @@ typedef struct kqt_Handle kqt_Handle;
 
 
 /**
- * The access mode of Kunquat Handles.
+ * Creates an empty write-only Kunquat Handle that only resides in memory.
  *
- * The read-only mode is used for composition files and is typically used by
- * players.
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * The read/write mode 
- *
- * The commit mode is similar to read/write mode but provides a safe
- * transaction mechanism for storing changes to the data being modified.
+ * \return   The new memory-only Kunquat Handle if successful, otherwise
+ *           \c NULL (check kqt_Handle_get_error(\c NULL) for error message).
  */
-typedef enum
-{
-    KQT_READ = 0,
-    KQT_READ_WRITE,
-    KQT_READ_WRITE_COMMIT
-} kqt_Access_mode;
+kqt_Handle* kqt_new_Handle_m(void);
 
 
 /**
@@ -156,7 +149,7 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data);
  *           Handle error is set accordingly.
  */
 int kqt_Handle_set_data(kqt_Handle* handle,
-                        char* key,
+                        const char* key,
                         void* data,
                         long length);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -62,7 +62,7 @@ kqt_Handle* kqt_new_Handle_rw(char* path)
     handle_rw->handle.mode = KQT_READ_WRITE;
     handle_rw->handle.get_data = Handle_rw_get_data;
     handle_rw->handle.get_data_length = Handle_rw_get_data_length;
-    handle_rw->set_data = Handle_rw_set_data;
+    handle_rw->handle.set_data = Handle_rw_set_data;
     handle_rw->handle.destroy = del_Handle_rw;
     if (!File_dir_open(handle_rw, path))
     {
@@ -76,25 +76,6 @@ kqt_Handle* kqt_new_Handle_rw(char* path)
         return NULL;
     }
     return &handle_rw->handle;
-}
-
-
-int kqt_Handle_set_data(kqt_Handle* handle,
-                        char* key,
-                        void* data,
-                        long length)
-{
-    check_handle(handle, 0);
-    check_key(handle, key, 0);
-    if (handle->mode == KQT_READ)
-    {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot set data on a read-only Kunquat Handle.");
-        return 0;
-    }
-    Handle_rw* handle_rw = (Handle_rw*)handle;
-    assert(handle_rw->set_data != NULL);
-    return handle_rw->set_data(handle, key, data, length);
 }
 
 

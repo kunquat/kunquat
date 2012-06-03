@@ -26,8 +26,10 @@ import types
 
 from PyQt4 import QtCore
 
+import ehandle
 import kqt_limits as lim
 import kunquat
+from kunquat.storage import storage, store
 
 
 class Process(QtCore.QThread):
@@ -60,7 +62,7 @@ class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
 
-    A Project combines the functionalities of the Kunquat RWCHandle
+    A Project combines the functionalities of the Kunquat EHandle
     and History.
 
     """
@@ -69,7 +71,7 @@ class Project(QtCore.QObject):
     _end_task = QtCore.pyqtSignal(name='endTask')
     _sync = QtCore.pyqtSignal(name='sync')
 
-    def __init__(self, proj_id, mixing_rate=48000, parent=None):
+    def __init__(self, file_path='', mixing_rate=48000, parent=None):
         """Create a new Project.
 
         Arguments:
@@ -84,6 +86,7 @@ class Project(QtCore.QObject):
         """
         QtCore.QObject.__init__(self, parent)
         self._process = Process()
+        """
         self._root = os.path.join(os.path.expanduser('~'),
                                   '.kunquat', 'projects',
                                   '{0:08x}'.format(proj_id))
@@ -92,8 +95,16 @@ class Project(QtCore.QObject):
         except OSError as err:
             if err.errno != errno.EEXIST:
                 raise
+        """
         self._mixing_rate = mixing_rate
-        self._handle = kunquat.RWCHandle(self._root, mixing_rate)
+
+        root_path = os.path.join(
+                os.path.expanduser('~'),
+                '.kunquat', 'projects')
+        projects = storage.Storage(root_path, create=True)
+        self._composition = projects.open(file_path)
+        self._handle = ehandle.EHandle(self._composition, mixing_rate)
+
         self._handle.buffer_size = 1024
         self._find_keys()
         self._changed = False
@@ -109,7 +120,7 @@ class Project(QtCore.QObject):
 
         """
         keys = set()
-        comp_root = os.path.join(self._root, 'committed', 'kqtc00')
+        comp_root = os.path.join(self._composition._path, 'committed', 'kqtc00')
         for path in (os.path.join(d[0], f) for d in
                      os.walk(comp_root) for f in d[2]):
             components = []

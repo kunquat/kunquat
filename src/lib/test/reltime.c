@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <float.h>
 
-#include <check.h>
+#include <test_common.h>
 
 #include <Reltime.h>
 
@@ -127,7 +127,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    
+
     Reltime_set(r1, INT64_MIN + 1, 0);
     Reltime_set(r2, INT64_MIN + 1, 0);
     res = Reltime_cmp(r1, r2);
@@ -138,7 +138,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    
+
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, -1, 0);
     res = Reltime_cmp(r1, r2);
@@ -149,7 +149,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r1, r2);
     fail_unless(res == 0,
             "Reltime_cmp() returned %s instead of equal.", CMPTEXT(res));
-    
+
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 0, 0);
     res = Reltime_cmp(r1, r2);
@@ -423,7 +423,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    
+
     Reltime_set(r1, -1, 0);
     Reltime_set(r2, 0, KQT_RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
@@ -440,7 +440,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    
+
     Reltime_set(r1, 0, 0);
     Reltime_set(r2, 1, KQT_RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
@@ -457,7 +457,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    
+
     Reltime_set(r1, INT64_MAX - 1, 0);
     Reltime_set(r2, INT64_MAX, KQT_RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
@@ -474,7 +474,7 @@ START_TEST (cmp)
     res = Reltime_cmp(r2, r1);
     fail_unless(res > 0,
             "Reltime_cmp() returned %s instead of greater.", CMPTEXT(res));
-    
+
     Reltime_set(r1, INT64_MIN, 0);
     Reltime_set(r2, INT64_MAX, KQT_RELTIME_BEAT - 1);
     res = Reltime_cmp(r1, r2);
@@ -1474,17 +1474,7 @@ Suite* Reltime_suite(void)
 
 int main(void)
 {
-    int fail_count = 0;
-    Suite* s = Reltime_suite();
-    SRunner* sr = srunner_create(s);
-    srunner_run_all(sr, CK_NORMAL);
-    fail_count = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    if (fail_count > 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    exit(EXIT_SUCCESS);
+    exit(test_common_run(Reltime_suite()) > 0);
 }
 
 

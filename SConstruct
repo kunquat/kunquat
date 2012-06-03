@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -33,6 +33,8 @@ opts.AddVariables(
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
     BoolVariable('enable_python_bindings', 'Install Python bindings.', True),
     BoolVariable('enable_tests', 'Build and run libkunquat tests.', True),
+    BoolVariable('enable_tests_mem_debug', 'Run tests with memory debugging'
+                 ' (requires valgrind, disables assert tests)', False),
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
     BoolVariable('enable_tracker', 'Enable kunquat-tracker.', True),
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', False),
