@@ -63,17 +63,19 @@ void one_pole_filter_create(double f,
 			    double *mul)
 
 {
+    assert(0 < f);
     assert(f < 0.5);
     assert(coeffs != NULL);
     assert(mul != NULL);
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    double sinf  = sin(PI * f);
-    double cosf  = cos(PI * f);
-    double a0        =  sinf + cosf      ;
-           coeffs[0] = (sinf - cosf) / a0;
-    *mul = (bandform == 0) ? sinf /a0 : cosf / a0;
+    double s  = sin(PI * f);
+    double c  = cos(PI * f);
+    double a0 =  s + c      ;
+    coeffs[0] = (s - c) / a0;
+    double t = (bandform == 0) ? s : c;
+    *mul = t / a0;
     return;
 }
 
@@ -83,6 +85,7 @@ void two_pole_bandpass_filter_create(double f1,
 				     double coeffs[2],
 				     double *mul)
 {
+    assert(0 < f1);
     assert(f1 < f2);
     assert(f2 < 0.5);
     assert(coeffs != NULL);
@@ -90,13 +93,13 @@ void two_pole_bandpass_filter_create(double f1,
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    double sinm = sin(PI * (f2 - f1));
-    double cosm = cos(PI * (f2 - f1));
-    double cosp = cos(PI * (f2 + f1));
-    double a0        =  cosm + sinm      ;
-           coeffs[0] = (cosm - sinm) / a0;
-           coeffs[1] =   - 2 * cosp  / a0;
-	   *mul = sinm / a0;
+    double sm = sin(PI * (f2 - f1));
+    double cm = cos(PI * (f2 - f1));
+    double cp = cos(PI * (f2 + f1));
+    double a0 =  cm + sm      ;
+    coeffs[0] = (cm - sm) / a0;
+    coeffs[1] = - 2 * cp  / a0;
+    *mul = sm / a0;
     return;
 }
 
@@ -107,6 +110,7 @@ void two_pole_filter_create(double f,
 			    double coeffs[2],
 			    double *mul)
 {
+    assert(0 < f);
     assert(f < 0.5);
     assert(q >= 0.5);
     assert(q <= 1000);
@@ -115,25 +119,24 @@ void two_pole_filter_create(double f,
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    double q2    = 2 * q;
-    double sinf  = sin(    PI * f);
-    double cosf  = cos(    PI * f);
-    double sin2f = sin(2 * PI * f);
-    double cos2f = cos(2 * PI * f);
-    double a0        =   1 + sin2f / q2      ;
-           coeffs[0] =  (1 - sin2f / q2) / a0;
-           coeffs[1] = - 2 * cos2f       / a0;
-	   *mul = (bandform == 0) ? sinf * sinf / a0 : cosf * cosf / a0;
+    double s2 = sin(2 * PI * f);
+    double c2 = cos(2 * PI * f);
+    double a0 =   1 + s2 / (2 * q)      ;
+    coeffs[0] =  (1 - s2 / (2 * q)) / a0;
+    coeffs[1] = - 2 * c2            / a0;
+    double t = (bandform == 0) ? sin(PI * f) : cos(PI * f);
+    *mul = t * t / a0;
     return;
 }
 
-
+#define safe_sqrt(x) (sqrt(fmax(0.0, (x))))
 void four_pole_bandpass_filter_create(double f1,
 				      double f2,
 				      double q,
 				      double coeffs[4],
 				      double *mul)
 {
+    assert(0  < f1);
     assert(f1 < f2);
     assert(f2 < 0.5);
     assert(q >= 0.5);
@@ -143,19 +146,23 @@ void four_pole_bandpass_filter_create(double f1,
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    double q2    = 2 * q;
-    double sinf  = sin(    PI * f);
-    double cosf  = cos(    PI * f);
-    double sin2f = sin(2 * PI * f);
-    double cos2f = cos(2 * PI * f);
-    double a0_temp   = (1.0 + f * f + f / q)          ;
-           coeffs[0] = (1.0 + f * f - f / q) / a0_temp;
-           coeffs[1] = (1.0 + f * f) * 2     / a0_temp;
-
-           a0_temp   = (1.0 + f * f + f / q)          ;
-           coeffs[2] = (1.0 + f * f - f / q) / a0_temp;
-           coeffs[3] = (1.0 + f * f) * 2     / a0_temp;
-	   *mul = ;
+    double ss2 = sin(2 * PI * f1) * sin(2 * PI * f2);
+    double sp = sin(PI * (f2 + f1));
+    double sm = sin(PI * (f2 - f1));
+    double cp = cos(PI * (f2 + f1));
+    double cm = cos(PI * (f2 - f1));
+    double x = safe_sqrt((sp * sp) * (sp * sp) - (sm * sm) * ss2 / (q * q));
+    double y = (sm * sm + x) / ss2;
+    double z = sm * safe_sqrt(ss2 / (sp * sp + x) / 2) / q;
+    double ap = safe_sqrt((y + 1) / 2);
+    double am = safe_sqrt((y - 1) / 2);
+    double a0_1 =        cm * ap - cp * am + z        ;
+    coeffs[0]   =       (cm * ap - cp * am - z) / a0_1;
+    coeffs[1]   = - 2 * (cp * ap - cm * am)     / a0_1;
+    double a0_2 =        cm * ap + cp * am + z        ;
+    coeffs[2]   =       (cm * ap + cp * am - z) / a0_2;
+    coeffs[3]   = - 2 * (cp * ap + cm * am)     / a0_2;
+    *mul =  sm * sm / (a0_1 * a0_2);
     return;
 }
 
@@ -167,97 +174,86 @@ void butterworth_filter_create(int n,
 			       double *mul)
 
 {
-    assert(n >= 1);
+    assert(0 < f);
+    assert(n > 0);
     assert(f < 0.5);
     assert(coeffs != NULL);
     assert(mul != NULL);
     //    static int created = 0;
     //    fprintf(stderr, "  %d \n", ++created);
 
-    double sinf  = sin(    PI * f);
-    double cosf  = cos(    PI * f);
-    double sin2f = sin(2 * PI * f);
-    double cos2f = cos(2 * PI * f);
+    double s  = sin(PI * f);
+    double c  = cos(PI * f);
+    double s2 = sin(2 * PI * f);
+    double c2 = cos(2 * PI * f);
     double a0 = 1.0;
-    for(int i = 0; i < (n & ~1); i += 2)
+    for(int i = 0; i < n / 2; i++)
     {
-        double sini = sin(PI / 2 / n * (i + 1));
-	double a0_temp     =  1 + sini * sin2f           ;
-               coeffs[i  ] = (1 - sini * sin2f) / a0_temp;
-               coeffs[i+1] =       - 2 * cos2f  / a0_temp;
+        double si = sin(PI / 2 / n * (2 * i + 1));
+	double a0_temp =   1 + s2 * si           ;
+	coeffs[2*i  ]  =  (1 - s2 * si) / a0_temp;
+	coeffs[2*i+1]  = - 2 * c2       / a0_temp;
         a0 *= a0_temp;
     }
     if(n & 1)
     {
-        double a0_temp     =  sinf + cosf           ;
-               coeffs[n-1] = (sinf - cosf) / a0_temp;
+        double a0_temp =  s + c           ;
+	coeffs[n-1]    = (s - c) / a0_temp;
         a0 *= a0_temp;
     }
-    *mul = (bandform == 0) ? powi(sinf, n) /a0 : powi(cosf, n) / a0;
+    double t = (bandform == 0) ? s : c;
+    *mul = powi(t, n) /a0;
     return;
 }
 
-/*
 
-q(s+1/s)=S
-qs²-Ss+q=0
+void butterworth_bandpass_filter_create(int n,
+					double f1,
+					double f2,
+					double coeffs[2*n],
+					double *mul)
 
-s=(S+-sqrt(S²-4q²))/2q=S/2q+-sqrt((S/2q)²-1)
+{
+    assert(0  < f1);
+    assert(f1 < f2);
+    assert(f2 < 0.5);
+    assert(n > 0);
+    assert(coeffs != NULL);
+    assert(mul != NULL);
+    //    static int created = 0;
+    //    fprintf(stderr, "  %d \n", ++created);
 
-
-1+S/Q+S²
-
-S=(1/Q+-sqrt(1/Q²-4))/2=1/2Q+-sqrt((1/2Q)²-1)
-
-
-p1=(s-S/2q-sqrt((S/2q)²-1))(s-S'/2q-sqrt((S'/2q)²-1))
-=s²+s(-Re(S)/q-2Re(sqrt((S/2q)²-1)))+(1/4q²+Re(sqrt((1/2q)²-S²))/q+sqrt((1-2Re(S²))/8q⁴-1)
-
-
-p2=(s-S/2q+sqrt((S/2q)²-1))(s-S'/2q+sqrt((S'/2q)²-1))
-=s²+s(-Re(S)/q+2Re(sqrt((S/2q)²-1)))+(1/4q²-Re(sqrt((1/2q)²-S²))/q+sqrt((1-2Re(S²))/8q⁴-1)
-
-*/
-
-/* void four_pole_bandpass_filter_create(double f1, */
-/* 				      double f2, */
-/* 				      double q, */
-/* 				      double coeffs[4], */
-/* 				      double *a0) */
-/* { */
-/*   assert(f1 < 0.5); */
-/*   assert(f2 < 0.5); */
-/*   assert(f1 < f2); */
-/*   assert(q >= 0.5); */
-/*   assert(q <= 1000); */
-/*   assert(coeffs != NULL); */
-/*   assert(a0 != NULL); */
-/*   //    static int created = 0; */
-/*   //    fprintf(stderr, "  %d \n", ++created); */
-
-/*   f1 = tan(PI * f1); //Prewarp */
-/*   f2 = tan(PI * f2); //Prewarp */
-/*   double ff = 2 * (f2 * f1); */
-/*   double df = 2 * (f2 - f1); */
-/*   double a0_temp   = ((ff * (ff + 2.0) + df * df + 1.0) + (ff + 1.0) * (df / q))          ;  */
-/*          coeffs[3] = 2 * (2 * (1.0 - ff) + (ff * df - df / q))                   / a0_temp; */
-/*          coeffs[2] = 2 * (ff * (3 * ff - 2.0) + 3.0 - df * df)                   / a0_temp; */
-/*          coeffs[1] = 2 * (2 * (1.0 - ff) - (ff * df - df / q))                   / a0_temp; */
-/*          coeffs[0] = ((ff * (ff + 2.0) + df * df + 1.0) - (ff + 1.0) * (df / q)) / a0_temp; */
-/*   *a0 = a0_temp / (df * df); */
-/*   return; */
-/* } */
-
-
-#define dprod2(histbuf, sourcebuf, coeffs, n, i, acc, oper)       \
-    if (true)                                                     \
-    {                                                             \
-        int j = (i);                                              \
-        int k = 0;                                                \
-        dprod(histbuf, coeffs, j, k, n, n, acc, oper);            \
-        j -= (n);                                                 \
-        dprod(sourcebuf, coeffs, j, k, nframes, n, acc, oper);    \
-    } else (void)0
+    double ss2 = sin(2 * PI * f1) * sin(2 * PI * f2);
+    double sp = sin(PI * (f2 + f1));
+    double sm = sin(PI * (f2 - f1));
+    double cp = cos(PI * (f2 + f1));
+    double cm = cos(PI * (f2 - f1));
+    double a0 = 1.0;
+    for(int i = 0; i < n / 2; i++)
+    {
+        double si = sin(PI / 2 / n * (2 * i + 1));
+	double x = safe_sqrt((sp * sp) * (sp * sp) - 4 * (sm * sm) * ss2 * (si * si));
+	double y = (sm * sm + x) / ss2;
+	double z = sm * safe_sqrt(ss2 / (sp * sp + x) * 2) * si;
+	double ap = safe_sqrt((y + 1) / 2);
+	double am = safe_sqrt((y - 1) / 2);
+	double a0_1_temp =        cm * ap - cp * am + z             ;
+	coeffs[0]        =       (cm * ap - cp * am - z) / a0_1_temp;
+	coeffs[1]        = - 2 * (cp * ap - cm * am)     / a0_1_temp;
+	double a0_2_temp =        cm * ap + cp * am + z             ;
+	coeffs[2]        =       (cm * ap + cp * am - z) / a0_2_temp;
+	coeffs[3]        = - 2 * (cp * ap + cm * am)     / a0_2_temp;
+	a0 *= a0_1_temp * a0_2_temp;
+    }
+    if(n & 1)
+    {
+        double a0_temp =  cm + sm           ;
+	coeffs[2*n-2]  = (cm - sm) / a0_temp;
+	coeffs[2*n-1]  = - 2 * cp  / a0_temp;
+	a0 *= a0_temp;
+    }
+    *mul = powi(sm, n) /a0;
+}
 
 
 void buffer(kqt_frame* histbuf,

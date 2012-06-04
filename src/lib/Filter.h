@@ -60,11 +60,25 @@ void two_pole_filter_create(double f,
 			    double *mul);
 
 
+void four_pole_bandpass_filter_create(double f1,
+				      double f2,
+				      double q,
+				      double coeffs[4],
+				      double *mul);
+
+
 void butterworth_filter_create(int n,
 			       double f,
 			       int bandform,
 			       double coeffs[n],
 			       double *mul);
+
+
+void butterworth_bandpass_filter_create(int n,
+					double f1,
+					double f2,
+					double coeffs[2*n],
+					double *mul);
 
 
 double iir_filter_strict_cascade(int n,
