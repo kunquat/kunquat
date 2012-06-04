@@ -12,6 +12,11 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
+import time
+import tarfile
+import StringIO
+
 class Store(object):
 
     def __init__(self, path):
@@ -30,8 +35,22 @@ class Store(object):
     def flush(self):
         pass
 
-    def to_tar(self, path, key_prefix=''):
-        pass
+    def to_tar(self, path, magic_id, key_prefix=''):
+        compression = ''
+        if path.endswith('.gz'):
+            compression = 'gz'
+        elif path.endswith('.bz2'):
+            compression = 'bz2'
+        tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
+        for (key, value) in self._memory.items():
+            serial = value if type(value) == type('') else json.dumps(value)
+            data = StringIO.StringIO(serial)
+            info = tarfile.TarInfo()
+            info.name = magic_id + '/' + key
+            info.size = len(serial)
+            info.mtime = int(time.mktime(time.localtime(time.time())))
+            tfile.addfile(info, fileobj=data)
+        tfile.close()
 
     def del_tree(self, key_prefix=''):
         pass

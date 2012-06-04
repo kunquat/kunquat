@@ -430,31 +430,8 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqt, dest)
 
     def _export_kqt(self, dest):
-        root = 'kqtc' + lim.FORMAT_VERSION + '/'
-        compression = ''
-        if dest.endswith('.gz'):
-            compression = 'gz'
-        elif dest.endswith('.bz2'):
-            compression = 'bz2'
-        tfile = None
-        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
-                            len(self._keys))
-        try:
-            tfile = tarfile.open(dest, 'w:' + compression,
-                                 format=tarfile.USTAR_FORMAT)
-            for key in self._keys:
-                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
-                        'Exporting {0}:{1} ...'.format(dest, key))
-                kfile = KeyFile(root + key, self._handle[key])
-                info = tarfile.TarInfo()
-                info.name = root + key
-                info.size = kfile.size
-                info.mtime = int(time.mktime(time.localtime(time.time())))
-                tfile.addfile(info, fileobj=kfile)
-        finally:
-            if tfile:
-                tfile.close()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+        magic_id = 'kqtc' + lim.FORMAT_VERSION
+        self._handle._store.to_tar(dest, magic_id)
 
     def export_kqti(self, index, dest):
         """Exports an instrument in the Project.
