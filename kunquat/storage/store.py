@@ -43,7 +43,7 @@ class Store(object):
             compression = 'bz2'
         tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
         for (key, value) in self._memory.items():
-            serial = value if type(value) == type('') else json.dumps(value)
+            serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
             info.name = magic_id + '/' + key
