@@ -109,7 +109,7 @@ extern "C" {
 /**
  * Maximum number of Generators in a Kunquat Instruemnt.
  */
-#define KQT_GENERATORS_MAX 8
+#define KQT_GENERATORS_MAX 256
 
 
 /**
