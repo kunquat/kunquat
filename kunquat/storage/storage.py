@@ -22,6 +22,7 @@ import store
 class Storage(object):
 
     PERMANENT = 'pmt'
+    TEMPORARY = 'tmp'
 
     def __init__(self, path, create=False):
         self.path = path
@@ -33,7 +34,7 @@ class Storage(object):
                     raise
 
     def new_store(self):
-        sid = mkdtemp(dir = self.path, prefix = self.PERMANENT)
+        sid = mkdtemp(dir = self.path, prefix = self.TEMPORARY)
         return store.Store(sid)
 
     def open(self, path):
