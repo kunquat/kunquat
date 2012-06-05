@@ -22,6 +22,24 @@ SIGNAL_EXPORT_STATUS = 'export_status'
 SIGNAL_EXPORT_END = 'export_end'
 
 class Store(object):
+    '''
+    >>> from tempfile import mkdtemp
+    >>> from shutil import rmtree
+    >>> import os
+    >>> path = mkdtemp()
+    >>> store = Store(path)
+    >>> store.flush()
+    >>> store['/lol/omg'] = 'jee'
+    >>> store['/lol/omg']
+    'jee'
+    >>> store.commit()
+    >>> sid = store._path
+    >>> type(sid) == type('')
+    True
+    >>> os.path.isdir(sid)
+    True
+    >>> rmtree(path)
+    '''
 
     listeners = []
 
@@ -74,6 +92,7 @@ class Store(object):
         e = (etype, eargs)
         for l in self.listeners:
             l.event(e)
-
-
         
+if __name__ == "__main__":
+    import doctest
+    doctest.testmod()
