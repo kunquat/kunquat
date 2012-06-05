@@ -17,6 +17,10 @@ import time
 import tarfile
 import StringIO
 
+SIGNAL_EXPORT_START = 'export_start'
+SIGNAL_EXPORT_STATUS = 'export_status'
+SIGNAL_EXPORT_END = 'export_end'
+
 class Store(object):
 
     listeners = []
@@ -43,10 +47,10 @@ class Store(object):
             compression = 'gz'
         elif path.endswith('.bz2'):
             compression = 'bz2'
-        self.signal('export_start', [len(self._memory)])
+        self.signal(SIGNAL_EXPORT_START, [len(self._memory)])
         tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
         for (key, value) in self._memory.items():
-            self.signal('export_status', [path, key])
+            self.signal(SIGNAL_EXPORT_STATUS, [path, key])
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
@@ -55,7 +59,7 @@ class Store(object):
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)
         tfile.close()
-        self.signal('export_end')
+        self.signal(SIGNAL_EXPORT_END)
 
     def del_tree(self, key_prefix=''):
         pass
