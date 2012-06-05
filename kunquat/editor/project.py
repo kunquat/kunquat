@@ -57,6 +57,26 @@ class Process(QtCore.QThread):
         self._reset()
         func(*args)
 
+class Updater():
+
+    def __init__(self, project):
+        self.project = project
+
+    def _export_start(self, keys):
+        QtCore.QObject.emit(self.project, QtCore.SIGNAL('startTask(int)'), keys)
+
+    def _export_status(self, dest, key):
+        QtCore.QObject.emit(self.project, QtCore.SIGNAL('step(QString)'), 'Exporting {0}:{1} ...'.format(dest, key))
+
+    def _export_end(self):
+        QtCore.QObject.emit(self.project, QtCore.SIGNAL('endTask()'))
+
+    def event(self, e):
+        (etype, eargs) = e
+        handler_name = '_%s' % etype
+        if handler_name in dir(self):
+            handler = getattr(self, handler_name)
+            handler(*eargs)
 
 class Project(QtCore.QObject):
 
@@ -103,6 +123,8 @@ class Project(QtCore.QObject):
                 '.kunquat', 'projects')
         projects = storage.Storage(root_path, create=True)
         self._composition = projects.open(file_path)
+        self._updater = Updater(self)
+        self._composition.register_listener(self._updater)
         self._handle = ehandle.EHandle(self._composition, mixing_rate)
 
         self._handle.buffer_size = 1024

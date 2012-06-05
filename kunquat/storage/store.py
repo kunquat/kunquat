@@ -19,6 +19,8 @@ import StringIO
 
 class Store(object):
 
+    listeners = []
+
     def __init__(self, path):
         self._path = path
         self._memory = {}
@@ -41,8 +43,10 @@ class Store(object):
             compression = 'gz'
         elif path.endswith('.bz2'):
             compression = 'bz2'
+        self.signal('export_start', [len(self._memory)])
         tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
         for (key, value) in self._memory.items():
+            self.signal('export_status', [path, key])
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
@@ -51,6 +55,7 @@ class Store(object):
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)
         tfile.close()
+        self.signal('export_end')
 
     def del_tree(self, key_prefix=''):
         pass
@@ -58,4 +63,13 @@ class Store(object):
     def from_tar(self, path, key_prefix=''):
         pass
 
+    def register_listener(self, listener):
+        self.listeners.append(listener)
 
+    def signal(self, etype, eargs=[]):
+        e = (etype, eargs)
+        for l in self.listeners:
+            l.event(e)
+
+
+        
