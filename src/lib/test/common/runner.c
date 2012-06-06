@@ -17,19 +17,9 @@
 
 #include <check.h>
 
-
-#ifdef K_MEM_DEBUG
-#define NDEBUG
-#endif
+#include <common.h>
 
 
-/**
- * Runs a given test suite and reports the number of failed tests.
- *
- * \param suite   The test suite -- must not be \c NULL.
- *
- * \return   The number of failed tests.
- */
 int test_common_run(Suite* suite)
 {
     assert(suite != NULL);

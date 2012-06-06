@@ -19,7 +19,7 @@
 #include <stdint.h>
 #include <float.h>
 
-#include <test_common.h>
+#include <common/common.h>
 
 #include <Reltime.h>
 

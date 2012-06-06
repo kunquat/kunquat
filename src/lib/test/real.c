@@ -19,7 +19,7 @@
 #include <math.h>
 #include <signal.h>
 
-#include <test_common.h>
+#include <common/common.h>
 
 #include <Real.h>
 
