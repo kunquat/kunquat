@@ -24,6 +24,9 @@ env_tc.Append(CPPPATH = ['.', '#/src/include'])
 env_tc.Append(LIBPATH = ['#/src/lib'])
 env_tc.Append(LIBS = ['kunquat', 'check'])
 
+if env_tc['enable_tests_mem_debug']:
+    env_tc.Append(CCFLAGS = ['-DK_MEM_DEBUG'])
+
 
 env_tc.sources = glob.glob('*.c')
 

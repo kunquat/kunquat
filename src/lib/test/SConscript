@@ -44,7 +44,7 @@ for source in glob.glob('*.c'):
 if not env.GetOption('clean'):
     run_prefix = 'env LD_LIBRARY_PATH=src/lib '
     if env_test['enable_tests_mem_debug']:
-        run_prefix += 'valgrind -q --leak-check=full --error-exitcode=2 '
+        run_prefix += 'src/lib/test/mem_debug_run.py '
 
     for program in programs:
         env_test.AddPostAction(program, run_prefix + program[0].abspath)
