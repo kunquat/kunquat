@@ -57,27 +57,6 @@ class Process(QtCore.QThread):
         self._reset()
         func(*args)
 
-class Updater():
-
-    def __init__(self, project):
-        self.project = project
-
-    def _export_start(self, keys):
-        QtCore.QObject.emit(self.project, QtCore.SIGNAL('startTask(int)'), keys)
-
-    def _export_status(self, dest, key):
-        QtCore.QObject.emit(self.project, QtCore.SIGNAL('step(QString)'), 'Exporting {0}:{1} ...'.format(dest, key))
-
-    def _export_end(self):
-        QtCore.QObject.emit(self.project, QtCore.SIGNAL('endTask()'))
-
-    def event(self, e):
-        (etype, eargs) = e
-        handler_name = '_%s' % etype
-        if handler_name in dir(self):
-            handler = getattr(self, handler_name)
-            handler(*eargs)
-
 class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
@@ -123,8 +102,7 @@ class Project(QtCore.QObject):
                 '.kunquat', 'projects')
         projects = storage.Storage(root_path, create=True)
         self._composition = projects.open(file_path)
-        self._updater = Updater(self)
-        self._composition.register_listener(self._updater)
+        self._composition.register_callback(self.from_store)
         self._handle = ehandle.EHandle(self._composition, mixing_rate)
 
         self._handle.buffer_size = 1024
@@ -133,6 +111,26 @@ class Project(QtCore.QObject):
         self._history = History(self)
         self.status_view = None
         self._callbacks = defaultdict(list)
+
+    # STORE EVENT INTERFACE
+
+    def _store_export_start(self, keycount, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), keycount)
+
+    def _store_export_status(self, dest, key, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'), 'Exporting {0}:{1} ...'.format(dest, key))
+
+    def _store_export_end(self, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+
+    def from_store(self, event):
+        etype = event.__class__.__name__.lower()
+        handler_name = '_store_%s' % etype
+        if handler_name in dir(self):
+            handler = getattr(self, handler_name)
+            handler(**event)
+
+    # STORE EVENT INTERFACE ENDS
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.

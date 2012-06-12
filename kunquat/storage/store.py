@@ -16,10 +16,7 @@ import json
 import time
 import tarfile
 import StringIO
-
-SIGNAL_EXPORT_START = 'export_start'
-SIGNAL_EXPORT_STATUS = 'export_status'
-SIGNAL_EXPORT_END = 'export_end'
+from events import *
 
 class Store(object):
     '''
@@ -41,7 +38,7 @@ class Store(object):
     >>> rmtree(path)
     '''
 
-    listeners = []
+    callbacks = []
 
     def __init__(self, path):
         self._path = path
@@ -65,10 +62,10 @@ class Store(object):
             compression = 'gz'
         elif path.endswith('.bz2'):
             compression = 'bz2'
-        self.signal(SIGNAL_EXPORT_START, [len(self._memory)])
+        self.signal(Export_start(keycount=len(self._memory)))
         tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
         for (key, value) in self._memory.items():
-            self.signal(SIGNAL_EXPORT_STATUS, [path, key])
+            self.signal(Export_status(dest=path, key=key))
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
@@ -77,7 +74,7 @@ class Store(object):
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)
         tfile.close()
-        self.signal(SIGNAL_EXPORT_END)
+        self.signal(Export_end())
 
     def del_tree(self, key_prefix=''):
         pass
@@ -85,13 +82,12 @@ class Store(object):
     def from_tar(self, path, key_prefix=''):
         pass
 
-    def register_listener(self, listener):
-        self.listeners.append(listener)
+    def register_callback(self, callback):
+        self.callbacks.append(callback)
 
-    def signal(self, etype, eargs=[]):
-        e = (etype, eargs)
-        for l in self.listeners:
-            l.event(e)
+    def signal(self, event):
+        for callback in self.callbacks:
+            callback(event)
         
 if __name__ == "__main__":
     import doctest
