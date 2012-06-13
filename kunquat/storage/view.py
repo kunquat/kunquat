@@ -8,7 +8,7 @@ from events import *
 
 class View():
 
-    def __init__(self, store, prefix):
+    def __init__(self, store, prefix=''):
         self._store = store
         self.prefix = prefix
 

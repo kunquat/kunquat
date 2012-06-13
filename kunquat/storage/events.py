@@ -31,7 +31,11 @@ class Store_event(UserDict.DictMixin):
 
     def keys(self):
         return self.__dict__.keys()
-        
+ 
+
+class Value_update(Store_event):
+    pass
+       
 class Export_start(Store_event):
     pass
 

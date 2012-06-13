@@ -13,6 +13,7 @@
 #
 
 import view
+from events import *
 
 class Store(object):
     '''
@@ -54,6 +55,7 @@ class Store(object):
 
     def put(self, key, value):
         self._memory[key] = value
+        self.signal(Value_update(key=key))
 
     def get(self, key):
         return self._memory[key]

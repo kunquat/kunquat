@@ -26,7 +26,6 @@ import types
 
 from PyQt4 import QtCore
 
-import ehandle
 import kqt_limits as lim
 import kunquat
 from kunquat.storage import storage, store
@@ -103,7 +102,7 @@ class Project(QtCore.QObject):
         projects = storage.Storage(root_path, create=True)
         self._composition = projects.open(file_path)
         self._composition.register_callback(self.from_store)
-        self._handle = ehandle.EHandle(self._composition, mixing_rate)
+        self._handle = kunquat.MHandle(mixing_rate)
 
         self._handle.buffer_size = 1024
         self._find_keys()
@@ -113,6 +112,10 @@ class Project(QtCore.QObject):
         self._callbacks = defaultdict(list)
 
     # STORE EVENT INTERFACE
+
+    def _store_value_update(self, key, **_):
+        value = self._composition[key]
+        self._handle.set_data(key, value)
 
     def _store_export_start(self, keycount, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), keycount)
@@ -185,7 +188,14 @@ class Project(QtCore.QObject):
         The data associated with the key if found, otherwise None.
 
         """
-        return self._handle[key]
+        try:
+            value = self._composition[key]
+        except KeyError:
+            value = ''
+        (_, suffix) = key.split('.')
+        if suffix.startswith('.json'):
+            return json.loads(value) if value else None
+        return value if value else None
 
     def __setitem__(self, key, value):
         """Set data in the Kunquat Handle and History.
@@ -346,7 +356,7 @@ class Project(QtCore.QObject):
         This function does not update the History.
 
         """
-        self._handle[key] = value
+        self._composition[key] = value
         if value:
             self._keys.add(key)
         else:
@@ -450,7 +460,7 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqt, dest)
 
     def _export_kqt(self, dest):
-        self._handle._store.to_tar(dest)
+        self._composition.to_tar(dest)
 
     def export_kqti(self, index, dest):
         """Exports an instrument in the Project.
@@ -472,7 +482,7 @@ class Project(QtCore.QObject):
         root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
         ins = 'ins_{0:02x}'.format(index)
         prefix = '%s/%s/' % (root,ins)
-        self._handle._store.to_tar(dest, key_prefix=prefix)
+        self._composition.to_tar(dest, key_prefix=prefix)
 
     def export_kqte(self, base, index, dest):
         """Exports an effect in the Project.
@@ -495,7 +505,7 @@ class Project(QtCore.QObject):
         eff = 'eff_{0:02x}'.format(index)
         root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
         prefix = '%s/%s%s/' % (root,base,eff)
-        self._handle._store.to_tar(dest, key_prefix=prefix)
+        self._composition.to_tar(dest, key_prefix=prefix)
 
     def import_kqt(self, src):
         """Imports a composition into the Project.
@@ -728,7 +738,7 @@ class Project(QtCore.QObject):
         """Saves the Project data.
 
         """
-        self._handle.commit()
+        self._composition.commit()
         self._history.set_commit()
         self._changed = False
 
