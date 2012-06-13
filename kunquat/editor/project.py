@@ -60,8 +60,7 @@ class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
 
-    A Project combines the functionalities of the Kunquat EHandle
-    and History.
+    A Project combines the functionalities of libkunquat and storage.
 
     """
     _start_task = QtCore.pyqtSignal(int, name='startTask')
