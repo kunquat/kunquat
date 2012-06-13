@@ -57,7 +57,6 @@ class Process(QtCore.QThread):
         self._reset()
         func(*args)
 
-
 class Project(QtCore.QObject):
 
     """An abstraction for Kunquat Projects.
@@ -103,6 +102,7 @@ class Project(QtCore.QObject):
                 '.kunquat', 'projects')
         projects = storage.Storage(root_path, create=True)
         self._composition = projects.open(file_path)
+        self._composition.register_callback(self.from_store)
         self._handle = ehandle.EHandle(self._composition, mixing_rate)
 
         self._handle.buffer_size = 1024
@@ -111,6 +111,26 @@ class Project(QtCore.QObject):
         self._history = History(self)
         self.status_view = None
         self._callbacks = defaultdict(list)
+
+    # STORE EVENT INTERFACE
+
+    def _store_export_start(self, keycount, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), keycount)
+
+    def _store_export_status(self, dest, key, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'), 'Exporting {0}:{1} ...'.format(dest, key))
+
+    def _store_export_end(self, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+
+    def from_store(self, event):
+        etype = event.__class__.__name__.lower()
+        handler_name = '_store_%s' % etype
+        if handler_name in dir(self):
+            handler = getattr(self, handler_name)
+            handler(**event)
+
+    # STORE EVENT INTERFACE ENDS
 
     def _find_keys(self):
         """Synchronises the internal set of used keys.
@@ -430,31 +450,8 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqt, dest)
 
     def _export_kqt(self, dest):
-        root = 'kqtc' + lim.FORMAT_VERSION + '/'
-        compression = ''
-        if dest.endswith('.gz'):
-            compression = 'gz'
-        elif dest.endswith('.bz2'):
-            compression = 'bz2'
-        tfile = None
-        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
-                            len(self._keys))
-        try:
-            tfile = tarfile.open(dest, 'w:' + compression,
-                                 format=tarfile.USTAR_FORMAT)
-            for key in self._keys:
-                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
-                        'Exporting {0}:{1} ...'.format(dest, key))
-                kfile = KeyFile(root + key, self._handle[key])
-                info = tarfile.TarInfo()
-                info.name = root + key
-                info.size = kfile.size
-                info.mtime = int(time.mktime(time.localtime(time.time())))
-                tfile.addfile(info, fileobj=kfile)
-        finally:
-            if tfile:
-                tfile.close()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+        magic_id = 'kqtc' + lim.FORMAT_VERSION
+        self._handle._store.to_tar(dest, magic_id)
 
     def export_kqti(self, index, dest):
         """Exports an instrument in the Project.
