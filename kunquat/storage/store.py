@@ -67,9 +67,9 @@ class Store(object):
     def flush(self):
         pass
 
-    def to_tar(self, path, magic_id, key_prefix=''):
+    def to_tar(self, path, key_prefix=''):
         view = self.get_view(key_prefix)
-        view.to_tar(path, magic_id)
+        view.to_tar(path)
 
     def del_tree(self, key_prefix=''):
         pass

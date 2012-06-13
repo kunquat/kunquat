@@ -12,6 +12,12 @@ class View():
         self._store = store
         self.prefix = prefix
 
+    def __getitem__(self, key):
+        return self.get(key)
+
+    def __setitem__(self, key, value):
+        self.put(key, value)
+
     def _path(self, key):
         path = '%s/%s' % (self.prefix, key)
         return path
@@ -33,7 +39,7 @@ class View():
         valid = [(key[len(path):], value) for (key, value) in memory if key.startswith(path)]
         return valid
 
-    def to_tar(self, path, magic_id):
+    def to_tar(self, path):
         compression = ''
         if path.endswith('.gz'):
             compression = 'gz'
@@ -46,7 +52,7 @@ class View():
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
-            info.name = magic_id + '/' + key
+            info.name = key
             info.size = len(serial)
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)

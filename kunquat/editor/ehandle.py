@@ -24,12 +24,15 @@ EHandle
 from __future__ import print_function
 import json
 import kunquat
+import kqt_limits as lim
 from kunquat.storage.store import Store
 
 __all__ = ['EHandle']
 
 
 class EHandle(kunquat.MHandle):
+
+    MAGIC = 'kqtc' + lim.FORMAT_VERSION
 
     def __init__(self, store, mixing_rate):
         """Create a new EHandle.
@@ -48,6 +51,7 @@ class EHandle(kunquat.MHandle):
         """
         super(EHandle, self).__init__(mixing_rate)
         self._store = store
+        self._view = self._store.get_view(self.MAGIC)
 
     def __getitem__(self, key):
         """Get data from the handle based on a key.
@@ -76,7 +80,7 @@ class EHandle(kunquat.MHandle):
 
         """
         try:
-            value = self._store[key]
+            value = self._view[key]
         except KeyError:
             value = ''
         (_, suffix) = key.split('.')
@@ -110,7 +114,7 @@ class EHandle(kunquat.MHandle):
             value = json.dumps(value) if value else ''
         elif value == None:
             value = ''
-        self._store[key] = value
+        self._view[key] = value
 
     def commit(self):
         """Commit the changes made in the handle.

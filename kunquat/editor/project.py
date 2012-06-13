@@ -450,8 +450,7 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqt, dest)
 
     def _export_kqt(self, dest):
-        magic_id = 'kqtc' + lim.FORMAT_VERSION
-        self._handle._store.to_tar(dest, magic_id)
+        self._handle._store.to_tar(dest)
 
     def export_kqti(self, index, dest):
         """Exports an instrument in the Project.
@@ -470,10 +469,10 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqti, index, dest)
 
     def _export_kqti(self, index, dest):
-        root = 'kqtc{0}/'.format(lim.FORMAT_VERSION)
-        ins_root = 'ins_{0:02x}/'.format(index)
-        self._export_subtree(ins_root, dest,
-                             'Exporting instrument {0}'.format(index), 'i')
+        root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
+        ins = 'ins_{0:02x}'.format(index)
+        prefix = '%s/%s/' % (root,ins)
+        self._handle._store.to_tar(dest, key_prefix=prefix)
 
     def export_kqte(self, base, index, dest):
         """Exports an effect in the Project.
@@ -493,46 +492,10 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqte, base, index, dest)
 
     def _export_kqte(self, base, index, dest):
-        eff_root = 'eff_{0:02x}/'.format(index)
-        self._export_subtree(base + eff_root, dest,
-                             'Exporting effect {0}'.format(index), 'e')
-
-    def _export_subtree(self, prefix, dest, msg, ftype):
-        assert not prefix or prefix.endswith('/')
-        assert len(ftype) == 1
-        assert ftype in 'ei'
-        compression = ''
-        if dest.endswith('.gz'):
-            compression = 'gz'
-        elif dest.endswith('.bz2'):
-            compression = 'bz2'
-        tfile = None
-        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
-                            len(self._keys))
-        try:
-            tfile = tarfile.open(dest, 'w:' + compression,
-                                 format=tarfile.USTAR_FORMAT)
-            keys = [k for k in self._keys if k.startswith(prefix)]
-            for key in keys:
-                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
-                        '{0} ({1}) ...'.format(msg, key))
-                name = key[len(prefix):]
-                kfile = KeyFile(name, self._handle[key])
-                info = tarfile.TarInfo()
-                info.name = name
-                info.size = kfile.size
-                info.mtime = int(time.mktime(time.localtime(time.time())))
-                tfile.addfile(info, fileobj=kfile)
-            if not keys:
-                info = tarfile.TarInfo('kqt{0}{1}'.format(ftype,
-                                                          lim.FORMAT_VERSION))
-                info.type = tarfile.DIRTYPE
-                info.mtime = int(time.mktime(time.localtime(time.time())))
-                tfile.addfile(info)
-        finally:
-            if tfile:
-                tfile.close()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+        eff = 'eff_{0:02x}'.format(index)
+        root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
+        prefix = '%s/%s%s/' % (root,base,eff)
+        self._handle._store.to_tar(dest, key_prefix=prefix)
 
     def import_kqt(self, src):
         """Imports a composition into the Project.
