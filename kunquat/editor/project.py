@@ -792,36 +792,6 @@ class Project(QtCore.QObject):
         self._handle = None
 
 
-class KeyFile(object):
-
-    def __init__(self, name, data):
-        self.name = name
-        if name[name.index('.'):].startswith('.json'):
-            self._data = json.dumps(data)
-        else:
-            self._data = data
-        self._cur = 0
-
-    def read(self, size=-1):
-        if size < 0:
-            if not self._cur:
-                self._cur = len(self._data)
-                return self._data
-            cur = self._cur
-            self._cur = len(self._data)
-            return self._data[cur:]
-        cur = self._cur
-        self._cur = min(self._cur + size, len(self._data))
-        return self._data[cur:self._cur]
-
-    @property
-    def size(self):
-        return len(self._data)
-
-    def close(self):
-        self._cur = len(self._data)
-
-
 class History(object):
 
     def __init__(self, project):
