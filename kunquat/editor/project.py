@@ -1,8 +1,8 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2012
-#         Toni Ruottu,       Finland 2012
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+#          Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
 #
