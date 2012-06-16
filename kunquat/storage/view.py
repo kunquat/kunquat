@@ -70,7 +70,7 @@ class View():
         self._store.signal(Export_end())
 
     def from_dir(self, path):
-        pass
+        raise Exception('from_dir not implemented!')
         '''
         self._history.start_group('Import composition {0}'.format(path))
         tfile = None
