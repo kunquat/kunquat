@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
 import view
 from events import *
 
@@ -43,9 +44,12 @@ class Store(object):
 
     callbacks = []
 
-    def __init__(self, path):
+    def __init__(self, path, callbacks=[]):
         self._path = path
         self._memory = {}
+        for callback in callbacks:
+            self.register_callback(callback)
+        self.signal(Init(store=self))
 
     def __getitem__(self, key):
         return self.get(key)
@@ -53,12 +57,24 @@ class Store(object):
     def __setitem__(self, key, value):
         self.put(key, value)
 
+    def _encode(self, value):
+        if isinstance(value, str):
+            return value
+        return json.dumps(value)
+
     def put(self, key, value):
-        self._memory[key] = value
+        self._memory[key] = self._encode(value)
         self.signal(Value_update(key=key))
 
-    def get(self, key):
+    def _get(self, key):
         return self._memory[key]
+
+    def get(self, key, parse='raw', key_prefix=''):
+        view = self.get_view(key_prefix)
+        return view.get(key, parse)
+
+    def get_json(self, key, key_prefix=''):
+        return view.get(key, parse='json', key_prefix=key_prefix)
 
     def get_view(self, prefix):
         return view.View(self, prefix)
@@ -76,8 +92,9 @@ class Store(object):
     def del_tree(self, key_prefix=''):
         pass
 
-    def from_tar(self, path, key_prefix=''):
-        pass
+    def from_path(self, path, key_prefix=''):
+        view = self.get_view(key_prefix)
+        view.from_path(path)
 
     def register_callback(self, callback):
         self.callbacks.append(callback)

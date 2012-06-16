@@ -1,4 +1,5 @@
 
+import os
 import time
 import json
 import tarfile
@@ -26,9 +27,18 @@ class View():
         path = self._path(key)
         self._store.put(path, value)
 
-    def get(self, key):
+    def get(self, key, parse='raw'):
         path = self._path(key)
-        return self._store.get(path)
+        try:
+            value = self._store._get(path)
+        except KeyError:
+            return None
+        if parse == 'json':
+            return json.loads(value)
+        return value
+
+    def get_json(self, key):
+        return self.get(key, parse='json')
 
     def keys(self):
         return [key for (key, _) in self.items()]
@@ -58,4 +68,54 @@ class View():
             tfile.addfile(info, fileobj=data)
         tfile.close()
         self._store.signal(Export_end())
+
+    def from_dir(self, path):
+        pass
+        '''
+        self._history.start_group('Import composition {0}'.format(path))
+        tfile = None
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
+            self._clear()
+        try:
+            if not path or path[-1] != '/':
+                path = path + '/'
+            for dir_spec in os.walk(path):
+                for fname in dir_spec[2]:
+                    full_path = os.path.join(dir_spec[0], fname)
+                    key = full_path[len(path):]
+                    with open(full_path, 'rb') as f:
+                        QtCore.QObject.emit(self,
+                                QtCore.SIGNAL('step(QString)'),
+                                'Importing {0} ...'.format(full_path))
+                        if key[key.index('.'):].startswith('.json'):
+                            self.set(key, json.loads(f.read()),
+                                     autoconnect=False)
+                        else:
+                            self.set(key, f.read(), autoconnect=False)
+        finally:
+            if tfile:
+                tfile.close()
+            self._history.end_group()
+            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+        '''
+
+    def from_tar(self, path):
+        tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
+        self._store.signal(Import_start(key_names=tfile.getnames()))
+        for entry in tfile.getmembers():
+            key = entry.name
+            self._store.signal(Import_status(dest=path, key=key))
+            if entry.isfile():
+                value = tfile.extractfile(entry).read()
+                self.put(key, value)
+        tfile.close()
+        self._store.signal(Import_end())
+
+    def from_path(self, path):
+        if os.path.isdir(path):
+            self.from_dir(path)
+        else:
+            self.from_tar(path)
+                
+
 

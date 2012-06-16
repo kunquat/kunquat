@@ -68,7 +68,7 @@ class Project(QtCore.QObject):
     _end_task = QtCore.pyqtSignal(name='endTask')
     _sync = QtCore.pyqtSignal(name='sync')
 
-    def __init__(self, file_path='', mixing_rate=48000, parent=None):
+    def __init__(self, file_path=None, mixing_rate=48000, parent=None):
         """Create a new Project.
 
         Arguments:
@@ -98,12 +98,12 @@ class Project(QtCore.QObject):
         root_path = os.path.join(
                 os.path.expanduser('~'),
                 '.kunquat', 'projects')
-        projects = storage.Storage(root_path, create=True)
-        self._composition = projects.open(file_path)
-        self._composition.register_callback(self.from_store)
         self._handle = kunquat.MHandle(mixing_rate)
-
         self._handle.buffer_size = 1024
+        projects = storage.Storage(root_path, create=True)
+        store_callbacks = [self.from_store]
+        projects.get_store(file_path, callbacks=store_callbacks)
+
         self._find_keys()
         self._changed = False
         self._history = History(self)
@@ -112,9 +112,20 @@ class Project(QtCore.QObject):
 
     # STORE EVENT INTERFACE
 
+    def _store_init(self, store, **_):
+        self._store = store
+        root = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        self._composition = self._store.get_view(root)
+
     def _store_value_update(self, key, **_):
-        value = self._composition[key]
-        self._handle.set_data(key, value)
+        parts = key.split('/')
+        root = parts.pop(0)
+        kqtcxx = parts.pop(0)
+        assert root == ''
+        assert kqtcxx.startswith('kqtc')
+        path = '/'.join(parts)
+        value = self.get(path)
+        self._handle.set_data(path, value)
 
     def _store_export_start(self, keycount, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), keycount)
@@ -142,7 +153,7 @@ class Project(QtCore.QObject):
 
         """
         keys = set()
-        comp_root = os.path.join(self._composition._path, 'committed', 'kqtc00')
+        comp_root = os.path.join(self._store._path, 'committed', 'kqtc00')
         for path in (os.path.join(d[0], f) for d in
                      os.walk(comp_root) for f in d[2]):
             components = []
@@ -187,13 +198,15 @@ class Project(QtCore.QObject):
         The data associated with the key if found, otherwise None.
 
         """
-        try:
-            value = self._composition[key]
-        except KeyError:
-            value = ''
-        (_, suffix) = key.split('.')
-        if suffix.startswith('.json'):
-            return json.loads(value) if value else None
+        return self.get(key)
+
+    def get(self, key):
+        suffix = key.split('.').pop()
+        is_json = suffix.startswith('json')
+        if is_json:
+            value = self._composition.get_json(key)
+        else:
+            value = self._composition.get(key)
         return value if value else None
 
     def __setitem__(self, key, value):
@@ -459,7 +472,7 @@ class Project(QtCore.QObject):
         self._process.process(self._export_kqt, dest)
 
     def _export_kqt(self, dest):
-        self._composition.to_tar(dest)
+        self._store.to_tar(dest)
 
     def export_kqti(self, index, dest):
         """Exports an instrument in the Project.
@@ -481,7 +494,7 @@ class Project(QtCore.QObject):
         root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
         ins = 'ins_{0:02x}'.format(index)
         prefix = '%s/%s/' % (root,ins)
-        self._composition.to_tar(dest, key_prefix=prefix)
+        self._store.to_tar(dest, key_prefix=prefix)
 
     def export_kqte(self, base, index, dest):
         """Exports an effect in the Project.
@@ -504,7 +517,7 @@ class Project(QtCore.QObject):
         eff = 'eff_{0:02x}'.format(index)
         root = 'kqtc{0}'.format(lim.FORMAT_VERSION)
         prefix = '%s/%s%s/' % (root,base,eff)
-        self._composition.to_tar(dest, key_prefix=prefix)
+        self._store.to_tar(dest, key_prefix=prefix)
 
     def import_kqt(self, src):
         """Imports a composition into the Project.
@@ -737,7 +750,7 @@ class Project(QtCore.QObject):
         """Saves the Project data.
 
         """
-        self._composition.commit()
+        self._store.commit()
         self._history.set_commit()
         self._changed = False
 

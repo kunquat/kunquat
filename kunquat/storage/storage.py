@@ -16,7 +16,7 @@ import errno
 import os
 from tempfile import mkdtemp
 
-import store
+from store import Store
 
 
 class Storage(object):
@@ -44,9 +44,15 @@ class Storage(object):
                     raise
         self.collect_trash()
 
-    def new_store(self):
+    def _new_store(self, callbacks=[]):
         sid = mkdtemp(dir = self.path, prefix = self.TEMPORARY)
-        return store.Store(sid)
+        new = Store(sid, callbacks)
+        return new
+
+    def get_store(self, path=None, callbacks=[]):
+        store = self._new_store(callbacks)
+        if path:
+            store.from_path(path)
 
     def list_projects(self):
         dirs = os.listdir(self.path)
@@ -59,9 +65,6 @@ class Storage(object):
                 os.rmdir(path)
             except:
                 pass
-
-    def open(self, path):
-        return self.new_store()
 
 
 
