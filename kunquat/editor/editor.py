@@ -336,10 +336,6 @@ class KqtEditor(QtGui.QMainWindow):
             self.project.import_kqt(str(path))
             #self.sync()
 
-    def clear(self):
-        self.stop()
-        self.project.clear()
-
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
@@ -429,14 +425,6 @@ class KqtEditor(QtGui.QMainWindow):
         layout.setSpacing(5)
 
         """
-        new_project = QtGui.QToolButton()
-        new_project.setText('Clear Project')
-        new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
-        new_project.setAutoRaise(True)
-        QtCore.QObject.connect(new_project,
-                               QtCore.SIGNAL('clicked()'),
-                               self.clear)
-
         open_project = QtGui.QToolButton()
         open_project.setText('Import Composition')
         open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))

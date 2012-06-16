@@ -164,27 +164,6 @@ class Project(QtCore.QObject):
 
     # STORE EVENT INTERFACE ENDS
 
-    def _find_keys(self):
-        """Synchronises the internal set of used keys.
-
-        Using this method should only be necessary inside the __init__
-        method.
-
-        """
-        keys = set()
-        comp_root = os.path.join(self._store._path, 'committed', 'kqtc00')
-        for path in (os.path.join(d[0], f) for d in
-                     os.walk(comp_root) for f in d[2]):
-            components = []
-            assert path.startswith(comp_root) and path != comp_root
-            head, tail = os.path.split(path)
-            while head.startswith(comp_root):
-                components.append(tail)
-                head, tail = os.path.split(head)
-            components.reverse()
-            keys.add('/'.join(components))
-        self._keys = keys
-
     @property
     def changed(self):
         """Whether the Project has changed since the last commit."""
@@ -389,10 +368,6 @@ class Project(QtCore.QObject):
 
         """
         self._composition[key] = value
-        if value:
-            self._keys.add(key)
-        else:
-            self._keys.discard(key)
 
     def flush(self, key):
         """Flush a previous store of a data value in the history.
@@ -437,45 +412,6 @@ class Project(QtCore.QObject):
         if len(patterns) <= section:
             return None
         return patterns[section]
-
-    def clear(self):
-        """Removes all composition data (but not the history).
-
-        NOTE: this function returns immediately.  Do not access the
-              Project again until it emits the endTask() signal.
-
-        """
-        self._process.process(self._clear)
-
-    def _clear(self):
-        self._history.start_group('Clear all')
-        try:
-            self._remove_dir('')
-        finally:
-            self._history.end_group()
-
-    def remove_dir(self, directory):
-        """Removes a directory inside a composition.
-
-        NOTE: this function returns immediately.  Do not access the
-              Project again until it emits the endTask() signal.
-
-        """
-        self._process.process(self._remove_dir, directory)
-
-    def _remove_dir(self, directory):
-        self._history.start_group('Remove ' + directory)
-        target_keys = [k for k in self._keys if k.startswith(directory)]
-        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'),
-                            len(target_keys))
-        try:
-            for key in target_keys:
-                QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'),
-                                    'Removing {0} ...'.format(key))
-                self.set(key, None, autoconnect=False)
-        finally:
-            self._history.end_group()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def export_kqt(self, dest):
         """Exports the composition in the Project.
