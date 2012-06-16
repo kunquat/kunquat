@@ -2,6 +2,7 @@
 
 #
 # Author: Tomi Jylhä-Ollila, Finland 2010-2012
+#         Toni Ruottu,       Finland 2012
 #
 # This file is part of Kunquat.
 #
@@ -20,7 +21,6 @@ from itertools import izip, takewhile
 import json
 import os
 import re
-import tarfile
 import time
 import types
 
@@ -84,16 +84,6 @@ class Project(QtCore.QObject):
         """
         QtCore.QObject.__init__(self, parent)
         self._process = Process()
-        """
-        self._root = os.path.join(os.path.expanduser('~'),
-                                  '.kunquat', 'projects',
-                                  '{0:08x}'.format(proj_id))
-        try:
-            os.makedirs(self._root)
-        except OSError as err:
-            if err.errno != errno.EEXIST:
-                raise
-        """
         self._mixing_rate = mixing_rate
 
         root_path = os.path.join(
