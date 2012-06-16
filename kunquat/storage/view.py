@@ -55,10 +55,10 @@ class View():
             compression = 'gz'
         elif path.endswith('.bz2'):
             compression = 'bz2'
-        self._store.signal(Export_start(keycount=len(self.keys())))
+        self._store.signal(Export_start(prefix=self.prefix, path=path, key_names=self.keys()))
         tfile = tarfile.open(path, 'w:' + compression, format=tarfile.USTAR_FORMAT)
         for (key, value) in self.items():
-            self._store.signal(Export_status(dest=path, key=key))
+            self._store.signal(Export_status(prefix=self.prefix, dest=path, key=key))
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
@@ -67,7 +67,19 @@ class View():
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)
         tfile.close()
-        self._store.signal(Export_end())
+        self._store.signal(Export_end(prefix=self.prefix, path=path))
+
+    def from_tar(self, path):
+        tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
+        self._store.signal(Import_start(prefix=self.prefix, path=path, key_names=tfile.getnames()))
+        for entry in tfile.getmembers():
+            key = entry.name
+            self._store.signal(Import_status(prefix=self.prefix, dest=path, key=key))
+            if entry.isfile():
+                value = tfile.extractfile(entry).read()
+                self.put(key, value)
+        tfile.close()
+        self._store.signal(Import_end(prefix=self.prefix, path=path))
 
     def from_dir(self, path):
         raise Exception('from_dir not implemented!')
@@ -98,18 +110,6 @@ class View():
             self._history.end_group()
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
         '''
-
-    def from_tar(self, path):
-        tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
-        self._store.signal(Import_start(path=path, key_names=tfile.getnames()))
-        for entry in tfile.getmembers():
-            key = entry.name
-            self._store.signal(Import_status(dest=path, key=key))
-            if entry.isfile():
-                value = tfile.extractfile(entry).read()
-                self.put(key, value)
-        tfile.close()
-        self._store.signal(Import_end())
 
     def from_path(self, path):
         if os.path.isdir(path):
