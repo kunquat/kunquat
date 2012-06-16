@@ -12,24 +12,17 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
-from __future__ import print_function
-
-from collections import defaultdict
-from copy import deepcopy
-import errno
-from itertools import izip, takewhile
-import json
 import os
 import re
-import time
-import types
+from collections import defaultdict
+from copy import deepcopy
+from itertools import izip, takewhile
 
 from PyQt4 import QtCore
 
-import kqt_limits as lim
 import kunquat
+import kqt_limits as lim
 from kunquat.storage import storage, store
-
 from history import History
 
 class Process(QtCore.QThread):
