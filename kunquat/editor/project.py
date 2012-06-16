@@ -95,7 +95,6 @@ class Project(QtCore.QObject):
         store_callbacks = [self.from_store]
         projects.get_store(file_path, callbacks=store_callbacks)
 
-        self._find_keys()
         self._changed = False
         self._history = History(self)
         self.status_view = None
@@ -109,7 +108,6 @@ class Project(QtCore.QObject):
         self._composition = self._store.get_view(root)
 
     def _store_value_update(self, key, **_):
-        print(key)
         parts = key.split('/')
         root = parts.pop(0)
         kqtcxx = parts.pop(0)
