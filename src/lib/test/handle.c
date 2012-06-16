@@ -19,18 +19,53 @@
 #include <common/common.h>
 
 #include <kunquat/Handle.h>
+#include <kunquat/Player.h>
 
 
 kqt_Handle* handle = NULL;
 
 
-void handle_setup(void)
+#define KT_VALUES(fmt, expected, actual) \
+    "\n    Expected: " fmt \
+    "\n    Actual:   " fmt , expected, actual
+
+
+void check_unexpected_error()
+{
+    char* error_string = kqt_Handle_get_error(handle);
+    fail_unless(
+            strcmp(error_string, "") == 0,
+            "Unexpected error"
+            KT_VALUES("%s", "", error_string));
+    return;
+}
+
+
+typedef enum
+{
+    SUBSONG_SELECTION_FIRST,
+    SUBSONG_SELECTION_LAST,
+    SUBSONG_SELECTION_ALL,
+    SUBSONG_SELECTION_COUNT
+} Subsong_selection;
+
+
+static Subsong_selection subsongs[] =
+{
+    [SUBSONG_SELECTION_FIRST] = 0,
+    [SUBSONG_SELECTION_LAST] = KQT_SUBSONGS_MAX - 1,
+    [SUBSONG_SELECTION_ALL] = -1,
+};
+
+
+void empty_setup(void)
 {
     assert(handle == NULL);
     handle = kqt_new_Handle_m();
     if (handle == NULL)
     {
-        fprintf(stderr, "%s\n", kqt_Handle_get_error(NULL));
+        fprintf(stderr, "Couldn't create handle:\n"
+                "%s\n", kqt_Handle_get_error(NULL));
         abort();
     }
 }
@@ -45,15 +80,10 @@ void handle_teardown(void)
 }
 
 
-START_TEST(Nothing)
+START_TEST(Do_nothing)
 {
 }
 END_TEST
-
-
-#define KT_VALUES(fmt, expected, actual) \
-    "\n    Expected: " fmt \
-    "\n    Actual:   " fmt , expected, actual
 
 
 START_TEST(Initial_error_message_is_empty_string)
@@ -67,19 +97,49 @@ START_TEST(Initial_error_message_is_empty_string)
 END_TEST
 
 
+START_TEST(Empty_composition_has_zero_duration)
+{
+    assert(handle != NULL);
+    long long dur = kqt_Handle_get_duration(handle, subsongs[_i]);
+    check_unexpected_error();
+    fail_unless(
+            dur == 0,
+            "Wrong duration"
+            KT_VALUES("%lld", 0, dur));
+}
+END_TEST
+
+
+START_TEST(Empty_composition_renders_zero_frames)
+{
+    assert(handle != NULL);
+    long nframes = kqt_Handle_mix(handle, 256);
+    check_unexpected_error();
+    fail_unless(
+            nframes == 0,
+            "Wrong number of frames mixed"
+            KT_VALUES("%ld", 0, nframes));
+}
+END_TEST
+
+
 Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
 
     int timeout = 4;
 
-    TCase* tc_load = tcase_create("load");
-    suite_add_tcase(s, tc_load);
-    tcase_add_checked_fixture(tc_load, handle_setup, handle_teardown);
-    tcase_set_timeout(tc_load, timeout);
+    TCase* tc_empty = tcase_create("empty");
+    suite_add_tcase(s, tc_empty);
+    tcase_add_checked_fixture(tc_empty, empty_setup, handle_teardown);
+    tcase_set_timeout(tc_empty, timeout);
 
-    tcase_add_test(tc_load, Nothing);
-    tcase_add_test(tc_load, Initial_error_message_is_empty_string);
+    tcase_add_test(tc_empty, Do_nothing);
+    tcase_add_test(tc_empty, Initial_error_message_is_empty_string);
+    tcase_add_loop_test(
+            tc_empty, Empty_composition_has_zero_duration,
+            0, SUBSONG_SELECTION_COUNT);
+    tcase_add_test(tc_empty, Empty_composition_renders_zero_frames);
 
     return s;
 }
