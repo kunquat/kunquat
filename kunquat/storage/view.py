@@ -101,7 +101,7 @@ class View():
 
     def from_tar(self, path):
         tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
-        self._store.signal(Import_start(key_names=tfile.getnames()))
+        self._store.signal(Import_start(path=path, key_names=tfile.getnames()))
         for entry in tfile.getmembers():
             key = entry.name
             self._store.signal(Import_status(dest=path, key=key))

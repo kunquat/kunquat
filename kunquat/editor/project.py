@@ -127,6 +127,15 @@ class Project(QtCore.QObject):
         value = self.get(path)
         self._handle.set_data(path, value)
 
+    def _store_import_start(self, path, key_names, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), len(key_names))
+
+    def _store_import_status(self, dest, key, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'), 'Importing {0}:{1} ...'.format(dest, key))
+
+    def _store_import_end(self, **_):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+
     def _store_export_start(self, keycount, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), keycount)
 
@@ -536,56 +545,8 @@ class Project(QtCore.QObject):
 
     def _import_kqt(self, src):
         self._history.start_group('Import composition {0}'.format(src))
-        tfile = None
-        QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
-        try:
-            self._clear()
-            if os.path.isdir(src):
-                if not src or src[-1] != '/':
-                    src = src + '/'
-                for dir_spec in os.walk(src):
-                    for fname in dir_spec[2]:
-                        full_path = os.path.join(dir_spec[0], fname)
-                        key = full_path[len(src):]
-                        with open(full_path, 'rb') as f:
-                            QtCore.QObject.emit(self,
-                                    QtCore.SIGNAL('step(QString)'),
-                                    'Importing {0} ...'.format(full_path))
-                            if key[key.index('.'):].startswith('.json'):
-                                self.set(key, json.loads(f.read()),
-                                         autoconnect=False)
-                            else:
-                                self.set(key, f.read(), autoconnect=False)
-            else:
-                tfile = tarfile.open(src, format=tarfile.USTAR_FORMAT)
-                entry = tfile.next()
-                while entry:
-                    if not re.match('kqtc[0-9a-f][0-9a-f]($|/)', entry.name):
-                        raise kunquat.KunquatFormatError(
-                                'The file is not a Kunquat composition')
-                    if entry.name[4:6] != lim.FORMAT_VERSION:
-                        raise kunquat.KunquatFormatError(
-                                'Unsupported format version: {0}'.format(
-                                                            entry.name[4:6]))
-                    if entry.name.find('/') < 0:
-                        entry = tfile.next()
-                        continue
-                    key = entry.name[entry.name.index('/') + 1:]
-                    if entry.isfile():
-                        QtCore.QObject.emit(self,
-                                QtCore.SIGNAL('step(QString)'),
-                                'Importing {0}:{1} ...'.format(src, key))
-                        data = tfile.extractfile(entry).read()
-                        if key[key.index('.'):].startswith('.json'):
-                            self.set(key, json.loads(data), autoconnect=False)
-                        else:
-                            self.set(key, data, autoconnect=False)
-                    entry = tfile.next()
-        finally:
-            if tfile:
-                tfile.close()
-            self._history.end_group()
-            QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
+        self._store.from_path(src)
+        self._history.end_group()
 
     def import_kqti(self, index, src):
         """Imports a Kunquat instrument into the Project.
