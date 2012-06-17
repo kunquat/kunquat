@@ -308,7 +308,7 @@ class Project(QtCore.QObject):
     # EXPORT/IMPORT INTERFACE
 
     def _export_kqt(self, dest):
-        self._store.to_tar(dest)
+        self._composition.to_tar(dest)
 
     def _export_kqti(self, index, dest):
         instrument = self._composition.get_instrument(index)
@@ -317,9 +317,6 @@ class Project(QtCore.QObject):
     def _export_kqte(self, base, index, dest):
         effect = self._composition.get_effect(base, index)
         effect.to_tar(dest)
-
-    def _import_kqt(self, src):
-        self._store.from_path(src)
 
     def _import_kqti(self, index, src):
         instrument = self._composition.get_instrument(index)
@@ -342,9 +339,6 @@ class Project(QtCore.QObject):
 
     def export_kqte(self, base, index, dest):
         self._process.process(self._export_kqte, base, index, dest)
-
-    def import_kqt(self, src):
-        self._process.process(self._import_kqt, src)
 
     def import_kqti(self, index, src):
         self._process.process(self._import_kqti, index, src)

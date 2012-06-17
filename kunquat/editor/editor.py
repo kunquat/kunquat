@@ -178,9 +178,6 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
-        # XXX: remove after store works
-        if os.path.isfile(file_path):
-            self.project.import_kqt(file_path)
 
     def _undo(self, ev):
         self.project.undo()
@@ -327,15 +324,6 @@ class KqtEditor(QtGui.QMainWindow):
         if path:
             self.project.export_kqt(str(path))
 
-    def import_composition(self):
-        path = QtGui.QFileDialog.getOpenFileName(
-                caption='Import Kunquat composition',
-                filter='Kunquat compositions (*.kqt *.kqt.gz *.kqt.bz2)')
-        if path:
-            self.stop()
-            self.project.import_kqt(str(path))
-            #self.sync()
-
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
@@ -424,30 +412,12 @@ class KqtEditor(QtGui.QMainWindow):
         layout.setMargin(5)
         layout.setSpacing(5)
 
-        """
-        open_project = QtGui.QToolButton()
-        open_project.setText('Import Composition')
-        open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))
-        open_project.setAutoRaise(True)
-        QtCore.QObject.connect(open_project,
-                               QtCore.SIGNAL('clicked()'),
-                               self.import_composition)
-        """
-
         save_project = QtGui.QToolButton()
         save_project.setText('Export Composition')
         save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
         save_project.setAutoRaise(True)
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
                                self.export_composition)
-
-        """
-        export = QtGui.QToolButton()
-        export.setText('Export')
-        export.setAutoRaise(True)
-        QtCore.QObject.connect(export, QtCore.SIGNAL('clicked()'),
-                               self.export_composition)
-        """
 
         play = QtGui.QToolButton()
         play.setText('Play')

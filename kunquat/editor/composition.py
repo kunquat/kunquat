@@ -18,6 +18,7 @@ class Composition():
 
     def __init__(self, store):
         root = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        self._store = store
         self._view = store.get_view(root)
 
     def get(self, key):
@@ -137,4 +138,8 @@ class Composition():
                 connections.append([ins_out, 'out_00'])
             self.set('p_connections.json', connections, autoconnect=False)
         '''
+
+    def to_tar(self, path):
+        self._store.to_tar(path)
+        
 
