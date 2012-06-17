@@ -40,6 +40,11 @@ class View():
     def get_json(self, key):
         return self.get(key, parse='json')
 
+    def get_view(self, prefix):
+        path = self._path(prefix)
+        view = self._store.get_view(path)
+        return view
+
     def keys(self):
         return [key for (key, _) in self.items()]
 

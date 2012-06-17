@@ -1,3 +1,17 @@
+# -*- coding: utf-8 -*-
+
+#
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
+#          Toni Ruottu,       Finland 2012
+#
+# This file is part of Kunquat.
+#
+# CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+#
+# To the extent possible under law, Kunquat Affirmers have waived all
+# copyright and related or neighboring rights to Kunquat.
+#
+
 class History(object):
 
     def __init__(self, project):
@@ -27,6 +41,11 @@ class History(object):
         while cur:
             print(cur.name, '<-' if cur == self._current else '')
             cur = cur.child()
+
+    #'Import composition {0}'.format(src)
+    #'Load {0} into instrument {1:d}'.format(src, index)
+    #'Load {0} into effect {1:d} of instrument {2:d}'.format(src, index, ins_num)
+    #'Load {0} into effect {1:d}'.format(src, index)
 
     def start_group(self, name=''):
         """Start a group of changes.

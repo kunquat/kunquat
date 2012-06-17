@@ -90,7 +90,7 @@ class PatternEditor(QtGui.QWidget):
                                self._pattern.snap_to_grid_changed)
 
     def section_changed(self, subsong, section):
-        pattern = self._project.get_pattern(subsong, section)
+        pattern = self._project._composition.get_pattern(subsong, section)
         if pattern != None:
             key = 'pat_{0:03d}/p_pattern.json'.format(pattern)
             self._length.set_key(key)

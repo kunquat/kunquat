@@ -109,7 +109,7 @@ class Section(QtCore.QObject):
     def set(self, subsong, section):
         assert subsong < lim.SUBSONGS_MAX
         assert section < lim.SECTIONS_MAX
-        pat = self._project.get_pattern(subsong, section)
+        pat = self._project._composition.get_pattern(subsong, section)
         if pat == None:
             return
         if self._subsong == subsong and self._section == section:
