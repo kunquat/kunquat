@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -21,13 +21,14 @@
 #include <stdio.h>
 
 #include <Device.h>
+#include <Effect_table.h>
 #include <Ins_table.h>
 #include <math_common.h>
 
 
 /**
  * The state of a Device node during a search. These are sometimes referred to
- * as the colours white, gray and black.
+ * as the colours white, grey and black.
  */
 typedef enum
 {
@@ -52,12 +53,21 @@ typedef struct Device_node Device_node;
 /**
  * Creates a new Device node.
  *
- * \param name   The name of the node -- must not be \c NULL.
+ * \param name      The name of the node -- must not be \c NULL.
+ * \param insts     The Instrument table -- must not be \c NULL.
+ * \param effects   The Effect table -- must not be \c NULL.
+ * \param dsps      The DSP table -- must not be \c NULL.
+ * \param master    The global or Instrumet master Device
+ *                  -- must not be \c NULL.
  *
  * \return   The new Device node if successful, or \c NULL if memory
  *           allocation failed.
  */
-Device_node* new_Device_node(const char* name);
+Device_node* new_Device_node(const char* name,
+                             Ins_table* insts,
+                             Effect_table* effects,
+                             DSP_table* dsps,
+                             Device* master);
 
 
 /**
@@ -85,20 +95,6 @@ void Device_node_reset(Device_node* node);
 
 
 /**
- * Sets the devices starting from the given Device node.
- *
- * \param node     The Device node -- must not be \c NULL.
- * \param master   The master Device -- must not be \c NULL.
- * \param insts    The Instrument table -- must not be \c NULL.
- * \param dsps     The DSP table -- must not be \c NULL.
- */
-void Device_node_set_devices(Device_node* node,
-                             Device* master,
-                             Ins_table* insts,
-                             DSP_table* dsps);
-
-
-/**
  * Initialises all Audio buffers in the Device node and its subgraph.
  *
  * \param node   The Device node -- must not be \c NULL.
@@ -106,6 +102,53 @@ void Device_node_set_devices(Device_node* node,
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
 bool Device_node_init_buffers_simple(Device_node* node);
+
+
+/**
+ * Removes all direct Audio buffers from the Device node and its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ */
+void Device_node_remove_direct_buffers(Device_node* node);
+
+
+/**
+ * Initialises all the necessary input Audio buffers in the Device node and
+ * its subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_input_buffers(Device_node* node);
+
+
+/**
+ * Initialises all the remaining Audio buffers in the Device node and its
+ * subgraph.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param send_port    The send port of the connection that the caller
+ *                     used to reach \a node -- must be >= \c 0 and
+ *                     <= \c KQT_DEVICE_PORTS_MAX.
+ * \param suggestion   A suggestion for the Device node to use as its
+ *                     send buffer for \a send_port, or \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_buffers_by_suggestion(Device_node* node,
+                                            int send_port,
+                                            Audio_buffer* suggestion);
+
+
+/**
+ * Initialises the graphs of the Effects in the subgraph.
+ *
+ * \param node   The Device node -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_node_init_effect_buffers(Device_node* node);
 
 
 /**
@@ -132,8 +175,14 @@ void Device_node_clear_buffers(Device_node* node,
  * \param until   The first frame not to be mixed -- must be less than or
  *                equal to the buffer size. If \a until <= \a start, nothing
  *                will be mixed.
+ * \param freq    The mixing frequency -- must be > \c 0.
+ * \param tempo   The tempo -- must be > \c 0 and finite.
  */
-void Device_node_mix(Device_node* node, uint32_t start, uint32_t until);
+void Device_node_mix(Device_node* node,
+                     uint32_t start,
+                     uint32_t until,
+                     uint32_t freq,
+                     double tempo);
 
 
 /**
@@ -192,6 +241,28 @@ bool Device_node_connect(Device_node* receiver,
                          int rec_port,
                          Device_node* sender,
                          int send_port);
+
+
+/**
+ * Disconnects a Device from the Device node.
+ *
+ * \param node     The Device node -- must not be \c NULL.
+ * \param device   The Device to be disconnected -- must not be \c NULL.
+ */
+void Device_node_disconnect(Device_node* node, Device* device);
+
+
+/**
+ * Replaces a Device in the connections of the Device node.
+ *
+ * \param node         The Device node -- must not be \c NULL.
+ * \param old_device   The old Device -- must not be \c NULL.
+ * \param new_device   The new Device -- must not be \c NULL, equal to
+ *                     \a old_device or in the connections of \a node.
+ */
+void Device_node_replace(Device_node* node,
+                         Device* old_device,
+                         Device* new_device);
 
 
 /**
@@ -260,7 +331,7 @@ void Device_node_print(Device_node* node, FILE* out);
 /**
  * Destroys an existing Device node.
  *
- * \param node   The Device node -- must not be \c NULL.
+ * \param node   The Device node, or \c NULL.
  */
 void del_Device_node(Device_node* node);
 

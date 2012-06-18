@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,92 +20,37 @@
 #include <Event_common.h>
 #include <Event_channel_slide_panning.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc slide_panning_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -1,
-        .max.field.double_type = 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_set_primitive_and_get(Event_channel_slide_panning,
-                                   EVENT_CHANNEL_SLIDE_PANNING,
-                                   double, target_panning);
-
-
-Event_create_constructor(Event_channel_slide_panning,
-                         EVENT_CHANNEL_SLIDE_PANNING,
-                         slide_panning_desc,
-                         event->target_panning = 0);
-
-
-bool Event_channel_slide_panning_process(Channel_state* ch_state, char* fields)
+bool Event_channel_slide_panning_process(Channel_state* ch_state,
+                                         Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, slide_panning_desc, data, state);
-    if (state->error)
+    if (Slider_in_progress(&ch_state->panning_slider))
     {
-        return false;
-    }
-    ch_state->panning_slide_target = data[0].field.double_type;
-    ch_state->panning_slide_frames =
-            Reltime_toframes(&ch_state->panning_slide_length,
-                             *ch_state->tempo,
-                             *ch_state->freq);
-    double diff = ch_state->panning_slide_target - ch_state->panning;
-    ch_state->panning_slide_update = diff / ch_state->panning_slide_frames;
-    if (diff > 0)
-    {
-        ch_state->panning_slide = 1;
-    }
-    else if (diff < 0)
-    {
-        ch_state->panning_slide = -1;
+        Slider_change_target(&ch_state->panning_slider,
+                             value->value.float_type);
     }
     else
     {
-        ch_state->panning = ch_state->panning_slide_target;
-        ch_state->panning_slide = 0;
+        Slider_start(&ch_state->panning_slider,
+                     value->value.float_type,
+                     ch_state->panning);
     }
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        vs->panning_slide_target = data[0].field.double_type;
-        vs->panning_slide_frames = Reltime_toframes(&vs->panning_slide_length,
-                                                    *ch_state->tempo,
-                                                    *ch_state->freq);
-        diff = vs->panning_slide_target - vs->panning;
-        vs->panning_slide_update = diff / vs->panning_slide_frames;
-        if (diff > 0)
-        {
-            vs->panning_slide = 1;
-        }
-        else if (diff < 0)
-        {
-            vs->panning_slide = -1;
-        }
-        else
-        {
-            vs->panning = vs->panning_slide_target;
-            vs->panning_slide = 0;
-        }
+        Voice_state* vs = ch_state->fg[i]->state;
+        Slider_copy(&vs->panning_slider, &ch_state->panning_slider);
     }
     return true;
 }

@@ -19,8 +19,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include <String_buffer.h>
-
 
 /**
  * Real is a combination of rational number and floating-point number types.
@@ -67,10 +65,9 @@ Real* Real_init(Real* real);
  *
  * \return   The parameter \a real.
  */
-Real* Real_init_as_frac(
-        Real* real,
-        int64_t numerator,
-        int64_t denominator);
+Real* Real_init_as_frac(Real* real,
+                        int64_t numerator,
+                        int64_t denominator);
 
 
 /**
@@ -82,18 +79,6 @@ Real* Real_init_as_frac(
  * \return   The parameter \a real.
  */
 Real* Real_init_as_double(Real* real, double val);
-
-
-/**
- * Serialises a Real.
- *
- * \param real   The Real object -- must not be \c NULL.
- * \param sb     The String buffer where the Reltime shall be written -- must
- *               not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Real_serialise(Real* real, String_buffer* sb);
 
 
 /**

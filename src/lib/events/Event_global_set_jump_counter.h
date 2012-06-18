@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,23 +16,12 @@
 #define K_EVENT_GLOBAL_SET_JUMP_COUNTER_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
 #include <Playdata.h>
-
-
-typedef struct Event_global_set_jump_counter
-{
-    Event_global parent;
-    int64_t counter;
-} Event_global_set_jump_counter;
-
-
-Event* new_Event_global_set_jump_counter(Reltime* pos);
+#include <Value.h>
 
 
 bool Event_global_set_jump_counter_process(Playdata* global_state,
-                                           char* fields);
+                                           Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_COUNTER_H

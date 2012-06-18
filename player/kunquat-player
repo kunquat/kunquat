@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Authors: Tomi Jylhä-Ollila, Finland 2010
+# Authors: Tomi Jylhä-Ollila, Finland 2010-2012
 #          Toni Ruottu, Finland 2010
 #
 # This file is part of Kunquat.
@@ -15,10 +15,12 @@
 
 from __future__ import print_function
 import collections
-from itertools import cycle, chain
+from itertools import cycle, chain, ifilter
+import json
 import math
 from optparse import OptionParser, OptionGroup
 import os.path
+import random
 import string
 import sys
 import termios
@@ -29,15 +31,15 @@ from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.3.1'
+PROGRAM_VERSION = '0.5.1'
 AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 
 
 def author_list(authors):
     s = 's' if len(authors) > 1 else ''
-    head = 'Author%s:' % s
-    space = cycle([len(head)*' '])
-    left = chain([head],space)
+    head = 'Author{0}:'.format(s)
+    space = cycle([len(head) * ' '])
+    left = chain([head], space)
     right = authors
     rows = (' '.join(r) for r in zip(left, right))
     return '\n'.join(rows)
@@ -65,14 +67,34 @@ def print_interactive_help():
     print('\n'.join(help))
 
 
+def print_meta(handle):
+    fields = []
+    values = []
+    title = handle['m_title.json']
+    if title:
+        fields.extend(['Title:'])
+        values.extend([title])
+    authors = handle['m_authors.json']
+    if authors:
+        fields.extend(['Author{0}:'.format('s' if len(authors) != 1
+                                               else '')])
+        values.extend([', '.join(authors)])
+    if not fields:
+        return
+    field_width = max(len(f) for f in fields)
+    fields = (f + ' ' * (field_width - len(f)) for f in fields)
+    rows = (' '.join(r) for r in zip(fields, values))
+    print('\n'.join(rows))
+
+
 def play(options, file_name, pa_handle, key_handler, list_pos):
     try:
-        if os.path.basename(os.path.realpath(file_name)) == 'kunquatc00':
+        if os.path.basename(os.path.realpath(file_name)) == 'kqtc00':
             handle = kunquat.RWHandle(file_name, options.frequency)
         else:
             handle = kunquat.RHandle(file_name, options.frequency)
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'%s\': %s' % (file_name, e), end='')
+        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
     handle.buffer_size = options.buffer_size
     handle.subsong = options.subsong
@@ -80,8 +102,11 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     duration = handle.get_duration(options.subsong)
     if options.interactive:
         print('Playing', file_name)
+        print_meta(handle)
     return_key = KeyHandler.RETURN
     status_len_max = 0
+    #pause = False
+    #handle.fire(-1, '[">pause", []]')
     bufs = handle.mix()
     rt_cycle_len = float(options.buffer_size) / options.frequency
     mix_cycle_start = 0
@@ -94,10 +119,20 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                    (len(mix_loads) - 2)
         pa_handle.write(*bufs)
         if options.interactive:
+            voice_count = 0
+            handle.fire(0, ['Qvoices', None])
+            events = handle.treceive()
+            try:
+                vc = ifilter(lambda x: x[1][0] == 'Avoices',
+                             events).next()
+                voice_count = vc[1][1]
+            except StopIteration:
+                pass
             status_line = status.get_status_line(handle,
                                                  duration,
                                                  bufs,
-                                                 mix_load)
+                                                 mix_load,
+                                                 None)
             print(status_line, end='')
             status_len = len(status_line)
             if status_len < status_len_max:
@@ -138,7 +173,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     handle.subsong = None
                     duration = handle.get_duration(handle.subsong)
                 elif key in string.digits:
-                    if handle['subs_%02x/p_subsong.json' % int(key)]:
+                    if handle['subs_{0:02x}/p_subsong.json'.format(int(key))]:
                         handle.subsong = int(key)
                         duration = handle.get_duration(handle.subsong)
                 elif key == 'p':
@@ -152,10 +187,21 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     if handle.subsong is None:
                         handle.subsong = 0
                         duration = handle.get_duration(handle.subsong)
-                    elif handle['subs_%02x/p_subsong.json' %
-                                (handle.subsong + 1)] and handle.subsong < 255:
+                    elif handle['subs_{0:02x}/p_subsong.json'.format(
+                              (handle.subsong + 1))] and handle.subsong < 255:
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
+                """
+                elif key == '§':
+                    #handle.fire(63, '["c.i", [1]]')
+                    handle.fire(63, '["cn+", [%f]]' % random.gauss(0, 1000))
+                elif key == '½':
+                    if not pause:
+                        handle.fire(-1, '[">pause", []]')
+                    else:
+                        handle.fire(-1, '[">resume", []]')
+                    pause = not pause
+                """
         mix_cycle_start = time.time()
         bufs = handle.mix()
         mix_cycle_end = time.time()
@@ -304,7 +350,7 @@ class Status(object):
                  (True, False)  : u'▘',
                  (False, True)  : u'▖',
                  (False, False) : u' ' }
-    
+
     block_map = { (3, 3) : u'█',
                   (3, 2) : u'▜',
                   (3, 1) : u'▛',
@@ -337,22 +383,27 @@ class Status(object):
         seconds = seconds - 0.05
         if seconds < 0:
             seconds = 0
-        return '%02d:%04.1f' % (seconds // 60, seconds % 60)
+        return '{0:02d}:{1:04.1f}'.format(int(seconds // 60), seconds % 60)
 
-    def get_status_line(self, handle, duration, bufs, mix_load):
+    def get_status_line(self, handle, duration, bufs, mix_load, voice_count):
         components = []
         if handle.subsong is None:
             components.append('All subsongs')
         else:
-            components.append('Subsong: %d' % handle.subsong)
-        elapsed = 'Time: %s' % self.dur_to_str(handle.nanoseconds)
+            components.append('Subsong: {0}'.format(handle.subsong))
+        elapsed = 'Time: {0}'.format(self.dur_to_str(handle.nanoseconds))
         if handle.nanoseconds <= duration:
-            elapsed += ' [%s] of %s' % (
-                       self.dur_to_str(duration - handle.nanoseconds),
-                       self.dur_to_str(duration))
+            if duration == 2592000000000000:
+                elapsed += ' of >= 30 days'
+            else:
+                elapsed += ' [{0}] of {1}'.format(
+                           self.dur_to_str(duration - handle.nanoseconds),
+                           self.dur_to_str(duration))
         components.append(elapsed)
         if mix_load > 0:
-            components.append('Load: %.0f %%' % (mix_load * 100))
+            components.append('Load: {0:.0f} %'.format(mix_load * 100))
+        if voice_count != None:
+            components.append('Voices: {0:d}'.format(voice_count))
         return self.get_peak_meter(14, -40, 0, bufs) + ', '.join(components)
 
     def get_peak_meter(self, length, lower, upper, bufs):
@@ -370,8 +421,8 @@ class Status(object):
                                           right_vol_linear, self.right_hold)
         self.left_hold[1] += len(bufs[0])
         self.right_hold[1] += len(bufs[0])
-        return '[%s]%s' % (self.combine_meters(left_bar, right_bar),
-                Status.clip_map[self.left_clipped, self.right_clipped])
+        return u'[{0}]{1}'.format(self.combine_meters(left_bar, right_bar),
+                Status.clip_map[(self.left_clipped, self.right_clipped)])
 
     def get_single_meter(self, length, lower, upper, vol_linear, hold):
         if vol_linear <= 0:

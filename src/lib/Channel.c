@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,14 +20,11 @@
 
 #include <Channel.h>
 #include <Channel_state.h>
-
+#include <Environment.h>
 #include <kunquat/limits.h>
 #include <Reltime.h>
 #include <Event.h>
 #include <Event_handler.h>
-#include <Event_channel.h>
-#include <Event_ins.h>
-#include <Event_channel_note_off.h>
 #include <Column.h>
 #include <math_common.h>
 #include <xassert.h>
@@ -37,6 +34,7 @@
 Channel* new_Channel(Ins_table* insts,
                      int num,
                      Voice_pool* pool,
+                     Environment* env,
                      double* tempo,
                      uint32_t* freq)
 {
@@ -44,6 +42,7 @@ Channel* new_Channel(Ins_table* insts,
     assert(num >= 0);
     assert(num < KQT_COLUMNS_MAX);
     assert(pool != NULL);
+    assert(env != NULL);
     assert(tempo != NULL);
     assert(freq != NULL);
     Channel* ch = xalloc(Channel);
@@ -51,13 +50,7 @@ Channel* new_Channel(Ins_table* insts,
     {
         return NULL;
     }
-/*    ch->note_off = (Event*)new_Event_voice_note_off(Reltime_init(RELTIME_AUTO));
-    if (ch->note_off == NULL)
-    {
-        xfree(ch);
-        return NULL;
-    } */
-    ch->note_off = NULL;
+//    ch->note_off = NULL;
 /*    ch->single = (Event*)new_Event_voice_note_on(Reltime_set(RELTIME_AUTO, -1, 0));
     if (ch->single == NULL)
     {
@@ -65,8 +58,8 @@ Channel* new_Channel(Ins_table* insts,
         xfree(ch);
         return NULL;
     } */
-    ch->single = NULL;
-    if (!Channel_state_init(&ch->init_state, num, &ch->mute))
+//    ch->single = NULL;
+    if (!Channel_state_init(&ch->init_state, num, &ch->mute, env))
     {
         xfree(ch);
         return NULL;
@@ -86,130 +79,47 @@ Channel* new_Channel(Ins_table* insts,
 }
 
 
-void Channel_set_voices(Channel* ch,
-                        Voice_pool* pool,
-                        Column_iter* citer,
-                        Reltime* start,
-                        Reltime* end,
-                        uint32_t nframes,
-                        uint32_t offset,
-                        double tempo,
-                        uint32_t freq,
-                        Event_handler* eh)
+void Channel_mix(Channel* ch,
+                 Voice_pool* pool,
+                 uint32_t nframes,
+                 uint32_t offset,
+                 double tempo,
+                 uint32_t freq)
 {
     assert(ch != NULL);
     assert(pool != NULL);
-    (void)pool; // FIXME: remove?
-//  assert(citer != NULL);
-    assert(start != NULL);
-    assert(end != NULL);
     assert(offset <= nframes);
     assert(tempo > 0);
     assert(freq > 0);
-    assert(eh != NULL);
-    Event* next = ch->single;
-    if (true || Reltime_cmp(Event_get_pos(next), Reltime_init(RELTIME_AUTO)) < 0) // FIXME: true
+    if (offset >= nframes)
     {
-        next = NULL;
-        if (citer != NULL)
-        {
-            next = Column_iter_get(citer, start);
-        }
+        return;
     }
-    else
+    LFO_set_mix_rate(&ch->cur_state.vibrato, freq);
+    LFO_set_tempo(&ch->cur_state.vibrato, tempo);
+    LFO_set_mix_rate(&ch->cur_state.tremolo, freq);
+    LFO_set_tempo(&ch->cur_state.tremolo, tempo);
+    Slider_set_mix_rate(&ch->cur_state.panning_slider, freq);
+    Slider_set_tempo(&ch->cur_state.panning_slider, tempo);
+    LFO_set_mix_rate(&ch->cur_state.autowah, freq);
+    LFO_set_tempo(&ch->cur_state.autowah, tempo);
+    for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
-        Event_set_pos(ch->single, start);
-    }
-    Reltime* next_pos = Reltime_set(RELTIME_AUTO, INT64_MAX, KQT_RELTIME_BEAT - 1);
-    if (next != NULL)
-    {
-        Reltime_copy(next_pos, Event_get_pos(next));
-    }
-    assert(!(Reltime_get_beats(next_pos) == INT64_MAX) || (next == NULL));
-    assert(!(next == NULL) || (Reltime_get_beats(next_pos) == INT64_MAX));
-    uint32_t mixed = offset;
-//    fprintf(stderr, "Entering Channel mixing, mixed: %" PRIu32 ", nframes: %" PRIu32 "\n",
-//            mixed, nframes);
-    while (Reltime_cmp(next_pos, end) < 0 || mixed < nframes)
-    {
-        assert(Reltime_cmp(start, next_pos) <= 0);
-        assert(!(Reltime_get_beats(next_pos) == INT64_MAX) || (next == NULL));
-        assert(!(next == NULL) || (Reltime_get_beats(next_pos) == INT64_MAX));
-        Reltime* rel_offset = Reltime_sub(RELTIME_AUTO, next_pos, start);
-        uint32_t abs_pos = Reltime_toframes(rel_offset, tempo, freq);
-//        fprintf(stderr, "mixed: %u, abs_pos: %u, nframes: %u\n",
-//                (unsigned int)mixed, (unsigned int)abs_pos, (unsigned int)nframes);
-        if (abs_pos < UINT32_MAX - offset)
+        if (ch->cur_state.fg[i] != NULL)
         {
-            abs_pos += offset;
-        }
-        uint32_t to_be_mixed = MIN(abs_pos, nframes);
-        for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
-        {
+            ch->cur_state.fg[i] = Voice_pool_get_voice(pool,
+                                          ch->cur_state.fg[i],
+                                          ch->cur_state.fg_id[i]);
             if (ch->cur_state.fg[i] != NULL)
             {
-                ch->cur_state.fg[i] = Voice_pool_get_voice(pool,
-                                              ch->cur_state.fg[i],
-                                              ch->cur_state.fg_id[i]);
-                if (ch->cur_state.fg[i] != NULL)
-                {
-//                    fprintf(stderr, "checking priority %p\n", (void*)&ch->cur_state.fg[i]->prio);
-                    assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
-                    Voice_mix(ch->cur_state.fg[i], to_be_mixed, mixed, freq, tempo);
-                }
+                assert(ch->cur_state.fg[i]->prio > VOICE_PRIO_INACTIVE);
+                Voice_mix(ch->cur_state.fg[i], nframes, offset, freq, tempo);
             }
         }
-//        fprintf(stderr, "foo\n");
-        mixed = to_be_mixed;
-        if (Reltime_cmp(next_pos, end) >= 0)
-        {
-            break;
-        }
-        assert(next != NULL);
-        if (EVENT_IS_CHANNEL(Event_get_type(next)))
-        {
-            Event_handler_handle(eh, ch->init_state.num,
-                                 Event_get_type(next),
-                                 Event_get_fields(next));
-        }
-        else if (EVENT_IS_INS(Event_get_type(next)))
-        {
-            if (ch->cur_state.instrument > 0)
-            {
-                Event_handler_handle(eh, ch->cur_state.instrument,
-                                     Event_get_type(next),
-                                     Event_get_fields(next));
-            }
-        }
-        else if (EVENT_IS_GENERATOR(Event_get_type(next)))
-        {
-            Event_handler_handle(eh, ch->init_state.num,
-                                 Event_get_type(next),
-                                 Event_get_fields(next));
-        }
-        if (next == ch->single)
-        {
-            Event_set_pos(ch->single, Reltime_set(RELTIME_AUTO, -1, 0));
-            next = NULL;
-            if (citer != NULL)
-            {
-                next = Column_iter_get(citer, start);
-            }
-        }
-        else
-        {
-            next = NULL;
-            if (citer != NULL)
-            {
-                next = Column_iter_get_next(citer);
-            }
-        }
-        if (next == NULL)
-        {
-            Reltime_set(next_pos, INT64_MAX, KQT_RELTIME_BEAT - 1);
-            continue;
-        }
-        Reltime_copy(next_pos, Event_get_pos(next));
+    }
+    if (Slider_in_progress(&ch->cur_state.panning_slider))
+    {
+        Slider_skip(&ch->cur_state.panning_slider, nframes - offset);
     }
     return;
 }
@@ -220,38 +130,24 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
     assert(ch != NULL);
     (void)ch;
     (void)mixed;
-#if 0
-    if (ch->new_state.panning_slide != 0 && ch->new_state.panning_slide_prog < mixed)
-    {
-        uint32_t frames_left = mixed - ch->new_state.panning_slide_prog;
-        ch->new_state.panning += ch->new_state.panning_slide_update * frames_left;
-        ch->new_state.panning_slide_frames -= frames_left;
-        if (ch->new_state.panning_slide_frames <= 0)
-        {
-            ch->new_state.panning = ch->new_state.panning_slide_target;
-            ch->new_state.panning_slide = 0;
-        }
-        else if (ch->new_state.panning_slide == 1)
-        {
-            if (ch->new_state.panning > ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-        else
-        {
-            assert(ch->new_state.panning_slide == -1);
-            if (ch->new_state.panning < ch->new_state.panning_slide_target)
-            {
-                ch->new_state.panning = ch->new_state.panning_slide_target;
-                ch->new_state.panning_slide = 0;
-            }
-        }
-    }
-    Channel_state_copy(&ch->cur_state, &ch->new_state);
-    ch->cur_state.panning_slide_prog = ch->new_state.panning_slide_prog = 0;
-#endif
+    return;
+}
+
+
+void Channel_set_random_seed(Channel* ch, uint64_t seed)
+{
+    assert(ch != NULL);
+    Channel_state_set_random_seed(&ch->init_state, seed);
+    return;
+}
+
+
+void Channel_set_event_cache(Channel* ch, Event_cache* cache)
+{
+    assert(ch != NULL);
+    assert(cache != NULL);
+    Channel_state_set_event_cache(&ch->init_state, cache);
+    ch->cur_state.event_cache = ch->init_state.event_cache;
     return;
 }
 
@@ -259,8 +155,10 @@ void Channel_update_state(Channel* ch, uint32_t mixed)
 void Channel_reset(Channel* ch)
 {
     assert(ch != NULL);
+    Channel_state_reset(&ch->init_state);
     Channel_state_copy(&ch->cur_state, &ch->init_state);
 //    Channel_state_copy(&ch->new_state, &ch->init_state);
+    Channel_gen_state_clear(ch->cur_state.cgstate);
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         ch->cur_state.fg[i] = NULL;
@@ -273,7 +171,10 @@ void Channel_reset(Channel* ch)
 
 void del_Channel(Channel* ch)
 {
-    assert(ch != NULL);
+    if (ch == NULL)
+    {
+        return;
+    }
 //    assert(ch->note_off != NULL);
 //    assert(ch->single != NULL);
 //    del_Event(ch->note_off);

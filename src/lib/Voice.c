@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -17,6 +17,8 @@
 #include <stdint.h>
 #include <inttypes.h>
 
+#include <math_common.h>
+#include <Random.h>
 #include <Voice.h>
 #include <Voice_state.h>
 #include <Voice_params.h>
@@ -34,11 +36,42 @@ Voice* new_Voice(void)
     voice->pool_index = 0;
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
     voice->gen = NULL;
-    Voice_state_clear(&voice->state.generic);
+    voice->state_size = 0;
+    voice->state = NULL;
+
+    voice->state_size = sizeof(Voice_state);
+    voice->state = xalloc(Voice_state);
+    voice->rand_p = new_Random();
+    voice->rand_s = new_Random();
+    if (voice->state == NULL || voice->rand_p == NULL ||
+            voice->rand_s == NULL)
+    {
+        del_Voice(voice);
+        return NULL;
+    }
+    Random_set_context(voice->rand_p, "vp");
+    Random_set_context(voice->rand_s, "vs");
+    Voice_state_clear(voice->state);
     return voice;
+}
+
+
+bool Voice_reserve_state_space(Voice* voice, size_t state_size)
+{
+    assert(voice != NULL);
+    if (state_size <= voice->state_size)
+    {
+        return true;
+    }
+    Voice_state* new_state = xrealloc(char, state_size, voice->state);
+    if (new_state == NULL)
+    {
+        return false;
+    }
+    voice->state_size = state_size;
+    voice->state = new_state;
+    return true;
 }
 
 
@@ -61,6 +94,7 @@ void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
                 Channel_gen_state* cgstate,
+                uint64_t seed,
                 uint32_t freq,
                 double tempo)
 {
@@ -71,17 +105,19 @@ void Voice_init(Voice* voice,
     assert(freq > 0);
     assert(tempo > 0);
     voice->prio = VOICE_PRIO_NEW;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
     voice->gen = gen;
-    Voice_state_init(&voice->state.generic,
+    Random_set_seed(voice->rand_p, seed);
+    Random_set_seed(voice->rand_s, seed);
+    Voice_state_init(voice->state,
                      params,
                      cgstate,
+                     voice->rand_p,
+                     voice->rand_s,
                      freq,
                      tempo);
     if (gen->init_state != NULL)
     {
-        gen->init_state(gen, &voice->state.generic);
+        gen->init_state(gen, voice->state);
     }
     return;
 }
@@ -92,10 +128,18 @@ void Voice_reset(Voice* voice)
     assert(voice != NULL);
     voice->id = 0;
     voice->prio = VOICE_PRIO_INACTIVE;
-    voice->was_fg = true;
-    voice->fg_mixed = 0;
-    Voice_state_clear(&voice->state.generic);
+    Voice_state_clear(voice->state);
     voice->gen = NULL;
+    Random_reset(voice->rand_p);
+    Random_reset(voice->rand_s);
+    return;
+}
+
+
+void Voice_prepare(Voice* voice)
+{
+    assert(voice != NULL);
+    (void)voice;
     return;
 }
 
@@ -113,45 +157,39 @@ void Voice_mix(Voice* voice,
     {
         return;
     }
-    bool initially_fg = voice->prio >= VOICE_PRIO_FG;
     uint32_t mixed = offset;
-    if (voice->prio <= VOICE_PRIO_BG)
+    Generator_mix(voice->gen, voice->state, nframes, mixed, freq, tempo);
+    if (!voice->state->active)
     {
-        if (voice->was_fg)
-        {
-//            fprintf(stderr, "mixed: %" PRIu32 ", fg_mixed: %" PRIu32 "\n", mixed, voice->fg_mixed);
-            assert(mixed <= voice->fg_mixed);
-//            fprintf(stderr, "setting voice->fg_mixed: %" PRIu32 "\n", voice->fg_mixed);
-            mixed = voice->fg_mixed;
-            voice->was_fg = false;
-            voice->fg_mixed = 0;
-        }
-    }
-//    fprintf(stderr, "mix %p from %" PRIu32 " to %" PRIu32 "\n", (void*)voice, mixed, nframes);
-    Generator_mix(voice->gen, &voice->state.generic, nframes, mixed, freq, tempo);
-//    fprintf(stderr, "mixed\n");
-    if (!voice->state.generic.active)
-    {
-//        fprintf(stderr, "not active -- setting priority %p to inactive\n",
-//                (void*)&voice->prio);
         Voice_reset(voice);
-//        voice->prio = VOICE_PRIO_INACTIVE;
     }
-    else if (!voice->state.generic.note_on)
+    else if (!voice->state->note_on)
     {
         voice->prio = VOICE_PRIO_BG;
-    }
-    if (initially_fg)
-    {
-        voice->fg_mixed = nframes;
     }
     return;
 }
 
 
-void del_Voice(Voice* voice)
+double Voice_get_actual_force(Voice* voice)
 {
     assert(voice != NULL);
+    assert(voice->state != NULL);
+    assert(voice->state->active);
+    assert(voice->state->actual_force > 0);
+    return log2(voice->state->actual_force) * 6;
+}
+
+
+void del_Voice(Voice* voice)
+{
+    if (voice == NULL)
+    {
+        return;
+    }
+    del_Random(voice->rand_p);
+    del_Random(voice->rand_s);
+    xfree(voice->state);
     xfree(voice);
     return;
 }

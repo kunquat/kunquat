@@ -130,11 +130,8 @@ void Etable_clear(Etable* table)
     assert(table != NULL);
     for (int i = 0; i < table->res; ++i)
     {
-        if (table->els[i] != NULL)
-        {
-            table->destroy(table->els[i]);
-            table->els[i] = NULL;
-        }
+        table->destroy(table->els[i]);
+        table->els[i] = NULL;
     }
     return;
 }
@@ -142,7 +139,10 @@ void Etable_clear(Etable* table)
 
 void del_Etable(Etable* table)
 {
-    assert(table != NULL);
+    if (table == NULL)
+    {
+        return;
+    }
     Etable_clear(table);
     xfree(table->els);
     xfree(table);

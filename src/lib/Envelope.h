@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -34,6 +34,8 @@ typedef enum
     ENVELOPE_INT_NEAREST,
     // Linear interpolation.
     ENVELOPE_INT_LINEAR,
+    // Smooth curve interpolation.
+    ENVELOPE_INT_CURVE,
     // Sentinel value -- not a valid setting.
     ENVELOPE_INT_LAST
 } Envelope_int;
@@ -223,7 +225,7 @@ void Envelope_set_last_lock(Envelope* env, bool lock_x, bool lock_y);
 /**
  * Destroys an existing Envelope.
  *
- * \param env   The Envelope -- must not be \c NULL.
+ * \param env   The Envelope, or \c NULL.
  */
 void del_Envelope(Envelope* env);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -31,15 +31,42 @@
 typedef struct Sample
 {
     Sample_params params;
-    char* path;           ///< The path of the file (if applicable -- otherwise NULL).
-    bool changed;         ///< Whether the sample (sound) data has changed after loading.
-    bool is_lossy;        ///< Whether this sample uses lossy compression.
+//    char* path;           ///< The path of the file (if applicable -- otherwise NULL).
+//    bool changed;         ///< Whether the sample (sound) data has changed after loading.
+//    bool is_lossy;        ///< Whether this sample uses lossy compression.
     int channels;         ///< The number of channels (1 or 2).
     int bits;             ///< The bit resolution (8, 16, 24 or 32).
     bool is_float;        ///< Whether this sample is in floating point format.
     uint64_t len;         ///< The length of the sample (in amplitude values per channel).
     void* data[2];        ///< The sample data.
 } Sample;
+
+
+/**
+ * Creates a new Sample.
+ *
+ * \return   The new Sample if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Sample* new_Sample(void);
+
+
+/**
+ * Creates a new Sample from existing buffers.
+ *
+ * \param buffers   The buffers -- must not be \c NULL. The Sample will
+ *                  assume ownership of the buffers (but not the actual
+ *                  array parameter) and free them when it is destroyed.
+ * \param count     The number of buffers in \a buffers -- must be \c 1 or
+ *                  \c 2.
+ * \param length    The length of each buffer in \a buffers measured in
+ *                  amplitude values -- must be > \c 0 and must not exceed
+ *                  the real length.
+ *
+ * \return   The new Sample if successful, or \c NULL if memory allocation
+ *           failed.
+ */
+Sample* new_Sample_from_buffers(float* buffers[], int count, uint64_t length);
 
 
 /**
@@ -51,15 +78,6 @@ typedef struct Sample
  * \param params   The Sample parameters -- must not be \c NULL.
  */
 void Sample_set_params(Sample* sample, Sample_params* params);
-
-
-/**
- * Creates a new Sample.
- *
- * \return   The new Sample if successful, or \c NULL if memory allocation
- *           failed.
- */
-Sample* new_Sample(void);
 
 
 /**
@@ -79,7 +97,7 @@ Sample_format Sample_get_format(Sample* sample);
  * \param in       The input file -- must not be \c NULL.
  * \param format   The input file format -- must be valid.
  */
-bool Sample_load(Sample* sample, FILE* in, Sample_format format);
+//bool Sample_load(Sample* sample, FILE* in, Sample_format format);
 
 
 /**
@@ -89,7 +107,7 @@ bool Sample_load(Sample* sample, FILE* in, Sample_format format);
  * \param path     The input file path -- must not be \c NULL.
  * \param format   The input file format -- must be valid.
  */
-bool Sample_load_path(Sample* sample, char* path, Sample_format format);
+//bool Sample_load_path(Sample* sample, char* path, Sample_format format);
 
 
 /**
@@ -99,7 +117,7 @@ bool Sample_load_path(Sample* sample, char* path, Sample_format format);
  *
  * \return   The path.
  */
-char* Sample_get_path(Sample* sample);
+//char* Sample_get_path(Sample* sample);
 
 
 /**
@@ -199,6 +217,18 @@ uint64_t Sample_get_loop_end(Sample* sample);
 
 
 /**
+ * Gets a buffer from the Sample.
+ *
+ * \param sample   The Sample -- must not be \c NULL.
+ * \param ch       The channel number -- must be >= \c 0 and less than the
+ *                 number of channels in the Sample.
+ *
+ * \return   The buffer.
+ */
+void* Sample_get_buffer(Sample* sample, int ch);
+
+
+/**
  * Mixes a Sample.
  *
  * \param sample        The Sample -- must not be \c NULL.
@@ -232,7 +262,7 @@ uint32_t Sample_mix(Sample* sample,
 /**
  * Destroys a Sample.
  *
- * \param sample   The Sample -- must not be \c NULL.
+ * \param sample   The Sample, or \c NULL.
  */
 void del_Sample(Sample* sample);
 

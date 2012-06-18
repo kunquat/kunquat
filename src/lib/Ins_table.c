@@ -87,7 +87,10 @@ void Ins_table_clear(Ins_table* table)
 
 void del_Ins_table(Ins_table* table)
 {
-    assert(table != NULL);
+    if (table == NULL)
+    {
+        return;
+    }
     del_Etable(table->insts);
     xfree(table);
     return;

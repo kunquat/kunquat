@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -33,7 +33,10 @@ opts.AddVariables(
     BoolVariable('enable_libkunquat_dev', 'Install development files.', True),
     BoolVariable('enable_python_bindings', 'Install Python bindings.', True),
     BoolVariable('enable_tests', 'Build and run libkunquat tests.', True),
+    BoolVariable('enable_tests_mem_debug', 'Run tests with memory debugging'
+                 ' (requires valgrind, disables assert tests)', False),
     BoolVariable('enable_player', 'Enable kunquat-player.', True),
+    BoolVariable('enable_tracker', 'Enable kunquat-tracker.', True),
     BoolVariable('enable_export', 'Enable kunquat-export (requires libsndfile).', False),
     BoolVariable('enable_examples', 'Build example Kunquat files.', True),
     BoolVariable('with_wavpack', 'Build WavPack support (recommended).', True),
@@ -174,6 +177,12 @@ if not env.GetOption('clean') and not env.GetOption('help'):
                   ' without Python bindings -- disabling kunquat-player.')
             env['enable_player'] = False
 
+    if env['enable_tracker']:
+        if not env['enable_python_bindings']:
+            print('Warning: kunquat-tracker was requested'
+                  ' without Python bindings -- disabling kunquat-tracker.')
+            env['enable_tracker'] = False
+
     if env['with_pulse']:
         if conf.CheckLibWithHeader('pulse-simple', 'pulse/simple.h', 'C'):
             audio_found = True
@@ -220,7 +229,7 @@ if not env.GetOption('clean') and not env.GetOption('help'):
               ('s' if len(conf_errors) != 1 else ''))
         print('\n'.join(conf_errors) + '\n')
         Exit(1)
-        
+
     env = conf.Finish()
 
 elif GetOption('full-clean') != None:
@@ -245,11 +254,16 @@ if not env.GetOption('help'):
     if env['enable_python_bindings'] and 'install' in COMMAND_LINE_TARGETS:
         if 'install' in COMMAND_LINE_TARGETS:
             if not env.GetOption('clean'):
-                ret = subprocess.call(['python',
-                                       'py-setup.py',
-                                       'install',
-                                       '--record=py-installed',
-                                       '--prefix=%s' % env['prefix']])
+                args = ['python',
+                        'py-setup.py',
+                        'install',
+                        '--record=py-installed',
+                        '--prefix=%s' % env['prefix']]
+                if not env['enable_player']:
+                    args.append('--disable-player')
+                if not env['enable_tracker']:
+                    args.append('--disable-tracker')
+                ret = subprocess.call(args)
                 if ret:
                     Exit(ret)
             elif os.path.exists('py-installed'):

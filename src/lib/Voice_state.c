@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,6 +19,7 @@
 #include <Voice_state.h>
 #include <Voice_params.h>
 #include <Reltime.h>
+#include <Slider.h>
 #include <kunquat/limits.h>
 #include <xassert.h>
 
@@ -26,11 +27,16 @@
 Voice_state* Voice_state_init(Voice_state* state,
                               Voice_params* params,
                               Channel_gen_state* cgstate,
+                              Random* rand_p,
+                              Random* rand_s,
                               uint32_t freq,
                               double tempo)
 {
     assert(state != NULL);
     assert(params != NULL);
+    assert(cgstate != NULL);
+    assert(rand_p != NULL);
+    assert(rand_s != NULL);
     assert(freq > 0);
     assert(tempo > 0);
     Voice_state_clear(state);
@@ -39,6 +45,24 @@ Voice_state* Voice_state_init(Voice_state* state,
     state->note_on = true;
     state->freq = freq;
     state->tempo = tempo;
+    state->rand_p = rand_p;
+    state->rand_s = rand_s;
+
+    Slider_set_mix_rate(&state->pitch_slider, freq);
+    Slider_set_tempo(&state->pitch_slider, tempo);
+    LFO_set_mix_rate(&state->vibrato, freq);
+    LFO_set_tempo(&state->vibrato, tempo);
+    Slider_set_mix_rate(&state->force_slider, freq);
+    Slider_set_tempo(&state->force_slider, tempo);
+    LFO_set_mix_rate(&state->tremolo, freq);
+    LFO_set_tempo(&state->tremolo, tempo);
+    Slider_set_mix_rate(&state->panning_slider, freq);
+    Slider_set_tempo(&state->panning_slider, tempo);
+    Slider_set_mix_rate(&state->lowpass_slider, freq);
+    Slider_set_tempo(&state->lowpass_slider, tempo);
+    LFO_set_mix_rate(&state->autowah, freq);
+    LFO_set_tempo(&state->autowah, tempo);
+
     Voice_params_copy(&state->params, params);
     return state;
 }
@@ -56,40 +80,28 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->ramp_release = 0;
     state->orig_cents = 0;
 
+    state->hit_index = -1;
     state->pitch = 0;
     state->prev_pitch = 0;
     state->actual_pitch = 0;
     state->prev_actual_pitch = 0;
-    state->pitch_slide = 0;
-    Reltime_init(&state->pitch_slide_length);
-    state->pitch_slide_target = 0;
-    state->pitch_slide_frames = 0;
-    state->pitch_slide_update = 1;
-    state->vibrato = false;
-    state->vibrato_length = 0;
-    state->vibrato_depth = 0;
-    state->vibrato_depth_target = 0;
-    state->vibrato_delay_pos = 0;
-    state->vibrato_delay_update = 1;
-    state->vibrato_phase = 0;
-    state->vibrato_update = 0;
+    Slider_init(&state->pitch_slider, SLIDE_MODE_EXP);
+    LFO_init(&state->vibrato, LFO_MODE_EXP);
+
     state->arpeggio = false;
+    state->arpeggio_ref = NAN;
     state->arpeggio_length = 0;
     state->arpeggio_frames = 0;
     state->arpeggio_note = 0;
+    state->arpeggio_tones[0] = state->arpeggio_tones[1] = NAN;
+#if 0
     for (int i = 0; i < KQT_ARPEGGIO_NOTES_MAX; ++i)
     {
-        state->arpeggio_factors[i] = 0;
+        state->arpeggio_offsets[i] = NAN;
     }
+#endif
 
-    state->autowah = false;
-    state->autowah_length = 0;
-    state->autowah_depth = 0;
-    state->autowah_depth_target = 0;
-    state->autowah_delay_pos = 0;
-    state->autowah_delay_update = 1;
-    state->autowah_phase = 0;
-    state->autowah_update = 0;
+    LFO_init(&state->autowah, LFO_MODE_EXP);
 
     state->pos = 0;
     state->pos_rem = 0;
@@ -99,8 +111,8 @@ Voice_state* Voice_state_clear(Voice_state* state)
     state->note_on = false;
     state->noff_pos = 0;
     state->noff_pos_rem = 0;
-    
-    state->pedal = NULL;
+
+    state->sustain = NULL;
     state->fe_pos = 0;
     state->fe_next_node = 0;
     state->fe_value = NAN;
@@ -115,53 +127,34 @@ Voice_state* Voice_state_clear(Voice_state* state)
 
     state->force = 1;
     state->actual_force = 1;
-    state->force_slide = 0;
-    Reltime_init(&state->force_slide_length);
-    state->force_slide_target = 1;
-    state->force_slide_frames = 0;
-    state->force_slide_update = 1;
-    state->tremolo = false;
-    state->tremolo_length = 0;
-    state->tremolo_depth = 0;
-    state->tremolo_depth_target = 0;
-    state->tremolo_delay_pos = 0;
-    state->tremolo_delay_update = 1;
-    state->tremolo_phase = 0;
-    state->tremolo_update = 0;
+    Slider_init(&state->force_slider, SLIDE_MODE_EXP);
+    LFO_init(&state->tremolo, LFO_MODE_EXP);
 
     state->panning = 0;
     state->actual_panning = 0;
-    state->panning_slide = 0;
-    Reltime_init(&state->panning_slide_length);
-    state->panning_slide_target = 0;
-    state->panning_slide_frames = 0;
-    state->panning_slide_update = 0;
+    Slider_init(&state->panning_slider, SLIDE_MODE_LINEAR);
 
-    state->filter = INFINITY;
-    state->actual_filter = INFINITY;
-    state->effective_filter = INFINITY;
-    state->filter_slide = 0;
-    Reltime_init(&state->filter_slide_length);
-    state->filter_slide_target = INFINITY;
-    state->filter_slide_frames = 0;
-    state->filter_slide_update = 0;
-    state->filter_resonance = 1;
+    state->lowpass = INFINITY;
+    state->actual_lowpass = INFINITY;
+    state->effective_lowpass = INFINITY;
+    Slider_init(&state->lowpass_slider, SLIDE_MODE_EXP);
+    state->lowpass_resonance = 1;
     state->effective_resonance = 1;
-    state->filter_update = false;
-    state->filter_state_used = -1;
-    state->filter_xfade_state_used = -1;
-    state->filter_xfade_pos = 1;
-    state->filter_xfade_update = 0;
+    state->lowpass_update = false;
+    state->lowpass_state_used = -1;
+    state->lowpass_xfade_state_used = -1;
+    state->lowpass_xfade_pos = 1;
+    state->lowpass_xfade_update = 0;
     for (int i = 0; i < FILTER_ORDER; ++i)
     {
-        state->filter_state[0].coeffs[i] = 0;
-        state->filter_state[1].coeffs[i] = 0;
+        state->lowpass_state[0].coeffs[i] = 0;
+        state->lowpass_state[1].coeffs[i] = 0;
         for (int k = 0; k < KQT_BUFFERS_MAX; ++k)
         {
-            state->filter_state[0].history1[k][i] = 0;
-            state->filter_state[0].history2[k][i] = 0;
-            state->filter_state[1].history1[k][i] = 0;
-            state->filter_state[1].history2[k][i] = 0;
+            state->lowpass_state[0].history1[k][i] = 0;
+            state->lowpass_state[0].history2[k][i] = 0;
+            state->lowpass_state[1].history1[k][i] = 0;
+            state->lowpass_state[1].history2[k][i] = 0;
         }
     }
 

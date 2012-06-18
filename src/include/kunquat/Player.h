@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -42,7 +42,7 @@ extern "C" {
  * \code
  * long buffer_size = kqt_Handle_get_buffer_size(handle);
  * long mixed = 0;
- * while ((mixed = kqt_Handle_mix(handle, buffer_size, 48000)) > 0)
+ * while ((mixed = kqt_Handle_mix(handle, buffer_size)) > 0)
  * {
  *     kqt_frame* buffers[KQT_BUFFERS_MAX] = { NULL };
  *     buffers[0] = kqt_Handle_get_buffer(handle, 0); // left
@@ -61,14 +61,11 @@ extern "C" {
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param nframes   The number of frames to be mixed -- should be > \c 0.
- * \param freq      The mixing frequency in frames per second
- *                  -- should be > \c 0. Typical values are
- *                  44100 ("CD quality") and 48000.
  *
  * \return   The number of frames actually mixed. This is always
  *           <= \a nframes and <= kqt_Handle_get_buffer_size(handle).
  */
-long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
+long kqt_Handle_mix(kqt_Handle* handle, long nframes);
 
 
 /**
@@ -91,6 +88,31 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq);
  *           may change in memory, especially if the buffer size is changed.
  */
 float* kqt_Handle_get_buffer(kqt_Handle* handle, int index);
+
+
+/**
+ * Sets the mixing rate of the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param rate     The mixing rate in frames per second -- should be > \c 0.
+ *                 Typical values include 44100 ("CD quality") and 48000 (the
+ *                 default).
+ *
+ * \return   \c 1 if successful, or \c 0 if memory allocation failed. Memory
+ *           allocation failure is possible if the composition uses features
+ *           that allocate buffers based on the mixing rate.
+ */
+int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate);
+
+
+/**
+ * Gets the current mixing rate used by the Kunquat Handle.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ *
+ * \return   The current mixing rate, or \c 0 if \a handle is invalid.
+ */
+long kqt_Handle_get_mixing_rate(kqt_Handle* handle);
 
 
 /**
@@ -129,13 +151,17 @@ long kqt_Handle_get_buffer_size(kqt_Handle* handle);
 
 
 /**
- * Gets the duration of a Subsong of the Kunquat Handle in nanoseconds.
+ * Estimates the duration of a Subsong in the Kunquat Handle.
+ *
+ * This function will not calculate the length of a Subsong further
+ * than 30 days.
  *
  * \param handle    The Handle -- should not be \c NULL.
  * \param subsong   The Subsong number -- should be >= \c -1 and
  *                  < \c KQT_SUBSONGS_MAX (\c -1 indicates all Subsongs).
  *
- * \return   The length in nanoseconds, or \c -1 if failed.
+ * \return   The length in nanoseconds, or KQT_MAX_CALC_DURATION if the
+ *           length is 30 days or longer, or \c -1 if failed.
  */
 long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong);
 
@@ -165,6 +191,67 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
  * \return   The amount of nanoseconds mixed since the start of mixing.
  */
 long long kqt_Handle_get_position(kqt_Handle* handle);
+
+
+/**
+ * Fires an event.
+ *
+ * \param handle    The Handle -- should not be \c NULL.
+ * \param channel   The channel where the event takes place -- should be
+ *                  >= \c 0 and < \c KQT_COLUMNS_MAX.
+ * \param event     The event description in JSON format -- should not be
+ *                  \c NULL. The description is a pair (list with two
+ *                  elements) with the event name as the first element and its
+ *                  argument expression as the second element. The expression
+ *                  should be null for events that do not support an argument
+ *                  (e.g. ["cn-", null]).
+ *
+ * \return   \c 1 if the event was successfully fired, otherwise \c 0.
+ */
+int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event);
+
+
+/**
+ * Receives an event.
+ *
+ * This function only returns events of types that are explicitly
+ * requested through the ">receive" event.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param dest     The memory location where the result shall be stored
+ *                 -- should not be \c NULL. Upon successful completion,
+ *                 this memory location contains the received event
+ *                 description as a JSON string.
+ * \param size     The size of the memory area pointed to by \a dest --
+ *                 should be positive. A size of at least 65 bytes is
+ *                 recommended. JSON strings longer than \a size - 1
+ *                 bytes are truncated and thus may be invalid.
+ *
+ * \return   \c 1 if an event was successfully retrieved, \c 0 if the
+ *           event buffer is empty or an error occurred.
+ */
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size);
+
+
+/**
+ * Receives an event specific to tracker integration.
+ *
+ * Currently, this function returns environment variable setter events.
+ *
+ * \param handle   The Handle -- should not be \c NULL.
+ * \param dest     The memory location where the result shall be stored
+ *                 -- should not be \c NULL. Upon successful completion,
+ *                 this memory location contains the received event
+ *                 description as a JSON string.
+ * \param size     The size of the memory area pointed to by \a dest --
+ *                 should be positive. A size of at least 65 bytes is
+ *                 recommended. JSON strings longer than \a size - 1
+ *                 bytes are truncated and thus may be invalid.
+ *
+ * \return   \c 1 if an event was successfully retrieved, \c 0 if the
+ *           event buffer is empty or an error occurred.
+ */
+int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size);
 
 
 /* \} */

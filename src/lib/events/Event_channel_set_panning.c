@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,57 +19,30 @@
 #include <Event_common.h>
 #include <Event_channel_set_panning.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <Voice.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc set_panning_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = -1,
-        .max.field.double_type = 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_set_primitive_and_get(Event_channel_set_panning,
-                                   EVENT_CHANNEL_SET_PANNING,
-                                   double, panning);
-
-
-Event_create_constructor(Event_channel_set_panning,
-                         EVENT_CHANNEL_SET_PANNING,
-                         set_panning_desc,
-                         event->panning = 0);
-
-
-bool Event_channel_set_panning_process(Channel_state* ch_state, char* fields)
+bool Event_channel_set_panning_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, set_panning_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    ch_state->panning = data[0].field.double_type;
-    ch_state->panning_slide = 0;
+    ch_state->panning = value->value.float_type;
+    Slider_break(&ch_state->panning_slider);
+//    ch_state->panning_slide = 0;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
+        Voice_state* vs = ch_state->fg[i]->state;
         vs->panning = ch_state->panning;
-        vs->panning_slide = 0;
+        Slider_break(&vs->panning_slider);
+//        vs->panning_slide = 0;
     }
     return true;
 }

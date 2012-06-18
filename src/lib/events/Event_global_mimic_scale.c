@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,45 +18,16 @@
 #include <Event_common.h>
 #include <Event_global_mimic_scale.h>
 #include <kunquat/limits.h>
+#include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc mimic_scale_desc[] =
-{
-    {
-        .type = EVENT_FIELD_INT,
-        .min.field.integral_type = 0,
-        .max.field.integral_type = KQT_SCALES_MAX - 1
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_set_primitive_and_get(Event_global_mimic_scale,
-                                   EVENT_GLOBAL_MIMIC_SCALE,
-                                   int64_t, modifier_index);
-
-
-Event_create_constructor(Event_global_mimic_scale,
-                         EVENT_GLOBAL_MIMIC_SCALE,
-                         mimic_scale_desc,
-                         event->modifier_index = 0);
-
-
-bool Event_global_mimic_scale_process(Playdata* global_state, char* fields)
+bool Event_global_mimic_scale_process(Playdata* global_state, Value* value)
 {
     assert(global_state != NULL);
-    if (fields == NULL)
-    {
-        return false;
-    }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, mimic_scale_desc, data, state);
-    if (state->error)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_INT)
     {
         return false;
     }
@@ -65,7 +36,7 @@ bool Event_global_mimic_scale_process(Playdata* global_state, char* fields)
         return true;
     }
     Scale* scale = global_state->scales[global_state->scale];
-    Scale* modifier = global_state->scales[data[0].field.integral_type];
+    Scale* modifier = global_state->scales[value->value.int_type];
     if (scale == NULL || modifier == NULL)
     {
         return true;

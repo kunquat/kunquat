@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -23,8 +23,8 @@
 #include <Reltime.h>
 #include <kunquat/limits.h>
 #include <File_base.h>
-#include <String_buffer.h>
 
+#include <Event_names.h>
 #include <Event_type.h>
 
 
@@ -34,11 +34,9 @@
 typedef struct Event
 {
     Reltime pos;                   ///< The Event position.
+    int ch_index;                  ///< Channel number.
     Event_type type;               ///< The Event type.
-    Event_field_desc* field_types; ///< The field type description.
-    bool (*set)(struct Event* event, int index, void* data); ///< Field setter.
-    void* (*get)(struct Event* event, int index);            ///< Field getter.
-    char* fields;                  ///< Event fields as an unparsed JSON list.
+    char* desc;                    ///< Event description in JSON format.
     void (*destroy)(struct Event* event);                    ///< Destructor.
 } Event;
 
@@ -56,60 +54,28 @@ Event* new_Event(Event_type type, Reltime* pos);
 
 
 /**
- * Parses and retrieves all fields from a string.
+ * Creates an Event from a JSON string.
+ *
+ * \param str     A reference to the string -- must not be \c NULL or a
+ *                pointer to \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ * \param names   The Event names -- must not be \c NULL.
+ *
+ * \return   The new Event if successful, otherwise \c NULL. \a state will
+ *           not be modified if memory allocation failed.
  */
-char* Event_type_get_fields(char* str,
-                            Event_field_desc field_descs[],
-                            Event_field fields[],
-                            Read_state* state);
+Event* new_Event_from_string(char** str, Read_state* state,
+                             Event_names* names);
 
 
 /**
- * Parses an Event from a string.
+ * Tells whether the given Event type is supported.
  *
- * \param event   The Event -- must not be \c NULL.
- * \param str     The textual description -- must not be \c NULL.
- * \param state   The Read state object -- must not be \c NULL.
+ * \param type   The Event type -- must be valid.
  *
- * \return   The position in the string after the parsing. The caller must
- *           check for errors through \a state.
+ * \return   \c true if \a type is supported, otherwise \c false.
  */
-char* Event_read(Event* event, char* str, Read_state* state);
-
-
-/**
- * Serialises the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- * \param sb      The String buffer where the Event shall be written -- must
- *                not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Event_serialise(Event* event, String_buffer* sb);
-
-
-/**
- * Gets a field type description of the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- *
- * \return   The type description -- must not be freed. The value is an array
- *           containing a field type description for each field. The array is
- *           terminated with a field type of \c EVENT_NONE. See
- *           Event_type.h for details.
- */
-Event_field_desc* Event_get_field_types(Event* event);
-
-
-/**
- * Gets the number of fields in the Event.
- *
- * \param event   The Event -- must not be \c NULL.
- *
- * \return   The number of fields.
- */
-int Event_get_field_count(Event* event);
+//bool Event_type_is_supported(Event_type type);
 
 
 /**
@@ -142,44 +108,19 @@ Event_type Event_get_type(Event* event);
 
 
 /**
- * Sets a field in the Event.
- *
- * If the given index is valid, the type and constraints of the field can
- * be found in Event_get_field_types(event)[index].
+ * Gets a JSON description of the event (does not include timestamp).
  *
  * \param event   The Event -- must not be \c NULL.
- * \param index   The index.
- * \param data    A pointer to the value -- must not be \c NULL.
  *
- * \return   \c true if successful, or \c false if the index or value was
- *           illegal.
+ * \return   The JSON string.
  */
-bool Event_set_field(Event* event, int index, void* data);
-
-
-/**
- * Retrieves a field from the Event.
- * 
- * \param event   The Event -- must not be \c NULL.
- * \param index   The index.
- *
- * \return   A pointer to the field if one exists, otherwise \c NULL.
- */
-void* Event_get_field(Event* event, int index);
-
-
-/**
- * Gets a textual description of all the fields of the Event.
- * 
- * \param event   The Event -- must not be \c NULL.
- */
-char* Event_get_fields(Event* event);
+char* Event_get_desc(Event* event);
 
 
 /**
  * Destroys an existing Event.
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param event   The Event, or \c NULL.
  */
 void del_Event(Event* event);
 

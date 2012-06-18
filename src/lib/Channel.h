@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Channel_state.h>
 #include <Voice.h>
 #include <Event.h>
+#include <Event_cache.h>
 #include <Event_handler.h>
 #include <Voice_pool.h>
 #include <Ins_table.h>
@@ -44,8 +45,8 @@ typedef struct Channel
 //    int fg_count; ///< Number of Voices in the foreground.
 //    Voice* fg[KQT_GENERATORS_MAX]; ///< The Voices in the foreground.
 //    uint64_t fg_id[KQT_GENERATORS_MAX]; ///< The reservation identifications.
-    Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
-    Event* single; ///< An Event used for single note playback control.
+//    Event* note_off; ///< A Note Off event for triggering implicit Note Offs.
+//    Event* single; ///< An Event used for single note playback control.
 } Channel;
 
 
@@ -55,8 +56,10 @@ typedef struct Channel
  * \param insts        The Instrument table of the Song -- must not be \c NULL.
  * \param num          The Channel number -- must be >= \c 0 and
  *                     < \c KQT_COLUMNS_MAX.
- * \param ins_events   The Instrument event queue -- must not be \c NULL.
  * \param pool         The Voice pool -- must not be \c NULL.
+ * \param env          The Environment -- must not be \c NULL.
+ * \param tempo        A reference to the tempo -- must not be \c NULL.
+ * \param freq         A reference to the mix rate -- must not be \c NULL.
  *
  * \return   The new Channel if successful, or \c NULL if memory allocation
  *           failed.
@@ -64,36 +67,27 @@ typedef struct Channel
 Channel* new_Channel(Ins_table* insts,
                      int num,
                      Voice_pool* pool,
+                     Environment* env,
                      double* tempo,
                      uint32_t* freq);
 
 
 /**
- * Set up Voice(s) for events within the interval [start, end).
+ * Mixes the foreground of the Channel.
  *
- * \param ch       The Channel -- must not be \c NULL.
- * \param pool     The Voice pool -- must not be \c NULL.
- * \param citer    The Column iterator -- must not be \c NULL.
- * \param start    The timestamp for first possible Event(s) to be included
- *                 -- must not be \c NULL.
- * \param end      The timestamp at and after which no Events will be
- *                 included, i.e. an Event with precisely or greater than this
- *                 timestamp is left out -- must not be \c NULL.
- * \param offset   The mixing buffer offset.
- * \param tempo    The tempo -- must be > \c 0.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param eh       The Event handler -- must not be \c NULL.
+ * \param ch        The Channel -- must not be \c NULL.
+ * \param pool      The Voice pool -- must not be \c NULL.
+ * \param nframes   Upper limit in the buffer to be mixed.
+ * \param offset    Buffer offset -- must be <= \a nframes.
+ * \param tempo     The tempo -- must be > \c 0.
+ * \param freq      The mixing rate -- must be > \c 0.
  */
-void Channel_set_voices(Channel* ch,
-                        Voice_pool* pool,
-                        Column_iter* citer,
-                        Reltime* start,
-                        Reltime* end,
-                        uint32_t nframes,
-                        uint32_t offset,
-                        double tempo,
-                        uint32_t freq,
-                        Event_handler* eh);
+void Channel_mix(Channel* ch,
+                 Voice_pool* pool,
+                 uint32_t nframes,
+                 uint32_t offset,
+                 double tempo,
+                 uint32_t freq);
 
 
 /**
@@ -106,6 +100,24 @@ void Channel_update_state(Channel* ch, uint32_t mixed);
 
 
 /**
+ * Sets the random seed of the Channel.
+ *
+ * \param ch     The Channel -- must not be \c NULL.
+ * \param seed   The seed.
+ */
+void Channel_set_random_seed(Channel* ch, uint64_t seed);
+
+
+/**
+ * Sets the Event cache of the Channel.
+ *
+ * \param ch      The Channel -- must not be \c NULL.
+ * \param cache   The Event cache -- must not be \c NULL.
+ */
+void Channel_set_event_cache(Channel* ch, Event_cache* cache);
+
+
+/**
  * Resets the Channel.
  *
  * \param ch   The Channel -- must not be \c NULL.
@@ -114,9 +126,9 @@ void Channel_reset(Channel* ch);
 
 
 /**
- * Destroys an existing Channel
+ * Destroys an existing Channel.
  *
- * \param ch   The Channel -- must not be \c NULL.
+ * \param ch   The Channel, or \c NULL.
  */
 void del_Channel(Channel* ch);
 

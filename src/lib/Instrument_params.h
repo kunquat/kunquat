@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -25,26 +25,30 @@
 #include <File_base.h>
 
 
+typedef struct Pitch_lock
+{
+    bool enabled;
+    double cents;
+    double freq;
+} Pitch_lock;
+
+
 typedef struct Instrument_params
 {
-    kqt_frame** bufs;   ///< Mixing buffer used (same as either \a pbuf or \a gbuf).
-    kqt_frame** pbufs;  ///< Private mixing buffers (required when Instrument-level effects are used).
-    kqt_frame** gbufs;  ///< Global mixing buffers.
-    kqt_frame** vbufs;  ///< Voice buffers.
-    kqt_frame** vbufs2; ///< Auxiliary Voice buffers.
-    int buf_count;    ///< Number of mixing buffers.
-    uint32_t buf_len; ///< Mixing buffer length.
-    
     Scale*** scale;    ///< An indirect reference to the current Scale used.
 
-    double pedal; ///< Pedal setting (0 = fully released, 1.0 = fully depressed).
+    double sustain; ///< Sustain setting (0 = no sustain, 1.0 = full sustain).
 
-//    double force;                  ///< Force.
+    double global_force;           ///< Global force.
+    double force;                  ///< Default force.
     double force_variation;        ///< Force variation.
 
+    Pitch_lock pitch_locks[KQT_GENERATORS_MAX];
+#if 0
     bool pitch_lock_enabled;
     double pitch_lock_cents;
     double pitch_lock_freq;
+#endif
 
     bool force_volume_env_enabled; ///< Force-volume envelope toggle.
     Envelope* force_volume_env;    ///< Force-volume envelope.
@@ -90,14 +94,6 @@ typedef struct Instrument_params
  * Initialises the Instrument parameters.
  *
  * \param ip          The Instrument parameters -- must not be \c NULL.
- * \param bufs        The global mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param vbufs       The Voice mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param vbufs2      The auxiliary Voice mixing buffers -- must not be \c NULL and must
- *                    contain at least \a buf_count buffers.
- * \param buf_count   The number of buffers -- must be > \c 0.
- * \param buf_len     The length of the buffers -- must be > \c 0.
  * \param scale       An indirect reference to the Scale -- must not be
  *                    \c NULL.
  *
@@ -105,12 +101,15 @@ typedef struct Instrument_params
  *           allocation failed.
  */
 Instrument_params* Instrument_params_init(Instrument_params* ip,
-                                          kqt_frame** bufs,
-                                          kqt_frame** vbufs,
-                                          kqt_frame** vbufs2,
-                                          int buf_count,
-                                          uint32_t buf_len,
                                           Scale*** scale);
+
+
+/**
+ * Resets the playback settings of the Instrument parameters.
+ *
+ * \param ip   The Instrument parameters -- must not be \c NULL.
+ */
+void Instrument_params_reset(Instrument_params* ip);
 
 
 /**
@@ -146,7 +145,7 @@ bool Instrument_params_parse_env_pitch_pan(Instrument_params* ip,
 /**
  * Uninitialises the Instrument parameters.
  *
- * \param ip   The Instrument parameters -- must not be \c NULL.
+ * \param ip   The Instrument parameters, or \c NULL.
  */
 void Instrument_params_uninit(Instrument_params* ip);
 

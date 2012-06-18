@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,21 +16,11 @@
 #define K_EVENT_GLOBAL_SET_VOLUME_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
+#include <Playdata.h>
+#include <Value.h>
 
 
-typedef struct Event_global_set_volume
-{
-    Event_global parent;
-    double volume_dB;
-} Event_global_set_volume;
-
-
-Event* new_Event_global_set_volume(Reltime* pos);
-
-
-bool Event_global_set_volume_process(Playdata* global_state, char* fields);
+bool Event_global_set_volume_process(Playdata* global_state, Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_VOLUME_H

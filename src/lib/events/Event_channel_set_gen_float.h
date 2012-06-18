@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,20 +16,13 @@
 #define K_EVENT_CHANNEL_SET_GEN_FLOAT_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
-typedef struct Event_channel_set_gen_float
-{
-    Event_channel parent;
-    double value;
-} Event_channel_set_gen_float;
-
-
-Event* new_Event_channel_set_gen_float(Reltime* pos);
-
-bool Event_channel_set_gen_float_process(Channel_state* ch_state, char* fields);
+bool Event_channel_set_gen_float_process(Channel_state* ch_state,
+                                         Value* value);
 
 
 #endif // K_EVENT_CHANNEL_SET_GEN_FLOAT_H

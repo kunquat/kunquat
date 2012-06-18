@@ -412,9 +412,17 @@ int main(int argc, char** argv)
             fprintf(stderr, "%s.\n", kqt_Handle_get_error(NULL));
             continue;
         }
+        if (!kqt_Handle_set_mixing_rate(handle, frequency))
+        {
+            fprintf(stderr, "Couldn't set the mixing frequency: %s.\n",
+                            kqt_Handle_get_error(handle));
+            kqt_del_Handle(handle);
+            continue;
+        }
         if (!kqt_Handle_set_buffer_size(handle, OUT_BUFFER_SIZE))
         {
-            fprintf(stderr, "%s.\n", kqt_Handle_get_error(handle));
+            fprintf(stderr, "Couldn't set the buffer size: %s.\n",
+                            kqt_Handle_get_error(handle));
             kqt_del_Handle(handle);
             continue;
         }
@@ -452,7 +460,7 @@ int main(int argc, char** argv)
         }
         long mixed = 0;
         long long total = 0;
-        while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE, frequency)) > 0)
+        while ((mixed = kqt_Handle_mix(handle, OUT_BUFFER_SIZE)) > 0)
         {
             float* buf_l = kqt_Handle_get_buffer(handle, 0);
             float* buf_r = kqt_Handle_get_buffer(handle, 1);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -19,15 +19,15 @@
 #include <stdbool.h>
 
 #include <Connections.h>
-#include <DSP.h>
-#include <DSP_table.h>
+#include <Effect.h>
+#include <Effect_table.h>
 #include <Instrument_params.h>
+#include <Gen_table.h>
 #include <Generator.h>
 #include <frame.h>
 #include <Voice_state.h>
 #include <Scale.h>
 #include <Envelope.h>
-#include <Random.h>
 #include <kunquat/limits.h>
 
 
@@ -42,30 +42,19 @@ typedef struct Instrument Instrument;
 /**
  * Creates a new Instrument.
  *
- * \param bufs            The global mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param vbufs           The Voice mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param vbufs2          The auxiliary Voice mixing buffers -- must not be \c NULL and
- *                        must contain at least \a buf_count buffers.
- * \param buf_count       The number of mixing buffers -- must be > \c 0.
  * \param buf_len         The length of a mixing buffer -- must be > \c 0.
+ * \param mix_rate        The mixing rate -- must be > \c 0.
  * \param scales          The Scales of the Song -- must not be \c NULL.
  * \param default_scale   The default Scale -- must not be \c NULL. Also,
  *                        *default_scales must be an element of \a scales.
- * \param random          The Random source -- must not be \c NULL.
  *
  * \return   The new Instrument if successful, or \c NULL if memory allocation
  *           failed.
  */
-Instrument* new_Instrument(kqt_frame** bufs,
-                           kqt_frame** vbufs,
-                           kqt_frame** vbufs2,
-                           int buf_count,
-                           uint32_t buf_len,
+Instrument* new_Instrument(uint32_t buf_len,
+                           uint32_t mix_rate,
                            Scale** scales,
-                           Scale*** default_scale,
-                           Random* random);
+                           Scale*** default_scale);
 
 
 /**
@@ -81,6 +70,23 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state);
 
 
 /**
+ * Parses an Instrument-level value from a textual description.
+ *
+ * \param ins      The Instrument -- must not be \c NULL.
+ * \param subkey   The subkey -- must not be \c NULL.
+ * \param str      The textual description.
+ * \param state    The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false. \a state will not be
+ *           modified if memory allocation failed.
+ */
+bool Instrument_parse_value(Instrument* ins,
+                            const char* subkey,
+                            char* str,
+                            Read_state* state);
+
+
+/**
  * Gets the Instrument parameters of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
@@ -88,33 +94,6 @@ bool Instrument_parse_header(Instrument* ins, char* str, Read_state* state);
  * \return   The Instrument parameters.
  */
 Instrument_params* Instrument_get_params(Instrument* ins);
-
-
-/**
- * Gets common Generator parameters of a Generator in the Instrument.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- *
- * \return   The parameters. Note that this is not a valid Generator.
- */
-Generator* Instrument_get_common_gen_params(Instrument* ins, int index);
-
-
-/**
- * Sets a Generator of the Instrument.
- *
- * If a Generator already exists at the specified index, it will be removed.
- *
- * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the Generator -- must be >= \c 0 and
- *                < \c KQT_GENERATORS_MAX.
- * \param gen     The Generator -- must not be \c NULL.
- */
-void Instrument_set_gen(Instrument* ins,
-                        int index,
-                        Generator* gen);
 
 
 /**
@@ -130,6 +109,16 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
 
 
 /**
+ * Gets the Generator table of the Instrument.
+ *
+ * \param ins   The Instrument -- must not be \c NULL.
+ *
+ * \return   The Generator table.
+ */
+Gen_table* Instrument_get_gens(Instrument* ins);
+
+
+/**
  * Removes a Generator of the Instrument.
  *
  * The Generators located at greater indices will be shifted backward in the
@@ -140,29 +129,29 @@ Generator* Instrument_get_gen(Instrument* ins, int index);
  * \param index   The index of the Generator -- must be >= \c 0 and
  *                < \c KQT_GENERATORS_MAX.
  */
-void Instrument_del_gen(Instrument* ins, int index);
+//void Instrument_del_gen(Instrument* ins, int index);
 
 
 /**
- * Gets a DSP of the Instrument.
+ * Gets an Effect of the Instrument.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param index   The index of the DSP -- must be >= \c 0 and
- *                < \c KQT_INSTRUMENT_DSPS_MAX.
+ * \param index   The index of the Effect -- must be >= \c 0 and
+ *                < \c KQT_INST_EFFECTS_MAX.
  *
- * \return   The DSP if one exists, otherwise \c NULL.
+ * \return   The Effect if one exists, otherwise \c NULL.
  */
-DSP* Instrument_get_dsp(Instrument* ins, int index);
+Effect* Instrument_get_effect(Instrument* ins, int index);
 
 
 /**
- * Gets the DSP table of the Instrument.
+ * Gets the Effect table of the Instrument.
  *
  * \param ins   The Instrument -- must not be \c NULL.
  *
- * \return   The DSP table.
+ * \return   The Effect table.
  */
-DSP_table* Instrument_get_dsps(Instrument* ins);
+Effect_table* Instrument_get_effects(Instrument* ins);
 
 
 /**
@@ -181,7 +170,7 @@ void Instrument_set_scale(Instrument* ins, int index);
  * Previously set Connections will be removed if found.
  *
  * \param ins     The Instrument -- must not be \c NULL.
- * \param graph   The Connections -- must not be \c NULL.
+ * \param graph   The Connections, or \c NULL.
  */
 void Instrument_set_connections(Instrument* ins, Connections* graph);
 
@@ -217,7 +206,7 @@ void Instrument_mix(Instrument* ins,
 /**
  * Destroys an existing Instrument.
  *
- * \param   The Instrument -- must not be \c NULL.
+ * \param ins   The Instrument, or \c NULL.
  */
 void del_Instrument(Instrument* ins);
 

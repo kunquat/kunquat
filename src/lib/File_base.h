@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
 
 #include <Real.h>
 #include <Reltime.h>
@@ -28,7 +27,7 @@
 #define STATE_PATH_LENGTH (512)
 #define ERROR_MESSAGE_LENGTH (256)
 
-#define MAGIC_ID "kunquat"
+#define MAGIC_ID "kqt"
 
 
 typedef struct Read_state
@@ -40,21 +39,8 @@ typedef struct Read_state
 } Read_state;
 
 
-typedef struct Write_state
-{
-    bool error;
-    char path[STATE_PATH_LENGTH];
-    int row;
-    char message[ERROR_MESSAGE_LENGTH];
-    int indent;
-} Write_state;
-
-
 #define READ_STATE_AUTO (&(Read_state){ .error = false, .path = { '\0' },\
                          .row = 0, .message = { '\0' } })
-
-#define WRITE_STATE_AUTO (&(Write_state){ .error = false, .path = { '\0' },\
-                          .row = 0, .message = { '\0' }, .indent = 0 })
 
 
 #define check_next(str, state, expect)                \
@@ -99,16 +85,16 @@ void Read_state_clear_error(Read_state* state);
 
 
 /**
- * Reads a file into a byte array.
+ * Skips whitespace.
  *
- * \param in       The input file -- must not be \c NULL and must be seekable.
- * \param size     Pointer to a variable where file size is stored -- must not
- *                 be \c NULL.
- * \param handle   The Kunquat Handle, or \c NULL if not applicable.
+ * This function is not needed for reading JSON data.
  *
- * \return   The contents of the file if successful, otherwise \c NULL.
+ * \param str     The input string -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   The position of \a str after parsing.
  */
-char* read_file(FILE* in, long* size, kqt_Handle* handle);
+char* skip_whitespace(char* str, Read_state* state);
 
 
 /**
@@ -150,8 +136,8 @@ char* read_const_string(char* str, char* result, Read_state* state);
  * Reads a Boolean value.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the Boolean value will be stored -- must
- *                 not be \c NULL.
+ * \param result   The address where the Boolean value will be stored, or
+ *                 \c NULL for parsing without storing the value.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.
@@ -163,8 +149,8 @@ char* read_bool(char* str, bool* result, Read_state* state);
  * Reads a string.
  *
  * \param str       The input string -- must not be \c NULL.
- * \param result    The address where the string will be stored -- must not be
- *                  \c NULL if \a max_len > \c 0.
+ * \param result    The address where the string will be stored, or \c NULL
+ *                  for parsing without storing the value.
  * \param max_len   The maximum number of characters to be written, including
  *                  the terminating '\0'.
  * \param state     The Read state -- must not be \c NULL.
@@ -178,8 +164,8 @@ char* read_string(char* str, char* result, int max_len, Read_state* state);
  * Reads an integer value.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the integer value will be stored. If this
- *                 is \c NULL, parsing will still be done.
+ * \param result   The address where the integer value will be stored, or
+ *                 \c NULL for parsing without storing the value.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.
@@ -191,8 +177,8 @@ char* read_int(char* str, int64_t* result, Read_state* state);
  * Reads a double-precision floating point value.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the double value will be stored. If this
- *                 is \c NULL, parsing will still be done.
+ * \param result   The address where the double value will be stored, or
+ *                 \c NULL for parsing without storing the value.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.
@@ -204,7 +190,8 @@ char* read_double(char* str, double* result, Read_state* state);
  * Reads a tuning specification.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the Real value will be stored (if found).
+ * \param result   The address where the Real value will be stored (if found),
+ *                 or \c NULL for parsing without storing the value.
  * \param cents    The address where the tuning in cents will be stored. If it
  *                 is not \c NULL and the tuning is not in cents, *cents will
  *                 be a NaN.
@@ -219,8 +206,8 @@ char* read_tuning(char* str, Real* result, double* cents, Read_state* state);
  * Reads a Reltime value.
  *
  * \param str      The input string -- must not be \c NULL.
- * \param result   The address where the Reltime value will be stored. If this
- *                 is \c NULL, parsing will still be done.
+ * \param result   The address where the Reltime value will be stored, or
+ *                 \c NULL for parsing without storing the value.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   The position of \a str after parsing.

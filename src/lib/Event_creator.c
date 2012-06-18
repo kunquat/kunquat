@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -14,158 +14,133 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 #include <Event.h>
+#include <Event_names.h>
 #include <Event_type.h>
-
-#include <Event_global_set_tempo.h>
-#include <Event_global_slide_tempo.h>
-#include <Event_global_slide_tempo_length.h>
-#include <Event_global_pattern_delay.h>
-
-#include <Event_global_set_volume.h>
-#include <Event_global_slide_volume.h>
-#include <Event_global_slide_volume_length.h>
-
-#include <Event_global_set_scale.h>
-#include <Event_global_set_scale_offset.h>
-#include <Event_global_mimic_scale.h>
-#include <Event_global_shift_scale_intervals.h>
-
-#include <Event_global_set_jump_subsong.h>
-#include <Event_global_set_jump_section.h>
-#include <Event_global_set_jump_row.h>
-#include <Event_global_set_jump_counter.h>
 #include <Event_global_jump.h>
-
-
-#include <Event_ins_set_pedal.h>
-
-#include <Event_channel_set_instrument.h>
-#include <Event_channel_set_generator.h>
-
-#include <Event_channel_note_on.h>
-#include <Event_channel_note_off.h>
-
-#include <Event_channel_set_force.h>
-#include <Event_channel_slide_force.h>
-#include <Event_channel_slide_force_length.h>
-#include <Event_channel_tremolo_speed.h>
-#include <Event_channel_tremolo_depth.h>
-#include <Event_channel_tremolo_delay.h>
-
-#include <Event_channel_slide_pitch.h>
-#include <Event_channel_slide_pitch_length.h>
-#include <Event_channel_vibrato_speed.h>
-#include <Event_channel_vibrato_depth.h>
-#include <Event_channel_vibrato_delay.h>
-#include <Event_channel_arpeggio.h>
-
-#include <Event_channel_set_filter.h>
-#include <Event_channel_slide_filter.h>
-#include <Event_channel_slide_filter_length.h>
-#include <Event_channel_autowah_speed.h>
-#include <Event_channel_autowah_depth.h>
-#include <Event_channel_autowah_delay.h>
-
-#include <Event_channel_set_resonance.h>
-
-#include <Event_channel_set_panning.h>
-#include <Event_channel_slide_panning.h>
-#include <Event_channel_slide_panning_length.h>
-
-#include <Event_channel_set_gen_bool.h>
-#include <Event_channel_set_gen_int.h>
-#include <Event_channel_set_gen_float.h>
-#include <Event_channel_set_gen_reltime.h>
-
-#include <Event_generator_set_bool.h>
-#include <Event_generator_set_int.h>
-#include <Event_generator_set_float.h>
-#include <Event_generator_set_reltime.h>
-
+#include <string_common.h>
 #include <xassert.h>
+#include <xmemory.h>
 
 
-typedef Event* (*Event_cons)(Reltime* pos);
+static void del_Event_default(Event* event);
 
 
 Event* new_Event(Event_type type, Reltime* pos)
 {
     assert(EVENT_IS_VALID(type));
     assert(pos != NULL);
-    static const Event_cons cons[EVENT_LAST] =
+    Event* event = xalloc(Event);
+    if (event == NULL)
     {
-        [EVENT_GLOBAL_SET_TEMPO] = new_Event_global_set_tempo,
-        [EVENT_GLOBAL_SLIDE_TEMPO] = new_Event_global_slide_tempo,
-        [EVENT_GLOBAL_SLIDE_TEMPO_LENGTH] = new_Event_global_slide_tempo_length,
-        [EVENT_GLOBAL_PATTERN_DELAY] = new_Event_global_pattern_delay,
-
-        [EVENT_GLOBAL_SET_VOLUME] = new_Event_global_set_volume,
-        [EVENT_GLOBAL_SLIDE_VOLUME] = new_Event_global_slide_volume,
-        [EVENT_GLOBAL_SLIDE_VOLUME_LENGTH] = new_Event_global_slide_volume_length,
-
-        [EVENT_GLOBAL_SET_SCALE] = new_Event_global_set_scale,
-        [EVENT_GLOBAL_SET_SCALE_OFFSET] = new_Event_global_set_scale_offset,
-        [EVENT_GLOBAL_MIMIC_SCALE] = new_Event_global_mimic_scale,
-        [EVENT_GLOBAL_SHIFT_SCALE_INTERVALS] = new_Event_global_shift_scale_intervals,
-
-        [EVENT_GLOBAL_SET_JUMP_SUBSONG] = new_Event_global_set_jump_subsong,
-        [EVENT_GLOBAL_SET_JUMP_SECTION] = new_Event_global_set_jump_section,
-        [EVENT_GLOBAL_SET_JUMP_ROW] = new_Event_global_set_jump_row,
-        [EVENT_GLOBAL_SET_JUMP_COUNTER] = new_Event_global_set_jump_counter,
-        [EVENT_GLOBAL_JUMP] = new_Event_global_jump,
-
-        [EVENT_INS_SET_PEDAL] = new_Event_ins_set_pedal,
-
-        [EVENT_CHANNEL_SET_INSTRUMENT] = new_Event_channel_set_instrument,
-        [EVENT_CHANNEL_SET_GENERATOR] = new_Event_channel_set_generator,
-
-        [EVENT_CHANNEL_NOTE_ON] = new_Event_channel_note_on,
-        [EVENT_CHANNEL_NOTE_OFF] = new_Event_channel_note_off,
-
-        [EVENT_CHANNEL_SET_FORCE] = new_Event_channel_set_force,
-        [EVENT_CHANNEL_SLIDE_FORCE] = new_Event_channel_slide_force,
-        [EVENT_CHANNEL_SLIDE_FORCE_LENGTH] = new_Event_channel_slide_force_length,
-        [EVENT_CHANNEL_TREMOLO_SPEED] = new_Event_channel_tremolo_speed,
-        [EVENT_CHANNEL_TREMOLO_DEPTH] = new_Event_channel_tremolo_depth,
-        [EVENT_CHANNEL_TREMOLO_DELAY] = new_Event_channel_tremolo_delay,
-        
-        [EVENT_CHANNEL_SLIDE_PITCH] = new_Event_channel_slide_pitch,
-        [EVENT_CHANNEL_SLIDE_PITCH_LENGTH] = new_Event_channel_slide_pitch_length,
-        [EVENT_CHANNEL_VIBRATO_SPEED] = new_Event_channel_vibrato_speed,
-        [EVENT_CHANNEL_VIBRATO_DEPTH] = new_Event_channel_vibrato_depth,
-        [EVENT_CHANNEL_VIBRATO_DELAY] = new_Event_channel_vibrato_delay,
-        [EVENT_CHANNEL_ARPEGGIO] = new_Event_channel_arpeggio,
-       
-        [EVENT_CHANNEL_SET_FILTER] = new_Event_channel_set_filter,
-        [EVENT_CHANNEL_SLIDE_FILTER] = new_Event_channel_slide_filter,
-        [EVENT_CHANNEL_SLIDE_FILTER_LENGTH] = new_Event_channel_slide_filter_length,
-        [EVENT_CHANNEL_AUTOWAH_SPEED] = new_Event_channel_autowah_speed,
-        [EVENT_CHANNEL_AUTOWAH_DEPTH] = new_Event_channel_autowah_depth,
-        [EVENT_CHANNEL_AUTOWAH_DELAY] = new_Event_channel_autowah_delay,
-
-        [EVENT_CHANNEL_SET_RESONANCE] = new_Event_channel_set_resonance,
-        
-        [EVENT_CHANNEL_SET_PANNING] = new_Event_channel_set_panning,
-        [EVENT_CHANNEL_SLIDE_PANNING] = new_Event_channel_slide_panning,
-        [EVENT_CHANNEL_SLIDE_PANNING_LENGTH] = new_Event_channel_slide_panning_length,
-
-        [EVENT_CHANNEL_SET_GEN_BOOL] = new_Event_channel_set_gen_bool,
-        [EVENT_CHANNEL_SET_GEN_INT] = new_Event_channel_set_gen_int,
-        [EVENT_CHANNEL_SET_GEN_FLOAT] = new_Event_channel_set_gen_float,
-        [EVENT_CHANNEL_SET_GEN_RELTIME] = new_Event_channel_set_gen_reltime,
-
-        [EVENT_GENERATOR_SET_BOOL] = new_Event_generator_set_bool,
-        [EVENT_GENERATOR_SET_INT] = new_Event_generator_set_int,
-        [EVENT_GENERATOR_SET_FLOAT] = new_Event_generator_set_float,
-        [EVENT_GENERATOR_SET_RELTIME] = new_Event_generator_set_reltime,
-    };
-    if (cons[type] == NULL)
-    {
-        return NULL; // XXX: should we consider the caller broken in this case?
+        return NULL;
     }
-    return cons[type](pos);
+    event->type = type;
+    Reltime_copy(&event->pos, pos);
+    event->desc = NULL;
+    event->destroy = del_Event_default;
+    return event;
+}
+
+
+Event* new_Event_from_string(char** str, Read_state* state,
+                             Event_names* names)
+{
+    assert(str != NULL);
+    assert(*str != NULL);
+    assert(state != NULL);
+    assert(names != NULL);
+    if (state->error)
+    {
+        return NULL;
+    }
+    *str = read_const_char(*str, '[', state);
+    Reltime* pos = Reltime_init(RELTIME_AUTO);
+    *str = read_reltime(*str, pos, state);
+    *str = read_const_char(*str, ',', state);
+    *str = read_const_char(*str, '[', state);
+    char* event_desc = *str - 1;
+    char type_str[EVENT_NAME_MAX + 2] = "";
+    *str = read_string(*str, type_str, EVENT_NAME_MAX + 2, state);
+    *str = read_const_char(*str, ',', state);
+    if (state->error)
+    {
+        return NULL;
+    }
+    Event_type type = Event_names_get(names, type_str);
+    if (!EVENT_IS_TRIGGER(type))
+    {
+        Read_state_set_error(state, "Invalid or unsupported event type:"
+                                    " \"%s\"", type_str);
+        return NULL;
+    }
+    Event* event = NULL;
+    if (string_eq(type_str, "mj"))
+    {
+        event = new_Event_global_jump(pos);
+    }
+    else
+    {
+        event = new_Event(type, pos);
+    }
+    if (event == NULL)
+    {
+        return NULL;
+    }
+    Event_field_type field_type = EVENT_FIELD_NONE;
+    if (!string_eq(type_str, "mj"))
+    {
+        field_type = Event_names_get_param_type(names, type_str);
+    }
+    if (field_type == EVENT_FIELD_NONE)
+    {
+        *str = read_null(*str, state);
+    }
+    else
+    {
+        *str = read_string(*str, NULL, 0, state);
+    }
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    assert(*str != NULL);
+    *str = read_const_char(*str, ']', state);
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    event->desc = xcalloc(char, *str - event_desc + 1);
+    if (event->desc == NULL)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    strncpy(event->desc, event_desc, *str - event_desc);
+    *str = read_const_char(*str, ']', state);
+    if (state->error)
+    {
+        del_Event(event);
+        return NULL;
+    }
+    return event;
+}
+
+
+static void del_Event_default(Event* event)
+{
+    if (event == NULL)
+    {
+        return;
+    }
+    assert(EVENT_IS_VALID(event->type));
+    xfree(event->desc);
+    xfree(event);
+    return;
 }
 
 

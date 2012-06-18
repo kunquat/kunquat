@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -18,7 +18,6 @@
 
 #include <stdint.h>
 
-#include <String_buffer.h>
 #include <kunquat/limits.h>
 
 
@@ -53,18 +52,6 @@ Reltime* Reltime_init(Reltime* r);
 
 
 /**
- * Serialises a Reltime.
- *
- * \param r    The Reltime object -- must not be \c NULL.
- * \param sb   The String buffer where the Reltime shall be written -- must
- *             not be \c NULL.
- *
- * \return   \c true if successful, otherwise \c false.
- */
-bool Reltime_serialise(Reltime* r, String_buffer* sb);
-
-
-/**
  * Compares two Reltime objects.
  *
  * \param r1   The first Reltime object -- must be a valid Reltime.
@@ -83,7 +70,7 @@ int Reltime_cmp(const Reltime* r1, const Reltime* r2);
  * \param r       The Reltime object -- must not be \c NULL.
  * \param beats   The number of beats.
  * \param rem     The size of the remaining part -- must be >= \c 0 and
- *                < \c RELTIME_BEAT.
+ *                < \c KQT_RELTIME_BEAT.
  *
  * \return   The parameter \a r.
  */

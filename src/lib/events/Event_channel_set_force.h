@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,21 +16,12 @@
 #define K_EVENT_CHANNEL_SET_FORCE_H
 
 
-#include <Event_channel.h>
+#include <Channel_state.h>
 #include <Reltime.h>
+#include <Value.h>
 
 
-typedef struct Event_channel_set_force
-{
-    Event_channel parent;
-    double force_dB;
-} Event_channel_set_force;
-
-
-Event* new_Event_channel_set_force(Reltime* pos);
-
-
-bool Event_channel_set_force_process(Channel_state* ch_state, char* fields);
+bool Event_channel_set_force_process(Channel_state* ch_state, Value* value);
 
 
 #endif // K_EVENT_CHANNEL_SET_FORCE_H

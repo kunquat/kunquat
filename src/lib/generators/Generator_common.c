@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <stdio.h>
 
 #include <Filter.h>
 #include <Generator_common.h>
@@ -40,26 +41,10 @@ void Generator_common_check_relative_lengths(Generator* gen,
     (void)gen;
     if (state->freq != freq || state->tempo != tempo)
     {
-        if (state->pitch_slide != 0)
-        {
-            double slide_step = log2(state->pitch_slide_update);
-            slide_step *= (double)state->freq / freq;
-            slide_step *= tempo / state->tempo;
-            state->pitch_slide_update = exp2(slide_step);
-            state->pitch_slide_frames *= (double)freq / state->freq;
-            state->pitch_slide_frames *= state->tempo / tempo;
-        }
-        if (state->vibrato_length > 0 && state->vibrato_depth > 0)
-        {
-            state->vibrato_phase *= (double)freq / state->freq;
-            state->vibrato_phase *= state->tempo / tempo;
-        }
-        state->vibrato_length *= (double)freq / state->freq;
-        state->vibrato_length *= state->tempo / tempo;
-        state->vibrato_update *= (double)state->freq / freq;
-        state->vibrato_update *= tempo / state->tempo;
-        state->vibrato_delay_update *= (double)(state)->freq / freq;
-        state->vibrato_delay_update *= tempo / state->tempo;
+        Slider_set_mix_rate(&state->pitch_slider, freq);
+        Slider_set_tempo(&state->pitch_slider, tempo);
+        LFO_set_mix_rate(&state->vibrato, freq);
+        LFO_set_tempo(&state->vibrato, tempo);
         if (state->arpeggio)
         {
             state->arpeggio_length *= (double)freq / state->freq;
@@ -67,53 +52,19 @@ void Generator_common_check_relative_lengths(Generator* gen,
             state->arpeggio_frames *= (double)freq / state->freq;
             state->arpeggio_frames *= state->tempo / tempo;
         }
-        if (state->force_slide != 0)
-        {
-            double update_dB = log2(state->force_slide_update) * 6;
-            update_dB *= (double)state->freq / freq;
-            update_dB *= tempo / state->tempo;
-            state->force_slide_update = exp2(update_dB / 6);
-            state->force_slide_frames *= (double)freq / state->freq;
-            state->force_slide_frames *= state->tempo / tempo;
-        }
-        if (state->tremolo_length > 0 && state->tremolo_depth > 0)
-        {
-            state->tremolo_phase *= (double)freq / state->freq;
-            state->tremolo_phase *= state->tempo / tempo;
-        }
-        state->tremolo_length *= (double)freq / state->freq;
-        state->tremolo_length *= state->tempo / tempo;
-        state->tremolo_update *= (double)state->freq / freq;
-        state->tremolo_update *= tempo / state->tempo;
-        state->tremolo_delay_update *= (double)state->freq / freq;
-        state->tremolo_delay_update *= tempo / state->tempo;
-        if (state->panning_slide != 0)
-        {
-            state->panning_slide_update *= (double)state->freq / freq;
-            state->panning_slide_update *= tempo / state->tempo;
-            state->panning_slide_frames *= (double)freq / state->freq;
-            state->panning_slide_frames *= state->tempo / tempo;
-        }
-        if (state->filter_slide != 0)
-        {
-            double slide_step = log2(state->filter_slide_update);
-            slide_step *= (double)state->freq / freq;
-            slide_step *= tempo / state->tempo;
-            state->filter_slide_update = exp2(slide_step);
-            state->filter_slide_frames *= (double)freq / state->freq;
-            state->filter_slide_frames *= state->tempo / tempo;
-        }
-        if (state->autowah_length > 0 && state->autowah_depth > 0)
-        {
-            state->autowah_phase *= (double)freq / state->freq;
-            state->autowah_phase *= state->tempo / tempo;
-        }
-        state->autowah_length *= (double)freq / state->freq;
-        state->autowah_length *= state->tempo / tempo;
-        state->autowah_update *= (double)state->freq / freq;
-        state->autowah_update *= tempo / state->tempo;
-        state->autowah_delay_update *= (double)state->freq / freq;
-        state->autowah_delay_update *= tempo / state->tempo;
+
+        Slider_set_mix_rate(&state->force_slider, freq);
+        Slider_set_tempo(&state->force_slider, tempo);
+        LFO_set_mix_rate(&state->tremolo, freq);
+        LFO_set_tempo(&state->tremolo, tempo);
+
+        Slider_set_mix_rate(&state->panning_slider, freq);
+        Slider_set_tempo(&state->panning_slider, tempo);
+
+        Slider_set_mix_rate(&state->lowpass_slider, freq);
+        Slider_set_tempo(&state->lowpass_slider, tempo);
+        LFO_set_mix_rate(&state->autowah, freq);
+        LFO_set_tempo(&state->autowah, tempo);
 
         state->freq = freq;
         state->tempo = tempo;
@@ -128,103 +79,59 @@ void Generator_common_handle_pitch(Generator* gen,
     assert(gen != NULL);
     assert(state != NULL);
     state->prev_pitch = state->pitch;
-    if (state->pitch_slide != 0)
+    if (Slider_in_progress(&state->pitch_slider))
     {
-        state->pitch *= state->pitch_slide_update;
-        state->pitch_slide_frames -= 1;
-        if (state->pitch_slide_frames <= 0)
-        {
-            state->pitch = state->pitch_slide_target;
-            state->pitch_slide = 0;
-        }
-        else if (state->pitch_slide == 1)
-        {
-            if (state->pitch > state->pitch_slide_target)
-            {
-                state->pitch = state->pitch_slide_target;
-                state->pitch_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->pitch_slide == -1);
-            if (state->pitch < state->pitch_slide_target)
-            {
-                state->pitch = state->pitch_slide_target;
-                state->pitch_slide = 0;
-            }
-        }
+        state->pitch = Slider_step(&state->pitch_slider);
     }
     state->prev_actual_pitch = state->actual_pitch;
     state->actual_pitch = state->pitch;
-    if (gen->pitch_lock_enabled)
+    if (gen->conf->pitch_lock_enabled)
     {
-        state->actual_pitch = gen->pitch_lock_freq;
+        state->pitch = state->actual_pitch = gen->conf->pitch_lock_freq;
+        // TODO: The following alternative would enable a useful mode where
+        //       the actual pitch is locked but other pitch-dependent mappings
+        //       follow the original pitch.
+//        state->actual_pitch = gen->conf->pitch_lock_freq;
     }
     else
     {
-        if (state->vibrato)
-        {
-            double fac_log = sin(state->vibrato_phase);
-            if (state->vibrato_delay_pos < 1)
-            {
-                double actual_depth = (1 - state->vibrato_delay_pos) *
-                        state->vibrato_depth +
-                        state->vibrato_delay_pos *
-                        state->vibrato_depth_target;
-                fac_log *= actual_depth;
-                state->vibrato_delay_pos += state->vibrato_delay_update;
-            }
-            else
-            {
-                state->vibrato_depth = state->vibrato_depth_target;
-                fac_log *= state->vibrato_depth;
-                if (state->vibrato_depth == 0)
-                {
-                    state->vibrato = false;
-                }
-            }
-            state->actual_pitch *= exp2(fac_log);
-            if (!state->vibrato && state->vibrato_length > state->freq)
-            {
-                state->vibrato_length = state->freq;
-                state->vibrato_update = (2 * PI) / state->vibrato_length;
-            }
-            double new_phase = state->vibrato_phase + state->vibrato_update;
-            if (new_phase >= (2 * PI))
-            {
-                new_phase = fmod(new_phase, 2 * PI);
-            }
-            if (!state->vibrato && (new_phase < state->vibrato_phase
-                    || (new_phase >= PI && state->vibrato_phase < PI)))
-            {
-                state->vibrato_phase = 0;
-                state->vibrato_update = 0;
-            }
-            else
-            {
-                state->vibrato_phase = new_phase;
-            }
-        }
         if (state->arpeggio)
         {
+            assert(!isnan(state->arpeggio_tones[0]));
+            double diff = exp2((state->arpeggio_tones[state->arpeggio_note] -
+                                state->arpeggio_ref) / 1200);
+            state->actual_pitch *= diff;
+#if 0
             if (state->arpeggio_note > 0)
             {
                 state->actual_pitch *= state->arpeggio_factors[
                                        state->arpeggio_note - 1];
             }
+#endif
             state->arpeggio_frames += 1;
             if (state->arpeggio_frames >= state->arpeggio_length)
             {
                 state->arpeggio_frames -= state->arpeggio_length;
                 ++state->arpeggio_note;
-                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX
-                        || state->arpeggio_factors[
-                                state->arpeggio_note - 1] <= 0)
+                if (state->arpeggio_note > KQT_ARPEGGIO_NOTES_MAX ||
+                        isnan(state->arpeggio_tones[state->arpeggio_note]))
                 {
                     state->arpeggio_note = 0;
                 }
             }
+#if 0
+            if (state->arpeggio_note > 0)
+            {
+                fprintf(stderr, "%f %f %f %f\n", state->arpeggio_ref,
+                        state->arpeggio_tones[0],
+                        state->arpeggio_tones[state->arpeggio_note],
+                        diff);
+            }
+#endif
+        }
+        if (LFO_active(&state->vibrato))
+        {
+            state->actual_pitch *= LFO_step(&state->vibrato);
         }
     }
     return;
@@ -241,76 +148,14 @@ void Generator_common_handle_force(Generator* gen,
     assert(state != NULL);
     assert(frames != NULL);
     assert(frame_count > 0);
-    if (state->force_slide != 0)
+    if (Slider_in_progress(&state->force_slider))
     {
-        state->force *= state->force_slide_update;
-        state->force_slide_frames -= 1;
-        if (state->force_slide_frames <= 0)
-        {
-            state->force = state->force_slide_target;
-            state->force_slide = 0;
-        }
-        else if (state->force_slide == 1)
-        {
-            if (state->force > state->force_slide_target)
-            {
-                state->force = state->force_slide_target;
-                state->force_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->force_slide == -1);
-            if (state->force < state->force_slide_target)
-            {
-                state->force = state->force_slide_target;
-                state->force_slide = 0;
-            }
-        }
+        state->force = Slider_step(&state->force_slider);
     }
-    state->actual_force = state->force;
-    if (state->tremolo)
+    state->actual_force = state->force * gen->ins_params->global_force;
+    if (LFO_active(&state->tremolo))
     {
-        double fac_dB = sin(state->tremolo_phase);
-        if (state->tremolo_delay_pos < 1)
-        {
-            double actual_depth = (1 - state->tremolo_delay_pos) *
-                                  state->tremolo_depth +
-                                  state->tremolo_delay_pos *
-                                  state->tremolo_depth_target;
-            fac_dB *= actual_depth;
-            state->tremolo_delay_pos += state->tremolo_delay_update;
-        }
-        else
-        {
-            state->tremolo_depth = state->tremolo_depth_target;
-            fac_dB *= state->tremolo_depth;
-            if (state->tremolo_depth == 0)
-            {
-                state->tremolo = false;
-            }
-        }
-        state->actual_force *= exp2(fac_dB / 6);
-        if (!state->tremolo && state->tremolo_length > state->freq)
-        {
-            state->tremolo_length = state->freq;
-            state->tremolo_update = (2 * PI) / state->tremolo_length;
-        }
-        double new_phase = state->tremolo_phase + state->tremolo_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->tremolo && (new_phase < state->tremolo_phase
-                    || (new_phase >= PI && state->tremolo_phase < PI)))
-        {
-            state->tremolo_phase = 0;
-            state->tremolo_update = 0;
-        }
-        else
-        {
-            state->tremolo_phase = new_phase;
-        }
+        state->actual_force *= LFO_step(&state->tremolo);
     }
     if (gen->ins_params->env_force_enabled)
     {
@@ -334,13 +179,13 @@ void Generator_common_handle_force(Generator* gen,
         double scale = NAN;
         if (next_node == NULL)
         {
-            assert(loop_start == NULL);
-            assert(loop_end == NULL);
+            //assert(loop_start == NULL);
+            //assert(loop_end == NULL);
             double* last_node = Envelope_get_node(env,
                                         Envelope_node_count(env) - 1);
             scale = last_node[1];
         }
-        else if (state->fe_pos >= next_node[0])
+        else if (state->fe_pos >= next_node[0] || isnan(state->fe_update))
         {
             ++state->fe_next_node;
             if (loop_end_index >= 0 && loop_end_index < state->fe_next_node)
@@ -349,11 +194,18 @@ void Generator_common_handle_force(Generator* gen,
                 state->fe_next_node = loop_start_index;
             }
             scale = Envelope_get_value(env, state->fe_pos);
-            assert(isfinite(scale));
-            double next_scale = Envelope_get_value(env, state->fe_pos +
-                                                        1.0 / freq);
-            state->fe_value = scale;
-            state->fe_update = next_scale - scale;
+            if (isfinite(scale))
+            {
+                double next_scale = Envelope_get_value(env, state->fe_pos +
+                                                            1.0 / freq);
+                state->fe_value = scale;
+                state->fe_update = next_scale - scale;
+            }
+            else
+            {
+                scale = Envelope_get_node(env,
+                                          Envelope_node_count(env) - 1)[1];
+            }
         }
         else
         {
@@ -428,7 +280,13 @@ void Generator_common_handle_force(Generator* gen,
             }
             Envelope* env = gen->ins_params->env_force_rel;
             double* next_node = Envelope_get_node(env, state->rel_fe_next_node);
-            assert(next_node != NULL);
+            if (next_node == NULL)
+            {
+                // This may occur if the user removes nodes during playback
+                next_node = Envelope_get_node(env,
+                                              Envelope_node_count(env) - 1);
+                assert(next_node != NULL);
+            }
             double scale = NAN;
             if (state->rel_fe_pos >= next_node[0])
             {
@@ -452,7 +310,7 @@ void Generator_common_handle_force(Generator* gen,
             {
                 assert(isfinite(state->rel_fe_update));
                 state->rel_fe_value += state->rel_fe_update *
-                                       state->rel_fe_scale * (1.0 - *state->pedal);
+                                       state->rel_fe_scale * (1.0 - *state->sustain);
                 scale = state->rel_fe_value;
                 if (scale < 0)
                 {
@@ -472,10 +330,10 @@ void Generator_common_handle_force(Generator* gen,
                 return;
             }
 #endif
-            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->pedal) / freq;
+            state->rel_fe_pos += state->rel_fe_scale * (1.0 - *state->sustain) / freq;
             state->actual_force *= scale;
         }
-        else if (*state->pedal < 0.5)
+        else if (*state->sustain < 0.5)
         {
             if (state->ramp_release < 1)
             {
@@ -515,88 +373,17 @@ void Generator_common_handle_filter(Generator* gen,
     assert(frames != NULL);
     assert(frame_count > 0);
     assert(freq > 0);
-    if (state->filter_slide != 0)
+    if (Slider_in_progress(&state->lowpass_slider))
     {
-        state->filter *= state->filter_slide_update;
-        state->filter_slide_frames -= 1;
-        if (state->filter_slide_frames <= 0)
-        {
-            state->filter = state->filter_slide_target;
-            state->filter_slide = 0;
-        }
-        else if (state->filter_slide == 1)
-        {
-            if (state->filter > state->filter_slide_target)
-            {
-                state->filter = state->filter_slide_target;
-                state->filter_slide = 0;
-            }
-        }
-        else
-        {
-            assert(state->filter_slide == -1);
-            if (state->filter < state->filter_slide_target)
-            {
-                state->filter = state->filter_slide_target;
-                state->filter_slide = 0;
-            }
-        }
+        state->lowpass = Slider_step(&state->lowpass_slider);
     }
-    state->actual_filter = state->filter;
-    if (state->autowah)
+    state->actual_lowpass = state->lowpass;
+    if (LFO_active(&state->autowah))
     {
-        if (state->filter_xfade_pos >= 1)
-        {
-            double fac_log = sin(state->autowah_phase);
-            if (state->autowah_delay_pos < 1)
-            {
-                double actual_depth = (1 - state->autowah_delay_pos) *
-                                      state->autowah_depth +
-                                      state->autowah_delay_pos *
-                                      state->autowah_depth_target;
-                fac_log *= actual_depth;
-            }
-            else
-            {
-                fac_log *= state->autowah_depth_target;
-            }
-            state->actual_filter *= exp2(fac_log);
-        }
-        if (state->autowah_delay_pos < 1)
-        {
-            state->autowah_delay_pos += state->autowah_delay_update;
-        }
-        else if (state->autowah_depth == 0)
-        {
-            state->autowah_depth = state->autowah_depth_target;
-            if (state->autowah_depth == 0)
-            {
-                state->autowah = false;
-            }
-        }
-        if (!state->autowah && state->autowah_length > state->freq)
-        {
-            state->autowah_length = state->freq;
-            state->autowah_update = (2 * PI) / state->autowah_length;
-        }
-        double new_phase = state->autowah_phase + state->autowah_update;
-        if (new_phase >= (2 * PI))
-        {
-            new_phase = fmod(new_phase, 2 * PI);
-        }
-        if (!state->autowah && (new_phase < state->autowah_phase ||
-                    (new_phase >= PI && state->autowah_phase < PI)))
-        {
-            state->autowah_phase = 0;
-            state->autowah_update = 0;
-        }
-        else
-        {
-            state->autowah_phase = new_phase;
-        }
+        state->actual_lowpass *= LFO_step(&state->autowah);
     }
     if (gen->ins_params->env_force_filter_enabled &&
-            state->filter_xfade_pos >= 1)
+            state->lowpass_xfade_pos >= 1)
     {
         double force = state->actual_force;
         if (force > 1)
@@ -606,66 +393,67 @@ void Generator_common_handle_filter(Generator* gen,
         double factor = Envelope_get_value(gen->ins_params->env_force_filter,
                                            force);
         assert(isfinite(factor));
-        state->actual_filter = MIN(state->actual_filter, 16384) * factor;
+        state->actual_lowpass = MIN(state->actual_lowpass, 16384) * factor;
     }
 
-    if (!state->filter_update &&
-            state->filter_xfade_pos >= 1 &&
-            (state->actual_filter < state->effective_filter * 0.98566319864018759 ||
-             state->actual_filter > state->effective_filter * 1.0145453349375237 ||
-             state->filter_resonance != state->effective_resonance))
+    if (!state->lowpass_update &&
+            state->lowpass_xfade_pos >= 1 &&
+            (state->actual_lowpass < state->effective_lowpass * 0.98566319864018759 ||
+             state->actual_lowpass > state->effective_lowpass * 1.0145453349375237 ||
+             state->lowpass_resonance != state->effective_resonance))
     {
-        state->filter_update = true;
-        state->filter_xfade_state_used = state->filter_state_used;
+        state->lowpass_update = true;
+        state->lowpass_xfade_state_used = state->lowpass_state_used;
         if (state->pos > 0)
         {
-            state->filter_xfade_pos = 0;
+            state->lowpass_xfade_pos = 0;
         }
         else
         {
-            state->filter_xfade_pos = 1;
+            state->lowpass_xfade_pos = 1;
         }
-        state->filter_xfade_update = 200.0 / freq; // FIXME: / freq
-        if (state->actual_filter < freq / 2)
+        state->lowpass_xfade_update = 200.0 / freq; // FIXME: / freq
+        if (state->actual_lowpass < freq / 2)
         {
-            int new_state = 1 - abs(state->filter_state_used);
-	    two_pole_filter_create(state->actual_filter / freq,
-				   state->filter_resonance,
-				   0,
-				   state->filter_state[new_state].coeffs,
-				   &state->filter_state[new_state].mul);
-            for (int i = 0; i < gen->ins_params->buf_count; ++i)
+            int new_state = 1 - abs(state->lowpass_state_used);
+            double lowpass = MAX(state->actual_lowpass, 1);
+            two_pole_filter_create(lowpass / freq,
+                    state->lowpass_resonance,
+		    0,
+                    state->lowpass_state[new_state].coeffs,
+                    &state->lowpass_state[new_state].mul);
+            for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
             {
                 for (int k = 0; k < FILTER_ORDER; ++k)
                 {
-                    state->filter_state[new_state].history1[i][k] = 0;
-                    state->filter_state[new_state].history2[i][k] = 0;
+                    state->lowpass_state[new_state].history1[i][k] = 0;
+                    state->lowpass_state[new_state].history2[i][k] = 0;
                 }
             }
-            state->filter_state_used = new_state;
+            state->lowpass_state_used = new_state;
 //            fprintf(stderr, "created filter with cutoff %f\n", state->actual_filter);
         }
         else
         {
-            if (state->filter_state_used == -1)
+            if (state->lowpass_state_used == -1)
             {
-                state->filter_xfade_pos = 1;
+                state->lowpass_xfade_pos = 1;
             }
-            state->filter_state_used = -1;
+            state->lowpass_state_used = -1;
         }
-        state->effective_filter = state->actual_filter;
-        state->effective_resonance = state->filter_resonance;
-        state->filter_update = false;
+        state->effective_lowpass = state->actual_lowpass;
+        state->effective_resonance = state->lowpass_resonance;
+        state->lowpass_update = false;
     }
 
-    if (state->filter_state_used > -1 || state->filter_xfade_state_used > -1)
+    if (state->lowpass_state_used > -1 || state->lowpass_xfade_state_used > -1)
     {
-        assert(state->filter_state_used != state->filter_xfade_state_used);
+        assert(state->lowpass_state_used != state->lowpass_xfade_state_used);
         double result[KQT_BUFFERS_MAX] = { 0 };
-        if (state->filter_state_used > -1)
+        if (state->lowpass_state_used > -1)
         {
             Filter_state* fst =
-                    &state->filter_state[state->filter_state_used];
+                    &state->lowpass_state[state->lowpass_state_used];
             for (int i = 0; i < frame_count; ++i)
             {
                 result[i] = nq_zero_filter(FILTER_ORDER,
@@ -685,7 +473,7 @@ void Generator_common_handle_filter(Generator* gen,
                 result[i] = frames[i];
             }
         }
-        double vol = state->filter_xfade_pos;
+        double vol = state->lowpass_xfade_pos;
         if (vol > 1)
         {
             vol = 1;
@@ -694,13 +482,13 @@ void Generator_common_handle_filter(Generator* gen,
         {
             result[i] *= vol;
         }
-        if (state->filter_xfade_pos < 1)
+        if (state->lowpass_xfade_pos < 1)
         {
             double fade_result[KQT_BUFFERS_MAX] = { 0 };
-            if (state->filter_xfade_state_used > -1)
+            if (state->lowpass_xfade_state_used > -1)
             {
                 Filter_state* fst =
-                        &state->filter_state[state->filter_xfade_state_used];
+                        &state->lowpass_state[state->lowpass_xfade_state_used];
                 for (int i = 0; i < frame_count; ++i)
                 {
                     fade_result[i] = nq_zero_filter(FILTER_ORDER,
@@ -720,7 +508,7 @@ void Generator_common_handle_filter(Generator* gen,
                     fade_result[i] = frames[i];
                 }
             }
-            double vol = 1 - state->filter_xfade_pos;
+            double vol = 1 - state->lowpass_xfade_pos;
             if (vol > 0)
             {
                 for (int i = 0; i < frame_count; ++i)
@@ -728,7 +516,7 @@ void Generator_common_handle_filter(Generator* gen,
                     result[i] += fade_result[i] * vol;
                 }
             }
-            state->filter_xfade_pos += state->filter_xfade_update;
+            state->lowpass_xfade_pos += state->lowpass_xfade_update;
         }
         for (int i = 0; i < frame_count; ++i)
         {
@@ -774,32 +562,9 @@ void Generator_common_handle_panning(Generator* gen,
     assert(frame_count > 0);
     if ((frame_count) >= 2)
     {
-        if ((state)->panning_slide != 0)
+        if (Slider_in_progress(&state->panning_slider))
         {
-            (state)->panning += (state)->panning_slide_update;
-            (state)->panning_slide_frames -= 1;
-            if ((state)->panning_slide_frames <= 0)
-            {
-                (state)->panning = (state)->panning_slide_target;
-                (state)->panning_slide = 0;
-            }
-            else if ((state)->panning_slide == 1)
-            {
-                if ((state)->panning > (state)->panning_slide_target)
-                {
-                    (state)->panning = (state)->panning_slide_target;
-                    (state)->panning_slide = 0;
-                }
-            }
-            else
-            {
-                assert((state)->panning_slide == -1);
-                if ((state)->panning < (state)->panning_slide_target)
-                {
-                    (state)->panning = (state)->panning_slide_target;
-                    (state)->panning_slide = 0;
-                }
-            }
+            state->panning = Slider_step(&state->panning_slider);
         }
         (state)->actual_panning = (state)->panning;
         if ((gen)->ins_params->env_pitch_pan_enabled)

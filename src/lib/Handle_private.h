@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -26,7 +26,7 @@
 #include <Voice_pool.h>
 
 
-#define KQT_HANDLE_ERROR_LENGTH (256)
+#define KQT_HANDLE_ERROR_LENGTH (512)
 
 #define POSITION_LENGTH (64)
 
@@ -44,6 +44,15 @@ typedef enum
 } Error_type;
 
 
+typedef enum
+{
+    KQT_READ = 0,
+    KQT_READ_WRITE,
+    KQT_READ_WRITE_COMMIT,
+    KQT_MEM,
+} kqt_Access_mode;
+
+
 struct kqt_Handle
 {
     Song* song;
@@ -51,6 +60,7 @@ struct kqt_Handle
     AAtree* returned_values;
     void* (*get_data)(kqt_Handle* handle, const char* key);
     long (*get_data_length)(kqt_Handle* handle, const char* key);
+    int (*set_data)(kqt_Handle* handle, const char* key, void* data, long length);
     void (*destroy)(struct kqt_Handle* handle);
     char error[KQT_HANDLE_ERROR_LENGTH];
     char position[POSITION_LENGTH];
@@ -82,9 +92,12 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size);
  *                  printf family of functions.
  */
 #define kqt_Handle_set_error(handle, type, ...) \
-    (kqt_Handle_set_error_((handle), (type), __func__, __VA_ARGS__))
+    (kqt_Handle_set_error_((handle), (type), \
+                           __FILE__, __LINE__, __func__, __VA_ARGS__))
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           const char* file,
+                           int line,
                            const char* func,
                            const char* message, ...);
 

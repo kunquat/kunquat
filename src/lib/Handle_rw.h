@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -23,10 +23,6 @@ typedef struct Handle_rw
 {
     kqt_Handle handle;
     char* base_path;
-    int (*set_data)(kqt_Handle* handle,
-                    const char* key,
-                    void* data,
-                    long length);
 } Handle_rw;
 
 
@@ -76,7 +72,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
 /**
  * Converts a virtual path into a real one.
  *
- * This function searches the given path for "kunquatiXX" or "kunquatsXX"
+ * This function searches the given path for MAGIC_ID "iXX" or MAGIC_ID "sXX"
  * and replaces the "XX" with an existent version number if found.
  *
  * \param handle_rw   The read/write Kunquat Handle -- must not be \c NULL.

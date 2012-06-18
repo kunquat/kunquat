@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,15 +21,9 @@
 
 #include <Channel_gen_state.h>
 #include <Generator.h>
+#include <Random.h>
 #include <Voice_params.h>
-
-#include <Voice_state_sine.h>
-#include <Voice_state_pcm.h>
-#include <Voice_state_triangle.h>
-#include <Voice_state_pulse.h>
-#include <Voice_state_square303.h>
-#include <Voice_state_sawtooth.h>
-#include <Voice_state_noise.h>
+#include <Voice_state.h>
 
 
 typedef enum
@@ -50,31 +44,34 @@ typedef struct Voice
     uint16_t pool_index;   ///< Storage position in the Voice pool.
     uint64_t id;           ///< An identification number for this initialisation.
     Voice_prio prio;       ///< Current priority of the Voice.
-    bool was_fg;
-    uint32_t fg_mixed;     ///< Number of frames mixed in the foreground (this mixing cycle).
     Generator* gen;        ///< The Generator.
-    /// The current playback state.
-    union
-    {
-        Voice_state generic;
-        Voice_state_sine sine;
-        Voice_state_pcm pcm;
-        Voice_state_triangle triangle;
-        Voice_state_pulse pulse;
-        Voice_state_square303 square303;
-        Voice_state_sawtooth sawtooth;
-        Voice_state_noise noise;
-    } state;
+    size_t state_size;     ///< The amount bytes allocated for the Voice state.
+    Voice_state* state;    ///< The current playback state.
+    Random* rand_p;        ///< Parameter random source.
+    Random* rand_s;        ///< Signal random source.
 } Voice;
 
 
 /**
  * Creates a new Voice.
  *
+ * \param state_size   The amount of bytes to reserve for Voice states.
+ *
  * \return   The new Voice if successful, or \c NULL if memory allocation
  *           failed.
  */
 Voice* new_Voice(void);
+
+
+/**
+ * Reserves space for the Voice state.
+ *
+ * \param voice        The Voice -- must not be \c NULL.
+ * \param state_size   The amount of bytes to reserve for the Voice state.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Voice_reserve_state_space(Voice* voice, size_t state_size);
 
 
 /**
@@ -106,16 +103,20 @@ uint64_t Voice_id(Voice* voice);
 /**
  * Initialises the Voice for mixing.
  *
- * \param voice    The Voice -- must not be \c NULL.
- * \param gen      The Generator used -- must not be \c NULL.
- * \param params   The Voice parameters -- must not be \c NULL.
- * \param freq     The mixing frequency -- must be > \c 0.
- * \param tempo    The current tempo -- must be > \c 0.
+ * \param voice     The Voice -- must not be \c NULL.
+ * \param gen       The Generator used -- must not be \c NULL.
+ * \param params    The Voice parameters -- must not be \c NULL.
+ * \param cgstate   The Channel-specific Generator state -- must not be
+ *                  \c NULL.
+ * \param seed      The random seed.
+ * \param freq      The mixing frequency -- must be > \c 0.
+ * \param tempo     The current tempo -- must be > \c 0.
  */
 void Voice_init(Voice* voice,
                 Generator* gen,
                 Voice_params* params,
                 Channel_gen_state* cgstate,
+                uint64_t seed,
                 uint32_t freq,
                 double tempo);
 
@@ -129,15 +130,11 @@ void Voice_reset(Voice* voice);
 
 
 /**
- * Adds a new Event into the Voice.
+ * Prepares the Voice for a new mixing cycle.
  *
  * \param voice   The Voice -- must not be \c NULL.
- * \param event   The Event -- must not be \c NULL.
- * \param pos     The position of the Event.
- *
- * \return   \c true if successful, or \c false if the Event queue is full.
  */
-//bool Voice_add_event(Voice* voice, Event* event, uint32_t pos);
+void Voice_prepare(Voice* voice);
 
 
 /**
@@ -157,9 +154,19 @@ void Voice_mix(Voice* voice,
 
 
 /**
+ * Returns the actual current force of the Voice.
+ *
+ * \param voice   The Voice -- must not be \c NULL and must be active.
+ *
+ * \return   The actual force.
+ */
+double Voice_get_actual_force(Voice* voice);
+
+
+/**
  * Destroys an existing Voice.
  *
- * \param voice   The Voice -- must not be \c NULL.
+ * \param voice   The Voice, or \c NULL.
  */
 void del_Voice(Voice* voice);
 

@@ -14,19 +14,38 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include <string.h>
 
 #include <string_common.h>
 #include <xassert.h>
 
 
+bool string_eq(const char* str1, const char* str2)
+{
+    if (str1 == NULL || *str1 == '\0')
+    {
+        if (str2 == NULL || *str2 == '\0')
+        {
+            return true;
+        }
+        return false;
+    }
+    if (str2 == NULL || *str2 == '\0')
+    {
+        return false;
+    }
+    return strcmp(str1, str2) == 0;
+}
+
+
 bool string_has_prefix(const char* str, const char* prefix)
 {
-    if (prefix == NULL || *prefix == '\0')
+    if (string_eq(prefix, ""))
     {
         return true;
     }
-    if (str == NULL || *str == '\0')
+    if (string_eq(str, ""))
     {
         return false;
     }
@@ -36,11 +55,11 @@ bool string_has_prefix(const char* str, const char* prefix)
 
 bool string_has_suffix(const char* str, const char* suffix)
 {
-    if (suffix == NULL || *suffix == '\0')
+    if (string_eq(suffix, ""))
     {
         return true;
     }
-    if (str == NULL || *str == '\0')
+    if (string_eq(str, ""))
     {
         return false;
     }
@@ -50,11 +69,14 @@ bool string_has_suffix(const char* str, const char* suffix)
     }
     const char* search = str + (strlen(str) - strlen(suffix));
     assert(strlen(search) == strlen(suffix));
-    return strcmp(search, suffix) == 0;
+    return string_eq(search, suffix);
 }
 
 
-int string_extract_index(const char* path, const char* prefix, int digits)
+int string_extract_index(const char* path,
+                         const char* prefix,
+                         int digits,
+                         const char* after)
 {
     assert(path != NULL);
     assert(digits > 0);
@@ -62,6 +84,7 @@ int string_extract_index(const char* path, const char* prefix, int digits)
     {
         return -1;
     }
+    static const char hex_digits[] = "0123456789abcdef";
     int prefix_len = 0;
     if (prefix != NULL)
     {
@@ -69,15 +92,13 @@ int string_extract_index(const char* path, const char* prefix, int digits)
     }
     else
     {
-        prefix_len = strcspn(path, "_"); // FIXME: search for a hex digit instead
+        prefix_len = strcspn(path, hex_digits);
         if (path[prefix_len] == '\0')
         {
             return -1;
         }
-        ++prefix_len;
     }
     const char* num_s = path + prefix_len;
-    static const char hex_digits[] = "0123456789abcdef";
     int index = 0;
     for (int i = 0; i < digits; ++i, ++num_s)
     {
@@ -93,7 +114,11 @@ int string_extract_index(const char* path, const char* prefix, int digits)
         }
         index += pos - hex_digits;
     }
-    if (*num_s != '/')
+    if (string_has_prefix(after, ".") && !string_eq(num_s, after))
+    {
+        return -1;
+    }
+    else if (!string_has_prefix(num_s, after))
     {
         return -1;
     }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -80,6 +80,14 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 }
 
 
+Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index)
+{
+    assert(table != NULL);
+    assert(index < KQT_SUBSONGS_MAX);
+    return Etable_get(table->subs, index);
+}
+
+
 bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong)
 {
     assert(table != NULL);
@@ -102,7 +110,10 @@ bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong)
 
 void del_Subsong_table(Subsong_table* table)
 {
-    assert(table != NULL);
+    if (table == NULL)
+    {
+        return;
+    }
     del_Etable(table->subs);
     xfree(table);
     return;

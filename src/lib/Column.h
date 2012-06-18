@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 
 #include <Reltime.h>
 #include <Event.h>
+#include <Event_names.h>
 #include <AAtree.h>
 
 
@@ -116,19 +117,40 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index);
 /**
  * Creates a new Column from a textual description.
  *
- * \param len         The length of the column. If this is \c NULL, the length is
- *                    set to INT64_MAX beats.
- * \param str         The textual description -- must not be \c NULL.
- * \param is_global   \c true if and only if the Column is to be global.
- * \param state       The Read state -- must not be \c NULL.
+ * \param len              The length of the column. If this is \c NULL, the
+ *                         length is set to INT64_MAX beats.
+ * \param str              The textual description -- must not be \c NULL.
+ * \param locations        Pattern location info -- must not be \c NULL.
+ * \param locations_iter   The iterator for \a locations -- must not be
+ *                         \c NULL.
+ * \param event_names      The Event names -- must not be \c NULL.
+ * \param state            The Read state -- must not be \c NULL.
  *
  * \return   The new Column if successful, otherwise \c NULL. \a state
  *           will _not_ be updated if memory allocation failed.
  */
 Column* new_Column_from_string(Reltime* len,
                                char* str,
-                               bool is_global,
+//                               bool is_global,
+                               AAtree* locations,
+                               AAiter* locations_iter,
+                               Event_names* event_names,
                                Read_state* state);
+
+
+/**
+ * Updates location info in the Column.
+ *
+ * \param col              The Column -- must not be \c NULL.
+ * \param locations        Pattern location info -- must not be \c NULL.
+ * \param locations_iter   The iterator for \a locations -- must not be
+ *                         \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Column_update_locations(Column* col,
+                             AAtree* locations,
+                             AAiter* locations_iter);
 
 
 /**
@@ -141,18 +163,7 @@ Column* new_Column_from_string(Reltime* len,
  *
  * \return   \c true if successful, otherwise \c false.
  */
-bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
-
-
-/**
- * Serialises the Column.
- *
- * \param col   The Column -- must not be \c NULL.
- *
- * \return   A string representation of the Column, or \c NULL if memory
- *           allocation failed.
- */
-char* Column_serialise(Column* col);
+//bool Column_parse(Column* col, char* str, bool is_global, Read_state* state);
 
 
 /**
@@ -274,7 +285,7 @@ Reltime* Column_length(Column* col);
 /**
  * Destroys an existing Column.
  *
- * \param col   The Column -- must not be \c NULL.
+ * \param col   The Column, or \c NULL.
  */
 void del_Column(Column* col);
 

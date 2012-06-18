@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -40,7 +40,7 @@ typedef struct AAtree AAtree;
 /**
  * Creates an iterator for the AAtree.
  *
- * \param tree   The AAtree.
+ * \param tree   The AAtree, or \c NULL.
  *
  * \return   The new iterator if successful, or \c NULL if memory allocation
  *           failed.
@@ -108,7 +108,7 @@ void* AAiter_get_prev(AAiter* iter);
 /**
  * Destroys an existing AAiter.
  *
- * \param iter   The AAiter -- must not be \c NULL.
+ * \param iter   The AAiter, or \c NULL.
  */
 void del_AAiter(AAiter* iter);
 
@@ -124,6 +124,17 @@ void del_AAiter(AAiter* iter);
  *           failed.
  */
 AAtree* new_AAtree(int (*cmp)(const void*, const void*), void (*destroy)(void*));
+
+
+/**
+ * Finds out if a key exists inside the AAtree.
+ *
+ * \param tree   The AAtree -- must not be \c NULL.
+ * \param key    The key -- must not be \c NULL.
+ *
+ * \return   \c true if and only if \a key is found inside \c tree.
+ */
+bool AAtree_contains(AAtree* tree, const void* key);
 
 
 /**
@@ -194,7 +205,7 @@ void AAtree_clear(AAtree* tree);
  * Destroys an existing AAtree. All the elements in the tree will also be
  * destroyed.
  *
- * \param tree   The AAtree -- must not be \c NULL.
+ * \param tree   The AAtree, or \c NULL.
  */
 void del_AAtree(AAtree* tree);
 

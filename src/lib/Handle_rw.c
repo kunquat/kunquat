@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -26,6 +26,7 @@
 #include <Handle_rw.h>
 #include <Parse_manager.h>
 #include <File_dir.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -61,33 +62,20 @@ kqt_Handle* kqt_new_Handle_rw(char* path)
     handle_rw->handle.mode = KQT_READ_WRITE;
     handle_rw->handle.get_data = Handle_rw_get_data;
     handle_rw->handle.get_data_length = Handle_rw_get_data_length;
-    handle_rw->set_data = Handle_rw_set_data;
+    handle_rw->handle.set_data = Handle_rw_set_data;
     handle_rw->handle.destroy = del_Handle_rw;
     if (!File_dir_open(handle_rw, path))
     {
         kqt_del_Handle(&handle_rw->handle);
         return NULL;
     }
-    return &handle_rw->handle;
-}
-
-
-int kqt_Handle_set_data(kqt_Handle* handle,
-                        char* key,
-                        void* data,
-                        long length)
-{
-    check_handle(handle, 0);
-    check_key(handle, key, 0);
-    if (handle->mode == KQT_READ)
+    if (!Device_sync((Device*)handle_rw->handle.song))
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Cannot set data on a read-only Kunquat Handle.");
-        return 0;
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
+        kqt_del_Handle(&handle_rw->handle);
+        return NULL;
     }
-    Handle_rw* handle_rw = (Handle_rw*)handle;
-    assert(handle_rw->set_data != NULL);
-    return handle_rw->set_data(handle, key, data, length);
+    return &handle_rw->handle;
 }
 
 
@@ -120,10 +108,11 @@ char* add_path_element(char* partial_path, const char* full_path)
 static bool path_element_is_header(const char* element)
 {
     assert(element != NULL);
-    return strncmp("kunquat", element, 7) == 0 &&
-           (element[7] == 'i' || element[7] == 's') &&
-           strncmp("XX", element + 8, 2) == 0 &&
-           element[10] == '/';
+    return string_has_prefix(element, MAGIC_ID "iXX/") ||
+           string_has_prefix(element, MAGIC_ID "gXX/") ||
+           string_has_prefix(element, MAGIC_ID "sXX/") ||
+           string_has_prefix(element, MAGIC_ID "eXX/") ||
+           string_has_prefix(element, MAGIC_ID "dXX/");
 }
 
 
@@ -192,6 +181,19 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
             int max_version = -1;
             while (entry != NULL)
             {
+                int version = string_extract_index(entry, NULL, 2, "");
+                if (strncmp(cur_path, entry + last_pos,
+                            strlen(MAGIC_ID) + 1) == 0 && version >= 0 &&
+                        (entry + last_pos)[strlen(MAGIC_ID) + 3] == '\0')
+                {
+                    if (version > max_version)
+                    {
+                        max_version = version;
+                        strcpy(cur_path, entry + last_pos);
+                        strcat(cur_path, "/");
+                    }
+                }
+#if 0
                 if (strncmp(cur_path, entry + last_pos, 8) == 0 &&
                         isdigit((entry + last_pos)[8]) && isdigit((entry + last_pos)[9]) &&
                         (entry + last_pos)[10] == '\0')
@@ -205,6 +207,7 @@ static char* Handle_rw_get_real_path(Handle_rw* handle_rw, const char* key_path)
                         strcat(cur_path, "/");
                     }
                 }
+#endif
                 xfree(entry);
                 entry = Directory_get_entry(dir);
             }
@@ -373,7 +376,7 @@ int Handle_rw_set_data(kqt_Handle* handle,
     {
         if (path_element_is_header(cur_path))
         {
-            strncpy(cur_path + 8, KQT_FORMAT_VERSION, 2);
+            strncpy(cur_path + strlen(MAGIC_ID) + 1, KQT_FORMAT_VERSION, 2);
         }
         bool cur_is_dir = cur_path[0] != '\0' &&
                           cur_path[strlen(cur_path) - 1] == '/';
@@ -473,7 +476,10 @@ int Handle_rw_set_data(kqt_Handle* handle,
 
 static void del_Handle_rw(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ_WRITE);
     Handle_rw* handle_rw = (Handle_rw*)handle;
     xfree(handle_rw->base_path);

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -59,10 +59,11 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     handle->destroy = NULL;
     handle->get_data = NULL;
     handle->get_data_length = NULL;
+    handle->set_data = NULL;
     handle->error[0] = handle->error[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
     handle->position[0] = handle->position[POSITION_LENGTH - 1] = '\0';
 
-    int buffer_count = SONG_DEFAULT_BUF_COUNT;
+//    int buffer_count = SONG_DEFAULT_BUF_COUNT;
 //    int voice_count = 256;
 
     handle->returned_values = new_AAtree(ptrcmp, free);
@@ -74,7 +75,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
         (void)removed;
         return false;
     }
-    handle->song = new_Song(buffer_count, buffer_size);
+    handle->song = new_Song(buffer_size);
     if (handle->song == NULL)
     {
         kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
@@ -115,11 +116,15 @@ void kqt_Handle_clear_error(kqt_Handle* handle)
 
 void kqt_Handle_set_error_(kqt_Handle* handle,
                            Error_type type,
+                           const char* file,
+                           int line,
                            const char* func,
                            const char* message, ...)
 {
     assert(type > ERROR_NONE);
     assert(type < ERROR_LAST);
+    assert(file != NULL);
+    assert(line >= 0);
     assert(func != NULL);
     assert(message != NULL);
     char err_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
@@ -130,22 +135,65 @@ void kqt_Handle_set_error_(kqt_Handle* handle,
         [ERROR_MEMORY] = "MemoryError",
         [ERROR_RESOURCE] = "ResourceError",
     };
-    strcpy(err_str, error_codes[type]);
-    strcat(err_str, ": ");
-#ifndef NDEBUG
-    strcat(err_str, "@");
+    strcpy(err_str, "{ \"type\": \"");
+    strcat(err_str, error_codes[type]);
+    strcat(err_str, "\", ");
+
+    strcat(err_str, "\"file\": \"");
+    strcat(err_str, file);
+    strcat(err_str, "\", ");
+
+    sprintf(&err_str[strlen(err_str)], "\"line\": %d, ", line);
+
+    strcat(err_str, "\"function\": \"");
     strcat(err_str, func);
-    strcat(err_str, ": ");
-#else
-    (void)func;
-#endif
-    int error_code_length = strlen(err_str);
+    strcat(err_str, "\", ");
+
+    strcat(err_str, "\"message\": \"");
+    char message_str[KQT_HANDLE_ERROR_LENGTH] = { '\0' };
     va_list args;
     va_start(args, message);
-    vsnprintf(err_str + error_code_length,
-              KQT_HANDLE_ERROR_LENGTH - error_code_length,
-              message, args);
+    vsnprintf(message_str, KQT_HANDLE_ERROR_LENGTH, message, args);
     va_end(args);
+    int json_pos = strlen(err_str);
+    for (int i = 0; json_pos < KQT_HANDLE_ERROR_LENGTH - 4 &&
+                    message_str[i] != '\0'; ++i, ++json_pos)
+    {
+        char ch = message_str[i];
+        static const char named_controls[] = "\"\\\b\f\n\r\t";
+        static const char* named_replace[] =
+                { "\\\"", "\\\\", "\\b", "\\f", "\\n", "\\r", "\\t" };
+        const char* named_control = strchr(named_controls, ch);
+        if (named_control != NULL)
+        {
+            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 5)
+            {
+                break;
+            }
+            int pos = named_control - named_controls;
+            assert(pos >= 0);
+            assert(pos < (int)strlen(named_controls));
+            strcpy(&err_str[json_pos], named_replace[pos]);
+            json_pos += strlen(named_replace[pos]) - 1;
+        }
+        else if (ch < 0x20 || ch == 0x7f)
+        {
+            if (json_pos >= KQT_HANDLE_ERROR_LENGTH - 4 - 5)
+            {
+                break;
+            }
+            // FIXME: We should really check for all control characters
+            char code[] = "\\u0000";
+            snprintf(code, strlen(code) + 1, "\\u%04x", ch);
+            strcpy(&err_str[json_pos], code);
+            json_pos += strlen(code) - 1;
+        }
+        else
+        {
+            err_str[json_pos] = ch;
+        }
+    }
+    strcat(err_str, "\" }");
     err_str[KQT_HANDLE_ERROR_LENGTH - 1] = '\0';
 
     strcpy(null_error, err_str);
@@ -162,6 +210,12 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
 {
     check_handle(handle, NULL);
     check_key(handle, key, NULL);
+    if (handle->mode == KQT_MEM)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot get data from a write-only Kunquat Handle.");
+        return NULL;
+    }
     assert(handle->get_data != NULL);
     void* data = handle->get_data(handle, key);
     if (data != NULL)
@@ -176,6 +230,39 @@ void* kqt_Handle_get_data(kqt_Handle* handle, const char* key)
         }
     }
     return data;
+}
+
+
+long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
+{
+    check_handle(handle, -1);
+    check_key(handle, key, -1);
+    if (handle->mode == KQT_MEM)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot get data from a write-only Kunquat Handle.");
+        return -1;
+    }
+    assert(handle->get_data_length != NULL);
+    return handle->get_data_length(handle, key);
+}
+
+
+int kqt_Handle_set_data(kqt_Handle* handle,
+                        const char* key,
+                        void* data,
+                        long length)
+{
+    check_handle(handle, 0);
+    check_key(handle, key, 0);
+    if (handle->mode == KQT_READ)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Cannot set data on a read-only Kunquat Handle.");
+        return 0;
+    }
+    assert(handle->set_data != NULL);
+    return handle->set_data(handle, key, data, length);
 }
 
 
@@ -195,15 +282,6 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data)
     }
     xfree(target);
     return 1;
-}
-
-
-long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key)
-{
-    check_handle(handle, -1);
-    check_key(handle, key, -1);
-    assert(handle->get_data_length != NULL);
-    return handle->get_data_length(handle, key);
 }
 
 

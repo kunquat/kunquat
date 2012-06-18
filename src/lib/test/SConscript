@@ -1,7 +1,7 @@
 # coding=utf-8
 
 
-# Author: Tomi Jylhä-Ollila, Finland 2010
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -11,17 +11,32 @@
 # copyright and related or neighboring rights to Kunquat.
 
 
+import glob
+
+
 Import('env')
 
 env_test = env.Clone()
 
-env_test.Append(CPPPATH = ['#/src/lib',
+env_test.Append(CPPPATH = ['.',
+                           '#/src/lib',
                            '#/src/lib/events',
                            '#/src/lib/generators',
                            '#/src/include'])
 env_test.Append(LIBPATH = ['#/src/lib'])
 env_test.Append(LIBS = ['kunquat'])
 
+if env_test['enable_tests_mem_debug']:
+    env_test.Append(CCFLAGS = ['-DK_MEM_DEBUG'])
+
+
+programs = []
+for source in glob.glob('*.c'):
+    exe_name = source[:-2]
+    programs.append(env_test.Program(exe_name, [source]))
+
+
+"""
 real          = env_test.Program('real', ['real.c'])
 scale         = env_test.Program('scale', ['scale.c'])
 reltime       = env_test.Program('reltime', ['reltime.c'])
@@ -38,11 +53,18 @@ subsong_table = env_test.Program('subsong_table', ['subsong_table.c'])
 pat_table     = env_test.Program('pat_table', ['pat_table.c'])
 pattern       = env_test.Program('pattern', ['pattern.c'])
 song          = env_test.Program('song', ['song.c'])
+"""
 
 
-run_prefix = 'env LD_LIBRARY_PATH=src/lib '
 
 if not env.GetOption('clean'):
+    run_prefix = 'env LD_LIBRARY_PATH=src/lib '
+    if env_test['enable_tests_mem_debug']:
+        run_prefix += 'valgrind -q --leak-check=full --error-exitcode=2 '
+
+    for program in programs:
+        env_test.AddPostAction(program, run_prefix + program[0].abspath)
+    """
     env_test.AddPostAction(real, run_prefix + real[0].abspath)
     env_test.AddPostAction(scale, run_prefix + scale[0].abspath)
     env_test.AddPostAction(reltime, run_prefix + reltime[0].abspath)
@@ -59,5 +81,6 @@ if not env.GetOption('clean'):
     env_test.AddPostAction(pat_table, run_prefix + pat_table[0].abspath)
     env_test.AddPostAction(pattern, run_prefix + pattern[0].abspath)
     env_test.AddPostAction(song, run_prefix + song[0].abspath)
+    """
 
 

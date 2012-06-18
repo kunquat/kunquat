@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -90,6 +90,67 @@ bool Device_params_set_key(Device_params* params, const char* key);
 
 
 /**
+ * Marks a key to require explicit synchronisation on update.
+ *
+ * This is used for keys that are too slow to be updated in the Device
+ * automatically (e.g. the update may take hundreds of milliseconds or more).
+ * This is different from keys that cannot be updated in real time but still
+ * update quickly in terms of user interaction smoothness.
+ *
+ * If the function succeeds, it also sets the Device parameters to require
+ * synchronisation.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ directory.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Device_params_set_slow_sync(Device_params* params, const char* key);
+
+
+/**
+ * Marks a key to no longer require explicit synchronisation on update.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ directory.
+ */
+void Device_params_clear_slow_sync(Device_params* params, const char* key);
+
+
+/**
+ * Finds out whether any slow-sync parameters have changed.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ *
+ * \return   \c true if explicit synchronisation is needed,
+ *           otherwise \c false.
+ */
+bool Device_params_need_sync(Device_params* params);
+
+
+/**
+ * Retrieves a slow-sync key that has changed.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ *
+ * \return   One of the slow-sync keys, or \c NULL if no such keys are left.
+ */
+const char* Device_params_get_slow_sync_key(Device_params* params);
+
+
+/**
+ * Sets the Device parameters synchronised.
+ *
+ * A slow-syncing Device should call this after synchronisation.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ */
+void Device_params_synchronised(Device_params* params);
+
+
+/**
  * Parses the Device Event list.
  *
  * \param params   The Device parameters -- must not be \c NULL.
@@ -130,17 +191,29 @@ bool Device_params_parse_value(Device_params* params,
  *
  * This function is used during playback.
  * Note that this function does not support sample files.
+ * Also, the function will not modify keys that are marked to require explicit
+ * synchronisation.
  *
  * \param params   The Device parameters -- must not be \c NULL.
  * \param key      The key -- must be a valid subkey starting after the
  *                 c/ directory.
- * \param str      The new value as a string.
+ * \param data     The new value -- must not be \c NULL.
  *
  * \return   \c true if the value was modified, otherwise \c false.
  */
 bool Device_params_modify_value(Device_params* params,
                                 const char* key,
-                                char* str);
+                                void* data);
+
+
+/**
+ * Resets Device parameter modifications.
+ *
+ * This function resets modifications made using Device_params_modify_value.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ */
+void Device_params_reset(Device_params* params);
 
 
 /**
@@ -204,6 +277,18 @@ Reltime* Device_params_get_reltime(Device_params* params, const char* key);
 
 
 /**
+ * Retrieves an Envelope value from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsone".
+ *
+ * \return   The Envelope value, or \c NULL if \a key doesn't exist.
+ */
+Envelope* Device_params_get_envelope(Device_params* params, const char* key);
+
+
+/**
  * Retrieves a Sample from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
@@ -242,9 +327,34 @@ Sample_map* Device_params_get_sample_map(Device_params* params,
 
 
 /**
- * Destroys existing Device parameters.
+ * Retrieves a Hit map from Device parameters.
  *
  * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsonhm".
+ *
+ * \return   The Hit map, or \c NULL if \a key doesn't exist.
+ */
+Hit_map* Device_params_get_hit_map(Device_params* params,
+                                   const char* key);
+
+
+/**
+ * Retrieves a Number list from Device parameters.
+ *
+ * \param params   The Device parameters -- must not be \c NULL.
+ * \param key      The key -- must be a valid subkey starting after the
+ *                 c/ or i/ directory and must have the suffix ".jsonln".
+ *
+ * \return   The Number list, or \c NULL if \a key doesn't exist.
+ */
+Num_list* Device_params_get_num_list(Device_params* params, const char* key);
+
+
+/**
+ * Destroys existing Device parameters.
+ *
+ * \param params   The Device parameters, or \c NULL.
  */
 void del_Device_params(Device_params* params);
 

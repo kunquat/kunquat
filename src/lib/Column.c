@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,10 +20,10 @@
 #include <inttypes.h>
 
 #include <Reltime.h>
-#include <Event_pg.h>
-#include <Event_global_set_tempo.h>
+#include <Event_global_jump.h>
+//#include <Event_global_set_tempo.h>
+#include <Event_names.h>
 #include <Column.h>
-#include <String_buffer.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -209,11 +209,20 @@ Event* Column_iter_get_next(Column_iter* iter)
 
 void del_Column_iter(Column_iter* iter)
 {
-    assert(iter != NULL);
+    if (iter == NULL)
+    {
+        return;
+    }
     del_AAiter(iter->tree_iter);
     xfree(iter);
     return;
 }
+
+
+static bool Column_parse(Column* col,
+                         char* str,
+                         Event_names* event_names,
+                         Read_state* state);
 
 
 Column* new_Column(Reltime* len)
@@ -275,7 +284,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
-            if (((Event_pg*)event)->ch_index < index)
+            if (event->ch_index < index)
             {
                 if (!Column_ins(aux, event))
                 {
@@ -293,7 +302,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
     {
         if (EVENT_IS_PG(Event_get_type(event)))
         {
-            ((Event_pg*)event)->ch_index = index;
+            event->ch_index = index;
             if (!Column_ins(aux, event))
             {
                 del_Column(aux);
@@ -310,7 +319,7 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
         while (event != NULL)
         {
             assert(EVENT_IS_PG(Event_get_type(event)));
-            if (((Event_pg*)event)->ch_index > index)
+            if (event->ch_index > index)
             {
                 if (!Column_ins(aux, event))
                 {
@@ -329,10 +338,15 @@ Column* new_Column_aux(Column* old_aux, Column* mod_col, int index)
 
 Column* new_Column_from_string(Reltime* len,
                                char* str,
-                               bool is_global,
+                               AAtree* locations,
+                               AAiter* locations_iter,
+                               Event_names* event_names,
                                Read_state* state)
 {
+    assert(event_names != NULL);
     assert(state != NULL);
+    assert(locations != NULL);
+    assert(locations_iter != NULL);
     if (state->error)
     {
         return false;
@@ -342,7 +356,12 @@ Column* new_Column_from_string(Reltime* len,
     {
         return NULL;
     }
-    if (!Column_parse(col, str, is_global, state))
+    if (!Column_parse(col, str, event_names, state))
+    {
+        del_Column(col);
+        return NULL;
+    }
+    if (!Column_update_locations(col, locations, locations_iter))
     {
         del_Column(col);
         return NULL;
@@ -360,7 +379,10 @@ Column* new_Column_from_string(Reltime* len,
         }                 \
     } else (void)0
 
-bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
+static bool Column_parse(Column* col,
+                         char* str,
+                         Event_names* event_names,
+                         Read_state* state)
 {
     assert(col != NULL);
     assert(state != NULL);
@@ -385,55 +407,16 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
     bool expect_event = true;
     while (expect_event)
     {
-        str = read_const_char(str, '[', state);
-        break_if(state->error);
-
-        Reltime* pos = Reltime_init(RELTIME_AUTO);
-        str = read_reltime(str, pos, state);
-        break_if(state->error);
-
-        str = read_const_char(str, ',', state);
-        break_if(state->error);
-
-        int64_t type = 0;
-        str = read_int(str, &type, state);
-        break_if(state->error);
-        if (!EVENT_IS_VALID(type))
-        {
-            Read_state_set_error(state, "Invalid Event type: %" PRId64 "\n", type);
-            return false;
-        }
-        if (((is_global && EVENT_IS_CHANNEL(type)) ||
-                (!is_global && EVENT_IS_GLOBAL(type)))
-                && !EVENT_IS_GENERAL(type))
-        {
-            Read_state_set_error(state,
-                     "Incorrect Event type for %s column", is_global ? "global" : "note");
-            return false;
-        }
-
-        Event* event = new_Event(type, pos);
+        Event* event = new_Event_from_string(&str, state, event_names);
         if (event == NULL)
         {
-            Read_state_set_error(state, "Couldn't allocate memory for Event");
-            return false;
-        }
-        str = Event_read(event, str, state);
-        if (state->error)
-        {
-            del_Event(event);
             return false;
         }
         if (!Column_ins(col, event))
         {
-            Read_state_set_error(state, "Couldn't insert Event");
             del_Event(event);
             return false;
         }
-        
-        str = read_const_char(str, ']', state);
-        break_if(state->error);
-
         check_next(str, state, expect_event);
     }
 
@@ -448,45 +431,29 @@ bool Column_parse(Column* col, char* str, bool is_global, Read_state* state)
 #undef break_if
 
 
-char* Column_serialise(Column* col)
+bool Column_update_locations(Column* col,
+                             AAtree* locations,
+                             AAiter* locations_iter)
 {
     assert(col != NULL);
-    Column_iter* iter = new_Column_iter(col);
-    if (iter == NULL)
-    {
-        return NULL;
-    }
-    String_buffer* sb = new_String_buffer();
-    if (iter == NULL || sb == NULL)
-    {
-        del_Column_iter(iter);
-        return NULL;
-    }
-    Event* event = Column_iter_get(iter, Reltime_set(RELTIME_AUTO, INT64_MIN, 0));
+    assert(locations != NULL);
+    assert(locations_iter != NULL);
+    Column_iter_change_col(col->edit_iter, col);
+    Event* event = Column_iter_get(col->edit_iter,
+                                   Reltime_init(RELTIME_AUTO));
     while (event != NULL)
     {
-        if (String_buffer_get_length(sb) == 0)
+        Event_type type = Event_get_type(event);
+        if (type == EVENT_GLOBAL_JUMP &&
+                !Trigger_global_jump_set_locations((Event_global_jump*)event,
+                                                   locations,
+                                                   locations_iter))
         {
-            String_buffer_append_string(sb, "\n\n[\n    ");
+            return false;
         }
-        else
-        {
-            String_buffer_append_string(sb, ",\n    ");
-        }
-        Event_serialise(event, sb);
-        event = Column_iter_get_next(iter);
+        event = Column_iter_get_next(col->edit_iter);
     }
-    del_Column_iter(iter);
-    if (String_buffer_get_length(sb) > 0)
-    {
-        String_buffer_append_string(sb, "\n]\n\n\n");
-    }
-    if (String_buffer_error(sb))
-    {
-        xfree(del_String_buffer(sb));
-        return NULL;
-    }
-    return del_String_buffer(sb);
+    return true;
 }
 
 
@@ -758,7 +725,10 @@ Reltime* Column_length(Column* col)
 
 void del_Column(Column* col)
 {
-    assert(col != NULL);
+    if (col == NULL)
+    {
+        return;
+    }
     del_AAtree(col->events);
     del_Column_iter(col->edit_iter);
     xfree(col);
@@ -768,7 +738,10 @@ void del_Column(Column* col)
 
 static void del_Event_list(Event_list* elist)
 {
-    assert(elist != NULL);
+    if (elist == NULL)
+    {
+        return;
+    }
     assert(elist->event == NULL);
     Event_list* cur = elist->next;
     assert(cur->event != NULL);

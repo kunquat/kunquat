@@ -20,6 +20,7 @@
 
 #include <kunquat/limits.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <Subsong.h>
 #include <xassert.h>
 #include <xmemory.h>
@@ -99,7 +100,7 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
         {
             return false;
         }
-        if (strcmp(key, "tempo") == 0)
+        if (string_eq(key, "tempo"))
         {
             str = read_double(str, &ss->tempo, state);
             if (state->error)
@@ -112,11 +113,11 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
                 return false;
             }
         }
-        else if (strcmp(key, "global_vol") == 0)
+        else if (string_eq(key, "global_vol"))
         {
             str = read_double(str, &ss->global_vol, state);
         }
-        else if (strcmp(key, "scale") == 0)
+        else if (string_eq(key, "scale"))
         {
             int64_t num = 0;
             str = read_int(str, &num, state);
@@ -132,7 +133,7 @@ static bool Subsong_parse(Subsong* ss, char* str, Read_state* state)
             }
             ss->scale = num;
         }
-        else if (strcmp(key, "patterns") == 0)
+        else if (string_eq(key, "patterns"))
         {
             str = read_const_char(str, '[', state);
             if (state->error)
@@ -318,7 +319,10 @@ void Subsong_clear(Subsong* ss)
 
 void del_Subsong(Subsong* ss)
 {
-    assert(ss != NULL);
+    if (ss == NULL)
+    {
+        return;
+    }
     xfree(ss->pats);
     xfree(ss);
     return;

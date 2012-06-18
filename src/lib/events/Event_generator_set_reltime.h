@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,22 +16,14 @@
 #define K_EVENT_GENERATOR_SET_RELTIME_H
 
 
-#include <Event_generator.h>
+#include <Channel_state.h>
 #include <Generator.h>
-#include <Reltime.h>
+#include <Value.h>
 
 
-typedef struct Event_generator_set_reltime
-{
-    Event_generator parent;
-    Reltime value;
-} Event_generator_set_reltime;
-
-
-Event* new_Event_generator_set_reltime(Reltime* pos);
-
-
-bool Event_generator_set_reltime_process(Generator* gen, char* fields);
+bool Event_generator_set_reltime_process(Generator* gen,
+                                         Channel_state* ch_state,
+                                         Value* value);
 
 
 #endif // K_EVENT_GENERATOR_SET_RELTIME_H

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,6 +21,7 @@
 #include <Directory.h>
 #include <Handle_rwc.h>
 #include <File_dir.h>
+#include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
@@ -215,7 +216,7 @@ kqt_Handle* kqt_new_Handle_rwc(char* path)
     }
     handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
     handle_rwc->handle_rw.base_path = append_to_path(abs_workspace,
-            "kunquatc" KQT_FORMAT_VERSION);
+            MAGIC_ID "c" KQT_FORMAT_VERSION);
     xfree(abs_workspace);
     if (handle_rwc->handle_rw.base_path == NULL)
     {
@@ -239,10 +240,16 @@ kqt_Handle* kqt_new_Handle_rwc(char* path)
     handle_rwc->handle_rw.handle.mode = KQT_READ_WRITE_COMMIT;
     handle_rwc->handle_rw.handle.get_data = Handle_rw_get_data;
     handle_rwc->handle_rw.handle.get_data_length = Handle_rw_get_data_length;
+    handle_rwc->handle_rw.handle.set_data = Handle_rwc_set_data;
     handle_rwc->handle_rw.handle.destroy = del_Handle_rwc;
-    handle_rwc->handle_rw.set_data = Handle_rwc_set_data;
     if (!File_dir_open(&handle_rwc->handle_rw, handle_rwc->handle_rw.base_path))
     {
+        kqt_del_Handle(&handle_rwc->handle_rw.handle);
+        return NULL;
+    }
+    if (!Device_sync((Device*)handle_rwc->handle_rw.handle.song))
+    {
+        kqt_Handle_set_error(NULL, ERROR_MEMORY, "Couldn't allocate memory");
         kqt_del_Handle(&handle_rwc->handle_rw.handle);
         return NULL;
     }
@@ -415,7 +422,8 @@ int kqt_Handle_commit(kqt_Handle* handle)
         while (target_file != NULL)
         {
             errno = 0;
-            if (remove(target_file) != 0)
+            if (path_info(target_file, handle) != PATH_NO_ENTRY &&
+                    remove(target_file) != 0)
             {
                 kqt_Handle_set_error(handle, ERROR_RESOURCE, "Couldn't remove"
                         " %s: %s", target_file, strerror(errno));
@@ -460,7 +468,7 @@ static int Handle_rwc_set_data(kqt_Handle* handle,
             kqt_Handle_set_error(handle, ERROR_MEMORY,
                     "Couldn't log changes to the key %s", key);
             xfree(key_copy);
-            return 1;
+            return 0;
         }
     }
     int set = Handle_rw_set_data(handle, key, data, length);
@@ -567,7 +575,7 @@ static bool inspect_dirs(const char* path,
     {
         return false;
     }
-    
+
     *has_committed = false;
     *has_workspace = false;
     *has_oldcommit = false;
@@ -575,17 +583,17 @@ static bool inspect_dirs(const char* path,
     while (entry != NULL)
     {
         bool found = false;
-        if (strcmp(last_element(entry), "committed") == 0)
+        if (string_eq(last_element(entry), "committed"))
         {
             found = true;
             *has_committed = true;
         }
-        else if (strcmp(last_element(entry), "workspace") == 0)
+        else if (string_eq(last_element(entry), "workspace"))
         {
             found = true;
             *has_workspace = true;
         }
-        else if (strcmp(last_element(entry), "oldcommit") == 0)
+        else if (string_eq(last_element(entry), "oldcommit"))
         {
             found = true;
             *has_oldcommit = true;
@@ -622,17 +630,14 @@ static bool inspect_dirs(const char* path,
 
 static void del_Handle_rwc(kqt_Handle* handle)
 {
-    assert(handle != NULL);
+    if (handle == NULL)
+    {
+        return;
+    }
     assert(handle->mode == KQT_READ_WRITE_COMMIT);
     Handle_rwc* handle_rwc = (Handle_rwc*)handle;
-    if (handle_rwc->handle_rw.base_path != NULL)
-    {
-        xfree(handle_rwc->handle_rw.base_path);
-    }
-    if (handle_rwc->changed_files != NULL)
-    {
-        del_AAtree(handle_rwc->changed_files);
-    }
+    xfree(handle_rwc->handle_rw.base_path);
+    del_AAtree(handle_rwc->changed_files);
     xfree(handle_rwc);
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -56,22 +56,15 @@ typedef struct kqt_Handle kqt_Handle;
 
 
 /**
- * The access mode of Kunquat Handles.
+ * Creates an empty write-only Kunquat Handle that only resides in memory.
  *
- * The read-only mode is used for composition files and is typically used by
- * players.
+ * The current implementation limits the maximum number of simultaneous
+ * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * The read/write mode 
- *
- * The commit mode is similar to read/write mode but provides a safe
- * transaction mechanism for storing changes to the data being modified.
+ * \return   The new memory-only Kunquat Handle if successful, otherwise
+ *           \c NULL (check kqt_Handle_get_error(\c NULL) for error message).
  */
-typedef enum
-{
-    KQT_READ = 0,
-    KQT_READ_WRITE,
-    KQT_READ_WRITE_COMMIT
-} kqt_Access_mode;
+kqt_Handle* kqt_new_Handle_m(void);
 
 
 /**
@@ -156,7 +149,7 @@ int kqt_Handle_free_data(kqt_Handle* handle, void* data);
  *           Handle error is set accordingly.
  */
 int kqt_Handle_set_data(kqt_Handle* handle,
-                        char* key,
+                        const char* key,
                         void* data,
                         long length);
 
@@ -164,23 +157,26 @@ int kqt_Handle_set_data(kqt_Handle* handle,
 /**
  * Gets an error message from the Kunquat Handle.
  *
- * An error message consists of an error code followed by a colon, a space and
- * an error description. Possible error codes are:
+ * An error message is a JSON object string that contains at least two keys:
+ * "type" and "message". The value of "type" is one of the following:
  *
- * \li ArgumentError -- a Kunquat function was called with an inappropriate
+ * \li "ArgumentError" -- a Kunquat function was called with an inappropriate
  *                      argument value.
- * \li FormatError   -- an input file or value to be stored was invalid.
- * \li MemoryError   -- memory allocation failed.
- * \li ResourceError -- libkunquat couldn't get service from an external
+ * \li "FormatError"   -- an input file or value to be stored was invalid.
+ * \li "MemoryError"   -- memory allocation failed.
+ * \li "ResourceError" -- libkunquat couldn't get service from an external
  *                      resource.
  *
- * kqt_Handle_get_error(\a handle) returns a message describing the last
+ * The value of "message" is a human-readable description of the error.
+ *
+ * kqt_Handle_get_error(\a handle) returns a JSON object describing the last
  * error occurred when processing \a handle.
  *
- * kqt_Handle_get_error(\c NULL) returns a message describing the last error
- * occurred in Kunquat Handle processing in general. In a single-threaded
- * application, you can always call kqt_Handle_get_error(\c NULL) to get the
- * last error message, whether or not connected to any particular Handle.
+ * kqt_Handle_get_error(\c NULL) returns a JSON object describing the last
+ * error occurred in Kunquat Handle processing in general. In a
+ * single-threaded application, you can always call
+ * kqt_Handle_get_error(\c NULL) to get the last error message, whether or
+ * not related to any particular Handle.
  *
  * \param handle   The Handle, or \c NULL if retrieving error information
  *                 that is not necessarily associated with a Kunquat Handle.

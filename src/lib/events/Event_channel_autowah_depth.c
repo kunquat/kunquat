@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,63 +19,35 @@
 #include <Event_common.h>
 #include <Event_channel_autowah_depth.h>
 #include <Reltime.h>
+#include <Value.h>
 #include <Voice.h>
 #include <math_common.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-static Event_field_desc autowah_depth_desc[] =
-{
-    {
-        .type = EVENT_FIELD_DOUBLE,
-        .min.field.double_type = 0,
-        .max.field.double_type = INFINITY
-    },
-    {
-        .type = EVENT_FIELD_NONE
-    }
-};
-
-
-Event_create_set_primitive_and_get(Event_channel_autowah_depth,
-                                   EVENT_CHANNEL_AUTOWAH_DEPTH,
-                                   double, depth);
-
-
-Event_create_constructor(Event_channel_autowah_depth,
-                         EVENT_CHANNEL_AUTOWAH_DEPTH,
-                         autowah_depth_desc,
-                         event->depth = 0);
-
-
-bool Event_channel_autowah_depth_process(Channel_state* ch_state, char* fields)
+bool Event_channel_autowah_depth_process(Channel_state* ch_state,
+                                         Value* value)
 {
     assert(ch_state != NULL);
-    if (fields == NULL)
+    assert(value != NULL);
+    if (value->type != VALUE_TYPE_FLOAT)
     {
         return false;
     }
-    Event_field data[1];
-    Read_state* state = READ_STATE_AUTO;
-    Event_type_get_fields(fields, autowah_depth_desc, data, state);
-    if (state->error)
-    {
-        return false;
-    }
-    double depth_target = data[0].field.double_type / 8;
+    double actual_depth = value->value.float_type / 8;
+    ch_state->autowah_depth = actual_depth;
     for (int i = 0; i < KQT_GENERATORS_MAX; ++i)
     {
         Event_check_voice(ch_state, i);
-        Voice_state* vs = &ch_state->fg[i]->state.generic;
-        if (data[0].field.double_type > 0 && vs->autowah_length > 0)
+        Voice_state* vs = ch_state->fg[i]->state;
+        if (ch_state->autowah_speed > 0)
         {
-            vs->autowah = true;
+            LFO_set_speed(&vs->autowah, ch_state->autowah_speed);
         }
-        vs->autowah_depth_target = depth_target;
-        vs->autowah_delay_pos = 0;
+        LFO_set_depth(&vs->autowah, actual_depth);
+        LFO_turn_on(&vs->autowah);
     }
-    ch_state->autowah_depth = depth_target;
     return true;
 }
 

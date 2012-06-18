@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -48,10 +48,14 @@ Audio_buffer* new_Audio_buffer(uint32_t size)
         buffer->bufs[i] = xnalloc(kqt_frame, size);
         if (buffer->bufs[i] == NULL)
         {
+            //fprintf(stderr, "Calling destroy at %s:%d\n", __FILE__, __LINE__);
             del_Audio_buffer(buffer);
             return NULL;
         }
     }
+//    fprintf(stderr, "Created buffer %p with arrays %p and %p\n",
+//            (void*)buffer, (void*)buffer->bufs[0], (void*)buffer->bufs[1]);
+    Audio_buffer_clear(buffer, 0, size);
     return buffer;
 }
 
@@ -68,6 +72,10 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
     assert(buffer != NULL);
     assert(size > 0);
     assert(size <= KQT_BUFFER_SIZE_MAX);
+    if (buffer->size == size)
+    {
+        return true;
+    }
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
         kqt_frame* new_buf = xrealloc(kqt_frame, size, buffer->bufs[i]);
@@ -85,6 +93,7 @@ bool Audio_buffer_resize(Audio_buffer* buffer, uint32_t size)
 
 void Audio_buffer_clear(Audio_buffer* buffer, uint32_t start, uint32_t until)
 {
+    //fprintf(stderr, "Clearing %p\n", (void*)buffer);
     assert(buffer != NULL);
     assert(start < buffer->size);
     assert(until <= buffer->size);
@@ -141,13 +150,14 @@ kqt_frame* Audio_buffer_get_buffer(Audio_buffer* buffer, int index)
 
 void del_Audio_buffer(Audio_buffer* buffer)
 {
-    assert(buffer != NULL);
+    if (buffer == NULL)
+    {
+        return;
+    }
+    //fprintf(stderr, "Destroying %p\n", (void*)buffer);
     for (int i = 0; i < KQT_BUFFERS_MAX; ++i)
     {
-        if (buffer->bufs[i] != NULL)
-        {
-            xfree(buffer->bufs[i]);
-        }
+        xfree(buffer->bufs[i]);
     }
     xfree(buffer);
     return;

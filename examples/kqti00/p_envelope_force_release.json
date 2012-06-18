@@ -1,0 +1,18 @@
+
+
+{
+    "enabled" : true,
+    "scale_amount" : 0,
+    "scale_center" : 0,
+    "envelope" :
+    {
+        "nodes" :
+        [
+            [0, 1],
+            [0.02, 0.3],
+            [1, 0]
+        ]
+    }
+}
+
+

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,22 +16,11 @@
 #define K_EVENT_GLOBAL_SET_JUMP_ROW_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
 #include <Playdata.h>
+#include <Value.h>
 
 
-typedef struct Event_global_set_jump_row
-{
-    Event_global parent;
-    Reltime row;
-} Event_global_set_jump_row;
-
-
-Event* new_Event_global_set_jump_row(Reltime* pos);
-
-
-bool Event_global_set_jump_row_process(Playdata* global_state, char* fields);
+bool Event_global_set_jump_row_process(Playdata* global_state, Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_ROW_H

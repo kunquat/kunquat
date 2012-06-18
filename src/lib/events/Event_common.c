@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -21,23 +21,14 @@
 
 Event* Event_init(Event* event,
                   Reltime* pos,
-                  Event_type type,
-                  Event_field_desc* field_types,
-                  bool (*set)(Event*, int, void*),
-                  void* (*get)(Event*, int))
+                  Event_type type)
 {
     assert(event != NULL);
     assert(pos != NULL);
     assert(EVENT_IS_VALID(type));
-    assert(field_types != NULL);
-    assert(set != NULL);
-    assert(get != NULL);
     event->type = type;
     Reltime_copy(&event->pos, pos);
-    event->field_types = field_types;
-    event->fields = NULL;
-    event->set = set;
-    event->get = get;
+    event->desc = NULL;
     event->destroy = del_Event_default;
     return event;
 }
@@ -45,12 +36,12 @@ Event* Event_init(Event* event,
 
 void del_Event_default(Event* event)
 {
-    assert(event != NULL);
-    assert(EVENT_IS_VALID(event->type));
-    if (event->fields != NULL)
+    if (event == NULL)
     {
-        xfree(event->fields);
+        return;
     }
+    assert(EVENT_IS_VALID(event->type));
+    xfree(event->desc);
     xfree(event);
     return;
 }

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,7 @@
 #include <math.h>
 #include <signal.h>
 
-#include <check.h>
+#include <test_common.h>
 
 #include <Real.h>
 
@@ -584,7 +584,7 @@ START_TEST (test_copy)
     Real dest;
     Real src;
     Real* ret = NULL;
-    
+
     Real_init_as_double(&dest, 0);
     Real_init_as_frac(&src, INT64_MIN, 1);
     ret = Real_copy(&dest, &src);
@@ -602,7 +602,7 @@ START_TEST (test_copy)
             "Real_copy() modified the source.");
     fail_unless(Real_get_denominator(&src) == 1,
             "Real_copy() modified the source.");
-    
+
     ret = NULL;
     Real_init_as_double(&dest, 0);
     Real_init_as_frac(&src, 1, INT64_MAX);
@@ -955,7 +955,7 @@ START_TEST (test_div)
             "Real_div() incorrectly changed the divisor.");
     fail_unless(Real_get_denominator(&divisor) == 1,
             "Real_div() incorrectly changed the divisor.");
-    
+
     ret = NULL;
     Real_init_as_double(&real, -DBL_MAX);
     Real_init_as_frac(&dividend, 1, 1);
@@ -1021,7 +1021,7 @@ START_TEST (test_div)
             "Real_div() incorrectly changed the divisor.");
     fail_unless(Real_get_denominator(&divisor) == 2,
             "Real_div() incorrectly changed the divisor.");
-    
+
     ret = NULL;
     Real_init_as_double(&real, -DBL_MIN);
     Real_init_as_frac(&dividend, 1, 1);
@@ -1106,7 +1106,7 @@ START_TEST (test_div)
             "Real_div() incorrectly changed the divisor.");
     fail_unless(Real_get_denominator(&divisor) == 4,
             "Real_div() incorrectly changed the divisor.");
-    
+
     ret = NULL;
     Real_init_as_frac(&real, 2, 3);
     Real_init_as_frac(&dividend, 6, 5);
@@ -1126,7 +1126,7 @@ START_TEST (test_div)
             "Real_div() incorrectly changed the divisor.");
     fail_unless(Real_get_double(&divisor) == 1,
             "Real_div() incorrectly changed the divisor.");
-    
+
     ret = NULL;
     Real_init_as_frac(&real, 2, 3);
     Real_init_as_double(&dividend, 0);
@@ -1621,36 +1621,36 @@ Suite* Real_suite(void)
 
 #ifndef NDEBUG
     tcase_add_test_raise_signal(tc_init, test_init_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break1, SIGABRT);
     tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break2, SIGABRT);
     tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break3, SIGABRT);
     tcase_add_test_raise_signal(tc_init_as_frac, test_init_as_frac_break4, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_init_as_double, test_init_as_double_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_is_frac, test_is_frac_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_get_numerator, test_get_numerator_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_get_denominator, test_get_denominator_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_get_double, test_get_double_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_copy, test_copy_break1, SIGABRT);
     tcase_add_test_raise_signal(tc_copy, test_copy_break2, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_mul, test_mul_break1, SIGABRT);
     tcase_add_test_raise_signal(tc_mul, test_mul_break2, SIGABRT);
     tcase_add_test_raise_signal(tc_mul, test_mul_break3, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_div, test_div_break1, SIGABRT);
     tcase_add_test_raise_signal(tc_div, test_div_break2, SIGABRT);
     tcase_add_test_raise_signal(tc_div, test_div_break3, SIGABRT);
     tcase_add_test_raise_signal(tc_div, test_div_break4, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_mul_float, test_mul_float_break, SIGABRT);
-    
+
     tcase_add_test_raise_signal(tc_cmp, test_cmp_break1, SIGABRT);
     tcase_add_test_raise_signal(tc_cmp, test_cmp_break2, SIGABRT);
 #endif
@@ -1661,17 +1661,7 @@ Suite* Real_suite(void)
 
 int main(void)
 {
-    int fail_count = 0;
-    Suite* s = Real_suite();
-    SRunner* sr = srunner_create(s);
-    srunner_run_all(sr, CK_NORMAL);
-    fail_count = srunner_ntests_failed(sr);
-    srunner_free(sr);
-    if (fail_count > 0)
-    {
-        exit(EXIT_FAILURE);
-    }
-    exit(EXIT_SUCCESS);
+    exit(test_common_run(Real_suite()) > 0);
 }
 
 

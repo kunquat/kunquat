@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -18,14 +18,16 @@
 
 #include <stdint.h>
 
+#include <Bind.h>
 #include <Connections.h>
 #include <Device.h>
+#include <Environment.h>
 #include <kunquat/limits.h>
 #include <frame.h>
 #include <Subsong_table.h>
 #include <Pat_table.h>
+#include <Effect_table.h>
 #include <Ins_table.h>
-#include <DSP_table.h>
 #include <Random.h>
 #include <Scale.h>
 #include <Playdata.h>
@@ -36,17 +38,12 @@
 typedef struct Song
 {
     Device parent;
-    int buf_count;                      ///< Number of buffers used for mixing.
-    uint32_t buf_size;                  ///< Buffer size.
-    kqt_frame* bufs[KQT_BUFFERS_MAX];   ///< Buffers.
-    kqt_frame* priv_bufs[KQT_BUFFERS_MAX];  ///< Private buffers.
-    kqt_frame* voice_bufs[KQT_BUFFERS_MAX]; ///< Temporary buffers for Voices.
-    kqt_frame* voice_bufs2[KQT_BUFFERS_MAX]; ///< More temporary buffers for Voices.
+    uint64_t random_seed;               ///< The master random seed of the composition.
     Random* random;                     ///< The source for random data in the composition.
     Subsong_table* subsongs;            ///< The Subsongs.
     Pat_table* pats;                    ///< The Patterns.
     Ins_table* insts;                   ///< The Instruments.
-    DSP_table* dsps;                    ///< The DSPs.
+    Effect_table* effects;              ///< The global Effects.
     Connections* connections;           ///< Device connections.
     Scale* scales[KQT_SCALES_MAX];      ///< The Scales.
     double mix_vol_dB;                  ///< Mixing volume in dB.
@@ -57,6 +54,8 @@ typedef struct Song
     Playdata* skip_state;               ///< Skip state (used for length calculation).
     Channel* channels[KQT_COLUMNS_MAX]; ///< The channels used.
     Event_handler* skip_handler;        ///< Skip state Event handler.
+    Environment* env;                   ///< Environment variables.
+    Bind* bind;
 } Song;
 
 
@@ -70,8 +69,6 @@ typedef struct Song
  *
  * The caller shall eventually call del_Song() to destroy the Song returned.
  *
- * \param buf_count   Number of buffers to allocate -- must be >= \c 1 and
- *                    <= \a KQT_BUFFERS_MAX. Typically, this is 2 (stereo).
  * \param buf_size    Size of the mixing buffer -- must be > \c 0 and
  *                    <= KQT_BUFFER_SIZE_MAX.
  *
@@ -80,7 +77,7 @@ typedef struct Song
  * \return   The new Song if successful, or \c NULL if memory allocation
  *           failed.
  */
-Song* new_Song(int buf_count, uint32_t buf_size);
+Song* new_Song(uint32_t buf_size);
 
 
 /**
@@ -93,6 +90,18 @@ Song* new_Song(int buf_count, uint32_t buf_size);
  * \return   \c true if successful, otherwise \c false.
  */
 bool Song_parse_composition(Song* song, char* str, Read_state* state);
+
+
+/**
+ * Parses the random seed of the composition.
+ *
+ * \param song    The Song -- must not be \c NULL.
+ * \param str     The textual description -- must not be \c NULL.
+ * \param state   The Read state -- must not be \c NULL.
+ *
+ * \return   \c true if successful, otherwise \c false.
+ */
+bool Song_parse_random_seed(Song* song, char* str, Read_state* state);
 
 
 /**
@@ -159,79 +168,6 @@ uint16_t Song_get_subsong(Song* song);
 
 
 /**
- * Sets the number of buffers in the Song.
- *
- * \param song    The Song -- must not be \c NULL.
- * \param count   The number of buffers -- must be > \c 0 and
- *                <= \c KQT_BUFFERS_MAX.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Song_set_buf_count(Song* song, int count);
-
-
-/**
- * Gets the number of buffers in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The number of buffers.
- */
-int Song_get_buf_count(Song* song);
-
-
-/**
- * Sets the size of buffers in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- * \param size   The new size for a single buffer -- must be > \c 0.
- *
- * \return   \c true if successful, or \c false if memory allocation failed.
- */
-bool Song_set_buf_size(Song* song, uint32_t size);
-
-
-/**
- * Gets the size of a single buffer in the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The buffer size.
- */
-uint32_t Song_get_buf_size(Song* song);
-
-
-/**
- * Gets the buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The buffers.
- */
-kqt_frame** Song_get_bufs(Song* song);
-
-
-/**
- * Gets the Voice buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The Voice buffers.
- */
-kqt_frame** Song_get_voice_bufs(Song* song);
-
-
-/**
- * Gets the auxiliary Voice buffers from the Song.
- *
- * \param song   The Song -- must not be \c NULL.
- *
- * \return   The auxiliary Voice buffers.
- */
-kqt_frame** Song_get_voice_bufs2(Song* song);
-
-
-/**
  * Gets the Subsong table from the Song.
  *
  * \param song   The Song -- must not be \c NULL.
@@ -262,13 +198,24 @@ Ins_table* Song_get_insts(Song* song);
 
 
 /**
- * Gets the DSPs of the Song.
+ * Gets the Effects of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
  *
- * \return   The DSP table.
+ * \return   The Effect table.
  */
-DSP_table* Song_get_dsps(Song* song);
+Effect_table* Song_get_effects(Song* song);
+
+
+/**
+ * Sets the Bind of the Song.
+ *
+ * \param song   The Song -- must not be \c NULL.
+ * \param bind   The Bind -- must not be \c NULL.
+ *
+ * \return   \c true if successful, or \c false if memory allocation failed.
+ */
+bool Song_set_bind(Song* song, Bind* bind);
 
 
 /**
@@ -336,7 +283,7 @@ void Song_remove_scale(Song* song, int index);
 /**
  * Destroys an existing Song.
  *
- * \param song   The Song -- must not be \c NULL.
+ * \param song   The Song, or \c NULL.
  */
 void del_Song(Song* song);
 

@@ -80,7 +80,10 @@ void Pat_table_clear(Pat_table* table)
 
 void del_Pat_table(Pat_table* table)
 {
-    assert(table != NULL);
+    if (table == NULL)
+    {
+        return;
+    }
     del_Etable(table->pats);
     xfree(table);
     return;

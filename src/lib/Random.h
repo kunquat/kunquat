@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -39,12 +39,32 @@ typedef struct Random Random;
 
 
 /**
+ * The maximum length of a random context description string.
+ */
+#define CONTEXT_LEN_MAX 15
+
+
+/**
  * Creates a new Random generator.
  *
  * \return   The new Random if successful, or \c NULL if memory allocation
  *           failed.
  */
 Random* new_Random(void);
+
+
+/**
+ * Sets the context of the Random.
+ *
+ * The new context description becomes active at the next call of
+ * Random_set_seed.
+ *
+ * \param random    The Random generator -- must not be \c NULL.
+ * \param context   The context description -- must not be \c NULL or longer
+ *                  than \c CONTEXT_LEN_MAX bytes (excluding the null
+ *                  terminator).
+ */
+void Random_set_context(Random* random, char* context);
 
 
 /**
@@ -91,6 +111,16 @@ uint64_t Random_get_uint64(Random* random);
 
 
 /**
+ * Gets a floating point number in the range [0, 1).
+ *
+ * \param random   The Random generator -- must not be \c NULL.
+ *
+ * \return   A pseudorandom floating-point number in the range [0, 1).
+ */
+double Random_get_float_lb(Random* random);
+
+
+/**
  * Gets an array index.
  *
  * \param random   The Random generator -- must not be \c NULL.
@@ -127,7 +157,7 @@ double Random_get_float_signal(Random* random);
 /**
  * Destroys an existing Random generator.
  *
- * \param random   The Random generator -- must not be \c NULL.
+ * \param random   The Random generator, or \c NULL.
  */
 void del_Random(Random* random);
 

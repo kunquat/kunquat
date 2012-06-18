@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -20,12 +20,15 @@
 #include <DSP.h>
 #include <DSP_conf.h>
 #include <DSP_type.h>
-#include <DSP_scale.h>
 #include <File_base.h>
+#include <string_common.h>
 #include <xassert.h>
 
 
-DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
+DSP* new_DSP(char* str,
+             uint32_t buffer_size,
+             uint32_t mix_rate,
+             Read_state* state)
 {
     assert(str != NULL);
     assert(buffer_size > 0);
@@ -35,31 +38,35 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
     {
         return NULL;
     }
-    char type[128] = { '\0' };
-    read_string(str, type, 128, state);
+    char type[DSP_TYPE_LENGTH_MAX] = { '\0' };
+    read_string(str, type, DSP_TYPE_LENGTH_MAX, state);
     if (state->error)
     {
         return NULL;
     }
-    DSP* (*cons)(uint32_t) = NULL;
-    for (int i = 0; DSP_types[i].type != NULL; ++i)
+    DSP_cons* cons = DSP_type_find_cons(type);
+#if 0
+    DSP* (*cons)(uint32_t, uint32_t) = NULL;
+    for (int i = 0; dsp_types[i].type != NULL; ++i)
     {
-        if (strcmp(type, DSP_types[i].type) == 0)
+        if (string_eq(type, dsp_types[i].type))
         {
-            cons = DSP_types[i].cons;
+            cons = dsp_types[i].cons;
             break;
         }
     }
+#endif
     if (cons == NULL)
     {
         Read_state_set_error(state, "Unsupported DSP type: \"%s\"\n", type);
         return NULL;
     }
-    DSP* dsp = cons(buffer_size);
+    DSP* dsp = cons(buffer_size, mix_rate);
     if (dsp == NULL)
     {
         return NULL;
     }
+    //fprintf(stderr, "New DSP %p\n", (void*)dsp);
     strcpy(dsp->type, type);
     return dsp;
 }
@@ -67,21 +74,54 @@ DSP* new_DSP(char* str, uint32_t buffer_size, Read_state* state)
 
 bool DSP_init(DSP* dsp,
               void (*destroy)(DSP*),
-              void (*process)(Device*, uint32_t, uint32_t),
-              uint32_t buffer_size)
+              void (*process)(Device*, uint32_t, uint32_t, uint32_t, double),
+              uint32_t buffer_size,
+              uint32_t mix_rate)
 {
     assert(dsp != NULL);
     assert(destroy != NULL);
     assert(process != NULL);
     assert(buffer_size > 0);
     assert(buffer_size <= KQT_BUFFER_SIZE_MAX);
+    dsp->clear_history = NULL;
     dsp->destroy = destroy;
-    if (!Device_init(&dsp->parent, buffer_size))
+    dsp->conf = NULL;
+    if (!Device_init(&dsp->parent, buffer_size, mix_rate))
     {
         return false;
     }
+    Device_set_reset(&dsp->parent, DSP_reset);
     Device_set_process(&dsp->parent, process);
     return true;
+}
+
+
+void DSP_set_clear_history(DSP* dsp, void (*func)(DSP*))
+{
+    assert(dsp != NULL);
+    assert(func != NULL);
+    dsp->clear_history = func;
+    return;
+}
+
+
+void DSP_reset(Device* device)
+{
+    assert(device != NULL);
+    DSP* dsp = (DSP*)device;
+    Device_params_reset(dsp->conf->params);
+    return;
+}
+
+
+void DSP_clear_history(DSP* dsp)
+{
+    assert(dsp != NULL);
+    if (dsp->clear_history != NULL)
+    {
+        dsp->clear_history(dsp);
+    }
+    return;
 }
 
 
@@ -89,6 +129,7 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf)
 {
     assert(dsp != NULL);
     assert(conf != NULL);
+    assert(dsp->conf == NULL || dsp->conf == conf);
     dsp->conf = conf;
     return;
 }
@@ -96,7 +137,10 @@ void DSP_set_conf(DSP* dsp, DSP_conf* conf)
 
 void del_DSP(DSP* dsp)
 {
-    assert(dsp != NULL);
+    if (dsp == NULL)
+    {
+        return;
+    }
     assert(dsp->destroy != NULL);
     Device_uninit(&dsp->parent);
     dsp->destroy(dsp);

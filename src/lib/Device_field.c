@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -30,9 +30,12 @@ typedef union
     double float_type;
     Real Real_type;
     Reltime Reltime_type;
+    Envelope* Envelope_type;
     Sample* Sample_type;
     Sample_params Sample_params_type;
     Sample_map* Sample_map_type;
+    Hit_map* Hit_map_type;
+    Num_list* Num_list_type;
 } Dev_fields;
 
 
@@ -75,6 +78,11 @@ Device_field* new_Device_field(const char* key, void* data)
         type = DEVICE_FIELD_RELTIME;
         data_size = sizeof(Reltime);
     }
+    else if (string_has_suffix(key, ".jsone"))
+    {
+        type = DEVICE_FIELD_ENVELOPE;
+        data_size = sizeof(Envelope*);
+    }
     else if (string_has_suffix(key, ".wv"))
     {
         type = DEVICE_FIELD_WAVPACK;
@@ -89,6 +97,16 @@ Device_field* new_Device_field(const char* key, void* data)
     {
         type = DEVICE_FIELD_SAMPLE_MAP;
         data_size = sizeof(Sample_map*);
+    }
+    else if (string_has_suffix(key, ".jsonhm"))
+    {
+        type = DEVICE_FIELD_HIT_MAP;
+        data_size = sizeof(Hit_map*);
+    }
+    else if (string_has_suffix(key, ".jsonln"))
+    {
+        type = DEVICE_FIELD_NUM_LIST;
+        data_size = sizeof(Num_list*);
     }
     else
     {
@@ -198,6 +216,32 @@ bool Device_field_change(Device_field* field,
                 read_reltime(str, &field->data.Reltime_type, state);
             }
         } break;
+        case DEVICE_FIELD_ENVELOPE:
+        {
+            Envelope* env = NULL;
+            if (data != NULL)
+            {
+                env = new_Envelope(32, -INFINITY, INFINITY, 0,
+                                       -INFINITY, INFINITY, 0);
+                if (env == NULL)
+                {
+                    return false;
+                }
+                char* str = data;
+                Envelope_read(env, str, state);
+                if (state->error)
+                {
+                    del_Envelope(env);
+                    return false;
+                }
+            }
+            assert(!state->error);
+            if (field->data.Envelope_type != NULL)
+            {
+                del_Envelope(field->data.Envelope_type);
+            }
+            field->data.Envelope_type = env;
+        } break;
         case DEVICE_FIELD_WAVPACK:
         {
             Sample* sample = NULL;
@@ -236,7 +280,28 @@ bool Device_field_change(Device_field* field,
             {
                 return false;
             }
+            del_Sample_map(field->data.Sample_map_type);
             field->data.Sample_map_type = map;
+        } break;
+        case DEVICE_FIELD_HIT_MAP:
+        {
+            Hit_map* map = new_Hit_map_from_string(data, state);
+            if (map == NULL)
+            {
+                return false;
+            }
+            del_Hit_map(field->data.Hit_map_type);
+            field->data.Hit_map_type = map;
+        } break;
+        case DEVICE_FIELD_NUM_LIST:
+        {
+            Num_list* nl = new_Num_list_from_string(data, state);
+            if (nl == NULL)
+            {
+                return false;
+            }
+            del_Num_list(field->data.Num_list_type);
+            field->data.Num_list_type = nl;
         } break;
         default:
             assert(false);
@@ -279,36 +344,34 @@ bool Device_field_get_empty(Device_field* field)
 }
 
 
-bool Device_field_modify(Device_field* field, char* str)
+bool Device_field_modify(Device_field* field, void* data)
 {
     assert(field != NULL);
+    assert(field->type != DEVICE_FIELD_ENVELOPE);
     assert(field->type != DEVICE_FIELD_WAVPACK);
     assert(field->type != DEVICE_FIELD_SAMPLE_MAP);
-    Read_state* state = READ_STATE_AUTO;
+    assert(field->type != DEVICE_FIELD_HIT_MAP);
+    assert(data != NULL);
     switch (field->type)
     {
         case DEVICE_FIELD_BOOL:
         {
-            read_bool(str, &field->data.bool_type, state);
+            memcpy(&field->data.bool_type, data, sizeof(bool));
         } break;
         case DEVICE_FIELD_INT:
         {
-            read_int(str, &field->data.int_type, state);
+            memcpy(&field->data.int_type, data, sizeof(int64_t));
         } break;
         case DEVICE_FIELD_FLOAT:
         {
-            read_double(str, &field->data.float_type, state);
+            memcpy(&field->data.float_type, data, sizeof(double));
         } break;
         case DEVICE_FIELD_RELTIME:
         {
-            read_reltime(str, &field->data.Reltime_type, state);
+            memcpy(&field->data.Reltime_type, data, sizeof(Reltime));
         } break;
         default:
             assert(false);
-    }
-    if (state->error)
-    {
-        return false;
     }
     Device_field_set_empty(field, false);
     return true;
@@ -355,6 +418,14 @@ Reltime* Device_field_get_reltime(Device_field* field)
 }
 
 
+Envelope* Device_field_get_envelope(Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_ENVELOPE);
+    return field->data.Envelope_type;
+}
+
+
 Sample* Device_field_get_sample(Device_field* field)
 {
     assert(field != NULL);
@@ -379,18 +450,47 @@ Sample_map* Device_field_get_sample_map(Device_field* field)
 }
 
 
-void del_Device_field(Device_field* field)
+Hit_map* Device_field_get_hit_map(Device_field* field)
 {
     assert(field != NULL);
-    if (field->type == DEVICE_FIELD_WAVPACK &&
-            field->data.Sample_type != NULL)
+    assert(field->type == DEVICE_FIELD_HIT_MAP);
+    return field->data.Hit_map_type;
+}
+
+
+Num_list* Device_field_get_num_list(Device_field* field)
+{
+    assert(field != NULL);
+    assert(field->type == DEVICE_FIELD_NUM_LIST);
+    return field->data.Num_list_type;
+}
+
+
+void del_Device_field(Device_field* field)
+{
+    if (field == NULL)
+    {
+        return;
+    }
+    if (field->type == DEVICE_FIELD_ENVELOPE)
+    {
+        del_Envelope(field->data.Envelope_type);
+    }
+    else if (field->type == DEVICE_FIELD_WAVPACK)
     {
         del_Sample(field->data.Sample_type);
     }
-    if (field->type == DEVICE_FIELD_SAMPLE_MAP &&
-            field->data.Sample_map_type != NULL)
+    else if (field->type == DEVICE_FIELD_SAMPLE_MAP)
     {
         del_Sample_map(field->data.Sample_map_type);
+    }
+    else if (field->type == DEVICE_FIELD_HIT_MAP)
+    {
+        del_Hit_map(field->data.Hit_map_type);
+    }
+    else if (field->type == DEVICE_FIELD_NUM_LIST)
+    {
+        del_Num_list(field->data.Num_list_type);
     }
     xfree(field);
     return;

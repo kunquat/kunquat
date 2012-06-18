@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -20,6 +20,7 @@
 
 #include <Event.h>
 #include <Reltime.h>
+#include <xmemory.h>
 
 
 /**
@@ -30,115 +31,23 @@
  * \param event         The Event -- must not be \c NULL.
  * \param pos           The position of the Event -- must not be \c NULL.
  * \param type          The Event type -- must be valid.
- * \param field_types   A description of the Event field types -- must not be
- *                      \c NULL.
- * \param set           Field setter -- must not be \c NULL.
- * \param get           Field getter -- must not be \c NULL.
  *
  * \return   The parameter \a event.
  */
 Event* Event_init(Event* event,
                   Reltime* pos,
-                  Event_type type,
-                  Event_field_desc* field_types,
-                  bool (*set)(Event*, int, void*),
-                  void* (*get)(Event*, int));
+                  Event_type type);
 
 
 /**
  * The default destructor for Events.
  *
- * This works for any Event that is allocated with a single call of malloc.
+ * This works for any Event that does not contain dynamically allocated fields
+ * in addition to the event fields.
  *
- * \param event   The Event -- must not be \c NULL.
+ * \param event   The Event, or \c NULL.
  */
 void del_Event_default(Event* event);
-
-
-#define Event_check_int64_t_range Event_check_integral_range
-
-
-#define Event_create_set_primitive(etype, etype_id, ftype, fname)        \
-    static bool etype ## _set(Event* event, int index, void* data);      \
-    static bool etype ## _set(Event* event, int index, void* data)       \
-    {                                                                    \
-        assert(event != NULL);                                           \
-        assert(event->type == etype_id);                                 \
-        assert(data != NULL);                                            \
-        etype* event_sub = (etype*)event;                                \
-        if (index == 0)                                                  \
-        {                                                                \
-            ftype num = *(ftype*)data;                                   \
-            Event_check_ ## ftype ## _range(num, event->field_types[0]); \
-            event_sub->fname = num;                                      \
-            return true;                                                 \
-        }                                                                \
-        return false;                                                    \
-    } static bool etype ## _set(Event* event, int index, void* data)
-
-
-#define Event_create_set_reltime(etype, etype_id, fname)            \
-    static bool etype ## _set(Event* event, int index, void* data); \
-    static bool etype ## _set(Event* event, int index, void* data)  \
-    {                                                               \
-        assert(event != NULL);                                      \
-        assert(event->type == etype_id);                            \
-        assert(data != NULL);                                       \
-        etype* event_sub = (etype*)event;                           \
-        if (index == 0)                                             \
-        {                                                           \
-            Reltime* rt = data;                                     \
-            Event_check_reltime_range(rt, event->field_types[0]);   \
-            Reltime_copy(&event_sub->fname, rt);                    \
-            return true;                                            \
-        }                                                           \
-        return false;                                               \
-    } static bool etype ## _set(Event* event, int index, void* data)
-
-
-#define Event_create_get(etype, etype_id, fname)         \
-    static void* etype ## _get(Event* event, int index); \
-    static void* etype ## _get(Event* event, int index)  \
-    {                                                    \
-        assert(event != NULL);                           \
-        assert(event->type == etype_id);                 \
-        etype* event_sub = (etype*)event;                \
-        if (index == 0)                                  \
-        {                                                \
-            return &event_sub->fname;                    \
-        }                                                \
-        return NULL;                                     \
-    } static void* etype ## _get(Event* event, int index)
-
-
-#define Event_create_set_primitive_and_get(type, type_id, field_type, field_name) \
-    Event_create_set_primitive(type, type_id, field_type, field_name);            \
-    Event_create_get(type, type_id, field_name)
-
-
-#define Event_create_set_reltime_and_get(type, type_id, field_name) \
-    Event_create_set_reltime(type, type_id, field_name);            \
-    Event_create_get(type, type_id, field_name)
-
-
-#define Event_create_constructor(etype, etype_id, field_desc, ...) \
-    Event* new_ ## etype(Reltime* pos)                             \
-    {                                                              \
-        assert(pos != NULL);                                       \
-        etype* event = xalloc(etype);                              \
-        if (event == NULL)                                         \
-        {                                                          \
-            return NULL;                                           \
-        }                                                          \
-        Event_init((Event*)event,                                  \
-                   pos,                                            \
-                   etype_id,                                       \
-                   field_desc,                                     \
-                   etype ## _set,                                  \
-                   etype ## _get);                                 \
-        __VA_ARGS__;                                               \
-        return (Event*)event;                                      \
-    } Event* new_ ## etype(Reltime* pos)
 
 
 #define Event_check_voice(ch_state, gen)                        \

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,22 +16,12 @@
 #define K_EVENT_GLOBAL_SET_JUMP_SECTION_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
-
-
-typedef struct Event_global_set_jump_section
-{
-    Event_global parent;
-    int64_t section;
-} Event_global_set_jump_section;
-
-
-Event* new_Event_global_set_jump_section(Reltime* pos);
+#include <Playdata.h>
+#include <Value.h>
 
 
 bool Event_global_set_jump_section_process(Playdata* global_state,
-                                           char* fields);
+                                           Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SET_JUMP_SECTION_H

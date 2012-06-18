@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2011
  *
  * This file is part of Kunquat.
  *
@@ -16,6 +16,9 @@
 #define K_DSP_CONF_H
 
 
+#include <stdbool.h>
+
+#include <Device.h>
 #include <Device_params.h>
 #include <File_base.h>
 
@@ -47,6 +50,7 @@ DSP_conf* new_DSP_conf(void);
  * \param data     The data -- must not be \c NULL if it has a non-zero
  *                 length.
  * \param length   The length of the data -- must be >= \c 0.
+ * \param device   The DSP Device if one exists, otherwise \c NULL.
  * \param state    The Read state -- must not be \c NULL.
  *
  * \return   \c true if successful, otherwise \c false. \a state will not be
@@ -56,13 +60,14 @@ bool DSP_conf_parse(DSP_conf* conf,
                     const char* key,
                     void* data,
                     long length,
+                    Device* device,
                     Read_state* state);
 
 
 /**
  * Destroys an existing DSP configuration.
  *
- * \param conf   The DSP configuration -- must not be \c NULL.
+ * \param conf   The DSP configuration, or \c NULL.
  */
 void del_DSP_conf(DSP_conf* conf);
 

@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -19,7 +19,10 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <Envelope.h>
 #include <File_base.h>
+#include <Hit_map.h>
+#include <Num_list.h>
 #include <Real.h>
 #include <Reltime.h>
 #include <Sample.h>
@@ -40,6 +43,8 @@ typedef enum
     DEVICE_FIELD_VORBIS,
     DEVICE_FIELD_SAMPLE_PARAMS,
     DEVICE_FIELD_SAMPLE_MAP,
+    DEVICE_FIELD_HIT_MAP,
+    DEVICE_FIELD_NUM_LIST,
 } Device_field_type;
 
 
@@ -50,8 +55,17 @@ typedef struct Device_field Device_field;
  * Creates a new Device field.
  *
  * \param key    The key -- must be a valid key. A valid Device field key
- *               has the suffix .jsonb (boolean), .jsoni (int),
- *               .jsonf (float), .jsont (Reltime) or .wv (WavPack).
+ *               has one of the following suffixes:
+ *                  .jsonb (boolean)
+ *                  .jsoni (int)
+ *                  .jsonf (float)
+ *                  .jsont (Reltime)
+ *                  .jsone (Envelope)
+ *                  .jsonsh (Sample params)
+ *                  .jsonsm (Sample map)
+ *                  .jsonhm (Hit map)
+ *                  .jsonln (Number list)
+ *                  .wv (WavPack).
  * \param data   Pointer to the data that must have a type matching the key,
  *               or \c NULL.
  *
@@ -136,14 +150,14 @@ bool Device_field_get_empty(Device_field* field);
 /**
  * Modifies Device field data.
  *
- * \param field   The Device field -- must not be \c NULL and must not
- *                contain a Sample.
- * \param str     The new data as a string.
+ * \param field   The Device field -- must not be \c NULL and must
+ *                contain a value that is modifiable in real time.
+ * \param str     The new data -- must not be \c NULL.
  *
  * \return   \c true if the Device field was successfully modified,
  *           otherwise \c false.
  */
-bool Device_field_modify(Device_field* field, char* str);
+bool Device_field_modify(Device_field* field, void* data);
 
 
 /**
@@ -202,6 +216,17 @@ Reltime* Device_field_get_reltime(Device_field* field);
 
 
 /**
+ * Gets an Envelope value from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                an Envelope value.
+ *
+ * \return   The Envelope value.
+ */
+Envelope* Device_field_get_envelope(Device_field* field);
+
+
+/**
  * Gets a Sample from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
@@ -227,7 +252,7 @@ Sample_params* Device_field_get_sample_params(Device_field* field);
  * Gets a Sample map from the Device field.
  *
  * \param field   The Device field -- must not be \c NULL and must contain
- *                a Sample.
+ *                a Sample map.
  *
  * \return   The Sample map.
  */
@@ -235,9 +260,31 @@ Sample_map* Device_field_get_sample_map(Device_field* field);
 
 
 /**
+ * Gets a Hit map from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                a Hit map.
+ *
+ * \return   The Hit map.
+ */
+Hit_map* Device_field_get_hit_map(Device_field* field);
+
+
+/**
+ * Gets a Number list from the Device field.
+ *
+ * \param field   The Device field -- must not be \c NULL and must contain
+ *                a Number list.
+ *
+ * \return   The Number list.
+ */
+Num_list* Device_field_get_num_list(Device_field* field);
+
+
+/**
  * Destroys an existing Device field.
  *
- * \param field   The Device field -- must not be \c NULL.
+ * \param field   The Device field, or \c NULL.
  */
 void del_Device_field(Device_field* field);
 

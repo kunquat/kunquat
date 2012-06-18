@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -16,22 +16,12 @@
 #define K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H
 
 
-#include <Event_global.h>
-#include <Reltime.h>
-
-
-typedef struct Event_global_slide_tempo_length
-{
-    Event_global parent;
-    Reltime length;
-} Event_global_slide_tempo_length;
-
-
-Event* new_Event_global_slide_tempo_length(Reltime* pos);
+#include <Playdata.h>
+#include <Value.h>
 
 
 bool Event_global_slide_tempo_length_process(Playdata* global_state,
-                                             char* fields);
+                                             Value* value);
 
 
 #endif // K_EVENT_GLOBAL_SLIDE_TEMPO_LENGTH_H

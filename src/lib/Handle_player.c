@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -14,20 +14,23 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <Audio_buffer.h>
+#include <Env_var.h>
 #include <Handle_private.h>
 #include <kunquat/Player.h>
 #include <kunquat/limits.h>
 #include <Song.h>
 #include <Playdata.h>
 #include <Event_handler.h>
+#include <string_common.h>
 #include <Voice_pool.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
+long kqt_Handle_mix(kqt_Handle* handle, long nframes)
 {
     check_handle(handle, 0);
     if (handle->song == NULL || !handle->song->play_state->mode)
@@ -40,14 +43,35 @@ long kqt_Handle_mix(kqt_Handle* handle, long nframes, long freq)
                 " be positive.");
         return 0;
     }
-    if (freq <= 0)
+    handle->song->play_state->freq =
+            Device_get_mix_rate((Device*)handle->song);
+    return Song_mix(handle->song, nframes, handle->song->event_handler);
+}
+
+
+int kqt_Handle_set_mixing_rate(kqt_Handle* handle, long rate)
+{
+    check_handle(handle, 0);
+    if (rate <= 0)
     {
-        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing frequency must"
-                " be positive.");
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT, "Mixing rate must be"
+                " positive");
         return 0;
     }
-    handle->song->play_state->freq = freq;
-    return Song_mix(handle->song, nframes, handle->song->event_handler);
+    if (!Device_set_mix_rate((Device*)handle->song, rate))
+    {
+        kqt_Handle_set_error(handle, ERROR_MEMORY,
+                "Couldn't allocate memory after change of mixing rate.");
+        return 0;
+    }
+    return 1;
+}
+
+
+long kqt_Handle_get_mixing_rate(kqt_Handle* handle)
+{
+    check_handle(handle, 0);
+    return Device_get_mix_rate((Device*)handle->song);
 }
 
 
@@ -66,8 +90,7 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
                 " greater than %ld frames", KQT_BUFFER_SIZE_MAX);
         return 0;
     }
-    bool success = Song_set_buf_size(handle->song, size);
-    if (!success)
+    if (!Device_set_buffer_size((Device*)handle->song, size))
     {
         kqt_Handle_set_error(handle, ERROR_MEMORY,
                 "Couldn't allocate memory for new buffers");
@@ -80,21 +103,21 @@ int kqt_Handle_set_buffer_size(kqt_Handle* handle, long size)
 long kqt_Handle_get_buffer_size(kqt_Handle* handle)
 {
     check_handle(handle, 0);
-    return Song_get_buf_size(handle->song);
+    return Device_get_buffer_size((Device*)handle->song);
 }
 
 
 int kqt_Handle_get_buffer_count(kqt_Handle* handle)
 {
     check_handle(handle, 0);
-    return Song_get_buf_count(handle->song);
+    return KQT_BUFFERS_MAX;
 }
 
 
 float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 {
     check_handle(handle, NULL);
-    if (index < 0 || index >= Song_get_buf_count(handle->song))
+    if (index < 0 || index >= KQT_BUFFERS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
                 "Buffer #%d does not exist", index);
@@ -126,16 +149,17 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
     if (subsong == -1)
     {
         handle->song->skip_state->mode = PLAY_SONG;
-        Playdata_set_subsong(handle->song->skip_state, 0);
+        Playdata_set_subsong(handle->song->skip_state, 0, true);
     }
     else
     {
         handle->song->skip_state->mode = PLAY_SUBSONG;
-        Playdata_set_subsong(handle->song->skip_state, subsong);
+        Playdata_set_subsong(handle->song->skip_state, subsong, true);
     }
     Reltime_init(&handle->song->skip_state->pos);
     handle->song->skip_state->freq = 1000000000;
-    return Song_skip(handle->song, handle->song->skip_handler, UINT64_MAX);
+    return Song_skip(handle->song, handle->song->skip_handler,
+                     KQT_MAX_CALC_DURATION);
 }
 
 
@@ -168,15 +192,118 @@ long long kqt_Handle_get_position(kqt_Handle* handle)
 }
 
 
+int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
+{
+    check_handle(handle, 0);
+    if (channel < 0 || channel >= KQT_COLUMNS_MAX)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "Invalid channel number: %d", channel);
+        return 0;
+    }
+    if (event == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "No event description given.");
+        return 0;
+    }
+    return Event_handler_trigger_const(handle->song->event_handler, channel,
+                                       event, false);
+}
+
+
+int kqt_Handle_receive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_receive(handle->song->event_handler, dest, size);
+}
+
+
+int kqt_Handle_treceive(kqt_Handle* handle, char* dest, int size)
+{
+    check_handle(handle, 0);
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    return Event_handler_treceive(handle->song->event_handler, dest, size);
+}
+
+
+#if 0
+int kqt_Handle_get_state(kqt_Handle* handle,
+                         char* key,
+                         char* dest,
+                         int size)
+{
+    check_handle(handle, 0);
+    if (key == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "key must not be NULL");
+        return 0;
+    }
+    if (dest == NULL)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "dest must not be NULL");
+        return 0;
+    }
+    if (size <= 0)
+    {
+        kqt_Handle_set_error(handle, ERROR_ARGUMENT,
+                "size must be positive");
+        return 0;
+    }
+    if (string_has_prefix(key, "env/"))
+    {
+        Env_var* var = Environment_get(handle->song->env,
+                                       key + strlen("env/"));
+        if (var == NULL)
+        {
+            return 0;
+        }
+        Env_var_get_value_json(var, dest, size);
+        return 1;
+    }
+    return Playdata_get_state_value(handle->song->play_state,
+                                    key, dest, size);
+}
+#endif
+
+
 void kqt_Handle_stop(kqt_Handle* handle)
 {
     assert(handle_is_valid(handle));
     handle->song->play_state->mode = STOP;
+    Device_reset((Device*)handle->song);
+#if 0
     Playdata_reset(handle->song->play_state);
     for (int i = 0; i < KQT_COLUMNS_MAX; ++i)
     {
         Channel_reset(handle->song->channels[i]);
     }
+#endif
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
     Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
                                     handle->song->play_state->subsong);

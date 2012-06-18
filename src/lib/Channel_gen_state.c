@@ -13,6 +13,7 @@
 
 
 #include <stdlib.h>
+#include <string.h>
 
 #include <AAtree.h>
 #include <Channel_gen_state.h>
@@ -38,8 +39,7 @@ Channel_gen_state* new_Channel_gen_state(void)
         return NULL;
     }
     state->iter = NULL;
-    state->tree = new_AAtree((int (*)(const void*,
-                                      const void*))Device_field_cmp,
+    state->tree = new_AAtree((int (*)(const void*, const void*))strcmp,
                              (void (*)(void*))del_Device_field);
     if (state->tree == NULL)
     {
@@ -80,17 +80,17 @@ bool Channel_gen_state_set_key(Channel_gen_state* state, const char* key)
 
 bool Channel_gen_state_modify_value(Channel_gen_state* state,
                                     const char* key,
-                                    char* str)
+                                    void* data)
 {
     assert(state != NULL);
     assert(key != NULL);
-    assert(str != NULL);
+    assert(data != NULL);
     Device_field* field = AAtree_get_exact(state->tree, key);
     if (field == NULL)
     {
         return false;
     }
-    return Device_field_modify(field, str);
+    return Device_field_modify(field, data);
 }
 
 
@@ -199,15 +199,12 @@ void Channel_gen_state_clear(Channel_gen_state* state)
 
 void del_Channel_gen_state(Channel_gen_state* state)
 {
-    assert(state != NULL);
-    if (state->iter != NULL)
+    if (state == NULL)
     {
-        del_AAiter(state->iter);
+        return;
     }
-    if (state->tree != NULL)
-    {
-        del_AAtree(state->tree);
-    }
+    del_AAiter(state->iter);
+    del_AAtree(state->tree);
     xfree(state);
     return;
 }
