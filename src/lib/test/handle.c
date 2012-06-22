@@ -244,11 +244,11 @@ static void fail_buffers(
         const int chars_left = 128 - chars_used;
         assert(chars_left > 0);
 
-        int ilen = snprintf(indices_ptr, chars_left, " %6d", i);
+        int ilen = snprintf(indices_ptr, chars_left, " %5d", i);
         int elen = snprintf(expected_vals_ptr, chars_left,
-                " %6.2f", expected[i]);
+                " %5.1f", expected[i]);
         int alen = snprintf(actual_vals_ptr, chars_left,
-                " %6.2f", actual[i]);
+                " %5.1f", actual[i]);
         assert(ilen == elen);
         assert(ilen == alen);
         chars_used += ilen;
@@ -412,6 +412,20 @@ START_TEST(Complete_debug_note_renders_correctly)
 END_TEST
 
 
+static void mix_and_fill(float* buf, long nframes)
+{
+    assert(handle != NULL);
+    assert(buf != NULL);
+    assert(nframes >= 0);
+
+    kqt_Handle_mix(handle, nframes);
+    check_unexpected_error();
+    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    check_unexpected_error();
+    memcpy(buf, ret_buf, nframes * sizeof(float));
+}
+
+
 START_TEST(Note_off_stops_the_note_correctly)
 {
     set_mixing_rate(220);
@@ -424,24 +438,12 @@ START_TEST(Note_off_stops_the_note_correctly)
     // 55 Hz
     kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
     check_unexpected_error();
-
-    kqt_Handle_mix(handle, note_off_frame);
-    check_unexpected_error();
-    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
-    check_unexpected_error();
-    memcpy(actual_buf, ret_buf, note_off_frame * sizeof(float));
+    mix_and_fill(actual_buf, note_off_frame);
 
     // Note Off
     kqt_Handle_fire(handle, 0, "[\"n-\", null]");
     check_unexpected_error();
-
-    kqt_Handle_mix(handle, buf_len - note_off_frame);
-    check_unexpected_error();
-    ret_buf = kqt_Handle_get_buffer(handle, 0);
-    check_unexpected_error();
-    memcpy(actual_buf + note_off_frame,
-            ret_buf,
-            (buf_len - note_off_frame) * sizeof(float));
+    mix_and_fill(actual_buf + note_off_frame, buf_len - note_off_frame);
 
     float expected_buf[buf_len] = { 0.0f };
     float seq_on[] = { 1.0f, 0.5f, 0.5f, 0.5f };
@@ -466,24 +468,12 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     // 55 Hz
     kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
     check_unexpected_error();
-
-    kqt_Handle_mix(handle, note_off_frame);
-    check_unexpected_error();
-    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
-    check_unexpected_error();
-    memcpy(actual_buf, ret_buf, note_off_frame * sizeof(float));
+    mix_and_fill(actual_buf, note_off_frame);
 
     // Note Off
     kqt_Handle_fire(handle, 0, "[\"n-\", null]");
     check_unexpected_error();
-
-    kqt_Handle_mix(handle, buf_len - note_off_frame);
-    check_unexpected_error();
-    ret_buf = kqt_Handle_get_buffer(handle, 0);
-    check_unexpected_error();
-    memcpy(actual_buf + note_off_frame,
-            ret_buf,
-            (buf_len - note_off_frame) * sizeof(float));
+    mix_and_fill(actual_buf + note_off_frame, buf_len - note_off_frame);
 
     float expected_buf[buf_len] = { 0.0f };
     float seq_on[] = { 1.0f, 0.5f, 0.5f, 0.5f,
@@ -494,6 +484,66 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     float seq_off[] = { -0.5f, -0.5f, -1.0f, -0.5f, -0.5f, -0.5f,
                                       -0.5f, -0.5f, -0.5f, -0.5f };
     repeat_seq_local(expected_buf + offset, 1, seq_off);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Implicit_note_off_is_triggered_correctly)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    float actual_buf[buf_len] = { 0.0f };
+    const int note_2_frame = 2;
+
+    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    check_unexpected_error();
+    mix_and_fill(actual_buf, note_2_frame);
+
+    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    check_unexpected_error();
+    mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq_1_on[] = { 1.0f, 0.5f };
+    int offset = repeat_seq_local(expected_buf, 1, seq_1_on);
+    float seq_1_off[] = { 0.5f, 0.0f, -0.5f, 0.0f };
+    offset += repeat_seq_local(expected_buf + offset, 2, seq_1_off);
+    float seq_2[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf + offset, 8, seq_2);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Independent_notes_mix_correctly)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    float actual_buf[buf_len] = { 0.0f };
+    const int note_2_frame = 2;
+
+    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    check_unexpected_error();
+    mix_and_fill(actual_buf, note_2_frame);
+
+    kqt_Handle_fire(handle, 1, "[\"n+\", -3600]");
+    check_unexpected_error();
+    mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
+
+    float expected_buf[buf_len] = { 0.0f };
+    float single_seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf, 10, single_seq);
+    for (int i = 40; i >= 0; --i)
+    {
+        expected_buf[i + note_2_frame] += expected_buf[i];
+    }
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
@@ -539,6 +589,8 @@ Suite* Handle_suite(void)
     tcase_add_test(tc_mix, Complete_debug_note_renders_correctly);
     tcase_add_test(tc_mix, Note_off_stops_the_note_correctly);
     tcase_add_test(tc_mix, Note_end_is_reached_correctly_during_note_off);
+    tcase_add_test(tc_mix, Implicit_note_off_is_triggered_correctly);
+    tcase_add_test(tc_mix, Independent_notes_mix_correctly);
 
     return s;
 }
