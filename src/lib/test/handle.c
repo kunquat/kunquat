@@ -83,12 +83,8 @@ static void setup_empty(void)
 {
     assert(handle == NULL);
     handle = kqt_new_Handle_m();
-    if (handle == NULL)
-    {
-        fprintf(stderr, "Couldn't create handle:\n"
-                "%s\n", kqt_Handle_get_error(NULL));
-        abort();
-    }
+    fail_if(handle == NULL,
+            "Couldn't create handle:\n%s\n", kqt_Handle_get_error(NULL));
     return;
 }
 
@@ -366,24 +362,23 @@ static void pause(void)
 }
 
 
-static void check_buffers_mono(float* expected, int len, float eps)
+#define repeat_seq_local(dest, times, seq) \
+    repeat_seq((dest), (times), sizeof((seq)) / sizeof(float), (seq))
+
+int repeat_seq(float* dest, int times, int seq_len, float* seq)
 {
-    assert(handle != NULL);
-    assert(expected != NULL);
-    assert(len >= 0);
-    assert(eps >= 0);
+    assert(dest != NULL);
+    assert(times >= 0);
+    assert(seq_len >= 0);
+    assert(seq != NULL);
 
-    float* bufs[] =
+    for (int i = 0; i < times; ++i)
     {
-        kqt_Handle_get_buffer(handle, 0),
-        kqt_Handle_get_buffer(handle, 1),
-    };
-    check_unexpected_error();
+        memcpy(dest, seq, seq_len * sizeof(float));
+        dest += seq_len;
+    }
 
-    check_buffers_equal(expected, bufs[0], len, eps);
-    check_buffers_equal(expected, bufs[1], len, eps);
-
-    return;
+    return times * seq_len;
 }
 
 
@@ -401,18 +396,106 @@ START_TEST(Complete_debug_note_renders_correctly)
     check_unexpected_error();
 
     float expected_buf[buf_len] = { 0.0f };
-    for (int i = 0; i < 10; ++i)
-    {
-        expected_buf[i * 4] = 1.0f;
-        expected_buf[i * 4 + 1] = 0.5f;
-        expected_buf[i * 4 + 2] = 0.5f;
-        expected_buf[i * 4 + 3] = 0.5f;
-    }
+    float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf, 10, seq);
 
     kqt_Handle_mix(handle, buf_len);
     check_unexpected_error();
 
-    check_buffers_mono(expected_buf, buf_len, 0.0f);
+    float* buf_l = kqt_Handle_get_buffer(handle, 0);
+    float* buf_r = kqt_Handle_get_buffer(handle, 1);
+    check_unexpected_error();
+
+    check_buffers_equal(expected_buf, buf_l, buf_len, 0.0f);
+    check_buffers_equal(expected_buf, buf_r, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Note_off_stops_the_note_correctly)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    float actual_buf[buf_len] = { 0.0f };
+    const int note_off_frame = 20;
+
+    // 55 Hz
+    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    check_unexpected_error();
+
+    kqt_Handle_mix(handle, note_off_frame);
+    check_unexpected_error();
+    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    check_unexpected_error();
+    memcpy(actual_buf, ret_buf, note_off_frame * sizeof(float));
+
+    // Note Off
+    kqt_Handle_fire(handle, 0, "[\"n-\", null]");
+    check_unexpected_error();
+
+    kqt_Handle_mix(handle, buf_len - note_off_frame);
+    check_unexpected_error();
+    ret_buf = kqt_Handle_get_buffer(handle, 0);
+    check_unexpected_error();
+    memcpy(actual_buf + note_off_frame,
+            ret_buf,
+            (buf_len - note_off_frame) * sizeof(float));
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq_on[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    int offset = repeat_seq_local(expected_buf, 5, seq_on);
+    float seq_off[] = { -1.0f, -0.5f, -0.5f, -0.5f };
+    repeat_seq_local(expected_buf + offset, 2, seq_off);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Note_end_is_reached_correctly_during_note_off)
+{
+    set_mixing_rate(440);
+    set_mix_volume(0);
+    pause();
+
+    float actual_buf[buf_len] = { 0.0f };
+    const int note_off_frame = 70;
+
+    // 55 Hz
+    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    check_unexpected_error();
+
+    kqt_Handle_mix(handle, note_off_frame);
+    check_unexpected_error();
+    float* ret_buf = kqt_Handle_get_buffer(handle, 0);
+    check_unexpected_error();
+    memcpy(actual_buf, ret_buf, note_off_frame * sizeof(float));
+
+    // Note Off
+    kqt_Handle_fire(handle, 0, "[\"n-\", null]");
+    check_unexpected_error();
+
+    kqt_Handle_mix(handle, buf_len - note_off_frame);
+    check_unexpected_error();
+    ret_buf = kqt_Handle_get_buffer(handle, 0);
+    check_unexpected_error();
+    memcpy(actual_buf + note_off_frame,
+            ret_buf,
+            (buf_len - note_off_frame) * sizeof(float));
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq_on[] = { 1.0f, 0.5f, 0.5f, 0.5f,
+                       0.5f, 0.5f, 0.5f, 0.5f };
+    int offset = repeat_seq_local(expected_buf, 8, seq_on);
+    float seq_on_tail[] = { 1.0f, 0.5f, 0.5f, 0.5f, 0.5f, 0.5f };
+    offset += repeat_seq_local(expected_buf + offset, 1, seq_on_tail);
+    float seq_off[] = { -0.5f, -0.5f, -1.0f, -0.5f, -0.5f, -0.5f,
+                                      -0.5f, -0.5f, -0.5f, -0.5f };
+    repeat_seq_local(expected_buf + offset, 1, seq_off);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
 END_TEST
 
@@ -454,6 +537,8 @@ Suite* Handle_suite(void)
             tc_mix, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
     tcase_add_test(tc_mix, Complete_debug_note_renders_correctly);
+    tcase_add_test(tc_mix, Note_off_stops_the_note_correctly);
+    tcase_add_test(tc_mix, Note_end_is_reached_correctly_during_note_off);
 
     return s;
 }
