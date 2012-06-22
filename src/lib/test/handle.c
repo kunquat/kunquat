@@ -112,6 +112,20 @@ static void setup_debug_instrument(void)
 }
 
 
+static void setup_debug_single_pulse(void)
+{
+    assert(handle != NULL);
+
+    char* single = "true";
+    kqt_Handle_set_data(handle,
+            "ins_00/kqtiXX/gen_00/kqtgXX/c/p_single_pulse.jsonb",
+            single, strlen(single) + 1);
+    check_unexpected_error();
+
+    return;
+}
+
+
 static void setup_empty_pattern(void)
 {
     assert(handle != NULL);
@@ -550,6 +564,25 @@ START_TEST(Independent_notes_mix_correctly)
 END_TEST
 
 
+START_TEST(Debug_single_shot_renders_one_pulse)
+{
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+    pause();
+
+    float actual_buf[buf_len] = { 0.0f };
+
+    kqt_Handle_fire(handle, 0, "[\"n+\", 0]");
+    check_unexpected_error();
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 1.0f };
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
@@ -591,6 +624,7 @@ Suite* Handle_suite(void)
     tcase_add_test(tc_mix, Note_end_is_reached_correctly_during_note_off);
     tcase_add_test(tc_mix, Implicit_note_off_is_triggered_correctly);
     tcase_add_test(tc_mix, Independent_notes_mix_correctly);
+    tcase_add_test(tc_mix, Debug_single_shot_renders_one_pulse);
 
     return s;
 }
