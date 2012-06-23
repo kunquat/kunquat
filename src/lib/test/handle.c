@@ -89,24 +89,28 @@ static void setup_empty(void)
 }
 
 
+static void set_data(char* key, char* data)
+{
+    assert(handle != NULL);
+    assert(key != NULL);
+    assert(data != NULL);
+
+    kqt_Handle_set_data(handle, key, data, strlen(data) + 1);
+    check_unexpected_error();
+}
+
+
 static void setup_debug_instrument(void)
 {
     assert(handle != NULL);
 
-    char* ins_conn = "[ [\"ins_00/kqtiXX/out_00\", \"out_00\"] ]";
-    kqt_Handle_set_data(handle, "p_connections.json",
-            ins_conn, strlen(ins_conn) + 1);
-    check_unexpected_error();
+    set_data("p_connections.json",
+            "[ [\"ins_00/kqtiXX/out_00\", \"out_00\"] ]");
 
-    char* gen_conn = "[ [\"gen_00/kqtgXX/C/out_00\", \"out_00\"] ]";
-    kqt_Handle_set_data(handle, "ins_00/kqtiXX/p_connections.json",
-            gen_conn, strlen(gen_conn) + 1);
-    check_unexpected_error();
+    set_data("ins_00/kqtiXX/p_connections.json",
+            "[ [\"gen_00/kqtgXX/C/out_00\", \"out_00\"] ]");
 
-    char* gen_type = "\"debug\"";
-    kqt_Handle_set_data(handle, "ins_00/kqtiXX/gen_00/kqtgXX/p_gen_type.json",
-            gen_type, strlen(gen_type) + 1);
-    check_unexpected_error();
+    set_data("ins_00/kqtiXX/gen_00/kqtgXX/p_gen_type.json", "\"debug\"");
 
     return;
 }
@@ -120,24 +124,6 @@ static void setup_debug_single_pulse(void)
     kqt_Handle_set_data(handle,
             "ins_00/kqtiXX/gen_00/kqtgXX/c/p_single_pulse.jsonb",
             single, strlen(single) + 1);
-    check_unexpected_error();
-
-    return;
-}
-
-
-static void setup_empty_pattern(void)
-{
-    assert(handle != NULL);
-
-    char* subs_def = "{ \"patterns\": [0] }";
-    kqt_Handle_set_data(handle, "subs_00/p_subsong.json",
-            subs_def, strlen(subs_def) + 1);
-    check_unexpected_error();
-
-    char* pat_def = "{ \"length\": [16, 0] }";
-    kqt_Handle_set_data(handle, "pat_000/p_pattern.json",
-            pat_def, strlen(pat_def) + 1);
     check_unexpected_error();
 
     return;
@@ -301,65 +287,13 @@ static void check_buffers_equal(
 }
 
 
-START_TEST(Empty_pattern_contains_silence)
-{
-    set_mixing_rate(mixing_rates[_i]);
-
-    const long expected_length = 8 * mixing_rates[_i];
-    long actual_length = 0;
-
-    long nframes = kqt_Handle_mix(handle, 4096);
-    check_unexpected_error();
-    while (nframes > 0)
-    {
-        actual_length += nframes;
-
-        float* bufs[] =
-        {
-            kqt_Handle_get_buffer(handle, 0),
-            kqt_Handle_get_buffer(handle, 1),
-        };
-        check_unexpected_error();
-
-        // Don't want to spend too much time on this...
-        if (_i == MIXING_RATE_LOW)
-        {
-            float expected_buf[128] = { 0.0f };
-            check_buffers_equal(expected_buf, bufs[0], nframes, 0.0f);
-            check_buffers_equal(expected_buf, bufs[1], nframes, 0.0f);
-#if 0
-            for (int i = 0; i < nframes; ++i)
-            {
-                fail_unless(bufs[0][i] == 0,
-                        "Left buffer contains non-zero data"
-                        KT_VALUES("%.17f", 0.0f, bufs[0][i]));
-                fail_unless(bufs[1][i] == 0,
-                        "Right buffer contains non-zero data"
-                        KT_VALUES("%.17f", 0.0f, bufs[1][i]));
-            }
-#endif
-        }
-
-        nframes = kqt_Handle_mix(handle, 4096);
-        check_unexpected_error();
-    }
-
-    fail_unless(actual_length == expected_length,
-            "Wrong number of frames mixed"
-            KT_VALUES("%ld", expected_length, actual_length));
-}
-END_TEST
-
-
 static void set_mix_volume(double vol)
 {
     assert(handle != NULL);
 
     char comp_def[] = "{ \"mix_vol\": -384.00000000 }";
     snprintf(comp_def, strlen(comp_def) + 1, "{ \"mix_vol\": %.4f }", vol);
-    kqt_Handle_set_data(handle, "p_composition.json",
-            comp_def, strlen(comp_def) + 1);
-    check_unexpected_error();
+    set_data("p_composition.json", comp_def);
 
     return;
 }
@@ -583,6 +517,77 @@ START_TEST(Debug_single_shot_renders_one_pulse)
 END_TEST
 
 
+START_TEST(Empty_pattern_contains_silence)
+{
+    set_mixing_rate(mixing_rates[_i]);
+
+    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0] }");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
+
+    const long expected_length = 8 * mixing_rates[_i];
+    long actual_length = 0;
+
+    long nframes = kqt_Handle_mix(handle, 4096);
+    check_unexpected_error();
+    while (nframes > 0)
+    {
+        actual_length += nframes;
+
+        // Don't want to spend too much time on this...
+        if (_i == MIXING_RATE_LOW)
+        {
+            float* bufs[] =
+            {
+                kqt_Handle_get_buffer(handle, 0),
+                kqt_Handle_get_buffer(handle, 1),
+            };
+            check_unexpected_error();
+
+            float expected_buf[128] = { 0.0f };
+            check_buffers_equal(expected_buf, bufs[0], nframes, 0.0f);
+            check_buffers_equal(expected_buf, bufs[1], nframes, 0.0f);
+        }
+
+        nframes = kqt_Handle_mix(handle, 4096);
+        check_unexpected_error();
+    }
+
+    fail_unless(actual_length == expected_length,
+            "Wrong number of frames mixed"
+            KT_VALUES("%ld", expected_length, actual_length));
+}
+END_TEST
+
+
+START_TEST(Note_on_is_handled_at_pattern_end)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+
+    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0, 1] }");
+
+    char pat0_def[128] = "";
+    snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    set_data("pat_000/p_pattern.json", pat0_def);
+
+    char col_def[128] = "";
+    snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
+    set_data("pat_000/col_00/p_events.json", col_def);
+
+    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+
+    float actual_buf[buf_len] = { 0.0f };
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * _i / 2] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
@@ -605,26 +610,30 @@ Suite* Handle_suite(void)
             tc_empty, Set_mixing_rate,
             0, MIXING_RATE_COUNT);
 
-    TCase* tc_mix = tcase_create("mix");
-    suite_add_tcase(s, tc_mix);
-    tcase_set_timeout(tc_mix, timeout);
-    tcase_add_checked_fixture(tc_mix, setup_empty, handle_teardown);
-    tcase_add_checked_fixture(tc_mix, setup_debug_instrument, NULL);
-    tcase_add_checked_fixture(tc_mix, setup_empty_pattern, NULL);
+    TCase* tc_render = tcase_create("render");
+    suite_add_tcase(s, tc_render);
+    tcase_set_timeout(tc_render, timeout);
+    tcase_add_checked_fixture(tc_render, setup_empty, handle_teardown);
+    tcase_add_checked_fixture(tc_render, setup_debug_instrument, NULL);
 
-    tcase_add_test(tc_mix, Do_nothing);
+    tcase_add_test(tc_render, Do_nothing);
     tcase_add_loop_test(
-            tc_mix, Set_mixing_rate,
+            tc_render, Set_mixing_rate,
             0, MIXING_RATE_COUNT);
+
+    // Note mixing
+    tcase_add_test(tc_render, Complete_debug_note_renders_correctly);
+    tcase_add_test(tc_render, Note_off_stops_the_note_correctly);
+    tcase_add_test(tc_render, Note_end_is_reached_correctly_during_note_off);
+    tcase_add_test(tc_render, Implicit_note_off_is_triggered_correctly);
+    tcase_add_test(tc_render, Independent_notes_mix_correctly);
+    tcase_add_test(tc_render, Debug_single_shot_renders_one_pulse);
+
+    // Patterns
     tcase_add_loop_test(
-            tc_mix, Empty_pattern_contains_silence,
+            tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
-    tcase_add_test(tc_mix, Complete_debug_note_renders_correctly);
-    tcase_add_test(tc_mix, Note_off_stops_the_note_correctly);
-    tcase_add_test(tc_mix, Note_end_is_reached_correctly_during_note_off);
-    tcase_add_test(tc_mix, Implicit_note_off_is_triggered_correctly);
-    tcase_add_test(tc_mix, Independent_notes_mix_correctly);
-    tcase_add_test(tc_mix, Debug_single_shot_renders_one_pulse);
+    tcase_add_loop_test(tc_render, Note_on_is_handled_at_pattern_end, 0, 4);
 
     return s;
 }
