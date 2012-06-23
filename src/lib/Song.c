@@ -379,6 +379,20 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
     {
         return 0;
     }
+
+    // FIXME: setting the tempo on both states breaks initial tempo
+    //        if it is set after calculating duration
+    if (isnan(song->play_state->tempo))
+    {
+        Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
+        song->play_state->tempo = (ss == NULL) ? 120 : Subsong_get_tempo(ss);
+    }
+    if (isnan(song->skip_state->tempo))
+    {
+        Subsong* ss = Subsong_table_get(play->subsongs, play->subsong);
+        song->skip_state->tempo = (ss == NULL) ? 120 : Subsong_get_tempo(ss);
+    }
+
     if (nframes > Device_get_buffer_size((Device*)song) && !play->silent)
     {
         nframes = Device_get_buffer_size((Device*)song);

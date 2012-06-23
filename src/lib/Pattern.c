@@ -236,6 +236,7 @@ uint32_t Pattern_mix(Pattern* pat,
     assert(channels != NULL);
     Playdata* play = Event_handler_get_global_state(eh);
     assert(pat != NULL || play->parent.pause);
+    assert(play->tempo > 0);
     uint32_t mixed = offset;
 //    fprintf(stderr, "new mixing cycle from %" PRIu32 " to %" PRIu32 "\n", offset, nframes);
     const Reltime* zero_time = Reltime_set(RELTIME_AUTO, 0, 0);

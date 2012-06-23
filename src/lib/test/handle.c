@@ -588,6 +588,33 @@ START_TEST(Note_on_is_handled_at_pattern_end)
 END_TEST
 
 
+START_TEST(Initial_tempo_is_set_correctly)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+
+    int tempos[] = { 30, 60, 120, 240, 0 }; // 0 is guard, shouldn't be used
+
+    char ss_def[128] = "";
+    snprintf(ss_def, sizeof(ss_def),
+            "{ \"tempo\": %d, \"patterns\": [0] }", tempos[_i]);
+    set_data("subs_00/p_subsong.json", ss_def);
+    set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
+    set_data("pat_000/col_00/p_events.json",
+            "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
+
+    float actual_buf[buf_len] = { 0.0f };
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 1.0f };
+    expected_buf[mixing_rates[MIXING_RATE_LOW] * 60 / tempos[_i]] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
@@ -634,6 +661,9 @@ Suite* Handle_suite(void)
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
     tcase_add_loop_test(tc_render, Note_on_is_handled_at_pattern_end, 0, 4);
+
+    // Subsongs
+    tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
 
     return s;
 }

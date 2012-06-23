@@ -15,6 +15,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include <math.h>
 
 #include <Audio_buffer.h>
 #include <Env_var.h>
@@ -207,6 +208,15 @@ int kqt_Handle_fire(kqt_Handle* handle, int channel, char* event)
                 "No event description given.");
         return 0;
     }
+
+    Playdata* global_state = handle->song->play_state;
+    if (isnan(global_state->tempo))
+    {
+        Subsong* ss = Subsong_table_get(
+                global_state->subsongs, global_state->subsong);
+        global_state->tempo = (ss == NULL) ? 120 : Subsong_get_tempo(ss);
+    }
+
     return Event_handler_trigger_const(handle->song->event_handler, channel,
                                        event, false);
 }
@@ -305,16 +315,7 @@ void kqt_Handle_stop(kqt_Handle* handle)
     }
 #endif
     handle->song->play_state->subsong = Song_get_subsong(handle->song);
-    Subsong* ss = Subsong_table_get(handle->song->play_state->subsongs,
-                                    handle->song->play_state->subsong);
-    if (ss == NULL)
-    {
-        handle->song->play_state->tempo = 120;
-    }
-    else
-    {
-        handle->song->play_state->tempo = Subsong_get_tempo(ss);
-    }
+    handle->song->play_state->tempo = NAN;
     return;
 }
 
