@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -22,6 +22,9 @@
 #include <string_common.h>
 #include <xassert.h>
 #include <xmemory.h>
+
+
+static bool Generator_debug_update_key(Device* device, const char* key);
 
 
 Generator* new_Generator_debug(uint32_t buffer_size,
@@ -45,6 +48,8 @@ Generator* new_Generator_debug(uint32_t buffer_size,
         xfree(debug);
         return NULL;
     }
+    Device_set_update_key(&debug->parent.parent, Generator_debug_update_key);
+    debug->single_pulse = false;
     return &debug->parent;
 }
 
@@ -66,6 +71,18 @@ uint32_t Generator_debug_mix(Generator* gen,
     Generator_common_get_buffers(gen, state, offset, bufs);
     if (!state->active)
     {
+        return offset;
+    }
+    Generator_debug* debug = (Generator_debug*)gen;
+    if (debug->single_pulse)
+    {
+        if (offset < nframes)
+        {
+            bufs[0][offset] += 1.0;
+            bufs[1][offset] += 1.0;
+            state->active = false;
+            return offset + 1;
+        }
         return offset;
     }
     for (uint32_t i = offset; i < nframes; ++i)
@@ -113,6 +130,24 @@ uint32_t Generator_debug_mix(Generator* gen,
         }
     }
     return nframes;
+}
+
+
+static bool Generator_debug_update_key(Device* device, const char* key)
+{
+    assert(device != NULL);
+    assert(key != NULL);
+    Generator_debug* debug = (Generator_debug*)device;
+    Device_params* params = debug->parent.conf->params;
+    if (string_eq(key, "p_single_pulse.jsonb"))
+    {
+        bool* value = Device_params_get_bool(params, key);
+        if (value != NULL)
+        {
+            debug->single_pulse = *value;
+        }
+    }
+    return true;
 }
 
 

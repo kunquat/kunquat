@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -25,6 +25,7 @@
 typedef struct Generator_debug
 {
     Generator parent;
+    bool single_pulse;
 } Generator_debug;
 
 

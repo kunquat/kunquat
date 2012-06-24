@@ -31,7 +31,7 @@ from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.5.1'
+PROGRAM_VERSION = '0.5.3b'
 AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 
 
@@ -346,26 +346,26 @@ class KeyHandler(object):
 
 class Status(object):
 
-    clip_map = { (True, True)   : u'▌',
-                 (True, False)  : u'▘',
-                 (False, True)  : u'▖',
-                 (False, False) : u' ' }
+    clip_map = { (True, True)   : u'■',
+                 (True, False)  : u'⬒',
+                 (False, True)  : u'⬓',
+                 (False, False) : u'□' }
 
-    block_map = { (3, 3) : u'█',
-                  (3, 2) : u'▜',
-                  (3, 1) : u'▛',
-                  (3, 0) : u'▀',
-                  (2, 3) : u'▟',
-                  (2, 2) : u'▐',
-                  (2, 1) : u'▞',
-                  (2, 0) : u'▝',
-                  (1, 3) : u'▙',
-                  (1, 2) : u'▚',
-                  (1, 1) : u'▌',
-                  (1, 0) : u'▘',
-                  (0, 3) : u'▄',
-                  (0, 2) : u'▗',
-                  (0, 1) : u'▖',
+    block_map = { (3, 3) : u'⣿',
+                  (3, 2) : u'⢻',
+                  (3, 1) : u'⡟',
+                  (3, 0) : u'⠛',
+                  (2, 3) : u'⣼',
+                  (2, 2) : u'⢸',
+                  (2, 1) : u'⡜',
+                  (2, 0) : u'⠘',
+                  (1, 3) : u'⣧',
+                  (1, 2) : u'⢣',
+                  (1, 1) : u'⡇',
+                  (1, 0) : u'⠃',
+                  (0, 3) : u'⣤',
+                  (0, 2) : u'⢠',
+                  (0, 1) : u'⡄',
                   (0, 0) : u' ' }
 
     SILENCE = -384
@@ -421,7 +421,7 @@ class Status(object):
                                           right_vol_linear, self.right_hold)
         self.left_hold[1] += len(bufs[0])
         self.right_hold[1] += len(bufs[0])
-        return u'[{0}]{1}'.format(self.combine_meters(left_bar, right_bar),
+        return u'{0}{1}  '.format(self.combine_meters(left_bar, right_bar),
                 Status.clip_map[(self.left_clipped, self.right_clipped)])
 
     def get_single_meter(self, length, lower, upper, vol_linear, hold):
@@ -436,7 +436,8 @@ class Status(object):
             fill_length = 0
         elif fill_length > scale:
             fill_length = scale
-        bar = [1] * fill_length + [0] * (scale - fill_length)
+        bar = [1] * fill_length + [0] * (scale - fill_length) + [1, 0]
+        bar[0] = 1
         if hold[1] >= self.hold_limit or hold[0] <= vol:
             hold[0] = vol
             hold[1] = 0
