@@ -18,7 +18,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <common/common.h>
+#include <test_common.h>
 
 #include <kunquat/Handle.h>
 #include <kunquat/Player.h>

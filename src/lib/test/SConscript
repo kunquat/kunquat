@@ -18,8 +18,6 @@ Import('env')
 
 Export('env')
 
-SConscript('common/SConscript')
-
 
 env_test = env.Clone()
 
@@ -28,8 +26,8 @@ env_test.Append(CPPPATH = ['.',
                            '#/src/lib/events',
                            '#/src/lib/generators',
                            '#/src/include'])
-env_test.Append(LIBPATH = ['#/src/lib', 'common'])
-env_test.Append(LIBS = ['kunquat', 'test_common', 'check'])
+env_test.Append(LIBPATH = ['#/src/lib'])
+env_test.Append(LIBS = ['kunquat', 'check'])
 
 if env_test['enable_tests_mem_debug']:
     env_test.Append(CCFLAGS = ['-DK_MEM_DEBUG'])
