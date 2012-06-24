@@ -559,7 +559,7 @@ START_TEST(Empty_pattern_contains_silence)
 END_TEST
 
 
-START_TEST(Note_on_is_handled_at_pattern_end)
+START_TEST(Note_on_at_pattern_end_is_handled)
 {
     set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
     set_mix_volume(0);
@@ -582,6 +582,34 @@ START_TEST(Note_on_is_handled_at_pattern_end)
 
     float expected_buf[buf_len] = { 0.0f };
     expected_buf[mixing_rates[MIXING_RATE_LOW] * _i / 2] = 1.0f;
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Note_on_after_pattern_end_is_ignored)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+
+    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0, 1] }");
+
+    char pat0_def[128] = "";
+    snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
+    set_data("pat_000/p_pattern.json", pat0_def);
+
+    char col_def[128] = "";
+    snprintf(col_def, sizeof(col_def), "[ [[%d, 1], [\"n+\", \"0\"]] ]", _i);
+    set_data("pat_000/col_00/p_events.json", col_def);
+
+    set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
+
+    float actual_buf[buf_len] = { 0.0f };
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
 
     check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
 }
@@ -660,7 +688,8 @@ Suite* Handle_suite(void)
     tcase_add_loop_test(
             tc_render, Empty_pattern_contains_silence,
             0, MIXING_RATE_COUNT);
-    tcase_add_loop_test(tc_render, Note_on_is_handled_at_pattern_end, 0, 4);
+    tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
+    tcase_add_loop_test(tc_render, Note_on_after_pattern_end_is_ignored, 0, 4);
 
     // Subsongs
     tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
