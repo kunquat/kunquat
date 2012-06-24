@@ -22,7 +22,7 @@ enable_python_bindings = True
 enable_tests = True
 
 # Run tests with memory debugging (requires valgrind, disables assert tests).
-enable_tests_mem_debug = True
+enable_tests_mem_debug = False
 
 # Enable kunquat-player (requires enable_python_bindings).
 enable_player = True
