@@ -67,7 +67,10 @@ class View():
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
-            info.name = key
+            parts = key.split('/')
+            nonempty = [p for p in parts if p != '']
+            tarpath = '/'.join(nonempty)
+            info.name = tarpath
             info.size = len(serial)
             info.mtime = int(time.mktime(time.localtime(time.time())))
             tfile.addfile(info, fileobj=data)
