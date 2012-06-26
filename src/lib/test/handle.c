@@ -360,17 +360,19 @@ START_TEST(Complete_debug_note_renders_correctly)
 END_TEST
 
 
-static void mix_and_fill(float* buf, long nframes)
+static long mix_and_fill(float* buf, long nframes)
 {
     assert(handle != NULL);
     assert(buf != NULL);
     assert(nframes >= 0);
 
-    kqt_Handle_mix(handle, nframes);
+    long mixed = kqt_Handle_mix(handle, nframes);
     check_unexpected_error();
     float* ret_buf = kqt_Handle_get_buffer(handle, 0);
     check_unexpected_error();
     memcpy(buf, ret_buf, nframes * sizeof(float));
+
+    return mixed;
 }
 
 
@@ -643,6 +645,36 @@ START_TEST(Initial_tempo_is_set_correctly)
 END_TEST
 
 
+START_TEST(Infinite_mode_loops_composition)
+{
+    set_mixing_rate(mixing_rates[MIXING_RATE_LOW]);
+    set_mix_volume(0);
+    setup_debug_single_pulse();
+
+    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0] }");
+    set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
+    set_data("pat_000/col_00/p_events.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+
+    kqt_Handle_fire(handle, 0, "[\"I.infinite\", true]");
+    check_unexpected_error();
+
+    float actual_buf[buf_len] = { 0.0f };
+    long mixed = mix_and_fill(actual_buf, buf_len);
+    fail_unless(mixed == buf_len,
+            "Wrong number of frames mixed"
+            KT_VALUES("%ld", buf_len, mixed));
+
+    float expected_buf[buf_len] = { 0.0f };
+    for (int i = 0; i < buf_len; i += mixing_rates[MIXING_RATE_LOW])
+    {
+        expected_buf[i] = 1.0f;
+    }
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 Suite* Handle_suite(void)
 {
     Suite* s = suite_create("Handle");
@@ -693,6 +725,7 @@ Suite* Handle_suite(void)
 
     // Subsongs
     tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
+    tcase_add_test(tc_render, Infinite_mode_loops_composition);
 
     return s;
 }
