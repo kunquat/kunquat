@@ -12,6 +12,8 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+import json
+
 class History(object):
 
     def __init__(self, project):

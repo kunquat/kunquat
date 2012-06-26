@@ -13,6 +13,7 @@
 #
 
 import kqt_limits as lim
+import re
 
 class Composition():
 
@@ -32,6 +33,12 @@ class Composition():
 
     def __getitem__(self, key):
         return self.get(key)
+
+    def put(self, key, value):
+        return self._view.put(key, value)
+
+    def __setitem__(self, key, value):
+        return self.put(key,value)
 
     def get_pattern(self, subsong, section):
         """Get a pattern number based on subsong and section number."""
