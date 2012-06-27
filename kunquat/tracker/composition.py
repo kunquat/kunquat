@@ -136,6 +136,8 @@ class Composition():
         (empty, root, instrument) = parts
         if empty != '':
             return
+        if not instrument.startswith('ins_'):
+            return
         connections = self['p_connections.json']
         if not connections:
             connections = []
