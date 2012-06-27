@@ -19,33 +19,23 @@ from bind import Bind
 from variables import Variables
 
 
-class Env(QtGui.QWidget):
+class Env(QtGui.QMainWindow):
 
     def __init__(self,
                  project,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
-        layout.setSpacing(0)
 
-        vars_layout = QtGui.QVBoxLayout()
-        vars_layout.setMargin(0)
-        vars_layout.setSpacing(0)
-        vars_layout.addWidget(QtGui.QLabel('Variables'))
+
+        tabs = QtGui.QTabWidget()
+        self.setCentralWidget(tabs)
+
         self._vars = Variables(project, 'p_environment.json')
-        vars_layout.addWidget(self._vars)
-
-        map_layout = QtGui.QVBoxLayout()
-        map_layout.setMargin(0)
-        map_layout.setSpacing(0)
-        map_layout.addWidget(QtGui.QLabel('Bind'))
         self._bind = Bind(project)
-        map_layout.addWidget(self._bind, 1)
 
-        layout.addLayout(vars_layout, 1)
-        layout.addLayout(map_layout, 2)
+        tabs.addTab(self._vars, 'Variables')
+        tabs.addTab(self._bind, 'Bind')
 
     def sync(self):
         self._vars.sync()
