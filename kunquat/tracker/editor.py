@@ -325,6 +325,11 @@ class KqtEditor(QtGui.QMainWindow):
         if path:
             self.project.export_kqt(str(path))
 
+    def show_sheet(self):
+        sheet = self._sheetbox
+        visibility = sheet.isVisible()
+        sheet.setVisible(not visibility)
+
     def environment_window(self):
         self._env.show()
 
@@ -363,14 +368,15 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout = QtGui.QVBoxLayout(self.central)
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
-
+        playback_bar = self.create_playback_control()
+        
         self._top_control = self.create_top_control()
 
         self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
                             self.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
-                            self._octave, self._instrument)
+                            self._octave, self._instrument, playback_bar)
         self._sheetbox = QtGui.QTabWidget()
         self._sheetbox.addTab(self._sheet, 'Sheet')
         self._sheetbox.tabBar().setVisible(False)
@@ -405,8 +411,24 @@ class KqtEditor(QtGui.QMainWindow):
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
 
-        top_layout.addWidget(self._top_control)
-        top_layout.addWidget(self._sheetbox)
+        instruarea = QtGui.QTabWidget()
+        instrumentpanel = QtGui.QWidget(self)
+        instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
+        instrumentlayout.addWidget(self._top_control)
+        instrumentlayout.addWidget(instruarea)
+        instrumentlayout.setMargin(0)
+        instrumentlayout.setSpacing(0)
+
+        div = QtGui.QSplitter(self)
+        self._div = div
+        div.setOrientation(QtCore.Qt.Vertical)
+        div.addWidget(self._sheetbox)
+        div.addWidget(instrumentpanel)
+        self._sheetbox.hide()
+
+        top_layout.addWidget(div)
+        #top_layout.addWidget(self._sheetbox)
+        #top_layout.addWidget(self._top_control)
         top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(self._status)
 
@@ -416,18 +438,15 @@ class KqtEditor(QtGui.QMainWindow):
         separator.setFrameShadow(QtGui.QFrame.Sunken)
         return separator
 
-    def create_top_control(self):
-        top_control = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout(top_control)
-        layout.setMargin(5)
-        layout.setSpacing(5)
-
-        save_project = QtGui.QToolButton()
-        save_project.setText('Export Composition')
-        save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
-        save_project.setAutoRaise(True)
-        QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
-                               self.export_composition)
+    def create_playback_control(self):
+        widget = QtGui.QWidget(self)
+        layout = QtGui.QVBoxLayout(widget)
+        bwidget = QtGui.QWidget(self)
+        blayout = QtGui.QHBoxLayout(bwidget)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        blayout.setMargin(0)
+        blayout.setSpacing(5)
 
         play = QtGui.QToolButton()
         play.setText('Play')
@@ -459,11 +478,49 @@ class KqtEditor(QtGui.QMainWindow):
         seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
+        self._pos_display = PosDisplay(self.project)
+
+        subsong_select = QtGui.QLabel('[subsong select]')
+
+        tempo_factor = QtGui.QLabel('[tempo factor]')
+
+        blayout.addWidget(play)
+        blayout.addWidget(play_inf)
+        blayout.addWidget(stop)
+        blayout.addWidget(seek_back)
+        blayout.addWidget(seek_for)
+
+        layout.addWidget(self._pos_display)
+        layout.addWidget(bwidget)
+        #layout.addWidget(subsong_select)
+        #layout.addWidget(tempo_factor)
+
+        return widget
+
+    def create_top_control(self):
+        top_control = QtGui.QWidget()
+        layout = QtGui.QHBoxLayout(top_control)
+        layout.setMargin(5)
+        layout.setSpacing(5)
+
+        save_project = QtGui.QToolButton()
+        save_project.setText('Export Composition')
+        save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
+        save_project.setAutoRaise(True)
+        QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
+                               self.export_composition)
+
         env_ter = QtGui.QToolButton()
         env_ter.setText('io')
         env_ter.setAutoRaise(True)
         QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),
                                self.environment_window)
+
+        sheet_but = QtGui.QToolButton()
+        sheet_but.setText(u'♫')
+        sheet_but.setAutoRaise(True)
+        QtCore.QObject.connect(sheet_but, QtCore.SIGNAL('clicked()'),
+                               self.show_sheet)
 
         instrument_ter = QtGui.QToolButton()
         instrument_ter.setText('Instrument Configuration')
@@ -471,12 +528,6 @@ class KqtEditor(QtGui.QMainWindow):
         instrument_ter.setAutoRaise(True)
         QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
                                self.instrument_window)
-
-        self._pos_display = PosDisplay(self.project)
-
-        subsong_select = QtGui.QLabel('[subsong select]')
-
-        tempo_factor = QtGui.QLabel('[tempo factor]')
 
         self._instrument = QtGui.QSpinBox()
         self._instrument.setMinimum(0)
@@ -503,23 +554,13 @@ class KqtEditor(QtGui.QMainWindow):
         #layout.addWidget(export)
         layout.addWidget(self.create_separator())
 
-        layout.addWidget(play)
-        layout.addWidget(play_inf)
-        layout.addWidget(stop)
-        layout.addWidget(seek_back)
-        layout.addWidget(seek_for)
-        layout.addWidget(self.create_separator())
-
-        layout.addWidget(self._pos_display)
-        #layout.addWidget(subsong_select)
-        #layout.addWidget(tempo_factor)
-        layout.addWidget(self.create_separator())
-
         layout.addWidget(self._instrument)
         layout.addWidget(instrument_ter)
         layout.addWidget(self.create_separator())
         layout.addWidget(self._octave)
         #layout.addWidget(infinite)
+        layout.addWidget(self.create_separator())
+        layout.addWidget(sheet_but)
         layout.addWidget(self.create_separator())
         layout.addWidget(env_ter)
         return top_control

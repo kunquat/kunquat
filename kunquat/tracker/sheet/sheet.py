@@ -31,6 +31,7 @@ class Sheet(QtGui.QSplitter):
                  pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
+                 playbackbar,
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
@@ -48,18 +49,27 @@ class Sheet(QtGui.QSplitter):
                                              octave_spin,
                                              instrument_spin)
         self._edit_area = QtGui.QStackedWidget()
+        self._edit_area.setFrameShape(QtGui.QFrame.StyledPanel)
         self._edit_area.addWidget(self._comp_params)
         self._edit_area.addWidget(self._subsong_params)
         self._edit_area.addWidget(self._pattern_editor)
 
         self._subsongs = Subsongs(project, self._section)
+        playorder = QtGui.QWidget(self)
+        playout = QtGui.QVBoxLayout(playorder)
+        playout.setMargin(0)
+        playout.setSpacing(0)
+
+        playout.addWidget(playbackbar)
+        playout.addWidget(self._subsongs)
+
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('compositionParams()'),
                                self.to_comp_params)
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('subsongChanged(int)'),
                                subsong_changed_slot)
-        self.addWidget(self._subsongs)
+        self.addWidget(playorder)
         self.addWidget(self._edit_area)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
