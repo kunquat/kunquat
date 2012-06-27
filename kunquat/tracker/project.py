@@ -16,7 +16,6 @@ import os
 import re
 from collections import defaultdict
 from copy import deepcopy
-from itertools import izip, takewhile
 
 from PyQt4 import QtCore
 
