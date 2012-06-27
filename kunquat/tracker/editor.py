@@ -23,6 +23,7 @@ import sys
 import time
 
 from kunquat.extras import pulseaudio
+from kunquat.tracker.env import Env
 from PyQt4 import QtCore, QtGui
 
 from connections import Connections
@@ -324,6 +325,12 @@ class KqtEditor(QtGui.QMainWindow):
         if path:
             self.project.export_kqt(str(path))
 
+    def environment_window(self):
+        self._env.show()
+
+    def instrument_window(self):
+        self._instrumentconf.show()
+
     def sync(self):
         self._sheet.sync()
         self._instruments.sync()
@@ -335,7 +342,7 @@ class KqtEditor(QtGui.QMainWindow):
         if busy_set:
             self._focus_backup = QtGui.QApplication.focusWidget()
         self._top_control.setEnabled(not busy_set)
-        self._tabs.setEnabled(not busy_set)
+        self._sheetbox.setEnabled(not busy_set)
         if not busy_set:
             if self._focus_backup:
                 self._focus_backup.setFocus()
@@ -359,25 +366,28 @@ class KqtEditor(QtGui.QMainWindow):
 
         self._top_control = self.create_top_control()
 
-        self._tabs = QtGui.QTabWidget()
+        self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
                             self.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
                             self._octave, self._instrument)
-        self._tabs.addTab(self._sheet, 'Sheet')
+        self._sheetbox = QtGui.QTabWidget()
+        self._sheetbox.addTab(self._sheet, 'Sheet')
+        self._sheetbox.tabBar().setVisible(False)
+
         self._instruments = Instruments(self.project,
                                         self._instrument,
                                         self._playback,
                                         self._note_input,
                                         self._scale,
                                         self._octave)
-        self._tabs.addTab(self._instruments, 'Instruments')
+        self._instrumentconf.addTab(self._instruments, 'Instruments')
         self._effects = Effects(self.project, '')
-        self._tabs.addTab(self._effects, 'Effects')
+        self._instrumentconf.addTab(self._effects, 'Effects')
         self._connections = Connections(self.project, 'p_connections.json')
-        self._tabs.addTab(self._connections, 'Connections')
+        self._instrumentconf.addTab(self._connections, 'Connections')
         self._env = Env(self.project)
-        self._tabs.addTab(self._env, 'Environment')
+        #self._tabs.addTab(self._env, 'Environment')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
@@ -396,7 +406,7 @@ class KqtEditor(QtGui.QMainWindow):
                                self.sync)
 
         top_layout.addWidget(self._top_control)
-        top_layout.addWidget(self._tabs)
+        top_layout.addWidget(self._sheetbox)
         top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(self._status)
 
@@ -449,6 +459,19 @@ class KqtEditor(QtGui.QMainWindow):
         seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
+        env_ter = QtGui.QToolButton()
+        env_ter.setText('io')
+        env_ter.setAutoRaise(True)
+        QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),
+                               self.environment_window)
+
+        instrument_ter = QtGui.QToolButton()
+        instrument_ter.setText('Instrument Configuration')
+        instrument_ter.setIcon(QtGui.QIcon.fromTheme('audio-card'))
+        instrument_ter.setAutoRaise(True)
+        QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
+                               self.instrument_window)
+
         self._pos_display = PosDisplay(self.project)
 
         subsong_select = QtGui.QLabel('[subsong select]')
@@ -493,8 +516,12 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self.create_separator())
 
         layout.addWidget(self._instrument)
+        layout.addWidget(instrument_ter)
+        layout.addWidget(self.create_separator())
         layout.addWidget(self._octave)
         #layout.addWidget(infinite)
+        layout.addWidget(self.create_separator())
+        layout.addWidget(env_ter)
         return top_control
 
     def create_bottom_control(self):
