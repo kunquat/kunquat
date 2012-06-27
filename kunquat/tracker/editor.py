@@ -511,8 +511,8 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self.create_separator())
 
         layout.addWidget(self._pos_display)
-        layout.addWidget(subsong_select)
-        layout.addWidget(tempo_factor)
+        #layout.addWidget(subsong_select)
+        #layout.addWidget(tempo_factor)
         layout.addWidget(self.create_separator())
 
         layout.addWidget(self._instrument)

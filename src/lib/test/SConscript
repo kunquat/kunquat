@@ -16,6 +16,9 @@ import glob
 
 Import('env')
 
+Export('env')
+
+
 env_test = env.Clone()
 
 env_test.Append(CPPPATH = ['.',
@@ -24,7 +27,7 @@ env_test.Append(CPPPATH = ['.',
                            '#/src/lib/generators',
                            '#/src/include'])
 env_test.Append(LIBPATH = ['#/src/lib'])
-env_test.Append(LIBS = ['kunquat'])
+env_test.Append(LIBS = ['kunquat', 'check'])
 
 if env_test['enable_tests_mem_debug']:
     env_test.Append(CCFLAGS = ['-DK_MEM_DEBUG'])
@@ -36,51 +39,12 @@ for source in glob.glob('*.c'):
     programs.append(env_test.Program(exe_name, [source]))
 
 
-"""
-real          = env_test.Program('real', ['real.c'])
-scale         = env_test.Program('scale', ['scale.c'])
-reltime       = env_test.Program('reltime', ['reltime.c'])
-event         = env_test.Program('event', ['event.c'])
-event_queue   = env_test.Program('event_queue', ['event_queue.c'])
-voice_state   = env_test.Program('voice_state', ['voice_state.c'])
-instrument    = env_test.Program('instrument', ['instrument.c'])
-ins_table     = env_test.Program('ins_table', ['ins_table.c'])
-voice         = env_test.Program('voice', ['voice.c'])
-voice_pool    = env_test.Program('voice_pool', ['voice_pool.c'])
-column        = env_test.Program('column', ['column.c'])
-channel       = env_test.Program('channel', ['channel.c'])
-subsong_table = env_test.Program('subsong_table', ['subsong_table.c'])
-pat_table     = env_test.Program('pat_table', ['pat_table.c'])
-pattern       = env_test.Program('pattern', ['pattern.c'])
-song          = env_test.Program('song', ['song.c'])
-"""
-
-
-
 if not env.GetOption('clean'):
     run_prefix = 'env LD_LIBRARY_PATH=src/lib '
     if env_test['enable_tests_mem_debug']:
-        run_prefix += 'valgrind -q --leak-check=full --error-exitcode=2 '
+        run_prefix += 'src/lib/test/mem_debug_run.py '
 
     for program in programs:
         env_test.AddPostAction(program, run_prefix + program[0].abspath)
-    """
-    env_test.AddPostAction(real, run_prefix + real[0].abspath)
-    env_test.AddPostAction(scale, run_prefix + scale[0].abspath)
-    env_test.AddPostAction(reltime, run_prefix + reltime[0].abspath)
-    env_test.AddPostAction(event, run_prefix + event[0].abspath)
-    env_test.AddPostAction(event_queue, run_prefix + event_queue[0].abspath)
-    env_test.AddPostAction(voice_state, run_prefix + voice_state[0].abspath)
-    env_test.AddPostAction(instrument, run_prefix + instrument[0].abspath)
-    env_test.AddPostAction(ins_table, run_prefix + ins_table[0].abspath)
-    env_test.AddPostAction(voice, run_prefix + voice[0].abspath)
-    env_test.AddPostAction(voice_pool, run_prefix + voice_pool[0].abspath)
-    env_test.AddPostAction(column, run_prefix + column[0].abspath)
-    env_test.AddPostAction(channel, run_prefix + channel[0].abspath)
-    env_test.AddPostAction(subsong_table, run_prefix + subsong_table[0].abspath)
-    env_test.AddPostAction(pat_table, run_prefix + pat_table[0].abspath)
-    env_test.AddPostAction(pattern, run_prefix + pattern[0].abspath)
-    env_test.AddPostAction(song, run_prefix + song[0].abspath)
-    """
 
 

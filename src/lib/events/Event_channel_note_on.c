@@ -35,7 +35,9 @@ bool Event_channel_note_on_process(Channel_state* ch_state, Value* value)
 {
     assert(ch_state != NULL);
     assert(ch_state->freq != NULL);
+    assert(*ch_state->freq > 0);
     assert(ch_state->tempo != NULL);
+    assert(*ch_state->tempo > 0);
     assert(value != NULL);
     if (value->type != VALUE_TYPE_FLOAT)
     {

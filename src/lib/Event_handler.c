@@ -601,6 +601,10 @@ static bool Event_handler_handle(Event_handler* eh,
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(EVENT_IS_VALID(type));
+    assert(eh->ch_states[index]->freq != NULL);
+    assert(*eh->ch_states[index]->freq > 0);
+    assert(eh->ch_states[index]->tempo != NULL);
+    assert(*eh->ch_states[index]->tempo > 0);
     if (EVENT_IS_CHANNEL(type))
     {
         if (eh->ch_process[type] == NULL)
@@ -814,6 +818,12 @@ static bool Event_handler_act(Event_handler* eh,
     assert(index < KQT_COLUMNS_MAX);
     assert(event_name != NULL);
     assert(value != NULL);
+
+    assert(eh->ch_states[index]->freq != NULL);
+    assert(*eh->ch_states[index]->freq > 0);
+    assert(eh->ch_states[index]->tempo != NULL);
+    assert(*eh->ch_states[index]->tempo > 0);
+
     if (!EVENT_IS_QUERY(event_type) && !EVENT_IS_AUTO(event_type) &&
             !Event_handler_handle(eh, index, event_type, value))
     {
@@ -909,6 +919,12 @@ bool Event_handler_trigger(Event_handler* eh,
     assert(index >= 0);
     assert(index < KQT_COLUMNS_MAX);
     assert(desc != NULL);
+
+    assert(eh->ch_states[index]->freq != NULL);
+    assert(*eh->ch_states[index]->freq > 0);
+    assert(eh->ch_states[index]->tempo != NULL);
+    assert(*eh->ch_states[index]->tempo > 0);
+
     Read_state* state = READ_STATE_AUTO;
     char event_name[EVENT_NAME_MAX + 2] = "";
     Event_type event_type = EVENT_NONE;

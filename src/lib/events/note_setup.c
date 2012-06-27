@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -27,6 +27,10 @@ void reserve_voice(Channel_state* ch_state,
                    int gen_num)
 {
     assert(ch_state != NULL);
+    assert(ch_state->freq != NULL);
+    assert(*ch_state->freq > 0);
+    assert(ch_state->tempo != NULL);
+    assert(*ch_state->tempo > 0);
     assert(ins != NULL);
     assert(gen_num >= 0);
     assert(gen_num < KQT_GENERATORS_MAX);

@@ -1474,7 +1474,15 @@ Suite* Reltime_suite(void)
 
 int main(void)
 {
-    exit(test_common_run(Reltime_suite()) > 0);
+    Suite* suite = Reltime_suite();
+    SRunner* sr = srunner_create(suite);
+#ifdef K_MEM_DEBUG
+    srunner_set_fork_status(sr, CK_NOFORK);
+#endif
+    srunner_run_all(sr, CK_NORMAL);
+    int fail_count = srunner_ntests_failed(sr);
+    srunner_free(sr);
+    exit(fail_count > 0);
 }
 
 

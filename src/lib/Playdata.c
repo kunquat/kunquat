@@ -223,13 +223,7 @@ void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
             Voice_pool_reset(play->voice_pool);
         }
     }
-    Subsong* ss = Subsong_table_get(play->subsongs, subsong);
-    if (ss == NULL)
-    {
-        play->tempo = 120;
-        return;
-    }
-    play->tempo = Subsong_get_tempo(ss);
+    play->tempo = NAN;
     return;
 }
 
