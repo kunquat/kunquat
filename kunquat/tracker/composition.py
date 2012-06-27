@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from itertools import izip, takewhile
 import kqt_limits as lim
 import re
 
