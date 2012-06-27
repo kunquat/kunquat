@@ -130,22 +130,22 @@ class Composition():
         return True
 
     def fix_connections(self, prefix):
-        '''
-        Fixes connections after a successfull import at a certain location
-        '''
-        pass
-        '''
-            connections = self['p_connections.json']
-            if not connections:
-                connections = []
-            ins_out = ins_path + '/kqtiXX/out_00'
-            for connection in connections:
-                if ins_out in connection:
-                    break
-            else:
-                connections.append([ins_out, 'out_00'])
-            self.set('p_connections.json', connections, autoconnect=False)
-        '''
+        parts = prefix.split('/')
+        if len(parts) != 3:
+            return
+        (empty, root, instrument) = parts
+        if empty != '':
+            return
+        connections = self['p_connections.json']
+        if not connections:
+            connections = []
+        ins_out = instrument + '/kqtiXX/out_00'
+        for connection in connections:
+            if ins_out in connection:
+                break
+        else:
+            connections.append([ins_out, 'out_00'])
+            self._view.put('p_connections.json', connections)
 
     def to_tar(self, path):
         self._store.to_tar(path)
