@@ -15,14 +15,12 @@
 import os
 import re
 from collections import defaultdict
-from copy import deepcopy
 
 from PyQt4 import QtCore
 
 import kunquat
 from kunquat.storage import storage, store
 from composition import Composition
-from history import History
 
 class Process(QtCore.QThread):
 
@@ -79,7 +77,6 @@ class Project(QtCore.QObject):
         self._handle.buffer_size = 1024
 
         self._changed = False
-        self._history = History(self)
         self.status_view = None
         self._callbacks = defaultdict(list)
 
@@ -89,8 +86,7 @@ class Project(QtCore.QObject):
 
     @property
     def changed(self):
-        """Whether the Project has changed since the last commit."""
-        return self._history.at_commit()
+        return self._composition.changed()
 
     @property
     def handle(self):
@@ -116,33 +112,14 @@ class Project(QtCore.QObject):
         self[key] = None
 
     def set(self, key, value, immediate=True, autoconnect=True):
-        """Set data in the Kunquat Handle.
-
-        Arguments:
-        key   -- The key of the data in the composition.
-        value -- The data to be set.
-
-        Optional arguments:
-        immediate   -- If True, the data is immediately stored in the
-                       project history. Otherwise, the data is delayed
-                       until another call of set() or flush().
-        autoconnect -- If True, create a simple connection path to
-                       master output if the key implies creation of a
-                       new instrument or generator.
-        """
-        assert immediate in (True, False)
-        if value == None:
-            autoconnect = False
-        if autoconnect:
-            autoconnect = self._composition.autoconnect(key, immediate)
         try:
-            self._history.step(key, deepcopy(value), immediate=immediate)
-            self.set_raw(key, value)
+            self._composition.put(key, value, immediate, autoconnect)
         finally:
             if autoconnect:
                 self._autoconnect_finish()
-        self._changed = True
-        #self._history.show_latest_branch()
+
+    def _autoconnect_finish(self):
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def subtree(self, prefix):
         return self._composition.subtree(prefix)
@@ -170,9 +147,6 @@ class Project(QtCore.QObject):
         for func, args in self._callbacks[event[0]]:
             func(ch, event, *args)
 
-    def _autoconnect_finish(self):
-        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
-
     def set_raw(self, key, value):
         """Set raw data in the Project.
 
@@ -182,23 +156,10 @@ class Project(QtCore.QObject):
         self._composition[key] = value
 
     def flush(self, key):
-        """Flush a previous store of a data value in the history.
-
-        Arguments:
-        key -- The key of the value.
-
-        """
-        self._history.flush(key)
+        self._composition.flush(key)
 
     def cancel(self, key):
-        """Cancel the storage of a pending data value in the history.
-
-        Arguments:
-        key -- The key of the value.
-
-        """
-        old_data = self._history.cancel(key)
-        self.set_raw(key, old_data)
+        self._composition.cancel()
 
     @property
     def mixing_rate(self):
@@ -216,32 +177,20 @@ class Project(QtCore.QObject):
 
         """
         self._store.commit()
-        self._history.set_commit()
+        self._composition.save()
         self._changed = False
 
     def start_group(self, name=''):
-        """Marks the start of a group of modifications.
-
-        Every call of start_group must always have a corresponding
-        call of end_group, even in exceptional circumstances.
-
-        Optional arguments:
-        name -- The name of the change.
-
-        """
-        self._history.start_group(name)
+        self._composition.start_group(name)
 
     def end_group(self):
-        """Marks the end of a group of modifications."""
-        self._history.end_group()
+        self._composition.end_group()
 
     def _undo(self):
-        self._history.undo(self)
-        #self._history.show_latest_branch()
+        self._composition.undo()
 
     def _redo(self, branch=None):
-        self._history.redo(branch, self)
-        #self._history.show_latest_branch()
+        self._composition.redo(branch)
 
     def __del__(self):
         self._handle = None
@@ -267,14 +216,14 @@ class Project(QtCore.QObject):
 
     def _store_import_start(self, prefix, path, key_names, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), len(key_names))
-        self._history.start_group('import:%s' % prefix)
+        self._composition.start_group('import:%s' % prefix)
 
     def _store_import_status(self, dest, key, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('step(QString)'), 'Importing {0}:{1} ...'.format(dest, key))
 
     def _store_import_end(self, prefix, **_):
         self._composition.fix_connections(prefix)
-        self._history.end_group()
+        self._composition.end_group()
         QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def _store_export_start(self, key_names, **_):

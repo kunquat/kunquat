@@ -14,6 +14,8 @@
 
 import json
 
+from PyQt4 import QtCore, QtGui
+
 class History(object):
 
     def __init__(self, project):
