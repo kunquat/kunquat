@@ -146,7 +146,8 @@ class KeyList(QtGui.QTableWidget):
         self._key = key
         self.blockSignals(True)
         self._lock_update = True
-        subtree = filter(lambda k: k[len(key):].split('/')[-1].startswith('p_'),
+        #print(self._key, self._project.subtree(self._key))
+        subtree = filter(lambda k: k.startswith('p_'),
                          self._project.subtree(self._key))
         if not subtree:
             while self.rowCount() > 1:
@@ -164,8 +165,7 @@ class KeyList(QtGui.QTableWidget):
         for _ in xrange(-new_rows):
             self.removeRow(self.rowCount() - 1)
         for i, k in enumerate(subtree):
-            key_trunc = k[len(self._key):]
-            item = QtGui.QTableWidgetItem(key_trunc)
+            item = QtGui.QTableWidgetItem(k)
             self.setItem(i, 0, item)
         self.insertRow(self.rowCount())
         self.setItem(self.rowCount() - 1, 0, QtGui.QTableWidgetItem())

@@ -76,7 +76,7 @@ class ParamCombo(QtGui.QComboBox):
         self.set_key(self._key)
 
     def _index_changed(self, index):
-        value = self._items[self.currentIndex()][1]
+        value = unicode(self._items[self.currentIndex()][1])
         if self._dict_key:
             d = self._project[self._key]
             if d == None:

@@ -323,6 +323,7 @@ class Subsongs(QtGui.QTreeView):
                         pattern_number = slist[-1]
                     slist.append(pattern_number)
                     self._project[path] = ss_info
+                    """
                     self._slists[subsong] = slist
                     if len(slist) < lim.SECTIONS_MAX:
                         add_item = QtGui.QStandardItem('New section...')
@@ -333,6 +334,7 @@ class Subsongs(QtGui.QTreeView):
                     item.setEditable(True)
                     item.setFont(QtGui.QFont())
                     self._section_manager.set(subsong, section)
+                    """
             else:
                 if subsong == len(self._slists):
                     ss_info = self._project[path]
@@ -342,12 +344,14 @@ class Subsongs(QtGui.QTreeView):
                         self._slists.append(ss_info['patterns'])
                     else:
                         self._slists.append([])
+                    parent = item.parent()
                     self._project[path] = ss_info
+                    """
                     if len(self._slists) < lim.SUBSONGS_MAX:
                         add_ss = QtGui.QStandardItem('New subsong...')
                         add_ss.setEditable(False)
                         add_ss.setFont(QtGui.QFont('Decorative', italic=True))
-                        item.parent().appendRow(add_ss)
+                        parent.appendRow(add_ss)
                     item.setText('Subsong {0}'.format(subsong))
                     item.setFont(QtGui.QFont())
                     if len(self._slists[-1]) < lim.SUBSONGS_MAX:
@@ -357,6 +361,7 @@ class Subsongs(QtGui.QTreeView):
                                                         italic=True))
                         item.appendRow(add_section)
                     self.expand(self._model.indexFromItem(item))
+                    """
                     QtCore.QObject.emit(self, QtCore.SIGNAL('subsongParams(int)'),
                                         subsong)
                     QtCore.QObject.emit(self, QtCore.SIGNAL('subsongChanged(int)'),
