@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -259,8 +259,8 @@ class Subsongs(QtGui.QTreeView):
                 else:
                     slist[section_number] -= 1
                 self._project[path] = ss_info
-                self._slists[subsong_number] = slist
-                item.setText(str(slist[section_number]))
+                #self._slists[subsong_number] = slist
+                #item.setText(str(slist[section_number]))
                 self._section_manager.set(subsong_number, section_number)
                 return
         QtGui.QTreeView.keyPressEvent(self, ev)
@@ -339,7 +339,7 @@ class Subsongs(QtGui.QTreeView):
                 if subsong == len(self._slists):
                     ss_info = self._project[path]
                     if ss_info == None:
-                        ss_info = {}
+                        ss_info = { 'patterns': [] }
                     if 'patterns' in ss_info:
                         self._slists.append(ss_info['patterns'])
                     else:
