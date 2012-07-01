@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -66,7 +66,10 @@ class ParamLine(QtGui.QWidget):
         self.set_key(self._key)
 
     def _value_changed(self, value):
-        value = unicode(value)
+        pass
+
+    def _finished(self):
+        value = unicode(self._edit.text())
         if isinstance(self._default_val, list):
             value = [s.strip() for s in value.split(',')]
         if self._dict_key:
@@ -74,12 +77,10 @@ class ParamLine(QtGui.QWidget):
             if d == None:
                 d = {}
             d[self._dict_key] = value
-            self._project.set(self._key, d, immediate=False)
+            self._project[self._key] = d
         else:
-            self._project.set(self._key, value, immediate=False)
-
-    def _finished(self):
-        self._project.flush(self._key)
+            self._project[self._key] = value
+        #self._project.flush(self._key)
 
 
 class FixedLineEdit(QtGui.QLineEdit):

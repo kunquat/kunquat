@@ -172,6 +172,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
                                self.sync)
+        QtCore.QObject.connect(self, QtCore.SIGNAL('destroyed(QObject*)'),
+                               self._finalise)
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
@@ -179,6 +181,10 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
+
+    def _finalise(self, obj):
+        fw = self.focusWidget()
+        fw.clearFocus()
 
     def _undo(self, ev):
         self.project.undo()
@@ -369,7 +375,7 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
         playback_bar = self.create_playback_control()
-        
+
         self._top_control = self.create_top_control()
 
         self._instrumentconf = QtGui.QTabWidget()
