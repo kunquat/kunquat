@@ -60,7 +60,7 @@ class EffList(QtGui.QTableWidget):
         item = self.item(num, 0)
         key = self._key_base.format(num) + 'm_name.json'
         if item:
-            self._project[key] = str(item.text())
+            self._project[key] = unicode(item.text())
         else:
             self._project[key] = None
 
