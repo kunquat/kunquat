@@ -62,6 +62,12 @@ class Store(object):
             return value
         return json.dumps(value)
 
+    def delete(self, key):
+        try:
+            del self._memory[key]
+        except KeyError:
+            pass
+
     def put(self, key, value):
         self._memory[key] = self._encode(value)
         self.signal(Value_update(key=key))
