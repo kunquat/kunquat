@@ -27,6 +27,10 @@ class View():
         path = self._path(key)
         self._store.put(path, value)
 
+    def delete(self, key):
+        path = self._path(key)
+        self._store.delete(path)
+
     def get(self, key, parse='raw'):
         path = self._path(key)
         try:

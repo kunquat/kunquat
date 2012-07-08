@@ -97,19 +97,13 @@ class Project(QtCore.QObject):
         return self._composition.get(key)
 
     def __setitem__(self, key, value):
-        self.set(key, value)
+        if value == None:
+            self._composition.delete(key)
+        else:
+            self.set(key, value)
 
     def __delitem__(self, key):
-        """Remove data from the Kunquat Handle.
-
-        Removing a key from a project is equivalent to setting the
-        corresponding value to None.
-
-        Arguments:
-        key -- The key of the data in the composition.
-
-        """
-        self[key] = None
+        self._composition.delete(key)
 
     def set(self, key, value, immediate=True, autoconnect=True):
         try:

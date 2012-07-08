@@ -70,6 +70,12 @@ class Composition():
     def __setitem__(self, key, value):
         return self.put(key,value)
 
+    def delete(self, key):
+        self._view.delete(key)
+
+    def __delitem__(self, key):
+        self.delete(key)
+
     def get_pattern(self, subsong, section):
         """Get a pattern number based on subsong and section number."""
         if subsong < 0 or subsong >= lim.SUBSONGS_MAX:
