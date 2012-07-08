@@ -76,7 +76,7 @@ class DSPList(QtGui.QTableWidget):
         dsp_name = '{0}dsp_{1:02x}/kqtd{2}/m_name.json'.format(self._base,
                                 self._cur_dsp, lim.FORMAT_VERSION)
         if item:
-            self._project[dsp_name] = str(item.text())
+            self._project[dsp_name] = unicode(item.text())
         else:
             self._project[dsp_name] = None
 

@@ -70,7 +70,7 @@ class GenList(QtGui.QTableWidget):
         gen_name_key = self._gen_key_base.format(num) + 'm_name.json'
         key = self._ins_key_base.format(self._cur_inst) + gen_name_key
         if item:
-            self._project[key] = str(item.text())
+            self._project[key] = unicode(item.text())
         else:
             self._project[key] = None
 

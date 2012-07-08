@@ -65,7 +65,7 @@ class InstList(QtGui.QTableWidget):
         key = 'ins_{0:02x}/kqti{1}/m_name.json'.format(num,
                                                        lim.FORMAT_VERSION)
         if item:
-            self._project[key] = str(item.text())
+            self._project[key] = unicode(item.text())
         else:
             self._project[key] = None
 

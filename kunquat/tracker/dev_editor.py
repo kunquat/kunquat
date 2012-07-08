@@ -81,7 +81,7 @@ class KeyList(QtGui.QTableWidget):
     def _set_current(self, item, old):
         prev_current = self._current
         if item:
-            self._current = str(item.text())
+            self._current = unicode(item.text())
         else:
             self._current = ''
         if self._current != prev_current:
@@ -95,7 +95,7 @@ class KeyList(QtGui.QTableWidget):
         self.blockSignals(True)
         self._lock_update = True
         if item:
-            new_text = str(item.text())
+            new_text = unicode(item.text())
             if new_text:
                 if not lim.valid_key(new_text):
                     item.setText(self._current)
@@ -117,20 +117,20 @@ class KeyList(QtGui.QTableWidget):
                         return
         prev_current = self._current
 
+        old_key = None
         if self._current:
-            key = self._key + self._current
-            self._project[key] = None
+            old_key = self._key + self._current
         else:
             assert self.currentRow() == self.rowCount() - 1
             self.insertRow(self.rowCount())
 
-        new_text = str(item.text()) if item else ''
+        new_text = unicode(item.text()) if item else ''
         if new_text:
             self._current = new_text
         else:
             self.removeRow(self.currentRow())
             item = self.currentItem()
-            self._current = str(item.text()) if item else ''
+            self._current = unicode(item.text()) if item else ''
         self.blockSignals(False)
         self._lock_update = False
 
@@ -138,6 +138,11 @@ class KeyList(QtGui.QTableWidget):
             QtCore.QObject.emit(self,
                                 QtCore.SIGNAL('keyChanged(QString)'),
                                 self._key + self._current)
+
+        if old_key:
+            #print('throwing away ' + old_key)
+            self._project[old_key] = None
+            #print(type(self._project[old_key]))
 
     def set_key(self, key, force=False):
         prev_key = self._key
@@ -159,6 +164,8 @@ class KeyList(QtGui.QTableWidget):
             self._lock_update = False
             return
         subtree.sort()
+        #print(self._key)
+        #print(subtree)
         new_rows = len(subtree) - self.rowCount()
         for _ in xrange(new_rows):
             self.insertRow(self.rowCount())
