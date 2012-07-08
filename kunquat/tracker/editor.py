@@ -332,7 +332,8 @@ class KqtEditor(QtGui.QMainWindow):
             self.project.export_kqt(str(path))
 
     def show_sheet(self):
-        sheet = self._sheetbox
+        sheet = self._sheet
+        #sheet = self._sheetbox
         visibility = sheet.isVisible()
         sheet.setVisible(not visibility)
 
@@ -353,7 +354,8 @@ class KqtEditor(QtGui.QMainWindow):
         if busy_set:
             self._focus_backup = QtGui.QApplication.focusWidget()
         self._top_control.setEnabled(not busy_set)
-        self._sheetbox.setEnabled(not busy_set)
+        self._sheet.setEnabled(not busy_set)
+        #self._sheetbox.setEnabled(not busy_set)
         if not busy_set:
             if self._focus_backup:
                 self._focus_backup.setFocus()
@@ -383,9 +385,9 @@ class KqtEditor(QtGui.QMainWindow):
                             self.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
                             self._octave, self._instrument, playback_bar)
-        self._sheetbox = QtGui.QTabWidget()
-        self._sheetbox.addTab(self._sheet, 'Sheet')
-        self._sheetbox.tabBar().setVisible(False)
+        #self._sheetbox = QtGui.QTabWidget()
+        #self._sheetbox.addTab(self._sheet, 'Sheet')
+        #self._sheetbox.tabBar().setVisible(False)
 
         self._instruments = Instruments(self.project,
                                         self._instrument,
@@ -428,9 +430,10 @@ class KqtEditor(QtGui.QMainWindow):
         div = QtGui.QSplitter(self)
         self._div = div
         div.setOrientation(QtCore.Qt.Vertical)
-        div.addWidget(self._sheetbox)
+        div.addWidget(self._sheet)
         div.addWidget(instrumentpanel)
-        self._sheetbox.hide()
+        self._sheet.hide()
+        #self._sheetbox.hide()
 
         top_layout.addWidget(div)
         #top_layout.addWidget(self._sheetbox)
