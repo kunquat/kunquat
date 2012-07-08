@@ -133,8 +133,8 @@ class Variables(QtGui.QTableWidget):
             self.removeRow(index)
             for i in xrange(index, self.rowCount()):
                 self.cellWidget(i, 0).index = i
-        var_list = self._flatten()
-        saved = self._project[self._key] or []
+        var_list = self._flatten() or None
+        saved = self._project[self._key] or None
         if var_list != saved:
             self._project[self._key] = var_list
         self.blockSignals(False)
@@ -144,8 +144,8 @@ class Variables(QtGui.QTableWidget):
             self._type_changed(row, self.cellWidget(row, 0).type_format)
             return
         if col < 3:
-            var_list = self._flatten()
-            saved = self._project[self._key] or []
+            var_list = self._flatten() or None
+            saved = self._project[self._key] or None
             if var_list != saved:
                 self._project[self._key] = var_list
             return
