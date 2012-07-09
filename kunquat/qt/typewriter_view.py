@@ -8,7 +8,7 @@ class TypewriterModel():
         pass
 
     def rows(self):
-        return [10, 11, 7, 7]
+        return [10, 10, 7, 7]
 
     def data(self, button, role):
         buttons = {
