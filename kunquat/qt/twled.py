@@ -11,13 +11,13 @@ class TWLed(QLabel):
         self.setMaximumHeight(15)
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.setLineWidth(2)
-        self.dark()
+        from random import choice
+        self.light(choice(['dark', 'bright', 'dim']))
 
-    def dark(self):
-        self.setStyleSheet("QLabel { background-color: #500; }")
-
-    def bright(self):
-        self.setStyleSheet("QLabel { background-color: #f00; }")
-
-    def dim(self):
-        self.setStyleSheet("QLabel { background-color: #720; }")
+    def light(self, light):
+        if light == 'dark':
+            self.setStyleSheet("QLabel { background-color: #600; }")
+        if light == 'bright':
+            self.setStyleSheet("QLabel { background-color: #e00; }")
+        if light == 'dim':
+            self.setStyleSheet("QLabel { background-color: #a00; }")

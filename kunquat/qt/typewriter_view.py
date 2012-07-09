@@ -76,8 +76,8 @@ class TypewriterView(QAbstractScrollArea):
             row = QWidget()
             rowl = QHBoxLayout(row)
             pad = QLabel()
-            pad.setMinimumWidth(rowc * 45)
-            pad.setMaximumWidth(rowc * 45)
+            pad.setMinimumWidth(rowc * 40)
+            pad.setMaximumWidth(rowc * 40)
             rowl.addWidget(pad)
             colc = 0
             for i in range(buttons):
