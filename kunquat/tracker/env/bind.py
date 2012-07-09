@@ -89,10 +89,16 @@ class Bind(QtGui.QWidget):
             self._data.extend([[name, [], []]])
         else:
             self._data[index][0] = name
-        self._flatten()
+        m = self._flatten() or None
+        saved = self._project[self._key] or None
+        if m != saved:
+            self._project[self._key] = m
 
     def _bind_changed(self, immediate):
-        self._flatten(immediate)
+        m = self._flatten(immediate) or None
+        saved = self._project[self._key] or None
+        if m != saved:
+            self._project.set(self._key, m, immediate)
 
     def _flatten(self, immediate=True):
         m = []
@@ -110,7 +116,7 @@ class Bind(QtGui.QWidget):
                     continue
                 a.extend([[action[0], [action[1][0], action[1][1]]]])
             m.extend([[binding[0], c, a]])
-        self._project.set(self._key, m, immediate)
+        return m
 
 
 class FiringEvents(QtGui.QTableWidget):

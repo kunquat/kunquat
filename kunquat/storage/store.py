@@ -63,10 +63,9 @@ class Store(object):
         return json.dumps(value)
 
     def delete(self, key):
-        try:
+        if key in self._memory:
             del self._memory[key]
-        except KeyError:
-            pass
+            self.signal(Value_update(key=key))
 
     def put(self, key, value):
         self._memory[key] = self._encode(value)
@@ -108,7 +107,7 @@ class Store(object):
     def signal(self, event):
         for callback in self.callbacks:
             callback(event)
-        
+
 if __name__ == "__main__":
     import doctest
     doctest.testmod()

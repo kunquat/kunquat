@@ -106,14 +106,7 @@ class Project(QtCore.QObject):
         self._composition.delete(key)
 
     def set(self, key, value, immediate=True, autoconnect=True):
-        try:
-            self._composition.put(key, value, immediate, autoconnect)
-        finally:
-            if autoconnect:
-                self._autoconnect_finish()
-
-    def _autoconnect_finish(self):
-        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
+        self._composition.put(key, value, immediate, autoconnect)
 
     def subtree(self, prefix):
         return self._composition.subtree(prefix)
@@ -207,6 +200,7 @@ class Project(QtCore.QObject):
 
     def _store_value_update(self, key, **_):
         self._update_player(key)
+        QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), len(key_names))

@@ -133,7 +133,10 @@ class Variables(QtGui.QTableWidget):
             self.removeRow(index)
             for i in xrange(index, self.rowCount()):
                 self.cellWidget(i, 0).index = i
-        self._flatten()
+        var_list = self._flatten() or None
+        saved = self._project[self._key] or None
+        if var_list != saved:
+            self._project[self._key] = var_list
         self.blockSignals(False)
 
     def _data_changed(self, row, col):
@@ -141,7 +144,10 @@ class Variables(QtGui.QTableWidget):
             self._type_changed(row, self.cellWidget(row, 0).type_format)
             return
         if col < 3:
-            self._flatten()
+            var_list = self._flatten() or None
+            saved = self._project[self._key] or None
+            if var_list != saved:
+                self._project[self._key] = var_list
             return
         assert col == 3
         var_type = self.cellWidget(row, 0).type_format
@@ -199,7 +205,7 @@ class Variables(QtGui.QTableWidget):
             except ValueError:
                 continue
             var_list.extend([[var_type, var_name, var_init]])
-        self._project[self._key] = var_list
+        return var_list
 
     def _update_bool_name(self, ch, event):
         self._update_names['bool'] = event[1]
