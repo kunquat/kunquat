@@ -22,6 +22,7 @@ import random
 import sys
 import time
 
+from kunquat.qt import TypewriterView
 from kunquat.extras import pulseaudio
 from kunquat.tracker.env import Env
 from PyQt4 import QtCore, QtGui
@@ -417,7 +418,7 @@ class KqtEditor(QtGui.QMainWindow):
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
 
-        instruarea = QtGui.QTabWidget()
+        instruarea = TypewriterView()
         instrumentpanel = QtGui.QWidget(self)
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
         instrumentlayout.addWidget(self._top_control)
