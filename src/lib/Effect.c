@@ -140,10 +140,7 @@ void Effect_set_connections(Effect* eff, Connections* graph)
 {
     assert(eff != NULL);
     //fprintf(stderr, "Set new connections for %p: %p\n", (void*)eff, (void*)graph);
-    if (eff->connections != NULL)
-    {
-        del_Connections(eff->connections);
-    }
+    del_Connections(eff->connections);
     eff->connections = graph;
     return;
 }
@@ -311,7 +308,7 @@ static void Effect_process(Device* device,
             }
         }
     }
-    else
+    else if (eff->connections != NULL)
     {
 #ifndef NDEBUG
         static bool in_effect = false;

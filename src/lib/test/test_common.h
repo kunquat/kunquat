@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_TEST_COMMON_H
-#define K_TEST_COMMON_H
+#ifndef KT_TEST_COMMON_H
+#define KT_TEST_COMMON_H
 
 
 #include <assert.h>
@@ -23,10 +23,17 @@
 
 
 #ifdef K_MEM_DEBUG
+#ifndef NDEBUG
 #define NDEBUG
+#endif
 #endif
 
 
-#endif // K_TEST_COMMON_H
+#define KT_VALUES(fmt, expected, actual) \
+    "\n    Expected: " fmt \
+    "\n    Actual:   " fmt , expected, actual
+
+
+#endif // KT_TEST_COMMON_H
 
 
