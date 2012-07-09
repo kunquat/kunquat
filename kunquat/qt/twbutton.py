@@ -23,10 +23,10 @@ class TWButton(QPushButton):
 
     def set_color(self, color):
         if color == 'dark':
-            self.setStyleSheet("QPushButton { background-color: #001; }")
+            self.setStyleSheet("QLabel { background-color: #001; }")
             self._notename.setStyleSheet("QLabel { color: #fff; }")
         if color == 'light':
-            self.setStyleSheet("QPushButton { background-color: #ffe; }")
+            self.setStyleSheet("QLabel { background-color: #ffe; }")
             self._notename.setStyleSheet("QLabel { color: #000; }")
 
 
