@@ -23,6 +23,7 @@ import os.path
 import random
 import string
 import sys
+import tarfile
 import termios
 import time
 
@@ -31,7 +32,7 @@ from kunquat.extras import pulseaudio
 
 
 PROGRAM_NAME = 'kunquat-player'
-PROGRAM_VERSION = '0.5.3b'
+PROGRAM_VERSION = '0.5.4'
 AUTHORS = [ u'Tomi Jylhä-Ollila', u'Toni Ruottu' ]
 
 
@@ -67,18 +68,26 @@ def print_interactive_help():
     print('\n'.join(help))
 
 
-def print_meta(handle):
+def print_meta(meta):
     fields = []
     values = []
-    title = handle['m_title.json']
-    if title:
+
+    try:
+        title = meta['m_title.json']
         fields.extend(['Title:'])
         values.extend([title])
-    authors = handle['m_authors.json']
+    except KeyError:
+        pass
+
+    try:
+        authors = meta['m_authors.json']
+    except KeyError:
+        authors = None
     if authors:
-        fields.extend(['Author{0}:'.format('s' if len(authors) != 1
-                                               else '')])
+        s = 's' if len(authors) != 1 else ''
+        fields.extend(['Author{0}:'.format(s)])
         values.extend([', '.join(authors)])
+
     if not fields:
         return
     field_width = max(len(f) for f in fields)
@@ -87,12 +96,42 @@ def print_meta(handle):
     print('\n'.join(rows))
 
 
+def load_kqt(path, freq):
+    handle = kunquat.MHandle(freq)
+    meta = {}
+    tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
+
+    for entry in tfile.getmembers():
+        key = entry.name
+        if not key.startswith('kqtc'):
+            raise kunquat.KunquatError('Invalid composition')
+        if entry.isfile():
+            if '/' not in key:
+                raise kunquat.KunquatError('Invalid composition')
+            key = key[key.index('/') + 1:]
+            value = tfile.extractfile(entry).read()
+            value = json.loads(value) if '.json' in key else value
+            handle.set_data(key, value)
+
+            last_elem = key.split('/')[-1]
+            if last_elem.startswith('m_'):
+                meta[key] = value
+
+    tfile.close()
+    return handle, meta
+
+
 def play(options, file_name, pa_handle, key_handler, list_pos):
+    path_head, path_tail = os.path.split(os.path.realpath(file_name))
+    if (os.path.isdir(file_name) and path_tail == 'kqtc00'):
+        print('Playing unpacked Kunquat composition directories is'
+                ' no longer supported.\n'
+                'You can make a Kunquat music file by running:\n'
+                '  tar cj --format=ustar -f music.kqt.bz2 -C',
+                path_head, path_tail, end='')
+        return KeyHandler.RETURN
     try:
-        if os.path.basename(os.path.realpath(file_name)) == 'kqtc00':
-            handle = kunquat.RWHandle(file_name, options.frequency)
-        else:
-            handle = kunquat.RHandle(file_name, options.frequency)
+        handle, meta = load_kqt(file_name, options.frequency)
     except kunquat.KunquatError as e:
         print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
@@ -102,7 +141,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     duration = handle.get_duration(options.subsong)
     if options.interactive:
         print('Playing', file_name)
-        print_meta(handle)
+        print_meta(meta)
     return_key = KeyHandler.RETURN
     status_len_max = 0
     #pause = False

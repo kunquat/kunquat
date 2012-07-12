@@ -560,6 +560,8 @@ class KunquatError(Exception):
     """Base class for errors in Kunquat."""
 
     def __init__(self, obj):
+        if isinstance(obj, str) or isinstance(obj, unicode):
+            obj = { 'message': obj }
         self.obj = obj
 
     def __getitem__(self, key):
