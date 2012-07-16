@@ -31,7 +31,7 @@ enable_player = True
 enable_tracker = True
 
 # Enable kunquat-export (requires libsndfile).
-enable_export = False
+enable_export = True
 
 # Build example Kunquat files.
 enable_examples = True

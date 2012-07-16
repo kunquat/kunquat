@@ -1,0 +1,353 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+#
+# Author: Tomi Jylhä-Ollila, Finland 2012
+#
+# This file is part of Kunquat.
+#
+# CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/
+#
+# To the extent possible under law, Kunquat Affirmers have waived all
+# copyright and related or neighboring rights to Kunquat.
+#
+
+from __future__ import division, print_function
+import getopt
+import itertools as it
+import json
+import math
+import os.path
+import sys
+import tarfile
+import time
+
+import kunquat
+import kunquat.extras.sndfile as sndfile
+
+
+PROGRAM_NAME = 'kunquat-export'
+PROGRAM_VERSION = '0.5.4'
+AUTHORS = [ u'Tomi Jylhä-Ollila' ]
+
+
+def load_kqt(path, freq):
+    handle = kunquat.MHandle(freq)
+    meta = {}
+    tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
+
+    for entry in tfile.getmembers():
+        key = entry.name
+        if not key.startswith('kqtc'):
+            raise kunquat.KunquatError('Invalid composition')
+        if entry.isfile():
+            if '/' not in key:
+                raise kunquat.KunquatError('Invalid composition')
+            key = key[key.index('/') + 1:]
+            value = tfile.extractfile(entry).read()
+            value = json.loads(value) if '.json' in key else value
+            handle.set_data(key, value)
+
+            last_elem = key.split('/')[-1]
+            if last_elem.startswith('m_'):
+                meta[key] = value
+
+    tfile.close()
+    return handle, meta
+
+
+def export(in_path, out_path, options):
+    if not options['quiet']:
+        print('Exporting {} to {}'.format(in_path, out_path))
+
+    try:
+        handle, _ = load_kqt(in_path, options['frequency'])
+    except kunquat.KunquatError as e:
+        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
+        return
+    handle.subsong = options['subsong']
+    duration = handle.get_duration(options['subsong'])
+
+    sf = sndfile.SndFile(
+            out_path,
+            format=options['format'],
+            rate=options['frequency'],
+            channels=2,
+            use_float=options['float'],
+            bits=options['bits'])
+
+    peak = 0
+    clipped = 0
+    line_len = 0
+    start_time = time.time()
+    bufs = handle.mix()
+    while bufs[0]:
+        sf.write(*bufs)
+
+        if not options['quiet']:
+            clipped += sum(1 for (x, y) in it.izip(*bufs)
+                           if abs(x) > 1.0 or abs(y) > 1.0)
+            cur_peak = max(max(abs(x), abs(y)) for (x, y) in it.izip(*bufs))
+            peak = max(peak, cur_peak)
+            clen = print_status_line(handle.nanoseconds, duration, clipped)
+            line_len = max(line_len, clen)
+
+        bufs = handle.mix()
+    end_time = time.time()
+
+    if not options['quiet']:
+        elapsed = end_time - start_time
+        print(' ' * line_len, end='\r')
+        print_summary(duration / 1000000000, elapsed, peak, clipped)
+
+    sf = None
+
+
+def print_status_line(pos, duration, clipped):
+    completed = pos / duration
+    line = progress_str(completed, 30)
+    line += u' {:4.1f} %'.format(100 * completed)
+    if clipped:
+        line += u', clipped: {}'.format(clipped)
+    print(line, end='\r')
+    sys.stdout.flush()
+    return len(line)
+
+
+def print_summary(duration, elapsed, peak, clipped):
+    print()
+    print('    Audio time:     {:02d}:{:04.1f}'.format(
+                               int(duration // 60), duration % 60))
+    print('    Render time:    {:02d}:{:04.1f}'.format(
+                               int(elapsed // 60), elapsed % 60))
+    print('    Rate:           {:.2f}'.format(duration / elapsed))
+    try:
+        peak_dB = '{:+.2f}'.format(math.log(peak, 2) * 6)
+    except ValueError:
+        peak_dB = '-inf'
+    print('    Peak amplitude: {} dBFS'.format(peak_dB))
+    if clipped:
+        print('    Clipped:        {} frames'.format(clipped))
+    print()
+
+
+def progress_str(progress, area_width):
+    assert progress >= 0
+    assert area_width > 2
+    assert area_width % 2 == 0
+    area_width -= 2
+    bar_width = int(round(progress * area_width))
+
+    trailing_space = area_width - bar_width
+
+    bar      = it.repeat(1, bar_width)
+    trailing = it.repeat(0, trailing_space)
+    nums     = [1] + list(it.chain(bar, trailing)) + [1]
+
+    compressed = (a + 2 * b for (a, b) in
+            it.izip(it.islice(nums, 0, None, 2), it.islice(nums, 1, None, 2)))
+    block_map = [u'⣉', u'⣏', u'⣹', u'⣿']
+    return u''.join([block_map[x] for x in compressed])
+
+
+def author_list(authors):
+    s = 's' if len(authors) > 1 else ''
+    head = 'Author{}:'.format(s)
+    space = it.cycle([len(head) * ' '])
+    left = it.chain([head], space)
+    right = authors
+    rows = (' '.join(r) for r in zip(left, right))
+    return '\n'.join(rows)
+
+
+def print_licence():
+    lic1 = 'No rights reserved'
+    lic2 = 'CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/'
+    print('\n'.join((author_list(AUTHORS), lic1, lic2)))
+
+
+def print_version():
+    print('{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+
+
+def print_help():
+    print_version()
+    print('\nUsage: {} [options] <files>'.format(PROGRAM_NAME))
+    print('\nOptions:')
+    print('  -o, --output out    Use output file out')
+    print('  -f, --format fmt    Use output file format fmt\n'
+          '                      Supported formats: wav, au, flac')
+    print('  -b, --bits b        Use b bits per output frame')
+    print('  --float             Use floating point frames for output')
+    print('  --frequency n       Set mixing frequency to n frames/second\n'
+          '                      Valid range is [1000,384000]')
+    print('  -s, --subsong sub   Export subsong sub\n'
+          '                      Valid range is [0,255] (or \'all\')')
+    print('  -h, --help          Show this help and exit')
+    print('  -q, --quiet         '
+            'Quiet operation (only error messages will be displayed)')
+    print('  --version           Show version information and exit')
+    print('')
+
+
+def option_error(msg):
+    print(msg)
+    print('Use -h for help.')
+    sys.exit(1)
+
+
+def main():
+    usage = '{} [options] <files>'.format(PROGRAM_NAME)
+
+    long_opts = [
+            'help',
+            'quiet',
+            'output=',
+            'subsong=',
+            'format=',
+            'bits=',
+            'float',
+            'frequency=',
+            'version']
+    try:
+        opts, paths = getopt.getopt(sys.argv[1:], ':hqo:s:f:b:', long_opts)
+    except getopt.GetoptError as e:
+        print(e.msg, e.opt)
+        option_error(e)
+
+    options = {
+            'bits': 16,
+            'float': False,
+            'frequency': 48000,
+            'subsong': None,
+            'quiet': False,
+            }
+
+    setters = {
+            '-o': set_output, '--output': set_output,
+            '-f': set_format, '--format': set_format,
+            '-b': set_bits, '--bits': set_bits,
+            '--float': set_float,
+            '--frequency': set_frequency,
+            '-s': set_subsong, '--subsong': set_subsong,
+            '-q': set_quiet, '--quiet': set_quiet,
+            }
+
+    for option, value in opts:
+        if option in ('-h', '--help'):
+            print_help()
+            sys.exit(0)
+        elif option == '--version':
+            print_version()
+            print_licence()
+            sys.exit(0)
+        else:
+            setters[option](options, value)
+
+    if not paths:
+        print('No input files specified. Use -h for help.')
+        sys.exit(1)
+    elif 'output' in options and len(paths) > 1:
+        print('Output file can only be specified with one input file.')
+        sys.exit(1)
+
+    fill_options(options)
+
+    for path in paths:
+        path_head, path_tail = os.path.split(os.path.realpath(path))
+        if os.path.isdir(path) and path_tail == 'kqtc00':
+            print('Exporting unpacked Kunquat composition directories is'
+                    ' no longer supported.\n'
+                    'You can make a Kunquat music file by running:\n'
+                    '  tar cj --format=ustar -f music.kqt.bz2 -C',
+                    path_head, path_tail)
+            continue
+        if 'output' in options:
+            out_path = options['output']
+        else:
+            out_path = create_output_path(path, options['format'])
+        export(path, out_path, options)
+
+
+def create_output_path(path, format_option):
+    path = os.path.basename(path)
+    if path.endswith(('.kqt', '.kqt.gz', '.kqt.bz2')):
+        ext_index = path.rfind('kqt')
+        assert ext_index != -1
+        return path[:ext_index] + format_option
+    return path + '.' + format_option
+
+
+def fill_options(options):
+    if 'format' not in options:
+        if ('output' in options and
+                options['output'].endswith(('.wav', '.au', '.flac'))):
+            out = options['output']
+            options['format'] = out[out.rindex('.') + 1:]
+        else:
+            options['format'] = 'wav'
+    assert options['format'] in ('wav', 'au', 'flac')
+
+    if options['float']:
+        options['bits'] = 32
+    elif 'bits' not in options:
+        options['bits'] = 16
+
+
+def set_output(options, value):
+    options['output'] = value
+
+
+def set_format(options, value):
+    if value not in ('wav', 'au', 'flac'):
+        option_error('Unsupported format: {}'.format(value))
+    options['format'] = value
+
+
+def set_bits(options, value):
+    try:
+        num = int(value)
+        if num not in (8, 16, 24, 32):
+            raise ValueError
+        options['bits'] = num
+    except ValueError:
+        option_error('Bit depth must be 8, 16, 24 or 32')
+
+
+def set_float(options, value):
+    options['float'] = True
+
+
+def set_frequency(options, value):
+    try:
+        num = int(value)
+        if not 1000 <= num <= 384000:
+            raise ValueError
+        options['frequency'] = num
+    except ValueError:
+        option_error('Mixing frequency must be an integer'
+                ' between 1000 and 384000')
+
+
+def set_subsong(options, value):
+    if value == 'all':
+        options['subsong'] = None
+    else:
+        try:
+            num = int(value)
+            if not 0 <= num < 256:
+                raise ValueError
+            options['subsong'] = num
+        except ValueError:
+            option_error('Subsong must be a number between 0 and'
+                    ' 255 (or all)')
+
+
+def set_quiet(options, value):
+    options['quiet'] = True
+
+
+if __name__ == '__main__':
+    main()
+
+

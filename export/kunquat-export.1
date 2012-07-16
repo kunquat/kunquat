@@ -1,4 +1,4 @@
-.TH kunquat\-export 1 "2010\-01\-06" "" "Kunquat"
+.TH kunquat\-export 1 "2012\-07\-16" "" "Kunquat"
 
 .SH NAME
 kunquat\-export \- converts Kunquat compositions into waveform audio
@@ -47,9 +47,9 @@ kunquat\-export \- converts Kunquat compositions into waveform audio
 .SH DESCRIPTION
 .B kunquat\-export
 is a command\-line tool for converting Kunquat compositions into waveform
-audio. It supports both .kqt files (optionally compressed with \fBgzip\fR(1)
-or \fBbzip2\fR(1)) and unpacked Kunquat composition directories (these are
-named kqtc\fIXX\fR where \fIXX\fR is the version number of the format).
+audio. Kunquat compositions normally have the .kqt suffix (and
+additional .gz or .bz2 suffix if the file is compressed with \fBgzip\fR(1)
+or \fBbzip2\fR(1)).
 
 .SH OPTIONS
 
@@ -78,8 +78,8 @@ sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
 Default value is 48000.
 
 .IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
-Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
-\fIall\fR which plays all the existing subsongs in order.
+Renders the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
+\fIall\fR which renders all the existing subsongs in order.
 
 .IP "\fB\-h\fR, \fB\-\-help\fR"
 Shows help and exits.

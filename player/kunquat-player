@@ -123,7 +123,7 @@ def load_kqt(path, freq):
 
 def play(options, file_name, pa_handle, key_handler, list_pos):
     path_head, path_tail = os.path.split(os.path.realpath(file_name))
-    if (os.path.isdir(file_name) and path_tail == 'kqtc00'):
+    if os.path.isdir(file_name) and path_tail == 'kqtc00':
         print('Playing unpacked Kunquat composition directories is'
                 ' no longer supported.\n'
                 'You can make a Kunquat music file by running:\n'

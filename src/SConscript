@@ -28,8 +28,8 @@ if env['enable_libkunquat_dev']:
 #    SConscript('audio/SConscript')
 #    SConscript('player/SConscript')
 
-if env['enable_export']:
-    SConscript('export/SConscript')
+#if env['enable_export']:
+#    SConscript('export/SConscript')
 
 #print 'src: ' + env.Dump('LIBS')
 
