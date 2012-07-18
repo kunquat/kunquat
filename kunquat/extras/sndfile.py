@@ -96,7 +96,7 @@ class SndFile(object):
         self._sf = _sndfile.sf_open(fname, SFM_WRITE, info)
         if not self._sf:
             raise Exception('Couldn\'t create file {}: {}'.format(
-                output, _sndfile.sf_strerror(None)))
+                fname, _sndfile.sf_strerror(None)))
 
         _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
 
