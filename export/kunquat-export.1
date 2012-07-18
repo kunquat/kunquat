@@ -1,4 +1,4 @@
-.TH kunquat\-export 1 "2012\-07\-16" "" "Kunquat"
+.TH kunquat\-export 1 "2012\-07\-18" "" "Kunquat"
 
 .SH NAME
 kunquat\-export \- converts Kunquat compositions into waveform audio
@@ -31,7 +31,7 @@ kunquat\-export \- converts Kunquat compositions into waveform audio
 .B \-\-float
 ]
 [
-.B \-\-frequency
+.B \-r
 .I n
 ]
 [
@@ -65,14 +65,14 @@ Writes the output file in the format \fIfmt\fR. Run
 to see which output formats are supported.
 
 .IP "\fB\-b\fR \fIb\fR, \fB\-\-bits\fR \fIb\fR"
-Uses \fIb\fR bits per output frame. \fIb\fR is 8, 16, 24 or 32 for fixed-point
-frames and 32 or 64 for floating-point frames. Default value is 16 for
-fixed-point frames and 32 for floating-point frames.
+Uses \fIb\fR-bit fixed-point format. \fIb\fR is 8, 16, 24 or 32. Default value
+is 16.
 
 .IP "\fB\-\-float\fR"
-Uses floating-point frames. Default is fixed-point.
+Uses floating-point format. Default is fixed-point. This option overrides
+\fB-b\fR and forces a 32-bit format.
 
-.IP "\fB\-\-frequency\fR \fIn\fR"
+.IP "\fB\-r\fR \fIn\fR, \fB\-\-rate\fR \fIn\fR"
 Mixes \fIn\fR frames per second. As a result, the highest frequency in the
 sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
 Default value is 48000.

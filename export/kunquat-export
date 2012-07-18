@@ -61,7 +61,7 @@ def export(in_path, out_path, options):
         print('Exporting {} to {}'.format(in_path, out_path))
 
     try:
-        handle, _ = load_kqt(in_path, options['frequency'])
+        handle, _ = load_kqt(in_path, options['rate'])
     except kunquat.KunquatError as e:
         print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return
@@ -69,17 +69,17 @@ def export(in_path, out_path, options):
     duration = handle.get_duration(options['subsong'])
 
     try:
-        sf = sndfile.SndFile(
+        sf = sndfile.SndFileW(
                 out_path,
                 format=options['format'],
-                rate=options['frequency'],
+                rate=options['rate'],
                 channels=2,
                 use_float=options['float'],
                 bits=options['bits'])
     except ValueError as e:
         print(e)
         sys.exit(1)
-    except Exception as e:
+    except sndfile.SndFileError as e:
         print(e)
         return
 
@@ -184,9 +184,9 @@ def print_help():
     print('  -o, --output out    Use output file out')
     print('  -f, --format fmt    Use output file format fmt\n'
           '                      Supported formats: wav, au, flac')
-    print('  -b, --bits b        Use b bits per output frame')
-    print('  --float             Use floating point frames for output')
-    print('  --frequency n       Set mixing frequency to n frames/second\n'
+    print('  -b, --bits b        Use b-bit fixed-point format')
+    print('  --float             Use floating point format')
+    print('  -r, --rate n        Set audio rate to n frames/second\n'
           '                      Valid range is [1000,384000]')
     print('  -s, --subsong sub   Export subsong sub\n'
           '                      Valid range is [0,255] (or \'all\')')
@@ -214,10 +214,10 @@ def main():
             'format=',
             'bits=',
             'float',
-            'frequency=',
+            'rate=',
             'version']
     try:
-        opts, paths = getopt.getopt(sys.argv[1:], ':hqo:s:f:b:', long_opts)
+        opts, paths = getopt.getopt(sys.argv[1:], ':hqo:r:s:f:b:', long_opts)
     except getopt.GetoptError as e:
         print(e.msg, e.opt)
         option_error(e)
@@ -225,7 +225,7 @@ def main():
     options = {
             'bits': 16,
             'float': False,
-            'frequency': 48000,
+            'rate': 48000,
             'subsong': None,
             'quiet': False,
             }
@@ -235,7 +235,7 @@ def main():
             '-f': set_format, '--format': set_format,
             '-b': set_bits, '--bits': set_bits,
             '--float': set_float,
-            '--frequency': set_frequency,
+            '-r': set_rate, '--rate': set_rate,
             '-s': set_subsong, '--subsong': set_subsong,
             '-q': set_quiet, '--quiet': set_quiet,
             }
@@ -325,14 +325,14 @@ def set_float(options, value):
     options['float'] = True
 
 
-def set_frequency(options, value):
+def set_rate(options, value):
     try:
         num = int(value)
         if not 1000 <= num <= 384000:
             raise ValueError
-        options['frequency'] = num
+        options['rate'] = num
     except ValueError:
-        option_error('Mixing frequency must be an integer'
+        option_error('Audio rate must be an integer'
                 ' between 1000 and 384000')
 
 

@@ -39,21 +39,21 @@ SFM_WRITE = 0x20
 
 SFC_SET_CLIPPING = 0x10c0
 
+formats_map = {
+        'wav':  FORMAT_WAV,
+        'au':   FORMAT_AU,
+        'flac': FORMAT_FLAC,
+        }
 
-class SndFile(object):
+bits_map = {
+        8:  FORMAT_PCM_S8,
+        16: FORMAT_PCM_16,
+        24: FORMAT_PCM_24,
+        32: FORMAT_PCM_32,
+        }
 
-    formats = {
-            'wav':  FORMAT_WAV,
-            'au':   FORMAT_AU,
-            'flac': FORMAT_FLAC,
-            }
 
-    bits = {
-            8:  FORMAT_PCM_S8,
-            16: FORMAT_PCM_16,
-            24: FORMAT_PCM_24,
-            32: FORMAT_PCM_32,
-            }
+class SndFileW(object):
 
     def __init__(self,
                  fname,
@@ -62,7 +62,7 @@ class SndFile(object):
                  channels=2,
                  use_float=False,
                  bits=16):
-        """Create a new writable SndFile.
+        """Create a new writable audio file.
 
         Arguments:
         fname -- Output file name.
@@ -77,14 +77,14 @@ class SndFile(object):
         """
         self._channels = channels
         self._sf = None
-        fspec = SndFile.formats[format]
+        fspec = formats_map[format]
         if use_float:
             fspec |= FORMAT_FLOAT
         else:
             if format == 'wav' and bits == 8:
                 fspec |= FORMAT_PCM_U8
             else:
-                fspec |= SndFile.bits[bits]
+                fspec |= bits_map[bits]
 
         info = _SF_INFO(0, rate, channels, fspec, 0, 0)
         if not _sndfile.sf_format_check(info):
@@ -95,10 +95,11 @@ class SndFile(object):
 
         self._sf = _sndfile.sf_open(fname, SFM_WRITE, info)
         if not self._sf:
-            raise Exception('Couldn\'t create file {}: {}'.format(
+            raise SndFileError('Couldn\'t create file {}: {}'.format(
                 fname, _sndfile.sf_strerror(None)))
 
-        _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
+        if not use_float:
+            _sndfile.sf_command(self._sf, SFC_SET_CLIPPING, None, SF_TRUE)
 
     def write(self, *data):
         """Write audio data.
@@ -125,6 +126,12 @@ class SndFile(object):
         if self._sf:
             _sndfile.sf_close(self._sf)
         self._sf = None
+
+
+class SndFileError(Exception):
+    """Class for libsndfile-related errors.
+
+    """
 
 
 class _SF_INFO(ctypes.Structure):
