@@ -63,7 +63,7 @@ def export(in_path, out_path, options):
     try:
         handle, _ = load_kqt(in_path, options['rate'])
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
+        print('Couldn\'t load \'{}\': {}'.format(file_name, e), end='')
         return
     handle.subsong = options['subsong']
     duration = handle.get_duration(options['subsong'])
@@ -108,6 +108,23 @@ def export(in_path, out_path, options):
         print_summary(duration / 1000000000, elapsed, peak, clipped)
 
     sf = None
+
+
+def export_all(options, paths):
+    for path in paths:
+        path_head, path_tail = os.path.split(os.path.realpath(path))
+        if os.path.isdir(path) and path_tail == 'kqtc00':
+            print('Exporting unpacked Kunquat composition directories is'
+                    ' no longer supported.\n'
+                    'You can make a Kunquat music file by running:\n'
+                    '  tar cj --format=ustar -f music.kqt.bz2 -C',
+                    path_head, path_tail, file=sys.stderr)
+            continue
+        if 'output' in options:
+            out_path = options['output']
+        else:
+            out_path = create_output_path(path, options['format'])
+        export(path, out_path, options)
 
 
 def print_status_line(pos, duration, clipped):
@@ -174,12 +191,11 @@ def print_licence():
 
 
 def print_version():
-    print('{} {}'.format(PROGRAM_NAME, PROGRAM_VERSION))
+    print(PROGRAM_NAME, PROGRAM_VERSION)
 
 
 def print_help():
-    print_version()
-    print('\nUsage: {} [options] <files>'.format(PROGRAM_NAME))
+    print('Usage: {} [options] <files>'.format(PROGRAM_NAME))
     print('\nOptions:')
     print('  -o, --output out    Use output file out')
     print('  -f, --format fmt    Use output file format fmt\n'
@@ -189,23 +205,19 @@ def print_help():
     print('  -r, --rate n        Set audio rate to n frames/second\n'
           '                      Valid range is [1000,384000]')
     print('  -s, --subsong sub   Export subsong sub\n'
-          '                      Valid range is [0,255] (or \'all\')')
+          '                      Valid range is [0,255] (or `all`)')
     print('  -h, --help          Show this help and exit')
     print('  -q, --quiet         '
             'Quiet operation (only error messages will be displayed)')
     print('  --version           Show version information and exit')
-    print('')
+    print()
 
 
 def option_error(msg):
-    print(msg)
-    print('Use -h for help.')
-    sys.exit(1)
+    sys.exit(msg + 'Use -h for help.')
 
 
 def main():
-    usage = '{} [options] <files>'.format(PROGRAM_NAME)
-
     long_opts = [
             'help',
             'quiet',
@@ -215,7 +227,8 @@ def main():
             'bits=',
             'float',
             'rate=',
-            'version']
+            'version',
+            ]
     try:
         opts, paths = getopt.getopt(sys.argv[1:], ':hqo:r:s:f:b:', long_opts)
     except getopt.GetoptError as e:
@@ -243,37 +256,25 @@ def main():
     for option, value in opts:
         if option in ('-h', '--help'):
             print_help()
-            sys.exit(0)
+            sys.exit()
         elif option == '--version':
             print_version()
             print_licence()
-            sys.exit(0)
+            sys.exit()
         else:
             setters[option](options, value)
 
     if not paths:
-        print('No input files specified. Use -h for help.')
-        sys.exit(1)
+        sys.exit('No input files specified. Use -h for help.')
     elif 'output' in options and len(paths) > 1:
-        print('Output file can only be specified with one input file.')
-        sys.exit(1)
+        sys.exit('Output file can only be specified with one input file.')
 
     fill_options(options)
 
-    for path in paths:
-        path_head, path_tail = os.path.split(os.path.realpath(path))
-        if os.path.isdir(path) and path_tail == 'kqtc00':
-            print('Exporting unpacked Kunquat composition directories is'
-                    ' no longer supported.\n'
-                    'You can make a Kunquat music file by running:\n'
-                    '  tar cj --format=ustar -f music.kqt.bz2 -C',
-                    path_head, path_tail)
-            continue
-        if 'output' in options:
-            out_path = options['output']
-        else:
-            out_path = create_output_path(path, options['format'])
-        export(path, out_path, options)
+    try:
+        export_all(options, paths)
+    except KeyboardInterrupt:
+        print()
 
 
 def create_output_path(path, format_option):
@@ -337,7 +338,7 @@ def set_rate(options, value):
 
 
 def set_subsong(options, value):
-    if value == 'all':
+    if 'all'.startswith(value): # allow user to specify prefix
         options['subsong'] = None
     else:
         try:

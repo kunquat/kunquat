@@ -15,10 +15,10 @@
 
 from __future__ import print_function
 import collections
+import getopt
 from itertools import cycle, chain, ifilter
 import json
 import math
-from optparse import OptionParser, OptionGroup
 import os.path
 import random
 import string
@@ -46,11 +46,14 @@ def author_list(authors):
     return '\n'.join(rows)
 
 
-def print_version():
-    print(PROGRAM_NAME, PROGRAM_VERSION)
+def print_licence():
     print(author_list(AUTHORS))
     print('No rights reserved')
     print('CC0 1.0 Universal, http://creativecommons.org/publicdomain/zero/1.0/')
+
+
+def print_version():
+    print(PROGRAM_NAME, PROGRAM_VERSION)
 
 
 def print_interactive_help():
@@ -85,7 +88,7 @@ def print_meta(meta):
         authors = None
     if authors:
         s = 's' if len(authors) != 1 else ''
-        fields.extend(['Author{0}:'.format(s)])
+        fields.extend(['Author{}:'.format(s)])
         values.extend([', '.join(authors)])
 
     if not fields:
@@ -96,8 +99,8 @@ def print_meta(meta):
     print('\n'.join(rows))
 
 
-def load_kqt(path, freq):
-    handle = kunquat.MHandle(freq)
+def load_kqt(path, rate):
+    handle = kunquat.MHandle(rate)
     meta = {}
     tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 
@@ -114,11 +117,19 @@ def load_kqt(path, freq):
             handle.set_data(key, value)
 
             last_elem = key.split('/')[-1]
-            if last_elem.startswith('m_'):
+            if last_elem.startswith('m_') or key.startswith('subs'):
                 meta[key] = value
 
     tfile.close()
     return handle, meta
+
+
+def subsong_exists(keys, num):
+    ss_key = 'subs_{:02x}/p_subsong.json'.format(int(num))
+    if ss_key in keys:
+        ss = keys[ss_key]
+        return 'patterns' in ss and ss['patterns']
+    return False
 
 
 def play(options, file_name, pa_handle, key_handler, list_pos):
@@ -128,18 +139,18 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                 ' no longer supported.\n'
                 'You can make a Kunquat music file by running:\n'
                 '  tar cj --format=ustar -f music.kqt.bz2 -C',
-                path_head, path_tail, end='')
+                path_head, path_tail, end='', file=sys.stderr)
         return KeyHandler.RETURN
     try:
-        handle, meta = load_kqt(file_name, options.frequency)
+        handle, meta = load_kqt(file_name, options['rate'])
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
+        print('Couldn\'t load \'{}\': {}'.format(file_name, e), end='')
         return KeyHandler.RETURN
-    handle.buffer_size = options.buffer_size
-    handle.subsong = options.subsong
-    status = Status(options.frequency)
-    duration = handle.get_duration(options.subsong)
-    if options.interactive:
+    handle.buffer_size = options['buffer-size']
+    handle.subsong = options['subsong']
+    status = Status(options['rate'])
+    duration = handle.get_duration(options['subsong'])
+    if not options['quiet']:
         print('Playing', file_name)
         print_meta(meta)
     return_key = KeyHandler.RETURN
@@ -147,7 +158,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     #pause = False
     #handle.fire(-1, '[">pause", []]')
     bufs = handle.mix()
-    rt_cycle_len = float(options.buffer_size) / options.frequency
+    rt_cycle_len = float(options['buffer-size']) / options['rate']
     mix_cycle_start = 0
     mix_cycle_end = 0
     mix_loads = collections.deque([0] * 8)
@@ -157,7 +168,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
         mix_load = (sum(mix_loads) - min(mix_loads) - max(mix_loads)) / \
                    (len(mix_loads) - 2)
         pa_handle.write(*bufs)
-        if options.interactive:
+        if not options['quiet']:
             voice_count = 0
             handle.fire(0, ['Qvoices', None])
             events = handle.treceive()
@@ -212,7 +223,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     handle.subsong = None
                     duration = handle.get_duration(handle.subsong)
                 elif key in string.digits:
-                    if handle['subs_{0:02x}/p_subsong.json'.format(int(key))]:
+                    if subsong_exists(meta, int(key)):
                         handle.subsong = int(key)
                         duration = handle.get_duration(handle.subsong)
                 elif key == 'p':
@@ -226,8 +237,8 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
                     if handle.subsong is None:
                         handle.subsong = 0
                         duration = handle.get_duration(handle.subsong)
-                    elif handle['subs_{0:02x}/p_subsong.json'.format(
-                              (handle.subsong + 1))] and handle.subsong < 255:
+                    elif (subsong_exists(meta, handle.subsong + 1) and
+                            handle.subsong < 255):
                         handle.subsong = handle.subsong + 1
                         duration = handle.get_duration(handle.subsong)
                 """
@@ -250,7 +261,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
 
 def play_all(options, files):
     pa_handle = pulseaudio.Simple(PROGRAM_NAME, 'Music',
-                                  options.frequency, 2)
+                                  options['rate'], 2)
     key_handler = KeyHandler()
     file_index = 0
     while file_index < len(files):
@@ -261,13 +272,13 @@ def play_all(options, files):
         if file_index == len(files) - 1:
             list_pos.append('last')
         try:
-            if options.interactive:
+            if not options['quiet']:
                 key_handler.disable_blocking()
             action = play(options, file_name, pa_handle, key_handler, list_pos)
         finally:
-            if options.interactive:
+            if not options['quiet']:
                 key_handler.restore()
-        if options.interactive:
+        if not options['quiet']:
             print()
         if action == 'q':
             break
@@ -276,58 +287,122 @@ def play_all(options, files):
                 file_index = file_index - 1
         elif action == KeyHandler.RETURN:
             file_index = file_index + 1
-    if options.interactive:
+    if not options['quiet']:
         print('Done.')
 
 
+def print_help():
+    print('Usage: {} [options] <files>'.format(PROGRAM_NAME))
+    print('\nOptions:')
+    print('  --buffer-size n   Use audio buffer size of n frames\n'
+          '                    Valid range is [64,262144]')
+    print('  -r, --rate n      Set audio rate to n frames/second\n'
+          '                    Valid range is [2000,192000]')
+    print('  -s, --subsong n   Play subsong sub\n'
+          '                    Valid values are'
+          ' numbers in the range [0,255] and `all`')
+    print('  -h, --help        Show this help and exit')
+    print('  -q, --quiet       Quiet and non-interactive operation\n'
+          '                    (only error messages will be displayed)')
+    print('  --version         Show version information and exit')
+    print()
+    print('In addition to command line options, kunquat-player supports\n'
+          'several control keys in interactive mode. Press `h` while\n'
+          'playing to get the list of supported keys.')
+    print()
+
+
+def option_error(msg):
+    sys.exit(msg + '\nUse -h for help.')
+
+
 def main():
-    usage = 'Usage: %prog [options] <files>'
-    parser = OptionParser(usage)
-    parser.add_option('-q', '--quiet',
-            action='store_false', dest='interactive', default=True,
-            help='Quiet and non-interactive operation'
-                 ' (only error messages will be displayed).')
-    parser.add_option('--version',
-            action='store_true', dest='version', default=False,
-            help='Display version information and exit.')
-
-    output_opts = OptionGroup(parser, 'Output options')
-    output_opts.add_option('--buffer-size', metavar='n',
-            type='int', default=2048,
-            help='Use audio buffer size of n frames.'
-                 ' Valid range is [64,262144].')
-    output_opts.add_option('--frequency', metavar='n',
-            type='int', default=48000,
-            help='Set mixing frequency to n frames/second.'
-                 ' Valid range is [2000,192000].')
-    parser.add_option_group(output_opts)
-
-    play_opts = OptionGroup(parser, 'Playback options')
-    play_opts.add_option('-s', '--subsong', metavar='sub',
-            default='all',
-            help='Play the subsong sub.'
-                 ' Valid values are numbers in the range [0,255] and `all`.')
-    parser.add_option_group(play_opts)
-
-    parser.epilog = 'In addition to command line options, kunquat-player'\
-                    ' supports several control keys in interactive mode.'\
-                    ' Press `h` while playing to get the list of supported'\
-                    ' keys.'
-    options, files = parser.parse_args()
-    if options.version:
-        print_version()
-        sys.exit()
-    if not files:
-        print('No input files specified. Use -h for help.')
-        sys.exit(1)
-    if 'all'.startswith(options.subsong):
-        options.subsong = None
-    else:
-        options.subsong = int(options.subsong)
+    long_opts = [
+            'help',
+            'quiet',
+            'buffer-size=',
+            'rate=',
+            'subsong=',
+            'version',
+            ]
     try:
-        play_all(options, files)
+        opts, paths = getopt.getopt(sys.argv[1:], ':hqr:s:', long_opts)
+    except getopt.GetoptError as e:
+        print(e.msg, e.opt)
+        option_error(e)
+
+    options = {
+            'buffer-size': 2048,
+            'rate': 48000,
+            'subsong': None,
+            'quiet': False
+            }
+
+    setters = {
+            '--buffer-size': set_buffer_size,
+            '-r': set_rate, '--rate': set_rate,
+            '-s': set_subsong, '--subsong': set_subsong,
+            '-q': set_quiet, '--quiet': set_quiet,
+            }
+
+    for option, value in opts:
+        if option in ('-h', '--help'):
+            print_help()
+            sys.exit()
+        elif option == '--version':
+            print_version()
+            print_licence()
+            sys.exit()
+        else:
+            setters[option](options, value)
+
+    if not paths:
+        sys.exit('No input files specified. Use -h for help.')
+
+    try:
+        play_all(options, paths)
     except KeyboardInterrupt:
         print()
+
+
+def set_buffer_size(options, value):
+    try:
+        num = int(value)
+        if not 64 <= num <= 262144:
+            raise ValueError
+        options['buffer-size'] = num
+    except ValueError:
+        option_error('Buffer size must be an integer'
+                ' between 64 and 262144')
+
+
+def set_rate(options, value):
+    try:
+        num = int(value)
+        if not 2000 <= num <= 192000:
+            raise ValueError
+        options['rate'] = num
+    except ValueError:
+        option_error('Audio rate must be an integer'
+                ' between 2000 and 192000')
+
+
+def set_subsong(options, value):
+    if 'all'.startswith(value): # allow user to specify prefix
+        options['subsong'] = None
+    else:
+        try:
+            num = int(value)
+            if not 0 <= num < 256:
+                raise ValueError
+            options['subsong'] = num
+        except ValueError:
+            option_error('Subsong must be a number between 0 and'
+                    ' 255 (or all)')
+
+
+def set_quiet(options, value):
+    options['quiet'] = True
 
 
 class KeyHandler(object):
@@ -409,11 +484,11 @@ class Status(object):
 
     SILENCE = -384
 
-    def __init__(self, freq):
+    def __init__(self, rate):
         self.left_clipped = False
         self.right_clipped = False
-        self.freq = freq
-        self.hold_limit = freq
+        self.rate = rate
+        self.hold_limit = rate * 1.0
         self.left_hold = [Status.SILENCE, self.hold_limit]
         self.right_hold = [Status.SILENCE, self.hold_limit]
 
