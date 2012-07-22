@@ -21,7 +21,6 @@ MHandle   -- An empty write-only interface for compositions that only
              reside in memory.
 RHandle   -- A read-only interface for kqt files.
 RWHandle  -- A read/write interface for composition directories.
-RWCHandle -- An interface for composition projects.
 
 Exceptions:
 KunquatError         -- The base class for Kunquat errors.
@@ -37,7 +36,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['MHandle', 'RHandle', 'RWHandle', 'RWCHandle',
+__all__ = ['MHandle', 'RHandle', 'RWHandle',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -478,62 +477,6 @@ class RWHandle(RHandle):
                                      len(data))
 
 
-class RWCHandle(RWHandle):
-
-    """Handle for accessing composition projects with a state store.
-
-    The RWCHandle extends the RWHandle with a journaling mechanism.  It
-    enables the user to commit changes made in the composition state.
-    A committed version of a composition can always be restored in case
-    the program execution is abruptly terminated.
-
-    Public methods:
-    commit -- Commit the changes made in the handle.
-
-    """
-
-    def __init__(self, path, mixing_rate=48000):
-        """Create a new RWCHandle.
-
-        Arguments:
-        path -- The path to the Kunquat composition project directory.
-                Normally, this directory contains the subdirectories
-                "committed" and "workspace", although new project
-                directories may be empty.
-
-        Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_rwc(path)
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
-        RWHandle.__init__(self, path, mixing_rate)
-
-    def commit(self):
-        """Commit the changes made in the handle.
-
-        Exceptions:
-        KunquatFormatError   -- The project contains invalid data.
-                                This usually means that the workspace
-                                was modified manually or there's a bug
-                                in Kunquat.
-        KunquatResourceError -- File system access failed.
-
-        If any exception is raised during the commit, it is usually a
-        good idea to discard the handle and create a new one for the
-        project.  This will initiate a recovery procedure that will
-        restore a valid composition state.  Changes made after the last
-        successful commit are possibly lost in this case, though.
-
-        """
-        _kunquat.kqt_Handle_commit(self._handle)
-
-
 def _get_error(obj):
     if obj['type'] == 'ArgumentError':
         return KunquatArgumentError(obj)
@@ -595,8 +538,6 @@ _kunquat.kqt_new_Handle_r.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_new_Handle_r.restype = ctypes.c_void_p
 _kunquat.kqt_new_Handle_rw.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_new_Handle_rw.restype = ctypes.c_void_p
-_kunquat.kqt_new_Handle_rwc.argtypes = [ctypes.c_char_p]
-_kunquat.kqt_new_Handle_rwc.restype = ctypes.c_void_p
 _kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
 
 _kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
@@ -620,10 +561,6 @@ _kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
-
-_kunquat.kqt_Handle_commit.argtypes = [ctypes.c_void_p]
-_kunquat.kqt_Handle_commit.restype = ctypes.c_int
-_kunquat.kqt_Handle_commit.errcheck = _error_check
 
 _kunquat.kqt_Handle_mix.argtypes = [ctypes.c_void_p,
                                     ctypes.c_long]

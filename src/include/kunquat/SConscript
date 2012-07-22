@@ -1,7 +1,7 @@
 # coding=utf-8
 
-
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+#
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -9,7 +9,7 @@
 #
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
-
+#
 
 import glob
 import os.path
@@ -52,10 +52,6 @@ def InstallManCreatePath(env, path, source):
                         'kqt_Handle_set_position.3',
                         'kqt_Handle_get_position.3',
                         'kqt_Handle_fire.3'],
-
-                  'kunquat-editor-interface.3' : [
-                        'kqt_new_Handle_rwc.3',
-                        'kqt_Handle_commit.3']
                 }
         for fname in (f for f in source if f in links):
             for link in links[fname]:

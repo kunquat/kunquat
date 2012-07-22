@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2011\-10\-22" "" "Kunquat"
+.TH kunquat\-handle 3 "2012\-07\-22" "" "Kunquat"
 
 .SH NAME
 
@@ -36,11 +36,7 @@ library provides read-only access to these files. A Kunquat composition
 directory contains the same type of data as a kqt file, but the contents are
 inside a directory tree. The library provides simple read/write access to
 these directories and it is mainly designed for player applications that
-support modifying composition metadata. Composition editor applications should
-use the editor interface (see
-.BR kunquat-editor-interface (3)).
-The composition project interface supports modifying composition data in a
-failure-resistant manner.
+support modifying composition metadata.
 
 Operations on Kunquat Handles are generally \fInot\fR thread-safe. In
 particular, multiple threads must not create or destroy Kunquat Handles or
@@ -160,7 +156,6 @@ generic error message in case \fIhandle\fR is invalid.
 
 .SH "SEE ALSO"
 
-.BR kunquat-player-interface (3),
-.BR kunquat-editor-interface (3)
+.BR kunquat-player-interface (3)
 
 

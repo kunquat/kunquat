@@ -44,7 +44,7 @@ extern "C" {
  * long mixed = 0;
  * while ((mixed = kqt_Handle_mix(handle, buffer_size)) > 0)
  * {
- *     kqt_frame* buffers[KQT_BUFFERS_MAX] = { NULL };
+ *     float* buffers[KQT_BUFFERS_MAX] = { NULL };
  *     buffers[0] = kqt_Handle_get_buffer(handle, 0); // left
  *     buffers[1] = kqt_Handle_get_buffer(handle, 1); // right
  *     // Convert (if necessary) and store the contents of the
