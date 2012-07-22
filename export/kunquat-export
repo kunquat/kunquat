@@ -32,7 +32,7 @@ AUTHORS = [ u'Tomi Jylhä-Ollila' ]
 
 
 def load_kqt(path, freq):
-    handle = kunquat.MHandle(freq)
+    handle = kunquat.Handle(freq)
     meta = {}
     tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 

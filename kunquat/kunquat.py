@@ -17,8 +17,7 @@ This module provides interfaces for inspecting and modifying Kunquat
 compositions and rendering them to digital audio.
 
 Classes:
-MHandle   -- An empty write-only interface for compositions that only
-             reside in memory.
+Handle -- An interface for Kunquat compositions.
 
 Exceptions:
 KunquatError         -- The base class for Kunquat errors.
@@ -34,7 +33,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['MHandle',
+__all__ = ['Handle',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -215,7 +214,7 @@ class BaseHandle(object):
         return el
 
 
-class MHandle(BaseHandle):
+class Handle(BaseHandle):
 
     """Handle for playing and modifying compositions in memory.
 
@@ -234,7 +233,7 @@ class MHandle(BaseHandle):
     """
 
     def __init__(self, mixing_rate=48000):
-        """Create a new MHandle.
+        """Create a new Handle.
 
         Optional arguments:
         mixing_rate -- Mixing rate in frames per second.  Typical
@@ -246,7 +245,7 @@ class MHandle(BaseHandle):
 
         """
         if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_m()
+            self._handle = _kunquat.kqt_new_Handle()
             if not self._handle:
                 raise _get_error(json.loads(
                                  _kunquat.kqt_Handle_get_error(None)))
@@ -358,8 +357,8 @@ class KunquatResourceError(KunquatError):
 
 _kunquat = ctypes.CDLL('libkunquat.so')
 
-_kunquat.kqt_new_Handle_m.argtypes = []
-_kunquat.kqt_new_Handle_m.restype = ctypes.c_void_p
+_kunquat.kqt_new_Handle.argtypes = []
+_kunquat.kqt_new_Handle.restype = ctypes.c_void_p
 _kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_del_Handle.restype = None
 

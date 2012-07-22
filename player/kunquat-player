@@ -100,7 +100,7 @@ def print_meta(meta):
 
 
 def load_kqt(path, rate):
-    handle = kunquat.MHandle(rate)
+    handle = kunquat.Handle(rate)
     meta = {}
     tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
 

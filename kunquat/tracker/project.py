@@ -73,7 +73,7 @@ class Project(QtCore.QObject):
         root_path = os.path.join(
                 os.path.expanduser('~'),
                 '.kunquat', 'projects')
-        self._handle = kunquat.MHandle(mixing_rate)
+        self._handle = kunquat.Handle(mixing_rate)
         self._handle.buffer_size = 1024
 
         self._changed = False

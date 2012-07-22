@@ -81,7 +81,7 @@ void check_unexpected_error()
 void setup_empty(void)
 {
     assert(handle == NULL);
-    handle = kqt_new_Handle_m();
+    handle = kqt_new_Handle();
     fail_if(handle == NULL,
             "Couldn't create handle:\n%s\n", kqt_Handle_get_error(NULL));
     return;

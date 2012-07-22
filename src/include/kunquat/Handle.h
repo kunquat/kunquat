@@ -56,15 +56,15 @@ typedef struct kqt_Handle kqt_Handle;
 
 
 /**
- * Creates an empty write-only Kunquat Handle that only resides in memory.
+ * Creates a Kunquat Handle.
  *
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \return   The new memory-only Kunquat Handle if successful, otherwise
- *           \c NULL (check kqt_Handle_get_error(\c NULL) for error message).
+ * \return   The new Kunquat Handle if successful, otherwise \c NULL
+ *           (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_new_Handle_m(void);
+kqt_Handle* kqt_new_Handle(void);
 
 
 /**
@@ -130,9 +130,6 @@ void kqt_Handle_clear_error(kqt_Handle* handle);
 
 /**
  * Frees all the resources allocated for an existing Kunquat Handle.
- *
- * NOTE: This function also frees the memory reserved for data returned by
- * calls of kqt_Handle_get_data with this Handle!
  *
  * \param handle   The Handle -- should not be \c NULL.
  */
