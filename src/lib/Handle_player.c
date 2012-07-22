@@ -179,9 +179,37 @@ int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanosecon
                 "nanoseconds must be non-negative");
         return 0;
     }
-    char pos[32] = { '\0' };
-    snprintf(pos, 32, "%d+%lld", subsong, nanoseconds);
-    return kqt_Handle_set_position_desc(handle, pos);
+
+    kqt_Handle_stop(handle);
+    Playdata_reset_stats(handle->song->play_state);
+    Playdata_reset_stats(handle->song->skip_state);
+    if (subsong == -1)
+    {
+        handle->song->play_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->play_state, 0, true);
+        handle->song->skip_state->mode = PLAY_SONG;
+        Playdata_set_subsong(handle->song->skip_state, 0, true);
+    }
+    else
+    {
+        handle->song->play_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->play_state, subsong, true);
+        handle->song->skip_state->mode = PLAY_SUBSONG;
+        Playdata_set_subsong(handle->song->skip_state, subsong, true);
+    }
+    handle->song->play_state->section = 0;
+    handle->song->skip_state->section = 0;
+    Reltime_set(&handle->song->play_state->pos, 0, 0);
+    Reltime_set(&handle->song->skip_state->pos, 0, 0);
+    handle->song->play_state->play_frames = 0;
+    handle->song->skip_state->play_frames = 0;
+    if (nanoseconds > 0)
+    {
+        uint64_t frame_skip = ((double)nanoseconds / 1000000000) * handle->song->play_state->freq;
+        Song_skip(handle->song, handle->song->event_handler, frame_skip);
+        Reltime_copy(&handle->song->skip_state->pos, &handle->song->play_state->pos);
+    }
+    return 1;
 }
 
 
