@@ -83,21 +83,6 @@ kqt_Handle* kqt_new_Handle_r(char* path);
 
 
 /**
- * Creates a read/write Kunquat Handle from a composition directory.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * \param path   The path to the Kunquat composition directory --
- *               should not be \c NULL.
- *
- * \return   The new read/write Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(\c NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle_rw(char* path);
-
-
-/**
  * Gets data from the Kunquat Handle associated with the given key.
  *
  * \param handle   The Kunquat Handle -- should not be \c NULL.

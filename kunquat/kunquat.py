@@ -20,7 +20,6 @@ Classes:
 MHandle   -- An empty write-only interface for compositions that only
              reside in memory.
 RHandle   -- A read-only interface for kqt files.
-RWHandle  -- A read/write interface for composition directories.
 
 Exceptions:
 KunquatError         -- The base class for Kunquat errors.
@@ -36,7 +35,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['MHandle', 'RHandle', 'RWHandle',
+__all__ = ['MHandle', 'RHandle',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -403,80 +402,6 @@ class RHandle(BaseHandle):
         self._handle = None
 
 
-class RWHandle(RHandle):
-
-    """Handle for accessing composition directories in read/write mode.
-
-    The RWHandle is used for accessing extracted Kunquat composition
-    directories.  It does not support loading kqt files.  As an
-    extension to RHandle, it is capable of modifying composition data.
-
-    The RWHandle is mainly designed for applications that modify
-    composition metadata.  It is not recommended for editor
-    applications.  These applications should use RWCHandle instead.
-
-    Public methods:
-    __setitem__ -- Dictionary-like composition data modification.
-
-    """
-
-    def __init__(self, path, mixing_rate=48000):
-        """Create a new RWHandle.
-
-        Arguments:
-        path -- The path to the extracted Kunquat composition
-                directory.  This directory is called 'kqtcXX'
-                where 'XX' is the version number of the format.  In
-                this case, the real path name should be used, i.e.
-                the format version number should not be substituted
-                with 'XX'.
-
-        Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_rw(path)
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
-        RHandle.__init__(self, path, mixing_rate)
-
-    def __setitem__(self, key, value):
-        """Set data in the handle.
-
-        Arguments:
-        key   -- The key of the data in the composition.  This refers
-                 to the same data as the key argument of __getitem__
-                 and the same formatting rules apply.
-        value -- The data to be set.  For JSON keys, this should be a
-                 Python object -- it is automatically converted to a
-                 JSON string.
-
-        Exceptions:
-        KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid.  Only the data
-                                that audibly affects mixing is
-                                validated.
-        KunquatResourceError -- File system access failed.
-
-        """
-        if key[key.index('.'):].startswith('.json'):
-            value = json.dumps(value) if value else ''
-        elif value == None:
-            value = ''
-        data = buffer(value)
-        cdata = (ctypes.c_ubyte * len(data))()
-        cdata[:] = [ord(b) for b in data][:]
-        _kunquat.kqt_Handle_set_data(self._handle,
-                                     key,
-                                     ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_ubyte)),
-                                     len(data))
-
-
 def _get_error(obj):
     if obj['type'] == 'ArgumentError':
         return KunquatArgumentError(obj)
@@ -536,8 +461,6 @@ _kunquat.kqt_new_Handle_m.argtypes = []
 _kunquat.kqt_new_Handle_m.restype = ctypes.c_void_p
 _kunquat.kqt_new_Handle_r.argtypes = [ctypes.c_char_p]
 _kunquat.kqt_new_Handle_r.restype = ctypes.c_void_p
-_kunquat.kqt_new_Handle_rw.argtypes = [ctypes.c_char_p]
-_kunquat.kqt_new_Handle_rw.restype = ctypes.c_void_p
 _kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
 
 _kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
