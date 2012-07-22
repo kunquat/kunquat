@@ -68,59 +68,6 @@ kqt_Handle* kqt_new_Handle_m(void);
 
 
 /**
- * Creates a read-only Kunquat Handle from a composition file.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * \param path   The path to the Kunquat composition file -- should not
- *               be \c NULL.
- *
- * \return   The new read-only Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(\c NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle_r(char* path);
-
-
-/**
- * Gets data from the Kunquat Handle associated with the given key.
- *
- * \param handle   The Kunquat Handle -- should not be \c NULL.
- * \param key      The key of the data -- should not be \c NULL.
- *
- * \return   The data if existent and no error occurred, otherwise \c NULL.
- *           Check kqt_Handle_error(handle) for errors. The caller should
- *           eventually free the returned buffer with kqt_Handle_free_data.
- */
-void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
-
-
-/**
- * Gets length of data from the Kunquat Handle associated with the given key.
- *
- * \param handle   The Kunquat Handle -- should not be \c NULL.
- * \param key      The key of the data -- should not be \c NULL.
- *
- * \return   The length of the data if successful. Otherwise, \c -1 is
- *           returned and Kunquat Handle error is set accordingly.
- */
-long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
-
-
-/**
- * Frees data returned by kqt_Handle_get_data.
- *
- * \param handle   The Kunquat Handle -- should be the same Handle from which
- *                 the data was originally retrieved.
- * \param data     The data to be freed. If this is \c NULL, the function
- *                 succeeds without doing anything.
- *
- * \return   \c 1 if successful, otherwise \c 0.
- */
-int kqt_Handle_free_data(kqt_Handle* handle, void* data);
-
-
-/**
  * Sets data of the Kunquat Handle associated with the given key.
  *
  * \param handle   The Kunquat Handle -- should be valid and should support

@@ -31,10 +31,7 @@ def InstallManCreatePath(env, path, source):
     target = env.InstallCreatePath(path, source)
     if 'install' in COMMAND_LINE_TARGETS:
         links = { 'kunquat-handle.3' : [
-                        'kqt_new_Handle_r.3',
-                        'kqt_Handle_get_data.3',
-                        'kqt_Handle_get_data_length.3',
-                        'kqt_Handle_free_data.3',
+                        'kqt_new_Handle.3',
                         'kqt_Handle_set_data.3',
                         'kqt_Handle_get_error.3',
                         'kqt_Handle_clear_error.3',

@@ -8,16 +8,8 @@ Kunquat Handle interface
 
 .B #include <kunquat/Handle.h>
 
-.BI "kqt_Handle* kqt_new_Handle_r(char* " path );
-.br
-.BI "kqt_Handle* kqt_new_Handle_rw(char* " path );
+.BI "kqt_Handle* kqt_new_Handle(void);
 
-.BI "void* kqt_Handle_get_data(kqt_Handle* " handle ", const char* " key );
-.br
-.BI "long kqt_Handle_get_data_length(kqt_Handle* " handle ", const char* " key );
-.br
-.BI "int kqt_Handle_free_data(kqt_Handle* " handle ", void* " data );
-.br
 .BI "int kqt_Handle_set_data(kqt_Handle* " handle ", char* " key ", void* " data ", long " length );
 
 .BI "char* kqt_Handle_get_error(kqt_Handle* " handle );
@@ -29,14 +21,11 @@ Kunquat Handle interface
 .SH "KUNQUAT HANDLE"
 
 The \fBkqt_Handle\fR is an opaque data structure that represents a Kunquat
-composition file, directory or project. A Kunquat composition file (usually
+composition in memory.
+A Kunquat composition file (usually
 with a file extension "kqt", possibly succeeded by an extension indicating
-compression format) is a single file suitable for distribution. The Kunquat
-library provides read-only access to these files. A Kunquat composition
-directory contains the same type of data as a kqt file, but the contents are
-inside a directory tree. The library provides simple read/write access to
-these directories and it is mainly designed for player applications that
-support modifying composition metadata.
+compression format) is a single file suitable for distribution.
+Currently, the Kunquat library does not provide convenient access to these files.
 
 Operations on Kunquat Handles are generally \fInot\fR thread-safe. In
 particular, multiple threads must not create or destroy Kunquat Handles or
@@ -45,21 +34,14 @@ Kunquat Handles from different threads in parallel should be safe.
 
 .SH "CREATING KUNQUAT HANDLES"
 
-.IP "\fBkqt_Handle* kqt_new_Handle_r(char*\fR \fIpath\fR\fB);\fR"
-Creates a read-only Kunquat Handle associated with a composition file
-\fIpath\fR. The function returns the new Kunquat Handle on success, or NULL if
+.IP "\fBkqt_Handle* kqt_new_Handle(void);\fR"
+Creates a new Kunquat Handle that contains an empty composition.
+The function returns the new Kunquat Handle on success, or NULL if
 an error occurred.
 
-.IP "\fBkqt_Handle* kqt_new_Handle_rw(char*\fR \fIpath\fR\fB);\fR"
-Creates a read/write Kunquat Handle associated with a composition directory
-\fIpath\fR. This directory is called "kqtcXX" where "XX" is the version
-number of the format. In this case, the real path name should be used, i.e.
-the format version number should not be substituted with "XX". The function
-returns the new Kunquat Handle on success, or NULL if an error occurred.
+.SH "DATA MODIFICATION"
 
-.SH "DATA ACCESS"
-
-Composition data can be accessed through a Kunquat Handle with keys. A valid
+Composition data can be modified through a Kunquat Handle with keys. A valid
 key consists of one or more textual elements separated by forward slashes
 ('/'). The last element is the only one that is allowed and required to
 contain a period. The format is similar, but not equivalent, to that of POSIX
@@ -75,28 +57,6 @@ ins_01/kqtiXX/p_instrument.json
 
 The "XX" in the last example should be written literally. It is expanded to
 the file format version number behind the scenes.
-
-.IP "\fBvoid* kqt_Handle_get_data(kqt_Handle*\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB);\fR"
-Gets data from \fIhandle\fR associated with \fIkey\fR. The function returns
-the data if it exists and no error occurred. In this case, the caller must
-eventually free the data returned by using \fBkqt_Handle_free_data\fR. Note
-that \fBkqt_del_Handle(\fR\fIhandle\fR\fB)\fR also frees this data, so the
-caller needs to make a copy of the data if it needs the data beyond the
-lifetime of \fIhandle\fR. If the data does not exist or an error occurred,
-\fBkqt_Handle_get_data\fR returns NULL -- in this case, the caller needs to
-check \fBkqt_Handle_get_error(\fR\fIhandle\fR\fB)\fR to determine whether an
-error occurred or not.
-
-.IP "\fBlong kqt_Handle_get_data_length(kqt_Handle*\fR \fIhandle\fR\fB, const char*\fR \fIkey\fR\fB);\fR"
-Gets the length of data in \fIhandle\fR associated with \fIkey\fR. The caller
-must use this function with \fBkqt_Handle_get_data\fR in order to determine
-the size of the data returned. The function returns the size of the data in
-bytes, or -1 if an error occurred.
-
-.IP "\fBint kqt_Handle_free_data(kqt_Handle*\fR \fIhandle\fR\fB, void*\fR \fIdata\fR\fB);\fR"
-Frees data returned by \fBkqt_Handle_get_data\fR. This function returns 1 on
-success, 0 on failure. It only frees \fIdata\fR if it was originally retrieved
-from \fIhandle\fR.
 
 .IP "\fBint kqt_Handle_set_data(kqt_Handle*\fR \fIhandle\fR\fB, char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
 Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
