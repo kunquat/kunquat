@@ -28,6 +28,7 @@ else:
 if '--disable-tracker' not in sys.argv:
     req_list.append('PyQt4')
     inc_pkgs[len(inc_pkgs):len(inc_pkgs)] = [
+            'kunquat.qt',
             'kunquat.tracker',
             'kunquat.tracker.effects',
             'kunquat.tracker.env',
