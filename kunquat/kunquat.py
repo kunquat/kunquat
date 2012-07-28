@@ -17,11 +17,7 @@ This module provides interfaces for inspecting and modifying Kunquat
 compositions and rendering them to digital audio.
 
 Classes:
-MHandle   -- An empty write-only interface for compositions that only
-             reside in memory.
-RHandle   -- A read-only interface for kqt files.
-RWHandle  -- A read/write interface for composition directories.
-RWCHandle -- An interface for composition projects.
+Handle -- An interface for Kunquat compositions.
 
 Exceptions:
 KunquatError         -- The base class for Kunquat errors.
@@ -37,7 +33,7 @@ from __future__ import print_function
 import ctypes
 import json
 
-__all__ = ['MHandle', 'RHandle', 'RWHandle', 'RWCHandle',
+__all__ = ['Handle',
            'KunquatError', 'KunquatArgumentError',
            'KunquatFormatError', 'KunquatMemoryError',
            'KunquatResourceError']
@@ -218,7 +214,7 @@ class BaseHandle(object):
         return el
 
 
-class MHandle(BaseHandle):
+class Handle(BaseHandle):
 
     """Handle for playing and modifying compositions in memory.
 
@@ -237,7 +233,7 @@ class MHandle(BaseHandle):
     """
 
     def __init__(self, mixing_rate=48000):
-        """Create a new MHandle.
+        """Create a new Handle.
 
         Optional arguments:
         mixing_rate -- Mixing rate in frames per second.  Typical
@@ -249,7 +245,7 @@ class MHandle(BaseHandle):
 
         """
         if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_m()
+            self._handle = _kunquat.kqt_new_Handle()
             if not self._handle:
                 raise _get_error(json.loads(
                                  _kunquat.kqt_Handle_get_error(None)))
@@ -306,234 +302,6 @@ class MHandle(BaseHandle):
         self._handle = None
 
 
-class RHandle(BaseHandle):
-
-    """Handle for accessing composition (kqt) files in read-only mode.
-
-    The RHandle is used for mixing the composition and/or retrieving
-    data from the composition.
-
-    Public methods:
-    __getitem__  -- Dictionary-like composition data retrieval.
-    get_duration -- Calculate the length of a subsong.
-    mix          -- Mix audio data.
-    fire         -- Fire an event.
-
-    Public instance variables:
-    buffer_size -- Mixing buffer size.
-    mixing_rate -- Mixing rate.
-    nanoseconds -- The current position in nanoseconds.
-    subsong     -- The current subsong (None or [0,255]).
-
-    """
-
-    def __init__(self, path, mixing_rate=48000):
-        """Create a new RHandle.
-
-        Arguments:
-        path -- The path of a kqt file.  A kqt file name typically has
-                the extension .kqt, possibly succeeded by an extension
-                indicating a compression format.
-
-        Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
-
-        Exceptions:
-        KunquatArgumentError -- path is None or mixing_rate is not
-                                positive.
-        KunquatFormatError   -- The file in path is not a valid Kunquat
-                                composition.
-        KunquatResourceError -- Reading the input failed for a reason
-                                other than the data being invalid.
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_r(path)
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
-        self._subsong = None
-        self._nanoseconds = 0
-        self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
-        if mixing_rate <= 0:
-            raise KunquatArgumentError('Mixing rate must be positive')
-        self.mixing_rate = mixing_rate
-
-    def __getitem__(self, key):
-        """Get data from the handle based on a key.
-
-        Arguments:
-        key -- The key of the data in the composition.  A key consists
-               of one or more textual elements separated by forward
-               slashes ('/').  The last element is the only one that
-               is allowed and required to contain a period.  Examples:
-               'p_composition.json'
-               'pat_000/col_00/p_events.json'
-               'ins_01/kqtiXX/p_instrument.json'
-               The 'XX' in the last example should be written
-               literally.  It is expanded to the file format version
-               number behind the scenes.
-
-        Return value:
-        The data associated with the key if found, otherwise None.
-        The function converts JSON data to Python objects.
-
-        Exceptions:
-        KunquatArgumentError -- The key is not valid.
-        KunquatResourceError -- Retrieving the data failed.  This can
-                                usually occur only with subclasses of
-                                RHandle.
-
-        """
-        length = _kunquat.kqt_Handle_get_data_length(self._handle, key)
-        if length <= 0:
-            return None
-        cdata = _kunquat.kqt_Handle_get_data(self._handle, key)
-        data = cdata[:length]
-        _kunquat.kqt_Handle_free_data(self._handle, cdata)
-        data = ''.join(chr(ch) for ch in data)
-        if key[key.index('.'):].startswith('.json'):
-            return json.loads(data) if data else None
-        return data if data else None
-
-    def __del__(self):
-        if self._handle:
-            _kunquat.kqt_del_Handle(self._handle)
-        self._handle = None
-
-
-class RWHandle(RHandle):
-
-    """Handle for accessing composition directories in read/write mode.
-
-    The RWHandle is used for accessing extracted Kunquat composition
-    directories.  It does not support loading kqt files.  As an
-    extension to RHandle, it is capable of modifying composition data.
-
-    The RWHandle is mainly designed for applications that modify
-    composition metadata.  It is not recommended for editor
-    applications.  These applications should use RWCHandle instead.
-
-    Public methods:
-    __setitem__ -- Dictionary-like composition data modification.
-
-    """
-
-    def __init__(self, path, mixing_rate=48000):
-        """Create a new RWHandle.
-
-        Arguments:
-        path -- The path to the extracted Kunquat composition
-                directory.  This directory is called 'kqtcXX'
-                where 'XX' is the version number of the format.  In
-                this case, the real path name should be used, i.e.
-                the format version number should not be substituted
-                with 'XX'.
-
-        Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_rw(path)
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
-        RHandle.__init__(self, path, mixing_rate)
-
-    def __setitem__(self, key, value):
-        """Set data in the handle.
-
-        Arguments:
-        key   -- The key of the data in the composition.  This refers
-                 to the same data as the key argument of __getitem__
-                 and the same formatting rules apply.
-        value -- The data to be set.  For JSON keys, this should be a
-                 Python object -- it is automatically converted to a
-                 JSON string.
-
-        Exceptions:
-        KunquatArgumentError -- The key is not valid.
-        KunquatFormatError   -- The data is not valid.  Only the data
-                                that audibly affects mixing is
-                                validated.
-        KunquatResourceError -- File system access failed.
-
-        """
-        if key[key.index('.'):].startswith('.json'):
-            value = json.dumps(value) if value else ''
-        elif value == None:
-            value = ''
-        data = buffer(value)
-        cdata = (ctypes.c_ubyte * len(data))()
-        cdata[:] = [ord(b) for b in data][:]
-        _kunquat.kqt_Handle_set_data(self._handle,
-                                     key,
-                                     ctypes.cast(cdata,
-                                         ctypes.POINTER(ctypes.c_ubyte)),
-                                     len(data))
-
-
-class RWCHandle(RWHandle):
-
-    """Handle for accessing composition projects with a state store.
-
-    The RWCHandle extends the RWHandle with a journaling mechanism.  It
-    enables the user to commit changes made in the composition state.
-    A committed version of a composition can always be restored in case
-    the program execution is abruptly terminated.
-
-    Public methods:
-    commit -- Commit the changes made in the handle.
-
-    """
-
-    def __init__(self, path, mixing_rate=48000):
-        """Create a new RWCHandle.
-
-        Arguments:
-        path -- The path to the Kunquat composition project directory.
-                Normally, this directory contains the subdirectories
-                "committed" and "workspace", although new project
-                directories may be empty.
-
-        Optional arguments:
-        mixing_rate -- Mixing rate in frames per second.  Typical
-                       values include 44100 ("CD quality") and 48000
-                       (the default).
-
-        """
-        if '_handle' not in self.__dict__:
-            self._handle = _kunquat.kqt_new_Handle_rwc(path)
-            if not self._handle:
-                raise _get_error(json.loads(
-                                 _kunquat.kqt_Handle_get_error(None)))
-        RWHandle.__init__(self, path, mixing_rate)
-
-    def commit(self):
-        """Commit the changes made in the handle.
-
-        Exceptions:
-        KunquatFormatError   -- The project contains invalid data.
-                                This usually means that the workspace
-                                was modified manually or there's a bug
-                                in Kunquat.
-        KunquatResourceError -- File system access failed.
-
-        If any exception is raised during the commit, it is usually a
-        good idea to discard the handle and create a new one for the
-        project.  This will initiate a recovery procedure that will
-        restore a valid composition state.  Changes made after the last
-        successful commit are possibly lost in this case, though.
-
-        """
-        _kunquat.kqt_Handle_commit(self._handle)
-
-
 def _get_error(obj):
     if obj['type'] == 'ArgumentError':
         return KunquatArgumentError(obj)
@@ -560,6 +328,8 @@ class KunquatError(Exception):
     """Base class for errors in Kunquat."""
 
     def __init__(self, obj):
+        if isinstance(obj, str) or isinstance(obj, unicode):
+            obj = { 'message': obj }
         self.obj = obj
 
     def __getitem__(self, key):
@@ -587,41 +357,22 @@ class KunquatResourceError(KunquatError):
 
 _kunquat = ctypes.CDLL('libkunquat.so')
 
-_kunquat.kqt_new_Handle_m.argtypes = []
-_kunquat.kqt_new_Handle_m.restype = ctypes.c_void_p
-_kunquat.kqt_new_Handle_r.argtypes = [ctypes.c_char_p]
-_kunquat.kqt_new_Handle_r.restype = ctypes.c_void_p
-_kunquat.kqt_new_Handle_rw.argtypes = [ctypes.c_char_p]
-_kunquat.kqt_new_Handle_rw.restype = ctypes.c_void_p
-_kunquat.kqt_new_Handle_rwc.argtypes = [ctypes.c_char_p]
-_kunquat.kqt_new_Handle_rwc.restype = ctypes.c_void_p
+_kunquat.kqt_new_Handle.argtypes = []
+_kunquat.kqt_new_Handle.restype = ctypes.c_void_p
 _kunquat.kqt_del_Handle.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_del_Handle.restype = None
 
 _kunquat.kqt_Handle_get_error.argtypes = [ctypes.c_void_p]
 _kunquat.kqt_Handle_get_error.restype = ctypes.c_char_p
 _kunquat.kqt_Handle_clear_error.argtypes = [ctypes.c_void_p]
+_kunquat.kqt_Handle_clear_error.restype = None
 
-_kunquat.kqt_Handle_get_data.argtypes = [ctypes.c_void_p, ctypes.c_char_p]
-_kunquat.kqt_Handle_get_data.restype = ctypes.POINTER(ctypes.c_ubyte)
-_kunquat.kqt_Handle_get_data.errcheck = _error_check
-_kunquat.kqt_Handle_get_data_length.argtypes = [ctypes.c_void_p,
-                                                ctypes.c_char_p]
-_kunquat.kqt_Handle_get_data_length.restype = ctypes.c_long
-_kunquat.kqt_Handle_get_data_length.errcheck = _error_check
-_kunquat.kqt_Handle_free_data.argtypes = [ctypes.c_void_p,
-                                          ctypes.POINTER(ctypes.c_ubyte)]
-_kunquat.kqt_Handle_free_data.restype = ctypes.c_int
-_kunquat.kqt_Handle_free_data.errcheck = _error_check
 _kunquat.kqt_Handle_set_data.argtypes = [ctypes.c_void_p,
                                          ctypes.c_char_p,
                                          ctypes.POINTER(ctypes.c_ubyte),
                                          ctypes.c_long]
 _kunquat.kqt_Handle_set_data.restype = ctypes.c_int
 _kunquat.kqt_Handle_set_data.errcheck = _error_check
-
-_kunquat.kqt_Handle_commit.argtypes = [ctypes.c_void_p]
-_kunquat.kqt_Handle_commit.restype = ctypes.c_int
-_kunquat.kqt_Handle_commit.errcheck = _error_check
 
 _kunquat.kqt_Handle_mix.argtypes = [ctypes.c_void_p,
                                     ctypes.c_long]

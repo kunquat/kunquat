@@ -19,7 +19,7 @@
 #include <stdbool.h>
 
 #include <kunquat/Handle.h>
-#include <kunquat/Player_ext.h>
+#include <kunquat/Player.h>
 
 #include <Song.h>
 #include <Playdata.h>

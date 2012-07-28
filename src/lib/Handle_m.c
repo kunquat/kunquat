@@ -27,7 +27,7 @@ static int Handle_m_set_data(kqt_Handle* handle,
 static void del_Handle_m(kqt_Handle* handle);
 
 
-kqt_Handle* kqt_new_Handle_m(void)
+kqt_Handle* kqt_new_Handle(void)
 {
     Handle_m* handle_m = xalloc(Handle_m);
     if (handle_m == NULL)

@@ -106,7 +106,7 @@ Playdata* new_Playdata(Ins_table* insts,
     play->orig_subsong = 0;
     play->subsong = 0;
     play->section = 0;
-    play->pattern = 0;
+    play->pattern = -1;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
     Reltime_init(&play->pos);
@@ -188,7 +188,7 @@ Playdata* new_Playdata_silent(Environment* env, uint32_t freq)
     play->orig_subsong = 0;
     play->subsong = 0;
     play->section = 0;
-    play->pattern = 0;
+    play->pattern = -1;
     Reltime_init(&play->play_time);
     play->play_frames = 0;
     Reltime_init(&play->pos);
@@ -281,7 +281,7 @@ void Playdata_reset(Playdata* play)
     play->delay_event_index = -1;
     play->play_frames = 0;
     play->section = 0;
-    play->pattern = 0;
+    play->pattern = -1;
     Reltime_init(&play->play_time);
     Reltime_init(&play->pos);
     return;

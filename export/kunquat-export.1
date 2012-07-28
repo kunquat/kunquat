@@ -1,0 +1,96 @@
+.TH kunquat\-export 1 "2012\-07\-18" "" "Kunquat"
+
+.SH NAME
+kunquat\-export \- converts Kunquat compositions into waveform audio
+
+.SH SYNOPSIS
+.B kunquat\-export
+[
+.B \-h
+|
+.B \-\-version
+]
+.br
+.B kunquat\-export
+[
+.B \-q
+]
+[
+.B \-o
+.I out
+]
+[
+.B \-f
+.I fmt
+]
+[
+.B \-b
+.I b
+]
+[
+.B \-\-float
+]
+[
+.B \-r
+.I n
+]
+[
+.B \-s
+.I sub
+]
+.I file
+[
+.I file
+.B ...
+]
+
+.SH DESCRIPTION
+.B kunquat\-export
+is a command\-line tool for converting Kunquat compositions into waveform
+audio. Kunquat compositions normally have the .kqt suffix (and
+additional .gz or .bz2 suffix if the file is compressed with \fBgzip\fR(1)
+or \fBbzip2\fR(1)).
+
+.SH OPTIONS
+
+.IP "\fB\-o\fR \fIout\fR, \fB\-\-output\fR \fIout\fR"
+Writes the output into the file \fIout\fR. By default,
+.B kunquat\-export
+selects the output file format based on the file extension if it is supported.
+The default file format is wav.
+
+.IP "\fB\-f\fR \fIfmt\fR, \fB\-\-format\fR \fIfmt\fR"
+Writes the output file in the format \fIfmt\fR. Run
+.B kunquat-export \-h
+to see which output formats are supported.
+
+.IP "\fB\-b\fR \fIb\fR, \fB\-\-bits\fR \fIb\fR"
+Uses \fIb\fR-bit fixed-point format. \fIb\fR is 8, 16, 24 or 32. Default value
+is 16.
+
+.IP "\fB\-\-float\fR"
+Uses floating-point format. Default is fixed-point. This option overrides
+\fB-b\fR and forces a 32-bit format.
+
+.IP "\fB\-r\fR \fIn\fR, \fB\-\-rate\fR \fIn\fR"
+Mixes \fIn\fR frames per second. As a result, the highest frequency in the
+sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
+Default value is 48000.
+
+.IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
+Renders the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
+\fIall\fR which renders all the existing subsongs in order.
+
+.IP "\fB\-h\fR, \fB\-\-help\fR"
+Shows help and exits.
+
+.IP "\fB\-q\fR, \fB\-\-quiet\fR"
+Disables status information. Only error messages will be displayed.
+
+.IP "\fB\-\-version\fR"
+Shows version and copyright information and exits.
+
+.SH AUTHOR
+Written by Tomi Jylhä\-Ollila.
+
+

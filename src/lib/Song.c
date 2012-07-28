@@ -434,7 +434,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
             }
             else if (play->mode == PLAY_SUBSONG)
             {
-                if (play->infinite && play->play_frames > 0)
+                if (play->infinite && play->play_frames + mixed > 0)
                 {
                     Playdata_set_subsong(play, play->orig_subsong, false);
                     continue;

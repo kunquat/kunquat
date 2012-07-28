@@ -1,4 +1,4 @@
-.TH kunquat\-player 1 "2010\-01\-25" "" "Kunquat"
+.TH kunquat\-player 1 "2012\-07\-21" "" "Kunquat"
 
 .SH NAME
 kunquat\-player \- plays Kunquat compositions
@@ -20,7 +20,7 @@ kunquat\-player \- plays Kunquat compositions
 .I n
 ]
 [
-.B \-\-frequency
+.B \-r
 .I n
 ]
 [
@@ -35,10 +35,9 @@ kunquat\-player \- plays Kunquat compositions
 
 .SH DESCRIPTION
 .B kunquat\-player
-is a command\-line player for playing Kunquat compositions. It supports
-both .kqt files (optionally compressed with \fBgzip\fR(1) or \fBbzip2\fR(1))
-and unpacked Kunquat composition directories (these are named kqtc\fIXX\fR
-where \fIXX\fR is the version number of the format).
+is a command\-line player for playing Kunquat compositions. These files
+normally have the .kqt suffix (and additional .gz or .bz2 suffix if the file
+is compressed with \fBgzip\fR(1) or \fBbzip2\fR(1)).
 
 .SH OPTIONS
 
@@ -46,9 +45,10 @@ where \fIXX\fR is the version number of the format).
 Uses audio buffer size of \fIn\fR frames. \fIn\fR is a value between 64 and
 262144.
 
-.IP "\fB\-\-frequency\fR \fIn\fR"
+.IP "\fB\-r\fR \fIn\fR, \fB\-rate\fR \fIn\fR"
 Mixes \fIn\fR frames per second. As a result, the highest frequency in the
-sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 192000.
+sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 2000 and 192000.
+Default value is 48000.
 
 .IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
 Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or

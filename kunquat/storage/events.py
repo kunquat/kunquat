@@ -19,16 +19,34 @@ class Store_event(UserDict.DictMixin):
     ValueError: a Storage_event field can not be named "keys"
     '''
     def __init__(self, **entries):
-        if 'keys' in entries.keys():
-            raise ValueError('a Storage_event field can not be named "keys"')
-        self.__dict__.update(entries)
+        for (key, value) in entries.items():
+            try:
+                getattr(self, key)
+                raise ValueError('a Storage_event field can not be named "%s"' % key)
+            except AttributeError:
+                self.__dict__[key] = value
 
     def __getitem__(self, x):
         return self.__dict__[x]
 
     def keys(self):
         return self.__dict__.keys()
-        
+ 
+class Init(Store_event):
+    pass
+       
+class Value_update(Store_event):
+    pass
+       
+class Import_start(Store_event):
+    pass
+
+class Import_status(Store_event):
+    pass
+
+class Import_end(Store_event):
+    pass
+
 class Export_start(Store_event):
     pass
 

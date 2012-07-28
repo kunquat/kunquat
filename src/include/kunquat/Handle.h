@@ -56,83 +56,15 @@ typedef struct kqt_Handle kqt_Handle;
 
 
 /**
- * Creates an empty write-only Kunquat Handle that only resides in memory.
+ * Creates a Kunquat Handle.
  *
  * The current implementation limits the maximum number of simultaneous
  * Kunquat Handles to \c KQT_HANDLES_MAX.
  *
- * \return   The new memory-only Kunquat Handle if successful, otherwise
- *           \c NULL (check kqt_Handle_get_error(\c NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle_m(void);
-
-
-/**
- * Creates a read-only Kunquat Handle from a composition file.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * \param path   The path to the Kunquat composition file -- should not
- *               be \c NULL.
- *
- * \return   The new read-only Kunquat Handle if successful, otherwise \c NULL
+ * \return   The new Kunquat Handle if successful, otherwise \c NULL
  *           (check kqt_Handle_get_error(\c NULL) for error message).
  */
-kqt_Handle* kqt_new_Handle_r(char* path);
-
-
-/**
- * Creates a read/write Kunquat Handle from a composition directory.
- *
- * The current implementation limits the maximum number of simultaneous
- * Kunquat Handles to \c KQT_HANDLES_MAX.
- *
- * \param path   The path to the Kunquat composition directory --
- *               should not be \c NULL.
- *
- * \return   The new read/write Kunquat Handle if successful, otherwise \c NULL
- *           (check kqt_Handle_get_error(\c NULL) for error message).
- */
-kqt_Handle* kqt_new_Handle_rw(char* path);
-
-
-/**
- * Gets data from the Kunquat Handle associated with the given key.
- *
- * \param handle   The Kunquat Handle -- should not be \c NULL.
- * \param key      The key of the data -- should not be \c NULL.
- *
- * \return   The data if existent and no error occurred, otherwise \c NULL.
- *           Check kqt_Handle_error(handle) for errors. The caller should
- *           eventually free the returned buffer with kqt_Handle_free_data.
- */
-void* kqt_Handle_get_data(kqt_Handle* handle, const char* key);
-
-
-/**
- * Gets length of data from the Kunquat Handle associated with the given key.
- *
- * \param handle   The Kunquat Handle -- should not be \c NULL.
- * \param key      The key of the data -- should not be \c NULL.
- *
- * \return   The length of the data if successful. Otherwise, \c -1 is
- *           returned and Kunquat Handle error is set accordingly.
- */
-long kqt_Handle_get_data_length(kqt_Handle* handle, const char* key);
-
-
-/**
- * Frees data returned by kqt_Handle_get_data.
- *
- * \param handle   The Kunquat Handle -- should be the same Handle from which
- *                 the data was originally retrieved.
- * \param data     The data to be freed. If this is \c NULL, the function
- *                 succeeds without doing anything.
- *
- * \return   \c 1 if successful, otherwise \c 0.
- */
-int kqt_Handle_free_data(kqt_Handle* handle, void* data);
+kqt_Handle* kqt_new_Handle(void);
 
 
 /**
@@ -198,9 +130,6 @@ void kqt_Handle_clear_error(kqt_Handle* handle);
 
 /**
  * Frees all the resources allocated for an existing Kunquat Handle.
- *
- * NOTE: This function also frees the memory reserved for data returned by
- * calls of kqt_Handle_get_data with this Handle!
  *
  * \param handle   The Handle -- should not be \c NULL.
  */

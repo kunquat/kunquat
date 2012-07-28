@@ -87,7 +87,7 @@ bool kqt_Handle_init(kqt_Handle* handle, long buffer_size)
     }
 
     kqt_Handle_stop(handle);
-    kqt_Handle_set_position_desc(handle, NULL);
+    kqt_Handle_set_position(handle, 0, 0);
     return true;
 }
 

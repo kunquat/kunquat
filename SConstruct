@@ -259,6 +259,8 @@ if not env.GetOption('help'):
                         'install',
                         '--record=py-installed',
                         '--prefix=%s' % env['prefix']]
+                if not env['enable_export']:
+                    args.append('--disable-export')
                 if not env['enable_player']:
                     args.append('--disable-player')
                 if not env['enable_tracker']:

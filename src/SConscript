@@ -1,7 +1,7 @@
 # coding=utf-8
 
-
-# Author: Tomi Jylhä-Ollila, Finland 2010
+#
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -9,7 +9,7 @@
 #
 # To the extent possible under law, Kunquat Affirmers have waived all
 # copyright and related or neighboring rights to Kunquat.
-
+#
 
 Import('env')
 
@@ -23,13 +23,6 @@ if not env.GetOption('clean') and 'check' in env['LIBS']:
 
 if env['enable_libkunquat_dev']:
     SConscript('include/SConscript')
-
-#if env['enable_player']:
-#    SConscript('audio/SConscript')
-#    SConscript('player/SConscript')
-
-if env['enable_export']:
-    SConscript('export/SConscript')
 
 #print 'src: ' + env.Dump('LIBS')
 
