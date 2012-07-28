@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -56,8 +56,7 @@ class EffEditor(QtGui.QWidget):
 
         tabs = QtGui.QTabWidget()
         self._dsps = DSPs(project, self._base +
-                'eff_{0:02x}/kqte{1}/'.format(self._cur_eff,
-                                              lim.FORMAT_VERSION))
+                'eff_{0:02x}/'.format(self._cur_eff))
         self._connections = Connections(project,
                                         self._base + 'p_connections.json')
         tabs.addTab(self._dsps, 'DSPs')
@@ -90,8 +89,7 @@ class EffEditor(QtGui.QWidget):
 
     def set_base(self, base):
         self._base = base
-        eff_key = self._base + 'eff_{0:02x}/kqte{1}/'.format(
-                self._cur_eff, lim.FORMAT_VERSION)
+        eff_key = self._base + 'eff_{0:02x}/'.format(self._cur_eff)
         self._dsps.set_base(eff_key)
         self._connections.set_key(eff_key + 'p_connections.json')
 

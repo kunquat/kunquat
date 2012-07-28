@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -67,8 +67,7 @@ class EffList(QtGui.QTableWidget):
     def set_base(self, base):
         assert base.startswith('ins') == self._base.startswith('ins')
         self._base = base
-        self._key_base = '{0}eff_{{0:02x}}/kqte{1}/'.format(self._base,
-                                                     lim.FORMAT_VERSION)
+        self._key_base = '{0}eff_{{0:02x}}/'.format(self._base)
         self.blockSignals(True)
         for i in xrange(self._max):
             name = self._project[self._key_base.format(i) + 'm_name.json']

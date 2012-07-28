@@ -171,8 +171,7 @@ bool parse_data(kqt_Handle* handle,
         bool changed = ins != NULL;
         success = parse_instrument_level(handle, key, second_element,
                                          data, length, index);
-        changed ^= Ins_table_get(Song_get_insts(handle->song),
-                                                index) != NULL;
+        changed ^= Ins_table_get(Song_get_insts(handle->song), index) != NULL;
         Connections* graph = handle->song->connections;
         if (changed && graph != NULL)
         {
@@ -384,6 +383,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     {
         return true;
     }
+#if 0
     if (!string_has_prefix(subkey, MAGIC_ID "iXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "i" KQT_FORMAT_VERSION "/"))
     {
@@ -392,6 +392,7 @@ static bool parse_instrument_level(kqt_Handle* handle,
     subkey = strchr(subkey, '/');
     assert(subkey != NULL);
     ++subkey;
+#endif
     int gen_index = -1;
     int eff_index = -1;
     if ((gen_index = string_extract_index(subkey, "gen_", 2, "/")) >= 0)
@@ -695,6 +696,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     {
         return true;
     }
+#if 0
     if (!string_has_prefix(subkey, MAGIC_ID "gXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "g" KQT_FORMAT_VERSION "/"))
     {
@@ -702,6 +704,7 @@ static bool parse_generator_level(kqt_Handle* handle,
     }
     subkey = strchr(subkey, '/');
     ++subkey;
+#endif
     Instrument* ins = Ins_table_get(Song_get_insts(handle->song), ins_index);
     bool new_ins = ins == NULL;
     if (new_ins)
@@ -890,12 +893,14 @@ static bool parse_effect_level(kqt_Handle* handle,
     {
         return true;
     }
+#if 0
     if (!string_has_prefix(subkey, MAGIC_ID "eXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "e" KQT_FORMAT_VERSION "/"))
     {
         return true;
     }
     subkey = strchr(subkey, '/') + 1;
+#endif
     int dsp_index = -1;
     Effect_table* table = Song_get_effects(handle->song);
     if (ins != NULL)
@@ -1034,12 +1039,14 @@ static bool parse_dsp_level(kqt_Handle* handle,
     {
         return true;
     }
+#if 0
     if (!string_has_prefix(subkey, MAGIC_ID "dXX/") &&
             !string_has_prefix(subkey, MAGIC_ID "d" KQT_FORMAT_VERSION "/"))
     {
         return true;
     }
     subkey = strchr(subkey, '/') + 1;
+#endif
     DSP_table* dsp_table = Effect_get_dsps(eff);
     assert(dsp_table != NULL);
     if (string_eq(subkey, "p_dsp_type.json"))
@@ -1279,8 +1286,7 @@ static bool parse_scale_level(kqt_Handle* handle,
     {
         return true;
     }
-    if (string_eq(subkey, MAGIC_ID "sXX/p_scale.json") ||
-            string_eq(subkey, MAGIC_ID "s" KQT_FORMAT_VERSION "/p_scale.json"))
+    if (string_eq(subkey, "p_scale.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Scale* scale = new_Scale_from_string(data, state);

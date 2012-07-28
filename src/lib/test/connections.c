@@ -25,12 +25,11 @@ START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 
     pause();
 
-    set_data("ins_00/kqtiXX/eff_00/kqteXX/dsp_00/kqtdXX/p_dsp_type.json",
-            "\"volume\"");
+    set_data("ins_00/eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
     set_data("p_connections.json",
-            "[ [\"ins_00/kqtiXX/out_00\", \"out_00\"] ]");
-    set_data("ins_00/kqtiXX/p_connections.json",
-            "[ [\"eff_00/kqteXX/out_00\", \"out_00\"] ]");
+            "[ [\"ins_00/out_00\", \"out_00\"] ]");
+    set_data("ins_00/p_connections.json",
+            "[ [\"eff_00/out_00\", \"out_00\"] ]");
     kqt_Handle_mix(handle, 128);
 
     return;

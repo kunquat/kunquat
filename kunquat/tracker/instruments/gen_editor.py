@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -28,8 +28,8 @@ class GenEditor(QtGui.QWidget):
         self._project = project
         self._cur_inst = 0
         self._cur_gen = 0
-        self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(lim.FORMAT_VERSION)
-        self._gen_key_base = 'gen_{{0:02x}}/kqtg{0}/'.format(lim.FORMAT_VERSION)
+        self._ins_key_base = 'ins_{0:02x}/'
+        self._gen_key_base = 'gen_{0:02x}/'
         common_layout = QtGui.QHBoxLayout()
         common_layout.setMargin(0)
         common_layout.setSpacing(0)

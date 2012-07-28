@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -62,8 +62,7 @@ class InstList(QtGui.QTableWidget):
         if self._signal:
             return
         item = self.item(num, 0)
-        key = 'ins_{0:02x}/kqti{1}/m_name.json'.format(num,
-                                                       lim.FORMAT_VERSION)
+        key = 'ins_{0:02x}/m_name.json'.format(num)
         if item:
             self._project[key] = unicode(item.text())
         else:
@@ -72,8 +71,7 @@ class InstList(QtGui.QTableWidget):
     def sync(self):
         self._signal = True
         for i in xrange(lim.INSTRUMENTS_MAX):
-            name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
-                                                        lim.FORMAT_VERSION)]
+            name = self._project['ins_{0:02x}/m_name.json'.format(i)]
             if name:
                 item = self.item(i, 0)
                 if not item:

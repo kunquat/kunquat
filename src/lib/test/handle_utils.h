@@ -260,12 +260,12 @@ void setup_debug_instrument(void)
     assert(handle != NULL);
 
     set_data("p_connections.json",
-            "[ [\"ins_00/kqtiXX/out_00\", \"out_00\"] ]");
+            "[ [\"ins_00/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/kqtiXX/p_connections.json",
-            "[ [\"gen_00/kqtgXX/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
 
-    set_data("ins_00/kqtiXX/gen_00/kqtgXX/p_gen_type.json", "\"debug\"");
+    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
 
     return;
 }
@@ -275,7 +275,7 @@ void setup_debug_single_pulse(void)
 {
     assert(handle != NULL);
 
-    set_data("ins_00/kqtiXX/gen_00/kqtgXX/c/p_single_pulse.jsonb", "true");
+    set_data("ins_00/gen_00/c/p_single_pulse.jsonb", "true");
     check_unexpected_error();
 
     return;

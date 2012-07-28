@@ -117,14 +117,12 @@ class Composition():
     def autoconnect(self, key, immediate):
         new_ins = -1
         new_gen = -1
-        ins_conn_base = 'ins_{0:02x}/kqtiXX/'
-        gen_conn_base = 'gen_{0:02x}/kqtgXX/C/'
-        ins_prefix_base = 'ins_{{0:02x}}/kqti{0}/'.format(lim.FORMAT_VERSION)
-        gen_prefix_base = '{0}gen_{{1:02x}}/kqtg{1}/'.format(ins_prefix_base,
-                                                        lim.FORMAT_VERSION)
-        ins_pattern = 'ins_([0-9a-f]{{2}})/kqti{0}/'.format(lim.FORMAT_VERSION)
-        gen_pattern = '{0}gen_([0-9a-f]{{2}})/kqtg{1}/'.format(ins_pattern,
-                                                        lim.FORMAT_VERSION)
+        ins_conn_base = 'ins_{0:02x}/'
+        gen_conn_base = 'gen_{0:02x}/C/'
+        ins_prefix_base = 'ins_{0:02x}/'
+        gen_prefix_base = '{0}gen_{{1:02x}}/'.format(ins_prefix_base)
+        ins_pattern = 'ins_([0-9a-f]{2})/'
+        gen_pattern = '{0}gen_([0-9a-f]{{2}})/'.format(ins_pattern)
         ins_mo = re.match(ins_pattern, key)
         if not ins_mo:
             return False
@@ -189,7 +187,7 @@ class Composition():
         connections = self['p_connections.json']
         if not connections:
             connections = []
-        ins_out = instrument + '/kqtiXX/out_00'
+        ins_out = instrument + '/out_00'
         for connection in connections:
             if ins_out in connection:
                 break

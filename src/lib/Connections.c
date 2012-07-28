@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -464,14 +464,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "iXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing instrument header after the instrument number"
+                    "Missing trailing '/' after the instrument number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "iXX/");
+        ++str;
         trim_point = str - 1;
     }
     else if (string_has_prefix(str, "eff_"))
@@ -499,14 +499,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "eXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing effect header after the effect number in"
+                    "Missing trailing '/' after the effect number in"
                     " the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "eXX/");
+        ++str;
         trim_point = str - 1;
     }
     else if (string_has_prefix(str, "gen_"))
@@ -536,14 +536,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "gXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing generator header after the generator number"
+                    "Missing trailing '/' after the generator number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "gXX/");
+        ++str;
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,
@@ -572,14 +572,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "dXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing DSP header after the DSP number"
+                    "Missing trailing '/' after the DSP number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "dXX/");
+        ++str;
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,

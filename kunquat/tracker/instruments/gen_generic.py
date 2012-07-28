@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -25,8 +25,7 @@ import kunquat.tracker.kqt_limits as lim
 class GenGeneric(DevEditor):
 
     def __init__(self, project, parent=None):
-        key_temp = ('ins_{{0:02x}}/kqti{0}/'
-                    'gen_{{1:02x}}/kqtg{0}/'.format(lim.FORMAT_VERSION))
+        key_temp = ('ins_{0:02x}/gen_{1:02x}/')
         DevEditor.__init__(self, project, constraints, key_temp.format(0, 0),
                            parent)
         self._key_temp = key_temp

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -42,8 +42,7 @@ class DSPList(QtGui.QTableWidget):
     def set_base(self, base):
         self._base = base
         self.blockSignals(True)
-        name_base = '{0}dsp_{{0:02x}}/kqtd{1}/m_name.json'.format(self._base,
-                                lim.FORMAT_VERSION)
+        name_base = '{0}dsp_{{0:02x}}/m_name.json'.format(self._base)
         for i in xrange(lim.DSPS_MAX):
             name_key = name_base.format(i)
             name = self._project[name_key]
@@ -73,8 +72,8 @@ class DSPList(QtGui.QTableWidget):
         assert num >= 0
         assert num < lim.DSPS_MAX
         item = self.item(num, 0)
-        dsp_name = '{0}dsp_{1:02x}/kqtd{2}/m_name.json'.format(self._base,
-                                self._cur_dsp, lim.FORMAT_VERSION)
+        dsp_name = '{0}dsp_{1:02x}/m_name.json'.format(self._base,
+                                                       self._cur_dsp)
         if item:
             self._project[dsp_name] = unicode(item.text())
         else:

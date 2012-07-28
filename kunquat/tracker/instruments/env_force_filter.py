@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -28,8 +28,7 @@ class EnvForceFilter(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
         self._cur_inst = 0
         self._project = project
-        self._key_base = 'ins_{{0:02x}}/kqti{0}/p_envelope_force_filter.json'.format(
-                                 lim.FORMAT_VERSION)
+        self._key_base = 'ins_{0:02x}/p_envelope_force_filter.json'
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)

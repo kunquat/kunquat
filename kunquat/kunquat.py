@@ -267,10 +267,7 @@ class Handle(BaseHandle):
                  Examples:
                  'p_composition.json'
                  'pat_000/col_00/p_events.json'
-                 'ins_01/kqtiXX/p_instrument.json'
-                 The 'XX' in the last example should be written
-                 literally.  It is expanded to the file format version
-                 number behind the scenes.
+                 'ins_01/p_instrument.json'
         value -- The data to be set.  For JSON keys, this should be a
                  Python object -- it is automatically converted to a
                  JSON string.

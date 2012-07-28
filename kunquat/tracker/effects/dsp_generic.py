@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -35,8 +35,7 @@ class DSPGeneric(DevEditor):
 
     def set_base(self, base):
         self._base = base
-        dsp_base = '{0}dsp_{1:02x}/kqtd{2}/'.format(base, self._cur_dsp,
-                               lim.FORMAT_VERSION)
+        dsp_base = '{0}dsp_{1:02x}/'.format(base, self._cur_dsp)
         self.set_key_base(dsp_base)
 
 

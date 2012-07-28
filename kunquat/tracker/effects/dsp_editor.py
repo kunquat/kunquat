@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -28,7 +28,7 @@ class DSPEditor(QtGui.QWidget):
         self._project = project
         self._base = base
         self._cur_dsp = 0
-        self._dsp_key_base = 'dsp_{{0:02x}}/kqtd{0}/'.format(lim.FORMAT_VERSION)
+        self._dsp_key_base = 'dsp_{0:02x}/'
         common_layout = QtGui.QHBoxLayout()
         common_layout.setMargin(0)
         common_layout.setSpacing(0)

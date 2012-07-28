@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -92,21 +92,21 @@ Device_node* new_Device_node(const char* name,
     else if (string_has_prefix(node->name, "ins_"))
     {
         node->type = DEVICE_TYPE_INSTRUMENT;
-        node->index = string_extract_index(node->name, "ins_", 2, "/");
+        node->index = string_extract_index(node->name, "ins_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_INSTRUMENTS_MAX);
     }
     else if (string_has_prefix(node->name, "gen_"))
     {
         node->type = DEVICE_TYPE_GENERATOR;
-        node->index = string_extract_index(node->name, "gen_", 2, "/");
+        node->index = string_extract_index(node->name, "gen_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_GENERATORS_MAX);
     }
     else if (string_has_prefix(node->name, "eff_"))
     {
         node->type = DEVICE_TYPE_EFFECT;
-        node->index = string_extract_index(node->name, "eff_", 2, "/");
+        node->index = string_extract_index(node->name, "eff_", 2, NULL);
         assert(node->index >= 0);
         // TODO: upper bound
     }
@@ -119,7 +119,7 @@ Device_node* new_Device_node(const char* name,
     else if (string_has_prefix(node->name, "dsp_"))
     {
         node->type = DEVICE_TYPE_DSP;
-        node->index = string_extract_index(node->name, "dsp_", 2, "/");
+        node->index = string_extract_index(node->name, "dsp_", 2, NULL);
         assert(node->index >= 0);
         //assert(ins != NULL || node->index < KQT_DSP_EFFECTS_MAX);
         //assert(ins == NULL || node->index < KQT_INSTRUMENT_DSPS_MAX);

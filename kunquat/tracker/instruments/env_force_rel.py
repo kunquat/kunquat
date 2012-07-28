@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -23,8 +23,7 @@ from kunquat.tracker.envelope import Envelope
 class EnvForceRel(EnvTime):
 
     def __init__(self, project, parent=None):
-        key_base = 'ins_{{0:02x}}/kqti{0}/p_envelope_force_release.json'.format(
-                           lim.FORMAT_VERSION)
+        key_base = 'ins_{0:02x}/p_envelope_force_release.json'
         EnvTime.__init__(self,
                          project,
                          key_base,
