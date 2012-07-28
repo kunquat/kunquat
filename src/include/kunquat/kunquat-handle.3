@@ -1,4 +1,4 @@
-.TH kunquat\-handle 3 "2012\-07\-22" "" "Kunquat"
+.TH kunquat\-handle 3 "2012\-07\-28" "" "Kunquat"
 
 .SH NAME
 
@@ -50,13 +50,10 @@ directory paths. Examples:
 .in +4n
 .nf
 p_composition.json
-pat_000/ccol_00/p_channel_events.json
-ins_01/kqtiXX/p_instrument.json
+pat_000/col_00/p_channel_events.json
+ins_01/p_instrument.json
 .fi
 .in
-
-The "XX" in the last example should be written literally. It is expanded to
-the file format version number behind the scenes.
 
 .IP "\fBint kqt_Handle_set_data(kqt_Handle*\fR \fIhandle\fR\fB, char*\fR \fIkey\fR\fB, void*\fR \fIdata\fR\fB, long\fR \fIlength\fR\fB);\fR"
 Sets data in \fIhandle\fR associated with \fIkey\fR. The \fIlength\fR argument
