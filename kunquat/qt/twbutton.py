@@ -11,6 +11,7 @@ class TWButton(QPushButton):
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
         led = TWLed()
+        self._led = led
         layout.addWidget(led)
         notename = QLabel()
         self._notename = notename
@@ -20,6 +21,9 @@ class TWButton(QPushButton):
 
     def set_name(self, name):
         self._notename.setText(name)
+
+    def set_led(self, light):
+        self._led.light(light)
 
     def set_color(self, color):
         if color == 'dark':
