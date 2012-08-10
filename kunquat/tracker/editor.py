@@ -367,7 +367,7 @@ class KqtEditor(QtGui.QMainWindow):
 
     def set_appearance(self):
         # FIXME: size and title
-        self.resize(400, 300)
+        self.resize(750, 450)
         self.setWindowTitle(PROGRAM_NAME)
 
         #self.statusBar().showMessage('[status]')
