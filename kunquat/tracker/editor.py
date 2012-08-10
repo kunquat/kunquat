@@ -441,6 +441,7 @@ class KqtEditor(QtGui.QMainWindow):
         #top_layout.addWidget(self._top_control)
         top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(self._status)
+        instruarea.setFocus()
 
     def create_separator(self):
         separator = QtGui.QFrame()
