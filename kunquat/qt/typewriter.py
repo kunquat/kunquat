@@ -5,8 +5,10 @@ from PyQt4 import QtCore
 from kunquat.qt.twbutton import TWButton
 from kunquat.qt.typewriter_model import TypewriterModel
 from kunquat.qt.typewriter_view import TypewriterView
+import random
 
 class Typewriter():
+
     keys = [
     [Qt.Key_1,Qt.Key_2,Qt.Key_3,Qt.Key_4,Qt.Key_5,Qt.Key_6,Qt.Key_7,Qt.Key_8,Qt.Key_9,Qt.Key_0],
     [Qt.Key_Q,Qt.Key_W,Qt.Key_E,Qt.Key_R,Qt.Key_T,Qt.Key_Y,Qt.Key_U,Qt.Key_I,Qt.Key_O,Qt.Key_P],
@@ -28,6 +30,7 @@ class Typewriter():
         self._twmodel.register_view(self._twview)
         self._keymap = self.get_keymap()
         self._notemap = self.get_notemap()
+        self.random_key = Qt.Key_section
 
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
@@ -35,6 +38,15 @@ class Typewriter():
             note, octave = self._notemap[(coord)]
         except TypeError:
             return
+        self._piano.press(note, octave)
+
+    def random(self):
+        note_indices = [x[0] for x in self._keymap.itervalues() if x[1] == 0]
+        note_indices.sort()
+        value = int(random.gauss(len(note_indices) / 2,
+                                 len(note_indices)))
+        octave = value // len(note_indices)
+        note = value % len(note_indices)
         self._piano.press(note, octave)
 
     def release(self, coord):
@@ -77,8 +89,12 @@ class Typewriter():
         if ev.isAutoRepeat() or ev.modifiers() != Qt.NoModifier:
             ev.ignore()
             return
+        key = ev.key()
+        if key == self.random_key:
+            self.random()
+            return
         try:
-            coord = self._keymap[ev.key()]
+            coord = self._keymap[key]
         except KeyError:
             ev.ignore()
             return
