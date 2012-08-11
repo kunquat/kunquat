@@ -5,7 +5,7 @@ from PyQt4 import QtCore
 from kunquat.qt.twbutton import TWButton
 from kunquat.qt.typewriter_model import TypewriterModel
 from kunquat.qt.typewriter_view import TypewriterView
-import random
+from random import gauss
 
 class Typewriter():
 
@@ -31,6 +31,7 @@ class Typewriter():
         self._keymap = self.get_keymap()
         self._notemap = self.get_notemap()
         self.random_key = Qt.Key_section
+        self._previous_random = None
 
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
@@ -40,21 +41,26 @@ class Typewriter():
             return
         self._piano.press(note, octave)
 
-    def random(self):
-        note_indices = [x[0] for x in self._keymap.itervalues() if x[1] == 0]
-        note_indices.sort()
-        value = int(random.gauss(len(note_indices) / 2,
-                                 len(note_indices)))
-        octave = value // len(note_indices)
-        note = value % len(note_indices)
-        self._piano.press(note, octave)
-
     def release(self, coord):
         self._twmodel.set_led_color(coord, 0)
         try:
             note, octave = self._notemap[(coord)]
         except TypeError:
             return
+        self._piano.release(note, octave)
+
+    def press_random(self):
+        note_indices = [x[0] for x in self._keymap.itervalues() if x[1] == 0]
+        note_indices.sort()
+        value = int(gauss(len(note_indices) / 2,
+                                 len(note_indices)))
+        octave = value // len(note_indices)
+        note = value % len(note_indices)
+        self._previous_random = (note, octave)
+        self._piano.press(note, octave)
+
+    def release_random(self):
+        (note, octave) = self._previous_random
         self._piano.release(note, octave)
 
     def get_view(self):
@@ -91,7 +97,7 @@ class Typewriter():
             return
         key = ev.key()
         if key == self.random_key:
-            self.random()
+            self.press_random()
             return
         try:
             coord = self._keymap[key]
@@ -104,9 +110,14 @@ class Typewriter():
         if ev.isAutoRepeat():
             ev.ignore()
             return
+        key = ev.key()
+        if key == self.random_key:
+            self.release_random()
+            return
         try:
-            coord = self._keymap[ev.key()]
+            coord = self._keymap[key]
         except KeyError:
             ev.ignore()
             return
         self.release(coord)
+
