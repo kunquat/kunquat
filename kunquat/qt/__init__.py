@@ -1,1 +1,1 @@
-from kunquat.qt.typewriter_view import TypewriterView
+from kunquat.qt.typewriter import Typewriter
