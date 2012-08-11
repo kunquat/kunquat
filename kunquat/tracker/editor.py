@@ -40,7 +40,7 @@ import project
 import scale
 from sheet import Sheet
 import timestamp as ts
-
+from piano import Piano
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -390,7 +390,9 @@ class KqtEditor(QtGui.QMainWindow):
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
-        self._instruments = Instruments(self.project,
+        piano = Piano(self._scale, self._playback, self._note_input)
+        tw = Typewriter(piano)
+        self._instruments = Instruments(tw, piano, self.project,
                                         self._instrument,
                                         self._playback,
                                         self._note_input,
@@ -420,7 +422,6 @@ class KqtEditor(QtGui.QMainWindow):
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
 
-        tw = Typewriter()
         instruarea = tw.get_view()
         instrumentpanel = QtGui.QWidget(self)
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
