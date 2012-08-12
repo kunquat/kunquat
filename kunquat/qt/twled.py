@@ -12,13 +12,22 @@ class TWLed(QLabel):
         self.setFrameStyle(QFrame.Panel | QFrame.Sunken)
         self.setLineWidth(2)
         self._color_style = color_style
-        self.light(8)
+        self._light = 8
+        self.update()
+
+    def set_color_style(color_style):
+        self._color_style = color_style
+        self.update()
 
     def light(self, light):
-        MINLIGHT = 6
         if light < 0 or light > 8:
             raise ValueError
-        value = MINLIGHT + light
+        self._light = light
+        self.update()
+
+    def update(self):
+        MINLIGHT = 6
+        value = MINLIGHT + self._light
         hex_value = '%x' % value
         color = hex_value.join(self._color_style.split('1'))
         self.setStyleSheet("QLabel { background-color: #%s; }" % color)
