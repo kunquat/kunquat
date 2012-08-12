@@ -29,6 +29,7 @@ class PatternEditor(QtGui.QWidget):
                  pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
+                 typewriter,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
@@ -70,7 +71,8 @@ class PatternEditor(QtGui.QWidget):
                                 playback_manager,
                                 pattern_offset_changed_slot,
                                 octave_spin,
-                                instrument_spin)
+                                instrument_spin,
+                                typewriter)
         QtCore.QObject.connect(self._pattern,
                                QtCore.SIGNAL('patternChanged(int)'),
                                pattern_changed_slot)

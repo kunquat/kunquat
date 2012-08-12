@@ -2,6 +2,7 @@ from PyQt4.QtGui import QAbstractScrollArea, QTabWidget, QToolButton, QHBoxLayou
 from PyQt4.QtCore import Qt, QObject
 from PyQt4 import QtCore
 
+from kunquat.tracker.sheet.pattern import Pattern
 from kunquat.qt.twbutton import TWButton
 from kunquat.qt.typewriter_model import TypewriterModel
 from kunquat.qt.typewriter_view import TypewriterView
@@ -23,8 +24,8 @@ class Typewriter():
     [(0,0), (2,0), (4,0), (5,0), (7,0), (9,0), (11,0)]
     ]
 
-    def __init__(self, piano):
-        self._piano = piano
+    def __init__(self, p):
+        self.p = p
         self._twmodel = TypewriterModel()
         self._twview = TypewriterView(self, self.count_rows())
         self._twmodel.register_view(self._twview)
@@ -33,13 +34,21 @@ class Typewriter():
         self.random_key = Qt.Key_section
         self._previous_random = None
 
+    def get_write_cursor(self):
+        pattern = self.p._app.focusWidget()
+        if isinstance(pattern, Pattern):
+            return pattern.get_cursor()
+        else:
+           return None
+
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
         try:
             note, octave = self._notemap[(coord)]
         except TypeError:
             return
-        self._piano.press(note, octave)
+        cursor = self.get_write_cursor()
+        self.p._piano.press(note, octave, cursor)
 
     def release(self, coord):
         self._twmodel.set_led_color(coord, 0)
@@ -47,10 +56,11 @@ class Typewriter():
             note, octave = self._notemap[(coord)]
         except TypeError:
             return
-        self._piano.release(note, octave)
+        self.p._piano.release(note, octave)
 
     def press_random(self):
         self._twmodel.set_random_led_color(8)
+        self._twmodel.roll_die()
         note_indices = [x[0] for x in self._keymap.itervalues() if x[1] == 0]
         note_indices.sort()
         value = int(gauss(len(note_indices) / 2,
@@ -58,12 +68,12 @@ class Typewriter():
         octave = value // len(note_indices)
         note = value % len(note_indices)
         self._previous_random = (note, octave)
-        self._piano.press(note, octave)
+        self.p._piano.press(note, octave)
 
     def release_random(self):
         self._twmodel.set_random_led_color(0)
         (note, octave) = self._previous_random
-        self._piano.release(note, octave)
+        self.p._piano.release(note, octave)
 
     def get_view(self):
         return self._twview
@@ -94,6 +104,8 @@ class Typewriter():
         return [len(row) for row in self.keys]
                 
     def keyPressEvent(self, ev):
+        if self.get_write_cursor() == None:
+            self._twview.setFocus()
         if ev.isAutoRepeat() or ev.modifiers() != Qt.NoModifier:
             ev.ignore()
             return

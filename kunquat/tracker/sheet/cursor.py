@@ -42,10 +42,12 @@ class Cursor(QtCore.QObject):
                  accessors,
                  playback_manager,
                  instrument_spin,
+                 typewriter,
                  parent=None):
         QtCore.QObject.__init__(self, parent)
         self.playback_manager = playback_manager
         self._instrument_spin = instrument_spin
+        self._typewriter = typewriter
         self.init_speed = 1
         self.max_speed = 12
         self.init_trigger_delay = 6
@@ -123,6 +125,7 @@ class Cursor(QtCore.QObject):
             self.note_off_key(ev)
             return
         else:
+            self._typewriter.keyPressEvent(ev)
             self.note_on_key(ev)
             return
         self.insert = False
@@ -473,10 +476,11 @@ class Cursor(QtCore.QObject):
             play_note_on = True
             note_on_entered = True
         if play_note_on:
-            self.playback_manager.play_event(self.col.get_num(),
-                                             ['.i', self.inst_num])
-            self.playback_manager.play_event(self.col.get_num(),
-                                             ['n+', cents])
+            pass
+            #self.playback_manager.play_event(self.col.get_num(),
+            #                                 ['.i', self.inst_num])
+            #self.playback_manager.play_event(self.col.get_num(),
+            #                                 ['n+', cents])
         if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
             QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         if self.grid.snap:

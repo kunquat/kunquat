@@ -4,6 +4,8 @@ from PyQt4 import QtCore
 
 from kunquat.qt.twbutton import TWButton
 
+from random import choice
+
 class TypewriterModel():
     def __init__(self):
         self._buttons = {
@@ -58,6 +60,11 @@ class TypewriterModel():
         self._random_led_color = 0
         self._views = []
 
+        die1_code = 0x2680
+        dice_code = range(die1_code, die1_code + 6)
+        self._dice = [unichr(i) for i in dice_code]
+        self._die = self._dice[4]
+
     def get_led_color(self, coord):
         DEFAULT = 0
         row, but = coord
@@ -71,6 +78,13 @@ class TypewriterModel():
         row, but = coord
         self._buttons[(row, but)]['led'] = color
         self.update_views()
+
+    def roll_die(self):
+        self._die = choice(self._dice)
+        self.update_views()
+
+    def get_die(self):
+        return self._die
 
     def get_random_led_color(self):
         return self._random_led_color

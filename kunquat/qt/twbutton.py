@@ -18,6 +18,7 @@ class TWButton(QPushButton):
         notename.setAlignment(Qt.AlignCenter)
         layout.addWidget(notename)
         layout.setAlignment(Qt.AlignCenter)
+        self.setFocusPolicy(Qt.NoFocus)
 
     def set_name(self, name):
         self._notename.setText(name)

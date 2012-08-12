@@ -10,7 +10,8 @@ class TypewriterView(QAbstractScrollArea):
 
     def __init__(self, controller, button_layout, parent = None):
         super(self.__class__, self).__init__(parent)
-        self._randbut = self.random_button()
+        self.setFocusPolicy(Qt.TabFocus)
+        self._randbut = self._random_button()
         self._buttons = {}
         self._controller = controller
         view = QWidget()
@@ -53,7 +54,9 @@ class TypewriterView(QAbstractScrollArea):
         pad.setMaximumWidth(psize)
         return pad
 
-    def random_button(self):
+
+
+    def _random_button(self):
         randbut = TWButton(color_style='001')
         QObject.connect(randbut,
                         QtCore.SIGNAL('released()'),
@@ -66,6 +69,7 @@ class TypewriterView(QAbstractScrollArea):
 
     def update(self):
         self._randbut.set_led(self.model.get_random_led_color())
+        self._randbut.set_name(self.model.get_die())
         for coord, button in self._buttons.items():
                 button.set_color(self.model.data(coord, 'color'))
                 button.set_name(self.model.data(coord, 'name'))
