@@ -5,12 +5,12 @@ from kunquat.qt.twled import TWLed
 
 class TWButton(QPushButton):
 
-    def __init__(self, parent = None):
+    def __init__(self, color_style = '100', parent = None):
         super(self.__class__, self).__init__(parent)
         self.setMinimumWidth(60)
         self.setMinimumHeight(60)
         layout = QVBoxLayout(self)
-        led = TWLed()
+        led = TWLed(color_style)
         self._led = led
         layout.addWidget(led)
         notename = QLabel()
@@ -23,7 +23,10 @@ class TWButton(QPushButton):
         self._notename.setText(name)
 
     def set_led(self, light):
-        self._led.light(light)
+        if self.isEnabled():
+            self._led.light(light)
+        else:
+            self._led.light(0)
 
     def set_color(self, color):
         if color == 'dark':
