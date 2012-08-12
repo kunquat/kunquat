@@ -13,6 +13,11 @@ class TWLed(QLabel):
         self.setLineWidth(2)
         self._color_style = color_style
         self._light = 8
+        self._enabled = True
+        self.update()
+
+    def set_enabled(self, enabled):
+        self._enabled = enabled
         self.update()
 
     def set_color_style(color_style):
@@ -25,10 +30,16 @@ class TWLed(QLabel):
         self._light = light
         self.update()
 
+    def _set_color(self, color):
+        self.setStyleSheet("QLabel { background-color: %s; }" % color)
+
     def update(self):
-        MINLIGHT = 6
-        value = MINLIGHT + self._light
-        hex_value = '%x' % value
-        color = hex_value.join(self._color_style.split('1'))
-        self.setStyleSheet("QLabel { background-color: #%s; }" % color)
+        if self._enabled:
+            MINLIGHT = 6
+            value = MINLIGHT + self._light
+            hex_value = '%x' % value
+            color = '#' + hex_value.join(self._color_style.split('1'))
+        else:
+            color = '#777'
+        self._set_color(color)
 

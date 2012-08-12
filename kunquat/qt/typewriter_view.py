@@ -69,7 +69,7 @@ class TypewriterView(QAbstractScrollArea):
         for coord, button in self._buttons.items():
                 button.set_color(self.model.data(coord, 'color'))
                 button.set_name(self.model.data(coord, 'name'))
-                button.setEnabled(self.model.data(coord, 'enabled'))
+                button.set_enabled(self.model.data(coord, 'enabled'))
                 button.set_led(self.model.get_led_color(coord))
 
     def keyPressEvent(self, ev):

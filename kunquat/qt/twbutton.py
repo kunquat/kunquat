@@ -23,12 +23,11 @@ class TWButton(QPushButton):
         self._notename.setText(name)
 
     def set_enabled(self, enabled):
-        self._led.light(0)
+        self._led.set_enabled(enabled)
         self.setEnabled(enabled)
 
     def set_led(self, light):
-        if self.isEnabled():
-            self._led.light(light)
+        self._led.light(light)
 
     def set_color(self, color):
         if color == 'dark':
