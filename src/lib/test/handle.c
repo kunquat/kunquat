@@ -94,8 +94,7 @@ START_TEST(Complete_debug_note_renders_correctly)
     set_mix_volume(0);
     pause();
 
-    // 55 Hz
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
 
     float expected_buf[buf_len] = { 0.0f };
@@ -124,8 +123,7 @@ START_TEST(Note_off_stops_the_note_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_off_frame = 20;
 
-    // 55 Hz
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_off_frame);
 
@@ -154,8 +152,7 @@ START_TEST(Note_end_is_reached_correctly_during_note_off)
     float actual_buf[buf_len] = { 0.0f };
     const int note_off_frame = 70;
 
-    // 55 Hz
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_off_frame);
 
@@ -188,11 +185,11 @@ START_TEST(Implicit_note_off_is_triggered_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_2_frame);
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
 
@@ -218,11 +215,11 @@ START_TEST(Independent_notes_mix_correctly)
     float actual_buf[buf_len] = { 0.0f };
     const int note_2_frame = 2;
 
-    kqt_Handle_fire(handle, 0, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf, note_2_frame);
 
-    kqt_Handle_fire(handle, 1, "[\"n+\", -3600]");
+    kqt_Handle_fire(handle, 1, Note_On_55_Hz);
     check_unexpected_error();
     mix_and_fill(actual_buf + note_2_frame, buf_len - note_2_frame);
 

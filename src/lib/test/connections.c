@@ -19,6 +19,107 @@
 #include <kunquat/Player.h>
 
 
+#define buf_len 128
+
+
+START_TEST(Trivial_effect_is_identity)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+
+    set_data("eff_00/p_connections.json", "[ [\"in_00\", \"out_00\"] ]");
+
+    set_data("p_connections.json",
+            "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
+            "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    float actual_buf[buf_len] = { 0.0f };
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    check_unexpected_error();
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf, 10, seq);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Effect_with_default_volume_dsp_is_identity)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+
+    set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
+    set_data("eff_00/p_connections.json",
+            "[ [\"in_00\", \"dsp_00/C/in_00\"],"
+            "  [\"dsp_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("p_connections.json",
+            "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
+            "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    float actual_buf[buf_len] = { 0.0f };
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    check_unexpected_error();
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq[] = { 1.0f, 0.5f, 0.5f, 0.5f };
+    repeat_seq_local(expected_buf, 10, seq);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
+START_TEST(Effect_with_double_volume_dsp_and_bypass_triples_volume)
+{
+    set_mixing_rate(220);
+    set_mix_volume(0);
+    pause();
+
+    set_data("ins_00/p_connections.json",
+            "[ [\"gen_00/C/out_00\", \"out_00\"] ]");
+    set_data("ins_00/gen_00/p_gen_type.json", "\"debug\"");
+
+    set_data("eff_00/dsp_00/p_dsp_type.json", "\"volume\"");
+    set_data("eff_00/dsp_00/c/p_volume.jsonf", "6");
+    set_data("eff_00/p_connections.json",
+            "[ [\"in_00\", \"out_00\"],"
+            "  [\"in_00\", \"dsp_00/C/in_00\"],"
+            "  [\"dsp_00/C/out_00\", \"out_00\"] ]");
+
+    set_data("p_connections.json",
+            "[ [\"ins_00/out_00\", \"eff_00/in_00\"],"
+            "  [\"eff_00/out_00\", \"out_00\"] ]");
+
+    float actual_buf[buf_len] = { 0.0f };
+    kqt_Handle_fire(handle, 0, Note_On_55_Hz);
+    check_unexpected_error();
+    mix_and_fill(actual_buf, buf_len);
+
+    float expected_buf[buf_len] = { 0.0f };
+    float seq[] = { 3.0f, 1.5f, 1.5f, 1.5f };
+    repeat_seq_local(expected_buf, 10, seq);
+
+    check_buffers_equal(expected_buf, actual_buf, buf_len, 0.0f);
+}
+END_TEST
+
+
 START_TEST(Connect_instrument_effect_with_unconnected_dsp_and_mix)
 {
     assert(handle != NULL);
@@ -48,6 +149,11 @@ Suite* Connections_suite(void)
     tcase_set_timeout(tc_effects, timeout);
     tcase_add_checked_fixture(tc_effects, setup_empty, handle_teardown);
 
+    tcase_add_test(tc_effects, Trivial_effect_is_identity);
+    tcase_add_test(tc_effects, Effect_with_default_volume_dsp_is_identity);
+    tcase_add_test(
+            tc_effects,
+            Effect_with_double_volume_dsp_and_bypass_triples_volume);
     tcase_add_test(
             tc_effects,
             Connect_instrument_effect_with_unconnected_dsp_and_mix);

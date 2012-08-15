@@ -253,7 +253,7 @@ bool Connections_prepare(Connections* graph)
 }
 
 
-bool Connections_init_buffers_simple(Connections* graph)
+bool Connections_init_buffers(Connections* graph)
 {
     assert(graph != NULL);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
@@ -263,11 +263,13 @@ bool Connections_init_buffers_simple(Connections* graph)
     {
         return false;
     }
+    Device_node_reset(master);
     return Device_node_init_effect_buffers(master);
 }
 
 
-bool Connections_init_buffers(Connections* graph)
+#if 0
+bool Connections_init_buffers_complex(Connections* graph)
 {
     assert(graph != NULL);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
@@ -303,6 +305,7 @@ bool Connections_init_buffers(Connections* graph)
  //   fprintf(stderr, "!!! Finished Connections_init_buffers\n\n");
     return true;
 }
+#endif
 
 
 void Connections_clear_buffers(Connections* graph,

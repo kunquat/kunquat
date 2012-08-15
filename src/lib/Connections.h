@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -37,21 +37,21 @@ typedef struct Connections Connections;
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_init_buffers_simple(Connections* graph);
+bool Connections_init_buffers(Connections* graph);
 
 
 /**
  * Initialises Audio buffers in the Connections.
  *
  * This function uses a more sophisticated approach to allocating buffers than
- * Connections_init_buffers_simple. Typically, it uses far less buffers, which
+ * Connections_init_buffers. Typically, it uses far less buffers, which
  * requires less mixing and saves a bit of memory.
  *
  * \param graph   The Connections -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Connections_init_buffers(Connections* graph);
+//bool Connections_init_buffers_complex(Connections* graph);
 
 
 /**
