@@ -185,9 +185,7 @@ class Project(QtCore.QObject):
     def _update_player(self, key):
         parts = key.split('/')
         root = parts.pop(0)
-        kqtcxx = parts.pop(0)
         assert root == ''
-        assert kqtcxx.startswith('kqtc')
         path = '/'.join(parts)
         value = self._composition.get(path)
         self._handle.set_data(path, value)
@@ -237,19 +235,19 @@ class Project(QtCore.QObject):
 
     def _export_kqti(self, index, dest):
         instrument = self._composition.get_instrument(index)
-        instrument.to_tar(dest)
+        instrument.to_tar(dest, prefix='kqti00')
 
     def _export_kqte(self, base, index, dest):
         effect = self._composition.get_effect(base, index)
-        effect.to_tar(dest)
+        effect.to_tar(dest, prefix='kqte00')
 
     def _import_kqti(self, index, src):
         instrument = self._composition.get_instrument(index)
-        instrument.from_path(src)
+        instrument.from_path(src, prefix='kqti00')
 
     def _import_kqte(self, base, index, src):
         effect = self._composition.get_effect(base, index)
-        effect.from_path(src)
+        effect.from_path(src, prefix='kqte00')
 
     # PROCESS WRAPPER INTERFACE
     #

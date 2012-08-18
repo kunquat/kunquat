@@ -21,10 +21,10 @@ import re
 class Composition():
 
     def __init__(self, store):
-        root = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        root = ''
         self._history = History(self)
         self._store = store
-        self._view = store.get_view(root)
+        self._view = store
 
     def get(self, key):
         suffix = key.split('.').pop()
@@ -179,7 +179,7 @@ class Composition():
         parts = prefix.split('/')
         if len(parts) != 3:
             return
-        (empty, root, instrument) = parts
+        (empty, instrument) = parts
         if empty != '':
             return
         if not instrument.startswith('ins_'):
@@ -196,7 +196,8 @@ class Composition():
             self._view.put('p_connections.json', connections)
 
     def to_tar(self, path):
-        self._store.to_tar(path)
+        prefix = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        self._store.to_tar(path, prefix=prefix)
 
     def changed(self):
         """Whether the composition has changed since the last commit."""

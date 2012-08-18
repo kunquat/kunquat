@@ -79,7 +79,8 @@ class Store(object):
         return view.get(key, parse)
 
     def get_json(self, key, key_prefix=''):
-        return view.get(key, parse='json', key_prefix=key_prefix)
+        view = self.get_view(key_prefix)
+        return view.get(key, parse='json')
 
     def get_view(self, prefix):
         return view.View(self, prefix)

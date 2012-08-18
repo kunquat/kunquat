@@ -58,7 +58,7 @@ class View():
         valid = [(key[len(path):], value) for (key, value) in memory if key.startswith(path)]
         return valid
 
-    def to_tar(self, path):
+    def to_tar(self, path, prefix=''):
         compression = ''
         if path.endswith('.gz'):
             compression = 'gz'
@@ -71,7 +71,9 @@ class View():
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
-            parts = key.split('/')
+            preparts = prefix.split('/')
+            keyparts = key.split('/')
+            parts = preparts + keyparts
             nonempty = [p for p in parts if p != '']
             tarpath = '/'.join(nonempty)
             info.name = tarpath
@@ -81,15 +83,28 @@ class View():
         tfile.close()
         self._store.signal(Export_end(prefix=self.prefix, path=path))
 
-    def from_tar(self, path):
+    def remove_prefix(self, path, prefix):
+        preparts = prefix.split('/')
+        keyparts = path.split('/')
+        for pp in preparts:
+            kp = keyparts.pop()
+            if pp != kp:
+                 return None
+        return '/'.join(keyparts)
+
+    def from_tar(self, path, prefix=''):
         tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
         self._store.signal(Import_start(prefix=self.prefix, path=path, key_names=tfile.getnames()))
         for entry in tfile.getmembers():
-            key = entry.name
-            self._store.signal(Import_status(prefix=self.prefix, dest=path, key=key))
-            if entry.isfile():
-                value = tfile.extractfile(entry).read()
-                self.put(key, value)
+            tarpath = entry.name
+            self._store.signal(Import_status(prefix=self.prefix, dest=path, key=tarpath))
+            key = self.remove_prefix(path, prefix)
+            if key == None:
+                pass # prefix mismatch
+            else:
+                if entry.isfile():
+                    value = tfile.extractfile(entry).read()
+                    self.put(key, value)
         tfile.close()
         self._store.signal(Import_end(prefix=self.prefix, path=path))
 
