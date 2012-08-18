@@ -31,7 +31,7 @@ class InstEditor(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self._project = project
-        self._cur_inst = instrument_spin.value()
+        self._cur_inst = int(instrument_spin.currentText().split(u':')[0])
         self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(
                                                       lim.FORMAT_VERSION)
         top_layout = QtGui.QVBoxLayout(self)

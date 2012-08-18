@@ -103,6 +103,8 @@ class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self, args):
         QtGui.QMainWindow.__init__(self)
+        self._songcount = QtGui.QLabel()
+        self.update_songs(0, 0)
 
         try:
             file_path = str(args[1])
@@ -112,7 +114,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._playback = Playback()
         self._playback.connect(self.play_subsong, self.play_pattern,
                                self.play_from, self.play_event, self.stop)
-        self.project = project.Project(file_path)
+        self.project = project.Project(self, file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
         self._scale = scale.Scale({
@@ -182,6 +184,13 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
+
+    def update_songs(self, songs, patterns):
+        if songs > 0 or patterns > 0:
+            info = u'%s song(s)' % songs
+        else:
+            info = u'no score'
+        self._songcount.setText(info)
 
     def _finalise(self, obj):
         fw = self.focusWidget()
@@ -513,6 +522,24 @@ class KqtEditor(QtGui.QMainWindow):
         layout.setMargin(5)
         layout.setSpacing(5)
 
+        new_project = QtGui.QToolButton()
+        new_project.setText('Clear Project')
+        new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
+        new_project.setAutoRaise(True)
+        new_project.setDisabled(True)
+        #QtCore.QObject.connect(new_project,
+        #                       QtCore.SIGNAL('clicked()'),
+        #                       self.clear)
+
+        open_project = QtGui.QToolButton()
+        open_project.setText('Import Composition')
+        open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))
+        open_project.setAutoRaise(True)
+        open_project.setDisabled(True)
+        #QtCore.QObject.connect(open_project,
+        #                       QtCore.SIGNAL('clicked()'),
+        #                       self.import_composition)
+
         save_project = QtGui.QToolButton()
         save_project.setText('Export Composition')
         save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
@@ -520,8 +547,11 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
                                self.export_composition)
 
+        env_label = QtGui.QLabel('in: 0 out: 0')
+
         env_ter = QtGui.QToolButton()
         env_ter.setText('io')
+        env_ter.setIcon(QtGui.QIcon.fromTheme('modem'))
         env_ter.setAutoRaise(True)
         QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),
                                self.environment_window)
@@ -539,17 +569,40 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
                                self.instrument_window)
 
+        self._instrument = QtGui.QComboBox()
+        self._instrument.addItem(u'0: piano')
+        self._instrument.addItem(u'3: t-urku')
+        ''''
         self._instrument = QtGui.QSpinBox()
         self._instrument.setMinimum(0)
         self._instrument.setMaximum(lim.INSTRUMENTS_MAX - 1)
         self._instrument.setValue(0)
         self._instrument.setToolTip('Instrument')
+        '''
 
+        octave_label = QtGui.QLabel('octave:')
         self._octave = QtGui.QSpinBox()
         self._octave.setMinimum(lim.SCALE_OCTAVE_FIRST)
         self._octave.setMaximum(lim.SCALE_OCTAVE_LAST)
         self._octave.setValue(4)
         self._octave.setToolTip('Base octave')
+
+        scale_selector = QtGui.QComboBox()
+        scale_selector.addItem(u'chromatic')
+        scale_selector.setDisabled(True)
+
+        scale_config = QtGui.QToolButton()
+        scale_config.setText(u'Scale configuration')
+        scale_config.setIcon(QtGui.QIcon.fromTheme('input-gaming'))
+        scale_config.setAutoRaise(True)
+        scale_config.setDisabled(True)
+        #QtCore.QObject.connect(open_project,
+        #                       QtCore.SIGNAL('clicked()'),
+        #                       self.import_composition)
+
+
+
+
 
         #infinite = QtGui.QCheckBox('Infinite')
         #infinite.setCheckState(QtCore.Qt.Unchecked)
@@ -558,8 +611,8 @@ class KqtEditor(QtGui.QMainWindow):
         #                       lambda x: self._set_infinite(x ==
         #                                            QtCore.Qt.Checked))
 
-        #layout.addWidget(new_project)
-        #layout.addWidget(open_project)
+        layout.addWidget(new_project)
+        layout.addWidget(open_project)
         layout.addWidget(save_project)
         #layout.addWidget(export)
         layout.addWidget(self.create_separator())
@@ -567,11 +620,17 @@ class KqtEditor(QtGui.QMainWindow):
         layout.addWidget(self._instrument)
         layout.addWidget(instrument_ter)
         layout.addWidget(self.create_separator())
+
+        layout.addWidget(octave_label)
         layout.addWidget(self._octave)
+        layout.addWidget(scale_selector)
+        layout.addWidget(scale_config)
         #layout.addWidget(infinite)
         layout.addWidget(self.create_separator())
+        layout.addWidget(self._songcount)
         layout.addWidget(sheet_but)
         layout.addWidget(self.create_separator())
+        layout.addWidget(env_label)
         layout.addWidget(env_ter)
         return top_control
 

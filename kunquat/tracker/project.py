@@ -59,7 +59,7 @@ class Project(QtCore.QObject):
     _end_task = QtCore.pyqtSignal(name='endTask')
     _sync = QtCore.pyqtSignal(name='sync')
 
-    def __init__(self, file_path=None, mixing_rate=48000, parent=None):
+    def __init__(self, project, file_path=None, mixing_rate=48000, parent=None):
         """Create a new Project.
 
         Optional arguments:
@@ -67,6 +67,7 @@ class Project(QtCore.QObject):
 
         """
         QtCore.QObject.__init__(self, parent)
+        self.p = project
         self._process = Process()
         self._mixing_rate = mixing_rate
 
@@ -212,6 +213,7 @@ class Project(QtCore.QObject):
     def _store_import_end(self, prefix, **_):
         self._composition.fix_connections(prefix)
         self._composition.end_group()
+        self.p.update_songs(self._composition.songs(), self._composition.patterns())
         QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def _store_export_start(self, key_names, **_):
