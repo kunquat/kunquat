@@ -48,6 +48,8 @@ class Typewriter():
         except TypeError:
             return
         cursor = self.get_write_cursor()
+        if cursor == None:
+            self._twview.setFocus()
         self.p._piano.press(note, octave, cursor)
 
     def release(self, coord):
@@ -104,8 +106,6 @@ class Typewriter():
         return [len(row) for row in self.keys]
                 
     def keyPressEvent(self, ev):
-        if self.get_write_cursor() == None:
-            self._twview.setFocus()
         if ev.isAutoRepeat() or ev.modifiers() != Qt.NoModifier:
             ev.ignore()
             return
