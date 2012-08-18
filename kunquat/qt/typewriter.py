@@ -6,7 +6,7 @@ from kunquat.tracker.sheet.pattern import Pattern
 from kunquat.qt.twbutton import TWButton
 from kunquat.qt.typewriter_model import TypewriterModel
 from kunquat.qt.typewriter_view import TypewriterView
-from random import gauss
+from random import gauss, choice
 
 class Typewriter():
 
@@ -41,16 +41,19 @@ class Typewriter():
         else:
            return None
 
+    def play(self, note, octave):
+        cursor = self.get_write_cursor()
+        if cursor == None:
+            self._twview.setFocus()
+        self.p._piano.press(note, octave, cursor)
+
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
         try:
             note, octave = self._notemap[(coord)]
         except TypeError:
             return
-        cursor = self.get_write_cursor()
-        if cursor == None:
-            self._twview.setFocus()
-        self.p._piano.press(note, octave, cursor)
+        self.play(note,octave)
 
     def release(self, coord):
         self._twmodel.set_led_color(coord, 0)
@@ -63,14 +66,15 @@ class Typewriter():
     def press_random(self):
         self._twmodel.set_random_led_color(8)
         self._twmodel.roll_die()
-        note_indices = [x[0] for x in self._keymap.itervalues() if x[1] == 0]
+        note_indices = list(self._keymap.itervalues())
         note_indices.sort()
-        value = int(gauss(len(note_indices) / 2,
-                                 len(note_indices)))
-        octave = value // len(note_indices)
-        note = value % len(note_indices)
+        #value = int(gauss(len(note_indices) / 2,
+        #                         len(note_indices)))
+        #octave = value // len(note_indices)
+        #note = value % len(note_indices)
+        (octave, note) = choice(note_indices)
         self._previous_random = (note, octave)
-        self.p._piano.press(note, octave)
+        self.play(note,octave)
 
     def release_random(self):
         self._twmodel.set_random_led_color(0)
