@@ -106,7 +106,10 @@ class Typewriter():
         return [len(row) for row in self.keys]
                 
     def keyPressEvent(self, ev):
-        if ev.isAutoRepeat() or ev.modifiers() != Qt.NoModifier:
+        if ev.modifiers() != Qt.NoModifier:
+            ev.ignore()
+            return
+        if ev.isAutoRepeat():
             ev.ignore()
             return
         key = ev.key()

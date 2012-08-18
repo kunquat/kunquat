@@ -126,7 +126,6 @@ class Cursor(QtCore.QObject):
             return
         else:
             self._typewriter.keyPressEvent(ev)
-            self.note_on_key(ev)
             return
         self.insert = False
 
@@ -346,19 +345,8 @@ class Cursor(QtCore.QObject):
             self._step_down(None)
         self.insert = False
 
-    def note_on_key(self, ev):
-        if not (self.note_input and self.scale):
-            ev.ignore()
-            return
-        if ev.modifiers() != QtCore.Qt.NoModifier:
-            ev.ignore()
-            return
-        try:
-            note, octave = self.note_input.get_note(ev.key())
-            cents = self.scale.get_cents(note, octave)
-        except KeyError:
-            ev.ignore()
-            return
+
+    def note_on_cents(self, cents):
         triggers = self.col.get_triggers()
         play_note_on = False
         note_on_entered = False
@@ -481,11 +469,27 @@ class Cursor(QtCore.QObject):
             #                                 ['.i', self.inst_num])
             #self.playback_manager.play_event(self.col.get_num(),
             #                                 ['n+', cents])
-        if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
-            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
         if self.grid.snap:
             self._step_down(None)
         self.insert = False
+        return note_on_entered
+
+    def note_on_key(self, ev):
+        if not (self.note_input and self.scale):
+            ev.ignore()
+            return
+        if ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
+            return
+        try:
+            note, octave = self.note_input.get_note(ev.key())
+            cents = self.scale.get_cents(note, octave)
+        except KeyError:
+            ev.ignore()
+            return
+        success = self.note_on_cents(cents)
+        if success and ev.modifiers() == QtCore.Qt.ShiftModifier:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
 
     def key_release(self, ev):
         self._keys.rcall(ev)
