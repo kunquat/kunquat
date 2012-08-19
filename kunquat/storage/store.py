@@ -68,6 +68,7 @@ class Store(object):
             self.signal(Value_update(key=key))
 
     def put(self, key, value):
+        assert not key.startswith('/')
         self._memory[key] = self._encode(value)
         self.signal(Value_update(key=key))
 
@@ -98,9 +99,9 @@ class Store(object):
     def del_tree(self, key_prefix=''):
         pass
 
-    def from_path(self, path, key_prefix=''):
-        view = self.get_view(key_prefix)
-        view.from_path(path)
+    def from_path(self, path, target_prefix='', prefix=''):
+        view = self.get_view(target_prefix)
+        view.from_path(path, prefix)
 
     def register_callback(self, callback):
         self.callbacks.append(callback)

@@ -34,8 +34,9 @@ class Storage(object):
     PERMANENT = 'pmt'
     TEMPORARY = 'tmp'
 
-    def __init__(self, path, create=False):
+    def __init__(self, path, prefix='', create=False):
         self.path = path
+        self.prefix = prefix
         if create:
             try:
                 os.makedirs(self.path)
@@ -52,7 +53,7 @@ class Storage(object):
     def get_store(self, path=None, callbacks=[]):
         store = self._new_store(callbacks)
         if path:
-            store.from_path(path)
+            store.from_path(path, prefix=self.prefix)
 
     def list_projects(self):
         dirs = os.listdir(self.path)

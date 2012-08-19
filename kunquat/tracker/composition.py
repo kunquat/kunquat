@@ -175,13 +175,7 @@ class Composition():
         self._history.end_group()
         return True
 
-    def fix_connections(self, prefix):
-        parts = prefix.split('/')
-        if len(parts) != 3:
-            return
-        (empty, instrument) = parts
-        if empty != '':
-            return
+    def fix_connections(self, instrument):
         if not instrument.startswith('ins_'):
             return
         connections = self['p_connections.json']

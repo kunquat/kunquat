@@ -80,7 +80,7 @@ class Project(QtCore.QObject):
         self.status_view = None
         self._callbacks = defaultdict(list)
 
-        projects = storage.Storage(root_path, create=True)
+        projects = storage.Storage(root_path, prefix='kqtc00', create=True)
         store_callbacks = [self.from_store]
         projects.get_store(file_path, callbacks=store_callbacks)
 
@@ -183,12 +183,8 @@ class Project(QtCore.QObject):
         self._handle = None
 
     def _update_player(self, key):
-        parts = key.split('/')
-        root = parts.pop(0)
-        assert root == ''
-        path = '/'.join(parts)
-        value = self._composition.get(path)
-        self._handle.set_data(path, value)
+        value = self._composition.get(key)
+        self._handle.set_data(key, value)
 
     # STORE EVENT INTERFACE
 
