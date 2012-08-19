@@ -40,6 +40,8 @@ import scale
 from sheet import Sheet
 import timestamp as ts
 from playback import Playback
+from statusbar import Statusbar
+from toolbar import Toolbar
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -57,8 +59,6 @@ class KqtEditor(QtGui.QMainWindow):
 
     def __init__(self, args):
         QtGui.QMainWindow.__init__(self)
-        self._songcount = QtGui.QLabel()
-        self.update_songs(0, 0)
 
         try:
             file_path = str(args[1])
@@ -67,6 +67,8 @@ class KqtEditor(QtGui.QMainWindow):
 
         self.p = self
         self._playback = Playback(self.p)
+        self._toolbar = Toolbar(self.p)
+        self._status = Statusbar(self.p)
         self.project = project.Project(self, file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
@@ -132,13 +134,6 @@ class KqtEditor(QtGui.QMainWindow):
                                self.print_pa_state)
         self.pa_debug_timer.start(1)
         """
-
-    def update_songs(self, songs, patterns):
-        if songs > 0 or patterns > 0:
-            info = u'%s song(s)' % songs
-        else:
-            info = u'no score'
-        self._songcount.setText(info)
 
     def _finalise(self, obj):
         fw = self.focusWidget()
@@ -262,7 +257,7 @@ class KqtEditor(QtGui.QMainWindow):
     def busy(self, busy_set):
         if busy_set:
             self._focus_backup = QtGui.QApplication.focusWidget()
-        self._top_control.setEnabled(not busy_set)
+        self._toolbar.setEnabled(not busy_set)
         self._sheet.setEnabled(not busy_set)
         #self._sheetbox.setEnabled(not busy_set)
         if not busy_set:
@@ -283,23 +278,21 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout.setSpacing(0)
         playback_bar = self._playback.get_view()
 
-        self._top_control = self.create_top_control()
-
         self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
                             self._playback.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
-                            self._octave, self._instrument, playback_bar)
+                            self._toolbar._octave, self._toolbar._instrument, playback_bar)
         #self._sheetbox = QtGui.QTabWidget()
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
         self._instruments = Instruments(self.project,
-                                        self._instrument,
+                                        self._toolbar._instrument,
                                         self._playback,
                                         self._note_input,
                                         self._scale,
-                                        self._octave)
+                                        self._toolbar._octave)
         self._instrumentconf.addTab(self._instruments, 'Instruments')
         self._effects = Effects(self.project, '')
         self._instrumentconf.addTab(self._effects, 'Effects')
@@ -310,7 +303,6 @@ class KqtEditor(QtGui.QMainWindow):
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
-        self._status = self.create_bottom_control()
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('startTask(int)'),
                                self._status.start_task)
@@ -327,7 +319,7 @@ class KqtEditor(QtGui.QMainWindow):
         instruarea = TypewriterView()
         instrumentpanel = QtGui.QWidget(self)
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
-        instrumentlayout.addWidget(self._top_control)
+        instrumentlayout.addWidget(self._toolbar.get_view())
         instrumentlayout.addWidget(instruarea)
         instrumentlayout.setMargin(0)
         instrumentlayout.setSpacing(0)
@@ -342,211 +334,12 @@ class KqtEditor(QtGui.QMainWindow):
 
         top_layout.addWidget(div)
         #top_layout.addWidget(self._sheetbox)
-        #top_layout.addWidget(self._top_control)
         top_layout.addWidget(self._peak_meter)
-        top_layout.addWidget(self._status)
-
-    def create_separator(self):
-        separator = QtGui.QFrame()
-        separator.setFrameShape(QtGui.QFrame.VLine)
-        separator.setFrameShadow(QtGui.QFrame.Sunken)
-        return separator
-
-    def create_top_control(self):
-        top_control = QtGui.QWidget()
-        layout = QtGui.QHBoxLayout(top_control)
-        layout.setMargin(5)
-        layout.setSpacing(5)
-
-        new_project = QtGui.QToolButton()
-        new_project.setText('Clear Project')
-        new_project.setIcon(QtGui.QIcon.fromTheme('document-new'))
-        new_project.setAutoRaise(True)
-        new_project.setDisabled(True)
-        #QtCore.QObject.connect(new_project,
-        #                       QtCore.SIGNAL('clicked()'),
-        #                       self.clear)
-
-        open_project = QtGui.QToolButton()
-        open_project.setText('Import Composition')
-        open_project.setIcon(QtGui.QIcon.fromTheme('document-open'))
-        open_project.setAutoRaise(True)
-        open_project.setDisabled(True)
-        #QtCore.QObject.connect(open_project,
-        #                       QtCore.SIGNAL('clicked()'),
-        #                       self.import_composition)
-
-        save_project = QtGui.QToolButton()
-        save_project.setText('Export Composition')
-        save_project.setIcon(QtGui.QIcon.fromTheme('document-save'))
-        save_project.setAutoRaise(True)
-        QtCore.QObject.connect(save_project, QtCore.SIGNAL('clicked()'),
-                               self.export_composition)
-
-        env_label = QtGui.QLabel('in: 0 out: 0')
-
-        env_ter = QtGui.QToolButton()
-        env_ter.setText('io')
-        env_ter.setIcon(QtGui.QIcon.fromTheme('modem'))
-        env_ter.setAutoRaise(True)
-        QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),
-                               self.environment_window)
-
-        sheet_but = QtGui.QToolButton()
-        sheet_but.setText(u'♫')
-        sheet_but.setAutoRaise(True)
-        QtCore.QObject.connect(sheet_but, QtCore.SIGNAL('clicked()'),
-                               self.show_sheet)
-
-        instrument_ter = QtGui.QToolButton()
-        instrument_ter.setText('Instrument Configuration')
-        instrument_ter.setIcon(QtGui.QIcon.fromTheme('audio-card'))
-        instrument_ter.setAutoRaise(True)
-        QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
-                               self.instrument_window)
-
-        self._instrument = QtGui.QComboBox()
-        self._instrument.addItem(u'0: piano')
-        self._instrument.addItem(u'3: t-urku')
-        ''''
-        self._instrument = QtGui.QSpinBox()
-        self._instrument.setMinimum(0)
-        self._instrument.setMaximum(lim.INSTRUMENTS_MAX - 1)
-        self._instrument.setValue(0)
-        self._instrument.setToolTip('Instrument')
-        '''
-
-        octave_label = QtGui.QLabel('octave:')
-        self._octave = QtGui.QSpinBox()
-        self._octave.setMinimum(lim.SCALE_OCTAVE_FIRST)
-        self._octave.setMaximum(lim.SCALE_OCTAVE_LAST)
-        self._octave.setValue(4)
-        self._octave.setToolTip('Base octave')
-
-        scale_selector = QtGui.QComboBox()
-        scale_selector.addItem(u'chromatic')
-        scale_selector.setDisabled(True)
-
-        scale_config = QtGui.QToolButton()
-        scale_config.setText(u'Scale configuration')
-        scale_config.setIcon(QtGui.QIcon.fromTheme('input-gaming'))
-        scale_config.setAutoRaise(True)
-        scale_config.setDisabled(True)
-        #QtCore.QObject.connect(open_project,
-        #                       QtCore.SIGNAL('clicked()'),
-        #                       self.import_composition)
-
-
-
-
-
-        #infinite = QtGui.QCheckBox('Infinite')
-        #infinite.setCheckState(QtCore.Qt.Unchecked)
-        #infinite.setToolTip('Infinite mode')
-        #QtCore.QObject.connect(infinite, QtCore.SIGNAL('stateChanged(int)'),
-        #                       lambda x: self._set_infinite(x ==
-        #                                            QtCore.Qt.Checked))
-
-        layout.addWidget(new_project)
-        layout.addWidget(open_project)
-        layout.addWidget(save_project)
-        #layout.addWidget(export)
-        layout.addWidget(self.create_separator())
-
-        layout.addWidget(self._instrument)
-        layout.addWidget(instrument_ter)
-        layout.addWidget(self.create_separator())
-
-        layout.addWidget(octave_label)
-        layout.addWidget(self._octave)
-        layout.addWidget(scale_selector)
-        layout.addWidget(scale_config)
-        #layout.addWidget(infinite)
-        layout.addWidget(self.create_separator())
-        layout.addWidget(self._songcount)
-        layout.addWidget(sheet_but)
-        layout.addWidget(self.create_separator())
-        layout.addWidget(env_label)
-        layout.addWidget(env_ter)
-        return top_control
-
-    def create_bottom_control(self):
-        return Status(self.busy)
+        top_layout.addWidget(self._status.get_view())
 
     def __del__(self):
         self.mix_timer.stop()
         #QtGui.QMainWindow.__del__(self)
-
-
-class Status(QtGui.QWidget):
-
-    def __init__(self, busy, parent=None):
-        QtGui.QWidget.__init__(self, parent)
-        self._busy = busy
-        layout = QtGui.QHBoxLayout(self)
-        layout.setMargin(0)
-        layout.setSpacing(0)
-
-        self._status_bar = QtGui.QStatusBar()
-        self._status_bar.showMessage('')
-
-        self._progress_bar = QtGui.QProgressBar()
-        #self._progress_bar.setAlignment(QtCore.Qt.AlignLeft)
-        self._progress_bar.hide()
-
-        layout.addWidget(self._status_bar, 1)
-        layout.addWidget(self._progress_bar)
-
-        self._step = 0
-        self.setSizePolicy(QtGui.QSizePolicy.MinimumExpanding,
-                           QtGui.QSizePolicy.Fixed)
-        self._busy_timer = QtCore.QTimer(self)
-        self._busy_timer.setSingleShot(True)
-        QtCore.QObject.connect(self._busy_timer, QtCore.SIGNAL('timeout()'),
-                               lambda: self._busy(True))
-        self._tasks = 0
-
-    def in_progress(self):
-        assert self._tasks >= 0
-        return self._tasks > 0
-
-    def sizeHint(self):
-        h = max(self._status_bar.sizeHint().height(),
-                self._progress_bar.sizeHint().height())
-        return QtCore.QSize(200, h)
-
-    def start_task(self, steps):
-        self._tasks += 1
-        if self._tasks > 1:
-            self._progress_bar.setMaximum(self._progress_bar.maximum() +
-                                          steps)
-            return
-        self._busy_timer.start(100)
-        self._progress_bar.setRange(0, steps)
-        self._progress_bar.reset()
-        if steps > 1:
-            self._progress_bar.show()
-
-    def step(self, description):
-        self._status_bar.showMessage(description)
-        if self._step < self._progress_bar.maximum():
-            self._progress_bar.setValue(self._step)
-            self._step += 1
-        #self._status_bar.update()
-
-    def end_task(self):
-        if self._tasks > 1:
-            self._tasks -= 1
-            return
-        self._busy_timer.stop()
-        self._busy_timer.setSingleShot(True)
-        self._busy(False)
-        self._status_bar.showMessage('')
-        self._progress_bar.hide()
-        self._step = 0
-        self._tasks -= 1
-        assert self._tasks >= 0
-
 
 def main():
     app = QtGui.QApplication(sys.argv)

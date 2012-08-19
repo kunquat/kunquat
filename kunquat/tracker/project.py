@@ -213,7 +213,7 @@ class Project(QtCore.QObject):
     def _store_import_end(self, prefix, **_):
         self._composition.fix_connections(prefix)
         self._composition.end_group()
-        self.p.update_songs(self._composition.songs(), self._composition.patterns())
+        self.p._toolbar.update_songs(self._composition.songs(), self._composition.patterns())
         QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def _store_export_start(self, key_names, **_):
