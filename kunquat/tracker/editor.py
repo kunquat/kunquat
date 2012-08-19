@@ -22,7 +22,7 @@ import random
 import sys
 import time
 
-from kunquat.qt import TypewriterView
+from kunquat.qt import Typewriter
 from kunquat.extras import pulseaudio
 from kunquat.tracker.env import Env
 from PyQt4 import QtCore, QtGui
@@ -40,7 +40,7 @@ import project
 import scale
 from sheet import Sheet
 import timestamp as ts
-
+from piano import Piano
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -62,8 +62,9 @@ class Playback(QtCore.QObject):
     _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
     _stop = QtCore.pyqtSignal(name='stop')
 
-    def __init__(self, parent=None):
+    def __init__(self, p, parent=None):
         QtCore.QObject.__init__(self, parent)
+        self.p = p
 
     def connect(self, play_sub, play_pat, play_from, play_event, stop):
         """Connects the playback control signals to functions."""
@@ -101,15 +102,16 @@ class Playback(QtCore.QObject):
 
 class KqtEditor(QtGui.QMainWindow):
 
-    def __init__(self, args):
+    def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
+        self._app = app
 
         try:
             file_path = str(args[1])
         except IndexError:
             file_path = ''
 
-        self._playback = Playback()
+        self._playback = Playback(self)
         self._playback.connect(self.play_subsong, self.play_pattern,
                                self.play_from, self.play_event, self.stop)
         self.project = project.Project(file_path)
@@ -367,7 +369,7 @@ class KqtEditor(QtGui.QMainWindow):
 
     def set_appearance(self):
         # FIXME: size and title
-        self.resize(400, 300)
+        self.resize(800, 450)
         self.setWindowTitle(PROGRAM_NAME)
 
         #self.statusBar().showMessage('[status]')
@@ -381,16 +383,20 @@ class KqtEditor(QtGui.QMainWindow):
 
         self._top_control = self.create_top_control()
 
+
+        self._piano = Piano(self)
+        self._tw = Typewriter(self)
+
         self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
                             self.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
-                            self._octave, self._instrument, playback_bar)
+                            self._octave, self._instrument, self._tw, playback_bar)
         #self._sheetbox = QtGui.QTabWidget()
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
-        self._instruments = Instruments(self.project,
+        self._instruments = Instruments(self._tw, self._piano, self.project,
                                         self._instrument,
                                         self._playback,
                                         self._note_input,
@@ -420,7 +426,7 @@ class KqtEditor(QtGui.QMainWindow):
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
 
-        instruarea = TypewriterView()
+        instruarea = self._tw.get_view()
         instrumentpanel = QtGui.QWidget(self)
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
         instrumentlayout.addWidget(self._top_control)
@@ -441,6 +447,7 @@ class KqtEditor(QtGui.QMainWindow):
         #top_layout.addWidget(self._top_control)
         top_layout.addWidget(self._peak_meter)
         top_layout.addWidget(self._status)
+        instruarea.setFocus()
 
     def create_separator(self):
         separator = QtGui.QFrame()
@@ -655,7 +662,7 @@ class Status(QtGui.QWidget):
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    editor = KqtEditor(app.arguments())
+    editor = KqtEditor(app.arguments(), app)
     editor.show()
     sys.exit(app.exec_())
 

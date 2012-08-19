@@ -1,89 +1,45 @@
+# -*- coding: utf-8 -*-
+
 from PyQt4.QtGui import QAbstractScrollArea, QTabWidget, QToolButton, QHBoxLayout, QVBoxLayout, QLabel, QWidget, QSpacerItem, QSizePolicy
-#from PyQt4.QtCore import
+from PyQt4.QtCore import Qt, QObject
+from PyQt4 import QtCore
 
 from kunquat.qt.twbutton import TWButton
 
-class TypewriterModel():
-    def __init__(self):
-        pass
-
-    def rows(self):
-        return [10, 10, 7, 7]
-
-    def data(self, button, role):
-        buttons = {
-            (0,  0): {'color': 'gray', 'name': u''},
-            (0,  1): {'color': 'dark', 'name': u'C#'},
-            (0,  2): {'color': 'dark', 'name': u'D#'},
-            (0,  3): {'color': 'gray', 'name': u''},
-            (0,  4): {'color': 'dark', 'name': u'F#'},
-            (0,  5): {'color': 'dark', 'name': u'G#'},
-            (0,  6): {'color': 'dark', 'name': u'A#'},
-            (0,  7): {'color': 'gray', 'name': u''},
-            (0,  8): {'color': 'dark', 'name': u'C#'},
-            (0,  9): {'color': 'dark', 'name': u'D#'},
-            (0, 10): {'color': 'gray', 'name': u''},
-
-            (1,  0): {'color': 'light', 'name': u'C'},
-            (1,  1): {'color': 'light', 'name': u'D'},
-            (1,  2): {'color': 'light', 'name': u'E'},
-            (1,  3): {'color': 'light', 'name': u'F'},
-            (1,  4): {'color': 'light', 'name': u'G'},
-            (1,  5): {'color': 'light', 'name': u'A'},
-            (1,  6): {'color': 'light', 'name': u'B'},
-            (1,  7): {'color': 'light', 'name': u'C'},
-            (1,  8): {'color': 'light', 'name': u'D'},
-            (1,  9): {'color': 'light', 'name': u'E'},
-            (1, 10): {'color': 'light', 'name': u'F'},
-
-            (2,  0): {'color': 'gray', 'name': u''},
-            (2,  1): {'color': 'dark', 'name': u'C#'},
-            (2,  2): {'color': 'dark', 'name': u'D#'},
-            (2,  3): {'color': 'gray', 'name': u''},
-            (2,  4): {'color': 'dark', 'name': u'F#'},
-            (2,  5): {'color': 'dark', 'name': u'G#'},
-            (2,  6): {'color': 'dark', 'name': u'A#'},
-            (2,  7): {'color': 'gray', 'name': u''},
-            (2,  8): {'color': 'dark', 'name': u'C#'},
-            (2,  9): {'color': 'dark', 'name': u'D#'},
-            (2, 10): {'color': 'gray', 'name': u''},
-
-            (3,  0): {'color': 'light', 'name': u'C'},
-            (3,  1): {'color': 'light', 'name': u'D'},
-            (3,  2): {'color': 'light', 'name': u'E'},
-            (3,  3): {'color': 'light', 'name': u'F'},
-            (3,  4): {'color': 'light', 'name': u'G'},
-            (3,  5): {'color': 'light', 'name': u'A'},
-            (3,  6): {'color': 'light', 'name': u'B'},
-            (3,  7): {'color': 'light', 'name': u'C'},
-            (3,  8): {'color': 'light', 'name': u'D'},
-            (3,  9): {'color': 'light', 'name': u'E'},
-            (3, 10): {'color': 'light', 'name': u'F'},
-        }
-        
-        value = buttons[button][role]
-        return value
-
 class TypewriterView(QAbstractScrollArea):
 
-    def __init__(self, parent = None):
+    def __init__(self, controller, button_layout, parent = None):
         super(self.__class__, self).__init__(parent)
-        twmodel = TypewriterModel()
+        self.setFocusPolicy(Qt.TabFocus)
+        self._randbut = self._random_button()
+        self._buttons = {}
+        self._controller = controller
         view = QWidget()
         rows = QVBoxLayout(view)
         rowc = 0
-        for buttons in twmodel.rows():
+        PAD = 35
+        rpads = [PAD, PAD, 2 * PAD, 3 * PAD]
+        for buttons in button_layout:
             row = QWidget()
             rowl = QHBoxLayout(row)
-            pad = QLabel()
-            pad.setMinimumWidth(rowc * 40)
-            pad.setMaximumWidth(rowc * 40)
-            rowl.addWidget(pad)
+            if rowc > 0:
+                rowl.addWidget(self.pad(PAD))
+            else:
+                rowl.addWidget(self._randbut)
+            psize = rpads[rowc]
+            rowl.addWidget(self.pad(psize))
             colc = 0
             for i in range(buttons):
+                coord = (rowc, colc)
                 button = TWButton()
-                button.set_color(twmodel.data((rowc, colc), 'color'))
-                button.set_name(twmodel.data((rowc, colc), 'name'))
+                self._buttons[coord] = button
+                QObject.connect(button,
+                                QtCore.SIGNAL('released()'),
+                                lambda c=coord: self._controller.release(c))
+                QObject.connect(button,
+                                QtCore.SIGNAL('pressed()'),
+                                lambda c=coord: self._controller.press(c))
+
                 rowl.addWidget(button)
                 colc += 1
             rowl.addStretch(1)
@@ -92,5 +48,43 @@ class TypewriterView(QAbstractScrollArea):
         rows.addStretch(1)
         self.setViewport(view)
 
-    def setModel(self, twmodel):
-        self.model = twmodel
+    def pad(self, psize):
+        pad = QLabel()
+        pad.setMinimumWidth(psize)
+        pad.setMaximumWidth(psize)
+        return pad
+
+
+
+    def _random_button(self):
+        randbut = TWButton(color_style='001')
+        QObject.connect(randbut,
+                        QtCore.SIGNAL('released()'),
+                        lambda: self._controller.release_random())
+        QObject.connect(randbut,
+                        QtCore.SIGNAL('pressed()'),
+                        lambda: self._controller.press_random())
+        randbut.set_name(u'⚄')
+        return randbut
+
+    def update(self):
+        self._randbut.set_led(self.model.get_random_led_color())
+        self._randbut.set_name(self.model.get_die())
+        for coord, button in self._buttons.items():
+                button.set_color(self.model.data(coord, 'color'))
+                button.set_name(self.model.data(coord, 'name'))
+                button.set_enabled(self.model.data(coord, 'enabled'))
+                button.set_led(self.model.get_led_color(coord))
+
+    def keyPressEvent(self, ev):
+        self._controller.keyPressEvent(ev)
+        self.setFocus()
+
+    def keyReleaseEvent(self, ev):
+        self._controller.keyReleaseEvent(ev)
+        self.setFocus()
+
+    def setModel(self, model):
+        self.model = model
+        self.update()
+

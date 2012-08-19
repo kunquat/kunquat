@@ -58,12 +58,12 @@ def load_kqt(path, freq):
 
 def export(in_path, out_path, options):
     if not options['quiet']:
-        print('Exporting {} to {}'.format(in_path, out_path))
+        print('Exporting {0} to {1}'.format(in_path, out_path))
 
     try:
         handle, _ = load_kqt(in_path, options['rate'])
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{}\': {}'.format(file_name, e), end='')
+        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return
     handle.subsong = options['subsong']
     duration = handle.get_duration(options['subsong'])
@@ -132,7 +132,7 @@ def print_status_line(pos, duration, clipped):
     line = progress_str(completed, 30)
     line += u' {:4.1f} %'.format(100 * completed)
     if clipped:
-        line += u', clipped: {}'.format(clipped)
+        line += u', clipped: {0}'.format(clipped)
     print(line, end='\r')
     sys.stdout.flush()
     return len(line)
@@ -149,9 +149,9 @@ def print_summary(duration, elapsed, peak, clipped):
         peak_dB = '{:+.2f}'.format(math.log(peak, 2) * 6)
     except ValueError:
         peak_dB = '-inf'
-    print('    Peak amplitude: {} dBFS'.format(peak_dB))
+    print('    Peak amplitude: {0} dBFS'.format(peak_dB))
     if clipped:
-        print('    Clipped:        {} frames'.format(clipped))
+        print('    Clipped:        {0} frames'.format(clipped))
     print()
 
 
@@ -176,7 +176,7 @@ def progress_str(progress, area_width):
 
 def author_list(authors):
     s = 's' if len(authors) > 1 else ''
-    head = 'Author{}:'.format(s)
+    head = 'Author{0}:'.format(s)
     space = it.cycle([len(head) * ' '])
     left = it.chain([head], space)
     right = authors
@@ -195,7 +195,7 @@ def print_version():
 
 
 def print_help():
-    print('Usage: {} [options] <files>'.format(PROGRAM_NAME))
+    print('Usage: {0} [options] <files>'.format(PROGRAM_NAME))
     print('\nOptions:')
     print('  -o, --output out    Use output file out')
     print('  -f, --format fmt    Use output file format fmt\n'
@@ -308,7 +308,7 @@ def set_output(options, value):
 
 def set_format(options, value):
     if value not in ('wav', 'au', 'flac'):
-        option_error('Unsupported format: {}'.format(value))
+        option_error('Unsupported format: {0}'.format(value))
     options['format'] = value
 
 

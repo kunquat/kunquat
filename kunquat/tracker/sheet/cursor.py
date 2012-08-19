@@ -42,10 +42,12 @@ class Cursor(QtCore.QObject):
                  accessors,
                  playback_manager,
                  instrument_spin,
+                 typewriter,
                  parent=None):
         QtCore.QObject.__init__(self, parent)
         self.playback_manager = playback_manager
         self._instrument_spin = instrument_spin
+        self._typewriter = typewriter
         self.init_speed = 1
         self.max_speed = 12
         self.init_trigger_delay = 6
@@ -123,7 +125,7 @@ class Cursor(QtCore.QObject):
             self.note_off_key(ev)
             return
         else:
-            self.note_on_key(ev)
+            self._typewriter.keyPressEvent(ev)
             return
         self.insert = False
 
@@ -343,19 +345,8 @@ class Cursor(QtCore.QObject):
             self._step_down(None)
         self.insert = False
 
-    def note_on_key(self, ev):
-        if not (self.note_input and self.scale):
-            ev.ignore()
-            return
-        if ev.modifiers() != QtCore.Qt.NoModifier:
-            ev.ignore()
-            return
-        try:
-            note, octave = self.note_input.get_note(ev.key())
-            cents = self.scale.get_cents(note, octave)
-        except KeyError:
-            ev.ignore()
-            return
+
+    def note_on_cents(self, cents):
         triggers = self.col.get_triggers()
         play_note_on = False
         note_on_entered = False
@@ -473,15 +464,32 @@ class Cursor(QtCore.QObject):
             play_note_on = True
             note_on_entered = True
         if play_note_on:
-            self.playback_manager.play_event(self.col.get_num(),
-                                             ['.i', self.inst_num])
-            self.playback_manager.play_event(self.col.get_num(),
-                                             ['n+', cents])
-        if note_on_entered and ev.modifiers() == QtCore.Qt.ShiftModifier:
-            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
+            pass
+            #self.playback_manager.play_event(self.col.get_num(),
+            #                                 ['.i', self.inst_num])
+            #self.playback_manager.play_event(self.col.get_num(),
+            #                                 ['n+', cents])
         if self.grid.snap:
             self._step_down(None)
         self.insert = False
+        return note_on_entered
+
+    def note_on_key(self, ev):
+        if not (self.note_input and self.scale):
+            ev.ignore()
+            return
+        if ev.modifiers() != QtCore.Qt.NoModifier:
+            ev.ignore()
+            return
+        try:
+            note, octave = self.note_input.get_note(ev.key())
+            cents = self.scale.get_cents(note, octave)
+        except KeyError:
+            ev.ignore()
+            return
+        success = self.note_on_cents(cents)
+        if success and ev.modifiers() == QtCore.Qt.ShiftModifier:
+            QtCore.QObject.emit(self, QtCore.SIGNAL('nextCol()'))
 
     def key_release(self, ev):
         self._keys.rcall(ev)

@@ -88,7 +88,7 @@ def print_meta(meta):
         authors = None
     if authors:
         s = 's' if len(authors) != 1 else ''
-        fields.extend(['Author{}:'.format(s)])
+        fields.extend(['Author{0}:'.format(s)])
         values.extend([', '.join(authors)])
 
     if not fields:
@@ -144,7 +144,7 @@ def play(options, file_name, pa_handle, key_handler, list_pos):
     try:
         handle, meta = load_kqt(file_name, options['rate'])
     except kunquat.KunquatError as e:
-        print('Couldn\'t load \'{}\': {}'.format(file_name, e), end='')
+        print('Couldn\'t load \'{0}\': {1}'.format(file_name, e), end='')
         return KeyHandler.RETURN
     handle.buffer_size = options['buffer-size']
     handle.subsong = options['subsong']
@@ -292,7 +292,7 @@ def play_all(options, files):
 
 
 def print_help():
-    print('Usage: {} [options] <files>'.format(PROGRAM_NAME))
+    print('Usage: {0} [options] <files>'.format(PROGRAM_NAME))
     print('\nOptions:')
     print('  --buffer-size n   Use audio buffer size of n frames\n'
           '                    Valid range is [64,262144]')

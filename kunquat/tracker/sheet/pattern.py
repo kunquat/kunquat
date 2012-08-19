@@ -54,10 +54,12 @@ class Pattern(QtGui.QWidget):
                  pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
+                 typewriter,
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         section.connect(self.section_changed)
         self.number = 0
+        self._typewriter = typewriter
         self.section_manager = section
         self.playback_manager = playback
         self.setSizePolicy(QtGui.QSizePolicy.Ignored,
@@ -159,7 +161,8 @@ class Pattern(QtGui.QWidget):
                              self.beat_len,
                              self.accessors,
                              playback,
-                             instrument_spin)
+                             instrument_spin,
+                             typewriter)
         QtCore.QObject.connect(self.cursor,
                                QtCore.SIGNAL('fieldEdit(bool)'),
                                self.field_edit)
@@ -210,6 +213,9 @@ class Pattern(QtGui.QWidget):
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+
+    def get_cursor(self):
+        return self.cursor
 
     def autoinst_changed(self, value):
         self.cursor.inst_auto = bool(value)
@@ -346,6 +352,7 @@ class Pattern(QtGui.QWidget):
                 self.update()
 
     def keyReleaseEvent(self, ev):
+        self._typewriter.keyReleaseEvent(ev)
         if ev.isAutoRepeat():
             return
         self._keys.rcall(ev)
