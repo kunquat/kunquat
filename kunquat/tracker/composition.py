@@ -190,7 +190,7 @@ class Composition():
             self._view.put('p_connections.json', connections)
 
     def to_tar(self, path):
-        prefix = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        prefix = 'kqtc{0}'.format(lim.FORMAT_VERSION)
         self._store.to_tar(path, prefix=prefix)
 
     def changed(self):
