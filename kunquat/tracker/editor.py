@@ -35,12 +35,11 @@ import keymap
 import kqt_limits as lim
 import note_input as ni
 from peak_meter import PeakMeter
-from pos_display import PosDisplay
 import project
 import scale
 from sheet import Sheet
 import timestamp as ts
-
+from playback import Playback
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -52,51 +51,6 @@ def sine():
     while True:
         yield math.sin(phase)
         phase = (phase + shift) % (2 * math.pi)
-
-
-class Playback(QtCore.QObject):
-
-    _play_sub = QtCore.pyqtSignal(int, bool, name='playSubsong')
-    _play_pat = QtCore.pyqtSignal(int, name='playPattern')
-    _play_from = QtCore.pyqtSignal(int, int, int, int, name='playFrom')
-    _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
-    _stop = QtCore.pyqtSignal(name='stop')
-
-    def __init__(self, parent=None):
-        QtCore.QObject.__init__(self, parent)
-
-    def connect(self, play_sub, play_pat, play_from, play_event, stop):
-        """Connects the playback control signals to functions."""
-        self._play_sub.connect(play_sub)
-        self._play_pat.connect(play_pat)
-        self._play_from.connect(play_from)
-        self._play_event.connect(play_event)
-        self._stop.connect(stop)
-
-    def stop(self):
-        """Stops playback."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('stop()'))
-
-    def play_subsong(self, subsong, infinite=False):
-        """Plays a subsong."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playSubsong(int, bool)'),
-                            subsong, infinite)
-
-    def play_pattern(self, pattern):
-        """Plays a pattern repeatedly."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playPattern(int)'), pattern)
-
-    def play_from(self, subsong, section, beats, rem):
-        """Plays a subsong starting from specified position."""
-        QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('playFrom(int, int, int, int)'),
-                            subsong, section, beats, rem)
-
-    def play_event(self, channel, event):
-        """Plays a single event."""
-        self._play_event.emit(channel, json.dumps(event))
-        #QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
-        #                    channel, event)
 
 
 class KqtEditor(QtGui.QMainWindow):
@@ -111,9 +65,8 @@ class KqtEditor(QtGui.QMainWindow):
         except IndexError:
             file_path = ''
 
-        self._playback = Playback()
-        self._playback.connect(self.play_subsong, self.play_pattern,
-                               self.play_from, self.play_event, self.stop)
+        self.p = self
+        self._playback = Playback(self.p)
         self.project = project.Project(self, file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
@@ -135,7 +88,7 @@ class KqtEditor(QtGui.QMainWindow):
                 (QtCore.Qt.Key_Down, QtCore.Qt.ShiftModifier):
                         (self._next_ins, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
-                        (self._play_subsong, None),
+                        (self._playback._play_subsong, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.ShiftModifier):
                         (lambda x: self.play_subsong(self._cur_subsong, True),
                             None),
@@ -164,12 +117,7 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)
         self.bufs = (None, None)
-        self.playing = False
         self.mix_timer.start(2)
-        self._cur_subsong = -1
-        self._cur_section = -1
-        self._cur_pattern_offset = ts.Timestamp()
-        self._cur_pattern = 0
         self._focus_backup = None
         #self._infinite = False
         self.sync()
@@ -208,9 +156,6 @@ class KqtEditor(QtGui.QMainWindow):
     def _next_ins(self, ev):
         self._instrument.setValue(self._instrument.value() + 1)
 
-    def _play_subsong(self, ev):
-        self._playback.play_subsong(self._cur_subsong)
-
     def _play_pattern(self, ev):
         self._playback.play_pattern(self._cur_pattern)
 
@@ -235,7 +180,7 @@ class KqtEditor(QtGui.QMainWindow):
         return
 
     def mix(self):
-        if self.playing:
+        if self._playback.playing:
             if not self.bufs[0]:
                 self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
@@ -265,9 +210,6 @@ class KqtEditor(QtGui.QMainWindow):
     def pattern_changed(self, num):
         self._cur_pattern = num
 
-    def subsong_changed(self, num):
-        self._cur_subsong = num
-
     def section_changed(self, subsong, section):
         self._cur_subsong = subsong
         self._cur_section = section
@@ -279,49 +221,6 @@ class KqtEditor(QtGui.QMainWindow):
         print('Context: {0}, Stream: {1}, Error: {2}'.format(
                   self.pa.context_state(), self.pa.stream_state(),
                   self.pa.error()), end='\r')
-
-    def stop(self):
-        self._pos_display.set_stop()
-        if self.playing:
-            self.project.update_random()
-        self.playing = False
-        self.handle.nanoseconds = 0
-        self._peak_meter.set_peaks(float('-inf'), float('-inf'), 0, 0, 0)
-        self.bufs = (None, None)
-
-    def play_subsong(self, subsong, infinite=False):
-        self._pos_display.set_play(infinite)
-        self._peak_meter.reset()
-        if self.playing:
-            self.project.update_random()
-        self.handle.nanoseconds = 0
-        self.handle.subsong = subsong
-        self.playing = True
-        self._set_infinite(infinite)
-
-    def play_pattern(self, pattern, infinite=False):
-        self._pos_display.set_play(infinite)
-        self._peak_meter.reset()
-        if self.playing:
-            self.project.update_random()
-        self.handle.subsong = self._cur_subsong
-        self.handle.nanoseconds = 0
-        self.playing = True
-        self.handle.fire(0, ['Ipattern', pattern])
-        self._set_infinite(infinite)
-
-    def play_from(self, subsong, section, beats, rem, infinite=False):
-        self._pos_display.set_play(infinite)
-        self._peak_meter.reset()
-        if self.playing:
-            self.project.update_random()
-        self.handle.subsong = subsong
-        self.handle.nanoseconds = 0
-        self.playing = True
-        self.handle.fire(0, ['I.gs', section])
-        self.handle.fire(0, ['I.gr', [beats, rem]])
-        self.handle.fire(0, ['Ig', None])
-        self._set_infinite(infinite)
 
     def play_event(self, *args):
         channel, event = args
@@ -370,10 +269,6 @@ class KqtEditor(QtGui.QMainWindow):
             if self._focus_backup:
                 self._focus_backup.setFocus()
 
-    def _set_infinite(self, x):
-        #self._infinite = x
-        self.handle.fire(0, ['I.infinite', x])
-
     def set_appearance(self):
         # FIXME: size and title
         self.resize(400, 300)
@@ -386,13 +281,13 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout = QtGui.QVBoxLayout(self.central)
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
-        playback_bar = self.create_playback_control()
+        playback_bar = self._playback.get_view()
 
         self._top_control = self.create_top_control()
 
         self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
-                            self.subsong_changed, self.section_changed,
+                            self._playback.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
                             self._octave, self._instrument, playback_bar)
         #self._sheetbox = QtGui.QTabWidget()
@@ -456,65 +351,6 @@ class KqtEditor(QtGui.QMainWindow):
         separator.setFrameShape(QtGui.QFrame.VLine)
         separator.setFrameShadow(QtGui.QFrame.Sunken)
         return separator
-
-    def create_playback_control(self):
-        widget = QtGui.QWidget(self)
-        layout = QtGui.QVBoxLayout(widget)
-        bwidget = QtGui.QWidget(self)
-        blayout = QtGui.QHBoxLayout(bwidget)
-        layout.setMargin(0)
-        layout.setSpacing(0)
-        blayout.setMargin(0)
-        blayout.setSpacing(5)
-
-        play = QtGui.QToolButton()
-        play.setText('Play')
-        play.setIcon(QtGui.QIcon.fromTheme('media-playback-start'))
-        play.setAutoRaise(True)
-        QtCore.QObject.connect(play, QtCore.SIGNAL('clicked()'),
-                               lambda: self._play_subsong(None))
-
-        play_inf = QtGui.QToolButton()
-        play_inf.setText('inf')
-        play_inf.setAutoRaise(True)
-        QtCore.QObject.connect(play_inf, QtCore.SIGNAL('clicked()'),
-                lambda: self._playback.play_subsong(self._cur_subsong, True))
-
-        stop = QtGui.QToolButton()
-        stop.setText('Stop')
-        stop.setIcon(QtGui.QIcon.fromTheme('media-playback-stop'))
-        stop.setAutoRaise(True)
-        QtCore.QObject.connect(stop, QtCore.SIGNAL('clicked()'),
-                               lambda: self._stop(None))
-
-        seek_back = QtGui.QToolButton()
-        seek_back.setText('Seek backwards')
-        seek_back.setIcon(QtGui.QIcon.fromTheme('media-seek-backward'))
-        seek_back.setAutoRaise(True)
-
-        seek_for = QtGui.QToolButton()
-        seek_for.setText('Seek forwards')
-        seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
-        seek_for.setAutoRaise(True)
-
-        self._pos_display = PosDisplay(self.project)
-
-        subsong_select = QtGui.QLabel('[subsong select]')
-
-        tempo_factor = QtGui.QLabel('[tempo factor]')
-
-        blayout.addWidget(play)
-        blayout.addWidget(play_inf)
-        blayout.addWidget(stop)
-        blayout.addWidget(seek_back)
-        blayout.addWidget(seek_for)
-
-        layout.addWidget(self._pos_display)
-        layout.addWidget(bwidget)
-        #layout.addWidget(subsong_select)
-        #layout.addWidget(tempo_factor)
-
-        return widget
 
     def create_top_control(self):
         top_control = QtGui.QWidget()
