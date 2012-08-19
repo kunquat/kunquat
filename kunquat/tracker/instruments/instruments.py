@@ -18,10 +18,11 @@ from inst_list import InstList
 from itertools import cycle
 import kunquat.tracker.kqt_limits as lim
 
-
 class Instruments(QtGui.QSplitter):
 
     def __init__(self,
+                 tw,
+                 piano,
                  project,
                  instrument_spin,
                  playback_manager,
@@ -31,6 +32,8 @@ class Instruments(QtGui.QSplitter):
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
+        self._tw = tw
+        self._piano = piano
         self._project = project
         self._inst_list = InstList(project, instrument_spin)
         self._inst_editor = InstEditor(project, instrument_spin)
@@ -48,7 +51,6 @@ class Instruments(QtGui.QSplitter):
 
         self._inst_num = 0
         self._channel = cycle(xrange(lim.COLUMNS_MAX))
-        self._pressed = {}
 
         QtCore.QObject.connect(instrument_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
@@ -58,44 +60,19 @@ class Instruments(QtGui.QSplitter):
                                self.octave_changed)
 
     def inst_changed(self, num):
+        self._piano._inst_num = num
         self._inst_num = num
 
     def octave_changed(self, num):
         self._note_input.base_octave = num
 
     def keyPressEvent(self, ev):
-        if ev.isAutoRepeat() or ev.modifiers() != QtCore.Qt.NoModifier:
-            ev.ignore()
-            return
-        try:
-            note, octave = self._note_input.get_note(ev.key())
-            cents = self._scale.get_cents(note, octave)
-        except KeyError:
-            ev.ignore()
-            return
-        ch = self._channel.next()
-        if ev.key() in self._pressed:
-            return
-        self._pressed[ev.key()] = ch
-        self._playback_manager.play_event(ch, ['.i', self._inst_num])
-        self._playback_manager.play_event(ch, ['n+', cents])
+        self._tw.keyPressEvent(ev)
 
     def keyReleaseEvent(self, ev):
-        if ev.isAutoRepeat():
-            return
-        try:
-            note, octave = self._note_input.get_note(ev.key())
-            cents = self._scale.get_cents(note, octave)
-        except KeyError:
-            ev.ignore()
-            return
-        if ev.key() not in self._pressed:
-            return
-        ch = self._pressed.pop(ev.key())
-        self._playback_manager.play_event(ch, ['n-', None])
+        self._tw.keyReleaseEvent(ev)
 
     def sync(self):
         self._inst_list.sync()
         self._inst_editor.sync()
-
 
