@@ -76,13 +76,13 @@ class Composition():
     def __delitem__(self, key):
         self.delete(key)
 
-    def get_pattern(self, subsong, section):
-        """Get a pattern number based on subsong and section number."""
-        if subsong < 0 or subsong >= lim.SUBSONGS_MAX:
-            raise IndexError, 'Invalid subsong number'
+    def get_pattern(self, song, section):
+        """Get a pattern number based on song and section number."""
+        if song < 0 or song >= lim.SONGS_MAX:
+            raise IndexError, 'Invalid song number'
         if section < 0 or section >= lim.SECTIONS_MAX:
             raise IndexError, 'Invalid section number'
-        ss = self['subs_{0:02x}/p_subsong.json'.format(subsong)]
+        ss = self['song_{0:02x}/p_song.json'.format(song)]
         if not ss or 'patterns' not in ss:
             return None
         patterns = ss['patterns']

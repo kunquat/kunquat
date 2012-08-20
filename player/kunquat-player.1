@@ -1,4 +1,4 @@
-.TH kunquat\-player 1 "2012\-07\-21" "" "Kunquat"
+.TH kunquat\-player 1 "2012\-08\-20" "" "Kunquat"
 
 .SH NAME
 kunquat\-player \- plays Kunquat compositions
@@ -25,7 +25,7 @@ kunquat\-player \- plays Kunquat compositions
 ]
 [
 .B \-s
-.I sub
+.I n
 ]
 .I file
 [
@@ -50,9 +50,9 @@ Mixes \fIn\fR frames per second. As a result, the highest frequency in the
 sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 2000 and 192000.
 Default value is 48000.
 
-.IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
-Plays the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
-\fIall\fR which plays all the existing subsongs in order.
+.IP "\fB\-s\fR \fIn\fR, \fB\-\-song\fR \fIn\fR"
+Plays the song \fIn\fR. \fIn\fR is a value between 0 and 255 or
+\fIall\fR which plays all the existing songs in order.
 
 .IP "\fB\-h\fR, \fB\-\-help\fR"
 Shows help and exits.
@@ -86,13 +86,13 @@ Seeks backwards 10 seconds.
 Seeks forwards 10 seconds.
 
 .IP "\fB[0-9]\fR, \fBa\fR"
-Selects a subsong to be played (\fBa\fR plays all subsongs).
+Selects a song to be played (\fBa\fR plays all songs).
 
 .IP "\fBp\fR"
-Selects previous subsong.
+Selects previous song.
 
 .IP "\fBn\fR"
-Selects next subsong.
+Selects next song.
 
 .IP "\fBBackspace\fR"
 Selects previous file.

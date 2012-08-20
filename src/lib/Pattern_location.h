@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -31,7 +31,7 @@ typedef struct Pattern_location
  * Creates a new Pattern location.
  *
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SUBSONGS_MAX.
+ *                  < \c KQT_SONGS_MAX.
  * \param section   The section number -- must be >= \c 0 and
  *                  < \c KQT_SECTIONS_MAX.
  *

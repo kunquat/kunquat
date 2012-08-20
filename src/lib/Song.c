@@ -309,7 +309,7 @@ bool Song_parse_composition(Song* song, char* str, Read_state* state)
                     {
                         return false;
                     }
-                    if (init_subsong < 0 || init_subsong >= KQT_SUBSONGS_MAX)
+                    if (init_subsong < 0 || init_subsong >= KQT_SONGS_MAX)
                     {
                         Read_state_set_error(state,
                                  "Invalid initial Subsong number: %" PRId64,
@@ -446,7 +446,7 @@ uint32_t Song_mix(Song* song, uint32_t nframes, Event_handler* eh)
                 }
             }
             assert(play->mode == PLAY_SONG);
-            if (play->subsong >= KQT_SUBSONGS_MAX - 1)
+            if (play->subsong >= KQT_SONGS_MAX - 1)
             {
                 Playdata_set_subsong(play, 0, !play->infinite);
                 if (play->infinite && play->play_frames + mixed > 0)
@@ -559,7 +559,7 @@ double Song_get_mix_vol(Song* song)
 void Song_set_subsong(Song* song, uint16_t num)
 {
     assert(song != NULL);
-    assert(num < KQT_SUBSONGS_MAX);
+    assert(num < KQT_SONGS_MAX);
     song->init_subsong = num;
     return;
 }

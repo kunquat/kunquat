@@ -21,7 +21,7 @@ import kunquat.tracker.kqt_limits as lim
 
 
 auto_events = {
-        'Asubsong': [(int, lambda x: x >= -1 and x < lim.SUBSONGS_MAX, '0')],
+        'Asong': [(int, lambda x: x >= -1 and x < lim.SONGS_MAX, '0')],
         'Asection': [(int, lambda x: x >= -1 and x < lim.SECTIONS_MAX, '0')],
         'Apattern': [(int, lambda x: 0 <= x < lim.PATTERNS_MAX, '0')],
         'Arow': [ttypes.any_ts],

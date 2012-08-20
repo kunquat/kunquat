@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -119,7 +119,7 @@ class Section(QtCore.QObject):
         self.section_changed.connect(func)
 
     def set(self, subsong, section):
-        assert subsong < lim.SUBSONGS_MAX
+        assert subsong < lim.SONGS_MAX
         assert section < lim.SECTIONS_MAX
         pat = self._project._composition.get_pattern(subsong, section)
         if pat == None:

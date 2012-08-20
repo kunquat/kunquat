@@ -212,7 +212,7 @@ bool parse_data(kqt_Handle* handle,
         Pattern* new_pat = Pat_table_get(Song_get_pats(handle->song), index);
         if (success && pat != new_pat && new_pat != NULL)
         {
-            for (int subsong = 0; subsong < KQT_SUBSONGS_MAX; ++subsong)
+            for (int subsong = 0; subsong < KQT_SONGS_MAX; ++subsong)
             {
                 Subsong* ss = Subsong_table_get_hidden(
                                       Song_get_subsongs(handle->song),
@@ -241,7 +241,7 @@ bool parse_data(kqt_Handle* handle,
         success = parse_scale_level(handle, key, second_element,
                                     data, length, index);
     }
-    else if ((index = string_extract_index(key, "subs_", 2, "/")) >= 0)
+    else if ((index = string_extract_index(key, "song_", 2, "/")) >= 0)
     {
         success = parse_subsong_level(handle, key, second_element,
                                       data, length, index);
@@ -1316,11 +1316,11 @@ static bool parse_subsong_level(kqt_Handle* handle,
     assert((data == NULL) == (length == 0));
     assert(length >= 0);
     (void)length;
-    if (index < 0 || index >= KQT_SUBSONGS_MAX)
+    if (index < 0 || index >= KQT_SONGS_MAX)
     {
         return true;
     }
-    if (string_eq(subkey, "p_subsong.json"))
+    if (string_eq(subkey, "p_song.json"))
     {
         Read_state* state = Read_state_init(READ_STATE_AUTO, key);
         Subsong* ss = new_Subsong_from_string(data, state);

@@ -50,7 +50,7 @@
 
 #include <Event_control_set_goto_row.h>
 #include <Event_control_set_goto_section.h>
-#include <Event_control_set_goto_subsong.h>
+#include <Event_control_set_goto_song.h>
 #include <Event_control_goto.h>
 
 #include <Event_control_infinite.h>
@@ -72,7 +72,7 @@
 #include <Event_global_set_jump_counter.h>
 #include <Event_global_set_jump_row.h>
 #include <Event_global_set_jump_section.h>
-#include <Event_global_set_jump_subsong.h>
+#include <Event_global_set_jump_song.h>
 //#include <Event_global_jump.h>
 
 #include <Event_global_set_scale.h>
@@ -262,8 +262,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                       Event_control_set_goto_row_process);
     Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_SECTION,
                                       Event_control_set_goto_section_process);
-    Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_SUBSONG,
-                                      Event_control_set_goto_subsong_process);
+    Event_handler_set_control_process(eh, EVENT_CONTROL_SET_GOTO_SONG,
+                                      Event_control_set_goto_song_process);
     Event_handler_set_control_process(eh, EVENT_CONTROL_GOTO,
                                       Event_control_goto_process);
 
@@ -308,8 +308,8 @@ Event_handler* new_Event_handler(Playdata* global_state,
                                      Event_global_set_jump_row_process);
     Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SECTION,
                                      Event_global_set_jump_section_process);
-    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SUBSONG,
-                                     Event_global_set_jump_subsong_process);
+    Event_handler_set_global_process(eh, EVENT_GLOBAL_SET_JUMP_SONG,
+                                     Event_global_set_jump_song_process);
     //Event_handler_set_global_process(eh, EVENT_GLOBAL_JUMP,
     //                                 Event_global_jump_process);
 
@@ -755,7 +755,7 @@ static void Event_handler_handle_query(Event_handler* eh,
         {
             if (eh->global_state->mode >= PLAY_SUBSONG)
             {
-                snprintf(auto_event, 128, "[\"Asubsong\", %" PRIu16 "]",
+                snprintf(auto_event, 128, "[\"Asong\", %" PRIu16 "]",
                          eh->global_state->subsong);
                 Event_handler_trigger_const(eh, index, auto_event, silent);
                 snprintf(auto_event, 128, "[\"Asection\", %" PRIu16 "]",

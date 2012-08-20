@@ -121,7 +121,7 @@ bool Pattern_set_location(Pattern* pat, int subsong, int section)
 {
     assert(pat != NULL);
     assert(subsong >= 0);
-    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(subsong < KQT_SONGS_MAX);
     assert(section >= 0);
     assert(section < KQT_SECTIONS_MAX);
     Pattern_location* key = PATTERN_LOCATION_AUTO;

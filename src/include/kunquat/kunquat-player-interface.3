@@ -1,4 +1,4 @@
-.TH kunquat\-player\-interface 3 "2012\-02\-13" "" "Kunquat"
+.TH kunquat\-player\-interface 3 "2012\-08\-20" "" "Kunquat"
 
 .SH NAME
 Kunquat player API
@@ -20,9 +20,9 @@ Kunquat player API
 .br
 .BI "long kqt_Handle_get_buffer_size(kqt_Handle* " handle );
 
-.BI "long long kqt_Handle_get_duration(kqt_Handle* " handle ", int " subsong );
+.BI "long long kqt_Handle_get_duration(kqt_Handle* " handle ", int " song );
 
-.BI "int kqt_Handle_set_position(kqt_Handle* " handle ", int " subsong ", long long " nanoseconds );
+.BI "int kqt_Handle_set_position(kqt_Handle* " handle ", int " song ", long long " nanoseconds );
 .br
 .BI "long long kqt_Handle_get_position(kqt_Handle* " handle );
 
@@ -42,7 +42,7 @@ reached. By default, the function mixes the audio 48000 frames per second.
 This can be adjusted with the function \fBkqt_Handle_set_mixing_rate\fR.
 
 The function will return the number of frames actually mixed. The return value
-is 0 if the end of the composition/subsong is reached or an error occurred --
+is 0 if the end of the composition/song is reached or an error occurred --
 the caller needs to check \fBkqt_Handle_get_error(\fR\fIhandle\fR\fB)\fR to
 determine whether an error occurred or not.
 
@@ -89,15 +89,15 @@ Returns the buffer size of \fIhandle\fR, or 0 if \fIhandle\fR is invalid.
 
 .SH "DURATION AND SEEKING"
 
-.IP "\fBlong long kqt_Handle_get_duration(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsubsong\fR\fB);\fR"
-Estimates the duration of \fIsubsong\fR of \fIhandle\fR. If \fIsubsong\fR is
--1, the function estimates the total length of all subsongs. The return value
+.IP "\fBlong long kqt_Handle_get_duration(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsong\fR\fB);\fR"
+Estimates the duration of \fIsong\fR of \fIhandle\fR. If \fIsong\fR is
+-1, the function estimates the total length of all songs. The return value
 is the length in nanoseconds, or KQT_MAX_CALC_DURATION if the length is 30
 days or longer, or -1 in case of an error.
 
-.IP "\fBint kqt_Handle_set_position(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsubsong\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
-Seeks to a position inside \fIsubsong\fR in \fIhandle\fR. \fInanoseconds\fR
-indicates the offset from the beginning of the subsong. Note that this
+.IP "\fBint kqt_Handle_set_position(kqt_Handle*\fR \fIhandle\fR\fB, int\fR \fIsong\fR\fB, long long\fR \fInanoseconds\fR\fB);\fR"
+Seeks to a position inside \fIsong\fR in \fIhandle\fR. \fInanoseconds\fR
+indicates the offset from the beginning of the song. Note that this
 function skips all non-global events before the position \fInanoseconds\fR
 and therefore mixing may produce somewhat unexpected results. The function
 returns 1 on success, 0 on failure.

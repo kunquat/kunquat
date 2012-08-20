@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -69,13 +69,13 @@ extern "C" {
 
 
 /**
- * Maximum number of Subsongs in a Kunquat Handle.
+ * Maximum number of songs in a Kunquat Handle.
  */
-#define KQT_SUBSONGS_MAX 256
+#define KQT_SONGS_MAX 256
 
 
 /**
- * Maximum number of sections in a Subsong.
+ * Maximum number of sections in a song.
  */
 #define KQT_SECTIONS_MAX 256
 

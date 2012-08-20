@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -77,7 +77,7 @@ bool Pattern_parse_header(Pattern* pat, char* str, Read_state* state);
  *
  * \param pat       The Pattern -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SUBSONGS_MAX.
+ *                  < \c KQT_SONGS_MAX.
  * \param section   The section number -- must be >= \c 0 and
  *                  < \c KQT_SECTIONS_MAX.
  *

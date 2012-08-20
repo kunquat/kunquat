@@ -288,7 +288,7 @@ class KqtEditor(QtGui.QMainWindow):
         if self.playing:
             self.project.update_random()
         self.handle.nanoseconds = 0
-        self.handle.subsong = subsong
+        self.handle.song = subsong
         self.playing = True
         self._set_infinite(infinite)
 
@@ -297,7 +297,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
-        self.handle.subsong = self._cur_subsong
+        self.handle.song = self._cur_subsong
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.fire(0, ['Ipattern', pattern])
@@ -308,7 +308,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter.reset()
         if self.playing:
             self.project.update_random()
-        self.handle.subsong = subsong
+        self.handle.song = subsong
         self.handle.nanoseconds = 0
         self.playing = True
         self.handle.fire(0, ['I.gs', section])

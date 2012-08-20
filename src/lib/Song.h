@@ -152,7 +152,7 @@ double Song_get_mix_vol(Song* song);
  * Sets the initial subsong of the Song.
  *
  * \param song   The Song -- must not be \c NULL.
- * \param num    The subsong number -- must be < \c KQT_SUBSONGS_MAX.
+ * \param num    The subsong number -- must be < \c KQT_SONGS_MAX.
  */
 void Song_set_subsong(Song* song, uint16_t num);
 

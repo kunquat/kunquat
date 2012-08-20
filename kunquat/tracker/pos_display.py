@@ -36,7 +36,7 @@ class PosDisplay(QtGui.QWidget):
     def __init__(self, project, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._project.set_callback('Asubsong', self._update_loc)
+        self._project.set_callback('Asong', self._update_loc)
         self._project.set_callback('Asection', self._update_loc)
         self._project.set_callback('Apattern', self._update_loc)
         self._project.set_callback('Arow', self._update_loc)
@@ -156,13 +156,13 @@ class PosDisplay(QtGui.QWidget):
             return
         if event[0] == 'Arow':
             self._upcoming[event[0]] = float(ts.Timestamp(event[1]))
-            if self._subsong == self._upcoming['Asubsong'] and \
+            if self._subsong == self._upcoming['Asong'] and \
                     self._section == self._upcoming['Asection'] and \
                     self._pattern == self._upcoming['Apattern'] and \
                     self._row == self._upcoming['Arow']:
                 self._upcoming = defaultdict(lambda: NO_VAL)
                 return
-            self._subsong = self._upcoming['Asubsong']
+            self._subsong = self._upcoming['Asong']
             self._section = self._upcoming['Asection']
             self._pattern = self._upcoming['Apattern']
             self._row = self._upcoming['Arow']

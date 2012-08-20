@@ -42,7 +42,7 @@ END_TEST
 START_TEST(Empty_composition_has_zero_duration)
 {
     assert(handle != NULL);
-    long long dur = kqt_Handle_get_duration(handle, subsongs[_i]);
+    long long dur = kqt_Handle_get_duration(handle, songs[_i]);
     check_unexpected_error();
     fail_unless(
             dur == 0,
@@ -259,7 +259,7 @@ START_TEST(Empty_pattern_contains_silence)
 {
     set_mixing_rate(mixing_rates[_i]);
 
-    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0] }");
+    set_data("song_00/p_song.json", "{ \"patterns\": [0] }");
     set_data("pat_000/p_pattern.json", "{ \"length\": [16, 0] }");
 
     const long expected_length = 8 * mixing_rates[_i];
@@ -303,7 +303,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
-    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0, 1] }");
+    set_data("song_00/p_song.json", "{ \"patterns\": [0, 1] }");
 
     char pat0_def[128] = "";
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
@@ -332,7 +332,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
-    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0, 1] }");
+    set_data("song_00/p_song.json", "{ \"patterns\": [0, 1] }");
 
     char pat0_def[128] = "";
     snprintf(pat0_def, sizeof(pat0_def), "{ \"length\": [%d, 0] }", _i);
@@ -365,7 +365,7 @@ START_TEST(Initial_tempo_is_set_correctly)
     char ss_def[128] = "";
     snprintf(ss_def, sizeof(ss_def),
             "{ \"tempo\": %d, \"patterns\": [0] }", tempos[_i]);
-    set_data("subs_00/p_subsong.json", ss_def);
+    set_data("song_00/p_song.json", ss_def);
     set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
     set_data("pat_000/col_00/p_events.json",
             "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
@@ -387,7 +387,7 @@ START_TEST(Infinite_mode_loops_composition)
     set_mix_volume(0);
     setup_debug_single_pulse();
 
-    set_data("subs_00/p_subsong.json", "{ \"patterns\": [0] }");
+    set_data("song_00/p_song.json", "{ \"patterns\": [0] }");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
     set_data("pat_000/col_00/p_events.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
@@ -426,7 +426,7 @@ Suite* Handle_suite(void)
     tcase_add_test(tc_empty, Initial_error_message_is_empty_string);
     tcase_add_loop_test(
             tc_empty, Empty_composition_has_zero_duration,
-            0, SUBSONG_SELECTION_COUNT);
+            0, SONG_SELECTION_COUNT);
     tcase_add_test(tc_empty, Default_mixing_rate_is_correct);
     tcase_add_test(tc_empty, Empty_composition_renders_zero_frames);
     tcase_add_loop_test(
@@ -459,7 +459,7 @@ Suite* Handle_suite(void)
     tcase_add_loop_test(tc_render, Note_on_at_pattern_end_is_handled, 0, 4);
     tcase_add_loop_test(tc_render, Note_on_after_pattern_end_is_ignored, 0, 4);
 
-    // Subsongs
+    // Songs
     tcase_add_loop_test(tc_render, Initial_tempo_is_set_correctly, 0, 4);
     tcase_add_test(tc_render, Infinite_mode_loops_composition);
 
