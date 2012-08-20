@@ -266,7 +266,7 @@ class Handle(BaseHandle):
                  one that is allowed and required to contain a period.
                  Examples:
                  'p_composition.json'
-                 'pat_000/col_00/p_events.json'
+                 'pat_000/col_00/p_triggers.json'
                  'ins_01/p_instrument.json'
         value -- The data to be set.  For JSON keys, this should be a
                  Python object -- it is automatically converted to a

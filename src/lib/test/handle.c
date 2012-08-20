@@ -311,7 +311,7 @@ START_TEST(Note_on_at_pattern_end_is_handled)
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 0], [\"n+\", \"0\"]] ]", _i);
-    set_data("pat_000/col_00/p_events.json", col_def);
+    set_data("pat_000/col_00/p_triggers.json", col_def);
 
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
 
@@ -340,7 +340,7 @@ START_TEST(Note_on_after_pattern_end_is_ignored)
 
     char col_def[128] = "";
     snprintf(col_def, sizeof(col_def), "[ [[%d, 1], [\"n+\", \"0\"]] ]", _i);
-    set_data("pat_000/col_00/p_events.json", col_def);
+    set_data("pat_000/col_00/p_triggers.json", col_def);
 
     set_data("pat_001/p_pattern.json", "{ \"length\": [8, 0] }");
 
@@ -367,7 +367,7 @@ START_TEST(Initial_tempo_is_set_correctly)
             "{ \"tempo\": %d, \"patterns\": [0] }", tempos[_i]);
     set_data("song_00/p_song.json", ss_def);
     set_data("pat_000/p_pattern.json", "{ \"length\": [4, 0] }");
-    set_data("pat_000/col_00/p_events.json",
+    set_data("pat_000/col_00/p_triggers.json",
             "[ [[0, 0], [\"n+\", \"0\"]], [[1, 0], [\"n+\", \"0\"]] ]");
 
     float actual_buf[buf_len] = { 0.0f };
@@ -389,7 +389,7 @@ START_TEST(Infinite_mode_loops_composition)
 
     set_data("song_00/p_song.json", "{ \"patterns\": [0] }");
     set_data("pat_000/p_pattern.json", "{ \"length\": [2, 0] }");
-    set_data("pat_000/col_00/p_events.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
+    set_data("pat_000/col_00/p_triggers.json", "[ [[0, 0], [\"n+\", \"0\"]] ]");
 
     kqt_Handle_fire(handle, 0, "[\"I.infinite\", true]");
     check_unexpected_error();

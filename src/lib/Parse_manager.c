@@ -1197,7 +1197,7 @@ static bool parse_pattern_level(kqt_Handle* handle,
     int col_index = 0;
     ++second_element;
     if ((col_index = string_extract_index(subkey, "col_", 2, "/")) >= 0 &&
-                string_eq(second_element, "p_events.json"))
+                string_eq(second_element, "p_triggers.json"))
     {
         if (col_index >= KQT_COLUMNS_MAX)
         {

@@ -507,7 +507,7 @@ class Cursor(QtCore.QObject):
         if self.col:
             col_dir = 'col_{0:02x}'.format(self.col.get_num())
             self.col_path = '/'.join((self.pattern_path, col_dir,
-                                      'p_events.json'))
+                                      'p_triggers.json'))
 
     def set_geometry(self, x, y, w, h):
         padding = 4
