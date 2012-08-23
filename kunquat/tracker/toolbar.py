@@ -8,7 +8,6 @@ class Toolbar():
         self.p = p
         top_control = QtGui.QWidget()
         self._songcount = QtGui.QLabel()
-        self.update_songs(0, 0)
         layout = QtGui.QHBoxLayout(top_control)
         layout.setMargin(5)
         layout.setSpacing(5)
@@ -61,8 +60,6 @@ class Toolbar():
                                self.p.instrument_window)
 
         self._instrument = QtGui.QComboBox()
-        self._instrument.addItem(u'0: piano')
-        self._instrument.addItem(u'3: t-urku')
         ''''
         self._instrument = QtGui.QSpinBox()
         self._instrument.setMinimum(0)
@@ -92,20 +89,9 @@ class Toolbar():
         #                       self.import_composition)
 
 
-
-
-
-        #infinite = QtGui.QCheckBox('Infinite')
-        #infinite.setCheckState(QtCore.Qt.Unchecked)
-        #infinite.setToolTip('Infinite mode')
-        #QtCore.QObject.connect(infinite, QtCore.SIGNAL('stateChanged(int)'),
-        #                       lambda x: self._set_infinite(x ==
-        #                                            QtCore.Qt.Checked))
-
-        layout.addWidget(new_project)
-        layout.addWidget(open_project)
+        #layout.addWidget(new_project)
+        #layout.addWidget(open_project)
         layout.addWidget(save_project)
-        #layout.addWidget(export)
         layout.addWidget(self._create_separator())
 
         layout.addWidget(self._instrument)
@@ -114,15 +100,17 @@ class Toolbar():
 
         layout.addWidget(octave_label)
         layout.addWidget(self._octave)
-        layout.addWidget(scale_selector)
-        layout.addWidget(scale_config)
-        #layout.addWidget(infinite)
+        #layout.addWidget(scale_selector)
+        #layout.addWidget(scale_config)
         layout.addWidget(self._create_separator())
+
         layout.addWidget(self._songcount)
         layout.addWidget(sheet_but)
         layout.addWidget(self._create_separator())
-        layout.addWidget(env_label)
+
+        #layout.addWidget(env_label)
         layout.addWidget(env_ter)
+
         self._view = top_control
 
     def _create_separator(self):
@@ -131,12 +119,22 @@ class Toolbar():
         separator.setFrameShadow(QtGui.QFrame.Sunken)
         return separator
 
-    def update_songs(self, songs, patterns):
+    def update_songs(self):
+        songs = len(self.p.project._composition.song_ids())
+        patterns = len(self.p.project._composition.pattern_ids())
         if songs > 0 or patterns > 0:
             info = u'%s song(s)' % songs
         else:
             info = u'no score'
         self._songcount.setText(info)
+
+    def update_instruments(self):
+        ids = self.p.project._composition.instrument_ids()
+        numbers = [int(i.split('_')[1]) for i in ids]
+        for i in sorted(numbers):
+            ins = self.p.project._composition.get_instrument(i)
+            name = ins.get_json('kqti00/m_name.json') or '-'
+            self._instrument.addItem(u'%s: %s' % (i, name))
 
     def get_view(self):
         return self._view

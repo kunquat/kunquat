@@ -69,9 +69,10 @@ class KqtEditor(QtGui.QMainWindow):
 
         self.p = self
         self._playback = Playback(self.p)
-        self._toolbar = Toolbar(self.p)
         self._status = Statusbar(self.p)
-        self.project = project.Project(self, file_path)
+        self._toolbar = Toolbar(self.p)
+        self.project = project.Project(self.p, self)
+        self.project.init(file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
         self._scale = scale.Scale({

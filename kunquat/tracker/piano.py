@@ -7,12 +7,11 @@ class Piano():
         self.p = p 
         self._pressed = {}
         self._channel = cycle(xrange(lim.COLUMNS_MAX))
-        self._inst_num = 0;
         
     def play(self, cents):
         ch = self._channel.next()
         self._pressed[cents] = ch
-        self.p._playback.play_event(ch, ['.i', self._inst_num])
+        self.p._playback.play_event(ch, ['.i', self.p._instruments._inst_num])
         self.p._playback.play_event(ch, ['n+', cents])
 
     def press(self, note, input_octave, cursor = None):
