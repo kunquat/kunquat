@@ -22,7 +22,7 @@ import random
 import sys
 import time
 
-from kunquat.qt import TypewriterView
+from kunquat.qt import Typewriter
 from kunquat.extras import pulseaudio
 from kunquat.tracker.env import Env
 from PyQt4 import QtCore, QtGui
@@ -42,6 +42,7 @@ import timestamp as ts
 from playback import Playback
 from statusbar import Statusbar
 from toolbar import Toolbar
+from piano import Piano
 
 PROGRAM_NAME = 'Kunquat Tracker'
 PROGRAM_VERSION = '0.5.4'
@@ -57,8 +58,9 @@ def sine():
 
 class KqtEditor(QtGui.QMainWindow):
 
-    def __init__(self, args):
+    def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
+        self._app = app
 
         try:
             file_path = str(args[1])
@@ -266,7 +268,7 @@ class KqtEditor(QtGui.QMainWindow):
 
     def set_appearance(self):
         # FIXME: size and title
-        self.resize(400, 300)
+        self.resize(800, 450)
         self.setWindowTitle(PROGRAM_NAME)
 
         #self.statusBar().showMessage('[status]')
@@ -277,6 +279,10 @@ class KqtEditor(QtGui.QMainWindow):
         top_layout.setMargin(0)
         top_layout.setSpacing(0)
         playback_bar = self._playback.get_view()
+
+
+        self._piano = Piano(self)
+        self._tw = Typewriter(self)
 
         self._instrumentconf = QtGui.QTabWidget()
         self._sheet = Sheet(self.project, self._playback,
@@ -316,7 +322,7 @@ class KqtEditor(QtGui.QMainWindow):
                                QtCore.SIGNAL('endTask()'),
                                self.sync)
 
-        instruarea = TypewriterView()
+        instruarea = self._tw.get_view()
         instrumentpanel = QtGui.QWidget(self)
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
         instrumentlayout.addWidget(self._toolbar.get_view())
@@ -343,7 +349,7 @@ class KqtEditor(QtGui.QMainWindow):
 
 def main():
     app = QtGui.QApplication(sys.argv)
-    editor = KqtEditor(app.arguments())
+    editor = KqtEditor(app.arguments(), app)
     editor.show()
     sys.exit(app.exec_())
 

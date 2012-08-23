@@ -31,6 +31,7 @@ class Sheet(QtGui.QSplitter):
                  pattern_offset_changed_slot,
                  octave_spin,
                  instrument_spin,
+                 typewriter,
                  playbackbar,
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
@@ -47,7 +48,8 @@ class Sheet(QtGui.QSplitter):
                                              pattern_changed_slot,
                                              pattern_offset_changed_slot,
                                              octave_spin,
-                                             instrument_spin)
+                                             instrument_spin,
+                                             typewriter)
         self._edit_area = QtGui.QStackedWidget()
         self._edit_area.setFrameShape(QtGui.QFrame.StyledPanel)
         self._edit_area.addWidget(self._comp_params)
