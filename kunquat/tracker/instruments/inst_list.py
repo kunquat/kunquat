@@ -53,7 +53,7 @@ class InstList(QtGui.QTableWidget):
         if self._signal:
             return
         self._signal = True
-        self._instrument_spin.setValue(cur_row)
+        self._instrument_spin.setCurrentIndex(cur_row)
         self._signal = False
 
     def name_changed(self, num, col):
