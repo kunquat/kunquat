@@ -2,14 +2,9 @@ from PyQt4 import QtCore, QtGui
 from pos_display import PosDisplay
 from timestamp import Timestamp
 
+import json
+
 class Playback(QtCore.QObject):
-
-    _play_sub = QtCore.pyqtSignal(int, bool, name='playSubsong')
-    _play_pat = QtCore.pyqtSignal(int, name='playPattern')
-    _play_from = QtCore.pyqtSignal(int, int, int, int, name='playFrom')
-    _play_event = QtCore.pyqtSignal(int, str, name='playEvent')
-    _stop = QtCore.pyqtSignal(name='stop')
-
     def __init__(self, p, parent=None):
         QtCore.QObject.__init__(self, parent)
         self.p = p
@@ -18,41 +13,12 @@ class Playback(QtCore.QObject):
         self._cur_pattern_offset = Timestamp()
         self._cur_pattern = 0
         self.playing = False
-        self.connect(self.play_subsong, self.play_pattern,
-                     self.play_from, self.play_event, self.stop)
-
-    def connect(self, play_sub, play_pat, play_from, play_event, stop):
-        """Connects the playback control signals to functions."""
-        self._play_sub.connect(play_sub)
-        self._play_pat.connect(play_pat)
-        self._play_from.connect(play_from)
-        self._play_event.connect(play_event)
-        self._stop.connect(stop)
-
-    def stop(self):
-        """Stops playback."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('stop()'))
-
-    def play_subsong(self, subsong, infinite=False):
-        """Plays a subsong."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playSubsong(int, bool)'),
-                            subsong, infinite)
-
-    def play_pattern(self, pattern):
-        """Plays a pattern repeatedly."""
-        QtCore.QObject.emit(self, QtCore.SIGNAL('playPattern(int)'), pattern)
-
-    def play_from(self, subsong, section, beats, rem):
-        """Plays a subsong starting from specified position."""
-        QtCore.QObject.emit(self,
-                            QtCore.SIGNAL('playFrom(int, int, int, int)'),
-                            subsong, section, beats, rem)
 
     def play_event(self, channel, event):
-        """Plays a single event."""
-        self._play_event.emit(channel, json.dumps(event))
-        #QtCore.QObject.emit(self, QtCore.SIGNAL('playEvent(int, str)'),
-        #                    channel, event)
+        if not self.playing:
+            self.playing = True
+            self.p.handle.fire(0, ['Ipause', None])
+        self.p.handle.fire(channel, event)
 
     def _play_subsong(self, ev):
         self.play_subsong(self._cur_subsong)

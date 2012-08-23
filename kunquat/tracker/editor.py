@@ -219,14 +219,6 @@ class KqtEditor(QtGui.QMainWindow):
                   self.pa.context_state(), self.pa.stream_state(),
                   self.pa.error()), end='\r')
 
-    def play_event(self, *args):
-        channel, event = args
-        event = str(event)
-        if not self.playing:
-            self.playing = True
-            self.handle.fire(0, ['Ipause', None])
-        self.handle.fire(channel, json.loads(event))
-
     def save(self):
         self.project.save()
 
@@ -288,12 +280,14 @@ class KqtEditor(QtGui.QMainWindow):
         self._sheet = Sheet(self.project, self._playback,
                             self._playback.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
-                            self._toolbar._octave, self._toolbar._instrument, playback_bar)
+                            self._toolbar._octave, self._toolbar._instrument, self._tw, playback_bar)
         #self._sheetbox = QtGui.QTabWidget()
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
-        self._instruments = Instruments(self.project,
+        self._instruments = Instruments(self._tw,
+                                        self._piano,
+                                        self.project,
                                         self._toolbar._instrument,
                                         self._playback,
                                         self._note_input,
