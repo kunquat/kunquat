@@ -31,7 +31,7 @@ class InstEditor(QtGui.QWidget):
         QtGui.QWidget.__init__(self, parent)
 
         self._project = project
-        self._cur_inst = instrument_spin.value()
+        self._cur_inst = 0
         self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(
                                                       lim.FORMAT_VERSION)
         top_layout = QtGui.QVBoxLayout(self)
@@ -67,7 +67,7 @@ class InstEditor(QtGui.QWidget):
                                self.remove)
 
         QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('valueChanged(int)'),
+                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
                                self.inst_changed)
 
         top_layout.addLayout(layout)
@@ -90,7 +90,12 @@ class InstEditor(QtGui.QWidget):
         tabs.addTab(self._connections, 'Connections')
         top_layout.addWidget(tabs)
 
-    def inst_changed(self, num):
+    def inst_changed(self, text):
+        if text == '':
+            return
+        parts = text.split(':')
+        num = int(parts[0] )
+
         self._cur_inst = num
         self._force.inst_changed(num)
         self._panning.inst_changed(num)

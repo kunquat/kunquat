@@ -53,15 +53,18 @@ class Instruments(QtGui.QSplitter):
         self._channel = cycle(xrange(lim.COLUMNS_MAX))
 
         QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('valueChanged(int)'),
+                               QtCore.SIGNAL('currentIndexChanged (const QString&)'),
                                self.inst_changed)
         QtCore.QObject.connect(octave_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
 
-    def inst_changed(self, num):
-        self._piano._inst_num = num
-        self._inst_num = num
+    def inst_changed(self, text):
+        if text == '':
+            return
+        parts = text.split(':')
+        number = int(parts[0] )
+        self._inst_num = number
 
     def octave_changed(self, num):
         self._note_input.base_octave = num

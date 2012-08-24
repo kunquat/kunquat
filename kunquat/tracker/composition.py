@@ -251,4 +251,20 @@ class Composition():
         self._history.redo(branch, self)
         #self._history.show_latest_branch()
 
+    def pattern_ids(self):
+        folders = [f.split('/')[2] for f in self._store.keys()]
+        foo =  set([f for f in folders if f.startswith('pat')])
+        return foo
+
+    def song_ids(self):
+        folders = [f.split('/')[2] for f in self._store.keys()]
+        foo =  set([f for f in folders if f.startswith('subs')])
+        return foo
+
+    def instrument_ids(self):
+        folders = [f.split('/')[2] for f in self._store.keys()]
+        foo =  set([f for f in folders if f.startswith('ins')])
+        return foo
+
+
 

@@ -59,14 +59,17 @@ class Project(QtCore.QObject):
     _end_task = QtCore.pyqtSignal(name='endTask')
     _sync = QtCore.pyqtSignal(name='sync')
 
-    def __init__(self, file_path=None, mixing_rate=48000, parent=None):
+    def __init__(self, p, parent=None):
+        QtCore.QObject.__init__(self, parent)
+        self.p = p
+
+    def init(self, file_path=None, mixing_rate=48000):
         """Create a new Project.
 
         Optional arguments:
         mixing_rate -- Mixing rate in frames per second.
 
         """
-        QtCore.QObject.__init__(self, parent)
         self._process = Process()
         self._mixing_rate = mixing_rate
 
@@ -200,6 +203,8 @@ class Project(QtCore.QObject):
 
     def _store_value_update(self, key, **_):
         self._update_player(key)
+        self.p._toolbar.update_songs()
+        self.p._toolbar.update_instruments()
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):
