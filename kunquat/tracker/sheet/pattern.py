@@ -193,7 +193,7 @@ class Pattern(QtGui.QWidget):
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
         QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('valueChanged(int)'),
+                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
                                self.inst_changed)
         self.columns[0].set_cursor(self.cursor)
         self.cursor.set_col(self.columns[0])
@@ -233,8 +233,12 @@ class Pattern(QtGui.QWidget):
         else:
             self.setFocusPolicy(QtCore.Qt.StrongFocus)
 
-    def inst_changed(self, num):
-        self.cursor.inst_num = num
+    def inst_changed(self, text):
+        if text == '':
+            return
+        parts = text.split(':')
+        number = int(parts[0] )
+        self.cursor.inst_num = number
 
     def length_changed(self, *flength):
         self.set_pattern(self.number)

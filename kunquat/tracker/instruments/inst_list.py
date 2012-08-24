@@ -32,7 +32,7 @@ class InstList(QtGui.QTableWidget):
         self.horizontalHeader().hide()
 
         QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('valueChanged(int)'),
+                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
                                self.inst_changed)
         QtCore.QObject.connect(self,
                     QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
@@ -42,7 +42,12 @@ class InstList(QtGui.QTableWidget):
                                self.name_changed)
         self._signal = False
 
-    def inst_changed(self, num):
+    def inst_changed(self, text):
+        if text == '':
+            return
+        parts = text.split(':')
+        num = int(parts[0] )
+
         index = self.model().index(num, 0)
         select = self.selectionModel()
         select.clear()
