@@ -60,6 +60,8 @@ class Instruments(QtGui.QSplitter):
                                self.octave_changed)
 
     def inst_changed(self, text):
+        if text == '':
+            return
         parts = text.split(':')
         number = int(parts[0] )
         self._inst_num = number

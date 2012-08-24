@@ -129,12 +129,17 @@ class Toolbar():
         self._songcount.setText(info)
 
     def update_instruments(self):
+        #inst_num = self.p._instruments._inst_num
+        while self._instrument.count() > 0:
+            self._instrument.removeItem(0)
         ids = self.p.project._composition.instrument_ids()
         numbers = [int(i.split('_')[1]) for i in ids]
         for i in sorted(numbers):
             ins = self.p.project._composition.get_instrument(i)
             name = ins.get_json('kqti00/m_name.json') or '-'
             self._instrument.addItem(u'%s: %s' % (i, name))
+            #if i == inst_num:
+            #    self._instrument.setCurrentIndex(self._instrument.count() - 1)
 
     def get_view(self):
         return self._view

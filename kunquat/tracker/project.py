@@ -203,6 +203,8 @@ class Project(QtCore.QObject):
 
     def _store_value_update(self, key, **_):
         self._update_player(key)
+        self.p._toolbar.update_songs()
+        self.p._toolbar.update_instruments()
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):
@@ -215,8 +217,6 @@ class Project(QtCore.QObject):
     def _store_import_end(self, prefix, **_):
         self._composition.fix_connections(prefix)
         self._composition.end_group()
-        self.p._toolbar.update_songs()
-        self.p._toolbar.update_instruments()
         QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
 
     def _store_export_start(self, key_names, **_):
