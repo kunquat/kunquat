@@ -287,7 +287,8 @@ class KqtEditor(QtGui.QMainWindow):
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
-        self._instruments = Instruments(self._tw,
+        self._instruments = Instruments(self.p,
+                                        self._tw,
                                         self._piano,
                                         self.project,
                                         self._toolbar._instrument,

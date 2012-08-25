@@ -128,6 +128,20 @@ class Toolbar():
             info = u'no score'
         self._songcount.setText(info)
 
+    def setEnabled(self, value):
+        self._view.setEnabled(value)
+
+    def instrument_string(self, number):
+        ins = self.p.project._composition.get_instrument(number)
+        name = ins.get_json('kqti00/m_name.json') or '-'
+        s = u'%s: %s' % (number, name)
+        return s
+
+    def select_instrument(self, number):
+        s = self.instrument_string(number)
+        index = self._instrument.findText(s)
+        self._instrument.setCurrentIndex(index)
+
     def update_instruments(self):
         # FIXME: Remove try-catch
         try:
@@ -139,11 +153,10 @@ class Toolbar():
         ids = self.p.project._composition.instrument_ids()
         numbers = [int(i.split('_')[1]) for i in ids]
         for i in sorted(numbers):
-            ins = self.p.project._composition.get_instrument(i)
-            name = ins.get_json('kqti00/m_name.json') or '-'
-            self._instrument.addItem(u'%s: %s' % (i, name))
+            s = self.instrument_string(i)
+            self._instrument.addItem(s)
             if i == inst_num:
-                self._instrument.setCurrentIndex(self._instrument.count() - 1)
+                self.select_instrument(i)
 
     def get_view(self):
         return self._view

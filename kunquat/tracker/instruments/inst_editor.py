@@ -27,8 +27,9 @@ import kunquat.tracker.kqt_limits as lim
 
 class InstEditor(QtGui.QWidget):
 
-    def __init__(self, project, instrument_spin, parent=None):
+    def __init__(self, p, project, instrument_spin, parent=None):
         QtGui.QWidget.__init__(self, parent)
+        self.p = p
 
         self._project = project
         self._cur_inst = 0
@@ -118,7 +119,11 @@ class InstEditor(QtGui.QWidget):
         QtCore.QCoreApplication.postEvent(self, ev)
 
     def load(self):
-        slot = self._cur_inst
+        slot = 0
+        ids = self.p.project._composition.instrument_ids()
+        numbers = [int(i.split('_')[1]) for i in ids]
+        while slot in numbers:
+            slot += 1
         fname = QtGui.QFileDialog.getOpenFileName(
                 caption='Load Kunquat instrument (to index {0})'.format(slot),
                 filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
@@ -134,7 +139,8 @@ class InstEditor(QtGui.QWidget):
             self._project.export_kqti(slot, str(fname))
 
     def remove(self):
-        self._project.remove_dir('ins_{0:02x}'.format(self._cur_inst))
+        inst = self._project._composition.get_instrument(self._cur_inst)
+        inst.delall()        
 
     def sync(self):
         self._force.sync()

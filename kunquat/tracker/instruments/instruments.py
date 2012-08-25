@@ -21,6 +21,7 @@ import kunquat.tracker.kqt_limits as lim
 class Instruments(QtGui.QSplitter):
 
     def __init__(self,
+                 p,
                  tw,
                  piano,
                  project,
@@ -31,12 +32,13 @@ class Instruments(QtGui.QSplitter):
                  octave_spin,
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
+        self.p = p
 
         self._tw = tw
         self._piano = piano
         self._project = project
         self._inst_list = InstList(project, instrument_spin)
-        self._inst_editor = InstEditor(project, instrument_spin)
+        self._inst_editor = InstEditor(self.p, project, instrument_spin)
         self._instrument_spin = instrument_spin
         self._playback_manager = playback_manager
         self._note_input = note_input

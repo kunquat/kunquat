@@ -63,7 +63,7 @@ class Store(object):
         return json.dumps(value)
 
     def delete(self, key):
-        if key in self._memory:
+        if key in self._memory.keys():
             del self._memory[key]
             self.signal(Value_update(key=key))
 
