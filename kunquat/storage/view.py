@@ -20,7 +20,10 @@ class View():
         self.put(key, value)
 
     def _path(self, key):
-        path = '%s/%s' % (self.prefix, key)
+        pparts = [i for i in self.prefix.split('/') if i != '']
+        kparts = [i for i in         key.split('/') if i != '']
+        parts = pparts + kparts
+        path = '/%s' % '/'.join(parts)
         return path
 
     def put(self, key, value):
@@ -30,6 +33,11 @@ class View():
     def delete(self, key):
         path = self._path(key)
         self._store.delete(path)
+        assert key not in self._store.keys()
+
+    def delall(self):
+        for key in self.keys():
+            self.delete(key)
 
     def get(self, key, parse='raw'):
         path = self._path(key)

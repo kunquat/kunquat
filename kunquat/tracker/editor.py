@@ -183,7 +183,7 @@ class KqtEditor(QtGui.QMainWindow):
                 self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
                 if not self.bufs[0]:
-                    self.stop()
+                    self._playback.stop()
                     return
             for ch, event in self.handle.treceive():
                 self.project.tfire(ch, event)
@@ -287,7 +287,8 @@ class KqtEditor(QtGui.QMainWindow):
         #self._sheetbox.addTab(self._sheet, 'Sheet')
         #self._sheetbox.tabBar().setVisible(False)
 
-        self._instruments = Instruments(self._tw,
+        self._instruments = Instruments(self.p,
+                                        self._tw,
                                         self._piano,
                                         self.project,
                                         self._toolbar._instrument,
