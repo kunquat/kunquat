@@ -18,8 +18,9 @@ import kunquat.tracker.kqt_limits as lim
 
 class InstList(QtGui.QTableWidget):
 
-    def __init__(self, project, instrument_spin, parent=None):
+    def __init__(self, p, project, instrument_spin, parent=None):
         QtGui.QTableWidget.__init__(self, lim.INSTRUMENTS_MAX, 1, parent)
+        self.p = p
         self.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
 
         self._project = project
@@ -75,8 +76,32 @@ class InstList(QtGui.QTableWidget):
         else:
             self._project[key] = None
 
+    def update_instruments(self):
+        # FIXME: Remove try-catch
+        try:
+            inst_num = self.p._instruments._inst_num
+        except AttributeError:
+            inst_num = 0
+        while self.rowCount() > 0:
+            self.removeRow(0)
+        ids = self.p.project._composition.instrument_ids()
+        numbers = [int(i.split('_')[1]) for i in ids]
+        header_nums = sorted(numbers)
+        self.setRowCount(len(header_nums))
+        self.setVerticalHeaderLabels([str(num) for num in header_nums])
+        for i in header_nums:
+            name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
+                                                        lim.FORMAT_VERSION)]
+            label = name or ''
+            item = QtGui.QTableWidgetItem(label)
+            self.setItem(i, 0, item)
+            if i == inst_num:
+                self.setItemSelected(item, True)
+
     def sync(self):
         self._signal = True
+        self.update_instruments()
+        '''
         for i in xrange(lim.INSTRUMENTS_MAX):
             name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
                                                         lim.FORMAT_VERSION)]
@@ -91,6 +116,7 @@ class InstList(QtGui.QTableWidget):
                 item = self.item(i, 0)
                 if item:
                     item.setText('')
+        '''
         self._signal = False
 
 

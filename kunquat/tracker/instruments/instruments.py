@@ -37,7 +37,7 @@ class Instruments(QtGui.QSplitter):
         self._tw = tw
         self._piano = piano
         self._project = project
-        self._inst_list = InstList(project, instrument_spin)
+        self._inst_list = InstList(self.p, project, instrument_spin)
         self._inst_editor = InstEditor(self.p, project, instrument_spin)
         self._instrument_spin = instrument_spin
         self._playback_manager = playback_manager
