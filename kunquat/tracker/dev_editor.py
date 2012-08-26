@@ -152,8 +152,10 @@ class KeyList(QtGui.QTableWidget):
         self.blockSignals(True)
         self._lock_update = True
         #print(self._key, self._project.subtree(self._key))
-        subtree = filter(lambda k: k.startswith('p_'),
-                         self._project.subtree(self._key))
+        subtree = [k[1:] for k in self._project.subtree(self._key)
+                if k.startswith('/p_')]
+        #subtree = filter(lambda k: k.startswith('p_'),
+        #                 self._project.subtree(self._key))
         if not subtree:
             while self.rowCount() > 1:
                 self.removeRow(0)

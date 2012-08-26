@@ -183,7 +183,7 @@ class KqtEditor(QtGui.QMainWindow):
                 self.handle.fire(0, ['qlocation', None])
                 self.bufs = self.handle.mix()
                 if not self.bufs[0]:
-                    self.stop()
+                    self._playback.stop()
                     return
             for ch, event in self.handle.treceive():
                 self.project.tfire(ch, event)
