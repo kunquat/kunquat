@@ -19,7 +19,7 @@ class Typewriter():
 
     def __init__(self, p):
         self.p = p
-        self._twmodel = TypewriterModel()
+        self._twmodel = TypewriterModel(self.p)
         self._twview = TypewriterView(self, self.count_rows())
         self._twmodel.register_view(self._twview)
         self._keymap = self.get_keymap()

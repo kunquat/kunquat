@@ -85,12 +85,17 @@ class KqtEditor(QtGui.QMainWindow):
                               (['c', cents] for cents in range(0, 1200, 100))))
                           })
         '''
+        intervals = [0,
+                     0 + 245,
+                     0 + 245 + 262,
+                     0 + 245 + 262 + 228,
+                     0 + 245 + 262 + 228 + 240,
+                     0 + 245 + 262 + 228 + 240 + 230]
         self._scale = Slendro({
                           'ref_pitch': 440 * 2**(3/12),
-                          'octave_ratio': ['/', [2, 1]],
-                          'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
-                                             'F#', 'G', 'G#', 'A', 'A#', 'B'),
-                              (['c', cents] for cents in range(0, 1200, 100))))
+                          'octave_ratio': ['c', 1205],
+                          'notes': list(zip(('ji', 'ro', 'lu', 'ma', 'nam'),
+                              (['c', cents] for cents in intervals)))
                           })
         self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
