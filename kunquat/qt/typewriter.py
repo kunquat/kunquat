@@ -10,6 +10,13 @@ from random import gauss, choice
 
 class Typewriter():
 
+    keys = [
+    [Qt.Key_2,Qt.Key_3,Qt.Key_4,Qt.Key_5,Qt.Key_6,Qt.Key_7,Qt.Key_8,Qt.Key_9,Qt.Key_0],
+    [Qt.Key_Q,Qt.Key_W,Qt.Key_E,Qt.Key_R,Qt.Key_T,Qt.Key_Y,Qt.Key_U,Qt.Key_I,Qt.Key_O,Qt.Key_P],
+    [Qt.Key_A,Qt.Key_S,Qt.Key_D,Qt.Key_F,Qt.Key_G,Qt.Key_H,Qt.Key_J],
+    [Qt.Key_Z,Qt.Key_X,Qt.Key_C,Qt.Key_V,Qt.Key_B,Qt.Key_N,Qt.Key_M]
+    ]
+
     def __init__(self, p):
         self.p = p
         self._twmodel = TypewriterModel()
@@ -77,7 +84,7 @@ class Typewriter():
             i += 1
 
     def get_keymap(self):
-        return dict(self.keymap_helper(self.p._scale.keys))
+        return dict(self.keymap_helper(self.keys))
 
     def keymap_helper(self, mapping):
         for row, buttons in zip(self.all_ints(), mapping):
@@ -94,7 +101,7 @@ class Typewriter():
                 yield ((row, but), note)
 
     def count_rows(self):
-        return [len(row) for row in self.p._scale.keys]
+        return [len(row) for row in self.keys]
                 
     def keyPressEvent(self, ev):
         if ev.modifiers() != Qt.NoModifier:

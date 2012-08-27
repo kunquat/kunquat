@@ -37,6 +37,7 @@ import note_input as ni
 from peak_meter import PeakMeter
 import project
 import scale
+from slendro import Slendro
 from sheet import Sheet
 import timestamp as ts
 from playback import Playback
@@ -75,7 +76,16 @@ class KqtEditor(QtGui.QMainWindow):
         self.project.init(file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
+        '''
         self._scale = scale.Scale({
+                          'ref_pitch': 440 * 2**(3/12),
+                          'octave_ratio': ['/', [2, 1]],
+                          'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
+                                             'F#', 'G', 'G#', 'A', 'A#', 'B'),
+                              (['c', cents] for cents in range(0, 1200, 100))))
+                          })
+        '''
+        self._scale = Slendro({
                           'ref_pitch': 440 * 2**(3/12),
                           'octave_ratio': ['/', [2, 1]],
                           'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
