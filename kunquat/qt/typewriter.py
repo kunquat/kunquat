@@ -10,20 +10,6 @@ from random import gauss, choice
 
 class Typewriter():
 
-    keys = [
-    [Qt.Key_2,Qt.Key_3,Qt.Key_4,Qt.Key_5,Qt.Key_6,Qt.Key_7,Qt.Key_8,Qt.Key_9,Qt.Key_0],
-    [Qt.Key_Q,Qt.Key_W,Qt.Key_E,Qt.Key_R,Qt.Key_T,Qt.Key_Y,Qt.Key_U,Qt.Key_I,Qt.Key_O,Qt.Key_P],
-    [Qt.Key_A,Qt.Key_S,Qt.Key_D,Qt.Key_F,Qt.Key_G,Qt.Key_H,Qt.Key_J],
-    [Qt.Key_Z,Qt.Key_X,Qt.Key_C,Qt.Key_V,Qt.Key_B,Qt.Key_N,Qt.Key_M]
-    ]
-
-    notes = [
-    [(1,1), (3,1), None , (6,1), (8,1), (10,1), None , (1,2), (3,2)],
-    [(0,1), (2,1), (4,1), (5,1), (7,1), (9,1), (11,1), (0,2), (2,2), (4,2)],
-    [None , (1,0), (3,0), None , (6,0), (8,0), (10,0)],
-    [(0,0), (2,0), (4,0), (5,0), (7,0), (9,0), (11,0)]
-    ]
-
     def __init__(self, p):
         self.p = p
         self._twmodel = TypewriterModel()
@@ -91,7 +77,7 @@ class Typewriter():
             i += 1
 
     def get_keymap(self):
-        return dict(self.keymap_helper(self.keys))
+        return dict(self.keymap_helper(self.p._scale.keys))
 
     def keymap_helper(self, mapping):
         for row, buttons in zip(self.all_ints(), mapping):
@@ -99,7 +85,8 @@ class Typewriter():
                 yield (key, (row, but))
 
     def get_notemap(self):
-        return dict(self.notemap_helper(self.notes))
+        notes = self.p._scale.knotes
+        return dict(self.notemap_helper(notes))
 
     def notemap_helper(self, mapping):
         for row, buttons in zip(self.all_ints(), mapping):
@@ -107,7 +94,7 @@ class Typewriter():
                 yield ((row, but), note)
 
     def count_rows(self):
-        return [len(row) for row in self.keys]
+        return [len(row) for row in self.p._scale.keys]
                 
     def keyPressEvent(self, ev):
         if ev.modifiers() != Qt.NoModifier:
