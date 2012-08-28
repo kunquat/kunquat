@@ -14,8 +14,7 @@ class Piano():
         self.p._playback.play_event(ch, ['.i', self.p._instruments._inst_num])
         self.p._playback.play_event(ch, ['n+', cents])
 
-    def press(self, note, input_octave, cursor = None):
-        octave = self.p._note_input.base_octave + input_octave
+    def press(self, note, octave, cursor = None):
         cents = self.p._scale.get_cents(note, octave)
         if cents in self._pressed:
             return
@@ -26,8 +25,7 @@ class Piano():
         if play_note:
             self.play(cents)
 
-    def release(self, note, input_octave):
-        octave = self.p._note_input.base_octave + input_octave
+    def release(self, note, octave):
         cents = self.p._scale.get_cents(note, octave)
         if cents not in self._pressed:
             return

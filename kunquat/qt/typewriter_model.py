@@ -35,7 +35,12 @@ class TypewriterModel():
         return dict(self.notemap_helper(notes))
 
     def get_note(self, coord):
-        return self._notemap[(coord)]
+        base = self.p._note_input.base_octave
+        note_info = self._notemap[(coord)]
+        if note_info == None:
+            return note_info
+        note, octave = note_info
+        return note, octave + base
 
     def get_led_color(self, coord):
         DEFAULT = 0
