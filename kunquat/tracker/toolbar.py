@@ -122,7 +122,12 @@ class Toolbar():
         parts = text.split(':')
         number = int(parts[0] )
         self.p._scale = self.p._scales[number]
-        self.p._tw.update()
+
+        # FIXME: Remove try-catch
+        try:
+            self.p._tw.update()
+        except AttributeError:
+            pass
 
     def _create_separator(self):
         separator = QtGui.QFrame()
