@@ -68,13 +68,6 @@ class KqtEditor(QtGui.QMainWindow):
             file_path = ''
 
         self.p = self
-        self._playback = Playback(self.p)
-        self._status = Statusbar(self.p)
-        self._toolbar = Toolbar(self.p)
-        self.project = project.Project(self.p, self)
-        self.project.init(file_path)
-        self.handle = self.project.handle
-        self._note_input = ni.NoteInput()
 
         chromatic_knotes = [
         [(1,1), (3,1), None , (6,1), (8,1), (10,1), None , (1,2), (3,2)],
@@ -207,7 +200,17 @@ class KqtEditor(QtGui.QMainWindow):
                           'buttons': slendro_buttons
                           })
         self._scales = [chromatic, slendro]
-        self._scale = self._scales[1]
+        self._scale = self._scales[0]
+
+
+        self._playback = Playback(self.p)
+        self._status = Statusbar(self.p)
+        self._toolbar = Toolbar(self.p)
+        self.project = project.Project(self.p, self)
+        self.project.init(file_path)
+        self.handle = self.project.handle
+        self._note_input = ni.NoteInput()
+
         self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
                 (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier):

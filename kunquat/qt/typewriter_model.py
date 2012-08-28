@@ -9,7 +9,7 @@ from random import choice
 class TypewriterModel():
     def __init__(self, p):
         self.p = p
-        self._buttons = self.p._scale.buttons
+        
         self._random_led_color = 0
         self._views = []
 
@@ -17,7 +17,6 @@ class TypewriterModel():
         dice_code = range(die1_code, die1_code + 6)
         self._dice = [unichr(i) for i in dice_code]
         self._die = self._dice[4]
-        self._notemap = self.get_notemap()
 
     def all_ints(self):
         i = 0
@@ -36,7 +35,8 @@ class TypewriterModel():
 
     def get_note(self, coord):
         base = self.p._note_input.base_octave
-        note_info = self._notemap[(coord)]
+        notemap = self.get_notemap()
+        note_info = notemap[(coord)]
         if note_info == None:
             return note_info
         note, octave = note_info
@@ -46,14 +46,14 @@ class TypewriterModel():
         DEFAULT = 0
         row, but = coord
         try:
-            color = self._buttons[(row,but)]['led']
+            color = self.p._scale.buttons[(row,but)]['led']
         except KeyError:
             return DEFAULT
         return color
 
     def set_led_color(self, coord, color):
         row, but = coord
-        self._buttons[(row, but)]['led'] = color
+        self.p._scale.buttons[(row, but)]['led'] = color
         self.update_views()
 
     def roll_die(self):
@@ -79,7 +79,7 @@ class TypewriterModel():
                 note, octave = note_info 
                 name = self.p._scale.note_name(note)
                 return '%s-%s' % (name, octave)
-        value = self._buttons[button][role]
+        value = self.p._scale.buttons[button][role]
         return value
 
     def register_view(self, view):

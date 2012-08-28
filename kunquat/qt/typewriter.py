@@ -126,3 +126,6 @@ class Typewriter():
             return
         self.release(coord)
 
+    def update(self):
+        self._twmodel.update_views()
+

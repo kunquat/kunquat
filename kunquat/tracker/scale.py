@@ -26,11 +26,14 @@ class Scale(object):
         self.center = data['ref_pitch']
         self.center_cents = math.log(self.center / 440, 2) * 1200
         self.notes = []
+        self.name = u'-'
         for note, tuning in data['notes']:
             _, cents = self.read_tuning(tuning)
             self.notes.append((note, cents))
         self.octave, self.octave_cents = self.read_tuning(
                                              data['octave_ratio'])
+    def get_name(self):
+        return self.name
 
     def note_name(self, note):
         name, _ = self.notes[note]
