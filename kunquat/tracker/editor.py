@@ -79,15 +79,15 @@ class KqtEditor(QtGui.QMainWindow):
         chromatic_buttons = {
         (0,  0): {'color': 'dark', 'enabled': True },
         (0,  1): {'color': 'dark', 'enabled': True },
-        (0,  2): {'color': 'gray', 'enabled': False},
+        (0,  2): {'color': None  , 'enabled': False},
         (0,  3): {'color': 'dark', 'enabled': True },
         (0,  4): {'color': 'dark', 'enabled': True },
         (0,  5): {'color': 'dark', 'enabled': True },
-        (0,  6): {'color': 'gray', 'enabled': False},
+        (0,  6): {'color': None  , 'enabled': False},
         (0,  7): {'color': 'dark', 'enabled': True },
         (0,  8): {'color': 'dark', 'enabled': True },
-        (0,  9): {'color': 'gray', 'enabled': False},
-        (0, 10): {'color': 'gray', 'enabled': True },
+        (0,  9): {'color': None  , 'enabled': False},
+        (0, 10): {'color': None  , 'enabled': True },
  
         (1,  0): {'color': 'light', 'enabled': True },
         (1,  1): {'color': 'light', 'enabled': True },
@@ -101,17 +101,17 @@ class KqtEditor(QtGui.QMainWindow):
         (1,  9): {'color': 'light', 'enabled': True },
         (1, 10): {'color': 'light', 'enabled': True },
  
-        (2,  0): {'color': 'gray', 'enabled': False},
+        (2,  0): {'color': None  , 'enabled': False},
         (2,  1): {'color': 'dark', 'enabled': True },
         (2,  2): {'color': 'dark', 'enabled': True },
-        (2,  3): {'color': 'gray', 'enabled': False},
+        (2,  3): {'color': None  , 'enabled': False},
         (2,  4): {'color': 'dark', 'enabled': True },
         (2,  5): {'color': 'dark', 'enabled': True },
         (2,  6): {'color': 'dark', 'enabled': True },
-        (2,  7): {'color': 'gray', 'enabled': False},
+        (2,  7): {'color': None  , 'enabled': False},
         (2,  8): {'color': 'dark', 'enabled': True },
         (2,  9): {'color': 'dark', 'enabled': True },
-        (2, 10): {'color': 'gray', 'enabled': False},
+        (2, 10): {'color': None  , 'enabled': False},
  
         (3,  0): {'color': 'light', 'enabled': True },
         (3,  1): {'color': 'light', 'enabled': True },
@@ -134,7 +134,8 @@ class KqtEditor(QtGui.QMainWindow):
                                              'F#', 'G', 'G#', 'A', 'A#', 'B'),
                               (['c', cents] for cents in range(0, 1200, 100)))),
                           'knotes': chromatic_knotes,
-                          'buttons': chromatic_buttons
+                          'buttons': chromatic_buttons,
+                          'name': 'chromatic'
                           })
         slendro_intervals = [0,
                      0 + 245,
@@ -153,13 +154,13 @@ class KqtEditor(QtGui.QMainWindow):
         slendro_buttons = {
         (0,  0): {'color': 'light', 'enabled': True },
         (0,  1): {'color': 'light', 'enabled': True },
-        (0,  2): {'color': 'gray' , 'enabled': False},
+        (0,  2): {'color': None   , 'enabled': False},
         (0,  3): {'color': 'light', 'enabled': True },
         (0,  4): {'color': 'light', 'enabled': True },
-        (0,  5): {'color': 'gray' , 'enabled': False},
+        (0,  5): {'color': None   , 'enabled': False},
         (0,  6): {'color': 'light', 'enabled': True },
         (0,  7): {'color': 'light', 'enabled': True },
-        (0,  8): {'color': 'gray' , 'enabled': False},
+        (0,  8): {'color': None   , 'enabled': False},
         (0,  9): {'color': 'light', 'enabled': True },
         (0, 10): {'color': 'light', 'enabled': True },
  
@@ -175,13 +176,13 @@ class KqtEditor(QtGui.QMainWindow):
         (1,  9): {'color': 'light', 'enabled': True },
         (1, 10): {'color': 'light', 'enabled': True },
  
-        (2,  0): {'color': 'gray' , 'enabled': False},
+        (2,  0): {'color': None   , 'enabled': False},
         (2,  1): {'color': 'light', 'enabled': True },
         (2,  2): {'color': 'light', 'enabled': True },
-        (2,  3): {'color': 'gray' , 'enabled': False},
+        (2,  3): {'color': None   , 'enabled': False},
         (2,  4): {'color': 'light', 'enabled': True },
         (2,  5): {'color': 'light', 'enabled': True },
-        (2,  6): {'color': 'gray' , 'enabled': False},
+        (2,  6): {'color': None   , 'enabled': False},
  
         (3,  0): {'color': 'light', 'enabled': True },
         (3,  1): {'color': 'light', 'enabled': True },
@@ -189,7 +190,7 @@ class KqtEditor(QtGui.QMainWindow):
         (3,  3): {'color': 'light', 'enabled': True },
         (3,  4): {'color': 'light', 'enabled': True },
         (3,  5): {'color': 'light', 'enabled': True },
-        (3,  6): {'color': 'gray' , 'enabled': False},
+        (3,  6): {'color': None   , 'enabled': False},
         }
         slendro = Scale({
                           'ref_pitch': 440 * 2**(3/12),
@@ -197,7 +198,8 @@ class KqtEditor(QtGui.QMainWindow):
                           'notes': list(zip(('ji', 'ro', 'lu', 'ma', 'nam'),
                               (['c', cents] for cents in slendro_intervals))),
                           'knotes': slendro_knotes,
-                          'buttons': slendro_buttons
+                          'buttons': slendro_buttons,
+                          'name': 'slendro'
                           })
         self._scales = [chromatic, slendro]
         self._scale = self._scales[0]

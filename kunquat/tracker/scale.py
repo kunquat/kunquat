@@ -27,6 +27,8 @@ class Scale(object):
         self.center_cents = math.log(self.center / 440, 2) * 1200
         self.notes = []
         self.name = u'-'
+        if 'name' in data.keys():
+            self.name = data['name']
         for note, tuning in data['notes']:
             _, cents = self.read_tuning(tuning)
             self.notes.append((note, cents))
