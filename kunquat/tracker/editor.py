@@ -76,6 +76,7 @@ class KqtEditor(QtGui.QMainWindow):
         self.project.init(file_path)
         self.handle = self.project.handle
         self._note_input = ni.NoteInput()
+        '''
         self._scale = scale.Scale({
                           'ref_pitch': 440 * 2**(3/12),
                           'octave_ratio': ['/', [2, 1]],
@@ -96,7 +97,6 @@ class KqtEditor(QtGui.QMainWindow):
                           'notes': list(zip(('ji', 'ro', 'lu', 'ma', 'nam'),
                               (['c', cents] for cents in intervals)))
                           })
-        '''
         self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
                 (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier):
