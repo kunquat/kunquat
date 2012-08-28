@@ -17,6 +17,25 @@ class TypewriterModel():
         dice_code = range(die1_code, die1_code + 6)
         self._dice = [unichr(i) for i in dice_code]
         self._die = self._dice[4]
+        self._notemap = self.get_notemap()
+
+    def all_ints(self):
+        i = 0
+        while True:
+            yield i
+            i += 1
+
+    def notemap_helper(self, mapping):
+        for row, buttons in zip(self.all_ints(), mapping):
+            for but, note in zip(self.all_ints(), buttons):
+                yield ((row, but), note)
+
+    def get_notemap(self):
+        notes = self.p._scale.knotes
+        return dict(self.notemap_helper(notes))
+
+    def get_note(self, coord):
+        return self._notemap[(coord)]
 
     def get_led_color(self, coord):
         DEFAULT = 0
@@ -47,6 +66,14 @@ class TypewriterModel():
         self.update_views()
 
     def data(self, button, role):
+        if role == 'name':
+            note_info = self.get_note(button)
+            if note_info == None:
+                return u''
+            else:
+                note, octave = note_info 
+                name = self.p._scale.note_name(note)
+                return '%s-%s' % (name, octave)
         value = self._buttons[button][role]
         return value
 

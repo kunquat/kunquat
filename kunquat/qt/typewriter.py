@@ -23,7 +23,6 @@ class Typewriter():
         self._twview = TypewriterView(self, self.count_rows())
         self._twmodel.register_view(self._twview)
         self._keymap = self.get_keymap()
-        self._notemap = self.get_notemap()
         self.random_key = Qt.Key_section
         self._previous_random = None
 
@@ -43,7 +42,7 @@ class Typewriter():
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
         try:
-            note, octave = self._notemap[(coord)]
+            note, octave = self._twmodel.get_note(coord)
         except TypeError:
             return
         self.play(note,octave)
@@ -51,7 +50,7 @@ class Typewriter():
     def release(self, coord):
         self._twmodel.set_led_color(coord, 0)
         try:
-            note, octave = self._notemap[(coord)]
+            note, octave = self._twmodel.get_note(coord)
         except TypeError:
             return
         self.p._piano.release(note, octave)
@@ -90,15 +89,6 @@ class Typewriter():
         for row, buttons in zip(self.all_ints(), mapping):
             for but, key in zip(self.all_ints(), buttons):
                 yield (key, (row, but))
-
-    def get_notemap(self):
-        notes = self.p._scale.knotes
-        return dict(self.notemap_helper(notes))
-
-    def notemap_helper(self, mapping):
-        for row, buttons in zip(self.all_ints(), mapping):
-            for but, note in zip(self.all_ints(), buttons):
-                yield ((row, but), note)
 
     def count_rows(self):
         return [len(row) for row in self.keys]
