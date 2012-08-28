@@ -58,20 +58,18 @@ class Typewriter():
     def press_random(self):
         self._twmodel.set_random_led_color(8)
         self._twmodel.roll_die()
-        note_indices = list(self._keymap.itervalues())
-        note_indices.sort()
-        #value = int(gauss(len(note_indices) / 2,
-        #                         len(note_indices)))
-        #octave = value // len(note_indices)
-        #note = value % len(note_indices)
-        (octave, note) = choice(note_indices)
-        self._previous_random = (note, octave)
-        self.play(note,octave)
+        coords = list(self._keymap.itervalues())
+        value = None
+        while value == None:
+            coord = choice(coords)
+            value = self._twmodel.get_note(coord)
+        self._previous_random = coord
+        self.press(coord)
 
     def release_random(self):
         self._twmodel.set_random_led_color(0)
-        (note, octave) = self._previous_random
-        self.p._piano.release(note, octave)
+        coord = self._previous_random
+        self.release(coord)
 
     def get_view(self):
         return self._twview
