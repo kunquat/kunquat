@@ -78,7 +78,7 @@ class TypewriterModel():
             else:
                 note, octave = note_info 
                 name = self.p._scale.note_name(note)
-                return '%s-%s' % (name, octave)
+                return '%s %s' % (name, octave)
         value = self.p._scale.buttons[button][role]
         return value
 
