@@ -70,6 +70,7 @@ class Instruments(QtGui.QSplitter):
 
     def octave_changed(self, num):
         self._note_input.base_octave = num
+        self._tw.update()
 
     def keyPressEvent(self, ev):
         self._tw.keyPressEvent(ev)
