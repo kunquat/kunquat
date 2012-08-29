@@ -37,6 +37,10 @@ class TWButton(QPushButton):
         if color == 'light':
             self.setStyleSheet("QLabel { background-color: #ffe; }")
             self._notename.setStyleSheet("QLabel { color: #000; }")
+        if color == None:
+            self.setStyleSheet("")
+            self._notename.setStyleSheet("")
+            
 
 
 

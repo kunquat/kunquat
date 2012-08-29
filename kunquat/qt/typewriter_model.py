@@ -7,56 +7,9 @@ from kunquat.qt.twbutton import TWButton
 from random import choice
 
 class TypewriterModel():
-    def __init__(self):
-        self._buttons = {
-            (0,  0): {'color': 'dark', 'name': u'C#', 'enabled': True },
-            (0,  1): {'color': 'dark', 'name': u'D#', 'enabled': True },
-            (0,  2): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (0,  3): {'color': 'dark', 'name': u'F#', 'enabled': True },
-            (0,  4): {'color': 'dark', 'name': u'G#', 'enabled': True },
-            (0,  5): {'color': 'dark', 'name': u'A#', 'enabled': True },
-            (0,  6): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (0,  7): {'color': 'dark', 'name': u'C#', 'enabled': True },
-            (0,  8): {'color': 'dark', 'name': u'D#', 'enabled': True },
-            (0,  9): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (0, 10): {'color': 'gray', 'name': u'#F', 'enabled': True },
-
-            (1,  0): {'color': 'light', 'name': u'C', 'enabled': True },
-            (1,  1): {'color': 'light', 'name': u'D', 'enabled': True },
-            (1,  2): {'color': 'light', 'name': u'E', 'enabled': True },
-            (1,  3): {'color': 'light', 'name': u'F', 'enabled': True },
-            (1,  4): {'color': 'light', 'name': u'G', 'enabled': True },
-            (1,  5): {'color': 'light', 'name': u'A', 'enabled': True },
-            (1,  6): {'color': 'light', 'name': u'B', 'enabled': True },
-            (1,  7): {'color': 'light', 'name': u'C', 'enabled': True },
-            (1,  8): {'color': 'light', 'name': u'D', 'enabled': True },
-            (1,  9): {'color': 'light', 'name': u'E', 'enabled': True },
-            (1, 10): {'color': 'light', 'name': u'F', 'enabled': True },
-
-            (2,  0): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (2,  1): {'color': 'dark', 'name': u'C#', 'enabled': True },
-            (2,  2): {'color': 'dark', 'name': u'D#', 'enabled': True },
-            (2,  3): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (2,  4): {'color': 'dark', 'name': u'F#', 'enabled': True },
-            (2,  5): {'color': 'dark', 'name': u'G#', 'enabled': True },
-            (2,  6): {'color': 'dark', 'name': u'A#', 'enabled': True },
-            (2,  7): {'color': 'gray', 'name': u''  , 'enabled': False},
-            (2,  8): {'color': 'dark', 'name': u'C#', 'enabled': True },
-            (2,  9): {'color': 'dark', 'name': u'D#', 'enabled': True },
-            (2, 10): {'color': 'gray', 'name': u''  , 'enabled': False},
-
-            (3,  0): {'color': 'light', 'name': u'C', 'enabled': True },
-            (3,  1): {'color': 'light', 'name': u'D', 'enabled': True },
-            (3,  2): {'color': 'light', 'name': u'E', 'enabled': True },
-            (3,  3): {'color': 'light', 'name': u'F', 'enabled': True },
-            (3,  4): {'color': 'light', 'name': u'G', 'enabled': True },
-            (3,  5): {'color': 'light', 'name': u'A', 'enabled': True },
-            (3,  6): {'color': 'light', 'name': u'B', 'enabled': True },
-            (3,  7): {'color': 'light', 'name': u'C', 'enabled': True },
-            (3,  8): {'color': 'light', 'name': u'D', 'enabled': True },
-            (3,  9): {'color': 'light', 'name': u'E', 'enabled': True },
-            (3, 10): {'color': 'light', 'name': u'F', 'enabled': True },
-        }
+    def __init__(self, p):
+        self.p = p
+        
         self._random_led_color = 0
         self._views = []
 
@@ -65,18 +18,42 @@ class TypewriterModel():
         self._dice = [unichr(i) for i in dice_code]
         self._die = self._dice[4]
 
+    def all_ints(self):
+        i = 0
+        while True:
+            yield i
+            i += 1
+
+    def notemap_helper(self, mapping):
+        for row, buttons in zip(self.all_ints(), mapping):
+            for but, note in zip(self.all_ints(), buttons):
+                yield ((row, but), note)
+
+    def get_notemap(self):
+        notes = self.p._scale.knotes
+        return dict(self.notemap_helper(notes))
+
+    def get_note(self, coord):
+        base = self.p._note_input.base_octave
+        notemap = self.get_notemap()
+        note_info = notemap[(coord)]
+        if note_info == None:
+            return note_info
+        note, octave = note_info
+        return note, octave + base
+
     def get_led_color(self, coord):
         DEFAULT = 0
         row, but = coord
         try:
-            color = self._buttons[(row,but)]['led']
+            color = self.p._scale.buttons[(row,but)]['led']
         except KeyError:
             return DEFAULT
         return color
 
     def set_led_color(self, coord, color):
         row, but = coord
-        self._buttons[(row, but)]['led'] = color
+        self.p._scale.buttons[(row, but)]['led'] = color
         self.update_views()
 
     def roll_die(self):
@@ -94,7 +71,15 @@ class TypewriterModel():
         self.update_views()
 
     def data(self, button, role):
-        value = self._buttons[button][role]
+        if role == 'name':
+            note_info = self.get_note(button)
+            if note_info == None:
+                return u''
+            else:
+                note, octave = note_info 
+                name = self.p._scale.note_name(note)
+                return '%s %s' % (name, octave)
+        value = self.p._scale.buttons[button][role]
         return value
 
     def register_view(self, view):

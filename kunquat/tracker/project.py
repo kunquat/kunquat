@@ -205,6 +205,7 @@ class Project(QtCore.QObject):
         self._update_player(key)
         self.p._toolbar.update_songs()
         self.p._toolbar.update_instruments()
+        self.p._toolbar.update_scales()
         QtCore.QObject.emit(self, QtCore.SIGNAL('sync()'))
 
     def _store_import_start(self, prefix, path, key_names, **_):

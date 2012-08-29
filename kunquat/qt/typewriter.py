@@ -17,20 +17,12 @@ class Typewriter():
     [Qt.Key_Z,Qt.Key_X,Qt.Key_C,Qt.Key_V,Qt.Key_B,Qt.Key_N,Qt.Key_M]
     ]
 
-    notes = [
-    [(1,1), (3,1), None , (6,1), (8,1), (10,1), None , (1,2), (3,2)],
-    [(0,1), (2,1), (4,1), (5,1), (7,1), (9,1), (11,1), (0,2), (2,2), (4,2)],
-    [None , (1,0), (3,0), None , (6,0), (8,0), (10,0)],
-    [(0,0), (2,0), (4,0), (5,0), (7,0), (9,0), (11,0)]
-    ]
-
     def __init__(self, p):
         self.p = p
-        self._twmodel = TypewriterModel()
+        self._twmodel = TypewriterModel(self.p)
         self._twview = TypewriterView(self, self.count_rows())
         self._twmodel.register_view(self._twview)
         self._keymap = self.get_keymap()
-        self._notemap = self.get_notemap()
         self.random_key = Qt.Key_section
         self._previous_random = None
 
@@ -50,7 +42,7 @@ class Typewriter():
     def press(self, coord):
         self._twmodel.set_led_color(coord, 8)
         try:
-            note, octave = self._notemap[(coord)]
+            note, octave = self._twmodel.get_note(coord)
         except TypeError:
             return
         self.play(note,octave)
@@ -58,7 +50,7 @@ class Typewriter():
     def release(self, coord):
         self._twmodel.set_led_color(coord, 0)
         try:
-            note, octave = self._notemap[(coord)]
+            note, octave = self._twmodel.get_note(coord)
         except TypeError:
             return
         self.p._piano.release(note, octave)
@@ -66,20 +58,18 @@ class Typewriter():
     def press_random(self):
         self._twmodel.set_random_led_color(8)
         self._twmodel.roll_die()
-        note_indices = list(self._keymap.itervalues())
-        note_indices.sort()
-        #value = int(gauss(len(note_indices) / 2,
-        #                         len(note_indices)))
-        #octave = value // len(note_indices)
-        #note = value % len(note_indices)
-        (octave, note) = choice(note_indices)
-        self._previous_random = (note, octave)
-        self.play(note,octave)
+        coords = list(self._keymap.itervalues())
+        value = None
+        while value == None:
+            coord = choice(coords)
+            value = self._twmodel.get_note(coord)
+        self._previous_random = coord
+        self.press(coord)
 
     def release_random(self):
         self._twmodel.set_random_led_color(0)
-        (note, octave) = self._previous_random
-        self.p._piano.release(note, octave)
+        coord = self._previous_random
+        self.release(coord)
 
     def get_view(self):
         return self._twview
@@ -97,14 +87,6 @@ class Typewriter():
         for row, buttons in zip(self.all_ints(), mapping):
             for but, key in zip(self.all_ints(), buttons):
                 yield (key, (row, but))
-
-    def get_notemap(self):
-        return dict(self.notemap_helper(self.notes))
-
-    def notemap_helper(self, mapping):
-        for row, buttons in zip(self.all_ints(), mapping):
-            for but, note in zip(self.all_ints(), buttons):
-                yield ((row, but), note)
 
     def count_rows(self):
         return [len(row) for row in self.keys]
@@ -141,4 +123,7 @@ class Typewriter():
             ev.ignore()
             return
         self.release(coord)
+
+    def update(self):
+        self._twmodel.update_views()
 

@@ -75,9 +75,8 @@ class Toolbar():
         self._octave.setValue(4)
         self._octave.setToolTip('Base octave')
 
-        scale_selector = QtGui.QComboBox()
-        scale_selector.addItem(u'chromatic')
-        scale_selector.setDisabled(True)
+        self._scale_selector = QtGui.QComboBox()
+        self._scale_selector.addItem(u'chromatic')
 
         scale_config = QtGui.QToolButton()
         scale_config.setText(u'Scale configuration')
@@ -100,7 +99,7 @@ class Toolbar():
 
         layout.addWidget(octave_label)
         layout.addWidget(self._octave)
-        #layout.addWidget(scale_selector)
+        layout.addWidget(self._scale_selector)
         #layout.addWidget(scale_config)
         layout.addWidget(self._create_separator())
 
@@ -112,6 +111,23 @@ class Toolbar():
         layout.addWidget(env_ter)
 
         self._view = top_control
+
+        QtCore.QObject.connect(self._scale_selector,
+                               QtCore.SIGNAL('currentIndexChanged (const QString&)'),
+                               self.scale_changed)
+
+    def scale_changed(self, text):
+        if text == '':
+            return
+        parts = text.split(':')
+        number = int(parts[0] )
+        self.p._scale = self.p._scales[number]
+
+        # FIXME: Remove try-catch
+        try:
+            self.p._tw.update()
+        except AttributeError:
+            pass
 
     def _create_separator(self):
         separator = QtGui.QFrame()
@@ -137,10 +153,45 @@ class Toolbar():
         s = u'%s: %s' % (number, name)
         return s
 
+    def scale_string(self, number):
+        scale = self.p._scales[number]
+        name = scale.get_name()
+        s = u'%s: %s' % (number, name)
+        return s
+
     def select_instrument(self, number):
         s = self.instrument_string(number)
         index = self._instrument.findText(s)
         self._instrument.setCurrentIndex(index)
+
+    def select_scale(self, number):
+        s = self.scale_string(number)
+        index = self._scale_selector.findText(s)
+        self._scale_selector.setCurrentIndex(index)
+
+    def all_ints(self):
+        i = 0
+        while True:
+            yield i
+            i += 1
+
+    def update_scales(self):
+        current = 0
+
+        for i, s in zip(self.all_ints(), self.p._scales):
+            if s == self.p._scale:
+                current = i
+
+        while self._scale_selector.count() > 0:
+            self._scale_selector.removeItem(0)
+        i = 0
+        for s in self.p._scales:
+            s = self.scale_string(i)
+            self._scale_selector.addItem(s)
+            if i == current:
+                self.select_scale(i)
+            i += 1
+
 
     def update_instruments(self):
         # FIXME: Remove try-catch

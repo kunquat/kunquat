@@ -16,18 +16,30 @@ from __future__ import print_function
 import fractions as fr
 import math
 
+from PyQt4.QtCore import Qt
 
 class Scale(object):
 
     def __init__(self, data):
+        self.knotes = data['knotes']
+        self.buttons = data['buttons']
         self.center = data['ref_pitch']
         self.center_cents = math.log(self.center / 440, 2) * 1200
         self.notes = []
+        self.name = u'-'
+        if 'name' in data.keys():
+            self.name = data['name']
         for note, tuning in data['notes']:
             _, cents = self.read_tuning(tuning)
             self.notes.append((note, cents))
         self.octave, self.octave_cents = self.read_tuning(
                                              data['octave_ratio'])
+    def get_name(self):
+        return self.name
+
+    def note_name(self, note):
+        name, _ = self.notes[note]
+        return name
 
     def get_cents(self, note, octave):
         root = self.center_cents
