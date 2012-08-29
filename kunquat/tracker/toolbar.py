@@ -40,7 +40,7 @@ class Toolbar():
         env_label = QtGui.QLabel('in: 0 out: 0')
 
         env_ter = QtGui.QToolButton()
-        env_ter.setText('io')
+        env_ter.setText('Bindigs')
         env_ter.setIcon(QtGui.QIcon.fromTheme('modem'))
         env_ter.setAutoRaise(True)
         QtCore.QObject.connect(env_ter, QtCore.SIGNAL('clicked()'),

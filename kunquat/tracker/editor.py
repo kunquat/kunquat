@@ -25,6 +25,7 @@ import time
 from kunquat.qt import Typewriter
 from kunquat.extras import pulseaudio
 from kunquat.tracker.env import Env
+from kunquat.tracker.env import State
 from PyQt4 import QtCore, QtGui
 
 from connections import Connections
@@ -370,6 +371,9 @@ class KqtEditor(QtGui.QMainWindow):
     def environment_window(self):
         self._env.show()
 
+    def state_window(self):
+        self._state.show()
+
     def instrument_window(self):
         self._instrumentconf.show()
 
@@ -433,6 +437,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._connections = Connections(self.project, 'p_connections.json')
         self._instrumentconf.addTab(self._connections, 'Connections')
         self._env = Env(self.project)
+        self._state = State(self.project)
         #self._tabs.addTab(self._env, 'Environment')
 
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
