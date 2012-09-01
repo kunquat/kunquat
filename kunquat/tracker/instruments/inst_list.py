@@ -91,11 +91,7 @@ class InstList(QtGui.QTableWidget):
             self._project[key] = None
 
     def update_instruments(self):
-        # FIXME: Remove try-catch
-        try:
-            inst_num = self.p._instruments._inst_num
-        except AttributeError:
-            inst_num = 0
+        inst_num = self.p._instruments._inst_num
         while self.rowCount() > 0:
             self.removeRow(0)
         ids = self.p.project._composition.instrument_ids()
