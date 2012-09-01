@@ -212,10 +212,10 @@ class KqtEditor(QtGui.QMainWindow):
         self._playback.stop()
 
     def _octave_down(self, ev):
-        self._octave.setValue(self._octave.value() - 1)
+        self._toolbar._octave.setValue(self._toolbar._octave.value() - 1)
 
     def _octave_up(self, ev):
-        self._octave.setValue(self._octave.value() + 1)
+        self._toolbar._octave.setValue(self._toolbar._octave.value() + 1)
 
     def keyPressEvent(self, ev):
         if self._status.in_progress():
