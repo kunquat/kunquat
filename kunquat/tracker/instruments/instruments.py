@@ -61,6 +61,10 @@ class Instruments(QtGui.QSplitter):
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
 
+    def init(self):
+        self._inst_list.init()
+        self._inst_editor.init()
+
     def inst_changed(self, text):
         if text == '':
             return

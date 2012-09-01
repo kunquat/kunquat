@@ -46,6 +46,10 @@ class Bind(QtGui.QWidget):
         layout.addWidget(self._fe, 0)
         self._bindspec = BindSpec()
         layout.addWidget(self._bindspec, 1)
+
+    def init(self):
+        self._fe.init()
+        self._bindspec.init()
         QtCore.QObject.connect(self._fe,
                                QtCore.SIGNAL('eventChanged(int)'),
                                self._fe_changed)
@@ -130,6 +134,8 @@ class FiringEvents(QtGui.QTableWidget):
         self.setHorizontalHeaderLabels(['Event'])
         self.horizontalHeader().setResizeMode(0, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+
+    def init(self):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('currentCellChanged('
                                              'int, int, int, int)'),
@@ -194,6 +200,10 @@ class BindSpec(QtGui.QWidget):
         self._actions = BindActions()
         layout.addWidget(self._conds)
         layout.addWidget(self._actions)
+
+    def init(self):
+        self._conds.init()
+        self._actions.init()
         QtCore.QObject.connect(self._conds,
                                QtCore.SIGNAL('changed(bool)'),
                                self._modified)
@@ -232,6 +242,8 @@ class BindConditions(QtGui.QTableWidget):
         self.setHorizontalHeaderLabels(['Event', 'Condition'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+
+    def init(self):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._changed)
@@ -288,6 +300,8 @@ class BindActions(QtGui.QTableWidget):
         self.setHorizontalHeaderLabels(['Ch. offset', 'Event', 'Argument'])
         self.horizontalHeader().setResizeMode(1, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
+
+    def init(self):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._event_changed)

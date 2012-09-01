@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -35,6 +35,8 @@ class GenList(QtGui.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
         self._lock_update = False
+
+    def init(self):
         QtCore.QObject.connect(self,
                 QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
                 self._cell_changed)

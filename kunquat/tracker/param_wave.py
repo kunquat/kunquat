@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -119,6 +119,7 @@ class ParamWave(QtGui.QWidget):
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
+        self._key = key
         layout = QtGui.QVBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
@@ -177,6 +178,8 @@ class ParamWave(QtGui.QWidget):
                                 'range': val_range,
                              })
         self._lock_update = False
+
+    def init(self):
         for ps in self._prewarp_select:
             QtCore.QObject.connect(ps,
                                    QtCore.SIGNAL('funcChanged(int, QString)'),
@@ -200,7 +203,7 @@ class ParamWave(QtGui.QWidget):
             QtCore.QObject.connect(ps,
                                    QtCore.SIGNAL('paramFinished(int)'),
                                    self._postwarp_param_finished)
-        self.set_key(key)
+        self.set_key(self._key)
 
     def set_constraints(self, constraints):
         try:

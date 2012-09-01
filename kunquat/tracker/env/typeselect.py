@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -36,6 +36,8 @@ class TypeSelect(QtGui.QComboBox):
         self._index = index
         for item in ('None', 'Boolean', 'Integer', 'Floating'):
             self.addItem(item)
+
+    def init(self):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
                                self._type_changed)

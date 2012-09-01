@@ -36,10 +36,6 @@ class PosDisplay(QtGui.QWidget):
     def __init__(self, project, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
-        self._project.set_callback('Asubsong', self._update_loc)
-        self._project.set_callback('Asection', self._update_loc)
-        self._project.set_callback('Apattern', self._update_loc)
-        self._project.set_callback('Arow', self._update_loc)
         self._colours = {
                 'bg': QtGui.QColor(0, 0, 0),
                 'fg': QtGui.QColor(0x88, 0xdd, 0x88),
@@ -88,6 +84,12 @@ class PosDisplay(QtGui.QWidget):
         self._row = 0.0
         self._upcoming = defaultdict(lambda: NO_VAL)
         self.set_stop()
+
+    def init(self):
+        self._project.set_callback('Asubsong', self._update_loc)
+        self._project.set_callback('Asection', self._update_loc)
+        self._project.set_callback('Apattern', self._update_loc)
+        self._project.set_callback('Arow', self._update_loc)
 
     def set_play(self, infinite=False):
         self._play_mode = PLAY_INF if infinite else PLAY

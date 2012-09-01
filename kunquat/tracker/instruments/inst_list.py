@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -34,7 +34,10 @@ class InstList(QtGui.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
 
-        QtCore.QObject.connect(instrument_spin,
+        self._signal = False
+
+    def init(self):
+        QtCore.QObject.connect(self._instrument_spin,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
                                self.inst_changed)
         QtCore.QObject.connect(self,
@@ -43,7 +46,6 @@ class InstList(QtGui.QTableWidget):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self.name_changed)
-        self._signal = False
 
     """
     def inst_changed(self, text):

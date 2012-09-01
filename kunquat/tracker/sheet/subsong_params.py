@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -43,6 +43,10 @@ class SubsongParams(QtGui.QWidget):
                                           decimals=1,
                                           unit='dB')
         self._layout.addWidget(self._global_volume)
+
+    def init(self):
+        self._tempo.init()
+        self._global_volume.init()
 
     def subsong_changed(self, subsong):
         self._subsong = subsong

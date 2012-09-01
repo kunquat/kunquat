@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -21,17 +21,20 @@ class ParamSampleFile(QtGui.QWidget):
     def __init__(self, project, key, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
+        self._key = key
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
         layout.setSpacing(0)
         self._load_button = QtGui.QPushButton('Load')
         layout.addWidget(self._load_button)
-        self.set_key(key)
-        QtCore.QObject.connect(self._load_button, QtCore.SIGNAL('clicked()'),
-                               self._load)
         self._filters = {
                             'wv': 'WavPack',
                         }
+
+    def init(self):
+        QtCore.QObject.connect(self._load_button, QtCore.SIGNAL('clicked()'),
+                               self._load)
+        self.set_key(self._key)
 
     def set_key(self, key):
         self._key = key

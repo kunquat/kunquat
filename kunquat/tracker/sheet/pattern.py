@@ -207,12 +207,14 @@ class Pattern(QtGui.QWidget):
 
         self._play_pattern = -1
         self._play_row = ts.Timestamp(0)
-        self.project.set_callback('Apattern', self._update_play_pattern)
-        self.project.set_callback('Arow', self._update_play_row)
 
         self.setAutoFillBackground(False)
         self.setAttribute(QtCore.Qt.WA_OpaquePaintEvent)
         self.setAttribute(QtCore.Qt.WA_NoSystemBackground)
+
+    def init(self):
+        self.project.set_callback('Apattern', self._update_play_pattern)
+        self.project.set_callback('Arow', self._update_play_row)
 
     def get_cursor(self):
         return self.cursor

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -33,6 +33,8 @@ class Connections(QtGui.QWidget):
 
         self._list = CList(project, key)
         layout.addWidget(self._list)
+
+    def init(self):
         QtCore.QObject.connect(self._list,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._changed)

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -31,7 +31,10 @@ class DSPList(QtGui.QTableWidget):
         self.setTabKeyNavigation(False)
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
-        self.set_base(base)
+        self._base = base
+
+    def init(self):
+        self.set_base(self._base)
         QtCore.QObject.connect(self,
                 QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
                 self._cell_changed)

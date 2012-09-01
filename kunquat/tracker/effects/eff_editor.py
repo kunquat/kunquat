@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -40,17 +40,8 @@ class EffEditor(QtGui.QWidget):
         remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(load, 0)
-        QtCore.QObject.connect(load,
-                               QtCore.SIGNAL('clicked()'),
-                               self.load)
         layout.addWidget(save, 0)
-        QtCore.QObject.connect(save,
-                               QtCore.SIGNAL('clicked()'),
-                               self.save)
         layout.addWidget(remove, 0)
-        QtCore.QObject.connect(remove,
-                               QtCore.SIGNAL('clicked()'),
-                               self.remove)
 
         top_layout.addLayout(layout)
 
@@ -63,6 +54,19 @@ class EffEditor(QtGui.QWidget):
         tabs.addTab(self._dsps, 'DSPs')
         tabs.addTab(self._connections, 'Connections')
         top_layout.addWidget(tabs)
+        QtCore.QObject.connect(load,
+                               QtCore.SIGNAL('clicked()'),
+                               self.load)
+        QtCore.QObject.connect(save,
+                               QtCore.SIGNAL('clicked()'),
+                               self.save)
+        QtCore.QObject.connect(remove,
+                               QtCore.SIGNAL('clicked()'),
+                               self.remove)
+
+    def init(self):
+        self._dsps.init()
+        self._connections.init()
 
     def eff_changed(self, num):
         self._cur_eff = num

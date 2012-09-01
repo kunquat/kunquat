@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -32,6 +32,7 @@ class ParamSpin(QtGui.QWidget):
         self._dict_key = dict_key
         self._decimals = decimals
         self._default_val = default_val
+        self._key = key
 
         layout = QtGui.QHBoxLayout(self)
         layout.setMargin(0)
@@ -42,14 +43,16 @@ class ParamSpin(QtGui.QWidget):
         self._spin.setMinimum(float(val_range[0]))
         self._spin.setMaximum(float(val_range[1]))
         self._spin.setDecimals(decimals)
+        layout.addWidget(self._spin)
+
+    def init(self):
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self._value_changed)
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('editingFinished()'),
                                self._finished)
-        self.set_key(key)
-        layout.addWidget(self._spin)
+        self.set_key(self._key)
 
     def set_key(self, key):
         self._key = key

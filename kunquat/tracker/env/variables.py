@@ -35,12 +35,6 @@ class Variables(QtGui.QTableWidget):
                     'int': '',
                     'float': '',
                 }
-        self._project.set_callback('>.Bn', self._update_bool_name)
-        self._project.set_callback('>.In', self._update_int_name)
-        self._project.set_callback('>.Fn', self._update_float_name)
-        self._project.set_callback('>.B', self._update_bool)
-        self._project.set_callback('>.I', self._update_int)
-        self._project.set_callback('>.F', self._update_float)
         self.setHorizontalHeaderLabels(['Type',
                                         'Name',
                                         'Initial value',
@@ -49,7 +43,16 @@ class Variables(QtGui.QTableWidget):
         for i in (1, 2, 3):
             self.horizontalHeader().setResizeMode(i, QtGui.QHeaderView.Stretch)
         self.verticalHeader().hide()
-        self.set_key(key)
+        self._key = key
+
+    def init(self):
+        self._project.set_callback('>.Bn', self._update_bool_name)
+        self._project.set_callback('>.In', self._update_int_name)
+        self._project.set_callback('>.Fn', self._update_float_name)
+        self._project.set_callback('>.B', self._update_bool)
+        self._project.set_callback('>.I', self._update_int)
+        self._project.set_callback('>.F', self._update_float)
+        self.set_key(self._key)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._data_changed)

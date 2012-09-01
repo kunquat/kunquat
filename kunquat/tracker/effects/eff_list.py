@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -35,13 +35,14 @@ class EffList(QtGui.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
 
+    def init(self):
         QtCore.QObject.connect(self,
                     QtCore.SIGNAL('currentCellChanged(int, int, int, int)'),
                                self._cell_changed)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self._name_changed)
-        self.set_base(base)
+        self.set_base(self._base)
 
     def eff_changed(self, num):
         index = self.model().index(num, 0)

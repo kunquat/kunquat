@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -32,7 +32,12 @@ class DSPs(QtGui.QSplitter):
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([160, 1])
-        self.set_base(base)
+        self._base = base
+
+    def init(self):
+        self.set_base(self._base)
+        self._dsp_list.init()
+        self._dsp_editor.init()
         QtCore.QObject.connect(self._dsp_list,
                                QtCore.SIGNAL('dspChanged(int)'),
                                self._dsp_editor.dsp_changed)

@@ -64,6 +64,7 @@ class Playback(QtCore.QObject):
         seek_for.setAutoRaise(True)
 
         self._pos_display = PosDisplay(self.p.project)
+        self._pos_display.init()
 
         subsong_select = QtGui.QLabel('[subsong select]')
 

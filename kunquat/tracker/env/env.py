@@ -37,6 +37,10 @@ class Env(QtGui.QMainWindow):
         tabs.addTab(self._vars, 'Variables')
         tabs.addTab(self._bind, 'Bind')
 
+    def init(self):
+        self._vars.init()
+        self._bind.init()
+
     def sync(self):
         self._vars.sync()
         self._bind.sync()

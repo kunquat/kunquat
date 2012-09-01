@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -78,6 +78,13 @@ class Sheet(QtGui.QSplitter):
         self.setSizes([180, 1])
 
         self._section.connect(self.section_changed)
+        self._section.connect(section_changed_slot)
+
+    def init(self):
+        self._subsongs.init()
+        self._comp_params.init()
+        self._subsong_params.init()
+        self._pattern_editor.init()
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('compositionParams()'),
                                self.to_comp_params)
@@ -87,7 +94,6 @@ class Sheet(QtGui.QSplitter):
         QtCore.QObject.connect(self._subsongs,
                                QtCore.SIGNAL('subsongParams(int)'),
                                self._subsong_params.subsong_changed)
-        self._section.connect(section_changed_slot)
 
     def section_changed(self, *args):
         self._edit_area.setCurrentWidget(self._pattern_editor)

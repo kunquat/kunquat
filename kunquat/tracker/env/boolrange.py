@@ -29,6 +29,8 @@ class BoolRange(QtGui.QWidget):
         self._end = QtGui.QCheckBox()
         layout.addWidget(self._begin)
         layout.addWidget(self._end)
+
+    def init(self):
         QtCore.QObject.connect(self._begin,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._begin_changed)

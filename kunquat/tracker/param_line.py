@@ -36,14 +36,17 @@ class ParamLine(QtGui.QWidget):
         layout.addWidget(QtGui.QLabel(label))
 
         self._edit = FixedLineEdit()
+        layout.addWidget(self._edit)
+        self._key = key
+
+    def init(self):
         QtCore.QObject.connect(self._edit,
                                QtCore.SIGNAL('textEdited(QString)'),
                                self._value_changed)
         QtCore.QObject.connect(self._edit,
                                QtCore.SIGNAL('editingFinished()'),
                                self._finished)
-        self.set_key(key)
-        layout.addWidget(self._edit)
+        self.set_key(self._key)
 
     def set_key(self, key):
         self._key = key
