@@ -37,13 +37,15 @@ class TsRange(QtGui.QWidget):
         self._end.setMaximum(float('-inf'))
         layout.addWidget(self._begin)
         layout.addWidget(self._end)
+        self._degen_fix = None
+
+    def init(self):
         QtCore.QObject.connect(self._begin,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self._begin_changed)
         QtCore.QObject.connect(self._end,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self._end_changed)
-        self._degen_fix = None
 
     @property
     def range(self):

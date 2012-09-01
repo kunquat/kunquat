@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -68,6 +68,10 @@ class ParamSampleHeader(QtGui.QWidget):
         self._key = key
         self._widgets = [self._format, self._freq, self._loop_mode,
                          self._loop_start, self._loop_end]
+
+    def init(self):
+        for widget in self._widgets:
+            widget.init()
 
     def set_key(self, key):
         self._key = key

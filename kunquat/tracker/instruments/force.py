@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -67,6 +67,12 @@ class Force(QtGui.QWidget):
                          self._force,
                          self._force_var,
                         ]
+
+    def init(self):
+        for slider in self._sliders:
+            slider.init()
+        self._env_force.init()
+        self._env_force_rel.init()
 
     def inst_changed(self, num):
         self._cur_inst = num

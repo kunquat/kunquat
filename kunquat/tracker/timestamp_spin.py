@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -34,6 +34,7 @@ class TimestampSpin(QtGui.QWidget):
                  parent=None):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
+        self._key = key
         self._dict_key = dict_key
         self._decimals = decimals
         self._default_val = list(default_val)
@@ -47,14 +48,16 @@ class TimestampSpin(QtGui.QWidget):
         self._spin.setMinimum(float(val_range[0]))
         self._spin.setMaximum(float(val_range[1]))
         self._spin.setDecimals(decimals)
+        layout.addWidget(self._spin, 0)
+
+    def init(self):
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(double)'),
                                self.value_changed)
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('editingFinished()'),
                                self.finished)
-        self.set_key(key)
-        layout.addWidget(self._spin, 0)
+        self.set_key(self._key)
 
     def set_key(self, key):
         value = self._default_val

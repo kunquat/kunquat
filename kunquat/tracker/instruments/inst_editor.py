@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -48,28 +48,9 @@ class InstEditor(QtGui.QWidget):
         remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(test, 0)
-        QtCore.QObject.connect(test,
-                               QtCore.SIGNAL('pressed()'),
-                               self.test_note_on)
-        QtCore.QObject.connect(test,
-                               QtCore.SIGNAL('released()'),
-                               self.test_note_off)
         layout.addWidget(load, 0)
-        QtCore.QObject.connect(load,
-                               QtCore.SIGNAL('clicked()'),
-                               self.load)
         layout.addWidget(save, 0)
-        QtCore.QObject.connect(save,
-                               QtCore.SIGNAL('clicked()'),
-                               self.save)
         layout.addWidget(remove, 0)
-        QtCore.QObject.connect(remove,
-                               QtCore.SIGNAL('clicked()'),
-                               self.remove)
-
-        QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
-                               self.inst_changed)
 
         top_layout.addLayout(layout)
 
@@ -90,6 +71,34 @@ class InstEditor(QtGui.QWidget):
         tabs.addTab(self._effects, 'Effects')
         tabs.addTab(self._connections, 'Connections')
         top_layout.addWidget(tabs)
+
+        QtCore.QObject.connect(test,
+                               QtCore.SIGNAL('pressed()'),
+                               self.test_note_on)
+        QtCore.QObject.connect(test,
+                               QtCore.SIGNAL('released()'),
+                               self.test_note_off)
+        QtCore.QObject.connect(load,
+                               QtCore.SIGNAL('clicked()'),
+                               self.load)
+        QtCore.QObject.connect(save,
+                               QtCore.SIGNAL('clicked()'),
+                               self.save)
+        QtCore.QObject.connect(remove,
+                               QtCore.SIGNAL('clicked()'),
+                               self.remove)
+
+        QtCore.QObject.connect(instrument_spin,
+                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
+                               self.inst_changed)
+
+    def init(self):
+        self._force.init()
+        self._panning.init()
+        self._filter.init()
+        self._generators.init()
+        self._effects.init()
+        self._connections.init()
 
     def inst_changed(self, text):
         if text == '':

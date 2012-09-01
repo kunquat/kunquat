@@ -63,9 +63,9 @@ class KqtEditor(QtGui.QMainWindow):
         self._app = app
 
         try:
-            file_path = str(args[1])
+            self._file_path = str(args[1])
         except IndexError:
-            file_path = ''
+            self._file_path = ''
 
         self.p = self
 
@@ -209,11 +209,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._status = Statusbar(self.p)
         self._toolbar = Toolbar(self.p)
         self.project = project.Project(self.p, self)
-        self.project.init(file_path)
-        self.handle = self.project.handle
         self._note_input = ni.NoteInput()
-
-        self.set_appearance()
         self._keys = keymap.KeyMap('Global keys', {
                 (QtCore.Qt.Key_Z, QtCore.Qt.ControlModifier):
                         (self._undo, None),
@@ -250,17 +246,66 @@ class KqtEditor(QtGui.QMainWindow):
                 })
         self.pa = pulseaudio.Poll(PROGRAM_NAME, 'Monitor')
         self.mix_timer = QtCore.QTimer(self)
-        QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
-                               self.mix)
         self.bufs = (None, None)
-        self.mix_timer.start(2)
         self._focus_backup = None
         #self._infinite = False
+
+        self.central = QtGui.QWidget(self)
+
+        self._piano = Piano(self)
+        self._tw = Typewriter(self)
+
+        self._instrumentconf = QtGui.QTabWidget()
+
+        self._instruments = Instruments(self.p,
+                                        self._tw,
+                                        self._piano,
+                                        self.project,
+                                        self._toolbar._instrument,
+                                        self._playback,
+                                        self._note_input,
+                                        self._scale,
+                                        self._toolbar._octave)
+        self._effects = Effects(self.project, '')
+        self._connections = Connections(self.project, 'p_connections.json')
+        self._env = Env(self.project)
+
+    def init(self):
+        self.project.init(self._file_path)
+        self.handle = self.project.handle
+
+        self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
+
+        playback_bar = self._playback.get_view()
+        self._sheet = Sheet(self.project, self._playback,
+                            self._playback.subsong_changed, self.section_changed,
+                            self.pattern_changed, self.pattern_offset_changed,
+                            self._toolbar._octave, self._toolbar._instrument, self._tw, playback_bar)
+        #self._sheetbox = QtGui.QTabWidget()
+        #self._sheetbox.addTab(self._sheet, 'Sheet')
+        #self._sheetbox.tabBar().setVisible(False)
+
+        self._sheet.init()
+        self._instruments.init()
+        self._effects.init()
+        self._connections.init()
+        self._env.init()
+
+        self.set_appearance()
+        QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
+                               self.mix)
+        self.mix_timer.start(2)
+
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),
                                self.sync)
         QtCore.QObject.connect(self, QtCore.SIGNAL('destroyed(QObject*)'),
                                self._finalise)
+
+        self._cur_subsong = 0
+        self._cur_section = 0
+        self._cur_pattern = 0
+        self._cur_pattern_offset = ts.Timestamp()
 
         """
         self.pa_debug_timer = QtCore.QTimer(self)
@@ -297,10 +342,10 @@ class KqtEditor(QtGui.QMainWindow):
         self._playback.stop()
 
     def _octave_down(self, ev):
-        self._octave.setValue(self._octave.value() - 1)
+        self._toolbar._octave.setValue(self._toolbar._octave.value() - 1)
 
     def _octave_up(self, ev):
-        self._octave.setValue(self._octave.value() + 1)
+        self._toolbar._octave.setValue(self._toolbar._octave.value() + 1)
 
     def keyPressEvent(self, ev):
         if self._status.in_progress():
@@ -398,44 +443,12 @@ class KqtEditor(QtGui.QMainWindow):
 
         #self.statusBar().showMessage('[status]')
 
-        self.central = QtGui.QWidget(self)
         self.setCentralWidget(self.central)
-        top_layout = QtGui.QVBoxLayout(self.central)
-        top_layout.setMargin(0)
-        top_layout.setSpacing(0)
-        playback_bar = self._playback.get_view()
 
-
-        self._piano = Piano(self)
-        self._tw = Typewriter(self)
-
-        self._instrumentconf = QtGui.QTabWidget()
-        self._sheet = Sheet(self.project, self._playback,
-                            self._playback.subsong_changed, self.section_changed,
-                            self.pattern_changed, self.pattern_offset_changed,
-                            self._toolbar._octave, self._toolbar._instrument, self._tw, playback_bar)
-        #self._sheetbox = QtGui.QTabWidget()
-        #self._sheetbox.addTab(self._sheet, 'Sheet')
-        #self._sheetbox.tabBar().setVisible(False)
-
-        self._instruments = Instruments(self.p,
-                                        self._tw,
-                                        self._piano,
-                                        self.project,
-                                        self._toolbar._instrument,
-                                        self._playback,
-                                        self._note_input,
-                                        self._scale,
-                                        self._toolbar._octave)
         self._instrumentconf.addTab(self._instruments, 'Instruments')
-        self._effects = Effects(self.project, '')
         self._instrumentconf.addTab(self._effects, 'Effects')
-        self._connections = Connections(self.project, 'p_connections.json')
         self._instrumentconf.addTab(self._connections, 'Connections')
-        self._env = Env(self.project)
         #self._tabs.addTab(self._env, 'Environment')
-
-        self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         QtCore.QObject.connect(self.project,
                                QtCore.SIGNAL('startTask(int)'),
@@ -466,6 +479,9 @@ class KqtEditor(QtGui.QMainWindow):
         self._sheet.hide()
         #self._sheetbox.hide()
 
+        top_layout = QtGui.QVBoxLayout(self.central)
+        top_layout.setMargin(0)
+        top_layout.setSpacing(0)
         top_layout.addWidget(div)
         #top_layout.addWidget(self._sheetbox)
         top_layout.addWidget(self._peak_meter)
@@ -478,6 +494,7 @@ class KqtEditor(QtGui.QMainWindow):
 def main():
     app = QtGui.QApplication(sys.argv)
     editor = KqtEditor(app.arguments(), app)
+    editor.init()
     editor.show()
     sys.exit(app.exec_())
 

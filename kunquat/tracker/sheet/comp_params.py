@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -49,6 +49,12 @@ class CompParams(QtGui.QWidget):
         self._layout.addWidget(self._mix_vol)
         self._layout.addWidget(self._random_source)
 
+    def init(self):
+        self._title.init()
+        self._authors.init()
+        self._mix_vol.init()
+        self._random_source.init()
+
     def sync(self):
         self._title.sync()
         self._authors.sync()
@@ -72,6 +78,10 @@ class RandomSource(QtGui.QWidget):
                                'p_random_seed.json')
         layout.addWidget(self._custom_enabled)
         layout.addWidget(self._seed)
+
+    def init(self):
+        self._custom_enabled.init()
+        self._seed.init()
         QtCore.QObject.connect(self._custom_enabled,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._custom_changed)

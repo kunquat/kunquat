@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -32,11 +32,14 @@ class ParamCombo(QtGui.QComboBox):
         QtGui.QComboBox.__init__(self, parent)
         self._project = project
         self._dict_key = dict_key
+        self._key = key
         self._items = []
         for text, value in values:
             self.addItem(text, value)
         self._default_text = default_text
-        self.set_key(key)
+
+    def init(self):
+        self.set_key(self._key)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
                                self._index_changed)

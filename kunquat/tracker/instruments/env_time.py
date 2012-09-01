@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -75,7 +75,7 @@ class EnvTime(QtGui.QWidget):
                          self._scale_center,
                          self._env]
         self._support_loop = support_loop
-        if support_loop:
+        if self._support_loop:
             loop_layout = QtGui.QHBoxLayout()
             loop_layout.setMargin(0)
             loop_layout.setSpacing(0)
@@ -84,23 +84,40 @@ class EnvTime(QtGui.QWidget):
                                             False,
                                             self._key_base.format(self._cur_inst),
                                             'loop')
-            QtCore.QObject.connect(self._loop_enabled,
-                                   QtCore.SIGNAL('stateChanged(int)'),
-                                   self._set_loop_display)
             self._loop_start = LoopBound(project,
                                          'Loop start:',
                                          self._key_base.format(self._cur_inst),
                                          #0,
                                          #envelope,
                                          'envelope')
-            self._loop_start.set_upper_bound(0)
             self._loop_end = LoopBound(project,
                                        'Loop end:',
                                        self._key_base.format(self._cur_inst),
                                        #1,
                                        #envelope,
                                        'envelope')
+            loop_layout.addWidget(self._loop_enabled)
+            loop_layout.addSpacing(10)
+            loop_layout.addWidget(self._loop_start)
+            loop_layout.addSpacing(10)
+            loop_layout.addWidget(self._loop_end)
+            layout.addLayout(loop_layout)
+            self._widgets.extend([self._loop_enabled])
+
+    def init(self):
+        for widget in self._widgets:
+            widget.init()
+        if self._support_loop:
+            self._loop_start.init()
+            self._loop_end.init()
+
+            QtCore.QObject.connect(self._loop_enabled,
+                                   QtCore.SIGNAL('stateChanged(int)'),
+                                   self._set_loop_display)
+
+            self._loop_start.set_upper_bound(0)
             self._loop_end.set_lower_bound(0)
+
             QtCore.QObject.connect(self._loop_start,
                                    QtCore.SIGNAL('valueChanged(int)'),
                                    self._loop_start_changed)
@@ -113,13 +130,7 @@ class EnvTime(QtGui.QWidget):
             QtCore.QObject.connect(self._loop_end,
                                    QtCore.SIGNAL('valueFinished()'),
                                    self._loop_point_finished)
-            loop_layout.addWidget(self._loop_enabled)
-            loop_layout.addSpacing(10)
-            loop_layout.addWidget(self._loop_start)
-            loop_layout.addSpacing(10)
-            loop_layout.addWidget(self._loop_end)
-            layout.addLayout(loop_layout)
-            self._widgets.extend([self._loop_enabled])
+
             QtCore.QObject.connect(self._env,
                                    QtCore.SIGNAL('nodesChanged()'),
                                    self._fix_loop)
@@ -200,15 +211,17 @@ class LoopBound(QtGui.QWidget):
         self._spin = QtGui.QSpinBox()
         self._spin.setMinimum(0)
         self._spin.setMaximum(99999) # XXX: ugly
+
+        layout.addWidget(lab)
+        layout.addWidget(self._spin)
+
+    def init(self):
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self._value_changed)
         QtCore.QObject.connect(self._spin,
                                QtCore.SIGNAL('editingFinished()'),
                                self._finished)
-
-        layout.addWidget(lab)
-        layout.addWidget(self._spin)
 
     def set_lower_bound(self, bound):
         self._lower_bound = bound

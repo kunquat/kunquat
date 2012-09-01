@@ -20,6 +20,9 @@ class EmptyRange(QtGui.QLabel):
         QtGui.QLabel.__init__(self, parent=parent)
         self.index = index
 
+    def init(self):
+        pass
+
     @property
     def range(self):
         return []

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -55,6 +55,11 @@ class GenEditor(QtGui.QWidget):
         self._generic = GenGeneric(project)
         layout.addLayout(common_layout)
         layout.addWidget(self._generic, 1)
+
+    def init(self):
+        self._enabled.init()
+        self._type.init()
+        self._generic.init()
         QtCore.QObject.connect(self._type,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
                                self._type_changed)

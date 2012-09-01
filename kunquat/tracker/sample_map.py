@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -45,6 +45,14 @@ class SampleMap(QtGui.QWidget):
             entry = Entry(i)
             self._entries.extend([entry])
             random_layout.addWidget(entry)
+        self._add_entry = QtGui.QPushButton('+')
+        self._add_entry.hide()
+        random_layout.addWidget(self._add_entry)
+        layout.addWidget(self._map_view, 1)
+        layout.addLayout(random_layout, 1)
+
+    def init(self):
+        for entry in self._entries:
             QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('modified(int, float, '
                                                  'float, int)'),
@@ -55,11 +63,6 @@ class SampleMap(QtGui.QWidget):
             QtCore.QObject.connect(entry,
                                    QtCore.SIGNAL('removed(int)'),
                                    self._remove_entry)
-        self._add_entry = QtGui.QPushButton('+')
-        self._add_entry.hide()
-        random_layout.addWidget(self._add_entry)
-        layout.addWidget(self._map_view, 1)
-        layout.addLayout(random_layout, 1)
         QtCore.QObject.connect(self._map_view,
                                QtCore.SIGNAL('activeChanged(float, float)'),
                                self._active_changed)

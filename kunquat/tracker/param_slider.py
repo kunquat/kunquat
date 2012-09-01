@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -52,13 +52,16 @@ class ParamSlider(QtGui.QWidget):
                              })
         layout.addWidget(self._slider, 1)
         layout.addWidget(self._value_display)
+        self._key = key
+
+    def init(self):
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.value_changed)
         QtCore.QObject.connect(self._slider,
                                QtCore.SIGNAL('editingFinished()'),
                                self.finished)
-        self.set_key(key)
+        self.set_key(self._key)
 
     def set_constraints(self, constraints):
         self._lock_update = True

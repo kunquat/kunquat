@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -29,6 +29,9 @@ class Filter(QtGui.QWidget):
         layout.setSpacing(0)
         self._env_force_filter = EnvForceFilter(project)
         layout.addWidget(self._env_force_filter, 1)
+
+    def init(self):
+        self._env_force_filter.init()
 
     def inst_changed(self, num):
         self._cur_inst = num

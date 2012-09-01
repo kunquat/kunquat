@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -32,6 +32,10 @@ class Generators(QtGui.QSplitter):
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([160, 1])
+
+    def init(self):
+        self._gen_list.init()
+        self._gen_editor.init()
         QtCore.QObject.connect(self._gen_list,
                                QtCore.SIGNAL('genChanged(int)'),
                                self._gen_editor.gen_changed)

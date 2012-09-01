@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -36,14 +36,18 @@ class DevEditor(QtGui.QSplitter):
         self._key_list = KeyList(project,
                                  self._key_base + 'c/')
         self._key_editor = KeyEditor(project, constraints)
-        QtCore.QObject.connect(self._key_list,
-                               QtCore.SIGNAL('keyChanged(QString)'),
-                               self._key_editor.set_key)
         self.addWidget(self._key_list)
         self.addWidget(self._key_editor)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([280, 1])
+
+    def init(self):
+        QtCore.QObject.connect(self._key_list,
+                               QtCore.SIGNAL('keyChanged(QString)'),
+                               self._key_editor.set_key)
+        self._key_list.init()
+        self._key_editor.init()
 
     def set_key_base(self, key_base):
         self._key_base = key_base
@@ -66,6 +70,10 @@ class KeyList(QtGui.QTableWidget):
         self.horizontalHeader().hide()
         self.verticalHeader().hide()
         self.setTabKeyNavigation(False)
+        self._lock_update = False
+        self._key = key
+
+    def init(self):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('itemChanged(QTableWidgetItem*)'),
                                self._item_changed)
@@ -74,9 +82,7 @@ class KeyList(QtGui.QTableWidget):
                                              'QTableWidgetItem*,'
                                              'QTableWidgetItem*)'),
                                self._set_current)
-        self._lock_update = False
-        self._key = ''
-        self.set_key(key)
+        self.set_key(self._key)
 
     def _set_current(self, item, old):
         prev_current = self._current
@@ -239,6 +245,15 @@ class KeyEditor(QtGui.QStackedWidget):
                         'jsonhm': self._hit_map,
                         'wv': self._sample_file,
                     }
+
+    def init(self):
+        self._slider.init()
+        self._env.init()
+        self._wave.init()
+        self._sample_header.init()
+        self._sample_file.init()
+        self._pitch_map.init()
+        self._hit_map.init()
 
     def set_key(self, key):
         key = str(key)

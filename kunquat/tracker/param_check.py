@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -31,7 +31,10 @@ class ParamCheck(QtGui.QCheckBox):
         self._dict_key = dict_key
         self._default_val = default_val
         self._lock_update = False
-        self.set_key(key)
+        self._key = key
+
+    def init(self):
+        self.set_key(self._key)
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._value_changed)

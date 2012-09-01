@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -73,14 +73,12 @@ class PatternEditor(QtGui.QWidget):
                                 octave_spin,
                                 instrument_spin,
                                 typewriter)
+        layout.addWidget(top_control, 0)
+        layout.addWidget(self._pattern, 1)
+
         QtCore.QObject.connect(self._pattern,
                                QtCore.SIGNAL('patternChanged(int)'),
                                pattern_changed_slot)
-        layout.addWidget(top_control, 0)
-        layout.addWidget(self._pattern, 1)
-        QtCore.QObject.connect(self._length,
-                               QtCore.SIGNAL('tsChanged(int, int)'),
-                               self._pattern.length_changed)
         QtCore.QObject.connect(autoinst,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._pattern.autoinst_changed)
@@ -90,6 +88,13 @@ class PatternEditor(QtGui.QWidget):
         QtCore.QObject.connect(snap_to_grid,
                                QtCore.SIGNAL('stateChanged(int)'),
                                self._pattern.snap_to_grid_changed)
+
+    def init(self):
+        self._pattern.init()
+        self._length.init()
+        QtCore.QObject.connect(self._length,
+                               QtCore.SIGNAL('tsChanged(int, int)'),
+                               self._pattern.length_changed)
 
     def section_changed(self, subsong, section):
         pattern = self._project._composition.get_pattern(subsong, section)

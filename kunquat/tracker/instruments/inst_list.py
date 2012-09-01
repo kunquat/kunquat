@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -34,7 +34,10 @@ class InstList(QtGui.QTableWidget):
         self.horizontalHeader().setStretchLastSection(True)
         self.horizontalHeader().hide()
 
-        QtCore.QObject.connect(instrument_spin,
+        self._signal = False
+
+    def init(self):
+        QtCore.QObject.connect(self._instrument_spin,
                                QtCore.SIGNAL('currentIndexChanged(int)'),
                                self.inst_changed)
         QtCore.QObject.connect(self,
@@ -43,7 +46,6 @@ class InstList(QtGui.QTableWidget):
         QtCore.QObject.connect(self,
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self.name_changed)
-        self._signal = False
 
     """
     def inst_changed(self, text):
@@ -89,11 +91,7 @@ class InstList(QtGui.QTableWidget):
             self._project[key] = None
 
     def update_instruments(self):
-        # FIXME: Remove try-catch
-        try:
-            inst_num = self.p._instruments._inst_num
-        except AttributeError:
-            inst_num = 0
+        inst_num = self.p._instruments._inst_num
         while self.rowCount() > 0:
             self.removeRow(0)
         ids = self.p.project._composition.instrument_ids()

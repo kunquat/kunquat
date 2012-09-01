@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2011
+# Author: Tomi Jylhä-Ollila, Finland 2011-2012
 #
 # This file is part of Kunquat.
 #
@@ -28,15 +28,18 @@ class Effects(QtGui.QSplitter):
         self._eff_list = EffList(project, base)
         self._eff_editor = EffEditor(project, base)
 
-        QtCore.QObject.connect(self._eff_list,
-                               QtCore.SIGNAL('effectChanged(int)'),
-                               self._eff_editor.eff_changed)
-
         self.addWidget(self._eff_list)
         self.addWidget(self._eff_editor)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
+
+    def init(self):
+        self._eff_list.init()
+        self._eff_editor.init()
+        QtCore.QObject.connect(self._eff_list,
+                               QtCore.SIGNAL('effectChanged(int)'),
+                               self._eff_editor.eff_changed)
 
     def set_base(self, base):
         self._base = base
