@@ -16,7 +16,6 @@ from __future__ import print_function
 from PyQt4 import QtCore, QtGui
 
 from bind import Bind
-from variables import Variables
 
 
 class Env(QtGui.QMainWindow):
@@ -27,22 +26,15 @@ class Env(QtGui.QMainWindow):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
 
-
-        tabs = QtGui.QTabWidget()
-        self.setCentralWidget(tabs)
-
-        self._vars = Variables(project, 'p_environment.json')
         self._bind = Bind(project)
 
-        tabs.addTab(self._vars, 'Variables')
-        tabs.addTab(self._bind, 'Bind')
+        self.setCentralWidget(self._bind)
 
     def init(self):
         self._vars.init()
         self._bind.init()
 
     def sync(self):
-        self._vars.sync()
         self._bind.sync()
 
 

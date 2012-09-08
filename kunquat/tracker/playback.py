@@ -63,6 +63,13 @@ class Playback(QtCore.QObject):
         seek_for.setIcon(QtGui.QIcon.fromTheme('media-seek-forward'))
         seek_for.setAutoRaise(True)
 
+        state_but = QtGui.QToolButton()
+        state_but.setText('State')
+        state_but.setIcon(QtGui.QIcon.fromTheme('computer'))
+        state_but.setAutoRaise(True)
+        QtCore.QObject.connect(state_but, QtCore.SIGNAL('clicked()'),
+                               self.p.state_window)
+
         self._pos_display = PosDisplay(self.p.project)
         self._pos_display.init()
 
@@ -75,6 +82,7 @@ class Playback(QtCore.QObject):
         blayout.addWidget(stop)
         blayout.addWidget(seek_back)
         blayout.addWidget(seek_for)
+        blayout.addWidget(state_but)
 
         layout.addWidget(self._pos_display)
         layout.addWidget(bwidget)
