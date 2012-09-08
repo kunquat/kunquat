@@ -19,7 +19,7 @@ from bind import Bind
 from variables import Variables
 
 
-class State(QtGui.QMainWindow):
+class State(QtGui.QWidget):
 
     def __init__(self,
                  project,
@@ -30,6 +30,9 @@ class State(QtGui.QMainWindow):
         self._vars = Variables(project, 'p_environment.json')
 
         self.setCentralWidget(self._vars)
+
+    def init(self):
+        self._vars.init()
 
     def sync(self):
         self._vars.sync()

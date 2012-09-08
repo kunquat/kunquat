@@ -275,6 +275,8 @@ class KqtEditor(QtGui.QMainWindow):
         self.project.init(self._file_path)
         self.handle = self.project.handle
 
+        self._state.init()
+
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         playback_bar = self._playback.get_view()
@@ -296,6 +298,7 @@ class KqtEditor(QtGui.QMainWindow):
         QtCore.QObject.connect(self.mix_timer, QtCore.SIGNAL('timeout()'),
                                self.mix)
         self.mix_timer.start(2)
+
 
         self.sync()
         QtCore.QObject.connect(self.project, QtCore.SIGNAL('sync()'),

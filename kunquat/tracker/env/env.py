@@ -31,7 +31,6 @@ class Env(QtGui.QMainWindow):
         self.setCentralWidget(self._bind)
 
     def init(self):
-        self._vars.init()
         self._bind.init()
 
     def sync(self):
