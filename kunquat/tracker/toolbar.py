@@ -60,6 +60,10 @@ class Toolbar():
                                self.p.instrument_window)
 
         self._instrument = QtGui.QComboBox()
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)
+        self._instrument.setSizePolicy(sizePolicy)
+
+
         ''''
         self._instrument = QtGui.QSpinBox()
         self._instrument.setMinimum(0)
@@ -76,6 +80,7 @@ class Toolbar():
         self._octave.setToolTip('Base octave')
 
         self._scale_selector = QtGui.QComboBox()
+        self._scale_selector.setSizePolicy(sizePolicy)
         self._scale_selector.addItem(u'chromatic')
 
         scale_config = QtGui.QToolButton()
