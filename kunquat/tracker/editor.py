@@ -223,20 +223,23 @@ class KqtEditor(QtGui.QMainWindow):
                 (QtCore.Qt.Key_F5, QtCore.Qt.NoModifier):
                         (self._playback._play_subsong, None),
                 (QtCore.Qt.Key_F5, QtCore.Qt.ShiftModifier):
-                        (lambda x: self.play_subsong(self._cur_subsong, True),
+                        (lambda x: self._playback.play_subsong(self._playback._cur_subsong,
+                                                               True),
                             None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.NoModifier):
                         (self._play_pattern, None),
                 (QtCore.Qt.Key_F6, QtCore.Qt.ShiftModifier):
-                        (lambda x: self.play_pattern(self._cur_pattern, True),
+                        (lambda x: self._playback.play_pattern(self._playback._cur_pattern,
+                                                               True),
                             None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.NoModifier):
                         (self._play_from, None),
                 (QtCore.Qt.Key_F7, QtCore.Qt.ShiftModifier):
-                        (lambda x: self.play_from(self._cur_subsong,
-                                        self._cur_section,
-                                        self._cur_pattern_offset[0],
-                                        self._cur_pattern_offset[1], True),
+                        (lambda x: self._playback.play_from(
+                                        self._playback._cur_subsong,
+                                        self._playback._cur_section,
+                                        self._playback._cur_pattern_offset[0],
+                                        self._playback._cur_pattern_offset[1], True),
                                     None),
                 (QtCore.Qt.Key_F8, QtCore.Qt.NoModifier):
                         (self._stop, None),
@@ -270,6 +273,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._effects = Effects(self.project, '')
         self._connections = Connections(self.project, 'p_connections.json')
         self._env = Env(self.project)
+        self._state = State(self.project)
 
     def init(self):
         self.project.init(self._file_path)
@@ -455,8 +459,6 @@ class KqtEditor(QtGui.QMainWindow):
         self._instrumentconf.addTab(self._instruments, 'Instruments')
         self._instrumentconf.addTab(self._effects, 'Effects')
         self._instrumentconf.addTab(self._connections, 'Connections')
-        self._env = Env(self.project)
-        self._state = State(self.project)
         #self._tabs.addTab(self._env, 'Environment')
 
         QtCore.QObject.connect(self.project,

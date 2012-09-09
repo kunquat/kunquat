@@ -29,7 +29,12 @@ class State(QtGui.QWidget):
 
         self._vars = Variables(project, 'p_environment.json')
 
-        self.setCentralWidget(self._vars)
+        #self.setCentralWidget(self._vars)
+
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addWidget(self._vars)
 
     def init(self):
         self._vars.init()
