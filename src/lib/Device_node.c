@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -92,21 +92,21 @@ Device_node* new_Device_node(const char* name,
     else if (string_has_prefix(node->name, "ins_"))
     {
         node->type = DEVICE_TYPE_INSTRUMENT;
-        node->index = string_extract_index(node->name, "ins_", 2, "/");
+        node->index = string_extract_index(node->name, "ins_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_INSTRUMENTS_MAX);
     }
     else if (string_has_prefix(node->name, "gen_"))
     {
         node->type = DEVICE_TYPE_GENERATOR;
-        node->index = string_extract_index(node->name, "gen_", 2, "/");
+        node->index = string_extract_index(node->name, "gen_", 2, NULL);
         assert(node->index >= 0);
         assert(node->index < KQT_GENERATORS_MAX);
     }
     else if (string_has_prefix(node->name, "eff_"))
     {
         node->type = DEVICE_TYPE_EFFECT;
-        node->index = string_extract_index(node->name, "eff_", 2, "/");
+        node->index = string_extract_index(node->name, "eff_", 2, NULL);
         assert(node->index >= 0);
         // TODO: upper bound
     }
@@ -119,7 +119,7 @@ Device_node* new_Device_node(const char* name,
     else if (string_has_prefix(node->name, "dsp_"))
     {
         node->type = DEVICE_TYPE_DSP;
-        node->index = string_extract_index(node->name, "dsp_", 2, "/");
+        node->index = string_extract_index(node->name, "dsp_", 2, NULL);
         assert(node->index >= 0);
         //assert(ins != NULL || node->index < KQT_DSP_EFFECTS_MAX);
         //assert(ins == NULL || node->index < KQT_INSTRUMENT_DSPS_MAX);
@@ -203,7 +203,8 @@ bool Device_node_init_buffers_simple(Device_node* node)
         return true;
     }
     Device_node_set_state(node, DEVICE_NODE_STATE_REACHED);
-    if (Device_node_get_device(node) == NULL)
+    Device* node_device = Device_node_get_device(node);
+    if (node_device == NULL)
     {
         Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
         return true;
@@ -234,13 +235,17 @@ bool Device_node_init_buffers_simple(Device_node* node)
         while (edge != NULL)
         {
             assert(edge->node != NULL);
-            if (Device_node_get_device(edge->node) == NULL)
+            Device* send_device = Device_node_get_device(edge->node);
+            if (send_device == NULL)
             {
                 edge = edge->next;
                 continue;
             }
-            if (!Device_init_buffer(Device_node_get_device(node),
-                                    DEVICE_PORT_TYPE_RECEIVE, port))
+            const Audio_buffer* receive_buffer =
+                Device_get_buffer(node_device, DEVICE_PORT_TYPE_RECEIVE, port);
+            if (receive_buffer == NULL &&
+                    !Device_init_buffer(node_device,
+                                        DEVICE_PORT_TYPE_RECEIVE, port))
             {
                 return false;
             }
@@ -253,8 +258,11 @@ bool Device_node_init_buffers_simple(Device_node* node)
                         (void*)Audio_buffer_get_buffer(Device_get_buffer(node->device, DEVICE_PORT_TYPE_RECEIVE, port), 1));
             }
 #endif
-            if (!Device_init_buffer(Device_node_get_device(edge->node),
-                                    DEVICE_PORT_TYPE_SEND, edge->port))
+            const Audio_buffer* send_buffer =
+                Device_get_buffer(send_device, DEVICE_PORT_TYPE_SEND, edge->port);
+            if (send_buffer == NULL &&
+                    !Device_init_buffer(Device_node_get_device(edge->node),
+                                        DEVICE_PORT_TYPE_SEND, edge->port))
             {
                 return false;
             }
@@ -270,6 +278,7 @@ bool Device_node_init_buffers_simple(Device_node* node)
 }
 
 
+#if 0
 void Device_node_remove_direct_buffers(Device_node* node)
 {
     assert(node != NULL);
@@ -531,6 +540,7 @@ bool Device_node_init_buffers_by_suggestion(Device_node* node,
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return true;
 }
+#endif
 
 
 bool Device_node_init_effect_buffers(Device_node* node)
@@ -656,6 +666,7 @@ void Device_node_mix(Device_node* node,
     assert(freq > 0);
     assert(isfinite(tempo));
     assert(tempo > 0);
+    //fprintf(stderr, "Entering node %p %s\n", (void*)node, node->name);
     if (Device_node_get_state(node) > DEVICE_NODE_STATE_NEW)
     {
         assert(Device_node_get_state(node) == DEVICE_NODE_STATE_VISITED);
@@ -721,7 +732,8 @@ void Device_node_mix(Device_node* node,
 #if 0
                 if (receive != NULL)
                 {
-                    fprintf(stderr, "receive %p, but no send!\n", (void*)receive);
+                    fprintf(stderr, "receive %p of %p %s, but no send from %p!\n",
+                            (void*)receive, (void*)node, node->name, (void*)edge->node);
                 }
                 else if (send != NULL)
                 {
@@ -731,10 +743,12 @@ void Device_node_mix(Device_node* node,
                 edge = edge->next;
                 continue;
             }
+            //fprintf(stderr, "%f\n", Audio_buffer_get_buffer(send, 0)[0]);
             Audio_buffer_mix(receive, send, start, until);
             edge = edge->next;
         }
     }
+    //fprintf(stderr, "Calling Device_process on %p %s\n", (void*)node, node->name);
     Device_process(node_device, start, until, freq, tempo);
     Device_node_set_state(node, DEVICE_NODE_STATE_VISITED);
     return;

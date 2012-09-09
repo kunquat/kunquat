@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -253,7 +253,7 @@ bool Connections_prepare(Connections* graph)
 }
 
 
-bool Connections_init_buffers_simple(Connections* graph)
+bool Connections_init_buffers(Connections* graph)
 {
     assert(graph != NULL);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
@@ -263,11 +263,13 @@ bool Connections_init_buffers_simple(Connections* graph)
     {
         return false;
     }
+    Device_node_reset(master);
     return Device_node_init_effect_buffers(master);
 }
 
 
-bool Connections_init_buffers(Connections* graph)
+#if 0
+bool Connections_init_buffers_complex(Connections* graph)
 {
     assert(graph != NULL);
     Device_node* master = AAtree_get_exact(graph->nodes, "");
@@ -303,6 +305,7 @@ bool Connections_init_buffers(Connections* graph)
  //   fprintf(stderr, "!!! Finished Connections_init_buffers\n\n");
     return true;
 }
+#endif
 
 
 void Connections_clear_buffers(Connections* graph,
@@ -464,14 +467,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "iXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing instrument header after the instrument number"
+                    "Missing trailing '/' after the instrument number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "iXX/");
+        ++str;
         trim_point = str - 1;
     }
     else if (string_has_prefix(str, "eff_"))
@@ -499,14 +502,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "eXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing effect header after the effect number in"
+                    "Missing trailing '/' after the effect number in"
                     " the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "eXX/");
+        ++str;
         trim_point = str - 1;
     }
     else if (string_has_prefix(str, "gen_"))
@@ -536,14 +539,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "gXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing generator header after the generator number"
+                    "Missing trailing '/' after the generator number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "gXX/");
+        ++str;
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,
@@ -572,14 +575,14 @@ static int validate_connection_path(char* str,
             return -1;
         }
         str += 2;
-        if (!string_has_prefix(str, "/" MAGIC_ID "dXX/"))
+        if (!string_has_prefix(str, "/"))
         {
             Read_state_set_error(state,
-                    "Missing DSP header after the DSP number"
+                    "Missing trailing '/' after the DSP number"
                     " in the connection: \"%s\"", path);
             return -1;
         }
-        str += strlen("/" MAGIC_ID "dXX/");
+        ++str;
         if (!string_has_prefix(str, "C/"))
         {
             Read_state_set_error(state,

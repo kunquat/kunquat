@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -36,7 +36,7 @@ Subsong_table* new_Subsong_table(void)
         return NULL;
     }
     table->effective_size = 0;
-    table->subs = new_Etable(KQT_SUBSONGS_MAX, (void(*)(void*))del_Subsong);
+    table->subs = new_Etable(KQT_SONGS_MAX, (void(*)(void*))del_Subsong);
     if (table->subs == NULL)
     {
         xfree(table);
@@ -49,7 +49,7 @@ Subsong_table* new_Subsong_table(void)
 bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
 {
     assert(table != NULL);
-    assert(index < KQT_SUBSONGS_MAX);
+    assert(index < KQT_SONGS_MAX);
     assert(subsong != NULL);
     if (!Etable_set(table->subs, index, subsong))
     {
@@ -57,7 +57,7 @@ bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
     }
     if (index == table->effective_size)
     {
-        while (index < KQT_SUBSONGS_MAX &&
+        while (index < KQT_SONGS_MAX &&
                 Etable_get(table->subs, index) != NULL)
         {
             table->effective_size = index + 1;
@@ -71,7 +71,7 @@ bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong)
 Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 {
     assert(table != NULL);
-    assert(index < KQT_SUBSONGS_MAX);
+    assert(index < KQT_SONGS_MAX);
     if (index >= table->effective_size)
     {
         return NULL;
@@ -83,7 +83,7 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index)
 Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index)
 {
     assert(table != NULL);
-    assert(index < KQT_SUBSONGS_MAX);
+    assert(index < KQT_SONGS_MAX);
     return Etable_get(table->subs, index);
 }
 
@@ -91,7 +91,7 @@ Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index)
 bool Subsong_table_is_empty(Subsong_table* table, uint16_t subsong)
 {
     assert(table != NULL);
-    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(subsong < KQT_SONGS_MAX);
     Subsong* ss = Etable_get(table->subs, subsong);
     if (ss == NULL)
     {

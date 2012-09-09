@@ -33,8 +33,7 @@ class InstEditor(QtGui.QWidget):
 
         self._project = project
         self._cur_inst = 0
-        self._ins_key_base = 'ins_{{0:02x}}/kqti{0}/'.format(
-                                                      lim.FORMAT_VERSION)
+        self._ins_key_base = 'ins_{0:02x}/'
         top_layout = QtGui.QVBoxLayout(self)
         top_layout.setMargin(0)
         top_layout.setSpacing(0)

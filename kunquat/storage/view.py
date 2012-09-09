@@ -9,7 +9,7 @@ from events import *
 
 class View():
 
-    def __init__(self, store, prefix=''):
+    def __init__(self, store, prefix=None):
         self._store = store
         self.prefix = prefix
 
@@ -23,10 +23,16 @@ class View():
         pparts = [i for i in self.prefix.split('/') if i != '']
         kparts = [i for i in         key.split('/') if i != '']
         parts = pparts + kparts
-        path = '/%s' % '/'.join(parts)
+        path = '%s' % '/'.join(parts)
+        """
+        if not self.prefix:
+            return key
+        path = '%s/%s' % (self.prefix, key)
+        """
         return path
 
     def put(self, key, value):
+        assert not key.startswith('/')
         path = self._path(key)
         self._store.put(path, value)
 
@@ -66,7 +72,7 @@ class View():
         valid = [(key[len(path):], value) for (key, value) in memory if key.startswith(path)]
         return valid
 
-    def to_tar(self, path):
+    def to_tar(self, path, prefix=''):
         compression = ''
         if path.endswith('.gz'):
             compression = 'gz'
@@ -79,7 +85,9 @@ class View():
             serial = value if isinstance(value, str) else json.dumps(value)
             data = StringIO.StringIO(serial)
             info = tarfile.TarInfo()
-            parts = key.split('/')
+            preparts = prefix.split('/')
+            keyparts = key.split('/')
+            parts = preparts + keyparts
             nonempty = [p for p in parts if p != '']
             tarpath = '/'.join(nonempty)
             info.name = tarpath
@@ -89,15 +97,28 @@ class View():
         tfile.close()
         self._store.signal(Export_end(prefix=self.prefix, path=path))
 
-    def from_tar(self, path):
+    def remove_prefix(self, path, prefix):
+        preparts = prefix.split('/')
+        keyparts = path.split('/')
+        for pp in preparts:
+            kp = keyparts.pop(0)
+            if pp != kp:
+                 return None
+        return '/'.join(keyparts)
+
+    def from_tar(self, path, prefix=''):
         tfile = tarfile.open(path, format=tarfile.USTAR_FORMAT)
         self._store.signal(Import_start(prefix=self.prefix, path=path, key_names=tfile.getnames()))
         for entry in tfile.getmembers():
-            key = entry.name
-            self._store.signal(Import_status(prefix=self.prefix, dest=path, key=key))
-            if entry.isfile():
-                value = tfile.extractfile(entry).read()
-                self.put(key, value)
+            tarpath = entry.name
+            self._store.signal(Import_status(prefix=self.prefix, dest=path, key=tarpath))
+            key = self.remove_prefix(tarpath, prefix)
+            if key == None:
+                pass # prefix mismatch
+            else:
+                if entry.isfile():
+                    value = tfile.extractfile(entry).read()
+                    self.put(key, value)
         tfile.close()
         self._store.signal(Import_end(prefix=self.prefix, path=path))
 
@@ -131,11 +152,11 @@ class View():
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
         '''
 
-    def from_path(self, path):
+    def from_path(self, path, prefix=''):
         if os.path.isdir(path):
-            self.from_dir(path)
+            self.from_dir(path, prefix)
         else:
-            self.from_tar(path)
+            self.from_tar(path, prefix)
                 
 
 

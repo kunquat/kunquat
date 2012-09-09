@@ -17,15 +17,15 @@
 #include <limits.h>
 
 #include <Event_common.h>
-#include <Event_global_set_jump_subsong.h>
+#include <Event_global_set_jump_song.h>
 #include <kunquat/limits.h>
 #include <Value.h>
 #include <xassert.h>
 #include <xmemory.h>
 
 
-bool Event_global_set_jump_subsong_process(Playdata* global_state,
-                                           Value* value)
+bool Event_global_set_jump_song_process(Playdata* global_state,
+                                        Value* value)
 {
     assert(global_state != NULL);
     assert(value != NULL);

@@ -78,7 +78,7 @@ triggers = {
         'm.jc': [(int, lambda x: x >= 0 and x < 65536, '0')],
         'm.jr': [nonneg_ts],
         'm.js': [(int, lambda x: x >= -1 and x < lim.SECTIONS_MAX, '-1')],
-        'm.jss': [(int, lambda x: x >= -1 and x < lim.SUBSONGS_MAX, '-1')],
+        'm.jss': [(int, lambda x: x >= -1 and x < lim.SONGS_MAX, '-1')],
         'mj': [],
 
         'm.s': [(int, lambda x: x >= 0 and x < lim.SCALES_MAX, '0')],
@@ -209,7 +209,7 @@ triggers = {
 
         'I.gr': [nonneg_ts],
         'I.gs': [(int, lambda x: -1 <= x < lim.SECTIONS_MAX, '-1')],
-        'I.gss': [(int, lambda x: -1 <= x < lim.SUBSONGS_MAX, '-1')],
+        'I.gss': [(int, lambda x: -1 <= x < lim.SONGS_MAX, '-1')],
         'Ig': [],
 
         'I.infinite': [any_bool],

@@ -1,4 +1,4 @@
-.TH kunquat\-export 1 "2012\-07\-18" "" "Kunquat"
+.TH kunquat\-export 1 "2012\-08\-20" "" "Kunquat"
 
 .SH NAME
 kunquat\-export \- converts Kunquat compositions into waveform audio
@@ -36,7 +36,7 @@ kunquat\-export \- converts Kunquat compositions into waveform audio
 ]
 [
 .B \-s
-.I sub
+.I n
 ]
 .I file
 [
@@ -77,9 +77,9 @@ Mixes \fIn\fR frames per second. As a result, the highest frequency in the
 sound is limited to \fIn\fR/2 Hz. \fIn\fR is a value between 1000 and 384000.
 Default value is 48000.
 
-.IP "\fB\-s\fR \fIsub\fR, \fB\-\-subsong\fR \fIsub\fR"
-Renders the subsong \fIsub\fR. \fIsub\fR is a value between 0 and 255 or
-\fIall\fR which renders all the existing subsongs in order.
+.IP "\fB\-s\fR \fIn\fR, \fB\-\-song\fR \fIn\fR"
+Renders the song \fIn\fR. \fIn\fR is a value between 0 and 255 or
+\fIall\fR which renders all the existing songs in order.
 
 .IP "\fB\-h\fR, \fB\-\-help\fR"
 Shows help and exits.

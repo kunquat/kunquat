@@ -64,7 +64,7 @@ static Name_info event_specs[] =
 
     { "I.gr", EVENT_CONTROL_SET_GOTO_ROW,     EVENT_FIELD_RELTIME, v_nonneg_ts, false },
     { "I.gs", EVENT_CONTROL_SET_GOTO_SECTION, EVENT_FIELD_INT, v_section, false },
-    { "I.gss", EVENT_CONTROL_SET_GOTO_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
+    { "I.gss", EVENT_CONTROL_SET_GOTO_SONG,   EVENT_FIELD_INT, v_subsong, false },
     { "Ig",   EVENT_CONTROL_GOTO,             EVENT_FIELD_NONE, NULL, false },
 
     { "I.infinite", EVENT_CONTROL_INFINITE,    EVENT_FIELD_BOOL, v_any_bool, false },
@@ -88,7 +88,7 @@ static Name_info event_specs[] =
     { "m.jc",  EVENT_GLOBAL_SET_JUMP_COUNTER, EVENT_FIELD_INT, v_counter, false },
     { "m.jr",  EVENT_GLOBAL_SET_JUMP_ROW,     EVENT_FIELD_RELTIME, v_nonneg_ts, false },
     { "m.js",  EVENT_GLOBAL_SET_JUMP_SECTION, EVENT_FIELD_INT, v_section, false },
-    { "m.jss", EVENT_GLOBAL_SET_JUMP_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
+    { "m.jss", EVENT_GLOBAL_SET_JUMP_SONG,    EVENT_FIELD_INT, v_subsong, false },
 
     { "m.s",   EVENT_GLOBAL_SET_SCALE,        EVENT_FIELD_INT, v_scale, false },
     { "m.so",  EVENT_GLOBAL_SET_SCALE_OFFSET, EVENT_FIELD_DOUBLE, v_finite_float, false },
@@ -183,7 +183,7 @@ static Name_info event_specs[] =
     { "qvoices", EVENT_QUERY_VOICE_COUNT,     EVENT_FIELD_NONE, NULL, false },
     { "qf",    EVENT_QUERY_ACTUAL_FORCE,      EVENT_FIELD_INT, v_gen, false },
 
-    { "Asubsong", EVENT_AUTO_LOCATION_SUBSONG, EVENT_FIELD_INT, v_subsong, false },
+    { "Asong", EVENT_AUTO_LOCATION_SONG,      EVENT_FIELD_INT, v_subsong, false },
     { "Asection", EVENT_AUTO_LOCATION_SECTION, EVENT_FIELD_INT, v_section, false },
     { "Apattern", EVENT_AUTO_LOCATION_PATTERN, EVENT_FIELD_INT, v_pattern, false },
     { "Arow",  EVENT_AUTO_LOCATION_ROW,       EVENT_FIELD_RELTIME, v_any_ts, false },

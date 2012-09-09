@@ -331,7 +331,7 @@ class Pattern(QtGui.QWidget):
         #                (self.path, 'gcol', 'p_global_events.json'))])
         for col in self.columns:
             col_dir = 'col_{0:02x}'.format(col.get_num())
-            path = '/'.join((self.path, col_dir, 'p_events.json'))
+            path = '/'.join((self.path, col_dir, 'p_triggers.json'))
             col.arrange_triggers(self.project[path])
         if self.number != num:
             QtCore.QObject.emit(self, QtCore.SIGNAL('patternChanged(int)'),

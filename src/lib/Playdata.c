@@ -212,7 +212,7 @@ void Playdata_set_subsong(Playdata* play, int subsong, bool reset)
 {
     assert(play != NULL);
     assert(subsong >= 0);
-    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(subsong < KQT_SONGS_MAX);
     play->orig_subsong = play->subsong = subsong;
     play->section = 0;
     if (!play->silent)

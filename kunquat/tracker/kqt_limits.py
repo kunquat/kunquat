@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Author: Tomi Jylhä-Ollila, Finland 2010-2011
+# Author: Tomi Jylhä-Ollila, Finland 2010-2012
 #
 # This file is part of Kunquat.
 #
@@ -21,7 +21,7 @@ KEY_LENGTH_MAX = 73
 BUFFERS_MAX = 2
 BUFFER_SIZE_MAX = 1048576
 VOICES_MAX = 1024
-SUBSONGS_MAX = 256
+SONGS_MAX = 256
 SECTIONS_MAX = 256
 PATTERNS_MAX = 1024
 COLUMNS_MAX = 64

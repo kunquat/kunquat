@@ -316,7 +316,9 @@ static void Effect_process(Device* device,
         in_effect = true;
 #endif
         Connections_clear_buffers(eff->connections, start, until);
+        //fprintf(stderr, "Entering effect mix\n");
         Connections_mix(eff->connections, start, until, freq, tempo);
+        //fprintf(stderr, "Leaving effect mix\n");
 #ifndef NDEBUG
         in_effect = false;
 #endif

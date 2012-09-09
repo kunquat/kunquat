@@ -134,10 +134,10 @@ float* kqt_Handle_get_buffer(kqt_Handle* handle, int index)
 long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
 {
     check_handle(handle, -1);
-    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
+    if (subsong < -1 || subsong >= KQT_SONGS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Invalid Subsong number: %d", subsong);
+                "Invalid song number: %d", subsong);
         return -1;
     }
     Reltime_init(&handle->song->skip_state->play_time);
@@ -167,10 +167,10 @@ long long kqt_Handle_get_duration(kqt_Handle* handle, int subsong)
 int kqt_Handle_set_position(kqt_Handle* handle, int subsong, long long nanoseconds)
 {
     check_handle(handle, 0);
-    if (subsong < -1 || subsong >= KQT_SUBSONGS_MAX)
+    if (subsong < -1 || subsong >= KQT_SONGS_MAX)
     {
         kqt_Handle_set_error(handle, ERROR_ARGUMENT,
-                "Invalid Subsong number: %d", subsong);
+                "Invalid song number: %d", subsong);
         return 0;
     }
     if (nanoseconds < 0)

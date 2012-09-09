@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -23,7 +23,7 @@
 Pattern_location* new_Pattern_location(int subsong, int section)
 {
     assert(subsong >= 0);
-    assert(subsong < KQT_SUBSONGS_MAX);
+    assert(subsong < KQT_SONGS_MAX);
     Pattern_location* loc = xalloc(Pattern_location);
     if (loc == NULL)
     {

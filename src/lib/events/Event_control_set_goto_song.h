@@ -12,8 +12,8 @@
  */
 
 
-#ifndef K_EVENT_CONTROL_SET_GOTO_SUBSONG_H
-#define K_EVENT_CONTROL_SET_GOTO_SUBSONG_H
+#ifndef K_EVENT_CONTROL_SET_GOTO_SONG_H
+#define K_EVENT_CONTROL_SET_GOTO_SONG_H
 
 
 #include <stdbool.h>
@@ -23,10 +23,10 @@
 #include <Value.h>
 
 
-bool Event_control_set_goto_subsong_process(General_state* gstate,
-                                            Value* value);
+bool Event_control_set_goto_song_process(General_state* gstate,
+                                         Value* value);
 
 
-#endif // K_EVENT_CONTROL_SET_GOTO_SUBSONG_H
+#endif // K_EVENT_CONTROL_SET_GOTO_SONG_H
 
 

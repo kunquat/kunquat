@@ -83,8 +83,7 @@ class InstList(QtGui.QTableWidget):
             return
         item = self.item(row, 0)
         num = int(self.verticalHeaderItem(row).text())
-        key = 'ins_{0:02x}/kqti{1}/m_name.json'.format(num,
-                                                       lim.FORMAT_VERSION)
+        key = 'ins_{0:02x}/m_name.json'.format(num)
         if item:
             self._project[key] = unicode(item.text())
         else:
@@ -101,8 +100,7 @@ class InstList(QtGui.QTableWidget):
         self.setVerticalHeaderLabels([str(num) for num in header_nums])
         table_index = 0
         for i in header_nums:
-            name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
-                                                        lim.FORMAT_VERSION)]
+            name = self._project['ins_{0:02x}/m_name.json'.format(i)]
             label = name or ''
             item = QtGui.QTableWidgetItem(label)
             self.setItem(table_index, 0, item)
@@ -115,8 +113,7 @@ class InstList(QtGui.QTableWidget):
         self.update_instruments()
         '''
         for i in xrange(lim.INSTRUMENTS_MAX):
-            name = self._project['ins_{0:02x}/kqti{1}/m_name.json'.format(i,
-                                                        lim.FORMAT_VERSION)]
+            name = self._project['ins_{0:02x}/m_name.json'.format(i)]
             if name:
                 item = self.item(i, 0)
                 if not item:

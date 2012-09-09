@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -109,7 +109,7 @@ bool Device_node_init_buffers_simple(Device_node* node);
  *
  * \param node   The Device node -- must not be \c NULL.
  */
-void Device_node_remove_direct_buffers(Device_node* node);
+//void Device_node_remove_direct_buffers(Device_node* node);
 
 
 /**
@@ -120,7 +120,7 @@ void Device_node_remove_direct_buffers(Device_node* node);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_input_buffers(Device_node* node);
+//bool Device_node_init_input_buffers(Device_node* node);
 
 
 /**
@@ -136,9 +136,9 @@ bool Device_node_init_input_buffers(Device_node* node);
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
  */
-bool Device_node_init_buffers_by_suggestion(Device_node* node,
-                                            int send_port,
-                                            Audio_buffer* suggestion);
+//bool Device_node_init_buffers_by_suggestion(Device_node* node,
+//                                            int send_port,
+//                                            Audio_buffer* suggestion);
 
 
 /**

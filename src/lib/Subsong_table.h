@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2010-2011
+ * Author: Tomi Jylhä-Ollila, Finland 2010-2012
  *
  * This file is part of Kunquat.
  *
@@ -44,7 +44,7 @@ Subsong_table* new_Subsong_table(void);
  *
  * \param table     The Subsong table -- must not be \c NULL.
  * \param index     The target index -- must be >= \c 0 and
- *                  < \c KQT_SUBSONGS_MAX.
+ *                  < \c KQT_SONGS_MAX.
  * \param subsong   The Subsong -- must not be \c NULL.
  *
  * \return   \c true if successful, or \c false if memory allocation failed.
@@ -60,7 +60,7 @@ bool Subsong_table_set(Subsong_table* table, uint16_t index, Subsong* subsong);
  *
  * \param table   The Subsong table -- must not be \c NULL.
  * \param index   The subsong number -- must be >= \c 0 and
- *                < \c KQT_SUBSONGS_MAX.
+ *                < \c KQT_SONGS_MAX.
  *
  * \return   The Subsong if one exists, otherwise \c NULL.
  */
@@ -72,7 +72,7 @@ Subsong* Subsong_table_get(Subsong_table* table, uint16_t index);
  *
  * \param table   The Subsong table -- must not be \c NULL.
  * \param index   The subsong number -- must be >= \c 0 and
- *                < \c KQT_SUBSONGS_MAX.
+ *                < \c KQT_SONGS_MAX.
  *
  * \return   The Subsong if one exists, otherwise \c NULL.
  */
@@ -84,7 +84,7 @@ Subsong* Subsong_table_get_hidden(Subsong_table* table, uint16_t index);
  *
  * \param table     The Subsong table -- must not be \c NULL.
  * \param subsong   The subsong number -- must be >= \c 0 and
- *                  < \c KQT_SUBSONGS_MAX.
+ *                  < \c KQT_SONGS_MAX.
  *
  * \return   \c true if and only if \a subsong is empty.
  */

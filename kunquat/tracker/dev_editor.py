@@ -284,7 +284,7 @@ class KeyEditor(QtGui.QStackedWidget):
         dev_components = takewhile(lambda x: x != 'c', components)
         dev_path = '/'.join(dev_components)
         type_key = dev_path + '/p_{0}_type.json'.format('gen'
-                if 'kqtg{0}'.format(lim.FORMAT_VERSION) in components
+                if any(x.startswith('gen_') for x in components)
                 else 'dsp')
         d = self._constraints[self._project[type_key]]
         if d == None:

@@ -21,10 +21,10 @@ import re
 class Composition():
 
     def __init__(self, store):
-        root = '/kqtc{0}'.format(lim.FORMAT_VERSION)
+        root = ''
         self._history = History(self)
         self._store = store
-        self._view = store.get_view(root)
+        self._view = store
 
     def get(self, key):
         suffix = key.split('.').pop()
@@ -76,13 +76,13 @@ class Composition():
     def __delitem__(self, key):
         self.delete(key)
 
-    def get_pattern(self, subsong, section):
-        """Get a pattern number based on subsong and section number."""
-        if subsong < 0 or subsong >= lim.SUBSONGS_MAX:
-            raise IndexError, 'Invalid subsong number'
+    def get_pattern(self, song, section):
+        """Get a pattern number based on song and section number."""
+        if song < 0 or song >= lim.SONGS_MAX:
+            raise IndexError, 'Invalid song number'
         if section < 0 or section >= lim.SECTIONS_MAX:
             raise IndexError, 'Invalid section number'
-        ss = self['subs_{0:02x}/p_subsong.json'.format(subsong)]
+        ss = self['song_{0:02x}/p_song.json'.format(song)]
         if not ss or 'patterns' not in ss:
             return None
         patterns = ss['patterns']
@@ -117,14 +117,12 @@ class Composition():
     def autoconnect(self, key, immediate):
         new_ins = -1
         new_gen = -1
-        ins_conn_base = 'ins_{0:02x}/kqtiXX/'
-        gen_conn_base = 'gen_{0:02x}/kqtgXX/C/'
-        ins_prefix_base = 'ins_{{0:02x}}/kqti{0}/'.format(lim.FORMAT_VERSION)
-        gen_prefix_base = '{0}gen_{{1:02x}}/kqtg{1}/'.format(ins_prefix_base,
-                                                        lim.FORMAT_VERSION)
-        ins_pattern = 'ins_([0-9a-f]{{2}})/kqti{0}/'.format(lim.FORMAT_VERSION)
-        gen_pattern = '{0}gen_([0-9a-f]{{2}})/kqtg{1}/'.format(ins_pattern,
-                                                        lim.FORMAT_VERSION)
+        ins_conn_base = 'ins_{0:02x}/'
+        gen_conn_base = 'gen_{0:02x}/C/'
+        ins_prefix_base = 'ins_{0:02x}/'
+        gen_prefix_base = '{0}gen_{{1:02x}}/'.format(ins_prefix_base)
+        ins_pattern = 'ins_([0-9a-f]{2})/'
+        gen_pattern = '{0}gen_([0-9a-f]{{2}})/'.format(ins_pattern)
         ins_mo = re.match(ins_pattern, key)
         if not ins_mo:
             return False
@@ -177,19 +175,13 @@ class Composition():
         self._history.end_group()
         return True
 
-    def fix_connections(self, prefix):
-        parts = prefix.split('/')
-        if len(parts) != 3:
-            return
-        (empty, root, instrument) = parts
-        if empty != '':
-            return
+    def fix_connections(self, instrument):
         if not instrument.startswith('ins_'):
             return
         connections = self['p_connections.json']
         if not connections:
             connections = []
-        ins_out = instrument + '/kqtiXX/out_00'
+        ins_out = instrument + '/out_00'
         for connection in connections:
             if ins_out in connection:
                 break
@@ -198,7 +190,8 @@ class Composition():
             self._view.put('p_connections.json', connections)
 
     def to_tar(self, path):
-        self._store.to_tar(path)
+        prefix = 'kqtc{0}'.format(lim.FORMAT_VERSION)
+        self._store.to_tar(path, prefix=prefix)
 
     def changed(self):
         """Whether the composition has changed since the last commit."""
@@ -252,17 +245,17 @@ class Composition():
         #self._history.show_latest_branch()
 
     def pattern_ids(self):
-        folders = [f.split('/')[2] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys()]
         foo =  set([f for f in folders if f.startswith('pat')])
         return foo
 
     def song_ids(self):
-        folders = [f.split('/')[2] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys()]
         foo =  set([f for f in folders if f.startswith('subs')])
         return foo
 
     def instrument_ids(self):
-        folders = [f.split('/')[2] for f in self._store.keys()]
+        folders = [f.split('/')[0] for f in self._store.keys()]
         foo =  set([f for f in folders if f.startswith('ins')])
         return foo
 

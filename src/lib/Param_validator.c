@@ -1,7 +1,7 @@
 
 
 /*
- * Author: Tomi Jylhä-Ollila, Finland 2011
+ * Author: Tomi Jylhä-Ollila, Finland 2011-2012
  *
  * This file is part of Kunquat.
  *
@@ -338,7 +338,7 @@ bool v_subsong(char* param)
     int64_t subsong = -2;
     param = read_int(param, &subsong, state);
     end();
-    return !state->error && subsong >= -1 && subsong < KQT_SUBSONGS_MAX;
+    return !state->error && subsong >= -1 && subsong < KQT_SONGS_MAX;
 }
 
 

@@ -12,18 +12,18 @@
  */
 
 
-#ifndef K_EVENT_GLOBAL_SET_JUMP_SUBSONG_H
-#define K_EVENT_GLOBAL_SET_JUMP_SUBSONG_H
+#ifndef K_EVENT_GLOBAL_SET_JUMP_SONG_H
+#define K_EVENT_GLOBAL_SET_JUMP_SONG_H
 
 
 #include <Playdata.h>
 #include <Value.h>
 
 
-bool Event_global_set_jump_subsong_process(Playdata* global_state,
-                                           Value* value);
+bool Event_global_set_jump_song_process(Playdata* global_state,
+                                        Value* value);
 
 
-#endif // K_EVENT_GLOBAL_SET_JUMP_SUBSONG_H
+#endif // K_EVENT_GLOBAL_SET_JUMP_SONG_H
 
 

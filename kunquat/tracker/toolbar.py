@@ -154,7 +154,7 @@ class Toolbar():
 
     def instrument_string(self, number):
         ins = self.p.project._composition.get_instrument(number)
-        name = ins.get_json('kqti00/m_name.json') or '-'
+        name = ins.get_json('m_name.json') or '-'
         s = u'%s: %s' % (number, name)
         return s
 

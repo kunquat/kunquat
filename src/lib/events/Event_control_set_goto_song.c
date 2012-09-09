@@ -16,15 +16,15 @@
 #include <stdbool.h>
 
 #include <Event_common.h>
-#include <Event_control_set_goto_subsong.h>
+#include <Event_control_set_goto_song.h>
 #include <General_state.h>
 #include <Playdata.h>
 #include <Value.h>
 #include <xassert.h>
 
 
-bool Event_control_set_goto_subsong_process(General_state* gstate,
-                                            Value* value)
+bool Event_control_set_goto_song_process(General_state* gstate,
+                                         Value* value)
 {
     assert(gstate != NULL);
     assert(value != NULL);

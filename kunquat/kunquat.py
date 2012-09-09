@@ -44,23 +44,23 @@ class BaseHandle(object):
     """Base class for all Kunquat Handles. Do not use directly."""
 
     @property
-    def subsong(self):
-        """The current subsong ([0,255], or None for all subsongs)"""
-        return self._subsong
+    def song(self):
+        """The current song ([0,255], or None for all songs)"""
+        return self._song
 
-    @subsong.setter
-    def subsong(self, value):
-        """Set the subsong number.
+    @song.setter
+    def song(self, value):
+        """Set the song number.
 
-        Note that setting the subsong number also resets nanoseconds to
+        Note that setting the song number also resets nanoseconds to
         zero.
 
         """
-        subsong = value
-        if subsong is None:
-            subsong = -1
-        _kunquat.kqt_Handle_set_position(self._handle, subsong, 0)
-        self._subsong = value
+        song = value
+        if song is None:
+            song = -1
+        _kunquat.kqt_Handle_set_position(self._handle, song, 0)
+        self._song = value
         self._nanoseconds = 0
 
     @property
@@ -70,16 +70,16 @@ class BaseHandle(object):
 
     @nanoseconds.setter
     def nanoseconds(self, value):
-        """Set the subsong position in nanoseconds.
+        """Set the song position in nanoseconds.
 
         Note that setting a new nanoseconds value may take a while for
         very large values.
 
         """
-        subsong = self.subsong
-        if subsong is None:
-            subsong = -1
-        _kunquat.kqt_Handle_set_position(self._handle, subsong, value)
+        song = self.song
+        if song is None:
+            song = -1
+        _kunquat.kqt_Handle_set_position(self._handle, song, value)
         self._nanoseconds = value
 
     @property
@@ -114,24 +114,24 @@ class BaseHandle(object):
         _kunquat.kqt_Handle_set_buffer_size(self._handle, value)
         self._buffer_size = value
 
-    def get_duration(self, subsong=None):
+    def get_duration(self, song=None):
         """Count the duration of the composition in nanoseconds.
 
         Arguments:
-        subsong -- The subsong of which length is to be calculated.
-                   If this parameter is omitted, the function returns
-                   the total length of all subsongs.
+        song -- The song of which length is to be calculated.  If this
+                parameter is omitted, the function returns the total
+                length of all songs.
 
         Return value:
         The duration in nanoseconds.
 
         Exceptions:
-        KunquatArgumentError -- The subsong number is not valid.
+        KunquatArgumentError -- The song number is not valid.
 
         """
-        if subsong is None:
-            subsong = -1
-        return _kunquat.kqt_Handle_get_duration(self._handle, subsong)
+        if song is None:
+            song = -1
+        return _kunquat.kqt_Handle_get_duration(self._handle, song)
 
     def mix(self, frame_count=None):
         """Mix audio according to the state of the handle.
@@ -220,7 +220,7 @@ class Handle(BaseHandle):
 
     Public methods:
     set_data     -- Set composition data.
-    get_duration -- Calculate the length of a subsong.
+    get_duration -- Calculate the length of a song.
     mix          -- Mix audio data.
     fire         -- Fire an event.
 
@@ -228,7 +228,7 @@ class Handle(BaseHandle):
     buffer_size -- Mixing buffer size.
     mixing_rate -- Mixing rate.
     nanoseconds -- The current position in nanoseconds.
-    subsong     -- The current subsong (None or [0,255]).
+    song        -- The current song (None or [0,255]).
 
     """
 
@@ -249,7 +249,7 @@ class Handle(BaseHandle):
             if not self._handle:
                 raise _get_error(json.loads(
                                  _kunquat.kqt_Handle_get_error(None)))
-        self._subsong = None
+        self._song = None
         self._nanoseconds = 0
         self._buffer_size = _kunquat.kqt_Handle_get_buffer_size(self._handle)
         if mixing_rate <= 0:
@@ -266,11 +266,8 @@ class Handle(BaseHandle):
                  one that is allowed and required to contain a period.
                  Examples:
                  'p_composition.json'
-                 'pat_000/col_00/p_events.json'
-                 'ins_01/kqtiXX/p_instrument.json'
-                 The 'XX' in the last example should be written
-                 literally.  It is expanded to the file format version
-                 number behind the scenes.
+                 'pat_000/col_00/p_triggers.json'
+                 'ins_01/p_instrument.json'
         value -- The data to be set.  For JSON keys, this should be a
                  Python object -- it is automatically converted to a
                  JSON string.

@@ -68,6 +68,7 @@ class Store(object):
             self.signal(Value_update(key=key))
 
     def put(self, key, value):
+        assert not key.startswith('/')
         self._memory[key] = self._encode(value)
         self.signal(Value_update(key=key))
 
@@ -83,7 +84,8 @@ class Store(object):
         return view.keys()
 
     def get_json(self, key, key_prefix=''):
-        return view.get(key, parse='json', key_prefix=key_prefix)
+        view = self.get_view(key_prefix)
+        return view.get(key, parse='json')
 
     def get_view(self, prefix):
         return view.View(self, prefix)
@@ -94,16 +96,16 @@ class Store(object):
     def flush(self):
         pass
 
-    def to_tar(self, path, key_prefix=''):
-        view = self.get_view(key_prefix)
-        view.to_tar(path)
+    def to_tar(self, path, target_prefix='', prefix=''):
+        view = self.get_view(target_prefix)
+        view.to_tar(path, prefix=prefix)
 
     def del_tree(self, key_prefix=''):
         pass
 
-    def from_path(self, path, key_prefix=''):
-        view = self.get_view(key_prefix)
-        view.from_path(path)
+    def from_path(self, path, target_prefix='', prefix=''):
+        view = self.get_view(target_prefix)
+        view.from_path(path, prefix)
 
     def register_callback(self, callback):
         self.callbacks.append(callback)
