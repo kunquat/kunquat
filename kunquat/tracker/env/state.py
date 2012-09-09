@@ -16,9 +16,10 @@ from __future__ import print_function
 from PyQt4 import QtCore, QtGui
 
 from bind import Bind
+from variables import Variables
 
 
-class Env(QtGui.QMainWindow):
+class State(QtGui.QWidget):
 
     def __init__(self,
                  project,
@@ -26,14 +27,19 @@ class Env(QtGui.QMainWindow):
         QtGui.QWidget.__init__(self, parent)
         self._project = project
 
-        self._bind = Bind(project)
+        self._vars = Variables(project, 'p_environment.json')
 
-        self.setCentralWidget(self._bind)
+        #self.setCentralWidget(self._vars)
+
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+        layout.addWidget(self._vars)
 
     def init(self):
-        self._bind.init()
+        self._vars.init()
 
     def sync(self):
-        self._bind.sync()
+        self._vars.sync()
 
 
