@@ -49,10 +49,18 @@ class Instruments(QtGui.QSplitter):
         edit_button.setText('Edit')
         QtCore.QObject.connect(edit_button, QtCore.SIGNAL('clicked()'),
                                self.show_instrument)
+        load = QtGui.QPushButton('Load')
+        QtCore.QObject.connect(load,
+                               QtCore.SIGNAL('clicked()'),
+                               self.load)
 
+        buttons = QtGui.QWidget()
+        button_layout = QtGui.QVBoxLayout(buttons)
         self.addWidget(self._inst_list)
         #self.addWidget(self._inst_editor)
-        self.addWidget(edit_button)
+        self.addWidget(buttons)
+        button_layout.addWidget(load, 0)
+        button_layout.addWidget(edit_button)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
@@ -66,6 +74,18 @@ class Instruments(QtGui.QSplitter):
         QtCore.QObject.connect(octave_spin,
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
+
+    def load(self):
+        slot = 0
+        ids = self.p.project._composition.instrument_ids()
+        numbers = [int(i.split('_')[1]) for i in ids]
+        while slot in numbers:
+            slot += 1
+        fname = QtGui.QFileDialog.getOpenFileName(
+                caption='Load Kunquat instrument (to index {0})'.format(slot),
+                filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
+        if fname:
+            self._project.import_kqti(slot, str(fname))
 
     def get_ins_id(self, slot):
         return 'ins_%0.2d' % slot

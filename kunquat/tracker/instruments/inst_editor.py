@@ -44,12 +44,10 @@ class InstEditor(QtGui.QWidget):
         layout.setSpacing(0)
 
         test = QtGui.QPushButton('Test')
-        load = QtGui.QPushButton('Load')
         save = QtGui.QPushButton('Save')
         remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(test, 0)
-        layout.addWidget(load, 0)
         layout.addWidget(save, 0)
         layout.addWidget(remove, 0)
 
@@ -79,9 +77,6 @@ class InstEditor(QtGui.QWidget):
         QtCore.QObject.connect(test,
                                QtCore.SIGNAL('released()'),
                                self.test_note_off)
-        QtCore.QObject.connect(load,
-                               QtCore.SIGNAL('clicked()'),
-                               self.load)
         QtCore.QObject.connect(save,
                                QtCore.SIGNAL('clicked()'),
                                self.save)
@@ -118,18 +113,6 @@ class InstEditor(QtGui.QWidget):
 
     def test_note_off(self):
         self.p._tw.release_random()
-
-    def load(self):
-        slot = 0
-        ids = self.p.project._composition.instrument_ids()
-        numbers = [int(i.split('_')[1]) for i in ids]
-        while slot in numbers:
-            slot += 1
-        fname = QtGui.QFileDialog.getOpenFileName(
-                caption='Load Kunquat instrument (to index {0})'.format(slot),
-                filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
-        if fname:
-            self._project.import_kqti(slot, str(fname))
 
     def save(self):
         slot = self._cur_inst
