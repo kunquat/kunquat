@@ -114,16 +114,10 @@ class InstEditor(QtGui.QWidget):
         self._connections.init()
 
     def test_note_on(self):
-        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
-                             QtCore.Qt.Key_section,
-                             QtCore.Qt.NoModifier)
-        QtCore.QCoreApplication.postEvent(self, ev)
+        self.p._tw.press_random()
 
     def test_note_off(self):
-        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyRelease,
-                             QtCore.Qt.Key_section,
-                             QtCore.Qt.NoModifier)
-        QtCore.QCoreApplication.postEvent(self, ev)
+        self.p._tw.release_random()
 
     def load(self):
         slot = 0
