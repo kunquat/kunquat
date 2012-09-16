@@ -16,45 +16,59 @@ class TypewriterView(QAbstractScrollArea):
         self._controller = controller
         view = QWidget()
         rows = QVBoxLayout(view)
-        rowc = 0
         PAD = 35
-        rpads = [PAD, PAD, 2 * PAD, 3 * PAD]
-        for buttons in button_layout:
-            row = QWidget()
-            rowl = QHBoxLayout(row)
-            if rowc > 0:
-                rowl.addWidget(self.pad(PAD))
-            else:
-                rowl.addWidget(self._randbut)
-            psize = rpads[rowc]
-            rowl.addWidget(self.pad(psize))
-            colc = 0
-            for i in range(buttons):
-                coord = (rowc, colc)
-                button = TWButton()
-                self._buttons[coord] = button
-                QObject.connect(button,
-                                QtCore.SIGNAL('released()'),
-                                lambda c=coord: self._controller.release(c))
-                QObject.connect(button,
-                                QtCore.SIGNAL('pressed()'),
-                                lambda c=coord: self._controller.press(c))
-
-                rowl.addWidget(button)
-                colc += 1
-            rowl.addStretch(1)
+        self.PAD = PAD
+        self.rpads = [PAD, PAD, 2 * PAD, 3 * PAD]
+        for row in self.create_rows(button_layout):
             rows.addWidget(row)
-            rowc += 1
         rows.addStretch(1)
         self.setViewport(view)
+
+    def all_ints(self):
+        i = 0
+        while True:
+            yield i
+            i += 1
+
+    def create_rows(self, button_layout):
+        for (i, buttons) in zip(self.all_ints(), button_layout):
+            yield self.create_row(i, buttons)
+
+    def special_button(self, rowc):
+        if rowc == 0:
+            return self._randbut
+        return self.pad(self.PAD)
+
+    def create_row(self, rowc, buttons):
+        row = QWidget()
+        rowl = QHBoxLayout(row)
+        rowl.addWidget(self.special_button(rowc))
+        psize = self.rpads[rowc]
+        rowl.addWidget(self.pad(psize))
+        for colc in range(buttons):
+            coord = (rowc, colc)
+            button = self.get_button(coord)
+            rowl.addWidget(button)
+        rowl.addStretch(1)
+        return row
+
+    def get_button(self, coord):
+        if not coord in self._buttons:
+            button = TWButton()
+            self._buttons[coord] = button
+            QObject.connect(button,
+                            QtCore.SIGNAL('released()'),
+                            lambda c=coord: self._controller.release(c))
+            QObject.connect(button,
+                            QtCore.SIGNAL('pressed()'),
+                            lambda c=coord: self._controller.press(c))
+        return self._buttons[coord]
 
     def pad(self, psize):
         pad = QLabel()
         pad.setMinimumWidth(psize)
         pad.setMaximumWidth(psize)
         return pad
-
-
 
     def _random_button(self):
         randbut = TWButton(color_style='001')
