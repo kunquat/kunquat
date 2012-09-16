@@ -433,8 +433,10 @@ class KqtEditor(QtGui.QMainWindow):
 
     def instrument_window(self, ins_id):
         ie = InstEditor(self.p, self.project, ins_id)
-        self.windows.append(ie)
+        ie.init()
+        self.windows.append(ie) # FIXME: Do we need to collect trash?
         ie.show()
+        #ie.sync() FIXME: Do we need to call this?
 
     def sync(self):
         self._sheet.sync()

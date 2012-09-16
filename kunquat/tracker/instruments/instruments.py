@@ -38,7 +38,6 @@ class Instruments(QtGui.QSplitter):
         self._piano = piano
         self._project = project
         self._inst_list = InstList(self.p, project, instrument_spin)
-        #self._inst_editor = InstEditor(self.p, project, instrument_spin)
         self._instrument_spin = instrument_spin
         self._playback_manager = playback_manager
         self._note_input = note_input
@@ -57,7 +56,6 @@ class Instruments(QtGui.QSplitter):
         buttons = QtGui.QWidget()
         button_layout = QtGui.QVBoxLayout(buttons)
         self.addWidget(self._inst_list)
-        #self.addWidget(self._inst_editor)
         self.addWidget(buttons)
         button_layout.addWidget(load, 0)
         button_layout.addWidget(edit_button)
@@ -97,7 +95,6 @@ class Instruments(QtGui.QSplitter):
 
     def init(self):
         self._inst_list.init()
-        #self._inst_editor.init()
 
     def inst_changed(self, text):
         if text == '':
@@ -118,5 +115,4 @@ class Instruments(QtGui.QSplitter):
 
     def sync(self):
         self._inst_list.sync()
-        #self._inst_editor.sync()
 
