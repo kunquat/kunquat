@@ -32,6 +32,7 @@ from connections import Connections
 from effects import Effects
 from env import Env
 from instruments import Instruments
+from instruments import InstEditor
 import keymap
 import kqt_limits as lim
 import note_input as ni
@@ -62,6 +63,7 @@ class KqtEditor(QtGui.QMainWindow):
     def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
         self._app = app
+        self.windows = []
 
         try:
             self._file_path = str(args[1])
@@ -426,8 +428,13 @@ class KqtEditor(QtGui.QMainWindow):
     def state_window(self):
         self._state.show()
 
-    def instrument_window(self):
+    def instruments_window(self):
         self._instrumentconf.show()
+
+    def instrument_window(self, ins_id):
+        ie = InstEditor(self.p, self.project, ins_id)
+        self.windows.append(ie)
+        ie.show()
 
     def sync(self):
         self._sheet.sync()

@@ -57,7 +57,7 @@ class Toolbar():
         instrument_ter.setIcon(QtGui.QIcon.fromTheme('audio-card'))
         instrument_ter.setAutoRaise(True)
         QtCore.QObject.connect(instrument_ter, QtCore.SIGNAL('clicked()'),
-                               self.p.instrument_window)
+                               self.p.instruments_window)
 
         self._instrument = QtGui.QComboBox()
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Fixed)

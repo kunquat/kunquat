@@ -13,7 +13,7 @@
 
 from PyQt4 import QtCore, QtGui
 
-from inst_editor import InstEditor
+#from inst_editor import InstEditor
 from inst_list import InstList
 from itertools import cycle
 import kunquat.tracker.kqt_limits as lim
@@ -38,15 +38,21 @@ class Instruments(QtGui.QSplitter):
         self._piano = piano
         self._project = project
         self._inst_list = InstList(self.p, project, instrument_spin)
-        self._inst_editor = InstEditor(self.p, project, instrument_spin)
+        #self._inst_editor = InstEditor(self.p, project, instrument_spin)
         self._instrument_spin = instrument_spin
         self._playback_manager = playback_manager
         self._note_input = note_input
         self._scale = scale
         self._octave_spin = octave_spin
 
+        edit_button = QtGui.QPushButton()
+        edit_button.setText('Edit')
+        QtCore.QObject.connect(edit_button, QtCore.SIGNAL('clicked()'),
+                               self.show_instrument)
+
         self.addWidget(self._inst_list)
-        self.addWidget(self._inst_editor)
+        #self.addWidget(self._inst_editor)
+        self.addWidget(edit_button)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
@@ -61,9 +67,17 @@ class Instruments(QtGui.QSplitter):
                                QtCore.SIGNAL('valueChanged(int)'),
                                self.octave_changed)
 
+    def get_ins_id(self, slot):
+        return 'ins_%0.2d' % slot
+
+    def show_instrument(self):
+        slot = self._inst_num
+        ins_id = self.get_ins_id(slot)
+        self.p.instrument_window(ins_id)
+
     def init(self):
         self._inst_list.init()
-        self._inst_editor.init()
+        #self._inst_editor.init()
 
     def inst_changed(self, text):
         if text == '':
@@ -84,5 +98,5 @@ class Instruments(QtGui.QSplitter):
 
     def sync(self):
         self._inst_list.sync()
-        self._inst_editor.sync()
+        #self._inst_editor.sync()
 

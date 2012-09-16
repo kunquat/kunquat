@@ -27,10 +27,12 @@ import kunquat.tracker.kqt_limits as lim
 
 class InstEditor(QtGui.QWidget):
 
-    def __init__(self, p, project, instrument_spin, parent=None):
+    def __init__(self, p, project, instrument, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.p = p
 
+
+        self.setWindowTitle(instrument)
         self._project = project
         self._cur_inst = 0
         self._ins_key_base = 'ins_{0:02x}/'
@@ -86,24 +88,13 @@ class InstEditor(QtGui.QWidget):
         QtCore.QObject.connect(remove,
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
+        self.inst_changed(instrument)
 
-        QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
-                               self.inst_changed)
-
-    def init(self):
-        self._force.init()
-        self._panning.init()
-        self._filter.init()
-        self._generators.init()
-        self._effects.init()
-        self._connections.init()
-
-    def inst_changed(self, text):
-        if text == '':
+    def inst_changed(self, ins_id):
+        if ins_id == '':
             return
-        parts = text.split(':')
-        num = int(parts[0] )
+        parts = ins_id.split('_')
+        num = int(parts[1] )
 
         self._cur_inst = num
         self._force.inst_changed(num)
@@ -113,6 +104,14 @@ class InstEditor(QtGui.QWidget):
         ins_key = self._ins_key_base.format(self._cur_inst)
         self._effects.set_base(ins_key)
         self._connections.set_key(ins_key + 'p_connections.json')
+
+    def init(self):
+        self._force.init()
+        self._panning.init()
+        self._filter.init()
+        self._generators.init()
+        self._effects.init()
+        self._connections.init()
 
     def test_note_on(self):
         ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
