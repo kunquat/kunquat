@@ -122,9 +122,9 @@ class View():
         tfile.close()
         self._store.signal(Import_end(prefix=self.prefix, path=path))
 
+    '''
     def from_dir(self, path):
         raise Exception('from_dir not implemented!')
-        '''
         self._history.start_group('Import composition {0}'.format(path))
         tfile = None
         QtCore.QObject.emit(self, QtCore.SIGNAL('startTask(int)'), 0)
@@ -150,11 +150,12 @@ class View():
                 tfile.close()
             self._history.end_group()
             QtCore.QObject.emit(self, QtCore.SIGNAL('endTask()'))
-        '''
+    '''
 
     def from_path(self, path, prefix=''):
         if os.path.isdir(path):
-            self.from_dir(path, prefix)
+            raise Exception('from_dir not implemented!')
+            #self.from_dir(path, prefix)
         else:
             self.from_tar(path, prefix)
                 
