@@ -20,7 +20,7 @@ class TWLed(QLabel):
         self._enabled = enabled
         self.update()
 
-    def set_color_style(color_style):
+    def set_color_style(self, color_style):
         self._color_style = color_style
         self.update()
 
