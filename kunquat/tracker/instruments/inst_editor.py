@@ -124,7 +124,7 @@ class InstEditor(QtGui.QWidget):
 
     def remove(self):
         inst = self._project._composition.get_instrument(self._cur_inst)
-        inst.delall()        
+        inst.delete()
 
     def sync(self):
         self._force.sync()

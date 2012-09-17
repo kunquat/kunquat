@@ -237,7 +237,7 @@ class Project(QtCore.QObject):
 
     def _export_kqti(self, index, dest):
         instrument = self._composition.get_instrument(index)
-        instrument.to_tar(dest, prefix='kqti00')
+        instrument.to_tar(dest)
 
     def _export_kqte(self, base, index, dest):
         effect = self._composition.get_effect(base, index)
@@ -245,7 +245,7 @@ class Project(QtCore.QObject):
 
     def _import_kqti(self, index, src):
         instrument = self._composition.get_instrument(index)
-        instrument.from_path(src, prefix='kqti00')
+        instrument.from_path(src)
 
     def _import_kqte(self, base, index, src):
         effect = self._composition.get_effect(base, index)

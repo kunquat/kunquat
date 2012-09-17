@@ -12,6 +12,7 @@
 # copyright and related or neighboring rights to Kunquat.
 #
 
+from instrument import Instrument
 from copy import deepcopy
 from itertools import izip, takewhile
 from history import History
@@ -99,7 +100,7 @@ class Composition():
     def get_instrument(self, index):
         name = 'ins_{0:02x}'.format(index)
         instrument = self._view.get_view(name)
-        return instrument
+        return Instrument(instrument)
 
     def subtree(self, prefix):
         """Return a sequence of all the keys inside a project subtree.
