@@ -39,6 +39,9 @@ class Composition():
     def __getitem__(self, key):
         return self.get(key)
 
+    def get_view(self, path):
+        return self._view.get_view(path)
+
     def put(self, key, value, immediate=True, autoconnect=True):
         """Set data in the Kunquat Handle.
 
@@ -97,10 +100,8 @@ class Composition():
         effect = base.get_view(name)
         return effect
 
-    def get_instrument(self, index):
-        name = 'ins_{0:02x}'.format(index)
-        instrument = self._view.get_view(name)
-        return Instrument(instrument)
+    def get_instrument(self, slot):
+        return Instrument(self, slot)
 
     def subtree(self, prefix):
         """Return a sequence of all the keys inside a project subtree.

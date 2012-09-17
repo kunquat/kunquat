@@ -2,8 +2,9 @@
 class Instrument():
     FILE_PREFIX = 'kqti00'
 
-    def __init__(self, view):
-        self._view = view
+    def __init__(self, composition, slot):
+        path = 'ins_{0:02x}'.format(slot)
+        self._view = composition.get_view(path)
 
     def get_name(self):
         name = self._view.get_json('m_name.json') or '-'
