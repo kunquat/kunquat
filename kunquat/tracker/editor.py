@@ -476,8 +476,15 @@ class KqtEditor(QtGui.QMainWindow):
 
         instruarea = self._tw.get_view()
         instrumentpanel = QtGui.QWidget(self)
+
+        tbv = self._toolbar.get_view()
+	tbv.setMinimumHeight(40)
+        # We reserve an extra pixel for the instrument panel
+        # Reserving 0 pixels does not work properly
+	instrumentpanel.setMinimumHeight(41)
+        
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
-        instrumentlayout.addWidget(self._toolbar.get_view())
+        instrumentlayout.addWidget(tbv)
         instrumentlayout.addWidget(instruarea)
         instrumentlayout.setMargin(0)
         instrumentlayout.setSpacing(0)
@@ -485,8 +492,10 @@ class KqtEditor(QtGui.QMainWindow):
         div = QtGui.QSplitter(self)
         self._div = div
         div.setOrientation(QtCore.Qt.Vertical)
+        self._sheet.setMinimumHeight(200)
         div.addWidget(self._sheet)
         div.addWidget(instrumentpanel)
+        div.setChildrenCollapsible(False)
         self._sheet.hide()
         #self._sheetbox.hide()
 
