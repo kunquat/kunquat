@@ -262,6 +262,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._tw = Typewriter(self)
 
         self._instrumentconf = QtGui.QTabWidget()
+        self._instrumentconf.setWindowTitle(u'Instrument Configuration')
 
         self._instruments = Instruments(self.p,
                                         self._tw,
