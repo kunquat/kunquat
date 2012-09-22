@@ -115,6 +115,7 @@ class Toolbar():
         #layout.addWidget(env_label)
         layout.addWidget(env_ter)
 
+	top_control.setMinimumHeight(40)
         self._view = top_control
 
         QtCore.QObject.connect(self._scale_selector,

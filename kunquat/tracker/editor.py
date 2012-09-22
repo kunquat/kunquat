@@ -477,14 +477,8 @@ class KqtEditor(QtGui.QMainWindow):
         instruarea = self._tw.get_view()
         instrumentpanel = QtGui.QWidget(self)
 
-        tbv = self._toolbar.get_view()
-	tbv.setMinimumHeight(40)
-        # We reserve an extra pixel for the instrument panel
-        # Reserving 0 pixels does not work properly
-	instrumentpanel.setMinimumHeight(41)
-        
         instrumentlayout = QtGui.QVBoxLayout(instrumentpanel)
-        instrumentlayout.addWidget(tbv)
+        instrumentlayout.addWidget(self._toolbar.get_view())
         instrumentlayout.addWidget(instruarea)
         instrumentlayout.setMargin(0)
         instrumentlayout.setSpacing(0)
