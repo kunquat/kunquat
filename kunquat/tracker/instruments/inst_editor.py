@@ -43,10 +43,8 @@ class InstEditor(QtGui.QWidget):
         layout.setSpacing(0)
 
         test = QtGui.QPushButton('Test')
-        remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(test, 0)
-        layout.addWidget(remove, 0)
 
         top_layout.addLayout(layout)
 
@@ -74,9 +72,6 @@ class InstEditor(QtGui.QWidget):
         QtCore.QObject.connect(test,
                                QtCore.SIGNAL('released()'),
                                self.test_note_off)
-        QtCore.QObject.connect(remove,
-                               QtCore.SIGNAL('clicked()'),
-                               self.remove)
 
         self.inst_changed(instrument)
         inst = self._project._composition.get_instrument(self._cur_inst)
@@ -111,10 +106,6 @@ class InstEditor(QtGui.QWidget):
 
     def test_note_off(self):
         self.p._tw.release_random()
-
-    def remove(self):
-        inst = self._project._composition.get_instrument(self._cur_inst)
-        inst.delete()
 
     def sync(self):
         self._force.sync()

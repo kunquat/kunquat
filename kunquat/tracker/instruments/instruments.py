@@ -56,6 +56,10 @@ class Instruments(QtGui.QSplitter):
         QtCore.QObject.connect(save,
                                QtCore.SIGNAL('clicked()'),
                                self.save)
+        remove = QtGui.QPushButton('Remove')
+        QtCore.QObject.connect(remove,
+                               QtCore.SIGNAL('clicked()'),
+                               self.remove)
 
         buttons = QtGui.QWidget()
         button_layout = QtGui.QVBoxLayout(buttons)
@@ -64,6 +68,7 @@ class Instruments(QtGui.QSplitter):
         button_layout.addWidget(load, 0)
         button_layout.addWidget(save, 0)
         button_layout.addWidget(edit_button)
+        button_layout.addWidget(remove, 0)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([240, 1])
@@ -97,6 +102,11 @@ class Instruments(QtGui.QSplitter):
                 filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
         if fname:
             self._project.export_kqti(slot, str(fname))
+
+    def remove(self):
+        slot = self._inst_num
+        inst = self._project._composition.get_instrument(slot)
+        inst.delete()
 
     def get_ins_id(self, slot):
         return 'ins_%0.2d' % slot
