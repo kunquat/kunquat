@@ -52,12 +52,17 @@ class Instruments(QtGui.QSplitter):
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
                                self.load)
+        save = QtGui.QPushButton('Save')
+        QtCore.QObject.connect(save,
+                               QtCore.SIGNAL('clicked()'),
+                               self.save)
 
         buttons = QtGui.QWidget()
         button_layout = QtGui.QVBoxLayout(buttons)
         self.addWidget(self._inst_list)
         self.addWidget(buttons)
         button_layout.addWidget(load, 0)
+        button_layout.addWidget(save, 0)
         button_layout.addWidget(edit_button)
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
@@ -84,6 +89,14 @@ class Instruments(QtGui.QSplitter):
                 filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
         if fname:
             self._project.import_kqti(slot, str(fname))
+
+    def save(self):
+        slot = self._inst_num
+        fname = QtGui.QFileDialog.getSaveFileName(
+                caption='Save Kunquat instrument (of index {0})'.format(slot),
+                filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
+        if fname:
+            self._project.export_kqti(slot, str(fname))
 
     def get_ins_id(self, slot):
         return 'ins_%0.2d' % slot
