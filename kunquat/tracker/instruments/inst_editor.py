@@ -33,7 +33,7 @@ class InstEditor(QtGui.QWidget):
 
 
         self._project = project
-        self._cur_inst = 0
+        self._cur_inst = int(instrument.split('_')[1])
         self._ins_key_base = 'ins_{0:02x}/'
         top_layout = QtGui.QVBoxLayout(self)
         top_layout.setMargin(0)
@@ -73,25 +73,17 @@ class InstEditor(QtGui.QWidget):
                                QtCore.SIGNAL('released()'),
                                self.test_note_off)
 
-        self.inst_changed(instrument)
-        inst = self._project._composition.get_instrument(self._cur_inst)
-        title = u'Instrument %s' % inst.get_id_name()
-        self.setWindowTitle(title)
-
-    def inst_changed(self, ins_id):
-        if ins_id == '':
-            return
-        parts = ins_id.split('_')
-        num = int(parts[1] )
-
-        self._cur_inst = num
-        self._force.inst_changed(num)
-        self._panning.inst_changed(num)
-        self._filter.inst_changed(num)
-        self._generators.inst_changed(num)
+        self._force.inst_changed(self._cur_inst)
+        self._panning.inst_changed(self._cur_inst)
+        self._filter.inst_changed(self._cur_inst)
+        self._generators.inst_changed(self._cur_inst)
         ins_key = self._ins_key_base.format(self._cur_inst)
         self._effects.set_base(ins_key)
         self._connections.set_key(ins_key + 'p_connections.json')
+
+        inst = self._project._composition.get_instrument(self._cur_inst)
+        title = u'Instrument %s' % inst.get_id_name()
+        self.setWindowTitle(title)
 
     def init(self):
         self._force.init()
