@@ -4,11 +4,16 @@ class Instrument():
 
     def __init__(self, composition, slot):
         path = 'ins_{0:02x}'.format(slot)
+        self._slot = slot
         self._view = composition.get_view(path)
 
     def get_name(self):
         name = self._view.get_json('m_name.json') or '-'
         return name
+
+    def get_id_name(self):
+        s = u'%s: %s' % (self._slot, self.get_name())
+        return s
 
     def set_name(self, name):
         self._view.put('m_name.json', name)

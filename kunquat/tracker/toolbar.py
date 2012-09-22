@@ -154,8 +154,7 @@ class Toolbar():
 
     def instrument_string(self, number):
         ins = self.p.project._composition.get_instrument(number)
-        name = ins.get_name()
-        s = u'%s: %s' % (number, name)
+        s = ins.get_id_name()
         return s
 
     def scale_string(self, number):
