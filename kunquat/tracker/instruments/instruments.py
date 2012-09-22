@@ -13,7 +13,6 @@
 
 from PyQt4 import QtCore, QtGui
 
-#from inst_editor import InstEditor
 from inst_list import InstList
 from itertools import cycle
 import kunquat.tracker.kqt_limits as lim
