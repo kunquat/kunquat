@@ -32,7 +32,6 @@ class InstEditor(QtGui.QWidget):
         self.p = p
 
 
-        self.setWindowTitle(instrument)
         self._project = project
         self._cur_inst = 0
         self._ins_key_base = 'ins_{0:02x}/'
@@ -83,7 +82,11 @@ class InstEditor(QtGui.QWidget):
         QtCore.QObject.connect(remove,
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
+
         self.inst_changed(instrument)
+        inst = self._project._composition.get_instrument(self._cur_inst)
+        title = u'Instrument %s' % inst.get_id_name()
+        self.setWindowTitle(title)
 
     def inst_changed(self, ins_id):
         if ins_id == '':
