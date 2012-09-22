@@ -48,11 +48,11 @@ class Instruments(QtGui.QSplitter):
         edit_button.setText('Edit')
         QtCore.QObject.connect(edit_button, QtCore.SIGNAL('clicked()'),
                                self.show_instrument)
-        load = QtGui.QPushButton('Load')
+        load = QtGui.QPushButton('Import')
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
                                self.load)
-        save = QtGui.QPushButton('Save')
+        save = QtGui.QPushButton('Export')
         QtCore.QObject.connect(save,
                                QtCore.SIGNAL('clicked()'),
                                self.save)
