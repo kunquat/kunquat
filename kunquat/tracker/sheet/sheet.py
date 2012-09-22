@@ -76,6 +76,7 @@ class Sheet(QtGui.QSplitter):
         self.setStretchFactor(0, 0)
         self.setStretchFactor(1, 1)
         self.setSizes([180, 1])
+        self.setMinimumHeight(200)
 
         self._section.connect(self.section_changed)
         self._section.connect(section_changed_slot)
