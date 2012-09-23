@@ -7,6 +7,7 @@ class Toolbar():
     def __init__(self, p):
         self.p = p
         top_control = QtGui.QWidget()
+        top_control.setMinimumHeight(40)
         self._songcount = QtGui.QLabel()
         layout = QtGui.QHBoxLayout(top_control)
         layout.setMargin(5)

@@ -487,6 +487,7 @@ class KqtEditor(QtGui.QMainWindow):
         div.setOrientation(QtCore.Qt.Vertical)
         div.addWidget(self._sheet)
         div.addWidget(instrumentpanel)
+        div.setChildrenCollapsible(False)
         self._sheet.hide()
         #self._sheetbox.hide()
 

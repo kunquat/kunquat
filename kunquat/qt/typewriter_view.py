@@ -24,6 +24,10 @@ class TypewriterView(QAbstractScrollArea):
         rows.addStretch(1)
         self.setViewport(view)
 
+        # We reserve one pixel for the instrument panel
+        # Reserving 0 pixels does not work properly
+        self.setMinimumHeight(1)
+
     def all_ints(self):
         i = 0
         while True:
