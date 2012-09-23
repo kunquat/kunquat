@@ -17,7 +17,7 @@ from inst_list import InstList
 from itertools import cycle
 import kunquat.tracker.kqt_limits as lim
 
-class Instruments(QtGui.QSplitter):
+class Instruments(QtGui.QWidget):
 
     def __init__(self,
                  p,
@@ -30,7 +30,7 @@ class Instruments(QtGui.QSplitter):
                  scale,
                  octave_spin,
                  parent=None):
-        QtGui.QSplitter.__init__(self, parent)
+        QtGui.QWidget.__init__(self, parent)
         self.p = p
 
         self._tw = tw
@@ -60,17 +60,21 @@ class Instruments(QtGui.QSplitter):
                                QtCore.SIGNAL('clicked()'),
                                self.remove)
 
+        layout = QtGui.QVBoxLayout(self)
+        layout.setMargin(0)
+        layout.setSpacing(0)
+
+
         buttons = QtGui.QWidget()
         button_layout = QtGui.QVBoxLayout(buttons)
-        self.addWidget(self._inst_list)
-        self.addWidget(buttons)
+        button_layout.setMargin(0)
+        button_layout.setSpacing(0)
+        layout.addWidget(self._inst_list)
+        layout.addWidget(buttons)
         button_layout.addWidget(load, 0)
         button_layout.addWidget(save, 0)
         button_layout.addWidget(edit_button)
         button_layout.addWidget(remove, 0)
-        self.setStretchFactor(0, 0)
-        self.setStretchFactor(1, 1)
-        self.setSizes([240, 1])
 
         self._inst_num = 0
         self._channel = cycle(xrange(lim.COLUMNS_MAX))
