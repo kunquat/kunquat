@@ -46,7 +46,7 @@ class Instruments(QtGui.QSplitter):
         edit_button = QtGui.QPushButton()
         edit_button.setText('Edit')
         QtCore.QObject.connect(edit_button, QtCore.SIGNAL('clicked()'),
-                               self.show_instrument)
+                               self.edit)
         load = QtGui.QPushButton('Import')
         QtCore.QObject.connect(load,
                                QtCore.SIGNAL('clicked()'),
@@ -102,6 +102,11 @@ class Instruments(QtGui.QSplitter):
         if fname:
             self._project.export_kqti(slot, str(fname))
 
+    def edit(self):
+        slot = self._inst_num
+        ins_id = self.get_ins_id(slot)
+        self.p.instrument_window(ins_id)
+
     def remove(self):
         slot = self._inst_num
         inst = self._project._composition.get_instrument(slot)
@@ -109,11 +114,6 @@ class Instruments(QtGui.QSplitter):
 
     def get_ins_id(self, slot):
         return 'ins_%0.2d' % slot
-
-    def show_instrument(self):
-        slot = self._inst_num
-        ins_id = self.get_ins_id(slot)
-        self.p.instrument_window(ins_id)
 
     def init(self):
         self._inst_list.init()
