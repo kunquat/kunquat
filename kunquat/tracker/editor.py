@@ -308,7 +308,8 @@ class KqtEditor(QtGui.QMainWindow):
         #ie.sync() FIXME: Do we need to call this from somewhere?
 
     def kill_instrument_window(self, ins_id):
-        del self.windows[ins_id]
+        if ins_id in self.windows:
+            del self.windows[ins_id]
 
     def sync(self):
         self._sheet.sync()
