@@ -110,6 +110,7 @@ class Instruments(QtGui.QSplitter):
     def remove(self):
         slot = self._inst_num
         inst = self._project._composition.get_instrument(slot)
+        self.p.kill_instrument_window(inst.get_id())
         inst.delete()
 
     def get_ins_id(self, slot):

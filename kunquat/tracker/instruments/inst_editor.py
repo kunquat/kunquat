@@ -94,6 +94,7 @@ class InstEditor(QtGui.QWidget):
         self._connections.init()
 
     def test_note_on(self):
+        self.p._toolbar.select_instrument(self._cur_inst)
         self.p._tw.press_random()
 
     def test_note_off(self):
