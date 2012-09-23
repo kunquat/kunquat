@@ -100,6 +100,13 @@ class InstEditor(QtGui.QWidget):
     def test_note_off(self):
         self.p._tw.release_random()
 
+    def keyPressEvent(self, ev):
+        self.p._toolbar.select_instrument(self._cur_inst)
+        self.p._tw.keyPressEvent(ev)
+
+    def keyReleaseEvent(self, ev):
+        self.p._tw.keyReleaseEvent(ev)
+
     def sync(self):
         self._force.sync()
         self._panning.sync()
