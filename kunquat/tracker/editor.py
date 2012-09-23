@@ -63,7 +63,7 @@ class KqtEditor(QtGui.QMainWindow):
     def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
         self._app = app
-        self.windows = []
+        self.windows = {}
 
         try:
             self._file_path = str(args[1])
@@ -435,9 +435,9 @@ class KqtEditor(QtGui.QMainWindow):
     def instrument_window(self, ins_id):
         ie = InstEditor(self.p, self.project, ins_id)
         ie.init()
-        self.windows.append(ie) # FIXME: Do we need to collect trash?
+        self.windows[ins_id] = ie
         ie.show()
-        #ie.sync() FIXME: Do we need to call this?
+        #ie.sync() FIXME: Do we need to call this from somewhere?
 
     def sync(self):
         self._sheet.sync()
@@ -457,7 +457,6 @@ class KqtEditor(QtGui.QMainWindow):
                 self._focus_backup.setFocus()
 
     def set_appearance(self):
-        # FIXME: size and title
         self.resize(800, 450)
         self.setWindowTitle(PROGRAM_NAME)
         #self.setWindowIcon(QtGui.QIcon('kunquat.svg'))
