@@ -1,3 +1,7 @@
+
+
+from __future__ import division
+
 from scale import Scale
 
 chromatic_knotes = [
