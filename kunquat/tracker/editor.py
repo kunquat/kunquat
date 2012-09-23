@@ -32,17 +32,18 @@ from connections import Connections
 from effects import Effects
 from env import Env
 from instruments import Instruments
+from instruments import InstEditor
 import keymap
 import kqt_limits as lim
 import note_input as ni
 from peak_meter import PeakMeter
 import project
-from scale import Scale
 from sheet import Sheet
 import timestamp as ts
 from playback import Playback
 from statusbar import Statusbar
 from toolbar import Toolbar
+from scales import chromatic, slendro
 from piano import Piano
 
 PROGRAM_NAME = 'Kunquat Tracker'
@@ -62,6 +63,7 @@ class KqtEditor(QtGui.QMainWindow):
     def __init__(self, args, app):
         QtGui.QMainWindow.__init__(self)
         self._app = app
+        self.windows = {}
 
         try:
             self._file_path = str(args[1])
@@ -70,138 +72,6 @@ class KqtEditor(QtGui.QMainWindow):
 
         self.p = self
 
-        chromatic_knotes = [
-        [(1,1), (3,1), None , (6,1), (8,1), (10,1), None , (1,2), (3,2)],
-        [(0,1), (2,1), (4,1), (5,1), (7,1), (9,1), (11,1), (0,2), (2,2), (4,2)],
-        [None , (1,0), (3,0), None , (6,0), (8,0), (10,0)],
-        [(0,0), (2,0), (4,0), (5,0), (7,0), (9,0), (11,0)]
-        ]
- 
-        chromatic_buttons = {
-        (0,  0): {'color': 'dark', 'enabled': True },
-        (0,  1): {'color': 'dark', 'enabled': True },
-        (0,  2): {'color': None  , 'enabled': False},
-        (0,  3): {'color': 'dark', 'enabled': True },
-        (0,  4): {'color': 'dark', 'enabled': True },
-        (0,  5): {'color': 'dark', 'enabled': True },
-        (0,  6): {'color': None  , 'enabled': False},
-        (0,  7): {'color': 'dark', 'enabled': True },
-        (0,  8): {'color': 'dark', 'enabled': True },
-        (0,  9): {'color': None  , 'enabled': False},
-        (0, 10): {'color': None  , 'enabled': True },
- 
-        (1,  0): {'color': 'light', 'enabled': True },
-        (1,  1): {'color': 'light', 'enabled': True },
-        (1,  2): {'color': 'light', 'enabled': True },
-        (1,  3): {'color': 'light', 'enabled': True },
-        (1,  4): {'color': 'light', 'enabled': True },
-        (1,  5): {'color': 'light', 'enabled': True },
-        (1,  6): {'color': 'light', 'enabled': True },
-        (1,  7): {'color': 'light', 'enabled': True },
-        (1,  8): {'color': 'light', 'enabled': True },
-        (1,  9): {'color': 'light', 'enabled': True },
-        (1, 10): {'color': 'light', 'enabled': True },
- 
-        (2,  0): {'color': None  , 'enabled': False},
-        (2,  1): {'color': 'dark', 'enabled': True },
-        (2,  2): {'color': 'dark', 'enabled': True },
-        (2,  3): {'color': None  , 'enabled': False},
-        (2,  4): {'color': 'dark', 'enabled': True },
-        (2,  5): {'color': 'dark', 'enabled': True },
-        (2,  6): {'color': 'dark', 'enabled': True },
-        (2,  7): {'color': None  , 'enabled': False},
-        (2,  8): {'color': 'dark', 'enabled': True },
-        (2,  9): {'color': 'dark', 'enabled': True },
-        (2, 10): {'color': None  , 'enabled': False},
- 
-        (3,  0): {'color': 'light', 'enabled': True },
-        (3,  1): {'color': 'light', 'enabled': True },
-        (3,  2): {'color': 'light', 'enabled': True },
-        (3,  3): {'color': 'light', 'enabled': True },
-        (3,  4): {'color': 'light', 'enabled': True },
-        (3,  5): {'color': 'light', 'enabled': True },
-        (3,  6): {'color': 'light', 'enabled': True },
-        (3,  7): {'color': 'light', 'enabled': True },
-        (3,  8): {'color': 'light', 'enabled': True },
-        (3,  9): {'color': 'light', 'enabled': True },
-        (3, 10): {'color': 'light', 'enabled': True },
-        }
-
-
-        chromatic = Scale({
-                          'ref_pitch': 440 * 2**(3/12),
-                          'octave_ratio': ['/', [2, 1]],
-                          'notes': list(zip(('C', 'C#', 'D', 'D#', 'E', 'F',
-                                             'F#', 'G', 'G#', 'A', 'A#', 'B'),
-                              (['c', cents] for cents in range(0, 1200, 100)))),
-                          'knotes': chromatic_knotes,
-                          'buttons': chromatic_buttons,
-                          'name': 'chromatic'
-                          })
-        slendro_intervals = [0,
-                     0 + 245,
-                     0 + 245 + 262,
-                     0 + 245 + 262 + 228,
-                     0 + 245 + 262 + 228 + 240]
-                     #0 + 245 + 262 + 228 + 240 + 230]
-
-        slendro_knotes = [
-        [(1,2), (3,2), None , (1,3), (3,3), None , (1,4), (3,4), None],
-        [(0,2), (2,2), (4,2), (0,3), (2,3), (4,3), (0,4), (2,4), (4,4), (0,5)],
-        [None , (1,0), (3,0), None , (1,1), (3,1), None],
-        [(0,0), (2,0), (4,0), (0,1), (2,1), (4,1), None]
-        ]
- 
-        slendro_buttons = {
-        (0,  0): {'color': 'light', 'enabled': True },
-        (0,  1): {'color': 'light', 'enabled': True },
-        (0,  2): {'color': None   , 'enabled': False},
-        (0,  3): {'color': 'light', 'enabled': True },
-        (0,  4): {'color': 'light', 'enabled': True },
-        (0,  5): {'color': None   , 'enabled': False},
-        (0,  6): {'color': 'light', 'enabled': True },
-        (0,  7): {'color': 'light', 'enabled': True },
-        (0,  8): {'color': None   , 'enabled': False},
-        (0,  9): {'color': 'light', 'enabled': True },
-        (0, 10): {'color': 'light', 'enabled': True },
- 
-        (1,  0): {'color': 'light', 'enabled': True },
-        (1,  1): {'color': 'light', 'enabled': True },
-        (1,  2): {'color': 'light', 'enabled': True },
-        (1,  3): {'color': 'light', 'enabled': True },
-        (1,  4): {'color': 'light', 'enabled': True },
-        (1,  5): {'color': 'light', 'enabled': True },
-        (1,  6): {'color': 'light', 'enabled': True },
-        (1,  7): {'color': 'light', 'enabled': True },
-        (1,  8): {'color': 'light', 'enabled': True },
-        (1,  9): {'color': 'light', 'enabled': True },
-        (1, 10): {'color': 'light', 'enabled': True },
- 
-        (2,  0): {'color': None   , 'enabled': False},
-        (2,  1): {'color': 'light', 'enabled': True },
-        (2,  2): {'color': 'light', 'enabled': True },
-        (2,  3): {'color': None   , 'enabled': False},
-        (2,  4): {'color': 'light', 'enabled': True },
-        (2,  5): {'color': 'light', 'enabled': True },
-        (2,  6): {'color': None   , 'enabled': False},
- 
-        (3,  0): {'color': 'light', 'enabled': True },
-        (3,  1): {'color': 'light', 'enabled': True },
-        (3,  2): {'color': 'light', 'enabled': True },
-        (3,  3): {'color': 'light', 'enabled': True },
-        (3,  4): {'color': 'light', 'enabled': True },
-        (3,  5): {'color': 'light', 'enabled': True },
-        (3,  6): {'color': None   , 'enabled': False},
-        }
-        slendro = Scale({
-                          'ref_pitch': 440 * 2**(3/12),
-                          'octave_ratio': ['c', 1205],
-                          'notes': list(zip(('ji', 'ro', 'lu', 'ma', 'nam'),
-                              (['c', cents] for cents in slendro_intervals))),
-                          'knotes': slendro_knotes,
-                          'buttons': slendro_buttons,
-                          'name': 'slendro'
-                          })
         self._scales = [chromatic, slendro]
         self._scale = self._scales[0]
 
@@ -260,6 +130,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._tw = Typewriter(self)
 
         self._instrumentconf = QtGui.QTabWidget()
+        self._instrumentconf.setWindowTitle(u'Instrument Configuration')
 
         self._instruments = Instruments(self.p,
                                         self._tw,
@@ -426,8 +297,19 @@ class KqtEditor(QtGui.QMainWindow):
     def state_window(self):
         self._state.show()
 
-    def instrument_window(self):
+    def instruments_window(self):
         self._instrumentconf.show()
+
+    def instrument_window(self, ins_id):
+        ie = InstEditor(self.p, self.project, ins_id)
+        ie.init()
+        self.windows[ins_id] = ie
+        ie.show()
+        #ie.sync() FIXME: Do we need to call this from somewhere?
+
+    def kill_instrument_window(self, ins_id):
+        if ins_id in self.windows:
+            del self.windows[ins_id]
 
     def sync(self):
         self._sheet.sync()
@@ -447,7 +329,6 @@ class KqtEditor(QtGui.QMainWindow):
                 self._focus_backup.setFocus()
 
     def set_appearance(self):
-        # FIXME: size and title
         self.resize(800, 450)
         self.setWindowTitle(PROGRAM_NAME)
         #self.setWindowIcon(QtGui.QIcon('kunquat.svg'))

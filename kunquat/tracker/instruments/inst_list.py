@@ -47,20 +47,6 @@ class InstList(QtGui.QTableWidget):
                                QtCore.SIGNAL('cellChanged(int, int)'),
                                self.name_changed)
 
-    """
-    def inst_changed(self, text):
-        if text == '':
-            return
-        parts = text.split(':')
-        num = int(parts[0] )
-
-        index = self.model().index(num, 0)
-        select = self.selectionModel()
-        select.clear()
-        select.select(index, QtGui.QItemSelectionModel.Select)
-        select.setCurrentIndex(index, QtGui.QItemSelectionModel.Select)
-    """
-
     def inst_changed(self, num):
         index = self.model().index(num, 0)
         select = self.selectionModel()
@@ -83,11 +69,12 @@ class InstList(QtGui.QTableWidget):
             return
         item = self.item(row, 0)
         num = int(self.verticalHeaderItem(row).text())
-        key = 'ins_{0:02x}/m_name.json'.format(num)
+        ins = self.p.project._composition.get_instrument(num)
         if item:
-            self._project[key] = unicode(item.text())
+            name = unicode(item.text())
         else:
-            self._project[key] = None
+            name = None
+        ins.set_name(name)
 
     def update_instruments(self):
         inst_num = self.p._instruments._inst_num
@@ -100,7 +87,8 @@ class InstList(QtGui.QTableWidget):
         self.setVerticalHeaderLabels([str(num) for num in header_nums])
         table_index = 0
         for i in header_nums:
-            name = self._project['ins_{0:02x}/m_name.json'.format(i)]
+            ins = self.p.project._composition.get_instrument(i)
+            name = ins.get_name()
             label = name or ''
             item = QtGui.QTableWidgetItem(label)
             self.setItem(table_index, 0, item)
@@ -111,21 +99,6 @@ class InstList(QtGui.QTableWidget):
     def sync(self):
         self._signal = True
         self.update_instruments()
-        '''
-        for i in xrange(lim.INSTRUMENTS_MAX):
-            name = self._project['ins_{0:02x}/m_name.json'.format(i)]
-            if name:
-                item = self.item(i, 0)
-                if not item:
-                    item = QtGui.QTableWidgetItem(name)
-                    self.setItem(i, 0, item)
-                else:
-                    item.setText(name)
-            else:
-                item = self.item(i, 0)
-                if item:
-                    item.setText('')
-        '''
         self._signal = False
 
 

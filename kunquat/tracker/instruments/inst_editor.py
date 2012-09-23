@@ -27,12 +27,13 @@ import kunquat.tracker.kqt_limits as lim
 
 class InstEditor(QtGui.QWidget):
 
-    def __init__(self, p, project, instrument_spin, parent=None):
+    def __init__(self, p, project, instrument, parent=None):
         QtGui.QWidget.__init__(self, parent)
         self.p = p
 
+
         self._project = project
-        self._cur_inst = 0
+        self._cur_inst = int(instrument.split('_')[1])
         self._ins_key_base = 'ins_{0:02x}/'
         top_layout = QtGui.QVBoxLayout(self)
         top_layout.setMargin(0)
@@ -42,14 +43,8 @@ class InstEditor(QtGui.QWidget):
         layout.setSpacing(0)
 
         test = QtGui.QPushButton('Test')
-        load = QtGui.QPushButton('Load')
-        save = QtGui.QPushButton('Save')
-        remove = QtGui.QPushButton('Remove')
 
         layout.addWidget(test, 0)
-        layout.addWidget(load, 0)
-        layout.addWidget(save, 0)
-        layout.addWidget(remove, 0)
 
         top_layout.addLayout(layout)
 
@@ -77,19 +72,18 @@ class InstEditor(QtGui.QWidget):
         QtCore.QObject.connect(test,
                                QtCore.SIGNAL('released()'),
                                self.test_note_off)
-        QtCore.QObject.connect(load,
-                               QtCore.SIGNAL('clicked()'),
-                               self.load)
-        QtCore.QObject.connect(save,
-                               QtCore.SIGNAL('clicked()'),
-                               self.save)
-        QtCore.QObject.connect(remove,
-                               QtCore.SIGNAL('clicked()'),
-                               self.remove)
 
-        QtCore.QObject.connect(instrument_spin,
-                               QtCore.SIGNAL('currentIndexChanged(const QString&)'),
-                               self.inst_changed)
+        self._force.inst_changed(self._cur_inst)
+        self._panning.inst_changed(self._cur_inst)
+        self._filter.inst_changed(self._cur_inst)
+        self._generators.inst_changed(self._cur_inst)
+        ins_key = self._ins_key_base.format(self._cur_inst)
+        self._effects.set_base(ins_key)
+        self._connections.set_key(ins_key + 'p_connections.json')
+
+        inst = self._project._composition.get_instrument(self._cur_inst)
+        title = u'Instrument %s' % inst.get_id_name()
+        self.setWindowTitle(title)
 
     def init(self):
         self._force.init()
@@ -99,56 +93,19 @@ class InstEditor(QtGui.QWidget):
         self._effects.init()
         self._connections.init()
 
-    def inst_changed(self, text):
-        if text == '':
-            return
-        parts = text.split(':')
-        num = int(parts[0] )
-
-        self._cur_inst = num
-        self._force.inst_changed(num)
-        self._panning.inst_changed(num)
-        self._filter.inst_changed(num)
-        self._generators.inst_changed(num)
-        ins_key = self._ins_key_base.format(self._cur_inst)
-        self._effects.set_base(ins_key)
-        self._connections.set_key(ins_key + 'p_connections.json')
-
     def test_note_on(self):
-        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyPress,
-                             QtCore.Qt.Key_section,
-                             QtCore.Qt.NoModifier)
-        QtCore.QCoreApplication.postEvent(self, ev)
+        self.p._toolbar.select_instrument(self._cur_inst)
+        self.p._tw.press_random()
 
     def test_note_off(self):
-        ev = QtGui.QKeyEvent(QtCore.QEvent.KeyRelease,
-                             QtCore.Qt.Key_section,
-                             QtCore.Qt.NoModifier)
-        QtCore.QCoreApplication.postEvent(self, ev)
+        self.p._tw.release_random()
 
-    def load(self):
-        slot = 0
-        ids = self.p.project._composition.instrument_ids()
-        numbers = [int(i.split('_')[1]) for i in ids]
-        while slot in numbers:
-            slot += 1
-        fname = QtGui.QFileDialog.getOpenFileName(
-                caption='Load Kunquat instrument (to index {0})'.format(slot),
-                filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
-        if fname:
-            self._project.import_kqti(slot, str(fname))
+    def keyPressEvent(self, ev):
+        self.p._toolbar.select_instrument(self._cur_inst)
+        self.p._tw.keyPressEvent(ev)
 
-    def save(self):
-        slot = self._cur_inst
-        fname = QtGui.QFileDialog.getSaveFileName(
-                caption='Save Kunquat instrument (of index {0})'.format(slot),
-                filter='Kunquat instruments (*.kqti *.kqti.gz *.kqti.bz2)')
-        if fname:
-            self._project.export_kqti(slot, str(fname))
-
-    def remove(self):
-        inst = self._project._composition.get_instrument(self._cur_inst)
-        inst.delall()        
+    def keyReleaseEvent(self, ev):
+        self.p._tw.keyReleaseEvent(ev)
 
     def sync(self):
         self._force.sync()
