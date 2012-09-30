@@ -34,6 +34,8 @@ class Subsongs(QtGui.QTreeView):
         section.connect(self.section_changed)
         self._section_manager = section
         self.setHeaderHidden(True)
+        #self.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
+
 
     def init(self):
         self.sync()
