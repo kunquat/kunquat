@@ -13,6 +13,7 @@
 #
 
 from instrument import Instrument
+from song import Song
 from copy import deepcopy
 from itertools import izip, takewhile
 from history import History
@@ -261,5 +262,12 @@ class Composition():
         foo =  set([f for f in folders if f.startswith('ins')])
         return foo
 
+    def song_ids(self):
+        folders = [f.split('/')[0] for f in self._store.keys()]
+        foo =  set([f for f in folders if f.startswith('song')])
+        return foo
+
+    def get_song(self, song_id):
+        return Song(self, song_id)
 
 
