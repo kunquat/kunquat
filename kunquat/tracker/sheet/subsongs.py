@@ -58,15 +58,18 @@ class Subsongs(QtGui.QWidget):
     def init(self):
         self.update()
 
-    def update(self):
-        project = self.p.project
-        album = QtGui.QStandardItem('untitled album')
-        album.setEditable(False)
-        model = QtGui.QStandardItemModel()
-        root = model.invisibleRootItem()
-        root.appendRow(album)
-        songs = self.p.project._composition.song_ids()
-        for i, song_id in enumerate(songs):
+    def create_systems(self, order_list):
+        for i2, pattern in enumerate(order_list):
+            system_number = i2 + 1
+            ptt = 'System {1}'.format(system_number, pattern)
+            pname = str(system_number) + ': ' + str(pattern)
+            pattern_item = QtGui.QStandardItem(ptt)
+            #pattern_item.setToolTip(ptt)
+            pattern_item.setEditable(True)
+            yield pattern_item
+
+    def create_songs(self, song_ids):
+        for i, song_id in enumerate(song_ids):
             song_number = i + 1
             song = self.p.project._composition.get_song(song_id)
             song_name = song.get_name()
@@ -75,16 +78,32 @@ class Subsongs(QtGui.QWidget):
             song_item = QtGui.QStandardItem(stt)
             #song_item.setToolTip(stt)
             song_item.setEditable(False)
-            album.appendRow(song_item)
             order_list = song.get_order_list()
-            for i2, pattern in enumerate(order_list):
-                system_number = i2 + 1
-                ptt = 'System {1}'.format(system_number, pattern)
-                pname = str(system_number) + ': ' + str(pattern)
-                pattern_item = QtGui.QStandardItem(ptt)
-                #pattern_item.setToolTip(ptt)
-                pattern_item.setEditable(True)
+            for pattern_item in self.create_systems(order_list):
                 song_item.appendRow(pattern_item)
+            yield song_item
+
+    def create_trash(self):
+        trash_item = QtGui.QStandardItem('Trash')
+        trash_item.setEditable(False)
+        trash_ids = self.p.project._composition.left_over_patterns()
+        trash = [int(i.split('_')[1]) for i in trash_ids]
+        for system_item in self.create_systems(sorted(trash)):
+            trash_item.appendRow(system_item)
+        return trash_item
+
+    def update(self):
+        project = self.p.project
+        album = QtGui.QStandardItem('untitled album')
+        album.setEditable(False)
+        songs = self.p.project._composition.song_ids()
+        for song_item in self.create_songs(songs):
+            album.appendRow(song_item)
+        trash = self.create_trash()
+        album.appendRow(trash)
+        model = QtGui.QStandardItemModel()
+        root = model.invisibleRootItem()
+        root.appendRow(album)
         self._song_list.setModel(model)
         self._song_list.expandAll()
 

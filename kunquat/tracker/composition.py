@@ -270,4 +270,18 @@ class Composition():
     def get_song(self, song_id):
         return Song(self, song_id)
 
+    def left_over_patterns(self):
+        system_ids = self.pattern_ids()
+        systems = [int(i.split('_')[1]) for i in system_ids]
+        all_systems = set(systems)
+
+        in_use = set()
+        for song_id in self.song_ids():
+            song = self.get_song(song_id)
+            order_list = song.get_order_list()
+            in_use.update(order_list)
+
+        left_over = all_systems - in_use
+        left_over_ids = ['pat_{0:02x}'.format(i) for i in left_over]
+        return left_over_ids
 
