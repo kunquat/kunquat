@@ -420,7 +420,7 @@ class Subsongs(QtGui.QTreeView):
             subsong_item.setEditable(False)
             composition.appendRow(subsong_item)
             for section, pattern in enumerate(slist):
-                pattern_item = QtGui.QStandardItem(str(pattern))
+                pattern_item = QtGui.QStandardItem(str(section) + ': ' + str(pattern))
                 pattern_item.setEditable(True)
                 subsong_item.appendRow(pattern_item)
             if len(slist) < lim.SECTIONS_MAX:
