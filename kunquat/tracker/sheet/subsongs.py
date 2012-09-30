@@ -23,6 +23,7 @@ class Subsongs(QtGui.QTreeView):
 
     def __init__(self, p):
         QtGui.QWidget.__init__(self)
+        self.p = p
         song_list = QtGui.QTreeView
         self.setHeaderHidden(True)
         #self.setDragDropMode(QtGui.QAbstractItemView.InternalMove)
@@ -31,7 +32,7 @@ class Subsongs(QtGui.QTreeView):
     def init(self):
         self.update()
 
-    def update():
+    def update(self):
         pass
 
 

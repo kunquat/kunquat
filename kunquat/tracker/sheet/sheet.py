@@ -23,6 +23,7 @@ from subsongs import Subsongs
 class Sheet(QtGui.QSplitter):
 
     def __init__(self,
+                 p,
                  project,
                  playback,
                  subsong_changed_slot,
@@ -36,6 +37,7 @@ class Sheet(QtGui.QSplitter):
                  parent=None):
         QtGui.QSplitter.__init__(self, parent)
 
+        self.p = p
         self._project = project
         self._playback = playback
         self._section = Section(project, self)
@@ -56,7 +58,7 @@ class Sheet(QtGui.QSplitter):
         self._edit_area.addWidget(self._subsong_params)
         self._edit_area.addWidget(self._pattern_editor)
 
-        self._subsongs = Subsongs(project, self._section)
+        self._subsongs = Subsongs(self.p)
         playorder = QtGui.QWidget(self)
         playout = QtGui.QVBoxLayout(playorder)
         playout.setMargin(0)
@@ -106,7 +108,6 @@ class Sheet(QtGui.QSplitter):
         self._edit_area.setCurrentWidget(self._subsong_params)
 
     def sync(self):
-        self._subsongs.sync()
         self._comp_params.sync()
         self._subsong_params.sync()
         self._pattern_editor.sync()

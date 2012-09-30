@@ -155,7 +155,7 @@ class KqtEditor(QtGui.QMainWindow):
         self._peak_meter = PeakMeter(-96, 0, self.handle.mixing_rate)
 
         playback_bar = self._playback.get_view()
-        self._sheet = Sheet(self.project, self._playback,
+        self._sheet = Sheet(self.p, self.project, self._playback,
                             self._playback.subsong_changed, self.section_changed,
                             self.pattern_changed, self.pattern_offset_changed,
                             self._toolbar._octave, self._toolbar._instrument, self._tw, playback_bar)
